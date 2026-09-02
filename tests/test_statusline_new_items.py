@@ -104,19 +104,19 @@ class NewItemRenderingTests(unittest.TestCase):
 
     def test_session_prefers_name_then_id_prefix(self):
         data = {"session_id": "abcdefghijkl", "session_name": "Refactor"}
-        self.assertEqual(self.render_items(data, "session"), "session Refactor")
+        self.assertEqual(self.render_items(data, "session"), "Session Refactor")
         self.assertEqual(
             self.render_items({"session_id": "abcdefghijkl"}, "session"),
-            "session abcdefgh",
+            "Session abcdefgh",
         )
         self.assertEqual(
-            self.render_items({"session_id": "abc"}, "session"), "session abc"
+            self.render_items({"session_id": "abc"}, "session"), "Session abc"
         )
         self.assertEqual(
             self.render_items(
                 {"session_id": "abcdefgh", "session_name": ""}, "session"
             ),
-            "session abcdefgh",
+            "Session abcdefgh",
         )
         self.assertEqual(self.render_items({"session_id": ""}, "session"), "")
 
@@ -130,7 +130,7 @@ class NewItemRenderingTests(unittest.TestCase):
             }
         }
         self.assertEqual(
-            self.render_items(data, "cost"), "$0.12 · 12m 30s · +156/-23"
+            self.render_items(data, "cost"), "Total $0.12 · 12m 30s · +156/-23"
         )
 
     def test_cost_item_omits_zero_parts(self):
@@ -142,7 +142,7 @@ class NewItemRenderingTests(unittest.TestCase):
                 "total_lines_removed": 0,
             }
         }
-        self.assertEqual(self.render_items(data, "cost"), "$0.00")
+        self.assertEqual(self.render_items(data, "cost"), "Total $0.00")
         self.assertEqual(
             self.render_items({"cost": {"total_cost_usd": True}}, "cost"), ""
         )
@@ -180,7 +180,7 @@ class NewItemRenderingTests(unittest.TestCase):
     def test_agent_item(self):
         self.assertEqual(
             self.render_items({"agent": {"name": "orchestrator"}}, "agent"),
-            "agent orchestrator",
+            "Agent orchestrator",
         )
         self.assertEqual(self.render_items({"agent": {"name": ""}}, "agent"), "")
         self.assertEqual(self.render_items({}, "agent"), "")
@@ -221,7 +221,7 @@ class NewItemRenderingTests(unittest.TestCase):
     def test_worktree_item(self):
         self.assertEqual(
             self.render_items({"worktree": {"name": "feat-x"}}, "worktree"),
-            "worktree feat-x",
+            "Worktree feat-x",
         )
         self.assertEqual(self.render_items({"worktree": {"name": ""}}, "worktree"), "")
         self.assertEqual(self.render_items({}, "worktree"), "")
@@ -232,7 +232,7 @@ class NewItemRenderingTests(unittest.TestCase):
                 "repo": {"host": "github.com", "owner": "acme", "name": "widget"}
             }
         }
-        self.assertEqual(self.render_items(data, "repo"), "repo acme/widget")
+        self.assertEqual(self.render_items(data, "repo"), "Repo acme/widget")
         self.assertEqual(
             self.render_items({"workspace": {"repo": {"owner": "acme"}}}, "repo"), ""
         )
@@ -289,7 +289,7 @@ class NewItemRenderingTests(unittest.TestCase):
         self.assertEqual(
             rendered,
             "test-model max · fast · thinking | "
-            "git main · PR #1234 · approved · repo acme/widget | "
+            "Git main · PR #1234 · approved · Repo acme/widget | "
             "hit 10 · miss 20 · out 5 · cache 91% · 352K w",
         )
 
@@ -302,7 +302,7 @@ class NewItemRenderingTests(unittest.TestCase):
         }
         self.assertEqual(
             self.render_items(data, "version", "model-with-effort", "session"),
-            "v2.1.258 | test-model | session Refactor",
+            "v2.1.258 | test-model | Session Refactor",
         )
 
     def test_new_items_do_not_load_expensive_sources(self):
@@ -313,7 +313,7 @@ class NewItemRenderingTests(unittest.TestCase):
         ):
             self.assertEqual(
                 configured_text({"cost": {"total_cost_usd": 1.0}}, config),
-                "$1.00",
+                "Total $1.00",
             )
         git_status.assert_not_called()
         token_totals.assert_not_called()
@@ -405,7 +405,7 @@ class NewItemSubprocessTests(unittest.TestCase):
         self.assertEqual(result.stderr, "")
         self.assertEqual(
             plain(result.stdout).strip(),
-            "v2.1.258 | session abc12345 | $0.12 · 12m 30s · +156/-23",
+            "v2.1.258 | Session abc12345 | Total $0.12 · 12m 30s · +156/-23",
         )
 
 

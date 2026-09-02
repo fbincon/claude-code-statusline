@@ -11,7 +11,7 @@
 ```bash
 cd /home/fbincon/coding/claude-code-statusline
 uv build
-pipx install dist/claude_code_statusline-0.3.1-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.3.2-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -115,8 +115,8 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 以下条目来自 Claude Code 2.1.258 及以上版本的公开 statusline payload，**默认不显示**，用 `/statusline-config enable` 开启：
 
 - `version`：Claude Code 版本，如 `v2.1.258`
-- `session`：会话名称（`/rename` 设置后），否则显示会话 ID 前 8 位，如 `session explain prompt-cache`
-- `cost`：会话金额、API 时长与增删行数，如 `$0.12 · 12m 30s · +156/-23`（第三方 API 下金额为估算值）
+- `session`：会话名称（`/rename` 设置后），否则显示会话 ID 前 8 位，如 `Session explain prompt-cache`
+- `cost`：会话金额、API 时长与增删行数，如 `Total $0.12 · 12m 30s · +156/-23`（第三方 API 下金额为估算值）
 - `prompt-cache`：缓存命中率与写入 token，如 `cache 91% · 352K w`（首次 API 响应后才有数据）
 - `fast-mode`：fast mode 开启时显示 `fast`
 - `agent`：`--agent` 会话的 agent 名称
@@ -124,7 +124,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 - `thinking`：扩展思考启用时显示 `thinking`
 - `pr`：当前分支的 open PR/MR，如 `PR #1234 · approved`（GitLab 显示 `MR !1234`）
 - `worktree`：`--worktree` 会话的 worktree 名称
-- `repo`：origin remote 的仓库，如 `repo owner/name`
+- `repo`：origin remote 的仓库，如 `Repo owner/name`
 
 `set-items` 不带条目时会隐藏全部状态行内容。`order` 必须恰好列出当前启用的所有条目一次。
 
@@ -145,7 +145,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 构建新版本 wheel 后，让 pipx 替换现有环境，再重复执行安装命令。该命令是幂等的，不会产生重复 hooks：
 
 ```bash
-pipx install --force dist/claude_code_statusline-0.3.1-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.3.2-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```

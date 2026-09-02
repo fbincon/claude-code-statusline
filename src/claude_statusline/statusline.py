@@ -1198,7 +1198,7 @@ def _live_directory(data):
 
 def _git_segment(result, palette=DEFAULT_PALETTE):
     if result["kind"] == "error":
-        return f"{palette.git_error}git!{palette.reset}"
+        return f"{palette.git_error}Git!{palette.reset}"
     if result["kind"] != "ok":
         return None
     statuses = []
@@ -1218,7 +1218,7 @@ def _git_segment(result, palette=DEFAULT_PALETTE):
     if result["untracked"]:
         statuses.append(f"?{result['untracked']}")
     suffix = " " + "".join(statuses) if statuses else ""
-    return f"{palette.branch}git {result['branch']}{suffix}{palette.reset}"
+    return f"{palette.branch}Git {result['branch']}{suffix}{palette.reset}"
 
 
 def _fmt_duration(seconds, nearest=False):
@@ -1608,7 +1608,7 @@ class _RenderState:
             if not isinstance(sid, str) or not sid:
                 return None
             text = sid[:8]
-        return _RenderedItem(f"{self.palette.model}session {text}{self.palette.reset}")
+        return _RenderedItem(f"{self.palette.model}Session {text}{self.palette.reset}")
 
     def cost(self):
         cost = deep_get(self.data, ("cost",))
@@ -1620,7 +1620,7 @@ class _RenderState:
         usd = float(usd)
         if not math.isfinite(usd):
             return None
-        parts = [f"{self.palette.percentage}${usd:.2f}{self.palette.reset}"]
+        parts = [f"{self.palette.percentage}Total ${usd:.2f}{self.palette.reset}"]
         duration_ms = cost.get("total_duration_ms")
         if (not isinstance(duration_ms, bool)
                 and isinstance(duration_ms, (int, float)) and duration_ms > 0):
@@ -1667,7 +1667,7 @@ class _RenderState:
         name = deep_get(self.data, ("agent", "name"))
         if not isinstance(name, str) or not name:
             return None
-        return _RenderedItem(f"{self.palette.timer}agent {name}{self.palette.reset}")
+        return _RenderedItem(f"{self.palette.timer}Agent {name}{self.palette.reset}")
 
     def vim_mode(self):
         mode = deep_get(self.data, ("vim", "mode"))
@@ -1702,7 +1702,7 @@ class _RenderState:
         name = deep_get(self.data, ("worktree", "name"))
         if not isinstance(name, str) or not name:
             return None
-        return _RenderedItem(f"{self.palette.branch}worktree {name}{self.palette.reset}")
+        return _RenderedItem(f"{self.palette.branch}Worktree {name}{self.palette.reset}")
 
     def repo(self):
         repo = deep_get(self.data, ("workspace", "repo"))
@@ -1714,7 +1714,7 @@ class _RenderState:
                 or not isinstance(name, str) or not name):
             return None
         return _RenderedItem(
-            f"{self.palette.branch}repo {owner}/{name}{self.palette.reset}",
+            f"{self.palette.branch}Repo {owner}/{name}{self.palette.reset}",
             group="repo",
         )
 
