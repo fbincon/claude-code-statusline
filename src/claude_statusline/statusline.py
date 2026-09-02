@@ -1445,6 +1445,17 @@ _ITEM_METHODS = {
     "context-window-size": "context_window_size",
     "tokens": "tokens",
     "prompt-timer": "prompt_timer",
+    "version": "version",
+    "session": "session",
+    "cost": "cost",
+    "prompt-cache": "prompt_cache",
+    "fast-mode": "fast_mode",
+    "agent": "agent",
+    "vim-mode": "vim_mode",
+    "thinking": "thinking",
+    "pr": "pr",
+    "worktree": "worktree",
+    "repo": "repo",
 }
 _RATE_LIMIT_ITEMS = {
     "five-hour-limit": ("five_hour", "5h"),
@@ -1581,6 +1592,142 @@ class _RenderState:
             self.palette,
         )
         return _RenderedItem(text) if text else None
+
+    def version(self):
+        value = deep_get(self.data, ("version",))
+        if not isinstance(value, str) or not value:
+            return None
+        return _RenderedItem(
+            f"{self.palette.model}v{value}{self.palette.reset}", group="session"
+        )
+
+    def session(self):
+        name = deep_get(self.data, ("session_name",))
+        if isinstance(name, str) and name:
+            text = name
+        else:
+            sid = deep_get(self.data, ("session_id",))
+            if not isinstance(sid, str) or not sid:
+                return None
+            text = sid[:8]
+        return _RenderedItem(
+            f"{self.palette.model}{text}{self.palette.reset}", group="session"
+        )
+
+    def cost(self):
+        cost = deep_get(self.data, ("cost",))
+        if not isinstance(cost, dict):
+            return None
+        usd = cost.get("total_cost_usd")
+        if isinstance(usd, bool) or not isinstance(usd, (int, float)):
+            return None
+        usd = float(usd)
+        if not math.isfinite(usd):
+            return None
+        parts = [f"{self.palette.percentage}${usd:.2f}{self.palette.reset}"]
+        duration_ms = cost.get("total_duration_ms")
+        if (not isinstance(duration_ms, bool)
+                and isinstance(duration_ms, (int, float)) and duration_ms > 0):
+            duration = _fmt_duration(float(duration_ms) / 1000.0)
+            if duration:
+                parts.append(
+                    f"{self.palette.percentage}{duration}{self.palette.reset}"
+                )
+        added = _usage_int(cost.get("total_lines_added"))
+        removed = _usage_int(cost.get("total_lines_removed"))
+        if added or removed:
+            parts.append(
+                f"{self.palette.percentage}+{added}/-{removed}{self.palette.reset}"
+            )
+        return _RenderedItem(self.inner_separator.join(parts), group="usage")
+
+    def prompt_cache(self):
+        cache = deep_get(self.data, ("prompt_cache",))
+        if not isinstance(cache, dict):
+            return None
+        parts = []
+        ratio = cache.get("hit_ratio")
+        if (not isinstance(ratio, bool) and isinstance(ratio, (int, float))
+                and math.isfinite(ratio) and 0 <= ratio <= 1):
+            parts.append(
+                f"{self.palette.tokens}cache {round(ratio * 100)}%"
+                f"{self.palette.reset}"
+            )
+        written = humanize_tokens(cache.get("cache_write_tokens"))
+        if written and written != "0":
+            parts.append(f"{self.palette.tokens}{written} w{self.palette.reset}")
+        if not parts:
+            return None
+        return _RenderedItem(self.inner_separator.join(parts), group="usage")
+
+    def fast_mode(self):
+        if not deep_get(self.data, ("fast_mode",)):
+            return None
+        return _RenderedItem(
+            f"{self.palette.timer}fast{self.palette.reset}", group="mode"
+        )
+
+    def agent(self):
+        name = deep_get(self.data, ("agent", "name"))
+        if not isinstance(name, str) or not name:
+            return None
+        return _RenderedItem(
+            f"{self.palette.timer}agent {name}{self.palette.reset}", group="mode"
+        )
+
+    def vim_mode(self):
+        mode = deep_get(self.data, ("vim", "mode"))
+        if not isinstance(mode, str) or not mode:
+            return None
+        return _RenderedItem(
+            f"{self.palette.timer}vim {mode}{self.palette.reset}", group="mode"
+        )
+
+    def thinking(self):
+        if not deep_get(self.data, ("thinking", "enabled")):
+            return None
+        return _RenderedItem(
+            f"{self.palette.timer}thinking{self.palette.reset}", group="mode"
+        )
+
+    def pr(self):
+        pr = deep_get(self.data, ("pr",))
+        if not isinstance(pr, dict):
+            return None
+        number = pr.get("number")
+        if (isinstance(number, bool)
+                or not isinstance(number, (int, str))
+                or (isinstance(number, str) and not number)):
+            return None
+        prefix = "MR !" if pr.get("kind") == "mr" else "PR #"
+        text = f"{self.palette.branch}{prefix}{number}"
+        state = pr.get("review_state")
+        if isinstance(state, str) and state:
+            text += self.inner_separator + state
+        return _RenderedItem(text + self.palette.reset, group="repo")
+
+    def worktree(self):
+        name = deep_get(self.data, ("worktree", "name"))
+        if not isinstance(name, str) or not name:
+            return None
+        return _RenderedItem(
+            f"{self.palette.branch}worktree {name}{self.palette.reset}",
+            group="repo",
+        )
+
+    def repo(self):
+        repo = deep_get(self.data, ("workspace", "repo"))
+        if not isinstance(repo, dict):
+            return None
+        owner = repo.get("owner")
+        name = repo.get("name")
+        if (not isinstance(owner, str) or not owner
+                or not isinstance(name, str) or not name):
+            return None
+        return _RenderedItem(
+            f"{self.palette.branch}{owner}/{name}{self.palette.reset}",
+            group="repo",
+        )
 
     def render(self, item_id):
         rate_limit = _RATE_LIMIT_ITEMS.get(item_id)

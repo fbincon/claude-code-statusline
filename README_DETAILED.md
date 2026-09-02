@@ -26,7 +26,7 @@
 
 ## 功能概览
 
-- 按用户选择显示或隐藏 10 个现有状态项。
+- 按用户选择显示或隐藏状态项：默认 10 项，另有 11 个可选条目（版本、会话、cost、prompt-cache、运行模式、PR/worktree 等）。
 - 按配置文件中的顺序渲染状态项。
 - 支持 24 位 RGB 配色、终端 ANSI 配色或完全关闭颜色。
 - 支持完整路径、`~` 路径、项目相对路径和目录 basename。
@@ -69,7 +69,7 @@ command -v git
 
 ```bash
 uv build
-pipx install dist/claude_code_statusline-0.2.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.3.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -78,7 +78,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.2.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.3.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -130,8 +130,13 @@ claude-statusline install --force
 - Identity / Repo：模型、目录和 Git。
 - Context：上下文剩余百分比和窗口大小。
 - Limits：5 小时、每周和 spend 限额。
-- Usage：token 统计和 prompt 计时器。
+- Usage：token 统计、prompt 计时器、cost 和 prompt-cache。
+- Session：Claude Code 版本和会话名称/ID。
+- Modes：fast mode、agent、vim mode 和 thinking 指示器。
+- Repository：当前分支的 open PR/MR、worktree 名称和远程仓库 `owner/name`。
 - 颜色、palette、目录格式、分隔符、padding、刷新间隔和 Vim 指示器。
+
+Session、Modes、Repository 组的条目以及 `cost`、`prompt-cache` 默认禁用；在向导中勾选即启用。
 
 向导会保留仍然启用的条目的相对顺序，并按默认目录顺序把新启用的条目追加到末尾。完成全部选择后，它只调用一次原子 `config apply`；中途取消不会写入任何配置。
 
@@ -282,7 +287,7 @@ claude-statusline config list-items --json
 
 - `id`：传给其他命令的稳定标识符。
 - `description`：显示项说明。
-- `default_enabled`：默认是否启用。
+- `default_enabled`：默认是否启用。前 10 个原有条目为 `true`；`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 为 `false`（opt-in）。
 - `enabled`：当前是否启用。
 - `position`：当前从 0 开始的顺序；禁用时为 `null`。
 
@@ -430,6 +435,24 @@ claude-statusline config reset
 
 限额百分比由 Claude Code 传入的 `used_percentage` 换算为剩余百分比。本工具不查询账号限额服务，因此实际能显示哪些窗口取决于当前 Claude Code 版本、账号和本次 statusline payload。
 
+以下条目来自 Claude Code 2.1.258 及以上版本的公开 statusline payload，**默认不显示**，通过 `/statusline-config enable` 开启：
+
+| ID | 显示内容 | 数据不可用时的行为 |
+| --- | --- | --- |
+| `version` | Claude Code 版本，例如 `v2.1.258` | 未提供版本时省略 |
+| `session` | 会话名称（`/rename` 设置后），否则显示会话 ID 前 8 位 | 没有会话 ID 时省略 |
+| `cost` | 会话金额、API 时长与增删行数，例如 `$0.12 · 12m 30s · +156/-23`；金额恒显示（无数据时为 `$0.00`），时长为 0 或增删行均为 0 时省略对应部分 | 没有 cost 字段时省略 |
+| `prompt-cache` | 缓存命中率与写入 token，例如 `cache 91% · 352K w` | 没有 prompt_cache 字段时省略（首次 API 响应前不存在）；命中率越界时只显示 token 部分 |
+| `fast-mode` | fast mode 开启时显示 `fast` | 未开启时省略 |
+| `agent` | `--agent` 会话的 agent 名称，例如 `agent orchestrator` | 没有 agent 字段时省略 |
+| `vim-mode` | vim mode 开启时的当前模式，例如 `vim NORMAL` | 没有 vim 字段时省略 |
+| `thinking` | 扩展思考启用时显示 `thinking` | 未启用时省略 |
+| `pr` | 当前分支的 open PR/MR，例如 `PR #1234 · approved`；GitLab 合并请求显示为 `MR !1234` | 当前分支没有 open PR/MR 时省略 |
+| `worktree` | `--worktree` 会话的 worktree 名称，例如 `worktree feat-x` | 没有 worktree 字段时省略 |
+| `repo` | origin remote 的仓库，例如 `acme/widget` | 没有 remote 身份时省略 |
+
+`cost` 的金额来自 Claude Code 的 `total_cost_usd`；在第三方 API 端点（例如 DeepSeek 代理）下该值为按默认模型费率的估算，仅作参考。`prompt-cache` 与 `tokens` 的统计口径不同：前者来自 statusline payload 且不含 subagent 流量，后者从 transcript 累计并包含可发现的 subagent transcript。
+
 ### Git 标记
 
 `git` 条目使用以下紧凑标记：
@@ -508,8 +531,12 @@ claude-statusline config reset
 
 - `context-remaining` 与 `context-window-size`
 - `five-hour-limit`、`weekly-limit` 与 `spend-limit`
+- `version` 与 `session`
+- `fast-mode`、`agent`、`vim-mode` 与 `thinking`
+- `cost` 与 `prompt-cache`
+- `pr`、`worktree` 与 `repo`
 
-如果通过排序把同组条目分开，它们会恢复为独立顶层条目。`tokens` 内部的 `hit`、`miss`、`out` 始终使用 ` · `。
+如果通过排序把同组条目分开，它们会恢复为独立顶层条目。`tokens` 内部的 `hit`、`miss`、`out`，`cost` 内部的金额、时长、增删行，以及 `prompt-cache` 内部的命中率、写入 token 始终使用 ` · `。
 
 ### 刷新间隔
 
@@ -563,6 +590,8 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 ```
 
 这是严格 JSON：不接受注释、尾随逗号、未知字段、缺失字段、未知条目或重复条目。建议使用配置命令修改，而不是手工编辑。
+
+上例中的 10 个条目是默认启用集合。`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
 
 配置更新采用 0600 文件权限、临时文件和原子替换。多个并发配置命令共享同一把文件锁，避免后写入者丢失先写入者的变更。
 
@@ -670,7 +699,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.2.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.3.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
@@ -887,7 +916,7 @@ uv build
 确认 wheel 包含 personal skill 模板：
 
 ```bash
-python3 -m zipfile -l dist/claude_code_statusline-0.2.0-py3-none-any.whl
+python3 -m zipfile -l dist/claude_code_statusline-0.3.0-py3-none-any.whl
 ```
 
 ## 当前边界

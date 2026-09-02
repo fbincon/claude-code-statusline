@@ -23,9 +23,36 @@ ITEM_CATALOG = {
     "spend-limit": "Remaining gateway spend limit",
     "tokens": "Cumulative cache hit, cache miss, and output tokens",
     "prompt-timer": "Elapsed time and outcome of the latest prompt",
+    "version": "Claude Code version",
+    "session": "Session name, or the session identifier prefix",
+    "cost": "Session cost, API duration, and line changes",
+    "prompt-cache": "Prompt cache hit ratio and cached input tokens",
+    "fast-mode": "Indicates fast mode is active",
+    "agent": "Agent name in --agent sessions",
+    "vim-mode": "Current Vim mode",
+    "thinking": "Indicates extended thinking is enabled",
+    "pr": "Open pull or merge request on the current branch",
+    "worktree": "Worktree name in --worktree sessions",
+    "repo": "Remote repository owner and name",
 }
 
-DEFAULT_ITEMS = tuple(ITEM_CATALOG)
+LEGACY_DEFAULT_ITEMS = (
+    "model-with-effort",
+    "current-dir",
+    "git",
+    "context-remaining",
+    "context-window-size",
+    "five-hour-limit",
+    "weekly-limit",
+    "spend-limit",
+    "tokens",
+    "prompt-timer",
+)
+
+# New catalog items are opt-in: DEFAULT_ITEMS intentionally stays the legacy
+# ten, so a machine without a display config renders exactly the 0.1.0/0.2.0
+# status line. Users enable the newer items via /statusline-config.
+DEFAULT_ITEMS = LEGACY_DEFAULT_ITEMS
 PALETTES = ("default", "ansi")
 DIRECTORY_STYLES = ("full", "home", "project-relative", "basename")
 SEPARATOR_STYLES = ("classic", "compact")

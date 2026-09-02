@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 - 2026-09-03
+
+- 新增 11 个可选显示项：`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo`，数据来自 Claude Code 2.1.258+ 的公开 statusline payload。
+- 新显示项默认禁用，默认输出与 0.2.0 完全一致；通过 `/statusline-config enable` 主动开启。
+- `cost` 显示会话金额、API 时长与增删行数（第三方 API 下金额为估算值）；`prompt-cache` 显示缓存命中率与写入 token。
+- 更新 `/statusline-config` 向导分组，新条目可通过勾选启用。
+
 ## 0.2.0 - 2026-09-03
 
 - 增加用户全局的严格 JSON 显示配置、可选显示项及持久化顺序。

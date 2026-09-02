@@ -30,7 +30,12 @@ If the invocation arguments are empty:
    - Identity / Repo: `model-with-effort`, `current-dir`, `git`
    - Context: `context-remaining`, `context-window-size`
    - Limits: `five-hour-limit`, `weekly-limit`, `spend-limit`
-   - Usage: `tokens`, `prompt-timer`
+   - Usage: `tokens`, `prompt-timer`, `cost`, `prompt-cache`
+   - Session: `version`, `session`
+   - Modes: `fast-mode`, `agent`, `vim-mode`, `thinking`
+   - Repository: `pr`, `worktree`, `repo`
+   The Session, Modes, and Repository items plus `cost` and `prompt-cache` are
+   disabled by default; selecting them here enables them.
 4. Preserve the relative order of currently enabled selected items. Append
    newly enabled items in the catalog order returned by `list-items`.
 5. Ask for:
