@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Claude Code status line renderer.
-# Reads the statusline JSON from stdin and prints adaptive colored rows:
+# Reads the statusline JSON from stdin and, by default, prints colored rows:
 #   model-id effort | dir | branch ↑ahead↓behind● staged~unstaged
 #   | Context N% left · size window
 #   | 5h N% left · weekly N% left · spend N% left | in · out
@@ -26,7 +26,14 @@ import tempfile
 import time
 import unicodedata
 from dataclasses import dataclass
+from pathlib import Path
 
+from .display_config import (
+    DEFAULT_CONFIG,
+    DisplayConfigError,
+    format_directory,
+    load_display_config,
+)
 from .turn_state import (
     load_turn_state,
     now_clocks,
@@ -45,6 +52,47 @@ C_TOKENS = "\033[1;38;2;233;144;169m"  # bold pink #E990A9
 C_TIMER = "\033[1;38;2;142;211;211m"   # bold light cyan #8ED3D3
 C_SEP = "\033[90m | \033[0m"   # dim gray separator between top-level segments
 C_JOIN = "\033[90m · \033[0m"  # dim gray middle dot, joins segments that read as one item
+
+
+@dataclass(frozen=True)
+class _Palette:
+    reset: str
+    model: str
+    directory: str
+    branch: str
+    git_error: str
+    percentage: str
+    size: str
+    tokens: str
+    timer: str
+    separator: str
+
+
+DEFAULT_PALETTE = _Palette(
+    reset=C_RESET,
+    model=C_MODEL,
+    directory=C_DIR,
+    branch=C_BRANCH,
+    git_error=C_GIT_ERROR,
+    percentage=C_PCT,
+    size=C_SIZE,
+    tokens=C_TOKENS,
+    timer=C_TIMER,
+    separator="\033[90m",
+)
+ANSI_PALETTE = _Palette(
+    reset=C_RESET,
+    model="\033[1;33m",
+    directory="\033[1;32m",
+    branch="\033[1;35m",
+    git_error="\033[1;31m",
+    percentage="\033[1;33m",
+    size="\033[1;33m",
+    tokens="\033[1;35m",
+    timer="\033[1;36m",
+    separator="\033[90m",
+)
+NO_COLOR_PALETTE = _Palette(*("",) * 10)
 
 ANSI_SGR_RE = re.compile(r"\x1b\[[0-9;:]*m")
 DEFAULT_TERMINAL_COLUMNS = 120
@@ -191,14 +239,16 @@ def _split_ansi_text(text, width, prefer_slashes=False):
     return chunks
 
 
-def _ensure_reset(text):
-    return text if text.endswith(C_RESET) else text + C_RESET
+def _ensure_reset(text, reset=C_RESET):
+    if not reset:
+        return text
+    return text if text.endswith(reset) else text + reset
 
 
-def _layout_segments(segments, width):
+def _layout_segments(segments, width, separator=C_SEP, reset=C_RESET):
     """Pack ordered top-level segments into complete, width-bounded rows."""
     width = max(MIN_CONTENT_WIDTH, int(width))
-    separator_width = _display_width(C_SEP)
+    separator_width = _display_width(separator)
     rows = []
     current = ""
     current_width = 0
@@ -211,29 +261,29 @@ def _layout_segments(segments, width):
         segment_width = _display_width(segment.text)
         if segment_width <= width:
             if current and current_width + separator_width + segment_width <= width:
-                current += C_SEP + segment.text
+                current += separator + segment.text
                 current_width += separator_width + segment_width
             else:
                 if current:
-                    rows.append(_ensure_reset(current))
+                    rows.append(_ensure_reset(current, reset))
                 current = segment.text
                 current_width = segment_width
             continue
 
         if current:
-            rows.append(_ensure_reset(current))
+            rows.append(_ensure_reset(current, reset))
             current = ""
             current_width = 0
         chunks = _split_ansi_text(
             segment.text, width,
             prefer_slashes=segment.prefer_slash_breaks,
         )
-        rows.extend(_ensure_reset(chunk) for chunk in chunks[:-1])
+        rows.extend(_ensure_reset(chunk, reset) for chunk in chunks[:-1])
         current = chunks[-1]
         current_width = _display_width(current)
 
     if current:
-        rows.append(_ensure_reset(current))
+        rows.append(_ensure_reset(current, reset))
     return rows
 
 
@@ -1146,9 +1196,9 @@ def _live_directory(data):
     return None
 
 
-def _git_segment(result):
+def _git_segment(result, palette=DEFAULT_PALETTE):
     if result["kind"] == "error":
-        return f"{C_GIT_ERROR}git!{C_RESET}"
+        return f"{palette.git_error}git!{palette.reset}"
     if result["kind"] != "ok":
         return None
     statuses = []
@@ -1168,7 +1218,7 @@ def _git_segment(result):
     if result["untracked"]:
         statuses.append(f"?{result['untracked']}")
     suffix = " " + "".join(statuses) if statuses else ""
-    return f"{C_BRANCH}{result['branch']}{suffix}{C_RESET}"
+    return f"{palette.branch}{result['branch']}{suffix}{palette.reset}"
 
 
 def _fmt_duration(seconds, nearest=False):
@@ -1209,7 +1259,7 @@ def _state_elapsed_seconds(state, last_pt):
     return max(0.0, (end_wall - start_wall) / 1_000_000_000)
 
 
-def _render_state_timer(state, last_pt):
+def _render_state_timer(state, last_pt, palette=DEFAULT_PALETTE):
     if (not isinstance(state, dict)
             or state.get("status") in ("ignored", "withdrawn")):
         return None
@@ -1226,7 +1276,7 @@ def _render_state_timer(state, last_pt):
         "unknown": "?",
     }.get(status, "?")
     suffix = "+" if status == "unknown" else ""
-    return f"{C_TIMER}{marker} {formatted}{suffix}{C_RESET}"
+    return f"{palette.timer}{marker} {formatted}{suffix}{palette.reset}"
 
 
 def _local_command_is_current(local_command, payload_prompt_id,
@@ -1244,7 +1294,13 @@ def _local_command_is_current(local_command, payload_prompt_id,
             and (last_pt is None or local_ts > last_pt))
 
 
-def _timer_segment(sid, prompt_id, last_pt, entry):
+def _timer_segment(
+    sid,
+    prompt_id,
+    last_pt,
+    entry,
+    palette=DEFAULT_PALETTE,
+):
     if not sid:
         return None
     sid = str(sid)
@@ -1313,7 +1369,7 @@ def _timer_segment(sid, prompt_id, last_pt, entry):
                 except Exception:
                     pass
 
-    return _render_state_timer(state, last_pt)
+    return _render_state_timer(state, last_pt, palette)
 
 
 def humanize_tokens(v):
@@ -1343,29 +1399,236 @@ def humanize_api_tokens(v):
     return str(max(0, v))
 
 
-def _rate_limit_segment(data):
-    """Render whichever Claude Code rate-limit windows are present."""
+def _rate_limit_item(data, field, label, palette=DEFAULT_PALETTE):
     rate_limits = deep_get(data, ("rate_limits",))
     if not isinstance(rate_limits, dict):
         return None
+    window = rate_limits.get(field)
+    if not isinstance(window, dict):
+        return None
+    used = window.get("used_percentage")
+    if isinstance(used, bool) or not isinstance(used, (int, float)):
+        return None
+    if (isinstance(used, float) and not math.isfinite(used)) or used < 0:
+        return None
+    left = 0 if used >= 100 else round(100 - used)
+    return f"{palette.percentage}{label} {left}% left{palette.reset}"
 
-    parts = []
-    for field, label in (
+
+def _rate_limit_segment(data, palette=DEFAULT_PALETTE):
+    """Render whichever Claude Code rate-limit windows are present."""
+    parts = [
+        _rate_limit_item(data, field, label, palette)
+        for field, label in (
             ("five_hour", "5h"),
             ("seven_day", "weekly"),
-            ("spend_limit", "spend")):
-        window = rate_limits.get(field)
-        if not isinstance(window, dict):
-            continue
-        used = window.get("used_percentage")
-        if isinstance(used, bool) or not isinstance(used, (int, float)):
-            continue
-        if (isinstance(used, float) and not math.isfinite(used)) or used < 0:
-            continue
-        left = 0 if used >= 100 else round(100 - used)
-        parts.append(f"{C_PCT}{label} {left}% left{C_RESET}")
+            ("spend_limit", "spend"),
+        )
+    ]
+    joiner = _styled_separator("·", palette)
+    return joiner.join(part for part in parts if part) or None
 
-    return C_JOIN.join(parts) if parts else None
+
+@dataclass(frozen=True)
+class _RenderedItem:
+    text: str
+    group: str | None = None
+    prefer_slash_breaks: bool = False
+
+
+_NOT_LOADED = object()
+_ITEM_METHODS = {
+    "model-with-effort": "model_with_effort",
+    "current-dir": "current_dir",
+    "git": "git",
+    "context-remaining": "context_remaining",
+    "context-window-size": "context_window_size",
+    "tokens": "tokens",
+    "prompt-timer": "prompt_timer",
+}
+_RATE_LIMIT_ITEMS = {
+    "five-hour-limit": ("five_hour", "5h"),
+    "weekly-limit": ("seven_day", "weekly"),
+    "spend-limit": ("spend_limit", "spend"),
+}
+
+
+def _palette_for(config):
+    if not config.use_colors:
+        return NO_COLOR_PALETTE
+    return ANSI_PALETTE if config.palette == "ansi" else DEFAULT_PALETTE
+
+
+def _styled_separator(symbol, palette):
+    if not palette.reset:
+        return f" {symbol} "
+    return f"{palette.separator} {symbol} {palette.reset}"
+
+
+def _separators(config, palette):
+    outer_symbol = "·" if config.separator_style == "compact" else "|"
+    return (
+        _styled_separator(outer_symbol, palette),
+        _styled_separator("·", palette),
+    )
+
+
+class _RenderState:
+    """Lazily resolve only the data sources selected by the user."""
+
+    def __init__(self, data, config, palette, inner_separator):
+        self.data = data
+        self.config = config
+        self.palette = palette
+        self.inner_separator = inner_separator
+        self.live_dir = _live_directory(data)
+        self._git = _NOT_LOADED
+        self._totals = _NOT_LOADED
+
+    def totals(self):
+        if self._totals is _NOT_LOADED:
+            self._totals = session_token_totals(self.data)
+        return self._totals
+
+    def model_with_effort(self):
+        model = deep_get(self.data, ("model", "id")) or deep_get(
+            self.data, ("model", "display_name")
+        )
+        if not model:
+            return None
+        text = f"{self.palette.model}{model}"
+        effort = deep_get(self.data, ("effort", "level"))
+        if effort:
+            text += f" {effort}"
+        return _RenderedItem(text + self.palette.reset)
+
+    def current_dir(self):
+        if not self.live_dir:
+            return None
+        project_dir = deep_get(self.data, ("workspace", "project_dir"))
+        if not isinstance(project_dir, str):
+            project_dir = None
+        value = format_directory(
+            self.live_dir,
+            self.config.directory_style,
+            project_dir=project_dir,
+        )
+        return _RenderedItem(
+            f"{self.palette.directory}{value}{self.palette.reset}",
+            prefer_slash_breaks=True,
+        )
+
+    def git(self):
+        if not self.live_dir:
+            return None
+        if self._git is _NOT_LOADED:
+            self._git = git_status(
+                self.live_dir, deep_get(self.data, ("session_id",))
+            )
+        text = _git_segment(self._git, self.palette)
+        return _RenderedItem(text) if text else None
+
+    def context_remaining(self):
+        value = deep_get(self.data, ("context_window", "remaining_percentage"))
+        if value is None:
+            return None
+        try:
+            percentage = round(float(value))
+        except (TypeError, ValueError):
+            return None
+        return _RenderedItem(
+            f"{self.palette.percentage}Context {percentage}% left{self.palette.reset}",
+            group="context",
+        )
+
+    def context_window_size(self):
+        value = humanize_tokens(
+            deep_get(self.data, ("context_window", "context_window_size"))
+        )
+        if not value:
+            return None
+        return _RenderedItem(
+            f"{self.palette.size}{value} window{self.palette.reset}",
+            group="context",
+        )
+
+    def rate_limit(self, field, label):
+        text = _rate_limit_item(self.data, field, label, self.palette)
+        return _RenderedItem(text, group="limits") if text else None
+
+    def tokens(self):
+        totals = self.totals()
+        if not totals:
+            return None
+        thit, tmiss, tout, _last_pt, _entry = totals
+        parts = [
+            f"{self.palette.tokens}hit {thit}{self.palette.reset}",
+            f"{self.palette.tokens}miss {tmiss}{self.palette.reset}",
+            f"{self.palette.tokens}out {tout}{self.palette.reset}",
+        ]
+        return _RenderedItem(self.inner_separator.join(parts))
+
+    def prompt_timer(self):
+        totals = self.totals()
+        if not totals:
+            return None
+        _thit, _tmiss, _tout, last_pt, entry = totals
+        text = _timer_segment(
+            deep_get(self.data, ("session_id",)),
+            deep_get(self.data, ("prompt_id",)),
+            last_pt,
+            entry,
+            self.palette,
+        )
+        return _RenderedItem(text) if text else None
+
+    def render(self, item_id):
+        rate_limit = _RATE_LIMIT_ITEMS.get(item_id)
+        if rate_limit is not None:
+            return self.rate_limit(*rate_limit)
+        return getattr(self, _ITEM_METHODS[item_id])()
+
+
+def _coalesce_items(items, inner_separator):
+    segments = []
+    current_text = None
+    current_group = None
+    current_prefer_slashes = False
+
+    def flush():
+        nonlocal current_text, current_group, current_prefer_slashes
+        if current_text is not None:
+            segments.append(_LayoutSegment(current_text, current_prefer_slashes))
+        current_text = None
+        current_group = None
+        current_prefer_slashes = False
+
+    for item in items:
+        if current_text is not None and item.group and item.group == current_group:
+            current_text += inner_separator + item.text
+            continue
+        flush()
+        current_text = item.text
+        current_group = item.group
+        current_prefer_slashes = item.prefer_slash_breaks
+    flush()
+    return segments
+
+
+def _configured_segments(data, config):
+    palette = _palette_for(config)
+    outer_separator, inner_separator = _separators(config, palette)
+    state = _RenderState(data, config, palette, inner_separator)
+    rendered = []
+    for item_id in config.items:
+        item = state.render(item_id)
+        if item is not None and item.text:
+            rendered.append(item)
+    return (
+        _coalesce_items(rendered, inner_separator),
+        outer_separator,
+        palette.reset,
+    )
 
 
 def main():
@@ -1380,89 +1643,20 @@ def main():
     except Exception:
         return
 
-    segments = []
+    try:
+        config = load_display_config(Path(CONFIG_DIR))
+    except DisplayConfigError:
+        config = DEFAULT_CONFIG
 
-    # model id shown verbatim, plus effort, e.g. "deepseek-v4-pro[1M] max"
-    model = deep_get(data, ("model", "id")) or deep_get(data, ("model", "display_name"))
-    if model:
-        seg = f"{C_MODEL}{model}"
-        effort = deep_get(data, ("effort", "level"))
-        if effort:
-            seg += f" {effort}"
-        segments.append(_LayoutSegment(seg + C_RESET))
-
-    # Directory and Git share the same live-cwd/worktree semantics so they stay
-    # aligned after Bash `cd` or a worktree transition. project_dir is retained
-    # only as a compatibility fallback for older payloads.
-    live_dir = _live_directory(data)
-    if live_dir:
-        segments.append(_LayoutSegment(
-            f"{C_DIR}{live_dir}{C_RESET}",
-            prefer_slash_breaks=True,
-        ))
-
-    # Git follows the live cwd/worktree rather than the fixed launch directory.
-    # ↑/↓ are upstream divergence; ●/~ are staged/unstaged file categories;
-    # conflicts are a separate ! bucket; ? counts individual untracked files.
-    # Zero values are omitted. The branch is separated once and status markers
-    # are otherwise concatenated. Only ● gets an internal space because its
-    # wide glyph visually overlaps an immediately adjacent digit in some fonts.
-    if live_dir:
-        gs = git_status(live_dir, deep_get(data, ("session_id",)))
-        git_segment = _git_segment(gs)
-        if git_segment:
-            segments.append(_LayoutSegment(git_segment))
-
-    # context window info: percentage and size read as one item, so they are
-    # joined with the middle dot (e.g. "Context 94% left · 1M window")
-    ctx = []
-    # remaining context percentage, e.g. "Context 88% left"
-    remaining = deep_get(data, ("context_window", "remaining_percentage"))
-    if remaining is not None:
-        try:
-            pct = round(float(remaining))
-            ctx.append(f"{C_PCT}Context {pct}% left{C_RESET}")
-        except (TypeError, ValueError):
-            pass
-    # context window size, e.g. "828K window"
-    size = humanize_tokens(deep_get(data, ("context_window", "context_window_size")))
-    if size:
-        ctx.append(f"{C_SIZE}{size} window{C_RESET}")
-    if ctx:
-        segments.append(_LayoutSegment(C_JOIN.join(ctx)))
-
-    # Claude.ai subscription windows and gateway spend limits are optional and
-    # independent. Omit both missing fields and the entire segment when empty.
-    rate_limit_segment = _rate_limit_segment(data)
-    if rate_limit_segment:
-        segments.append(_LayoutSegment(rate_limit_segment))
-
-    # Cumulative all-API usage: cache hits, cache misses (including cache
-    # creation), and output. All three fields remain visible at zero.
-    totals = session_token_totals(data)
-    if totals:
-        thit, tmiss, tout, last_pt, entry = totals
-        tok = [
-            f"{C_TOKENS}hit {thit}{C_RESET}",
-            f"{C_TOKENS}miss {tmiss}{C_RESET}",
-            f"{C_TOKENS}out {tout}{C_RESET}",
-        ]
-        segments.append(_LayoutSegment(C_JOIN.join(tok)))
-
-    # Per-prompt lifecycle timer (rightmost segment). Hooks are authoritative;
-    # transcript duration and a process-verified idle registry are fallbacks.
-    if totals:
-        timer = _timer_segment(
-            deep_get(data, ("session_id",)),
-            deep_get(data, ("prompt_id",)),
-            last_pt,
-            entry,
-        )
-        if timer:
-            segments.append(_LayoutSegment(timer))
-
-    rows = _layout_segments(segments, _terminal_content_width())
-    sys.stdout.write("\n".join(rows) + "\n")
+    segments, separator, reset = _configured_segments(data, config)
+    rows = _layout_segments(
+        segments,
+        _terminal_content_width(),
+        separator=separator,
+        reset=reset,
+    )
+    if rows:
+        sys.stdout.write("\n".join(rows) + "\n")
 
 
 if __name__ == "__main__":

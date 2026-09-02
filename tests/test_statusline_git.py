@@ -398,6 +398,7 @@ class GitIntegrationTests(unittest.TestCase):
         }
         runtime = self.root / "runtime"
         env = os.environ.copy()
+        env["CLAUDE_CONFIG_DIR"] = str(self.root / "claude-config")
         env["CLAUDE_STATUSLINE_RUNTIME_DIR"] = str(runtime)
         env["COLUMNS"] = "1000"
         rendered = subprocess.run(

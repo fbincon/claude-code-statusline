@@ -1,6 +1,6 @@
 # Claude Code Statusline
 
-这是一个面向 Linux 的 Claude Code CLI 状态栏工具。它显示当前模型和 effort、实时工作目录、Git 分支与变更、上下文余量、Claude 使用限额、会话 token 以及当前 prompt 用时。
+这是一个面向 Linux 的 Claude Code CLI 状态栏工具。它显示当前模型和 effort、实时工作目录、Git 分支与变更、上下文余量、Claude 使用限额、会话 token 以及当前 prompt 用时。显示项、顺序和样式可以通过 `/statusline-config` 或本地 CLI 配置。
 
 运行时只使用 Python 标准库；Git 段需要系统中的 `git`。状态栏在本地执行，不会自行发起网络请求。
 
@@ -9,7 +9,7 @@
 ```bash
 cd /home/fbincon/coding/claude-code-statusline
 uv build
-pipx install dist/claude_code_statusline-0.1.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.2.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -20,7 +20,11 @@ claude-statusline doctor
 ${CLAUDE_CONFIG_DIR:-~/.claude}/backups/statusline/
 ```
 
-如果已有不属于本工具的 statusline，安装器会拒绝覆盖。确认需要替换时才使用：
+`install` 还会在用户配置目录中安装 personal skill `/statusline-config`。Claude Code 2.1.258 及以上版本使用 `UserPromptExpansion` 本地 hook 处理带参数的快捷命令；旧版仍可使用相同 skill，但命令会经过一个 Claude 回合。
+
+Claude Code 升级或降级跨过 2.1.258 时，重新运行一次 `claude-statusline install`，让安装器增加或移除本地 fast hook。
+
+如果已有不属于本工具的 statusline 或同名 skill，安装器会拒绝覆盖。确认需要替换时才使用：
 
 ```bash
 claude-statusline install --force
@@ -37,25 +41,99 @@ claude-statusline install --dry-run
 ```text
 claude-statusline render
 claude-statusline hook
+claude-statusline slash-hook
+claude-statusline config [--config-dir PATH] show [--json]
+claude-statusline config [--config-dir PATH] list-items [--json]
+claude-statusline config [--config-dir PATH] set-items [ITEM...]
+claude-statusline config [--config-dir PATH] enable ITEM...
+claude-statusline config [--config-dir PATH] disable ITEM...
+claude-statusline config [--config-dir PATH] order [ITEM...]
+claude-statusline config [--config-dir PATH] set OPTION VALUE
+claude-statusline config [--config-dir PATH] apply ...
+claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force] [--config-dir PATH]
 claude-statusline uninstall [--dry-run] [--config-dir PATH]
 claude-statusline doctor [--config-dir PATH]
 claude-statusline --version
 ```
 
-`render` 和 `hook` 由 Claude Code 调用，通常无需手工运行。`install` 配置一秒刷新和以下生命周期 hooks：`SessionStart`、`UserPromptSubmit`、`Stop`、`StopFailure`、`SessionEnd`。
+`render`、`hook` 和 `slash-hook` 由 Claude Code 调用，通常无需手工运行。`install` 默认配置一秒刷新和以下生命周期 hooks：`SessionStart`、`UserPromptSubmit`、`Stop`、`StopFailure`、`SessionEnd`。
+
+## 在 Claude Code 中配置
+
+输入不带参数的命令，Claude 会显示分组的多选问答向导：
+
+```text
+/statusline-config
+```
+
+带参数的命令适合快速、确定性地修改或检查配置：
+
+```text
+/statusline-config show
+/statusline-config list-items
+/statusline-config set-items model-with-effort current-dir git context-remaining
+/statusline-config enable prompt-timer
+/statusline-config disable tokens
+/statusline-config order current-dir git model-with-effort context-remaining prompt-timer
+/statusline-config set colors off
+/statusline-config set palette ansi
+/statusline-config set directory-style home
+/statusline-config set separator-style compact
+/statusline-config set padding 2
+/statusline-config set refresh-interval event
+/statusline-config set hide-vim-mode-indicator on
+/statusline-config reset
+```
+
+配置作用于该用户的所有 Claude Code 项目。不要使用 Claude Code 内建的 `/statusline` 重建脚本；该命令可能替换本工具的 `statusLine.command`。
+
+## 配置文件和显示项
+
+显示配置保存在：
+
+```text
+${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
+```
+
+未创建该文件时，输出与 0.1.0 相同。可排序的显示项为：
+
+- `model-with-effort`
+- `current-dir`
+- `git`
+- `context-remaining`
+- `context-window-size`
+- `five-hour-limit`
+- `weekly-limit`
+- `spend-limit`
+- `tokens`，继续整体显示 `hit · miss · out`
+- `prompt-timer`
+
+`set-items` 不带条目时会隐藏全部状态行内容。`order` 必须恰好列出当前启用的所有条目一次。
+
+其他设置：
+
+- `colors`: `on` 或 `off`
+- `palette`: `default` 或使用终端调色板的 `ansi`
+- `directory-style`: `full`、`home`、`project-relative` 或 `basename`
+- `separator-style`: `classic` 或 `compact`
+- `padding`: 0 到 32
+- `refresh-interval`: `event` 或 1 到 3600 秒
+- `hide-vim-mode-indicator`: `on` 或 `off`
+
+`padding`、刷新间隔和 Vim 指示器属于 Claude Code 原生 `statusLine` 设置；其余选项保存在本工具自己的严格 JSON 配置中。关闭定时刷新后，`prompt-timer` 只会在其他状态事件触发时更新。
 
 ## 升级
 
 构建新版本 wheel 后，让 pipx 替换现有环境，再重复执行安装命令。该命令是幂等的，不会产生重复 hooks：
 
 ```bash
-pipx install --force dist/claude_code_statusline-0.1.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.2.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
 
-token、Git 缓存和逐轮计时状态保留在 Claude 配置目录中，不随 pipx 环境更新而删除。
+显示配置、token、Git 缓存和逐轮计时状态保留在 Claude 配置目录中，不随 pipx 环境更新而删除。
 
 ## 卸载
 
@@ -66,11 +144,11 @@ claude-statusline uninstall
 pipx uninstall claude-code-statusline
 ```
 
-卸载器只删除指向 `claude-statusline render` 和 `claude-statusline hook` 的条目，不删除其他 hooks，也不删除运行状态。
+卸载器只删除本工具拥有的 statusline、hooks、`/statusline-config` skill 及所有权标记，不删除其他 hooks，也不删除显示配置或运行状态。
 
 ## 回滚
 
-安装和卸载产生的配置备份位于 `~/.claude/backups/statusline/cli-*/settings.json.before`。本机首次迁移还会创建独立的 `package-migration-*` 完整备份；需要回滚时，退出 Claude Code 会话，把对应备份中的 `settings.json` 恢复到 Claude 配置目录，并恢复其中的旧脚本。
+安装、卸载和配置更新产生的备份位于 `~/.claude/backups/statusline/cli-*`。一个备份目录可能同时包含 `settings.json`、显示配置和 skill 的修改前内容。需要回滚时，退出 Claude Code 会话，把对应文件恢复到元数据记录的位置。
 
 ## 自定义配置目录
 
@@ -86,4 +164,4 @@ PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 \
   python3 -m unittest discover -s tests -v
 ```
 
-项目要求 Python 3.10 或更高版本，首版只支持 Linux。
+项目要求 Python 3.10 或更高版本，目前只支持 Linux。

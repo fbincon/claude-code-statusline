@@ -18,6 +18,8 @@ def _common_config_argument(parser) -> None:
 def build_parser():
     import argparse
 
+    from . import config_commands
+
     parser = argparse.ArgumentParser(
         prog="claude-statusline",
         description="Packaged Claude Code status line for Linux.",
@@ -35,6 +37,10 @@ def build_parser():
     subparsers.add_parser(
         "hook", help="record a Claude lifecycle hook received on stdin"
     )
+    subparsers.add_parser(
+        "slash-hook", help="handle direct /statusline-config invocations"
+    )
+    config_commands.add_config_parser(subparsers)
 
     install_parser = subparsers.add_parser(
         "install", help="configure Claude Code to use this status line"
@@ -46,7 +52,7 @@ def build_parser():
     install_parser.add_argument(
         "--force",
         action="store_true",
-        help="replace an unrelated existing statusLine configuration",
+        help="replace a conflicting statusLine or /statusline-config skill",
     )
 
     uninstall_parser = subparsers.add_parser(
@@ -68,17 +74,21 @@ def _print_change(result, dry_run: bool) -> None:
     if dry_run:
         state = "would change" if result.changed else "already correct"
         print(f"{result.action}: {state}: {result.settings_path}")
+        for path in result.changed_paths:
+            print(f"artifact: {path}")
         return
     state = "updated" if result.changed else "already correct"
     print(f"{result.action}: {state}: {result.settings_path}")
+    for path in result.changed_paths:
+        print(f"artifact: {path}")
     if result.backup_dir is not None:
         print(f"backup: {result.backup_dir}")
 
 
 def main(argv: list[str] | None = None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
-    # render and hook run frequently. Keep their startup path free of argparse
-    # and installer imports, which are only needed for administrative commands.
+    # Runtime hooks and rendering run frequently. Keep their startup paths free
+    # of argparse and installer imports used only by administrative commands.
     if arguments == ["render"]:
         from . import statusline
 
@@ -89,8 +99,13 @@ def main(argv: list[str] | None = None) -> int:
 
         turn_state.main()
         return 0
+    if arguments == ["slash-hook"]:
+        from . import slash_hook
 
-    from . import installer
+        slash_hook.main()
+        return 0
+
+    from . import config_commands, installer
 
     parser = build_parser()
     args = parser.parse_args(arguments)
@@ -104,6 +119,11 @@ def main(argv: list[str] | None = None) -> int:
         from . import turn_state
 
         turn_state.main()
+        return 0
+    if args.command == "slash-hook":
+        from . import slash_hook
+
+        slash_hook.main()
         return 0
 
     config_dir = installer.resolve_config_dir(args.config_dir)
@@ -138,7 +158,12 @@ def main(argv: list[str] | None = None) -> int:
             for item in diagnostics:
                 print(f"[{item.level}] {item.message}")
             return 1 if any(item.level == "ERROR" for item in diagnostics) else 0
-    except installer.ConfigurationError as exc:
+        if args.command == "config":
+            print(config_commands.execute_config_namespace(
+                args, config_dir, executable
+            ))
+            return 0
+    except (installer.ConfigurationError, config_commands.ConfigCommandError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 

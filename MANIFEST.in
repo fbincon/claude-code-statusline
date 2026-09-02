@@ -1,3 +1,4 @@
 include README.md
 include CHANGELOG.md
 recursive-include tests *.py
+recursive-include src/claude_statusline/resources *.md

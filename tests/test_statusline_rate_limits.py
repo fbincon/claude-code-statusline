@@ -126,6 +126,7 @@ class RateLimitIntegrationTests(unittest.TestCase):
             },
         }
         env = os.environ.copy()
+        env["CLAUDE_CONFIG_DIR"] = str(self.root / "claude-config")
         env["CLAUDE_STATUSLINE_RUNTIME_DIR"] = str(self.root / "runtime")
         env["COLUMNS"] = str(columns)
         return subprocess.run(

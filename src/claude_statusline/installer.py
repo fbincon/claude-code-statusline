@@ -7,15 +7,17 @@ import datetime as dt
 import fcntl
 import json
 import os
-from pathlib import Path
+import re
 import shlex
 import shutil
 import stat
+import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
-
+from importlib import resources
+from pathlib import Path
 
 HOOK_EVENTS = (
     "SessionStart",
@@ -24,6 +26,17 @@ HOOK_EVENTS = (
     "StopFailure",
     "SessionEnd",
 )
+SLASH_HOOK_EVENT = "UserPromptExpansion"
+SLASH_COMMAND_NAME = "statusline-config"
+MIN_FAST_SLASH_VERSION = (2, 1, 258)
+SKILL_OWNER = "claude-code-statusline"
+SKILL_OWNER_SCHEMA = 1
+SKILL_RELATIVE_PATH = Path("skills") / SLASH_COMMAND_NAME / "SKILL.md"
+SKILL_OWNER_RELATIVE_PATH = (
+    Path("skills") / SLASH_COMMAND_NAME / ".claude-statusline-owner.json"
+)
+_DETECT_CLAUDE_VERSION = object()
+_UNCHANGED_ARTIFACT = object()
 
 
 class ConfigurationError(RuntimeError):
@@ -36,6 +49,7 @@ class ChangeResult:
     changed: bool
     settings_path: Path
     backup_dir: Path | None = None
+    changed_paths: tuple[Path, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -77,9 +91,82 @@ def _quoted_executable(executable: Path) -> str:
 
 
 def command_for(executable: Path, subcommand: str) -> str:
-    if subcommand not in ("render", "hook"):
+    if subcommand not in ("render", "hook", "slash-hook"):
         raise ValueError(f"unsupported subcommand: {subcommand}")
     return f"{_quoted_executable(executable)} {subcommand}"
+
+
+def detect_claude_version() -> tuple[int, int, int] | None:
+    executable = shutil.which("claude")
+    if not executable:
+        return None
+    try:
+        result = subprocess.run(
+            [executable, "--version"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=5,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    match = re.search(r"(?<!\d)(\d+)\.(\d+)\.(\d+)(?!\d)", result.stdout)
+    if result.returncode != 0 or match is None:
+        return None
+    return tuple(int(value) for value in match.groups())
+
+
+def supports_fast_slash_hook(version: tuple[int, int, int] | None) -> bool:
+    return version is not None and version >= MIN_FAST_SLASH_VERSION
+
+
+def skill_paths(config_dir: Path) -> tuple[Path, Path]:
+    return (
+        config_dir / SKILL_RELATIVE_PATH,
+        config_dir / SKILL_OWNER_RELATIVE_PATH,
+    )
+
+
+def _skill_owner_bytes() -> bytes:
+    return _json_bytes({
+        "owner": SKILL_OWNER,
+        "schema_version": SKILL_OWNER_SCHEMA,
+    })
+
+
+def _is_owned_skill_marker(raw: bytes | None) -> bool:
+    if raw is None:
+        return False
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return False
+    return value == {
+        "owner": SKILL_OWNER,
+        "schema_version": SKILL_OWNER_SCHEMA,
+    }
+
+
+def render_skill(executable: Path) -> bytes:
+    try:
+        template = (
+            resources.files("claude_statusline")
+            .joinpath("resources/statusline-config/SKILL.md")
+            .read_text(encoding="utf-8")
+        )
+    except (FileNotFoundError, OSError) as exc:
+        raise ConfigurationError(f"cannot load bundled statusline-config skill: {exc}") from exc
+    shell_command = shlex.quote(str(executable))
+    allowed_rule = json.dumps(
+        f"Bash({shell_command} config *)", ensure_ascii=False
+    )
+    rendered = template.replace(
+        "__CLAUDE_STATUSLINE_ALLOWED_RULE__", allowed_rule
+    ).replace("__CLAUDE_STATUSLINE_COMMAND__", shell_command)
+    if "__CLAUDE_STATUSLINE_" in rendered:
+        raise ConfigurationError("bundled statusline-config skill has unresolved placeholders")
+    return rendered.encode("utf-8")
 
 
 def _split_command(command: object) -> list[str] | None:
@@ -144,6 +231,7 @@ def _clean_hook_groups(
     executable: Path,
     remove_cli: bool,
     remove_legacy: bool,
+    cli_subcommands: tuple[str, ...] = ("hook",),
 ) -> list:
     if groups is None:
         return []
@@ -159,9 +247,10 @@ def _clean_hook_groups(
         remaining = []
         for action in group["hooks"]:
             command = action.get("command") if isinstance(action, dict) else None
-            owned = remove_cli and (
-                _is_cli_command(command, "hook", executable)
-                or _is_cli_command(command, "hook")
+            owned = remove_cli and any(
+                _is_cli_command(command, subcommand, executable)
+                or _is_cli_command(command, subcommand)
+                for subcommand in cli_subcommands
             )
             legacy = remove_legacy and _is_legacy_python_command(
                 command, legacy_target
@@ -180,6 +269,7 @@ def _prepare_install(
     config_dir: Path,
     executable: Path,
     force: bool,
+    fast_slash_hook: bool = False,
 ) -> dict:
     updated = copy.deepcopy(settings)
     current = updated.get("statusLine")
@@ -198,11 +288,32 @@ def _prepare_install(
                 "only if replacing it is intentional"
             )
 
-    updated["statusLine"] = {
+    status_line = {
         "type": "command",
         "command": command_for(executable, "render"),
-        "refreshInterval": 1,
     }
+    if isinstance(current, dict):
+        padding = current.get("padding")
+        if (
+            isinstance(padding, int)
+            and not isinstance(padding, bool)
+            and 0 < padding <= 32
+        ):
+            status_line["padding"] = padding
+        interval = current.get("refreshInterval", _UNCHANGED_ARTIFACT)
+        if (
+            interval is not _UNCHANGED_ARTIFACT
+            and isinstance(interval, int)
+            and not isinstance(interval, bool)
+            and 1 <= interval <= 3600
+        ):
+            status_line["refreshInterval"] = interval
+        hide_vim = current.get("hideVimModeIndicator")
+        if hide_vim is True:
+            status_line["hideVimModeIndicator"] = True
+    else:
+        status_line["refreshInterval"] = 1
+    updated["statusLine"] = status_line
 
     hooks = updated.get("hooks")
     if hooks is None:
@@ -222,6 +333,27 @@ def _prepare_install(
         )
         groups.append({"hooks": [copy.deepcopy(action)]})
         hooks[event] = groups
+    slash_groups = _clean_hook_groups(
+        hooks.get(SLASH_HOOK_EVENT),
+        config_dir,
+        executable,
+        remove_cli=True,
+        remove_legacy=False,
+        cli_subcommands=("slash-hook",),
+    )
+    if fast_slash_hook:
+        slash_groups.append({
+            "matcher": SLASH_COMMAND_NAME,
+            "hooks": [{
+                "type": "command",
+                "command": command_for(executable, "slash-hook"),
+                "timeout": 5,
+            }],
+        })
+    if slash_groups:
+        hooks[SLASH_HOOK_EVENT] = slash_groups
+    else:
+        hooks.pop(SLASH_HOOK_EVENT, None)
     updated["hooks"] = hooks
     return updated
 
@@ -247,6 +379,7 @@ def _prepare_uninstall(
             groups = _clean_hook_groups(
                 hooks[event], config_dir, executable,
                 remove_cli=True, remove_legacy=False,
+                cli_subcommands=("hook", "slash-hook"),
             )
             if groups:
                 hooks[event] = groups
@@ -292,42 +425,64 @@ def _backup_settings(
     raw: bytes | None,
     action: str,
 ) -> Path:
-    backup_dir = _unique_backup_dir(config_dir, action)
-    if raw is None:
-        target = backup_dir / "settings.json.absent"
-        target.write_bytes(b"")
-    else:
-        target = backup_dir / "settings.json.before"
-        target.write_bytes(raw)
-    _chmod_private(target, 0o600)
-    metadata = {
-        "action": action,
-        "created_at": dt.datetime.now().astimezone().isoformat(),
-        "settings_path": str(settings_path),
-    }
-    metadata_path = backup_dir / "metadata.json"
-    metadata_path.write_bytes(_json_bytes(metadata))
-    _chmod_private(metadata_path, 0o600)
-    return backup_dir
+    return _backup_artifacts(
+        config_dir,
+        action,
+        [("settings.json", settings_path, raw)],
+    )
 
 
-def _atomic_write_settings(settings_path: Path, settings: dict) -> None:
-    settings_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+def _backup_artifacts(
+    config_dir: Path,
+    action: str,
+    artifacts: list[tuple[str, Path, bytes | None]],
+) -> Path:
+    try:
+        backup_dir = _unique_backup_dir(config_dir, action)
+        recorded = []
+        for name, path, raw in artifacts:
+            suffix = "before" if raw is not None else "absent"
+            target = backup_dir / f"{name}.{suffix}"
+            target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            target.write_bytes(raw if raw is not None else b"")
+            _chmod_private(target, 0o600)
+            recorded.append({"path": str(path), "state": suffix})
+        metadata = {
+            "action": action,
+            "created_at": dt.datetime.now().astimezone().isoformat(),
+            "artifacts": recorded,
+        }
+        settings_artifact = next(
+            (path for name, path, _raw in artifacts if name == "settings.json"),
+            None,
+        )
+        if settings_artifact is not None:
+            metadata["settings_path"] = str(settings_artifact)
+        metadata_path = backup_dir / "metadata.json"
+        metadata_path.write_bytes(_json_bytes(metadata))
+        _chmod_private(metadata_path, 0o600)
+        return backup_dir
+    except OSError as exc:
+        raise ConfigurationError(f"cannot back up statusline configuration: {exc}") from exc
+
+
+def _atomic_write_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(
-        prefix=".settings.claude-statusline-",
+        prefix=f".{path.name}.claude-statusline-",
         suffix=".tmp",
-        dir=settings_path.parent,
+        dir=path.parent,
     )
     temporary_path = Path(temporary)
     try:
-        os.fchmod(fd, 0o600)
+        os.fchmod(fd, mode)
         with os.fdopen(fd, "wb") as stream:
-            stream.write(_json_bytes(settings))
+            stream.write(content)
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(temporary_path, settings_path)
+        os.replace(temporary_path, path)
         temporary_path = None
-        directory_fd = os.open(settings_path.parent, os.O_RDONLY)
+        directory_fd = os.open(path.parent, os.O_RDONLY)
         try:
             os.fsync(directory_fd)
         finally:
@@ -338,6 +493,29 @@ def _atomic_write_settings(settings_path: Path, settings: dict) -> None:
                 temporary_path.unlink()
             except FileNotFoundError:
                 pass
+
+
+def _atomic_write_settings(settings_path: Path, settings: dict) -> None:
+    _atomic_write_bytes(settings_path, _json_bytes(settings), mode=0o600)
+
+
+def _read_optional_bytes(path: Path) -> bytes | None:
+    try:
+        return path.read_bytes()
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        raise ConfigurationError(f"cannot read {path}: {exc}") from exc
+
+
+def _write_optional_bytes(path: Path, value: bytes | None) -> None:
+    if value is None:
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            return
+    else:
+        _atomic_write_bytes(path, value, mode=0o600)
 
 
 @contextmanager
@@ -361,31 +539,124 @@ def _change_configuration(
     executable: Path,
     dry_run: bool,
     force: bool = False,
+    fast_slash_hook: bool = False,
 ) -> ChangeResult:
     settings_path = config_dir / "settings.json"
+    skill_path, owner_path = skill_paths(config_dir)
 
-    def prepare(settings: dict) -> dict:
+    def prepare():
+        settings, settings_raw = _read_settings(settings_path)
         if action == "install":
-            return _prepare_install(settings, config_dir, executable, force)
-        return _prepare_uninstall(settings, config_dir, executable)
+            updated_settings = _prepare_install(
+                settings,
+                config_dir,
+                executable,
+                force,
+                fast_slash_hook=fast_slash_hook,
+            )
+        else:
+            updated_settings = _prepare_uninstall(
+                settings, config_dir, executable
+            )
+
+        skill_raw = _read_optional_bytes(skill_path)
+        owner_raw = _read_optional_bytes(owner_path)
+        skill_owned = _is_owned_skill_marker(owner_raw)
+        desired_skill: bytes | None | object = _UNCHANGED_ARTIFACT
+        desired_owner: bytes | None | object = _UNCHANGED_ARTIFACT
+        if action == "install":
+            if (
+                (skill_raw is not None or owner_raw is not None)
+                and not skill_owned
+                and not force
+            ):
+                raise ConfigurationError(
+                    f"an unrelated /{SLASH_COMMAND_NAME} skill already exists; "
+                    "rerun with --force only if replacing it is intentional"
+                )
+            desired_skill = render_skill(executable)
+            desired_owner = _skill_owner_bytes()
+        elif skill_owned:
+            desired_skill = None
+            desired_owner = None
+
+        candidates = [
+            (
+                "settings.json",
+                settings_path,
+                settings_raw,
+                _json_bytes(updated_settings),
+                updated_settings != settings,
+            ),
+            (
+                "skill/SKILL.md",
+                skill_path,
+                skill_raw,
+                desired_skill,
+                desired_skill is not _UNCHANGED_ARTIFACT
+                and desired_skill != skill_raw,
+            ),
+            (
+                "skill/.claude-statusline-owner.json",
+                owner_path,
+                owner_raw,
+                desired_owner,
+                desired_owner is not _UNCHANGED_ARTIFACT
+                and desired_owner != owner_raw,
+            ),
+        ]
+        return [candidate for candidate in candidates if candidate[4]]
 
     if dry_run:
-        settings, _ = _read_settings(settings_path)
-        updated = prepare(settings)
-        return ChangeResult(action, updated != settings, settings_path)
+        changes = prepare()
+        return ChangeResult(
+            action,
+            bool(changes),
+            settings_path,
+            changed_paths=tuple(change[1] for change in changes),
+        )
 
     config_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     with _installation_lock(config_dir):
-        settings, raw = _read_settings(settings_path)
-        updated = prepare(settings)
-        if updated == settings:
+        changes = prepare()
+        if not changes:
             return ChangeResult(action, False, settings_path)
-        backup_dir = _backup_settings(
-            config_dir, settings_path, raw, action
+        backup_dir = _backup_artifacts(
+            config_dir,
+            action,
+            [(name, path, raw) for name, path, raw, _desired, _ in changes],
         )
-        _atomic_write_settings(settings_path, updated)
-        _chmod_private(settings_path, 0o600)
-        return ChangeResult(action, True, settings_path, backup_dir)
+        try:
+            for _name, path, _raw, desired, _changed in changes:
+                _write_optional_bytes(path, desired)
+        except OSError as exc:
+            rollback_errors = []
+            for _name, path, raw, _desired, _changed in reversed(changes):
+                try:
+                    _write_optional_bytes(path, raw)
+                except OSError as rollback_exc:
+                    rollback_errors.append(str(rollback_exc))
+            suffix = (
+                "; rollback also failed: " + "; ".join(rollback_errors)
+                if rollback_errors
+                else ""
+            )
+            raise ConfigurationError(
+                f"cannot {action} statusline configuration: {exc}{suffix}"
+            ) from exc
+
+        if action == "uninstall":
+            try:
+                skill_path.parent.rmdir()
+            except OSError:
+                pass
+        return ChangeResult(
+            action,
+            True,
+            settings_path,
+            backup_dir,
+            tuple(change[1] for change in changes),
+        )
 
 
 def install_configuration(
@@ -394,9 +665,17 @@ def install_configuration(
     *,
     dry_run: bool = False,
     force: bool = False,
+    claude_version: tuple[int, int, int] | None | object = _DETECT_CLAUDE_VERSION,
 ) -> ChangeResult:
+    if claude_version is _DETECT_CLAUDE_VERSION:
+        claude_version = detect_claude_version()
     return _change_configuration(
-        "install", config_dir, executable, dry_run, force
+        "install",
+        config_dir,
+        executable,
+        dry_run,
+        force,
+        fast_slash_hook=supports_fast_slash_hook(claude_version),
     )
 
 
@@ -428,9 +707,34 @@ def _hook_commands(settings: dict, event: str) -> list[object]:
     return result
 
 
+def _slash_hook_count(settings: dict, executable: Path | None) -> int:
+    if executable is None:
+        return 0
+    hooks = settings.get("hooks")
+    groups = hooks.get(SLASH_HOOK_EVENT) if isinstance(hooks, dict) else None
+    if not isinstance(groups, list):
+        return 0
+    count = 0
+    for group in groups:
+        if not isinstance(group, dict) or group.get("matcher") != SLASH_COMMAND_NAME:
+            continue
+        actions = group.get("hooks")
+        if not isinstance(actions, list):
+            continue
+        count += sum(
+            1
+            for action in actions
+            if isinstance(action, dict)
+            and _is_cli_command(action.get("command"), "slash-hook", executable)
+        )
+    return count
+
+
 def collect_diagnostics(
     config_dir: Path,
     executable: Path | None,
+    *,
+    claude_version: tuple[int, int, int] | None | object = _DETECT_CLAUDE_VERSION,
 ) -> list[Diagnostic]:
     diagnostics = []
     if sys.platform.startswith("linux"):
@@ -439,7 +743,7 @@ def collect_diagnostics(
         diagnostics.append(Diagnostic("ERROR", "this release supports Linux only"))
 
     version = ".".join(map(str, sys.version_info[:3]))
-    if sys.version_info >= (3, 10):
+    if sys.version_info >= (3, 10):  # noqa: UP036 - doctor reports the contract
         diagnostics.append(Diagnostic("OK", f"Python: {version}"))
     else:
         diagnostics.append(Diagnostic("ERROR", f"Python 3.10+ required; found {version}"))
@@ -476,13 +780,33 @@ def collect_diagnostics(
 
     current = settings.get("statusLine")
     current_command = current.get("command") if isinstance(current, dict) else None
+    padding = current.get("padding", 0) if isinstance(current, dict) else None
     interval = current.get("refreshInterval") if isinstance(current, dict) else None
+    hide_vim = (
+        current.get("hideVimModeIndicator", False)
+        if isinstance(current, dict)
+        else None
+    )
+    host_fields_valid = (
+        isinstance(padding, int)
+        and not isinstance(padding, bool)
+        and 0 <= padding <= 32
+        and (
+            interval is None
+            or (
+                isinstance(interval, int)
+                and not isinstance(interval, bool)
+                and 1 <= interval <= 3600
+            )
+        )
+        and isinstance(hide_vim, bool)
+    )
     if (
         executable is not None
         and _is_cli_command(current_command, "render", executable)
-        and interval == 1
+        and host_fields_valid
     ):
-        diagnostics.append(Diagnostic("OK", "statusLine command and refresh interval"))
+        diagnostics.append(Diagnostic("OK", "statusLine command and host options"))
     else:
         diagnostics.append(Diagnostic("ERROR", "statusLine is not configured for this executable"))
 
@@ -498,6 +822,64 @@ def collect_diagnostics(
             diagnostics.append(Diagnostic(
                 "ERROR", f"{event} hook: expected one, found {count}"
             ))
+
+    skill_path, owner_path = skill_paths(config_dir)
+    if executable is not None:
+        try:
+            expected_skill = render_skill(executable)
+            skill_raw = _read_optional_bytes(skill_path)
+            owner_raw = _read_optional_bytes(owner_path)
+            if skill_raw == expected_skill and _is_owned_skill_marker(owner_raw):
+                diagnostics.append(Diagnostic("OK", f"/{SLASH_COMMAND_NAME} skill"))
+            else:
+                diagnostics.append(Diagnostic(
+                    "ERROR", f"/{SLASH_COMMAND_NAME} skill is missing or not owned"
+                ))
+        except ConfigurationError as exc:
+            diagnostics.append(Diagnostic("ERROR", str(exc)))
+
+    try:
+        from . import display_config
+
+        display_config.load_display_config(config_dir)
+        display_path = display_config.config_path(config_dir)
+        if display_path.exists():
+            display_mode = stat.S_IMODE(display_path.stat().st_mode)
+            if display_mode == 0o600:
+                diagnostics.append(Diagnostic("OK", f"display config: {display_path}"))
+            else:
+                diagnostics.append(Diagnostic(
+                    "WARN", f"display config permissions: {display_mode:04o}"
+                ))
+        else:
+            diagnostics.append(Diagnostic("OK", "display config: built-in defaults"))
+    except display_config.DisplayConfigError as exc:
+        diagnostics.append(Diagnostic("ERROR", str(exc)))
+
+    if claude_version is _DETECT_CLAUDE_VERSION:
+        claude_version = detect_claude_version()
+    slash_count = _slash_hook_count(settings, executable)
+    if supports_fast_slash_hook(claude_version):
+        version_text = ".".join(map(str, claude_version))
+        if slash_count == 1:
+            diagnostics.append(Diagnostic(
+                "OK", f"/{SLASH_COMMAND_NAME} local fast path: Claude Code {version_text}"
+            ))
+        else:
+            diagnostics.append(Diagnostic(
+                "ERROR",
+                f"/{SLASH_COMMAND_NAME} fast hook: expected one, found {slash_count}",
+            ))
+    else:
+        version_text = (
+            ".".join(map(str, claude_version))
+            if isinstance(claude_version, tuple)
+            else "unknown"
+        )
+        diagnostics.append(Diagnostic(
+            "WARN",
+            f"/{SLASH_COMMAND_NAME} uses model fallback on Claude Code {version_text}",
+        ))
 
     runtime_dir = config_dir / "statusline_runtime"
     if runtime_dir.is_dir() and os.access(runtime_dir, os.W_OK | os.X_OK):
