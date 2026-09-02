@@ -69,7 +69,7 @@ command -v git
 
 ```bash
 uv build
-pipx install dist/claude_code_statusline-0.3.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.3.1-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -78,7 +78,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.3.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.3.1-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -424,7 +424,7 @@ claude-statusline config reset
 | --- | --- | --- |
 | `model-with-effort` | 当前模型 ID（缺失时使用 display name）；存在 effort 时追加 effort level | 没有模型字段时省略 |
 | `current-dir` | Claude Code 当前实时工作目录 | 没有目录字段时省略 |
-| `git` | 分支、上游差异和工作树变更 | 非 Git 目录时省略；Git 查询异常时显示 `git!` |
+| `git` | `git ` 前缀 + 分支、上游差异和工作树变更，如 `git main ↑1● 2` | 非 Git 目录时省略；Git 查询异常时显示 `git!` |
 | `context-remaining` | `Context N% left` | Claude Code 未提供百分比时省略 |
 | `context-window-size` | 总上下文窗口，例如 `1M window` | Claude Code 未提供窗口大小时省略 |
 | `five-hour-limit` | 5 小时窗口的剩余百分比 | 未提供该窗口时省略 |
@@ -440,7 +440,7 @@ claude-statusline config reset
 | ID | 显示内容 | 数据不可用时的行为 |
 | --- | --- | --- |
 | `version` | Claude Code 版本，例如 `v2.1.258` | 未提供版本时省略 |
-| `session` | 会话名称（`/rename` 设置后），否则显示会话 ID 前 8 位 | 没有会话 ID 时省略 |
+| `session` | `session ` 前缀 + 会话名称（`/rename` 设置后），否则会话 ID 前 8 位，如 `session explain prompt-cache` | 没有会话 ID 时省略 |
 | `cost` | 会话金额、API 时长与增删行数，例如 `$0.12 · 12m 30s · +156/-23`；金额恒显示（无数据时为 `$0.00`），时长为 0 或增删行均为 0 时省略对应部分 | 没有 cost 字段时省略 |
 | `prompt-cache` | 缓存命中率与写入 token，例如 `cache 91% · 352K w` | 没有 prompt_cache 字段时省略（首次 API 响应前不存在）；命中率越界时只显示 token 部分 |
 | `fast-mode` | fast mode 开启时显示 `fast` | 未开启时省略 |
@@ -449,7 +449,7 @@ claude-statusline config reset
 | `thinking` | 扩展思考启用时显示 `thinking` | 未启用时省略 |
 | `pr` | 当前分支的 open PR/MR，例如 `PR #1234 · approved`；GitLab 合并请求显示为 `MR !1234` | 当前分支没有 open PR/MR 时省略 |
 | `worktree` | `--worktree` 会话的 worktree 名称，例如 `worktree feat-x` | 没有 worktree 字段时省略 |
-| `repo` | origin remote 的仓库，例如 `acme/widget` | 没有 remote 身份时省略 |
+| `repo` | `repo ` 前缀 + origin remote 的仓库，例如 `repo acme/widget` | 没有 remote 身份时省略 |
 
 `cost` 的金额来自 Claude Code 的 `total_cost_usd`；在第三方 API 端点（例如 DeepSeek 代理）下该值为按默认模型费率的估算，仅作参考。`prompt-cache` 与 `tokens` 的统计口径不同：前者来自 statusline payload 且不含 subagent 流量，后者从 transcript 累计并包含可发现的 subagent transcript。
 
@@ -527,16 +527,15 @@ claude-statusline config reset
 
 `classic` 使用 ` | ` 分隔顶层条目；`compact` 对所有顶层条目使用 ` · `。
 
-以下条目在相邻时属于同一语义组，并用 ` · ` 连接：
+以下条目在相邻时属于同一语义组，并用 ` · ` 连接；同组条目使用相同颜色：
 
+- `model-with-effort`、`fast-mode` 与 `thinking`（模型组，象牙白）
+- `git`、`pr` 与 `repo`（仓库组，紫）
+- `tokens` 与 `prompt-cache`（用量组，粉）
 - `context-remaining` 与 `context-window-size`
 - `five-hour-limit`、`weekly-limit` 与 `spend-limit`
-- `version` 与 `session`
-- `fast-mode`、`agent`、`vim-mode` 与 `thinking`
-- `cost` 与 `prompt-cache`
-- `pr`、`worktree` 与 `repo`
 
-如果通过排序把同组条目分开，它们会恢复为独立顶层条目。`tokens` 内部的 `hit`、`miss`、`out`，`cost` 内部的金额、时长、增删行，以及 `prompt-cache` 内部的命中率、写入 token 始终使用 ` · `。
+`version`、`session`、`cost`、`agent`、`vim-mode`、`worktree` 各自独立，不与相邻条目合并。目录顺序已按组排列（模型组 → 目录 → 仓库组 → 上下文 → 限额 → 用量组 → 计时 → 独立项），所以用 `enable` 追加的新条目会自动落在组锚点之后。如果通过排序把同组条目分开，它们会恢复为独立顶层条目。`tokens` 内部的 `hit`、`miss`、`out`，`cost` 内部的金额、时长、增删行，以及 `prompt-cache` 内部的命中率、写入 token 始终使用 ` · `。
 
 ### 刷新间隔
 
@@ -699,7 +698,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.3.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.3.1-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
@@ -916,7 +915,7 @@ uv build
 确认 wheel 包含 personal skill 模板：
 
 ```bash
-python3 -m zipfile -l dist/claude_code_statusline-0.3.0-py3-none-any.whl
+python3 -m zipfile -l dist/claude_code_statusline-0.3.1-py3-none-any.whl
 ```
 
 ## 当前边界

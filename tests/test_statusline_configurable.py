@@ -77,7 +77,7 @@ class ConfiguredRenderingTests(unittest.TestCase):
             rendered = configured_text(self.base_data(), dc.DEFAULT_CONFIG)
         self.assertEqual(
             rendered,
-            "test-model high | /code/repo | main | "
+            "test-model high | /code/repo | git main | "
             "Context 75% left · 1K window | "
             "5h 80% left · weekly 60% left · spend 40% left | "
             "hit 10 · miss 20 · out 5 | timer",

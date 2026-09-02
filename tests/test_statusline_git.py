@@ -200,7 +200,7 @@ class GitDisplayTests(unittest.TestCase):
             staged=5, unstaged=3, conflicts=1, untracked=2,
         )
         plain = ANSI_RE.sub("", sl._git_segment(result))
-        self.assertEqual(plain, "main ↑2↓1● 5~3!1?2")
+        self.assertEqual(plain, "git main ↑2↓1● 5~3!1?2")
         self.assertIsNone(sl._git_segment({"kind": "not_repo"}))
         self.assertEqual(ANSI_RE.sub("", sl._git_segment({"kind": "error"})), "git!")
 
@@ -208,7 +208,7 @@ class GitDisplayTests(unittest.TestCase):
         result = ok_result(
             upstream="origin/main", ahead=9, behind=8, upstream_gone=True,
         )
-        self.assertEqual(ANSI_RE.sub("", sl._git_segment(result)), "main [gone]")
+        self.assertEqual(ANSI_RE.sub("", sl._git_segment(result)), "git main [gone]")
 
 
 class GitCacheTests(unittest.TestCase):
@@ -409,7 +409,7 @@ class GitIntegrationTests(unittest.TestCase):
         plain = ANSI_RE.sub("", rendered)
         segments = plain.split(" | ")
         self.assertEqual(segments[1], str(live))
-        self.assertEqual(segments[2], "live-branch")
+        self.assertEqual(segments[2], "git live-branch")
         self.assertNotIn(str(launch), plain)
 
 

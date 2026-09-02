@@ -12,28 +12,31 @@ from typing import Any
 SCHEMA_VERSION = 1
 CONFIG_FILENAME = "claude-statusline.json"
 
+# Catalog order keeps same-group items adjacent so wizard-appended items land
+# next to their group anchors (groups join only when adjacent). DEFAULT_ITEMS
+# below stays the legacy ten and is unaffected by this ordering.
 ITEM_CATALOG = {
     "model-with-effort": "Current model identifier with reasoning effort",
+    "fast-mode": "Indicates fast mode is active",
+    "thinking": "Indicates extended thinking is enabled",
     "current-dir": "Current working directory",
     "git": "Git branch, divergence, and working-tree changes",
+    "pr": "Open pull or merge request on the current branch",
+    "repo": "Remote repository owner and name",
+    "worktree": "Worktree name in --worktree sessions",
     "context-remaining": "Percentage of context window remaining",
     "context-window-size": "Total context window size",
     "five-hour-limit": "Remaining five-hour usage limit",
     "weekly-limit": "Remaining seven-day usage limit",
     "spend-limit": "Remaining gateway spend limit",
     "tokens": "Cumulative cache hit, cache miss, and output tokens",
+    "prompt-cache": "Prompt cache hit ratio and cached input tokens",
     "prompt-timer": "Elapsed time and outcome of the latest prompt",
     "version": "Claude Code version",
     "session": "Session name, or the session identifier prefix",
     "cost": "Session cost, API duration, and line changes",
-    "prompt-cache": "Prompt cache hit ratio and cached input tokens",
-    "fast-mode": "Indicates fast mode is active",
     "agent": "Agent name in --agent sessions",
     "vim-mode": "Current Vim mode",
-    "thinking": "Indicates extended thinking is enabled",
-    "pr": "Open pull or merge request on the current branch",
-    "worktree": "Worktree name in --worktree sessions",
-    "repo": "Remote repository owner and name",
 }
 
 LEGACY_DEFAULT_ITEMS = (

@@ -58,9 +58,33 @@ class NewItemCatalogTests(unittest.TestCase):
         self.assertEqual(dc.LEGACY_DEFAULT_ITEMS, dc.DEFAULT_ITEMS)
         self.assertLess(set(dc.DEFAULT_ITEMS), set(dc.ITEM_CATALOG))
 
-    def test_new_catalog_entries_follow_legacy_order(self):
-        self.assertEqual(len(dc.ITEM_CATALOG), 21)
-        self.assertEqual(list(dc.ITEM_CATALOG)[10:], list(NEW_ITEM_IDS))
+    def test_catalog_order_keeps_same_group_items_adjacent(self):
+        self.assertEqual(
+            list(dc.ITEM_CATALOG),
+            [
+                "model-with-effort",
+                "fast-mode",
+                "thinking",
+                "current-dir",
+                "git",
+                "pr",
+                "repo",
+                "worktree",
+                "context-remaining",
+                "context-window-size",
+                "five-hour-limit",
+                "weekly-limit",
+                "spend-limit",
+                "tokens",
+                "prompt-cache",
+                "prompt-timer",
+                "version",
+                "session",
+                "cost",
+                "agent",
+                "vim-mode",
+            ],
+        )
 
 
 class NewItemRenderingTests(unittest.TestCase):
@@ -80,16 +104,19 @@ class NewItemRenderingTests(unittest.TestCase):
 
     def test_session_prefers_name_then_id_prefix(self):
         data = {"session_id": "abcdefghijkl", "session_name": "Refactor"}
-        self.assertEqual(self.render_items(data, "session"), "Refactor")
+        self.assertEqual(self.render_items(data, "session"), "session Refactor")
         self.assertEqual(
-            self.render_items({"session_id": "abcdefghijkl"}, "session"), "abcdefgh"
+            self.render_items({"session_id": "abcdefghijkl"}, "session"),
+            "session abcdefgh",
         )
-        self.assertEqual(self.render_items({"session_id": "abc"}, "session"), "abc")
+        self.assertEqual(
+            self.render_items({"session_id": "abc"}, "session"), "session abc"
+        )
         self.assertEqual(
             self.render_items(
                 {"session_id": "abcdefgh", "session_name": ""}, "session"
             ),
-            "abcdefgh",
+            "session abcdefgh",
         )
         self.assertEqual(self.render_items({"session_id": ""}, "session"), "")
 
@@ -205,7 +232,7 @@ class NewItemRenderingTests(unittest.TestCase):
                 "repo": {"host": "github.com", "owner": "acme", "name": "widget"}
             }
         }
-        self.assertEqual(self.render_items(data, "repo"), "acme/widget")
+        self.assertEqual(self.render_items(data, "repo"), "repo acme/widget")
         self.assertEqual(
             self.render_items({"workspace": {"repo": {"owner": "acme"}}}, "repo"), ""
         )
@@ -213,36 +240,57 @@ class NewItemRenderingTests(unittest.TestCase):
 
     def test_new_groups_coalesce_adjacent_items(self):
         data = {
-            "version": "2.1.258",
-            "session_id": "abcdefghijkl",
-            "session_name": "Refactor",
+            "model": {"id": "test-model"},
+            "effort": {"level": "max"},
             "fast_mode": True,
             "thinking": {"enabled": True},
-            "cost": {
-                "total_cost_usd": 0.12,
-                "total_duration_ms": 750000,
-                "total_lines_added": 156,
-                "total_lines_removed": 23,
-            },
             "prompt_cache": {"hit_ratio": 0.91, "cache_write_tokens": 352000},
             "pr": {"number": 1234, "review_state": "approved"},
-            "workspace": {"repo": {"owner": "acme", "name": "widget"}},
+            "workspace": {
+                "current_dir": "/code/repo",
+                "repo": {"owner": "acme", "name": "widget"},
+            },
         }
-        self.assertEqual(
-            self.render_items(
-                data,
-                "version",
-                "session",
+        config = dc.DEFAULT_CONFIG.with_updates(
+            items=(
+                "model-with-effort",
                 "fast-mode",
                 "thinking",
-                "cost",
-                "prompt-cache",
+                "git",
                 "pr",
                 "repo",
+                "tokens",
+                "prompt-cache",
+            )
+        )
+        with (
+            mock.patch.object(
+                sl,
+                "git_status",
+                return_value={
+                    "kind": "ok",
+                    "branch": "main",
+                    "upstream_gone": False,
+                    "ahead": 0,
+                    "behind": 0,
+                    "staged": 0,
+                    "unstaged": 0,
+                    "conflicts": 0,
+                    "untracked": 0,
+                },
             ),
-            "v2.1.258 · Refactor | fast · thinking | "
-            "$0.12 · 12m 30s · +156/-23 · cache 91% · 352K w | "
-            "PR #1234 · approved · acme/widget",
+            mock.patch.object(
+                sl,
+                "session_token_totals",
+                return_value=("10", "20", "5", 1.0, {}),
+            ),
+        ):
+            rendered = configured_text(data, config)
+        self.assertEqual(
+            rendered,
+            "test-model max · fast · thinking | "
+            "git main · PR #1234 · approved · repo acme/widget | "
+            "hit 10 · miss 20 · out 5 · cache 91% · 352K w",
         )
 
     def test_new_groups_do_not_cross_ungrouped_items(self):
@@ -254,7 +302,7 @@ class NewItemRenderingTests(unittest.TestCase):
         }
         self.assertEqual(
             self.render_items(data, "version", "model-with-effort", "session"),
-            "v2.1.258 | test-model | Refactor",
+            "v2.1.258 | test-model | session Refactor",
         )
 
     def test_new_items_do_not_load_expensive_sources(self):
@@ -357,7 +405,7 @@ class NewItemSubprocessTests(unittest.TestCase):
         self.assertEqual(result.stderr, "")
         self.assertEqual(
             plain(result.stdout).strip(),
-            "v2.1.258 · abc12345 | $0.12 · 12m 30s · +156/-23",
+            "v2.1.258 | session abc12345 | $0.12 · 12m 30s · +156/-23",
         )
 
 

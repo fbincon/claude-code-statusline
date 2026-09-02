@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Claude Code status line renderer.
 # Reads the statusline JSON from stdin and, by default, prints colored rows:
-#   model-id effort | dir | branch ↑ahead↓behind● staged~unstaged
+#   model-id effort | dir | git branch ↑ahead↓behind● staged~unstaged
 #   | Context N% left · size window
 #   | 5h N% left · weekly N% left · spend N% left | in · out
 # Rows are packed to the terminal width reported in COLUMNS. Long fields are
@@ -1218,7 +1218,7 @@ def _git_segment(result, palette=DEFAULT_PALETTE):
     if result["untracked"]:
         statuses.append(f"?{result['untracked']}")
     suffix = " " + "".join(statuses) if statuses else ""
-    return f"{palette.branch}{result['branch']}{suffix}{palette.reset}"
+    return f"{palette.branch}git {result['branch']}{suffix}{palette.reset}"
 
 
 def _fmt_duration(seconds, nearest=False):
@@ -1511,7 +1511,7 @@ class _RenderState:
         effort = deep_get(self.data, ("effort", "level"))
         if effort:
             text += f" {effort}"
-        return _RenderedItem(text + self.palette.reset)
+        return _RenderedItem(text + self.palette.reset, group="model")
 
     def current_dir(self):
         if not self.live_dir:
@@ -1537,7 +1537,7 @@ class _RenderState:
                 self.live_dir, deep_get(self.data, ("session_id",))
             )
         text = _git_segment(self._git, self.palette)
-        return _RenderedItem(text) if text else None
+        return _RenderedItem(text, group="repo") if text else None
 
     def context_remaining(self):
         value = deep_get(self.data, ("context_window", "remaining_percentage"))
@@ -1577,7 +1577,7 @@ class _RenderState:
             f"{self.palette.tokens}miss {tmiss}{self.palette.reset}",
             f"{self.palette.tokens}out {tout}{self.palette.reset}",
         ]
-        return _RenderedItem(self.inner_separator.join(parts))
+        return _RenderedItem(self.inner_separator.join(parts), group="usage")
 
     def prompt_timer(self):
         totals = self.totals()
@@ -1597,9 +1597,7 @@ class _RenderState:
         value = deep_get(self.data, ("version",))
         if not isinstance(value, str) or not value:
             return None
-        return _RenderedItem(
-            f"{self.palette.model}v{value}{self.palette.reset}", group="session"
-        )
+        return _RenderedItem(f"{self.palette.model}v{value}{self.palette.reset}")
 
     def session(self):
         name = deep_get(self.data, ("session_name",))
@@ -1610,9 +1608,7 @@ class _RenderState:
             if not isinstance(sid, str) or not sid:
                 return None
             text = sid[:8]
-        return _RenderedItem(
-            f"{self.palette.model}{text}{self.palette.reset}", group="session"
-        )
+        return _RenderedItem(f"{self.palette.model}session {text}{self.palette.reset}")
 
     def cost(self):
         cost = deep_get(self.data, ("cost",))
@@ -1639,7 +1635,7 @@ class _RenderState:
             parts.append(
                 f"{self.palette.percentage}+{added}/-{removed}{self.palette.reset}"
             )
-        return _RenderedItem(self.inner_separator.join(parts), group="usage")
+        return _RenderedItem(self.inner_separator.join(parts))
 
     def prompt_cache(self):
         cache = deep_get(self.data, ("prompt_cache",))
@@ -1664,30 +1660,26 @@ class _RenderState:
         if not deep_get(self.data, ("fast_mode",)):
             return None
         return _RenderedItem(
-            f"{self.palette.timer}fast{self.palette.reset}", group="mode"
+            f"{self.palette.model}fast{self.palette.reset}", group="model"
         )
 
     def agent(self):
         name = deep_get(self.data, ("agent", "name"))
         if not isinstance(name, str) or not name:
             return None
-        return _RenderedItem(
-            f"{self.palette.timer}agent {name}{self.palette.reset}", group="mode"
-        )
+        return _RenderedItem(f"{self.palette.timer}agent {name}{self.palette.reset}")
 
     def vim_mode(self):
         mode = deep_get(self.data, ("vim", "mode"))
         if not isinstance(mode, str) or not mode:
             return None
-        return _RenderedItem(
-            f"{self.palette.timer}vim {mode}{self.palette.reset}", group="mode"
-        )
+        return _RenderedItem(f"{self.palette.timer}vim {mode}{self.palette.reset}")
 
     def thinking(self):
         if not deep_get(self.data, ("thinking", "enabled")):
             return None
         return _RenderedItem(
-            f"{self.palette.timer}thinking{self.palette.reset}", group="mode"
+            f"{self.palette.model}thinking{self.palette.reset}", group="model"
         )
 
     def pr(self):
@@ -1710,10 +1702,7 @@ class _RenderState:
         name = deep_get(self.data, ("worktree", "name"))
         if not isinstance(name, str) or not name:
             return None
-        return _RenderedItem(
-            f"{self.palette.branch}worktree {name}{self.palette.reset}",
-            group="repo",
-        )
+        return _RenderedItem(f"{self.palette.branch}worktree {name}{self.palette.reset}")
 
     def repo(self):
         repo = deep_get(self.data, ("workspace", "repo"))
@@ -1725,7 +1714,7 @@ class _RenderState:
                 or not isinstance(name, str) or not name):
             return None
         return _RenderedItem(
-            f"{self.palette.branch}{owner}/{name}{self.palette.reset}",
+            f"{self.palette.branch}repo {owner}/{name}{self.palette.reset}",
             group="repo",
         )
 
