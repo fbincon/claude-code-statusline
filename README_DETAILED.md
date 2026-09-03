@@ -78,7 +78,7 @@ command -v git
 
 ```bash
 uv build
-pipx install dist/claude_code_statusline-0.7.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.8.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -87,7 +87,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.7.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.8.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -387,7 +387,7 @@ Palette: default
 Directory style: home
 Separator style: classic
 Scope labels: when-subagents
-Subagent items: status, name, model-with-effort, context-used, elapsed, task
+Subagent items: status, name, model-with-effort, context-remaining, elapsed, task
 Custom subagent rows: on
 Subagent statusline: owned
 Padding: 0
@@ -506,10 +506,10 @@ claude-statusline config order
 
 ```bash
 claude-statusline config subagents list-items --json
-claude-statusline config subagents set-items status name model-with-effort context-used elapsed task
+claude-statusline config subagents set-items status name model-with-effort context-remaining elapsed task
 claude-statusline config subagents enable tokens current-dir
 claude-statusline config subagents disable task
-claude-statusline config subagents order status name elapsed model-with-effort context-used tokens current-dir
+claude-statusline config subagents order status name elapsed model-with-effort context-remaining tokens current-dir
 ```
 
 `subagents.items=[]` 时，`render-subagents` 仍为每个有效 task ID 输出合法 NDJSON，但 `content` 为空，Claude Code 因而隐藏相应自定义行。
@@ -543,7 +543,7 @@ claude-statusline config set scope-labels when-subagents
 ```bash
 claude-statusline config apply \
   --items model-with-effort current-dir git context-remaining prompt-timer \
-  --subagent-items status name model-with-effort context-used elapsed task \
+  --subagent-items status name model-with-effort context-remaining elapsed task \
   --subagent-statusline on \
   --scope-labels when-subagents \
   --colors on \
@@ -635,7 +635,7 @@ Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-st
 默认子 Agent 行类似：
 
 ```text
-⏱ Explore · sonnet-5/high · ctx 42% · 1m 18s · searching auth flow
+⏱ Explore · sonnet-5/high · Context 58% left · 1m 18s · searching auth flow
 ```
 
 可排序条目及默认状态：
@@ -645,13 +645,14 @@ Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-st
 | `status` | 开 | `pending …`、`running ⏱`、`completed ✓`、`failed ✗`、`killed ■`、`paused/waiting ⏳`，未知状态为 `?` |
 | `name` | 开 | `name`，否则规范化 `type`，再否则 `Agent` |
 | `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID，并在存在时追加 `/effort` |
-| `context-used` | 开 | `tokenCount / contextWindowSize` 四舍五入为百分比 |
+| `context-remaining` | 开 | `Context N% left`，按 `100 − 已用百分比`（先四舍五入）计算并截断到 0–100 |
+| `context-used` | 关 | `Context N% used`，`tokenCount / contextWindowSize` 四舍五入为百分比 |
 | `elapsed` | 开 | 从 task 的 epoch 毫秒 `startTime` 计算；未来时间按 0 秒 |
 | `task` | 开 | 优先 `label`，否则 `description`；与名称重复时省略 |
 | `tokens` | 关 | 当前 task 的紧凑 token 数 |
 | `current-dir` | 关 | task 的 `cwd`，遵守目录样式 |
 
-宽度直接使用 payload 中的正整数 `columns`，无效时回退 80，不扣主栏 margin。输入文本中的换行、制表符和控制字符会被清理。超宽时先截断任务文本，再按 `current-dir → tokens → context-used → model-with-effort → task` 删除可选段；`status`、`name`、`elapsed` 最后保留，极窄时只显示状态。ASCII、CJK、emoji、组合字符和 ANSI 路径都保证可见宽度不超过 `columns` 且不换行。
+宽度直接使用 payload 中的正整数 `columns`，无效时回退 80，不扣主栏 margin。输入文本中的换行、制表符和控制字符会被清理。超宽时先截断任务文本，再按 `current-dir → tokens → context-used → context-remaining → model-with-effort → task` 删除可选段；`status`、`name`、`elapsed` 最后保留，极窄时只显示状态。ASCII、CJK、emoji、组合字符和 ANSI 路径都保证可见宽度不超过 `columns` 且不换行。
 
 三种作用域必须区分：
 
@@ -967,7 +968,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.7.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.8.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
@@ -1242,7 +1243,7 @@ uv build
 确认 wheel 包含 personal skill 模板：
 
 ```bash
-python3 -m zipfile -l dist/claude_code_statusline-0.7.0-py3-none-any.whl
+python3 -m zipfile -l dist/claude_code_statusline-0.8.0-py3-none-any.whl
 ```
 
 ### 无费用与人工验收边界

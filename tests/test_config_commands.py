@@ -147,6 +147,22 @@ class DisplayMutationTests(ConfigCommandTestCase):
                 self.config_dir, self.executable, ["tokens", "name"]
             )
 
+    def test_subagent_context_remaining_selectable_via_config_commands(self):
+        result = cc.set_subagent_items(
+            self.config_dir,
+            self.executable,
+            ["status", "name", "context-remaining", "context-used"],
+        )
+        self.assertTrue(result.changed)
+        self.assertEqual(
+            dc.load_display_config(self.config_dir).subagents.items,
+            ("status", "name", "context-remaining", "context-used"),
+        )
+        by_id = {entry["id"]: entry for entry in cc.subagent_item_listing()}
+        self.assertTrue(by_id["context-remaining"]["default_enabled"])
+        self.assertFalse(by_id["context-used"]["default_enabled"])
+        self.assertIsNone(by_id["context-used"]["position"])
+
     def test_scope_and_subagent_statusline_options(self):
         cc.set_option(self.config_dir, self.executable, "scope-labels", "always")
         cc.set_option(

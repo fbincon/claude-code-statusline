@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 - 2026-09-03
+
+- 新增子 Agent 条目 `context-remaining`：显示 `Context N% left`（先按 `tokenCount / contextWindowSize` 四舍五入已用百分比，再取 `100 − 已用` 并截断到 0–100），并取代 `context-used` 成为默认子 Agent 行的上下文项。
+- 子 Agent `context-used` 保持可选，显示格式从 `ctx N%` 改为与主栏一致的 `Context N% used`；已有配置目录结构不变，但启用 `context-used` 的现有配置会看到新文本。
+- 无显示配置的安装默认子 Agent 行改为显示剩余上下文；两个上下文条目都参与窄屏丢弃（`current-dir → tokens → context-used → context-remaining → model-with-effort → task`）。
+- 新条目可通过 CLI、TUI 与 `/statusline-config` 启用和排序；更新对应渲染、目录、预览与文档测试。
+
 ## 0.7.0 - 2026-09-03
 
 - 新增三个默认关闭的主 Agent 条目：`context-used` 显示 Claude 官方 payload 的上下文已用百分比，`project-name` 显示启动项目目录 basename，`hostname` 通过 Python 标准库显示本地主机名。

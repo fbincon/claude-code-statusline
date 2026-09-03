@@ -44,6 +44,7 @@ OPTIONAL_DROP_ORDER = (
     "current-dir",
     "tokens",
     "context-used",
+    "context-remaining",
     "model-with-effort",
     "task",
 )
@@ -164,7 +165,22 @@ def _context_used(task: dict[str, Any]) -> str | None:
         if not math.isfinite(ratio):
             return None
         percentage = int(ratio + 0.5)
-        return f"ctx {percentage}%"
+        return f"Context {percentage}% used"
+    return None
+
+
+def _context_remaining(task: dict[str, Any]) -> str | None:
+    tokens = task.get("tokenCount")
+    window = task.get("contextWindowSize")
+    token_number = _finite_number(tokens)
+    window_number = _finite_number(window)
+    if token_number is not None and token_number >= 0 and window_number is not None and window_number > 0:
+        ratio = token_number * 100.0 / window_number
+        if not math.isfinite(ratio):
+            return None
+        used = int(ratio + 0.5)
+        remaining = max(0, min(100, 100 - used))
+        return f"Context {remaining}% left"
     return None
 
 
@@ -214,6 +230,7 @@ def _parts_for_task(
         "status": (_status_text(task), palette.status),
         "name": (name, palette.name),
         "model-with-effort": (_model_with_effort(task), palette.model),
+        "context-remaining": (_context_remaining(task), palette.context),
         "context-used": (_context_used(task), palette.context),
         "elapsed": (_elapsed(task, now_ms), palette.elapsed),
         "task": (_task_text(task, name), palette.task),

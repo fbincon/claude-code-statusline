@@ -64,6 +64,7 @@ SUBAGENT_ITEM_CATALOG = {
     "status": "Task status icon",
     "name": "Agent name or normalized task type",
     "model-with-effort": "Agent model identifier with reasoning effort",
+    "context-remaining": "Percentage of the agent context window remaining",
     "context-used": "Percentage of the agent context window used",
     "elapsed": "Elapsed time for this agent task",
     "task": "Dynamic task label or description",
@@ -74,7 +75,7 @@ DEFAULT_SUBAGENT_ITEMS = (
     "status",
     "name",
     "model-with-effort",
-    "context-used",
+    "context-remaining",
     "elapsed",
     "task",
 )

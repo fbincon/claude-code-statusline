@@ -92,13 +92,14 @@ class NewItemCatalogTests(unittest.TestCase):
             ],
         )
 
-    def test_subagent_catalog_and_defaults_are_unchanged(self):
+    def test_subagent_catalog_and_defaults(self):
         self.assertEqual(
             list(dc.SUBAGENT_ITEM_CATALOG),
             [
                 "status",
                 "name",
                 "model-with-effort",
+                "context-remaining",
                 "context-used",
                 "elapsed",
                 "task",
@@ -112,7 +113,7 @@ class NewItemCatalogTests(unittest.TestCase):
                 "status",
                 "name",
                 "model-with-effort",
-                "context-used",
+                "context-remaining",
                 "elapsed",
                 "task",
             ),

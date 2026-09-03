@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claude-code-statusline"
-version = "0.7.0"
+version = "0.8.0"
 description = "A packaged, configurable, stateful Claude Code status line for Linux"
 readme = "README.md"
 requires-python = ">=3.10"

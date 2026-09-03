@@ -43,7 +43,8 @@ If the invocation arguments are empty:
    newly enabled items in the catalog order returned by `list-items`.
 5. Ask for:
    - subagent row items: `status`, `name`, `model-with-effort`,
-     `context-used`, `elapsed`, `task`, `tokens`, and `current-dir`
+     `context-remaining`, `context-used`, `elapsed`, `task`, `tokens`, and
+     `current-dir`
    - custom subagent rows: on or off
    - scope labels: off, when-subagents, or always
    - colors: on or off

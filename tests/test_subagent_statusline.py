@@ -51,15 +51,15 @@ class RendererTests(unittest.TestCase):
                 {
                     "id": "task-1",
                     "content": (
-                        "⏱ Explore · sonnet-5/high · ctx 42% · 1m 18s · "
-                        "searching auth flow"
+                        "⏱ Explore · sonnet-5/high · Context 58% left · "
+                        "1m 18s · searching auth flow"
                     ),
                 },
                 {
                     "id": "task-2",
                     "content": (
-                        "⏱ Review · sonnet-5/high · ctx 42% · 1m 18s · "
-                        "searching auth flow"
+                        "⏱ Review · sonnet-5/high · Context 58% left · "
+                        "1m 18s · searching auth flow"
                     ),
                 },
             ],
@@ -105,7 +105,7 @@ class RendererTests(unittest.TestCase):
         task = sample_task(effort=7, startTime=NOW_MS + 1000)
         self.assertEqual(
             ss.render_task(task, config, columns=100, now_ms=NOW_MS),
-            "sonnet-5/7 · ctx 42% · 0m 00s · 84K tokens · project",
+            "sonnet-5/7 · Context 42% used · 0m 00s · 84K tokens · project",
         )
         task["effort"] = None
         self.assertTrue(
@@ -113,6 +113,86 @@ class RendererTests(unittest.TestCase):
                 "sonnet-5 ·"
             )
         )
+
+    def test_context_remaining_rounding_and_format(self):
+        config = plain_config(
+            subagents=dc.SubagentDisplayConfig(items=("context-remaining",))
+        )
+        for token_count, window, expected in (
+            (84_000, 200_000, "Context 58% left"),
+            (18_500, 200_000, "Context 91% left"),
+            (83_000, 200_000, "Context 58% left"),   # 41.5 -> used 42 -> left 58
+            (0, 200_000, "Context 100% left"),
+            (200_000, 200_000, "Context 0% left"),
+        ):
+            with self.subTest(token_count=token_count, window=window):
+                task = sample_task(tokenCount=token_count, contextWindowSize=window)
+                self.assertEqual(
+                    ss.render_task(task, config, now_ms=NOW_MS), expected
+                )
+
+    def test_context_remaining_clamps_at_zero_over_window(self):
+        config = plain_config(
+            subagents=dc.SubagentDisplayConfig(items=("context-remaining",))
+        )
+        task = sample_task(tokenCount=400_000, contextWindowSize=200_000)
+        self.assertEqual(
+            ss.render_task(task, config, now_ms=NOW_MS), "Context 0% left"
+        )
+
+    def test_context_remaining_missing_fields_omitted(self):
+        config = plain_config(
+            subagents=dc.SubagentDisplayConfig(items=("context-remaining",))
+        )
+        self.assertEqual(
+            ss.render_task(
+                sample_task(contextWindowSize=None), config, now_ms=NOW_MS
+            ),
+            "",
+        )
+        self.assertEqual(
+            ss.render_task(sample_task(tokenCount=None), config, now_ms=NOW_MS),
+            "",
+        )
+
+    def test_context_remaining_invalid_values_omitted(self):
+        config = plain_config(
+            subagents=dc.SubagentDisplayConfig(items=("context-remaining",))
+        )
+        for token_count, window in (
+            (-1, 200_000),
+            ("84", 200_000),
+            (True, 200_000),
+            (float("nan"), 200_000),
+            (float("inf"), 200_000),
+            (10**1000, 200_000),
+            (84_000, 0),
+            (84_000, "200000"),
+            (84_000, False),
+            (None, 200_000),
+            (84_000, None),
+        ):
+            with self.subTest(token_count=token_count, window=window):
+                task = sample_task(tokenCount=token_count, contextWindowSize=window)
+                self.assertEqual(
+                    ss.render_task(task, config, now_ms=NOW_MS), ""
+                )
+
+    def test_context_used_renders_full_label(self):
+        config = plain_config(
+            subagents=dc.SubagentDisplayConfig(items=("context-used",))
+        )
+        self.assertEqual(
+            ss.render_task(sample_task(), config, now_ms=NOW_MS),
+            "Context 42% used",
+        )
+
+    def test_context_remaining_default_and_preview(self):
+        content = ss.render_task(sample_task(), plain_config(), now_ms=NOW_MS)
+        self.assertIn("Context 58% left", content)
+        rows = ss.preview_rows(plain_config(), 100)
+        self.assertIn("Context 58% left", rows[0])
+        self.assertIn("Context 91% left", rows[1])
 
     def test_invalid_optional_fields_are_omitted(self):
         task = sample_task(

@@ -109,10 +109,16 @@ def humanize_tokens(value: object) -> str | None:
     if isinstance(value, bool) or parsed < 0:
         return None
     if parsed >= 1_000_000:
-        number = f"{parsed / 1_000_000:.2f}".rstrip("0").rstrip(".")
+        try:
+            number = f"{parsed / 1_000_000:.2f}".rstrip("0").rstrip(".")
+        except OverflowError:
+            return None
         return number + "M"
     if parsed >= 1000:
-        number = f"{parsed / 1000:.1f}".rstrip("0").rstrip(".")
+        try:
+            number = f"{parsed / 1000:.1f}".rstrip("0").rstrip(".")
+        except OverflowError:
+            return None
         return number + "K"
     return str(parsed)
 
