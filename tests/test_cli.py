@@ -8,6 +8,9 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
+
+from claude_statusline import cli
 
 
 class CliTests(unittest.TestCase):
@@ -25,7 +28,7 @@ class CliTests(unittest.TestCase):
     def test_version(self):
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "claude-statusline 0.4.0")
+        self.assertEqual(result.stdout.strip(), "claude-statusline 0.5.0")
         self.assertEqual(result.stderr, "")
 
     def test_help_lists_public_commands(self):
@@ -74,6 +77,77 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.stderr, "")
+
+    def test_experimental_slash_help_is_one_block_json_object(self):
+        value = {
+            "hook_event_name": "UserPromptExpansion",
+            "expansion_type": "slash_command",
+            "command_name": "statusline-configure",
+            "command_args": "--help",
+        }
+        result = self.run_cli("slash-hook", input_text=json.dumps(value))
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stderr, "")
+        self.assertEqual(result.stdout.count("\n"), 1)
+        parsed = json.loads(result.stdout)
+        self.assertEqual(parsed["decision"], "block")
+        self.assertEqual(parsed["reason"], "Usage: /statusline-configure")
+
+    def test_install_experimental_flags_are_mutually_exclusive(self):
+        enabled = cli.build_parser().parse_args([
+            "install", "--experimental-slash-tui"
+        ])
+        disabled = cli.build_parser().parse_args([
+            "install", "--no-experimental-slash-tui"
+        ])
+        default = cli.build_parser().parse_args(["install"])
+        self.assertIs(enabled.experimental_slash_tui, True)
+        self.assertIs(disabled.experimental_slash_tui, False)
+        self.assertIsNone(default.experimental_slash_tui)
+        with mock.patch("sys.stderr"):
+            with self.assertRaises(SystemExit):
+                cli.build_parser().parse_args([
+                    "install",
+                    "--experimental-slash-tui",
+                    "--no-experimental-slash-tui",
+                ])
+
+    def test_hot_paths_do_not_import_curses_or_slash_launcher(self):
+        snippets = (
+            (
+                "from claude_statusline import cli\n"
+                "cli.main(['render'])\n"
+                "import json,sys\n"
+                "print(json.dumps(sorted(n for n in sys.modules "
+                "if n == 'curses' or n.endswith('.slash_tui'))))\n",
+                "not-json",
+            ),
+            (
+                "from claude_statusline import slash_hook\n"
+                "slash_hook.handle_payload({"
+                "'hook_event_name':'UserPromptExpansion',"
+                "'expansion_type':'slash_command',"
+                "'command_name':'statusline-config',"
+                "'command_args':'help'})\n"
+                "import json,sys\n"
+                "print(json.dumps(sorted(n for n in sys.modules "
+                "if n == 'curses' or n.endswith('.slash_tui'))))\n",
+                None,
+            ),
+        )
+        for code, input_text in snippets:
+            with self.subTest(code=code[:30]):
+                result = subprocess.run(
+                    [sys.executable, "-c", code],
+                    input=input_text,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    env=os.environ.copy(),
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(result.stdout), [])
 
     def test_config_set_items_and_show_json(self):
         with tempfile.TemporaryDirectory(prefix="statusline-cli-config-") as root:

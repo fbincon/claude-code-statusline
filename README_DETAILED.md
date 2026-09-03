@@ -2,7 +2,7 @@
 
 这是一个面向 Linux 的、可配置且带会话状态的 Claude Code CLI 状态栏工具。它可以显示当前模型与 effort、实时工作目录、Git 状态、上下文余量、Claude 使用限额、会话 token，以及当前或最近一次 prompt 的耗时。
 
-显示项、显示顺序和样式既可以通过独立交互式 TUI 配置，也可以在 Claude Code 中通过 `/statusline-config` 或确定性的本地 CLI 配置。所有配置均为用户全局配置，对该用户的所有 Claude Code 项目生效。
+显示项、显示顺序和样式既可以通过独立交互式 TUI 配置，也可以在 Claude Code 中通过 `/statusline-config` 或实验性的 `/statusline-configure` 启动器配置。所有配置均为用户全局配置，对该用户的所有 Claude Code 项目生效。
 
 运行时只使用 Python 标准库；Git 信息需要系统中存在 `git`。状态栏只读取 Claude Code 传入的数据、本地 transcript、Git 仓库和本地状态文件，不会自行发起网络请求，也不会因为渲染状态栏而消耗模型 token。
 
@@ -12,6 +12,7 @@
 - [从源码构建与安装](#从源码构建与安装)
 - [快速开始](#快速开始)
 - [独立交互式 TUI](#独立交互式-tui)
+- [实验入口 `/statusline-configure`](#实验入口-statusline-configure)
 - [`/statusline-config` 的执行方式](#statusline-config-的执行方式)
 - [CLI 总览](#cli-总览)
 - [配置命令详解](#配置命令详解)
@@ -34,6 +35,7 @@
 - 支持经典 ` | ` 分隔符和紧凑 ` · ` 分隔符。
 - 支持 Claude Code 原生的 padding、定时刷新和 Vim 模式指示器设置。
 - 提供独立全屏 TUI，可用键盘筛选、勾选、排序并按键级预览完整草稿。
+- 可选安装 `/statusline-configure`，从 tmux popup 或 GNOME Terminal 新标签页启动同一个 TUI。
 - 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 处分行。
 - Git 查询和 transcript 汇总按需执行：隐藏相应显示项后，不再做不必要的采集。
 - 安装、配置和卸载均使用文件锁、备份及原子替换，避免并发写入或半写入配置。
@@ -54,6 +56,7 @@ claude-model high | ~/code/project | main ↑1● 2~1 | Context 73% left · 1M w
 - `pipx`，用于安装本地 wheel
 - `uv`，仅在从源码构建时需要
 - `git`，仅在启用 `git` 显示项时需要
+- `tmux` 或 GNOME Terminal，仅在启用实验性 `/statusline-configure` 时需要；两者都没有不影响普通配置入口
 
 先确认 `pipx` 安装的命令位于 `PATH`：
 
@@ -71,7 +74,7 @@ command -v git
 
 ```bash
 uv build
-pipx install dist/claude_code_statusline-0.4.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.5.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -80,7 +83,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.4.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.5.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -95,7 +98,8 @@ claude-statusline doctor
 2. 安装 `SessionStart`、`UserPromptSubmit`、`Stop`、`StopFailure` 和 `SessionEnd` 生命周期 hooks，用于维护 prompt 计时状态。
 3. 安装用户级 personal skill：`${CLAUDE_CONFIG_DIR:-~/.claude}/skills/statusline-config/SKILL.md`。
 4. 在 Claude Code 2.1.258 及以上版本中安装 `UserPromptExpansion` hook，让带参数的 `/statusline-config` 在本地执行。
-5. 在发生实际修改前创建备份，再以原子方式写入文件。
+5. 按持久 feature 偏好安装或暂挂实验性 `/statusline-configure` skill 与 600 秒 hook；首次安装默认关闭。
+6. 在发生实际修改前创建备份，再以原子方式写入文件。
 
 安装器会合并而不是整体覆盖 `settings.json`，并保留无关设置和无关 hooks。重复运行 `install` 是幂等的：配置已经正确时不会重复添加 hooks，也不会创建无意义备份。
 
@@ -111,13 +115,31 @@ claude-statusline install --dry-run
 
 ### 处理已有 statusline 或同名 skill
 
-如果已经存在不属于本工具的 statusline，或者存在没有本工具所有权标记的 `/statusline-config` skill，安装器会拒绝覆盖并返回错误。确认要替换这些内容时才使用：
+如果已经存在不属于本工具的 statusline，或者存在没有本工具所有权标记的 `/statusline-config`、`/statusline-configure` skill，安装器会拒绝覆盖并返回错误。确认要替换这些内容时才使用：
 
 ```bash
 claude-statusline install --force
 ```
 
 `--force` 仍会先备份原文件。它不是跳过校验的通用开关，只用于明确允许替换冲突的 statusline 或 skill。
+
+### 启用或关闭实验入口
+
+实验入口首次安装默认关闭，必须显式启用：
+
+```bash
+claude-statusline install --experimental-slash-tui
+```
+
+启用偏好保存在 `${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline-features.json`，卸载 Python 包或运行 `uninstall` 后仍保留。兼容版本上再次运行普通 `install` 会自动恢复入口。永久关闭并删除本工具拥有的活动 skill/hook：
+
+```bash
+claude-statusline install --no-experimental-slash-tui
+```
+
+两个参数互斥，都不传时保留此前偏好。它们都可与 `--dry-run`、`--force` 组合；`--dry-run` 不创建 feature、skill、runtime 或备份目录。显式启用要求可识别的 Claude Code 2.1.258 或更高版本，否则整个操作在写文件前失败。
+
+如果已启用后降级或暂时无法识别 Claude Code 版本，普通 `install` 会保留偏好、移除活动入口并将其暂挂；升级后再次运行 `install` 即恢复。跨过该版本阈值后应始终运行 `install` 和 `doctor`。
 
 ## 快速开始
 
@@ -218,7 +240,33 @@ Settings 页固定包含：
 
 Esc 退出后 stdout 输出 `Status line configuration unchanged.`，退出码为 0。参数、TTY、配置、安装归属、终端初始化或并发冲突错误返回 2 且不显示 traceback。SIGHUP 和 SIGTERM 同样先恢复终端，再分别使用标准 `128 + signal` 退出码。
 
-这个入口不会从 `/statusline-config` 启动，也不会访问 `/dev/tty` 或创建 tmux popup；Claude Code 内的 skill、fast hook、5 秒 hook timeout 和原有命令语义保持不变。
+独立命令本身没有 deadline，也不创建 slash 结果文件。`/statusline-config` 的 skill、fast hook、5 秒 hook timeout 和原有命令语义保持不变。
+
+## 实验入口 `/statusline-configure`
+
+显式启用后，可在 Claude Code 中输入不带参数的：
+
+```text
+/statusline-configure
+```
+
+这不是 Claude Code 原生 TUI 扩展，也没有绕过 hook 的终端隔离。Claude Code 2.1.259 的 command hook 在没有控制终端的新 session 中执行，hook 及其子进程不能打开 `/dev/tty`，`terminalSequence` 也不能绘制 curses 界面。因此本工具只把 slash command 用作本地启动器，并在另一个受支持的终端 surface 中运行已经存在的 `claude-statusline configure`；状态机、sample preview、并发检测和原子保存没有复制实现。
+
+启动器按以下顺序选择：
+
+1. `TMUX` 与形如 `%<数字>` 的 `TMUX_PANE` 都有效、`tmux` 可执行，且最长 2 秒的只读 preflight 能在当前 server 中解析该 pane 时，在当前客户端打开标题为 `Configure Status Line` 的 `90% × 90%` popup。popup 存在期间 tmux 暂停底层 pane 更新，子进程退出后自动关闭。
+2. tmux 不可用或 preflight 失败，但存在 `DISPLAY`/`WAYLAND_DISPLAY` 且可执行 `gnome-terminal` 时，在最近使用的 GNOME Terminal 窗口打开活动新标签页；没有现存窗口时 GNOME 可以创建窗口。命令使用 `--wait` 等待标签页中的 TUI 退出。
+3. 两者都不可用时阻断 slash expansion，不调用模型，并提示在终端运行 `claude-statusline configure` 或改用 `/statusline-config`。
+
+只有 tmux popup 接近“同 pane 弹窗”；GNOME 路径明确是新标签页。本版本不适配 `x-terminal-emulator`、Konsole、Kitty 或 WezTerm。hook payload 的 `cwd` 只有在它是存在的绝对目录时才作为启动目录，否则使用用户 home。启动器不拼接 command 参数或 cwd 到未转义 shell 文本。
+
+`/statusline-configure` 只接受空参数。`help`、`-h`、`--help` 只返回 `Usage: /statusline-configure`；其他参数会被拒绝，均不启动 TUI、不写配置且不调用模型。
+
+每次运行在 `~/.claude/statusline_runtime/slash_tui/` 下创建一个私有 `0700` 调用目录。TUI 以原子替换写入 `0600`、不超过 16 KiB 的严格结果 JSON，hook 验证后删除本次结果；启动前只清理名称属于本工具、超过 24 小时且树中不含符号链接的残留目录。终端 client 的 stdout/stderr 会被 hook 捕获并限长，不会混入 hook 的单一 JSON stdout。
+
+Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存，launcher 最长等待 585 秒，为结果校验和 hook 返回预留时间。保存、无变化、取消、信号中断、超时和错误都会在原 Claude 对话区显示一条短结果。tmux 一旦选中，即使 popup 内部失败也不会再打开 GNOME 标签页。
+
+如果全局 `disableAllHooks` 等设置阻止本地 hook，fallback skill 只会说明 hook 未运行，并提示独立命令或 `/statusline-config`；它禁止通过 Bash 启动 curses。此时可能仍消耗一个极短模型回合，这是插件侧无法避免的例外。
 
 ## `/statusline-config` 的执行方式
 
@@ -258,7 +306,9 @@ claude-statusline config [--config-dir PATH] order [ITEM...]
 claude-statusline config [--config-dir PATH] set OPTION VALUE
 claude-statusline config [--config-dir PATH] apply ...
 claude-statusline config [--config-dir PATH] reset
-claude-statusline install [--dry-run] [--force] [--config-dir PATH]
+claude-statusline install [--dry-run] [--force]
+  [--experimental-slash-tui | --no-experimental-slash-tui]
+  [--config-dir PATH]
 claude-statusline uninstall [--dry-run] [--config-dir PATH]
 claude-statusline doctor [--config-dir PATH]
 claude-statusline --version
@@ -669,6 +719,25 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 
 `items: []` 是合法配置，表示不输出任何状态栏内容。
 
+### 实验功能偏好
+
+`/statusline-configure` 的持久偏好保存在：
+
+```text
+${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline-features.json
+```
+
+文件不存在表示关闭；启用时内容固定为：
+
+```json
+{
+  "schema_version": 1,
+  "experimental_slash_tui": true
+}
+```
+
+该文件使用严格 schema 和 `0600` 权限；布尔值 `false` 也会按关闭状态读取，但本工具的关闭命令会直接删除文件。普通 `install` 遇到未知字段、缺失字段、错误类型、未知 schema 或损坏 JSON 时拒绝修改；显式 `--experimental-slash-tui` 会先备份再修复，显式 `--no-experimental-slash-tui` 会先备份再删除。
+
 ### Claude Code 宿主配置
 
 以下设置保存在用户级 `settings.json` 的 `statusLine` 对象中，而不是 `claude-statusline.json`：
@@ -740,6 +809,9 @@ claude-statusline doctor
 - `statusLine.command` 和三个宿主字段是否合法。
 - 五个生命周期 hook 是否各自恰好存在一个。
 - `/statusline-config` skill 及所有权标记是否正确。
+- 实验 feature 文件是否合法且权限为 `0600`。
+- `/statusline-configure` 是 `disabled`、`enabled` 还是因版本不兼容而 `suspended`；启用时 skill、owner marker、唯一 matcher 和 600 秒 hook 是否完整。
+- 启用实验入口时，系统是否至少安装了 tmux 或 GNOME Terminal；两者都没有只产生 WARN，不判定安装损坏。
 - 显示配置 JSON 及其权限是否正确。
 - 当前 Claude Code 版本是否应安装本地 slash fast hook。
 - 运行状态目录是否可写。
@@ -765,7 +837,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.4.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.5.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
@@ -794,16 +866,17 @@ claude-statusline uninstall --dry-run
 
 - 指向本工具的 `statusLine`。
 - 本工具的生命周期 hooks 和 slash fast hook。
-- 本工具拥有的 `/statusline-config` skill 及所有权标记。
+- 本工具拥有的 `/statusline-config`、`/statusline-configure` skill 及所有权标记。
 
 卸载器会保留：
 
 - 其他工具或用户定义的 hooks。
 - `claude-statusline.json` 显示偏好。
+- `claude-statusline-features.json` 实验启用偏好；之后兼容版本上的普通 `install` 会恢复入口。
 - token、Git 和计时运行状态。
 - 安装器创建的备份。
 
-因此以后重新安装时可以继续使用原有显示偏好。如需彻底清除这些保留数据，请先确认具体文件路径后再手工处理。
+因此以后重新安装时可以继续使用原有显示偏好。若要永久关闭实验入口，先运行 `claude-statusline install --no-experimental-slash-tui`。如需彻底清除其他保留数据，请先确认具体文件路径后再手工处理。
 
 ## 备份与回滚
 
@@ -813,7 +886,7 @@ claude-statusline uninstall --dry-run
 ${CLAUDE_CONFIG_DIR:-~/.claude}/backups/statusline/cli-<action>-<timestamp>/
 ```
 
-只有实际发生修改时才创建备份。一次事务可能同时记录 `settings.json`、`claude-statusline.json`、skill 和所有权标记的修改前内容。
+只有实际发生修改时才创建备份。一次事务可能同时记录 `settings.json`、`claude-statusline.json`、feature 文件、两个 skill 和所有权标记的修改前内容。
 
 每个备份目录中的 `metadata.json` 记录：
 
@@ -868,7 +941,7 @@ printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace
 
 ### `slash-hook`
 
-从 stdin 读取 `UserPromptExpansion` 事件。它只处理名为 `statusline-config` 且带参数的直接 slash command；无参数调用会放行给问答 skill，无关事件和损坏输入会静默放行。
+从 stdin 读取 `UserPromptExpansion` 事件。它处理名为 `statusline-config` 且带参数的本地快捷命令，也处理已启用的无参数 `statusline-configure` 启动请求。前者无参数时放行给问答 skill；后者一经识别始终输出一个 `decision: "block"` JSON，子进程退出码只转换为结果文本。无关事件和损坏输入会静默放行。
 
 ## 故障排查
 
@@ -889,6 +962,32 @@ claude-statusline doctor
 ```
 
 确认 doctor 中 `/statusline-config skill` 为 OK。若安装是在当前 Claude Code 会话启动后完成，可新开一个会话再次检查命令发现情况。
+
+### `/statusline-configure` 不可见或显示 suspended
+
+先确认已经显式启用，并同步当前 Claude Code 版本：
+
+```bash
+claude --version
+claude-statusline install --experimental-slash-tui
+claude-statusline doctor
+```
+
+版本低于 2.1.258 或无法识别时，显式启用会在写入前失败。已启用后发生降级时，普通 `install` 保留偏好但暂挂并移除活动 skill/hook，所以 slash 菜单中不会显示该命令。升级到兼容版本后重新运行普通 `install`，再新开 Claude Code 会话。
+
+### 实验入口无法打开 tmux popup 或 GNOME 标签页
+
+tmux 路径要求 hook 环境中同时存在有效的 `TMUX`、形如 `%<数字>` 的 `TMUX_PANE`，且 2 秒 preflight 能访问目标 server/pane。目标失效时会尝试 GNOME；若已成功选择 tmux，popup 内失败不会二次启动 GNOME。
+
+GNOME 路径要求 `DISPLAY` 或 `WAYLAND_DISPLAY`、可执行的 `gnome-terminal` 和可用的用户 D-Bus/图形会话。D-Bus 启动错误会作为短错误返回原 Claude 对话。两种 launcher 都不可用时，直接在终端运行：
+
+```bash
+claude-statusline configure
+```
+
+若 hook 在 600 秒结束，TUI 通常应已在 570 秒自行超时。检查 `~/.claude/statusline_runtime/slash_tui/` 时，不要手工跟随或删除不明符号链接；工具只自动清理超过 24 小时、符合自身命名前缀且不含符号链接的残留。
+
+若启用了 `disableAllHooks`，本地 launcher 不会运行。fallback skill 会提示这一点，但该例外可能产生一个极短模型回合；重新启用 hooks 后新开会话再试。
 
 ### 带参数的 slash 命令仍进入模型
 
@@ -985,7 +1084,7 @@ uv build
 确认 wheel 包含 personal skill 模板：
 
 ```bash
-python3 -m zipfile -l dist/claude_code_statusline-0.4.0-py3-none-any.whl
+python3 -m zipfile -l dist/claude_code_statusline-0.5.0-py3-none-any.whl
 ```
 
 ## 当前边界
@@ -994,8 +1093,9 @@ python3 -m zipfile -l dist/claude_code_statusline-0.4.0-py3-none-any.whl
 - 配置仅为用户全局，不提供项目级配置。
 - 不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
 - 不跟随 Claude Code `/theme`；`default` palette 使用本项目固定 RGB 色值。
-- 不提供 Claude Code 原生或伪原生嵌入弹窗；Space/方向键排序和 sample-data 实时预览由独立 TUI 提供。
-- 不访问 `/dev/tty` 绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
+- 不提供 Claude Code 原生 TUI 扩展；实验入口只支持 tmux popup 和 GNOME Terminal 新标签页，并复用独立 TUI。
+- 不访问 `/dev/tty`，不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
+- 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks 或 tmux/GNOME 之外的终端中打开实验 TUI。
 - 不提供鼠标、拖拽、自定义键位或跨平台 TUI。
 - 只配置主 Claude Code statusline，不配置 `subagentStatusLine`。
 

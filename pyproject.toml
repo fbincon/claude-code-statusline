@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claude-code-statusline"
-version = "0.4.0"
+version = "0.5.0"
 description = "A packaged, configurable, stateful Claude Code status line for Linux"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -26,4 +26,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-claude_statusline = ["resources/statusline-config/SKILL.md"]
+claude_statusline = [
+  "resources/statusline-config/SKILL.md",
+  "resources/statusline-configure/SKILL.md",
+]

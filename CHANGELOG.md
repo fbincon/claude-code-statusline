@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 - 2026-09-03
+
+- 新增默认关闭的实验入口 `/statusline-configure`，通过 `install --experimental-slash-tui` 持久启用，并可用 `--no-experimental-slash-tui` 永久关闭；与现有 `/statusline-config` 并存。
+- 新增 tmux `90% × 90%` popup 与 GNOME Terminal 活动新标签页 launcher，复用已有 `claude-statusline configure` TUI；两者不可用时在本地阻断并提示独立命令，不调用模型。
+- 新增私有原子结果桥接，向 Claude 对话回传保存、无变化、取消、中断、超时和错误；hook/TUI/launcher timeout 分别为 600/570/585 秒。
+- 安装器扩展为 settings、feature 文件与两个 owned skill 的统一事务，支持损坏偏好的显式修复、降级暂挂/升级恢复、严格所有权、dry-run、备份和原字节回滚。
+- `doctor` 新增 feature schema/权限、disabled/enabled/suspended、实验 skill/owner/matcher/timeout 和 launcher 可用性诊断；新增 launcher、PTY bridge 与真实 tmux popup 集成测试。
+- 文档明确该功能不是 Claude Code 原生 TUI 扩展，不访问 `/dev/tty`，GNOME 路径是新标签页，并记录 `disableAllHooks` fallback 的模型回合例外。
+
 ## 0.4.0 - 2026-09-03
 
 - 新增稳定的独立命令 `claude-statusline configure [--config-dir PATH]`，在 Linux 真实终端中提供 Items/Settings 双页签全屏 TUI，支持 Space 勾选、键盘导航、筛选、左右排序和数值编辑。

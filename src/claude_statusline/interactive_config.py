@@ -3,8 +3,14 @@
 from __future__ import annotations
 
 import curses
+import json
+import os
+import re
 import signal
+import stat
 import sys
+import tempfile
+import time
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TextIO
@@ -29,6 +35,19 @@ SETTING_NAMES = (
 SAVE = "save"
 CANCEL = "cancel"
 INTERRUPT = "interrupt"
+TIMED_OUT = "timed-out"
+
+_BRIDGE_RESULT_ENV = "CLAUDE_STATUSLINE_SLASH_RESULT"
+_BRIDGE_DEADLINE_ENV = "CLAUDE_STATUSLINE_SLASH_DEADLINE_SECONDS"
+_BRIDGE_RESULT_NAME = "result.json"
+_BRIDGE_INVOCATION_PATTERN = re.compile(r"invocation-[A-Za-z0-9_.-]+\Z")
+
+
+@dataclass(frozen=True)
+class ConfigureOutcome:
+    outcome: str
+    exit_code: int
+    message: str
 
 
 @dataclass
@@ -799,8 +818,14 @@ def _draw_screen(screen, state: EditorState, mapper: _ColorMapper) -> int:
     return content_height
 
 
-def _screen_loop(screen, state: EditorState) -> str:
+def _screen_loop(
+    screen,
+    state: EditorState,
+    deadline_at: float | None = None,
+) -> str:
     screen.keypad(True)
+    if deadline_at is not None:
+        screen.timeout(250)
     try:
         curses.curs_set(0)
     except curses.error:
@@ -811,12 +836,16 @@ def _screen_loop(screen, state: EditorState) -> str:
         pass
     mapper = _ColorMapper()
     while True:
+        if deadline_at is not None and time.monotonic() >= deadline_at:
+            return TIMED_OUT
         viewport_height = _draw_screen(screen, state, mapper)
         try:
             key = screen.get_wch()
         except KeyboardInterrupt:
             return INTERRUPT
         except curses.error:
+            if deadline_at is not None and time.monotonic() >= deadline_at:
+                return TIMED_OUT
             continue
         height, width = screen.getmaxyx()
         if width < MIN_TERMINAL_WIDTH or height < MIN_TERMINAL_HEIGHT:
@@ -836,8 +865,11 @@ class _SignalExit(BaseException):
         self.signum = signum
 
 
-def _run_curses(state: EditorState) -> str:
-    return curses.wrapper(_screen_loop, state)
+def _run_curses(
+    state: EditorState,
+    deadline_at: float | None = None,
+) -> str:
+    return curses.wrapper(_screen_loop, state, deadline_at)
 
 
 def _signal_handler(signum, _frame) -> None:
@@ -857,14 +889,15 @@ def _restore_signal_handlers(previous: dict[int, object]) -> None:
         signal.signal(signum, handler)
 
 
-def run(
+def execute(
     config_dir: Path,
     executable: Path,
     *,
     input_stream: TextIO | None = None,
     output_stream: TextIO | None = None,
-) -> int:
-    """Validate, run, and commit the interactive configuration editor."""
+    deadline_at: float | None = None,
+) -> ConfigureOutcome:
+    """Run the editor and return a result without printing a final summary."""
     stdin = sys.stdin if input_stream is None else input_stream
     stdout = sys.stdout if output_stream is None else output_stream
     if not stdin.isatty() or not stdout.isatty():
@@ -883,11 +916,19 @@ def run(
     previous_handlers = _install_signal_handlers()
     try:
         try:
-            action = _run_curses(state)
+            action = _run_curses(state, deadline_at)
         except _SignalExit as exc:
-            return 128 + exc.signum
+            return ConfigureOutcome(
+                "interrupted",
+                128 + exc.signum,
+                "Interactive status line configuration interrupted; no changes were saved.",
+            )
         except KeyboardInterrupt:
-            return 130
+            return ConfigureOutcome(
+                "interrupted",
+                130,
+                "Interactive status line configuration interrupted; no changes were saved.",
+            )
         except curses.error as exc:
             raise cc.ConfigCommandError(
                 f"cannot initialize terminal for configure: {exc}"
@@ -896,10 +937,21 @@ def run(
         _restore_signal_handlers(previous_handlers)
 
     if action == INTERRUPT:
-        return 130
+        return ConfigureOutcome(
+            "interrupted",
+            130,
+            "Interactive status line configuration interrupted; no changes were saved.",
+        )
+    if action == TIMED_OUT:
+        return ConfigureOutcome(
+            "timed-out",
+            0,
+            "Interactive status line configuration timed out; no changes were saved.",
+        )
     if action == CANCEL:
-        print("Status line configuration unchanged.", file=stdout)
-        return 0
+        return ConfigureOutcome(
+            "cancelled", 0, "Status line configuration unchanged."
+        )
     result = save_configuration(config_dir, executable, state)
     message = (
         "Status line configuration updated."
@@ -908,5 +960,140 @@ def run(
     )
     if result.backup_dir is not None:
         message += f" Backup: {result.backup_dir}"
-    print(message, file=stdout)
-    return 0
+    return ConfigureOutcome(
+        "updated" if result.changed else "already-current",
+        0,
+        message,
+    )
+
+
+def _validated_bridge_path(config_dir: Path, raw: str) -> Path:
+    if not raw or "\x00" in raw:
+        raise cc.ConfigCommandError("invalid slash TUI result path")
+    path = Path(raw)
+    absolute = Path(os.path.abspath(path))
+    if not path.is_absolute() or path != absolute or path.name != _BRIDGE_RESULT_NAME:
+        raise cc.ConfigCommandError("invalid slash TUI result path")
+    expected_base = config_dir / "statusline_runtime" / "slash_tui"
+    if (
+        path.parent.parent != expected_base
+        or not _BRIDGE_INVOCATION_PATTERN.fullmatch(path.parent.name)
+    ):
+        raise cc.ConfigCommandError("invalid slash TUI result path")
+    for directory in (expected_base.parent, expected_base, path.parent):
+        try:
+            metadata = directory.lstat()
+        except OSError as exc:
+            raise cc.ConfigCommandError(
+                f"invalid slash TUI result directory: {exc}"
+            ) from exc
+        if not stat.S_ISDIR(metadata.st_mode) or stat.S_ISLNK(metadata.st_mode):
+            raise cc.ConfigCommandError("invalid slash TUI result directory")
+    if stat.S_IMODE(path.parent.stat().st_mode) != 0o700:
+        raise cc.ConfigCommandError("slash TUI result directory is not private")
+    return path
+
+
+def _bridge_deadline(environ: dict[str, str]) -> float:
+    raw = environ.get(_BRIDGE_DEADLINE_ENV, "")
+    try:
+        seconds = float(raw)
+    except (TypeError, ValueError) as exc:
+        raise cc.ConfigCommandError("invalid slash TUI deadline") from exc
+    if not 0 < seconds <= 570:
+        raise cc.ConfigCommandError("invalid slash TUI deadline")
+    return time.monotonic() + seconds
+
+
+def _write_bridge_result(path: Path, outcome: ConfigureOutcome) -> None:
+    value = {
+        "schema_version": 1,
+        "outcome": outcome.outcome,
+        "exit_code": outcome.exit_code,
+        "message": outcome.message,
+    }
+    content = (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode(
+        "utf-8"
+    )
+    descriptor, temporary = tempfile.mkstemp(
+        prefix=f".{path.name}.claude-statusline-",
+        suffix=".tmp",
+        dir=path.parent,
+    )
+    temporary_path: Path | None = Path(temporary)
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_path, path)
+        temporary_path = None
+        directory_descriptor = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_descriptor)
+        finally:
+            os.close(directory_descriptor)
+    finally:
+        if temporary_path is not None:
+            try:
+                temporary_path.unlink()
+            except FileNotFoundError:
+                pass
+
+
+def _error_outcome(exc: BaseException) -> ConfigureOutcome:
+    detail = next(
+        (line.strip() for line in str(exc).splitlines() if line.strip()),
+        "unknown error",
+    )[:500]
+    return ConfigureOutcome(
+        "error",
+        2,
+        f"Interactive status line configuration failed: {detail}",
+    )
+
+
+def run(
+    config_dir: Path,
+    executable: Path,
+    *,
+    input_stream: TextIO | None = None,
+    output_stream: TextIO | None = None,
+    environ: dict[str, str] | None = None,
+) -> int:
+    """Preserve CLI output while supporting the private slash result bridge."""
+    environment = os.environ if environ is None else environ
+    bridge_raw = environment.get(_BRIDGE_RESULT_ENV)
+    if bridge_raw is not None:
+        try:
+            bridge_path = _validated_bridge_path(config_dir, bridge_raw)
+        except cc.ConfigCommandError:
+            return 2
+        try:
+            deadline_at = _bridge_deadline(environment)
+            outcome = execute(
+                config_dir,
+                executable,
+                input_stream=input_stream,
+                output_stream=output_stream,
+                deadline_at=deadline_at,
+            )
+        except Exception as exc:  # noqa: BLE001 - bridge errors must be reported
+            outcome = _error_outcome(exc)
+        try:
+            _write_bridge_result(bridge_path, outcome)
+        except OSError:
+            return 2
+        return outcome.exit_code
+
+    outcome = execute(
+        config_dir,
+        executable,
+        input_stream=input_stream,
+        output_stream=output_stream,
+    )
+    if outcome.outcome in {"updated", "already-current", "cancelled"}:
+        stdout = sys.stdout if output_stream is None else output_stream
+        print(outcome.message, file=stdout)
+    return outcome.exit_code

@@ -10,6 +10,7 @@ import unittest
 from unittest import mock
 
 from claude_statusline import display_config as dc
+from claude_statusline import feature_config as fc
 from claude_statusline import installer
 
 
@@ -49,6 +50,13 @@ class InstallerTestCase(unittest.TestCase):
 
     def slash_hook_count(self, settings):
         return installer._slash_hook_count(settings, self.executable)
+
+    def experimental_hook_count(self, settings):
+        return installer._slash_hook_count(
+            settings,
+            self.executable,
+            installer.EXPERIMENTAL_SLASH_COMMAND_NAME,
+        )
 
 
 class InstallTests(InstallerTestCase):
@@ -246,6 +254,276 @@ class InstallTests(InstallerTestCase):
             "unrelated\n",
         )
 
+
+class ExperimentalInstallTests(InstallerTestCase):
+    def test_default_install_leaves_experimental_entry_disabled(self):
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertFalse(fc.feature_path(self.config).exists())
+        experimental_skill, experimental_owner = installer.experimental_skill_paths(
+            self.config
+        )
+        self.assertFalse(experimental_skill.exists())
+        self.assertFalse(experimental_owner.exists())
+        self.assertEqual(self.experimental_hook_count(self.read_settings()), 0)
+
+    def test_enable_creates_feature_skill_owner_and_600_second_hook(self):
+        result = installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        feature_path = fc.feature_path(self.config)
+        self.assertEqual(feature_path.read_bytes(), fc.enabled_bytes())
+        self.assertEqual(stat.S_IMODE(feature_path.stat().st_mode), 0o600)
+        skill, owner = installer.experimental_skill_paths(self.config)
+        self.assertEqual(skill.read_bytes(), installer.render_experimental_skill())
+        self.assertTrue(installer._is_owned_skill_marker(owner.read_bytes()))
+        actions = installer._slash_hook_actions(
+            self.read_settings(),
+            self.executable,
+            installer.EXPERIMENTAL_SLASH_COMMAND_NAME,
+        )
+        self.assertEqual(len(actions), 1)
+        self.assertEqual(actions[0]["timeout"], 600)
+        metadata = json.loads(
+            (result.backup_dir / "metadata.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(len(metadata["artifacts"]), 6)
+
+    def test_reinstall_preserves_enabled_preference_and_is_idempotent(self):
+        first = installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        backup_count = len(list(first.backup_dir.parent.glob("cli-install-*")))
+        second = installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertFalse(second.changed)
+        self.assertEqual(
+            len(list(first.backup_dir.parent.glob("cli-install-*"))),
+            backup_count,
+        )
+        self.assertEqual(self.experimental_hook_count(self.read_settings()), 1)
+
+    def test_plain_reinstall_repairs_feature_permissions(self):
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        feature_path = fc.feature_path(self.config)
+        feature_path.chmod(0o644)
+        result = installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertTrue(result.changed)
+        self.assertEqual(result.changed_paths, (feature_path,))
+        self.assertEqual(stat.S_IMODE(feature_path.stat().st_mode), 0o600)
+
+    def test_explicit_disable_removes_preference_and_only_owned_active_artifacts(self):
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=False,
+            claude_version=(2, 1, 258),
+        )
+        self.assertFalse(fc.feature_path(self.config).exists())
+        skill, owner = installer.experimental_skill_paths(self.config)
+        self.assertFalse(skill.exists())
+        self.assertFalse(owner.exists())
+        self.assertEqual(self.experimental_hook_count(self.read_settings()), 0)
+        stable_skill, stable_owner = installer.skill_paths(self.config)
+        self.assertTrue(stable_skill.exists())
+        self.assertTrue(stable_owner.exists())
+
+    def test_explicit_enable_rejects_old_or_unknown_version_without_writes(self):
+        for version in ((2, 1, 257), None):
+            with self.subTest(version=version):
+                with self.assertRaises(installer.ConfigurationError):
+                    installer.install_configuration(
+                        self.config,
+                        self.executable,
+                        experimental_slash_tui=True,
+                        claude_version=version,
+                    )
+                self.assertFalse(self.config.exists())
+
+    def test_enabled_preference_suspends_on_downgrade_and_restores_on_upgrade(self):
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        preference_before = fc.feature_path(self.config).read_bytes()
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 257)
+        )
+        self.assertEqual(fc.feature_path(self.config).read_bytes(), preference_before)
+        skill, owner = installer.experimental_skill_paths(self.config)
+        self.assertFalse(skill.exists())
+        self.assertFalse(owner.exists())
+        self.assertEqual(self.experimental_hook_count(self.read_settings()), 0)
+        diagnostics = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 257)
+        )
+        self.assertFalse(any(item.level == "ERROR" for item in diagnostics))
+        self.assertTrue(any(
+            item.level == "WARN" and "suspended" in item.message
+            for item in diagnostics
+        ))
+
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertTrue(skill.exists())
+        self.assertTrue(owner.exists())
+        self.assertEqual(self.experimental_hook_count(self.read_settings()), 1)
+
+    def test_corrupt_preference_requires_explicit_repair_or_removal(self):
+        self.config.mkdir()
+        feature_path = fc.feature_path(self.config)
+        feature_path.write_bytes(b"{broken\n")
+        with self.assertRaises(installer.ConfigurationError):
+            installer.install_configuration(
+                self.config, self.executable, claude_version=(2, 1, 258)
+            )
+        self.assertEqual(feature_path.read_bytes(), b"{broken\n")
+        self.assertFalse((self.config / "backups").exists())
+
+        repaired = installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        self.assertEqual(feature_path.read_bytes(), fc.enabled_bytes())
+        self.assertEqual(
+            (repaired.backup_dir / f"{fc.FEATURE_FILENAME}.before").read_bytes(),
+            b"{broken\n",
+        )
+
+        installer.uninstall_configuration(self.config, self.executable)
+        feature_path.write_bytes(b"bad")
+        removed = installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=False,
+            claude_version=(2, 1, 258),
+        )
+        self.assertFalse(feature_path.exists())
+        self.assertEqual(
+            (removed.backup_dir / f"{fc.FEATURE_FILENAME}.before").read_bytes(),
+            b"bad",
+        )
+
+    def test_unrelated_experimental_skill_ownership_rules_and_force(self):
+        skill, owner = installer.experimental_skill_paths(self.config)
+        skill.parent.mkdir(parents=True)
+        skill.write_text("unrelated\n", encoding="utf-8")
+
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertEqual(skill.read_text(encoding="utf-8"), "unrelated\n")
+        self.assertFalse(owner.exists())
+        with self.assertRaises(installer.ConfigurationError):
+            installer.install_configuration(
+                self.config,
+                self.executable,
+                experimental_slash_tui=True,
+                claude_version=(2, 1, 258),
+            )
+        self.assertFalse(fc.feature_path(self.config).exists())
+
+        disabled = installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=False,
+            claude_version=(2, 1, 258),
+        )
+        self.assertFalse(disabled.changed)
+        installer.uninstall_configuration(self.config, self.executable)
+        self.assertEqual(skill.read_text(encoding="utf-8"), "unrelated\n")
+
+        forced = installer.install_configuration(
+            self.config,
+            self.executable,
+            force=True,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        self.assertEqual(skill.read_bytes(), installer.render_experimental_skill())
+        self.assertTrue(owner.exists())
+        self.assertEqual(
+            (
+                forced.backup_dir
+                / "experimental-skill"
+                / "SKILL.md.before"
+            ).read_text(encoding="utf-8"),
+            "unrelated\n",
+        )
+
+    def test_disable_write_failure_rolls_back_every_changed_artifact(self):
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        paths = [
+            self.settings_path,
+            fc.feature_path(self.config),
+            *installer.skill_paths(self.config),
+            *installer.experimental_skill_paths(self.config),
+        ]
+        before = {path: path.read_bytes() for path in paths}
+        experimental_skill, _owner = installer.experimental_skill_paths(self.config)
+        real_write = installer._write_optional_bytes
+
+        def fail_late(path, value):
+            if path == experimental_skill and value is None:
+                raise OSError("simulated experimental skill failure")
+            return real_write(path, value)
+
+        with (
+            mock.patch.object(
+                installer, "_write_optional_bytes", side_effect=fail_late
+            ),
+            self.assertRaises(installer.ConfigurationError),
+        ):
+            installer.install_configuration(
+                self.config,
+                self.executable,
+                experimental_slash_tui=False,
+                claude_version=(2, 1, 258),
+            )
+        self.assertEqual({path: path.read_bytes() for path in paths}, before)
+
+    def test_explicit_enable_dry_run_creates_nothing(self):
+        result = installer.install_configuration(
+            self.config,
+            self.executable,
+            dry_run=True,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        self.assertTrue(result.changed)
+        self.assertFalse(self.config.exists())
+
     def test_skill_write_failure_rolls_back_settings_and_skill(self):
         self.write_settings({"theme": "dark"})
         settings_before = self.settings_path.read_bytes()
@@ -271,6 +549,21 @@ class InstallTests(InstallerTestCase):
 
 
 class UninstallTests(InstallerTestCase):
+    def test_uninstall_removes_experimental_artifacts_but_keeps_preference(self):
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        preference_before = fc.feature_path(self.config).read_bytes()
+        installer.uninstall_configuration(self.config, self.executable)
+        self.assertEqual(fc.feature_path(self.config).read_bytes(), preference_before)
+        skill, owner = installer.experimental_skill_paths(self.config)
+        self.assertFalse(skill.exists())
+        self.assertFalse(owner.exists())
+        self.assertEqual(self.experimental_hook_count(self.read_settings()), 0)
+
     def test_uninstall_removes_only_owned_entries_and_preserves_state(self):
         self.write_settings({
             "theme": "dark",
@@ -360,6 +653,12 @@ class ResolutionAndDoctorTests(InstallerTestCase):
         for item in dc.ITEM_CATALOG:
             self.assertIn(f"`{item}`", rendered)
 
+        experimental = installer.render_experimental_skill().decode("utf-8")
+        self.assertIn("name: statusline-configure", experimental)
+        self.assertIn("disable-model-invocation: true", experimental)
+        self.assertIn("disallowed-tools: Bash", experimental)
+        self.assertIn("Do not start curses", experimental)
+
     def test_doctor_reports_invalid_display_config_and_missing_skill(self):
         installer.install_configuration(
             self.config, self.executable, claude_version=(2, 1, 258)
@@ -373,6 +672,103 @@ class ResolutionAndDoctorTests(InstallerTestCase):
         errors = [item.message for item in diagnostics if item.level == "ERROR"]
         self.assertTrue(any("invalid JSON" in message for message in errors))
         self.assertTrue(any("skill is missing" in message for message in errors))
+
+    def test_doctor_reports_enabled_disabled_suspended_and_broken_states(self):
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            claude_version=(2, 1, 258),
+        )
+        disabled = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertTrue(any(
+            item.level == "OK" and "statusline-configure: disabled" in item.message
+            for item in disabled
+        ))
+
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        enabled = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertFalse(any(item.level == "ERROR" for item in enabled))
+        self.assertTrue(any("exactly one (600s)" in item.message for item in enabled))
+
+        settings = self.read_settings()
+        for group in settings["hooks"][installer.SLASH_HOOK_EVENT]:
+            if group.get("matcher") == installer.EXPERIMENTAL_SLASH_COMMAND_NAME:
+                group["hooks"][0]["timeout"] = 5
+        self.write_settings(settings)
+        broken = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertTrue(any(
+            item.level == "ERROR" and "expected one 600s hook" in item.message
+            for item in broken
+        ))
+
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        settings = self.read_settings()
+        duplicate = next(
+            group
+            for group in settings["hooks"][installer.SLASH_HOOK_EVENT]
+            if group.get("matcher") == installer.EXPERIMENTAL_SLASH_COMMAND_NAME
+        )
+        settings["hooks"][installer.SLASH_HOOK_EVENT].append(
+            json.loads(json.dumps(duplicate))
+        )
+        self.write_settings(settings)
+        duplicate_diagnostics = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertTrue(any(
+            item.level == "ERROR" and "exactly one matcher" in item.message
+            for item in duplicate_diagnostics
+        ))
+
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 257)
+        )
+        suspended = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 257)
+        )
+        self.assertFalse(any(item.level == "ERROR" for item in suspended))
+        self.assertTrue(any(
+            item.level == "WARN" and "suspended" in item.message
+            for item in suspended
+        ))
+
+    def test_doctor_rejects_non_private_or_corrupt_feature_file(self):
+        installer.install_configuration(
+            self.config,
+            self.executable,
+            experimental_slash_tui=True,
+            claude_version=(2, 1, 258),
+        )
+        feature_path = fc.feature_path(self.config)
+        feature_path.chmod(0o644)
+        diagnostics = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertTrue(any(
+            item.level == "ERROR" and "permissions" in item.message
+            for item in diagnostics
+        ))
+        feature_path.write_bytes(b"broken")
+        diagnostics = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertTrue(any(
+            item.level == "ERROR" and "invalid JSON" in item.message
+            for item in diagnostics
+        ))
 
 
 if __name__ == "__main__":

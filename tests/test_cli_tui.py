@@ -6,6 +6,7 @@ import os
 import pty
 import select
 import signal
+import stat
 import struct
 import subprocess
 import sys
@@ -59,12 +60,21 @@ class ConfigurePtyTests(unittest.TestCase):
             json.dumps(settings) + "\n", encoding="utf-8"
         )
 
-    def _start(self, *, rows=24, columns=100, term="xterm-256color"):
+    def _start(
+        self,
+        *,
+        rows=24,
+        columns=100,
+        term="xterm-256color",
+        extra_env=None,
+    ):
         env = os.environ.copy()
         env["PATH"] = str(self.executable.parent) + os.pathsep + env.get("PATH", "")
         env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
         env["PYTHONDONTWRITEBYTECODE"] = "1"
         env["TERM"] = term
+        if extra_env:
+            env.update(extra_env)
         master, slave = pty.openpty()
         fcntl.ioctl(
             slave,
@@ -90,6 +100,18 @@ class ConfigurePtyTests(unittest.TestCase):
         self.master = master
         self.process = process
         return process, master
+
+    def _bridge_environment(self, deadline="570"):
+        base = self.config_dir / "statusline_runtime" / "slash_tui"
+        base.mkdir(mode=0o700, parents=True, exist_ok=True)
+        base.chmod(0o700)
+        invocation = Path(tempfile.mkdtemp(prefix="invocation-", dir=base))
+        invocation.chmod(0o700)
+        result_path = invocation / "result.json"
+        return {
+            "CLAUDE_STATUSLINE_SLASH_RESULT": str(result_path),
+            "CLAUDE_STATUSLINE_SLASH_DEADLINE_SECONDS": deadline,
+        }, result_path
 
     def _read_until(self, needle: bytes, timeout=5):
         output = b""
@@ -270,6 +292,85 @@ class ConfigurePtyTests(unittest.TestCase):
                 os.close(self.master)
                 self.master = None
                 self.process = None
+
+    def test_bridge_save_current_and_cancel_write_results_without_summary(self):
+        cases = (
+            (b" ", "updated", "updated"),
+            (b"\r", "already-current", "already current"),
+            (b"\x1b", "cancelled", "unchanged"),
+        )
+        for keys, expected_outcome, expected_message in cases:
+            with self.subTest(outcome=expected_outcome):
+                self._write_installed_settings()
+                if self.display_path.exists():
+                    self.display_path.unlink()
+                bridge_env, result_path = self._bridge_environment()
+                process, master = self._start(extra_env=bridge_env)
+                output = self._read_until(b"Configure Status Line")
+                os.write(master, keys)
+                if keys == b" ":
+                    os.write(master, b"\r")
+                self.assertEqual(process.wait(timeout=5), 0)
+                output = self._finish_output(output)
+                result = json.loads(result_path.read_text(encoding="utf-8"))
+                self.assertEqual(result["schema_version"], 1)
+                self.assertEqual(result["outcome"], expected_outcome)
+                self.assertIn(expected_message, result["message"].lower())
+                self.assertEqual(
+                    stat.S_IMODE(result_path.stat().st_mode), 0o600
+                )
+                self.assertNotIn(b"Status line configuration updated.", output)
+                self.assertNotIn(b"Status line configuration unchanged.", output)
+                self.assertNotIn(b"already current", output.lower())
+                os.close(self.master)
+                self.master = None
+                self.process = None
+
+    def test_bridge_ctrl_c_and_signals_write_interrupted_results(self):
+        cases = (
+            ("signal", signal.SIGINT, 130),
+            ("signal", signal.SIGHUP, 129),
+            ("signal", signal.SIGTERM, 143),
+        )
+        for kind, signum, expected_code in cases:
+            with self.subTest(kind=kind, signum=signum):
+                before = self.settings_path.read_bytes()
+                bridge_env, result_path = self._bridge_environment()
+                process, master = self._start(extra_env=bridge_env)
+                self._read_until(b"Configure Status Line")
+                os.kill(process.pid, signum)
+                self.assertEqual(process.wait(timeout=5), expected_code)
+                result = json.loads(result_path.read_text(encoding="utf-8"))
+                self.assertEqual(result["outcome"], "interrupted")
+                self.assertIn("no changes were saved", result["message"])
+                self.assertEqual(self.settings_path.read_bytes(), before)
+                os.close(self.master)
+                self.master = None
+                self.process = None
+
+    def test_bridge_short_deadline_times_out_without_writes(self):
+        before = self.settings_path.read_bytes()
+        bridge_env, result_path = self._bridge_environment("0.05")
+        process, _master = self._start(extra_env=bridge_env)
+        self.assertEqual(process.wait(timeout=5), 0)
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        self.assertEqual(result["outcome"], "timed-out")
+        self.assertIn("timed out", result["message"])
+        self.assertEqual(self.settings_path.read_bytes(), before)
+        self.assertFalse(self.display_path.exists())
+
+    def test_bridge_editor_error_writes_error_result_without_traceback(self):
+        self.settings_path.write_text('{"unrelated":true}\n', encoding="utf-8")
+        before = self.settings_path.read_bytes()
+        bridge_env, result_path = self._bridge_environment()
+        process, _master = self._start(extra_env=bridge_env)
+        self.assertEqual(process.wait(timeout=5), 2)
+        output = self._finish_output()
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        self.assertEqual(result["outcome"], "error")
+        self.assertIn("not installed", result["message"])
+        self.assertNotIn(b"Traceback", output)
+        self.assertEqual(self.settings_path.read_bytes(), before)
 
 
 if __name__ == "__main__":

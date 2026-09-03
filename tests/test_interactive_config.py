@@ -1,6 +1,7 @@
 """Tests for the curses-independent interactive configuration state."""
 
 import io
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -288,6 +289,41 @@ class SaveAndRunTests(unittest.TestCase):
                 input_stream=TTYStringIO(),
                 output_stream=TTYStringIO(),
             )
+
+    def test_bridge_write_failure_happens_after_completed_editor_outcome(self):
+        with tempfile.TemporaryDirectory(prefix="statusline-bridge-write-") as root:
+            config_dir = Path(root) / "claude"
+            invocation = (
+                config_dir
+                / "statusline_runtime"
+                / "slash_tui"
+                / "invocation-test"
+            )
+            invocation.mkdir(mode=0o700, parents=True)
+            invocation.chmod(0o700)
+            result_path = invocation / "result.json"
+            completed = ic.ConfigureOutcome(
+                "updated", 0, "Status line configuration updated."
+            )
+            with (
+                mock.patch.object(ic, "execute", return_value=completed) as execute,
+                mock.patch.object(
+                    ic, "_write_bridge_result", side_effect=OSError("disk full")
+                ),
+            ):
+                code = ic.run(
+                    config_dir,
+                    Path("/bin/tool"),
+                    input_stream=TTYStringIO(),
+                    output_stream=TTYStringIO(),
+                    environ={
+                        "CLAUDE_STATUSLINE_SLASH_RESULT": str(result_path),
+                        "CLAUDE_STATUSLINE_SLASH_DEADLINE_SECONDS": "570",
+                    },
+                )
+            self.assertEqual(code, 2)
+            execute.assert_called_once()
+            self.assertFalse(result_path.exists())
 
 
 class TerminalColorTests(unittest.TestCase):

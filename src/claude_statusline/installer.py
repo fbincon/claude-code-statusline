@@ -19,6 +19,8 @@ from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 
+from . import feature_config
+
 HOOK_EVENTS = (
     "SessionStart",
     "UserPromptSubmit",
@@ -28,12 +30,21 @@ HOOK_EVENTS = (
 )
 SLASH_HOOK_EVENT = "UserPromptExpansion"
 SLASH_COMMAND_NAME = "statusline-config"
+EXPERIMENTAL_SLASH_COMMAND_NAME = "statusline-configure"
 MIN_FAST_SLASH_VERSION = (2, 1, 258)
 SKILL_OWNER = "claude-code-statusline"
 SKILL_OWNER_SCHEMA = 1
 SKILL_RELATIVE_PATH = Path("skills") / SLASH_COMMAND_NAME / "SKILL.md"
 SKILL_OWNER_RELATIVE_PATH = (
     Path("skills") / SLASH_COMMAND_NAME / ".claude-statusline-owner.json"
+)
+EXPERIMENTAL_SKILL_RELATIVE_PATH = (
+    Path("skills") / EXPERIMENTAL_SLASH_COMMAND_NAME / "SKILL.md"
+)
+EXPERIMENTAL_SKILL_OWNER_RELATIVE_PATH = (
+    Path("skills")
+    / EXPERIMENTAL_SLASH_COMMAND_NAME
+    / ".claude-statusline-owner.json"
 )
 _DETECT_CLAUDE_VERSION = object()
 _UNCHANGED_ARTIFACT = object()
@@ -121,11 +132,23 @@ def supports_fast_slash_hook(version: tuple[int, int, int] | None) -> bool:
     return version is not None and version >= MIN_FAST_SLASH_VERSION
 
 
-def skill_paths(config_dir: Path) -> tuple[Path, Path]:
-    return (
-        config_dir / SKILL_RELATIVE_PATH,
-        config_dir / SKILL_OWNER_RELATIVE_PATH,
-    )
+def skill_paths(
+    config_dir: Path,
+    command_name: str = SLASH_COMMAND_NAME,
+) -> tuple[Path, Path]:
+    if command_name == SLASH_COMMAND_NAME:
+        relative = SKILL_RELATIVE_PATH
+        owner_relative = SKILL_OWNER_RELATIVE_PATH
+    elif command_name == EXPERIMENTAL_SLASH_COMMAND_NAME:
+        relative = EXPERIMENTAL_SKILL_RELATIVE_PATH
+        owner_relative = EXPERIMENTAL_SKILL_OWNER_RELATIVE_PATH
+    else:
+        raise ValueError(f"unsupported skill: {command_name}")
+    return config_dir / relative, config_dir / owner_relative
+
+
+def experimental_skill_paths(config_dir: Path) -> tuple[Path, Path]:
+    return skill_paths(config_dir, EXPERIMENTAL_SLASH_COMMAND_NAME)
 
 
 def _skill_owner_bytes() -> bytes:
@@ -148,15 +171,22 @@ def _is_owned_skill_marker(raw: bytes | None) -> bool:
     }
 
 
-def render_skill(executable: Path) -> bytes:
+def _render_skill_resource(resource_name: str) -> bytes:
     try:
         template = (
             resources.files("claude_statusline")
-            .joinpath("resources/statusline-config/SKILL.md")
+            .joinpath(f"resources/{resource_name}/SKILL.md")
             .read_text(encoding="utf-8")
         )
     except (FileNotFoundError, OSError) as exc:
-        raise ConfigurationError(f"cannot load bundled statusline-config skill: {exc}") from exc
+        raise ConfigurationError(
+            f"cannot load bundled {resource_name} skill: {exc}"
+        ) from exc
+    return template.encode("utf-8")
+
+
+def render_skill(executable: Path) -> bytes:
+    template = _render_skill_resource(SLASH_COMMAND_NAME).decode("utf-8")
     shell_command = shlex.quote(str(executable))
     allowed_rule = json.dumps(
         f"Bash({shell_command} config *)", ensure_ascii=False
@@ -167,6 +197,10 @@ def render_skill(executable: Path) -> bytes:
     if "__CLAUDE_STATUSLINE_" in rendered:
         raise ConfigurationError("bundled statusline-config skill has unresolved placeholders")
     return rendered.encode("utf-8")
+
+
+def render_experimental_skill() -> bytes:
+    return _render_skill_resource(EXPERIMENTAL_SLASH_COMMAND_NAME)
 
 
 def _split_command(command: object) -> list[str] | None:
@@ -270,6 +304,7 @@ def _prepare_install(
     executable: Path,
     force: bool,
     fast_slash_hook: bool = False,
+    experimental_slash_tui: bool = False,
 ) -> dict:
     updated = copy.deepcopy(settings)
     current = updated.get("statusLine")
@@ -348,6 +383,15 @@ def _prepare_install(
                 "type": "command",
                 "command": command_for(executable, "slash-hook"),
                 "timeout": 5,
+            }],
+        })
+    if experimental_slash_tui:
+        slash_groups.append({
+            "matcher": EXPERIMENTAL_SLASH_COMMAND_NAME,
+            "hooks": [{
+                "type": "command",
+                "command": command_for(executable, "slash-hook"),
+                "timeout": 600,
             }],
         })
     if slash_groups:
@@ -539,13 +583,39 @@ def _change_configuration(
     executable: Path,
     dry_run: bool,
     force: bool = False,
-    fast_slash_hook: bool = False,
+    claude_version: tuple[int, int, int] | None = None,
+    experimental_slash_tui: bool | None = None,
 ) -> ChangeResult:
     settings_path = config_dir / "settings.json"
     skill_path, owner_path = skill_paths(config_dir)
+    experimental_skill_path, experimental_owner_path = experimental_skill_paths(
+        config_dir
+    )
+    preference_path = feature_config.feature_path(config_dir)
+
+    def private_mode(path: Path) -> bool:
+        try:
+            return stat.S_IMODE(path.stat().st_mode) == 0o600
+        except OSError:
+            return False
 
     def prepare():
         settings, settings_raw = _read_settings(settings_path)
+        preference_raw = _read_optional_bytes(preference_path)
+        preference_enabled = False
+        if action == "install" and preference_raw is not None:
+            try:
+                preference_enabled = feature_config.parse_feature_bytes(
+                    preference_raw, preference_path
+                )
+            except feature_config.FeatureConfigError as exc:
+                if experimental_slash_tui is None:
+                    raise ConfigurationError(str(exc)) from exc
+        if action == "install" and experimental_slash_tui is not None:
+            preference_enabled = experimental_slash_tui
+
+        fast_slash_hook = supports_fast_slash_hook(claude_version)
+        experimental_active = preference_enabled and fast_slash_hook
         if action == "install":
             updated_settings = _prepare_install(
                 settings,
@@ -553,6 +623,7 @@ def _change_configuration(
                 executable,
                 force,
                 fast_slash_hook=fast_slash_hook,
+                experimental_slash_tui=experimental_active,
             )
         else:
             updated_settings = _prepare_uninstall(
@@ -562,8 +633,16 @@ def _change_configuration(
         skill_raw = _read_optional_bytes(skill_path)
         owner_raw = _read_optional_bytes(owner_path)
         skill_owned = _is_owned_skill_marker(owner_raw)
+        experimental_skill_raw = _read_optional_bytes(experimental_skill_path)
+        experimental_owner_raw = _read_optional_bytes(experimental_owner_path)
+        experimental_skill_owned = _is_owned_skill_marker(
+            experimental_owner_raw
+        )
         desired_skill: bytes | None | object = _UNCHANGED_ARTIFACT
         desired_owner: bytes | None | object = _UNCHANGED_ARTIFACT
+        desired_experimental_skill: bytes | None | object = _UNCHANGED_ARTIFACT
+        desired_experimental_owner: bytes | None | object = _UNCHANGED_ARTIFACT
+        desired_preference: bytes | None | object = _UNCHANGED_ARTIFACT
         if action == "install":
             if (
                 (skill_raw is not None or owner_raw is not None)
@@ -576,9 +655,57 @@ def _change_configuration(
                 )
             desired_skill = render_skill(executable)
             desired_owner = _skill_owner_bytes()
-        elif skill_owned:
-            desired_skill = None
-            desired_owner = None
+
+            if experimental_active:
+                if (
+                    (
+                        experimental_skill_raw is not None
+                        or experimental_owner_raw is not None
+                    )
+                    and not experimental_skill_owned
+                    and not force
+                ):
+                    raise ConfigurationError(
+                        f"an unrelated /{EXPERIMENTAL_SLASH_COMMAND_NAME} skill "
+                        "already exists; rerun with --force only if replacing it "
+                        "is intentional"
+                    )
+                desired_experimental_skill = render_experimental_skill()
+                desired_experimental_owner = _skill_owner_bytes()
+            elif experimental_skill_owned:
+                desired_experimental_skill = None
+                desired_experimental_owner = None
+
+            if experimental_slash_tui is True:
+                desired_preference = feature_config.enabled_bytes()
+            elif experimental_slash_tui is False:
+                desired_preference = None
+            elif preference_raw is not None:
+                # Preserve valid bytes while still repairing private permissions.
+                desired_preference = preference_raw
+        else:
+            if skill_owned:
+                desired_skill = None
+                desired_owner = None
+            if experimental_skill_owned:
+                desired_experimental_skill = None
+                desired_experimental_owner = None
+
+        def artifact_changed(
+            path: Path,
+            raw: bytes | None,
+            desired: bytes | None | object,
+            *,
+            enforce_private: bool = False,
+        ) -> bool:
+            return desired is not _UNCHANGED_ARTIFACT and (
+                desired != raw
+                or (
+                    enforce_private
+                    and desired is not None
+                    and not private_mode(path)
+                )
+            )
 
         candidates = [
             (
@@ -587,6 +714,18 @@ def _change_configuration(
                 settings_raw,
                 _json_bytes(updated_settings),
                 updated_settings != settings,
+            ),
+            (
+                feature_config.FEATURE_FILENAME,
+                preference_path,
+                preference_raw,
+                desired_preference,
+                artifact_changed(
+                    preference_path,
+                    preference_raw,
+                    desired_preference,
+                    enforce_private=True,
+                ),
             ),
             (
                 "skill/SKILL.md",
@@ -603,6 +742,28 @@ def _change_configuration(
                 desired_owner,
                 desired_owner is not _UNCHANGED_ARTIFACT
                 and desired_owner != owner_raw,
+            ),
+            (
+                "experimental-skill/SKILL.md",
+                experimental_skill_path,
+                experimental_skill_raw,
+                desired_experimental_skill,
+                artifact_changed(
+                    experimental_skill_path,
+                    experimental_skill_raw,
+                    desired_experimental_skill,
+                ),
+            ),
+            (
+                "experimental-skill/.claude-statusline-owner.json",
+                experimental_owner_path,
+                experimental_owner_raw,
+                desired_experimental_owner,
+                artifact_changed(
+                    experimental_owner_path,
+                    experimental_owner_raw,
+                    desired_experimental_owner,
+                ),
             ),
         ]
         return [candidate for candidate in candidates if candidate[4]]
@@ -646,8 +807,14 @@ def _change_configuration(
             ) from exc
 
         if action == "uninstall":
+            for directory in (skill_path.parent, experimental_skill_path.parent):
+                try:
+                    directory.rmdir()
+                except OSError:
+                    pass
+        elif action == "install":
             try:
-                skill_path.parent.rmdir()
+                experimental_skill_path.parent.rmdir()
             except OSError:
                 pass
         return ChangeResult(
@@ -665,17 +832,32 @@ def install_configuration(
     *,
     dry_run: bool = False,
     force: bool = False,
+    experimental_slash_tui: bool | None = None,
     claude_version: tuple[int, int, int] | None | object = _DETECT_CLAUDE_VERSION,
 ) -> ChangeResult:
     if claude_version is _DETECT_CLAUDE_VERSION:
         claude_version = detect_claude_version()
+    if experimental_slash_tui is True and not supports_fast_slash_hook(
+        claude_version
+    ):
+        version_text = (
+            ".".join(map(str, claude_version))
+            if isinstance(claude_version, tuple)
+            else "unknown"
+        )
+        minimum = ".".join(map(str, MIN_FAST_SLASH_VERSION))
+        raise ConfigurationError(
+            "cannot enable /statusline-configure: Claude Code "
+            f"{minimum}+ is required; found {version_text}"
+        )
     return _change_configuration(
         "install",
         config_dir,
         executable,
         dry_run,
         force,
-        fast_slash_hook=supports_fast_slash_hook(claude_version),
+        claude_version=claude_version,
+        experimental_slash_tui=experimental_slash_tui,
     )
 
 
@@ -707,27 +889,51 @@ def _hook_commands(settings: dict, event: str) -> list[object]:
     return result
 
 
-def _slash_hook_count(settings: dict, executable: Path | None) -> int:
+def _slash_hook_actions(
+    settings: dict,
+    executable: Path | None,
+    command_name: str = SLASH_COMMAND_NAME,
+) -> list[dict]:
     if executable is None:
-        return 0
+        return []
     hooks = settings.get("hooks")
     groups = hooks.get(SLASH_HOOK_EVENT) if isinstance(hooks, dict) else None
     if not isinstance(groups, list):
-        return 0
-    count = 0
+        return []
+    result = []
     for group in groups:
-        if not isinstance(group, dict) or group.get("matcher") != SLASH_COMMAND_NAME:
+        if not isinstance(group, dict) or group.get("matcher") != command_name:
             continue
         actions = group.get("hooks")
         if not isinstance(actions, list):
             continue
-        count += sum(
-            1
+        result.extend(
+            action
             for action in actions
             if isinstance(action, dict)
             and _is_cli_command(action.get("command"), "slash-hook", executable)
         )
-    return count
+    return result
+
+
+def _slash_matcher_groups(settings: dict, command_name: str) -> list[dict]:
+    hooks = settings.get("hooks")
+    groups = hooks.get(SLASH_HOOK_EVENT) if isinstance(hooks, dict) else None
+    if not isinstance(groups, list):
+        return []
+    return [
+        group
+        for group in groups
+        if isinstance(group, dict) and group.get("matcher") == command_name
+    ]
+
+
+def _slash_hook_count(
+    settings: dict,
+    executable: Path | None,
+    command_name: str = SLASH_COMMAND_NAME,
+) -> int:
+    return len(_slash_hook_actions(settings, executable, command_name))
 
 
 def collect_diagnostics(
@@ -880,6 +1086,123 @@ def collect_diagnostics(
             "WARN",
             f"/{SLASH_COMMAND_NAME} uses model fallback on Claude Code {version_text}",
         ))
+
+    preference_path = feature_config.feature_path(config_dir)
+    preference_enabled = False
+    preference_valid = True
+    try:
+        preference_raw = _read_optional_bytes(preference_path)
+        if preference_raw is not None:
+            preference_enabled = feature_config.parse_feature_bytes(
+                preference_raw, preference_path
+            )
+            preference_mode = stat.S_IMODE(preference_path.stat().st_mode)
+            if preference_mode == 0o600:
+                diagnostics.append(Diagnostic(
+                    "OK", f"experimental feature preferences: {preference_path} (0600)"
+                ))
+            else:
+                diagnostics.append(Diagnostic(
+                    "ERROR",
+                    "experimental feature preferences permissions: "
+                    f"expected 0600, found {preference_mode:04o}",
+                ))
+    except (ConfigurationError, feature_config.FeatureConfigError, OSError) as exc:
+        preference_valid = False
+        diagnostics.append(Diagnostic("ERROR", str(exc)))
+
+    experimental_skill_path, experimental_owner_path = experimental_skill_paths(
+        config_dir
+    )
+    try:
+        experimental_skill_raw = _read_optional_bytes(experimental_skill_path)
+        experimental_owner_raw = _read_optional_bytes(experimental_owner_path)
+    except ConfigurationError as exc:
+        experimental_skill_raw = None
+        experimental_owner_raw = None
+        diagnostics.append(Diagnostic("ERROR", str(exc)))
+    experimental_owned = _is_owned_skill_marker(experimental_owner_raw)
+    experimental_actions = _slash_hook_actions(
+        settings, executable, EXPERIMENTAL_SLASH_COMMAND_NAME
+    )
+    experimental_groups = _slash_matcher_groups(
+        settings, EXPERIMENTAL_SLASH_COMMAND_NAME
+    )
+
+    if preference_valid and not preference_enabled:
+        if experimental_owned or experimental_actions:
+            diagnostics.append(Diagnostic(
+                "ERROR",
+                f"/{EXPERIMENTAL_SLASH_COMMAND_NAME} is disabled but owned artifacts remain; "
+                "rerun install to repair them",
+            ))
+        else:
+            diagnostics.append(Diagnostic(
+                "OK", f"/{EXPERIMENTAL_SLASH_COMMAND_NAME}: disabled"
+            ))
+    elif preference_valid and not supports_fast_slash_hook(claude_version):
+        version_text = (
+            ".".join(map(str, claude_version))
+            if isinstance(claude_version, tuple)
+            else "unknown"
+        )
+        diagnostics.append(Diagnostic(
+            "WARN",
+            f"/{EXPERIMENTAL_SLASH_COMMAND_NAME}: suspended on Claude Code "
+            f"{version_text}; rerun install after upgrading",
+        ))
+        if experimental_owned or experimental_actions:
+            diagnostics.append(Diagnostic(
+                "ERROR",
+                f"/{EXPERIMENTAL_SLASH_COMMAND_NAME} is suspended but owned artifacts remain; "
+                "rerun install to repair them",
+            ))
+    elif preference_valid:
+        expected_experimental_skill = render_experimental_skill()
+        if (
+            experimental_skill_raw == expected_experimental_skill
+            and experimental_owned
+        ):
+            diagnostics.append(Diagnostic(
+                "OK", f"/{EXPERIMENTAL_SLASH_COMMAND_NAME} skill and owner marker"
+            ))
+        else:
+            diagnostics.append(Diagnostic(
+                "ERROR",
+                f"/{EXPERIMENTAL_SLASH_COMMAND_NAME} skill is missing or not owned",
+            ))
+        configured_actions = (
+            experimental_groups[0].get("hooks")
+            if len(experimental_groups) == 1
+            else None
+        )
+        exact_hook = (
+            isinstance(configured_actions, list)
+            and len(configured_actions) == 1
+            and isinstance(configured_actions[0], dict)
+            and configured_actions[0].get("type") == "command"
+            and executable is not None
+            and _is_cli_command(
+                configured_actions[0].get("command"), "slash-hook", executable
+            )
+            and configured_actions[0].get("timeout") == 600
+        )
+        if exact_hook:
+            diagnostics.append(Diagnostic(
+                "OK", f"/{EXPERIMENTAL_SLASH_COMMAND_NAME} hook: exactly one (600s)"
+            ))
+        else:
+            diagnostics.append(Diagnostic(
+                "ERROR",
+                f"/{EXPERIMENTAL_SLASH_COMMAND_NAME} hook: expected one 600s hook "
+                "in exactly one matcher",
+            ))
+        if not shutil.which("tmux") and not shutil.which("gnome-terminal"):
+            diagnostics.append(Diagnostic(
+                "WARN",
+                "no supported interactive launcher is installed; install tmux or "
+                "GNOME Terminal, or run claude-statusline configure directly",
+            ))
 
     runtime_dir = config_dir / "statusline_runtime"
     if runtime_dir.is_dir() and os.access(runtime_dir, os.W_OK | os.X_OK):

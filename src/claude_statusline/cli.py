@@ -38,7 +38,7 @@ def build_parser():
         "hook", help="record a Claude lifecycle hook received on stdin"
     )
     subparsers.add_parser(
-        "slash-hook", help="handle direct /statusline-config invocations"
+        "slash-hook", help="handle claude-statusline slash command hooks"
     )
     config_commands.add_config_parser(subparsers)
 
@@ -57,7 +57,24 @@ def build_parser():
     install_parser.add_argument(
         "--force",
         action="store_true",
-        help="replace a conflicting statusLine or /statusline-config skill",
+        help=(
+            "replace a conflicting statusLine, /statusline-config skill, or "
+            "/statusline-configure skill"
+        ),
+    )
+    experimental_group = install_parser.add_mutually_exclusive_group()
+    experimental_group.add_argument(
+        "--experimental-slash-tui",
+        dest="experimental_slash_tui",
+        action="store_true",
+        default=None,
+        help="persistently enable the experimental /statusline-configure entry",
+    )
+    experimental_group.add_argument(
+        "--no-experimental-slash-tui",
+        dest="experimental_slash_tui",
+        action="store_false",
+        help="persistently disable the experimental /statusline-configure entry",
     )
 
     uninstall_parser = subparsers.add_parser(
@@ -158,6 +175,7 @@ def main(argv: list[str] | None = None) -> int:
                 config_dir, executable,
                 dry_run=args.dry_run,
                 force=args.force,
+                experimental_slash_tui=args.experimental_slash_tui,
             )
             _print_change(result, args.dry_run)
             return 0
