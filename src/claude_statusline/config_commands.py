@@ -505,6 +505,7 @@ def apply_configuration(
     padding: Any,
     refresh_interval: Any,
     hide_vim_mode_indicator: Any,
+    expected: EffectiveConfig | None = None,
 ) -> MutationResult:
     validated_items = _validated_items(items)
     try:
@@ -526,14 +527,23 @@ def apply_configuration(
         _parse_toggle(hide_vim_mode_indicator, "hide-vim-mode-indicator"),
     )
 
+    def mutation(current_display, settings, current_host, installed):
+        if expected is not None and (
+            current_display != expected.display
+            or current_host != expected.host
+            or installed != expected.installed
+        ):
+            raise ConfigCommandError(
+                "status line configuration changed while the editor was open; "
+                "reopen the editor and try again"
+            )
+        return display, _settings_with_host(settings, executable, host)
+
     return mutate_configuration(
         config_dir,
         executable,
         "config-apply",
-        lambda current_display, settings, current_host, installed: (
-            display,
-            _settings_with_host(settings, executable, host),
-        ),
+        mutation,
     )
 
 

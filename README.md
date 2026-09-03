@@ -1,6 +1,6 @@
 # Claude Code Statusline
 
-这是一个面向 Linux 的 Claude Code CLI 状态栏工具。它显示当前模型和 effort、实时工作目录、Git 分支与变更、上下文余量、Claude 使用限额、会话 token 以及当前 prompt 用时。显示项、顺序和样式可以通过 `/statusline-config` 或本地 CLI 配置。
+这是一个面向 Linux 的 Claude Code CLI 状态栏工具。它显示当前模型和 effort、实时工作目录、Git 分支与变更、上下文余量、Claude 使用限额、会话 token 以及当前 prompt 用时。显示项、顺序和样式可以通过独立交互式 TUI、`/statusline-config` 或本地 CLI 配置。
 
 运行时只使用 Python 标准库；Git 段需要系统中的 `git`。状态栏在本地执行，不会自行发起网络请求。
 
@@ -11,7 +11,7 @@
 ```bash
 cd /home/fbincon/coding/claude-code-statusline
 uv build
-pipx install dist/claude_code_statusline-0.3.2-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.4.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -44,6 +44,7 @@ claude-statusline install --dry-run
 claude-statusline render
 claude-statusline hook
 claude-statusline slash-hook
+claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
 claude-statusline config [--config-dir PATH] set-items [ITEM...]
@@ -60,6 +61,26 @@ claude-statusline --version
 ```
 
 `render`、`hook` 和 `slash-hook` 由 Claude Code 调用，通常无需手工运行。`install` 默认配置一秒刷新和以下生命周期 hooks：`SessionStart`、`UserPromptSubmit`、`Stop`、`StopFailure`、`SessionEnd`。
+
+## 独立交互式配置
+
+安装完成后，在真实终端中运行：
+
+```bash
+claude-statusline configure
+```
+
+全屏英文界面包含 Items 和 Settings 两个页签。Items 页用 Space 启用/禁用条目、上下键导航、左右键排序，并可直接输入字符过滤；Settings 页可编辑颜色、palette、目录与分隔符样式、padding、刷新间隔和 Claude Code 内建 Vim 指示器。Tab/Shift+Tab 切换页签，Enter 一次性原子保存全部草稿，Esc 无写入退出。
+
+底部的 `Preview (sample data)` 会随每次按键更新。它只使用固定样例，不读取、缓存或写入当前 Claude 会话、Git、transcript 或计时状态。该命令仅支持 Linux，要求 stdin 和 stdout 都是 TTY、终端至少为 `64x18`，并要求本工具已经接管 `statusLine`；窗口过小时会等待调整尺寸，不会立即退出。
+
+自定义配置目录的参数直接跟在命令后：
+
+```bash
+claude-statusline configure --config-dir /path/to/claude-config
+```
+
+如果编辑期间配置被另一个进程修改，保存会在创建备份或写文件前拒绝并提示重新打开编辑器。
 
 ## 在 Claude Code 中配置
 
@@ -145,7 +166,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 构建新版本 wheel 后，让 pipx 替换现有环境，再重复执行安装命令。该命令是幂等的，不会产生重复 hooks：
 
 ```bash
-pipx install --force dist/claude_code_statusline-0.3.2-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.4.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```

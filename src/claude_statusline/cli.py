@@ -42,6 +42,11 @@ def build_parser():
     )
     config_commands.add_config_parser(subparsers)
 
+    configure_parser = subparsers.add_parser(
+        "configure", help="open the interactive status line configuration editor"
+    )
+    _common_config_argument(configure_parser)
+
     install_parser = subparsers.add_parser(
         "install", help="configure Claude Code to use this status line"
     )
@@ -126,6 +131,15 @@ def main(argv: list[str] | None = None) -> int:
         slash_hook.main()
         return 0
 
+    if args.command == "configure" and (
+        not sys.stdin.isatty() or not sys.stdout.isatty()
+    ):
+        print(
+            "error: configure requires both stdin and stdout to be terminals",
+            file=sys.stderr,
+        )
+        return 2
+
     config_dir = installer.resolve_config_dir(args.config_dir)
     try:
         executable = installer.resolve_cli_executable()
@@ -147,6 +161,13 @@ def main(argv: list[str] | None = None) -> int:
             )
             _print_change(result, args.dry_run)
             return 0
+        if args.command == "configure":
+            if not sys.platform.startswith("linux"):
+                raise installer.ConfigurationError("this release supports Linux only")
+            # Keep curses out of render, hook, and slash-hook startup paths.
+            from . import interactive_config
+
+            return interactive_config.run(config_dir, executable)
         if args.command == "uninstall":
             result = installer.uninstall_configuration(
                 config_dir, executable, dry_run=args.dry_run

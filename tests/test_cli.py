@@ -25,7 +25,7 @@ class CliTests(unittest.TestCase):
     def test_version(self):
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "claude-statusline 0.3.2")
+        self.assertEqual(result.stdout.strip(), "claude-statusline 0.4.0")
         self.assertEqual(result.stderr, "")
 
     def test_help_lists_public_commands(self):
@@ -35,12 +35,24 @@ class CliTests(unittest.TestCase):
             "render",
             "hook",
             "slash-hook",
+            "configure",
             "config",
             "install",
             "uninstall",
             "doctor",
         ):
             self.assertIn(command, result.stdout)
+
+    def test_configure_rejects_non_tty_without_traceback_or_changes(self):
+        with tempfile.TemporaryDirectory(prefix="statusline-cli-tui-") as root:
+            path = Path(root) / "settings.json"
+            path.write_text('{"unrelated": true}\n', encoding="utf-8")
+            before = path.read_bytes()
+            result = self.run_cli("configure", "--config-dir", root)
+            self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("stdin and stdout", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_render_invalid_json_is_silent_and_successful(self):
         result = self.run_cli("render", input_text="not-json")

@@ -169,6 +169,62 @@ class HostAndTransactionTests(ConfigCommandTestCase):
         self.assertFalse(effective.display.use_colors)
         self.assertEqual(effective.host, cc.HostConfig(4, 5, True))
 
+    def test_expected_conflict_fails_before_backup_without_changing_bytes(self):
+        self.install_minimal_settings()
+        baseline = cc.read_effective_config(self.config_dir, self.executable)
+        cc.set_option(self.config_dir, self.executable, "padding", "3")
+        settings_before = self.settings_path.read_bytes()
+        display_path = dc.config_path(self.config_dir)
+        display_before = display_path.read_bytes() if display_path.exists() else None
+
+        with (
+            mock.patch.object(cc, "_backup_transaction") as backup,
+            self.assertRaisesRegex(cc.ConfigCommandError, "changed while"),
+        ):
+            cc.apply_configuration(
+                self.config_dir,
+                self.executable,
+                items=["git"],
+                colors="off",
+                palette="ansi",
+                directory_style="home",
+                separator_style="compact",
+                padding="2",
+                refresh_interval="5",
+                hide_vim_mode_indicator="on",
+                expected=baseline,
+            )
+        backup.assert_not_called()
+        self.assertEqual(self.settings_path.read_bytes(), settings_before)
+        self.assertEqual(
+            display_path.read_bytes() if display_path.exists() else None,
+            display_before,
+        )
+
+    def test_expected_ignores_unrelated_settings_and_merges_latest_fields(self):
+        self.install_minimal_settings()
+        baseline = cc.read_effective_config(self.config_dir, self.executable)
+        settings = json.loads(self.settings_path.read_text(encoding="utf-8"))
+        settings["permissions"] = {"allow": ["Read"]}
+        self.settings_path.write_text(json.dumps(settings) + "\n", encoding="utf-8")
+        result = cc.apply_configuration(
+            self.config_dir,
+            self.executable,
+            items=list(baseline.display.items),
+            colors="on",
+            palette="default",
+            directory_style="full",
+            separator_style="classic",
+            padding="2",
+            refresh_interval="1",
+            hide_vim_mode_indicator="off",
+            expected=baseline,
+        )
+        self.assertTrue(result.changed)
+        updated = json.loads(self.settings_path.read_text(encoding="utf-8"))
+        self.assertEqual(updated["permissions"], {"allow": ["Read"]})
+        self.assertEqual(updated["statusLine"]["padding"], 2)
+
     def test_late_display_write_failure_rolls_back_settings(self):
         self.install_minimal_settings()
         before = self.settings_path.read_bytes()

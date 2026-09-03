@@ -2,7 +2,7 @@
 
 这是一个面向 Linux 的、可配置且带会话状态的 Claude Code CLI 状态栏工具。它可以显示当前模型与 effort、实时工作目录、Git 状态、上下文余量、Claude 使用限额、会话 token，以及当前或最近一次 prompt 的耗时。
 
-显示项、显示顺序和样式既可以在 Claude Code 中通过 `/statusline-config` 配置，也可以通过确定性的本地 CLI 配置。所有配置均为用户全局配置，对该用户的所有 Claude Code 项目生效。
+显示项、显示顺序和样式既可以通过独立交互式 TUI 配置，也可以在 Claude Code 中通过 `/statusline-config` 或确定性的本地 CLI 配置。所有配置均为用户全局配置，对该用户的所有 Claude Code 项目生效。
 
 运行时只使用 Python 标准库；Git 信息需要系统中存在 `git`。状态栏只读取 Claude Code 传入的数据、本地 transcript、Git 仓库和本地状态文件，不会自行发起网络请求，也不会因为渲染状态栏而消耗模型 token。
 
@@ -11,6 +11,7 @@
 - [功能概览](#功能概览)
 - [从源码构建与安装](#从源码构建与安装)
 - [快速开始](#快速开始)
+- [独立交互式 TUI](#独立交互式-tui)
 - [`/statusline-config` 的执行方式](#statusline-config-的执行方式)
 - [CLI 总览](#cli-总览)
 - [配置命令详解](#配置命令详解)
@@ -32,6 +33,7 @@
 - 支持完整路径、`~` 路径、项目相对路径和目录 basename。
 - 支持经典 ` | ` 分隔符和紧凑 ` · ` 分隔符。
 - 支持 Claude Code 原生的 padding、定时刷新和 Vim 模式指示器设置。
+- 提供独立全屏 TUI，可用键盘筛选、勾选、排序并按键级预览完整草稿。
 - 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 处分行。
 - Git 查询和 transcript 汇总按需执行：隐藏相应显示项后，不再做不必要的采集。
 - 安装、配置和卸载均使用文件锁、备份及原子替换，避免并发写入或半写入配置。
@@ -69,7 +71,7 @@ command -v git
 
 ```bash
 uv build
-pipx install dist/claude_code_statusline-0.3.2-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.4.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -78,7 +80,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.3.2-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.4.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -140,7 +142,7 @@ Session、Modes、Repository 组的条目以及 `cost`、`prompt-cache` 默认�
 
 向导会保留仍然启用的条目的相对顺序，并按默认目录顺序把新启用的条目追加到末尾。完成全部选择后，它只调用一次原子 `config apply`；中途取消不会写入任何配置。
 
-这个向导使用 Claude Code 提供的问答组件，但不是 Claude Code 原生的状态栏 picker，因此不提供 Space/方向键排序或实时预览。需要任意排序时，使用 `order` 子命令。
+这个向导继续使用 Claude Code 提供的问答组件，不会启动 curses，也不是 Claude Code 原生嵌入式状态栏弹窗。需要 Space 勾选、方向键排序和实时预览时，使用下一节的独立 TUI；需要脚本化排序时，使用 `order` 子命令。
 
 例如，先把状态栏缩减到五项，再精确排序：
 
@@ -154,6 +156,69 @@ Session、Modes、Repository 组的条目以及 `cost`、`prompt-cache` 默认�
 ```text
 /statusline-config show
 ```
+
+## 独立交互式 TUI
+
+在 Claude Code 外的真实终端中运行稳定的独立入口：
+
+```bash
+claude-statusline configure
+claude-statusline configure --config-dir /path/to/claude-config
+```
+
+该命令仅支持 Linux，使用 Python 标准库 `curses`，不增加运行时依赖。启动条件如下：
+
+- stdin 和 stdout 都必须是 TTY。
+- 当前终端必须能初始化 curses。
+- 当前配置不能损坏。
+- `statusLine.command` 必须已经由当前 `claude-statusline` 可执行文件接管；否则先运行 `claude-statusline install`。
+
+界面最小尺寸为 `64x18`。窗口更小时，界面会显示所需尺寸和当前尺寸并等待放大；此时 Esc 与 Ctrl+C 仍可退出。终端 resize 后会重新计算列表滚动、sample preview 高度与换行。
+
+界面包含 Items 和 Settings 两个页签，固定底部区域标记为 `Preview (sample data)`。常用全局按键为：
+
+| 按键 | 行为 |
+| --- | --- |
+| Tab / Shift+Tab | 在 Items 与 Settings 之间切换；数字编辑期间不切换 |
+| Enter | 非数字编辑状态下一次性保存整个草稿 |
+| Esc | 非数字编辑状态下取消并退出，不写入配置 |
+| Ctrl+C | 恢复终端并以 130 退出，不保存 |
+
+Items 页支持：
+
+| 按键 | 行为 |
+| --- | --- |
+| Space | 切换高亮条目的启用状态，位置不变 |
+| Up / Down | 移动高亮项并保持可见 |
+| PageUp / PageDown | 按当前内容区高度翻页 |
+| Home / End | 跳到第一个或最后一个可见条目 |
+| Left / Right | 向前或向后移动条目，边界不循环 |
+| 可打印字符 | 追加到大小写不敏感的搜索串，同时匹配条目 ID 和说明 |
+| Backspace / Ctrl+U | 删除一个搜索字符 / 清空搜索 |
+
+初始完整顺序是“当前启用项的原顺序 + 尚未启用项的目录顺序”。筛选期间，左右键以相邻的可见搜索结果为移动目标，隐藏条目的相对顺序不变。没有搜索结果时显示 `No matching items`，切换和移动键不执行操作。保存时只把完整顺序中的已启用项写入 `display.items`；禁用项的临时位置不会进入 schema，重新打开后仍按目录顺序追加。
+
+Settings 页固定包含：
+
+| 设置 | 值域与操作 |
+| --- | --- |
+| Use colors | `on/off`；Space 或 Left/Right 切换 |
+| Palette | `default/ansi`；Left/Right 循环；colors 关闭时仍可编辑和保存 |
+| Directory style | `full/home/project-relative/basename`；Left/Right 循环 |
+| Separator style | `classic/compact`；Left/Right 循环 |
+| Padding | `0–32`；Left/Right 增减 1；数字键进入编辑 |
+| Refresh interval | `event` 或 `1–3600`；Left/Right 在 `event, 1, 2, 5, 10, 30, 60, 300, 600, 3600` 间循环，`e` 设为 event，数字键进入编辑 |
+| Built-in Vim indicator | `show/hide`；Space 或 Left/Right 切换，并映射到 `hideVimModeIndicator` |
+
+当前刷新值若不在预设中，会按数值位置临时加入循环，不会仅因打开界面而改变。数字编辑时，第一个数字建立新缓冲区，后续数字追加，Backspace 删除；Enter 校验并接受字段值但不保存整个界面，再按一次 Enter 才全局保存。非法或越界值会保留编辑状态并显示内联错误；Esc 先取消数字编辑并恢复原字段值。
+
+预览使用固定样例值并复用生产 renderer 的条目格式化、分组、排序和宽度布局。它不会读取当前 Claude payload，不会扫描 Git 或 transcript，不会访问网络，也不会创建 token、Git、timer 运行状态或缓存。预览最多占 5 行、至少占 2 行，溢出时最后一行显示剩余行数；padding 会显示为左侧空格并从内容宽度扣除。256 色终端会把 RGB 映射到最近的 xterm-256 色，8/16 色终端降级到基础色，无颜色终端保留文本。
+
+全局 Enter 只调用一次现有原子配置事务。无变化不会创建备份；有变化时仍使用单次备份、双文件写入与失败回滚。TUI 启动时记录语义 baseline，保存时在同一安装锁内检查 display、host 和安装归属；编辑期间如被其他进程修改，会在创建备份和写文件前拒绝。`settings.json` 中与 statusline 无关的字段变化不构成冲突，并会基于锁内最新文件合并保留。
+
+Esc 退出后 stdout 输出 `Status line configuration unchanged.`，退出码为 0。参数、TTY、配置、安装归属、终端初始化或并发冲突错误返回 2 且不显示 traceback。SIGHUP 和 SIGTERM 同样先恢复终端，再分别使用标准 `128 + signal` 退出码。
+
+这个入口不会从 `/statusline-config` 启动，也不会访问 `/dev/tty` 或创建 tmux popup；Claude Code 内的 skill、fast hook、5 秒 hook timeout 和原有命令语义保持不变。
 
 ## `/statusline-config` 的执行方式
 
@@ -183,6 +248,7 @@ claude-statusline doctor
 claude-statusline render
 claude-statusline hook
 claude-statusline slash-hook
+claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
 claude-statusline config [--config-dir PATH] set-items [ITEM...]
@@ -213,9 +279,10 @@ claude-statusline config apply --help
 claude-statusline config --config-dir /path/to/claude-config show
 ```
 
-而 `install`、`uninstall` 和 `doctor` 的参数直接跟在命令之后：
+而 `configure`、`install`、`uninstall` 和 `doctor` 的参数直接跟在命令之后：
 
 ```bash
+claude-statusline configure --config-dir /path/to/claude-config
 claude-statusline doctor --config-dir /path/to/claude-config
 ```
 
@@ -592,7 +659,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 
 上例中的 10 个条目是默认启用集合。`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
 
-配置更新采用 0600 文件权限、临时文件和原子替换。多个并发配置命令共享同一把文件锁，避免后写入者丢失先写入者的变更。
+配置更新采用 0600 文件权限、临时文件和原子替换。多个并发配置命令共享同一把文件锁，避免后写入者丢失先写入者的变更。独立 TUI 还会比较打开时与保存时的语义配置，避免长时间编辑覆盖期间发生的外部修改；schema 仍为 version 1，没有迁移。
 
 如果显示配置损坏：
 
@@ -698,7 +765,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.3.2-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.4.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
@@ -765,6 +832,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/backups/statusline/cli-<action>-<timestamp>/
 
 ```bash
 CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline install
+CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline configure
 CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline config show
 ```
 
@@ -893,6 +961,8 @@ claude-statusline config set refresh-interval 1
 - `0`：命令成功；`doctor` 没有 ERROR。
 - `1`：`doctor` 至少发现一个 ERROR。
 - `2`：参数、配置、所有权或安装操作校验失败。
+- `130`：交互式 TUI 收到 Ctrl+C/SIGINT，终端已恢复且配置未保存。
+- `128 + signal`：交互式 TUI 收到 SIGHUP 或 SIGTERM，终端已恢复且配置未保存。
 
 高频内部命令 `render`、`hook` 和 `slash-hook` 对损坏或无关输入采用静默容错，避免自身错误阻塞 Claude Code。
 
@@ -915,7 +985,7 @@ uv build
 确认 wheel 包含 personal skill 模板：
 
 ```bash
-python3 -m zipfile -l dist/claude_code_statusline-0.3.2-py3-none-any.whl
+python3 -m zipfile -l dist/claude_code_statusline-0.4.0-py3-none-any.whl
 ```
 
 ## 当前边界
@@ -924,7 +994,9 @@ python3 -m zipfile -l dist/claude_code_statusline-0.3.2-py3-none-any.whl
 - 配置仅为用户全局，不提供项目级配置。
 - 不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
 - 不跟随 Claude Code `/theme`；`default` palette 使用本项目固定 RGB 色值。
-- 不提供原生 Space/方向键排序、拖拽排序或实时预览。
+- 不提供 Claude Code 原生或伪原生嵌入弹窗；Space/方向键排序和 sample-data 实时预览由独立 TUI 提供。
+- 不访问 `/dev/tty` 绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
+- 不提供鼠标、拖拽、自定义键位或跨平台 TUI。
 - 只配置主 Claude Code statusline，不配置 `subagentStatusLine`。
 
 ## 相关文档
