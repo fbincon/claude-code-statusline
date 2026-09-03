@@ -1,5 +1,6 @@
 """Tests for the user-owned status line display configuration."""
 
+import json
 import stat
 import tempfile
 import unittest
@@ -25,6 +26,9 @@ class DisplayConfigTests(unittest.TestCase):
         self.assertEqual(config.palette, "default")
         self.assertEqual(config.directory_style, "full")
         self.assertEqual(config.separator_style, "classic")
+        self.assertEqual(config.scope_labels, "when-subagents")
+        self.assertTrue(config.subagents.enabled)
+        self.assertEqual(config.subagents.items, dc.DEFAULT_SUBAGENT_ITEMS)
 
     def test_round_trip_preserves_empty_ordered_items_and_private_mode(self):
         self.config_dir.chmod(0o775)
@@ -63,7 +67,7 @@ class DisplayConfigTests(unittest.TestCase):
         unknown_item = dict(valid, items=["clock"])
         cases.append(unknown_item)
 
-        wrong_version = dict(valid, schema_version=2)
+        wrong_version = dict(valid, schema_version=3)
         cases.append(wrong_version)
 
         wrong_bool = dict(valid, use_colors=1)
@@ -72,9 +76,57 @@ class DisplayConfigTests(unittest.TestCase):
         wrong_palette = dict(valid, palette="theme")
         cases.append(wrong_palette)
 
+        missing_subagent = dict(valid)
+        missing_subagent["subagents"] = {"enabled": True}
+        cases.append(missing_subagent)
+
+        duplicate_subagent = dict(valid)
+        duplicate_subagent["subagents"] = {
+            "enabled": True,
+            "items": ["status", "status"],
+        }
+        cases.append(duplicate_subagent)
+
+        unknown_subagent = dict(valid)
+        unknown_subagent["subagents"] = {
+            "enabled": True,
+            "items": ["history"],
+        }
+        cases.append(unknown_subagent)
+
+        wrong_scope = dict(valid, scope_labels="sometimes")
+        cases.append(wrong_scope)
+
         for value in cases:
             with self.subTest(value=value), self.assertRaises(dc.DisplayConfigError):
                 dc.validate_display_config(value)
+
+    def test_schema_one_loads_in_memory_as_v2_without_rewriting(self):
+        path = dc.config_path(self.config_dir)
+        legacy = {
+            "schema_version": 1,
+            "items": ["git", "model-with-effort"],
+            "use_colors": False,
+            "palette": "ansi",
+            "directory_style": "home",
+            "separator_style": "compact",
+        }
+        raw = (json.dumps(legacy, separators=(",", ":")) + "\n").encode()
+        path.write_bytes(raw)
+        config = dc.load_display_config(self.config_dir)
+        self.assertEqual(config.schema_version, 2)
+        self.assertEqual(config.items, ("git", "model-with-effort"))
+        self.assertFalse(config.use_colors)
+        self.assertEqual(config.scope_labels, "when-subagents")
+        self.assertEqual(config.subagents.items, dc.DEFAULT_SUBAGENT_ITEMS)
+        self.assertEqual(dc.read_display_config_schema(self.config_dir), 1)
+        self.assertEqual(path.read_bytes(), raw)
+
+    def test_duplicate_json_fields_are_rejected(self):
+        path = dc.config_path(self.config_dir)
+        path.write_bytes(b'{"schema_version":2,"schema_version":2}\n')
+        with self.assertRaisesRegex(dc.DisplayConfigError, "duplicate JSON field"):
+            dc.load_display_config(self.config_dir)
 
     def test_invalid_json_is_reported_without_rewrite(self):
         path = dc.config_path(self.config_dir)

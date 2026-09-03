@@ -5,11 +5,12 @@ from __future__ import annotations
 import json
 import os
 import tempfile
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 1
+LEGACY_SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 CONFIG_FILENAME = "claude-statusline.json"
 
 # Catalog order keeps same-group items adjacent so wizard-appended items land
@@ -56,10 +57,29 @@ LEGACY_DEFAULT_ITEMS = (
 # ten, so a machine without a display config renders exactly the 0.1.0/0.2.0
 # status line. Users enable the newer items via /statusline-config.
 DEFAULT_ITEMS = LEGACY_DEFAULT_ITEMS
+SUBAGENT_ITEM_CATALOG = {
+    "status": "Task status icon",
+    "name": "Agent name or normalized task type",
+    "model-with-effort": "Agent model identifier with reasoning effort",
+    "context-used": "Percentage of the agent context window used",
+    "elapsed": "Elapsed time for this agent task",
+    "task": "Dynamic task label or description",
+    "tokens": "Agent task token count",
+    "current-dir": "Agent working directory",
+}
+DEFAULT_SUBAGENT_ITEMS = (
+    "status",
+    "name",
+    "model-with-effort",
+    "context-used",
+    "elapsed",
+    "task",
+)
 PALETTES = ("default", "ansi")
 DIRECTORY_STYLES = ("full", "home", "project-relative", "basename")
 SEPARATOR_STYLES = ("classic", "compact")
-DISPLAY_KEYS = frozenset(
+SCOPE_LABELS = ("off", "when-subagents", "always")
+V1_DISPLAY_KEYS = frozenset(
     {
         "schema_version",
         "items",
@@ -69,10 +89,30 @@ DISPLAY_KEYS = frozenset(
         "separator_style",
     }
 )
+DISPLAY_KEYS = frozenset(
+    {
+        *V1_DISPLAY_KEYS,
+        "scope_labels",
+        "subagents",
+    }
+)
+SUBAGENT_KEYS = frozenset({"enabled", "items"})
 
 
 class DisplayConfigError(RuntimeError):
     """Raised when display configuration is invalid or cannot be stored."""
+
+
+@dataclass(frozen=True)
+class SubagentDisplayConfig:
+    enabled: bool = True
+    items: tuple[str, ...] = DEFAULT_SUBAGENT_ITEMS
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"enabled": self.enabled, "items": list(self.items)}
+
+    def with_updates(self, **updates: Any) -> SubagentDisplayConfig:
+        return validate_subagent_config(replace(self, **updates).to_dict())
 
 
 @dataclass(frozen=True)
@@ -83,6 +123,8 @@ class DisplayConfig:
     palette: str = "default"
     directory_style: str = "full"
     separator_style: str = "classic"
+    scope_labels: str = "when-subagents"
+    subagents: SubagentDisplayConfig = field(default_factory=SubagentDisplayConfig)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -92,6 +134,8 @@ class DisplayConfig:
             "palette": self.palette,
             "directory_style": self.directory_style,
             "separator_style": self.separator_style,
+            "scope_labels": self.scope_labels,
+            "subagents": self.subagents.to_dict(),
         }
 
     def with_updates(self, **updates: Any) -> DisplayConfig:
@@ -132,25 +176,74 @@ def validate_items(value: Any) -> tuple[str, ...]:
     return tuple(result)
 
 
+def validate_subagent_items(value: Any) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        raise DisplayConfigError("subagents.items must be an array of item identifiers")
+    result: list[str] = []
+    seen: set[str] = set()
+    for item in value:
+        if not isinstance(item, str):
+            raise DisplayConfigError("every subagents.items entry must be a string")
+        if item not in SUBAGENT_ITEM_CATALOG:
+            raise DisplayConfigError(f"unknown subagent status line item: {item}")
+        if item in seen:
+            raise DisplayConfigError(f"duplicate subagent status line item: {item}")
+        seen.add(item)
+        result.append(item)
+    return tuple(result)
+
+
+def validate_subagent_config(data: Any) -> SubagentDisplayConfig:
+    if not isinstance(data, dict):
+        raise DisplayConfigError("subagents must contain a JSON object")
+    unknown = sorted(set(data) - SUBAGENT_KEYS)
+    if unknown:
+        raise DisplayConfigError(
+            "unknown subagents field(s): " + ", ".join(unknown)
+        )
+    missing = sorted(SUBAGENT_KEYS - set(data))
+    if missing:
+        raise DisplayConfigError(
+            "missing subagents field(s): " + ", ".join(missing)
+        )
+    enabled = data.get("enabled")
+    if not isinstance(enabled, bool):
+        raise DisplayConfigError("subagents.enabled must be true or false")
+    return SubagentDisplayConfig(
+        enabled=enabled,
+        items=validate_subagent_items(data.get("items")),
+    )
+
+
 def validate_display_config(data: Any) -> DisplayConfig:
     if not isinstance(data, dict):
         raise DisplayConfigError("display configuration must contain a JSON object")
-    unknown = sorted(set(data) - DISPLAY_KEYS)
+    version = data.get("schema_version")
+    if isinstance(version, bool) or not isinstance(version, int):
+        raise DisplayConfigError(
+            f"schema_version must be 1 or {SCHEMA_VERSION}; found {version!r}"
+        )
+    if version > SCHEMA_VERSION:
+        raise DisplayConfigError(
+            f"schema_version {version} is newer than supported version {SCHEMA_VERSION}"
+        )
+    if version not in (LEGACY_SCHEMA_VERSION, SCHEMA_VERSION):
+        raise DisplayConfigError(
+            f"schema_version must be 1 or {SCHEMA_VERSION}; found {version!r}"
+        )
+
+    expected_keys = V1_DISPLAY_KEYS if version == LEGACY_SCHEMA_VERSION else DISPLAY_KEYS
+    unknown = sorted(set(data) - expected_keys)
     if unknown:
         raise DisplayConfigError(
             "unknown display configuration field(s): " + ", ".join(unknown)
         )
-    missing = sorted(DISPLAY_KEYS - set(data))
+    missing = sorted(expected_keys - set(data))
     if missing:
         raise DisplayConfigError(
             "missing display configuration field(s): " + ", ".join(missing)
         )
 
-    version = data.get("schema_version")
-    if isinstance(version, bool) or version != SCHEMA_VERSION:
-        raise DisplayConfigError(
-            f"schema_version must be {SCHEMA_VERSION}; found {version!r}"
-        )
     use_colors = data.get("use_colors")
     if not isinstance(use_colors, bool):
         raise DisplayConfigError("use_colors must be true or false")
@@ -166,7 +259,39 @@ def validate_display_config(data: Any) -> DisplayConfig:
         separator_style=_require_string_choice(
             data, "separator_style", SEPARATOR_STYLES
         ),
+        scope_labels=(
+            "when-subagents"
+            if version == LEGACY_SCHEMA_VERSION
+            else _require_string_choice(data, "scope_labels", SCOPE_LABELS)
+        ),
+        subagents=(
+            SubagentDisplayConfig()
+            if version == LEGACY_SCHEMA_VERSION
+            else validate_subagent_config(data.get("subagents"))
+        ),
     )
+
+
+class _DuplicateKeyError(ValueError):
+    pass
+
+
+def _strict_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise _DuplicateKeyError(f"duplicate JSON field: {key}")
+        result[key] = value
+    return result
+
+
+def parse_display_config_bytes(raw: bytes, path: Path | str) -> tuple[DisplayConfig, int]:
+    try:
+        data = json.loads(raw.decode("utf-8"), object_pairs_hook=_strict_object)
+    except (UnicodeDecodeError, json.JSONDecodeError, _DuplicateKeyError) as exc:
+        raise DisplayConfigError(f"invalid JSON in {path}: {exc}") from exc
+    config = validate_display_config(data)
+    return config, int(data["schema_version"])
 
 
 def read_display_config(config_dir: Path) -> tuple[DisplayConfig, bytes | None]:
@@ -177,11 +302,21 @@ def read_display_config(config_dir: Path) -> tuple[DisplayConfig, bytes | None]:
         return DEFAULT_CONFIG, None
     except OSError as exc:
         raise DisplayConfigError(f"cannot read {path}: {exc}") from exc
+    config, _source_schema = parse_display_config_bytes(raw, path)
+    return config, raw
+
+
+def read_display_config_schema(config_dir: Path) -> int | None:
+    """Return the on-disk schema without changing a migratable v1 file."""
+    path = config_path(config_dir)
     try:
-        data = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise DisplayConfigError(f"invalid JSON in {path}: {exc}") from exc
-    return validate_display_config(data), raw
+        raw = path.read_bytes()
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        raise DisplayConfigError(f"cannot read {path}: {exc}") from exc
+    _config, source_schema = parse_display_config_bytes(raw, path)
+    return source_schema
 
 
 def load_display_config(config_dir: Path) -> DisplayConfig:

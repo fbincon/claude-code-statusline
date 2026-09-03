@@ -16,7 +16,8 @@ import time
 
 
 SCHEMA = 1
-LIFECYCLE_SCHEMA = 2
+LIFECYCLE_SCHEMA = 3
+COMPATIBLE_LIFECYCLE_SCHEMAS = (2, LIFECYCLE_SCHEMA)
 MAX_TURNS_PER_SESSION = 32
 MAX_SESSIONS = 100
 CONFIG_DIR = os.path.abspath(os.path.expanduser(
@@ -165,6 +166,7 @@ _TURN_FIELDS = (
     "ended_wall_ns", "ended_boot_ns", "duration_ns", "boot_id",
     "start_source", "end_source", "end_reason", "error",
     "last_assistant_wall_ns", "updated_wall_ns",
+    "phase", "had_subagents", "active_agents",
 )
 
 _TERMINAL_STATUSES = {
@@ -202,7 +204,32 @@ def _clean_record(record):
     cleaned = {key: record.get(key) for key in _TURN_FIELDS}
     cleaned["prompt_id"] = str(prompt_id)
     cleaned["status"] = str(cleaned.get("status") or "unknown")
+    phase = cleaned.get("phase")
+    cleaned["phase"] = (
+        phase if phase in ("main", "waiting_subagents", "resuming_main") else "main"
+    )
+    cleaned["had_subagents"] = bool(cleaned.get("had_subagents"))
+    cleaned["active_agents"] = _clean_active_agents(cleaned.get("active_agents"))
+    if cleaned["status"] != "running":
+        cleaned["active_agents"] = {}
     return cleaned
+
+
+def _clean_active_agents(value):
+    if not isinstance(value, dict):
+        return {}
+    result = {}
+    for agent_id, details in value.items():
+        if not isinstance(agent_id, str) or not agent_id:
+            continue
+        details = details if isinstance(details, dict) else {}
+        agent_type = details.get("agent_type")
+        started = details.get("started_wall_ns")
+        result[agent_id] = {
+            "agent_type": str(agent_type) if agent_type else "Agent",
+            "started_wall_ns": started if isinstance(started, int) else 0,
+        }
+    return result
 
 
 def _legacy_record(state):
@@ -215,16 +242,16 @@ def _legacy_record(state):
         record["start_source"] = "legacy"
     if record["status"] != "running" and not record.get("end_source"):
         record["end_source"] = "legacy"
-    return record
+    return _clean_record(record)
 
 
 def _store_from_state(state, session_id):
-    """Normalize schema-1 state plus its backwards-compatible v2 ledger."""
+    """Normalize schema-1 state plus its backwards-compatible lifecycle ledger."""
     lifecycle = state.get("lifecycle") if isinstance(state, dict) else None
     turns = []
     current_prompt_id = None
     if (isinstance(lifecycle, dict)
-            and lifecycle.get("schema") == LIFECYCLE_SCHEMA
+            and lifecycle.get("schema") in COMPATIBLE_LIFECYCLE_SCHEMAS
             and isinstance(lifecycle.get("turns"), list)):
         seen = set()
         for item in lifecycle["turns"]:
@@ -311,6 +338,9 @@ def _new_record(prompt_id, clocks, source="hook_submit"):
         "error": None,
         "last_assistant_wall_ns": None,
         "updated_wall_ns": wall_ns,
+        "phase": "main",
+        "had_subagents": False,
+        "active_agents": {},
     }
 
 
@@ -347,7 +377,7 @@ def _prune_turns(store):
 
 
 def _mirror_state(session_id, store, preferred_prompt_id=None):
-    """Publish v2 while keeping the old schema-1 top-level reader contract."""
+    """Publish lifecycle v3 while keeping the schema-1 mirror contract."""
     _prune_turns(store)
     selected = _find_turn(store, preferred_prompt_id)
     if selected is None:
@@ -427,6 +457,38 @@ def _finish_record(record, status, ended_wall_ns, ended_boot_ns, boot_id,
             updated_wall_ns if isinstance(updated_wall_ns, int)
             else time.time_ns()
         ),
+        "phase": "main",
+        "active_agents": {},
+    })
+    return True
+
+
+def _agent_work_pending(record):
+    if not isinstance(record, dict) or record.get("status") != "running":
+        return False
+    return bool(record.get("active_agents")) or record.get("phase") in (
+        "waiting_subagents",
+        "resuming_main",
+    )
+
+
+def _reopen_low_priority_completion(record, wall_ns):
+    """Undo only inferred completion when a main Stop proves agents remain."""
+    if not isinstance(record, dict):
+        return False
+    if record.get("status") == "running":
+        return True
+    if record.get("end_source") not in ("transcript_duration", "registry_idle"):
+        return False
+    record.update({
+        "status": "running",
+        "ended_wall_ns": None,
+        "ended_boot_ns": None,
+        "duration_ns": None,
+        "end_source": None,
+        "end_reason": None,
+        "error": None,
+        "updated_wall_ns": wall_ns,
     })
     return True
 
@@ -441,12 +503,15 @@ def _apply_prompt(store, prompt_id, wall_ns):
         record = _new_record(prompt_id, (wall_ns, None, None), "transcript")
         store.setdefault("turns", []).append(record)
     else:
-        # The transcript timestamp is when the prompt actually entered the
-        # conversation. It corrects an earlier enqueue-time hook candidate.
-        record["started_wall_ns"] = wall_ns
-        record["started_boot_ns"] = None
-        record["boot_id"] = None
-        record["start_source"] = "transcript"
+        # End-to-end timing begins at the earliest trustworthy user-submit
+        # observation. A later transcript write must not shorten queued or
+        # agent-backed work that the UserPromptSubmit hook already observed.
+        existing_start = record.get("started_wall_ns")
+        if not isinstance(existing_start, int) or wall_ns < existing_start:
+            record["started_wall_ns"] = wall_ns
+            record["started_boot_ns"] = None
+            record["boot_id"] = None
+            record["start_source"] = "transcript"
         if record.get("status") not in _TERMINAL_STATUSES:
             record["status"] = "running"
         record["updated_wall_ns"] = max(_record_key(record), wall_ns)
@@ -512,6 +577,12 @@ def _apply_assistant(store, prompt_id, wall_ns):
     if not isinstance(old, int) or wall_ns > old:
         record["last_assistant_wall_ns"] = wall_ns
         record["updated_wall_ns"] = max(_record_key(record), wall_ns)
+    if (
+        record.get("status") == "running"
+        and record.get("phase") == "resuming_main"
+        and not record.get("active_agents")
+    ):
+        record["phase"] = "main"
     return record
 
 
@@ -522,6 +593,10 @@ def _apply_duration(store, prompt_id, wall_ns, duration_ms):
             or isinstance(duration_ms, bool) or duration_ms < 0):
         return None
     record = _terminal_record(store, prompt_id, (wall_ns, None, None))
+    pending_agent_work = _agent_work_pending(record)
+    _apply_assistant(store, prompt_id, wall_ns)
+    if pending_agent_work:
+        return record
     duration_ns = int(round(duration_ms * 1_000_000))
     if record.get("end_source") in ("hook_stop", "hook_stop_failure"):
         if record.get("status") == "completed":
@@ -584,6 +659,8 @@ def reconcile_idle_state(session_id, prompt_id, ended_wall_ns):
         record = _find_turn(store, prompt_id)
         if record is None or record.get("status") != "running":
             return prompt_id
+        if _agent_work_pending(record):
+            return prompt_id
         start = record.get("started_wall_ns")
         if isinstance(start, int) and ended_wall_ns < start:
             return prompt_id
@@ -631,7 +708,11 @@ def record_prompt_withdrawal(session_id, prompt_id, ended_wall_ns):
 
     def transition(store):
         record = _find_turn(store, prompt_id)
-        if record is not None and record.get("status") == "running":
+        if (
+            record is not None
+            and record.get("status") == "running"
+            and not _agent_work_pending(record)
+        ):
             _finish_record(
                 record, "withdrawn", ended_wall_ns, None, None,
                 "registry_withdrawn", "pre_response_cancel",
@@ -653,15 +734,97 @@ def _unknown_lower_bound(data, record, wall_ns):
     return min(lower, wall_ns)
 
 
+def _agent_id(data):
+    value = data.get("agent_id") if isinstance(data, dict) else None
+    return value if isinstance(value, str) and value else None
+
+
+def _agent_type(data):
+    if not isinstance(data, dict):
+        return "Agent"
+    for key in ("agent_type", "name", "type"):
+        value = data.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return "Agent"
+
+
+def _authoritative_subagents(background_tasks, existing, wall_ns):
+    if not isinstance(background_tasks, list):
+        return None
+    current = _clean_active_agents(existing)
+    snapshot = {}
+    for task in background_tasks:
+        if not isinstance(task, dict) or task.get("type") != "subagent":
+            continue
+        task_id = task.get("id")
+        if not isinstance(task_id, str) or not task_id or task_id in snapshot:
+            continue
+        previous = current.get(task_id)
+        snapshot[task_id] = previous or {
+            "agent_type": _agent_type(task),
+            "started_wall_ns": wall_ns,
+        }
+    return snapshot
+
+
+def _start_subagent(store, prompt_id, data, wall_ns):
+    target = prompt_id or store.get("current_prompt_id")
+    record = _find_turn(store, target)
+    agent_id = _agent_id(data)
+    if (
+        not target
+        or record is None
+        or record.get("status") != "running"
+        or agent_id is None
+    ):
+        return store.get("current_prompt_id")
+    active = _clean_active_agents(record.get("active_agents"))
+    previous = active.get(agent_id)
+    if previous is None:
+        active[agent_id] = {
+            "agent_type": _agent_type(data),
+            "started_wall_ns": wall_ns,
+        }
+    else:
+        started = previous.get("started_wall_ns")
+        if not isinstance(started, int) or started <= 0 or wall_ns < started:
+            previous["started_wall_ns"] = wall_ns
+    record["active_agents"] = active
+    record["had_subagents"] = True
+    if record.get("phase") == "resuming_main":
+        record["phase"] = "main"
+    record["updated_wall_ns"] = max(_record_key(record), wall_ns)
+    return target
+
+
+def _stop_subagent(store, prompt_id, data, wall_ns):
+    target = prompt_id or store.get("current_prompt_id")
+    record = _find_turn(store, target)
+    agent_id = _agent_id(data)
+    if (
+        not target
+        or record is None
+        or record.get("status") != "running"
+        or agent_id is None
+    ):
+        return store.get("current_prompt_id")
+    active = _clean_active_agents(record.get("active_agents"))
+    if agent_id in active:
+        active.pop(agent_id, None)
+        record["active_agents"] = active
+        record["updated_wall_ns"] = max(_record_key(record), wall_ns)
+        if record.get("phase") == "waiting_subagents" and not active:
+            record["phase"] = "resuming_main"
+    return target
+
+
 def handle_event(data):
     if not isinstance(data, dict):
         return None
     session_id = data.get("session_id")
     event = data.get("hook_event_name")
     if not session_id or not event:
-        return None
-    # The configured lifecycle is for the main CLI turn only.
-    if data.get("agent_id"):
         return None
     session_id = str(session_id)
     prompt_id = data.get("prompt_id")
@@ -670,12 +833,36 @@ def handle_event(data):
 
     def transition(store):
         wall_ns, boot_ns, boot_id = clocks
+        if event == "SubagentStart":
+            return _start_subagent(store, prompt_id, data, wall_ns)
+        if event == "SubagentStop":
+            return _stop_subagent(store, prompt_id, data, wall_ns)
+        # Ordinary events emitted from inside an agent do not describe the
+        # main CLI lifecycle. Only the two explicit subagent hooks above do.
+        if data.get("agent_id"):
+            return store.get("current_prompt_id")
         if event == "UserPromptSubmit":
             if not prompt_id:
                 return store.get("current_prompt_id")
             record = _find_turn(store, prompt_id)
             if record is None:
                 _upsert_turn(store, prompt_id, clocks, "hook_submit")
+            previous = _find_turn(store, store.get("current_prompt_id"))
+            if (
+                isinstance(previous, dict)
+                and previous.get("prompt_id") != prompt_id
+                and previous.get("status") == "running"
+            ):
+                _finish_record(
+                    previous,
+                    "unknown",
+                    wall_ns,
+                    boot_ns,
+                    boot_id,
+                    "next_prompt",
+                    "superseded_without_terminal_event",
+                    updated_wall_ns=wall_ns,
+                )
             store["current_prompt_id"] = prompt_id
             return prompt_id
         if event == "Stop":
@@ -685,10 +872,41 @@ def handle_event(data):
             existed = _find_turn(store, target) is not None
             current_record = _find_turn(store, store.get("current_prompt_id"))
             record = _terminal_record(store, target, clocks)
-            _finish_record(
-                record, "completed", wall_ns, boot_ns, boot_id,
-                "hook_stop", "stop", updated_wall_ns=wall_ns,
+            if record.get("status") in ("failed", "interrupted"):
+                return store.get("current_prompt_id")
+            snapshot = _authoritative_subagents(
+                data.get("background_tasks"),
+                record.get("active_agents"),
+                wall_ns,
             )
+            if snapshot is not None and (
+                record.get("status") == "running"
+                or _reopen_low_priority_completion(record, wall_ns)
+            ):
+                record["active_agents"] = snapshot
+                if snapshot:
+                    record["had_subagents"] = True
+            active = _clean_active_agents(record.get("active_agents"))
+            if active and _reopen_low_priority_completion(record, wall_ns):
+                record.update({
+                    "status": "running",
+                    "phase": "waiting_subagents",
+                    "active_agents": active,
+                    "ended_wall_ns": None,
+                    "ended_boot_ns": None,
+                    "duration_ns": None,
+                    "end_source": None,
+                    "end_reason": None,
+                    "error": None,
+                    "updated_wall_ns": wall_ns,
+                })
+            else:
+                if record.get("had_subagents"):
+                    record["duration_ns"] = None
+                _finish_record(
+                    record, "completed", wall_ns, boot_ns, boot_id,
+                    "hook_stop", "stop", updated_wall_ns=wall_ns,
+                )
             if (store.get("current_prompt_id") in (None, target) or not existed
                     or (isinstance(current_record, dict)
                         and current_record.get("status") in ("ignored", "withdrawn"))):

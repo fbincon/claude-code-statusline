@@ -35,6 +35,9 @@ def build_parser():
         "render", help="render status line JSON received on stdin"
     )
     subparsers.add_parser(
+        "render-subagents", help="render subagent status line tasks as NDJSON"
+    )
+    subparsers.add_parser(
         "hook", help="record a Claude lifecycle hook received on stdin"
     )
     subparsers.add_parser(
@@ -58,8 +61,8 @@ def build_parser():
         "--force",
         action="store_true",
         help=(
-            "replace a conflicting statusLine, /statusline-config skill, or "
-            "/statusline-configure skill"
+            "replace conflicting statusLine and subagentStatusLine settings, "
+            "or unrelated /statusline-config and /statusline-configure skills"
         ),
     )
     experimental_group = install_parser.add_mutually_exclusive_group()
@@ -116,6 +119,11 @@ def main(argv: list[str] | None = None) -> int:
 
         statusline.main()
         return 0
+    if arguments == ["render-subagents"]:
+        from . import subagent_statusline
+
+        subagent_statusline.main()
+        return 0
     if arguments == ["hook"]:
         from . import turn_state
 
@@ -136,6 +144,11 @@ def main(argv: list[str] | None = None) -> int:
         from . import statusline
 
         statusline.main()
+        return 0
+    if args.command == "render-subagents":
+        from . import subagent_statusline
+
+        subagent_statusline.main()
         return 0
     if args.command == "hook":
         from . import turn_state

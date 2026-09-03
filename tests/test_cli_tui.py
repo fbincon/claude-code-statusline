@@ -154,7 +154,7 @@ class ConfigurePtyTests(unittest.TestCase):
         # toggle colors, select Padding, enter 3, accept it, then save.
         os.write(
             master,
-            b"\x1bOB \x1bOB\x1bOC\t\x1bOC"
+            b"\x1bOB \x1bOB\x1bOC\t\t\x1bOC"
             + b"\x1bOB" * 4
             + b"3\r\r",
         )
@@ -199,17 +199,18 @@ class ConfigurePtyTests(unittest.TestCase):
             (self.settings_path.read_bytes(), self.display_path.read_bytes()), before
         )
 
-    def test_enter_without_changes_succeeds_without_backup(self):
+    def test_first_save_migrates_built_in_defaults_to_schema_two(self):
         before = self.settings_path.read_bytes()
         process, master = self._start()
         output = self._read_until(b"Configure Status Line")
         os.write(master, b"\r")
         self.assertEqual(process.wait(timeout=5), 0)
         output = self._finish_output(output)
-        self.assertIn(b"Status line configuration already current.", output)
+        self.assertIn(b"Status line configuration updated.", output)
         self.assertEqual(self.settings_path.read_bytes(), before)
-        self.assertFalse((self.config_dir / "backups").exists())
-        self.assertFalse(self.display_path.exists())
+        self.assertTrue((self.config_dir / "backups").exists())
+        display = json.loads(self.display_path.read_text(encoding="utf-8"))
+        self.assertEqual(display["schema_version"], 2)
 
     def test_too_small_resize_recovers_and_can_cancel(self):
         before = self.settings_path.read_bytes()
@@ -296,7 +297,7 @@ class ConfigurePtyTests(unittest.TestCase):
     def test_bridge_save_current_and_cancel_write_results_without_summary(self):
         cases = (
             (b" ", "updated", "updated"),
-            (b"\r", "already-current", "already current"),
+            (b"\r", "updated", "updated"),
             (b"\x1b", "cancelled", "unchanged"),
         )
         for keys, expected_outcome, expected_message in cases:

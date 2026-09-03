@@ -8,7 +8,7 @@ import json
 import os
 import shlex
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +25,8 @@ DISPLAY_OPTION_NAMES = {
     "palette",
     "directory-style",
     "separator-style",
+    "scope-labels",
+    "subagent-statusline",
 }
 HOST_OPTION_NAMES = {
     "padding",
@@ -58,11 +60,43 @@ DEFAULT_HOST_CONFIG = HostConfig()
 
 
 @dataclass(frozen=True)
+class SubagentStatuslineInfo:
+    enabled: bool = True
+    installed: bool = False
+    state: str = "unsupported"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "enabled": self.enabled,
+            "installed": self.installed,
+            "state": self.state,
+        }
+
+
+def _subagent_info(
+    display: dc.DisplayConfig,
+    settings: dict,
+    executable: Path,
+) -> SubagentStatuslineInfo:
+    state = installer.subagent_statusline_state(
+        settings, executable, installer.detect_claude_version()
+    )
+    return SubagentStatuslineInfo(
+        enabled=display.subagents.enabled,
+        installed=state == "owned",
+        state=state,
+    )
+
+
+@dataclass(frozen=True)
 class EffectiveConfig:
     display: dc.DisplayConfig
     host: HostConfig
     installed: bool
     config_path: Path
+    subagent_statusline: SubagentStatuslineInfo = field(
+        default_factory=SubagentStatuslineInfo
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -71,6 +105,7 @@ class EffectiveConfig:
             "installed": self.installed,
             "display": self.display.to_dict(),
             "host": self.host.to_dict(),
+            "subagent_statusline": self.subagent_statusline.to_dict(),
         }
 
 
@@ -194,7 +229,10 @@ def read_effective_config(config_dir: Path, executable: Path) -> EffectiveConfig
         host, installed = _host_from_settings(settings, executable)
     except (dc.DisplayConfigError, installer.ConfigurationError) as exc:
         raise ConfigCommandError(str(exc)) from exc
-    return EffectiveConfig(display, host, installed, dc.config_path(config_dir))
+    subagent = _subagent_info(display, settings, executable)
+    return EffectiveConfig(
+        display, host, installed, dc.config_path(config_dir), subagent
+    )
 
 
 def _read_display_for_mutation(
@@ -285,7 +323,7 @@ def mutate_configuration(
             elif new_display is not _UNCHANGED:
                 if not isinstance(new_display, dc.DisplayConfig):
                     raise AssertionError("display mutation returned an invalid value")
-                display_changed = new_display != display
+                display_changed = dc.display_config_bytes(new_display) != display_raw
 
             settings_changed = (
                 new_settings is not _UNCHANGED and new_settings != settings
@@ -296,6 +334,7 @@ def mutate_configuration(
                     host,
                     installed,
                     dc.config_path(config_dir),
+                    _subagent_info(display, settings, executable),
                 )
                 return MutationResult(False, effective)
 
@@ -354,6 +393,9 @@ def mutate_configuration(
                 effective_host,
                 effective_installed,
                 dc.config_path(config_dir),
+                _subagent_info(
+                    effective_display, effective_settings, executable
+                ),
             )
             return MutationResult(True, effective, backup_dir)
     except (dc.DisplayConfigError, installer.ConfigurationError) as exc:
@@ -363,6 +405,13 @@ def mutate_configuration(
 def _validated_items(items: list[str]) -> tuple[str, ...]:
     try:
         return dc.validate_items(items)
+    except dc.DisplayConfigError as exc:
+        raise ConfigCommandError(str(exc)) from exc
+
+
+def _validated_subagent_items(items: list[str]) -> tuple[str, ...]:
+    try:
+        return dc.validate_subagent_items(items)
     except dc.DisplayConfigError as exc:
         raise ConfigCommandError(str(exc)) from exc
 
@@ -432,6 +481,98 @@ def order_items(config_dir: Path, executable: Path, items: list[str]) -> Mutatio
     return mutate_configuration(config_dir, executable, "config-order", mutation)
 
 
+def set_subagent_items(
+    config_dir: Path, executable: Path, items: list[str]
+) -> MutationResult:
+    validated = _validated_subagent_items(items)
+    return mutate_configuration(
+        config_dir,
+        executable,
+        "config-subagents-set-items",
+        lambda display, settings, host, installed: (
+            display.with_updates(
+                subagents=display.subagents.with_updates(items=validated)
+            ),
+            _UNCHANGED,
+        ),
+    )
+
+
+def enable_subagent_items(
+    config_dir: Path, executable: Path, items: list[str]
+) -> MutationResult:
+    validated = _validated_subagent_items(items)
+
+    def mutation(display, settings, host, installed):
+        enabled = list(display.subagents.items)
+        enabled.extend(item for item in validated if item not in enabled)
+        return (
+            display.with_updates(
+                subagents=display.subagents.with_updates(items=tuple(enabled))
+            ),
+            _UNCHANGED,
+        )
+
+    return mutate_configuration(
+        config_dir, executable, "config-subagents-enable", mutation
+    )
+
+
+def disable_subagent_items(
+    config_dir: Path, executable: Path, items: list[str]
+) -> MutationResult:
+    validated = _validated_subagent_items(items)
+    disabled = set(validated)
+    return mutate_configuration(
+        config_dir,
+        executable,
+        "config-subagents-disable",
+        lambda display, settings, host, installed: (
+            display.with_updates(
+                subagents=display.subagents.with_updates(
+                    items=tuple(
+                        item
+                        for item in display.subagents.items
+                        if item not in disabled
+                    )
+                )
+            ),
+            _UNCHANGED,
+        ),
+    )
+
+
+def order_subagent_items(
+    config_dir: Path, executable: Path, items: list[str]
+) -> MutationResult:
+    validated = _validated_subagent_items(items)
+
+    def mutation(display, settings, host, installed):
+        current = display.subagents.items
+        if set(validated) != set(current) or len(validated) != len(current):
+            missing = [item for item in current if item not in validated]
+            extra = [item for item in validated if item not in current]
+            details = []
+            if missing:
+                details.append("missing: " + ", ".join(missing))
+            if extra:
+                details.append("not enabled: " + ", ".join(extra))
+            raise ConfigCommandError(
+                "subagent order must contain every enabled item exactly once"
+                + (" (" + "; ".join(details) + ")" if details else "")
+            )
+        return (
+            display.with_updates(
+                subagents=display.subagents.with_updates(items=validated)
+            ),
+            _UNCHANGED,
+        )
+
+    return mutate_configuration(
+        config_dir, executable, "config-subagents-order", mutation
+    )
+
+
 def _display_with_option(
     display: dc.DisplayConfig, option: str, value: Any
 ) -> dc.DisplayConfig:
@@ -444,6 +585,14 @@ def _display_with_option(
             return display.with_updates(directory_style=value)
         if option == "separator-style":
             return display.with_updates(separator_style=value)
+        if option == "scope-labels":
+            return display.with_updates(scope_labels=value)
+        if option == "subagent-statusline":
+            return display.with_updates(
+                subagents=display.subagents.with_updates(
+                    enabled=_parse_toggle(value, option)
+                )
+            )
     except dc.DisplayConfigError as exc:
         raise ConfigCommandError(str(exc)) from exc
     raise ConfigCommandError(f"unknown display option: {option}")
@@ -505,22 +654,27 @@ def apply_configuration(
     padding: Any,
     refresh_interval: Any,
     hide_vim_mode_indicator: Any,
+    subagent_items: list[str] | None = None,
+    subagent_statusline: Any | None = None,
+    scope_labels: str | None = None,
     expected: EffectiveConfig | None = None,
 ) -> MutationResult:
     validated_items = _validated_items(items)
-    try:
-        display = dc.validate_display_config(
-            {
-                "schema_version": dc.SCHEMA_VERSION,
-                "items": list(validated_items),
-                "use_colors": _parse_toggle(colors, "colors"),
-                "palette": palette,
-                "directory_style": directory_style,
-                "separator_style": separator_style,
-            }
+    validated_subagent_items = (
+        _validated_subagent_items(subagent_items)
+        if subagent_items is not None
+        else None
+    )
+    parsed_colors = _parse_toggle(colors, "colors")
+    parsed_subagent_statusline = (
+        _parse_toggle(subagent_statusline, "subagent-statusline")
+        if subagent_statusline is not None
+        else None
+    )
+    if scope_labels is not None and scope_labels not in dc.SCOPE_LABELS:
+        raise ConfigCommandError(
+            "scope-labels must be one of: " + ", ".join(dc.SCOPE_LABELS)
         )
-    except dc.DisplayConfigError as exc:
-        raise ConfigCommandError(str(exc)) from exc
     host = HostConfig(
         _parse_padding(padding),
         _parse_refresh_interval(refresh_interval),
@@ -537,6 +691,27 @@ def apply_configuration(
                 "status line configuration changed while the editor was open; "
                 "reopen the editor and try again"
             )
+        subagents = current_display.subagents
+        if validated_subagent_items is not None:
+            subagents = subagents.with_updates(items=validated_subagent_items)
+        if parsed_subagent_statusline is not None:
+            subagents = subagents.with_updates(enabled=parsed_subagent_statusline)
+        try:
+            display = current_display.with_updates(
+                items=validated_items,
+                use_colors=parsed_colors,
+                palette=palette,
+                directory_style=directory_style,
+                separator_style=separator_style,
+                scope_labels=(
+                    current_display.scope_labels
+                    if scope_labels is None
+                    else scope_labels
+                ),
+                subagents=subagents,
+            )
+        except dc.DisplayConfigError as exc:
+            raise ConfigCommandError(str(exc)) from exc
         return display, _settings_with_host(settings, executable, host)
 
     return mutate_configuration(
@@ -576,6 +751,13 @@ def _format_effective(config: EffectiveConfig) -> str:
         f"Palette: {config.display.palette}",
         f"Directory style: {config.display.directory_style}",
         f"Separator style: {config.display.separator_style}",
+        f"Scope labels: {config.display.scope_labels}",
+        "Subagent items: "
+        + (", ".join(config.display.subagents.items) or "(none)"),
+        "Custom subagent rows: "
+        + ("on" if config.display.subagents.enabled else "off"),
+        "Subagent statusline: "
+        + config.subagent_statusline.state,
         f"Padding: {host['padding']}",
         f"Refresh interval: {host['refresh_interval']}",
         "Hide Vim mode indicator: "
@@ -604,6 +786,27 @@ def item_listing(config: EffectiveConfig | None = None) -> list[dict[str, Any]]:
             "position": positions.get(item),
         }
         for item, description in dc.ITEM_CATALOG.items()
+    ]
+
+
+def subagent_item_listing(
+    config: EffectiveConfig | None = None,
+) -> list[dict[str, Any]]:
+    enabled = (
+        config.display.subagents.items
+        if config
+        else dc.DEFAULT_SUBAGENT_ITEMS
+    )
+    positions = {item: index for index, item in enumerate(enabled)}
+    return [
+        {
+            "id": item,
+            "description": description,
+            "default_enabled": item in dc.DEFAULT_SUBAGENT_ITEMS,
+            "enabled": item in positions,
+            "position": positions.get(item),
+        }
+        for item, description in dc.SUBAGENT_ITEM_CATALOG.items()
     ]
 
 
@@ -638,6 +841,35 @@ def add_config_parser(subparsers) -> argparse.ArgumentParser:
     order = actions.add_parser("order", help="reorder all enabled items")
     order.add_argument("items", nargs="*")
 
+    subagents = actions.add_parser(
+        "subagents", help="view or change subagent row items"
+    )
+    subagent_actions = subagents.add_subparsers(
+        dest="subagent_action", required=True
+    )
+    subagent_listing = subagent_actions.add_parser(
+        "list-items", help="list supported subagent row items"
+    )
+    subagent_listing.add_argument(
+        "--json", action="store_true", dest="json_output"
+    )
+    subagent_set = subagent_actions.add_parser(
+        "set-items", help="replace enabled subagent items and their order"
+    )
+    subagent_set.add_argument("items", nargs="*")
+    subagent_enable = subagent_actions.add_parser(
+        "enable", help="append subagent row items"
+    )
+    subagent_enable.add_argument("items", nargs="+")
+    subagent_disable = subagent_actions.add_parser(
+        "disable", help="remove subagent row items"
+    )
+    subagent_disable.add_argument("items", nargs="+")
+    subagent_order = subagent_actions.add_parser(
+        "order", help="reorder all enabled subagent row items"
+    )
+    subagent_order.add_argument("items", nargs="*")
+
     set_parser = actions.add_parser("set", help="set one display or host option")
     set_parser.add_argument("option", choices=sorted(OPTION_NAMES))
     set_parser.add_argument("value")
@@ -659,6 +891,11 @@ def add_config_parser(subparsers) -> argparse.ArgumentParser:
     apply_parser.add_argument(
         "--hide-vim-mode-indicator", choices=("on", "off"), required=True
     )
+    apply_parser.add_argument("--subagent-items", nargs="*")
+    apply_parser.add_argument(
+        "--subagent-statusline", choices=("on", "off")
+    )
+    apply_parser.add_argument("--scope-labels", choices=dc.SCOPE_LABELS)
 
     actions.add_parser("reset", help="restore display and host defaults")
     return parser
@@ -689,6 +926,22 @@ def parse_slash_arguments(command_args: str) -> argparse.Namespace:
     ):
         child = actions.add_parser(name, add_help=False)
         child.add_argument("items", nargs="*" if minimum == 0 else "+")
+    subagents = actions.add_parser("subagents", add_help=False)
+    subagent_actions = subagents.add_subparsers(
+        dest="subagent_action", required=True
+    )
+    subagent_listing = subagent_actions.add_parser("list-items", add_help=False)
+    subagent_listing.add_argument(
+        "--json", action="store_true", dest="json_output"
+    )
+    for name, minimum in (
+        ("set-items", 0),
+        ("enable", 1),
+        ("disable", 1),
+        ("order", 0),
+    ):
+        child = subagent_actions.add_parser(name, add_help=False)
+        child.add_argument("items", nargs="*" if minimum == 0 else "+")
     set_parser = actions.add_parser("set", add_help=False)
     set_parser.add_argument("option", choices=sorted(OPTION_NAMES))
     set_parser.add_argument("value")
@@ -707,6 +960,11 @@ def parse_slash_arguments(command_args: str) -> argparse.Namespace:
     apply_parser.add_argument(
         "--hide-vim-mode-indicator", choices=("on", "off"), required=True
     )
+    apply_parser.add_argument("--subagent-items", nargs="*")
+    apply_parser.add_argument(
+        "--subagent-statusline", choices=("on", "off")
+    )
+    apply_parser.add_argument("--scope-labels", choices=dc.SCOPE_LABELS)
     actions.add_parser("reset", add_help=False)
     return parser.parse_args(arguments)
 
@@ -733,6 +991,29 @@ def execute_config_namespace(
             f"{'[x]' if item['enabled'] else '[ ]'} {item['id']}: {item['description']}"
             for item in listing
         )
+    if action == "subagents":
+        subaction = args.subagent_action
+        if subaction == "list-items":
+            effective = read_effective_config(config_dir, executable)
+            listing = subagent_item_listing(effective)
+            if args.json_output:
+                return json.dumps(listing, ensure_ascii=False, indent=2)
+            return "\n".join(
+                f"{'[x]' if item['enabled'] else '[ ]'} "
+                f"{item['id']}: {item['description']}"
+                for item in listing
+            )
+        if subaction == "set-items":
+            result = set_subagent_items(config_dir, executable, args.items)
+        elif subaction == "enable":
+            result = enable_subagent_items(config_dir, executable, args.items)
+        elif subaction == "disable":
+            result = disable_subagent_items(config_dir, executable, args.items)
+        elif subaction == "order":
+            result = order_subagent_items(config_dir, executable, args.items)
+        else:
+            raise ConfigCommandError(f"unknown subagent config action: {subaction}")
+        return _format_mutation(result)
     if action == "set-items":
         result = set_items(config_dir, executable, args.items)
     elif action == "enable":
@@ -755,6 +1036,9 @@ def execute_config_namespace(
             padding=args.padding,
             refresh_interval=args.refresh_interval,
             hide_vim_mode_indicator=args.hide_vim_mode_indicator,
+            subagent_items=args.subagent_items,
+            subagent_statusline=args.subagent_statusline,
+            scope_labels=args.scope_labels,
         )
     elif action == "reset":
         result = reset_configuration(config_dir, executable)

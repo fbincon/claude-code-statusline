@@ -548,6 +548,186 @@ class ExperimentalInstallTests(InstallerTestCase):
         self.assertFalse(owner_path.exists())
 
 
+class SubagentInstallTests(InstallerTestCase):
+    def test_supported_default_installs_exact_setting_and_hooks(self):
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        settings = self.read_settings()
+        self.assertEqual(
+            settings["subagentStatusLine"],
+            {
+                "type": "command",
+                "command": installer.command_for(
+                    self.executable, "render-subagents"
+                ),
+            },
+        )
+        self.assertNotIn("refreshInterval", settings["subagentStatusLine"])
+        for event in installer.SUBAGENT_HOOK_EVENTS:
+            self.assertEqual(self.cli_hook_count(settings, event), 1)
+
+    def test_disabled_rows_keep_foreign_setting_but_install_lifecycle_hooks(self):
+        self.write_settings({
+            "subagentStatusLine": {
+                "type": "command",
+                "command": "third-party agents",
+            }
+        })
+        dc.write_display_config(
+            self.config,
+            dc.DEFAULT_CONFIG.with_updates(
+                subagents=dc.SubagentDisplayConfig(enabled=False)
+            ),
+        )
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        settings = self.read_settings()
+        self.assertEqual(
+            settings["subagentStatusLine"]["command"], "third-party agents"
+        )
+        for event in installer.SUBAGENT_HOOK_EVENTS:
+            self.assertEqual(self.cli_hook_count(settings, event), 1)
+        diagnostics = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        self.assertFalse(any(item.level == "ERROR" for item in diagnostics))
+        self.assertTrue(any(
+            "foreign setting preserved" in item.message for item in diagnostics
+        ))
+
+    def test_foreign_conflict_fails_before_backup_and_force_takes_ownership(self):
+        original = {
+            "theme": "dark",
+            "subagentStatusLine": {
+                "type": "command",
+                "command": "third-party agents",
+            },
+        }
+        self.write_settings(original)
+        before = self.settings_path.read_bytes()
+        with self.assertRaisesRegex(
+            installer.ConfigurationError, "config set subagent-statusline off"
+        ):
+            installer.install_configuration(
+                self.config, self.executable, claude_version=(2, 1, 205)
+            )
+        self.assertEqual(self.settings_path.read_bytes(), before)
+        self.assertFalse((self.config / "backups").exists())
+
+        result = installer.install_configuration(
+            self.config,
+            self.executable,
+            force=True,
+            claude_version=(2, 1, 205),
+        )
+        self.assertEqual(
+            self.read_settings()["subagentStatusLine"]["command"],
+            installer.command_for(self.executable, "render-subagents"),
+        )
+        self.assertEqual(
+            (result.backup_dir / "settings.json.before").read_bytes(), before
+        )
+
+    def test_old_or_unknown_versions_suspend_and_upgrade_restores(self):
+        for version in ((2, 1, 204), None):
+            with self.subTest(version=version):
+                with tempfile.TemporaryDirectory(prefix="subagent-old-") as root:
+                    config = Path(root) / "claude"
+                    executable = Path(root) / "claude-statusline"
+                    executable.write_text("#!/bin/sh\n", encoding="utf-8")
+                    executable.chmod(0o755)
+                    installer.install_configuration(
+                        config, executable, claude_version=version
+                    )
+                    settings = json.loads(
+                        (config / "settings.json").read_text(encoding="utf-8")
+                    )
+                    self.assertIn("statusLine", settings)
+                    self.assertNotIn("subagentStatusLine", settings)
+                    for event in installer.SUBAGENT_HOOK_EVENTS:
+                        self.assertEqual(
+                            installer._hook_commands(settings, event), []
+                        )
+
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 204)
+        )
+        settings = self.read_settings()
+        self.assertNotIn("subagentStatusLine", settings)
+        for event in installer.SUBAGENT_HOOK_EVENTS:
+            self.assertEqual(self.cli_hook_count(settings, event), 0)
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        settings = self.read_settings()
+        self.assertIn("subagentStatusLine", settings)
+        for event in installer.SUBAGENT_HOOK_EVENTS:
+            self.assertEqual(self.cli_hook_count(settings, event), 1)
+
+    def test_uninstall_removes_owned_but_preserves_foreign(self):
+        installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        installer.uninstall_configuration(self.config, self.executable)
+        self.assertNotIn("subagentStatusLine", self.read_settings())
+
+        self.write_settings({
+            "subagentStatusLine": {
+                "type": "command",
+                "command": "third-party agents",
+            }
+        })
+        result = installer.uninstall_configuration(self.config, self.executable)
+        self.assertFalse(result.changed)
+        self.assertEqual(
+            self.read_settings()["subagentStatusLine"]["command"],
+            "third-party agents",
+        )
+
+    def test_dry_run_idempotence_and_v1_display_read_only(self):
+        self.config.mkdir(parents=True)
+        legacy = {
+            "schema_version": 1,
+            "items": ["git"],
+            "use_colors": True,
+            "palette": "default",
+            "directory_style": "full",
+            "separator_style": "classic",
+        }
+        display_path = dc.config_path(self.config)
+        raw = (json.dumps(legacy, separators=(",", ":")) + "\n").encode()
+        display_path.write_bytes(raw)
+        dry = installer.install_configuration(
+            self.config,
+            self.executable,
+            dry_run=True,
+            claude_version=(2, 1, 205),
+        )
+        self.assertTrue(dry.changed)
+        self.assertEqual(display_path.read_bytes(), raw)
+        first = installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        diagnostics = installer.collect_diagnostics(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        self.assertTrue(any(
+            item.level == "WARN" and "schema v1" in item.message
+            for item in diagnostics
+        ))
+        second = installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 205)
+        )
+        self.assertTrue(first.changed)
+        self.assertFalse(second.changed)
+        self.assertEqual(display_path.read_bytes(), raw)
+
+
 class UninstallTests(InstallerTestCase):
     def test_uninstall_removes_experimental_artifacts_but_keeps_preference(self):
         installer.install_configuration(
@@ -652,6 +832,11 @@ class ResolutionAndDoctorTests(InstallerTestCase):
         self.assertIn(str(self.executable), rendered)
         for item in dc.ITEM_CATALOG:
             self.assertIn(f"`{item}`", rendered)
+        for item in dc.SUBAGENT_ITEM_CATALOG:
+            self.assertIn(f"`{item}`", rendered)
+        self.assertIn("--subagent-items", rendered)
+        self.assertIn("--subagent-statusline", rendered)
+        self.assertIn("--scope-labels", rendered)
 
         experimental = installer.render_experimental_skill().decode("utf-8")
         self.assertIn("name: statusline-configure", experimental)

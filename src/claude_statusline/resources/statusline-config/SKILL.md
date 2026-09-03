@@ -1,7 +1,7 @@
 ---
 name: statusline-config
 description: Configure the installed claude-statusline display and Claude Code host settings.
-argument-hint: "[show|list-items|set-items|enable|disable|order|set|reset]"
+argument-hint: "[show|list-items|set-items|enable|disable|order|subagents|set|reset]"
 disable-model-invocation: true
 allowed-tools:
   - AskUserQuestion
@@ -24,7 +24,8 @@ changes.
 If the invocation arguments are empty:
 
 1. Run `__CLAUDE_STATUSLINE_COMMAND__ config show --json` and
-   `__CLAUDE_STATUSLINE_COMMAND__ config list-items --json`.
+   `__CLAUDE_STATUSLINE_COMMAND__ config list-items --json`, then run
+   `__CLAUDE_STATUSLINE_COMMAND__ config subagents list-items --json`.
 2. Tell the user that the configuration applies to every Claude Code project.
 3. Use AskUserQuestion with multi-select questions for these groups:
    - Identity / Repo: `model-with-effort`, `current-dir`, `git`
@@ -39,6 +40,10 @@ If the invocation arguments are empty:
 4. Preserve the relative order of currently enabled selected items. Append
    newly enabled items in the catalog order returned by `list-items`.
 5. Ask for:
+   - subagent row items: `status`, `name`, `model-with-effort`,
+     `context-used`, `elapsed`, `task`, `tokens`, and `current-dir`
+   - custom subagent rows: on or off
+   - scope labels: off, when-subagents, or always
    - colors: on or off
    - palette: default or ansi (retain the current value if colors are off)
    - directory style: full, home, project-relative, or basename
@@ -49,7 +54,7 @@ If the invocation arguments are empty:
 6. Do not write anything if the user cancels or any answer is unresolved.
 7. Apply every answer in one command with this exact argument structure:
 
-   `__CLAUDE_STATUSLINE_COMMAND__ config apply --items ITEM... --colors on|off --palette default|ansi --directory-style full|home|project-relative|basename --separator-style classic|compact --padding N --refresh-interval event|N --hide-vim-mode-indicator on|off`
+   `__CLAUDE_STATUSLINE_COMMAND__ config apply --items ITEM... --subagent-items ITEM... --subagent-statusline on|off --scope-labels off|when-subagents|always --colors on|off --palette default|ansi --directory-style full|home|project-relative|basename --separator-style classic|compact --padding N --refresh-interval event|N --hide-vim-mode-indicator on|off`
 
    Map "hide" to `--hide-vim-mode-indicator on` and "show" to
    `--hide-vim-mode-indicator off`.
@@ -57,4 +62,5 @@ If the invocation arguments are empty:
    After it succeeds, run `__CLAUDE_STATUSLINE_COMMAND__ config show --json`
    once to verify the saved result. Report the applied values and mention that
    arbitrary reordering is available through
-   `/statusline-config order ITEM...`.
+   `/statusline-config order ITEM...` and
+   `/statusline-config subagents order ITEM...`.

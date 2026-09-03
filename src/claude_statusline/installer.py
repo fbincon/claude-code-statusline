@@ -28,10 +28,12 @@ HOOK_EVENTS = (
     "StopFailure",
     "SessionEnd",
 )
+SUBAGENT_HOOK_EVENTS = ("SubagentStart", "SubagentStop")
 SLASH_HOOK_EVENT = "UserPromptExpansion"
 SLASH_COMMAND_NAME = "statusline-config"
 EXPERIMENTAL_SLASH_COMMAND_NAME = "statusline-configure"
 MIN_FAST_SLASH_VERSION = (2, 1, 258)
+MIN_SUBAGENT_STATUSLINE_VERSION = (2, 1, 205)
 SKILL_OWNER = "claude-code-statusline"
 SKILL_OWNER_SCHEMA = 1
 SKILL_RELATIVE_PATH = Path("skills") / SLASH_COMMAND_NAME / "SKILL.md"
@@ -102,7 +104,7 @@ def _quoted_executable(executable: Path) -> str:
 
 
 def command_for(executable: Path, subcommand: str) -> str:
-    if subcommand not in ("render", "hook", "slash-hook"):
+    if subcommand not in ("render", "render-subagents", "hook", "slash-hook"):
         raise ValueError(f"unsupported subcommand: {subcommand}")
     return f"{_quoted_executable(executable)} {subcommand}"
 
@@ -130,6 +132,30 @@ def detect_claude_version() -> tuple[int, int, int] | None:
 
 def supports_fast_slash_hook(version: tuple[int, int, int] | None) -> bool:
     return version is not None and version >= MIN_FAST_SLASH_VERSION
+
+
+def supports_subagent_statusline(version: tuple[int, int, int] | None) -> bool:
+    return version is not None and version >= MIN_SUBAGENT_STATUSLINE_VERSION
+
+
+def subagent_statusline_state(
+    settings: dict,
+    executable: Path | None,
+    claude_version: tuple[int, int, int] | None,
+) -> str:
+    """Classify the configured subagent renderer using the public state names."""
+    if not supports_subagent_statusline(claude_version):
+        return "unsupported"
+    current = settings.get("subagentStatusLine") if isinstance(settings, dict) else None
+    if current is None:
+        return "absent"
+    command = current.get("command") if isinstance(current, dict) else None
+    if (
+        _is_cli_command(command, "render-subagents", executable)
+        or _is_cli_command(command, "render-subagents")
+    ):
+        return "owned"
+    return "foreign"
 
 
 def skill_paths(
@@ -305,6 +331,8 @@ def _prepare_install(
     force: bool,
     fast_slash_hook: bool = False,
     experimental_slash_tui: bool = False,
+    subagent_supported: bool = False,
+    subagent_enabled: bool = True,
 ) -> dict:
     updated = copy.deepcopy(settings)
     current = updated.get("statusLine")
@@ -350,6 +378,30 @@ def _prepare_install(
         status_line["refreshInterval"] = 1
     updated["statusLine"] = status_line
 
+    current_subagent = updated.get("subagentStatusLine")
+    current_subagent_command = (
+        current_subagent.get("command")
+        if isinstance(current_subagent, dict)
+        else None
+    )
+    subagent_owned = (
+        _is_cli_command(current_subagent_command, "render-subagents", executable)
+        or _is_cli_command(current_subagent_command, "render-subagents")
+    )
+    if subagent_supported and subagent_enabled:
+        if current_subagent is not None and not subagent_owned and not force:
+            raise ConfigurationError(
+                "an unrelated subagentStatusLine is already configured; choose "
+                "install --force to replace it, or run 'config set "
+                "subagent-statusline off' to preserve it"
+            )
+        updated["subagentStatusLine"] = {
+            "type": "command",
+            "command": command_for(executable, "render-subagents"),
+        }
+    elif subagent_owned:
+        updated.pop("subagentStatusLine", None)
+
     hooks = updated.get("hooks")
     if hooks is None:
         hooks = {}
@@ -368,6 +420,17 @@ def _prepare_install(
         )
         groups.append({"hooks": [copy.deepcopy(action)]})
         hooks[event] = groups
+    for event in SUBAGENT_HOOK_EVENTS:
+        groups = _clean_hook_groups(
+            hooks.get(event), config_dir, executable,
+            remove_cli=True, remove_legacy=False,
+        )
+        if subagent_supported:
+            groups.append({"hooks": [copy.deepcopy(action)]})
+        if groups:
+            hooks[event] = groups
+        else:
+            hooks.pop(event, None)
     slash_groups = _clean_hook_groups(
         hooks.get(SLASH_HOOK_EVENT),
         config_dir,
@@ -415,6 +478,18 @@ def _prepare_uninstall(
         or _is_cli_command(current_command, "render")
     ):
         updated.pop("statusLine", None)
+
+    current_subagent = updated.get("subagentStatusLine")
+    current_subagent_command = (
+        current_subagent.get("command")
+        if isinstance(current_subagent, dict)
+        else None
+    )
+    if (
+        _is_cli_command(current_subagent_command, "render-subagents", executable)
+        or _is_cli_command(current_subagent_command, "render-subagents")
+    ):
+        updated.pop("subagentStatusLine", None)
 
     hooks = updated.get("hooks")
     if isinstance(hooks, dict):
@@ -615,6 +690,13 @@ def _change_configuration(
             preference_enabled = experimental_slash_tui
 
         fast_slash_hook = supports_fast_slash_hook(claude_version)
+        subagent_supported = supports_subagent_statusline(claude_version)
+        try:
+            from . import display_config
+
+            display = display_config.load_display_config(config_dir)
+        except display_config.DisplayConfigError:
+            display = display_config.DEFAULT_CONFIG
         experimental_active = preference_enabled and fast_slash_hook
         if action == "install":
             updated_settings = _prepare_install(
@@ -624,6 +706,8 @@ def _change_configuration(
                 force,
                 fast_slash_hook=fast_slash_hook,
                 experimental_slash_tui=experimental_active,
+                subagent_supported=subagent_supported,
+                subagent_enabled=display.subagents.enabled,
             )
         else:
             updated_settings = _prepare_uninstall(
@@ -1020,7 +1104,11 @@ def collect_diagnostics(
         commands = _hook_commands(settings, event)
         count = sum(
             1 for command in commands
-            if executable is not None and _is_cli_command(command, "hook", executable)
+            if (
+                executable is not None
+                and _is_cli_command(command, "hook", executable)
+            )
+            or _is_cli_command(command, "hook")
         )
         if count == 1:
             diagnostics.append(Diagnostic("OK", f"{event} hook: exactly one"))
@@ -1044,10 +1132,13 @@ def collect_diagnostics(
         except ConfigurationError as exc:
             diagnostics.append(Diagnostic("ERROR", str(exc)))
 
+    display = None
+    display_source_schema = None
     try:
         from . import display_config
 
-        display_config.load_display_config(config_dir)
+        display = display_config.load_display_config(config_dir)
+        display_source_schema = display_config.read_display_config_schema(config_dir)
         display_path = display_config.config_path(config_dir)
         if display_path.exists():
             display_mode = stat.S_IMODE(display_path.stat().st_mode)
@@ -1059,11 +1150,123 @@ def collect_diagnostics(
                 ))
         else:
             diagnostics.append(Diagnostic("OK", "display config: built-in defaults"))
+        if display_source_schema == display_config.LEGACY_SCHEMA_VERSION:
+            diagnostics.append(Diagnostic(
+                "WARN",
+                "display config schema v1 is valid and will migrate to v2 on "
+                "the next configuration save",
+            ))
+        elif display_source_schema == display_config.SCHEMA_VERSION:
+            diagnostics.append(Diagnostic("OK", "display config schema: v2"))
     except display_config.DisplayConfigError as exc:
         diagnostics.append(Diagnostic("ERROR", str(exc)))
 
     if claude_version is _DETECT_CLAUDE_VERSION:
         claude_version = detect_claude_version()
+
+    current_subagent = settings.get("subagentStatusLine")
+    current_subagent_command = (
+        current_subagent.get("command")
+        if isinstance(current_subagent, dict)
+        else None
+    )
+    subagent_owned = (
+        _is_cli_command(current_subagent_command, "render-subagents", executable)
+        if executable is not None
+        else False
+    ) or _is_cli_command(current_subagent_command, "render-subagents")
+    if supports_subagent_statusline(claude_version):
+        version_text = ".".join(map(str, claude_version))
+        diagnostics.append(Diagnostic(
+            "OK", f"subagentStatusLine supported: Claude Code {version_text}"
+        ))
+        state = subagent_statusline_state(settings, executable, claude_version)
+        desired_enabled = (
+            display.subagents.enabled if display is not None else True
+        )
+        exact_subagent = (
+            state == "owned"
+            and isinstance(current_subagent, dict)
+            and set(current_subagent) == {"type", "command"}
+            and current_subagent.get("type") == "command"
+        )
+        if desired_enabled and exact_subagent:
+            diagnostics.append(Diagnostic(
+                "OK", "subagentStatusLine: enabled and owned"
+            ))
+        elif desired_enabled:
+            diagnostics.append(Diagnostic(
+                "ERROR",
+                f"subagentStatusLine is enabled but its state is {state}",
+            ))
+        elif state in ("absent", "foreign"):
+            diagnostics.append(Diagnostic(
+                "OK",
+                "subagentStatusLine: disabled"
+                + ("; foreign setting preserved" if state == "foreign" else ""),
+            ))
+        else:
+            diagnostics.append(Diagnostic(
+                "ERROR",
+                "subagentStatusLine is disabled but an owned setting remains; "
+                "rerun install",
+            ))
+        for event in SUBAGENT_HOOK_EVENTS:
+            commands = _hook_commands(settings, event)
+            count = sum(
+                1
+                for command in commands
+                if (
+                    executable is not None
+                    and _is_cli_command(command, "hook", executable)
+                )
+                or _is_cli_command(command, "hook")
+            )
+            if count == 1:
+                diagnostics.append(Diagnostic("OK", f"{event} hook: exactly one"))
+            else:
+                diagnostics.append(Diagnostic(
+                    "ERROR", f"{event} hook: expected one, found {count}"
+                ))
+    else:
+        version_text = (
+            ".".join(map(str, claude_version))
+            if isinstance(claude_version, tuple)
+            else "unknown"
+        )
+        diagnostics.append(Diagnostic(
+            "WARN",
+            "subagentStatusLine and subagent lifecycle hooks require Claude Code "
+            f"{'.'.join(map(str, MIN_SUBAGENT_STATUSLINE_VERSION))}+; found "
+            f"{version_text}",
+        ))
+        if subagent_owned:
+            diagnostics.append(Diagnostic(
+                "ERROR",
+                "owned subagentStatusLine remains on an unsupported Claude Code; "
+                "rerun install to suspend it",
+            ))
+        for event in SUBAGENT_HOOK_EVENTS:
+            commands = _hook_commands(settings, event)
+            count = sum(
+                1
+                for command in commands
+                if (
+                    executable is not None
+                    and _is_cli_command(command, "hook", executable)
+                )
+                or _is_cli_command(command, "hook")
+            )
+            if count:
+                diagnostics.append(Diagnostic(
+                    "ERROR",
+                    f"{event} hook is unsupported but {count} owned hook(s) remain",
+                ))
+            else:
+                diagnostics.append(Diagnostic(
+                    "OK", f"{event} hook: suspended"
+                ))
+
     slash_count = _slash_hook_count(settings, executable)
     if supports_fast_slash_hook(claude_version):
         version_text = ".".join(map(str, claude_version))

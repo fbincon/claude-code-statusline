@@ -32,7 +32,7 @@ def _handle_config_command(data: dict) -> str | None:
     if command_args.strip() in {"help", "--help", "-h"}:
         return _decision(
             "Usage: /statusline-config "
-            "[show|list-items|set-items|enable|disable|order|set|reset]"
+            "[show|list-items|set-items|enable|disable|order|subagents|set|reset]"
         )
 
     try:

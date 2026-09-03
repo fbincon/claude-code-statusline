@@ -35,6 +35,10 @@ from .display_config import (
     format_directory,
     load_display_config,
 )
+from .render_utils import (
+    format_duration as _shared_format_duration,
+    humanize_tokens as _shared_humanize_tokens,
+)
 from .turn_state import (
     load_turn_state,
     now_clocks,
@@ -1223,16 +1227,7 @@ def _git_segment(result, palette=DEFAULT_PALETTE):
 
 
 def _fmt_duration(seconds, nearest=False):
-    try:
-        value = float(seconds)
-    except (TypeError, ValueError):
-        return None
-    s = int(value + 0.5) if nearest and value >= 0 else int(value)
-    if s < 0:
-        s = 0
-    if s >= 3600:
-        return f"{s // 3600}h {s % 3600 // 60:02d}m {s % 60:02d}s"
-    return f"{s // 60}m {s % 60:02d}s"
+    return _shared_format_duration(seconds, nearest=nearest)
 
 
 def _state_elapsed_seconds(state, last_pt):
@@ -1269,6 +1264,21 @@ def _render_state_timer(state, last_pt, palette=DEFAULT_PALETTE):
     formatted = _fmt_duration(elapsed, nearest=status != "running")
     if not formatted:
         return None
+    if status == "running":
+        phase = state.get("phase")
+        if phase == "waiting_subagents":
+            active = state.get("active_agents")
+            count = len(active) if isinstance(active, dict) else 0
+            noun = "agent" if count == 1 else "agents"
+            return (
+                f"{palette.timer}⏳ {count} {noun} · {formatted}"
+                f"{palette.reset}"
+            )
+        if phase == "resuming_main":
+            return (
+                f"{palette.timer}⏳ main wrap-up · {formatted}"
+                f"{palette.reset}"
+            )
     marker = {
         "running": "⏱",
         "completed": "✓",
@@ -1374,17 +1384,7 @@ def _timer_segment(
 
 
 def humanize_tokens(v):
-    try:
-        v = int(v)
-    except (TypeError, ValueError):
-        return None
-    if v >= 1_000_000:
-        s = f"{v / 1_000_000:.2f}".rstrip("0").rstrip(".")
-        return s + "M"
-    if v >= 1000:
-        s = f"{v / 1000:.1f}".rstrip("0").rstrip(".")
-        return s + "K"
-    return str(v)
+    return _shared_humanize_tokens(v)
 
 
 def humanize_api_tokens(v):
@@ -1501,6 +1501,16 @@ class _RenderState:
         if self._totals is _NOT_LOADED:
             self._totals = session_token_totals(self.data)
         return self._totals
+
+    def had_subagents(self):
+        session_id = deep_get(self.data, ("session_id",))
+        if not session_id:
+            return False
+        prompt_id = deep_get(self.data, ("prompt_id",))
+        record = load_turn_state(str(session_id), str(prompt_id)) if prompt_id else None
+        if not isinstance(record, dict):
+            record = load_turn_state(str(session_id))
+        return bool(isinstance(record, dict) and record.get("had_subagents"))
 
     def model_with_effort(self):
         model = deep_get(self.data, ("model", "id")) or deep_get(
@@ -1765,6 +1775,16 @@ def _configured_segments_with_state(data, config, state_class):
         item = state.render(item_id)
         if item is not None and item.text:
             rendered.append(item)
+    if rendered and (
+        config.scope_labels == "always"
+        or (config.scope_labels == "when-subagents" and state.had_subagents())
+    ):
+        rendered.insert(
+            0,
+            _RenderedItem(
+                f"{palette.timer}Main/Session{palette.reset}"
+            ),
+        )
     return (
         _coalesce_items(rendered, inner_separator),
         outer_separator,
@@ -1777,6 +1797,9 @@ class _SampleRenderState(_RenderState):
 
     def totals(self):
         return "1.2M", "87.5K", "22.4K", None, {}
+
+    def had_subagents(self):
+        return True
 
     def git(self):
         text = (

@@ -23,7 +23,7 @@ class PreviewContentTests(unittest.TestCase):
         )
         rendered = "\n".join(plain_rows(config))
         expected = (
-            "claude-opus high · fast · thinking | "
+            "Main/Session | claude-opus high · fast · thinking | "
             f"{Path.home()}/projects/claude-code-statusline/src | "
             "Git feature/statusline-tui ↑1 ~2 ?1 · PR #42 · approved · "
             "Repo example/claude-code-statusline | Worktree statusline-tui | "
@@ -59,7 +59,8 @@ class PreviewContentTests(unittest.TestCase):
         narrow = plain_rows(base, width=24)
 
         self.assertNotEqual(initial, toggled)
-        self.assertTrue(reordered[0].startswith("Git feature/statusline-tui"))
+        self.assertTrue(reordered[0].startswith("Main/Session"))
+        self.assertIn("Git feature/statusline-tui", "\n".join(reordered))
         self.assertIn(" · ", compact[0])
         self.assertIn("~/projects/claude-code-statusline/src", home[0])
         self.assertIn("src", relative[0])

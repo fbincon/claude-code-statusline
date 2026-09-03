@@ -173,7 +173,7 @@ class MigrationAndStorageTests(TurnStateTestCase):
         with open(ts._state_path("s"), "r", encoding="utf-8") as stream:
             published = json.load(stream)
         self.assertEqual(published["schema"], 1)
-        self.assertEqual(published["lifecycle"]["schema"], 2)
+        self.assertEqual(published["lifecycle"]["schema"], 3)
         self.assertEqual(published["prompt_id"], "A")
         self.assertEqual(published["status"], "completed")
 

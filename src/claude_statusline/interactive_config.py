@@ -18,6 +18,7 @@ from typing import TextIO
 from . import config_commands as cc
 from . import display_config as dc
 from . import statusline
+from . import subagent_statusline
 
 MIN_TERMINAL_WIDTH = 64
 MIN_TERMINAL_HEIGHT = 18
@@ -30,6 +31,8 @@ SETTING_NAMES = (
     "Padding",
     "Refresh interval",
     "Built-in Vim indicator",
+    "Scope labels",
+    "Custom subagent rows",
 )
 
 SAVE = "save"
@@ -65,6 +68,8 @@ class EditorState:
     baseline: cc.EffectiveConfig
     item_order: list[str]
     enabled: set[str]
+    subagent_item_order: list[str]
+    subagent_enabled: set[str]
     display: dc.DisplayConfig
     host: cc.HostConfig
     page: str = "items"
@@ -73,6 +78,9 @@ class EditorState:
     item_scroll: int = 0
     setting_index: int = 0
     settings_scroll: int = 0
+    subagent_search: str = ""
+    selected_subagent_item: str | None = None
+    subagent_scroll: int = 0
     numeric_edit: NumericEdit | None = None
 
     @classmethod
@@ -81,13 +89,22 @@ class EditorState:
         full_order = enabled + [
             item for item in dc.ITEM_CATALOG if item not in effective.display.items
         ]
+        subagent_enabled = list(effective.display.subagents.items)
+        subagent_order = subagent_enabled + [
+            item
+            for item in dc.SUBAGENT_ITEM_CATALOG
+            if item not in effective.display.subagents.items
+        ]
         return cls(
             baseline=effective,
             item_order=full_order,
             enabled=set(enabled),
+            subagent_item_order=subagent_order,
+            subagent_enabled=set(subagent_enabled),
             display=effective.display,
             host=effective.host,
             selected_item=full_order[0] if full_order else None,
+            selected_subagent_item=(subagent_order[0] if subagent_order else None),
         )
 
     @property
@@ -97,10 +114,16 @@ class EditorState:
             for item in dc.ITEM_CATALOG
             if item not in self.baseline.display.items
         ]
+        initial_subagent_order = list(self.baseline.display.subagents.items) + [
+            item
+            for item in dc.SUBAGENT_ITEM_CATALOG
+            if item not in self.baseline.display.subagents.items
+        ]
         draft_changed = (
             self.display != self.baseline.display
             or self.host != self.baseline.host
             or self.item_order != initial_order
+            or self.subagent_item_order != initial_subagent_order
         )
         if self.numeric_edit is None:
             return draft_changed
@@ -114,6 +137,13 @@ class EditorState:
     def final_items(self) -> tuple[str, ...]:
         return tuple(item for item in self.item_order if item in self.enabled)
 
+    def final_subagent_items(self) -> tuple[str, ...]:
+        return tuple(
+            item
+            for item in self.subagent_item_order
+            if item in self.subagent_enabled
+        )
+
     def visible_items(self) -> list[str]:
         needle = self.search.casefold()
         if not needle:
@@ -125,8 +155,26 @@ class EditorState:
             or needle in dc.ITEM_CATALOG[item].casefold()
         ]
 
+    def visible_subagent_items(self) -> list[str]:
+        needle = self.subagent_search.casefold()
+        if not needle:
+            return list(self.subagent_item_order)
+        return [
+            item
+            for item in self.subagent_item_order
+            if needle in item.casefold()
+            or needle in dc.SUBAGENT_ITEM_CATALOG[item].casefold()
+        ]
+
     def _sync_display_items(self) -> None:
         self.display = self.display.with_updates(items=self.final_items())
+
+    def _sync_subagent_items(self) -> None:
+        self.display = self.display.with_updates(
+            subagents=self.display.subagents.with_updates(
+                items=self.final_subagent_items()
+            )
+        )
 
     def _normalize_item_selection(self) -> list[str]:
         visible = self.visible_items()
@@ -135,17 +183,36 @@ class EditorState:
             self.item_scroll = 0
         return visible
 
+    def _normalize_subagent_selection(self) -> list[str]:
+        visible = self.visible_subagent_items()
+        if visible and self.selected_subagent_item not in visible:
+            self.selected_subagent_item = visible[0]
+            self.subagent_scroll = 0
+        return visible
+
     def append_search(self, text: str) -> None:
-        self.search += text
-        self._normalize_item_selection()
+        if self.page == "subagents":
+            self.subagent_search += text
+            self._normalize_subagent_selection()
+        else:
+            self.search += text
+            self._normalize_item_selection()
 
     def backspace_search(self) -> None:
-        if self.search:
+        if self.page == "subagents":
+            if self.subagent_search:
+                self.subagent_search = self.subagent_search[:-1]
+                self._normalize_subagent_selection()
+        elif self.search:
             self.search = self.search[:-1]
             self._normalize_item_selection()
 
     def clear_search(self) -> None:
-        if self.search:
+        if self.page == "subagents":
+            if self.subagent_search:
+                self.subagent_search = ""
+                self._normalize_subagent_selection()
+        elif self.search:
             self.search = ""
             self._normalize_item_selection()
 
@@ -156,11 +223,24 @@ class EditorState:
                 max(0, self.setting_index + delta),
             )
             return
-        visible = self._normalize_item_selection()
+        visible = (
+            self._normalize_subagent_selection()
+            if self.page == "subagents"
+            else self._normalize_item_selection()
+        )
         if not visible:
             return
-        current = visible.index(self.selected_item)
-        self.selected_item = visible[min(len(visible) - 1, max(0, current + delta))]
+        selected = (
+            self.selected_subagent_item
+            if self.page == "subagents"
+            else self.selected_item
+        )
+        current = visible.index(selected)
+        selected = visible[min(len(visible) - 1, max(0, current + delta))]
+        if self.page == "subagents":
+            self.selected_subagent_item = selected
+        else:
+            self.selected_item = selected
 
     def navigate_page(self, direction: int, page_size: int) -> None:
         self.navigate(direction * max(1, page_size))
@@ -169,17 +249,31 @@ class EditorState:
         if self.page == "settings":
             self.setting_index = 0
             return
-        visible = self._normalize_item_selection()
+        visible = (
+            self._normalize_subagent_selection()
+            if self.page == "subagents"
+            else self._normalize_item_selection()
+        )
         if visible:
-            self.selected_item = visible[0]
+            if self.page == "subagents":
+                self.selected_subagent_item = visible[0]
+            else:
+                self.selected_item = visible[0]
 
     def navigate_end(self) -> None:
         if self.page == "settings":
             self.setting_index = len(SETTING_NAMES) - 1
             return
-        visible = self._normalize_item_selection()
+        visible = (
+            self._normalize_subagent_selection()
+            if self.page == "subagents"
+            else self._normalize_item_selection()
+        )
         if visible:
-            self.selected_item = visible[-1]
+            if self.page == "subagents":
+                self.selected_subagent_item = visible[-1]
+            else:
+                self.selected_item = visible[-1]
 
     def ensure_visible(self, viewport_height: int) -> None:
         height = max(1, viewport_height)
@@ -190,6 +284,19 @@ class EditorState:
                 self.settings_scroll = self.setting_index
             elif self.setting_index >= self.settings_scroll + height:
                 self.settings_scroll = self.setting_index - height + 1
+            return
+        if self.page == "subagents":
+            visible = self._normalize_subagent_selection()
+            maximum = max(0, len(visible) - height)
+            self.subagent_scroll = min(maximum, max(0, self.subagent_scroll))
+            if not visible:
+                self.subagent_scroll = 0
+                return
+            index = visible.index(self.selected_subagent_item)
+            if index < self.subagent_scroll:
+                self.subagent_scroll = index
+            elif index >= self.subagent_scroll + height:
+                self.subagent_scroll = index - height + 1
             return
         visible = self._normalize_item_selection()
         maximum = max(0, len(visible) - height)
@@ -204,6 +311,16 @@ class EditorState:
             self.item_scroll = index - height + 1
 
     def toggle_selected_item(self) -> bool:
+        if self.page == "subagents":
+            visible = self._normalize_subagent_selection()
+            if not visible or self.selected_subagent_item is None:
+                return False
+            if self.selected_subagent_item in self.subagent_enabled:
+                self.subagent_enabled.remove(self.selected_subagent_item)
+            else:
+                self.subagent_enabled.add(self.selected_subagent_item)
+            self._sync_subagent_items()
+            return True
         visible = self._normalize_item_selection()
         if not visible or self.selected_item is None:
             return False
@@ -217,26 +334,38 @@ class EditorState:
     def move_selected_item(self, direction: int) -> bool:
         if direction not in (-1, 1):
             raise ValueError("item direction must be -1 or 1")
-        visible = self._normalize_item_selection()
-        if not visible or self.selected_item is None:
+        subagents = self.page == "subagents"
+        visible = (
+            self._normalize_subagent_selection()
+            if subagents
+            else self._normalize_item_selection()
+        )
+        selected = self.selected_subagent_item if subagents else self.selected_item
+        if not visible or selected is None:
             return False
-        visible_index = visible.index(self.selected_item)
+        visible_index = visible.index(selected)
         target_index = visible_index + direction
         if target_index < 0 or target_index >= len(visible):
             return False
-        moving = self.selected_item
+        moving = selected
         target = visible[target_index]
-        self.item_order.remove(moving)
-        full_target_index = self.item_order.index(target)
+        order = self.subagent_item_order if subagents else self.item_order
+        order.remove(moving)
+        full_target_index = order.index(target)
         insertion = full_target_index if direction < 0 else full_target_index + 1
-        self.item_order.insert(insertion, moving)
-        self._sync_display_items()
+        order.insert(insertion, moving)
+        if subagents:
+            self._sync_subagent_items()
+        else:
+            self._sync_display_items()
         return True
 
     def switch_page(self, direction: int = 1) -> bool:
         if self.numeric_edit is not None:
             return False
-        self.page = "settings" if self.page == "items" else "items"
+        pages = ("items", "subagents", "settings")
+        current = pages.index(self.page) if self.page in pages else 0
+        self.page = pages[(current + direction) % len(pages)]
         return True
 
     def _cycle(self, value, choices: tuple, direction: int):
@@ -264,6 +393,13 @@ class EditorState:
                 hide_vim_mode_indicator=not self.host.hide_vim_mode_indicator,
             )
             return True
+        if self.setting_index == 8:
+            self.display = self.display.with_updates(
+                subagents=self.display.subagents.with_updates(
+                    enabled=not self.display.subagents.enabled
+                )
+            )
+            return True
         return False
 
     def adjust_setting(self, direction: int) -> bool:
@@ -272,7 +408,7 @@ class EditorState:
         if self.numeric_edit is not None:
             return False
         index = self.setting_index
-        if index in (0, 6):
+        if index in (0, 6, 8):
             return self.toggle_setting()
         if index == 1:
             self.display = self.display.with_updates(
@@ -300,6 +436,12 @@ class EditorState:
             choices = self.refresh_choices()
             value = self._cycle(self.host.refresh_interval, choices, direction)
             self.host = replace(self.host, refresh_interval=value)
+        elif index == 7:
+            self.display = self.display.with_updates(
+                scope_labels=self._cycle(
+                    self.display.scope_labels, dc.SCOPE_LABELS, direction
+                )
+            )
         else:
             return False
         return True
@@ -396,6 +538,8 @@ class EditorState:
             str(self.host.padding),
             "event" if self.host.refresh_interval is None else str(self.host.refresh_interval),
             "hide" if self.host.hide_vim_mode_indicator else "show",
+            self.display.scope_labels,
+            "on" if self.display.subagents.enabled else "off",
         ]
         if self.numeric_edit is not None:
             edit_index = 4 if self.numeric_edit.field == "padding" else 5
@@ -428,6 +572,11 @@ def save_configuration(
         hide_vim_mode_indicator=(
             "on" if state.host.hide_vim_mode_indicator else "off"
         ),
+        subagent_items=list(state.final_subagent_items()),
+        subagent_statusline=(
+            "on" if state.display.subagents.enabled else "off"
+        ),
+        scope_labels=state.display.scope_labels,
         expected=state.baseline,
     )
 
@@ -478,25 +627,29 @@ def handle_key(state: EditorState, key, viewport_height: int) -> str | None:
     elif key == curses.KEY_END:
         state.navigate_end()
     elif key == curses.KEY_LEFT:
-        if state.page == "items":
+        if state.page in ("items", "subagents"):
             state.move_selected_item(-1)
         else:
             state.adjust_setting(-1)
     elif key == curses.KEY_RIGHT:
-        if state.page == "items":
+        if state.page in ("items", "subagents"):
             state.move_selected_item(1)
         else:
             state.adjust_setting(1)
     elif key == " ":
-        if state.page == "items":
+        if state.page in ("items", "subagents"):
             state.toggle_selected_item()
         else:
             state.toggle_setting()
-    elif state.page == "items" and _is_backspace(key):
+    elif state.page in ("items", "subagents") and _is_backspace(key):
         state.backspace_search()
-    elif state.page == "items" and key == "\x15":
+    elif state.page in ("items", "subagents") and key == "\x15":
         state.clear_search()
-    elif state.page == "items" and isinstance(key, str) and key.isprintable():
+    elif (
+        state.page in ("items", "subagents")
+        and isinstance(key, str)
+        and key.isprintable()
+    ):
         state.append_search(key)
     elif state.page == "settings" and key == "e":
         state.set_refresh_event()
@@ -669,10 +822,20 @@ def _layout_dimensions(height: int) -> tuple[int, int, int, int]:
 
 
 def _draw_tabs(screen, state: EditorState, width: int, active_attr: int) -> None:
-    items = "[ Items ]"
+    items = "[ Main ]"
+    subagents = "[ Subagents ]"
     settings = "[ Settings ]"
     _add_text(screen, 2, 0, items, width, active_attr if state.page == "items" else 0)
     offset = statusline._display_width(items) + 2
+    _add_text(
+        screen,
+        2,
+        offset,
+        subagents,
+        max(0, width - offset),
+        active_attr if state.page == "subagents" else 0,
+    )
+    offset += statusline._display_width(subagents) + 2
     _add_text(
         screen,
         2,
@@ -699,6 +862,27 @@ def _draw_items(
         enabled = "x" if item in state.enabled else " "
         line = f"[{enabled}] {item}  {dc.ITEM_CATALOG[item]}"
         attr = curses.A_REVERSE if item == state.selected_item else 0
+        _add_text(screen, start_y + row, 0, line, width, attr)
+
+
+def _draw_subagent_items(
+    screen,
+    state: EditorState,
+    start_y: int,
+    height: int,
+    width: int,
+) -> None:
+    visible = state.visible_subagent_items()
+    state.ensure_visible(height)
+    if not visible:
+        _add_text(screen, start_y, 0, "No matching items", width, curses.A_DIM)
+        return
+    for row, item in enumerate(
+        visible[state.subagent_scroll : state.subagent_scroll + height]
+    ):
+        enabled = "x" if item in state.subagent_enabled else " "
+        line = f"[{enabled}] {item}  {dc.SUBAGENT_ITEM_CATALOG[item]}"
+        attr = curses.A_REVERSE if item == state.selected_subagent_item else 0
         _add_text(screen, start_y + row, 0, line, width, attr)
 
 
@@ -739,7 +923,12 @@ def _draw_preview(
     width: int,
     mapper: _ColorMapper,
 ) -> None:
-    rows = statusline.render_preview_rows(state.display, width, state.host.padding)
+    if state.page == "subagents":
+        rows = subagent_statusline.preview_rows(state.display, width)
+    else:
+        rows = statusline.render_preview_rows(
+            state.display, width, state.host.padding
+        )
     if not rows:
         _add_text(screen, start_y, 0, "(no enabled items)", width, curses.A_DIM)
         return
@@ -782,8 +971,10 @@ def _draw_screen(screen, state: EditorState, mapper: _ColorMapper) -> int:
     active_attr = curses.A_REVERSE | curses.A_BOLD
     _add_text(screen, 0, 0, "Configure Status Line", width, title_attr)
     description = (
-        "Choose visible items and their order"
+        "Choose main status line items and their order"
         if state.page == "items"
+        else "Choose subagent row items and their order"
+        if state.page == "subagents"
         else "Adjust display and Claude host settings"
     )
     if state.modified:
@@ -793,6 +984,15 @@ def _draw_screen(screen, state: EditorState, mapper: _ColorMapper) -> int:
     if state.page == "items":
         _add_text(screen, 3, 0, f"Type to search > {state.search}", width)
         _draw_items(screen, state, 4, content_height, width)
+    elif state.page == "subagents":
+        _add_text(
+            screen,
+            3,
+            0,
+            f"Type to search > {state.subagent_search}",
+            width,
+        )
+        _draw_subagent_items(screen, state, 4, content_height, width)
     else:
         _add_text(
             screen,
@@ -809,10 +1009,10 @@ def _draw_screen(screen, state: EditorState, mapper: _ColorMapper) -> int:
 
     if state.numeric_edit is not None:
         help_text = "Digits edit  Backspace delete  Enter accept  Esc restore"
-    elif state.page == "items":
-        help_text = "Space toggle  ↑↓ navigate  ←→ reorder  Tab settings  Enter save  Esc cancel"
+    elif state.page in ("items", "subagents"):
+        help_text = "Space toggle  ↑↓ navigate  ←→ reorder  Tab next  Enter save  Esc cancel"
     else:
-        help_text = "Space toggle  ↑↓ navigate  ←→ change  Tab items  Enter save  Esc cancel"
+        help_text = "Space toggle  ↑↓ navigate  ←→ change  Tab main  Enter save  Esc cancel"
     _add_text(screen, height - 1, 0, help_text, width, curses.A_REVERSE)
     screen.refresh()
     return content_height

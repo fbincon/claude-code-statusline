@@ -1,6 +1,6 @@
 # Claude Code Statusline
 
-这是一个面向 Linux 的、可配置且带会话状态的 Claude Code CLI 状态栏工具。它可以显示当前模型与 effort、实时工作目录、Git 状态、上下文余量、Claude 使用限额、会话 token，以及当前或最近一次 prompt 的耗时。
+这是一个面向 Linux 的、可配置且带会话状态的 Claude Code CLI 状态栏工具。它可以显示主 Agent 的模型与 effort、实时工作目录、Git 状态、上下文余量、Claude 使用限额、session token 和端到端 prompt 用时，并通过 Claude Code 官方 `subagentStatusLine` 为普通子 Agent 渲染独立行。
 
 显示项、显示顺序和样式既可以通过独立交互式 TUI 配置，也可以在 Claude Code 中通过 `/statusline-config` 或实验性的 `/statusline-configure` 启动器配置。所有配置均为用户全局配置，对该用户的所有 Claude Code 项目生效。
 
@@ -17,6 +17,7 @@
 - [CLI 总览](#cli-总览)
 - [配置命令详解](#配置命令详解)
 - [可配置显示项](#可配置显示项)
+- [子 Agent 行与三种作用域](#子-agent-行与三种作用域)
 - [显示与宿主选项](#显示与宿主选项)
 - [配置文件](#配置文件)
 - [常用配置配方](#常用配置配方)
@@ -34,6 +35,9 @@
 - 支持完整路径、`~` 路径、项目相对路径和目录 basename。
 - 支持经典 ` | ` 分隔符和紧凑 ` · ` 分隔符。
 - 支持 Claude Code 原生的 padding、定时刷新和 Vim 模式指示器设置。
+- Claude Code 2.1.205+ 默认安装官方 `subagentStatusLine`，每个子 Agent 独立显示状态、模型/effort、上下文占比、用时与任务。
+- `prompt-timer` 覆盖从用户提交到主 Agent 最终 `Stop` 的完整任务；等待子 Agent 和主 Agent 收尾期间持续计时。
+- 主栏在当前 prompt 曾启动子 Agent 时显示固定的 `Main/Session` 范围提示，避免与每个子 Agent 行的口径混淆。
 - 提供独立全屏 TUI，可用键盘筛选、勾选、排序并按键级预览完整草稿。
 - 可选安装 `/statusline-configure`，从 tmux popup 或 GNOME Terminal 新标签页启动同一个 TUI。
 - 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 处分行。
@@ -74,7 +78,7 @@ command -v git
 
 ```bash
 uv build
-pipx install dist/claude_code_statusline-0.5.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.6.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -83,7 +87,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.5.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.6.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -96,10 +100,11 @@ claude-statusline doctor
 
 1. 在用户级 `settings.json` 中安装 `statusLine.command`，指向当前 `claude-statusline render` 可执行文件。
 2. 安装 `SessionStart`、`UserPromptSubmit`、`Stop`、`StopFailure` 和 `SessionEnd` 生命周期 hooks，用于维护 prompt 计时状态。
-3. 安装用户级 personal skill：`${CLAUDE_CONFIG_DIR:-~/.claude}/skills/statusline-config/SKILL.md`。
-4. 在 Claude Code 2.1.258 及以上版本中安装 `UserPromptExpansion` hook，让带参数的 `/statusline-config` 在本地执行。
-5. 按持久 feature 偏好安装或暂挂实验性 `/statusline-configure` skill 与 600 秒 hook；首次安装默认关闭。
-6. 在发生实际修改前创建备份，再以原子方式写入文件。
+3. Claude Code 2.1.205+ 默认安装只含 `type`、`command` 的 `subagentStatusLine`，并安装 `SubagentStart`、`SubagentStop` hooks；旧版或未知版本会暂挂这三项而不影响主栏。
+4. 安装用户级 personal skill：`${CLAUDE_CONFIG_DIR:-~/.claude}/skills/statusline-config/SKILL.md`。
+5. 在 Claude Code 2.1.258 及以上版本中安装 `UserPromptExpansion` hook，让带参数的 `/statusline-config` 在本地执行。
+6. 按持久 feature 偏好安装或暂挂实验性 `/statusline-configure` skill 与 600 秒 hook；首次安装默认关闭。
+7. 在发生实际修改前创建备份，再以原子方式写入文件。
 
 安装器会合并而不是整体覆盖 `settings.json`，并保留无关设置和无关 hooks。重复运行 `install` 是幂等的：配置已经正确时不会重复添加 hooks，也不会创建无意义备份。
 
@@ -115,13 +120,13 @@ claude-statusline install --dry-run
 
 ### 处理已有 statusline 或同名 skill
 
-如果已经存在不属于本工具的 statusline，或者存在没有本工具所有权标记的 `/statusline-config`、`/statusline-configure` skill，安装器会拒绝覆盖并返回错误。确认要替换这些内容时才使用：
+如果已经存在不属于本工具的 `statusLine`、`subagentStatusLine`，或者存在没有本工具所有权标记的 `/statusline-config`、`/statusline-configure` skill，安装器会在备份和写入前拒绝整次操作。确认要替换这些内容时才使用：
 
 ```bash
 claude-statusline install --force
 ```
 
-`--force` 仍会先备份原文件。它不是跳过校验的通用开关，只用于明确允许替换冲突的 statusline 或 skill。
+`--force` 同时允许替换冲突的主栏、子 Agent 行或 skill，并仍会先备份原文件。若只想保留第三方 `subagentStatusLine`，先运行 `claude-statusline config set subagent-statusline off`，再运行普通 `install`。
 
 ### 启用或关闭实验入口
 
@@ -141,6 +146,8 @@ claude-statusline install --no-experimental-slash-tui
 
 如果已启用后降级或暂时无法识别 Claude Code 版本，普通 `install` 会保留偏好、移除活动入口并将其暂挂；升级后再次运行 `install` 即恢复。跨过该版本阈值后应始终运行 `install` 和 `doctor`。
 
+子 Agent 支持使用独立的 2.1.205 版本门槛。2.1.205–2.1.213 缺少 per-task effort 时只省略 effort，2.1.214+ 显示完整模型/effort。跨过 2.1.205 升级或降级时也应重跑 `install`：降级会只移除本工具拥有的 `subagentStatusLine` 和两个子 Agent hooks，升级会按 `subagents.enabled` 自动恢复。
+
 ## 快速开始
 
 安装完成后，在 Claude Code 中输入：
@@ -158,6 +165,8 @@ claude-statusline install --no-experimental-slash-tui
 - Session：Claude Code 版本和会话名称/ID。
 - Modes：fast mode、agent、vim mode 和 thinking 指示器。
 - Repository：当前分支的 open PR/MR、worktree 名称和远程仓库 `owner/name`。
+- Subagents：子 Agent 行的条目集合与顺序。
+- 自定义子 Agent 行开关，以及 `off/when-subagents/always` 范围标签。
 - 颜色、palette、目录格式、分隔符、padding、刷新间隔和 Vim 指示器。
 
 Session、Modes、Repository 组的条目以及 `cost`、`prompt-cache` 默认禁用；在向导中勾选即启用。
@@ -197,16 +206,16 @@ claude-statusline configure --config-dir /path/to/claude-config
 
 界面最小尺寸为 `64x18`。窗口更小时，界面会显示所需尺寸和当前尺寸并等待放大；此时 Esc 与 Ctrl+C 仍可退出。终端 resize 后会重新计算列表滚动、sample preview 高度与换行。
 
-界面包含 Items 和 Settings 两个页签，固定底部区域标记为 `Preview (sample data)`。常用全局按键为：
+界面包含 Main、Subagents 和 Settings 三个页签，固定底部区域标记为 `Preview (sample data)`。常用全局按键为：
 
 | 按键 | 行为 |
 | --- | --- |
-| Tab / Shift+Tab | 在 Items 与 Settings 之间切换；数字编辑期间不切换 |
+| Tab / Shift+Tab | 在 Main、Subagents、Settings 间循环；数字编辑期间不切换 |
 | Enter | 非数字编辑状态下一次性保存整个草稿 |
 | Esc | 非数字编辑状态下取消并退出，不写入配置 |
 | Ctrl+C | 恢复终端并以 130 退出，不保存 |
 
-Items 页支持：
+Main 和 Subagents 页分别维护自己的选择、搜索、滚动、启用集合与排序，并支持：
 
 | 按键 | 行为 |
 | --- | --- |
@@ -218,7 +227,7 @@ Items 页支持：
 | 可打印字符 | 追加到大小写不敏感的搜索串，同时匹配条目 ID 和说明 |
 | Backspace / Ctrl+U | 删除一个搜索字符 / 清空搜索 |
 
-初始完整顺序是“当前启用项的原顺序 + 尚未启用项的目录顺序”。筛选期间，左右键以相邻的可见搜索结果为移动目标，隐藏条目的相对顺序不变。没有搜索结果时显示 `No matching items`，切换和移动键不执行操作。保存时只把完整顺序中的已启用项写入 `display.items`；禁用项的临时位置不会进入 schema，重新打开后仍按目录顺序追加。
+每页初始完整顺序都是“当前启用项的原顺序 + 尚未启用项的目录顺序”。筛选期间，左右键以相邻的可见搜索结果为移动目标，隐藏条目的相对顺序不变。没有搜索结果时显示 `No matching items`，切换和移动键不执行操作。保存时 Main 写入 `items`，Subagents 写入 `subagents.items`；禁用项的临时位置不会进入 schema。
 
 Settings 页固定包含：
 
@@ -231,10 +240,12 @@ Settings 页固定包含：
 | Padding | `0–32`；Left/Right 增减 1；数字键进入编辑 |
 | Refresh interval | `event` 或 `1–3600`；Left/Right 在 `event, 1, 2, 5, 10, 30, 60, 300, 600, 3600` 间循环，`e` 设为 event，数字键进入编辑 |
 | Built-in Vim indicator | `show/hide`；Space 或 Left/Right 切换，并映射到 `hideVimModeIndicator` |
+| Scope labels | `off/when-subagents/always`；Left/Right 循环 |
+| Custom subagent rows | `on/off`；Space 或 Left/Right 切换 |
 
 当前刷新值若不在预设中，会按数值位置临时加入循环，不会仅因打开界面而改变。数字编辑时，第一个数字建立新缓冲区，后续数字追加，Backspace 删除；Enter 校验并接受字段值但不保存整个界面，再按一次 Enter 才全局保存。非法或越界值会保留编辑状态并显示内联错误；Esc 先取消数字编辑并恢复原字段值。
 
-预览使用固定样例值并复用生产 renderer 的条目格式化、分组、排序和宽度布局。它不会读取当前 Claude payload，不会扫描 Git 或 transcript，不会访问网络，也不会创建 token、Git、timer 运行状态或缓存。预览最多占 5 行、至少占 2 行，溢出时最后一行显示剩余行数；padding 会显示为左侧空格并从内容宽度扣除。256 色终端会把 RGB 映射到最近的 xterm-256 色，8/16 色终端降级到基础色，无颜色终端保留文本。
+预览使用固定样例值并复用生产 renderer。Main 与 Settings 页模拟“当前 prompt 曾启动子 Agent”，因此可预览条件范围标签；Subagents 页固定显示一条 running 和一条 completed 样例。预览不会读取当前 Claude payload，不会扫描 Git 或 transcript，不会访问网络，也不会创建 token、Git、timer 运行状态或缓存。预览最多占 5 行、至少占 2 行，溢出时最后一行显示剩余行数；padding 会显示为主栏左侧空格并从内容宽度扣除。256 色终端会把 RGB 映射到最近的 xterm-256 色，8/16 色终端降级到基础色，无颜色终端保留文本。
 
 全局 Enter 只调用一次现有原子配置事务。无变化不会创建备份；有变化时仍使用单次备份、双文件写入与失败回滚。TUI 启动时记录语义 baseline，保存时在同一安装锁内检查 display、host 和安装归属；编辑期间如被其他进程修改，会在创建备份和写文件前拒绝。`settings.json` 中与 statusline 无关的字段变化不构成冲突，并会基于锁内最新文件合并保留。
 
@@ -294,6 +305,7 @@ claude-statusline doctor
 
 ```text
 claude-statusline render
+claude-statusline render-subagents
 claude-statusline hook
 claude-statusline slash-hook
 claude-statusline configure [--config-dir PATH]
@@ -303,6 +315,11 @@ claude-statusline config [--config-dir PATH] set-items [ITEM...]
 claude-statusline config [--config-dir PATH] enable ITEM...
 claude-statusline config [--config-dir PATH] disable ITEM...
 claude-statusline config [--config-dir PATH] order [ITEM...]
+claude-statusline config [--config-dir PATH] subagents list-items [--json]
+claude-statusline config [--config-dir PATH] subagents set-items [ITEM...]
+claude-statusline config [--config-dir PATH] subagents enable ITEM...
+claude-statusline config [--config-dir PATH] subagents disable ITEM...
+claude-statusline config [--config-dir PATH] subagents order [ITEM...]
 claude-statusline config [--config-dir PATH] set OPTION VALUE
 claude-statusline config [--config-dir PATH] apply ...
 claude-statusline config [--config-dir PATH] reset
@@ -352,7 +369,7 @@ claude-statusline config set colors off
 
 ### `config show`
 
-显示当前**有效配置**，包括显示配置、Claude Code 宿主配置、配置文件路径，以及当前 `statusLine.command` 是否属于这个可执行文件。
+显示当前**有效配置**，包括显示配置、Claude Code 宿主配置、配置文件路径、当前 `statusLine.command` 是否属于这个可执行文件，以及子 Agent 行的 desired enabled、installed 和所有权状态。
 
 ```bash
 claude-statusline config show
@@ -369,6 +386,10 @@ Colors: on
 Palette: default
 Directory style: home
 Separator style: classic
+Scope labels: when-subagents
+Subagent items: status, name, model-with-effort, context-used, elapsed, task
+Custom subagent rows: on
+Subagent statusline: owned
 Padding: 0
 Refresh interval: 1
 Hide Vim mode indicator: no
@@ -382,7 +403,7 @@ Hide Vim mode indicator: no
 claude-statusline config show --json
 ```
 
-JSON 中的 `installed` 只说明当前 `settings.json/statusLine.command` 是否精确指向当前 PATH 中的 `claude-statusline render`，不表示 Python 包是否存在。
+JSON 顶层的 `installed` 仍只说明当前 `settings.json/statusLine.command` 是否精确指向当前 PATH 中的 `claude-statusline render`，不表示 Python 包是否存在。`subagent_statusline` 另含 `enabled`、`installed` 和 `state`；`state` 只会是 `owned`、`absent`、`foreign`、`unsupported`。
 
 ### `config list-items`
 
@@ -479,6 +500,20 @@ claude-statusline config order model-with-effort git current-dir context-remaini
 claude-statusline config order
 ```
 
+### `config subagents ...`
+
+子 Agent 行有一套独立的条目命令，语义与主栏的 `list-items`、`set-items`、`enable`、`disable`、`order` 相同：
+
+```bash
+claude-statusline config subagents list-items --json
+claude-statusline config subagents set-items status name model-with-effort context-used elapsed task
+claude-statusline config subagents enable tokens current-dir
+claude-statusline config subagents disable task
+claude-statusline config subagents order status name elapsed model-with-effort context-used tokens current-dir
+```
+
+`subagents.items=[]` 时，`render-subagents` 仍为每个有效 task ID 输出合法 NDJSON，但 `content` 为空，Claude Code 因而隐藏相应自定义行。
+
 ### `config set OPTION VALUE`
 
 只修改一个显示选项或 Claude Code 宿主选项：
@@ -491,9 +526,13 @@ claude-statusline config set separator-style compact
 claude-statusline config set padding 2
 claude-statusline config set refresh-interval 5
 claude-statusline config set hide-vim-mode-indicator on
+claude-statusline config set subagent-statusline off
+claude-statusline config set scope-labels when-subagents
 ```
 
 显示选项可以在安装 statusline 之前预先配置。宿主选项 `padding`、`refresh-interval` 和 `hide-vim-mode-indicator` 会修改 `settings.json/statusLine`，因此只在当前 statusline 已由这个 `claude-statusline` 可执行文件接管时允许修改。否则命令会拒绝写入，避免误改其他 statusline。
+
+`subagent-statusline` 保存 desired 状态。已有 owned renderer 时关闭会立即返回空 content；重跑 `install` 会进一步移除 owned `subagentStatusLine`，打开则在兼容版本上恢复它。这个分离使 `config set subagent-statusline off` 可以在不触碰第三方设置的前提下解除安装冲突。
 
 所有 `set` 的合法值见[显示与宿主选项](#显示与宿主选项)。
 
@@ -504,6 +543,9 @@ claude-statusline config set hide-vim-mode-indicator on
 ```bash
 claude-statusline config apply \
   --items model-with-effort current-dir git context-remaining prompt-timer \
+  --subagent-items status name model-with-effort context-used elapsed task \
+  --subagent-statusline on \
+  --scope-labels when-subagents \
   --colors on \
   --palette default \
   --directory-style home \
@@ -513,7 +555,7 @@ claude-statusline config apply \
   --hide-vim-mode-indicator off
 ```
 
-除 `--items` 后的条目列表可以为空外，其他选项全部必填。命令会先完整验证所有值，再在同一个锁和同一份备份下更新 `claude-statusline.json` 与 `settings.json`。任一后续写入失败时，会尝试把已写入的文件回滚到修改前状态。
+原有主栏和宿主参数仍保持必填，以兼容旧 skill；三个新增参数可选，省略时保留当前值。新版 TUI 和 skill 会一次性传入全部新旧值。`--items` 与 `--subagent-items` 的条目列表都可为空。命令会先完整验证所有值，再在同一个锁和同一份备份下更新 `claude-statusline.json` 与 `settings.json`；任一后续写入失败时会尝试事务回滚。
 
 因为 `apply` 包含宿主设置，所以必须先运行 `claude-statusline install`。
 
@@ -570,6 +612,39 @@ claude-statusline config reset
 
 `cost` 的金额来自 Claude Code 的 `total_cost_usd`；在第三方 API 端点（例如 DeepSeek 代理）下该值为按默认模型费率的估算，仅作参考。`prompt-cache` 与 `tokens` 的统计口径不同：前者来自 statusline payload 且不含 subagent 流量，后者从 transcript 累计并包含可发现的 subagent transcript。
 
+## 子 Agent 行与三种作用域
+
+Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。renderer 保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 NDJSON。它不扫描 transcript、不执行 Git、不访问网络，也不写运行状态；token 只使用当前 task 的 `tokenCount`。
+
+默认子 Agent 行类似：
+
+```text
+⏱ Explore · sonnet-5/high · ctx 42% · 1m 18s · searching auth flow
+```
+
+可排序条目及默认状态：
+
+| ID | 默认 | 内容 |
+| --- | --- | --- |
+| `status` | 开 | `pending …`、`running ⏱`、`completed ✓`、`failed ✗`、`killed ■`、`paused/waiting ⏳`，未知状态为 `?` |
+| `name` | 开 | `name`，否则规范化 `type`，再否则 `Agent` |
+| `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID，并在存在时追加 `/effort` |
+| `context-used` | 开 | `tokenCount / contextWindowSize` 四舍五入为百分比 |
+| `elapsed` | 开 | 从 task 的 epoch 毫秒 `startTime` 计算；未来时间按 0 秒 |
+| `task` | 开 | 优先 `label`，否则 `description`；与名称重复时省略 |
+| `tokens` | 关 | 当前 task 的紧凑 token 数 |
+| `current-dir` | 关 | task 的 `cwd`，遵守目录样式 |
+
+宽度直接使用 payload 中的正整数 `columns`，无效时回退 80，不扣主栏 margin。输入文本中的换行、制表符和控制字符会被清理。超宽时先截断任务文本，再按 `current-dir → tokens → context-used → model-with-effort → task` 删除可选段；`status`、`name`、`elapsed` 最后保留，极窄时只显示状态。ASCII、CJK、emoji、组合字符和 ANSI 路径都保证可见宽度不超过 `columns` 且不换行。
+
+三种作用域必须区分：
+
+- 全局底栏属于主 Agent；`scope-labels=when-subagents` 在当前 prompt 曾启动子 Agent 后前置固定的 `Main/Session`。
+- 主栏 `tokens` 是 session 累计，继续包含可发现的主与子 Agent transcript。
+- 每个官方子 Agent 行只描述自己的 task，并只使用 `tasks[]` 字段。
+
+Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent transcript 后，最底部全局栏不会读取或猜测当前焦点，也不会通过 transcript mtime、进程内存或键盘事件推断；`Main/Session` 正是对这一边界的明确标注。
+
 ### Git 标记
 
 `git` 条目使用以下紧凑标记：
@@ -607,6 +682,17 @@ claude-statusline config reset
 | `✗` | Claude Code 报告执行失败 |
 | `?` | 上一次运行没有可确认的结束事件；时间后会带 `+` |
 
+子 Agent 会话增加两个运行阶段：
+
+```text
+⏱ 4m 12s
+⏳ 2 agents · 4m 12s
+⏳ main wrap-up · 4m 12s
+✓ 4m 35s
+```
+
+计时始终从最早的用户提交证据开始，到主 Agent 最终 `Stop` 为止。主 Agent 首次 `Stop` 若仍有普通 subagent task，就进入等待；最后一个 Agent 结束后进入 `main wrap-up`，不会因 registry idle、transcript duration 或超时自行完成。后台 shell、server、monitor 和 workflow 不进入 Agent ledger。最终 `Stop` 缺失时保持运行；`StopFailure`、用户中断和 `SessionEnd` 仍立即产生终态。
+
 `/statusline-config show` 之类的本地快捷命令不会被当作新的计时 prompt。即使隐藏 `tokens` 但保留 `prompt-timer`，计时器仍会读取所需 transcript 状态并正常工作。
 
 ## 显示与宿主选项
@@ -617,6 +703,8 @@ claude-statusline config reset
 | `palette` | `default`、`ansi` | `default` | `default` 使用项目的 24 位 RGB 色值；`ansi` 使用标准终端色 |
 | `directory-style` | `full`、`home`、`project-relative`、`basename` | `full` | 工作目录的缩写方式 |
 | `separator-style` | `classic`、`compact` | `classic` | 顶层条目的分隔方式 |
+| `scope-labels` | `off`、`when-subagents`、`always` | `when-subagents` | 主栏是否前置固定的 `Main/Session` |
+| `subagent-statusline` | `on`、`off` | `on` | 是否希望安装并渲染自定义子 Agent 行 |
 | `padding` | `0`–`32` | `0` | Claude Code 在状态栏内容前增加的水平空白字符数 |
 | `refresh-interval` | `event`、`1`–`3600` | `1` | 除事件刷新外，按指定秒数定时重跑 renderer；`event` 表示只按事件刷新 |
 | `hide-vim-mode-indicator` | `on`、`off` | `off` | `on` 隐藏 Claude Code 内建的 Vim 模式文字 |
@@ -685,7 +773,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "items": [
     "model-with-effort",
     "current-dir",
@@ -701,7 +789,19 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
   "use_colors": true,
   "palette": "default",
   "directory_style": "full",
-  "separator_style": "classic"
+  "separator_style": "classic",
+  "scope_labels": "when-subagents",
+  "subagents": {
+    "enabled": true,
+    "items": [
+      "status",
+      "name",
+      "model-with-effort",
+      "context-used",
+      "elapsed",
+      "task"
+    ]
+  }
 }
 ```
 
@@ -709,15 +809,17 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 
 上例中的 10 个条目是默认启用集合。`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
 
-配置更新采用 0600 文件权限、临时文件和原子替换。多个并发配置命令共享同一把文件锁，避免后写入者丢失先写入者的变更。独立 TUI 还会比较打开时与保存时的语义配置，避免长时间编辑覆盖期间发生的外部修改；schema 仍为 version 1，没有迁移。
+配置更新采用 0600 文件权限、临时文件和原子替换。多个并发配置命令共享同一把文件锁，避免后写入者丢失先写入者的变更。独立 TUI 还会比较打开时与保存时的语义配置，避免长时间编辑覆盖期间发生的外部修改。
+
+schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出 canonical schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
 
 如果显示配置损坏：
 
-- renderer 会静默回退到内建默认显示，避免破坏 Claude Code 主界面。
+- 两个 renderer 都会静默回退到内建默认显示，避免破坏 Claude Code 主界面。
 - `config show`、普通配置写命令和 `doctor` 会明确报告错误。
 - `config reset` 可以删除损坏配置并恢复默认值。
 
-`items: []` 是合法配置，表示不输出任何状态栏内容。
+`items: []` 是合法配置，表示主栏不输出内容；即使范围标签为 `always`，也不会单独制造空主栏。`subagents.items: []` 同样合法，表示每个有效子任务返回空 content。
 
 ### 实验功能偏好
 
@@ -748,6 +850,8 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline-features.json
 - `hideVimModeIndicator`
 
 其中 `command` 由安装器管理；后三项可以使用 `config set` 或向导修改。设置为默认行为时，某些字段会从 JSON 中省略，例如 `padding 0`、`refresh-interval event` 和 `hide-vim-mode-indicator off`。
+
+兼容版本还会在 `settings.json` 写入独立的 `subagentStatusLine`，严格只含 `type: "command"` 和指向 `render-subagents` 的 `command`；Claude 的该 schema 不接受 `refreshInterval`，本工具不会写入。`subagents.enabled=false` 时重跑 `install` 只移除本工具拥有的这一设置，第三方设置不受影响；两个子 Agent 生命周期 hooks 仍保留用于端到端计时。
 
 ## 常用配置配方
 
@@ -807,12 +911,13 @@ claude-statusline doctor
 - Git 是否可用。
 - `settings.json` 是否有效及其权限。
 - `statusLine.command` 和三个宿主字段是否合法。
-- 五个生命周期 hook 是否各自恰好存在一个。
+- 五个主生命周期 hook 是否各自恰好存在一个。
+- Claude Code 是否满足 2.1.205 子 Agent 门槛、desired enabled 状态、`subagentStatusLine` 是 owned/absent/foreign/unsupported，以及两个子 Agent hook 是否精确去重。
 - `/statusline-config` skill 及所有权标记是否正确。
 - 实验 feature 文件是否合法且权限为 `0600`。
 - `/statusline-configure` 是 `disabled`、`enabled` 还是因版本不兼容而 `suspended`；启用时 skill、owner marker、唯一 matcher 和 600 秒 hook 是否完整。
 - 启用实验入口时，系统是否至少安装了 tmux 或 GNOME Terminal；两者都没有只产生 WARN，不判定安装损坏。
-- 显示配置 JSON 及其权限是否正确。
+- 显示配置 JSON、schema v1 可迁移状态及其权限是否正确。
 - 当前 Claude Code 版本是否应安装本地 slash fast hook。
 - 运行状态目录是否可写。
 
@@ -837,7 +942,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.5.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.6.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
@@ -846,6 +951,8 @@ claude-statusline config show
 必须重复运行 `install`，因为新包可能更新 skill 模板、可执行文件路径、hooks 或版本兼容策略。
 
 显示配置、token 汇总、Git 缓存和逐轮计时状态位于 Claude 配置目录中，不在 pipx 虚拟环境里，因此升级 Python 包不会删除它们。
+
+如果之后降级到 0.5.0，旧版会把 schema v2 当作不支持并使用内建默认显示；恢复升级事务备份中的 schema v1 文件后，旧版才能继续编辑原自定义配置。跨过 Claude Code 2.1.205 门槛时也必须重跑 `install`，以暂挂或恢复子 Agent 设置/hooks。
 
 ## 卸载
 
@@ -865,12 +972,14 @@ claude-statusline uninstall --dry-run
 卸载器只移除：
 
 - 指向本工具的 `statusLine`。
+- 当前或通用命令匹配本工具的 `subagentStatusLine`。
 - 本工具的生命周期 hooks 和 slash fast hook。
 - 本工具拥有的 `/statusline-config`、`/statusline-configure` skill 及所有权标记。
 
 卸载器会保留：
 
 - 其他工具或用户定义的 hooks。
+- 第三方 `subagentStatusLine`。
 - `claude-statusline.json` 显示偏好。
 - `claude-statusline-features.json` 实验启用偏好；之后兼容版本上的普通 `install` 会恢复入口。
 - token、Git 和计时运行状态。
@@ -920,7 +1029,7 @@ CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline config show
 
 ## 内部命令
 
-以下三个命令主要由 Claude Code 调用，不是日常配置接口：
+以下四个命令主要由 Claude Code 调用，不是日常配置接口：
 
 ### `render`
 
@@ -934,6 +1043,15 @@ printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace
 ```
 
 该测试仍会读取当前用户的 `claude-statusline.json`，所以输出取决于当前启用项。
+
+### `render-subagents`
+
+从 stdin 读取 Claude Code 官方 `subagentStatusLine` JSON，并把每个有效 task 渲染为一行 `{"id":"...","content":"..."}` NDJSON。顶层 JSON、`tasks` 或单项字段损坏时静默降级且退出码仍为 0；stdout 只包含协议结果，renderer 不扫描 transcript、Git、网络或运行状态。
+
+```bash
+printf '%s\n' '{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' \
+  | claude-statusline render-subagents
+```
 
 ### `hook`
 
@@ -953,6 +1071,21 @@ printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace
 4. 查看 `settings.json` 中是否存在指向本工具的 `statusLine.command`。
 5. 如果 Claude Code 提示 statusline 因 trust 被跳过，重启 Claude Code 并接受对应信任提示。
 6. 检查是否启用了会统一禁用 hooks/statusline 的 Claude Code 设置。
+
+### 子 Agent 行不显示或发生所有权冲突
+
+先运行 `claude --version` 和 `claude-statusline doctor`。Claude Code 低于 2.1.205 或版本不可识别时，主栏可用但子 Agent 设置/hooks 会暂挂；升级并重跑 `claude-statusline install`。如果 `doctor` 报告 `foreign`，选择其一：
+
+```bash
+# 明确接管第三方子 Agent 行
+claude-statusline install --force
+
+# 保留第三方实现，只关闭本工具的自定义行目标
+claude-statusline config set subagent-statusline off
+claude-statusline install
+```
+
+若 `subagents.items` 为空或 `subagents.enabled` 为 false，本工具的 renderer 会按协议返回空 content。进入子 Agent transcript 后底部全局栏仍属于主 Agent/session，这是 Claude 未提供当前焦点 ID 的既定边界。
 
 ### `/statusline-config` 不可见
 
@@ -1063,7 +1196,7 @@ claude-statusline config set refresh-interval 1
 - `130`：交互式 TUI 收到 Ctrl+C/SIGINT，终端已恢复且配置未保存。
 - `128 + signal`：交互式 TUI 收到 SIGHUP 或 SIGTERM，终端已恢复且配置未保存。
 
-高频内部命令 `render`、`hook` 和 `slash-hook` 对损坏或无关输入采用静默容错，避免自身错误阻塞 Claude Code。
+高频内部命令 `render`、`render-subagents`、`hook` 和 `slash-hook` 对损坏或无关输入采用静默容错，避免自身错误阻塞 Claude Code。
 
 ## 开发与测试
 
@@ -1084,8 +1217,14 @@ uv build
 确认 wheel 包含 personal skill 模板：
 
 ```bash
-python3 -m zipfile -l dist/claude_code_statusline-0.5.0-py3-none-any.whl
+python3 -m zipfile -l dist/claude_code_statusline-0.6.0-py3-none-any.whl
 ```
+
+### 无费用与人工验收边界
+
+自动验收应先对临时 `CLAUDE_CONFIG_DIR` 执行 install dry-run、install、doctor、幂等重装、冲突回滚和 uninstall，绝不触碰真实配置。代码和安装事务通过后，再由用户决定是否把 wheel 安装到真实配置。
+
+真实多 Agent 视觉检查会产生模型费用，工具不会自动发起。用户参与的最后 smoke test 应检查：默认 owned `subagentStatusLine` 和两个唯一 hooks；无子 Agent 主栏保持旧输出；两个不同模型/effort 的并行 Agent 各自显示正确行；主 timer 依次显示 Agent 数量和 `main wrap-up`；最终主 `Stop` 冻结完整时间；进入子 Agent transcript 时全局栏只声明 `Main/Session`；最后运行 `doctor`，并确认 `uninstall --dry-run` 只命中 owned 配置。
 
 ## 当前边界
 
@@ -1097,7 +1236,9 @@ python3 -m zipfile -l dist/claude_code_statusline-0.5.0-py3-none-any.whl
 - 不访问 `/dev/tty`，不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
 - 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks 或 tmux/GNOME 之外的终端中打开实验 TUI。
 - 不提供鼠标、拖拽、自定义键位或跨平台 TUI。
-- 只配置主 Claude Code statusline，不配置 `subagentStatusLine`。
+- 只保证普通 Agent 类 task 的生命周期；后台 shell、server、monitor、workflow 和 agent-team 专用账本不纳入完成阻塞。
+- 不提供 per-agent 历史账本、Git、cache hit/miss/out 或 session 聚合；子 Agent 行只显示 Claude 当前 payload。
+- 不猜测当前焦点 Agent；全局底栏始终是主 Agent/session 范围。
 
 ## 相关文档
 

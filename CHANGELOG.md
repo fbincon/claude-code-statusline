@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.0 - 2026-09-03
+
+- 新增 Claude Code 官方 `subagentStatusLine` 一等支持与高频 `render-subagents` NDJSON 命令；按 task 显示状态、名称、模型/effort、上下文、用时和任务，并支持 token、cwd 可选项、ANSI/CJK/emoji 安全限宽及损坏输入静默降级。
+- `prompt-timer` 改为从用户提交到主 Agent 最终 `Stop` 的端到端时间；新增 `SubagentStart`/`SubagentStop` ledger、`waiting_subagents`/`resuming_main` 阶段、权威 `background_tasks` 同步，并抑制 registry/transcript 提前完成。
+- 主栏新增 `off/when-subagents/always` 范围标签；默认只在当前 prompt 曾启动子 Agent 时显示固定的 `Main/Session`，session token 聚合口径保持不变。
+- 显示配置平滑升级到严格 schema v2：schema v1 只读迁移且不会被 render/doctor/install 重写，首次真实保存会备份原字节并原子写出 canonical v2。
+- 新增完整的 `config subagents ...` 命令、`subagent-statusline`/`scope-labels` 设置及兼容旧调用的可选 `config apply` 参数；TUI 升级为 Main/Subagents/Settings 三页签，slash 向导同步一次性提交全部字段。
+- 安装器新增 Claude Code 2.1.205 版本门槛、owned/absent/foreign/unsupported 所有权状态、foreign 整体拒绝与 `--force` 接管、关闭/降级暂挂及升级恢复；uninstall 只移除本工具拥有的子 Agent 设置和 hooks。
+- 扩展 renderer、Unicode 宽度、生命周期、配置迁移、安装事务、TUI/Slash、CLI 与 doctor 测试，并更新构建、升级、降级和人工多 Agent 验收文档。
+
 ## 0.5.0 - 2026-09-03
 
 - 新增默认关闭的实验入口 `/statusline-configure`，通过 `install --experimental-slash-tui` 持久启用，并可用 `--no-experimental-slash-tui` 永久关闭；与现有 `/statusline-config` 并存。

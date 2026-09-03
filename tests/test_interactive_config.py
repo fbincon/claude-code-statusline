@@ -124,6 +124,33 @@ class ItemStateTests(unittest.TestCase):
         state.navigate_end()
         self.assertEqual(state.selected_item, state.visible_items()[-1])
 
+    def test_subagent_items_have_independent_search_order_and_selection(self):
+        state = ic.EditorState.from_effective(effective())
+        state.page = "subagents"
+        self.assertEqual(
+            state.final_subagent_items(), dc.DEFAULT_SUBAGENT_ITEMS
+        )
+        state.append_search("token")
+        self.assertEqual(state.visible_subagent_items(), ["tokens"])
+        state.toggle_selected_item()
+        self.assertIn("tokens", state.final_subagent_items())
+        state.clear_search()
+        state.selected_subagent_item = "tokens"
+        self.assertTrue(state.move_selected_item(-1))
+        self.assertNotEqual(state.item_order, state.subagent_item_order)
+
+    def test_tabs_cycle_main_subagents_settings_in_both_directions(self):
+        state = ic.EditorState.from_effective(effective())
+        self.assertEqual(state.page, "items")
+        state.switch_page()
+        self.assertEqual(state.page, "subagents")
+        state.switch_page()
+        self.assertEqual(state.page, "settings")
+        state.switch_page()
+        self.assertEqual(state.page, "items")
+        state.switch_page(-1)
+        self.assertEqual(state.page, "settings")
+
 
 class SettingStateTests(unittest.TestCase):
     def state(self, **kwargs):
@@ -155,6 +182,17 @@ class SettingStateTests(unittest.TestCase):
         state.toggle_setting()
         self.assertTrue(state.host.hide_vim_mode_indicator)
         self.assertEqual(state.setting_values()[6], "hide")
+
+        state.setting_index = 7
+        state.adjust_setting(-1)
+        self.assertEqual(state.display.scope_labels, "off")
+        state.adjust_setting(1)
+        self.assertEqual(state.display.scope_labels, "when-subagents")
+
+        state.setting_index = 8
+        state.toggle_setting()
+        self.assertFalse(state.display.subagents.enabled)
+        self.assertEqual(state.setting_values()[8], "off")
 
     def test_padding_clamps_and_refresh_custom_value_joins_cycle(self):
         state = self.state(host=cc.HostConfig(0, 7, False))
@@ -243,6 +281,9 @@ class SaveAndRunTests(unittest.TestCase):
             padding=2,
             refresh_interval="event",
             hide_vim_mode_indicator="on",
+            subagent_items=list(dc.DEFAULT_SUBAGENT_ITEMS),
+            subagent_statusline="on",
+            scope_labels="when-subagents",
             expected=state.baseline,
         )
 

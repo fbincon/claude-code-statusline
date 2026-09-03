@@ -28,7 +28,7 @@ class CliTests(unittest.TestCase):
     def test_version(self):
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "claude-statusline 0.5.0")
+        self.assertEqual(result.stdout.strip(), "claude-statusline 0.6.0")
         self.assertEqual(result.stderr, "")
 
     def test_help_lists_public_commands(self):
@@ -36,6 +36,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         for command in (
             "render",
+            "render-subagents",
             "hook",
             "slash-hook",
             "configure",
@@ -59,6 +60,12 @@ class CliTests(unittest.TestCase):
 
     def test_render_invalid_json_is_silent_and_successful(self):
         result = self.run_cli("render", input_text="not-json")
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.stderr, "")
+
+    def test_render_subagents_invalid_json_is_silent_and_successful(self):
+        result = self.run_cli("render-subagents", input_text="not-json")
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.stderr, "")
@@ -120,6 +127,15 @@ class CliTests(unittest.TestCase):
                 "import json,sys\n"
                 "print(json.dumps(sorted(n for n in sys.modules "
                 "if n == 'curses' or n.endswith('.slash_tui'))))\n",
+                "not-json",
+            ),
+            (
+                "from claude_statusline import cli\n"
+                "cli.main(['render-subagents'])\n"
+                "import json,sys\n"
+                "print(json.dumps(sorted(n for n in sys.modules "
+                "if n == 'curses' or n.endswith('.installer') or "
+                "n.endswith('.slash_tui'))))\n",
                 "not-json",
             ),
             (
@@ -202,6 +218,13 @@ class CliTests(unittest.TestCase):
                 "--items",
                 "git",
                 "tokens",
+                "--subagent-items",
+                "status",
+                "tokens",
+                "--subagent-statusline",
+                "off",
+                "--scope-labels",
+                "always",
                 "--colors",
                 "off",
                 "--palette",
@@ -226,6 +249,9 @@ class CliTests(unittest.TestCase):
                 (config_dir / "settings.json").read_text(encoding="utf-8")
             )
             self.assertEqual(display["items"], ["git", "tokens"])
+            self.assertEqual(display["subagents"]["items"], ["status", "tokens"])
+            self.assertFalse(display["subagents"]["enabled"])
+            self.assertEqual(display["scope_labels"], "always")
             self.assertFalse(display["use_colors"])
             self.assertEqual(settings["statusLine"]["padding"], 2)
             self.assertEqual(settings["statusLine"]["refreshInterval"], 5)

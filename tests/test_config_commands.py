@@ -129,6 +129,33 @@ class DisplayMutationTests(ConfigCommandTestCase):
         self.assertEqual(errors, [])
         self.assertEqual(set(dc.load_display_config(self.config_dir).items), set(items))
 
+    def test_subagent_set_enable_disable_and_order(self):
+        cc.set_subagent_items(self.config_dir, self.executable, ["name", "status"])
+        cc.enable_subagent_items(
+            self.config_dir, self.executable, ["elapsed", "tokens"]
+        )
+        cc.disable_subagent_items(self.config_dir, self.executable, ["status"])
+        cc.order_subagent_items(
+            self.config_dir, self.executable, ["tokens", "elapsed", "name"]
+        )
+        self.assertEqual(
+            dc.load_display_config(self.config_dir).subagents.items,
+            ("tokens", "elapsed", "name"),
+        )
+        with self.assertRaises(cc.ConfigCommandError):
+            cc.order_subagent_items(
+                self.config_dir, self.executable, ["tokens", "name"]
+            )
+
+    def test_scope_and_subagent_statusline_options(self):
+        cc.set_option(self.config_dir, self.executable, "scope-labels", "always")
+        cc.set_option(
+            self.config_dir, self.executable, "subagent-statusline", "off"
+        )
+        display = dc.load_display_config(self.config_dir)
+        self.assertEqual(display.scope_labels, "always")
+        self.assertFalse(display.subagents.enabled)
+
 
 class HostAndTransactionTests(ConfigCommandTestCase):
     def test_host_option_requires_owned_statusline(self):
@@ -281,6 +308,60 @@ class HostAndTransactionTests(ConfigCommandTestCase):
             ):
                 cc.set_option(self.config_dir, self.executable, option, value)
 
+    def test_v1_is_read_only_until_first_save_then_backed_up_as_raw_bytes(self):
+        self.install_minimal_settings()
+        path = dc.config_path(self.config_dir)
+        legacy = {
+            "schema_version": 1,
+            "items": ["git"],
+            "use_colors": True,
+            "palette": "default",
+            "directory_style": "full",
+            "separator_style": "classic",
+        }
+        raw = (json.dumps(legacy, separators=(",", ":")) + "\n").encode()
+        path.write_bytes(raw)
+        cc.read_effective_config(self.config_dir, self.executable)
+        self.assertEqual(path.read_bytes(), raw)
+
+        result = cc.set_option(
+            self.config_dir, self.executable, "scope-labels", "always"
+        )
+        self.assertEqual(
+            (result.backup_dir / "claude-statusline.json.before").read_bytes(),
+            raw,
+        )
+        stored = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(stored["schema_version"], 2)
+        self.assertEqual(stored["items"], ["git"])
+        self.assertEqual(stored["scope_labels"], "always")
+
+    def test_old_apply_shape_preserves_v2_subagent_values(self):
+        self.install_minimal_settings()
+        custom = dc.DEFAULT_CONFIG.with_updates(
+            scope_labels="always",
+            subagents=dc.SubagentDisplayConfig(
+                enabled=False, items=("name", "elapsed")
+            ),
+        )
+        dc.write_display_config(self.config_dir, custom)
+        cc.apply_configuration(
+            self.config_dir,
+            self.executable,
+            items=["git"],
+            colors="off",
+            palette="ansi",
+            directory_style="home",
+            separator_style="compact",
+            padding=2,
+            refresh_interval=5,
+            hide_vim_mode_indicator="on",
+        )
+        display = dc.load_display_config(self.config_dir)
+        self.assertEqual(display.scope_labels, "always")
+        self.assertFalse(display.subagents.enabled)
+        self.assertEqual(display.subagents.items, ("name", "elapsed"))
+
 
 class ParserAndFormattingTests(ConfigCommandTestCase):
     def test_slash_parser_accepts_documented_commands_and_rejects_unknown(self):
@@ -302,6 +383,77 @@ class ParserAndFormattingTests(ConfigCommandTestCase):
             cc.execute_config_namespace(listing, self.config_dir, self.executable)
         )
         self.assertEqual([item["id"] for item in listed], list(dc.ITEM_CATALOG))
+        subagents = cc.parse_slash_arguments("subagents list-items --json")
+        subagent_list = json.loads(
+            cc.execute_config_namespace(
+                subagents, self.config_dir, self.executable
+            )
+        )
+        self.assertEqual(
+            [item["id"] for item in subagent_list],
+            list(dc.SUBAGENT_ITEM_CATALOG),
+        )
+        self.assertIn("subagent_statusline", shown)
+        self.assertEqual(
+            set(shown["subagent_statusline"]),
+            {"enabled", "installed", "state"},
+        )
+
+    def test_slash_parser_accepts_all_subagent_commands(self):
+        for command, action in (
+            ("subagents set-items", "set-items"),
+            ("subagents enable tokens", "enable"),
+            ("subagents disable task", "disable"),
+            ("subagents order", "order"),
+        ):
+            with self.subTest(command=command):
+                parsed = cc.parse_slash_arguments(command)
+                self.assertEqual(parsed.config_action, "subagents")
+                self.assertEqual(parsed.subagent_action, action)
+
+    def test_show_classifies_all_subagent_statusline_states(self):
+        self.install_minimal_settings()
+        cases = (
+            (None, (2, 1, 205), "absent", False),
+            (
+                installer.command_for(self.executable, "render-subagents"),
+                (2, 1, 205),
+                "owned",
+                True,
+            ),
+            ("third-party", (2, 1, 205), "foreign", False),
+            (
+                installer.command_for(self.executable, "render-subagents"),
+                (2, 1, 204),
+                "unsupported",
+                False,
+            ),
+        )
+        for command, version, state, installed in cases:
+            with self.subTest(state=state):
+                settings = json.loads(
+                    self.settings_path.read_text(encoding="utf-8")
+                )
+                if command is None:
+                    settings.pop("subagentStatusLine", None)
+                else:
+                    settings["subagentStatusLine"] = {
+                        "type": "command",
+                        "command": command,
+                    }
+                self.settings_path.write_text(
+                    json.dumps(settings) + "\n", encoding="utf-8"
+                )
+                with mock.patch.object(
+                    installer, "detect_claude_version", return_value=version
+                ):
+                    effective = cc.read_effective_config(
+                        self.config_dir, self.executable
+                    )
+                self.assertEqual(effective.subagent_statusline.state, state)
+                self.assertEqual(
+                    effective.subagent_statusline.installed, installed
+                )
 
 
 if __name__ == "__main__":

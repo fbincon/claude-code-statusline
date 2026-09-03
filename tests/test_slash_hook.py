@@ -67,6 +67,23 @@ class SlashHookTests(unittest.TestCase):
             dc.load_display_config(self.config_dir).items, ("git", "tokens")
         )
 
+        result = json.loads(
+            self.handle(payload("subagents set-items status name tokens"))
+        )
+        self.assertEqual(result["decision"], "block")
+        self.assertEqual(
+            dc.load_display_config(self.config_dir).subagents.items,
+            ("status", "name", "tokens"),
+        )
+
+        result = json.loads(
+            self.handle(payload("set scope-labels always"))
+        )
+        self.assertEqual(result["decision"], "block")
+        self.assertEqual(
+            dc.load_display_config(self.config_dir).scope_labels, "always"
+        )
+
     def test_show_returns_configuration_in_block_reason(self):
         result = json.loads(self.handle(payload("show")))
         self.assertEqual(result["decision"], "block")
