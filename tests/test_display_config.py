@@ -94,12 +94,39 @@ class DisplayConfigTests(unittest.TestCase):
         }
         cases.append(unknown_subagent)
 
+        conflict_combined_subagent = dict(valid)
+        conflict_combined_subagent["subagents"] = {
+            "enabled": True,
+            "items": ["status-elapsed", "status"],
+        }
+        cases.append(conflict_combined_subagent)
+
+        conflict_combined_elapsed = dict(valid)
+        conflict_combined_elapsed["subagents"] = {
+            "enabled": True,
+            "items": ["elapsed", "status-elapsed", "name"],
+        }
+        cases.append(conflict_combined_elapsed)
+
         wrong_scope = dict(valid, scope_labels="sometimes")
         cases.append(wrong_scope)
 
         for value in cases:
             with self.subTest(value=value), self.assertRaises(dc.DisplayConfigError):
                 dc.validate_display_config(value)
+
+    def test_subagent_status_elapsed_accepts_alone_rejects_legacy_pairs(self):
+        self.assertEqual(
+            dc.validate_subagent_items(["status-elapsed", "name"]),
+            ("status-elapsed", "name"),
+        )
+        for items in (
+            ["status-elapsed", "status"],
+            ["status-elapsed", "elapsed"],
+            ["status", "status-elapsed", "elapsed"],
+        ):
+            with self.subTest(items=items), self.assertRaises(dc.DisplayConfigError):
+                dc.validate_subagent_items(items)
 
     def test_schema_one_loads_in_memory_as_v2_without_rewriting(self):
         path = dc.config_path(self.config_dir)

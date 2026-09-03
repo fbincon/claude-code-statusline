@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 - 2026-09-03
+
+- 新增子 Agent 条目 `status-elapsed`：把状态图标与用时合并为一个单元（如 `⏱ 1m 18s`、`✓ 0m 42s`），取代 `status` 与 `elapsed` 成为默认子 Agent 行，默认输出从 `⏱ Explore · sonnet-5/high · Context 58% left · 1m 18s · searching auth flow` 变为 `⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow`。
+- `status-elapsed` 与 `status`、`elapsed` 在 `subagents.items` 中互斥：配置校验拒绝共存，CLI 的 set-items/enable/disable/order/apply 直接报错；交互向导勾选其一自动取消冲突项。
+- 缺失或非法 `startTime` 时 `status-elapsed` 只显示状态图标；未来时间按 0 秒。与旧 `elapsed` 一致，已完成任务因 payload 无 endTime 继续计时；时长仍按 floor 取整。
+- 窄屏适配把 `status-elapsed` 视为与 `status` 同等的核心条目，始终保留，极窄时退化为图标；不加入可选段丢弃顺序。
+- 更新渲染、目录、预览、配置校验、向导、CLI 与文档测试。
+
 ## 0.8.0 - 2026-09-03
 
 - 新增子 Agent 条目 `context-remaining`：显示 `Context N% left`（先按 `tokenCount / contextWindowSize` 四舍五入已用百分比，再取 `100 − 已用` 并截断到 0–100），并取代 `context-used` 成为默认子 Agent 行的上下文项。

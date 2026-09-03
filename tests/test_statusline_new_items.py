@@ -96,6 +96,7 @@ class NewItemCatalogTests(unittest.TestCase):
         self.assertEqual(
             list(dc.SUBAGENT_ITEM_CATALOG),
             [
+                "status-elapsed",
                 "status",
                 "name",
                 "model-with-effort",
@@ -110,11 +111,10 @@ class NewItemCatalogTests(unittest.TestCase):
         self.assertEqual(
             dc.DEFAULT_SUBAGENT_ITEMS,
             (
-                "status",
+                "status-elapsed",
                 "name",
                 "model-with-effort",
                 "context-remaining",
-                "elapsed",
                 "task",
             ),
         )

@@ -137,10 +137,10 @@ hook 会优先在当前 tmux 客户端打开 `90% × 90%` popup；不在可访�
 /statusline-config disable tokens
 /statusline-config order current-dir git model-with-effort context-remaining prompt-timer
 /statusline-config subagents list-items
-/statusline-config subagents set-items status name model-with-effort context-remaining elapsed task
+/statusline-config subagents set-items status-elapsed name model-with-effort context-remaining task
 /statusline-config subagents enable tokens
 /statusline-config subagents enable context-used
-/statusline-config subagents order status name elapsed model-with-effort tokens task
+/statusline-config subagents order status-elapsed name model-with-effort context-remaining task
 /statusline-config set colors off
 /statusline-config set palette ansi
 /statusline-config set directory-style home
@@ -200,7 +200,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 
 `set-items` 不带条目时会隐藏全部状态行内容。`order` 必须恰好列出当前启用的所有条目一次。
 
-子 Agent 行的条目目录是 `status`、`name`、`model-with-effort`、`context-remaining`、`context-used`、`elapsed`、`task`、`tokens` 和 `current-dir`；前六项默认开启，默认上下文项为 `context-remaining`（显示 `Context N% left`，按 `100 − 已用百分比` 计算并截断到 0），`context-used` 显示与主栏一致的 `Context N% used` 且默认关闭。`subagents set-items` 传空列表会按照 Claude 的 NDJSON 协议为每个有效任务返回空 `content`，从而隐藏所有自定义行。
+子 Agent 行的条目目录是 `status-elapsed`、`status`、`name`、`model-with-effort`、`context-remaining`、`context-used`、`elapsed`、`task`、`tokens` 和 `current-dir`；默认开启 `status-elapsed`、`name`、`model-with-effort`、`context-remaining`、`task` 五项，默认上下文项为 `context-remaining`（显示 `Context N% left`，按 `100 − 已用百分比` 计算并截断到 0），`context-used` 显示与主栏一致的 `Context N% used` 且默认关闭。`status-elapsed` 把状态图标与用时合并为一个单元（如 `⏱ 1m 18s`），不能与 `status` 或 `elapsed` 同时启用：配置文件校验会拒绝共存，交互向导勾选其一时自动取消另外两个，CLI 命令则直接报错。`subagents set-items` 传空列表会按照 Claude 的 NDJSON 协议为每个有效任务返回空 `content`，从而隐藏所有自定义行。
 
 三类信息的口径不同：全局底栏属于主 Agent，`tokens` 仍是主 Agent 与可发现子 Agent 的 session 累计，官方子 Agent 行只使用各自 `tasks[].tokenCount`。默认 `scope-labels=when-subagents` 会在当前 prompt 曾经启动过子 Agent 时给主栏前置固定的 `Main/Session`；也可设为 `off` 或 `always`。Claude Code 没有提供当前焦点 Agent 标识，因此进入子 Agent transcript 后，最底部全局栏仍明确表示主/session 范围，不会声称跟随焦点。
 

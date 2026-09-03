@@ -61,6 +61,7 @@ LEGACY_DEFAULT_ITEMS = (
 # status line. Users enable the newer items via /statusline-config.
 DEFAULT_ITEMS = LEGACY_DEFAULT_ITEMS
 SUBAGENT_ITEM_CATALOG = {
+    "status-elapsed": "Task status icon combined with elapsed time",
     "status": "Task status icon",
     "name": "Agent name or normalized task type",
     "model-with-effort": "Agent model identifier with reasoning effort",
@@ -72,11 +73,10 @@ SUBAGENT_ITEM_CATALOG = {
     "current-dir": "Agent working directory",
 }
 DEFAULT_SUBAGENT_ITEMS = (
-    "status",
+    "status-elapsed",
     "name",
     "model-with-effort",
     "context-remaining",
-    "elapsed",
     "task",
 )
 PALETTES = ("default", "ansi")
@@ -194,6 +194,12 @@ def validate_subagent_items(value: Any) -> tuple[str, ...]:
             raise DisplayConfigError(f"duplicate subagent status line item: {item}")
         seen.add(item)
         result.append(item)
+    if "status-elapsed" in result and (
+        "status" in result or "elapsed" in result
+    ):
+        raise DisplayConfigError(
+            "subagents.items cannot combine status-elapsed with status or elapsed"
+        )
     return tuple(result)
 
 

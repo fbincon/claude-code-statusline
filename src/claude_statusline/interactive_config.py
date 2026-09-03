@@ -319,6 +319,14 @@ class EditorState:
                 self.subagent_enabled.remove(self.selected_subagent_item)
             else:
                 self.subagent_enabled.add(self.selected_subagent_item)
+                # Keep the enabled set valid: status-elapsed is mutually
+                # exclusive with status/elapsed, so enabling one side drops
+                # the other before _sync_subagent_items validates the list.
+                if self.selected_subagent_item == "status-elapsed":
+                    self.subagent_enabled.discard("status")
+                    self.subagent_enabled.discard("elapsed")
+                elif self.selected_subagent_item in ("status", "elapsed"):
+                    self.subagent_enabled.discard("status-elapsed")
             self._sync_subagent_items()
             return True
         visible = self._normalize_item_selection()

@@ -387,7 +387,7 @@ Palette: default
 Directory style: home
 Separator style: classic
 Scope labels: when-subagents
-Subagent items: status, name, model-with-effort, context-remaining, elapsed, task
+Subagent items: status-elapsed, name, model-with-effort, context-remaining, task
 Custom subagent rows: on
 Subagent statusline: owned
 Padding: 0
@@ -506,13 +506,15 @@ claude-statusline config order
 
 ```bash
 claude-statusline config subagents list-items --json
-claude-statusline config subagents set-items status name model-with-effort context-remaining elapsed task
+claude-statusline config subagents set-items status-elapsed name model-with-effort context-remaining task
 claude-statusline config subagents enable tokens current-dir
 claude-statusline config subagents disable task
-claude-statusline config subagents order status name elapsed model-with-effort context-remaining tokens current-dir
+claude-statusline config subagents order status-elapsed name model-with-effort context-remaining tokens current-dir
 ```
 
 `subagents.items=[]` 时，`render-subagents` 仍为每个有效 task ID 输出合法 NDJSON，但 `content` 为空，Claude Code 因而隐藏相应自定义行。
+
+`status-elapsed` 与 `status`、`elapsed` 互斥：`set-items`/`enable`/`apply` 组合非法时直接报错（例如已启用 `status` 的旧配置执行 `enable status-elapsed` 会失败，需先 `disable status elapsed`）；交互向导勾选其一时自动取消冲突项。
 
 ### `config set OPTION VALUE`
 
@@ -543,7 +545,7 @@ claude-statusline config set scope-labels when-subagents
 ```bash
 claude-statusline config apply \
   --items model-with-effort current-dir git context-remaining prompt-timer \
-  --subagent-items status name model-with-effort context-remaining elapsed task \
+  --subagent-items status-elapsed name model-with-effort context-remaining task \
   --subagent-statusline on \
   --scope-labels when-subagents \
   --colors on \
@@ -635,24 +637,25 @@ Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-st
 默认子 Agent 行类似：
 
 ```text
-⏱ Explore · sonnet-5/high · Context 58% left · 1m 18s · searching auth flow
+⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
 ```
 
 可排序条目及默认状态：
 
 | ID | 默认 | 内容 |
 | --- | --- | --- |
-| `status` | 开 | `pending …`、`running ⏱`、`completed ✓`、`failed ✗`、`killed ■`、`paused/waiting ⏳`，未知状态为 `?` |
+| `status-elapsed` | 开 | 状态图标 + 用时，如 `⏱ 1m 18s`；缺失或非法 `startTime` 时只显示图标。与 `status`、`elapsed` 互斥 |
+| `status` | 关 | `pending …`、`running ⏱`、`completed ✓`、`failed ✗`、`killed ■`、`paused/waiting ⏳`，未知状态为 `?` |
 | `name` | 开 | `name`，否则规范化 `type`，再否则 `Agent` |
 | `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID，并在存在时追加 `/effort` |
 | `context-remaining` | 开 | `Context N% left`，按 `100 − 已用百分比`（先四舍五入）计算并截断到 0–100 |
 | `context-used` | 关 | `Context N% used`，`tokenCount / contextWindowSize` 四舍五入为百分比 |
-| `elapsed` | 开 | 从 task 的 epoch 毫秒 `startTime` 计算；未来时间按 0 秒 |
+| `elapsed` | 关 | 从 task 的 epoch 毫秒 `startTime` 计算；未来时间按 0 秒 |
 | `task` | 开 | 优先 `label`，否则 `description`；与名称重复时省略 |
 | `tokens` | 关 | 当前 task 的紧凑 token 数 |
 | `current-dir` | 关 | task 的 `cwd`，遵守目录样式 |
 
-宽度直接使用 payload 中的正整数 `columns`，无效时回退 80，不扣主栏 margin。输入文本中的换行、制表符和控制字符会被清理。超宽时先截断任务文本，再按 `current-dir → tokens → context-used → context-remaining → model-with-effort → task` 删除可选段；`status`、`name`、`elapsed` 最后保留，极窄时只显示状态。ASCII、CJK、emoji、组合字符和 ANSI 路径都保证可见宽度不超过 `columns` 且不换行。
+宽度直接使用 payload 中的正整数 `columns`，无效时回退 80，不扣主栏 margin。输入文本中的换行、制表符和控制字符会被清理。超宽时先截断任务文本，再按 `current-dir → tokens → context-used → context-remaining → model-with-effort → task` 删除可选段；`status` 与 `status-elapsed` 始终保留（启用 `status` 时 `name`、`elapsed` 也最后保留），极窄时 `status-elapsed` 退化为只显示状态图标。ASCII、CJK、emoji、组合字符和 ANSI 路径都保证可见宽度不超过 `columns` 且不换行。
 
 三种作用域必须区分：
 
@@ -812,11 +815,10 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
   "subagents": {
     "enabled": true,
     "items": [
-      "status",
+      "status-elapsed",
       "name",
       "model-with-effort",
-      "context-used",
-      "elapsed",
+      "context-remaining",
       "task"
     ]
   }

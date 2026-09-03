@@ -219,6 +219,14 @@ def _status_text(task: dict[str, Any]) -> str:
     return STATUS_ICONS.get(status.casefold() if status else "", "?")
 
 
+def _status_elapsed(task: dict[str, Any], now_ms: float) -> str:
+    # Completed tasks keep counting because the payload has no endTime,
+    # matching the standalone `elapsed` item.
+    icon = _status_text(task)
+    formatted = _elapsed(task, now_ms)
+    return f"{icon} {formatted}" if formatted else icon
+
+
 def _parts_for_task(
     task: dict[str, Any],
     config: DisplayConfig,
@@ -228,6 +236,7 @@ def _parts_for_task(
     name = _task_name(task)
     values: dict[str, tuple[str | None, str]] = {
         "status": (_status_text(task), palette.status),
+        "status-elapsed": (_status_elapsed(task, now_ms), palette.elapsed),
         "name": (name, palette.name),
         "model-with-effort": (_model_with_effort(task), palette.model),
         "context-remaining": (_context_remaining(task), palette.context),
@@ -295,17 +304,20 @@ def _fit_parts(parts: list[_Part], columns: int) -> list[_Part]:
                 else _without_part(parts, "name")
             )
 
-    # At extremely small widths retain the status marker. If status was
-    # explicitly disabled, retain and truncate the earliest configured core
-    # field instead of turning a valid task into an empty row.
-    if any(part.item == "status" for part in parts):
+    # At extremely small widths retain the status marker (or the combined
+    # status-elapsed unit). If both were explicitly disabled, retain and
+    # truncate the earliest configured core field instead of turning a valid
+    # task into an empty row.
+    if any(part.item in ("status", "status-elapsed") for part in parts):
         for item in ("name", "elapsed"):
             if display_width(_plain_line(parts)) <= columns:
                 break
             parts = _without_part(parts, item)
     while len(parts) > 1 and display_width(_plain_line(parts)) > columns:
         removable = next(
-            (part for part in reversed(parts) if part.item != "status"),
+            (part
+             for part in reversed(parts)
+             if part.item not in ("status", "status-elapsed")),
             parts[-1],
         )
         parts = _without_part(parts, removable.item)

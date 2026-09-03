@@ -152,6 +152,35 @@ class ItemStateTests(unittest.TestCase):
         self.assertTrue(state.move_selected_item(-1))
         self.assertNotEqual(state.item_order, state.subagent_item_order)
 
+    def test_subagent_enabling_status_or_elapsed_disables_status_elapsed(self):
+        state = ic.EditorState.from_effective(effective())
+        state.page = "subagents"
+        state.selected_subagent_item = "status"
+        self.assertTrue(state.toggle_selected_item())
+        self.assertIn("status", state.subagent_enabled)
+        self.assertNotIn("status-elapsed", state.subagent_enabled)
+        state.selected_subagent_item = "elapsed"
+        self.assertTrue(state.toggle_selected_item())
+        self.assertIn("elapsed", state.subagent_enabled)
+        self.assertNotIn("status-elapsed", state.subagent_enabled)
+        # status 与 elapsed 共存合法
+        self.assertIn("status", state.final_subagent_items())
+
+    def test_subagent_enabling_status_elapsed_disables_status_and_elapsed(self):
+        state = ic.EditorState.from_effective(effective())
+        state.page = "subagents"
+        # 默认已开启 status-elapsed;先开启 status(自动关 status-elapsed),再切回
+        state.selected_subagent_item = "status"
+        self.assertTrue(state.toggle_selected_item())
+        self.assertNotIn("status-elapsed", state.subagent_enabled)
+        state.selected_subagent_item = "status-elapsed"
+        self.assertTrue(state.toggle_selected_item())
+        self.assertIn("status-elapsed", state.subagent_enabled)
+        self.assertNotIn("status", state.subagent_enabled)
+        self.assertNotIn("elapsed", state.subagent_enabled)
+        self.assertIn("status-elapsed", state.final_subagent_items())
+        self.assertIn("status-elapsed", state.display.subagents.items)
+
     def test_tabs_cycle_main_subagents_settings_in_both_directions(self):
         state = ic.EditorState.from_effective(effective())
         self.assertEqual(state.page, "items")

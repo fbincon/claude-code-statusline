@@ -51,15 +51,15 @@ class RendererTests(unittest.TestCase):
                 {
                     "id": "task-1",
                     "content": (
-                        "⏱ Explore · sonnet-5/high · Context 58% left · "
-                        "1m 18s · searching auth flow"
+                        "⏱ 1m 18s · Explore · sonnet-5/high · "
+                        "Context 58% left · searching auth flow"
                     ),
                 },
                 {
                     "id": "task-2",
                     "content": (
-                        "⏱ Review · sonnet-5/high · Context 58% left · "
-                        "1m 18s · searching auth flow"
+                        "⏱ 1m 18s · Review · sonnet-5/high · "
+                        "Context 58% left · searching auth flow"
                     ),
                 },
             ],
@@ -88,6 +88,66 @@ class RendererTests(unittest.TestCase):
                     )[0]["content"],
                     marker,
                 )
+
+    def test_status_elapsed_combined_and_icon_only_fallback(self):
+        config = plain_config(
+            subagents=dc.SubagentDisplayConfig(items=("status-elapsed",))
+        )
+        self.assertEqual(
+            ss.render_task(sample_task(), config, now_ms=NOW_MS),
+            "⏱ 1m 18s",
+        )
+        self.assertEqual(
+            ss.render_task(sample_task(startTime=None), config, now_ms=NOW_MS),
+            "⏱",
+        )
+        self.assertEqual(
+            ss.render_task(sample_task(startTime="yesterday"), config, now_ms=NOW_MS),
+            "⏱",
+        )
+        self.assertEqual(
+            ss.render_task(
+                sample_task(startTime=NOW_MS + 1000), config, now_ms=NOW_MS
+            ),
+            "⏱ 0m 00s",
+        )
+
+    def test_status_elapsed_icons_for_each_status(self):
+        statuses = {
+            "pending": "…",
+            "running": "⏱",
+            "completed": "✓",
+            "failed": "✗",
+            "killed": "■",
+            "paused": "⏳",
+            "waiting": "⏳",
+            "new-state": "?",
+        }
+        config = plain_config(
+            subagents=dc.SubagentDisplayConfig(items=("status-elapsed",))
+        )
+        for status, marker in statuses.items():
+            with self.subTest(status=status):
+                self.assertEqual(
+                    ss.render_task(
+                        sample_task(status=status), config, now_ms=NOW_MS
+                    ),
+                    f"{marker} 1m 18s",
+                )
+
+    def test_status_elapsed_colors_match_status_and_elapsed(self):
+        config = dc.DEFAULT_CONFIG.with_updates(
+            subagents=dc.SubagentDisplayConfig(items=("status-elapsed",))
+        )
+        self.assertEqual(
+            ss.render_task(sample_task(), config, now_ms=NOW_MS),
+            "\033[1;38;2;142;211;211m⏱ 1m 18s\033[0m",
+        )
+        ansi = config.with_updates(palette="ansi")
+        self.assertEqual(
+            ss.render_task(sample_task(), ansi, now_ms=NOW_MS),
+            "\033[1;36m⏱ 1m 18s\033[0m",
+        )
 
     def test_model_effort_context_elapsed_tokens_and_directory(self):
         config = plain_config(
@@ -205,12 +265,15 @@ class RendererTests(unittest.TestCase):
         )
         config = plain_config(
             subagents=dc.SubagentDisplayConfig(
-                items=tuple(dc.SUBAGENT_ITEM_CATALOG)
+                items=tuple(
+                    item for item in dc.SUBAGENT_ITEM_CATALOG
+                    if item not in ("status", "elapsed")
+                )
             )
         )
         self.assertEqual(
             ss.render_task(task, config, columns=100, now_ms=NOW_MS),
-            "⏱ Explore · searching auth flow",
+            "⏱ · Explore · searching auth flow",
         )
 
     def test_name_type_and_task_fallbacks(self):
@@ -264,8 +327,8 @@ class RendererTests(unittest.TestCase):
     def test_preview_is_deterministic_running_and_completed_data(self):
         rows = ss.preview_rows(plain_config(), 100)
         self.assertEqual(len(rows), 2)
-        self.assertTrue(rows[0].startswith("⏱ Explore"))
-        self.assertTrue(rows[1].startswith("✓ Reviewer"))
+        self.assertTrue(rows[0].startswith("⏱ 1m 18s"))
+        self.assertTrue(rows[1].startswith("✓ 0m 42s"))
         self.assertEqual(rows, ss.preview_rows(plain_config(), 100))
 
 
@@ -278,7 +341,10 @@ class WidthAndSanitizationTests(unittest.TestCase):
         )
         config = dc.DEFAULT_CONFIG.with_updates(
             subagents=dc.SubagentDisplayConfig(
-                items=tuple(dc.SUBAGENT_ITEM_CATALOG)
+                items=tuple(
+                    item for item in dc.SUBAGENT_ITEM_CATALOG
+                    if item not in ("status", "elapsed")
+                )
             )
         )
         for columns in (100, 50, 30, 20, 10, 5, 2, 1):
@@ -316,6 +382,28 @@ class WidthAndSanitizationTests(unittest.TestCase):
         self.assertIn("⏱ Explore", content)
         self.assertIn("1m 18s", content)
         self.assertNotIn("/project", content)
+        self.assertEqual(
+            ss.render_task(task, config, columns=1, now_ms=NOW_MS), "⏱"
+        )
+
+    def test_status_elapsed_core_item_survives_narrow_widths(self):
+        task = sample_task(label="x" * 200)
+        config = plain_config(
+            subagents=dc.SubagentDisplayConfig(
+                items=(
+                    "status-elapsed",
+                    "name",
+                    "current-dir",
+                    "tokens",
+                    "context-used",
+                    "model-with-effort",
+                    "task",
+                )
+            )
+        )
+        content = ss.render_task(task, config, columns=12, now_ms=NOW_MS)
+        self.assertIn("⏱ 1m 18s", content)
+        self.assertLessEqual(display_width(content), 12)
         self.assertEqual(
             ss.render_task(task, config, columns=1, now_ms=NOW_MS), "⏱"
         )

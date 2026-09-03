@@ -28,7 +28,7 @@ class CliTests(unittest.TestCase):
     def test_version(self):
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "claude-statusline 0.8.0")
+        self.assertEqual(result.stdout.strip(), "claude-statusline 0.9.0")
         self.assertEqual(result.stderr, "")
 
     def test_help_lists_public_commands(self):
@@ -228,6 +228,19 @@ class CliTests(unittest.TestCase):
             )
         self.assertEqual(result.returncode, 2)
         self.assertIn("unknown status line item: clock", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_config_rejects_status_elapsed_with_status_or_elapsed(self):
+        with tempfile.TemporaryDirectory(prefix="statusline-cli-mutex-") as root:
+            result = self.run_cli(
+                "config", "--config-dir", root,
+                "subagents", "set-items", "status-elapsed", "status",
+            )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn(
+            "cannot combine status-elapsed with status or elapsed",
+            result.stderr,
+        )
         self.assertNotIn("Traceback", result.stderr)
 
     def test_config_apply_updates_display_and_host_settings(self):

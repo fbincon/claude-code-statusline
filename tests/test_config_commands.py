@@ -146,6 +146,14 @@ class DisplayMutationTests(ConfigCommandTestCase):
             cc.order_subagent_items(
                 self.config_dir, self.executable, ["tokens", "name"]
             )
+        with self.assertRaises(cc.ConfigCommandError):
+            cc.set_subagent_items(
+                self.config_dir, self.executable, ["status-elapsed", "status"]
+            )
+        with self.assertRaises(cc.ConfigCommandError):
+            cc.set_subagent_items(
+                self.config_dir, self.executable, ["elapsed", "status-elapsed"]
+            )
 
     def test_subagent_context_remaining_selectable_via_config_commands(self):
         result = cc.set_subagent_items(
@@ -162,6 +170,10 @@ class DisplayMutationTests(ConfigCommandTestCase):
         self.assertTrue(by_id["context-remaining"]["default_enabled"])
         self.assertFalse(by_id["context-used"]["default_enabled"])
         self.assertIsNone(by_id["context-used"]["position"])
+        self.assertTrue(by_id["status-elapsed"]["default_enabled"])
+        self.assertFalse(by_id["status"]["default_enabled"])
+        self.assertFalse(by_id["elapsed"]["default_enabled"])
+        self.assertTrue(by_id["task"]["default_enabled"])
 
     def test_scope_and_subagent_statusline_options(self):
         cc.set_option(self.config_dir, self.executable, "scope-labels", "always")

@@ -42,9 +42,11 @@ If the invocation arguments are empty:
 4. Preserve the relative order of currently enabled selected items. Append
    newly enabled items in the catalog order returned by `list-items`.
 5. Ask for:
-   - subagent row items: `status`, `name`, `model-with-effort`,
-     `context-remaining`, `context-used`, `elapsed`, `task`, `tokens`, and
-     `current-dir`
+   - subagent row items: `status-elapsed`, `status`, `name`,
+     `model-with-effort`, `context-remaining`, `context-used`, `elapsed`,
+     `task`, `tokens`, and `current-dir`; `status-elapsed` cannot be combined
+     with `status` or `elapsed` — if the user picks conflicting items, keep
+     `status-elapsed` and drop the other two
    - custom subagent rows: on or off
    - scope labels: off, when-subagents, or always
    - colors: on or off
