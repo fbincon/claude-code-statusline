@@ -28,7 +28,7 @@ class CliTests(unittest.TestCase):
     def test_version(self):
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "claude-statusline 0.6.0")
+        self.assertEqual(result.stdout.strip(), "claude-statusline 0.7.0")
         self.assertEqual(result.stderr, "")
 
     def test_help_lists_public_commands(self):
@@ -177,6 +177,49 @@ class CliTests(unittest.TestCase):
             self.assertEqual(shown.returncode, 0, shown.stderr)
             value = json.loads(shown.stdout)
             self.assertEqual(value["display"]["items"], ["git", "tokens"])
+
+    def test_new_items_support_every_cli_item_mutation(self):
+        with tempfile.TemporaryDirectory(prefix="statusline-cli-new-items-") as root:
+            commands = (
+                (
+                    "set-items",
+                    "project-name",
+                    "hostname",
+                    "context-used",
+                ),
+                ("disable", "hostname"),
+                ("enable", "hostname"),
+                (
+                    "order",
+                    "context-used",
+                    "hostname",
+                    "project-name",
+                ),
+            )
+            for command in commands:
+                with self.subTest(command=command):
+                    result = self.run_cli(
+                        "config", "--config-dir", root, *command
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+
+            shown = self.run_cli(
+                "config", "--config-dir", root, "show", "--json"
+            )
+            self.assertEqual(shown.returncode, 0, shown.stderr)
+            self.assertEqual(
+                json.loads(shown.stdout)["display"]["items"],
+                ["context-used", "hostname", "project-name"],
+            )
+
+            listed = self.run_cli(
+                "config", "--config-dir", root, "list-items", "--json"
+            )
+            self.assertEqual(listed.returncode, 0, listed.stderr)
+            by_id = {item["id"]: item for item in json.loads(listed.stdout)}
+            for item_id in ("context-used", "hostname", "project-name"):
+                self.assertFalse(by_id[item_id]["default_enabled"])
+                self.assertTrue(by_id[item_id]["enabled"])
 
     def test_config_validation_error_has_no_traceback(self):
         with tempfile.TemporaryDirectory(prefix="statusline-cli-config-") as root:

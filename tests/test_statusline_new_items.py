@@ -14,6 +14,9 @@ from claude_statusline import display_config as dc
 from claude_statusline import statusline as sl
 
 NEW_ITEM_IDS = (
+    "project-name",
+    "hostname",
+    "context-used",
     "version",
     "session",
     "cost",
@@ -66,11 +69,14 @@ class NewItemCatalogTests(unittest.TestCase):
                 "fast-mode",
                 "thinking",
                 "current-dir",
+                "project-name",
+                "hostname",
                 "git",
                 "pr",
                 "repo",
                 "worktree",
                 "context-remaining",
+                "context-used",
                 "context-window-size",
                 "five-hour-limit",
                 "weekly-limit",
@@ -86,6 +92,32 @@ class NewItemCatalogTests(unittest.TestCase):
             ],
         )
 
+    def test_subagent_catalog_and_defaults_are_unchanged(self):
+        self.assertEqual(
+            list(dc.SUBAGENT_ITEM_CATALOG),
+            [
+                "status",
+                "name",
+                "model-with-effort",
+                "context-used",
+                "elapsed",
+                "task",
+                "tokens",
+                "current-dir",
+            ],
+        )
+        self.assertEqual(
+            dc.DEFAULT_SUBAGENT_ITEMS,
+            (
+                "status",
+                "name",
+                "model-with-effort",
+                "context-used",
+                "elapsed",
+                "task",
+            ),
+        )
+
 
 class NewItemRenderingTests(unittest.TestCase):
     def render_items(self, data, *items):
@@ -93,7 +125,149 @@ class NewItemRenderingTests(unittest.TestCase):
         return configured_text(data, config)
 
     def test_all_new_items_hidden_without_payload_fields(self):
-        self.assertEqual(self.render_items({}, *NEW_ITEM_IDS), "")
+        with mock.patch.object(sl.socket, "gethostname", return_value=""):
+            self.assertEqual(self.render_items({}, *NEW_ITEM_IDS), "")
+
+    def test_context_used_rounding(self):
+        for value, expected in (
+            (27, "Context 27% used"),
+            (27.4, "Context 27% used"),
+            (27.6, "Context 28% used"),
+            (0, "Context 0% used"),
+            (100, "Context 100% used"),
+        ):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    self.render_items(
+                        {"context_window": {"used_percentage": value}},
+                        "context-used",
+                    ),
+                    expected,
+                )
+
+    def test_context_used_rejects_invalid_values(self):
+        invalid = (
+            None,
+            True,
+            False,
+            "27",
+            float("nan"),
+            float("inf"),
+            float("-inf"),
+            -0.1,
+            100.1,
+            10**1000,
+        )
+        for value in invalid:
+            with self.subTest(value=value):
+                self.assertEqual(
+                    self.render_items(
+                        {"context_window": {"used_percentage": value}},
+                        "context-used",
+                    ),
+                    "",
+                )
+
+    def test_context_items_coexist_in_configured_order(self):
+        data = {
+            "context_window": {
+                "remaining_percentage": 73,
+                "used_percentage": 27,
+                "context_window_size": 200_000,
+            }
+        }
+        self.assertEqual(
+            self.render_items(
+                data,
+                "context-remaining",
+                "context-used",
+                "context-window-size",
+            ),
+            "Context 73% left · Context 27% used · 200K window",
+        )
+
+    def test_project_name_uses_posix_basename(self):
+        for value, expected in (
+            ("/code/repo", "Project repo"),
+            ("/code/repo/", "Project repo"),
+            ("/code/项目", "Project 项目"),
+        ):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    self.render_items(
+                        {"workspace": {"project_dir": value}}, "project-name"
+                    ),
+                    expected,
+                )
+
+    def test_project_name_rejects_invalid_values_without_fallback(self):
+        for value in (None, 7, "", "/", "///"):
+            data = {
+                "workspace": {
+                    "current_dir": "/fallback/current",
+                    "project_dir": value,
+                    "repo": {"owner": "fallback", "name": "repo"},
+                }
+            }
+            with self.subTest(value=value):
+                self.assertEqual(self.render_items(data, "project-name"), "")
+
+    def test_project_name_sanitizes_payload_without_filesystem_access(self):
+        data = {"workspace": {"project_dir": "/code/\033[31mproject\nname"}}
+        with (
+            mock.patch.object(Path, "exists", side_effect=AssertionError),
+            mock.patch.object(Path, "is_dir", side_effect=AssertionError),
+            mock.patch.object(Path, "stat", side_effect=AssertionError),
+        ):
+            rendered = self.render_items(data, "project-name")
+        self.assertEqual(rendered, "Project [31mproject name")
+        self.assertNotIn("\033", rendered)
+        self.assertNotIn("\n", rendered)
+
+    def test_hostname_renders_sanitizes_and_handles_failures(self):
+        for value, expected in (
+            ("devbox", "Host devbox"),
+            ("", ""),
+            ("dev\nbox\033[31m", "Host dev box [31m"),
+            (None, ""),
+        ):
+            with (
+                self.subTest(value=value),
+                mock.patch.object(sl.socket, "gethostname", return_value=value),
+            ):
+                rendered = self.render_items({}, "hostname")
+                self.assertEqual(rendered, expected)
+                self.assertNotIn("\033", rendered)
+                self.assertNotIn("\n", rendered)
+        with mock.patch.object(
+            sl.socket, "gethostname", side_effect=OSError("unavailable")
+        ):
+            self.assertEqual(self.render_items({}, "hostname"), "")
+
+    def test_hostname_is_not_loaded_when_unselected(self):
+        with mock.patch.object(sl.socket, "gethostname") as gethostname:
+            self.assertEqual(
+                self.render_items(
+                    {"model": {"id": "test-model"}}, "model-with-effort"
+                ),
+                "test-model",
+            )
+        gethostname.assert_not_called()
+
+    def test_location_items_coalesce_when_adjacent(self):
+        data = {
+            "workspace": {
+                "current_dir": "/code/repo/src",
+                "project_dir": "/code/repo",
+            }
+        }
+        with mock.patch.object(sl.socket, "gethostname", return_value="devbox"):
+            self.assertEqual(
+                self.render_items(
+                    data, "current-dir", "project-name", "hostname"
+                ),
+                "/code/repo/src · Project repo · Host devbox",
+            )
 
     def test_version_item(self):
         self.assertEqual(
@@ -353,6 +527,28 @@ class NewItemConfigCommandTests(unittest.TestCase):
         )
         again = cc.enable_items(self.config_dir, self.executable, ["cost"])
         self.assertFalse(again.changed)
+
+    def test_new_main_items_support_set_enable_disable_and_order(self):
+        cc.set_items(
+            self.config_dir,
+            self.executable,
+            ["project-name", "hostname", "context-used"],
+        )
+        cc.disable_items(self.config_dir, self.executable, ["hostname"])
+        self.assertEqual(
+            dc.load_display_config(self.config_dir).items,
+            ("project-name", "context-used"),
+        )
+        cc.enable_items(self.config_dir, self.executable, ["hostname"])
+        cc.order_items(
+            self.config_dir,
+            self.executable,
+            ["context-used", "hostname", "project-name"],
+        )
+        self.assertEqual(
+            dc.load_display_config(self.config_dir).items,
+            ("context-used", "hostname", "project-name"),
+        )
 
     def test_order_rejects_new_item_not_enabled(self):
         cc.enable_items(self.config_dir, self.executable, ["cost"])

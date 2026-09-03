@@ -28,15 +28,17 @@ If the invocation arguments are empty:
    `__CLAUDE_STATUSLINE_COMMAND__ config subagents list-items --json`.
 2. Tell the user that the configuration applies to every Claude Code project.
 3. Use AskUserQuestion with multi-select questions for these groups:
-   - Identity / Repo: `model-with-effort`, `current-dir`, `git`
-   - Context: `context-remaining`, `context-window-size`
+   - Identity / Repo: `model-with-effort`, `current-dir`, `project-name`,
+     `hostname`, `git`
+   - Context: `context-remaining`, `context-used`, `context-window-size`
    - Limits: `five-hour-limit`, `weekly-limit`, `spend-limit`
    - Usage: `tokens`, `prompt-timer`, `cost`, `prompt-cache`
    - Session: `version`, `session`
    - Modes: `fast-mode`, `agent`, `vim-mode`, `thinking`
    - Repository: `pr`, `worktree`, `repo`
-   The Session, Modes, and Repository items plus `cost` and `prompt-cache` are
-   disabled by default; selecting them here enables them.
+   The Session, Modes, and Repository items plus `project-name`, `hostname`,
+   `context-used`, `cost`, and `prompt-cache` are disabled by default;
+   selecting them here enables them.
 4. Preserve the relative order of currently enabled selected items. Append
    newly enabled items in the catalog order returned by `list-items`.
 5. Ask for:

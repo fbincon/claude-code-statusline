@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 - 2026-09-03
+
+- 新增三个默认关闭的主 Agent 条目：`context-used` 显示 Claude 官方 payload 的上下文已用百分比，`project-name` 显示启动项目目录 basename，`hostname` 通过 Python 标准库显示本地主机名。
+- `context-used` 与 `context-remaining` 可独立配置并相邻共存；`current-dir`、`project-name`、`hostname` 组成位置组，所有新增文本均执行缺失值、范围与控制字符/ANSI 安全校验。
+- 保持 schema v2、原有十项 `DEFAULT_ITEMS`/`LEGACY_DEFAULT_ITEMS`、旧配置与默认输出不变；三个新条目只通过 CLI、TUI 或 `/statusline-config` 显式启用。
+- 全条目预览扩展为 24 个确定性主条目，hostname 固定为 `devbox`，不读取真实机器名；子 Agent renderer、条目目录和默认配置保持不变。
+
 ## 0.6.0 - 2026-09-03
 
 - 新增 Claude Code 官方 `subagentStatusLine` 一等支持与高频 `render-subagents` NDJSON 命令；按 task 显示状态、名称、模型/effort、上下文、用时和任务，并支持 token、cwd 可选项、ANSI/CJK/emoji 安全限宽及损坏输入静默降级。

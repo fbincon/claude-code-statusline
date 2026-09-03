@@ -41,6 +41,19 @@ class ItemStateTests(unittest.TestCase):
             [item for item in dc.ITEM_CATALOG if item not in state.enabled],
         )
 
+    def test_new_main_items_are_discoverable_and_toggleable(self):
+        state = ic.EditorState.from_effective(effective())
+        for item in ("project-name", "hostname", "context-used"):
+            self.assertIn(item, state.item_order)
+            self.assertNotIn(item, state.enabled)
+            state.selected_item = item
+            self.assertTrue(state.toggle_selected_item())
+        self.assertTrue(
+            {"project-name", "hostname", "context-used"}.issubset(
+                state.final_items()
+            )
+        )
+
     def test_toggle_empty_set_and_repeated_moves(self):
         state = ic.EditorState.from_effective(effective(items=("git",)))
         self.assertTrue(state.toggle_selected_item())

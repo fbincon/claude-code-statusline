@@ -20,6 +20,7 @@ import json
 import math
 import os
 import re
+import socket
 import subprocess
 import sys
 import tempfile
@@ -38,6 +39,7 @@ from .display_config import (
 from .render_utils import (
     format_duration as _shared_format_duration,
     humanize_tokens as _shared_humanize_tokens,
+    sanitize_payload_text,
 )
 from .turn_state import (
     load_turn_state,
@@ -1441,8 +1443,11 @@ _NOT_LOADED = object()
 _ITEM_METHODS = {
     "model-with-effort": "model_with_effort",
     "current-dir": "current_dir",
+    "project-name": "project_name",
+    "hostname": "hostname",
     "git": "git",
     "context-remaining": "context_remaining",
+    "context-used": "context_used",
     "context-window-size": "context_window_size",
     "tokens": "tokens",
     "prompt-timer": "prompt_timer",
@@ -1537,7 +1542,33 @@ class _RenderState:
         )
         return _RenderedItem(
             f"{self.palette.directory}{value}{self.palette.reset}",
+            group="location",
             prefer_slash_breaks=True,
+        )
+
+    def project_name(self):
+        value = deep_get(self.data, ("workspace", "project_dir"))
+        if not isinstance(value, str) or not value:
+            return None
+        name = sanitize_payload_text(Path(value).name)
+        if not name:
+            return None
+        return _RenderedItem(
+            f"{self.palette.directory}Project {name}{self.palette.reset}",
+            group="location",
+        )
+
+    def hostname(self):
+        try:
+            value = socket.gethostname()
+        except OSError:
+            return None
+        name = sanitize_payload_text(value)
+        if not name:
+            return None
+        return _RenderedItem(
+            f"{self.palette.directory}Host {name}{self.palette.reset}",
+            group="location",
         )
 
     def git(self):
@@ -1560,6 +1591,22 @@ class _RenderState:
             return None
         return _RenderedItem(
             f"{self.palette.percentage}Context {percentage}% left{self.palette.reset}",
+            group="context",
+        )
+
+    def context_used(self):
+        value = deep_get(self.data, ("context_window", "used_percentage"))
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None
+        try:
+            percentage = float(value)
+        except OverflowError:
+            return None
+        if not math.isfinite(percentage) or not 0 <= percentage <= 100:
+            return None
+        return _RenderedItem(
+            f"{self.palette.percentage}Context {round(percentage)}% used"
+            f"{self.palette.reset}",
             group="context",
         )
 
@@ -1813,6 +1860,12 @@ class _SampleRenderState(_RenderState):
             f"{self.palette.timer}✓ 1m 42s{self.palette.reset}"
         )
 
+    def hostname(self):
+        return _RenderedItem(
+            f"{self.palette.directory}Host devbox{self.palette.reset}",
+            group="location",
+        )
+
 
 def _sample_preview_data():
     project_dir = Path.home() / "projects" / "claude-code-statusline"
@@ -1830,6 +1883,7 @@ def _sample_preview_data():
         "worktree": {"name": "statusline-tui"},
         "context_window": {
             "remaining_percentage": 73,
+            "used_percentage": 27,
             "context_window_size": 200_000,
         },
         "rate_limits": {

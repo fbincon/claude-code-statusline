@@ -1,10 +1,10 @@
 # Claude Code Statusline
 
-这是一个面向 Linux 的、可配置且带会话状态的 Claude Code CLI 状态栏工具。它可以显示主 Agent 的模型与 effort、实时工作目录、Git 状态、上下文余量、Claude 使用限额、session token 和端到端 prompt 用时，并通过 Claude Code 官方 `subagentStatusLine` 为普通子 Agent 渲染独立行。
+这是一个面向 Linux 的、可配置且带会话状态的 Claude Code CLI 状态栏工具。它可以显示主 Agent 的模型与 effort、实时工作目录、项目名、本机名、Git 状态、上下文用量与余量、Claude 使用限额、session token 和端到端 prompt 用时，并通过 Claude Code 官方 `subagentStatusLine` 为普通子 Agent 渲染独立行。
 
 显示项、显示顺序和样式既可以通过独立交互式 TUI 配置，也可以在 Claude Code 中通过 `/statusline-config` 或实验性的 `/statusline-configure` 启动器配置。所有配置均为用户全局配置，对该用户的所有 Claude Code 项目生效。
 
-运行时只使用 Python 标准库；Git 信息需要系统中存在 `git`。状态栏只读取 Claude Code 传入的数据、本地 transcript、Git 仓库和本地状态文件，不会自行发起网络请求，也不会因为渲染状态栏而消耗模型 token。
+运行时只使用 Python 标准库；Git 信息需要系统中存在 `git`。状态栏只读取 Claude Code 传入的数据、本地 hostname、本地 transcript、Git 仓库和本地状态文件，不会自行发起网络请求，也不会因为渲染状态栏而消耗模型 token。
 
 ## 文档导航
 
@@ -29,7 +29,7 @@
 
 ## 功能概览
 
-- 按用户选择显示或隐藏状态项：默认 10 项，另有 11 个可选条目（版本、会话、cost、prompt-cache、运行模式、PR/worktree 等）。
+- 按用户选择显示或隐藏状态项：默认 10 项，另有 14 个可选条目（项目名、本机名、上下文用量、版本、会话、cost、prompt-cache、运行模式、PR/worktree 等）。
 - 按配置文件中的顺序渲染状态项。
 - 支持 24 位 RGB 配色、终端 ANSI 配色或完全关闭颜色。
 - 支持完整路径、`~` 路径、项目相对路径和目录 basename。
@@ -78,7 +78,7 @@ command -v git
 
 ```bash
 uv build
-pipx install dist/claude_code_statusline-0.6.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.7.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -87,7 +87,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.6.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.7.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -158,8 +158,8 @@ claude-statusline install --no-experimental-slash-tui
 
 该命令会启动英文多选问答向导，依次询问：
 
-- Identity / Repo：模型、目录和 Git。
-- Context：上下文剩余百分比和窗口大小。
+- Identity / Repo：模型、当前目录、项目名、本机名和 Git。
+- Context：上下文剩余百分比、已用百分比和窗口大小。
 - Limits：5 小时、每周和 spend 限额。
 - Usage：token 统计、prompt 计时器、cost 和 prompt-cache。
 - Session：Claude Code 版本和会话名称/ID。
@@ -169,7 +169,7 @@ claude-statusline install --no-experimental-slash-tui
 - 自定义子 Agent 行开关，以及 `off/when-subagents/always` 范围标签。
 - 颜色、palette、目录格式、分隔符、padding、刷新间隔和 Vim 指示器。
 
-Session、Modes、Repository 组的条目以及 `cost`、`prompt-cache` 默认禁用；在向导中勾选即启用。
+Session、Modes、Repository 组的条目以及 `project-name`、`hostname`、`context-used`、`cost`、`prompt-cache` 默认禁用；在向导中勾选即启用。
 
 向导会保留仍然启用的条目的相对顺序，并按默认目录顺序把新启用的条目追加到末尾。完成全部选择后，它只调用一次原子 `config apply`；中途取消不会写入任何配置。
 
@@ -425,7 +425,7 @@ claude-statusline config list-items --json
 
 - `id`：传给其他命令的稳定标识符。
 - `description`：显示项说明。
-- `default_enabled`：默认是否启用。前 10 个原有条目为 `true`；`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 为 `false`（opt-in）。
+- `default_enabled`：默认是否启用。前 10 个原有条目为 `true`；`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 为 `false`（opt-in）。
 - `enabled`：当前是否启用。
 - `position`：当前从 0 开始的顺序；禁用时为 `null`。
 
@@ -612,6 +612,22 @@ claude-statusline config reset
 
 `cost` 的金额来自 Claude Code 的 `total_cost_usd`；在第三方 API 端点（例如 DeepSeek 代理）下该值为按默认模型费率的估算，仅作参考。`prompt-cache` 与 `tokens` 的统计口径不同：前者来自 statusline payload 且不含 subagent 流量，后者从 transcript 累计并包含可发现的 subagent transcript。
 
+0.7.0 增加以下三个主 Agent 条目，也都**默认不显示**：
+
+| ID | 显示内容 | 数据来源 | 数据不可用时的行为 |
+| --- | --- | --- | --- |
+| `context-used` | `Context N% used`，使用 `round()` 取整 | Claude 官方 statusline payload 的 `context_window.used_percentage` | 字段缺失、bool、非数字、非有限数或超出闭区间 `0–100` 时省略 |
+| `project-name` | `Project NAME` | Claude 启动目录 `workspace.project_dir` 的 POSIX basename；只处理字符串，不访问文件系统 | 字段无效、为空、清理后为空或表示根目录时省略；不回退到 `workspace.repo.name` 或 `current-dir` |
+| `hostname` | `Host NAME` | 本地 Linux 上 Python 标准库的 `socket.gethostname()`；不是 Claude Code 2.1.258+ payload 字段 | 调用抛出 `OSError`，或清理换行、控制字符和 ANSI 注入后为空时省略；不执行外部命令、不访问网络 |
+
+可一次启用这三项：
+
+```bash
+claude-statusline config enable project-name hostname context-used
+```
+
+主栏的 `context-used` 与 `context-remaining` 是彼此独立的配置项，可单独开启或同时保留。三项上下文条目相邻时按配置顺序使用内部圆点连接，例如 `Context 73% left · Context 27% used · 200K window`。这些新增项不会改变 schema v2、默认十项或旧配置的渲染结果。
+
 ## 子 Agent 行与三种作用域
 
 Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。renderer 保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 NDJSON。它不扫描 transcript、不执行 Git、不访问网络，也不写运行状态；token 只使用当前 task 的 `tokenCount`。
@@ -735,12 +751,13 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 以下条目在相邻时属于同一语义组，并用 ` · ` 连接；同组条目使用相同颜色：
 
 - `model-with-effort`、`fast-mode` 与 `thinking`（模型组，象牙白）
+- `current-dir`、`project-name` 与 `hostname`（位置组，绿色）
 - `git`、`pr` 与 `repo`（仓库组，紫）
 - `tokens` 与 `prompt-cache`（用量组，粉）
-- `context-remaining` 与 `context-window-size`
+- `context-remaining`、`context-used` 与 `context-window-size`
 - `five-hour-limit`、`weekly-limit` 与 `spend-limit`
 
-`version`、`session`、`cost`、`agent`、`vim-mode`、`worktree` 各自独立，不与相邻条目合并。目录顺序已按组排列（模型组 → 目录 → 仓库组 → 上下文 → 限额 → 用量组 → 计时 → 独立项），所以用 `enable` 追加的新条目会自动落在组锚点之后。如果通过排序把同组条目分开，它们会恢复为独立顶层条目。`tokens` 内部的 `hit`、`miss`、`out`，`cost` 内部的金额、时长、增删行，以及 `prompt-cache` 内部的命中率、写入 token 始终使用 ` · `。
+`version`、`session`、`cost`、`agent`、`vim-mode`、`worktree` 各自独立，不与相邻条目合并。目录顺序已按组排列（模型组 → 位置组 → 仓库组 → 上下文 → 限额 → 用量组 → 计时 → 独立项），所以用 `enable` 追加的新条目会自动落在组锚点之后。如果通过排序把同组条目分开，它们会恢复为独立顶层条目。`tokens` 内部的 `hit`、`miss`、`out`，`cost` 内部的金额、时长、增删行，以及 `prompt-cache` 内部的命中率、写入 token 始终使用 ` · `。
 
 ### 刷新间隔
 
@@ -807,7 +824,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 
 这是严格 JSON：不接受注释、尾随逗号、未知字段、缺失字段、未知条目或重复条目。建议使用配置命令修改，而不是手工编辑。
 
-上例中的 10 个条目是默认启用集合。`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
+上例中的 10 个条目是默认启用集合。`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
 
 配置更新采用 0600 文件权限、临时文件和原子替换。多个并发配置命令共享同一把文件锁，避免后写入者丢失先写入者的变更。独立 TUI 还会比较打开时与保存时的语义配置，避免长时间编辑覆盖期间发生的外部修改。
 
@@ -868,6 +885,14 @@ claude-statusline config set separator-style compact
 ```bash
 claude-statusline config set-items five-hour-limit weekly-limit spend-limit tokens
 ```
+
+### 显示项目、本机和两种上下文百分比
+
+```bash
+claude-statusline config enable project-name hostname context-used
+```
+
+保留默认上下文条目时会同时显示 `Context N% left`、`Context N% used` 和窗口大小；如只需要其中一种，可独立 `disable context-remaining` 或 `disable context-used`。
 
 ### 关闭颜色，适配基础终端或日志录制
 
@@ -942,7 +967,7 @@ claude-statusline doctor
 
 ```bash
 uv build
-pipx install --force dist/claude_code_statusline-0.6.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.7.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
@@ -1217,7 +1242,7 @@ uv build
 确认 wheel 包含 personal skill 模板：
 
 ```bash
-python3 -m zipfile -l dist/claude_code_statusline-0.6.0-py3-none-any.whl
+python3 -m zipfile -l dist/claude_code_statusline-0.7.0-py3-none-any.whl
 ```
 
 ### 无费用与人工验收边界
@@ -1230,7 +1255,7 @@ python3 -m zipfile -l dist/claude_code_statusline-0.6.0-py3-none-any.whl
 
 - 仅支持 Linux 和 Python 3.10+。
 - 配置仅为用户全局，不提供项目级配置。
-- 不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
+- 除本地 `socket.gethostname()` 提供的可选 hostname 外，不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
 - 不跟随 Claude Code `/theme`；`default` palette 使用本项目固定 RGB 色值。
 - 不提供 Claude Code 原生 TUI 扩展；实验入口只支持 tmux popup 和 GNOME Terminal 新标签页，并复用独立 TUI。
 - 不访问 `/dev/tty`，不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。

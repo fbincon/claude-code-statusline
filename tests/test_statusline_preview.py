@@ -21,13 +21,14 @@ class PreviewContentTests(unittest.TestCase):
         config = dc.DEFAULT_CONFIG.with_updates(
             items=tuple(dc.ITEM_CATALOG), use_colors=False
         )
-        rendered = "\n".join(plain_rows(config))
+        rendered = "\n".join(plain_rows(config, width=600))
         expected = (
             "Main/Session | claude-opus high · fast · thinking | "
-            f"{Path.home()}/projects/claude-code-statusline/src | "
+            f"{Path.home()}/projects/claude-code-statusline/src · "
+            "Project claude-code-statusline · Host devbox | "
             "Git feature/statusline-tui ↑1 ~2 ?1 · PR #42 · approved · "
             "Repo example/claude-code-statusline | Worktree statusline-tui | "
-            "Context 73% left · 200K window | "
+            "Context 73% left · Context 27% used · 200K window | "
             "5h 82% left · weekly 64% left · spend 91% left | "
             "hit 1.2M · miss 87.5K · out 22.4K · cache 91% · 352K w | "
             "✓ 1m 42s | v2.1.258 | Session demo-session | "
@@ -39,7 +40,7 @@ class PreviewContentTests(unittest.TestCase):
             sl._sample_preview_data(), config, palette, " · "
         )
         self.assertEqual(
-            sum(state.render(item) is not None for item in dc.ITEM_CATALOG), 21
+            sum(state.render(item) is not None for item in dc.ITEM_CATALOG), 24
         )
 
     def test_toggle_order_separator_directory_padding_and_width_change_preview(self):
@@ -94,6 +95,7 @@ class PreviewContentTests(unittest.TestCase):
                 mock.patch.object(sl, "_save_state") as save_state,
                 mock.patch.object(sl, "_write_git_cache") as write_git_cache,
                 mock.patch.object(sl.subprocess, "run") as subprocess_run,
+                mock.patch.object(sl.socket, "gethostname") as gethostname,
             ):
                 rows = sl.render_preview_rows(config, 80)
             self.assertTrue(rows)
@@ -103,6 +105,7 @@ class PreviewContentTests(unittest.TestCase):
             save_state.assert_not_called()
             write_git_cache.assert_not_called()
             subprocess_run.assert_not_called()
+            gethostname.assert_not_called()
             self.assertEqual(list(root.iterdir()), [])
 
 

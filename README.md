@@ -11,7 +11,7 @@
 ```bash
 cd /home/fbincon/coding/claude-code-statusline
 uv build
-pipx install dist/claude_code_statusline-0.6.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-0.7.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
@@ -133,6 +133,7 @@ hook 会优先在当前 tmux 客户端打开 `90% × 90%` popup；不在可访�
 /statusline-config set-items model-with-effort current-dir git context-remaining
 /statusline-config enable prompt-timer
 /statusline-config enable version session cost prompt-cache
+/statusline-config enable project-name hostname context-used
 /statusline-config disable tokens
 /statusline-config order current-dir git model-with-effort context-remaining prompt-timer
 /statusline-config subagents list-items
@@ -188,6 +189,14 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 - `worktree`：`--worktree` 会话的 worktree 名称
 - `repo`：origin remote 的仓库，如 `Repo owner/name`
 
+0.7.0 另外增加三个**默认关闭**的主 Agent 条目；它们不属于子 Agent 条目目录：
+
+- `context-used`：显示 `Context N% used`，来自 Claude 官方 payload 的 `context_window.used_percentage`；缺失、非数字、非有限数或超出 `0–100` 时省略。
+- `project-name`：显示 `Project NAME`，取 Claude 启动目录 `workspace.project_dir` 的 POSIX basename；字段无效、为空或为根目录时省略，不回退到 `repo.name` 或 `current-dir`。
+- `hostname`：显示 `Host NAME`，来自本地 Linux 上 Python 的 `socket.gethostname()`；调用失败或清理控制字符、换行和 ANSI 注入后为空时省略，不执行外部命令，也不访问网络。它不是 Claude Code 2.1.258+ payload 字段。
+
+三项都可用 CLI、TUI 或 `/statusline-config` 启用和排序。`context-used` 与默认的 `context-remaining` 相互独立，可以同时启用；相邻时显示为 `Context 73% left · Context 27% used · 200K window`。
+
 `set-items` 不带条目时会隐藏全部状态行内容。`order` 必须恰好列出当前启用的所有条目一次。
 
 子 Agent 行的条目目录是 `status`、`name`、`model-with-effort`、`context-used`、`elapsed`、`task`、`tokens` 和 `current-dir`；前六项默认开启。`subagents set-items` 传空列表会按照 Claude 的 NDJSON 协议为每个有效任务返回空 `content`，从而隐藏所有自定义行。
@@ -215,7 +224,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 构建新版本 wheel 后，让 pipx 替换现有环境，再重复执行安装命令。该命令是幂等的，不会产生重复 hooks：
 
 ```bash
-pipx install --force dist/claude_code_statusline-0.6.0-py3-none-any.whl
+pipx install --force dist/claude_code_statusline-0.7.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 ```
