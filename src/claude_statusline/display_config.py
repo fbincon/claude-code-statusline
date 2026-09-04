@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
+
+from . import _platform
 
 LEGACY_SCHEMA_VERSION = 1
 SCHEMA_VERSION = 2
@@ -341,32 +341,10 @@ def display_config_bytes(config: DisplayConfig) -> bytes:
 
 
 def atomic_write_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
-    )
-    temporary_path: Path | None = Path(temporary)
     try:
-        os.fchmod(fd, mode)
-        with os.fdopen(fd, "wb") as stream:
-            stream.write(content)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary_path, path)
-        temporary_path = None
-        directory_fd = os.open(path.parent, os.O_RDONLY)
-        try:
-            os.fsync(directory_fd)
-        finally:
-            os.close(directory_fd)
+        _platform.atomic_write_bytes(path, content, mode)
     except OSError as exc:
         raise DisplayConfigError(f"cannot write {path}: {exc}") from exc
-    finally:
-        if temporary_path is not None:
-            try:
-                temporary_path.unlink()
-            except FileNotFoundError:
-                pass
 
 
 def write_display_config(config_dir: Path, config: DisplayConfig) -> None:
@@ -376,9 +354,7 @@ def write_display_config(config_dir: Path, config: DisplayConfig) -> None:
 def restore_bytes(path: Path, raw: bytes | None, mode: int = 0o600) -> None:
     if raw is None:
         try:
-            path.unlink()
-        except FileNotFoundError:
-            pass
+            _platform.durable_unlink(path)
         except OSError as exc:
             raise DisplayConfigError(f"cannot restore absence of {path}: {exc}") from exc
         return

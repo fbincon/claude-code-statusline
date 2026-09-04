@@ -5,13 +5,13 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import os
 import shlex
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from . import _platform
 from . import display_config as dc
 from . import installer
 
@@ -280,15 +280,7 @@ def _backup_transaction(
 
 
 def _delete_file(path: Path) -> None:
-    try:
-        path.unlink()
-    except FileNotFoundError:
-        return
-    directory_fd = os.open(path.parent, os.O_RDONLY)
-    try:
-        os.fsync(directory_fd)
-    finally:
-        os.close(directory_fd)
+    _platform.durable_unlink(path)
 
 
 Mutation = Callable[

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0 - 2026-09-04
+
+- 将平台契约从 Linux 扩展为 Linux/WSL 与 Windows 10/11 原生；Windows 支持 CPython 3.10–3.14 x86/x64，macOS 继续明确不支持，Windows ARM64 原生 Python 暂不承诺。
+- 新增集中式平台适配层：Linux 保留 `fcntl.flock`、`0600/0700` 与父目录 `fsync`；Windows 使用延迟导入的 `msvcrt` 固定字节锁、继承 ACL、带 sharing violation/access denied 重试的原子替换与 durable unlink。
+- Windows session registry 校验通过 `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)`、`GetProcessTimes` 和本地 `.NET DateTime.Ticks` 转换验证 `procStart`；计时使用包含休眠时间的 `GetTickCount64` 与按分钟量化的启动标识，API 不可用时回退墙钟。
+- Windows 安装统一写入可由 Git Bash 和 PowerShell 执行的 `claude-statusline.exe render`、`render-subagents`、`hook` 与 `slash-hook`；Linux 绝对路径加 POSIX 引号的既有命令格式不变。所有权识别同时接受 canonical 名称、大小写不敏感 `.exe` 与解析到当前入口的 PATH alias。
+- Windows `/statusline-config` skill 同时预授权窄范围 Bash/PowerShell config 规则；`/statusline-configure` fallback 同时禁用 Bash 与 PowerShell。`doctor` 新增 Windows executable、ACL/mode 差异、`windows-curses` 与系统新控制台诊断。
+- 包元数据增加条件依赖 `windows-curses>=2.4.2; sys_platform == "win32"`。Linux 与 Windows 复用 Main/Subagents/Settings 全屏 TUI；信号注册只引用平台实际存在的信号，并兼容 PDCurses resize。
+- `/statusline-configure` 在 Windows 新增 `CREATE_NEW_CONSOLE` launcher，直接运行当前虚拟环境的 `python -m claude_statusline configure`，保留子进程句柄、真实终端 I/O、570/585 秒 deadline、关窗/异常/超时回收及 schema v1 结果回传。Linux tmux/GNOME 行为保持不变。
+- Windows 结果桥拒绝 symlink、junction、其他 reparse point、路径越界、非普通文件和超过 16 KiB 的结果；不再把 NTFS 伪 POSIX mode 当成损坏。长路径换行同时识别 `/` 与 `\`，`full` 风格保留 payload 原始分隔符。
+- 保持显示 schema v2、feature schema v1、状态缓存、生命周期 ledger、默认显示、Claude Code 2.1.205/2.1.258 功能门槛和旧 Linux 安装所有权语义不变，不执行数据迁移。
+- CI 新增 Ubuntu/Windows × Python 3.10/3.14 矩阵、PowerShell/Git Bash 与 Linux smoke，以及 sdist/wheel 版本、条件依赖、skills 和平台模块打包检查。
+
 ## 0.9.0 - 2026-09-03
 
 - 新增子 Agent 条目 `status-elapsed`：把状态图标与用时合并为一个单元（如 `⏱ 1m 18s`、`✓ 0m 42s`），取代 `status` 与 `elapsed` 成为默认子 Agent 行，默认输出从 `⏱ Explore · sonnet-5/high · Context 58% left · 1m 18s · searching auth flow` 变为 `⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow`。

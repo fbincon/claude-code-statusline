@@ -24,7 +24,7 @@ class PreviewContentTests(unittest.TestCase):
         rendered = "\n".join(plain_rows(config, width=600))
         expected = (
             "Main/Session | claude-opus high · fast · thinking | "
-            f"{Path.home()}/projects/claude-code-statusline/src · "
+            f"{Path.home().as_posix()}/projects/claude-code-statusline/src · "
             "Project claude-code-statusline · Host devbox | "
             "Git feature/statusline-tui ↑1 ~2 ?1 · PR #42 · approved · "
             "Repo example/claude-code-statusline | Worktree statusline-tui | "

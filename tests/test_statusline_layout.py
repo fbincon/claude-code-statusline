@@ -51,6 +51,25 @@ class SegmentSplittingTests(unittest.TestCase):
         self.assertEqual("".join(plain(row) for row in rows), path)
         self.assertNotIn("…", "".join(plain(row) for row in rows))
 
+    def test_windows_drive_and_unc_paths_prefer_both_separator_styles(self):
+        for path in (
+            r"C:\Users\测试 用户\projects\very-long-component\src\package",
+            r"\\server\share\团队 目录\very-long-component\src\package",
+            r"C:/Users/测试 用户/projects/very-long-component/src/package",
+        ):
+            with self.subTest(path=path):
+                segment = sl._LayoutSegment(
+                    f"{sl.C_DIR}{path}{sl.C_RESET}",
+                    prefer_slash_breaks=True,
+                )
+                rows = sl._layout_segments([segment], 18)
+                self.assertGreater(len(rows), 1)
+                self.assertRowsFit(rows, 18)
+                self.assertEqual("".join(plain(row) for row in rows), path)
+                self.assertTrue(any(
+                    plain(row).startswith(("/", "\\")) for row in rows[1:]
+                ))
+
     def test_single_long_component_and_unicode_are_hard_split(self):
         value = "/" + "长目录" * 5 + "x" * 17
         segment = sl._LayoutSegment(

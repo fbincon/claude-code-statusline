@@ -14,7 +14,6 @@
 # synchronized repo shows just the branch; segments whose data is missing are
 # omitted.
 import datetime
-import fcntl
 import hashlib
 import json
 import math
@@ -23,12 +22,12 @@ import re
 import socket
 import subprocess
 import sys
-import tempfile
 import time
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import _platform
 from .display_config import (
     DEFAULT_CONFIG,
     DisplayConfig,
@@ -231,11 +230,11 @@ def _split_ansi_text(text, width, prefer_slashes=False):
             break
 
         if prefer_slashes:
-            # Break before the last slash that fits so concatenating the plain
-            # chunks reconstructs the exact original absolute path.
+            # Break before the last path separator that fits so concatenating
+            # the plain chunks reconstructs an exact POSIX, drive, or UNC path.
             slash = None
             for index in range(start + 1, end):
-                if units[index].text.startswith("/"):
+                if units[index].text.startswith(("/", "\\")):
                     slash = index
             if slash is not None:
                 end = slash
@@ -349,51 +348,34 @@ def _save_state(state):
     # Atomic publication prevents readers from observing a torn JSON file.
     # The caller also holds STATE_LOCKFILE across load/update/save so multiple
     # Claude sessions cannot overwrite one another's newly parsed records.
-    tmp = None
     try:
-        os.makedirs(os.path.dirname(STATEFILE), mode=0o700, exist_ok=True)
-        fd, tmp = tempfile.mkstemp(
-            prefix=".statusline-state-", suffix=".tmp",
-            dir=os.path.dirname(STATEFILE),
+        _platform.atomic_write_bytes(
+            Path(STATEFILE), json.dumps(state).encode("utf-8"), 0o600
         )
-        os.fchmod(fd, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(state, f)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp, STATEFILE)
-        tmp = None
     except Exception:
         pass
-    finally:
-        if tmp is not None:
-            try:
-                os.unlink(tmp)
-            except OSError:
-                pass
+
+
+_STATE_LOCK_CONTEXTS = {}
 
 
 def _acquire_state_lock():
-    os.makedirs(os.path.dirname(STATE_LOCKFILE), mode=0o700, exist_ok=True)
-    fd = os.open(STATE_LOCKFILE, os.O_CREAT | os.O_RDWR, 0o600)
-    try:
-        os.fchmod(fd, 0o600)
-    except OSError:
-        pass
-    fcntl.flock(fd, fcntl.LOCK_EX)
-    return fd
+    context = _platform.exclusive_file_lock(Path(STATE_LOCKFILE))
+    descriptor = context.__enter__()
+    _STATE_LOCK_CONTEXTS[descriptor] = context
+    return descriptor
+
+
+def _release_state_lock(descriptor):
+    context = _STATE_LOCK_CONTEXTS.pop(descriptor, None)
+    if context is None:
+        os.close(descriptor)
+    else:
+        context.__exit__(None, None, None)
 
 
 def _proc_start_time(pid):
-    try:
-        with open(f"/proc/{pid}/stat", "r", encoding="utf-8") as f:
-            stat = f.read()
-        # comm (field 2) is parenthesized and may itself contain spaces.
-        close = stat.rfind(")")
-        fields = stat[close + 2:].split() if close >= 0 else []
-        return fields[19] if len(fields) > 19 else None  # field 22: starttime
-    except (OSError, ValueError):
-        return None
+    return _platform.process_start_token(pid)
 
 
 def _read_cli_session_status(session_id):
@@ -420,11 +402,17 @@ def _read_cli_session_status(session_id):
                 continue
             pid = data.get("pid")
             updated_ms = data.get("statusUpdatedAt")
+            process_token = (
+                _proc_start_time(pid)
+                if isinstance(pid, int) and not isinstance(pid, bool)
+                else None
+            )
             if (data.get("sessionId") != str(session_id)
                     or not isinstance(pid, int) or isinstance(pid, bool)
                     or pid != int(stem)
                     or not isinstance(updated_ms, int) or isinstance(updated_ms, bool)
-                    or str(data.get("procStart") or "") != str(_proc_start_time(pid) or "")):
+                    or process_token is None
+                    or str(data.get("procStart") or "") != process_token):
                 continue
             candidate = {
                 "status": data.get("status"),
@@ -961,7 +949,7 @@ def session_token_totals(data):
             entry,
         )
     finally:
-        os.close(lock_fd)
+        _release_state_lock(lock_fd)
 
 
 _CACHE_MISS = object()
@@ -1047,36 +1035,28 @@ def _prune_git_cache():
 def _write_git_cache(session_id, cwd, value):
     if not session_id or not _valid_git_result(value):
         return
-    tmp = None
     try:
         os.makedirs(GIT_CACHE_DIR, mode=0o700, exist_ok=True)
-        try:
-            os.chmod(GIT_CACHE_DIR, 0o700)
-        except OSError:
-            pass
-        fd, tmp = tempfile.mkstemp(prefix=".git-", suffix=".tmp", dir=GIT_CACHE_DIR)
-        os.fchmod(fd, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(
-                {
-                    "version": GIT_CACHE_VERSION,
-                    "checked_ns": time.time_ns(),
-                    "cwd": os.path.abspath(cwd),
-                    "value": value,
-                },
-                f, separators=(",", ":"),
-            )
-        os.replace(tmp, _git_cache_path(session_id))
-        tmp = None
+        if _platform.is_linux():
+            try:
+                os.chmod(GIT_CACHE_DIR, 0o700)
+            except OSError:
+                pass
+        content = json.dumps(
+            {
+                "version": GIT_CACHE_VERSION,
+                "checked_ns": time.time_ns(),
+                "cwd": os.path.abspath(cwd),
+                "value": value,
+            },
+            separators=(",", ":"),
+        ).encode("utf-8")
+        _platform.atomic_write_bytes(
+            Path(_git_cache_path(session_id)), content, 0o600
+        )
         _prune_git_cache()
     except Exception:
         pass
-    finally:
-        if tmp is not None:
-            try:
-                os.unlink(tmp)
-            except OSError:
-                pass
 
 
 def _uncached_git_status(cwd):
@@ -1869,14 +1849,15 @@ class _SampleRenderState(_RenderState):
 
 def _sample_preview_data():
     project_dir = Path.home() / "projects" / "claude-code-statusline"
+    project_text = project_dir.as_posix()
     return {
         "model": {"id": "claude-opus"},
         "effort": {"level": "high"},
         "fast_mode": True,
         "thinking": {"enabled": True},
         "workspace": {
-            "current_dir": str(project_dir / "src"),
-            "project_dir": str(project_dir),
+            "current_dir": f"{project_text}/src",
+            "project_dir": project_text,
             "repo": {"owner": "example", "name": "claude-code-statusline"},
         },
         "pr": {"number": 42, "review_state": "approved"},

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 
+from . import _platform
 from ._version import __version__
 
 
@@ -22,7 +23,7 @@ def build_parser():
 
     parser = argparse.ArgumentParser(
         prog="claude-statusline",
-        description="Packaged Claude Code status line for Linux.",
+        description="Packaged Claude Code status line for Linux and Windows.",
     )
     parser.add_argument(
         "--version",
@@ -182,8 +183,10 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.command == "install":
-            if not sys.platform.startswith("linux"):
-                raise installer.ConfigurationError("this release supports Linux only")
+            if not _platform.is_supported_platform():
+                raise installer.ConfigurationError(
+                    "supported platforms are Linux/WSL and Windows"
+                )
             result = installer.install_configuration(
                 config_dir, executable,
                 dry_run=args.dry_run,
@@ -193,8 +196,10 @@ def main(argv: list[str] | None = None) -> int:
             _print_change(result, args.dry_run)
             return 0
         if args.command == "configure":
-            if not sys.platform.startswith("linux"):
-                raise installer.ConfigurationError("this release supports Linux only")
+            if not _platform.is_supported_platform():
+                raise installer.ConfigurationError(
+                    "supported platforms are Linux/WSL and Windows"
+                )
             # Keep curses out of render, hook, and slash-hook startup paths.
             from . import interactive_config
 

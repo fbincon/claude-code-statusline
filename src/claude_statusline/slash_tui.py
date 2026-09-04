@@ -10,11 +10,14 @@ import shutil
 import signal
 import stat
 import subprocess
+import sys
 import tempfile
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
+
+from . import _platform
 
 RESULT_ENV = "CLAUDE_STATUSLINE_SLASH_RESULT"
 DEADLINE_ENV = "CLAUDE_STATUSLINE_SLASH_DEADLINE_SECONDS"
@@ -114,6 +117,11 @@ def _tmux_preflight(
 
 
 def choose_launcher(environ: Mapping[str, str]) -> Launcher | None:
+    if _platform.is_windows():
+        if _platform.new_console_creation_flags():
+            return Launcher("windows-console", sys.executable)
+        return None
+
     pane = environ.get("TMUX_PANE", "")
     tmux = _which("tmux", environ)
     if (
@@ -139,7 +147,7 @@ def _tree_without_symlinks(root: Path) -> tuple[list[Path], list[Path]] | None:
         with os.scandir(root) as entries:
             for entry in entries:
                 path = Path(entry.path)
-                if entry.is_symlink():
+                if entry.is_symlink() or _platform.is_link_or_reparse(path):
                     return None
                 entry_stat = entry.stat(follow_symlinks=False)
                 if stat.S_ISREG(entry_stat.st_mode):
@@ -166,7 +174,7 @@ def _remove_stale_directory(path: Path) -> bool:
     files, directories = contents
     try:
         for child in files:
-            child.unlink()
+            _platform.durable_unlink(child)
         for child in directories:
             child.rmdir()
         path.rmdir()
@@ -182,7 +190,11 @@ def cleanup_stale_invocations(base: Path, *, now: float | None = None) -> None:
     except (FileNotFoundError, NotADirectoryError, PermissionError):
         return
     for entry in entries:
-        if not _INVOCATION_PATTERN.fullmatch(entry.name) or entry.is_symlink():
+        if (
+            not _INVOCATION_PATTERN.fullmatch(entry.name)
+            or entry.is_symlink()
+            or _platform.is_link_or_reparse(entry.path)
+        ):
             continue
         try:
             entry_stat = entry.stat(follow_symlinks=False)
@@ -196,15 +208,21 @@ def cleanup_stale_invocations(base: Path, *, now: float | None = None) -> None:
 def _create_invocation_dir(config_dir: Path) -> tuple[Path, Path]:
     base = config_dir / "statusline_runtime" / "slash_tui"
     try:
-        if base.parent.is_symlink() or base.is_symlink():
+        if (
+            _platform.is_link_or_reparse(config_dir)
+            or _platform.is_link_or_reparse(base.parent)
+            or _platform.is_link_or_reparse(base)
+        ):
             raise OSError("runtime path is a symbolic link")
         base.mkdir(mode=0o700, parents=True, exist_ok=True)
         if not base.is_dir():
             raise OSError("runtime path is not a directory")
-        base.chmod(0o700)
+        if _platform.is_linux():
+            base.chmod(0o700)
         cleanup_stale_invocations(base)
         invocation = Path(tempfile.mkdtemp(prefix=INVOCATION_PREFIX, dir=base))
-        invocation.chmod(0o700)
+        if _platform.is_linux():
+            invocation.chmod(0o700)
     except OSError as exc:
         raise ResultError(f"cannot create the private result directory: {exc}") from exc
     return invocation, invocation / RESULT_FILENAME
@@ -221,6 +239,15 @@ def build_launcher_argv(
     cwd: Path,
     result_path: Path,
 ) -> list[str]:
+    if launcher.kind == "windows-console":
+        return [
+            launcher.executable,
+            "-m",
+            "claude_statusline",
+            "configure",
+            "--config-dir",
+            str(config_dir),
+        ]
     configure_argv = _configure_argv(executable, config_dir)
     if launcher.kind == "tmux":
         command = shlex.join([
@@ -267,7 +294,34 @@ def _read_capture(stream) -> bytes:
 def _run_launcher(
     argv: list[str],
     environ: Mapping[str, str],
+    *,
+    launcher: Launcher | None = None,
+    cwd: Path | None = None,
 ) -> tuple[int | None, bytes, bytes, bool]:
+    if launcher is not None and launcher.kind == "windows-console":
+        try:
+            process = subprocess.Popen(
+                argv,
+                cwd=str(cwd) if cwd is not None else None,
+                env=dict(environ),
+                creationflags=_platform.new_console_creation_flags(),
+            )
+        except OSError as exc:
+            return None, b"", str(exc).encode("utf-8", errors="replace"), False
+        try:
+            return process.wait(timeout=LAUNCHER_TIMEOUT_SECONDS), b"", b"", False
+        except subprocess.TimeoutExpired:
+            try:
+                process.terminate()
+                return_code = process.wait(timeout=1)
+            except (OSError, subprocess.TimeoutExpired):
+                try:
+                    process.kill()
+                except OSError:
+                    pass
+                return_code = process.wait()
+            return return_code, b"", b"", True
+
     with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
         try:
             process = subprocess.Popen(
@@ -345,18 +399,42 @@ def _decode_result(raw: bytes) -> TuiResult:
 
 
 def read_result(result_path: Path, invocation_dir: Path) -> TuiResult:
-    if result_path.parent != invocation_dir or result_path.name != RESULT_FILENAME:
-        raise ResultError("result path is outside this invocation")
-    try:
-        invocation_metadata = invocation_dir.lstat()
-    except OSError as exc:
-        raise ResultError(f"cannot inspect the private result directory: {exc}") from exc
     if (
-        not stat.S_ISDIR(invocation_metadata.st_mode)
-        or stat.S_ISLNK(invocation_metadata.st_mode)
-        or stat.S_IMODE(invocation_metadata.st_mode) != 0o700
+        result_path.parent != invocation_dir
+        or result_path.name != RESULT_FILENAME
+        or not _INVOCATION_PATTERN.fullmatch(invocation_dir.name)
     ):
+        raise ResultError("result path is outside this invocation")
+    for directory in (
+        invocation_dir.parent.parent.parent,
+        invocation_dir.parent.parent,
+        invocation_dir.parent,
+        invocation_dir,
+    ):
+        try:
+            directory_metadata = directory.lstat()
+        except OSError as exc:
+            raise ResultError(
+                f"cannot inspect the private result directory: {exc}"
+            ) from exc
+        if (
+            not stat.S_ISDIR(directory_metadata.st_mode)
+            or _platform.is_link_or_reparse(directory)
+        ):
+            raise ResultError("the private result directory is invalid")
+    if _platform.private_mode_matches(invocation_dir, 0o700) is False:
         raise ResultError("the private result directory is invalid")
+    try:
+        result_metadata = result_path.lstat()
+    except FileNotFoundError as exc:
+        raise ResultError("the interactive editor did not return a result") from exc
+    except OSError as exc:
+        raise ResultError(f"cannot inspect the interactive result: {exc}") from exc
+    if (
+        not stat.S_ISREG(result_metadata.st_mode)
+        or _platform.is_link_or_reparse(result_path)
+    ):
+        raise ResultError("the interactive result is not a regular file")
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
     try:
         descriptor = os.open(result_path, flags)
@@ -368,6 +446,13 @@ def read_result(result_path: Path, invocation_dir: Path) -> TuiResult:
         metadata = os.fstat(descriptor)
         if not stat.S_ISREG(metadata.st_mode):
             raise ResultError("the interactive result is not a regular file")
+        if (
+            result_metadata.st_ino
+            and metadata.st_ino
+            and (result_metadata.st_dev, result_metadata.st_ino)
+            != (metadata.st_dev, metadata.st_ino)
+        ):
+            raise ResultError("the interactive result changed while opening")
         if metadata.st_size > RESULT_SIZE_LIMIT:
             raise ResultError("the interactive result exceeds 16 KiB")
         chunks = []
@@ -388,8 +473,8 @@ def read_result(result_path: Path, invocation_dir: Path) -> TuiResult:
 
 def _clean_current_invocation(invocation: Path, result_path: Path) -> None:
     try:
-        result_path.unlink()
-    except (FileNotFoundError, IsADirectoryError, PermissionError):
+        _platform.durable_unlink(result_path)
+    except OSError:
         pass
     try:
         invocation.rmdir()
@@ -441,7 +526,10 @@ def launch(
 
     try:
         return_code, stdout, stderr, timed_out = _run_launcher(
-            argv, child_environment
+            argv,
+            child_environment,
+            launcher=launcher,
+            cwd=cwd,
         )
         try:
             result = read_result(result_path, invocation)
@@ -458,6 +546,17 @@ def launch(
                 else 1
             )
             return _error(_failure_message(detail[:500]), error_code)
+        if (
+            launcher.kind == "windows-console"
+            and return_code != result.exit_code
+        ):
+            detail = f"console process exited with code {return_code}"
+            error_code = (
+                return_code
+                if isinstance(return_code, int) and 1 <= return_code <= 255
+                else 1
+            )
+            return _error(_failure_message(detail), error_code)
         return result
     finally:
         _clean_current_invocation(invocation, result_path)

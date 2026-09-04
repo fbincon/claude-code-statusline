@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Real tmux popup integration test without a Claude API call."""
 
-import fcntl
 import json
 import os
 from pathlib import Path
-import pty
 import select
 import shlex
 import shutil
@@ -13,9 +11,13 @@ import struct
 import subprocess
 import sys
 import tempfile
-import termios
 import time
 import unittest
+
+if sys.platform.startswith("linux"):
+    import fcntl
+    import pty
+    import termios
 
 from claude_statusline import display_config as dc
 

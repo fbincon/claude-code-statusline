@@ -4,22 +4,20 @@ from __future__ import annotations
 
 import copy
 import datetime as dt
-import fcntl
 import json
 import os
+import platform as stdlib_platform
 import re
 import shlex
 import shutil
-import stat
 import subprocess
 import sys
-import tempfile
-from contextlib import contextmanager
 from dataclasses import dataclass
+from importlib import metadata
 from importlib import resources
 from pathlib import Path
 
-from . import feature_config
+from . import _platform, feature_config
 
 HOOK_EVENTS = (
     "SessionStart",
@@ -82,10 +80,20 @@ def resolve_cli_executable(explicit: str | os.PathLike[str] | None = None) -> Pa
     if explicit is not None:
         value = os.fspath(explicit)
     else:
-        value = shutil.which("claude-statusline") or ""
+        names = (
+            ("claude-statusline.exe",)
+            if _platform.is_windows()
+            else ("claude-statusline",)
+        )
+        value = next((found for name in names if (found := shutil.which(name))), "")
     if not value:
+        command_name = (
+            "claude-statusline.exe"
+            if _platform.is_windows()
+            else "claude-statusline"
+        )
         raise ConfigurationError(
-            "cannot find claude-statusline in PATH; install the package first"
+            f"cannot find {command_name} in PATH; install the package first"
         )
     return Path(os.path.abspath(os.path.expanduser(value)))
 
@@ -106,6 +114,8 @@ def _quoted_executable(executable: Path) -> str:
 def command_for(executable: Path, subcommand: str) -> str:
     if subcommand not in ("render", "render-subagents", "hook", "slash-hook"):
         raise ValueError(f"unsupported subcommand: {subcommand}")
+    if _platform.is_windows():
+        return f"claude-statusline.exe {subcommand}"
     return f"{_quoted_executable(executable)} {subcommand}"
 
 
@@ -121,6 +131,7 @@ def detect_claude_version() -> tuple[int, int, int] | None:
             encoding="utf-8",
             timeout=5,
             check=False,
+            creationflags=_platform.no_window_creation_flags(),
         )
     except (OSError, subprocess.SubprocessError):
         return None
@@ -213,12 +224,19 @@ def _render_skill_resource(resource_name: str) -> bytes:
 
 def render_skill(executable: Path) -> bytes:
     template = _render_skill_resource(SLASH_COMMAND_NAME).decode("utf-8")
-    shell_command = shlex.quote(str(executable))
-    allowed_rule = json.dumps(
-        f"Bash({shell_command} config *)", ensure_ascii=False
+    shell_command = (
+        "claude-statusline.exe"
+        if _platform.is_windows()
+        else shlex.quote(str(executable))
+    )
+    rules = [f"Bash({shell_command} config *)"]
+    if _platform.is_windows():
+        rules.append(f"PowerShell({shell_command} config *)")
+    allowed_rules = "\n".join(
+        f"  - {json.dumps(rule, ensure_ascii=False)}" for rule in rules
     )
     rendered = template.replace(
-        "__CLAUDE_STATUSLINE_ALLOWED_RULE__", allowed_rule
+        "__CLAUDE_STATUSLINE_ALLOWED_RULES__", allowed_rules
     ).replace("__CLAUDE_STATUSLINE_COMMAND__", shell_command)
     if "__CLAUDE_STATUSLINE_" in rendered:
         raise ConfigurationError("bundled statusline-config skill has unresolved placeholders")
@@ -250,9 +268,24 @@ def _is_cli_command(
     argv = _split_command(command)
     if not argv or len(argv) != 2 or argv[1] != subcommand:
         return False
+    candidate = argv[0]
+    candidate_name = candidate.replace("\\", "/").rsplit("/", 1)[-1]
+    canonical = candidate_name == "claude-statusline"
+    windows_canonical = candidate_name.casefold() == "claude-statusline.exe"
+    if canonical or windows_canonical:
+        return True
     if executable is not None:
-        return _normalized_path(argv[0]) == _normalized_path(executable)
-    return Path(argv[0]).name == "claude-statusline"
+        if _normalized_path(candidate) == _normalized_path(executable):
+            return True
+        try:
+            resolved = shutil.which(candidate)
+        except (OSError, ValueError):
+            resolved = None
+        return bool(
+            resolved
+            and _normalized_path(resolved) == _normalized_path(executable)
+        )
+    return False
 
 
 def _is_legacy_python_command(
@@ -516,6 +549,8 @@ def _json_bytes(settings: dict) -> bytes:
 
 
 def _chmod_private(path: Path, mode: int) -> None:
+    if not _platform.is_linux():
+        return
     try:
         path.chmod(mode)
     except OSError:
@@ -586,32 +621,7 @@ def _backup_artifacts(
 
 
 def _atomic_write_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(
-        prefix=f".{path.name}.claude-statusline-",
-        suffix=".tmp",
-        dir=path.parent,
-    )
-    temporary_path = Path(temporary)
-    try:
-        os.fchmod(fd, mode)
-        with os.fdopen(fd, "wb") as stream:
-            stream.write(content)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary_path, path)
-        temporary_path = None
-        directory_fd = os.open(path.parent, os.O_RDONLY)
-        try:
-            os.fsync(directory_fd)
-        finally:
-            os.close(directory_fd)
-    finally:
-        if temporary_path is not None:
-            try:
-                temporary_path.unlink()
-            except FileNotFoundError:
-                pass
+    _platform.atomic_write_bytes(path, content, mode)
 
 
 def _atomic_write_settings(settings_path: Path, settings: dict) -> None:
@@ -629,27 +639,17 @@ def _read_optional_bytes(path: Path) -> bytes | None:
 
 def _write_optional_bytes(path: Path, value: bytes | None) -> None:
     if value is None:
-        try:
-            path.unlink()
-        except FileNotFoundError:
-            return
+        _platform.durable_unlink(path)
     else:
         _atomic_write_bytes(path, value, mode=0o600)
 
 
-@contextmanager
 def _installation_lock(config_dir: Path):
     runtime_dir = config_dir / "statusline_runtime"
     runtime_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     _chmod_private(runtime_dir, 0o700)
     lock_path = runtime_dir / "install.lock"
-    fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
-    try:
-        os.fchmod(fd, 0o600)
-        fcntl.flock(fd, fcntl.LOCK_EX)
-        yield
-    finally:
-        os.close(fd)
+    return _platform.exclusive_file_lock(lock_path)
 
 
 def _change_configuration(
@@ -669,10 +669,7 @@ def _change_configuration(
     preference_path = feature_config.feature_path(config_dir)
 
     def private_mode(path: Path) -> bool:
-        try:
-            return stat.S_IMODE(path.stat().st_mode) == 0o600
-        except OSError:
-            return False
+        return _platform.private_mode_matches(path, 0o600) is not False
 
     def prepare():
         settings, settings_raw = _read_settings(settings_path)
@@ -1027,10 +1024,50 @@ def collect_diagnostics(
     claude_version: tuple[int, int, int] | None | object = _DETECT_CLAUDE_VERSION,
 ) -> list[Diagnostic]:
     diagnostics = []
-    if sys.platform.startswith("linux"):
+    if _platform.is_supported_platform():
         diagnostics.append(Diagnostic("OK", f"platform: {sys.platform}"))
     else:
-        diagnostics.append(Diagnostic("ERROR", "this release supports Linux only"))
+        diagnostics.append(Diagnostic(
+            "ERROR", "supported platforms are Linux/WSL and Windows"
+        ))
+
+    if _platform.is_windows():
+        machine = stdlib_platform.machine().casefold()
+        if machine in {"amd64", "x86_64", "x86", "i386", "i686"}:
+            diagnostics.append(Diagnostic("OK", f"Windows architecture: {machine}"))
+        else:
+            diagnostics.append(Diagnostic(
+                "WARN",
+                f"Windows architecture {machine or 'unknown'} is not covered; "
+                "use x64 Python emulation on ARM64",
+            ))
+        try:
+            import curses
+
+            curses_version = metadata.version("windows-curses")
+            if not hasattr(curses, "wrapper"):
+                raise ImportError("curses.wrapper is unavailable")
+            version_match = re.match(r"(\d+)\.(\d+)\.(\d+)", curses_version)
+            if (
+                version_match is None
+                or tuple(map(int, version_match.groups())) < (2, 4, 2)
+            ):
+                raise ImportError(
+                    f"windows-curses 2.4.2+ is required; found {curses_version}"
+                )
+            diagnostics.append(Diagnostic(
+                "OK", f"windows-curses backend: {curses_version}"
+            ))
+        except (ImportError, metadata.PackageNotFoundError) as exc:
+            diagnostics.append(Diagnostic(
+                "ERROR", f"windows-curses backend is unavailable: {exc}"
+            ))
+        if _platform.new_console_creation_flags():
+            diagnostics.append(Diagnostic("OK", "Windows system new-console launcher"))
+        else:
+            diagnostics.append(Diagnostic(
+                "ERROR", "Windows system new-console launcher is unavailable"
+            ))
 
     version = ".".join(map(str, sys.version_info[:3]))
     if sys.version_info >= (3, 10):  # noqa: UP036 - doctor reports the contract
@@ -1040,7 +1077,14 @@ def collect_diagnostics(
 
     if executable is None:
         diagnostics.append(Diagnostic("ERROR", "claude-statusline is not in PATH"))
-    elif executable.is_file() and os.access(executable, os.X_OK):
+    elif (
+        executable.is_file()
+        and os.access(executable, os.X_OK)
+        and (
+            not _platform.is_windows()
+            or executable.suffix.casefold() == ".exe"
+        )
+    ):
         diagnostics.append(Diagnostic("OK", f"executable: {executable}"))
     else:
         diagnostics.append(Diagnostic("ERROR", f"executable is not runnable: {executable}"))
@@ -1062,10 +1106,17 @@ def collect_diagnostics(
         diagnostics.append(Diagnostic("ERROR", f"settings not found: {settings_path}"))
         return diagnostics
     diagnostics.append(Diagnostic("OK", f"settings: {settings_path}"))
-    mode = stat.S_IMODE(settings_path.stat().st_mode)
-    if mode == 0o600:
+    mode_match = _platform.private_mode_matches(settings_path, 0o600)
+    if mode_match is None:
+        diagnostics.append(Diagnostic(
+            "OK",
+            "settings permissions: POSIX mode not applicable on Windows; "
+            "security uses inherited ACLs",
+        ))
+    elif mode_match:
         diagnostics.append(Diagnostic("OK", "settings permissions: 0600"))
     else:
+        mode = settings_path.stat().st_mode & 0o7777
         diagnostics.append(Diagnostic("WARN", f"settings permissions: {mode:04o}"))
 
     current = settings.get("statusLine")
@@ -1141,10 +1192,19 @@ def collect_diagnostics(
         display_source_schema = display_config.read_display_config_schema(config_dir)
         display_path = display_config.config_path(config_dir)
         if display_path.exists():
-            display_mode = stat.S_IMODE(display_path.stat().st_mode)
-            if display_mode == 0o600:
+            display_mode_matches = _platform.private_mode_matches(
+                display_path, 0o600
+            )
+            if display_mode_matches is None:
+                diagnostics.append(Diagnostic(
+                    "OK",
+                    f"display config: {display_path} "
+                    "(POSIX mode not applicable on Windows)",
+                ))
+            elif display_mode_matches:
                 diagnostics.append(Diagnostic("OK", f"display config: {display_path}"))
             else:
+                display_mode = display_path.stat().st_mode & 0o7777
                 diagnostics.append(Diagnostic(
                     "WARN", f"display config permissions: {display_mode:04o}"
                 ))
@@ -1299,12 +1359,21 @@ def collect_diagnostics(
             preference_enabled = feature_config.parse_feature_bytes(
                 preference_raw, preference_path
             )
-            preference_mode = stat.S_IMODE(preference_path.stat().st_mode)
-            if preference_mode == 0o600:
+            preference_mode_matches = _platform.private_mode_matches(
+                preference_path, 0o600
+            )
+            if preference_mode_matches is None:
+                diagnostics.append(Diagnostic(
+                    "OK",
+                    f"experimental feature preferences: {preference_path} "
+                    "(POSIX mode not applicable on Windows)",
+                ))
+            elif preference_mode_matches:
                 diagnostics.append(Diagnostic(
                     "OK", f"experimental feature preferences: {preference_path} (0600)"
                 ))
             else:
+                preference_mode = preference_path.stat().st_mode & 0o7777
                 diagnostics.append(Diagnostic(
                     "ERROR",
                     "experimental feature preferences permissions: "
@@ -1400,7 +1469,11 @@ def collect_diagnostics(
                 f"/{EXPERIMENTAL_SLASH_COMMAND_NAME} hook: expected one 600s hook "
                 "in exactly one matcher",
             ))
-        if not shutil.which("tmux") and not shutil.which("gnome-terminal"):
+        if (
+            _platform.is_linux()
+            and not shutil.which("tmux")
+            and not shutil.which("gnome-terminal")
+        ):
             diagnostics.append(Diagnostic(
                 "WARN",
                 "no supported interactive launcher is installed; install tmux or "
@@ -1408,7 +1481,8 @@ def collect_diagnostics(
             ))
 
     runtime_dir = config_dir / "statusline_runtime"
-    if runtime_dir.is_dir() and os.access(runtime_dir, os.W_OK | os.X_OK):
+    runtime_access = os.W_OK | (0 if _platform.is_windows() else os.X_OK)
+    if runtime_dir.is_dir() and os.access(runtime_dir, runtime_access):
         diagnostics.append(Diagnostic("OK", f"runtime directory: {runtime_dir}"))
     else:
         diagnostics.append(Diagnostic("ERROR", f"runtime directory is not writable: {runtime_dir}"))

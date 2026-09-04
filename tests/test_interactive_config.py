@@ -1,6 +1,7 @@
 """Tests for the curses-independent interactive configuration state."""
 
 import io
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -408,6 +409,39 @@ class SaveAndRunTests(unittest.TestCase):
             execute.assert_called_once()
             self.assertFalse(result_path.exists())
 
+    def test_bridge_path_rejects_escape_and_reparse_chain(self):
+        with tempfile.TemporaryDirectory(prefix="statusline-bridge-path-") as root:
+            config_dir = Path(root) / "claude"
+            invocation = (
+                config_dir
+                / "statusline_runtime"
+                / "slash_tui"
+                / "invocation-random"
+            )
+            invocation.mkdir(mode=0o700, parents=True)
+            if os.name == "posix":
+                invocation.chmod(0o700)
+            result_path = invocation / "result.json"
+            self.assertEqual(
+                ic._validated_bridge_path(config_dir, str(result_path)), result_path
+            )
+
+            escaped = invocation / ".." / "result.json"
+            with self.assertRaises(cc.ConfigCommandError):
+                ic._validated_bridge_path(config_dir, str(escaped))
+
+            reparse = config_dir / "statusline_runtime" / "slash_tui"
+            original = ic._platform.is_link_or_reparse
+            with (
+                mock.patch.object(
+                    ic._platform,
+                    "is_link_or_reparse",
+                    side_effect=lambda value: Path(value) == reparse or original(value),
+                ),
+                self.assertRaises(cc.ConfigCommandError),
+            ):
+                ic._validated_bridge_path(config_dir, str(result_path))
+
 
 class TerminalColorTests(unittest.TestCase):
     def test_rgb_quantizes_for_256_basic_and_no_color_terminals(self):
@@ -421,6 +455,37 @@ class TerminalColorTests(unittest.TestCase):
         self.assertEqual(ic._ansi_style(sgr, 0), (True, None))
         self.assertIsNotNone(ic._ansi_style(sgr, 8)[1])
         self.assertIsNotNone(ic._ansi_style(sgr, 256)[1])
+
+    def test_resize_key_refreshes_pdcurses_dimensions(self):
+        state = ic.EditorState.from_effective(effective())
+        screen = mock.Mock()
+        screen.get_wch.side_effect = [ic.curses.KEY_RESIZE, "\x1b"]
+        screen.getmaxyx.return_value = (24, 100)
+        with (
+            mock.patch.object(ic, "_draw_screen", return_value=12),
+            mock.patch.object(ic, "_ColorMapper", return_value=mock.Mock()),
+            mock.patch.object(ic.curses, "curs_set"),
+            mock.patch.object(ic.curses, "set_escdelay", create=True),
+            mock.patch.object(ic.curses, "resize_term") as resize,
+        ):
+            self.assertEqual(ic._screen_loop(screen, state), ic.CANCEL)
+        resize.assert_called_once_with(0, 0)
+
+    def test_signal_registration_uses_only_available_platform_signals(self):
+        expected = {
+            getattr(ic.signal, name)
+            for name in ("SIGINT", "SIGHUP", "SIGTERM")
+            if hasattr(ic.signal, name)
+        }
+        with (
+            mock.patch.object(ic.signal, "getsignal", return_value="previous"),
+            mock.patch.object(ic.signal, "signal") as register,
+        ):
+            previous = ic._install_signal_handlers()
+        self.assertEqual(set(previous), expected)
+        self.assertEqual(
+            {call.args[0] for call in register.call_args_list}, expected
+        )
 
 
 if __name__ == "__main__":

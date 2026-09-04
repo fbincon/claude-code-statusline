@@ -9,12 +9,12 @@ import re
 import signal
 import stat
 import sys
-import tempfile
 import time
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TextIO
 
+from . import _platform
 from . import config_commands as cc
 from . import display_config as dc
 from . import statusline
@@ -1055,6 +1055,14 @@ def _screen_loop(
             if deadline_at is not None and time.monotonic() >= deadline_at:
                 return TIMED_OUT
             continue
+        if key == curses.KEY_RESIZE:
+            try:
+                # windows-curses 2.x already does this after get_wch(); the
+                # explicit call also supports older PDCurses behavior and is
+                # harmless under ncurses.
+                curses.resize_term(0, 0)
+            except (AttributeError, curses.error):
+                pass
         height, width = screen.getmaxyx()
         if width < MIN_TERMINAL_WIDTH or height < MIN_TERMINAL_HEIGHT:
             if key == "\x03":
@@ -1086,7 +1094,12 @@ def _signal_handler(signum, _frame) -> None:
 
 def _install_signal_handlers() -> dict[int, object]:
     previous = {}
-    for signum in (signal.SIGINT, signal.SIGHUP, signal.SIGTERM):
+    signums = tuple(
+        signum
+        for name in ("SIGINT", "SIGHUP", "SIGTERM")
+        if (signum := getattr(signal, name, None)) is not None
+    )
+    for signum in signums:
         previous[signum] = signal.getsignal(signum)
         signal.signal(signum, _signal_handler)
     return previous
@@ -1188,16 +1201,24 @@ def _validated_bridge_path(config_dir: Path, raw: str) -> Path:
         or not _BRIDGE_INVOCATION_PATTERN.fullmatch(path.parent.name)
     ):
         raise cc.ConfigCommandError("invalid slash TUI result path")
-    for directory in (expected_base.parent, expected_base, path.parent):
+    for directory in (
+        config_dir,
+        expected_base.parent,
+        expected_base,
+        path.parent,
+    ):
         try:
             metadata = directory.lstat()
         except OSError as exc:
             raise cc.ConfigCommandError(
                 f"invalid slash TUI result directory: {exc}"
             ) from exc
-        if not stat.S_ISDIR(metadata.st_mode) or stat.S_ISLNK(metadata.st_mode):
+        if (
+            not stat.S_ISDIR(metadata.st_mode)
+            or _platform.is_link_or_reparse(directory)
+        ):
             raise cc.ConfigCommandError("invalid slash TUI result directory")
-    if stat.S_IMODE(path.parent.stat().st_mode) != 0o700:
+    if _platform.private_mode_matches(path.parent, 0o700) is False:
         raise cc.ConfigCommandError("slash TUI result directory is not private")
     return path
 
@@ -1223,31 +1244,7 @@ def _write_bridge_result(path: Path, outcome: ConfigureOutcome) -> None:
     content = (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode(
         "utf-8"
     )
-    descriptor, temporary = tempfile.mkstemp(
-        prefix=f".{path.name}.claude-statusline-",
-        suffix=".tmp",
-        dir=path.parent,
-    )
-    temporary_path: Path | None = Path(temporary)
-    try:
-        os.fchmod(descriptor, 0o600)
-        with os.fdopen(descriptor, "wb") as stream:
-            stream.write(content)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary_path, path)
-        temporary_path = None
-        directory_descriptor = os.open(path.parent, os.O_RDONLY)
-        try:
-            os.fsync(directory_descriptor)
-        finally:
-            os.close(directory_descriptor)
-    finally:
-        if temporary_path is not None:
-            try:
-                temporary_path.unlink()
-            except FileNotFoundError:
-                pass
+    _platform.atomic_write_bytes(path, content, 0o600)
 
 
 def _error_outcome(exc: BaseException) -> ConfigureOutcome:

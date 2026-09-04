@@ -4,16 +4,24 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claude-code-statusline"
-version = "0.9.0"
-description = "A packaged, configurable, stateful Claude Code status line for Linux"
+version = "1.0.0"
+description = "A packaged, configurable, stateful Claude Code status line for Linux and Windows"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+  "windows-curses>=2.4.2; sys_platform == 'win32'",
+]
 classifiers = [
   "Environment :: Console",
+  "Operating System :: Microsoft :: Windows",
   "Operating System :: POSIX :: Linux",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 
 [project.scripts]

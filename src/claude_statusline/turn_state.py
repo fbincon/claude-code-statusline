@@ -6,13 +6,13 @@ also imported by statusline.py to read state and to record the transcript-only
 user-interrupt marker that Claude Code does not expose as a hook event.
 """
 
-import fcntl
 import hashlib
 import json
 import os
 import sys
-import tempfile
 import time
+
+from . import _platform
 
 
 SCHEMA = 1
@@ -33,10 +33,11 @@ TURN_DIR = os.path.join(RUNTIME_ROOT, "turns")
 
 def _safe_mkdir(path):
     os.makedirs(path, mode=0o700, exist_ok=True)
-    try:
-        os.chmod(path, 0o700)
-    except OSError:
-        pass
+    if _platform.is_linux():
+        try:
+            os.chmod(path, 0o700)
+        except OSError:
+            pass
 
 
 def _session_key(session_id):
@@ -51,25 +52,8 @@ def _lock_path(session_id):
     return os.path.join(TURN_DIR, _session_key(session_id) + ".lock")
 
 
-def _boot_id():
-    try:
-        with open("/proc/sys/kernel/random/boot_id", "r", encoding="ascii") as f:
-            value = f.read().strip()
-        return value or None
-    except OSError:
-        return None
-
-
 def now_clocks():
-    wall_ns = time.time_ns()
-    boot_ns = None
-    clock = getattr(time, "CLOCK_BOOTTIME", None)
-    if clock is not None:
-        try:
-            boot_ns = time.clock_gettime_ns(clock)
-        except (OSError, ValueError):
-            pass
-    return wall_ns, boot_ns, _boot_id()
+    return _platform.now_clocks()
 
 
 def _load_unlocked(session_id):
@@ -108,21 +92,10 @@ def load_turn_state(session_id, prompt_id=None):
 def _atomic_write(session_id, state):
     _safe_mkdir(RUNTIME_ROOT)
     _safe_mkdir(TURN_DIR)
-    fd, tmp = tempfile.mkstemp(prefix=".turn-", suffix=".tmp", dir=TURN_DIR)
-    try:
-        os.fchmod(fd, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(state, f, separators=(",", ":"), sort_keys=True)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp, _state_path(session_id))
-        tmp = None
-    finally:
-        if tmp is not None:
-            try:
-                os.unlink(tmp)
-            except OSError:
-                pass
+    content = json.dumps(
+        state, separators=(",", ":"), sort_keys=True
+    ).encode("utf-8")
+    _platform.atomic_write_bytes(_state_path(session_id), content, 0o600)
 
 
 def _prune_states():
@@ -135,7 +108,7 @@ def _prune_states():
                      reverse=True)
         for entry in entries[MAX_SESSIONS:]:
             try:
-                os.unlink(entry.path)
+                _platform.durable_unlink(entry.path)
             except OSError:
                 pass
     except OSError:
@@ -145,20 +118,12 @@ def _prune_states():
 def _with_lock(session_id, callback):
     _safe_mkdir(RUNTIME_ROOT)
     _safe_mkdir(TURN_DIR)
-    fd = os.open(_lock_path(session_id), os.O_CREAT | os.O_RDWR, 0o600)
-    try:
-        try:
-            os.fchmod(fd, 0o600)
-        except OSError:
-            pass
-        fcntl.flock(fd, fcntl.LOCK_EX)
+    with _platform.exclusive_file_lock(_lock_path(session_id)):
         state = _load_unlocked(session_id)
         new_state = callback(state)
         if isinstance(new_state, dict) and new_state != state:
             _atomic_write(session_id, new_state)
         return new_state
-    finally:
-        os.close(fd)
 
 
 _TURN_FIELDS = (

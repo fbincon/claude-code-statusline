@@ -3,7 +3,7 @@
 
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import stat
 import tempfile
 import unittest
@@ -19,7 +19,8 @@ class InstallerTestCase(unittest.TestCase):
         self.tempdir = tempfile.TemporaryDirectory(prefix="statusline-installer-test-")
         self.root = Path(self.tempdir.name)
         self.config = self.root / "claude"
-        self.executable = self.root / "bin" / "claude-statusline"
+        executable_name = "claude-statusline.exe" if os.name == "nt" else "claude-statusline"
+        self.executable = self.root / "bin" / executable_name
         self.executable.parent.mkdir()
         self.executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
         self.executable.chmod(0o755)
@@ -83,12 +84,13 @@ class InstallTests(InstallerTestCase):
         skill_path, owner_path = installer.skill_paths(self.config)
         self.assertEqual(skill_path.read_bytes(), installer.render_skill(self.executable))
         self.assertTrue(installer._is_owned_skill_marker(owner_path.read_bytes()))
-        self.assertEqual(stat.S_IMODE(skill_path.stat().st_mode), 0o600)
-        self.assertEqual(stat.S_IMODE(self.settings_path.stat().st_mode), 0o600)
-        self.assertEqual(
-            stat.S_IMODE((self.config / "statusline_runtime").stat().st_mode),
-            0o700,
-        )
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(skill_path.stat().st_mode), 0o600)
+            self.assertEqual(stat.S_IMODE(self.settings_path.stat().st_mode), 0o600)
+            self.assertEqual(
+                stat.S_IMODE((self.config / "statusline_runtime").stat().st_mode),
+                0o700,
+            )
 
     def test_legacy_configuration_is_replaced_and_unrelated_values_survive(self):
         legacy_render = f'"/usr/bin/python3" "{self.config / "statusline.py"}"'
@@ -184,7 +186,8 @@ class InstallTests(InstallerTestCase):
     def test_atomic_write_removes_temp_files_and_fixes_mode(self):
         self.write_settings({"theme": "dark"}, mode=0o644)
         installer.install_configuration(self.config, self.executable)
-        self.assertEqual(stat.S_IMODE(self.settings_path.stat().st_mode), 0o600)
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(self.settings_path.stat().st_mode), 0o600)
         self.assertEqual(
             list(self.config.glob(".*.claude-statusline-*.tmp")), []
         )
@@ -277,7 +280,8 @@ class ExperimentalInstallTests(InstallerTestCase):
         )
         feature_path = fc.feature_path(self.config)
         self.assertEqual(feature_path.read_bytes(), fc.enabled_bytes())
-        self.assertEqual(stat.S_IMODE(feature_path.stat().st_mode), 0o600)
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(feature_path.stat().st_mode), 0o600)
         skill, owner = installer.experimental_skill_paths(self.config)
         self.assertEqual(skill.read_bytes(), installer.render_experimental_skill())
         self.assertTrue(installer._is_owned_skill_marker(owner.read_bytes()))
@@ -311,6 +315,7 @@ class ExperimentalInstallTests(InstallerTestCase):
         )
         self.assertEqual(self.experimental_hook_count(self.read_settings()), 1)
 
+    @unittest.skipUnless(os.name == "posix", "POSIX mode repair")
     def test_plain_reinstall_repairs_feature_permissions(self):
         installer.install_configuration(
             self.config,
@@ -817,19 +822,77 @@ class ResolutionAndDoctorTests(InstallerTestCase):
             item.level == "OK" and "local fast path" in item.message
             for item in diagnostics
         ))
+        if os.name == "nt":
+            self.assertTrue(any(
+                "POSIX mode not applicable" in item.message
+                for item in diagnostics
+            ))
+            self.assertTrue(any(
+                "windows-curses backend" in item.message
+                for item in diagnostics
+            ))
+            self.assertTrue(any(
+                "Windows system new-console launcher" in item.message
+                for item in diagnostics
+            ))
+            self.assertFalse(any(
+                "tmux" in item.message or "GNOME" in item.message
+                for item in diagnostics
+            ))
 
     def test_version_detection_parses_claude_output(self):
         completed = mock.Mock(returncode=0, stdout="2.1.258 (Claude Code)\n")
         with (
             mock.patch.object(installer.shutil, "which", return_value="/bin/claude"),
-            mock.patch.object(installer.subprocess, "run", return_value=completed),
+            mock.patch.object(
+                installer.subprocess, "run", return_value=completed
+            ) as run,
         ):
             self.assertEqual(installer.detect_claude_version(), (2, 1, 258))
+        self.assertEqual(
+            run.call_args.kwargs["creationflags"],
+            installer._platform.no_window_creation_flags(),
+        )
+
+    def test_cross_platform_command_formats_and_ownership(self):
+        executable = Path(r"C:\Program Files\Status Line\claude-statusline.exe")
+        with mock.patch.object(installer._platform, "is_windows", return_value=True):
+            self.assertEqual(
+                installer.command_for(executable, "render"),
+                "claude-statusline.exe render",
+            )
+            skill = installer.render_skill(executable).decode("utf-8")
+        self.assertIn('"Bash(claude-statusline.exe config *)"', skill)
+        self.assertIn('"PowerShell(claude-statusline.exe config *)"', skill)
+
+        linux_executable = PurePosixPath("/opt/status line/claude-statusline")
+        with mock.patch.object(installer._platform, "is_windows", return_value=False):
+            self.assertEqual(
+                installer.command_for(linux_executable, "render"),
+                '"/opt/status line/claude-statusline" render',
+            )
+
+        self.assertTrue(installer._is_cli_command(
+            "claude-statusline render", "render", self.executable
+        ))
+        self.assertTrue(installer._is_cli_command(
+            "CLAUDE-STATUSLINE.EXE render", "render", self.executable
+        ))
+        with mock.patch.object(
+            installer.shutil, "which", return_value=str(self.executable)
+        ):
+            self.assertTrue(installer._is_cli_command(
+                "statusline-alias render", "render", self.executable
+            ))
 
     def test_rendered_skill_has_no_placeholders_and_lists_every_item(self):
         rendered = installer.render_skill(self.executable).decode("utf-8")
         self.assertNotIn("__CLAUDE_STATUSLINE_", rendered)
-        self.assertIn(str(self.executable), rendered)
+        if os.name == "nt":
+            self.assertIn("Bash(claude-statusline.exe config *)", rendered)
+            self.assertIn("PowerShell(claude-statusline.exe config *)", rendered)
+        else:
+            self.assertIn(str(self.executable), rendered)
         for item in dc.ITEM_CATALOG:
             self.assertIn(f"`{item}`", rendered)
         for item in dc.SUBAGENT_ITEM_CATALOG:
@@ -841,7 +904,8 @@ class ResolutionAndDoctorTests(InstallerTestCase):
         experimental = installer.render_experimental_skill().decode("utf-8")
         self.assertIn("name: statusline-configure", experimental)
         self.assertIn("disable-model-invocation: true", experimental)
-        self.assertIn("disallowed-tools: Bash", experimental)
+        self.assertIn("  - Bash", experimental)
+        self.assertIn("  - PowerShell", experimental)
         self.assertIn("Do not start curses", experimental)
 
     def test_doctor_reports_invalid_display_config_and_missing_skill(self):
@@ -942,10 +1006,19 @@ class ResolutionAndDoctorTests(InstallerTestCase):
         diagnostics = installer.collect_diagnostics(
             self.config, self.executable, claude_version=(2, 1, 258)
         )
-        self.assertTrue(any(
-            item.level == "ERROR" and "permissions" in item.message
-            for item in diagnostics
-        ))
+        if os.name == "posix":
+            self.assertTrue(any(
+                item.level == "ERROR" and "permissions" in item.message
+                for item in diagnostics
+            ))
+        else:
+            self.assertFalse(any(
+                item.level == "ERROR" and "permissions" in item.message
+                for item in diagnostics
+            ))
+            self.assertTrue(any(
+                "POSIX mode not applicable" in item.message for item in diagnostics
+            ))
         feature_path.write_bytes(b"broken")
         diagnostics = installer.collect_diagnostics(
             self.config, self.executable, claude_version=(2, 1, 258)

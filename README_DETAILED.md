@@ -1,10 +1,10 @@
 # Claude Code Statusline
 
-这是一个面向 Linux 的、可配置且带会话状态的 Claude Code CLI 状态栏工具。它可以显示主 Agent 的模型与 effort、实时工作目录、项目名、本机名、Git 状态、上下文用量与余量、Claude 使用限额、session token 和端到端 prompt 用时，并通过 Claude Code 官方 `subagentStatusLine` 为普通子 Agent 渲染独立行。
+这是一个面向 Linux、WSL 和 Windows 的、可配置且带会话状态的 Claude Code CLI 状态栏工具。它可以显示主 Agent 的模型与 effort、实时工作目录、项目名、本机名、Git 状态、上下文用量与余量、Claude 使用限额、session token 和端到端 prompt 用时，并通过 Claude Code 官方 `subagentStatusLine` 为普通子 Agent 渲染独立行。
 
 显示项、显示顺序和样式既可以通过独立交互式 TUI 配置，也可以在 Claude Code 中通过 `/statusline-config` 或实验性的 `/statusline-configure` 启动器配置。所有配置均为用户全局配置，对该用户的所有 Claude Code 项目生效。
 
-运行时只使用 Python 标准库；Git 信息需要系统中存在 `git`。状态栏只读取 Claude Code 传入的数据、本地 hostname、本地 transcript、Git 仓库和本地状态文件，不会自行发起网络请求，也不会因为渲染状态栏而消耗模型 token。
+Linux 运行时只使用 Python 标准库；Windows 通过条件依赖安装 `windows-curses>=2.4.2`。Git 信息需要系统中存在 `git`。状态栏只读取 Claude Code 传入的数据、本地 hostname、本地 transcript、Git 仓库和本地状态文件，不会自行发起网络请求，也不会因为渲染状态栏而消耗模型 token。
 
 ## 文档导航
 
@@ -39,10 +39,10 @@
 - `prompt-timer` 覆盖从用户提交到主 Agent 最终 `Stop` 的完整任务；等待子 Agent 和主 Agent 收尾期间持续计时。
 - 主栏在当前 prompt 曾启动子 Agent 时显示固定的 `Main/Session` 范围提示，避免与每个子 Agent 行的口径混淆。
 - 提供独立全屏 TUI，可用键盘筛选、勾选、排序并按键级预览完整草稿。
-- 可选安装 `/statusline-configure`，从 tmux popup 或 GNOME Terminal 新标签页启动同一个 TUI。
-- 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 处分行。
+- 可选安装 `/statusline-configure`：Linux 从 tmux popup 或 GNOME Terminal 新标签页启动，Windows 从系统新控制台启动同一个 TUI。
+- 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 或 `\` 处分行。
 - Git 查询和 transcript 汇总按需执行：隐藏相应显示项后，不再做不必要的采集。
-- 安装、配置和卸载均使用文件锁、备份及原子替换，避免并发写入或半写入配置。
+- 安装、配置和卸载均使用跨平台文件锁、备份及原子替换，避免并发写入、丢失更新或半写入配置。
 
 默认状态栏的纯文本结构类似：
 
@@ -54,45 +54,44 @@ claude-model high | ~/code/project | main ↑1● 2~1 | Context 73% left · 1M w
 
 ## 运行要求
 
-- Linux
-- Python 3.10 或更高版本
-- Claude Code CLI
-- `pipx`，用于安装本地 wheel
-- `uv`，仅在从源码构建时需要
-- `git`，仅在启用 `git` 显示项时需要
-- `tmux` 或 GNOME Terminal，仅在启用实验性 `/statusline-configure` 时需要；两者都没有不影响普通配置入口
+- Linux 原生或 WSL，Python 3.10+；或 Windows 10/11 原生、CPython 3.10–3.14、x86/x64。
+- Claude Code CLI。
+- `pipx`，用于隔离安装本地 wheel。
+- `build`，仅在从源码构建时需要。
+- `git`，仅在启用 `git` 显示项时需要。
+- Linux 的 tmux 或 GNOME Terminal 仅供实验性 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
 
-先确认 `pipx` 安装的命令位于 `PATH`：
-
-```bash
-pipx ensurepath
-command -v claude
-command -v git
-```
-
-如果刚执行过 `pipx ensurepath`，可能需要重新打开终端，或重新加载 shell 配置。
+macOS 明确不支持。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
 
 ## 从源码构建与安装
 
-在仓库根目录执行：
+Linux / WSL（Bash）：
 
 ```bash
-uv build
-pipx install dist/claude_code_statusline-0.8.0-py3-none-any.whl
+python3 -m venv .venv-build
+source .venv-build/bin/activate
+python -m pip install --upgrade build
+python -m build
+pipx install dist/claude_code_statusline-1.0.0-py3-none-any.whl
+pipx ensurepath
 claude-statusline install
 claude-statusline doctor
 ```
 
-如果 pipx 中已经安装了旧版本，使用覆盖安装：
+Windows（PowerShell）：
 
-```bash
-uv build
-pipx install --force dist/claude_code_statusline-0.8.0-py3-none-any.whl
-claude-statusline install
-claude-statusline doctor
+```powershell
+py -3.10 -m venv .venv-build
+.\.venv-build\Scripts\Activate.ps1
+python -m pip install --upgrade build
+python -m build
+pipx install .\dist\claude_code_statusline-1.0.0-py3-none-any.whl
+pipx ensurepath
+claude-statusline.exe install
+claude-statusline.exe doctor
 ```
 
-`pipx install` 只安装 Python 包和 `claude-statusline` 可执行文件；`claude-statusline install` 才会把它接入 Claude Code。
+如果刚执行过 `pipx ensurepath`，需要重新打开终端。Linux 安装器写入带 POSIX 引号的绝对命令；Windows 安装器要求 `claude-statusline.exe` 已能从 `PATH` 解析，并写入 Git Bash 与 PowerShell 都能执行的 `claude-statusline.exe <subcommand>`。`pipx install` 只安装包与入口；`install` 才会接入 Claude Code。
 
 ### `install` 会做什么
 
@@ -197,14 +196,21 @@ claude-statusline configure
 claude-statusline configure --config-dir /path/to/claude-config
 ```
 
-该命令仅支持 Linux，使用 Python 标准库 `curses`，不增加运行时依赖。启动条件如下：
+Windows PowerShell 使用同一界面：
+
+```powershell
+claude-statusline.exe configure
+claude-statusline.exe configure --config-dir 'C:\Path With Spaces\Claude 配置'
+```
+
+该命令在 Linux 使用标准库 ncurses，在 Windows 使用包的条件依赖 `windows-curses>=2.4.2`（PDCurses）。两端共用同一套状态机、Main/Subagents/Settings 界面和保存事务。独立执行始终复用当前终端，不创建新窗口。启动条件如下：
 
 - stdin 和 stdout 都必须是 TTY。
 - 当前终端必须能初始化 curses。
 - 当前配置不能损坏。
 - `statusLine.command` 必须已经由当前 `claude-statusline` 可执行文件接管；否则先运行 `claude-statusline install`。
 
-界面最小尺寸为 `64x18`。窗口更小时，界面会显示所需尺寸和当前尺寸并等待放大；此时 Esc 与 Ctrl+C 仍可退出。终端 resize 后会重新计算列表滚动、sample preview 高度与换行。
+界面最小尺寸为 `64x18`。窗口更小时，界面会显示所需尺寸和当前尺寸并等待放大；此时 Esc 与 Ctrl+C 仍可退出。终端 resize 后会重新计算列表滚动、sample preview 高度与换行；Windows 同时兼容 PDCurses 的 `KEY_RESIZE` 行为。
 
 界面包含 Main、Subagents 和 Settings 三个页签，固定底部区域标记为 `Preview (sample data)`。常用全局按键为：
 
@@ -249,7 +255,7 @@ Settings 页固定包含：
 
 全局 Enter 只调用一次现有原子配置事务。无变化不会创建备份；有变化时仍使用单次备份、双文件写入与失败回滚。TUI 启动时记录语义 baseline，保存时在同一安装锁内检查 display、host 和安装归属；编辑期间如被其他进程修改，会在创建备份和写文件前拒绝。`settings.json` 中与 statusline 无关的字段变化不构成冲突，并会基于锁内最新文件合并保留。
 
-Esc 退出后 stdout 输出 `Status line configuration unchanged.`，退出码为 0。参数、TTY、配置、安装归属、终端初始化或并发冲突错误返回 2 且不显示 traceback。SIGHUP 和 SIGTERM 同样先恢复终端，再分别使用标准 `128 + signal` 退出码。
+Esc 退出后 stdout 输出 `Status line configuration unchanged.`，退出码为 0。参数、TTY、配置、安装归属、终端初始化或并发冲突错误返回 2 且不显示 traceback。程序只注册当前平台实际提供的信号；Linux 的 SIGHUP/SIGTERM 和 Windows 可用的中断路径都会先恢复终端，再返回标准中断结果。
 
 独立命令本身没有 deadline，也不创建 slash 结果文件。`/statusline-config` 的 skill、fast hook、5 秒 hook timeout 和原有命令语义保持不变。
 
@@ -263,21 +269,23 @@ Esc 退出后 stdout 输出 `Status line configuration unchanged.`，退出码�
 
 这不是 Claude Code 原生 TUI 扩展，也没有绕过 hook 的终端隔离。Claude Code 2.1.259 的 command hook 在没有控制终端的新 session 中执行，hook 及其子进程不能打开 `/dev/tty`，`terminalSequence` 也不能绘制 curses 界面。因此本工具只把 slash command 用作本地启动器，并在另一个受支持的终端 surface 中运行已经存在的 `claude-statusline configure`；状态机、sample preview、并发检测和原子保存没有复制实现。
 
-启动器按以下顺序选择：
+Linux 启动器按以下顺序选择：
 
 1. `TMUX` 与形如 `%<数字>` 的 `TMUX_PANE` 都有效、`tmux` 可执行，且最长 2 秒的只读 preflight 能在当前 server 中解析该 pane 时，在当前客户端打开标题为 `Configure Status Line` 的 `90% × 90%` popup。popup 存在期间 tmux 暂停底层 pane 更新，子进程退出后自动关闭。
 2. tmux 不可用或 preflight 失败，但存在 `DISPLAY`/`WAYLAND_DISPLAY` 且可执行 `gnome-terminal` 时，在最近使用的 GNOME Terminal 窗口打开活动新标签页；没有现存窗口时 GNOME 可以创建窗口。命令使用 `--wait` 等待标签页中的 TUI 退出。
 3. 两者都不可用时阻断 slash expansion，不调用模型，并提示在终端运行 `claude-statusline configure` 或改用 `/statusline-config`。
 
+Windows 不探测 tmux/GNOME。它使用当前虚拟环境的 `sys.executable -m claude_statusline configure --config-dir ...`，并通过 [`CREATE_NEW_CONSOLE`](https://learn.microsoft.com/en-us/windows/console/creation-of-a-console) 创建实际 Python 子进程；不重定向 stdin/stdout/stderr，使 curses 获得真实控制台。系统当前默认终端负责承载这个新控制台，Windows Terminal 设为默认终端时会自然接管。launcher 保留子进程句柄，因此关窗或异常退出会立即返回错误，超时会终止并回收子进程。
+
 只有 tmux popup 接近“同 pane 弹窗”；GNOME 路径明确是新标签页。本版本不适配 `x-terminal-emulator`、Konsole、Kitty 或 WezTerm。hook payload 的 `cwd` 只有在它是存在的绝对目录时才作为启动目录，否则使用用户 home。启动器不拼接 command 参数或 cwd 到未转义 shell 文本。
 
 `/statusline-configure` 只接受空参数。`help`、`-h`、`--help` 只返回 `Usage: /statusline-configure`；其他参数会被拒绝，均不启动 TUI、不写配置且不调用模型。
 
-每次运行在 `~/.claude/statusline_runtime/slash_tui/` 下创建一个私有 `0700` 调用目录。TUI 以原子替换写入 `0600`、不超过 16 KiB 的严格结果 JSON，hook 验证后删除本次结果；启动前只清理名称属于本工具、超过 24 小时且树中不含符号链接的残留目录。终端 client 的 stdout/stderr 会被 hook 捕获并限长，不会混入 hook 的单一 JSON stdout。
+每次运行在 Claude 配置目录的 `statusline_runtime/slash_tui/` 下创建一个随机调用目录。Linux 继续验证目录 `0700` 和结果 `0600`；Windows 不解释伪 POSIX mode，而是验证精确父子关系、普通文件、16 KiB 上限，并拒绝路径链中的 symlink、junction 和其他 reparse point。读取后只清理本次调用。Linux 终端 client 的 stdout/stderr 会被 hook 捕获并限长；Windows 新控制台不重定向这些流。
 
 Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存，launcher 最长等待 585 秒，为结果校验和 hook 返回预留时间。保存、无变化、取消、信号中断、超时和错误都会在原 Claude 对话区显示一条短结果。tmux 一旦选中，即使 popup 内部失败也不会再打开 GNOME 标签页。
 
-如果全局 `disableAllHooks` 等设置阻止本地 hook，fallback skill 只会说明 hook 未运行，并提示独立命令或 `/statusline-config`；它禁止通过 Bash 启动 curses。此时可能仍消耗一个极短模型回合，这是插件侧无法避免的例外。
+如果全局 `disableAllHooks` 等设置阻止本地 hook，fallback skill 只会说明 hook 未运行，并提示独立命令或 `/statusline-config`；它同时禁止通过 Bash 和 PowerShell 启动 curses。此时可能仍消耗一个极短模型回合，这是插件侧无法避免的例外。
 
 ## `/statusline-config` 的执行方式
 
@@ -289,6 +297,8 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 | `/statusline-config show` 等带参数命令 | 由本地 hook 直接执行，阻止 prompt 进入模型 | 由 skill 在一个 Claude 回合中执行相同 CLI |
 
 带参数的本地快路径是确定性的：它只解析本文档列出的配置命令，输出结果后终止这次 slash command 展开。未知参数会显示错误或用法，且不会修改配置。
+
+Windows skill 使用 `claude-statusline.exe config ...`，只预授权 `Bash(claude-statusline.exe config *)` 与 `PowerShell(claude-statusline.exe config *)`；Linux skill 保持安装时绝对路径的窄 Bash 规则。Claude Code 在 Windows 上优先通过 Git Bash、缺失时通过 PowerShell 执行 statusline 命令，所以 settings 中四个内部命令统一使用裸 `.exe`，不写入会被 Git Bash 解释为转义符的反斜杠绝对路径。参见 [Claude Code Statusline 的 Windows 约定](https://code.claude.com/docs/en/statusline)。
 
 Claude Code 升级或降级跨过 2.1.258 时，重新运行：
 
@@ -330,6 +340,8 @@ claude-statusline uninstall [--dry-run] [--config-dir PATH]
 claude-statusline doctor [--config-dir PATH]
 claude-statusline --version
 ```
+
+Windows PowerShell 中把命令名替换为 `claude-statusline.exe`；参数和输出契约完全相同。
 
 查看任意层级的内建帮助：
 
@@ -620,7 +632,7 @@ claude-statusline config reset
 | --- | --- | --- | --- |
 | `context-used` | `Context N% used`，使用 `round()` 取整 | Claude 官方 statusline payload 的 `context_window.used_percentage` | 字段缺失、bool、非数字、非有限数或超出闭区间 `0–100` 时省略 |
 | `project-name` | `Project NAME` | Claude 启动目录 `workspace.project_dir` 的 POSIX basename；只处理字符串，不访问文件系统 | 字段无效、为空、清理后为空或表示根目录时省略；不回退到 `workspace.repo.name` 或 `current-dir` |
-| `hostname` | `Host NAME` | 本地 Linux 上 Python 标准库的 `socket.gethostname()`；不是 Claude Code 2.1.258+ payload 字段 | 调用抛出 `OSError`，或清理换行、控制字符和 ANSI 注入后为空时省略；不执行外部命令、不访问网络 |
+| `hostname` | `Host NAME` | 本机 Python 标准库的 `socket.gethostname()`；不是 Claude Code 2.1.258+ payload 字段 | 调用抛出 `OSError`，或清理换行、控制字符和 ANSI 注入后为空时省略；不执行外部命令、不访问网络 |
 
 可一次启用这三项：
 
@@ -748,6 +760,8 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 
 `home` 只缩写真实位于当前用户 home 下的路径。`project-relative` 在当前目录不属于 Claude Code 提供的项目根目录时退回完整路径。
 
+Windows drive path、含空格或中文的路径、UNC path 与大小写归一都使用原生 Windows 路径语义。`full` 始终保留 payload 原始的 `/` 或 `\`；`home` 与 `project-relative` 为紧凑显示统一输出 `/`。
+
 ### 分隔符和语义分组
 
 `classic` 使用 ` | ` 分隔顶层条目；`compact` 对所有顶层条目使用 ` · `。
@@ -829,7 +843,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline.json
 
 上例中的 10 个条目是默认启用集合。`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
 
-配置更新采用 0600 文件权限、临时文件和原子替换。多个并发配置命令共享同一把文件锁，避免后写入者丢失先写入者的变更。独立 TUI 还会比较打开时与保存时的语义配置，避免长时间编辑覆盖期间发生的外部修改。
+配置更新采用同目录临时文件、文件 `fsync` 和原子替换。Linux 同时应用 `0600/0700` 并同步父目录；Windows 依赖 Claude 配置目录继承的用户 ACL，不把 NTFS 伪 POSIX mode 当成损坏，并对短暂 sharing violation/access denied 做有上限的重试。多个并发配置命令共享同一把跨平台文件锁，避免后写入者丢失先写入者的变更。独立 TUI 还会比较打开时与保存时的语义配置，避免长时间编辑覆盖期间发生的外部修改。
 
 schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出 canonical schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
 
@@ -858,7 +872,7 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/claude-statusline-features.json
 }
 ```
 
-该文件使用严格 schema 和 `0600` 权限；布尔值 `false` 也会按关闭状态读取，但本工具的关闭命令会直接删除文件。普通 `install` 遇到未知字段、缺失字段、错误类型、未知 schema 或损坏 JSON 时拒绝修改；显式 `--experimental-slash-tui` 会先备份再修复，显式 `--no-experimental-slash-tui` 会先备份再删除。
+该文件使用严格 schema；Linux 权限为 `0600`，Windows 使用继承 ACL。布尔值 `false` 也会按关闭状态读取，但本工具的关闭命令会直接删除文件。普通 `install` 遇到未知字段、缺失字段、错误类型、未知 schema 或损坏 JSON 时拒绝修改；显式 `--experimental-slash-tui` 会先备份再修复，显式 `--no-experimental-slash-tui` 会先备份再删除。
 
 ### Claude Code 宿主配置
 
@@ -935,16 +949,17 @@ claude-statusline doctor
 `doctor` 是只读命令，会检查：
 
 - 当前平台和 Python 版本。
-- `claude-statusline` 是否位于 PATH 且可执行。
+- `claude-statusline` 是否位于 PATH 且可执行；Windows 要求实际 `.exe` 入口。
 - Git 是否可用。
-- `settings.json` 是否有效及其权限。
+- `settings.json` 是否有效及其安全模型；Linux 检查 POSIX mode，Windows 说明 mode 不适用并依赖继承 ACL。
 - `statusLine.command` 和三个宿主字段是否合法。
 - 五个主生命周期 hook 是否各自恰好存在一个。
 - Claude Code 是否满足 2.1.205 子 Agent 门槛、desired enabled 状态、`subagentStatusLine` 是 owned/absent/foreign/unsupported，以及两个子 Agent hook 是否精确去重。
 - `/statusline-config` skill 及所有权标记是否正确。
-- 实验 feature 文件是否合法且权限为 `0600`。
+- 实验 feature 文件是否合法；Linux 检查 `0600`，Windows 不产生伪权限错误。
 - `/statusline-configure` 是 `disabled`、`enabled` 还是因版本不兼容而 `suspended`；启用时 skill、owner marker、唯一 matcher 和 600 秒 hook 是否完整。
-- 启用实验入口时，系统是否至少安装了 tmux 或 GNOME Terminal；两者都没有只产生 WARN，不判定安装损坏。
+- Linux 启用实验入口时是否至少安装了 tmux 或 GNOME Terminal；Windows 是否具备系统新控制台能力。
+- Windows 的 `windows-curses` 后端、x86/x64 架构契约与系统新控制台 launcher。
 - 显示配置 JSON、schema v1 可迁移状态及其权限是否正确。
 - 当前 Claude Code 版本是否应安装本地 slash fast hook。
 - 运行状态目录是否可写。
@@ -966,14 +981,26 @@ claude-statusline doctor
 
 ## 升级
 
-构建新版本 wheel 后，让 pipx 替换现有环境，再重新同步 Claude Code 配置：
+构建 1.0.0 wheel 后，让 pipx 替换现有环境，再重新同步 Claude Code 配置。
+
+Linux / WSL：
 
 ```bash
-uv build
-pipx install --force dist/claude_code_statusline-0.8.0-py3-none-any.whl
+python -m build
+pipx install --force dist/claude_code_statusline-1.0.0-py3-none-any.whl
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
+```
+
+Windows PowerShell：
+
+```powershell
+python -m build
+pipx install --force .\dist\claude_code_statusline-1.0.0-py3-none-any.whl
+claude-statusline.exe install
+claude-statusline.exe doctor
+claude-statusline.exe config show
 ```
 
 必须重复运行 `install`，因为新包可能更新 skill 模板、可执行文件路径、hooks 或版本兼容策略。
@@ -991,11 +1018,20 @@ claude-statusline uninstall
 pipx uninstall claude-code-statusline
 ```
 
+Windows PowerShell：
+
+```powershell
+claude-statusline.exe uninstall
+pipx uninstall claude-code-statusline
+```
+
 可以先预览：
 
 ```bash
 claude-statusline uninstall --dry-run
 ```
+
+Windows 对应命令为 `claude-statusline.exe uninstall --dry-run`。
 
 卸载器只移除：
 
@@ -1044,6 +1080,15 @@ ${CLAUDE_CONFIG_DIR:-~/.claude}/backups/statusline/cli-<action>-<timestamp>/
 CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline install
 CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline configure
 CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline config show
+```
+
+Windows PowerShell：
+
+```powershell
+$env:CLAUDE_CONFIG_DIR = 'C:\Path With Spaces\Claude 配置'
+claude-statusline.exe install
+claude-statusline.exe configure
+claude-statusline.exe config show
 ```
 
 管理命令也支持显式 `--config-dir PATH`。显式参数优先于环境变量。
@@ -1136,7 +1181,7 @@ claude-statusline doctor
 
 版本低于 2.1.258 或无法识别时，显式启用会在写入前失败。已启用后发生降级时，普通 `install` 保留偏好但暂挂并移除活动 skill/hook，所以 slash 菜单中不会显示该命令。升级到兼容版本后重新运行普通 `install`，再新开 Claude Code 会话。
 
-### 实验入口无法打开 tmux popup 或 GNOME 标签页
+### 实验入口无法打开新终端
 
 tmux 路径要求 hook 环境中同时存在有效的 `TMUX`、形如 `%<数字>` 的 `TMUX_PANE`，且 2 秒 preflight 能访问目标 server/pane。目标失效时会尝试 GNOME；若已成功选择 tmux，popup 内失败不会二次启动 GNOME。
 
@@ -1146,9 +1191,11 @@ GNOME 路径要求 `DISPLAY` 或 `WAYLAND_DISPLAY`、可执行的 `gnome-termina
 claude-statusline configure
 ```
 
+Windows 使用系统默认终端承载 `CREATE_NEW_CONSOLE`。若关窗、子进程异常退出或未生成可信结果，原对话会立即收到错误；直接排查时在 PowerShell 中运行 `claude-statusline.exe configure`。确认 `doctor` 的 `windows-curses backend` 与 `Windows system new-console launcher` 均为 OK。
+
 若 hook 在 600 秒结束，TUI 通常应已在 570 秒自行超时。检查 `~/.claude/statusline_runtime/slash_tui/` 时，不要手工跟随或删除不明符号链接；工具只自动清理超过 24 小时、符合自身命名前缀且不含符号链接的残留。
 
-若启用了 `disableAllHooks`，本地 launcher 不会运行。fallback skill 会提示这一点，但该例外可能产生一个极短模型回合；重新启用 hooks 后新开会话再试。
+若启用了 `disableAllHooks`，本地 launcher 不会运行。fallback skill 会提示这一点，并禁止 Bash/PowerShell 自行启动 curses；该例外可能产生一个极短模型回合。重新启用 hooks 后新开会话再试。
 
 ### 带参数的 slash 命令仍进入模型
 
@@ -1222,31 +1269,37 @@ claude-statusline config set refresh-interval 1
 - `1`：`doctor` 至少发现一个 ERROR。
 - `2`：参数、配置、所有权或安装操作校验失败。
 - `130`：交互式 TUI 收到 Ctrl+C/SIGINT，终端已恢复且配置未保存。
-- `128 + signal`：交互式 TUI 收到 SIGHUP 或 SIGTERM，终端已恢复且配置未保存。
+- `128 + signal`：交互式 TUI 收到当前平台实际提供的终止信号，终端已恢复且配置未保存。
 
 高频内部命令 `render`、`render-subagents`、`hook` 和 `slash-hook` 对损坏或无关输入采用静默容错，避免自身错误阻塞 Claude Code。
 
 ## 开发与测试
 
-运行完整测试：
+Linux / WSL 运行完整测试：
 
 ```bash
-PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 \
-  python3 -m unittest discover -s tests -v
-```
-
-运行基础静态检查并构建分发包：
-
-```bash
+python -m pip install -e .
+python -m unittest discover -s tests -v
 ruff check --select F,E9 src tests
-uv build
+python -m build
 ```
 
-确认 wheel 包含 personal skill 模板：
+Windows PowerShell 使用相同测试入口：
+
+```powershell
+python -m pip install -e .
+python -m unittest discover -s tests -v
+ruff check --select F,E9 src tests
+python -m build
+```
+
+确认 1.0.0 wheel 包含平台模块和两个 personal skill 模板：
 
 ```bash
-python3 -m zipfile -l dist/claude_code_statusline-0.8.0-py3-none-any.whl
+python -m zipfile -l dist/claude_code_statusline-1.0.0-py3-none-any.whl
 ```
+
+GitHub Actions 矩阵覆盖 `ubuntu-latest`、`windows-latest` 与 Python 3.10/3.14。Windows job 必须安装并导入 `windows-curses`，分别执行 PowerShell/Git Bash smoke；Ubuntu job 执行 installer/render smoke。独立 build job 检查版本、条件依赖、skills 与 `_platform.py` 同时进入 sdist/wheel。
 
 ### 无费用与人工验收边界
 
@@ -1256,14 +1309,15 @@ python3 -m zipfile -l dist/claude_code_statusline-0.8.0-py3-none-any.whl
 
 ## 当前边界
 
-- 仅支持 Linux 和 Python 3.10+。
+- 支持 Linux/WSL Python 3.10+，以及 Windows 10/11 上 CPython 3.10–3.14 x86/x64；macOS 不支持。
+- Windows ARM64 原生 Python 暂不承诺；ARM 设备使用 x64 Python 仿真。
 - 配置仅为用户全局，不提供项目级配置。
 - 除本地 `socket.gethostname()` 提供的可选 hostname 外，不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
 - 不跟随 Claude Code `/theme`；`default` palette 使用本项目固定 RGB 色值。
-- 不提供 Claude Code 原生 TUI 扩展；实验入口只支持 tmux popup 和 GNOME Terminal 新标签页，并复用独立 TUI。
-- 不访问 `/dev/tty`，不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
-- 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks 或 tmux/GNOME 之外的终端中打开实验 TUI。
-- 不提供鼠标、拖拽、自定义键位或跨平台 TUI。
+- 不提供 Claude Code 原生 TUI 扩展；Linux 实验入口使用 tmux/GNOME，Windows 使用系统新控制台，并复用同一独立 TUI。
+- Linux 不访问 `/dev/tty`；两端都不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
+- 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks，或平台所列 launcher 之外的 surface 中打开实验 TUI。
+- 不提供鼠标、拖拽或自定义键位。
 - 只保证普通 Agent 类 task 的生命周期；后台 shell、server、monitor、workflow 和 agent-team 专用账本不纳入完成阻塞。
 - 不提供 per-agent 历史账本、Git、cache hit/miss/out 或 session 聚合；子 Agent 行只显示 Claude 当前 payload。
 - 不猜测当前焦点 Agent；全局底栏始终是主 Agent/session 范围。

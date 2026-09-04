@@ -227,12 +227,15 @@ class GitCacheTests(unittest.TestCase):
 
         cache_path = Path(sl._git_cache_path("session-a"))
         self.assertTrue(cache_path.is_file())
-        self.assertEqual(stat.S_IMODE(cache_path.stat().st_mode), 0o600)
-        self.assertEqual(stat.S_IMODE(Path(sl.GIT_CACHE_DIR).stat().st_mode), 0o700)
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(cache_path.stat().st_mode), 0o600)
+            self.assertEqual(
+                stat.S_IMODE(Path(sl.GIT_CACHE_DIR).stat().st_mode), 0o700
+            )
         self.assertEqual(list(Path(sl.GIT_CACHE_DIR).glob("*.tmp")), [])
         stored = json.loads(cache_path.read_text(encoding="utf-8"))
         self.assertEqual(stored["version"], sl.GIT_CACHE_VERSION)
-        self.assertEqual(stored["cwd"], "/repo")
+        self.assertEqual(stored["cwd"], os.path.abspath("/repo"))
 
         with mock.patch.object(sl.time, "time_ns", return_value=now_ns + sl.GIT_CACHE_TTL_NS):
             self.assertEqual(sl._read_git_cache("session-a", "/repo"), self.result)
@@ -291,6 +294,7 @@ class GitIntegrationTests(unittest.TestCase):
         self.addCleanup(self.tempdir.cleanup)
         self.root = Path(self.tempdir.name)
 
+    @unittest.skipIf(os.name == "nt", "requires unprivileged symlink creation")
     def test_real_status_counts_types_rename_both_and_nested_untracked(self):
         repo = self.root / "repo"
         init_repo(repo)

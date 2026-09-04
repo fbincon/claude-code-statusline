@@ -1,9 +1,7 @@
 """Linux PTY smoke tests for the interactive configure command."""
 
-import fcntl
 import json
 import os
-import pty
 import select
 import signal
 import stat
@@ -11,10 +9,14 @@ import struct
 import subprocess
 import sys
 import tempfile
-import termios
 import time
 import unittest
 from pathlib import Path
+
+if sys.platform.startswith("linux"):
+    import fcntl
+    import pty
+    import termios
 
 
 @unittest.skipUnless(sys.platform.startswith("linux"), "Linux-only TUI")

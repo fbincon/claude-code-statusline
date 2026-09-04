@@ -3,7 +3,9 @@ name: statusline-configure
 description: Open the experimental local interactive status line configuration launcher.
 argument-hint: ""
 disable-model-invocation: true
-disallowed-tools: Bash
+disallowed-tools:
+  - Bash
+  - PowerShell
 ---
 
 # Experimental Interactive Status Line Configuration

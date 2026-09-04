@@ -30,7 +30,8 @@ class FeatureConfigTests(unittest.TestCase):
         self.assertEqual(written, self.path)
         self.assertTrue(fc.load_experimental_slash_tui(self.config_dir))
         self.assertEqual(self.path.read_bytes(), fc.enabled_bytes())
-        self.assertEqual(stat.S_IMODE(self.path.stat().st_mode), 0o600)
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(self.path.stat().st_mode), 0o600)
         self.assertEqual(
             list(self.config_dir.glob(".*.claude-statusline-*.tmp")), []
         )

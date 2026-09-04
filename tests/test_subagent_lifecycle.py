@@ -239,6 +239,7 @@ class MigrationConcurrencyAndRenderingTests(LifecycleTestCase):
             thread.start()
         for thread in threads:
             thread.join(timeout=5)
+        self.assertFalse(any(thread.is_alive() for thread in threads))
         self.assertEqual(errors, [])
         state = ts.load_turn_state("s", "p")
         self.assertEqual(len(state["active_agents"]), 8)

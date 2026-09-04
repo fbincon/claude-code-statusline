@@ -40,6 +40,14 @@ class SlashTuiTestCase(unittest.TestCase):
 
 
 class SelectionAndArgumentsTests(SlashTuiTestCase):
+    def setUp(self):
+        super().setUp()
+        platform_patcher = mock.patch.object(
+            st._platform, "is_windows", return_value=False
+        )
+        platform_patcher.start()
+        self.addCleanup(platform_patcher.stop)
+
     def test_tmux_preflight_has_two_second_limit_and_takes_priority(self):
         completed = mock.Mock(returncode=0, stdout=b"%12\n", stderr=b"")
         environ = {
@@ -165,10 +173,97 @@ class SelectionAndArgumentsTests(SlashTuiTestCase):
         self.assertEqual(st.validate_cwd(str(self.root / "missing")), Path.home())
 
 
+class WindowsConsoleTests(SlashTuiTestCase):
+    def test_selection_and_argv_use_current_python_module(self):
+        with mock.patch.object(st._platform, "is_windows", return_value=True):
+            launcher = st.choose_launcher({})
+            argv = st.build_launcher_argv(
+                launcher,
+                self.executable,
+                self.config_dir,
+                self.cwd,
+                self.root / "result.json",
+            )
+        self.assertEqual(launcher, st.Launcher("windows-console", st.sys.executable))
+        self.assertEqual(argv, [
+            st.sys.executable,
+            "-m",
+            "claude_statusline",
+            "configure",
+            "--config-dir",
+            str(self.config_dir),
+        ])
+
+    def test_popen_uses_new_console_real_cwd_and_no_redirection(self):
+        launcher = st.Launcher("windows-console", st.sys.executable)
+        process = mock.Mock()
+        process.wait.return_value = 0
+        environment = {"PATH": "test"}
+        with (
+            mock.patch.object(st._platform, "is_windows", return_value=True),
+            mock.patch.object(st.subprocess, "Popen", return_value=process) as popen,
+        ):
+            result = st._run_launcher(
+                [st.sys.executable, "-m", "claude_statusline"],
+                environment,
+                launcher=launcher,
+                cwd=self.cwd,
+            )
+        self.assertEqual(result, (0, b"", b"", False))
+        kwargs = popen.call_args.kwargs
+        self.assertEqual(kwargs["cwd"], str(self.cwd))
+        self.assertEqual(kwargs["env"], environment)
+        self.assertNotEqual(kwargs["creationflags"], 0)
+        for stream in ("stdin", "stdout", "stderr"):
+            self.assertNotIn(stream, kwargs)
+
+    def test_timeout_terminates_and_reaps_windows_child(self):
+        launcher = st.Launcher("windows-console", st.sys.executable)
+        process = mock.Mock()
+        process.wait.side_effect = [
+            st.subprocess.TimeoutExpired(["python"], st.LAUNCHER_TIMEOUT_SECONDS),
+            7,
+        ]
+        with (
+            mock.patch.object(st._platform, "is_windows", return_value=True),
+            mock.patch.object(st.subprocess, "Popen", return_value=process),
+        ):
+            result = st._run_launcher(
+                ["python"], {}, launcher=launcher, cwd=self.cwd
+            )
+        self.assertEqual(result, (7, b"", b"", True))
+        process.terminate.assert_called_once_with()
+        process.kill.assert_not_called()
+
+    def test_abnormal_exit_cannot_return_a_success_result(self):
+        launcher = st.Launcher("windows-console", st.sys.executable)
+
+        def run(_argv, environ, **_kwargs):
+            Path(environ[st.RESULT_ENV]).write_bytes(
+                self.result_bytes("updated", 0, "updated")
+            )
+            return 9, b"", b"", False
+
+        with (
+            mock.patch.object(st, "choose_launcher", return_value=launcher),
+            mock.patch.object(st, "_run_launcher", side_effect=run),
+        ):
+            result = st.launch(
+                self.config_dir,
+                self.executable,
+                str(self.cwd),
+                environ={"PATH": "test"},
+            )
+        self.assertEqual(result.outcome, "error")
+        self.assertEqual(result.exit_code, 9)
+        self.assertIn("exited with code 9", result.message)
+
+
 class ResultValidationTests(SlashTuiTestCase):
     def make_invocation(self):
         invocation, result = st._create_invocation_dir(self.config_dir)
-        self.assertEqual(stat.S_IMODE(invocation.stat().st_mode), 0o700)
+        if os.name == "posix":
+            self.assertEqual(stat.S_IMODE(invocation.stat().st_mode), 0o700)
         return invocation, result
 
     def test_valid_result_round_trip(self):
@@ -178,6 +273,20 @@ class ResultValidationTests(SlashTuiTestCase):
         result = st.read_result(path, invocation)
         self.assertEqual(result.outcome, "updated")
         self.assertEqual(result.message, "updated")
+
+    def test_result_requires_exact_random_invocation_parent(self):
+        invocation = self.root / "not-an-invocation"
+        invocation.mkdir()
+        path = invocation / st.RESULT_FILENAME
+        path.write_bytes(self.result_bytes())
+        with self.assertRaisesRegex(st.ResultError, "outside this invocation"):
+            st.read_result(path, invocation)
+
+        real_invocation, real_path = self.make_invocation()
+        outside = self.root / st.RESULT_FILENAME
+        outside.write_bytes(self.result_bytes())
+        with self.assertRaisesRegex(st.ResultError, "outside this invocation"):
+            st.read_result(outside, real_invocation)
 
     def test_missing_oversized_symlink_and_non_regular_results_fail(self):
         invocation, path = self.make_invocation()
@@ -191,10 +300,23 @@ class ResultValidationTests(SlashTuiTestCase):
 
         target = self.root / "outside.json"
         target.write_bytes(self.result_bytes())
-        path.symlink_to(target)
-        with self.assertRaises(st.ResultError):
-            st.read_result(path, invocation)
-        path.unlink()
+        if os.name == "posix":
+            path.symlink_to(target)
+            with self.assertRaises(st.ResultError):
+                st.read_result(path, invocation)
+            path.unlink()
+        else:
+            path.write_bytes(self.result_bytes())
+            with (
+                mock.patch.object(
+                    st._platform,
+                    "is_link_or_reparse",
+                    side_effect=lambda value: Path(value) == path,
+                ),
+                self.assertRaises(st.ResultError),
+            ):
+                st.read_result(path, invocation)
+            path.unlink()
 
         path.mkdir()
         with self.assertRaises(st.ResultError):
@@ -249,7 +371,7 @@ class LaunchAndCleanupTests(SlashTuiTestCase):
     def test_launch_passes_bridge_environment_reads_and_cleans_result(self):
         captured = {}
 
-        def run(argv, environ):
+        def run(argv, environ, **_kwargs):
             captured["argv"] = argv
             captured["environ"] = environ
             path = Path(environ[st.RESULT_ENV])
@@ -329,7 +451,10 @@ class LaunchAndCleanupTests(SlashTuiTestCase):
         (old / "result.json").write_text("old", encoding="utf-8")
         linked = base / "invocation-linked"
         linked.mkdir()
-        (linked / "link").symlink_to(self.root / "outside")
+        if os.name == "posix":
+            (linked / "link").symlink_to(self.root / "outside")
+        else:
+            (linked / "link").write_text("reparse stand-in", encoding="utf-8")
         recent = base / "invocation-recent"
         recent.mkdir()
         foreign = base / "keep-me"
@@ -338,7 +463,15 @@ class LaunchAndCleanupTests(SlashTuiTestCase):
         for path in (old, linked, foreign):
             os.utime(path, (old_time, old_time))
 
-        st.cleanup_stale_invocations(base)
+        original_check = st._platform.is_link_or_reparse
+        with mock.patch.object(
+            st._platform,
+            "is_link_or_reparse",
+            side_effect=lambda value: (
+                Path(value) == linked / "link" or original_check(value)
+            ),
+        ):
+            st.cleanup_stale_invocations(base)
         self.assertFalse(old.exists())
         self.assertTrue(linked.exists())
         self.assertTrue(recent.exists())

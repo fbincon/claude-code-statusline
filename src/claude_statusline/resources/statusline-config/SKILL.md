@@ -5,7 +5,7 @@ argument-hint: "[show|list-items|set-items|enable|disable|order|subagents|set|re
 disable-model-invocation: true
 allowed-tools:
   - AskUserQuestion
-  - __CLAUDE_STATUSLINE_ALLOWED_RULE__
+__CLAUDE_STATUSLINE_ALLOWED_RULES__
 ---
 
 # Configure Claude Code Statusline

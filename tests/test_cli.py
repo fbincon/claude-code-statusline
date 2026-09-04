@@ -14,6 +14,22 @@ from claude_statusline import cli
 
 
 class CliTests(unittest.TestCase):
+    def setUp(self):
+        self.launcher_temp = tempfile.TemporaryDirectory(
+            prefix="statusline-cli-launcher-"
+        )
+        self.addCleanup(self.launcher_temp.cleanup)
+        binary_dir = Path(self.launcher_temp.name)
+        name = "claude-statusline.exe" if os.name == "nt" else "claude-statusline"
+        launcher = binary_dir / name
+        launcher.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        if os.name == "posix":
+            launcher.chmod(0o755)
+        self.cli_env = os.environ.copy()
+        self.cli_env["PATH"] = str(binary_dir) + os.pathsep + self.cli_env.get(
+            "PATH", ""
+        )
+
     def run_cli(self, *arguments, input_text=None, env=None):
         return subprocess.run(
             [sys.executable, "-m", "claude_statusline", *arguments],
@@ -21,14 +37,23 @@ class CliTests(unittest.TestCase):
             capture_output=True,
             text=True,
             encoding="utf-8",
-            env=env,
+            env=self.cli_env if env is None else env,
+            check=False,
+        )
+
+    def run_cli_bytes(self, *arguments, input_bytes=b"", env=None):
+        return subprocess.run(
+            [sys.executable, "-m", "claude_statusline", *arguments],
+            input=input_bytes,
+            capture_output=True,
+            env=self.cli_env if env is None else env,
             check=False,
         )
 
     def test_version(self):
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "claude-statusline 0.9.0")
+        self.assertEqual(result.stdout.strip(), "claude-statusline 1.0.0")
         self.assertEqual(result.stderr, "")
 
     def test_help_lists_public_commands(self):
@@ -84,6 +109,53 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.stderr, "")
+
+    def test_all_hot_commands_accept_utf8_bom(self):
+        with tempfile.TemporaryDirectory(prefix="statusline-cli-bom-") as root:
+            environment = self.cli_env.copy()
+            environment["CLAUDE_CONFIG_DIR"] = root
+            environment["CLAUDE_STATUSLINE_RUNTIME_DIR"] = str(
+                Path(root) / "runtime"
+            )
+            payloads = {
+                "render": {
+                    "model": {"id": "claude-测试"},
+                    "workspace": {"current_dir": root, "project_dir": root},
+                    "context_window": {
+                        "remaining_percentage": 50,
+                        "context_window_size": 200000,
+                    },
+                },
+                "render-subagents": {
+                    "columns": 80,
+                    "tasks": [{"id": "a", "name": "测试", "status": "running"}],
+                },
+                "hook": {
+                    "session_id": "session-bom",
+                    "prompt_id": "prompt-bom",
+                    "hook_event_name": "UserPromptSubmit",
+                },
+                "slash-hook": {
+                    "hook_event_name": "UserPromptExpansion",
+                    "expansion_type": "slash_command",
+                    "command_name": "statusline-config",
+                    "command_args": "help",
+                },
+            }
+            for command, payload in payloads.items():
+                with self.subTest(command=command):
+                    raw = b"\xef\xbb\xbf" + json.dumps(
+                        payload, ensure_ascii=False
+                    ).encode("utf-8")
+                    result = self.run_cli_bytes(
+                        command, input_bytes=raw, env=environment
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(result.stderr, b"")
+                    if command != "hook":
+                        self.assertTrue(result.stdout)
+            turn_files = list((Path(root) / "runtime" / "turns").glob("*.json"))
+            self.assertEqual(len(turn_files), 1)
 
     def test_experimental_slash_help_is_one_block_json_object(self):
         value = {
@@ -248,16 +320,24 @@ class CliTests(unittest.TestCase):
             root_path = Path(root)
             binary_dir = root_path / "bin"
             binary_dir.mkdir()
-            executable = binary_dir / "claude-statusline"
+            executable_name = (
+                "claude-statusline.exe" if os.name == "nt" else "claude-statusline"
+            )
+            executable = binary_dir / executable_name
             executable.write_text("#!/bin/sh\n", encoding="utf-8")
-            executable.chmod(0o755)
+            if os.name == "posix":
+                executable.chmod(0o755)
             config_dir = root_path / "claude"
             config_dir.mkdir()
             (config_dir / "settings.json").write_text(
                 json.dumps({
                     "statusLine": {
                         "type": "command",
-                        "command": f'"{executable}" render',
+                        "command": (
+                            "claude-statusline.exe render"
+                            if os.name == "nt"
+                            else f'"{executable}" render'
+                        ),
                         "refreshInterval": 1,
                     }
                 })

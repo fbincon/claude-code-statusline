@@ -1,4 +1,4 @@
-"""Packaged Claude Code status line for Linux."""
+"""Packaged Claude Code status line for Linux and Windows."""
 
 from ._version import __version__
 

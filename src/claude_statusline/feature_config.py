@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from pathlib import Path
+
+from . import _platform
 
 FEATURE_FILENAME = "claude-statusline-features.json"
 SCHEMA_VERSION = 1
@@ -91,32 +91,7 @@ def write_enabled(config_dir: Path) -> Path:
     """Atomically persist the enabled preference with mode 0600."""
     path = feature_path(config_dir)
     try:
-        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        fd, temporary = tempfile.mkstemp(
-            prefix=f".{path.name}.claude-statusline-",
-            suffix=".tmp",
-            dir=path.parent,
-        )
-        temporary_path: Path | None = Path(temporary)
-        try:
-            os.fchmod(fd, 0o600)
-            with os.fdopen(fd, "wb") as stream:
-                stream.write(enabled_bytes())
-                stream.flush()
-                os.fsync(stream.fileno())
-            os.replace(temporary_path, path)
-            temporary_path = None
-            directory_fd = os.open(path.parent, os.O_RDONLY)
-            try:
-                os.fsync(directory_fd)
-            finally:
-                os.close(directory_fd)
-        finally:
-            if temporary_path is not None:
-                try:
-                    temporary_path.unlink()
-                except FileNotFoundError:
-                    pass
+        _platform.atomic_write_bytes(path, enabled_bytes(), 0o600)
     except OSError as exc:
         raise FeatureConfigError(f"cannot write {path}: {exc}") from exc
     return path

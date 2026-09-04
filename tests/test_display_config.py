@@ -1,6 +1,7 @@
 """Tests for the user-owned status line display configuration."""
 
 import json
+import os
 import stat
 import tempfile
 import unittest
@@ -42,10 +43,11 @@ class DisplayConfigTests(unittest.TestCase):
         dc.write_display_config(self.config_dir, config)
         loaded = dc.load_display_config(self.config_dir)
         self.assertEqual(loaded, config)
-        self.assertEqual(
-            stat.S_IMODE(dc.config_path(self.config_dir).stat().st_mode), 0o600
-        )
-        self.assertEqual(stat.S_IMODE(self.config_dir.stat().st_mode), 0o775)
+        if os.name == "posix":
+            self.assertEqual(
+                stat.S_IMODE(dc.config_path(self.config_dir).stat().st_mode), 0o600
+            )
+            self.assertEqual(stat.S_IMODE(self.config_dir.stat().st_mode), 0o775)
         self.assertEqual(
             list(self.config_dir.glob(".claude-statusline.json.*.tmp")), []
         )
@@ -170,7 +172,7 @@ class DisplayConfigTests(unittest.TestCase):
         updated = dc.DEFAULT_CONFIG.with_updates(use_colors=False)
         with (
             mock.patch(
-                "claude_statusline.display_config.os.replace", side_effect=OSError("no")
+                "claude_statusline._platform.os.replace", side_effect=OSError("no")
             ),
             self.assertRaises(dc.DisplayConfigError),
         ):
@@ -202,6 +204,40 @@ class DirectoryStyleTests(unittest.TestCase):
                 "/other/src", "project-relative", project_dir="/code/repo"
             ),
             "/other/src",
+        )
+
+    @unittest.skipUnless(os.name == "nt", "native Windows path semantics")
+    def test_windows_drive_unc_unicode_case_and_long_paths(self):
+        home = Path(r"C:\Users\测试 User")
+        with mock.patch(
+            "claude_statusline.display_config.Path.home", return_value=home
+        ):
+            self.assertEqual(
+                dc.format_directory(
+                    r"c:\users\测试 User\项目\src", "home"
+                ),
+                "~/项目/src",
+            )
+        self.assertEqual(
+            dc.format_directory(
+                r"c:\WORK\项目\src\包",
+                "project-relative",
+                project_dir=r"C:\work\项目",
+            ),
+            "src/包",
+        )
+        self.assertEqual(
+            dc.format_directory(
+                r"\\SERVER\Share\项目\src",
+                "project-relative",
+                project_dir=r"\\server\share\项目",
+            ),
+            "src",
+        )
+        raw = r"C:\mixed/原始\separators" + "\\" + ("很长" * 100)
+        self.assertEqual(dc.format_directory(raw, "full"), raw)
+        self.assertEqual(
+            dc.format_directory(r"\\server\share\项目", "basename"), "项目"
         )
 
 
