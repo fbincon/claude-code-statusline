@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import errno
 import os
+import platform
 import stat
 import subprocess
 import sys
@@ -36,6 +37,15 @@ def is_linux(platform_name: str | None = None) -> bool:
     return (sys.platform if platform_name is None else platform_name).startswith(
         "linux"
     )
+
+
+def is_wsl(platform_name: str | None = None) -> bool:
+    """Return whether the current Linux runtime is Windows Subsystem for Linux."""
+    if not is_linux(platform_name):
+        return False
+    if os.environ.get("WSL_INTEROP") or os.environ.get("WSL_DISTRO_NAME"):
+        return True
+    return "microsoft" in platform.release().casefold()
 
 
 def is_supported_platform(platform_name: str | None = None) -> bool:

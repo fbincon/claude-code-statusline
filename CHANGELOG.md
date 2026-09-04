@@ -2,6 +2,7 @@
 
 ## 1.0.0 - 2026-09-04
 
+- Git staged 计数按运行平台调整间距：原生 Linux 保留 `● N`，Windows 和 WSL 改为 `●N`；WSL 同时根据环境变量和内核 release 识别。
 - 将平台契约从 Linux 扩展为 Linux/WSL 与 Windows 10/11 原生；Windows 支持 CPython 3.10–3.14 x86/x64，macOS 继续明确不支持，Windows ARM64 原生 Python 暂不承诺。
 - 新增集中式平台适配层：Linux 保留 `fcntl.flock`、`0600/0700` 与父目录 `fsync`；Windows 使用延迟导入的 `msvcrt` 固定字节锁、继承 ACL、带 sharing violation/access denied 重试的原子替换与 durable unlink。
 - Windows session registry 校验通过 `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)`、`GetProcessTimes` 和本地 `.NET DateTime.Ticks` 转换验证 `procStart`；计时使用包含休眠时间的 `GetTickCount64` 与按分钟量化的启动标识，API 不可用时回退墙钟。

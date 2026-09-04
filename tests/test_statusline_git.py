@@ -194,15 +194,38 @@ class GitDisplayTests(unittest.TestCase):
         self.assertEqual(sl._live_directory(data), "/project")
         self.assertIsNone(sl._live_directory({}))
 
-    def test_compact_segment_contract(self):
+    def test_compact_segment_contract_uses_platform_specific_staged_spacing(self):
         result = ok_result(
             upstream="origin/main", ahead=2, behind=1,
             staged=5, unstaged=3, conflicts=1, untracked=2,
         )
-        plain = ANSI_RE.sub("", sl._git_segment(result))
-        self.assertEqual(plain, "Git main ↑2↓1● 5~3!1?2")
+        cases = (
+            ("native-windows", True, False, "Git main ↑2↓1●5~3!1?2"),
+            ("wsl", False, True, "Git main ↑2↓1●5~3!1?2"),
+            ("native-linux", False, False, "Git main ↑2↓1● 5~3!1?2"),
+        )
+        for name, is_windows, is_wsl, expected in cases:
+            with (
+                self.subTest(name=name),
+                mock.patch.object(
+                    sl._platform, "is_windows", return_value=is_windows
+                ),
+                mock.patch.object(sl._platform, "is_wsl", return_value=is_wsl),
+            ):
+                plain = ANSI_RE.sub("", sl._git_segment(result))
+                self.assertEqual(plain, expected)
+
         self.assertIsNone(sl._git_segment({"kind": "not_repo"}))
         self.assertEqual(ANSI_RE.sub("", sl._git_segment({"kind": "error"})), "Git!")
+
+    def test_zero_staged_count_does_not_add_a_marker(self):
+        result = ok_result(ahead=1, unstaged=2)
+        with (
+            mock.patch.object(sl._platform, "is_windows", return_value=False),
+            mock.patch.object(sl._platform, "is_wsl", return_value=False),
+        ):
+            plain = ANSI_RE.sub("", sl._git_segment(result))
+        self.assertEqual(plain, "Git main ↑1~2")
 
     def test_gone_suppresses_divergence_numbers(self):
         result = ok_result(

@@ -24,6 +24,39 @@ class PlatformIdentityTests(unittest.TestCase):
         self.assertFalse(_platform.is_supported_platform("darwin"))
         self.assertFalse(_platform.is_supported_platform("cygwin"))
 
+    def test_wsl_environment_markers_short_circuit_kernel_detection(self):
+        for marker, value in (
+            ("WSL_INTEROP", "/run/WSL/1_interop"),
+            ("WSL_DISTRO_NAME", "Ubuntu"),
+        ):
+            with (
+                self.subTest(marker=marker),
+                mock.patch.dict(_platform.os.environ, {marker: value}, clear=True),
+                mock.patch.object(_platform.platform, "release") as release,
+            ):
+                self.assertTrue(_platform.is_wsl("linux"))
+                release.assert_not_called()
+
+    def test_wsl_kernel_detection_and_platform_guard(self):
+        cases = (
+            ("linux", {}, "5.15.90.1-Microsoft-standard-WSL2", True),
+            ("linux", {}, "6.8.0-52-generic", False),
+            ("win32", {"WSL_DISTRO_NAME": "Ubuntu"}, "Microsoft", False),
+        )
+        for platform_name, environment, kernel_release, expected in cases:
+            with (
+                self.subTest(platform_name=platform_name, expected=expected),
+                mock.patch.dict(
+                    _platform.os.environ, environment, clear=True
+                ),
+                mock.patch.object(
+                    _platform.platform, "release", return_value=kernel_release
+                ) as release,
+            ):
+                self.assertEqual(_platform.is_wsl(platform_name), expected)
+                if platform_name == "win32":
+                    release.assert_not_called()
+
     def test_subprocess_creation_flags_are_platform_scoped(self):
         with mock.patch.object(_platform, "is_windows", return_value=False):
             self.assertEqual(_platform.no_window_creation_flags(), 0)

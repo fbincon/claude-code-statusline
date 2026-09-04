@@ -44,10 +44,16 @@ Linux 运行时只使用 Python 标准库；Windows 通过条件依赖安装 `wi
 - Git 查询和 transcript 汇总按需执行：隐藏相应显示项后，不再做不必要的采集。
 - 安装、配置和卸载均使用跨平台文件锁、备份及原子替换，避免并发写入、丢失更新或半写入配置。
 
-默认状态栏的纯文本结构类似：
+原生 Linux 上，默认状态栏的纯文本结构类似：
 
 ```text
-claude-model high | ~/code/project | main ↑1● 2~1 | Context 73% left · 1M window | 5h 82% left · weekly 64% left | hit 125K · miss 18.4K · out 7.2K | ⏱ 1m 09s
+claude-model high | ~/code/project | Git main ↑1● 2~1 | Context 73% left · 1M window | 5h 82% left · weekly 64% left | hit 125K · miss 18.4K · out 7.2K | ⏱ 1m 09s
+```
+
+Windows 和 WSL 使用无空格的 staged 标记：
+
+```text
+claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1M window | 5h 82% left · weekly 64% left | hit 125K · miss 18.4K · out 7.2K | ⏱ 1m 09s
 ```
 
 某项数据不可用时，该项会被省略，不会显示空占位符。例如，当前目录不在 Git 仓库中时不会显示 Git 分支；Claude Code 没有提供某个限额窗口时也不会显示该限额。
@@ -597,7 +603,7 @@ claude-statusline config reset
 | --- | --- | --- |
 | `model-with-effort` | 当前模型 ID（缺失时使用 display name）；存在 effort 时追加 effort level | 没有模型字段时省略 |
 | `current-dir` | Claude Code 当前实时工作目录 | 没有目录字段时省略 |
-| `git` | `Git ` 前缀 + 分支、上游差异和工作树变更，如 `Git main ↑1● 2` | 非 Git 目录时省略；Git 查询异常时显示 `Git!` |
+| `git` | `Git ` 前缀 + 分支、上游差异和工作树变更，如原生 Linux 的 `Git main ↑1● 2` 或 Windows/WSL 的 `Git main ↑1●2` | 非 Git 目录时省略；Git 查询异常时显示 `Git!` |
 | `context-remaining` | `Context N% left` | Claude Code 未提供百分比时省略 |
 | `context-window-size` | 总上下文窗口，例如 `1M window` | Claude Code 未提供窗口大小时省略 |
 | `five-hour-limit` | 5 小时窗口的剩余百分比 | 未提供该窗口时省略 |
@@ -686,7 +692,7 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 | `↑N` | 当前分支领先 upstream N 个提交 |
 | `↓N` | 当前分支落后 upstream N 个提交 |
 | `[gone]` | 已配置的 upstream 不再存在 |
-| `● N` | staged 文件数 |
+| `● N` / `●N` | staged 文件数；原生 Linux 使用前者，Windows/WSL 使用后者 |
 | `~N` | unstaged 文件数 |
 | `!N` | 冲突文件数 |
 | `?N` | untracked 文件数 |

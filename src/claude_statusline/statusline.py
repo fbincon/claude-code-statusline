@@ -1197,7 +1197,10 @@ def _git_segment(result, palette=DEFAULT_PALETTE):
         if result["behind"]:
             statuses.append(f"↓{result['behind']}")
     if result["staged"]:
-        statuses.append(f"● {result['staged']}")
+        staged_separator = (
+            "" if _platform.is_windows() or _platform.is_wsl() else " "
+        )
+        statuses.append(f"●{staged_separator}{result['staged']}")
     if result["unstaged"]:
         statuses.append(f"~{result['unstaged']}")
     if result["conflicts"]:
