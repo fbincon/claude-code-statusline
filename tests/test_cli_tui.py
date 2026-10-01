@@ -40,6 +40,7 @@ class ConfigurePtyTests(unittest.TestCase):
         self._write_installed_settings()
         self.process = None
         self.master = None
+        self.slaves = []
 
     def tearDown(self):
         if self.process is not None and self.process.poll() is None:
@@ -50,6 +51,8 @@ class ConfigurePtyTests(unittest.TestCase):
                 os.close(self.master)
             except OSError:
                 pass
+        for descriptor in self.slaves:
+            os.close(descriptor)
         self.temporary.cleanup()
 
     def _write_installed_settings(self):
@@ -91,6 +94,7 @@ class ConfigurePtyTests(unittest.TestCase):
             # The test process owns a fresh session, just like a terminal client.
             os.setsid()
             fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+            os.tcsetpgrp(slave, os.getpgrp())
 
         process = subprocess.Popen(
             [
@@ -108,7 +112,9 @@ class ConfigurePtyTests(unittest.TestCase):
             close_fds=True,
             preexec_fn=controlling_terminal,
         )
-        os.close(slave)
+        # Keep a slave reference until teardown: Darwin can discard pending
+        # master output when the last slave closes, including error summaries.
+        self.slaves.append(slave)
         self.master = master
         self.process = process
         return process, master
@@ -141,6 +147,12 @@ class ConfigurePtyTests(unittest.TestCase):
                 output += chunk
             except OSError:
                 break
+        if needle not in output:
+            details = subprocess.run(
+                ["ps", "-o", "pid,ppid,pgid,stat,tty,command", "-p", str(self.process.pid)],
+                capture_output=True, text=True, timeout=2, check=False,
+            )
+            print(f"PTY did not emit {needle!r}; output={output!r}; process={details.stdout!r}")
         return output
 
     def _finish_output(self, initial=b""):
