@@ -1,5 +1,4 @@
 include README.md
-include README_DETAILED.md
 include CHANGELOG.md
 recursive-include docs *.md *.png
 recursive-include tests *.py
