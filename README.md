@@ -31,7 +31,7 @@
 
 - Linux 原生与 WSL：Python 3.10+。
 - Windows 10/11 原生：CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2`。
-- macOS 预览（开发源码）：CPython 3.10–3.14，Intel / Apple Silicon；CI 覆盖 macOS 15/26、Python 3.10/3.14。支持核心功能、独立 TUI 和可选 tmux popup。
+- macOS 预览（v1.1.0a1）：CPython 3.10–3.14，Intel / Apple Silicon；CI 覆盖 macOS 15/26、Python 3.10/3.14。支持核心功能、独立 TUI 和可选 tmux popup。
 - Claude Code CLI：2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持带参数配置命令的本地执行及实验性 TUI 启动器。较旧或无法识别的版本仍可使用主状态栏和配置向导。
 - Git 信息需要系统中存在 `git`。
 
@@ -39,7 +39,7 @@
 
 ## 快速安装
 
-先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / Windows 用户从以下两种已发布包的安装方式中任选一种；macOS 使用预览源码。
+先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / Windows 用户可选择下方稳定版 v1.0.0；macOS 使用 [v1.1.0a1 预览包](#macos-预览安装)。Linux / WSL / Windows 也可按预览安装步骤试用新版。
 
 ### 从 Release 安装（推荐）
 
@@ -63,14 +63,14 @@ pipx ensurepath
 
 ### macOS 预览安装
 
-先下载或检出**包含 macOS 预览改动的源码**（本次变更所在分支，或后续合入它的源码），在仓库根目录执行；仅安装 v1.0.0 标签无法启用预览支持。
+在 Bash / Zsh 中安装 [v1.1.0a1 预发布 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1)：
 
 ```bash
-pipx install .
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
 pipx ensurepath
 ```
 
-已有安装时用 `pipx install --force .` 替换。重新打开终端后，按下方 POSIX 命令接入；独立 TUI 使用 `claude-statusline configure`。macOS 实验性 `/statusline-configure` 需要先在 tmux 会话中启动 Claude；没有有效 tmux 环境时会提示独立命令。完整步骤和验证边界见[macOS 预览说明](docs/USER_GUIDE.md#macos-预览安装与验证边界)。
+已有安装时在同一命令中加入 `--force`。从固定标签源码安装时，将来源替换为 `git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0a1`。重新打开终端后，按下方 POSIX 命令接入；独立 TUI 使用 `claude-statusline configure`。macOS 实验性 `/statusline-configure` 需要先在 tmux 会话中启动 Claude；没有有效 tmux 环境时会提示独立命令。完整步骤和验证边界见[macOS 预览说明](docs/USER_GUIDE.md#macos-预览安装与验证边界)。
 
 ### 接入 Claude Code
 
@@ -127,9 +127,17 @@ pipx install --force "https://github.com/fbincon/claude-code-statusline/releases
 
 随后重新运行 `claude-statusline install` 和 `claude-statusline doctor`；Windows 使用 `claude-statusline.exe`。升级保留 Claude 配置目录中的显示偏好和运行状态。本地 wheel、源码安装及版本兼容的处理见[升级指南](docs/USER_GUIDE.md#升级)。
 
+升级到 v1.1.0a1 预览版（包括 macOS）时，使用：
+
+```text
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
+```
+
+随后同样运行 `install` 和 `doctor`。预览版不会替代 GitHub 的最新稳定版入口。
+
 卸载时先移除 Claude Code 接入，再删除 Python 包。
 
-Linux / WSL：
+Linux / WSL / macOS 预览：
 
 ```bash
 claude-statusline uninstall --dry-run

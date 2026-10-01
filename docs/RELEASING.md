@@ -2,7 +2,7 @@
 
 本指南供维护者使用。用户安装请看[项目首页](../README.md#快速安装)，完整配置说明见[使用指南](USER_GUIDE.md)。
 
-仓库已公开，[v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 已发布 wheel、源码包和 `SHA256SUMS`。下文以该版本的文件名说明发布流程；后续发布应使用新的版本号和标签。文档修改可独立提交，无需重新发布或覆盖已有附件。
+仓库已公开。稳定版 [v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 支持 Linux/WSL 与 Windows；[v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 是包含 macOS 支持的预发布。两者分别提供 wheel、源码包和 `SHA256SUMS`，不覆盖已有版本的标签或附件。下文以 1.1.0a1 为例。
 
 Release wheel 由维护者构建并上传；推送源码会触发 CI，但不会自动生成 Release 附件。
 
@@ -19,14 +19,14 @@ python -m pip install --upgrade build
 python -m build
 ```
 
-以 `1.0.0` 为例，构建生成：
+以 `1.1.0a1` 为例，构建生成：
 
 ```text
-dist/claude_code_statusline-1.0.0-py3-none-any.whl
-dist/claude_code_statusline-1.0.0.tar.gz
+dist/claude_code_statusline-1.1.0a1-py3-none-any.whl
+dist/claude_code_statusline-1.1.0a1.tar.gz
 ```
 
-wheel 是用户的快速安装入口，源码包用于从源码构建。该 wheel 的 Windows 条件依赖由安装时的 Python 平台决定。后续包含 macOS 改动的纯 Python wheel 可继续共用于 Linux/WSL、Windows 与 macOS；已发布的 v1.0.0 wheel 本身不包含 macOS 支持。当前预览仅交付源码、草稿 PR 和 CI 结果，版本号保持 1.0.0；后续发布需更新版本和附件，不能覆盖现有 v1.0.0 附件。
+wheel 是用户的快速安装入口，源码包用于从源码构建。该纯 Python wheel 共用于 Linux/WSL、Windows 与 macOS；Windows 条件依赖由安装时的 Python 平台决定。v1.1.0a1 的 macOS 支持仍为预览：实际 Claude 视觉效果、真实睡眠恢复与桌面终端体验尚未人工验收。
 
 `.venv-build/` 和 `dist/` 已由 `.gitignore` 排除。检查源码包包含 `docs/USER_GUIDE.md`、`docs/RELEASING.md` 和 `docs/images/` 截图；检查 wheel 包含平台模块及两个 skill 模板。检查方法见[开发与测试](USER_GUIDE.md#附录开发与测试)。
 
@@ -34,9 +34,11 @@ wheel 是用户的快速安装入口，源码包用于从源码构建。该 whee
 
 ```bash
 cd dist
-sha256sum claude_code_statusline-1.0.0-py3-none-any.whl claude_code_statusline-1.0.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.1.0a1-py3-none-any.whl claude_code_statusline-1.1.0a1.tar.gz > SHA256SUMS
 cd ..
 ```
+
+macOS 可将 `sha256sum` 替换为 `shasum -a 256`。发布前在隔离虚拟环境中安装构建出的 wheel，确认 CLI 版本、配置事务与渲染 smoke；从源码包再构建 wheel，检查版本、条件依赖及资源。
 
 ## 2. 在 GitHub 创建 Release
 
@@ -45,31 +47,31 @@ cd ..
 3. 创建本次发布的新版本标签（命名格式为 `v<版本号>`），确保标签指向已经通过 CI 的发布提交。
 4. 标题填写该标签，说明中写明支持平台、主要功能、安装方式及已知限制。
 5. 在附件区域上传本次构建的 `.whl`、`.tar.gz` 和 `SHA256SUMS`，保留构建生成的文件名。
-6. 准备好后点击 **Publish release**；如果希望作为测试版提供，可选择 **This is a pre-release**。
+6. 对 v1.1.0a1 选择 **This is a pre-release**，确认附件齐全后点击 **Publish release**。使用 GitHub CLI 时明确传入 `--prerelease --latest=false`，保留最新稳定版入口。
 
 GitHub 自动生成的 Source code ZIP/TAR 与手动上传的 wheel 不同。要让用户免去本地构建，必须上传 `.whl` 附件。
 
 ## 3. 检查安装入口
 
-发布正式版本后，检查[最新 Release 入口](https://github.com/fbincon/claude-code-statusline/releases/latest)、README 和使用指南中的固定版本链接。对于预发布版本，直接检查该版本的 Release 页面。
+发布正式版本后，检查[最新 Release 入口](https://github.com/fbincon/claude-code-statusline/releases/latest)、README 和使用指南中的固定版本链接。预发布版本直接检查其 Release 页面，下载全部附件并验证 `SHA256SUMS`，确认安装链接可用；v1.1.0a1 发布后，最新稳定版入口应继续指向 v1.0.0。
 
-`v1.0.0` wheel 的固定下载地址是：
+`v1.1.0a1` wheel 的固定下载地址是：
 
 ```text
-https://github.com/fbincon/claude-code-statusline/releases/download/v1.0.0/claude_code_statusline-1.0.0-py3-none-any.whl
+https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl
 ```
 
 确认附件可以下载后，用户既可以按 README 下载文件后安装，也可以直接执行：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.0.0/claude_code_statusline-1.0.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
 pipx ensurepath
 ```
 
 对应的固定版本源码安装命令是：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.0.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0a1"
 pipx ensurepath
 ```
 

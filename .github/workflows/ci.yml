@@ -118,7 +118,7 @@ jobs:
               names = set(archive.namelist())
               metadata_name = next(name for name in names if name.endswith(".dist-info/METADATA"))
               metadata = email.message_from_bytes(archive.read(metadata_name))
-              assert metadata["Version"] == "1.0.0"
+              assert metadata["Version"] == "1.1.0a1"
               assert "Operating System :: MacOS :: MacOS X" in metadata.get_all("Classifier", [])
               requirements = metadata.get_all("Requires-Dist", [])
               assert any("windows-curses>=2.4.2" in value and "win32" in value for value in requirements)
