@@ -4,5 +4,10 @@ __pycache__/
 .coverage
 .pytest_cache/
 .venv/
+.venv-*/
 build/
 dist/
+.env
+.env.*
+!.env.example
+!.env.template

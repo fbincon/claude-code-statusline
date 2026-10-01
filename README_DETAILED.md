@@ -8,6 +8,9 @@ Linux 运行时只使用 Python 标准库；Windows 通过条件依赖安装 `wi
 
 ## 文档导航
 
+- [界面预览](README.md#界面预览)
+- [快速安装](README.md#快速安装)
+- [GitHub Release 发布指南](docs/RELEASING.md)
 - [功能概览](#功能概览)
 - [从源码构建与安装](#从源码构建与安装)
 - [快速开始](#快速开始)
@@ -62,9 +65,9 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 
 - Linux 原生或 WSL，Python 3.10+；或 Windows 10/11 原生、CPython 3.10–3.14、x86/x64。
 - Claude Code CLI。
-- `pipx`，用于隔离安装本地 wheel。
+- `pipx`，用于隔离安装 GitHub 源码或本地 wheel。
 - `build`，仅在从源码构建时需要。
-- `git`，仅在启用 `git` 显示项时需要。
+- `git`，用于从 GitHub 源码安装或显示 Git 信息；从 Release wheel 安装且不显示 Git 信息时不需要。
 - Linux 的 tmux 或 GNOME Terminal 仅供实验性 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
 
 macOS 明确不支持。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。

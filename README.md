@@ -4,6 +4,31 @@
 
 显示项、顺序和样式可以通过全屏 TUI、`/statusline-config`、实验性的 `/statusline-configure`，或完整的 `config` CLI 修改。显示配置 schema v2、feature schema v1、token/cache 和生命周期状态格式与 0.x 保持兼容。
 
+快速入口：[源码安装](#从-github-源码安装) · [Release 安装](#从-release-安装) · [配置](#配置) · [发布指南](docs/RELEASING.md)
+
+## 界面预览
+
+以下截图来自 Linux。主状态栏显示实际会话数据；配置界面底部的 Preview 使用固定样例数据。
+
+![Claude Code 主状态栏：模型与 effort、目录、Git、上下文、token 和逐轮用时](docs/images/statusline.png)
+
+<details>
+<summary>查看 Main、Subagents 和 Settings 三页配置界面</summary>
+
+**Main：选择主状态栏条目并调整顺序。**
+
+![Main 配置页：主状态栏条目与样例预览](docs/images/configure-main.png)
+
+**Subagents：配置子 Agent 行的条目与顺序。**
+
+![Subagents 配置页：子 Agent 条目与样例预览](docs/images/configure-subagents.png)
+
+**Settings：调整颜色、目录样式、分隔符和刷新间隔等选项。**
+
+![Settings 配置页：显示样式和 Claude Code 宿主选项](docs/images/configure-settings.png)
+
+</details>
+
 ## 支持范围
 
 - Linux 原生与 WSL，Python 3.10+。
@@ -11,6 +36,62 @@
 - Claude Code 2.1.205+ 才启用 `subagentStatusLine`；2.1.258+ 才启用本地 slash fast hook。旧版本保持原有降级语义。
 - Windows 会通过条件依赖自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
 - macOS 明确不支持。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。
+
+## 快速安装
+
+需要 Python 3.10+、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。源码安装还需要 `git`；如果不想安装 Git，可以选择 Release 中的 wheel。
+
+### 从 GitHub 源码安装
+
+仓库公开后，在 Bash 或 PowerShell 中执行：
+
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git"
+pipx ensurepath
+```
+
+这会安装默认分支中的代码，无需手动克隆或构建 wheel。已有源码目录时，也可以在项目根目录执行 `pipx install .`。需要固定版本时，在对应标签发布后使用 `git+https://github.com/fbincon/claude-code-statusline.git@v1.0.0`。
+
+### 从 Release 安装
+
+打开 [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases)，下载对应版本的 `.whl` 文件。首次 Release 尚未发布时，请使用上面的源码安装方式。
+
+`v1.0.0` Release 及其 wheel 附件发布后，也可以在 Bash 或 PowerShell 中直接安装：
+
+```text
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.0.0/claude_code_statusline-1.0.0-py3-none-any.whl"
+pipx ensurepath
+```
+
+以 `1.0.0` 为例，下载 `claude_code_statusline-1.0.0-py3-none-any.whl` 后，在文件所在目录执行：
+
+Linux / WSL（Bash）：
+
+```bash
+pipx install ./claude_code_statusline-1.0.0-py3-none-any.whl
+pipx ensurepath
+```
+
+Windows（PowerShell）：
+
+```powershell
+pipx install .\claude_code_statusline-1.0.0-py3-none-any.whl
+pipx ensurepath
+```
+
+### 接入 Claude Code
+
+源码和 Release 两种方式都只安装 Python 包。执行 `pipx ensurepath` 后重新打开终端，再接入 Claude Code：
+
+```bash
+claude-statusline install --dry-run
+claude-statusline install
+claude-statusline doctor
+```
+
+Windows 把命令名替换为 `claude-statusline.exe`。安装后运行 `claude-statusline configure`（Windows 为 `claude-statusline.exe configure`）打开上图中的配置界面。
+
+如果已有其他工具的状态栏，安装器会报告冲突；确实要替换时使用 `claude-statusline install --force`，安装器仍会先备份原配置。无需替换时保留现有状态栏即可。
 
 ## 构建与安装
 
@@ -206,3 +287,7 @@ python -m build
 GitHub Actions 覆盖 `ubuntu-latest` 与 `windows-latest`、Python 3.10 与 3.14，并另行检查 sdist/wheel 内容、Windows PowerShell/Git Bash smoke 和 Linux installer/render smoke。
 
 自动测试与本地 smoke 必须使用临时 `CLAUDE_CONFIG_DIR`，不接触真实 `~/.claude`。真实多 Agent 视觉验收会产生模型费用，因此不会自动执行。详细命令、配置字段、诊断与故障排查见 [README_DETAILED.md](README_DETAILED.md)。
+
+## 许可证
+
+本项目采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 [fbincon](https://github.com/fbincon)。

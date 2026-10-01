@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,9 @@ name = "claude-code-statusline"
 version = "1.0.0"
 description = "A packaged, configurable, stateful Claude Code status line for Linux and Windows"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "fbincon"}]
 requires-python = ">=3.10"
 dependencies = [
   "windows-curses>=2.4.2; sys_platform == 'win32'",
@@ -23,6 +26,13 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
+
+[project.urls]
+Repository = "https://github.com/fbincon/claude-code-statusline"
+Issues = "https://github.com/fbincon/claude-code-statusline/issues"
+Documentation = "https://github.com/fbincon/claude-code-statusline#readme"
+Changelog = "https://github.com/fbincon/claude-code-statusline/blob/main/CHANGELOG.md"
+Releases = "https://github.com/fbincon/claude-code-statusline/releases"
 
 [project.scripts]
 claude-statusline = "claude_statusline.cli:main"
