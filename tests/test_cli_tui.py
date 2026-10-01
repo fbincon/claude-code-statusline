@@ -1,4 +1,4 @@
-"""Linux PTY smoke tests for the interactive configure command."""
+"""Linux/macOS PTY smoke tests for the interactive configure command."""
 
 import json
 import os
@@ -13,13 +13,15 @@ import time
 import unittest
 from pathlib import Path
 
-if sys.platform.startswith("linux"):
+SUPPORTS_PTY = sys.platform.startswith("linux") or sys.platform == "darwin"
+
+if SUPPORTS_PTY:
     import fcntl
     import pty
     import termios
 
 
-@unittest.skipUnless(sys.platform.startswith("linux"), "Linux-only TUI")
+@unittest.skipUnless(SUPPORTS_PTY, "Linux/macOS PTY required")
 class ConfigurePtyTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="statusline-tui-pty-")
@@ -38,16 +40,20 @@ class ConfigurePtyTests(unittest.TestCase):
         self._write_installed_settings()
         self.process = None
         self.master = None
+        self.slaves = []
+        self.pending_output = bytearray()
 
     def tearDown(self):
         if self.process is not None and self.process.poll() is None:
             self.process.kill()
-            self.process.wait(timeout=5)
+            self._wait_exit()
         if self.master is not None:
             try:
                 os.close(self.master)
             except OSError:
                 pass
+        for descriptor in self.slaves:
+            os.close(descriptor)
         self.temporary.cleanup()
 
     def _write_installed_settings(self):
@@ -83,6 +89,14 @@ class ConfigurePtyTests(unittest.TestCase):
             termios.TIOCSWINSZ,
             struct.pack("HHHH", rows, columns, 0, 0),
         )
+
+        def controlling_terminal():
+            # macOS requires a controlling terminal for foreground curses I/O.
+            # The test process owns a fresh session, just like a terminal client.
+            os.setsid()
+            fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+            os.tcsetpgrp(slave, os.getpgrp())
+
         process = subprocess.Popen(
             [
                 sys.executable,
@@ -97,10 +111,13 @@ class ConfigurePtyTests(unittest.TestCase):
             stderr=slave,
             env=env,
             close_fds=True,
+            preexec_fn=controlling_terminal,
         )
-        os.close(slave)
+        # Keep the slave valid while draining output and collecting exit status.
+        self.slaves.append(slave)
         self.master = master
         self.process = process
+        self.pending_output.clear()
         return process, master
 
     def _bridge_environment(self, deadline="570"):
@@ -125,13 +142,40 @@ class ConfigurePtyTests(unittest.TestCase):
                     break
                 continue
             try:
-                output += os.read(self.master, 65536)
+                chunk = os.read(self.master, 65536)
+                if not chunk:
+                    break
+                output += chunk
             except OSError:
                 break
+        if needle not in output:
+            details = subprocess.run(
+                ["ps", "-o", "pid,ppid,pgid,stat,tty,command", "-p", str(self.process.pid)],
+                capture_output=True, text=True, timeout=2, check=False,
+            )
+            print(f"PTY did not emit {needle!r}; output={output!r}; process={details.stdout!r}")
         return output
 
+    def _wait_exit(self, timeout=5):
+        # A real terminal consumes output continuously. Waiting without reading
+        # can block curses (and terminal close) on Darwin's smaller PTY queues.
+        deadline = time.monotonic() + timeout
+        while True:
+            ready, _, _ = select.select([self.master], [], [], 0.05)
+            if ready:
+                try:
+                    self.pending_output.extend(os.read(self.master, 65536))
+                except OSError:
+                    pass
+            result = self.process.poll()
+            if result is not None:
+                return result
+            if time.monotonic() >= deadline:
+                raise subprocess.TimeoutExpired(self.process.args, timeout)
+
     def _finish_output(self, initial=b""):
-        output = initial
+        output = initial + bytes(self.pending_output)
+        self.pending_output.clear()
         deadline = time.monotonic() + 1
         while time.monotonic() < deadline:
             ready, _, _ = select.select([self.master], [], [], 0.05)
@@ -140,7 +184,10 @@ class ConfigurePtyTests(unittest.TestCase):
                     break
                 continue
             try:
-                output += os.read(self.master, 65536)
+                chunk = os.read(self.master, 65536)
+                if not chunk:
+                    break
+                output += chunk
             except OSError:
                 break
         return output
@@ -160,7 +207,7 @@ class ConfigurePtyTests(unittest.TestCase):
             + b"\x1bOB" * 4
             + b"3\r\r",
         )
-        self.assertEqual(process.wait(timeout=5), 0)
+        self.assertEqual(self._wait_exit(), 0)
         output = self._finish_output(output)
         self.assertIn(b"Status line configuration updated.", output)
 
@@ -194,7 +241,7 @@ class ConfigurePtyTests(unittest.TestCase):
         process, master = self._start()
         output = self._read_until(b"Configure Status Line")
         os.write(master, b"\x1b")
-        self.assertEqual(process.wait(timeout=5), 0)
+        self.assertEqual(self._wait_exit(), 0)
         output = self._finish_output(output)
         self.assertIn(b"Status line configuration unchanged.", output)
         self.assertEqual(
@@ -206,7 +253,7 @@ class ConfigurePtyTests(unittest.TestCase):
         process, master = self._start()
         output = self._read_until(b"Configure Status Line")
         os.write(master, b"\r")
-        self.assertEqual(process.wait(timeout=5), 0)
+        self.assertEqual(self._wait_exit(), 0)
         output = self._finish_output(output)
         self.assertIn(b"Status line configuration updated.", output)
         self.assertEqual(self.settings_path.read_bytes(), before)
@@ -231,7 +278,7 @@ class ConfigurePtyTests(unittest.TestCase):
         output += self._read_until(b"Preview (sample data)")
         self.assertIn(b"Preview (sample data)", output)
         os.write(master, b"\x1b")
-        self.assertEqual(process.wait(timeout=5), 0)
+        self.assertEqual(self._wait_exit(), 0)
         self.assertEqual(self.settings_path.read_bytes(), before)
 
     def test_uninstalled_invalid_config_and_terminal_failure_are_clean_errors(self):
@@ -243,7 +290,7 @@ class ConfigurePtyTests(unittest.TestCase):
             with self.subTest(name=name):
                 before = self.settings_path.read_bytes()
                 process, _master = self._start(term=term)
-                self.assertEqual(process.wait(timeout=5), 2)
+                self.assertEqual(self._wait_exit(), 2)
                 output = self._finish_output()
                 self.assertIn(b"error:", output)
                 self.assertNotIn(b"Traceback", output)
@@ -259,7 +306,7 @@ class ConfigurePtyTests(unittest.TestCase):
             self.display_path.read_bytes(),
         )
         process, _master = self._start()
-        self.assertEqual(process.wait(timeout=5), 2)
+        self.assertEqual(self._wait_exit(), 2)
         output = self._finish_output()
         self.assertIn(b"invalid JSON", output)
         self.assertNotIn(b"Traceback", output)
@@ -272,7 +319,7 @@ class ConfigurePtyTests(unittest.TestCase):
 
         self.display_path.unlink()
         process, _master = self._start(term="definitely-not-a-terminal")
-        self.assertEqual(process.wait(timeout=5), 2)
+        self.assertEqual(self._wait_exit(), 2)
         output = self._finish_output()
         self.assertIn(b"cannot initialize terminal", output)
         self.assertNotIn(b"Traceback", output)
@@ -288,7 +335,7 @@ class ConfigurePtyTests(unittest.TestCase):
                 process, _master = self._start()
                 output = self._read_until(b"Configure Status Line")
                 os.kill(process.pid, signum)
-                self.assertEqual(process.wait(timeout=5), expected)
+                self.assertEqual(self._wait_exit(), expected)
                 output = self._finish_output(output)
                 self.assertNotIn(b"Traceback", output)
                 self.assertEqual(self.settings_path.read_bytes(), before)
@@ -313,7 +360,7 @@ class ConfigurePtyTests(unittest.TestCase):
                 os.write(master, keys)
                 if keys == b" ":
                     os.write(master, b"\r")
-                self.assertEqual(process.wait(timeout=5), 0)
+                self.assertEqual(self._wait_exit(), 0)
                 output = self._finish_output(output)
                 result = json.loads(result_path.read_text(encoding="utf-8"))
                 self.assertEqual(result["schema_version"], 1)
@@ -342,7 +389,7 @@ class ConfigurePtyTests(unittest.TestCase):
                 process, master = self._start(extra_env=bridge_env)
                 self._read_until(b"Configure Status Line")
                 os.kill(process.pid, signum)
-                self.assertEqual(process.wait(timeout=5), expected_code)
+                self.assertEqual(self._wait_exit(), expected_code)
                 result = json.loads(result_path.read_text(encoding="utf-8"))
                 self.assertEqual(result["outcome"], "interrupted")
                 self.assertIn("no changes were saved", result["message"])
@@ -355,7 +402,7 @@ class ConfigurePtyTests(unittest.TestCase):
         before = self.settings_path.read_bytes()
         bridge_env, result_path = self._bridge_environment("0.05")
         process, _master = self._start(extra_env=bridge_env)
-        self.assertEqual(process.wait(timeout=5), 0)
+        self.assertEqual(self._wait_exit(), 0)
         result = json.loads(result_path.read_text(encoding="utf-8"))
         self.assertEqual(result["outcome"], "timed-out")
         self.assertIn("timed out", result["message"])
@@ -367,7 +414,7 @@ class ConfigurePtyTests(unittest.TestCase):
         before = self.settings_path.read_bytes()
         bridge_env, result_path = self._bridge_environment()
         process, _master = self._start(extra_env=bridge_env)
-        self.assertEqual(process.wait(timeout=5), 2)
+        self.assertEqual(self._wait_exit(), 2)
         output = self._finish_output()
         result = json.loads(result_path.read_text(encoding="utf-8"))
         self.assertEqual(result["outcome"], "error")

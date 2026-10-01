@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "claude-code-statusline"
 version = "1.0.0"
-description = "A packaged, configurable, stateful Claude Code status line for Linux and Windows"
+description = "A configurable, stateful Claude Code status line for Linux, Windows and macOS (preview)"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -18,6 +18,7 @@ classifiers = [
   "Environment :: Console",
   "Operating System :: Microsoft :: Windows",
   "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS :: MacOS X",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",

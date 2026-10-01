@@ -269,6 +269,19 @@ class RenderingAndFallbackTests(TimerTestCase):
         self.assertEqual(accepted["status"], "idle")
         self.assertEqual(accepted["status_updated_wall_ns"], 1_234_000_000)
 
+    def test_registry_filters_other_sessions_and_invalid_records_before_process_lookup(self):
+        records = {
+            "42": {"pid": 42, "sessionId": "other", "statusUpdatedAt": 1234},
+            "43": {"pid": 43, "sessionId": "s", "statusUpdatedAt": True},
+            "44": ["invalid registry"],
+        }
+        for pid, record in records.items():
+            with open(os.path.join(self.sessions, f"{pid}.json"), "w", encoding="utf-8") as stream:
+                json.dump(record, stream)
+        with mock.patch.object(sl, "_proc_start_time") as process_start:
+            self.assertIsNone(sl._read_cli_session_status("s"))
+        process_start.assert_not_called()
+
     def test_unchanged_transcript_is_not_reparsed(self):
         transcript = os.path.join(self.runtime, "transcript.jsonl")
         with open(transcript, "w", encoding="utf-8") as stream:

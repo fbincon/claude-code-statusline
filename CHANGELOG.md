@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- 新增 macOS 预览支持：核心状态栏、子 Agent 行、安装配置命令和独立 curses TUI；实验性 `/statusline-configure` 仅使用通过预检查的 tmux popup。
+- Linux/macOS 共享 POSIX 文件锁、私有权限修复、原子替换和父目录同步；仅 macOS 文件系统不支持目录同步时降级，真实 I/O 错误继续传播。
+- macOS session registry 使用 C locale / UTC 的 `ps -o lstart=` 启动标识，先筛选匹配会话再查询进程。计时通过延迟加载的 LibSystem `mach_continuous_time`、`mach_timebase_info` 与 `kern.bootsessionuuid` 保持包含睡眠时间的时钟和重启识别；接口不可用时整体回退墙钟。
+- `doctor` 增加 macOS 预览、架构、系统版本、curses、进程、时钟、目录同步与实验入口 tmux 诊断；缺少 curses 时独立 TUI 返回清晰错误。
+- macOS 独立 TUI 定时轮询输入，使旧 curses/CPython 3.10 在没有后续按键时也能及时处理 SIGINT 等信号；PTY 测试建立前台控制终端并在等待退出时持续读取输出。
+- CI 增加 macOS 15/26 × Intel/Apple Silicon × Python 3.10/3.14，扩展 PTY/tmux 实测并生成平台验证报告；ARM64 的 Python 3.10 下界固定为 3.10.11。
+- 已发布的 v1.0.0 安装包仍按原平台范围使用；本次预览需安装包含改动的源码。实际 Claude 视觉效果、真实睡眠恢复与桌面终端体验尚未人工验收。
+
 ## 1.0.0 - 2026-09-04
 
 - Git staged 计数按运行平台调整间距：原生 Linux 保留 `● N`，Windows 和 WSL 改为 `●N`；WSL 同时根据环境变量和内核 release 识别。

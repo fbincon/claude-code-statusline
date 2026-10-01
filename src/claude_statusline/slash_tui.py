@@ -132,6 +132,9 @@ def choose_launcher(environ: Mapping[str, str]) -> Launcher | None:
     ):
         return Launcher("tmux", tmux, pane)
 
+    if _platform.is_macos():
+        return None
+
     graphical = environ.get("DISPLAY") or environ.get("WAYLAND_DISPLAY")
     if graphical:
         gnome_terminal = _which("gnome-terminal", environ)
@@ -217,11 +220,11 @@ def _create_invocation_dir(config_dir: Path) -> tuple[Path, Path]:
         base.mkdir(mode=0o700, parents=True, exist_ok=True)
         if not base.is_dir():
             raise OSError("runtime path is not a directory")
-        if _platform.is_linux():
+        if _platform.uses_posix_files():
             base.chmod(0o700)
         cleanup_stale_invocations(base)
         invocation = Path(tempfile.mkdtemp(prefix=INVOCATION_PREFIX, dir=base))
-        if _platform.is_linux():
+        if _platform.uses_posix_files():
             invocation.chmod(0o700)
     except OSError as exc:
         raise ResultError(f"cannot create the private result directory: {exc}") from exc

@@ -549,7 +549,7 @@ def _json_bytes(settings: dict) -> bytes:
 
 
 def _chmod_private(path: Path, mode: int) -> None:
-    if not _platform.is_linux():
+    if not _platform.uses_posix_files():
         return
     try:
         path.chmod(mode)
@@ -1025,10 +1025,11 @@ def collect_diagnostics(
 ) -> list[Diagnostic]:
     diagnostics = []
     if _platform.is_supported_platform():
-        diagnostics.append(Diagnostic("OK", f"platform: {sys.platform}"))
+        suffix = " (macOS preview)" if _platform.is_macos() else ""
+        diagnostics.append(Diagnostic("OK", f"platform: {sys.platform}{suffix}"))
     else:
         diagnostics.append(Diagnostic(
-            "ERROR", "supported platforms are Linux/WSL and Windows"
+            "ERROR", "supported platforms are Linux/WSL, Windows and macOS (preview)"
         ))
 
     if _platform.is_windows():
@@ -1068,6 +1069,43 @@ def collect_diagnostics(
             diagnostics.append(Diagnostic(
                 "ERROR", "Windows system new-console launcher is unavailable"
             ))
+
+    elif _platform.is_macos():
+        machine = stdlib_platform.machine().casefold()
+        diagnostics.append(Diagnostic(
+            "OK" if machine in {"x86_64", "arm64"} else "WARN",
+            f"macOS architecture: {machine or 'unknown'} (preview)",
+        ))
+        macos_version = stdlib_platform.mac_ver()[0]
+        diagnostics.append(Diagnostic(
+            "OK" if macos_version.split(".")[0] in {"15", "26"} else "WARN",
+            f"macOS version: {macos_version or 'unknown'}; preview CI covers 15 and 26",
+        ))
+        try:
+            import curses
+
+            if not hasattr(curses, "wrapper"):
+                raise ImportError("curses.wrapper is unavailable")
+            diagnostics.append(Diagnostic("OK", "macOS curses backend"))
+        except ImportError as exc:
+            diagnostics.append(Diagnostic(
+                "ERROR", f"macOS curses backend is unavailable: {exc}"
+            ))
+        process_token = _platform.process_start_token(os.getpid())
+        diagnostics.append(Diagnostic(
+            "OK" if process_token else "WARN",
+            "macOS process start verification: " + (
+                "available" if process_token else "unavailable; registry reconciliation is disabled"
+            ),
+        ))
+        _wall, boot_ns, boot_id = _platform.now_clocks()
+        native_clock = boot_ns is not None and boot_id is not None
+        diagnostics.append(Diagnostic(
+            "OK" if native_clock else "WARN",
+            "macOS suspend-aware clock: " + (
+                "available" if native_clock else "unavailable; using wall-clock fallback"
+            ),
+        ))
 
     version = ".".join(map(str, sys.version_info[:3]))
     if sys.version_info >= (3, 10):  # noqa: UP036 - doctor reports the contract
@@ -1479,6 +1517,12 @@ def collect_diagnostics(
                 "no supported interactive launcher is installed; install tmux or "
                 "GNOME Terminal, or run claude-statusline configure directly",
             ))
+        elif _platform.is_macos() and not shutil.which("tmux"):
+            diagnostics.append(Diagnostic(
+                "WARN",
+                "no supported macOS interactive launcher is installed; install tmux "
+                "and run Claude inside it, or run claude-statusline configure directly",
+            ))
 
     runtime_dir = config_dir / "statusline_runtime"
     runtime_access = os.W_OK | (0 if _platform.is_windows() else os.X_OK)
@@ -1486,4 +1530,15 @@ def collect_diagnostics(
         diagnostics.append(Diagnostic("OK", f"runtime directory: {runtime_dir}"))
     else:
         diagnostics.append(Diagnostic("ERROR", f"runtime directory is not writable: {runtime_dir}"))
+    if _platform.is_macos() and config_dir.is_dir():
+        try:
+            synced = _platform._sync_parent_directory(settings_path)
+            diagnostics.append(Diagnostic(
+                "OK" if synced else "WARN",
+                "macOS parent-directory sync: " + (
+                    "available" if synced else "unsupported; file sync and atomic replace remain enabled"
+                ),
+            ))
+        except OSError as exc:
+            diagnostics.append(Diagnostic("WARN", f"macOS parent-directory sync failed: {exc}"))
     return diagnostics

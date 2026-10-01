@@ -2,6 +2,8 @@
 """Subprocess tests for the public command-line interface."""
 
 import json
+import builtins
+from io import StringIO
 import os
 import subprocess
 import sys
@@ -11,6 +13,7 @@ from pathlib import Path
 from unittest import mock
 
 from claude_statusline import cli
+from claude_statusline import installer
 
 
 class CliTests(unittest.TestCase):
@@ -82,6 +85,31 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("stdin and stdout", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
+
+    def test_configure_reports_missing_curses_without_traceback(self):
+        class TerminalBuffer(StringIO):
+            def isatty(self):
+                return True
+
+        original_import = builtins.__import__
+
+        def missing_curses(name, globals=None, locals=None, fromlist=(), level=0):
+            if "interactive_config" in (fromlist or ()):
+                raise ImportError("No module named '_curses'")
+            return original_import(name, globals, locals, fromlist, level)
+
+        errors = StringIO()
+        with (
+            mock.patch.object(cli.sys, "stdin", TerminalBuffer()),
+            mock.patch.object(cli.sys, "stdout", TerminalBuffer()),
+            mock.patch.object(cli.sys, "stderr", errors),
+            mock.patch.object(installer, "resolve_cli_executable", return_value=Path("/unused/claude-statusline")),
+            mock.patch.object(builtins, "__import__", side_effect=missing_curses),
+        ):
+            code = cli.main(["configure", "--config-dir", self.launcher_temp.name])
+        self.assertEqual(code, 2)
+        self.assertIn("available curses backend", errors.getvalue())
+        self.assertNotIn("Traceback", errors.getvalue())
 
     def test_render_invalid_json_is_silent_and_successful(self):
         result = self.run_cli("render", input_text="not-json")

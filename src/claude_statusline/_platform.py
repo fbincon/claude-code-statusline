@@ -17,6 +17,7 @@ import tempfile
 import threading
 import time
 from contextlib import contextmanager
+from functools import lru_cache
 from pathlib import Path
 from typing import Iterator
 
@@ -39,6 +40,15 @@ def is_linux(platform_name: str | None = None) -> bool:
     )
 
 
+def is_macos(platform_name: str | None = None) -> bool:
+    return (sys.platform if platform_name is None else platform_name) == "darwin"
+
+
+def uses_posix_files(platform_name: str | None = None) -> bool:
+    """Share file semantics only between the supported POSIX runtimes."""
+    return is_linux(platform_name) or is_macos(platform_name)
+
+
 def is_wsl(platform_name: str | None = None) -> bool:
     """Return whether the current Linux runtime is Windows Subsystem for Linux."""
     if not is_linux(platform_name):
@@ -50,7 +60,7 @@ def is_wsl(platform_name: str | None = None) -> bool:
 
 def is_supported_platform(platform_name: str | None = None) -> bool:
     """Return whether the native runtime is part of the supported contract."""
-    return is_linux(platform_name) or is_windows(platform_name)
+    return uses_posix_files(platform_name) or is_windows(platform_name)
 
 
 def no_window_creation_flags() -> int:
@@ -68,16 +78,25 @@ def new_console_creation_flags() -> int:
 
 
 def _set_private_mode(descriptor: int, mode: int) -> None:
-    if is_linux():
+    if uses_posix_files():
         os.fchmod(descriptor, mode)
 
 
-def _sync_parent_directory(path: Path) -> None:
-    if not is_linux():
-        return
+def _sync_parent_directory(path: Path) -> bool | None:
+    """Sync directory metadata; False records an unsupported macOS filesystem."""
+    if not uses_posix_files():
+        return None
     descriptor = os.open(path.parent, os.O_RDONLY)
     try:
-        os.fsync(descriptor)
+        try:
+            os.fsync(descriptor)
+        except OSError as exc:
+            if is_macos() and exc.errno in (
+                errno.EINVAL, errno.ENOTSUP, errno.EOPNOTSUPP,
+            ):
+                return False
+            raise
+        return True
     finally:
         os.close(descriptor)
 
@@ -142,8 +161,8 @@ def exclusive_file_lock(
 ) -> Iterator[int]:
     """Hold an exclusive advisory lock on one fixed byte of *path*.
 
-    Linux uses ``flock``. Windows uses the CRT byte-range lock so independent
-    Python processes coordinate without importing POSIX-only modules.
+    Linux and macOS use ``flock``. Windows uses the CRT byte-range lock so
+    independent Python processes coordinate without importing POSIX-only modules.
     """
     lock_path = Path(path)
     lock_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -165,7 +184,7 @@ def exclusive_file_lock(
             os.lseek(descriptor, 0, os.SEEK_SET)
             msvcrt.locking(descriptor, msvcrt.LK_LOCK, 1)
             windows_lock = True
-        elif is_linux():
+        elif uses_posix_files():
             import fcntl
 
             fcntl.flock(descriptor, fcntl.LOCK_EX)
@@ -181,7 +200,7 @@ def exclusive_file_lock(
 
                     os.lseek(descriptor, 0, os.SEEK_SET)
                     msvcrt.locking(descriptor, msvcrt.LK_UNLCK, 1)
-                elif is_linux():
+                elif uses_posix_files():
                     import fcntl
 
                     fcntl.flock(descriptor, fcntl.LOCK_UN)
@@ -288,6 +307,27 @@ def _linux_process_start_token(pid: int) -> str | None:
         return fields[19] if len(fields) > 19 else None
     except (OSError, ValueError):
         return None
+
+
+def _macos_process_start_token(pid: int) -> str | None:
+    # Match Claude's non-Linux POSIX token exactly, including interior spacing.
+    # Its ps query uses the C locale and UTC and trims only the output's edges.
+    environment = os.environ.copy()
+    environment.update(LC_ALL="C", TZ="UTC")
+    try:
+        result = subprocess.run(
+            ["/bin/ps", "-o", "lstart=", "-p", str(pid)],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            env=environment,
+            timeout=1,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError, UnicodeError):
+        return None
+    return (result.stdout.strip() or None) if result.returncode == 0 else None
 
 
 def _windows_process_creation_filetime(pid: int) -> int | None:
@@ -403,6 +443,8 @@ def process_start_token(pid: object) -> str | None:
         # Claude obtains ``CreationDate.Ticks`` on Windows. Win32 FILETIME uses
         # the same 100 ns unit but starts at 1601 instead of .NET's year 1.
         return str(value + _DOTNET_FILETIME_OFFSET_TICKS)
+    if is_macos():
+        return _macos_process_start_token(pid)
     return None
 
 
@@ -427,6 +469,56 @@ def _windows_uptime_ns() -> int:
     return int(get_tick_count()) * 1_000_000
 
 
+@lru_cache(maxsize=1)
+def _macos_clock_api():
+    """Bind the user-space LibSystem APIs lazily, with both 64-bit ABIs."""
+    import ctypes
+
+    class TimebaseInfo(ctypes.Structure):
+        _fields_ = (("numer", ctypes.c_uint32), ("denom", ctypes.c_uint32))
+
+    library = ctypes.CDLL("/usr/lib/libSystem.B.dylib", use_errno=True)
+    continuous = library.mach_continuous_time
+    continuous.argtypes = ()
+    continuous.restype = ctypes.c_uint64
+    timebase_info = library.mach_timebase_info
+    timebase_info.argtypes = (ctypes.POINTER(TimebaseInfo),)
+    timebase_info.restype = ctypes.c_int
+    sysctl = library.sysctlbyname
+    sysctl.argtypes = (
+        ctypes.c_char_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_size_t),
+        ctypes.c_void_p, ctypes.c_size_t,
+    )
+    sysctl.restype = ctypes.c_int
+
+    timebase = TimebaseInfo()
+    if timebase_info(ctypes.byref(timebase)) != 0:
+        raise OSError("mach_timebase_info failed")
+    if timebase.numer <= 0 or timebase.denom <= 0:
+        raise ValueError("invalid Mach timebase")
+    return continuous, sysctl, int(timebase.numer), int(timebase.denom)
+
+
+def _macos_boot_clock() -> tuple[int, str]:
+    import ctypes
+    import uuid
+
+    continuous, sysctl, numer, denom = _macos_clock_api()
+    value = ctypes.create_string_buffer(128)
+    length = ctypes.c_size_t(len(value))
+    if sysctl(
+        b"kern.bootsessionuuid", value, ctypes.byref(length), None, 0,
+    ) != 0:
+        raise OSError(ctypes.get_errno(), "kern.bootsessionuuid unavailable")
+    if not 0 < length.value <= len(value):
+        raise ValueError("invalid boot session UUID length")
+    boot_id = str(uuid.UUID(value.value.decode("ascii")))
+    ticks = int(continuous())
+    if ticks < 0:
+        raise ValueError("invalid Mach continuous time")
+    return ticks * numer // denom, f"darwin:{boot_id}"
+
+
 def now_clocks() -> tuple[int, int | None, str | None]:
     """Return wall time, suspend-aware boot time, and a reboot identifier."""
     wall_ns = time.time_ns()
@@ -449,4 +541,11 @@ def now_clocks() -> tuple[int, int | None, str | None]:
             except (OSError, ValueError):
                 pass
         return wall_ns, boot_ns, _linux_boot_id()
+    if is_macos():
+        try:
+            boot_ns, boot_id = _macos_boot_clock()
+        except (AttributeError, OSError, TypeError, ValueError):
+            # A clock without a reboot identifier cannot safely span processes.
+            return wall_ns, None, None
+        return wall_ns, boot_ns, boot_id
     return wall_ns, None, None

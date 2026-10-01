@@ -33,7 +33,7 @@ TURN_DIR = os.path.join(RUNTIME_ROOT, "turns")
 
 def _safe_mkdir(path):
     os.makedirs(path, mode=0o700, exist_ok=True)
-    if _platform.is_linux():
+    if _platform.uses_posix_files():
         try:
             os.chmod(path, 0o700)
         except OSError:

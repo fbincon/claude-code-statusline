@@ -1032,7 +1032,9 @@ def _screen_loop(
     deadline_at: float | None = None,
 ) -> str:
     screen.keypad(True)
-    if deadline_at is not None:
+    if deadline_at is not None or _platform.is_macos():
+        # Older macOS curses can restart an interrupted blocking read. Polling
+        # lets Python dispatch pending signals without needing another keypress.
         screen.timeout(250)
     try:
         curses.curs_set(0)

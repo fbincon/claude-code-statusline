@@ -8,7 +8,7 @@ Release wheel 由维护者构建并上传；推送源码会触发 CI，但不会
 
 ## 1. 构建安装包
 
-发布前确认要发布的改动已经提交，并让该提交的 Linux/Windows CI 通过。`pyproject.toml` 和 `src/claude_statusline/_version.py` 的版本应一致，并在 [CHANGELOG.md](../CHANGELOG.md) 中记录该版本。
+发布前确认要发布的改动已经提交，并让该提交的 Linux/Windows/macOS CI 通过。`pyproject.toml` 和 `src/claude_statusline/_version.py` 的版本应一致，并在 [CHANGELOG.md](../CHANGELOG.md) 中记录该版本。
 
 在干净的发布工作目录中构建，避免把不同版本的产物混在一起。以下 Bash 命令在项目根目录执行：
 
@@ -26,7 +26,7 @@ dist/claude_code_statusline-1.0.0-py3-none-any.whl
 dist/claude_code_statusline-1.0.0.tar.gz
 ```
 
-wheel 是用户的快速安装入口，源码包用于从源码构建。该 wheel 的 Windows 条件依赖由安装时的 Python 平台决定。同一份 wheel 可以用于本项目支持的 Linux/WSL 和 Windows 环境。
+wheel 是用户的快速安装入口，源码包用于从源码构建。该 wheel 的 Windows 条件依赖由安装时的 Python 平台决定。后续包含 macOS 改动的纯 Python wheel 可继续共用于 Linux/WSL、Windows 与 macOS；已发布的 v1.0.0 wheel 本身不包含 macOS 支持。当前预览仅交付源码、草稿 PR 和 CI 结果，版本号保持 1.0.0；后续发布需更新版本和附件，不能覆盖现有 v1.0.0 附件。
 
 `.venv-build/` 和 `dist/` 已由 `.gitignore` 排除。检查源码包包含 `docs/USER_GUIDE.md`、`docs/RELEASING.md` 和 `docs/images/` 截图；检查 wheel 包含平台模块及两个 skill 模板。检查方法见[开发与测试](USER_GUIDE.md#附录开发与测试)。
 
