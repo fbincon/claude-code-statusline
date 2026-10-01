@@ -21,8 +21,19 @@ class PlatformIdentityTests(unittest.TestCase):
         self.assertTrue(_platform.is_supported_platform("linux"))
         self.assertTrue(_platform.is_supported_platform("linux2"))
         self.assertTrue(_platform.is_supported_platform("win32"))
-        self.assertFalse(_platform.is_supported_platform("darwin"))
+        self.assertTrue(_platform.is_supported_platform("darwin"))
         self.assertFalse(_platform.is_supported_platform("cygwin"))
+
+    def test_posix_file_capabilities_do_not_enable_other_unix_platforms(self):
+        for name, expected in (
+            ("linux", True), ("darwin", True), ("win32", False),
+            ("cygwin", False), ("freebsd14", False),
+        ):
+            with self.subTest(platform=name):
+                self.assertEqual(_platform.uses_posix_files(name), expected)
+        self.assertTrue(_platform.is_macos("darwin"))
+        self.assertFalse(_platform.is_linux("darwin"))
+        self.assertFalse(_platform.is_wsl("darwin"))
 
     def test_wsl_environment_markers_short_circuit_kernel_detection(self):
         for marker, value in (
@@ -287,7 +298,10 @@ class ProcessAndClockTests(unittest.TestCase):
     def test_current_and_missing_process_tokens(self):
         token = _platform.process_start_token(os.getpid())
         self.assertIsInstance(token, str)
-        self.assertTrue(token.isdecimal())
+        if _platform.is_macos():
+            self.assertRegex(token, r"^[A-Z][a-z]{2} [A-Z][a-z]{2} +\d{1,2} \d{2}:\d{2}:\d{2} \d{4}$")
+        else:
+            self.assertTrue(token.isdecimal())
         self.assertIsNone(_platform.process_start_token(-1))
         self.assertIsNone(_platform.process_start_token(True))
         self.assertIsNone(_platform.process_start_token(2_147_000_000))

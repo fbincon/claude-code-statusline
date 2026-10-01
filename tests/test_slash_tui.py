@@ -47,6 +47,29 @@ class SelectionAndArgumentsTests(SlashTuiTestCase):
         )
         platform_patcher.start()
         self.addCleanup(platform_patcher.stop)
+        macos_patcher = mock.patch.object(st._platform, "is_macos", return_value=False)
+        macos_patcher.start()
+        self.addCleanup(macos_patcher.stop)
+
+    def test_macos_requires_valid_tmux_and_never_selects_gnome(self):
+        environ = {
+            "PATH": "/bin", "DISPLAY": ":0", "TMUX": "server", "TMUX_PANE": "%3",
+        }
+        with (
+            mock.patch.object(st._platform, "is_macos", return_value=True),
+            mock.patch.object(st.shutil, "which", side_effect=lambda name, path=None: f"/usr/bin/{name}") as which,
+            mock.patch.object(st, "_tmux_preflight", return_value=False),
+        ):
+            self.assertIsNone(st.choose_launcher(environ))
+            self.assertEqual([call.args[0] for call in which.call_args_list], ["tmux"])
+        with (
+            mock.patch.object(st._platform, "is_macos", return_value=True),
+            mock.patch.object(st.shutil, "which", return_value="/opt/homebrew/bin/tmux"),
+            mock.patch.object(st, "_tmux_preflight", return_value=True),
+        ):
+            self.assertEqual(
+                st.choose_launcher(environ), st.Launcher("tmux", "/opt/homebrew/bin/tmux", "%3")
+            )
 
     def test_tmux_preflight_has_two_second_limit_and_takes_priority(self):
         completed = mock.Mock(returncode=0, stdout=b"%12\n", stderr=b"")

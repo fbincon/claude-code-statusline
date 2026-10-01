@@ -14,7 +14,9 @@ import tempfile
 import time
 import unittest
 
-if sys.platform.startswith("linux"):
+SUPPORTS_PTY = sys.platform.startswith("linux") or sys.platform == "darwin"
+
+if SUPPORTS_PTY:
     import fcntl
     import pty
     import termios
@@ -23,8 +25,8 @@ from claude_statusline import display_config as dc
 
 
 @unittest.skipUnless(
-    sys.platform.startswith("linux") and shutil.which("tmux"),
-    "tmux is required",
+    SUPPORTS_PTY and shutil.which("tmux"),
+    "Linux/macOS and tmux are required",
 )
 class TmuxPopupIntegrationTests(unittest.TestCase):
     def setUp(self):
@@ -114,7 +116,10 @@ class TmuxPopupIntegrationTests(unittest.TestCase):
             if not ready:
                 continue
             try:
-                output += os.read(self.master, 65536)
+                chunk = os.read(self.master, 65536)
+                if not chunk:
+                    break
+                output += chunk
             except OSError:
                 break
         return output

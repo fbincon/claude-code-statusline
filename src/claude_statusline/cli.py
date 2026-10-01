@@ -185,7 +185,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "install":
             if not _platform.is_supported_platform():
                 raise installer.ConfigurationError(
-                    "supported platforms are Linux/WSL and Windows"
+                    "supported platforms are Linux/WSL, Windows and macOS (preview)"
                 )
             result = installer.install_configuration(
                 config_dir, executable,
@@ -198,10 +198,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "configure":
             if not _platform.is_supported_platform():
                 raise installer.ConfigurationError(
-                    "supported platforms are Linux/WSL and Windows"
+                    "supported platforms are Linux/WSL, Windows and macOS (preview)"
                 )
             # Keep curses out of render, hook, and slash-hook startup paths.
-            from . import interactive_config
+            try:
+                from . import interactive_config
+            except ImportError as exc:
+                raise installer.ConfigurationError(
+                    f"configure requires an available curses backend: {exc}"
+                ) from exc
 
             return interactive_config.run(config_dir, executable)
         if args.command == "uninstall":

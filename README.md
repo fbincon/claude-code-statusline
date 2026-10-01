@@ -1,6 +1,6 @@
 # Claude Code Statusline
 
-面向 Linux、WSL 和 Windows 的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
+面向 Linux、WSL、Windows，以及 macOS（预览）的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
 
 [快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.md) · [故障排查](docs/USER_GUIDE.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
 
@@ -31,14 +31,15 @@
 
 - Linux 原生与 WSL：Python 3.10+。
 - Windows 10/11 原生：CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2`。
+- macOS 预览（开发源码）：CPython 3.10–3.14，Intel / Apple Silicon；CI 覆盖 macOS 15/26、Python 3.10/3.14。支持核心功能、独立 TUI 和可选 tmux popup。
 - Claude Code CLI：2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持带参数配置命令的本地执行及实验性 TUI 启动器。较旧或无法识别的版本仍可使用主状态栏和配置向导。
 - Git 信息需要系统中存在 `git`。
 
-macOS 不支持。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。各功能的版本条件见[运行要求](docs/USER_GUIDE.md#运行要求)。
+**已发布的 v1.0.0 wheel 与固定标签源码不包含 macOS 支持**，macOS 请使用下方的[预览安装](#macos-预览安装)。真实 Claude 会话的视觉效果、实际睡眠恢复和桌面终端体验尚未人工验收；Terminal.app / iTerm2 自动启动不在本次预览范围内。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。各功能的版本条件见[运行要求](docs/USER_GUIDE.md#运行要求)。
 
 ## 快速安装
 
-先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。以下两种包安装方式任选一种。
+先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / Windows 用户从以下两种已发布包的安装方式中任选一种；macOS 使用预览源码。
 
 ### 从 Release 安装（推荐）
 
@@ -60,11 +61,22 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.0.0"
 pipx ensurepath
 ```
 
+### macOS 预览安装
+
+先下载或检出**包含 macOS 预览改动的源码**（本次变更所在分支，或后续合入它的源码），在仓库根目录执行；仅安装 v1.0.0 标签无法启用预览支持。
+
+```bash
+pipx install .
+pipx ensurepath
+```
+
+已有安装时用 `pipx install --force .` 替换。重新打开终端后，按下方 POSIX 命令接入；独立 TUI 使用 `claude-statusline configure`。macOS 实验性 `/statusline-configure` 需要先在 tmux 会话中启动 Claude；没有有效 tmux 环境时会提示独立命令。完整步骤和验证边界见[macOS 预览说明](docs/USER_GUIDE.md#macos-预览安装与验证边界)。
+
 ### 接入 Claude Code
 
 完成包安装后，**重新打开终端**，让 `pipx ensurepath` 设置的 `PATH` 生效，再执行以下命令。
 
-Linux / WSL（Bash）：
+Linux / WSL / macOS 预览（Bash / Zsh）：
 
 ```bash
 claude-statusline install --dry-run

@@ -1,4 +1,4 @@
-"""Linux PTY smoke tests for the interactive configure command."""
+"""Linux/macOS PTY smoke tests for the interactive configure command."""
 
 import json
 import os
@@ -13,13 +13,15 @@ import time
 import unittest
 from pathlib import Path
 
-if sys.platform.startswith("linux"):
+SUPPORTS_PTY = sys.platform.startswith("linux") or sys.platform == "darwin"
+
+if SUPPORTS_PTY:
     import fcntl
     import pty
     import termios
 
 
-@unittest.skipUnless(sys.platform.startswith("linux"), "Linux-only TUI")
+@unittest.skipUnless(SUPPORTS_PTY, "Linux/macOS PTY required")
 class ConfigurePtyTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="statusline-tui-pty-")
@@ -125,7 +127,10 @@ class ConfigurePtyTests(unittest.TestCase):
                     break
                 continue
             try:
-                output += os.read(self.master, 65536)
+                chunk = os.read(self.master, 65536)
+                if not chunk:
+                    break
+                output += chunk
             except OSError:
                 break
         return output
@@ -140,7 +145,10 @@ class ConfigurePtyTests(unittest.TestCase):
                     break
                 continue
             try:
-                output += os.read(self.master, 65536)
+                chunk = os.read(self.master, 65536)
+                if not chunk:
+                    break
+                output += chunk
             except OSError:
                 break
         return output

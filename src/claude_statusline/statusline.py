@@ -400,18 +400,17 @@ def _read_cli_session_status(session_id):
                     data = json.load(f)
             except (OSError, ValueError, TypeError):
                 continue
+            if not isinstance(data, dict):
+                continue
             pid = data.get("pid")
             updated_ms = data.get("statusUpdatedAt")
-            process_token = (
-                _proc_start_time(pid)
-                if isinstance(pid, int) and not isinstance(pid, bool)
-                else None
-            )
             if (data.get("sessionId") != str(session_id)
                     or not isinstance(pid, int) or isinstance(pid, bool)
                     or pid != int(stem)
-                    or not isinstance(updated_ms, int) or isinstance(updated_ms, bool)
-                    or process_token is None
+                    or not isinstance(updated_ms, int) or isinstance(updated_ms, bool)):
+                continue
+            process_token = _proc_start_time(pid)
+            if (process_token is None
                     or str(data.get("procStart") or "") != process_token):
                 continue
             candidate = {
@@ -1037,7 +1036,7 @@ def _write_git_cache(session_id, cwd, value):
         return
     try:
         os.makedirs(GIT_CACHE_DIR, mode=0o700, exist_ok=True)
-        if _platform.is_linux():
+        if _platform.uses_posix_files():
             try:
                 os.chmod(GIT_CACHE_DIR, 0o700)
             except OSError:
