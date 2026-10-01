@@ -85,6 +85,13 @@ class ConfigurePtyTests(unittest.TestCase):
             termios.TIOCSWINSZ,
             struct.pack("HHHH", rows, columns, 0, 0),
         )
+
+        def controlling_terminal():
+            # macOS requires a controlling terminal for foreground curses I/O.
+            # The test process owns a fresh session, just like a terminal client.
+            os.setsid()
+            fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
+
         process = subprocess.Popen(
             [
                 sys.executable,
@@ -99,6 +106,7 @@ class ConfigurePtyTests(unittest.TestCase):
             stderr=slave,
             env=env,
             close_fds=True,
+            preexec_fn=controlling_terminal,
         )
         os.close(slave)
         self.master = master
