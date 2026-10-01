@@ -78,7 +78,7 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 - `git`，用于从 GitHub 源码安装或显示 Git 信息；从 Release wheel 安装且不显示 Git 信息时不需要。
 - Linux 的 tmux 或 GNOME Terminal、macOS 的 tmux 仅供实验性 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
 
-已发布的 v1.0.0 wheel 与固定标签源码不包含 macOS 支持；macOS 预览需安装包含本次改动的源码，详见[预览安装与验证边界](#macos-预览安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
+已发布的 v1.0.0 wheel 与固定标签源码不包含 macOS 支持；macOS 使用 v1.1.0a1 预览包，详见[预览安装与验证边界](#macos-预览安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
 
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
@@ -92,7 +92,7 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 
 ### 安装 Python 包
 
-Linux / WSL / Windows 用户可从以下方式中任选一种。Release wheel 和固定标签源码均为 v1.0.0；macOS 预览使用后面的[源码安装步骤](#macos-预览安装与验证边界)，开发分支可能包含尚未发布的改动。
+Linux / WSL / Windows 用户可从以下方式中任选一种，安装稳定版 v1.0.0。macOS 使用后面的 [v1.1.0a1 预览安装步骤](#macos-预览安装与验证边界)；其他平台也可按该步骤试用新版。开发分支可能包含尚未发布的改动。
 
 **Release URL（推荐，Bash / PowerShell 通用）：**
 
@@ -137,16 +137,25 @@ pipx ensurepath
 
 ### macOS 预览安装与验证边界
 
-下载或检出包含 macOS 预览改动的源码（本次变更所在分支，或后续合入它的源码），在仓库根目录执行：
+在 Bash / Zsh 中直接安装 [v1.1.0a1 预发布 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1)：
 
 ```bash
-pipx install .
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
 pipx ensurepath
 ```
 
-已有安装时使用 `pipx install --force .`。重新打开 Bash / Zsh 终端后，运行 `claude-statusline install --dry-run`、`claude-statusline install` 和 `claude-statusline doctor`。独立配置界面使用 `claude-statusline configure`。Python 需提供 `curses`；预览没有额外 Python 运行依赖。
+也可以下载该 Release 的 wheel 后执行 `pipx install ./claude_code_statusline-1.1.0a1-py3-none-any.whl`。校验文件时，macOS 使用 `shasum -a 256 文件名`，与附件 `SHA256SUMS` 比较；Linux / WSL 使用 `sha256sum 文件名`。
 
-预览源码暂时仍报告版本 1.0.0，但**已发布的 v1.0.0 Release wheel、源码包和标签不包含 macOS 改动**。判断安装来源时以检出的源码提交为准，不要仅凭 `--version` 判断是否有预览支持。
+固定标签源码安装（需要 Git）：
+
+```bash
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0a1"
+pipx ensurepath
+```
+
+已有安装时，在选定的 `pipx install` 命令中加入 `--force`。重新打开 Bash / Zsh 终端后，运行 `claude-statusline --version` 确认显示 `1.1.0a1`，再运行 `claude-statusline install --dry-run`、`claude-statusline install` 和 `claude-statusline doctor`。独立配置界面使用 `claude-statusline configure`。Python 需提供 `curses`；预览没有额外 Python 运行依赖。
+
+**v1.0.0 Release wheel、源码包和标签不包含 macOS 改动**。v1.1.0a1 单独作为预发布提供，GitHub 的最新稳定版入口仍指向 v1.0.0。
 
 自动验证覆盖 macOS 15/26 的 Intel 与 Apple Silicon、Python 3.10/3.14。ARM64 的 Python 3.10 下界固定测试 3.10.11；其余组合使用对应可用的补丁版本，实际版本记录在 CI 平台报告中。自动测试使用临时配置与合成 payload，包含文件锁、权限、原子写入、真实系统接口、PTY 和 tmux popup。
 
@@ -1070,19 +1079,25 @@ claude-statusline.exe config show
 
 ## 升级
 
-先选择目标版本的包，再同步 Claude Code 接入。下面以从旧版升级到 v1.0.0 为例；以后升级时将版本标签和 wheel 文件名一起替换为已发布的目标版本。
+先选择目标版本的包，再同步 Claude Code 接入。下面分别给出稳定版 v1.0.0 和预览版 v1.1.0a1 的入口；macOS 需选择预览版。以后升级时将版本标签和 wheel 文件名一起替换为已发布的目标版本。
 
 ### 替换 Python 包
 
 以下来源任选一种。Release URL 与 Git URL 命令在 Bash / PowerShell 中通用。
 
-**Release URL：**
+**稳定版 Release URL（Linux / WSL / Windows）：**
 
 ```text
 pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.0.0/claude_code_statusline-1.0.0-py3-none-any.whl"
 ```
 
-**本地 wheel：** 从 Release 下载目标 wheel 后，在下载目录执行。
+**预览版 Release URL（含 macOS）：**
+
+```text
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
+```
+
+**本地 wheel：** 从 Release 下载目标 wheel 后，在下载目录执行。以下以稳定版为例；预览版把文件名中的 `1.0.0` 替换为 `1.1.0a1`。
 
 ```bash
 pipx install --force ./claude_code_statusline-1.0.0-py3-none-any.whl
@@ -1102,7 +1117,7 @@ pipx install --force .\claude_code_statusline-1.0.0-py3-none-any.whl
 pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.0.0"
 ```
 
-跟踪默认分支时使用不带 `@v1.0.0` 的 Git URL；升级本地源码时，先更新源码，再在项目根目录执行 `pipx install --force .`。这些来源获取的是相应分支或目录中的代码。
+预览版把标签改为 `@v1.1.0a1`。跟踪默认分支时使用不带版本标签的 Git URL；升级本地源码时，先更新源码，再在项目根目录执行 `pipx install --force .`。这些来源获取的是相应分支或目录中的代码。
 
 ### 同步 Claude Code 接入
 
@@ -1126,7 +1141,7 @@ claude-statusline.exe config show
 
 ### 版本兼容
 
-显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
+显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0 或 1.1.0a1 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
 
 schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出 规范的 schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
 
@@ -1391,7 +1406,7 @@ claude-statusline config set refresh-interval 1
 
 ## 当前边界
 
-- 支持 Linux/WSL Python 3.10+，以及 Windows 10/11 上 CPython 3.10–3.14 x86/x64；macOS 为开发源码中的预览支持，CI 覆盖 15/26、Intel / Apple Silicon 和 Python 3.10/3.14。
+- 支持 Linux/WSL Python 3.10+，以及 Windows 10/11 上 CPython 3.10–3.14 x86/x64；macOS 为 v1.1.0a1 中的预览支持，CI 覆盖 15/26、Intel / Apple Silicon 和 Python 3.10/3.14。
 - macOS 其他系统版本、实际 Claude 视觉效果、真实睡眠恢复和桌面终端体验尚未人工验收；Terminal.app / iTerm2 自动启动不在本次预览范围内。
 - Windows ARM64 原生 Python 暂不承诺；ARM 设备使用 x64 Python 仿真。
 - 配置仅为用户全局，不提供项目级配置。
@@ -1457,14 +1472,14 @@ GitHub Actions 保留 `ubuntu-latest`、`windows-latest`，并增加 `macos-15-i
 
 在项目根目录执行；如果只需要构建包，可使用独立构建环境。
 
-Linux / WSL：
+Linux / WSL / macOS 预览：
 
 ```bash
 python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/claude_code_statusline-1.0.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-1.1.0a1-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -1474,13 +1489,13 @@ Windows PowerShell：
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\claude_code_statusline-1.0.0-py3-none-any.whl
+pipx install .\dist\claude_code_statusline-1.1.0a1-py3-none-any.whl
 pipx ensurepath
 ```
 
-上述文件名对应当前 1.0.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
+上述文件名对应当前 1.1.0a1；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
 
-可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.0.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.md)。
+可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.1.0a1-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.md)。
 
 ### 隔离测试与人工验收
 

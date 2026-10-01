@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0a1 - 2026-10-02
 
 - 新增 macOS 预览支持：核心状态栏、子 Agent 行、安装配置命令和独立 curses TUI；实验性 `/statusline-configure` 仅使用通过预检查的 tmux popup。
 - Linux/macOS 共享 POSIX 文件锁、私有权限修复、原子替换和父目录同步；仅 macOS 文件系统不支持目录同步时降级，真实 I/O 错误继续传播。
@@ -8,7 +8,9 @@
 - `doctor` 增加 macOS 预览、架构、系统版本、curses、进程、时钟、目录同步与实验入口 tmux 诊断；缺少 curses 时独立 TUI 返回清晰错误。
 - macOS 独立 TUI 定时轮询输入，使旧 curses/CPython 3.10 在没有后续按键时也能及时处理 SIGINT 等信号；PTY 测试建立前台控制终端并在等待退出时持续读取输出。
 - CI 增加 macOS 15/26 × Intel/Apple Silicon × Python 3.10/3.14，扩展 PTY/tmux 实测并生成平台验证报告；ARM64 的 Python 3.10 下界固定为 3.10.11。
-- 已发布的 v1.0.0 安装包仍按原平台范围使用；本次预览需安装包含改动的源码。实际 Claude 视觉效果、真实睡眠恢复与桌面终端体验尚未人工验收。
+- 发布 v1.1.0a1 预览 wheel、源码包与 SHA256SUMS，供 macOS 用户试用；Linux/WSL 与 Windows 用户仍可选择稳定版 v1.0.0，预览包也包含这两个平台的既有功能。
+- 同步包版本、CLI/CI 版本断言、安装升级入口与发布指南。显示 schema v2、feature schema v1、旧配置及运行状态保持兼容，无需数据迁移。
+- 已发布的 v1.0.0 安装包与标签不包含 macOS 支持。实际 Claude 视觉效果、真实睡眠恢复与桌面终端体验尚未人工验收；macOS 仍声明为预览。
 
 ## 1.0.0 - 2026-09-04
 
