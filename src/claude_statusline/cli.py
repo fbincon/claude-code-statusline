@@ -23,7 +23,7 @@ def build_parser():
 
     parser = argparse.ArgumentParser(
         prog="claude-statusline",
-        description="Packaged Claude Code status line for Linux and Windows.",
+        description="Packaged Claude Code status line for Linux, Windows and macOS.",
     )
     parser.add_argument(
         "--version",
@@ -185,7 +185,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "install":
             if not _platform.is_supported_platform():
                 raise installer.ConfigurationError(
-                    "supported platforms are Linux/WSL, Windows and macOS (preview)"
+                    "supported platforms are Linux/WSL, Windows and macOS 14+"
                 )
             result = installer.install_configuration(
                 config_dir, executable,
@@ -198,7 +198,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "configure":
             if not _platform.is_supported_platform():
                 raise installer.ConfigurationError(
-                    "supported platforms are Linux/WSL, Windows and macOS (preview)"
+                    "supported platforms are Linux/WSL, Windows and macOS 14+"
                 )
             # Keep curses out of render, hook, and slash-hook startup paths.
             try:

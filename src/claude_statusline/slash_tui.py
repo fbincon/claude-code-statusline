@@ -133,6 +133,10 @@ def choose_launcher(environ: Mapping[str, str]) -> Launcher | None:
         return Launcher("tmux", tmux, pane)
 
     if _platform.is_macos():
+        from . import macos_terminal
+
+        if macos_terminal.availability(environ)[0]:
+            return Launcher("macos-terminal", macos_terminal.OPEN_COMMAND)
         return None
 
     graphical = environ.get("DISPLAY") or environ.get("WAYLAND_DISPLAY")
@@ -401,10 +405,12 @@ def _decode_result(raw: bytes) -> TuiResult:
     return TuiResult(schema_version, outcome, exit_code, message)
 
 
-def read_result(result_path: Path, invocation_dir: Path) -> TuiResult:
+def _read_invocation_file(
+    result_path: Path, invocation_dir: Path, filename: str,
+) -> bytes:
     if (
         result_path.parent != invocation_dir
-        or result_path.name != RESULT_FILENAME
+        or result_path.name != filename
         or not _INVOCATION_PATTERN.fullmatch(invocation_dir.name)
     ):
         raise ResultError("result path is outside this invocation")
@@ -471,7 +477,13 @@ def read_result(result_path: Path, invocation_dir: Path) -> TuiResult:
             raise ResultError("the interactive result exceeds 16 KiB")
     finally:
         os.close(descriptor)
-    return _decode_result(raw)
+    return raw
+
+
+def read_result(result_path: Path, invocation_dir: Path) -> TuiResult:
+    return _decode_result(
+        _read_invocation_file(result_path, invocation_dir, RESULT_FILENAME)
+    )
 
 
 def _clean_current_invocation(invocation: Path, result_path: Path) -> None:
@@ -479,10 +491,7 @@ def _clean_current_invocation(invocation: Path, result_path: Path) -> None:
         _platform.durable_unlink(result_path)
     except OSError:
         pass
-    try:
-        invocation.rmdir()
-    except OSError:
-        pass
+    _remove_stale_directory(invocation)
 
 
 def _safe_first_line(*values: bytes) -> str | None:
@@ -520,6 +529,15 @@ def launch(
     except ResultError as exc:
         return _error(_failure_message(str(exc)[:500]))
     cwd = validate_cwd(payload_cwd)
+    if launcher.kind == "macos-terminal":
+        from . import macos_terminal
+
+        try:
+            return macos_terminal.launch(
+                config_dir, executable, cwd, invocation, environment
+            )
+        finally:
+            _clean_current_invocation(invocation, result_path)
     argv = build_launcher_argv(
         launcher, executable, config_dir, cwd, result_path
     )

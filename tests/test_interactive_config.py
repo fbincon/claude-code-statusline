@@ -328,6 +328,7 @@ class SaveAndRunTests(unittest.TestCase):
             subagent_statusline="on",
             scope_labels="when-subagents",
             expected=state.baseline,
+            before_commit=None,
         )
 
     def test_cancel_and_interrupt_do_not_save(self):

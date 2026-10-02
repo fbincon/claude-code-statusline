@@ -50,12 +50,12 @@
 - `prompt-timer` 覆盖从用户提交到主 Agent 最终 `Stop` 的完整任务；等待子 Agent 和主 Agent 收尾期间持续计时。
 - 主栏在当前 prompt 曾启动子 Agent 时显示固定的 `Main/Session` 范围提示，避免与每个子 Agent 行的口径混淆。
 - 提供独立全屏 TUI，可用键盘筛选、勾选、排序并按键级预览完整草稿。
-- 可选安装 `/statusline-configure`：Linux 从 tmux popup 或 GNOME Terminal 新标签页启动，macOS 预览从 tmux popup 启动，Windows 从系统新控制台启动同一个 TUI。
+- 可选安装 `/statusline-configure`：Linux 从 tmux popup 或 GNOME Terminal 新标签页启动，macOS 优先使用 tmux popup，否则从 Terminal.app 启动，Windows 从系统新控制台启动同一个 TUI。
 - 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 或 `\` 处分行。
 - Git 查询和 transcript 汇总按需执行：隐藏相应显示项后，不再做不必要的采集。
 - 安装、配置和卸载均使用跨平台文件锁、备份及原子替换，避免并发写入、丢失更新或半写入配置。
 
-原生 Linux 上，主状态栏的纯文本结构示例（目录样式设为 `home`，当前轮未启动子 Agent）：
+原生 Linux 与 macOS 上，主状态栏的纯文本结构示例（目录样式设为 `home`，当前轮未启动子 Agent）：
 
 ```text
 claude-model high | ~/code/project | Git main ↑1● 2~1 | Context 73% left · 1M window | 5h 82% left · weekly 64% left | hit 125K · miss 18.4K · out 7.2K | ⏱ 1m 09s
@@ -71,14 +71,14 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 
 ## 运行要求
 
-- Linux 原生或 WSL，Python 3.10+；Windows 10/11 原生、CPython 3.10–3.14、x86/x64；macOS 预览、CPython 3.10–3.14、Intel / Apple Silicon，CI 覆盖 macOS 15/26。
+- Linux 原生或 WSL，Python 3.10+；Windows 10/11 原生、CPython 3.10–3.14、x86/x64；macOS 14+、CPython 3.10–3.14、Intel / Apple Silicon。
 - Claude Code CLI。
 - [`pipx`](https://pipx.pypa.io/latest/how-to/install-pipx.html)，用于隔离安装 Release wheel 或 GitHub 源码。
 - `build`，仅在从源码构建时需要。
 - `git`，用于从 GitHub 源码安装或显示 Git 信息；从 Release wheel 安装且不显示 Git 信息时不需要。
-- Linux 的 tmux 或 GNOME Terminal、macOS 的 tmux 仅供实验性 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
+- Linux 的 tmux 或 GNOME Terminal、macOS 的 tmux 或系统 Terminal.app 仅供实验性 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
 
-已发布的 v1.0.0 wheel 与固定标签源码不包含 macOS 支持；macOS 使用 v1.1.0a1 预览包，详见[预览安装与验证边界](#macos-预览安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
+已发布的 v1.0.0 wheel 与固定标签源码不包含 macOS 支持；当前 macOS 正式支持来自未发布的 1.1.0 源码，使用本地构建包，详见[macOS 安装与验证边界](#macos-安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
 
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
@@ -92,7 +92,7 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 
 ### 安装 Python 包
 
-Linux / WSL / Windows 用户可从以下方式中任选一种，安装稳定版 v1.0.0。macOS 使用后面的 [v1.1.0a1 预览安装步骤](#macos-预览安装与验证边界)；其他平台也可按该步骤试用新版。开发分支可能包含尚未发布的改动。
+Linux / WSL / Windows 用户可从以下方式中任选一种，安装稳定版 v1.0.0。macOS 及需要当前改动的用户使用后面的 [1.1.0 源码安装步骤](#macos-安装与验证边界)。当前 1.1.0 尚未发布 Release，已发布标签与默认分支的功能范围不同。
 
 **Release URL（推荐，Bash / PowerShell 通用）：**
 
@@ -135,37 +135,45 @@ pipx ensurepath
 
 已有本地源码时，可在项目根目录执行 `pipx install .` 和 `pipx ensurepath`。需要自己构建 wheel 时，见[从源码构建与安装](#从源码构建与安装)。
 
-### macOS 预览安装与验证边界
+### macOS 安装与验证边界
 
-在 Bash / Zsh 中直接安装 [v1.1.0a1 预发布 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1)：
+macOS 14+ 使用提供 `curses` 的 CPython 3.10–3.14。Intel 与 Apple Silicon 使用相同的纯 Python wheel，没有额外 macOS Python 运行依赖。当前源码版本为 **1.1.0（未发布）**，从包含本次改动的本地仓库根目录执行：
+
+```bash
+python3 -m venv .venv-build
+.venv-build/bin/python -m pip install build
+.venv-build/bin/python -m build
+pipx install ./dist/claude_code_statusline-1.1.0-py3-none-any.whl
+pipx ensurepath
+```
+
+已有安装时，为 `pipx install` 加上 `--force`。也可在本地仓库根目录直接执行 `pipx install .`，或安装默认分支源码（需要 Git）：
+
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
+pipx ensurepath
+```
+
+默认分支会随开发更新；需要固定来源时保留检出的提交号。重新打开 Bash / Zsh 后，运行 `claude-statusline --version`，确认显示 `1.1.0`，再完成下方接入步骤。校验本地文件时使用 `shasum -a 256 文件名`。
+
+独立界面运行 `claude-statusline configure`。显式启用实验入口后，`/statusline-configure` 优先选择通过预检查的 tmux popup；没有有效 tmux 时，在本地图形会话中使用 Terminal.app。窗口关闭或保留遵循 Terminal 自身偏好。SSH 或没有图形会话时，使用当前终端的独立命令或配置向导。
+
+macOS 主状态栏与三页配置界面的截图见[项目首页](../README.md#界面预览)和[文件索引](images/README.md)。
+
+**此前发布的预览包：** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 包含 macOS 预览核心功能、独立 TUI 和 tmux 入口，未包含当前新增的 Terminal.app 启动器。若要安装该历史版本：
 
 ```bash
 pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
 pipx ensurepath
 ```
 
-也可以下载该 Release 的 wheel 后执行 `pipx install ./claude_code_statusline-1.1.0a1-py3-none-any.whl`。校验文件时，macOS 使用 `shasum -a 256 文件名`，与附件 `SHA256SUMS` 比较；Linux / WSL 使用 `sha256sum 文件名`。
-
-固定标签源码安装（需要 Git）：
-
-```bash
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0a1"
-pipx ensurepath
-```
-
-已有安装时，在选定的 `pipx install` 命令中加入 `--force`。重新打开 Bash / Zsh 终端后，运行 `claude-statusline --version` 确认显示 `1.1.0a1`，再运行 `claude-statusline install --dry-run`、`claude-statusline install` 和 `claude-statusline doctor`。独立配置界面使用 `claude-statusline configure`。Python 需提供 `curses`；预览没有额外 Python 运行依赖。
-
-**v1.0.0 Release wheel、源码包和标签不包含 macOS 改动**。v1.1.0a1 单独作为预发布提供，GitHub 的最新稳定版入口仍指向 v1.0.0。
-
-自动验证覆盖 macOS 15/26 的 Intel 与 Apple Silicon、Python 3.10/3.14。ARM64 的 Python 3.10 下界固定测试 3.10.11；其余组合使用对应可用的补丁版本，实际版本记录在 CI 平台报告中。自动测试使用临时配置与合成 payload，包含文件锁、权限、原子写入、真实系统接口、PTY 和 tmux popup。
-
-没有 macOS 本地机器时，GitHub 托管 runner 可以完成上述自动验证；实际 Claude 会话的视觉效果、字体/字符宽度、真实睡眠恢复和桌面终端体验尚未人工验收，因此当前采用预览声明。macOS 实验入口仅支持有效 tmux 会话；Terminal.app / iTerm2 自动启动留作后续扩展。
+固定标签源码对应 `git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0a1`。v1.0.0 的 wheel、源码包和标签不支持 macOS；1.1.0 的远程 Release、标签与下载链接需在实际发布后才可使用。
 
 ### 接入 Claude Code
 
 `pipx install` 安装包与命令入口；`claude-statusline install` 才会接入 Claude Code。执行 `pipx ensurepath` 后先重新打开终端，再继续。
 
-Linux / WSL / macOS 预览：
+Linux / WSL / macOS：
 
 ```bash
 claude-statusline install --dry-run
@@ -390,7 +398,7 @@ claude-statusline config show
 
 实验入口首次安装默认关闭，必须显式启用：
 
-Linux / WSL / macOS 预览：
+Linux / WSL / macOS：
 
 ```bash
 claude-statusline install --experimental-slash-tui
@@ -404,7 +412,7 @@ claude-statusline.exe install --experimental-slash-tui
 
 启用偏好保存在 `<CLAUDE_CONFIG_DIR>/claude-statusline-features.json`，卸载 Python 包或运行 `uninstall` 后仍保留。兼容版本上再次运行普通 `install` 会自动恢复入口。永久关闭并删除本工具拥有的活动 skill/hook：
 
-Linux / WSL / macOS 预览：
+Linux / WSL / macOS：
 
 ```bash
 claude-statusline install --no-experimental-slash-tui
@@ -425,9 +433,9 @@ claude-statusline.exe install --no-experimental-slash-tui
 ```
 
 - Linux 优先在当前 tmux 中打开弹窗；tmux 不可用时尝试 GNOME Terminal 新标签页。
-- macOS 预览仅在有效 tmux 会话中打开 popup；先在 tmux 中启动 Claude。
+- macOS 优先使用有效 tmux 会话中的 popup；否则在本地图形会话中使用 Terminal.app。窗口收尾遵循 Terminal 偏好。
 - Windows 打开由系统默认终端承载的新控制台。
-- Linux 两种启动方式均不可用，或 macOS 没有有效 tmux 时，会提示在真实终端运行 `claude-statusline configure`，或改用 `/statusline-config`。
+- Linux 两种启动方式均不可用，或 macOS 没有有效 tmux 及本地 Terminal.app 条件时，会提示在真实终端运行 `claude-statusline configure`，或改用 `/statusline-config`。
 - TUI 在 570 秒后自动取消且不保存；保存、取消或错误会返回到原 Claude 对话。
 
 该入口只接受空参数；`help`、`-h`、`--help` 返回用法，其他参数会被拒绝。它通过外部终端承载 TUI。启动选择、结果回传及 hooks 被禁用时的处理见[实验启动器与结果回传](#实验启动器与结果回传)。
@@ -695,7 +703,7 @@ claude-statusline config set scope-labels when-subagents
 
 一次提交完整的显示配置和宿主配置。无参数向导在收集完全部答案后使用该命令；也可以用于脚本化部署：
 
-Linux / WSL（Bash）：
+Linux / WSL / macOS（Bash）：
 
 ```bash
 claude-statusline config apply \
@@ -1079,11 +1087,19 @@ claude-statusline.exe config show
 
 ## 升级
 
-先选择目标版本的包，再同步 Claude Code 接入。下面分别给出稳定版 v1.0.0 和预览版 v1.1.0a1 的入口；macOS 需选择预览版。以后升级时将版本标签和 wheel 文件名一起替换为已发布的目标版本。
+先选择目标版本的包，再同步 Claude Code 接入。当前 1.1.0 尚未发布，使用包含本次改动的本地源码构建；下面同时保留已发布的 v1.0.0 与 v1.1.0a1 历史安装入口。
 
 ### 替换 Python 包
 
 以下来源任选一种。Release URL 与 Git URL 命令在 Bash / PowerShell 中通用。
+
+**当前 1.1.0 本地构建包：** 先按[从源码构建与安装](#从源码构建与安装)生成 wheel，然后在项目根目录执行：
+
+```bash
+pipx install --force ./dist/claude_code_statusline-1.1.0-py3-none-any.whl
+```
+
+Windows 使用 `.\dist\claude_code_statusline-1.1.0-py3-none-any.whl`。也可在本地源码目录执行 `pipx install --force .`，或用 `pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@main"` 更新默认分支源码。旧版本标签保持原有功能范围。
 
 **稳定版 Release URL（Linux / WSL / Windows）：**
 
@@ -1121,7 +1137,7 @@ pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@
 
 ### 同步 Claude Code 接入
 
-Linux / WSL / macOS 预览：
+Linux / WSL / macOS：
 
 ```bash
 claude-statusline install
@@ -1141,9 +1157,9 @@ claude-statusline.exe config show
 
 ### 版本兼容
 
-显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0 或 1.1.0a1 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
+显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1 或 1.1.0 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
 
-schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出 规范的 schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
+schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出规范的 schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
 
 Claude Code 的功能门槛独立于本工具版本：
 
@@ -1234,8 +1250,8 @@ claude-statusline doctor
 - `/statusline-config` skill 及所有权标记是否正确。
 - 实验 feature 文件是否合法；Linux/macOS 检查 `0600`，Windows 不产生伪权限错误。
 - `/statusline-configure` 是 `disabled`、`enabled` 还是因版本不兼容而 `suspended`；启用时 skill、owner marker、唯一 matcher 和 600 秒 hook 是否完整。
-- Linux 启用实验入口时是否至少安装了 tmux 或 GNOME Terminal；macOS 是否安装 tmux；Windows 是否具备系统新控制台能力。
-- macOS 预览架构、系统版本、curses、进程启动标识、包含睡眠时间的时钟与父目录同步能力；不可用的进程、时钟或目录同步以 WARN 说明降级。
+- Linux 启用实验入口时是否至少安装了 tmux 或 GNOME Terminal；macOS 的本地 Terminal.app 和图形会话条件是否满足、是否另有 tmux；Windows 是否具备系统新控制台能力。诊断不会打开桌面窗口。
+- macOS 架构、14+ 系统范围、curses、进程启动标识、包含睡眠时间的时钟与父目录同步能力；不可用的进程、时钟或目录同步以 WARN 说明降级。
 - Windows 的 `windows-curses` 后端、x86/x64 架构契约与系统新控制台启动器。
 - 显示配置 JSON、schema v1 可迁移状态及其权限是否正确。
 - 当前 Claude Code 版本是否应安装斜杠命令的本地快捷 hook。
@@ -1305,9 +1321,11 @@ claude-statusline doctor
 
 ### 实验入口无法打开新终端
 
-tmux 路径要求 hook 环境中同时存在有效的 `TMUX`、形如 `%<数字>` 的 `TMUX_PANE`，且 2 秒预检查 能访问目标 server/pane。Linux 目标失效时会尝试 GNOME；macOS 不选择 GNOME，直接提示独立命令。若已成功选择 tmux，popup 内失败不会二次启动其他终端。
+tmux 路径要求 hook 环境中同时存在有效的 `TMUX`、形如 `%<数字>` 的 `TMUX_PANE`，且 2 秒预检查能访问目标 server/pane。Linux 目标失效时会尝试 GNOME；macOS 改为检查本地图形会话和 Terminal.app；缺少条件时提示独立命令。若已成功选择 tmux，popup 内失败不会二次启动其他终端。
 
-GNOME 路径要求 `DISPLAY` 或 `WAYLAND_DISPLAY`、可执行的 `gnome-terminal` 和可用的用户 D-Bus/图形会话。D-Bus 启动错误会作为短错误返回原 Claude 对话。Linux 两种启动器都不可用，或 macOS 没有有效 tmux 时，直接在终端运行：
+macOS Terminal 路径要求本地图形会话、系统 Terminal.app、`/usr/bin/open` 和可用的进程启动标识。启动后 30 秒内没有握手会返回错误；先检查窗口是否打开以及 Python 是否提供 curses。`doctor` 只检查条件，不打开窗口。SSH 中改用独立命令；Terminal 窗口在结束后仍保留时，按 Terminal 的窗口关闭偏好处理。
+
+GNOME 路径要求 `DISPLAY` 或 `WAYLAND_DISPLAY`、可执行的 `gnome-terminal` 和可用的用户 D-Bus/图形会话。D-Bus 启动错误会作为短错误返回原 Claude 对话。Linux 两种启动器都不可用，或 macOS 没有有效 tmux 及本地 Terminal.app 条件时，直接在终端运行：
 
 ```bash
 claude-statusline configure
@@ -1357,7 +1375,7 @@ claude-statusline doctor
 
 ### Git 信息缺失或显示 `Git!`
 
-Linux / WSL：
+Linux / WSL / macOS：
 
 ```bash
 command -v git
@@ -1406,15 +1424,15 @@ claude-statusline config set refresh-interval 1
 
 ## 当前边界
 
-- 支持 Linux/WSL Python 3.10+，以及 Windows 10/11 上 CPython 3.10–3.14 x86/x64；macOS 为 v1.1.0a1 中的预览支持，CI 覆盖 15/26、Intel / Apple Silicon 和 Python 3.10/3.14。
-- macOS 其他系统版本、实际 Claude 视觉效果、真实睡眠恢复和桌面终端体验尚未人工验收；Terminal.app / iTerm2 自动启动不在本次预览范围内。
+- 当前源码支持 Linux/WSL Python 3.10+、Windows 10/11 上 CPython 3.10–3.14 x86/x64，以及 macOS 14+ 上 CPython 3.10–3.14 Intel / Apple Silicon。
+- macOS 桌面启动器支持 Terminal.app；其他终端可使用独立 `configure` 或 tmux popup。
 - Windows ARM64 原生 Python 暂不承诺；ARM 设备使用 x64 Python 仿真。
 - 配置仅为用户全局，不提供项目级配置。
 - 除本地 `socket.gethostname()` 提供的可选 hostname 外，不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
 - 不跟随 Claude Code `/theme`；`default` palette 使用本项目固定 RGB 色值。
-- 不提供 Claude Code 原生 TUI 扩展；Linux 实验入口使用 tmux/GNOME，macOS 仅使用 tmux，Windows 使用系统新控制台，并复用同一独立 TUI。
+- 不提供 Claude Code 原生 TUI 扩展；Linux 实验入口使用 tmux/GNOME，macOS 使用 tmux/Terminal.app，Windows 使用系统新控制台，并复用同一独立 TUI。
 - Linux/macOS 不访问 `/dev/tty`；三个平台都不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
-- 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks，或平台所列启动器之外的终端环境 中打开实验 TUI。
+- 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks，或平台所列启动器之外的终端环境中打开实验 TUI。
 - 不提供鼠标、拖拽或自定义键位。
 - 计时完成判定只纳入普通 Agent 类 task 的生命周期；后台 shell、server、monitor、workflow 和 agent-team 专用账本不纳入完成阻塞。
 - 不提供 per-agent 历史账本、Git、cache hit/miss/out 或 session 聚合；子 Agent 行只显示 Claude 当前 payload。
@@ -1433,7 +1451,7 @@ cd claude-code-statusline
 
 已有源码时直接进入项目根目录。开发环境与 pipx 的用户安装相互独立。
 
-Linux / WSL：
+Linux / WSL / macOS：
 
 ```bash
 python3 -m venv .venv-dev
@@ -1450,7 +1468,7 @@ py -3.10 -m venv .venv-dev
 
 ### 运行检查
 
-Linux / WSL 在已激活的开发环境中执行：
+Linux / WSL / macOS 在已激活的开发环境中执行：
 
 ```bash
 python -m unittest discover -s tests -v
@@ -1466,20 +1484,20 @@ Windows PowerShell 直接使用虚拟环境的解释器，无需执行激活脚�
 .\.venv-dev\Scripts\python.exe -m build
 ```
 
-GitHub Actions 保留 `ubuntu-latest`、`windows-latest`，并增加 `macos-15-intel`、`macos-15`、`macos-26-intel`、`macos-26`，均覆盖 Python 3.10/3.14；显式选择原生架构，ARM64 的 3.10 固定为 3.10.11。Windows 检查 `windows-curses` 并执行 PowerShell/Git Bash smoke；Linux/macOS 准备 tmux，实际执行 PTY/popup 集成和安装包 CLI smoke。macOS 检查原生进程、时钟与跨进程重启标识。POSIX 任务上传包含实际系统、架构、Python 版本和 smoke 结果的 `validation-*` JSON artifact。独立构建任务检查版本、macOS classifier、条件依赖、两个 skill 模板与平台模块是否进入分发包。
+GitHub Actions 在推送和拉取请求时运行 `ubuntu-latest`、`windows-latest`，以及 `macos-15-intel`、`macos-15`、`macos-26-intel`、`macos-26`，均覆盖 Python 3.10/3.14；显式选择原生架构，ARM64 的 3.10 固定为 3.10.11。Windows 检查 `windows-curses` 并执行 PowerShell/Git Bash smoke；Linux/macOS 准备 tmux 并执行 PTY/popup 集成和安装包 CLI smoke。macOS 还执行 Terminal 辅助进程的原生 PTY 生命周期测试；桌面 Terminal.app smoke 需显式运行，默认测试不打开桌面窗口。构建任务检查版本、条件依赖、平台/Terminal 模块、skills 和所有平台截图。具体结果以[对应提交的 Actions 记录](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)为准。
 
 ### 从源码构建与安装
 
 在项目根目录执行；如果只需要构建包，可使用独立构建环境。
 
-Linux / WSL / macOS 预览：
+Linux / WSL / macOS：
 
 ```bash
 python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/claude_code_statusline-1.1.0a1-py3-none-any.whl
+pipx install dist/claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -1489,19 +1507,27 @@ Windows PowerShell：
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\claude_code_statusline-1.1.0a1-py3-none-any.whl
+pipx install .\dist\claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-上述文件名对应当前 1.1.0a1；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
+上述文件名对应当前未发布的 1.1.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
 
-可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.1.0a1-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.md)。
+可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.1.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.md)。
 
 ### 隔离测试与人工验收
 
+macOS 用户可在安装了当前 wheel 的 Python 虚拟环境中，显式执行 Terminal.app smoke：
+
+```bash
+.venv-wheel-check/bin/python tests/macos_terminal_smoke.py
+```
+
+该命令打开 Terminal.app，使用临时配置和缩短期限的生产 TUI 检查终端、结果回传及清理，不调用 Claude API。
+
 自动验收应先对临时 `CLAUDE_CONFIG_DIR` 执行 install dry-run、install、doctor、幂等重装、冲突回滚和 uninstall，绝不触碰真实配置。代码和安装事务通过后，再由用户决定是否把 wheel 安装到真实配置。
 
-真实多 Agent 视觉检查会产生模型费用，工具不会自动发起。用户参与的最终人工验收 应检查：默认由本工具管理的 `subagentStatusLine` 和两个唯一 hooks；无子 Agent 时主栏显示正确；两个不同模型/effort 的并行 Agent 各自显示正确行；主栏计时器 依次显示 Agent 数量和 `main wrap-up`；最终主 `Stop` 冻结完整用时；进入子 Agent transcript 时全局栏只声明 `Main/Session`；最后运行 `doctor`，并确认 `uninstall --dry-run` 只命中本工具拥有的配置。
+真实多 Agent 视觉检查会产生模型费用，工具不会自动发起。用户参与的最终人工验收应检查：默认由本工具管理的 `subagentStatusLine` 和两个唯一 hooks；无子 Agent 时主栏显示正确；两个不同模型/effort 的并行 Agent 各自显示正确行；主栏计时器依次显示 Agent 数量和 `main wrap-up`；最终主 `Stop` 冻结完整用时；进入子 Agent transcript 时全局栏只声明 `Main/Session`；最后运行 `doctor`，并确认 `uninstall --dry-run` 只命中本工具拥有的配置。
 
 ## 附录：内部命令
 
@@ -1511,7 +1537,7 @@ pipx ensurepath
 
 从 stdin 读取 Claude Code statusline JSON，根据当前配置向 stdout 输出一行或多行状态栏文本。无效输入时保持静默，以免错误内容污染 Claude Code UI。
 
-可以使用模拟输入做基础排查。Linux / WSL（按 120 列渲染）：
+可以使用模拟输入做基础排查。Linux / WSL / macOS（按 120 列渲染）：
 
 ```bash
 printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"/tmp"}}' \
@@ -1530,7 +1556,7 @@ Windows PowerShell：
 
 从 stdin 读取 Claude Code 官方 `subagentStatusLine` JSON，并把每个有效 task 渲染为一行 `{"id":"...","content":"..."}` NDJSON。顶层 JSON、`tasks` 或单项字段损坏时静默降级且退出码仍为 0；stdout 只包含协议结果，renderer 不扫描 transcript、Git、网络或运行状态。
 
-Linux / WSL：
+Linux / WSL / macOS：
 
 ```bash
 printf '%s\n' '{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' \
@@ -1572,33 +1598,37 @@ Windows 的 NTFS `st_mode` 不是可靠的 POSIX 权限信息，`doctor` 会报�
 
 配置、token 缓存、Git 缓存与逐轮状态写入使用同目录临时文件、文件 `fsync` 和原子替换。Linux/macOS 应用 `0600/0700`、同步父目录，并使用 `fcntl.flock`；Windows 使用继承的用户 ACL、`msvcrt` 固定字节锁，并对短暂 sharing violation/access denied 做有上限的重试。多个并发配置命令共享同一把跨平台文件锁，避免后写入者丢失先写入者的变更。
 
-macOS 文件系统对父目录同步返回 `EINVAL`、`ENOTSUP/EOPNOTSUPP` 时，保留文件 `fsync` 与原子替换并由 `doctor` 和 CI 报告降级；其他 I/O 或权限错误继续传播。预览不额外调用 `F_FULLFSYNC`。
+macOS 文件系统对父目录同步返回 `EINVAL`、`ENOTSUP/EOPNOTSUPP` 时，保留文件 `fsync` 与原子替换并由 `doctor` 和 CI 报告降级；其他 I/O 或权限错误继续传播。不额外调用 `F_FULLFSYNC`。
 
-macOS 的会话进程标识使用 `/bin/ps -o lstart= -p PID`，固定 `LC_ALL=C` 与 `TZ=UTC`，保留输出内部空格；先筛选匹配会话再查询进程，超时 1 秒或查询失败时不信任该注册记录。计时使用 LibSystem 的 `mach_continuous_time()` 与 `mach_timebase_info()` 整数换算，结合 `kern.bootsessionuuid` 检查跨进程重启；任一接口不可用时整组回退墙钟。实际睡眠恢复尚未人工验收。
+macOS 的会话进程标识使用 `/bin/ps -o lstart= -p PID`，固定 `LC_ALL=C` 与 `TZ=UTC`，保留输出内部空格；先筛选匹配会话再查询进程，超时 1 秒或查询失败时不信任该注册记录。计时使用 LibSystem 的 `mach_continuous_time()` 与 `mach_timebase_info()` 整数换算，结合 `kern.bootsessionuuid` 检查跨进程重启；任一接口不可用时整组回退墙钟。
 
 全局 Enter 只调用一次现有原子配置事务。无变化不会创建备份；有变化时仍使用单次备份、双文件写入与失败回滚。TUI 启动时记录语义基准，保存时在同一安装锁内检查 display、host 和安装归属；编辑期间如被其他进程修改，会在创建备份和写文件前拒绝。`settings.json` 中与 statusline 无关的字段变化不构成冲突，并会基于锁内最新文件合并保留。
 
 ### 实验启动器与结果回传
 
-这不是 Claude Code 原生 TUI 扩展，也没有绕过 hook 的终端隔离。Claude Code 2.1.259 的 command hook 在没有控制终端的新 session 中执行，hook 及其子进程不能打开 `/dev/tty`，`terminalSequence` 也不能绘制 curses 界面。因此本工具只把 slash command 用作本地启动器，并在另一个受支持的终端环境 中运行已经存在的 `claude-statusline configure`；状态机、样例预览、并发检测和原子保存没有复制实现。
+这不是 Claude Code 原生 TUI 扩展，也没有绕过 hook 的终端隔离。Claude Code 2.1.259 的 command hook 在没有控制终端的新 session 中执行，hook 及其子进程不能打开 `/dev/tty`，`terminalSequence` 也不能绘制 curses 界面。因此本工具只把 slash command 用作本地启动器，并在另一个受支持的终端环境中运行已经存在的 `claude-statusline configure`；状态机、样例预览、并发检测和原子保存没有复制实现。
 
 Linux 启动器按以下顺序选择：
 
-1. `TMUX` 与形如 `%<数字>` 的 `TMUX_PANE` 都有效、`tmux` 可执行，且最长 2 秒的只读预检查 能在当前 server 中解析该 pane 时，在当前客户端打开标题为 `Configure Status Line` 的 `90% × 90%` popup。popup 存在期间 tmux 暂停底层 pane 更新，子进程退出后自动关闭。
-2. tmux 不可用或 预检查失败，但存在 `DISPLAY`/`WAYLAND_DISPLAY` 且可执行 `gnome-terminal` 时，在最近使用的 GNOME Terminal 窗口打开活动新标签页；没有现存窗口时 GNOME 可以创建窗口。命令使用 `--wait` 等待标签页中的 TUI 退出。
+1. `TMUX` 与形如 `%<数字>` 的 `TMUX_PANE` 都有效、`tmux` 可执行，且最长 2 秒的只读预检查能在当前 server 中解析该 pane 时，在当前客户端打开标题为 `Configure Status Line` 的 `90% × 90%` popup。popup 存在期间 tmux 暂停底层 pane 更新，子进程退出后自动关闭。
+2. tmux 不可用或预检查失败，但存在 `DISPLAY`/`WAYLAND_DISPLAY` 且可执行 `gnome-terminal` 时，在最近使用的 GNOME Terminal 窗口打开活动新标签页；没有现存窗口时 GNOME 可以创建窗口。命令使用 `--wait` 等待标签页中的 TUI 退出。
 3. 两者都不可用时阻断 slash expansion，不调用模型，并提示在终端运行 `claude-statusline configure` 或改用 `/statusline-config`。
 
-macOS 仅复用上述第一条 tmux 路径；缺少有效 server/pane 或预检查失败时，直接提示独立命令或配置向导。即使设置了 `DISPLAY` / `WAYLAND_DISPLAY`，也不会选择 GNOME。
+macOS 优先复用上述 tmux 路径；缺少有效 server/pane 或预检查失败时，通过最长 2 秒的 `launchctl print gui/<uid>` 只读检查验证本地图形会话，并检查系统 Terminal.app 与 `open`。SSH 会话不启动桌面 Terminal，macOS 不选择 GNOME。
+
+Terminal 路径使用 `/usr/bin/open -b com.apple.Terminal` 打开私有 `0700` 的 `.command` 文件，文件启动当前 Python 和包中的内部辅助模块。Python、CLI、配置目录与工作目录使用绝对路径，PATH 和包搜索路径显式传递，所有 shell 值均引用。`open` 的退出码仅表示启动请求已处理；30 秒启动握手确认编辑器进程身份，随后通过现有 schema v1 结果桥等待 TUI 完成。无需 AppleScript 自动化授权，也不修改 Terminal 的窗口偏好。
+
+编辑器定时检查父调用的进程身份、请求文件和调用期限，并在配置事务锁内保存前再次核对。关窗、中断、父调用退出、撤销请求或超时不会继续保存草稿。回收前核对 PID 与启动标识，仅处理本次编辑器；读取结果后清理本次调用的启动脚本、请求、握手和结果文件。Terminal 窗口关闭或保留由用户的 Terminal 设置决定。
 
 Windows 不探测 tmux/GNOME。它使用当前虚拟环境的 `sys.executable -m claude_statusline configure --config-dir ...`，并通过 [`CREATE_NEW_CONSOLE`](https://learn.microsoft.com/en-us/windows/console/creation-of-a-console) 创建实际 Python 子进程；不重定向 stdin/stdout/stderr，使 curses 获得真实控制台。系统当前默认终端负责承载这个新控制台，Windows Terminal 设为默认终端时会自然接管。启动器保留子进程句柄，因此关窗或异常退出会立即返回错误，超时会终止并回收子进程。
 
-只有 tmux popup 接近“同 pane 弹窗”；GNOME 路径明确是新标签页。当前版本不适配 `x-terminal-emulator`、Konsole、Kitty 或 WezTerm。hook payload 的 `cwd` 只有在它是存在的绝对目录时才作为启动目录，否则使用用户 home。启动器不拼接 command 参数或 cwd 到未转义 shell 文本。
+只有 tmux popup 接近“同 pane 弹窗”；GNOME 路径明确是新标签页。当前版本不提供 `x-terminal-emulator`、Konsole、Kitty、WezTerm 或 iTerm2 自动启动器；这些终端中可使用独立 `configure`。hook payload 的 `cwd` 只有在它是存在的绝对目录时才作为启动目录，否则使用用户 home。启动器不拼接 command 参数或 cwd 到未转义 shell 文本。
 
 `/statusline-configure` 只接受空参数。`help`、`-h`、`--help` 只返回 `Usage: /statusline-configure`；其他参数会被拒绝，均不启动 TUI、不写配置且不调用模型。
 
-每次运行在 Claude 配置目录的 `statusline_runtime/slash_tui/` 下创建一个随机调用目录。Linux/macOS 验证目录 `0700` 和结果 `0600`；Windows 不解释伪 POSIX mode，而是验证精确父子关系、普通文件、16 KiB 上限，并拒绝路径链中的 symlink、junction 和其他 reparse point。读取后只清理本次调用。Linux/macOS 终端 client 的 stdout/stderr 会被 hook 捕获并限长；Windows 新控制台不重定向这些流。
+每次运行在 Claude 配置目录的 `statusline_runtime/slash_tui/` 下创建一个随机调用目录。Linux/macOS 验证调用目录 `0700`，结果以 `0600` 写出；Windows 不解释伪 POSIX mode。结果读取验证精确父子关系、普通文件、16 KiB 上限，并拒绝路径链中的 symlink、junction 和其他 reparse point。读取后只清理本次调用。tmux/GNOME client 的 stdout/stderr 会被 hook 捕获并限长；Terminal.app 和 Windows 新控制台的 TUI 使用各自的真实终端流。
 
-Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存，启动器最长等待 585 秒，为结果校验和 hook 返回预留时间。保存、无变化、取消、信号中断、超时和错误都会在原 Claude 对话区显示一条短结果。tmux 一旦选中，即使 popup 内部失败也不会再打开 GNOME 标签页。
+Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存，启动器最长等待 585 秒，为结果校验和 hook 返回预留时间。保存、无变化、取消、信号中断、超时和错误都会在原 Claude 对话区显示一条短结果。tmux 一旦选中，即使 popup 内部失败也不会再启动其他终端。
 
 如果全局 `disableAllHooks` 等设置阻止本地 hook，回退 skill 只会说明 hook 未运行，并提示独立命令或 `/statusline-config`；它同时禁止通过 Bash 和 PowerShell 启动 curses。此时可能仍消耗一个极短模型回合，这是插件侧无法避免的例外。
 

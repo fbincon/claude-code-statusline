@@ -1025,11 +1025,10 @@ def collect_diagnostics(
 ) -> list[Diagnostic]:
     diagnostics = []
     if _platform.is_supported_platform():
-        suffix = " (macOS preview)" if _platform.is_macos() else ""
-        diagnostics.append(Diagnostic("OK", f"platform: {sys.platform}{suffix}"))
+        diagnostics.append(Diagnostic("OK", f"platform: {sys.platform}"))
     else:
         diagnostics.append(Diagnostic(
-            "ERROR", "supported platforms are Linux/WSL, Windows and macOS (preview)"
+            "ERROR", "supported platforms are Linux/WSL, Windows and macOS 14+"
         ))
 
     if _platform.is_windows():
@@ -1074,12 +1073,14 @@ def collect_diagnostics(
         machine = stdlib_platform.machine().casefold()
         diagnostics.append(Diagnostic(
             "OK" if machine in {"x86_64", "arm64"} else "WARN",
-            f"macOS architecture: {machine or 'unknown'} (preview)",
+            f"macOS architecture: {machine or 'unknown'}",
         ))
         macos_version = stdlib_platform.mac_ver()[0]
+        major = macos_version.split(".")[0]
         diagnostics.append(Diagnostic(
-            "OK" if macos_version.split(".")[0] in {"15", "26"} else "WARN",
-            f"macOS version: {macos_version or 'unknown'}; preview CI covers 15 and 26",
+            "OK" if major.isdecimal() and int(major) >= 14 else "WARN",
+            f"macOS version: {macos_version or 'unknown'}; supported range is 14+; "
+            "CI configured for 15 and 26",
         ))
         try:
             import curses
@@ -1517,12 +1518,20 @@ def collect_diagnostics(
                 "no supported interactive launcher is installed; install tmux or "
                 "GNOME Terminal, or run claude-statusline configure directly",
             ))
-        elif _platform.is_macos() and not shutil.which("tmux"):
+        elif _platform.is_macos():
+            from . import macos_terminal
+
+            terminal_available, terminal_detail = macos_terminal.availability(os.environ)
             diagnostics.append(Diagnostic(
-                "WARN",
-                "no supported macOS interactive launcher is installed; install tmux "
-                "and run Claude inside it, or run claude-statusline configure directly",
+                "OK" if terminal_available else "WARN",
+                "macOS Terminal launcher: " + terminal_detail,
             ))
+            if not terminal_available and not shutil.which("tmux"):
+                diagnostics.append(Diagnostic(
+                    "WARN",
+                    "no supported macOS interactive launcher is available; install tmux "
+                    "and run Claude inside it, or run claude-statusline configure directly",
+                ))
 
     runtime_dir = config_dir / "statusline_runtime"
     runtime_access = os.W_OK | (0 if _platform.is_windows() else os.X_OK)

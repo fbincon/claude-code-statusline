@@ -42,6 +42,7 @@ class ConfigurePtyTests(unittest.TestCase):
         self.master = None
         self.slaves = []
         self.pending_output = bytearray()
+        self.read_buffer = bytearray()
 
     def tearDown(self):
         if self.process is not None and self.process.poll() is None:
@@ -75,6 +76,7 @@ class ConfigurePtyTests(unittest.TestCase):
         columns=100,
         term="xterm-256color",
         extra_env=None,
+        argv=None,
     ):
         env = os.environ.copy()
         env["PATH"] = str(self.executable.parent) + os.pathsep + env.get("PATH", "")
@@ -98,7 +100,7 @@ class ConfigurePtyTests(unittest.TestCase):
             os.tcsetpgrp(slave, os.getpgrp())
 
         process = subprocess.Popen(
-            [
+            argv if argv is not None else [
                 sys.executable,
                 "-m",
                 "claude_statusline",
@@ -118,7 +120,80 @@ class ConfigurePtyTests(unittest.TestCase):
         self.master = master
         self.process = process
         self.pending_output.clear()
+        self.read_buffer.clear()
         return process, master
+
+    def _terminal_script(self):
+        from claude_statusline import macos_terminal as mt
+        from claude_statusline import slash_tui as st
+
+        invocation, result_path = st._create_invocation_dir(self.config_dir)
+        script = mt.prepare(
+            self.config_dir, self.executable, self.root, invocation, {"PATH": "/usr/bin:/bin"}
+        )
+        return script, invocation / mt.REQUEST_FILENAME, result_path
+
+    @unittest.skipUnless(sys.platform == "darwin", "native Terminal helper process identity")
+    def test_terminal_command_cancel_uses_explicit_installation_with_different_path(self):
+        script, _request, result_path = self._terminal_script()
+        before = self.settings_path.read_bytes()
+        self._start(argv=["/bin/sh", str(script)])
+        self.assertIn(b"Preview (sample data)", self._read_until(b"Preview (sample data)"))
+        os.write(self.master, b"\x1b")
+        self.assertEqual(self._wait_exit(), 0)
+        self.assertEqual(json.loads(result_path.read_bytes())["outcome"], "cancelled")
+        self.assertEqual(self.settings_path.read_bytes(), before)
+
+    @unittest.skipUnless(sys.platform == "darwin", "native Terminal helper process identity")
+    def test_terminal_revoked_request_interrupts_editor_without_saving(self):
+        script, request, result_path = self._terminal_script()
+        before = self.settings_path.read_bytes()
+        self._start(argv=["/bin/sh", str(script)])
+        self.assertIn(b"Preview (sample data)", self._read_until(b"Preview (sample data)"))
+        os.write(self.master, b" ")
+        request.unlink()
+        self.assertEqual(self._wait_exit(), 130)
+        self.assertEqual(self.settings_path.read_bytes(), before)
+        self.assertFalse(self.display_path.exists())
+        self.assertFalse(result_path.exists())
+
+    @unittest.skipUnless(sys.platform == "darwin", "native Terminal helper process identity")
+    def test_terminal_command_save_returns_result_and_commits_once(self):
+        script, _request, result_path = self._terminal_script()
+        self._start(argv=["/bin/sh", str(script)])
+        self.assertIn(b"Preview (sample data)", self._read_until(b"Preview (sample data)"))
+        os.write(self.master, b" \r")
+        self.assertEqual(self._wait_exit(), 0)
+        self.assertEqual(json.loads(result_path.read_bytes())["outcome"], "updated")
+        self.assertNotIn("model-with-effort", json.loads(self.display_path.read_bytes())["items"])
+
+    @unittest.skipUnless(sys.platform == "darwin", "native Terminal helper process identity")
+    def test_terminal_parent_exit_interrupts_editor_without_saving(self):
+        from claude_statusline import _platform
+
+        script, request_path, result_path = self._terminal_script()
+        caller = subprocess.Popen(
+            [sys.executable, "-c", "import time; time.sleep(30)"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        try:
+            request = json.loads(request_path.read_bytes())
+            request.update(parent_pid=caller.pid, parent_start=_platform.process_start_token(caller.pid))
+            _platform.atomic_write_bytes(request_path, (json.dumps(request) + "\n").encode("utf-8"))
+            before = self.settings_path.read_bytes()
+            self._start(argv=["/bin/sh", str(script)])
+            self.assertIn(b"Preview (sample data)", self._read_until(b"Preview (sample data)"))
+            os.write(self.master, b" ")
+            caller.terminate()
+            caller.wait(timeout=5)
+            self.assertEqual(self._wait_exit(), 130)
+            self.assertEqual(self.settings_path.read_bytes(), before)
+            self.assertFalse(self.display_path.exists())
+            self.assertFalse(result_path.exists())
+        finally:
+            if caller.poll() is None:
+                caller.kill()
+                caller.wait(timeout=5)
 
     def _bridge_environment(self, deadline="570"):
         base = self.config_dir / "statusline_runtime" / "slash_tui"
@@ -133,7 +208,8 @@ class ConfigurePtyTests(unittest.TestCase):
         }, result_path
 
     def _read_until(self, needle: bytes, timeout=5):
-        output = b""
+        output = bytes(self.read_buffer)
+        self.read_buffer.clear()
         deadline = time.monotonic() + timeout
         while needle not in output and time.monotonic() < deadline:
             ready, _, _ = select.select([self.master], [], [], 0.1)
@@ -148,6 +224,10 @@ class ConfigurePtyTests(unittest.TestCase):
                 output += chunk
             except OSError:
                 break
+        if needle in output:
+            end = output.index(needle) + len(needle)
+            self.read_buffer.extend(output[end:])
+            return output[:end]
         if needle not in output:
             details = subprocess.run(
                 ["ps", "-o", "pid,ppid,pgid,stat,tty,command", "-p", str(self.process.pid)],
@@ -174,7 +254,8 @@ class ConfigurePtyTests(unittest.TestCase):
                 raise subprocess.TimeoutExpired(self.process.args, timeout)
 
     def _finish_output(self, initial=b""):
-        output = initial + bytes(self.pending_output)
+        output = initial + bytes(self.read_buffer) + bytes(self.pending_output)
+        self.read_buffer.clear()
         self.pending_output.clear()
         deadline = time.monotonic() + 1
         while time.monotonic() < deadline:
