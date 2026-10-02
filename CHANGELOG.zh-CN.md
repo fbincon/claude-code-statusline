@@ -1,0 +1,123 @@
+# Changelog
+
+[English](CHANGELOG.md) | **简体中文**
+
+## 1.1.0 - 2026-10-03
+
+- macOS 核心功能与独立 TUI 转为正式支持，范围为 macOS 14+、Intel / Apple Silicon、CPython 3.10–3.14；保留原生进程识别、包含睡眠时间的时钟和 POSIX 文件安全适配。
+- 实验性 `/statusline-configure` 在有效 tmux 会话之外新增 Terminal.app 入口，使用系统 `open` 和私有 `.command` 文件；退出后遵循 Terminal 自身偏好，无需 AppleScript 自动化权限。
+- Terminal 入口绑定当前 Python、CLI、配置目录和工作目录，支持空格、中文及 shell 特殊字符；使用独立启动握手、进程身份核验与 schema v1 结果桥，处理启动失败、关窗、中断、父调用退出和超时。
+- 在 TUI 轮询和配置事务锁内核对调用存活与期限，失效调用不能继续保存；撤销调用后仅回收匹配身份的编辑器进程并清理本次私有文件。
+- 更新 CLI 帮助、包描述与 macOS `doctor` 诊断；诊断只检查 Terminal 及图形会话条件，不启动桌面终端。配置和结果 schema、Linux/Windows 行为及实验入口默认关闭策略保持兼容。
+- 修正 PTY 分段读取误报，新增 Terminal 生命周期与原生辅助进程测试，补充 `.DS_Store` 忽略规则和分发包检查。
+- 发布 v1.1.0 稳定版 wheel、源码包和 SHA256SUMS；统一 Linux/WSL、Windows、macOS 的安装与升级入口，保留历史版本的支持范围说明。
+- 发布指南补全按已验证提交构建、草稿附件核验、正式发布及下载后隔离安装的流程；CI 核对源码/包版本、文档和截图，并拒绝分发本地验收记录及系统缓存。
+- 收录 macOS / Windows 主状态栏及三页 TUI 的八张原始截图，统一文件名、文件索引和首页展示；CI 增加全平台截图的打包检查。
+
+## 1.1.0a1 - 2026-10-02
+
+- 新增 macOS 预览支持：核心状态栏、子 Agent 行、安装配置命令和独立 curses TUI；实验性 `/statusline-configure` 仅使用通过预检查的 tmux popup。
+- Linux/macOS 共享 POSIX 文件锁、私有权限修复、原子替换和父目录同步；仅 macOS 文件系统不支持目录同步时降级，真实 I/O 错误继续传播。
+- macOS session registry 使用 C locale / UTC 的 `ps -o lstart=` 启动标识，先筛选匹配会话再查询进程。计时通过延迟加载的 LibSystem `mach_continuous_time`、`mach_timebase_info` 与 `kern.bootsessionuuid` 保持包含睡眠时间的时钟和重启识别；接口不可用时整体回退墙钟。
+- `doctor` 增加 macOS 预览、架构、系统版本、curses、进程、时钟、目录同步与实验入口 tmux 诊断；缺少 curses 时独立 TUI 返回清晰错误。
+- macOS 独立 TUI 定时轮询输入，使旧 curses/CPython 3.10 在没有后续按键时也能及时处理 SIGINT 等信号；PTY 测试建立前台控制终端并在等待退出时持续读取输出。
+- CI 增加 macOS 15/26 × Intel/Apple Silicon × Python 3.10/3.14，扩展 PTY/tmux 实测并生成平台验证报告；ARM64 的 Python 3.10 下界固定为 3.10.11。
+- 发布 v1.1.0a1 预览 wheel、源码包与 SHA256SUMS，供 macOS 用户试用；Linux/WSL 与 Windows 用户仍可选择稳定版 v1.0.0，预览包也包含这两个平台的既有功能。
+- 同步包版本、CLI/CI 版本断言、安装升级入口与发布指南。显示 schema v2、feature schema v1、旧配置及运行状态保持兼容，无需数据迁移。
+- 已发布的 v1.0.0 安装包与标签不包含 macOS 支持。实际 Claude 视觉效果、真实睡眠恢复与桌面终端体验尚未人工验收；macOS 仍声明为预览。
+
+## 1.0.0 - 2026-09-04
+
+- Git staged 计数按运行平台调整间距：原生 Linux 保留 `● N`，Windows 和 WSL 改为 `●N`；WSL 同时根据环境变量和内核 release 识别。
+- 将平台契约从 Linux 扩展为 Linux/WSL 与 Windows 10/11 原生；Windows 支持 CPython 3.10–3.14 x86/x64，macOS 继续明确不支持，Windows ARM64 原生 Python 暂不承诺。
+- 新增集中式平台适配层：Linux 保留 `fcntl.flock`、`0600/0700` 与父目录 `fsync`；Windows 使用延迟导入的 `msvcrt` 固定字节锁、继承 ACL、带 sharing violation/access denied 重试的原子替换与 durable unlink。
+- Windows session registry 校验通过 `OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION)`、`GetProcessTimes` 和本地 `.NET DateTime.Ticks` 转换验证 `procStart`；计时使用包含休眠时间的 `GetTickCount64` 与按分钟量化的启动标识，API 不可用时回退墙钟。
+- Windows 安装统一写入可由 Git Bash 和 PowerShell 执行的 `claude-statusline.exe render`、`render-subagents`、`hook` 与 `slash-hook`；Linux 绝对路径加 POSIX 引号的既有命令格式不变。所有权识别同时接受 canonical 名称、大小写不敏感 `.exe` 与解析到当前入口的 PATH alias。
+- Windows `/statusline-config` skill 同时预授权窄范围 Bash/PowerShell config 规则；`/statusline-configure` fallback 同时禁用 Bash 与 PowerShell。`doctor` 新增 Windows executable、ACL/mode 差异、`windows-curses` 与系统新控制台诊断。
+- 包元数据增加条件依赖 `windows-curses>=2.4.2; sys_platform == "win32"`。Linux 与 Windows 复用 Main/Subagents/Settings 全屏 TUI；信号注册只引用平台实际存在的信号，并兼容 PDCurses resize。
+- `/statusline-configure` 在 Windows 新增 `CREATE_NEW_CONSOLE` launcher，直接运行当前虚拟环境的 `python -m claude_statusline configure`，保留子进程句柄、真实终端 I/O、570/585 秒 deadline、关窗/异常/超时回收及 schema v1 结果回传。Linux tmux/GNOME 行为保持不变。
+- Windows 结果桥拒绝 symlink、junction、其他 reparse point、路径越界、非普通文件和超过 16 KiB 的结果；不再把 NTFS 伪 POSIX mode 当成损坏。长路径换行同时识别 `/` 与 `\`，`full` 风格保留 payload 原始分隔符。
+- 保持显示 schema v2、feature schema v1、状态缓存、生命周期 ledger、默认显示、Claude Code 2.1.205/2.1.258 功能门槛和旧 Linux 安装所有权语义不变，不执行数据迁移。
+- CI 新增 Ubuntu/Windows × Python 3.10/3.14 矩阵、PowerShell/Git Bash 与 Linux smoke，以及 sdist/wheel 版本、条件依赖、skills 和平台模块打包检查。
+
+## 0.9.0 - 2026-09-03
+
+- 新增子 Agent 条目 `status-elapsed`：把状态图标与用时合并为一个单元（如 `⏱ 1m 18s`、`✓ 0m 42s`），取代 `status` 与 `elapsed` 成为默认子 Agent 行，默认输出从 `⏱ Explore · sonnet-5/high · Context 58% left · 1m 18s · searching auth flow` 变为 `⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow`。
+- `status-elapsed` 与 `status`、`elapsed` 在 `subagents.items` 中互斥：配置校验拒绝共存，CLI 的 set-items/enable/disable/order/apply 直接报错；交互向导勾选其一自动取消冲突项。
+- 缺失或非法 `startTime` 时 `status-elapsed` 只显示状态图标；未来时间按 0 秒。与旧 `elapsed` 一致，已完成任务因 payload 无 endTime 继续计时；时长仍按 floor 取整。
+- 窄屏适配把 `status-elapsed` 视为与 `status` 同等的核心条目，始终保留，极窄时退化为图标；不加入可选段丢弃顺序。
+- 更新渲染、目录、预览、配置校验、向导、CLI 与文档测试。
+
+## 0.8.0 - 2026-09-03
+
+- 新增子 Agent 条目 `context-remaining`：显示 `Context N% left`（先按 `tokenCount / contextWindowSize` 四舍五入已用百分比，再取 `100 − 已用` 并截断到 0–100），并取代 `context-used` 成为默认子 Agent 行的上下文项。
+- 子 Agent `context-used` 保持可选，显示格式从 `ctx N%` 改为与主栏一致的 `Context N% used`；已有配置目录结构不变，但启用 `context-used` 的现有配置会看到新文本。
+- 无显示配置的安装默认子 Agent 行改为显示剩余上下文；两个上下文条目都参与窄屏丢弃（`current-dir → tokens → context-used → context-remaining → model-with-effort → task`）。
+- 新条目可通过 CLI、TUI 与 `/statusline-config` 启用和排序；更新对应渲染、目录、预览与文档测试。
+
+## 0.7.0 - 2026-09-03
+
+- 新增三个默认关闭的主 Agent 条目：`context-used` 显示 Claude 官方 payload 的上下文已用百分比，`project-name` 显示启动项目目录 basename，`hostname` 通过 Python 标准库显示本地主机名。
+- `context-used` 与 `context-remaining` 可独立配置并相邻共存；`current-dir`、`project-name`、`hostname` 组成位置组，所有新增文本均执行缺失值、范围与控制字符/ANSI 安全校验。
+- 保持 schema v2、原有十项 `DEFAULT_ITEMS`/`LEGACY_DEFAULT_ITEMS`、旧配置与默认输出不变；三个新条目只通过 CLI、TUI 或 `/statusline-config` 显式启用。
+- 全条目预览扩展为 24 个确定性主条目，hostname 固定为 `devbox`，不读取真实机器名；子 Agent renderer、条目目录和默认配置保持不变。
+
+## 0.6.0 - 2026-09-03
+
+- 新增 Claude Code 官方 `subagentStatusLine` 一等支持与高频 `render-subagents` NDJSON 命令；按 task 显示状态、名称、模型/effort、上下文、用时和任务，并支持 token、cwd 可选项、ANSI/CJK/emoji 安全限宽及损坏输入静默降级。
+- `prompt-timer` 改为从用户提交到主 Agent 最终 `Stop` 的端到端时间；新增 `SubagentStart`/`SubagentStop` ledger、`waiting_subagents`/`resuming_main` 阶段、权威 `background_tasks` 同步，并抑制 registry/transcript 提前完成。
+- 主栏新增 `off/when-subagents/always` 范围标签；默认只在当前 prompt 曾启动子 Agent 时显示固定的 `Main/Session`，session token 聚合口径保持不变。
+- 显示配置平滑升级到严格 schema v2：schema v1 只读迁移且不会被 render/doctor/install 重写，首次真实保存会备份原字节并原子写出 canonical v2。
+- 新增完整的 `config subagents ...` 命令、`subagent-statusline`/`scope-labels` 设置及兼容旧调用的可选 `config apply` 参数；TUI 升级为 Main/Subagents/Settings 三页签，slash 向导同步一次性提交全部字段。
+- 安装器新增 Claude Code 2.1.205 版本门槛、owned/absent/foreign/unsupported 所有权状态、foreign 整体拒绝与 `--force` 接管、关闭/降级暂挂及升级恢复；uninstall 只移除本工具拥有的子 Agent 设置和 hooks。
+- 扩展 renderer、Unicode 宽度、生命周期、配置迁移、安装事务、TUI/Slash、CLI 与 doctor 测试，并更新构建、升级、降级和人工多 Agent 验收文档。
+
+## 0.5.0 - 2026-09-03
+
+- 新增默认关闭的实验入口 `/statusline-configure`，通过 `install --experimental-slash-tui` 持久启用，并可用 `--no-experimental-slash-tui` 永久关闭；与现有 `/statusline-config` 并存。
+- 新增 tmux `90% × 90%` popup 与 GNOME Terminal 活动新标签页 launcher，复用已有 `claude-statusline configure` TUI；两者不可用时在本地阻断并提示独立命令，不调用模型。
+- 新增私有原子结果桥接，向 Claude 对话回传保存、无变化、取消、中断、超时和错误；hook/TUI/launcher timeout 分别为 600/570/585 秒。
+- 安装器扩展为 settings、feature 文件与两个 owned skill 的统一事务，支持损坏偏好的显式修复、降级暂挂/升级恢复、严格所有权、dry-run、备份和原字节回滚。
+- `doctor` 新增 feature schema/权限、disabled/enabled/suspended、实验 skill/owner/matcher/timeout 和 launcher 可用性诊断；新增 launcher、PTY bridge 与真实 tmux popup 集成测试。
+- 文档明确该功能不是 Claude Code 原生 TUI 扩展，不访问 `/dev/tty`，GNOME 路径是新标签页，并记录 `disableAllHooks` fallback 的模型回合例外。
+
+## 0.4.0 - 2026-09-03
+
+- 新增稳定的独立命令 `claude-statusline configure [--config-dir PATH]`，在 Linux 真实终端中提供 Items/Settings 双页签全屏 TUI，支持 Space 勾选、键盘导航、筛选、左右排序和数值编辑。
+- 新增按键级 `Preview (sample data)`：复用生产 renderer 的格式化、分组与换行，只使用确定性样例，不读取 Git、transcript、网络或当前会话运行状态，也不创建缓存。
+- Enter 一次性原子提交显示与宿主配置，Esc 和信号路径恢复终端且不写入；小于 `64x18` 时等待 resize。
+- TUI 保存增加 baseline 并发保护：在现有安装锁内、创建备份前检测 display、host 或安装归属的语义变化，同时保留无关 `settings.json` 更新。
+- 保持显示配置 schema version 1，不迁移或持久化禁用条目顺序；`/statusline-config` skill、slash fast hook 与现有 renderer/hook 行为不变。
+
+## 0.3.2 - 2026-09-03
+
+- 显示前缀首字母大写：`Session`、`Git`、`Repo`、`Worktree`、`Agent`；Git 错误标记同步改为 `Git!`。
+- `cost` 金额前加 `Total`，如 `Total $0.12 · 12m 30s · +156/-23`（`vim NORMAL` 不在本次清单内，保持不变）。
+
+## 0.3.1 - 2026-09-03
+
+- 重构显示项分组与配色：`model-with-effort`、`fast-mode`、`thinking` 一组（象牙白）；`tokens`、`prompt-cache` 一组（粉）；`git`、`pr`、`repo` 一组（紫）；`version`、`session`、`cost`、`agent`、`vim-mode`、`worktree` 各自独立。
+- `session`、`git`、`repo` 显示加前缀（`session xxxxx`、`git xxxxx`、`repo xxxxx`）。
+- 目录顺序调整为同组相邻，向导追加的新条目自动落在组锚点之后。
+
+## 0.3.0 - 2026-09-03
+
+- 新增 11 个可选显示项：`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo`，数据来自 Claude Code 2.1.258+ 的公开 statusline payload。
+- 新显示项默认禁用，默认输出与 0.2.0 完全一致；通过 `/statusline-config enable` 主动开启。
+- `cost` 显示会话金额、API 时长与增删行数（第三方 API 下金额为估算值）；`prompt-cache` 显示缓存命中率与写入 token。
+- 更新 `/statusline-config` 向导分组，新条目可通过勾选启用。
+
+## 0.2.0 - 2026-09-03
+
+- 增加用户全局的严格 JSON 显示配置、可选显示项及持久化顺序。
+- 增加颜色、ANSI 调色板、目录格式、分隔符及 Claude Code 宿主设置。
+- 增加 `/statusline-config` personal skill，以及新版 Claude Code 的本地 slash hook 快路径。
+- 安装器自动管理 skill 和快捷 hook，旧版 Claude Code 优雅降级，卸载时保留用户偏好。
+- 保持无配置时的 0.1.0 输出，并按启用项跳过不必要的 Git 和 transcript 工作。
+
+## 0.1.0 - 2026-09-02
+
+- 将现有 Claude Code statusline 渲染器与逐轮生命周期 hook 封装为独立 CLI。
+- 增加安全、幂等的安装、卸载和诊断命令。
+- 支持 `CLAUDE_CONFIG_DIR`，同时保留既有运行状态与缓存布局。
+- 保留模型、目录、Git、上下文、限额、token 与计时显示行为。

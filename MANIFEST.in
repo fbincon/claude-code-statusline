@@ -1,5 +1,7 @@
 include README.md
+include README.zh-CN.md
 include CHANGELOG.md
+include CHANGELOG.zh-CN.md
 recursive-include docs *.md *.png
 exclude docs/MACOS_VALIDATION.md
 recursive-include tests *.py

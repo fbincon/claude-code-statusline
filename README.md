@@ -1,128 +1,144 @@
 # Claude Code Statusline
 
-面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
+**English** | [简体中文](README.zh-CN.md)
 
-[快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.md) · [故障排查](docs/USER_GUIDE.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
+A Claude Code status line for Linux, WSL, Windows, and macOS. It shows model and reasoning effort, working directory, Git, context, rate limits, tokens, and per-turn timing. Individual subagent rows are supported. Configure items, order, and styles through a terminal UI (TUI), a wizard inside Claude Code, or the command line.
 
-## 界面预览
+[Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Report an issue](https://github.com/fbincon/claude-code-statusline/issues)
 
-以下截图展示 Linux、macOS 和 Windows 的实际终端界面。主状态栏显示会话数据；配置界面底部的 Preview 使用固定样例数据。字体、颜色和字符宽度会随终端设置变化。
+<a id="界面预览"></a>
 
-**Linux 主状态栏**
+## Screenshots
 
-![Claude Code 主状态栏：模型与 effort、目录、Git、上下文、token 和逐轮用时](docs/images/statusline.png)
+These screenshots show actual Linux, macOS, and Windows terminals. The main status line shows session data; the configuration UI's Preview uses fixed sample data. Fonts, colors, and character widths depend on terminal settings.
+
+**Linux main status line**
+
+![Claude Code main status line: model and effort, directory, Git, context, tokens, and per-turn timing](docs/images/statusline.png)
 
 <details>
-<summary>Linux：Main、Subagents 和 Settings 配置界面</summary>
+<summary>Linux: Main, Subagents, and Settings configuration pages</summary>
 
-**Main：选择主状态栏条目并调整顺序。**
+**Main: select main status line items and change their order.**
 
-![Main 配置页：主状态栏条目与样例预览](docs/images/configure-main.png)
+![Main configuration page: main status line items and sample preview](docs/images/configure-main.png)
 
-**Subagents：配置子 Agent 行的条目与顺序。**
+**Subagents: configure subagent row items and order.**
 
-![Subagents 配置页：子 Agent 条目与样例预览](docs/images/configure-subagents.png)
+![Subagents configuration page: subagent items and sample preview](docs/images/configure-subagents.png)
 
-**Settings：调整颜色、目录样式、分隔符和刷新间隔等选项。**
+**Settings: change colors, directory style, separators, refresh interval, and other options.**
 
-![Settings 配置页：显示样式和 Claude Code 宿主选项](docs/images/configure-settings.png)
+![Settings configuration page: display styles and Claude Code host options](docs/images/configure-settings.png)
 
 </details>
 
 <details>
-<summary>macOS：Terminal.app 中的主状态栏与三页配置界面</summary>
+<summary>macOS: main status line and all three configuration pages in Terminal.app</summary>
 
-**主状态栏**
+**Main status line**
 
-![macOS Terminal.app 中的 Claude Code 主状态栏](docs/images/statusline-macos.png)
+![Claude Code main status line in macOS Terminal.app](docs/images/statusline-macos.png)
 
-**Main：主状态栏条目与样例预览**
+**Main: main status line items and sample preview**
 
-![macOS Main 配置页](docs/images/configure-main-macos.png)
+![macOS Main configuration page](docs/images/configure-main-macos.png)
 
-**Subagents：子 Agent 行与样例预览**
+**Subagents: subagent rows and sample preview**
 
-![macOS Subagents 配置页](docs/images/configure-subagents-macos.png)
+![macOS Subagents configuration page](docs/images/configure-subagents-macos.png)
 
-**Settings：显示样式与宿主设置**
+**Settings: display styles and host settings**
 
-![macOS Settings 配置页](docs/images/configure-settings-macos.png)
+![macOS Settings configuration page](docs/images/configure-settings-macos.png)
 
 </details>
 
 <details>
-<summary>Windows：Windows Terminal 中的主状态栏与三页配置界面</summary>
+<summary>Windows: main status line and all three configuration pages in Windows Terminal</summary>
 
-**主状态栏**
+**Main status line**
 
-![Windows Terminal 中的 Claude Code 主状态栏](docs/images/statusline-windows.png)
+![Claude Code main status line in Windows Terminal](docs/images/statusline-windows.png)
 
-**Main：主状态栏条目与样例预览**
+**Main: main status line items and sample preview**
 
-![Windows Main 配置页](docs/images/configure-main-windows.png)
+![Windows Main configuration page](docs/images/configure-main-windows.png)
 
-**Subagents：子 Agent 行与样例预览**
+**Subagents: subagent rows and sample preview**
 
-![Windows Subagents 配置页](docs/images/configure-subagents-windows.png)
+![Windows Subagents configuration page](docs/images/configure-subagents-windows.png)
 
-**Settings：显示样式与宿主设置**
+**Settings: display styles and host settings**
 
-![Windows Settings 配置页](docs/images/configure-settings-windows.png)
+![Windows Settings configuration page](docs/images/configure-settings-windows.png)
 
 </details>
 
-[截图文件索引](docs/images/README.md)
+[Image file index](docs/images/README.md)
 
-## 支持范围
+<a id="支持范围"></a>
 
-- Linux 原生与 WSL：Python 3.10+。
-- Windows 10/11 原生：CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2`。
-- macOS 14+：CPython 3.10–3.14，Intel / Apple Silicon。支持核心功能和独立 TUI；实验性配置入口优先使用 tmux popup，否则使用本地 Terminal.app。
-- Claude Code CLI：2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持带参数配置命令的本地执行及实验性 TUI 启动器。较旧或无法识别的版本仍可使用主状态栏和配置向导。
-- Git 信息需要系统中存在 `git`。
+## Supported platforms
 
-当前稳定版为 [**v1.1.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0)，以上平台使用同一个 wheel。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。各功能的版本条件见[运行要求](docs/USER_GUIDE.md#运行要求)。
+- Native Linux and WSL: Python 3.10+.
+- Native Windows 10/11: CPython 3.10–3.14, x86/x64; automatically installs `windows-curses>=2.4.2`.
+- macOS 14+: CPython 3.10–3.14, Intel / Apple Silicon. Core functionality and the standalone TUI are supported; the experimental configuration entry point prefers tmux popup, otherwise local Terminal.app.
+- Claude Code CLI: 2.1.205+ supports individual subagent rows; 2.1.258+ supports local execution of configuration commands with arguments and the experimental TUI launcher. Older or unrecognized versions can still use the main status line and configuration wizard.
+- Git information requires `git` on the system.
 
-## 快速安装
+The current stable release is [**v1.1.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0), with the same wheel for all these platforms. Native Windows ARM64 Python is not currently guaranteed; ARM devices should use x64 Python emulation. See [requirements](docs/USER_GUIDE.md#requirements) for feature-specific version thresholds.
 
-先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / macOS / Windows 均可安装稳定版 v1.1.0。安装来源和文件校验方法见[使用指南](docs/USER_GUIDE.md#安装-python-包)。
+<a id="快速安装"></a>
 
-### 从 Release 安装（推荐）
+## Quick installation
 
-在 Bash / Zsh 或 PowerShell 中直接安装 [v1.1.0 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0)：
+Prepare Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Stable v1.1.0 is available for Linux / WSL / macOS / Windows. See the [user guide](docs/USER_GUIDE.md#install-the-python-package) for installation sources and file verification.
+
+<a id="从-release-安装推荐"></a>
+
+### Install from a Release (recommended)
+
+Install the [v1.1.0 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0) directly in Bash / Zsh or PowerShell:
 
 ```text
 pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
-也可以下载 wheel 后安装，具体步骤见[使用指南](docs/USER_GUIDE.md#安装-python-包)。
+You can also download the wheel before installing; see the [user guide](docs/USER_GUIDE.md#install-the-python-package).
 
-### 从固定标签源码安装
+<a id="从固定标签源码安装"></a>
 
-需要系统中存在 `git`，无需手动克隆或构建：
+### Install source at a fixed tag
+
+Requires `git`, without manually cloning or building:
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0"
 pipx ensurepath
 ```
 
-### 从当前源码安装
+<a id="从当前源码安装"></a>
 
-需要跟踪开发改动时，可从默认分支安装当前源码（需要 Git，Bash / Zsh / PowerShell 通用）。`main` 会随开发更新，需要固定版本时使用上面的 Release 或标签：
+### Install current source
+
+To follow development changes, install current default-branch source with Git in Bash / Zsh / PowerShell. `main` changes during development; use the Release or fixed tag above when you need a pinned version:
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 pipx ensurepath
 ```
 
-已有本地源码时，可在项目根目录执行 `pipx install .`。自行构建 wheel 的步骤见[从源码构建与安装](docs/USER_GUIDE.md#从源码构建与安装)；macOS 终端要求见[macOS 安装说明](docs/USER_GUIDE.md#macos-安装与验证边界)。
+For a local checkout, run `pipx install .` in the project root. See [building and installing from source](docs/USER_GUIDE.md#build-and-install-from-source) to build your own wheel, and [macOS installation notes](docs/USER_GUIDE.md#macos-installation-and-validation-boundaries) for terminal requirements.
 
-### 接入 Claude Code
+<a id="接入-claude-code"></a>
 
-完成包安装后，**重新打开终端**，让 `pipx ensurepath` 设置的 `PATH` 生效。先确认 `--version` 显示 `claude-statusline 1.1.0`，再接入 Claude Code。
+### Integrate with Claude Code
 
-Linux / WSL / macOS（Bash / Zsh）：
+After installing the package, **reopen your terminal** so the `PATH` changes from `pipx ensurepath` take effect. Confirm that `--version` prints `claude-statusline 1.1.0` before integrating with Claude Code.
+
+Linux / WSL / macOS (Bash / Zsh):
 
 ```bash
 claude-statusline --version
@@ -131,7 +147,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows（PowerShell）：
+Windows (PowerShell):
 
 ```powershell
 claude-statusline.exe --version
@@ -140,20 +156,22 @@ claude-statusline.exe install
 claude-statusline.exe doctor
 ```
 
-`pipx install` 安装 Python 包，`claude-statusline install` 将状态栏和配置入口接入 Claude Code。若已有其他工具的状态栏或同名 skill，安装器会报告冲突；需要接管时参见[冲突处理](docs/USER_GUIDE.md#处理已有-statusline-或同名-skill)。
+`pipx install` installs the Python package; `claude-statusline install` integrates the status line and configuration entry points with Claude Code. The installer reports conflicts with another tool's status line or a skill with the same name. See [conflict handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name) when you intend to take ownership.
 
-## 常用配置
+<a id="常用配置"></a>
 
-安装后，在终端运行 `claude-statusline configure`；Windows 使用 `claude-statusline.exe configure`。TUI 在当前终端打开，最小尺寸为 `64×18`，支持选择条目、排序和样例预览。非数字编辑状态下，Enter 保存全部修改，Esc 取消；Ctrl+C 中断且不保存。
+## Common configuration
 
-| 入口 | 用途 |
+After installation, run `claude-statusline configure` in a terminal; on Windows, use `claude-statusline.exe configure`. The TUI opens in the current terminal, requires at least `64×18`, and supports item selection, ordering, and sample previews. Outside numeric editing, Enter saves all changes and Esc cancels; Ctrl+C interrupts without saving.
+
+| Entry point | Purpose |
 | --- | --- |
-| `claude-statusline configure` | 使用 TUI 交互调整主栏、子 Agent 行和样式 |
-| Claude Code 内的 `/statusline-config` | 使用问答向导配置，或带参数执行配置命令 |
-| `claude-statusline config ...` | 在终端查看配置、精确排序或用于脚本 |
-| 实验性 `/statusline-configure` | 从 Claude Code 启动外部终端中的 TUI；默认关闭，见[启用说明](docs/USER_GUIDE.md#实验入口-statusline-configure) |
+| `claude-statusline configure` | Configure main line, subagent rows, and styles through the TUI |
+| `/statusline-config` inside Claude Code | Use the question-based wizard, or execute configuration commands with arguments |
+| `claude-statusline config ...` | Inspect configuration, set exact order, or use scripts in a terminal |
+| Experimental `/statusline-configure` | Launch the TUI in an external terminal from Claude Code; disabled by default; see [enabling instructions](docs/USER_GUIDE.md#experimental-statusline-configure-entry-point) |
 
-例如，在 Linux / WSL / macOS 中设置精简状态栏：
+For example, set a minimal status line on Linux / WSL / macOS:
 
 ```bash
 claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
@@ -161,23 +179,25 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
-Windows 将上述命令名替换为 `claude-statusline.exe`。`set-items` 会替换整个启用集合；需要增量调整时使用 `enable`、`disable`。更多示例见[常用配置配方](docs/USER_GUIDE.md#常用配置配方)。
+On Windows, replace the command name with `claude-statusline.exe`. `set-items` replaces the entire enabled set; use `enable` and `disable` for incremental changes. See [configuration recipes](docs/USER_GUIDE.md#configuration-recipes) for more examples.
 
-配置按用户生效。显示偏好保存在 Claude 配置目录中的 `claude-statusline.json`；配置目录、默认值及历史格式兼容见[配置文件](docs/USER_GUIDE.md#配置文件)。
+Configuration applies per user. Display preferences are stored in `claude-statusline.json` inside the Claude configuration directory. See [configuration files](docs/USER_GUIDE.md#configuration-files) for directory selection, defaults, and historical-format compatibility.
 
-## 升级与卸载
+<a id="升级与卸载"></a>
 
-升级到 v1.1.0 时，替换 Python 包（Bash / Zsh / PowerShell 通用）：
+## Upgrading and uninstalling
+
+To upgrade to v1.1.0, replace the Python package (Bash / Zsh / PowerShell):
 
 ```text
 pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
 ```
 
-随后重新运行 `claude-statusline install` 和 `claude-statusline doctor`；Windows 使用 `claude-statusline.exe`。升级保留 Claude 配置目录中的显示偏好和运行状态。本地 wheel、源码安装及版本兼容的处理见[升级指南](docs/USER_GUIDE.md#升级)。
+Then rerun `claude-statusline install` and `claude-statusline doctor`; on Windows, use `claude-statusline.exe`. Upgrades preserve display preferences and runtime state in the Claude configuration directory. See the [upgrade guide](docs/USER_GUIDE.md#upgrading) for local wheels, source installs, and version compatibility.
 
-卸载时先移除 Claude Code 接入，再删除 Python 包。
+To uninstall, remove the Claude Code integration first, then the Python package.
 
-Linux / WSL / macOS：
+Linux / WSL / macOS:
 
 ```bash
 claude-statusline uninstall --dry-run
@@ -185,7 +205,7 @@ claude-statusline uninstall
 pipx uninstall claude-code-statusline
 ```
 
-Windows：
+Windows:
 
 ```powershell
 claude-statusline.exe uninstall --dry-run
@@ -193,15 +213,19 @@ claude-statusline.exe uninstall
 pipx uninstall claude-code-statusline
 ```
 
-卸载会保留显示偏好、缓存、备份和实验功能偏好，详情见[卸载说明](docs/USER_GUIDE.md#卸载)。
+Display preferences, caches, backups, and experimental feature preferences remain. See [uninstallation](docs/USER_GUIDE.md#uninstalling).
 
-## 文档与帮助
+<a id="文档与帮助"></a>
 
-- [使用指南](docs/USER_GUIDE.md)：完整安装步骤、TUI、CLI、显示项和配置参考。
-- [诊断与故障排查](docs/USER_GUIDE.md#故障排查)：先运行 `doctor`，再按具体症状排查。
-- [开发与测试](docs/USER_GUIDE.md#附录开发与测试) · [发布指南](docs/RELEASING.md) · [变更记录](CHANGELOG.md)。
-- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：报告问题时请提供系统、Python/Claude Code/本工具版本、复现步骤，以及去除私人路径和会话内容后的诊断输出。
+## Documentation and help
 
-## 许可证
+- [User guide](docs/USER_GUIDE.md): installation, TUI, CLI, display items, and configuration reference.
+- [Diagnostics and troubleshooting](docs/USER_GUIDE.md#troubleshooting): start with `doctor`, then follow the relevant symptom.
+- [Development and testing](docs/USER_GUIDE.md#appendix-development-and-testing) · [Release guide](docs/RELEASING.md) · [Changelog](CHANGELOG.md).
+- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include your OS, Python/Claude Code/tool versions, reproduction steps, and diagnostic output with private paths and session content removed.
 
-本项目采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 [fbincon](https://github.com/fbincon)。
+<a id="许可证"></a>
+
+## License
+
+This project uses the [MIT License](LICENSE). Copyright (c) 2026 [fbincon](https://github.com/fbincon).
