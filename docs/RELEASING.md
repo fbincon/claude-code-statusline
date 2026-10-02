@@ -1,18 +1,32 @@
-# 发布 GitHub Release
+# Publishing GitHub Releases
 
-本指南供维护者使用。用户安装请看[项目首页](../README.md#快速安装)，配置说明见[使用指南](USER_GUIDE.md)。当前稳定版为 [v1.1.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+**English** | [简体中文](RELEASING.zh-CN.md)
 
-## 准备发布提交
+<a id="发布-github-release"></a>
 
-1. 从最新 `main` 创建 `fbincon/` 前缀的发布分支，同步 `pyproject.toml`、`src/claude_statusline/_version.py` 和 CLI 测试中的版本。
-2. 将变更记录中的“未发布”改为实际发布日期。更新 README、使用指南中的稳定版本、安装与升级 URL，保留历史版本的支持范围；这些链接将在本次 Release 发布后生效。
-3. 发布说明列明主要改动、平台和 Python 版本、配置兼容性、安装方式及实验功能边界，与[运行要求](USER_GUIDE.md#运行要求)一致。
-4. 运行单元和集成测试、Ruff、文档链接及空白检查。测试使用临时 Claude 配置，覆盖安装、幂等重装、冲突回滚、配置、渲染、doctor 和卸载。
-5. 通过 PR 合入 `main`，确认合并提交的完整 CI 通过。后续构建、标签和 Release 都指向该提交，不使用移动中的分支名代替提交号。
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.1.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
-## 按提交构建分发包
+<a id="准备发布提交"></a>
 
-在干净工作区中执行以下 Bash 命令（Linux / WSL / macOS）。`git archive` 只导出该提交的版本控制文件，避免本地缓存、旧构建文件或验收记录混入发布包；每次使用新的输出目录。
+## Prepare the release commit
+
+### Maintain bilingual documentation
+
+English is the default at existing documentation paths. Complete Simplified Chinese versions use the `.zh-CN.md` suffix in the same directory. Update both languages together, including README, user guide, release guide, changelog, and image index. Keep language switches and links within each language current; retain legacy Chinese heading anchors at the English paths.
+
+Store complete bilingual Release bodies in `docs/releases/<tag>.md`, with English first and the original Chinese in an expandable section. Use an English Release title. Preserve version-specific support and validation claims; label links to historical Chinese documentation explicitly. When editing an existing Release, update only its title and body, preserving tags, assets, release type, and Latest selection.
+
+1. Create a release branch from the latest `main` with the `fbincon/` prefix. Synchronize versions in `pyproject.toml`, `src/claude_statusline/_version.py`, and CLI tests.
+2. Replace the changelog's Unreleased date with the actual release date. Update stable versions and installation/upgrade URLs in the README and user guide, preserving historical support boundaries. These links become available after publication.
+3. Release notes should describe major changes, platforms and Python versions, configuration compatibility, installation, and experimental boundaries, consistent with [requirements](USER_GUIDE.md#requirements).
+4. Run unit/integration tests, Ruff, documentation-link checks, and whitespace checks. Tests use temporary Claude configuration and cover installation, idempotent reinstall, conflict rollback, configuration, rendering, doctor, and uninstallation.
+5. Merge through a PR and confirm complete CI passes on the merge commit. Builds, tags, and Releases must all refer to that commit; use its hash rather than a moving branch name.
+
+<a id="按提交构建分发包"></a>
+
+## Build distributions from a commit
+
+Run these Bash commands in a clean workspace on Linux / WSL / macOS. `git archive` exports only version-controlled files from the specified commit, excluding local caches, old builds, and acceptance records. Use a fresh output directory each time.
 
 ```bash
 set -euo pipefail
@@ -35,26 +49,28 @@ python3 -m venv "$RELEASE_ROOT/build-env"
   --outdir "$RELEASE_ASSETS" "$RELEASE_SOURCE"
 ```
 
-`python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
+By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
 claude_code_statusline-1.1.0-py3-none-any.whl
 claude_code_statusline-1.1.0.tar.gz
 ```
 
-该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
+This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
 
-上传前检查：
+Before uploading, check:
 
-- wheel 的版本、平台分类和条件依赖正确，包含 `_platform.py`、`macos_terminal.py` 及两个 skill 模板。
-- 源码包包含 README、变更记录、使用指南、发布指南、截图索引、所有平台 PNG 和测试。
-- 两种包均不包含 `docs/MACOS_VALIDATION.md`、`.DS_Store`、字节码或本地缓存。
-- 将 wheel 安装到新虚拟环境，在非源码目录运行 `--version`；通过 `tests/ci_smoke.py` 验证已安装包。Linux/macOS 需要 tmux。
-- 从源码包另行重建 wheel，核对包文件、元数据和入口，并完成隔离安装验证。
+- Correct wheel version, platform classifiers, and conditional dependencies, with `_platform.py`, `macos_terminal.py`, and both skill templates included.
+- Source distribution includes both languages of the README, changelog, user guide, release guide, and image index, plus bilingual Release bodies, all platform PNGs, and tests. Wheel metadata uses the English README.
+- Neither distribution includes `docs/MACOS_VALIDATION.md`, `.DS_Store`, bytecode, or local caches.
+- Install the wheel in a new virtual environment, run `--version` outside the source directory, and validate the installed package through `tests/ci_smoke.py`. Linux/macOS require tmux.
+- Separately rebuild the wheel from the source distribution, compare package files, metadata, and entry points, and verify isolated installation.
 
-## 生成与核验校验文件
+<a id="生成与核验校验文件"></a>
 
-在附件目录只为本次 wheel 和源码包生成清单，不使用会选中旧文件的通配符。
+## Generate and verify checksums
+
+In the assets directory, create a manifest for only this release's wheel and source distribution. Avoid wildcards that might select old files.
 
 Linux / WSL：
 
@@ -66,7 +82,7 @@ sha256sum -c SHA256SUMS
 cd -
 ```
 
-macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS` 核验。Windows PowerShell 在附件目录执行：
+On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256SUMS`. In Windows PowerShell, run in the assets directory:
 
 ```powershell
 $releaseFiles = @(
@@ -79,11 +95,13 @@ $releaseFiles | ForEach-Object {
 } | Set-Content -LiteralPath SHA256SUMS -Encoding ascii
 ```
 
-清单使用 SHA-256、小写十六进制摘要、两个空格和不含目录的文件名，便于各平台核验。
+Use SHA-256, lowercase hexadecimal digests, two spaces, and filenames without directories for cross-platform verification.
 
-## 创建标签与草稿 Release
+<a id="创建标签与草稿-release"></a>
 
-确认 `RELEASE_COMMIT` 对应的全部 13 个 CI 任务通过，并确认同名远程标签和 Release 不存在。创建带注释标签，再创建包含三个附件的草稿；不要覆盖历史标签或附件。
+## Create a tag and draft Release
+
+Confirm all 13 CI jobs pass for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
 
 ```bash
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
@@ -97,27 +115,29 @@ gh release create "$RELEASE_TAG" \
   --notes-file "$RELEASE_ROOT/release-notes.md"
 ```
 
-先将实际发布说明写入上述 `release-notes.md`，保留真实换行。标签推送会触发 CI，也应全部通过。通过 `gh release download` 将草稿附件下载到新的目录，核验 SHA256SUMS 并与本地产物逐字节比较。GitHub 自动生成的 Source code ZIP/TAR 不能替代 wheel 附件。
+Write the actual notes to `release-notes.md` above with real newlines first. Pushing the tag triggers CI, which must also pass. Download draft assets into a new directory with `gh release download`, verify SHA256SUMS, and compare bytes with local artifacts. GitHub's generated Source code ZIP/TAR is not a substitute for the wheel asset.
 
-## 正式发布与下载验证
+<a id="正式发布与下载验证"></a>
 
-版本号不含预发布标识的稳定版设置为 Latest：
+## Publish and verify downloads
+
+Mark a stable version without a prerelease identifier as Latest:
 
 ```bash
 gh release edit "$RELEASE_TAG" --repo fbincon/claude-code-statusline \
   --draft=false --prerelease=false --latest
 ```
 
-预发布版本应在创建草稿时增加 `--prerelease --latest=false`，正式公开时仍保持预发布设置，并使用 `--latest=false`。在 GitHub 网页操作时使用对应的 Draft、Pre-release 和 Latest 选项。
+For prereleases, add `--prerelease --latest=false` when creating the draft; retain prerelease status and `--latest=false` when publishing. In the GitHub web UI, use the equivalent Draft, Pre-release, and Latest settings.
 
-发布后完成以下验证：
+After publication:
 
-1. 检查标签解析到构建提交，附件名称、大小、摘要和发布类型正确；确认[最新稳定版入口](https://github.com/fbincon/claude-code-statusline/releases/latest)指向本次稳定版。
-2. 从公开下载 URL 重新下载三个附件，核验清单并与本地产物比较。
-3. 在独立的 pipx 目录中执行 README 的公开 wheel URL 安装命令，检查版本并运行 CLI smoke；验证固定标签源码及源码包也可安装。
-4. 检查 README、使用指南、变更记录和发布说明中的版本、日期、标签、附件 URL 与相对链接一致。
-5. 确认工作区干净，记录发布链接、提交号和 CI 结果。详细本地报告存放在忽略目录中，不加入安装包。
+1. Check the tag resolves to the build commit and asset names, sizes, digests, and release type are correct. Confirm the [latest stable entry point](https://github.com/fbincon/claude-code-statusline/releases/latest) points to this stable release.
+2. Redownload all three assets from public URLs, verify checksums, and compare them with local artifacts.
+3. Run the README's public wheel URL installation command in independent pipx directories, check version, and run CLI smoke tests. Verify fixed-tag source and source-distribution installations as well.
+4. Check version, date, tag, asset URLs, and relative links agree across README, user guide, changelog, and release notes.
+5. Confirm a clean workspace and record release links, commit, and CI results. Keep detailed local reports in ignored directories outside distributions.
 
-发布说明引用真实验证结果；CI 覆盖的平台版本、架构与 Python 版本从对应运行报告读取。终端截图用于展示，不代替真实睡眠恢复或多 Agent 生命周期验收。
+Release notes must cite actual validation results. Read CI-covered OS versions, architectures, and Python versions from the corresponding run reports. Terminal screenshots illustrate appearance; they do not replace real sleep/resume or multi-agent lifecycle acceptance.
 
-相关文档：[pipx 安装来源](https://pipx.pypa.io/latest/reference/examples.html)、[GitHub 创建 Release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)、[GitHub Release 链接规则](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)。
+Related documentation: [pipx installation sources](https://pipx.pypa.io/latest/reference/examples.html), [creating GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository), and [Release linking rules](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases).

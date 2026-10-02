@@ -135,6 +135,9 @@ jobs:
               metadata_name = next(name for name in names if name.endswith(".dist-info/METADATA"))
               metadata = email.message_from_bytes(archive.read(metadata_name))
               assert metadata["Version"] == version
+              english_readme = Path("README.md").read_text(encoding="utf-8")
+              assert metadata.get_payload(decode=True).decode("utf-8") == english_readme
+              assert "A Claude Code status line for Linux" in english_readme
               assert archive.read("claude_statusline/_version.py") == Path("src/claude_statusline/_version.py").read_bytes()
               assert "Operating System :: MacOS :: MacOS X" in metadata.get_all("Classifier", [])
               requirements = metadata.get_all("Requires-Dist", [])
@@ -151,16 +154,27 @@ jobs:
               distributions.append(names)
               for suffix in (
                   "README.md",
+                  "README.zh-CN.md",
                   "CHANGELOG.md",
+                  "CHANGELOG.zh-CN.md",
                   "docs/USER_GUIDE.md",
+                  "docs/USER_GUIDE.zh-CN.md",
                   "docs/RELEASING.md",
+                  "docs/RELEASING.zh-CN.md",
                   "src/claude_statusline/_platform.py",
                   "src/claude_statusline/macos_terminal.py",
                   "src/claude_statusline/resources/statusline-config/SKILL.md",
                   "src/claude_statusline/resources/statusline-configure/SKILL.md",
                   "docs/images/README.md",
+                  "docs/images/README.zh-CN.md",
+                  "docs/releases/v1.0.0.md",
+                  "docs/releases/v1.1.0a1.md",
+                  "docs/releases/v1.1.0.md",
                   "tests/ci_smoke.py",
               ):
+                  assert any(name.endswith(suffix) for name in names), suffix
+              for notes in Path("docs/releases").glob("*.md"):
+                  suffix = notes.as_posix()
                   assert any(name.endswith(suffix) for name in names), suffix
               for image in Path("docs/images").rglob("*.png"):
                   suffix = image.as_posix()

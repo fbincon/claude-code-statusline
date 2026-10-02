@@ -1,123 +1,137 @@
-# Claude Code Statusline 使用指南
+# Claude Code Statusline User Guide
 
-本指南覆盖安装、配置、升级、诊断和开发。首次使用可先阅读[项目首页](../README.md)；发布版本的操作见[发布指南](RELEASING.md)。
+**English** | [简体中文](USER_GUIDE.zh-CN.md)
 
-配置按用户生效，对该用户的所有 Claude Code 项目生效。状态栏渲染读取 Claude Code 输入、本机名、transcript（会话记录）、本地 Git 和状态文件，不自行发起网络请求或消耗模型 token。问答配置向导由 Claude 驱动，会使用模型回合；带参数命令的执行路径见[执行方式](#statusline-config-的执行方式)。
+<a id="claude-code-statusline-使用指南"></a>
 
-本文将终端交互界面简称 TUI，将模型思考强度记为 effort，保留 hook、skill、命令名和 JSON 字段的原样拼写。通用单行 CLI 示例以 `claude-statusline` 为命令名，Windows 使用 `claude-statusline.exe`；标注 Bash 的续行、环境变量赋值和管道示例须按对应 PowerShell 示例执行。
+This guide covers installation, configuration, upgrades, diagnostics, and development. New users can start with the [project README](../README.md); maintainers should follow the [release guide](RELEASING.md).
 
-文中 `<CLAUDE_CONFIG_DIR>` 表示 Claude 配置目录：设置环境变量 `CLAUDE_CONFIG_DIR` 时使用其值，否则为当前用户主目录下的 `.claude`。该记号是路径占位符，不是要原样输入的命令。管理命令的 `--config-dir` 可以显式指定该目录。
+Configuration applies to all Claude Code projects for the current user. Rendering reads Claude Code input, the local hostname, transcripts, local Git data, and state files; it makes no network requests and consumes no model tokens. The question-based configuration wizard is driven by Claude and uses model turns. See [execution paths](#statusline-config-execution-paths) for commands with arguments.
 
-## 文档导航
+This guide uses TUI for the terminal user interface and effort for model reasoning intensity. Hook and skill names, commands, and JSON fields retain their original spelling. Generic single-line CLI examples use `claude-statusline`; on Windows, use `claude-statusline.exe`. For Bash examples with line continuations, environment assignments, or pipelines, use the corresponding PowerShell examples on Windows.
 
-- [功能概览](#功能概览)
-- [运行要求](#运行要求)
-- [安装与接入](#安装与接入)
-- [独立交互式 TUI](#独立交互式-tui)
-- [`/statusline-config` 问答向导](#statusline-config-问答向导)
-- [常用配置配方](#常用配置配方)
-- [实验入口 `/statusline-configure`](#实验入口-statusline-configure)
-- [`/statusline-config` 的执行方式](#statusline-config-的执行方式)
-- [CLI 总览](#cli-总览)
-- [配置命令详解](#配置命令详解)
-- [可配置显示项](#可配置显示项)
-- [主状态栏显示含义](#主状态栏显示含义)
-- [子 Agent 行与三种作用域](#子-agent-行与三种作用域)
-- [显示与宿主选项](#显示与宿主选项)
-- [配置文件](#配置文件)
-- [自定义配置目录与环境变量](#自定义配置目录与环境变量)
-- [升级](#升级)
-- [卸载](#卸载)
-- [备份与回滚](#备份与回滚)
-- [`doctor` 诊断](#doctor-诊断)
-- [故障排查](#故障排查)
-- [退出码](#退出码)
-- [当前边界](#当前边界)
-- [附录：开发与测试](#附录开发与测试)
-- [附录：内部命令](#附录内部命令)
-- [附录：实现说明](#附录实现说明)
-- [相关文档](#相关文档)
+`<CLAUDE_CONFIG_DIR>` denotes the Claude configuration directory: the value of the `CLAUDE_CONFIG_DIR` environment variable when set, otherwise `.claude` in the current user's home directory. It is a path placeholder, not a literal command argument. Management commands also accept `--config-dir` to select this directory explicitly.
 
-## 功能概览
+<a id="文档导航"></a>
 
-- 按用户选择显示或隐藏状态项：默认 10 项，另有 14 个可选条目（项目名、本机名、上下文用量、版本、会话、cost、prompt-cache、运行模式、PR/worktree 等）。
-- 按配置文件中的顺序渲染状态项。
-- 支持 24 位 RGB 配色、终端 ANSI 配色或完全关闭颜色。
-- 支持完整路径、`~` 路径、项目相对路径和目录 basename。
-- 支持经典 ` | ` 分隔符和紧凑 ` · ` 分隔符。
-- 支持 Claude Code 原生的 padding、定时刷新和 Vim 模式指示器设置。
-- Claude Code 2.1.205+ 默认安装官方 `subagentStatusLine`，每个子 Agent 独立显示状态、模型/effort、上下文占比、用时与任务。
-- `prompt-timer` 覆盖从用户提交到主 Agent 最终 `Stop` 的完整任务；等待子 Agent 和主 Agent 收尾期间持续计时。
-- 主栏在当前 prompt 曾启动子 Agent 时显示固定的 `Main/Session` 范围提示，避免与每个子 Agent 行的口径混淆。
-- 提供独立全屏 TUI，可用键盘筛选、勾选、排序并按键级预览完整草稿。
-- 可选安装 `/statusline-configure`：Linux 从 tmux popup 或 GNOME Terminal 新标签页启动，macOS 优先使用 tmux popup，否则从 Terminal.app 启动，Windows 从系统新控制台启动同一个 TUI。
-- 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 或 `\` 处分行。
-- Git 查询和 transcript 汇总按需执行：隐藏相应显示项后，不再做不必要的采集。
-- 安装、配置和卸载均使用跨平台文件锁、备份及原子替换，避免并发写入、丢失更新或半写入配置。
+## Contents
 
-原生 Linux 与 macOS 上，主状态栏的纯文本结构示例（目录样式设为 `home`，当前轮未启动子 Agent）：
+- [Feature overview](#feature-overview)
+- [Requirements](#requirements)
+- [Installation and integration](#installation-and-integration)
+- [Standalone interactive TUI](#standalone-interactive-tui)
+- [`/statusline-config` wizard](#statusline-config-wizard)
+- [Configuration recipes](#configuration-recipes)
+- [Experimental `/statusline-configure` entry point](#experimental-statusline-configure-entry-point)
+- [`/statusline-config` execution paths](#statusline-config-execution-paths)
+- [CLI overview](#cli-overview)
+- [Configuration command reference](#configuration-command-reference)
+- [Configurable display items](#configurable-display-items)
+- [Main status line fields](#main-status-line-fields)
+- [Subagent rows and the three scopes](#subagent-rows-and-the-three-scopes)
+- [Display and host options](#display-and-host-options)
+- [Configuration files](#configuration-files)
+- [Custom configuration directory and environment variables](#custom-configuration-directory-and-environment-variables)
+- [Upgrading](#upgrading)
+- [Uninstalling](#uninstalling)
+- [Backups and rollback](#backups-and-rollback)
+- [`doctor` diagnostics](#doctor-diagnostics)
+- [Troubleshooting](#troubleshooting)
+- [Exit codes](#exit-codes)
+- [Current limitations](#current-limitations)
+- [Appendix: development and testing](#appendix-development-and-testing)
+- [Appendix: internal commands](#appendix-internal-commands)
+- [Appendix: implementation notes](#appendix-implementation-notes)
+- [Related documentation](#related-documentation)
+
+<a id="功能概览"></a>
+
+## Feature overview
+
+- Choose which status items to show: 10 defaults and 14 optional items, including project name, hostname, context usage, version, session, cost, prompt-cache, modes, and PR/worktree information.
+- Render items in the order specified by the configuration file.
+- Use 24-bit RGB colors, terminal ANSI colors, or no colors.
+- Show full paths, `~` paths, project-relative paths, or directory basenames.
+- Use the classic ` | ` separator or the compact ` · ` separator.
+- Configure Claude Code's native padding, timed refresh, and Vim mode indicator.
+- On Claude Code 2.1.205+, install the official `subagentStatusLine` by default, giving each subagent its own status, model/effort, context percentage, elapsed time, and task.
+- Time the full task with `prompt-timer`, from user submission to the main agent's final `Stop`, including time spent waiting for subagents and main-agent wrap-up.
+- Show a fixed `Main/Session` scope label on the main line when the current prompt has launched subagents, distinguishing its measurements from individual subagent rows.
+- Use a standalone full-screen TUI to filter, select, reorder, and preview the complete draft after every keystroke.
+- Optionally install `/statusline-configure` to launch the same TUI from a tmux popup or GNOME Terminal tab on Linux, a tmux popup or Terminal.app on macOS, or a new system console on Windows.
+- Wrap automatically in narrow terminals without truncating long fields; prefer `/` or `\` as break points in long paths.
+- Query Git and aggregate transcripts only when needed; hiding the corresponding items avoids unnecessary data collection.
+- Use cross-platform file locks, backups, and atomic replacement for installation, configuration, and uninstallation to prevent concurrent writes, lost updates, and partially written configuration.
+
+Example plain-text main status line on native Linux and macOS, with directory style `home` and no subagents launched in the current turn:
 
 ```text
 claude-model high | ~/code/project | Git main ↑1● 2~1 | Context 73% left · 1M window | 5h 82% left · weekly 64% left | hit 125K · miss 18.4K · out 7.2K | ⏱ 1m 09s
 ```
 
-Windows 和 WSL 使用无空格的 staged 标记：
+Windows and WSL omit the space in the staged marker:
 
 ```text
 claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1M window | 5h 82% left · weekly 64% left | hit 125K · miss 18.4K · out 7.2K | ⏱ 1m 09s
 ```
 
-某项数据不可用时，该项会被省略，不会显示空占位符。例如，当前目录不在 Git 仓库中时不会显示 Git 分支；Claude Code 没有提供某个限额窗口时也不会显示该限额。
+Unavailable items are omitted rather than replaced with empty placeholders. For example, a directory outside a Git repository has no branch field, and a rate-limit window not provided by Claude Code is not displayed.
 
-## 运行要求
+<a id="运行要求"></a>
 
-- Linux 原生或 WSL，Python 3.10+；Windows 10/11 原生、CPython 3.10–3.14、x86/x64；macOS 14+、CPython 3.10–3.14、Intel / Apple Silicon。
-- Claude Code CLI。
-- [`pipx`](https://pipx.pypa.io/latest/how-to/install-pipx.html)，用于隔离安装 Release wheel 或 GitHub 源码。
-- `build`，仅在从源码构建时需要。
-- `git`，用于从 GitHub 源码安装或显示 Git 信息；从 Release wheel 安装且不显示 Git 信息时不需要。
-- Linux 的 tmux 或 GNOME Terminal、macOS 的 tmux 或系统 Terminal.app 仅供实验性 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
+## Requirements
 
-当前稳定版 [v1.1.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0) 为以上平台提供同一个纯 Python wheel；macOS 终端要求见[macOS 安装与验证边界](#macos-安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
+- Native Linux or WSL with Python 3.10+; native Windows 10/11 with CPython 3.10–3.14, x86/x64; or macOS 14+ with CPython 3.10–3.14, Intel / Apple Silicon.
+- Claude Code CLI.
+- [`pipx`](https://pipx.pypa.io/latest/how-to/install-pipx.html) for isolated installation of a Release wheel or GitHub source.
+- `build`, only when building from source.
+- `git` for installation from GitHub source or displaying Git information. It is not needed when installing a Release wheel without displaying Git information.
+- tmux or GNOME Terminal on Linux, or tmux or the system Terminal.app on macOS, only for the experimental `/statusline-configure` entry point. Windows uses the system `CREATE_NEW_CONSOLE` facility and needs no additional terminal application.
 
-| 功能 | Claude Code 版本条件 |
+The current stable release, [v1.1.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0), provides the same pure-Python wheel for all these platforms. See [macOS installation and validation boundaries](#macos-installation-and-validation-boundaries) for terminal requirements. Native Windows ARM64 Python is not currently guaranteed; ARM devices can use x64 Python emulation. Windows automatically installs [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/) from package metadata.
+
+| Feature | Claude Code version requirement |
 | --- | --- |
-| 主状态栏、CLI、独立 TUI 与配置向导 | 旧版或版本无法识别时仍可使用；缺少的数据项会省略 |
-| 子 Agent 独立行及生命周期 hooks | 2.1.205+；每个任务的 effort 显示需要 2.1.214+ |
-| 带参数 `/statusline-config` 的本地执行、实验性 `/statusline-configure` | 2.1.258+ |
+| Main status line, CLI, standalone TUI, and configuration wizard | Available on older or unrecognized versions; unavailable fields are omitted |
+| Individual subagent rows and lifecycle hooks | 2.1.205+; per-task effort requires 2.1.214+ |
+| Local execution of `/statusline-config` with arguments, experimental `/statusline-configure` | 2.1.258+ |
 
-跨过上述功能门槛升级或降级时，应重新运行 `install` 和 `doctor`，详见[版本兼容](#版本兼容)。
+After upgrading or downgrading across these feature thresholds, rerun `install` and `doctor`. See [version compatibility](#version-compatibility).
 
-## 安装与接入
+<a id="安装与接入"></a>
 
-### 安装 Python 包
+## Installation and integration
 
-Linux / WSL / macOS / Windows 用户可从以下方式中任选一种，安装稳定版 v1.1.0。Release wheel 与固定标签提供相同版本；默认分支源码会随开发更新。
+<a id="安装-python-包"></a>
 
-**Release URL（推荐，Bash / Zsh / PowerShell 通用）：**
+### Install the Python package
+
+Linux / WSL / macOS / Windows users can choose any of the following methods to install stable v1.1.0. The Release wheel and fixed tag provide the same version; default-branch source changes as development continues.
+
+**Release URL (recommended; Bash / Zsh / PowerShell):**
 
 ```text
 pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
-**下载后安装：** 在 [v1.1.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0) 下载 wheel，并在下载目录执行。
+**Download first:** Download the wheel from the [v1.1.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0), then run the following from the download directory.
 
-Linux / WSL / macOS（Bash / Zsh）：
+Linux / WSL / macOS (Bash / Zsh):
 
 ```bash
 pipx install ./claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-Windows（PowerShell）：
+Windows (PowerShell):
 
 ```powershell
 pipx install .\claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-**下载文件校验：** Release 同时提供源码包和 `SHA256SUMS`。下载 wheel、源码包及校验文件到同一目录后执行：
+**Verify downloads:** The Release also includes a source distribution and `SHA256SUMS`. Download the wheel, source distribution, and checksum file into the same directory, then run:
 
 ```bash
 # Linux / WSL
@@ -127,7 +141,7 @@ sha256sum -c SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
 
-Windows PowerShell 使用以下命令，将摘要与 `SHA256SUMS` 中对应文件的值比较（十六进制大小写不影响结果）：
+In Windows PowerShell, run the following and compare each digest with its entry in `SHA256SUMS`; hexadecimal letter case does not affect the comparison:
 
 ```powershell
 Get-FileHash .\claude_code_statusline-1.1.0-py3-none-any.whl -Algorithm SHA256
@@ -135,41 +149,45 @@ Get-FileHash .\claude_code_statusline-1.1.0.tar.gz -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-只下载 wheel 时，可用 `sha256sum 文件名`（Linux / WSL）、`shasum -a 256 文件名`（macOS）或 `Get-FileHash` 单独核对其摘要。
+If you download only the wheel, verify its digest individually with `sha256sum filename` on Linux / WSL, `shasum -a 256 filename` on macOS, or `Get-FileHash` on Windows.
 
-**固定标签源码（需要 Git，Bash / Zsh / PowerShell 通用）：**
+**Source at a fixed tag (requires Git; Bash / Zsh / PowerShell):**
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0"
 pipx ensurepath
 ```
 
-**开发分支源码：** 如需默认分支的当前代码，使用以下命令；该来源不固定为 v1.1.0。
+**Development source:** Use the following for the current default-branch code. This source is not pinned to v1.1.0.
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 pipx ensurepath
 ```
 
-已有本地源码时，可在项目根目录执行 `pipx install .` 和 `pipx ensurepath`。需要自己构建 wheel 时，见[从源码构建与安装](#从源码构建与安装)。
+If you already have a local checkout, run `pipx install .` and `pipx ensurepath` in the project root. To build your own wheel, see [building and installing from source](#build-and-install-from-source).
 
-### macOS 安装与验证边界
+<a id="macos-安装与验证边界"></a>
 
-macOS 14+ 使用提供 `curses` 的 CPython 3.10–3.14。Intel 与 Apple Silicon 使用相同的 v1.1.0 Release wheel，没有额外 macOS Python 运行依赖，按上面的通用安装步骤即可。已有安装时按[升级步骤](#升级)替换 Python 包。
+### macOS installation and validation boundaries
 
-重新打开 Bash / Zsh 后，运行 `claude-statusline --version`，确认显示 `claude-statusline 1.1.0`，再完成下方接入步骤。
+On macOS 14+, use CPython 3.10–3.14 with `curses`. Intel and Apple Silicon use the same v1.1.0 Release wheel, with no additional macOS Python runtime dependencies. Follow the general installation steps above; for an existing installation, replace the Python package using the [upgrade steps](#upgrading).
 
-独立界面运行 `claude-statusline configure`。显式启用实验入口后，`/statusline-configure` 优先选择通过预检查的 tmux popup；没有有效 tmux 时，在本地图形会话中使用 Terminal.app。窗口关闭或保留遵循 Terminal 自身偏好。SSH 或没有图形会话时，使用当前终端的独立命令或配置向导。
+Reopen Bash / Zsh, run `claude-statusline --version`, and confirm that it prints `claude-statusline 1.1.0` before proceeding with integration below.
 
-macOS 主状态栏与三页配置界面的截图见[项目首页](../README.md#界面预览)和[文件索引](images/README.md)。
+Run `claude-statusline configure` for the standalone interface. After explicitly enabling the experimental entry point, `/statusline-configure` prefers a tmux popup that passes preflight checks; without valid tmux, it uses Terminal.app in a local graphical session. Window closure or retention follows Terminal's preferences. Over SSH or without a graphical session, use the standalone command in the current terminal or the configuration wizard.
 
-**历史版本：** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 是 macOS 预览版，包含核心功能、独立 TUI 和 tmux 入口，未包含 Terminal.app 启动器；[v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 的 wheel、源码包和标签不支持 macOS。需要复现历史行为时使用对应 Release 或固定标签，日常安装使用 v1.1.0。
+See the [project README](../README.md#screenshots) and [image index](images/README.md) for the macOS main status line and all three configuration pages.
 
-### 接入 Claude Code
+**Historical releases:** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) is the macOS preview, with core functionality, the standalone TUI, and the tmux entry point, but no Terminal.app launcher. The [v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) wheel, source distribution, and tag do not support macOS. Use the corresponding Release or fixed tag to reproduce historical behavior; use v1.1.0 for everyday installation.
 
-`pipx install` 安装包与命令入口；`claude-statusline install` 才会接入 Claude Code。执行 `pipx ensurepath` 后先重新打开终端，再继续。
+<a id="接入-claude-code"></a>
 
-Linux / WSL / macOS：
+### Integrate with Claude Code
+
+`pipx install` installs the package and command entry point; `claude-statusline install` integrates it with Claude Code. After `pipx ensurepath`, reopen your terminal before continuing.
+
+Linux / WSL / macOS:
 
 ```bash
 claude-statusline --version
@@ -178,7 +196,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 claude-statusline.exe --version
@@ -187,157 +205,171 @@ claude-statusline.exe install
 claude-statusline.exe doctor
 ```
 
-Windows 要求 `claude-statusline.exe` 能从 `PATH` 解析；找不到命令时，先检查 pipx 的路径设置。自定义配置目录见[环境变量说明](#自定义配置目录与环境变量)。
+On Windows, `claude-statusline.exe` must resolve from `PATH`. If the command is not found, check pipx's path configuration first. See [environment variables](#custom-configuration-directory-and-environment-variables) for a custom configuration directory.
 
-### `install` 会做什么
+<a id="install-会做什么"></a>
 
-`claude-statusline install` 会：
+### What `install` does
 
-1. 在用户级 `settings.json` 中安装 `statusLine.command`，指向当前 `claude-statusline render` 可执行文件。
-2. 安装 `SessionStart`、`UserPromptSubmit`、`Stop`、`StopFailure` 和 `SessionEnd` 生命周期 hooks，用于维护 prompt 计时状态。
-3. Claude Code 2.1.205+ 默认安装只含 `type`、`command` 的 `subagentStatusLine`，并安装 `SubagentStart`、`SubagentStop` hooks；旧版或未知版本会暂挂这三项而不影响主栏。
-4. 安装用户级 personal skill：`<CLAUDE_CONFIG_DIR>/skills/statusline-config/SKILL.md`。
-5. 在 Claude Code 2.1.258 及以上版本中安装 `UserPromptExpansion` hook，让带参数的 `/statusline-config` 在本地执行。
-6. 按持久 feature 偏好安装或暂挂实验性 `/statusline-configure` skill 与 600 秒 hook；首次安装默认关闭。
-7. 在发生实际修改前创建备份，再以原子方式写入文件。
+`claude-statusline install`:
 
-安装器会合并而不是整体覆盖 `settings.json`，并保留无关设置和无关 hooks。重复运行 `install` 是幂等的：配置已经正确时不会重复添加 hooks，也不会创建无意义备份。
+1. Installs `statusLine.command` in user-level `settings.json`, pointing to the current `claude-statusline render` executable.
+2. Installs `SessionStart`, `UserPromptSubmit`, `Stop`, `StopFailure`, and `SessionEnd` lifecycle hooks to maintain prompt timing state.
+3. On Claude Code 2.1.205+, installs `subagentStatusLine` with only `type` and `command`, plus `SubagentStart` and `SubagentStop` hooks. These three entries are suspended on older or unknown versions without affecting the main line.
+4. Installs the user-level personal skill at `<CLAUDE_CONFIG_DIR>/skills/statusline-config/SKILL.md`.
+5. On Claude Code 2.1.258+, installs a `UserPromptExpansion` hook to execute `/statusline-config` commands with arguments locally.
+6. Installs or suspends the experimental `/statusline-configure` skill and 600-second hook according to persistent feature preferences; it is disabled on first installation.
+7. Creates backups before actual changes, then writes files atomically.
 
-首次安装新的 `statusLine` 时，默认设置为每 1 秒刷新一次。重新安装本工具时，会保留现有且合法的 `padding`、`refreshInterval` 和 `hideVimModeIndicator`。
+The installer merges into `settings.json`, preserving unrelated settings and hooks. Repeated `install` calls are idempotent: correct configuration does not result in duplicate hooks or unnecessary backups.
 
-### 安装前预览
+A newly installed `statusLine` refreshes once every 1 second by default. Reinstalling this tool preserves existing valid `padding`, `refreshInterval`, and `hideVimModeIndicator` values.
+
+<a id="安装前预览"></a>
+
+### Preview installation
 
 ```bash
 claude-statusline install --dry-run
 ```
 
-`--dry-run` 只列出是否需要修改以及涉及哪些文件，不写入文件，也不创建备份。
+`--dry-run` reports whether changes are needed and which files are involved, without writing files or creating backups.
 
-### 处理已有 statusline 或同名 skill
+<a id="处理已有-statusline-或同名-skill"></a>
 
-如果已经存在不属于本工具的 `statusLine`、`subagentStatusLine`，或者存在没有本工具所有权标记的 `/statusline-config`、`/statusline-configure` skill，安装器会在备份和写入前拒绝整次操作。确认要替换这些内容时才使用：
+### Handle an existing status line or skill with the same name
+
+If `statusLine` or `subagentStatusLine` belongs to another tool, or a `/statusline-config` or `/statusline-configure` skill lacks this tool's ownership marker, the installer rejects the entire operation before backup or writing. Only use the following when you intend to replace those entries:
 
 ```bash
 claude-statusline install --force
 ```
 
-`--force` 同时允许替换冲突的主栏、子 Agent 行或 skill，并仍会先备份原文件。若只想保留第三方 `subagentStatusLine`，先运行 `claude-statusline config set subagent-statusline off`，再运行普通 `install`。
+`--force` allows replacement of conflicting main lines, subagent rows, or skills, while still backing up the original files first. To retain a third-party `subagentStatusLine`, run `claude-statusline config set subagent-statusline off` before a normal `install`.
 
-## 独立交互式 TUI
+<a id="独立交互式-tui"></a>
 
-在 Claude Code 外的真实终端中运行稳定的独立入口：
+## Standalone interactive TUI
+
+Run the stable standalone entry point in a real terminal outside Claude Code:
 
 ```bash
 claude-statusline configure
 claude-statusline configure --config-dir /path/to/claude-config
 ```
 
-Windows PowerShell 使用同一界面：
+Windows PowerShell uses the same interface:
 
 ```powershell
 claude-statusline.exe configure
 claude-statusline.exe configure --config-dir 'C:\Path With Spaces\Claude 配置'
 ```
 
-独立 TUI 使用当前终端。Linux/macOS 使用 Python 标准库的 `curses` 接口，Windows 使用条件依赖 `windows-curses>=2.4.2`（PDCurses）；三个平台提供相同的 Main/Subagents/Settings 页签。启动条件如下：
+The standalone TUI uses the current terminal. Linux/macOS use Python's standard-library `curses`; Windows uses the conditional dependency `windows-curses>=2.4.2` (PDCurses). All three platforms provide the same Main/Subagents/Settings tabs. Startup requires:
 
-- stdin 和 stdout 都必须是 TTY。
-- 当前终端必须能初始化 curses。
-- 当前配置不能损坏。
-- `statusLine.command` 必须已经由当前 `claude-statusline` 可执行文件接管；否则先运行 `claude-statusline install`。
+- Both stdin and stdout to be TTYs.
+- A terminal capable of initializing curses.
+- Valid configuration.
+- `statusLine.command` already managed by the current `claude-statusline` executable; otherwise, run `claude-statusline install` first.
 
-界面最小尺寸为 `64x18`。窗口更小时，界面会显示所需尺寸和当前尺寸并等待放大；此时 Esc 与 Ctrl+C 仍可退出。终端 resize 后会重新计算列表滚动、样例预览高度与换行；Windows 同时兼容 PDCurses 的 `KEY_RESIZE` 行为。
+The minimum terminal size is `64x18`. Smaller windows show the required and current dimensions and wait for resizing; Esc and Ctrl+C still exit. Resizing recalculates list scrolling, sample-preview height, and wrapping. Windows also supports PDCurses `KEY_RESIZE` behavior.
 
-界面包含 Main、Subagents 和 Settings 三个页签，固定底部区域标记为 `Preview (sample data)`。常用全局按键为：
+The interface has Main, Subagents, and Settings tabs, with a fixed footer labeled `Preview (sample data)`. Common global keys:
 
-| 按键 | 行为 |
+| Key | Action |
 | --- | --- |
-| Tab / Shift+Tab | 在 Main、Subagents、Settings 间循环；数字编辑期间不切换 |
-| Enter | 非数字编辑状态下一次性保存整个草稿 |
-| Esc | 非数字编辑状态下取消并退出，不写入配置 |
-| Ctrl+C | 恢复终端并以 130 退出，不保存 |
+| Tab / Shift+Tab | Cycle through Main, Subagents, and Settings; disabled during numeric editing |
+| Enter | Save the entire draft at once when not editing a number |
+| Esc | Cancel and exit without writing configuration when not editing a number |
+| Ctrl+C | Restore the terminal and exit with 130, without saving |
 
-Main 和 Subagents 页分别维护自己的选择、搜索、滚动、启用集合与排序，并支持：
+The Main and Subagents pages each maintain their own selection, search, scroll position, enabled items, and order, and support:
 
-| 按键 | 行为 |
+| Key | Action |
 | --- | --- |
-| Space | 切换高亮条目的启用状态，位置不变 |
-| Up / Down | 移动高亮项并保持可见 |
-| PageUp / PageDown | 按当前内容区高度翻页 |
-| Home / End | 跳到第一个或最后一个可见条目 |
-| Left / Right | 向前或向后移动条目，边界不循环 |
-| 可打印字符 | 追加到大小写不敏感的搜索串，同时匹配条目 ID 和说明 |
-| Backspace / Ctrl+U | 删除一个搜索字符 / 清空搜索 |
+| Space | Toggle the highlighted item without moving it |
+| Up / Down | Move the highlight and keep it visible |
+| PageUp / PageDown | Scroll by the current content-area height |
+| Home / End | Jump to the first or last visible item |
+| Left / Right | Move an item earlier or later, without wrapping at the ends |
+| Printable characters | Append to a case-insensitive search matching item IDs and descriptions |
+| Backspace / Ctrl+U | Delete one search character / clear the search |
 
-每页初始完整顺序都是“当前启用项的原顺序 + 尚未启用项的目录顺序”。筛选期间，左右键以相邻的可见搜索结果为移动目标，隐藏条目的相对顺序不变。没有搜索结果时显示 `No matching items`，切换和移动键不执行操作。保存时 Main 写入 `items`，Subagents 写入 `subagents.items`；禁用项的临时位置不会进入 schema。
+Each page starts with the currently enabled items in their existing order, followed by disabled items in catalog order. While filtering, Left/Right moves relative to adjacent visible search results and preserves the relative order of hidden items. With no results, `No matching items` is shown, and toggle/move keys have no effect. Saving writes Main to `items` and Subagents to `subagents.items`; temporary positions of disabled items are not persisted in the schema.
 
-Settings 页固定包含：
+The Settings page contains:
 
-| 设置 | 值域与操作 |
+| Setting | Values and controls |
 | --- | --- |
-| Use colors | `on/off`；Space 或 Left/Right 切换 |
-| Palette | `default/ansi`；Left/Right 循环；colors 关闭时仍可编辑和保存 |
-| Directory style | `full/home/project-relative/basename`；Left/Right 循环 |
-| Separator style | `classic/compact`；Left/Right 循环 |
-| Padding | `0–32`；Left/Right 增减 1；数字键进入编辑 |
-| Refresh interval | `event` 或 `1–3600`；Left/Right 在 `event, 1, 2, 5, 10, 30, 60, 300, 600, 3600` 间循环，`e` 设为 event，数字键进入编辑 |
-| Built-in Vim indicator | `show/hide`；Space 或 Left/Right 切换，并映射到 `hideVimModeIndicator` |
-| Scope labels | `off/when-subagents/always`；Left/Right 循环 |
-| Custom subagent rows | `on/off`；Space 或 Left/Right 切换 |
+| Use colors | `on/off`; toggle with Space or Left/Right |
+| Palette | `default/ansi`; cycle with Left/Right; editable and saved even when colors are off |
+| Directory style | `full/home/project-relative/basename`; cycle with Left/Right |
+| Separator style | `classic/compact`; cycle with Left/Right |
+| Padding | `0–32`; change by 1 with Left/Right; number keys start editing |
+| Refresh interval | `event` or `1–3600`; Left/Right cycles through `event, 1, 2, 5, 10, 30, 60, 300, 600, 3600`; `e` selects event; number keys start editing |
+| Built-in Vim indicator | `show/hide`; toggle with Space or Left/Right; maps to `hideVimModeIndicator` |
+| Scope labels | `off/when-subagents/always`; cycle with Left/Right |
+| Custom subagent rows | `on/off`; toggle with Space or Left/Right |
 
-当前刷新值若不在预设中，会按数值位置临时加入循环，不会仅因打开界面而改变。数字编辑时，第一个数字建立新缓冲区，后续数字追加，Backspace 删除；Enter 校验并接受字段值但不保存整个界面，再按一次 Enter 才全局保存。非法或越界值会保留编辑状态并显示内联错误；Esc 先取消数字编辑并恢复原字段值。
+A refresh value outside the presets is temporarily inserted at its numeric position in the cycle; opening the interface does not change it. During numeric editing, the first digit starts a new buffer, subsequent digits append, and Backspace deletes. Enter validates and accepts the field without saving the entire interface; a second Enter performs the global save. Invalid or out-of-range values keep editing active and show an inline error. Esc cancels numeric editing and restores the previous field value.
 
-预览使用固定样例值并复用生产 renderer。Main 与 Settings 页模拟“当前 prompt 曾启动子 Agent”，因此可预览条件范围标签；Subagents 页固定显示一条 running 和一条 completed 样例。预览不会读取当前 Claude payload，不会扫描 Git 或 transcript，不会访问网络，也不会创建 token、Git、timer 运行状态或缓存。预览最多占 5 行、至少占 2 行，溢出时最后一行显示剩余行数；padding 会显示为主栏左侧空格并从内容宽度扣除。256 色终端会把 RGB 映射到最近的 xterm-256 色，8/16 色终端降级到基础色，无颜色终端保留文本。
+The preview uses fixed samples and the production renderer. Main and Settings simulate a prompt that has launched subagents, allowing conditional scope labels to be previewed. Subagents always shows one running and one completed sample. The preview does not read the current Claude payload, scan Git or transcripts, access the network, or create token, Git, or timer state or caches. It occupies 2–5 lines; on overflow, the last line reports the remaining line count. Padding appears as spaces to the left of the main line and is deducted from available width. On 256-color terminals, RGB maps to the nearest xterm-256 color; 8/16-color terminals use basic colors, and terminals without color retain the text.
 
-保存前会检查编辑期间的外部修改，冲突时拒绝写入。无变化不创建备份；修改会统一保存，并在失败时尝试回滚。详见[配置写入与并发](#配置写入与并发)。
+Saving checks for external changes made during editing and rejects conflicting writes. No changes means no backup; changes are saved together, with rollback attempted on failure. See [configuration writes and concurrency](#configuration-writes-and-concurrency).
 
-Esc 退出后 stdout 输出 `Status line configuration unchanged.`，退出码为 0。参数、TTY、配置、安装归属、终端初始化或并发冲突错误返回 2 且不显示 traceback。程序只注册当前平台实际提供的信号；Linux/macOS 的 SIGHUP/SIGTERM 和 Windows 可用的中断路径都会先恢复终端，再返回标准中断结果。
+Exiting with Esc prints `Status line configuration unchanged.` to stdout and returns 0. Argument, TTY, configuration, installation ownership, terminal initialization, or concurrency errors return 2 without a traceback. Only signals available on the current platform are registered. SIGHUP/SIGTERM on Linux/macOS and supported Windows interruption paths restore the terminal before returning the standard interruption result.
 
-独立 TUI 没有自动超时；实验性启动入口的超时规则见[实验入口](#实验入口-statusline-configure)。
+The standalone TUI has no automatic timeout. See the [experimental entry point](#experimental-statusline-configure-entry-point) for launcher timeouts.
 
-## `/statusline-config` 问答向导
+<a id="statusline-config-问答向导"></a>
 
-安装完成后，在 Claude Code 中输入：
+## `/statusline-config` wizard
+
+After installation, enter the following in Claude Code:
 
 ```text
 /statusline-config
 ```
 
-该命令会启动英文多选问答向导，依次询问：
+This starts an English multiple-choice wizard asking about:
 
-- Identity / Repo：模型、当前目录、项目名、本机名和 Git。
-- Context：上下文剩余百分比、已用百分比和窗口大小。
-- Limits：5 小时、每周和 spend 限额。
-- Usage：token 统计、prompt 计时器、cost 和 prompt-cache。
-- Session：Claude Code 版本和会话名称/ID。
-- Modes：fast mode、agent、vim mode 和 thinking 指示器。
-- Repository：当前分支的 open PR/MR、worktree 名称和远程仓库 `owner/name`。
-- Subagents：子 Agent 行的条目集合与顺序。
-- 自定义子 Agent 行开关，以及 `off/when-subagents/always` 范围标签。
-- 颜色、palette、目录格式、分隔符、padding、刷新间隔和 Vim 指示器。
+- Identity / Repo: model, current directory, project name, hostname, and Git.
+- Context: remaining percentage, used percentage, and window size.
+- Limits: 5-hour, weekly, and spend limits.
+- Usage: token statistics, prompt timer, cost, and prompt-cache.
+- Session: Claude Code version and session name/ID.
+- Modes: fast mode, agent, vim mode, and thinking indicators.
+- Repository: the current branch's open PR/MR, worktree name, and remote `owner/name`.
+- Subagents: the enabled items and order of subagent rows.
+- Whether custom subagent rows are enabled, and `off/when-subagents/always` scope labels.
+- Colors, palette, directory format, separator, padding, refresh interval, and Vim indicator.
 
-Session、Modes、Repository 组的条目以及 `project-name`、`hostname`、`context-used`、`cost`、`prompt-cache` 默认禁用；在向导中勾选即启用。
+The Session, Modes, and Repository groups, plus `project-name`, `hostname`, `context-used`, `cost`, and `prompt-cache`, are disabled by default; selecting them in the wizard enables them.
 
-向导会保留仍然启用的条目的相对顺序，并按默认目录顺序把新启用的条目追加到末尾。完成全部选择后，它只调用一次原子 `config apply`；中途取消不会写入任何配置。
+The wizard preserves the relative order of items that remain enabled, then appends newly enabled items in default catalog order. After all choices, it calls atomic `config apply` once; cancelling partway through writes no configuration.
 
-这个向导使用 Claude Code 提供的问答组件，不会启动 curses，也不是 Claude Code 原生嵌入式状态栏弹窗。需要 Space 勾选、方向键排序和实时预览时，使用[独立 TUI](#独立交互式-tui)；需要脚本化排序时，使用 `order` 子命令。
+The wizard uses Claude Code's question components. It does not launch curses or provide a native embedded status-line popup. For Space selection, arrow-key reordering, and live previews, use the [standalone TUI](#standalone-interactive-tui). For scripted ordering, use the `order` subcommand.
 
-例如，先把状态栏缩减到五项，再精确排序：
+For example, reduce the status line to five items, then set their exact order:
 
 ```text
 /statusline-config set-items model-with-effort current-dir git context-remaining prompt-timer
 /statusline-config order model-with-effort git current-dir context-remaining prompt-timer
 ```
 
-随时检查当前有效配置：
+Inspect the current effective configuration at any time:
 
 ```text
 /statusline-config show
 ```
 
-## 常用配置配方
+<a id="常用配置配方"></a>
 
-### 精简开发视图
+## Configuration recipes
+
+<a id="精简开发视图"></a>
+
+### Minimal development view
 
 ```bash
 claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
@@ -345,124 +377,146 @@ claude-statusline config set directory-style home
 claude-statusline config set separator-style compact
 ```
 
-### 只保留限额与 token
+<a id="只保留限额与-token"></a>
+
+### Keep only limits and tokens
 
 ```bash
 claude-statusline config set-items five-hour-limit weekly-limit spend-limit tokens
 ```
 
-### 显示项目、本机和两种上下文百分比
+<a id="显示项目本机和两种上下文百分比"></a>
+
+### Show project, hostname, and both context percentages
 
 ```bash
 claude-statusline config enable project-name hostname context-used
 ```
 
-保留默认上下文条目时会同时显示 `Context N% left`、`Context N% used` 和窗口大小；如只需要其中一种，可独立 `disable context-remaining` 或 `disable context-used`。
+Keeping the default context items displays `Context N% left`, `Context N% used`, and window size together. To show only one percentage, independently use `disable context-remaining` or `disable context-used`.
 
-### 关闭颜色，适配基础终端或日志录制
+<a id="关闭颜色适配基础终端或日志录制"></a>
+
+### Disable colors for basic terminals or log recording
 
 ```bash
 claude-statusline config set colors off
 ```
 
-### 使用标准 ANSI 色而不是 24 位 RGB
+<a id="使用标准-ansi-色而不是-24-位-rgb"></a>
+
+### Use standard ANSI colors instead of 24-bit RGB
 
 ```bash
 claude-statusline config set colors on
 claude-statusline config set palette ansi
 ```
 
-### 临时隐藏一个条目，之后追加恢复
+<a id="临时隐藏一个条目之后追加恢复"></a>
+
+### Temporarily hide an item and append it again later
 
 ```bash
 claude-statusline config disable tokens
 claude-statusline config enable tokens
 ```
 
-注意第二条命令会把 `tokens` 追加到末尾，而不是恢复它之前的位置。需要恢复精确位置时使用 `order` 或重新运行 `set-items`。
+The second command appends `tokens` to the end rather than restoring its previous position. Use `order` or rerun `set-items` to restore an exact position.
 
-### 恢复出厂显示配置但保留安装
+<a id="恢复出厂显示配置但保留安装"></a>
+
+### Reset display defaults while keeping the installation
 
 ```bash
 claude-statusline config reset
 claude-statusline config show
 ```
 
-## 实验入口 `/statusline-configure`
+<a id="实验入口-statusline-configure"></a>
 
-该入口需要 Claude Code 2.1.258+，首次安装默认关闭。启用后在 Claude Code 输入 `/statusline-configure`，即可启动与独立命令相同的 TUI。
+## Experimental `/statusline-configure` entry point
 
-### 启用与关闭
+This entry point requires Claude Code 2.1.258+ and is disabled on first installation. Once enabled, enter `/statusline-configure` in Claude Code to launch the same TUI as the standalone command.
 
-实验入口首次安装默认关闭，必须显式启用：
+<a id="启用与关闭"></a>
 
-Linux / WSL / macOS：
+### Enable and disable
+
+The experimental entry point is disabled on first installation and must be explicitly enabled:
+
+Linux / WSL / macOS:
 
 ```bash
 claude-statusline install --experimental-slash-tui
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 claude-statusline.exe install --experimental-slash-tui
 ```
 
-启用偏好保存在 `<CLAUDE_CONFIG_DIR>/claude-statusline-features.json`，卸载 Python 包或运行 `uninstall` 后仍保留。兼容版本上再次运行普通 `install` 会自动恢复入口。永久关闭并删除本工具拥有的活动 skill/hook：
+The preference is stored in `<CLAUDE_CONFIG_DIR>/claude-statusline-features.json` and survives uninstalling the Python package or running `uninstall`. Running a normal `install` again on a compatible version restores the entry point. To disable it permanently and remove this tool's active skill/hook:
 
-Linux / WSL / macOS：
+Linux / WSL / macOS:
 
 ```bash
 claude-statusline install --no-experimental-slash-tui
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 claude-statusline.exe install --no-experimental-slash-tui
 ```
 
-两个参数互斥，都不传时保留此前偏好。它们都可与 `--dry-run`、`--force` 组合；`--dry-run` 不创建 feature、skill、runtime 或备份目录。显式启用要求可识别的 Claude Code 2.1.258 或更高版本，否则整个操作在写文件前失败。
+These two flags are mutually exclusive; omitting both retains the previous preference. Either can be combined with `--dry-run` or `--force`. `--dry-run` creates no feature, skill, runtime, or backup directories. Explicit enabling requires a recognized Claude Code 2.1.258+; otherwise, the whole operation fails before writing files.
 
-### 使用方式
+<a id="使用方式"></a>
+
+### Usage
 
 ```text
 /statusline-configure
 ```
 
-- Linux 优先在当前 tmux 中打开弹窗；tmux 不可用时尝试 GNOME Terminal 新标签页。
-- macOS 优先使用有效 tmux 会话中的 popup；否则在本地图形会话中使用 Terminal.app。窗口收尾遵循 Terminal 偏好。
-- Windows 打开由系统默认终端承载的新控制台。
-- Linux 两种启动方式均不可用，或 macOS 没有有效 tmux 及本地 Terminal.app 条件时，会提示在真实终端运行 `claude-statusline configure`，或改用 `/statusline-config`。
-- TUI 在 570 秒后自动取消且不保存；保存、取消或错误会返回到原 Claude 对话。
+- Linux prefers a popup in the current tmux session; without tmux, it tries a new GNOME Terminal tab.
+- macOS prefers a popup in a valid tmux session; otherwise, it uses Terminal.app in a local graphical session. Window handling follows Terminal's preferences.
+- Windows opens a new console hosted by the system's default terminal.
+- If neither Linux launcher is available, or macOS has neither valid tmux nor the conditions for local Terminal.app, the command suggests running `claude-statusline configure` in a real terminal or using `/statusline-config`.
+- The TUI cancels automatically after 570 seconds without saving; save, cancellation, or error results return to the original Claude conversation.
 
-该入口只接受空参数；`help`、`-h`、`--help` 返回用法，其他参数会被拒绝。它通过外部终端承载 TUI。启动选择、结果回传及 hooks 被禁用时的处理见[实验启动器与结果回传](#实验启动器与结果回传)。
+This entry point accepts no arguments. `help`, `-h`, and `--help` return usage; other arguments are rejected. An external terminal hosts the TUI. See [experimental launchers and result bridging](#experimental-launchers-and-result-bridging) for launcher selection, result handling, and behavior when hooks are disabled.
 
-## `/statusline-config` 的执行方式
+<a id="statusline-config-的执行方式"></a>
 
-无参数和带参数的调用使用不同路径：
+## `/statusline-config` execution paths
 
-| 调用方式 | Claude Code 2.1.258+ | 较旧版本或版本无法识别时 |
+Calls with and without arguments use different paths:
+
+| Invocation | Claude Code 2.1.258+ | Older or unrecognized version |
 | --- | --- | --- |
-| `/statusline-config` | 进入 skill，由 Claude 驱动问答向导 | 相同 |
-| `/statusline-config show` 等带参数命令 | 由本地 hook 直接执行，阻止 prompt 进入模型 | 由 skill 在一个 Claude 回合中执行相同 CLI |
+| `/statusline-config` | Enters the skill; Claude drives the configuration wizard | Same |
+| Commands with arguments, such as `/statusline-config show` | Executed directly by a local hook, preventing the prompt from entering the model | The skill runs the same CLI in a Claude turn |
 
-带参数的本地快路径是确定性的：它只解析本文档列出的配置命令，输出结果后终止这次 slash command 展开。未知参数会显示错误或用法，且不会修改配置。
+The local path for arguments is deterministic: it parses only the configuration commands documented here, outputs the result, and stops this slash-command expansion. Unknown arguments return an error or usage without modifying configuration.
 
-Windows 使用 `claude-statusline.exe config ...`。skill 的命令权限和平台执行方式见[平台执行与文件安全](#平台执行与文件安全)。
+Windows uses `claude-statusline.exe config ...`. See [platform execution and file safety](#platform-execution-and-file-safety) for skill permissions and execution details.
 
-Claude Code 升级或降级跨过 2.1.258 时，重新运行：
+After upgrading or downgrading Claude Code across 2.1.258, rerun:
 
 ```bash
 claude-statusline install
 claude-statusline doctor
 ```
 
-安装器会据当前版本增加或移除本地快捷 hook。版本降级只影响带参数命令是否需要模型回合，不影响配置功能本身。
+The installer adds or removes the local shortcut hook according to the current version. A downgrade changes only whether commands with arguments require a model turn, not the configuration capability itself.
 
-> 不要使用 Claude Code 内建的 `/statusline` 来重新生成本工具的脚本。内建命令可能把 `settings.json` 中的 `statusLine.command` 替换为另一个实现。配置本工具请使用 `/statusline-config`。
+> Do not use Claude Code's built-in `/statusline` to regenerate this tool's script. It may replace `statusLine.command` in `settings.json` with another implementation. Use `/statusline-config` to configure this tool.
 
-## CLI 总览
+<a id="cli-总览"></a>
+
+## CLI overview
 
 ```text
 claude-statusline configure [--config-dir PATH]
@@ -488,9 +542,9 @@ claude-statusline doctor [--config-dir PATH]
 claude-statusline --version
 ```
 
-Windows PowerShell 中把命令名替换为 `claude-statusline.exe`；参数和输出格式相同。上面的方括号和省略号是语法记号，不是要原样输入的参数。供 Claude Code 调用的命令见[内部命令附录](#附录内部命令)。
+In Windows PowerShell, replace the command name with `claude-statusline.exe`; arguments and output formats are identical. Brackets and ellipses above indicate syntax, not literal arguments. See the [internal commands appendix](#appendix-internal-commands) for commands called by Claude Code.
 
-查看任意层级的内建帮助：
+View built-in help at any level:
 
 ```bash
 claude-statusline --help
@@ -499,28 +553,30 @@ claude-statusline config set --help
 claude-statusline config apply --help
 ```
 
-注意 `config` 的 `--config-dir` 位于具体动作之前：
+For `config`, `--config-dir` comes before the action:
 
 ```bash
 claude-statusline config --config-dir /path/to/claude-config show
 ```
 
-而 `configure`、`install`、`uninstall` 和 `doctor` 的参数直接跟在命令之后：
+For `configure`, `install`, `uninstall`, and `doctor`, options follow the command directly:
 
 ```bash
 claude-statusline configure --config-dir /path/to/claude-config
 claude-statusline doctor --config-dir /path/to/claude-config
 ```
 
-## 配置命令详解
+<a id="配置命令详解"></a>
 
-下列本地 CLI 命令均可把开头的 `claude-statusline config` 替换为 Claude Code 中的 `/statusline-config`。例如：
+## Configuration command reference
+
+For each local CLI command below, you can replace the leading `claude-statusline config` with `/statusline-config` in Claude Code. For example:
 
 ```bash
 claude-statusline config set colors off
 ```
 
-等价于：
+is equivalent to:
 
 ```text
 /statusline-config set colors off
@@ -528,13 +584,13 @@ claude-statusline config set colors off
 
 ### `config show`
 
-显示当前**有效配置**，包括显示配置、Claude Code 宿主配置、配置文件路径、当前 `statusLine.command` 是否属于这个可执行文件，以及子 Agent 行的 期望启用状态（enabled）、installed 和所有权状态。
+Shows the current **effective configuration**: display configuration, Claude Code host configuration, file paths, whether the current executable owns `statusLine.command`, and the desired enabled state, installed state, and ownership of subagent rows.
 
 ```bash
 claude-statusline config show
 ```
 
-示例输出：
+Example output:
 
 ```text
 Scope: user
@@ -554,106 +610,106 @@ Refresh interval: 1
 Hide Vim mode indicator: no
 ```
 
-“有效配置”不等于“磁盘上一定存在显示配置文件”：如果 `claude-statusline.json` 尚未创建，`show` 会展示内建默认值。
+Effective configuration does not require a display configuration file to exist on disk: if `claude-statusline.json` has not been created, `show` displays the built-in defaults.
 
-脚本或自动化应使用 JSON 输出：
+Use JSON output for scripts or automation:
 
 ```bash
 claude-statusline config show --json
 ```
 
-JSON 顶层的 `installed` 仍只说明当前 `settings.json/statusLine.command` 是否精确指向当前 PATH 中的 `claude-statusline render`，不表示 Python 包是否存在。`subagent_statusline` 另含 `enabled`、`installed` 和 `state`；`state` 只会是 `owned`、`absent`、`foreign`、`unsupported`。
+The top-level JSON `installed` still indicates only whether `settings.json/statusLine.command` points exactly to the current `claude-statusline render` on PATH, not whether the Python package exists. `subagent_statusline` separately contains `enabled`, `installed`, and `state`; `state` is one of `owned`, `absent`, `foreign`, or `unsupported`.
 
 ### `config list-items`
 
-列出全部支持的显示项及当前启用状态：
+List all supported display items and their current enabled state:
 
 ```bash
 claude-statusline config list-items
 ```
 
-输出中的 `[x]` 表示已启用，`[ ]` 表示已禁用。列表按固定目录顺序显示，不代表当前渲染顺序；当前渲染顺序请看 `config show` 的 `Items`。
+`[x]` means enabled and `[ ]` means disabled. The list follows fixed catalog order, not current rendering order; see `Items` in `config show` for rendering order.
 
-机器可读形式：
+Machine-readable output:
 
 ```bash
 claude-statusline config list-items --json
 ```
 
-每个 JSON 条目包含：
+Each JSON item contains:
 
-- `id`：传给其他命令的稳定标识符。
-- `description`：显示项说明。
-- `default_enabled`：默认是否启用。默认启用的 10 个条目为 `true`；`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 为 `false`（opt-in）。
-- `enabled`：当前是否启用。
-- `position`：当前从 0 开始的顺序；禁用时为 `null`。
+- `id`: the stable identifier passed to other commands.
+- `description`: a description of the display item.
+- `default_enabled`: whether it is enabled by default. The 10 default items are `true`; `project-name`, `hostname`, `context-used`, `version`, `session`, `cost`, `prompt-cache`, `fast-mode`, `agent`, `vim-mode`, `thinking`, `pr`, `worktree`, and `repo` are `false` (opt-in).
+- `enabled`: whether it is currently enabled.
+- `position`: its current zero-based position, or `null` when disabled.
 
 ### `config set-items [ITEM...]`
 
-一次性替换整个启用集合，同时把参数顺序保存为显示顺序：
+Replace the entire enabled set at once and save argument order as display order:
 
 ```bash
 claude-statusline config set-items model-with-effort current-dir git prompt-timer
 ```
 
-执行后，未列出的所有条目都会被禁用。它适合从头定义一条精简状态栏。
+All items not listed become disabled. This is useful for defining a minimal status line from scratch.
 
-不传任何条目是合法操作，会关闭全部渲染内容：
+An empty item list is valid and disables all rendered content:
 
 ```bash
 claude-statusline config set-items
 ```
 
-此时工具仍然安装，hooks 和配置仍然存在，只是 renderer 不输出任何状态栏文本。可通过 `enable`、新的 `set-items` 或 `reset` 恢复显示。
+The tool remains installed, with hooks and configuration intact; the renderer simply outputs no status-line text. Restore the display with `enable`, another `set-items`, or `reset`.
 
-未知条目和重复条目都会被拒绝，且不会写入文件：
+Unknown and duplicate items are rejected without writing files:
 
 ```bash
-# 错误：clock 不是受支持的条目
+# Error: clock is not a supported item
 claude-statusline config set-items model-with-effort clock
 
-# 错误：git 重复出现
+# Error: git appears twice
 claude-statusline config set-items git git
 ```
 
 ### `config enable ITEM...`
 
-启用一个或多个条目，并按参数顺序把此前未启用的条目追加到当前列表末尾：
+Enable one or more items, appending previously disabled items in argument order:
 
 ```bash
 claude-statusline config enable tokens prompt-timer
 ```
 
-已经启用的条目不会重复，也不会因此移动位置。因此 `enable` 适合增量添加，不适合排序。
+Already enabled items are neither duplicated nor moved. Use `enable` for incremental additions, not reordering.
 
 ### `config disable ITEM...`
 
-禁用一个或多个条目，其余条目的相对顺序保持不变：
+Disable one or more items, preserving the relative order of the remaining items:
 
 ```bash
 claude-statusline config disable spend-limit tokens
 ```
 
-禁用本来就未启用的合法条目是幂等操作，不会影响其他条目。
+Disabling a valid item that is already disabled is idempotent and does not affect other items.
 
 ### `config order [ITEM...]`
 
-只改变顺序，不改变启用集合：
+Change only the order, retaining the enabled set:
 
 ```bash
 claude-statusline config order git current-dir model-with-effort prompt-timer
 ```
 
-参数必须恰好包含当前已启用的每一个条目，并且每个条目只出现一次。少一个、多一个、加入尚未启用的条目或重复条目都会失败。
+Arguments must contain every currently enabled item exactly once. Missing or extra items, currently disabled items, and duplicates all cause failure.
 
-推荐先查看当前集合，再排序：
+Inspect the current set before reordering:
 
 ```bash
 claude-statusline config show
 claude-statusline config order model-with-effort git current-dir context-remaining prompt-timer
 ```
 
-如果当前启用集合为空，空参数的 `config order` 才是合法排序：
+An empty `config order` argument list is valid only when the enabled set is empty:
 
 ```bash
 claude-statusline config order
@@ -661,7 +717,7 @@ claude-statusline config order
 
 ### `config subagents ...`
 
-子 Agent 行有一套独立的条目命令，语义与主栏的 `list-items`、`set-items`、`enable`、`disable`、`order` 相同：
+Subagent rows have independent item commands with the same semantics as the main line's `list-items`, `set-items`, `enable`, `disable`, and `order`:
 
 ```bash
 claude-statusline config subagents list-items --json
@@ -671,13 +727,13 @@ claude-statusline config subagents disable task
 claude-statusline config subagents order status-elapsed name model-with-effort context-remaining tokens current-dir
 ```
 
-`subagents.items=[]` 时，`render-subagents` 仍为每个有效 task ID 输出合法 NDJSON，但 `content` 为空，Claude Code 因而隐藏相应自定义行。
+With `subagents.items=[]`, `render-subagents` still emits valid NDJSON for every valid task ID, but with empty `content`, causing Claude Code to hide the custom row.
 
-`status-elapsed` 与 `status`、`elapsed` 互斥：`set-items`/`enable`/`apply` 组合非法时直接报错（例如已启用 `status` 的旧配置执行 `enable status-elapsed` 会失败，需先 `disable status elapsed`）；交互向导勾选其一时自动取消冲突项。
+`status-elapsed` is mutually exclusive with `status` and `elapsed`. Invalid combinations in `set-items`/`enable`/`apply` fail directly: for example, `enable status-elapsed` fails on an old configuration with `status` enabled; run `disable status elapsed` first. The interactive wizard automatically deselects conflicting items when one is selected.
 
 ### `config set OPTION VALUE`
 
-只修改一个显示选项或 Claude Code 宿主选项：
+Change a single display or Claude Code host option:
 
 ```bash
 claude-statusline config set colors off
@@ -691,17 +747,17 @@ claude-statusline config set subagent-statusline off
 claude-statusline config set scope-labels when-subagents
 ```
 
-显示选项可以在安装 statusline 之前预先配置。宿主选项 `padding`、`refresh-interval` 和 `hide-vim-mode-indicator` 会修改 `settings.json/statusLine`，因此只在当前 statusline 已由这个 `claude-statusline` 可执行文件接管时允许修改。否则命令会拒绝写入，避免误改其他 statusline。
+Display options can be configured before installing the status line. Host options `padding`, `refresh-interval`, and `hide-vim-mode-indicator` modify `settings.json/statusLine`, so they require the current status line to be managed by this `claude-statusline` executable. Otherwise, writes are rejected to protect other implementations.
 
-`subagent-statusline` 保存期望的启用状态。已有 owned renderer 时关闭会立即返回空 content；重跑 `install` 会进一步移除 owned `subagentStatusLine`，打开则在兼容版本上恢复它。这个分离使 `config set subagent-statusline off` 可以在不触碰第三方设置的前提下解除安装冲突。
+`subagent-statusline` saves the desired enabled state. Disabling an owned renderer immediately returns empty content; rerunning `install` also removes the owned `subagentStatusLine`. Enabling restores it on compatible versions. This separation lets `config set subagent-statusline off` resolve an installation conflict without touching third-party settings.
 
-所有 `set` 的合法值见[显示与宿主选项](#显示与宿主选项)。
+See [display and host options](#display-and-host-options) for all valid `set` values.
 
 ### `config apply`
 
-一次提交完整的显示配置和宿主配置。无参数向导在收集完全部答案后使用该命令；也可以用于脚本化部署：
+Submit the complete display and host configuration together. The no-argument wizard uses this after collecting all answers; it is also useful for scripted deployment:
 
-Linux / WSL / macOS（Bash）：
+Linux / WSL / macOS (Bash):
 
 ```bash
 claude-statusline config apply \
@@ -718,7 +774,7 @@ claude-statusline config apply \
   --hide-vim-mode-indicator off
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 claude-statusline.exe config apply `
@@ -735,119 +791,129 @@ claude-statusline.exe config apply `
   --hide-vim-mode-indicator off
 ```
 
-`--items` 以及颜色、调色板、目录、分隔符和三个宿主设置参数均为必填。`--subagent-items`、`--subagent-statusline`、`--scope-labels` 可选，省略时保留当前值；TUI 和配置向导会提交全部字段。`--items` 与 `--subagent-items` 的条目列表都可为空。命令会先完整验证所有值，再在同一个锁和同一份备份下更新 `claude-statusline.json` 与 `settings.json`；任一后续写入失败时会尝试事务回滚。
+`--items`, color, palette, directory, separator, and all three host-setting arguments are required. `--subagent-items`, `--subagent-statusline`, and `--scope-labels` are optional and retain current values when omitted; the TUI and wizard submit all fields. Both `--items` and `--subagent-items` accept empty lists. The command validates all values first, then updates `claude-statusline.json` and `settings.json` under the same lock and backup; it attempts transaction rollback if any later write fails.
 
-因为 `apply` 包含宿主设置，所以必须先运行 `claude-statusline install`。
+Because `apply` includes host settings, run `claude-statusline install` first.
 
 ### `config reset`
 
-恢复本工具的默认显示和宿主设置：
+Restore this tool's default display and host settings:
 
 ```bash
 claude-statusline config reset
 ```
 
-它会：
+This command:
 
-- 删除 `claude-statusline.json`，让 renderer 使用内建默认显示配置。
-- 如果本工具当前已安装，恢复 `padding=0`、`refreshInterval=1` 和 `hideVimModeIndicator=false`。值为默认值的可省略字段会从 `settings.json` 中移除。
-- 保留 `statusLine.command`、所有本工具 hooks、personal skill、运行状态和缓存。
+- Deletes `claude-statusline.json`, allowing the renderer to use built-in display defaults.
+- If this tool is installed, restores `padding=0`, `refreshInterval=1`, and `hideVimModeIndicator=false`. Optional fields set to defaults are removed from `settings.json`.
+- Preserves `statusLine.command`, this tool's hooks, the personal skill, runtime state, and caches.
 
-`reset` 也能处理损坏的 `claude-statusline.json`，因此它是配置文件 JSON 无法解析时最直接的恢复方法。
+`reset` also handles corrupted `claude-statusline.json`, making it the simplest recovery when configuration JSON cannot be parsed.
 
-## 可配置显示项
+<a id="可配置显示项"></a>
 
-默认启用以下全部条目，表格顺序也是首次使用时的默认显示顺序：
+## Configurable display items
 
-| ID | 显示内容 | 数据不可用时的行为 |
+All the following items are enabled by default; table order is also the initial display order:
+
+| ID | Display | Behavior when data is unavailable |
 | --- | --- | --- |
-| `model-with-effort` | 当前模型 ID（缺失时使用 display name）；存在 effort 时追加 effort level | 没有模型字段时省略 |
-| `current-dir` | Claude Code 当前实时工作目录 | 没有目录字段时省略 |
-| `git` | `Git ` 前缀 + 分支、上游差异和工作树变更，如原生 Linux/macOS 的 `Git main ↑1● 2` 或 Windows/WSL 的 `Git main ↑1●2` | 非 Git 目录时省略；Git 查询异常时显示 `Git!` |
-| `context-remaining` | `Context N% left` | Claude Code 未提供百分比时省略 |
-| `context-window-size` | 总上下文窗口，例如 `1M window` | Claude Code 未提供窗口大小时省略 |
-| `five-hour-limit` | 5 小时窗口的剩余百分比 | 未提供该窗口时省略 |
-| `weekly-limit` | 7 天窗口的剩余百分比，显示为 `weekly` | 未提供该窗口时省略 |
-| `spend-limit` | gateway spend 限额的剩余百分比 | 未提供该窗口时省略 |
-| `tokens` | 当前会话累计的 `hit · miss · out` | 没有 session/transcript 信息时省略 |
-| `prompt-timer` | 当前或最近一次真实 prompt 的耗时和结果 | 尚无可识别 prompt 时省略 |
+| `model-with-effort` | Current model ID, falling back to display name; appends effort level when present | Omitted without model fields |
+| `current-dir` | Claude Code's current working directory | Omitted without a directory field |
+| `git` | `Git ` plus branch, upstream differences, and working-tree changes, such as `Git main ↑1● 2` on native Linux/macOS or `Git main ↑1●2` on Windows/WSL | Omitted outside Git repositories; displays `Git!` on query errors |
+| `context-remaining` | `Context N% left` | Omitted when Claude Code provides no percentage |
+| `context-window-size` | Total context window, such as `1M window` | Omitted when Claude Code provides no window size |
+| `five-hour-limit` | Remaining percentage of the 5-hour window | Omitted without this window |
+| `weekly-limit` | Remaining percentage of the 7-day window, labeled `weekly` | Omitted without this window |
+| `spend-limit` | Remaining percentage of the gateway spend limit | Omitted without this window |
+| `tokens` | Cumulative session `hit · miss · out` | Omitted without session/transcript information |
+| `prompt-timer` | Duration and result of the current or latest real prompt | Omitted until a prompt can be identified |
 
-限额百分比由 Claude Code 传入的 `used_percentage` 换算为剩余百分比。本工具不查询账号限额服务，因此实际能显示哪些窗口取决于当前 Claude Code 版本、账号和本次 statusline payload。
+Limit percentages are calculated from Claude Code's `used_percentage`. This tool does not query account-limit services; available windows depend on the Claude Code version, account, and current status-line payload.
 
-以下条目来自 Claude Code 2.1.258 及以上版本的公开 statusline payload，**默认不显示**，通过 `/statusline-config enable` 开启：
+The following items come from the public status-line payload in Claude Code 2.1.258+ and are **disabled by default**. Enable them with `/statusline-config enable`:
 
-| ID | 显示内容 | 数据不可用时的行为 |
+| ID | Display | Behavior when data is unavailable |
 | --- | --- | --- |
-| `version` | Claude Code 版本，例如 `v2.1.258` | 未提供版本时省略 |
-| `session` | `Session ` 前缀 + 会话名称（`/rename` 设置后），否则会话 ID 前 8 位，如 `Session explain prompt-cache` | 没有会话 ID 时省略 |
-| `cost` | 会话金额、API 时长与增删行数，例如 `Total $0.12 · 12m 30s · +156/-23`；金额恒显示（无数据时为 `Total $0.00`），时长为 0 或增删行均为 0 时省略对应部分 | 没有 cost 字段时省略 |
-| `prompt-cache` | 缓存命中率与写入 token，例如 `cache 91% · 352K w` | 没有 prompt_cache 字段时省略（首次 API 响应前不存在）；命中率越界时只显示 token 部分 |
-| `fast-mode` | fast mode 开启时显示 `fast` | 未开启时省略 |
-| `agent` | `--agent` 会话的 agent 名称，例如 `Agent orchestrator` | 没有 agent 字段时省略 |
-| `vim-mode` | vim mode 开启时的当前模式，例如 `vim NORMAL` | 没有 vim 字段时省略 |
-| `thinking` | 扩展思考启用时显示 `thinking` | 未启用时省略 |
-| `pr` | 当前分支的 open PR/MR，例如 `PR #1234 · approved`；GitLab 合并请求显示为 `MR !1234` | 当前分支没有 open PR/MR 时省略 |
-| `worktree` | `--worktree` 会话的 worktree 名称，例如 `Worktree feat-x` | 没有 worktree 字段时省略 |
-| `repo` | `Repo ` 前缀 + origin remote 的仓库，例如 `Repo acme/widget` | 没有 remote 身份时省略 |
+| `version` | Claude Code version, such as `v2.1.258` | Omitted without a version |
+| `session` | `Session ` plus the session name set with `/rename`, otherwise the first 8 characters of its ID, such as `Session explain prompt-cache` | Omitted without a session ID |
+| `cost` | Session cost, API duration, and added/deleted lines, such as `Total $0.12 · 12m 30s · +156/-23`; cost always appears (`Total $0.00` without data), while zero duration or both zero line counts are omitted | Omitted without the cost field |
+| `prompt-cache` | Cache hit rate and written tokens, such as `cache 91% · 352K w` | Omitted without prompt_cache, which is absent before the first API response; out-of-range hit rates leave only tokens |
+| `fast-mode` | `fast` when fast mode is enabled | Omitted when disabled |
+| `agent` | Agent name in a `--agent` session, such as `Agent orchestrator` | Omitted without the agent field |
+| `vim-mode` | Current mode when vim mode is enabled, such as `vim NORMAL` | Omitted without the vim field |
+| `thinking` | `thinking` when extended thinking is enabled | Omitted when disabled |
+| `pr` | Current branch's open PR/MR, such as `PR #1234 · approved`; GitLab merge requests appear as `MR !1234` | Omitted without an open PR/MR on the current branch |
+| `worktree` | Worktree name in a `--worktree` session, such as `Worktree feat-x` | Omitted without the worktree field |
+| `repo` | `Repo ` plus the origin remote repository, such as `Repo acme/widget` | Omitted without a remote identity |
 
-`cost` 的金额来自 Claude Code 的 `total_cost_usd`；在第三方 API 端点（例如 DeepSeek 代理）下该值为按默认模型费率的估算，仅作参考。`prompt-cache` 与 `tokens` 的统计口径不同：前者来自 statusline payload 且不含 subagent 流量，后者从 transcript 累计并包含可发现的 subagent transcript。
+The `cost` amount comes from Claude Code's `total_cost_usd`; with third-party API endpoints, such as a DeepSeek proxy, it is an estimate using default model rates and is for reference only. `prompt-cache` and `tokens` measure different usage: the former comes from the status-line payload and excludes subagent traffic; the latter aggregates transcripts, including discoverable subagent transcripts.
 
-以下三个可选条目提供上下文用量、项目目录名和本机名，也都**默认不显示**：
+The following three optional items show context usage, project directory name, and hostname, and are also **disabled by default**:
 
-| ID | 显示内容 | 数据来源 | 数据不可用时的行为 |
+| ID | Display | Source | Behavior when data is unavailable |
 | --- | --- | --- | --- |
-| `context-used` | `Context N% used`，使用 `round()` 取整 | Claude 官方 statusline payload 的 `context_window.used_percentage` | 字段缺失、bool、非数字、非有限数或超出闭区间 `0–100` 时省略 |
-| `project-name` | `Project NAME` | Claude 启动目录 `workspace.project_dir` 按当前平台路径语义取得的末级目录名；只处理字符串，不访问文件系统 | 字段无效、为空、清理后为空或表示根目录时省略；不回退到 `workspace.repo.name` 或 `current-dir` |
-| `hostname` | `Host NAME` | 本机 Python 标准库的 `socket.gethostname()`；不是 Claude Code 2.1.258+ payload 字段 | 调用抛出 `OSError`，或清理换行、控制字符和 ANSI 注入后为空时省略；不执行外部命令、不访问网络 |
+| `context-used` | `Context N% used`, rounded with `round()` | `context_window.used_percentage` in Claude's official status-line payload | Omitted for missing, boolean, nonnumeric, nonfinite, or out-of-range values outside `0–100` |
+| `project-name` | `Project NAME` | Final directory component of Claude's launch directory `workspace.project_dir`, using platform path semantics; string processing only, without filesystem access | Omitted for invalid, empty, sanitized-empty, or root-directory values; no fallback to `workspace.repo.name` or `current-dir` |
+| `hostname` | `Host NAME` | Local Python standard-library `socket.gethostname()`; not a Claude Code 2.1.258+ payload field | Omitted on `OSError` or an empty result after removing newlines, control characters, and ANSI injection; no external commands or network access |
 
-可一次启用这三项：
+Enable all three together:
 
 ```bash
 claude-statusline config enable project-name hostname context-used
 ```
 
-主栏的 `context-used` 与 `context-remaining` 是彼此独立的配置项，可单独开启或同时保留。三项上下文条目相邻时按配置顺序使用内部圆点连接，例如 `Context 73% left · Context 27% used · 200K window`。
+Main-line `context-used` and `context-remaining` are independent options; enable either or both. Adjacent context items follow configured order and use internal dot separators, such as `Context 73% left · Context 27% used · 200K window`.
 
-## 主状态栏显示含义
+<a id="主状态栏显示含义"></a>
 
-### Git 标记
+## Main status line fields
 
-`git` 条目使用以下紧凑标记：
+<a id="git-标记"></a>
 
-| 标记 | 含义 |
+### Git markers
+
+The `git` item uses these compact markers:
+
+| Marker | Meaning |
 | --- | --- |
-| `↑N` | 当前分支领先 upstream N 个提交 |
-| `↓N` | 当前分支落后 upstream N 个提交 |
-| `[gone]` | 已配置的 upstream 不再存在 |
-| `● N` / `●N` | staged 文件数；原生 Linux/macOS 使用前者，Windows/WSL 使用后者 |
-| `~N` | unstaged 文件数 |
-| `!N` | 冲突文件数 |
-| `?N` | untracked 文件数 |
-| `Git!` | Git 命令缺失、超时或返回了无法解析的结果 |
+| `↑N` | Current branch is N commits ahead of upstream |
+| `↓N` | Current branch is N commits behind upstream |
+| `[gone]` | Configured upstream no longer exists |
+| `● N` / `●N` | Staged file count; native Linux/macOS use the former, Windows/WSL the latter |
+| `~N` | Unstaged file count |
+| `!N` | Conflicted file count |
+| `?N` | Untracked file count |
+| `Git!` | Git command missing, timed out, or returned unparseable results |
 
-干净且与 upstream 同步的仓库只显示分支名。detached HEAD 显示为 `HEAD@` 加 7 位 commit ID。
+A clean repository synchronized with upstream shows only its branch name. Detached HEAD appears as `HEAD@` followed by a 7-character commit ID.
 
-### Token 含义
+<a id="token-含义"></a>
 
-`tokens` 是当前 Claude Code 会话的累计 API 使用量，也会合并可发现的 subagent transcript：
+### Token fields
 
-- `hit`：cache read input tokens。
-- `miss`：普通 input tokens 与 cache creation input tokens 之和。
-- `out`：output tokens。
+`tokens` reports cumulative API usage for the current Claude Code session, including discoverable subagent transcripts:
 
-数值使用紧凑格式，例如 `950`、`12.4K`、`1.05M`。这不是剩余上下文，也不是限额用量；上下文与限额由各自条目显示。
+- `hit`:cache read input tokens.
+- `miss`: ordinary input tokens plus cache creation input tokens.
+- `out`:output tokens.
 
-### Prompt 计时标记
+Counts use compact notation, such as `950`, `12.4K`, or `1.05M`. They do not indicate remaining context or rate-limit usage; separate items show those metrics.
 
-| 标记 | 含义 |
+<a id="prompt-计时标记"></a>
+
+### Prompt timing markers
+
+| Marker | Meaning |
 | --- | --- |
-| `⏱` | prompt 正在运行，时间持续增长 |
-| `✓` | prompt 正常完成 |
-| `■` | prompt 被中断或会话结束 |
-| `✗` | Claude Code 报告执行失败 |
-| `?` | 上一次运行没有可确认的结束事件；时间后会带 `+` |
+| `⏱` | Prompt is running; time continues increasing |
+| `✓` | Prompt completed normally |
+| `■` | Prompt was interrupted or the session ended |
+| `✗` | Claude Code reported execution failure |
+| `?` | Previous run has no confirmed ending event; time is followed by `+` |
 
-子 Agent 会话增加两个运行阶段：
+Sessions with subagents add two running phases:
 
 ```text
 ⏱ 4m 12s
@@ -856,123 +922,139 @@ claude-statusline config enable project-name hostname context-used
 ✓ 4m 35s
 ```
 
-计时始终从最早的用户提交证据开始，到主 Agent 最终 `Stop` 为止。主 Agent 首次 `Stop` 若仍有普通 subagent task，就进入等待；最后一个 Agent 结束后进入 `main wrap-up`，不会因 registry idle、transcript duration 或超时自行完成。后台 shell、server、monitor 和 workflow 不进入 Agent ledger。最终 `Stop` 缺失时保持运行；`StopFailure`、用户中断和 `SessionEnd` 仍立即产生终态。
+Timing starts from the earliest evidence of user submission and ends at the main agent's final `Stop`. If ordinary subagent tasks remain at the main agent's first `Stop`, the timer waits; after the final agent ends, it enters `main wrap-up`. Registry idle state, transcript duration, or a timeout do not complete it automatically. Background shell, server, monitor, and workflow tasks are excluded from the agent ledger. Without the final `Stop`, timing remains active; `StopFailure`, user interruption, and `SessionEnd` still produce immediate terminal states.
 
-`/statusline-config show` 之类的本地快捷命令不会被当作新的计时 prompt。即使隐藏 `tokens` 但保留 `prompt-timer`，计时器仍会读取所需 transcript 状态并正常工作。
+Local shortcut commands such as `/statusline-config show` do not start a new timed prompt. Hiding `tokens` while retaining `prompt-timer` still lets the timer read the necessary transcript state and work normally.
 
-## 子 Agent 行与三种作用域
+<a id="子-agent-行与三种作用域"></a>
 
-Claude Code 2.1.205+ 会把官方 `subagentStatusLine` payload 交给 `claude-statusline render-subagents`。renderer 保持 `tasks` 输入顺序、忽略重复 ID 的后续项，并为每个有效非空字符串 ID 输出一行 NDJSON。它不扫描 transcript、不执行 Git、不访问网络，也不写运行状态；token 只使用当前 task 的 `tokenCount`。
+## Subagent rows and the three scopes
 
-默认子 Agent 行类似：
+On Claude Code 2.1.205+, the official `subagentStatusLine` payload is passed to `claude-statusline render-subagents`. The renderer preserves `tasks` input order, ignores later duplicate IDs, and emits one NDJSON line per valid nonempty string ID. It does not scan transcripts, run Git, access the network, or write runtime state; tokens come only from the current task's `tokenCount`.
+
+A default subagent row looks like:
 
 ```text
 ⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow
 ```
 
-可排序条目及默认状态：
+Sortable items and defaults:
 
-| ID | 默认 | 内容 |
+| ID | Default | Content |
 | --- | --- | --- |
-| `status-elapsed` | 开 | 状态图标 + 用时，如 `⏱ 1m 18s`；缺失或非法 `startTime` 时只显示图标。与 `status`、`elapsed` 互斥 |
-| `status` | 关 | `pending …`、`running ⏱`、`completed ✓`、`failed ✗`、`killed ■`、`paused/waiting ⏳`，未知状态为 `?` |
-| `name` | 开 | `name`，否则规范化 `type`，再否则 `Agent` |
-| `model-with-effort` | 开 | 移除 `claude-` 前缀的模型 ID，并在存在时追加 `/effort` |
-| `context-remaining` | 开 | `Context N% left`，按 `100 − 已用百分比`（先四舍五入）计算并截断到 0–100 |
-| `context-used` | 关 | `Context N% used`，`tokenCount / contextWindowSize` 四舍五入为百分比 |
-| `elapsed` | 关 | 从 task 的 epoch 毫秒 `startTime` 计算；未来时间按 0 秒 |
-| `task` | 开 | 优先 `label`，否则 `description`；与名称重复时省略 |
-| `tokens` | 关 | 当前 task 的紧凑 token 数 |
-| `current-dir` | 关 | task 的 `cwd`，遵守目录样式 |
+| `status-elapsed` | On | Status icon plus duration, such as `⏱ 1m 18s`; only the icon when `startTime` is missing or invalid. Mutually exclusive with `status` and `elapsed` |
+| `status` | Off | `pending …`, `running ⏱`, `completed ✓`, `failed ✗`, `killed ■`, `paused/waiting ⏳`; unknown status uses `?` |
+| `name` | On | `name`, otherwise normalized `type`, otherwise `Agent` |
+| `model-with-effort` | On | Model ID without the `claude-` prefix, followed by `/effort` when available |
+| `context-remaining` | On | `Context N% left`, calculated as 100 minus the rounded used percentage and clamped to 0–100 |
+| `context-used` | Off | `Context N% used`, from `tokenCount / contextWindowSize` rounded to a percentage |
+| `elapsed` | Off | Duration from the task's epoch-millisecond `startTime`; future timestamps count as 0 seconds |
+| `task` | On | `label`, otherwise `description`; omitted when identical to the name |
+| `tokens` | Off | Compact token count for the current task |
+| `current-dir` | Off | Task `cwd`, respecting directory style |
 
-宽度直接使用 payload 中的正整数 `columns`，无效时回退 80，不扣主栏 margin。输入文本中的换行、制表符和控制字符会被清理。超宽时先截断任务文本，再按 `current-dir → tokens → context-used → context-remaining → model-with-effort → task` 删除可选段；`status` 与 `status-elapsed` 始终保留（启用 `status` 时 `name`、`elapsed` 也最后保留），极窄时 `status-elapsed` 退化为只显示状态图标。ASCII、CJK、emoji、组合字符和 ANSI 路径都保证可见宽度不超过 `columns` 且不换行。
+Width uses the payload's positive integer `columns` directly, falling back to 80 when invalid, without the main-line margin. Input newlines, tabs, and control characters are sanitized. Overflow first truncates task text, then drops optional segments in the order `current-dir → tokens → context-used → context-remaining → model-with-effort → task`. `status` and `status-elapsed` are always retained; with `status` enabled, `name` and `elapsed` are also retained until last. At extreme widths, `status-elapsed` becomes an icon only. ASCII, CJK, emoji, combining characters, and ANSI paths all stay within `columns` of visible width without wrapping.
 
-三种作用域必须区分：
+Keep these three scopes distinct:
 
-- 全局底栏属于主 Agent；`scope-labels=when-subagents` 在当前 prompt 曾启动子 Agent 后前置固定的 `Main/Session`。
-- 主栏 `tokens` 是 session 累计，继续包含可发现的主与子 Agent transcript。
-- 每个官方子 Agent 行只描述自己的 task，并只使用 `tasks[]` 字段。
+- The global bottom line belongs to the main agent; `scope-labels=when-subagents` prepends fixed `Main/Session` after the current prompt has launched subagents.
+- Main-line `tokens` is cumulative session usage, still including discoverable main and subagent transcripts.
+- Each official subagent row describes only its own task, using only `tasks[]` fields.
 
-Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent transcript 后，最底部全局栏不会读取或猜测当前焦点，也不会通过 transcript mtime、进程内存或键盘事件推断；`Main/Session` 正是对这一边界的明确标注。
+Claude Code provides neither `focused_agent` nor `viewing_task_id`. After switching to a subagent transcript, the global bottom line neither reads nor guesses focus using transcript mtime, process memory, or keyboard events. `Main/Session` explicitly identifies this boundary.
 
-## 显示与宿主选项
+<a id="显示与宿主选项"></a>
 
-| OPTION | VALUE | 默认值 | 说明 |
+## Display and host options
+
+| OPTION | VALUE | Default | Description |
 | --- | --- | --- | --- |
-| `colors` | `on`、`off` | `on` | 是否输出 ANSI 颜色控制码 |
-| `palette` | `default`、`ansi` | `default` | `default` 使用项目的 24 位 RGB 色值；`ansi` 使用标准终端色 |
-| `directory-style` | `full`、`home`、`project-relative`、`basename` | `full` | 工作目录的缩写方式 |
-| `separator-style` | `classic`、`compact` | `classic` | 顶层条目的分隔方式 |
-| `scope-labels` | `off`、`when-subagents`、`always` | `when-subagents` | 主栏是否前置固定的 `Main/Session` |
-| `subagent-statusline` | `on`、`off` | `on` | 是否希望安装并渲染自定义子 Agent 行 |
-| `padding` | `0`–`32` | `0` | Claude Code 在状态栏内容前增加的水平空白字符数 |
-| `refresh-interval` | `event`、`1`–`3600` | `1` | 除事件刷新外，按指定秒数定时重跑 renderer；`event` 表示只按事件刷新 |
-| `hide-vim-mode-indicator` | `on`、`off` | `off` | `on` 隐藏 Claude Code 内建的 Vim 模式文字 |
+| `colors` | `on`, `off` | `on` | Whether to output ANSI color codes |
+| `palette` | `default`, `ansi` | `default` | `default` uses this project's 24-bit RGB colors; `ansi` uses standard terminal colors |
+| `directory-style` | `full`, `home`, `project-relative`, `basename` | `full` | How to abbreviate the working directory |
+| `separator-style` | `classic`, `compact` | `classic` | How to separate top-level items |
+| `scope-labels` | `off`, `when-subagents`, `always` | `when-subagents` | Whether to prepend fixed `Main/Session` to the main line |
+| `subagent-statusline` | `on`, `off` | `on` | Whether custom subagent rows should be installed and rendered |
+| `padding` | `0`–`32` | `0` | Horizontal whitespace added by Claude Code before status-line content |
+| `refresh-interval` | `event`, `1`–`3600` | `1` | Rerun the renderer every specified number of seconds in addition to event refreshes; `event` means events only |
+| `hide-vim-mode-indicator` | `on`, `off` | `off` | `on` hides Claude Code's built-in Vim mode text |
 
-### 颜色
+<a id="颜色"></a>
 
-- `colors off` 会完全禁用本工具输出的 ANSI 颜色码。
-- `palette` 在颜色关闭时仍会被保存，但暂时不影响输出；以后重新打开颜色会继续使用该 palette。
-- `default` 需要终端支持 24 位颜色；兼容性优先时可使用 `ansi`。
+### Colors
 
-### 目录格式
+- `colors off` disables all ANSI color codes output by this tool.
+- `palette` is saved even with colors off, but affects output only after colors are reenabled.
+- `default` requires 24-bit color support; use `ansi` when terminal compatibility is the priority.
 
-假设用户 home 是 `/home/user`，项目根目录是 `/home/user/code/repo`，当前目录是 `/home/user/code/repo/src/api`：
+<a id="目录格式"></a>
 
-| 样式 | 示例输出 |
+### Directory formats
+
+Assume the user's home is `/home/user`, the project root is `/home/user/code/repo`, and the current directory is `/home/user/code/repo/src/api`:
+
+| Style | Example output |
 | --- | --- |
 | `full` | `/home/user/code/repo/src/api` |
 | `home` | `~/code/repo/src/api` |
-| `project-relative` | `src/api`；位于项目根时显示 `.` |
+| `project-relative` | `src/api`; `.` at the project root |
 | `basename` | `api` |
 
-`home` 只缩写真实位于当前用户 home 下的路径。`project-relative` 在当前目录不属于 Claude Code 提供的项目根目录时退回完整路径。
+`home` abbreviates only paths actually within the current user's home. `project-relative` falls back to a full path when the current directory is outside the project root provided by Claude Code.
 
-Windows drive path、含空格或中文的路径、UNC path 与大小写归一都使用原生 Windows 路径语义。`full` 始终保留 payload 原始的 `/` 或 `\`；`home` 与 `project-relative` 为紧凑显示统一输出 `/`。
+Windows drive paths, paths with spaces or Chinese characters, UNC paths, and case normalization use native Windows path semantics. `full` preserves the payload's original `/` or `\`; `home` and `project-relative` use `/` for compact display.
 
-### 分隔符和语义分组
+<a id="分隔符和语义分组"></a>
 
-`classic` 使用 ` | ` 分隔顶层条目；`compact` 对所有顶层条目使用 ` · `。
+### Separators and semantic groups
 
-以下条目在相邻时属于同一语义组，并用 ` · ` 连接；同组条目使用相同颜色：
+`classic` separates top-level items with ` | `; `compact` uses ` · ` for all top-level items.
 
-- `model-with-effort`、`fast-mode` 与 `thinking`（模型组，象牙白）
-- `current-dir`、`project-name` 与 `hostname`（位置组，绿色）
-- `git`、`pr` 与 `repo`（仓库组，紫）
-- `tokens` 与 `prompt-cache`（用量组，粉）
-- `context-remaining`、`context-used` 与 `context-window-size`
-- `five-hour-limit`、`weekly-limit` 与 `spend-limit`
+Adjacent items in the following semantic groups join with ` · ` and share the same color:
 
-`version`、`session`、`cost`、`agent`、`vim-mode`、`worktree` 各自独立，不与相邻条目合并。条目目录按组排列（模型组 → 位置组 → 仓库组 → 上下文 → 限额 → 用量组 → 计时 → 独立项），但 `enable` 只按参数顺序把新条目追加到当前列表末尾。需要把同组条目放在一起时，使用 `order`、`set-items` 或 TUI 调整顺序。如果通过排序把同组条目分开，它们会恢复为独立顶层条目。`tokens` 内部的 `hit`、`miss`、`out`，`cost` 内部的金额、时长、增删行，以及 `prompt-cache` 内部的命中率、写入 token 始终使用 ` · `。
+- `model-with-effort`, `fast-mode`, and `thinking` (model group, ivory)
+- `current-dir`, `project-name`, and `hostname` (location group, green)
+- `git`, `pr`, and `repo` (repository group, purple)
+- `tokens` and `prompt-cache` (usage group, pink)
+- `context-remaining`, `context-used`, and `context-window-size`
+- `five-hour-limit`, `weekly-limit`, and `spend-limit`
 
-### 刷新间隔
+`version`, `session`, `cost`, `agent`, `vim-mode`, and `worktree` remain independent and do not merge with neighbors. The catalog is grouped as model → location → repository → context → limits → usage → timer → independent items, but `enable` simply appends new items in argument order. Use `order`, `set-items`, or the TUI to place group members together. Separating them through reordering restores independent top-level items. Internal fields in `tokens` (`hit`, `miss`, `out`), `cost` (amount, duration, line changes), and `prompt-cache` (hit rate, written tokens) always use ` · `.
 
-Claude Code 会在相关 UI 或会话事件发生时重跑 statusline。`refresh-interval N` 会在此基础上每 N 秒额外刷新，适合持续更新 `prompt-timer`，或在主会话空闲时观察后台产生的变化。
+<a id="刷新间隔"></a>
+
+### Refresh interval
+
+Claude Code reruns the status line on relevant UI or session events. `refresh-interval N` adds refreshes every N seconds, useful for continuously updating `prompt-timer` or observing background changes while the main session is idle.
 
 ```bash
-# 默认：每秒刷新
+# Default: refresh every second
 claude-statusline config set refresh-interval 1
 
-# 降低刷新频率
+# Refresh less frequently
 claude-statusline config set refresh-interval 5
 
-# 只在 Claude Code 事件发生时刷新
+# Refresh only on Claude Code events
 claude-statusline config set refresh-interval event
 ```
 
-使用 `event` 时，运行中的 `prompt-timer` 不会按秒连续变化，只会在下一个状态事件触发后更新。
+With `event`, an active `prompt-timer` does not advance visibly every second; it updates only on the next status event.
 
-## 配置文件
+<a id="配置文件"></a>
 
-### 显示配置
+## Configuration files
 
-显示项与样式保存在：
+<a id="显示配置"></a>
+
+### Display configuration
+
+Display items and styles are saved in:
 
 ```text
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-默认配置等价于：
+The default configuration is equivalent to:
 
 ```json
 {
@@ -1007,31 +1089,33 @@ claude-statusline config set refresh-interval event
 }
 ```
 
-这是严格 JSON：不接受注释、尾随逗号、未知字段、缺失字段、未知条目或重复条目。建议使用配置命令修改，而不是手工编辑。
+This is strict JSON: comments, trailing commas, unknown or missing fields, unknown items, and duplicates are rejected. Use configuration commands rather than editing it manually.
 
-上例中的 10 个条目是默认启用集合。`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
+The 10 items above form the default enabled set. `project-name`, `hostname`, `context-used`, `version`, `session`, `cost`, `prompt-cache`, `fast-mode`, `agent`, `vim-mode`, `thinking`, `pr`, `worktree`, and `repo` are optional and excluded by default; they enter `items` only after `config enable` or selection in the wizard.
 
-配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](#备份与回滚)及[配置写入与并发](#配置写入与并发)。
+Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](#backups-and-rollback) and [configuration writes and concurrency](#configuration-writes-and-concurrency).
 
-当前显示配置使用 schema v2；历史 schema v1 可读取，首次实际配置保存时会备份并写为 v2。版本转换与降级恢复见[版本兼容](#版本兼容)。
+The current display schema is v2. Historical v1 is readable and is backed up and written as v2 on the first actual configuration save. See [version compatibility](#version-compatibility) for conversion and downgrade recovery.
 
-如果显示配置损坏：
+If display configuration is corrupted:
 
-- 两个 renderer 都会静默回退到内建默认显示，避免破坏 Claude Code 主界面。
-- `config show`、普通配置写命令和 `doctor` 会明确报告错误。
-- `config reset` 可以删除损坏配置并恢复默认值。
+- Both renderers silently fall back to built-in defaults to protect the Claude Code interface.
+- `config show`, normal configuration writes, and `doctor` report an explicit error.
+- `config reset` removes the corrupted configuration and restores defaults.
 
-`items: []` 是合法配置，表示主栏不输出内容；即使范围标签为 `always`，也不会单独制造空主栏。`subagents.items: []` 同样合法，表示每个有效子任务返回空 content。
+`items: []` is valid and suppresses main-line content; even scope labels set to `always` do not create an otherwise empty main line. `subagents.items: []` is also valid and returns empty content for each valid subtask.
 
-### 实验功能偏好
+<a id="实验功能偏好"></a>
 
-`/statusline-configure` 的持久偏好保存在：
+### Experimental feature preferences
+
+The persistent `/statusline-configure` preference is saved in:
 
 ```text
 <CLAUDE_CONFIG_DIR>/claude-statusline-features.json
 ```
 
-文件不存在表示关闭；启用时内容固定为：
+A missing file means disabled; when enabled, its contents are:
 
 ```json
 {
@@ -1040,24 +1124,28 @@ claude-statusline config set refresh-interval event
 }
 ```
 
-该文件使用严格 schema；Linux/macOS 权限为 `0600`，Windows 使用继承 ACL。布尔值 `false` 也会按关闭状态读取，但本工具的关闭命令会直接删除文件。普通 `install` 遇到未知字段、缺失字段、错误类型、未知 schema 或损坏 JSON 时拒绝修改；显式 `--experimental-slash-tui` 会先备份再修复，显式 `--no-experimental-slash-tui` 会先备份再删除。
+The file has a strict schema, `0600` permissions on Linux/macOS, and inherited ACLs on Windows. Boolean `false` is also read as disabled, but the disable command deletes the file. Normal `install` rejects unknown or missing fields, invalid types, unknown schemas, or malformed JSON. Explicit `--experimental-slash-tui` backs up and repairs it; explicit `--no-experimental-slash-tui` backs up and deletes it.
 
-### Claude Code 宿主配置
+<a id="claude-code-宿主配置"></a>
 
-以下设置保存在用户级 `settings.json` 的 `statusLine` 对象中，而不是 `claude-statusline.json`：
+### Claude Code host configuration
+
+The following settings belong to the `statusLine` object in user-level `settings.json`, not `claude-statusline.json`:
 
 - `command`
 - `padding`
 - `refreshInterval`
 - `hideVimModeIndicator`
 
-其中 `command` 由安装器管理；后三项可以使用 `config set` 或向导修改。设置为默认行为时，某些字段会从 JSON 中省略，例如 `padding 0`、`refresh-interval event` 和 `hide-vim-mode-indicator off`。
+The installer manages `command`; the other three fields can be changed with `config set` or the wizard. Some fields are omitted from JSON when set to default behavior, such as `padding 0`, `refresh-interval event`, and `hide-vim-mode-indicator off`.
 
-兼容版本还会在 `settings.json` 写入独立的 `subagentStatusLine`，严格只含 `type: "command"` 和指向 `render-subagents` 的 `command`；Claude 的该 schema 不接受 `refreshInterval`，本工具不会写入。`subagents.enabled=false` 时重跑 `install` 只移除本工具拥有的这一设置，第三方设置不受影响；两个子 Agent 生命周期 hooks 仍保留用于端到端计时。
+Compatible versions also receive an independent `subagentStatusLine` in `settings.json`, containing strictly `type: "command"` and a `command` pointing to `render-subagents`. Claude's schema does not accept `refreshInterval`, so this tool does not write it. With `subagents.enabled=false`, rerunning `install` removes only the owned entry, preserving third-party settings. Both subagent lifecycle hooks remain for end-to-end timing.
 
-## 自定义配置目录与环境变量
+<a id="自定义配置目录与环境变量"></a>
 
-工具遵循 Claude Code 的 `CLAUDE_CONFIG_DIR`：
+## Custom configuration directory and environment variables
+
+The tool respects Claude Code's `CLAUDE_CONFIG_DIR`:
 
 ```bash
 CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline install
@@ -1065,7 +1153,7 @@ CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline configure
 CLAUDE_CONFIG_DIR=/path/to/claude-config claude-statusline config show
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 $env:CLAUDE_CONFIG_DIR = 'C:\Path With Spaces\Claude 配置'
@@ -1074,54 +1162,60 @@ claude-statusline.exe configure
 claude-statusline.exe config show
 ```
 
-管理命令也支持显式 `--config-dir PATH`。显式参数优先于环境变量。
+Management commands also accept explicit `--config-dir PATH`, which takes precedence over the environment variable.
 
-还支持以下运行状态位置覆盖：
+The following runtime-location overrides are also supported:
 
-- `CLAUDE_STATUSLINE_RUNTIME_DIR`：覆盖 token、Git 缓存和逐轮状态使用的运行目录。
-- `CLAUDE_STATUSLINE_SESSIONS_DIR`：覆盖 Claude Code 会话注册信息目录。
+- `CLAUDE_STATUSLINE_RUNTIME_DIR`: overrides the runtime directory for token and Git caches and per-turn state.
+- `CLAUDE_STATUSLINE_SESSIONS_DIR`: overrides the Claude Code session registry directory.
 
-通常不需要设置后两个变量。修改它们可能让已有会话状态暂时不可见，但不会改变显示配置本身。
+These last two variables are usually unnecessary. Changing them may temporarily hide existing session state, without changing display configuration itself.
 
-## 升级
+<a id="升级"></a>
 
-先将 Python 包升级到稳定版 v1.1.0，再同步 Claude Code 接入。此前安装 v1.0.0 或 v1.1.0a1 的用户使用相同的升级步骤。
+## Upgrading
 
-### 替换 Python 包
+First upgrade the Python package to stable v1.1.0, then synchronize the Claude Code integration. Users of v1.0.0 or v1.1.0a1 follow the same steps.
 
-以下来源任选一种。Release URL 与 Git URL 命令在 Bash / Zsh / PowerShell 中通用。
+<a id="替换-python-包"></a>
 
-**稳定版 Release URL（推荐，所有支持平台通用）：**
+### Replace the Python package
+
+Choose any one of these sources. Release URL and Git URL commands work in Bash / Zsh / PowerShell.
+
+**Stable Release URL (recommended; all supported platforms):**
 
 ```text
 pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
 ```
 
-**本地 wheel：** 从 Release 下载并[核验文件](#安装-python-包)后，在下载目录执行。
+**Local wheel:** Download from the Release, [verify the files](#install-the-python-package), and run from the download directory.
 
 ```bash
 pipx install --force ./claude_code_statusline-1.1.0-py3-none-any.whl
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 pipx install --force .\claude_code_statusline-1.1.0-py3-none-any.whl
 ```
 
-自行构建的 wheel 位于项目的 `dist/` 下，相应使用 `dist/文件名.whl` 或 `.\dist\文件名.whl`。
+Locally built wheels are under the project's `dist/`; use `dist/filename.whl` or `.\dist\filename.whl` accordingly.
 
-**固定标签源码：**
+**Source at a fixed tag:**
 
 ```text
 pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0"
 ```
 
-跟踪默认分支时将标签改为 `@main`；升级本地源码时，先更新源码，再在项目根目录执行 `pipx install --force .`。自行构建时先重新生成 wheel。这些来源获取的是相应分支或目录中的代码，文件名应与实际生成的版本一致。
+To follow the default branch, replace the tag with `@main`. For local source upgrades, update the checkout first, then run `pipx install --force .` in the project root. Rebuild the wheel first when building yourself. These sources install code from the specified branch or directory; filenames must match the actual generated version.
 
-### 同步 Claude Code 接入
+<a id="同步-claude-code-接入"></a>
 
-Linux / WSL / macOS：
+### Synchronize Claude Code integration
+
+Linux / WSL / macOS:
 
 ```bash
 claude-statusline --version
@@ -1130,7 +1224,7 @@ claude-statusline doctor
 claude-statusline config show
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 claude-statusline.exe --version
@@ -1139,163 +1233,181 @@ claude-statusline.exe doctor
 claude-statusline.exe config show
 ```
 
-必须重新运行 `install`，以同步 skill 模板、命令路径、hooks 和版本兼容设置；重复执行不会重复添加 hooks。显示偏好、实验功能偏好、token 汇总、Git 缓存和逐轮计时状态位于 Claude 配置目录，不会随 Python 包升级而删除。
+Rerun `install` to synchronize skill templates, command paths, hooks, and version-dependent settings; repeated calls do not duplicate hooks. Display and feature preferences, token summaries, Git caches, and per-turn timing state reside in the Claude configuration directory and survive Python package upgrades.
 
-### 版本兼容
+<a id="版本兼容"></a>
 
-显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1 或 1.1.0 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
+### Version compatibility
 
-schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出规范的 schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
+Display configuration and experimental feature preferences have independent formats, currently schema v2 and schema v1 respectively. Upgrading this tool to 1.0.0, 1.1.0a1, or 1.1.0 introduces no new format conversion; existing schema v2 files remain usable. Earlier schema v1 display configurations follow these rules:
 
-Claude Code 的功能门槛独立于本工具版本：
+Schema v1 remains readable: main items, order, colors, palette, directory, and separator remain intact, with v2 defaults supplied in memory. Simply running `render`, `render-subagents`, `doctor`, or `install` does not rewrite v1. The first actual configuration save backs up the original bytes in the same transaction and writes canonical schema v2. Schema v2 strictly rejects unknown/missing fields, duplicates, and incorrect types; schemas above v2 are rejected. Downgrading to 0.5.0 makes the old program fall back to defaults; restore the pre-upgrade backup to edit the old schema again.
 
-如果已启用实验入口后将 Claude Code 降级到 2.1.258 以下，或暂时无法识别其版本，普通 `install` 会保留偏好、移除活动入口并将其暂挂；升级后再次运行 `install` 即恢复。跨过该版本阈值后应始终运行 `install` 和 `doctor`。
+Claude Code feature thresholds are independent of this tool's version:
 
-子 Agent 支持使用独立的 2.1.205 版本门槛。2.1.205–2.1.213 缺少 per-task effort 时只省略 effort，2.1.214+ 显示完整模型/effort。跨过 2.1.205 升级或降级时也应重跑 `install`：降级会只移除本工具拥有的 `subagentStatusLine` 和两个子 Agent hooks，升级会按 `subagents.enabled` 自动恢复。
+If the experimental entry point is enabled and Claude Code is downgraded below 2.1.258, or its version becomes unrecognizable, a normal `install` retains the preference but removes and suspends the active entry point. After upgrading, rerun `install` to restore it. Always run `install` and `doctor` after crossing this threshold.
 
-带参数 `/statusline-config` 的本地 hook 以 Claude Code 2.1.258 为门槛，重跑 `install` 后按版本增加或移除。低于该版本时由 skill 在模型回合中执行配置命令。历史功能变更见[变更记录](../CHANGELOG.md)。
+Subagent support has its own 2.1.205 threshold. Versions 2.1.205–2.1.213 omit only per-task effort when unavailable; 2.1.214+ shows full model/effort. Rerun `install` after crossing 2.1.205: downgrading removes only the owned `subagentStatusLine` and two subagent hooks, while upgrading restores them according to `subagents.enabled`.
 
-## 卸载
+The local hook for `/statusline-config` with arguments requires Claude Code 2.1.258. Rerunning `install` adds or removes it according to the version. Below this threshold, the skill executes configuration commands in a model turn. See the [changelog](../CHANGELOG.md) for historical changes.
 
-先移除本工具写入 Claude Code 的配置，再卸载 pipx 包：
+<a id="卸载"></a>
+
+## Uninstalling
+
+Remove this tool's Claude Code integration before uninstalling the pipx package:
 
 ```bash
 claude-statusline uninstall
 pipx uninstall claude-code-statusline
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 claude-statusline.exe uninstall
 pipx uninstall claude-code-statusline
 ```
 
-可以先预览：
+Preview first if desired:
 
 ```bash
 claude-statusline uninstall --dry-run
 ```
 
-Windows 对应命令为 `claude-statusline.exe uninstall --dry-run`。
+On Windows, the corresponding command is `claude-statusline.exe uninstall --dry-run`.
 
-卸载器只移除：
+The uninstaller removes only:
 
-- 指向本工具的 `statusLine`。
-- 当前或通用命令匹配本工具的 `subagentStatusLine`。
-- 本工具的生命周期 hooks 和斜杠命令的本地快捷 hook。
-- 本工具拥有的 `/statusline-config`、`/statusline-configure` skill 及所有权标记。
+- `statusLine` pointing to this tool.
+- `subagentStatusLine` matching this tool's current or canonical command.
+- This tool's lifecycle hooks and local slash-command shortcut hook.
+- Owned `/statusline-config` and `/statusline-configure` skills and ownership markers.
 
-卸载器会保留：
+It preserves:
 
-- 其他工具或用户定义的 hooks。
-- 第三方 `subagentStatusLine`。
-- `claude-statusline.json` 显示偏好。
-- `claude-statusline-features.json` 实验启用偏好；之后兼容版本上的普通 `install` 会恢复入口。
-- token、Git 和计时运行状态。
-- 安装器创建的备份。
+- Hooks defined by other tools or the user.
+- Third-party `subagentStatusLine`.
+- Display preferences in `claude-statusline.json`.
+- Experimental preferences in `claude-statusline-features.json`; a later normal `install` on a compatible version restores the entry point.
+- Token, Git, and timer runtime state.
+- Backups created by the installer.
 
-因此以后重新安装时可以继续使用原有显示偏好。若要永久关闭实验入口，先运行 `claude-statusline install --no-experimental-slash-tui`。如需彻底清除其他保留数据，请先确认具体文件路径后再手工处理。
+Reinstallation can therefore reuse existing display preferences. To disable the experimental entry point permanently, run `claude-statusline install --no-experimental-slash-tui` first. For complete removal of other retained data, verify the exact paths before deleting files manually.
 
-## 备份与回滚
+<a id="备份与回滚"></a>
 
-安装、卸载和配置更新产生的备份位于：
+## Backups and rollback
+
+Backups from installation, uninstallation, and configuration updates are stored in:
 
 ```text
 <CLAUDE_CONFIG_DIR>/backups/statusline/cli-<action>-<timestamp>/
 ```
 
-只有实际发生修改时才创建备份。一次事务可能同时记录 `settings.json`、`claude-statusline.json`、feature 文件、两个 skill 和所有权标记的修改前内容。
+Backups are created only for actual changes. One transaction may capture previous contents of `settings.json`, `claude-statusline.json`, the feature file, both skills, and ownership markers.
 
-每个备份目录中的 `metadata.json` 记录：
+Each backup directory's `metadata.json` records:
 
-- 产生备份的 action。
-- 创建时间。
-- 每个原始文件的绝对路径。
-- 修改前状态是 `before` 还是 `absent`。
+- The action that created the backup.
+- Creation time.
+- Each original file's absolute path.
+- Whether its previous state was `before` or `absent`.
 
-`*.before` 包含修改前的原始字节；`*.absent` 表示修改前该文件不存在。手工回滚前先退出相关 Claude Code 会话，根据 `metadata.json` 把 `*.before` 恢复到对应路径；对于 `absent` 条目，回滚含义是让对应目标恢复为不存在。
+`*.before` contains the original bytes; `*.absent` means the file did not previously exist. Before manual rollback, exit relevant Claude Code sessions, then use `metadata.json` to restore each `*.before` to its target path. For `absent` entries, rollback means removing the corresponding target.
 
-正常写入过程中如果后一步失败，工具会自动尝试事务内回滚；备份仍会保留，便于检查。
+If a later step fails during normal writing, the tool automatically attempts transaction rollback. Backups remain available for inspection.
 
-## `doctor` 诊断
+<a id="doctor-诊断"></a>
+
+## `doctor` diagnostics
 
 ```bash
 claude-statusline doctor
 ```
 
-`doctor` 不改写配置文件；macOS 会尝试同步已有配置父目录以报告文件系统能力。它会检查：
+`doctor` does not rewrite configuration. On macOS, it attempts to sync the existing configuration parent directory to report filesystem capabilities. It checks:
 
-- 当前平台和 Python 版本。
-- `claude-statusline` 是否位于 PATH 且可执行；Windows 要求实际 `.exe` 入口。
-- Git 是否可用。
-- `settings.json` 是否有效及其安全模型；Linux/macOS 检查 POSIX mode，Windows 说明 mode 不适用并依赖继承 ACL。
-- `statusLine.command` 和三个宿主字段是否合法。
-- 五个主生命周期 hook 是否各自恰好存在一个。
-- Claude Code 是否满足 2.1.205 子 Agent 门槛、期望的启用状态、`subagentStatusLine` 是 owned/absent/foreign/unsupported，以及两个子 Agent hook 是否精确去重。
-- `/statusline-config` skill 及所有权标记是否正确。
-- 实验 feature 文件是否合法；Linux/macOS 检查 `0600`，Windows 不产生伪权限错误。
-- `/statusline-configure` 是 `disabled`、`enabled` 还是因版本不兼容而 `suspended`；启用时 skill、owner marker、唯一 matcher 和 600 秒 hook 是否完整。
-- Linux 启用实验入口时是否至少安装了 tmux 或 GNOME Terminal；macOS 的本地 Terminal.app 和图形会话条件是否满足、是否另有 tmux；Windows 是否具备系统新控制台能力。诊断不会打开桌面窗口。
-- macOS 架构、14+ 系统范围、curses、进程启动标识、包含睡眠时间的时钟与父目录同步能力；不可用的进程、时钟或目录同步以 WARN 说明降级。
-- Windows 的 `windows-curses` 后端、x86/x64 架构契约与系统新控制台启动器。
-- 显示配置 JSON、schema v1 可迁移状态及其权限是否正确。
-- 当前 Claude Code 版本是否应安装斜杠命令的本地快捷 hook。
-- 运行状态目录是否可写。
+- Current platform and Python version.
+- Whether `claude-statusline` is executable and on PATH; Windows requires an actual `.exe` entry point.
+- Git availability.
+- `settings.json` validity and its security model: POSIX mode on Linux/macOS, inherited ACLs with mode marked inapplicable on Windows.
+- Validity of `statusLine.command` and the three host fields.
+- Exactly one of each of the five main lifecycle hooks.
+- Claude Code's 2.1.205 subagent threshold, the desired enabled state, `subagentStatusLine` ownership state (`owned/absent/foreign/unsupported`), and exact deduplication of the two subagent hooks.
+- Correct `/statusline-config` skill and ownership marker.
+- Valid experimental feature file; `0600` on Linux/macOS, without false permission errors on Windows.
+- Whether `/statusline-configure` is `disabled`, `enabled`, or `suspended` due to version incompatibility; when enabled, completeness of the skill, owner marker, unique matcher, and 600-second hook.
+- At least tmux or GNOME Terminal for an enabled experimental entry point on Linux; local Terminal.app and graphical-session conditions plus tmux availability on macOS; system new-console capability on Windows. Diagnostics do not open desktop windows.
+- macOS architecture, the 14+ OS range, curses, process start identity, sleep-inclusive clock, and parent-directory sync. Unavailable process, clock, or sync capabilities produce WARN degradation messages.
+- Windows `windows-curses` backend, x86/x64 architecture contract, and system new-console launcher.
+- Display JSON, schema v1 migration status, and permissions.
+- Whether the current Claude Code version requires a local slash-command shortcut hook.
+- Writable runtime-state directory.
 
-诊断级别与退出码：
+Diagnostic levels and exit codes:
 
-- `[OK]`：检查通过。
-- `[WARN]`：功能可继续使用，但存在降级，例如缺少 Git，或旧版 Claude Code 只能由模型回合执行配置命令。只有 WARN 时退出码仍为 0。
-- `[ERROR]`：安装或配置不完整；只要存在 ERROR，`doctor` 的退出码就是 1。
+- `[OK]`: check passed.
+- `[WARN]`: functionality remains usable with degradation, such as missing Git or an older Claude Code version requiring model turns for configuration commands. Warnings alone still return 0.
+- `[ERROR]`: installation or configuration is incomplete; any ERROR makes `doctor` return 1.
 
-一般修复流程：
+Typical repair sequence:
 
 ```bash
 claude-statusline install
 claude-statusline doctor
 ```
 
-如果 `install` 报告冲突，先检查它指出的现有配置；只有确认替换符合预期后才加 `--force`。
+If `install` reports a conflict, inspect the existing configuration it identifies; add `--force` only when replacement is intended.
 
-## 故障排查
+<a id="故障排查"></a>
 
-### 状态栏不显示
+## Troubleshooting
 
-1. 运行 `claude-statusline doctor`。
-2. 确认 `claude-statusline` 位于 PATH。
-3. 确认没有通过 `config set-items` 把 `items` 设为空。
-4. 查看 `settings.json` 中是否存在指向本工具的 `statusLine.command`。
-5. 如果 Claude Code 提示 statusline 因 trust 被跳过，重启 Claude Code 并接受对应信任提示。
-6. 检查是否启用了会统一禁用 hooks/statusline 的 Claude Code 设置。
+<a id="状态栏不显示"></a>
 
-### 子 Agent 行不显示或发生所有权冲突
+### Status line does not appear
 
-先运行 `claude --version` 和 `claude-statusline doctor`。Claude Code 低于 2.1.205 或版本不可识别时，主栏可用但子 Agent 设置/hooks 会暂挂；升级并重跑 `claude-statusline install`。如果 `doctor` 报告 `foreign`，选择其一：
+1. Run `claude-statusline doctor`.
+2. Confirm that `claude-statusline` is on PATH.
+3. Confirm that `config set-items` has not emptied `items`.
+4. Check for `statusLine.command` pointing to this tool in `settings.json`.
+5. If Claude Code skips the status line because of trust, restart Claude Code and accept the relevant trust prompt.
+6. Check for Claude Code settings that disable hooks/status lines globally.
+
+<a id="子-agent-行不显示或发生所有权冲突"></a>
+
+### Subagent rows are missing or ownership conflicts occur
+
+Run `claude --version` and `claude-statusline doctor` first. Below Claude Code 2.1.205 or with an unrecognized version, the main line works but subagent settings/hooks are suspended; upgrade and rerun `claude-statusline install`. If `doctor` reports `foreign`, choose one:
 
 ```bash
-# 明确接管第三方子 Agent 行
+# Explicitly take over third-party subagent rows
 claude-statusline install --force
 
-# 保留第三方实现，只关闭本工具的自定义行目标
+# Keep the third-party implementation and disable only this tool's custom-row target
 claude-statusline config set subagent-statusline off
 claude-statusline install
 ```
 
-若 `subagents.items` 为空或 `subagents.enabled` 为 false，本工具的 renderer 会按协议返回空 content。进入子 Agent transcript 后底部全局栏仍属于主 Agent/session，这是 Claude 未提供当前焦点 ID 的既定边界。
+If `subagents.items` is empty or `subagents.enabled` is false, this renderer returns empty content as required by the protocol. After entering a subagent transcript, the global bottom line still belongs to the main agent/session because Claude provides no current-focus ID.
 
-### `/statusline-config` 不可见
+<a id="statusline-config-不可见"></a>
+
+### `/statusline-config` is missing
 
 ```bash
 claude-statusline install
 claude-statusline doctor
 ```
 
-确认 doctor 中 `/statusline-config skill` 为 OK。若安装是在当前 Claude Code 会话启动后完成，可新开一个会话再次检查命令发现情况。
+Confirm that `/statusline-config skill` is OK in doctor. If installation happened after the current Claude Code session started, open a new session and check command discovery again.
 
-### `/statusline-configure` 不可见或显示 suspended
+<a id="statusline-configure-不可见或显示-suspended"></a>
 
-先确认已经显式启用，并同步当前 Claude Code 版本：
+### `/statusline-configure` is missing or suspended
+
+Confirm explicit enabling and synchronize with the current Claude Code version:
 
 ```bash
 claude --version
@@ -1303,29 +1415,33 @@ claude-statusline install --experimental-slash-tui
 claude-statusline doctor
 ```
 
-版本低于 2.1.258 或无法识别时，显式启用会在写入前失败。已启用后发生降级时，普通 `install` 保留偏好但暂挂并移除活动 skill/hook，所以 slash 菜单中不会显示该命令。升级到兼容版本后重新运行普通 `install`，再新开 Claude Code 会话。
+Explicit enabling fails before writing below 2.1.258 or with an unrecognized version. After an enabled installation is downgraded, normal `install` retains the preference but suspends and removes the active skill/hook, hiding the command from the slash menu. Upgrade to a compatible version, rerun normal `install`, and open a new Claude Code session.
 
-### 实验入口无法打开新终端
+<a id="实验入口无法打开新终端"></a>
 
-tmux 路径要求 hook 环境中同时存在有效的 `TMUX`、形如 `%<数字>` 的 `TMUX_PANE`，且 2 秒预检查能访问目标 server/pane。Linux 目标失效时会尝试 GNOME；macOS 改为检查本地图形会话和 Terminal.app；缺少条件时提示独立命令。若已成功选择 tmux，popup 内失败不会二次启动其他终端。
+### Experimental entry point cannot open a terminal
 
-macOS Terminal 路径要求本地图形会话、系统 Terminal.app、`/usr/bin/open` 和可用的进程启动标识。启动后 30 秒内没有握手会返回错误；先检查窗口是否打开以及 Python 是否提供 curses。`doctor` 只检查条件，不打开窗口。SSH 中改用独立命令；Terminal 窗口在结束后仍保留时，按 Terminal 的窗口关闭偏好处理。
+The tmux path requires valid `TMUX`, `TMUX_PANE` shaped as `%<digits>`, and access to the target server/pane within a 2-second preflight check in the hook environment. An invalid Linux target falls back to GNOME; macOS checks the local graphical session and Terminal.app instead. Missing prerequisites lead to a standalone-command suggestion. Once tmux is selected successfully, failure inside the popup does not launch another terminal.
 
-GNOME 路径要求 `DISPLAY` 或 `WAYLAND_DISPLAY`、可执行的 `gnome-terminal` 和可用的用户 D-Bus/图形会话。D-Bus 启动错误会作为短错误返回原 Claude 对话。Linux 两种启动器都不可用，或 macOS 没有有效 tmux 及本地 Terminal.app 条件时，直接在终端运行：
+The macOS Terminal path requires a local graphical session, system Terminal.app, `/usr/bin/open`, and usable process start identity. No handshake within 30 seconds produces an error; first check whether a window opened and Python provides curses. `doctor` checks conditions without opening a window. Over SSH, use the standalone command. If Terminal retains its window after completion, adjust Terminal's window-closing preferences.
+
+GNOME requires `DISPLAY` or `WAYLAND_DISPLAY`, executable `gnome-terminal`, and a usable user D-Bus/graphical session. D-Bus startup errors return a short error to the original Claude conversation. If neither Linux launcher is available, or macOS lacks valid tmux and local Terminal.app conditions, run directly in a terminal:
 
 ```bash
 claude-statusline configure
 ```
 
-Windows 使用系统默认终端承载 `CREATE_NEW_CONSOLE`。若关窗、子进程异常退出或未生成可信结果，原对话会立即收到错误；直接排查时在 PowerShell 中运行 `claude-statusline.exe configure`。确认 `doctor` 的 `windows-curses backend` 与 `Windows system new-console launcher` 均为 OK。
+Windows hosts `CREATE_NEW_CONSOLE` in the system default terminal. Closing the window, abnormal child exit, or absence of a trusted result immediately returns an error to the original conversation. Diagnose directly with `claude-statusline.exe configure` in PowerShell. Confirm that `windows-curses backend` and `Windows system new-console launcher` are both OK in `doctor`.
 
-若 hook 在 600 秒结束，TUI 通常应已在 570 秒自行超时。检查 `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/` 时，不要手工跟随或删除不明符号链接；工具只自动清理超过 24 小时、符合自身命名前缀且不含符号链接的残留。
+When the hook ends after 600 seconds, the TUI should normally already have timed out at 570 seconds. When inspecting `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/`, do not manually follow or delete unknown symbolic links. Automatic cleanup handles only remnants older than 24 hours that match this tool's naming prefix and contain no symbolic links.
 
-若启用了 `disableAllHooks`，本地启动器不会运行。回退 skill 会提示这一点，并禁止 Bash/PowerShell 自行启动 curses；该例外可能产生一个极短模型回合。重新启用 hooks 后新开会话再试。
+With `disableAllHooks`, the local launcher does not run. The fallback skill explains this and prohibits launching curses through Bash/PowerShell; this exception may use a very short model turn. Reenable hooks and try a new session.
 
-### 带参数的 slash 命令仍进入模型
+<a id="带参数的-slash-命令仍进入模型"></a>
 
-这通常表示 Claude Code 版本低于 2.1.258、版本无法识别，或本地快捷 hook 未同步。检查：
+### Slash commands with arguments still enter the model
+
+Usually Claude Code is below 2.1.258, its version is unrecognized, or the local shortcut hook is unsynchronized. Check:
 
 ```bash
 claude --version
@@ -1333,111 +1449,129 @@ claude-statusline doctor
 claude-statusline install
 ```
 
-旧版由模型回合执行配置命令是预期的兼容行为，不会改变命令语义。
+Execution through a model turn on older versions is expected compatibility behavior and does not change command semantics.
 
-### 配置命令提示 statusLine 不属于本工具
+<a id="配置命令提示-statusline-不属于本工具"></a>
 
-`padding`、`refresh-interval`、`hide-vim-mode-indicator` 和完整 `apply` 需要修改 Claude Code 的 `settings.json`。为保护其他 statusline，这些操作要求当前 `statusLine.command` 指向当前可执行文件。
+### Configuration commands report that statusLine belongs to another tool
 
-先检查：
+`padding`, `refresh-interval`, `hide-vim-mode-indicator`, and full `apply` modify Claude Code's `settings.json`. To protect other status lines, these operations require `statusLine.command` to point to the current executable.
+
+First inspect:
 
 ```bash
 claude-statusline config show
 claude-statusline doctor
 ```
 
-如果确实要让本工具接管 statusline，再运行 `claude-statusline install`。显示项、颜色、palette、目录和分隔符则可以在安装前配置。
+If you intend this tool to manage the status line, run `claude-statusline install`. Display items, colors, palette, directory style, and separator can be configured before installation.
 
-### JSON 配置损坏
+<a id="json-配置损坏"></a>
 
-renderer 会继续使用默认显示，但诊断和普通写命令会报错。恢复默认配置：
+### Corrupted JSON configuration
+
+The renderer continues with defaults, but diagnostics and normal writes report errors. Restore defaults:
 
 ```bash
 claude-statusline config reset
 claude-statusline doctor
 ```
 
-如需保留手工配置内容，先从最近的备份中恢复或修正 JSON，再运行 doctor。
+To preserve manual edits, restore from the latest backup or repair the JSON before running doctor.
 
-### Git 信息缺失或显示 `Git!`
+<a id="git-信息缺失或显示-git"></a>
 
-Linux / WSL / macOS：
+### Git information is missing or shows `Git!`
+
+Linux / WSL / macOS:
 
 ```bash
 command -v git
 git -C /path/to/project status --porcelain=v2 --branch --ahead-behind
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 Get-Command git
 git -C 'C:\Path With Spaces\project' status --porcelain=v2 --branch --ahead-behind
 ```
 
-非 Git 目录不显示 Git 项是正常行为。`Git!` 表示 Git 调用缺失、超时或结果无法解析。禁用 `git` 后 renderer 不再执行 Git 查询：
+Omitting Git outside a repository is normal. `Git!` means the Git command is missing, timed out, or returned unparseable output. Disabling `git` stops renderer Git queries:
 
 ```bash
 claude-statusline config disable git
 ```
 
-### Token 或计时器暂时不显示
+<a id="token-或计时器暂时不显示"></a>
 
-这些条目依赖 Claude Code 提供的 session ID、transcript 路径和生命周期事件。在第一次真实模型响应前、特殊本地命令期间或 transcript 尚未产生时，暂时省略是正常行为。
+### Tokens or timer are temporarily missing
 
-若计时器存在但运行中数字不连续变化，检查是否使用了事件刷新：
+These items depend on Claude Code's session ID, transcript path, and lifecycle events. Temporary omission is normal before the first real model response, during special local commands, or before a transcript exists.
+
+If the timer appears but does not advance continuously while running, check whether refresh is event-only:
 
 ```bash
 claude-statusline config show
 claude-statusline config set refresh-interval 1
 ```
 
-### 输出在窄终端中换成多行
+<a id="输出在窄终端中换成多行"></a>
 
-这是预期行为。renderer 使用终端的 `COLUMNS`，预留 2 个字符后打包各段；字段不会因为窗口过窄而被静默截断。增大终端宽度、使用 `compact` 分隔符、选择更短的目录样式，或隐藏次要条目可以减少换行。
+### Output wraps into multiple lines in narrow terminals
 
-## 退出码
+This is expected. The renderer packs segments within terminal `COLUMNS` after reserving 2 characters; narrow windows do not silently truncate fields. Increase width, use `compact` separators, choose a shorter directory style, or hide secondary items to reduce wrapping.
 
-管理命令遵循以下约定：
+<a id="退出码"></a>
 
-- `0`：命令成功；`doctor` 没有 ERROR。
-- `1`：`doctor` 至少发现一个 ERROR。
-- `2`：参数、配置、所有权或安装操作校验失败。
-- `130`：交互式 TUI 收到 Ctrl+C/SIGINT，终端已恢复且配置未保存。
-- `128 + signal`：交互式 TUI 收到当前平台实际提供的终止信号，终端已恢复且配置未保存。
+## Exit codes
 
-高频内部命令 `render`、`render-subagents`、`hook` 和 `slash-hook` 对损坏或无关输入采用静默容错，避免自身错误阻塞 Claude Code。
+Management commands follow these conventions:
 
-## 当前边界
+- `0`: success; `doctor` found no ERROR.
+- `1`: `doctor` found at least one ERROR.
+- `2`: argument, configuration, ownership, or installation-operation validation failed.
+- `130`: interactive TUI received Ctrl+C/SIGINT; the terminal is restored and configuration is not saved.
+- `128 + signal`: interactive TUI received a termination signal available on the current platform; the terminal is restored and configuration is not saved.
 
-- 当前源码支持 Linux/WSL Python 3.10+、Windows 10/11 上 CPython 3.10–3.14 x86/x64，以及 macOS 14+ 上 CPython 3.10–3.14 Intel / Apple Silicon。
-- macOS 桌面启动器支持 Terminal.app；其他终端可使用独立 `configure` 或 tmux popup。
-- Windows ARM64 原生 Python 暂不承诺；ARM 设备使用 x64 Python 仿真。
-- 配置仅为用户全局，不提供项目级配置。
-- 除本地 `socket.gethostname()` 提供的可选 hostname 外，不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
-- 不跟随 Claude Code `/theme`；`default` palette 使用本项目固定 RGB 色值。
-- 不提供 Claude Code 原生 TUI 扩展；Linux 实验入口使用 tmux/GNOME，macOS 使用 tmux/Terminal.app，Windows 使用系统新控制台，并复用同一独立 TUI。
-- Linux/macOS 不访问 `/dev/tty`；三个平台都不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
-- 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks，或平台所列启动器之外的终端环境中打开实验 TUI。
-- 不提供鼠标、拖拽或自定义键位。
-- 计时完成判定只纳入普通 Agent 类 task 的生命周期；后台 shell、server、monitor、workflow 和 agent-team 专用账本不纳入完成阻塞。
-- 不提供 per-agent 历史账本、Git、cache hit/miss/out 或 session 聚合；子 Agent 行只显示 Claude 当前 payload。
-- 不猜测当前焦点 Agent；全局底栏始终是主 Agent/session 范围。
+Frequent internal commands `render`, `render-subagents`, `hook`, and `slash-hook` silently tolerate corrupted or unrelated input to avoid blocking Claude Code with their own errors.
 
-## 附录：开发与测试
+<a id="当前边界"></a>
 
-### 准备开发环境
+## Current limitations
 
-先克隆仓库并进入项目根目录（Bash / PowerShell 通用）：
+- Current source supports Linux/WSL Python 3.10+, Windows 10/11 CPython 3.10–3.14 x86/x64, and macOS 14+ CPython 3.10–3.14 Intel / Apple Silicon.
+- The macOS desktop launcher supports Terminal.app; other terminals can use standalone `configure` or tmux popup.
+- Native Windows ARM64 Python is not currently guaranteed; use x64 Python emulation on ARM devices.
+- Configuration is global per user; there is no project-level configuration.
+- Apart from optional local hostname via `socket.gethostname()`, metrics come only from Claude Code payloads, local Git, and transcripts.
+- Claude Code `/theme` is not followed; `default` palette uses this project's fixed RGB colors.
+- There is no native Claude Code TUI extension. The experimental entry point uses tmux/GNOME on Linux, tmux/Terminal.app on macOS, and the system new console on Windows, reusing the standalone TUI.
+- Linux/macOS do not access `/dev/tty`. None of the three platforms writes CSI/alternate-screen sequences to the Claude pane, bypasses hook stdio, caches the current session payload, or persists disabled-item ordering.
+- Experimental TUI launching is not guaranteed in IDEs, `claude -p`, remote Web environments, globally disabled hooks, or terminal environments outside the listed platform launchers.
+- Mouse, drag-and-drop, and custom keybindings are not provided.
+- Completion timing includes only ordinary agent-task lifecycles; background shell, server, monitor, workflow, and agent-team-specific ledgers do not block completion.
+- There is no per-agent historical ledger, Git, cache hit/miss/out, or session aggregation; subagent rows show only Claude's current payload.
+- Agent focus is not inferred; the global bottom line always describes the main agent/session.
+
+<a id="附录开发与测试"></a>
+
+## Appendix: development and testing
+
+<a id="准备开发环境"></a>
+
+### Prepare a development environment
+
+Clone the repository and enter the project root (Bash / PowerShell):
 
 ```text
 git clone https://github.com/fbincon/claude-code-statusline.git
 cd claude-code-statusline
 ```
 
-已有源码时直接进入项目根目录。开发环境与 pipx 的用户安装相互独立。
+For an existing checkout, enter its root directly. The development environment is independent of the user's pipx installation.
 
-Linux / WSL / macOS：
+Linux / WSL / macOS:
 
 ```bash
 python3 -m venv .venv-dev
@@ -1445,16 +1579,18 @@ source .venv-dev/bin/activate
 python -m pip install -e . ruff build
 ```
 
-Windows PowerShell（使用已安装的受支持 Python；此处以 3.10 为例）：
+Windows PowerShell, using an installed supported Python (3.10 here):
 
 ```powershell
 py -3.10 -m venv .venv-dev
 .\.venv-dev\Scripts\python.exe -m pip install -e . ruff build
 ```
 
-### 运行检查
+<a id="运行检查"></a>
 
-Linux / WSL / macOS 在已激活的开发环境中执行：
+### Run checks
+
+On Linux / WSL / macOS, run in the activated development environment:
 
 ```bash
 python -m unittest discover -s tests -v
@@ -1462,7 +1598,7 @@ python -m ruff check --select F,E9 src tests
 python -m build
 ```
 
-Windows PowerShell 直接使用虚拟环境的解释器，无需执行激活脚本：
+On Windows PowerShell, call the virtual-environment interpreter directly without an activation script:
 
 ```powershell
 .\.venv-dev\Scripts\python.exe -m unittest discover -s tests -v
@@ -1470,13 +1606,15 @@ Windows PowerShell 直接使用虚拟环境的解释器，无需执行激活脚�
 .\.venv-dev\Scripts\python.exe -m build
 ```
 
-GitHub Actions 在推送和拉取请求时运行 `ubuntu-latest`、`windows-latest`，以及 `macos-15-intel`、`macos-15`、`macos-26-intel`、`macos-26`，均覆盖 Python 3.10/3.14；显式选择原生架构，ARM64 的 3.10 固定为 3.10.11。Windows 检查 `windows-curses` 并执行 PowerShell/Git Bash smoke；Linux/macOS 准备 tmux 并执行 PTY/popup 集成和安装包 CLI smoke。macOS 还执行 Terminal 辅助进程的原生 PTY 生命周期测试；桌面 Terminal.app smoke 需显式运行，默认测试不打开桌面窗口。构建任务检查版本、条件依赖、平台/Terminal 模块、skills 和所有平台截图。具体结果以[对应提交的 Actions 记录](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)为准。
+GitHub Actions runs on push and pull requests across `ubuntu-latest`, `windows-latest`, `macos-15-intel`, `macos-15`, `macos-26-intel`, and `macos-26`, covering Python 3.10/3.14 with explicit native architectures; ARM64 Python 3.10 is pinned to 3.10.11. Windows checks `windows-curses` and runs PowerShell/Git Bash smoke tests. Linux/macOS prepare tmux and run PTY/popup integration plus installed-package CLI smoke tests. macOS also runs native PTY lifecycle tests for the Terminal helper; desktop Terminal.app smoke is explicit and default tests do not open desktop windows. The build job checks versions, conditional dependencies, platform/Terminal modules, skills, and all platform screenshots. Refer to [Actions for the relevant commit](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml) for results.
 
-### 从源码构建与安装
+<a id="从源码构建与安装"></a>
 
-在项目根目录执行；如果只需要构建包，可使用独立构建环境。
+### Build and install from source
 
-Linux / WSL / macOS：
+Run in the project root; an independent build environment is sufficient when only building packages.
+
+Linux / WSL / macOS:
 
 ```bash
 python3 -m venv .venv-build
@@ -1487,7 +1625,7 @@ pipx install dist/claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 py -3.10 -m venv .venv-build
@@ -1497,59 +1635,63 @@ pipx install .\dist\claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-上述文件名对应 1.1.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
+These filenames correspond to 1.1.0; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](#integrate-with-claude-code).
 
-可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.1.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.md)。
+In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.1.0-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](RELEASING.md) for the complete process.
 
-### 隔离测试与人工验收
+<a id="隔离测试与人工验收"></a>
 
-macOS 用户可在安装了当前 wheel 的 Python 虚拟环境中，显式执行 Terminal.app smoke：
+### Isolated testing and manual acceptance
+
+On macOS, explicitly run the Terminal.app smoke test in a Python virtual environment with the current wheel installed:
 
 ```bash
 .venv-wheel-check/bin/python tests/macos_terminal_smoke.py
 ```
 
-该命令打开 Terminal.app，使用临时配置和缩短期限的生产 TUI 检查终端、结果回传及清理，不调用 Claude API。
+This opens Terminal.app and uses temporary configuration with shortened deadlines in the production TUI to check terminal behavior, result bridging, and cleanup, without calling the Claude API.
 
-自动验收应先对临时 `CLAUDE_CONFIG_DIR` 执行 install dry-run、install、doctor、幂等重装、冲突回滚和 uninstall，绝不触碰真实配置。代码和安装事务通过后，再由用户决定是否把 wheel 安装到真实配置。
+Automated acceptance should run install dry-run, install, doctor, idempotent reinstall, conflict rollback, and uninstall against temporary `CLAUDE_CONFIG_DIR`, never real configuration. After code and installation transactions pass, the user decides whether to install the wheel into real configuration.
 
-真实多 Agent 视觉检查会产生模型费用，工具不会自动发起。用户参与的最终人工验收应检查：默认由本工具管理的 `subagentStatusLine` 和两个唯一 hooks；无子 Agent 时主栏显示正确；两个不同模型/effort 的并行 Agent 各自显示正确行；主栏计时器依次显示 Agent 数量和 `main wrap-up`；最终主 `Stop` 冻结完整用时；进入子 Agent transcript 时全局栏只声明 `Main/Session`；最后运行 `doctor`，并确认 `uninstall --dry-run` 只命中本工具拥有的配置。
+Real multi-agent visual checks incur model costs and are not started automatically. User-assisted final acceptance should verify: owned default `subagentStatusLine` and two unique hooks; correct main line without subagents; correct rows for two concurrent agents with distinct model/effort; timer progression through agent count and `main wrap-up`; final main `Stop` freezing total duration; global `Main/Session` scope when viewing a subagent transcript; final `doctor`; and `uninstall --dry-run` matching only owned configuration.
 
-## 附录：内部命令
+<a id="附录内部命令"></a>
 
-以下四个命令主要由 Claude Code 调用，不是日常配置接口：
+## Appendix: internal commands
+
+These four commands are mainly called by Claude Code and are not everyday configuration interfaces:
 
 ### `render`
 
-从 stdin 读取 Claude Code statusline JSON，根据当前配置向 stdout 输出一行或多行状态栏文本。无效输入时保持静默，以免错误内容污染 Claude Code UI。
+Read Claude Code status-line JSON from stdin and output one or more status-line text rows to stdout using current configuration. Invalid input is silent so errors do not pollute the Claude Code UI.
 
-可以使用模拟输入做基础排查。Linux / WSL / macOS（按 120 列渲染）：
+Use simulated input for basic troubleshooting. Linux / WSL / macOS, rendered at 120 columns:
 
 ```bash
 printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"/tmp"}}' \
   | COLUMNS=120 claude-statusline render
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"C:\\demo"}}' | claude-statusline.exe render
 ```
 
-这些示例会读取当前配置目录中的 `claude-statusline.json`，输出取决于当前启用项。自动化检查应将 `CLAUDE_CONFIG_DIR` 指向临时目录。
+These examples read `claude-statusline.json` from the current configuration directory, so output depends on enabled items. Automated checks should point `CLAUDE_CONFIG_DIR` to a temporary directory.
 
 ### `render-subagents`
 
-从 stdin 读取 Claude Code 官方 `subagentStatusLine` JSON，并把每个有效 task 渲染为一行 `{"id":"...","content":"..."}` NDJSON。顶层 JSON、`tasks` 或单项字段损坏时静默降级且退出码仍为 0；stdout 只包含协议结果，renderer 不扫描 transcript、Git、网络或运行状态。
+Read official Claude Code `subagentStatusLine` JSON from stdin and render each valid task as one `{"id":"...","content":"..."}` NDJSON line. Invalid top-level JSON, `tasks`, or individual fields degrade silently with exit code 0. Stdout contains only protocol results; the renderer does not scan transcripts, Git, the network, or runtime state.
 
-Linux / WSL / macOS：
+Linux / WSL / macOS:
 
 ```bash
 printf '%s\n' '{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' \
   | claude-statusline render-subagents
 ```
 
-Windows PowerShell：
+Windows PowerShell:
 
 ```powershell
 '{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' | claude-statusline.exe render-subagents
@@ -1557,17 +1699,21 @@ Windows PowerShell：
 
 ### `hook`
 
-从 stdin 读取 Claude Code 生命周期事件，静默更新本地 prompt 计时状态。它被设计为即使输入损坏也不阻塞 Claude Code 回合。
+Read Claude Code lifecycle events from stdin and silently update local prompt-timing state. Corrupted input is designed not to block Claude Code turns.
 
 ### `slash-hook`
 
-从 stdin 读取 `UserPromptExpansion` 事件。它处理名为 `statusline-config` 且带参数的本地快捷命令，也处理已启用的无参数 `statusline-configure` 启动请求。前者无参数时放行给问答 skill；后者一经识别始终输出一个 `decision: "block"` JSON，子进程退出码只转换为结果文本。无关事件和损坏输入会静默放行。
+Read `UserPromptExpansion` events from stdin. Handle local `statusline-config` shortcuts with arguments and enabled no-argument `statusline-configure` launch requests. No-argument `statusline-config` passes through to the wizard skill; recognized `statusline-configure` always emits a `decision: "block"` JSON, translating child exit codes only into result text. Unrelated events and corrupted input pass through silently.
 
-## 附录：实现说明
+<a id="附录实现说明"></a>
 
-### 平台执行与文件安全
+## Appendix: implementation notes
 
-Linux/macOS 安装器向 Claude Code 设置写入带 POSIX 引号的绝对可执行文件路径。Windows 写入可由 Git Bash 与 PowerShell 执行的命令名，因此必须能从 `PATH` 解析 `claude-statusline.exe`：
+<a id="平台执行与文件安全"></a>
+
+### Platform execution and file safety
+
+On Linux/macOS, the installer writes absolute executable paths with POSIX quoting into Claude Code settings. Windows writes command names executable through both Git Bash and PowerShell, requiring `claude-statusline.exe` on `PATH`:
 
 ```text
 claude-statusline.exe render
@@ -1576,51 +1722,57 @@ claude-statusline.exe hook
 claude-statusline.exe slash-hook
 ```
 
-Windows skill 使用 `claude-statusline.exe config ...`，只预授权 `Bash(claude-statusline.exe config *)` 与 `PowerShell(claude-statusline.exe config *)`；Linux/macOS skill 仅预授权安装时绝对路径对应的 Bash 命令。Claude Code 在 Windows 上优先通过 Git Bash、缺失时通过 PowerShell 执行 statusline 命令，所以 settings 中四个内部命令统一使用裸 `.exe`，不写入会被 Git Bash 解释为转义符的反斜杠绝对路径。参见 [Claude Code Statusline 的 Windows 约定](https://code.claude.com/docs/en/statusline)。
+The Windows skill uses `claude-statusline.exe config ...`, preauthorizing only `Bash(claude-statusline.exe config *)` and `PowerShell(claude-statusline.exe config *)`. Linux/macOS authorize only Bash commands for the installed absolute path. Claude Code prefers Git Bash for Windows status-line commands and falls back to PowerShell, so all four internal commands use bare `.exe` names rather than backslash-containing absolute paths that Git Bash would interpret as escapes. See [Claude Code's Windows status-line conventions](https://code.claude.com/docs/en/statusline).
 
-Windows 的 NTFS `st_mode` 不是可靠的 POSIX 权限信息，`doctor` 会报告 mode 检查不适用；文件安全依赖用户 Claude 配置目录继承的 Windows ACL。结果回传仍会拒绝符号链接、junction、其他 reparse point、越界路径、非普通文件和超过 16 KiB 的结果。
+NTFS `st_mode` on Windows is not reliable POSIX permission information; `doctor` reports mode checks as inapplicable. File safety relies on inherited Windows ACLs in the user's Claude configuration directory. Result bridging still rejects symlinks, junctions, other reparse points, paths outside the expected directory, nonregular files, and results above 16 KiB.
 
-### 配置写入与并发
+<a id="配置写入与并发"></a>
 
-配置、token 缓存、Git 缓存与逐轮状态写入使用同目录临时文件、文件 `fsync` 和原子替换。Linux/macOS 应用 `0600/0700`、同步父目录，并使用 `fcntl.flock`；Windows 使用继承的用户 ACL、`msvcrt` 固定字节锁，并对短暂 sharing violation/access denied 做有上限的重试。多个并发配置命令共享同一把跨平台文件锁，避免后写入者丢失先写入者的变更。
+### Configuration writes and concurrency
 
-macOS 文件系统对父目录同步返回 `EINVAL`、`ENOTSUP/EOPNOTSUPP` 时，保留文件 `fsync` 与原子替换并由 `doctor` 和 CI 报告降级；其他 I/O 或权限错误继续传播。不额外调用 `F_FULLFSYNC`。
+Configuration, token caches, Git caches, and per-turn state use same-directory temporary files, file `fsync`, and atomic replacement. Linux/macOS apply `0600/0700`, sync parent directories, and use `fcntl.flock`. Windows uses inherited user ACLs and `msvcrt` fixed-byte locks, with bounded retries for transient sharing violations/access denied. Concurrent configuration commands share one cross-platform lock to avoid lost updates.
 
-macOS 的会话进程标识使用 `/bin/ps -o lstart= -p PID`，固定 `LC_ALL=C` 与 `TZ=UTC`，保留输出内部空格；先筛选匹配会话再查询进程，超时 1 秒或查询失败时不信任该注册记录。计时使用 LibSystem 的 `mach_continuous_time()` 与 `mach_timebase_info()` 整数换算，结合 `kern.bootsessionuuid` 检查跨进程重启；任一接口不可用时整组回退墙钟。
+If macOS parent-directory sync returns `EINVAL` or `ENOTSUP/EOPNOTSUPP`, file `fsync` and atomic replacement remain, and `doctor`/CI report degradation. Other I/O or permission errors propagate. No additional `F_FULLFSYNC` is used.
 
-全局 Enter 只调用一次现有原子配置事务。无变化不会创建备份；有变化时仍使用单次备份、双文件写入与失败回滚。TUI 启动时记录语义基准，保存时在同一安装锁内检查 display、host 和安装归属；编辑期间如被其他进程修改，会在创建备份和写文件前拒绝。`settings.json` 中与 statusline 无关的字段变化不构成冲突，并会基于锁内最新文件合并保留。
+macOS session process identity uses `/bin/ps -o lstart= -p PID` with `LC_ALL=C` and `TZ=UTC`, preserving internal spaces. Matching sessions are filtered before process queries; a 1-second timeout or query failure makes the registry record untrusted. Timing uses integer conversion of LibSystem `mach_continuous_time()` and `mach_timebase_info()`, plus `kern.bootsessionuuid` for cross-process reboot detection. If any interface is unavailable, the whole group falls back to wall-clock time.
 
-### 实验启动器与结果回传
+Global Enter calls the existing atomic configuration transaction once. No changes means no backup; changes use one backup, two-file writes, and rollback on failure. The TUI records a semantic baseline at startup and checks display, host, and installation ownership within the same installation lock before saving. External changes during editing are rejected before backup or writing. Unrelated `settings.json` changes do not conflict and are preserved by merging into the latest file under the lock.
 
-这不是 Claude Code 原生 TUI 扩展，也没有绕过 hook 的终端隔离。Claude Code 2.1.259 的 command hook 在没有控制终端的新 session 中执行，hook 及其子进程不能打开 `/dev/tty`，`terminalSequence` 也不能绘制 curses 界面。因此本工具只把 slash command 用作本地启动器，并在另一个受支持的终端环境中运行已经存在的 `claude-statusline configure`；状态机、样例预览、并发检测和原子保存没有复制实现。
+<a id="实验启动器与结果回传"></a>
 
-Linux 启动器按以下顺序选择：
+### Experimental launchers and result bridging
 
-1. `TMUX` 与形如 `%<数字>` 的 `TMUX_PANE` 都有效、`tmux` 可执行，且最长 2 秒的只读预检查能在当前 server 中解析该 pane 时，在当前客户端打开标题为 `Configure Status Line` 的 `90% × 90%` popup。popup 存在期间 tmux 暂停底层 pane 更新，子进程退出后自动关闭。
-2. tmux 不可用或预检查失败，但存在 `DISPLAY`/`WAYLAND_DISPLAY` 且可执行 `gnome-terminal` 时，在最近使用的 GNOME Terminal 窗口打开活动新标签页；没有现存窗口时 GNOME 可以创建窗口。命令使用 `--wait` 等待标签页中的 TUI 退出。
-3. 两者都不可用时阻断 slash expansion，不调用模型，并提示在终端运行 `claude-statusline configure` 或改用 `/statusline-config`。
+This is not a native Claude Code TUI extension and does not bypass hook terminal isolation. Claude Code 2.1.259 command hooks run in a new session without a controlling terminal: hooks and children cannot open `/dev/tty`, and `terminalSequence` cannot draw curses. The slash command therefore serves only as a local launcher for existing `claude-statusline configure` in another supported terminal. It reuses the existing state machine, sample preview, concurrency detection, and atomic save.
 
-macOS 优先复用上述 tmux 路径；缺少有效 server/pane 或预检查失败时，通过最长 2 秒的 `launchctl print gui/<uid>` 只读检查验证本地图形会话，并检查系统 Terminal.app 与 `open`。SSH 会话不启动桌面 Terminal，macOS 不选择 GNOME。
+Linux chooses launchers in this order:
 
-Terminal 路径使用 `/usr/bin/open -b com.apple.Terminal` 打开私有 `0700` 的 `.command` 文件，文件启动当前 Python 和包中的内部辅助模块。Python、CLI、配置目录与工作目录使用绝对路径，PATH 和包搜索路径显式传递，所有 shell 值均引用。`open` 的退出码仅表示启动请求已处理；30 秒启动握手确认编辑器进程身份，随后通过现有 schema v1 结果桥等待 TUI 完成。无需 AppleScript 自动化授权，也不修改 Terminal 的窗口偏好。
+1. If `TMUX` and `TMUX_PANE` shaped as `%<digits>` are valid, `tmux` is executable, and a read-only preflight check resolves the pane in the current server within 2 seconds, open a `90% × 90%` popup titled `Configure Status Line` in the current client. tmux pauses underlying pane updates while the popup exists, and closes it automatically when the child exits.
+2. If tmux is unavailable or preflight fails, but `DISPLAY`/`WAYLAND_DISPLAY` and executable `gnome-terminal` are available, open an active tab in the most recently used GNOME Terminal window. GNOME may create a window if none exists. `--wait` waits for the tab's TUI to exit.
+3. If neither is available, block slash expansion without calling the model and suggest terminal `claude-statusline configure` or `/statusline-config`.
 
-编辑器定时检查父调用的进程身份、请求文件和调用期限，并在配置事务锁内保存前再次核对。关窗、中断、父调用退出、撤销请求或超时不会继续保存草稿。回收前核对 PID 与启动标识，仅处理本次编辑器；读取结果后清理本次调用的启动脚本、请求、握手和结果文件。Terminal 窗口关闭或保留由用户的 Terminal 设置决定。
+macOS prefers the same tmux path. Without a valid server/pane or after failed preflight, a read-only `launchctl print gui/<uid>` check with a 2-second limit verifies the local graphical session, alongside system Terminal.app and `open`. SSH does not launch desktop Terminal, and macOS never selects GNOME.
 
-Windows 不探测 tmux/GNOME。它使用当前虚拟环境的 `sys.executable -m claude_statusline configure --config-dir ...`，并通过 [`CREATE_NEW_CONSOLE`](https://learn.microsoft.com/en-us/windows/console/creation-of-a-console) 创建实际 Python 子进程；不重定向 stdin/stdout/stderr，使 curses 获得真实控制台。系统当前默认终端负责承载这个新控制台，Windows Terminal 设为默认终端时会自然接管。启动器保留子进程句柄，因此关窗或异常退出会立即返回错误，超时会终止并回收子进程。
+The Terminal path uses `/usr/bin/open -b com.apple.Terminal` to open a private `0700` `.command` file, which starts the current Python and the package's internal helper. Python, CLI, configuration directory, and working directory are absolute; PATH and package search paths are explicit, and all shell values are quoted. `open` returning success means only that the launch request was handled. A 30-second startup handshake verifies editor process identity, then the existing schema v1 result bridge waits for TUI completion. No AppleScript automation permission is required, and Terminal window preferences are not modified.
 
-只有 tmux popup 接近“同 pane 弹窗”；GNOME 路径明确是新标签页。当前版本不提供 `x-terminal-emulator`、Konsole、Kitty、WezTerm 或 iTerm2 自动启动器；这些终端中可使用独立 `configure`。hook payload 的 `cwd` 只有在它是存在的绝对目录时才作为启动目录，否则使用用户 home。启动器不拼接 command 参数或 cwd 到未转义 shell 文本。
+The editor periodically checks parent-call process identity, request file, and deadline, and rechecks them before saving under the configuration transaction lock. Window closure, interruption, parent-call exit, revocation, or timeout prevents further draft saves. Cleanup verifies PID and start identity and handles only this editor; after reading the result, it removes this call's script, request, handshake, and result files. Terminal's window closure or retention follows user preferences.
 
-`/statusline-configure` 只接受空参数。`help`、`-h`、`--help` 只返回 `Usage: /statusline-configure`；其他参数会被拒绝，均不启动 TUI、不写配置且不调用模型。
+Windows does not probe tmux/GNOME. It starts an actual Python child with the current virtual environment's `sys.executable -m claude_statusline configure --config-dir ...` and [`CREATE_NEW_CONSOLE`](https://learn.microsoft.com/en-us/windows/console/creation-of-a-console), without redirecting stdin/stdout/stderr, so curses has a real console. The current system default terminal hosts it; Windows Terminal handles it naturally when set as default. The launcher retains the child handle, so window closure or abnormal exit immediately returns an error, and timeouts terminate and reap the child.
 
-每次运行在 Claude 配置目录的 `statusline_runtime/slash_tui/` 下创建一个随机调用目录。Linux/macOS 验证调用目录 `0700`，结果以 `0600` 写出；Windows 不解释伪 POSIX mode。结果读取验证精确父子关系、普通文件、16 KiB 上限，并拒绝路径链中的 symlink、junction 和其他 reparse point。读取后只清理本次调用。tmux/GNOME client 的 stdout/stderr 会被 hook 捕获并限长；Terminal.app 和 Windows 新控制台的 TUI 使用各自的真实终端流。
+Only tmux popup resembles a popup in the same pane; GNOME uses a new tab. There are no automatic launchers for `x-terminal-emulator`, Konsole, Kitty, WezTerm, or iTerm2; use standalone `configure` there. Hook payload `cwd` is used only when it is an existing absolute directory, otherwise the user's home is used. Command arguments and cwd are never concatenated into unescaped shell text.
 
-Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存，启动器最长等待 585 秒，为结果校验和 hook 返回预留时间。保存、无变化、取消、信号中断、超时和错误都会在原 Claude 对话区显示一条短结果。tmux 一旦选中，即使 popup 内部失败也不会再启动其他终端。
+`/statusline-configure` accepts no arguments. `help`, `-h`, and `--help` return only `Usage: /statusline-configure`; other arguments are rejected. None of these argument cases starts a TUI, writes configuration, or calls the model.
 
-如果全局 `disableAllHooks` 等设置阻止本地 hook，回退 skill 只会说明 hook 未运行，并提示独立命令或 `/statusline-config`；它同时禁止通过 Bash 和 PowerShell 启动 curses。此时可能仍消耗一个极短模型回合，这是插件侧无法避免的例外。
+Each call creates a random directory under `statusline_runtime/slash_tui/` in the Claude configuration directory. Linux/macOS verify directory `0700` and write results with `0600`; Windows does not interpret simulated POSIX mode. Result reads verify exact parent-child paths, regular files, and a 16 KiB limit, rejecting symlinks, junctions, and other reparse points throughout the path chain. Only the current call is cleaned up after reading. Hook-captured tmux/GNOME client stdout/stderr is length-limited; Terminal.app and Windows console TUIs use their own real terminal streams.
 
-## 相关文档
+Claude's hook timeout is 600 seconds. The bridged TUI times out after 570 seconds without saving; the launcher waits at most 585 seconds, leaving time for validation and hook return. Saving, no changes, cancellation, signal interruption, timeout, and errors produce a short result in the original Claude conversation. Once tmux is chosen, failure inside its popup never starts another terminal.
 
-- [项目首页](../README.md)：项目介绍、界面预览和快速安装。
-- [Claude Code：Customize your status line](https://code.claude.com/docs/en/statusline)
-- [Claude Code：Hooks reference](https://code.claude.com/docs/en/hooks)
-- [Claude Code：Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide)
+If global `disableAllHooks` or similar settings prevent the local hook, the fallback skill explains that it did not run and suggests the standalone command or `/statusline-config`. It prohibits launching curses through both Bash and PowerShell. This exception may still use a very short model turn, which the plugin cannot avoid.
+
+<a id="相关文档"></a>
+
+## Related documentation
+
+- [Project README](../README.md): introduction, screenshots, and quick installation.
+- [Claude Code:Customize your status line](https://code.claude.com/docs/en/statusline)
+- [Claude Code:Hooks reference](https://code.claude.com/docs/en/hooks)
+- [Claude Code:Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide)
