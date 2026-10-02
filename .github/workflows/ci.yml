@@ -137,7 +137,6 @@ jobs:
                   "src/claude_statusline/macos_terminal.py",
                   "src/claude_statusline/resources/statusline-config/SKILL.md",
                   "src/claude_statusline/resources/statusline-configure/SKILL.md",
-                  "docs/MACOS_VALIDATION.md",
                   "docs/images/README.md",
               ):
                   assert any(name.endswith(suffix) for name in names), suffix

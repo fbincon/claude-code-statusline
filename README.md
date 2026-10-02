@@ -1,17 +1,19 @@
 # Claude Code Statusline
 
-面向 Linux、WSL、Windows，以及 macOS（预览）的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
+面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
 
 [快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.md) · [故障排查](docs/USER_GUIDE.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
 
 ## 界面预览
 
-以下截图来自 Linux。主状态栏显示实际会话数据；配置界面底部的 Preview 使用固定样例数据。
+以下截图展示 Linux、macOS 和 Windows 的实际终端界面。主状态栏显示会话数据；配置界面底部的 Preview 使用固定样例数据。字体、颜色和字符宽度会随终端设置变化。
+
+**Linux 主状态栏**
 
 ![Claude Code 主状态栏：模型与 effort、目录、Git、上下文、token 和逐轮用时](docs/images/statusline.png)
 
 <details>
-<summary>查看 Main、Subagents 和 Settings 三页配置界面</summary>
+<summary>Linux：Main、Subagents 和 Settings 配置界面</summary>
 
 **Main：选择主状态栏条目并调整顺序。**
 
@@ -27,19 +29,63 @@
 
 </details>
 
+<details>
+<summary>macOS：Terminal.app 中的主状态栏与三页配置界面</summary>
+
+**主状态栏**
+
+![macOS Terminal.app 中的 Claude Code 主状态栏](docs/images/statusline-macos.png)
+
+**Main：主状态栏条目与样例预览**
+
+![macOS Main 配置页](docs/images/configure-main-macos.png)
+
+**Subagents：子 Agent 行与样例预览**
+
+![macOS Subagents 配置页](docs/images/configure-subagents-macos.png)
+
+**Settings：显示样式与宿主设置**
+
+![macOS Settings 配置页](docs/images/configure-settings-macos.png)
+
+</details>
+
+<details>
+<summary>Windows：Windows Terminal 中的主状态栏与三页配置界面</summary>
+
+**主状态栏**
+
+![Windows Terminal 中的 Claude Code 主状态栏](docs/images/statusline-windows.png)
+
+**Main：主状态栏条目与样例预览**
+
+![Windows Main 配置页](docs/images/configure-main-windows.png)
+
+**Subagents：子 Agent 行与样例预览**
+
+![Windows Subagents 配置页](docs/images/configure-subagents-windows.png)
+
+**Settings：显示样式与宿主设置**
+
+![Windows Settings 配置页](docs/images/configure-settings-windows.png)
+
+</details>
+
+[截图文件索引](docs/images/README.md)
+
 ## 支持范围
 
 - Linux 原生与 WSL：Python 3.10+。
 - Windows 10/11 原生：CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2`。
-- macOS 预览（v1.1.0a1）：CPython 3.10–3.14，Intel / Apple Silicon；CI 覆盖 macOS 15/26、Python 3.10/3.14。支持核心功能、独立 TUI 和可选 tmux popup。
+- macOS 14+：CPython 3.10–3.14，Intel / Apple Silicon。支持核心功能和独立 TUI；实验性配置入口优先使用 tmux popup，否则使用本地 Terminal.app。
 - Claude Code CLI：2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持带参数配置命令的本地执行及实验性 TUI 启动器。较旧或无法识别的版本仍可使用主状态栏和配置向导。
 - Git 信息需要系统中存在 `git`。
 
-**已发布的 v1.0.0 wheel 与固定标签源码不包含 macOS 支持**，macOS 请使用下方的[预览安装](#macos-预览安装)。真实 Claude 会话的视觉效果、实际睡眠恢复和桌面终端体验尚未人工验收；Terminal.app / iTerm2 自动启动不在本次预览范围内。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。各功能的版本条件见[运行要求](docs/USER_GUIDE.md#运行要求)。
+当前源码为 **1.1.0（未发布）**；新 macOS 功能请使用[当前源码安装](#macos-与当前源码安装)。已发布的 v1.0.0 不支持 macOS，v1.1.0a1 仅包含此前的预览功能。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。各功能的版本条件见[运行要求](docs/USER_GUIDE.md#运行要求)。
 
 ## 快速安装
 
-先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / Windows 用户可选择下方稳定版 v1.0.0；macOS 使用 [v1.1.0a1 预览包](#macos-预览安装)。Linux / WSL / Windows 也可按预览安装步骤试用新版。
+先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / Windows 可安装已发布的稳定版 v1.0.0；macOS 及需要当前改动的用户安装当前源码或自行构建的 wheel。安装来源及版本差异见[使用指南](docs/USER_GUIDE.md#安装-python-包)。
 
 ### 从 Release 安装（推荐）
 
@@ -61,22 +107,32 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.0.0"
 pipx ensurepath
 ```
 
-### macOS 预览安装
+### macOS 与当前源码安装
 
-在 Bash / Zsh 中安装 [v1.1.0a1 预发布 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1)：
+当前 1.1.0 尚未发布 Release。需要 Git，可从默认分支直接安装当前源码（Bash / PowerShell 通用）：
 
-```bash
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 pipx ensurepath
 ```
 
-已有安装时在同一命令中加入 `--force`。从固定标签源码安装时，将来源替换为 `git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0a1`。重新打开终端后，按下方 POSIX 命令接入；独立 TUI 使用 `claude-statusline configure`。macOS 实验性 `/statusline-configure` 需要先在 tmux 会话中启动 Claude；没有有效 tmux 环境时会提示独立命令。完整步骤和验证边界见[macOS 预览说明](docs/USER_GUIDE.md#macos-预览安装与验证边界)。
+也可以先克隆仓库，在项目根目录构建并安装 wheel（Bash / Zsh）：
+
+```bash
+python3 -m venv .venv-build
+.venv-build/bin/python -m pip install build
+.venv-build/bin/python -m build
+pipx install ./dist/claude_code_statusline-1.1.0-py3-none-any.whl
+pipx ensurepath
+```
+
+已有安装时为 `pipx install` 加上 `--force`。重新打开终端后，确认 `claude-statusline --version` 显示 `1.1.0`，再按下方命令接入。独立 TUI 使用 `claude-statusline configure`；实验性 `/statusline-configure` 支持有效 tmux 会话或本地图形会话中的 Terminal.app，窗口收尾遵循 Terminal 偏好。旧预览包的安装与差异见[macOS 安装说明](docs/USER_GUIDE.md#macos-安装与验证边界)。
 
 ### 接入 Claude Code
 
 完成包安装后，**重新打开终端**，让 `pipx ensurepath` 设置的 `PATH` 生效，再执行以下命令。
 
-Linux / WSL / macOS 预览（Bash / Zsh）：
+Linux / WSL / macOS（Bash / Zsh）：
 
 ```bash
 claude-statusline install --dry-run
@@ -105,7 +161,7 @@ claude-statusline.exe doctor
 | `claude-statusline config ...` | 在终端查看配置、精确排序或用于脚本 |
 | 实验性 `/statusline-configure` | 从 Claude Code 启动外部终端中的 TUI；默认关闭，见[启用说明](docs/USER_GUIDE.md#实验入口-statusline-configure) |
 
-例如，在 Linux / WSL 中设置精简状态栏：
+例如，在 Linux / WSL / macOS 中设置精简状态栏：
 
 ```bash
 claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
@@ -119,25 +175,19 @@ Windows 将上述命令名替换为 `claude-statusline.exe`。`set-items` 会替
 
 ## 升级与卸载
 
-升级到 v1.0.0 时，可在 Bash 或 PowerShell 中用已发布的 wheel 替换现有包：
+升级当前源码版本时，先按上述步骤重新构建，再替换 Python 包（Bash / Zsh）：
 
-```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.0.0/claude_code_statusline-1.0.0-py3-none-any.whl"
+```bash
+pipx install --force ./dist/claude_code_statusline-1.1.0-py3-none-any.whl
 ```
 
 随后重新运行 `claude-statusline install` 和 `claude-statusline doctor`；Windows 使用 `claude-statusline.exe`。升级保留 Claude 配置目录中的显示偏好和运行状态。本地 wheel、源码安装及版本兼容的处理见[升级指南](docs/USER_GUIDE.md#升级)。
 
-升级到 v1.1.0a1 预览版（包括 macOS）时，使用：
-
-```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
-```
-
-随后同样运行 `install` 和 `doctor`。预览版不会替代 GitHub 的最新稳定版入口。
+Windows 的本地 wheel 路径使用 `.\dist\claude_code_statusline-1.1.0-py3-none-any.whl`。已发布版本的升级继续使用对应 Release 的真实 wheel；1.1.0 的远程标签与安装链接需在实际发布后才可使用。
 
 卸载时先移除 Claude Code 接入，再删除 Python 包。
 
-Linux / WSL / macOS 预览：
+Linux / WSL / macOS：
 
 ```bash
 claude-statusline uninstall --dry-run

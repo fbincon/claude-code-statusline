@@ -1,5 +1,6 @@
 include README.md
 include CHANGELOG.md
 recursive-include docs *.md *.png
+exclude docs/MACOS_VALIDATION.md
 recursive-include tests *.py
 recursive-include src/claude_statusline/resources *.md
