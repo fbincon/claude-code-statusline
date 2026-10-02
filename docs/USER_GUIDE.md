@@ -78,7 +78,7 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 - `git`，用于从 GitHub 源码安装或显示 Git 信息；从 Release wheel 安装且不显示 Git 信息时不需要。
 - Linux 的 tmux 或 GNOME Terminal、macOS 的 tmux 或系统 Terminal.app 仅供实验性 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
 
-已发布的 v1.0.0 wheel 与固定标签源码不包含 macOS 支持；当前 macOS 正式支持来自未发布的 1.1.0 源码，使用本地构建包，详见[macOS 安装与验证边界](#macos-安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
+当前稳定版 [v1.1.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0) 为以上平台提供同一个纯 Python wheel；macOS 终端要求见[macOS 安装与验证边界](#macos-安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
 
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
@@ -92,44 +92,62 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 
 ### 安装 Python 包
 
-Linux / WSL / Windows 用户可从以下方式中任选一种，安装稳定版 v1.0.0。macOS 及需要当前改动的用户使用后面的 [1.1.0 源码安装步骤](#macos-安装与验证边界)。当前 1.1.0 尚未发布 Release，已发布标签与默认分支的功能范围不同。
+Linux / WSL / macOS / Windows 用户可从以下方式中任选一种，安装稳定版 v1.1.0。Release wheel 与固定标签提供相同版本；默认分支源码会随开发更新。
 
-**Release URL（推荐，Bash / PowerShell 通用）：**
+**Release URL（推荐，Bash / Zsh / PowerShell 通用）：**
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.0.0/claude_code_statusline-1.0.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
-**下载后安装：** 在 [v1.0.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 下载 wheel，并在下载目录执行。
+**下载后安装：** 在 [v1.1.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0) 下载 wheel，并在下载目录执行。
 
-Linux / WSL（Bash）：
+Linux / WSL / macOS（Bash / Zsh）：
 
 ```bash
-pipx install ./claude_code_statusline-1.0.0-py3-none-any.whl
+pipx install ./claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
 Windows（PowerShell）：
 
 ```powershell
-pipx install .\claude_code_statusline-1.0.0-py3-none-any.whl
+pipx install .\claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-Release 同时提供源码包和 `SHA256SUMS`。需要校验时，在包含下载文件的目录运行 `sha256sum 文件名`（Linux / WSL）或 `Get-FileHash 文件名 -Algorithm SHA256`（PowerShell），与 `SHA256SUMS` 中对应文件的值比较。
+**下载文件校验：** Release 同时提供源码包和 `SHA256SUMS`。下载 wheel、源码包及校验文件到同一目录后执行：
 
-**固定标签源码（需要 Git，Bash / PowerShell 通用）：**
+```bash
+# Linux / WSL
+sha256sum -c SHA256SUMS
+
+# macOS
+shasum -a 256 -c SHA256SUMS
+```
+
+Windows PowerShell 使用以下命令，将摘要与 `SHA256SUMS` 中对应文件的值比较（十六进制大小写不影响结果）：
+
+```powershell
+Get-FileHash .\claude_code_statusline-1.1.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.1.0.tar.gz -Algorithm SHA256
+Get-Content .\SHA256SUMS
+```
+
+只下载 wheel 时，可用 `sha256sum 文件名`（Linux / WSL）、`shasum -a 256 文件名`（macOS）或 `Get-FileHash` 单独核对其摘要。
+
+**固定标签源码（需要 Git，Bash / Zsh / PowerShell 通用）：**
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.0.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0"
 pipx ensurepath
 ```
 
-**开发分支源码：** 如需默认分支的当前代码，使用以下命令；该来源不固定为 v1.0.0。
+**开发分支源码：** 如需默认分支的当前代码，使用以下命令；该来源不固定为 v1.1.0。
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 pipx ensurepath
 ```
 
@@ -137,37 +155,15 @@ pipx ensurepath
 
 ### macOS 安装与验证边界
 
-macOS 14+ 使用提供 `curses` 的 CPython 3.10–3.14。Intel 与 Apple Silicon 使用相同的纯 Python wheel，没有额外 macOS Python 运行依赖。当前源码版本为 **1.1.0（未发布）**，从包含本次改动的本地仓库根目录执行：
+macOS 14+ 使用提供 `curses` 的 CPython 3.10–3.14。Intel 与 Apple Silicon 使用相同的 v1.1.0 Release wheel，没有额外 macOS Python 运行依赖，按上面的通用安装步骤即可。已有安装时按[升级步骤](#升级)替换 Python 包。
 
-```bash
-python3 -m venv .venv-build
-.venv-build/bin/python -m pip install build
-.venv-build/bin/python -m build
-pipx install ./dist/claude_code_statusline-1.1.0-py3-none-any.whl
-pipx ensurepath
-```
-
-已有安装时，为 `pipx install` 加上 `--force`。也可在本地仓库根目录直接执行 `pipx install .`，或安装默认分支源码（需要 Git）：
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
-pipx ensurepath
-```
-
-默认分支会随开发更新；需要固定来源时保留检出的提交号。重新打开 Bash / Zsh 后，运行 `claude-statusline --version`，确认显示 `1.1.0`，再完成下方接入步骤。校验本地文件时使用 `shasum -a 256 文件名`。
+重新打开 Bash / Zsh 后，运行 `claude-statusline --version`，确认显示 `claude-statusline 1.1.0`，再完成下方接入步骤。
 
 独立界面运行 `claude-statusline configure`。显式启用实验入口后，`/statusline-configure` 优先选择通过预检查的 tmux popup；没有有效 tmux 时，在本地图形会话中使用 Terminal.app。窗口关闭或保留遵循 Terminal 自身偏好。SSH 或没有图形会话时，使用当前终端的独立命令或配置向导。
 
 macOS 主状态栏与三页配置界面的截图见[项目首页](../README.md#界面预览)和[文件索引](images/README.md)。
 
-**此前发布的预览包：** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 包含 macOS 预览核心功能、独立 TUI 和 tmux 入口，未包含当前新增的 Terminal.app 启动器。若要安装该历史版本：
-
-```bash
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
-pipx ensurepath
-```
-
-固定标签源码对应 `git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0a1`。v1.0.0 的 wheel、源码包和标签不支持 macOS；1.1.0 的远程 Release、标签与下载链接需在实际发布后才可使用。
+**历史版本：** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 是 macOS 预览版，包含核心功能、独立 TUI 和 tmux 入口，未包含 Terminal.app 启动器；[v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 的 wheel、源码包和标签不支持 macOS。需要复现历史行为时使用对应 Release 或固定标签，日常安装使用 v1.1.0。
 
 ### 接入 Claude Code
 
@@ -176,6 +172,7 @@ pipx ensurepath
 Linux / WSL / macOS：
 
 ```bash
+claude-statusline --version
 claude-statusline install --dry-run
 claude-statusline install
 claude-statusline doctor
@@ -184,6 +181,7 @@ claude-statusline doctor
 Windows PowerShell：
 
 ```powershell
+claude-statusline.exe --version
 claude-statusline.exe install --dry-run
 claude-statusline.exe install
 claude-statusline.exe doctor
@@ -1087,42 +1085,28 @@ claude-statusline.exe config show
 
 ## 升级
 
-先选择目标版本的包，再同步 Claude Code 接入。当前 1.1.0 尚未发布，使用包含本次改动的本地源码构建；下面同时保留已发布的 v1.0.0 与 v1.1.0a1 历史安装入口。
+先将 Python 包升级到稳定版 v1.1.0，再同步 Claude Code 接入。此前安装 v1.0.0 或 v1.1.0a1 的用户使用相同的升级步骤。
 
 ### 替换 Python 包
 
-以下来源任选一种。Release URL 与 Git URL 命令在 Bash / PowerShell 中通用。
+以下来源任选一种。Release URL 与 Git URL 命令在 Bash / Zsh / PowerShell 中通用。
 
-**当前 1.1.0 本地构建包：** 先按[从源码构建与安装](#从源码构建与安装)生成 wheel，然后在项目根目录执行：
-
-```bash
-pipx install --force ./dist/claude_code_statusline-1.1.0-py3-none-any.whl
-```
-
-Windows 使用 `.\dist\claude_code_statusline-1.1.0-py3-none-any.whl`。也可在本地源码目录执行 `pipx install --force .`，或用 `pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@main"` 更新默认分支源码。旧版本标签保持原有功能范围。
-
-**稳定版 Release URL（Linux / WSL / Windows）：**
+**稳定版 Release URL（推荐，所有支持平台通用）：**
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.0.0/claude_code_statusline-1.0.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
 ```
 
-**预览版 Release URL（含 macOS）：**
-
-```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0a1/claude_code_statusline-1.1.0a1-py3-none-any.whl"
-```
-
-**本地 wheel：** 从 Release 下载目标 wheel 后，在下载目录执行。以下以稳定版为例；预览版把文件名中的 `1.0.0` 替换为 `1.1.0a1`。
+**本地 wheel：** 从 Release 下载并[核验文件](#安装-python-包)后，在下载目录执行。
 
 ```bash
-pipx install --force ./claude_code_statusline-1.0.0-py3-none-any.whl
+pipx install --force ./claude_code_statusline-1.1.0-py3-none-any.whl
 ```
 
 Windows PowerShell：
 
 ```powershell
-pipx install --force .\claude_code_statusline-1.0.0-py3-none-any.whl
+pipx install --force .\claude_code_statusline-1.1.0-py3-none-any.whl
 ```
 
 自行构建的 wheel 位于项目的 `dist/` 下，相应使用 `dist/文件名.whl` 或 `.\dist\文件名.whl`。
@@ -1130,16 +1114,17 @@ pipx install --force .\claude_code_statusline-1.0.0-py3-none-any.whl
 **固定标签源码：**
 
 ```text
-pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.0.0"
+pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0"
 ```
 
-预览版把标签改为 `@v1.1.0a1`。跟踪默认分支时使用不带版本标签的 Git URL；升级本地源码时，先更新源码，再在项目根目录执行 `pipx install --force .`。这些来源获取的是相应分支或目录中的代码。
+跟踪默认分支时将标签改为 `@main`；升级本地源码时，先更新源码，再在项目根目录执行 `pipx install --force .`。自行构建时先重新生成 wheel。这些来源获取的是相应分支或目录中的代码，文件名应与实际生成的版本一致。
 
 ### 同步 Claude Code 接入
 
 Linux / WSL / macOS：
 
 ```bash
+claude-statusline --version
 claude-statusline install
 claude-statusline doctor
 claude-statusline config show
@@ -1148,6 +1133,7 @@ claude-statusline config show
 Windows PowerShell：
 
 ```powershell
+claude-statusline.exe --version
 claude-statusline.exe install
 claude-statusline.exe doctor
 claude-statusline.exe config show
@@ -1511,7 +1497,7 @@ pipx install .\dist\claude_code_statusline-1.1.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-上述文件名对应当前未发布的 1.1.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
+上述文件名对应 1.1.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
 
 可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.1.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.md)。
 
