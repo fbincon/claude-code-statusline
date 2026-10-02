@@ -15,6 +15,7 @@ import tempfile
 import time
 
 from claude_statusline import _platform
+from claude_statusline._version import __version__
 
 
 def main():
@@ -33,6 +34,7 @@ def main():
         else platform.release(),
         "architecture": platform.machine(),
         "python": platform.python_version(),
+        "package_version": __version__,
         "native_suspend_clock": boot is not None and boot_id is not None,
         "checks": [],
     }
@@ -68,7 +70,7 @@ def main():
             GIT_CONFIG_SYSTEM=os.devnull,
         )
 
-        def run(argv, payload=None):
+        def run(argv, payload=None, expected_returncode=0):
             result = subprocess.run(
                 argv,
                 input=json.dumps(payload) if payload is not None else None,
@@ -81,13 +83,15 @@ def main():
                 timeout=20,
                 creationflags=_platform.no_window_creation_flags(),
             )
-            assert result.returncode == 0, (
+            assert result.returncode == expected_returncode, (
                 f"{argv}: {result.returncode}\n{result.stdout}\n{result.stderr}"
             )
             return result.stdout
 
-        def cli(*arguments, payload=None):
-            return run([command, *arguments], payload)
+        def cli(*arguments, payload=None, expected_returncode=0):
+            return run([command, *arguments], payload, expected_returncode)
+
+        assert cli("--version").strip() == f"claude-statusline {__version__}"
 
         cli("install", "--dry-run")
         assert not config.exists(), "dry-run must not create a config directory"
@@ -99,6 +103,26 @@ def main():
         assert settings_path.read_bytes() == before
         assert list((config / "backups" / "statusline").iterdir()) == backups
         report["checks"].append("install-dry-run-and-idempotency")
+
+        # Exercise ownership conflicts against the installed wheel, including
+        # rejection before any backup/write and an explicit takeover.
+        foreign = root / "foreign config"
+        foreign.mkdir()
+        foreign_settings = foreign / "settings.json"
+        _platform.atomic_write_bytes(foreign_settings, json.dumps({
+            "statusLine": {"type": "command", "command": "echo foreign"},
+            "unrelated": {"keep": True},
+        }).encode("utf-8"))
+        foreign_before = foreign_settings.read_bytes()
+        cli("install", "--config-dir", str(foreign), expected_returncode=2)
+        assert foreign_settings.read_bytes() == foreign_before
+        assert not (foreign / "backups").exists()
+        cli("install", "--config-dir", str(foreign), "--force")
+        assert json.loads(foreign_settings.read_bytes())["unrelated"] == {"keep": True}
+        assert len(list((foreign / "backups" / "statusline").iterdir())) == 1
+        cli("uninstall", "--config-dir", str(foreign))
+        assert "statusLine" not in json.loads(foreign_settings.read_bytes())
+        report["checks"].append("ownership-conflict-rejection-and-explicit-takeover")
 
         cli(
             "config",

@@ -255,7 +255,9 @@ class MacOSInstallationTests(unittest.TestCase):
         self.assertFalse(again.changed)
         self.assertEqual(len(list(backup_root.iterdir())), 1)
 
-    def test_doctor_reports_preview_and_native_capabilities_or_degradation(self):
+    def test_doctor_reports_native_capabilities_or_degradation_without_opening_terminal(self):
+        from claude_statusline import macos_terminal
+
         installer.install_configuration(
             self.config,
             self.executable,
@@ -286,6 +288,9 @@ class MacOSInstallationTests(unittest.TestCase):
                     _platform, "_sync_parent_directory", return_value=available
                 ),
                 mock.patch.object(
+                    macos_terminal, "availability", return_value=(False, "no GUI session")
+                ),
+                mock.patch.object(
                     installer.shutil,
                     "which",
                     side_effect=lambda name: (
@@ -300,8 +305,9 @@ class MacOSInstallationTests(unittest.TestCase):
                 [item.message for item in diagnostics if item.level == "ERROR"]
             )
             self.assertTrue(
-                any("macOS preview" in item.message for item in diagnostics)
+                any("platform: darwin" == item.message for item in diagnostics)
             )
+            self.assertFalse(any("preview" in item.message for item in diagnostics))
             self.assertTrue(
                 any(
                     "install tmux" in item.message and item.level == "WARN"

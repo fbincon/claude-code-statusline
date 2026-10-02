@@ -108,6 +108,7 @@ jobs:
           python - <<'PY'
           import email
           import glob
+          from pathlib import Path
           import tarfile
           import zipfile
 
@@ -118,12 +119,13 @@ jobs:
               names = set(archive.namelist())
               metadata_name = next(name for name in names if name.endswith(".dist-info/METADATA"))
               metadata = email.message_from_bytes(archive.read(metadata_name))
-              assert metadata["Version"] == "1.1.0a1"
+              assert metadata["Version"] == "1.1.0"
               assert "Operating System :: MacOS :: MacOS X" in metadata.get_all("Classifier", [])
               requirements = metadata.get_all("Requires-Dist", [])
               assert any("windows-curses>=2.4.2" in value and "win32" in value for value in requirements)
               for suffix in (
                   "claude_statusline/_platform.py",
+                  "claude_statusline/macos_terminal.py",
                   "claude_statusline/resources/statusline-config/SKILL.md",
                   "claude_statusline/resources/statusline-configure/SKILL.md",
               ):
@@ -132,8 +134,14 @@ jobs:
               names = set(archive.getnames())
               for suffix in (
                   "src/claude_statusline/_platform.py",
+                  "src/claude_statusline/macos_terminal.py",
                   "src/claude_statusline/resources/statusline-config/SKILL.md",
                   "src/claude_statusline/resources/statusline-configure/SKILL.md",
+                  "docs/MACOS_VALIDATION.md",
+                  "docs/images/README.md",
               ):
+                  assert any(name.endswith(suffix) for name in names), suffix
+              for image in Path("docs/images").rglob("*.png"):
+                  suffix = image.as_posix()
                   assert any(name.endswith(suffix) for name in names), suffix
           PY

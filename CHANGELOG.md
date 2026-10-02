@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 - 未发布
+
+- macOS 核心功能与独立 TUI 转为正式支持，范围为 macOS 14+、Intel / Apple Silicon、CPython 3.10–3.14；保留原生进程识别、包含睡眠时间的时钟和 POSIX 文件安全适配。
+- 实验性 `/statusline-configure` 在有效 tmux 会话之外新增 Terminal.app 入口，使用系统 `open` 和私有 `.command` 文件；退出后遵循 Terminal 自身偏好，无需 AppleScript 自动化权限。
+- Terminal 入口绑定当前 Python、CLI、配置目录和工作目录，支持空格、中文及 shell 特殊字符；使用独立启动握手、进程身份核验与 schema v1 结果桥，处理启动失败、关窗、中断、父调用退出和超时。
+- 在 TUI 轮询和配置事务锁内核对调用存活与期限，失效调用不能继续保存；撤销调用后仅回收匹配身份的编辑器进程并清理本次私有文件。
+- 更新 CLI 帮助、包描述与 macOS `doctor` 诊断；诊断只检查 Terminal 及图形会话条件，不启动桌面终端。配置和结果 schema、Linux/Windows 行为及实验入口默认关闭策略保持兼容。
+- 修正 PTY 分段读取误报，新增 Terminal 生命周期与原生辅助进程测试，补充 `.DS_Store` 忽略规则和分发包检查。
+- 统一安装、升级、发布及开发文档，区分当前未发布 1.1.0 与已发布预览包；本机验证及真实 Claude 视觉、睡眠恢复的待验收项见 `docs/MACOS_VALIDATION.md`。
+- 整合提供者的 macOS 验证源码与记录，收录 macOS / Windows 主状态栏及三页 TUI 的八张原始截图，统一文件名、来源索引和首页展示；CI 增加验证文档与全平台截图的打包检查。
+
 ## 1.1.0a1 - 2026-10-02
 
 - 新增 macOS 预览支持：核心状态栏、子 Agent 行、安装配置命令和独立 curses TUI；实验性 `/statusline-configure` 仅使用通过预检查的 tmux popup。

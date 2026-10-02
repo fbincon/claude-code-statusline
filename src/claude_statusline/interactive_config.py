@@ -10,6 +10,7 @@ import signal
 import stat
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TextIO
@@ -51,6 +52,14 @@ class ConfigureOutcome:
     outcome: str
     exit_code: int
     message: str
+
+
+class ConfigureAborted(Exception):
+    """End an external editor invocation without committing its draft."""
+
+    def __init__(self, outcome: ConfigureOutcome):
+        super().__init__(outcome.message)
+        self.outcome = outcome
 
 
 @dataclass
@@ -563,6 +572,8 @@ def save_configuration(
     config_dir: Path,
     executable: Path,
     state: EditorState,
+    *,
+    before_commit: Callable[[], None] | None = None,
 ) -> cc.MutationResult:
     """Commit one complete draft through the existing atomic transaction."""
     return cc.apply_configuration(
@@ -586,6 +597,7 @@ def save_configuration(
         ),
         scope_labels=state.display.scope_labels,
         expected=state.baseline,
+        before_commit=before_commit,
     )
 
 
@@ -1030,9 +1042,10 @@ def _screen_loop(
     screen,
     state: EditorState,
     deadline_at: float | None = None,
+    guard: Callable[[], None] | None = None,
 ) -> str:
     screen.keypad(True)
-    if deadline_at is not None or _platform.is_macos():
+    if deadline_at is not None or guard is not None or _platform.is_macos():
         # Older macOS curses can restart an interrupted blocking read. Polling
         # lets Python dispatch pending signals without needing another keypress.
         screen.timeout(250)
@@ -1046,6 +1059,8 @@ def _screen_loop(
         pass
     mapper = _ColorMapper()
     while True:
+        if guard is not None:
+            guard()
         if deadline_at is not None and time.monotonic() >= deadline_at:
             return TIMED_OUT
         viewport_height = _draw_screen(screen, state, mapper)
@@ -1086,8 +1101,9 @@ class _SignalExit(BaseException):
 def _run_curses(
     state: EditorState,
     deadline_at: float | None = None,
+    guard: Callable[[], None] | None = None,
 ) -> str:
-    return curses.wrapper(_screen_loop, state, deadline_at)
+    return curses.wrapper(_screen_loop, state, deadline_at, guard)
 
 
 def _signal_handler(signum, _frame) -> None:
@@ -1119,6 +1135,7 @@ def execute(
     input_stream: TextIO | None = None,
     output_stream: TextIO | None = None,
     deadline_at: float | None = None,
+    guard: Callable[[], None] | None = None,
 ) -> ConfigureOutcome:
     """Run the editor and return a result without printing a final summary."""
     stdin = sys.stdin if input_stream is None else input_stream
@@ -1139,7 +1156,13 @@ def execute(
     previous_handlers = _install_signal_handlers()
     try:
         try:
-            action = _run_curses(state, deadline_at)
+            if guard is not None:
+                guard()
+                action = _run_curses(state, deadline_at, guard)
+            else:
+                action = _run_curses(state, deadline_at)
+        except ConfigureAborted as exc:
+            return exc.outcome
         except _SignalExit as exc:
             return ConfigureOutcome(
                 "interrupted",
@@ -1175,7 +1198,17 @@ def execute(
         return ConfigureOutcome(
             "cancelled", 0, "Status line configuration unchanged."
         )
-    result = save_configuration(config_dir, executable, state)
+    if deadline_at is not None and time.monotonic() >= deadline_at:
+        return ConfigureOutcome(
+            "timed-out", 0,
+            "Interactive status line configuration timed out; no changes were saved.",
+        )
+    try:
+        result = save_configuration(
+            config_dir, executable, state, before_commit=guard
+        )
+    except ConfigureAborted as exc:
+        return exc.outcome
     message = (
         "Status line configuration updated."
         if result.changed
@@ -1268,6 +1301,7 @@ def run(
     input_stream: TextIO | None = None,
     output_stream: TextIO | None = None,
     environ: dict[str, str] | None = None,
+    guard: Callable[[], None] | None = None,
 ) -> int:
     """Preserve CLI output while supporting the private slash result bridge."""
     environment = os.environ if environ is None else environ
@@ -1285,11 +1319,16 @@ def run(
                 input_stream=input_stream,
                 output_stream=output_stream,
                 deadline_at=deadline_at,
+                guard=guard,
             )
         except Exception as exc:  # noqa: BLE001 - bridge errors must be reported
             outcome = _error_outcome(exc)
         try:
+            if guard is not None:
+                guard()
             _write_bridge_result(bridge_path, outcome)
+        except ConfigureAborted:
+            return outcome.exit_code
         except OSError:
             return 2
         return outcome.exit_code

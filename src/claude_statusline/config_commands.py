@@ -650,6 +650,7 @@ def apply_configuration(
     subagent_statusline: Any | None = None,
     scope_labels: str | None = None,
     expected: EffectiveConfig | None = None,
+    before_commit: Callable[[], None] | None = None,
 ) -> MutationResult:
     validated_items = _validated_items(items)
     validated_subagent_items = (
@@ -674,6 +675,9 @@ def apply_configuration(
     )
 
     def mutation(current_display, settings, current_host, installed):
+        # This runs under the installation lock, including after a lock wait.
+        if before_commit is not None:
+            before_commit()
         if expected is not None and (
             current_display != expected.display
             or current_host != expected.host
