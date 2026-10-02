@@ -81,18 +81,18 @@
 - Claude Code CLI：2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持带参数配置命令的本地执行及实验性 TUI 启动器。较旧或无法识别的版本仍可使用主状态栏和配置向导。
 - Git 信息需要系统中存在 `git`。
 
-当前源码为 **1.1.0（未发布）**；新 macOS 功能请使用[当前源码安装](#macos-与当前源码安装)。已发布的 v1.0.0 不支持 macOS，v1.1.0a1 仅包含此前的预览功能。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。各功能的版本条件见[运行要求](docs/USER_GUIDE.md#运行要求)。
+当前稳定版为 [**v1.1.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0)，以上平台使用同一个 wheel。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。各功能的版本条件见[运行要求](docs/USER_GUIDE.md#运行要求)。
 
 ## 快速安装
 
-先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / Windows 可安装已发布的稳定版 v1.0.0；macOS 及需要当前改动的用户安装当前源码或自行构建的 wheel。安装来源及版本差异见[使用指南](docs/USER_GUIDE.md#安装-python-包)。
+先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / macOS / Windows 均可安装稳定版 v1.1.0。安装来源和文件校验方法见[使用指南](docs/USER_GUIDE.md#安装-python-包)。
 
 ### 从 Release 安装（推荐）
 
-在 Bash 或 PowerShell 中直接安装已发布的 [v1.0.0 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0)：
+在 Bash / Zsh 或 PowerShell 中直接安装 [v1.1.0 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0)：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.0.0/claude_code_statusline-1.0.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -103,38 +103,29 @@ pipx ensurepath
 需要系统中存在 `git`，无需手动克隆或构建：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.0.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0"
 pipx ensurepath
 ```
 
-### macOS 与当前源码安装
+### 从当前源码安装
 
-当前 1.1.0 尚未发布 Release。需要 Git，可从默认分支直接安装当前源码（Bash / PowerShell 通用）：
+需要跟踪开发改动时，可从默认分支安装当前源码（需要 Git，Bash / Zsh / PowerShell 通用）。`main` 会随开发更新，需要固定版本时使用上面的 Release 或标签：
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 pipx ensurepath
 ```
 
-也可以先克隆仓库，在项目根目录构建并安装 wheel（Bash / Zsh）：
-
-```bash
-python3 -m venv .venv-build
-.venv-build/bin/python -m pip install build
-.venv-build/bin/python -m build
-pipx install ./dist/claude_code_statusline-1.1.0-py3-none-any.whl
-pipx ensurepath
-```
-
-已有安装时为 `pipx install` 加上 `--force`。重新打开终端后，确认 `claude-statusline --version` 显示 `1.1.0`，再按下方命令接入。独立 TUI 使用 `claude-statusline configure`；实验性 `/statusline-configure` 支持有效 tmux 会话或本地图形会话中的 Terminal.app，窗口收尾遵循 Terminal 偏好。旧预览包的安装与差异见[macOS 安装说明](docs/USER_GUIDE.md#macos-安装与验证边界)。
+已有本地源码时，可在项目根目录执行 `pipx install .`。自行构建 wheel 的步骤见[从源码构建与安装](docs/USER_GUIDE.md#从源码构建与安装)；macOS 终端要求见[macOS 安装说明](docs/USER_GUIDE.md#macos-安装与验证边界)。
 
 ### 接入 Claude Code
 
-完成包安装后，**重新打开终端**，让 `pipx ensurepath` 设置的 `PATH` 生效，再执行以下命令。
+完成包安装后，**重新打开终端**，让 `pipx ensurepath` 设置的 `PATH` 生效。先确认 `--version` 显示 `claude-statusline 1.1.0`，再接入 Claude Code。
 
 Linux / WSL / macOS（Bash / Zsh）：
 
 ```bash
+claude-statusline --version
 claude-statusline install --dry-run
 claude-statusline install
 claude-statusline doctor
@@ -143,6 +134,7 @@ claude-statusline doctor
 Windows（PowerShell）：
 
 ```powershell
+claude-statusline.exe --version
 claude-statusline.exe install --dry-run
 claude-statusline.exe install
 claude-statusline.exe doctor
@@ -175,15 +167,13 @@ Windows 将上述命令名替换为 `claude-statusline.exe`。`set-items` 会替
 
 ## 升级与卸载
 
-升级当前源码版本时，先按上述步骤重新构建，再替换 Python 包（Bash / Zsh）：
+升级到 v1.1.0 时，替换 Python 包（Bash / Zsh / PowerShell 通用）：
 
-```bash
-pipx install --force ./dist/claude_code_statusline-1.1.0-py3-none-any.whl
+```text
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
 ```
 
 随后重新运行 `claude-statusline install` 和 `claude-statusline doctor`；Windows 使用 `claude-statusline.exe`。升级保留 Claude 配置目录中的显示偏好和运行状态。本地 wheel、源码安装及版本兼容的处理见[升级指南](docs/USER_GUIDE.md#升级)。
-
-Windows 的本地 wheel 路径使用 `.\dist\claude_code_statusline-1.1.0-py3-none-any.whl`。已发布版本的升级继续使用对应 Release 的真实 wheel；1.1.0 的远程标签与安装链接需在实际发布后才可使用。
 
 卸载时先移除 Claude Code 接入，再删除 Python 包。
 

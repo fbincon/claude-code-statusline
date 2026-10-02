@@ -101,7 +101,15 @@ jobs:
         with:
           python-version: "3.14"
       - run: python -m pip install build
-      - run: python -m build
+      - name: Build with local-only exclusion fixtures
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          for name in ("docs/MACOS_VALIDATION.md", "docs/.DS_Store"):
+              Path(name).write_text("Local-only packaging fixture\n", encoding="utf-8")
+          PY
+          python -m build
       - name: Inspect wheel and sdist contents
         shell: bash
         run: |
@@ -109,17 +117,25 @@ jobs:
           import email
           import glob
           from pathlib import Path
+          import runpy
           import tarfile
+          import tomllib
           import zipfile
 
+          project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]
+          version = runpy.run_path("src/claude_statusline/_version.py")["__version__"]
+          assert project["version"] == version
           wheel = glob.glob("dist/*.whl")
           sdist = glob.glob("dist/*.tar.gz")
           assert len(wheel) == len(sdist) == 1
+          distributions = []
           with zipfile.ZipFile(wheel[0]) as archive:
               names = set(archive.namelist())
+              distributions.append(names)
               metadata_name = next(name for name in names if name.endswith(".dist-info/METADATA"))
               metadata = email.message_from_bytes(archive.read(metadata_name))
-              assert metadata["Version"] == "1.1.0"
+              assert metadata["Version"] == version
+              assert archive.read("claude_statusline/_version.py") == Path("src/claude_statusline/_version.py").read_bytes()
               assert "Operating System :: MacOS :: MacOS X" in metadata.get_all("Classifier", [])
               requirements = metadata.get_all("Requires-Dist", [])
               assert any("windows-curses>=2.4.2" in value and "win32" in value for value in requirements)
@@ -132,15 +148,27 @@ jobs:
                   assert any(name.endswith(suffix) for name in names), suffix
           with tarfile.open(sdist[0], "r:gz") as archive:
               names = set(archive.getnames())
+              distributions.append(names)
               for suffix in (
+                  "README.md",
+                  "CHANGELOG.md",
+                  "docs/USER_GUIDE.md",
+                  "docs/RELEASING.md",
                   "src/claude_statusline/_platform.py",
                   "src/claude_statusline/macos_terminal.py",
                   "src/claude_statusline/resources/statusline-config/SKILL.md",
                   "src/claude_statusline/resources/statusline-configure/SKILL.md",
                   "docs/images/README.md",
+                  "tests/ci_smoke.py",
               ):
                   assert any(name.endswith(suffix) for name in names), suffix
               for image in Path("docs/images").rglob("*.png"):
                   suffix = image.as_posix()
                   assert any(name.endswith(suffix) for name in names), suffix
+          excluded = {"MACOS_VALIDATION.md", ".DS_Store", "__pycache__", ".pytest_cache", ".ruff_cache", ".git"}
+          for names in distributions:
+              for name in names:
+                  path = Path(name)
+                  assert not excluded.intersection(path.parts), name
+                  assert path.suffix not in {".pyc", ".pyo"}, name
           PY
