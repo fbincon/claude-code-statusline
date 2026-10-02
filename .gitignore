@@ -5,6 +5,7 @@ docs/MACOS_VALIDATION.md
 *.egg-info/
 .coverage
 .pytest_cache/
+.ruff_cache/
 .venv/
 .venv-*/
 build/
