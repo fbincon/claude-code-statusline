@@ -37,7 +37,14 @@ def resolve_cli_executable(explicit: str | os.PathLike[str] | None = None) -> Pa
         raise integration_models.ConfigurationError(
             f"cannot find {command_name} in PATH; install the package first"
         )
-    return Path(os.path.abspath(os.path.expanduser(value)))
+    path = Path(os.path.abspath(os.path.expanduser(value)))
+    if platform_environment.is_windows() and path.suffix.casefold() != ".exe":
+        # pip's Windows console bootstrap removes .exe from sys.argv[0].
+        # Restore the adjacent launcher instead of selecting another PATH entry.
+        launcher = path.with_name(path.name + ".exe")
+        if launcher.is_file():
+            path = launcher
+    return path
 
 
 def _quoted_executable(executable: Path) -> str:

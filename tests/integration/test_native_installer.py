@@ -387,6 +387,31 @@ class NativeInstallerTests(unittest.TestCase):
             with self.assertRaises(native.ConfigurationError):
                 capabilities.claude_argv()
 
+    def test_windows_stripped_console_name_resolves_its_adjacent_executable(self):
+        from claude_statusline.integration import ownership
+
+        binary = Path(self.temp.name) / "console with spaces" / "claude-statusline.exe"
+        binary.parent.mkdir()
+        binary.write_bytes(b"MZ")
+        with mock.patch.object(
+            ownership.platform_environment, "is_windows", return_value=True
+        ):
+            self.assertEqual(
+                ownership.resolve_cli_executable(binary.with_suffix("")), binary
+            )
+
+    def test_invalid_owner_protocol_is_not_used_to_remove_resources(self):
+        self.install(native_editor=True)
+        root = self.config / native.DIRECTORY
+        marker = native.owner(self.config)
+        marker["protocol_version"] = True
+        (root / native.OWNER_FILE).write_bytes(storage._json_bytes(marker))
+        result = installer.uninstall_configuration(self.config, self.backend)
+        self.assertTrue(result.native_failed)
+        self.assertTrue(
+            (root / "plugins/statusline-native/hooks/register.ts").is_file()
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
