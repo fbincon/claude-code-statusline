@@ -43,6 +43,8 @@ def build_parser():
         "slash-hook", help="handle claude-statusline slash command hooks"
     )
     config_commands.add_config_parser(subparsers)
+    ui_parser = subparsers.add_parser("ui", help="serve one internal JSON configuration request")
+    _common_config_argument(ui_parser)
 
     configure_parser = subparsers.add_parser(
         "configure", help="open the interactive status line configuration editor"
@@ -138,6 +140,10 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = build_parser()
     args = parser.parse_args(arguments)
+    if args.command == "ui":
+        from claude_statusline.ui import protocol
+
+        return protocol.main(args)
 
     if args.command == "render":
         from . import statusline

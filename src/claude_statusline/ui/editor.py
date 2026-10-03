@@ -6,6 +6,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
 from claude_statusline.config import display as config_display
+from claude_statusline.config import catalog
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 from claude_statusline.ui import models as ui_models
@@ -272,11 +273,9 @@ class EditorState:
                 # Keep the enabled set valid: status-elapsed is mutually
                 # exclusive with status/elapsed, so enabling one side drops
                 # the other before _sync_subagent_items validates the list.
-                if self.selected_subagent_item == "status-elapsed":
-                    self.subagent_enabled.discard("status")
-                    self.subagent_enabled.discard("elapsed")
-                elif self.selected_subagent_item in ("status", "elapsed"):
-                    self.subagent_enabled.discard("status-elapsed")
+                self.subagent_enabled.difference_update(
+                    catalog.BY_SCOPE["subagent"][self.selected_subagent_item].excludes
+                )
             self._sync_subagent_items()
             return True
         visible = self._normalize_item_selection()

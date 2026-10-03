@@ -109,7 +109,9 @@ def run_pty(root: Path, project: Path, env: dict, claude: str, plugin: Path, col
         time.sleep(0.5)
         offset = len(raw)
         os.write(master, b"/statusline-config show\r")
-        read_until("Scope: user", start=offset)
+        # Narrow screens can scroll the first result lines away in one frame.
+        read_until("Hide Vim mode indicator:", start=offset)
+        assert "Draft only." not in "\n".join(screen.display), "Esc did not close the pane"
         config = Path(env["CLAUDE_CONFIG_DIR"])
         assert not (config / "claude-statusline.json").exists(), "Probe persisted a draft"
         return {"columns": columns, "passed": True, "opened": True,

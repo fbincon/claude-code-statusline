@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- 为 CLI、curses、向导和生成的 TypeScript 统一带作用域的项目元数据、默认值与互斥规则；增加锁内 JSON describe/read 及不采集实时数据、不持久化的生产样例 spans。
+
 - 增加显式加载的 TypeScript 原生入口验证，处理命令冲突，提供不保存的颜色切换和 Esc 关闭，保留现有配置入口。
 - 增加实际构建宿主类型、官方 Mod/类型检查及隔离的 Linux PTY/人工验收工具。原生视觉验收仍待完成，本次不发布新版本。
 

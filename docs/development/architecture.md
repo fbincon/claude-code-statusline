@@ -34,6 +34,8 @@ docs/development/                   Architecture, testing and timer contracts
 
 The opt-in TypeScript probe lives separately in `mods/statusline-native`, with manifest, hooks, pure logic and official tests. Python remains the configuration/rendering owner. Source distributions carry developer Mod files; wheels do not install them. See [native integration](native.md).
 
+`config.catalog` defines scoped items and derived legacy views. `ui.contracts` defines the generated frontend wire types, `ui.protocol` owns JSON transport and `rendering.spans` converts production samples to drawable output. Locked reads use semantic revisions from `config.revisions`. See [shared contracts](contracts.md).
+
 Platform adapters provide locking, atomic writes, process identity and suspend-aware clocks. Runtime collectors use those adapters; renderers consume collected data and display configuration. UI drafts save through the configuration service. Installation and configuration share the same storage lock and ownership helpers, preserving rollback and semantic conflict detection.
 
 ```mermaid

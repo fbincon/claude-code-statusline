@@ -6,6 +6,8 @@ Run all ordinary validation with temporary Claude configuration. The tests do no
 
 ## Local checks
 
+Shared catalog/protocol tests include strict input, Unicode paths and no-live-I/O sample previews. Run `python tools/generate_ui_contracts.py --check` to verify generated TypeScript agrees with Python; the native workflow also runs these contract tests. See [protocol details](contracts.md).
+
 From the repository root, create a virtual environment and install the project plus development tools:
 
 ```bash

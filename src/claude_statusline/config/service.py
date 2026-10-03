@@ -9,6 +9,7 @@ from claude_statusline.config import display as config_display
 from claude_statusline.config import host as config_host
 from claude_statusline.config import models as config_models
 from claude_statusline.config import storage as config_storage
+from claude_statusline.config import revisions
 from claude_statusline.integration import capabilities as integration_capabilities
 from claude_statusline.integration import models as integration_models
 from claude_statusline.platforms import files as platform_files
@@ -33,17 +34,24 @@ def read_effective_config(
     config_dir: Path, executable: Path
 ) -> config_models.EffectiveConfig:
     try:
-        display = config_display.load_display_config(config_dir)
-        settings, _ = config_storage._read_settings(config_dir / "settings.json")
-        host, installed = config_host._host_from_settings(settings, executable)
+        with config_storage._installation_lock(config_dir):
+            display = config_display.load_display_config(config_dir)
+            settings, _ = config_storage._read_settings(config_dir / "settings.json")
+            return _effective_snapshot(display, settings, config_dir, executable)
     except (
         config_display.DisplayConfigError,
         integration_models.ConfigurationError,
     ) as exc:
         raise config_models.ConfigCommandError(str(exc)) from exc
-    subagent = _subagent_info(display, settings, executable)
+
+
+def _effective_snapshot(display, settings, config_dir, executable):
+    host, installed = config_host._host_from_settings(settings, executable)
     return config_models.EffectiveConfig(
-        display, host, installed, config_display.config_path(config_dir), subagent
+        display, host, installed, config_display.config_path(config_dir),
+        _subagent_info(display, settings, executable),
+        revisions.semantic_revision(display, host, settings, executable),
+        revisions.installation_identity(settings, executable),
     )
 
 
@@ -132,13 +140,7 @@ def mutate_configuration(
                 and new_settings != settings
             )
             if not display_changed and not settings_changed:
-                effective = config_models.EffectiveConfig(
-                    display,
-                    host,
-                    installed,
-                    config_display.config_path(config_dir),
-                    _subagent_info(display, settings, executable),
-                )
+                effective = _effective_snapshot(display, settings, config_dir, executable)
                 return config_models.MutationResult(False, effective)
 
             backup_dir = _backup_transaction(
@@ -198,16 +200,7 @@ def mutate_configuration(
                 if new_settings is not config_models._UNCHANGED
                 else settings
             )
-            effective_host, effective_installed = config_host._host_from_settings(
-                effective_settings, executable
-            )
-            effective = config_models.EffectiveConfig(
-                effective_display,
-                effective_host,
-                effective_installed,
-                config_display.config_path(config_dir),
-                _subagent_info(effective_display, effective_settings, executable),
-            )
+            effective = _effective_snapshot(effective_display, effective_settings, config_dir, executable)
             return config_models.MutationResult(True, effective, backup_dir)
     except (
         config_display.DisplayConfigError,
