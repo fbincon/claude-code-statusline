@@ -10,6 +10,8 @@ docs/ROADMAP.zh-CN.md
 .ruff_cache/
 .venv/
 .venv-*/
+node_modules/
+mods/*/.claude-plugin/types/
 build/
 dist/
 .env

@@ -31,6 +31,8 @@ docs/development/                   架构、测试及计时约定
 
 ## 依赖与边界
 
+显式加载的 TypeScript 验证入口独立放在 `mods/statusline-native`，分开 manifest、hooks、纯逻辑和官方测试。Python 继续负责配置与渲染。源码包包含 Mod 开发文件，wheel 不安装这些文件。参见[原生入口验证](native.zh-CN.md)。
+
 平台适配提供文件锁、原子写入、进程身份和包含睡眠时间的时钟。运行采集依赖这些适配；renderer 使用采集结果和显示配置。UI 草稿通过配置 service 保存。安装与配置共用存储锁及所有权辅助逻辑，保留回滚和语义冲突检查。
 
 ```mermaid

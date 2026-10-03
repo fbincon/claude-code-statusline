@@ -32,6 +32,8 @@ docs/development/                   Architecture, testing and timer contracts
 
 ## Dependencies and boundaries
 
+The opt-in TypeScript probe lives separately in `mods/statusline-native`, with manifest, hooks, pure logic and official tests. Python remains the configuration/rendering owner. Source distributions carry developer Mod files; wheels do not install them. See [native integration](native.md).
+
 Platform adapters provide locking, atomic writes, process identity and suspend-aware clocks. Runtime collectors use those adapters; renderers consume collected data and display configuration. UI drafts save through the configuration service. Installation and configuration share the same storage lock and ownership helpers, preserving rollback and semantic conflict detection.
 
 ```mermaid

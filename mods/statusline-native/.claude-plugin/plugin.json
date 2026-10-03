@@ -1,0 +1,8 @@
+{
+  "name": "statusline-native",
+  "version": "0.1.0",
+  "description": "Experimental statusline configuration pane and integration probe",
+  "author": { "name": "fbincon" },
+  "license": "MIT",
+  "homepage": "https://github.com/fbincon/claude-code-statusline"
+}

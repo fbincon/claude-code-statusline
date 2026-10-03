@@ -1,0 +1,42 @@
+name: Native Mod
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  mod:
+    name: Linux / Claude Code ${{ matrix.claude }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        claude: ["2.1.287", "2.1.288"]
+    env:
+      DISABLE_AUTOUPDATER: "1"
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mods/statusline-native/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install fixed host and development dependencies
+        run: |
+          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund "@anthropic-ai/claude-code@${{ matrix.claude }}"
+          echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
+          npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
+          python -m pip install .
+      - name: Generate exact-build official declarations
+        run: python tools/prepare_mod_types.py
+      - name: Official static validation
+        run: claude plugin validate --strict mods/statusline-native
+      - name: Official Mod tests
+        run: claude plugin test mods/statusline-native
+      - name: TypeScript checks
+        run: npm run --prefix mods/statusline-native typecheck

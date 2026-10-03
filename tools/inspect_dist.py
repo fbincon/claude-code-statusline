@@ -135,6 +135,16 @@ def main():
                 assert any(
                     name.endswith(source.as_posix()) for name in distributions[1]
                 ), source
+    for source in Path("mods/statusline-native").rglob("*"):
+        if (
+            source.is_file()
+            and source.suffix in {".json", ".ts"}
+            and "node_modules" not in source.parts
+            and ".claude-plugin/types" not in source.as_posix()
+        ):
+            assert any(name.endswith(source.as_posix()) for name in distributions[1]), source
+    for names in distributions:
+        assert not any("/node_modules/" in name or ".claude-plugin/types/" in name for name in names)
     print(
         f"Verified {version}: {len(distributions[0])} wheel entries and {len(distributions[1])} sdist entries."
     )
