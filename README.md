@@ -220,6 +220,8 @@ Display preferences, caches, backups, and experimental feature preferences remai
 
 ## Native editor preview
 
+[Captured native pages and provenance](docs/images/README.md#native-editor-captures).
+
 The v1.2.0a1 candidate includes a matching native Mod in the wheel. Stable installation above remains v1.1.1. Use the candidate package for these commands; the stable v1.1.1 CLI does not provide them.
 
 ```bash
