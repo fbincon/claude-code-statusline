@@ -2,6 +2,11 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## Unreleased
+
+- Add an opt-in TypeScript native integration probe with command collision handling, transient color toggle and Esc close; preserve existing configuration entry points.
+- Add exact-build host declarations, official Mod/type checks and isolated Linux PTY/manual acceptance tooling. Native visual acceptance is pending; no new release is published.
+
 ## 1.1.1 - 2026-10-03
 
 - Preserve full multi-agent task duration before and after final Stop, including main-agent wrap-up.

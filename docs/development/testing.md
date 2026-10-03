@@ -23,6 +23,8 @@ Tests are grouped by implementation subsystem. CLI, installation and PTY/tmux/sh
 
 ## Installed package checks
 
+The separate Linux native workflow checks Claude Code 2.1.287 and 2.1.288 with exact-build declarations, official plugin validation/tests and TypeScript. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
+
 Use the [release guide](../RELEASING.md) to build in a fresh directory from a fixed commit. The build job creates local-only fixtures before building, then checks that they are excluded:
 
 ```bash

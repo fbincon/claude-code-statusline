@@ -1,0 +1,4 @@
+{
+  "description": "Opt-in native configuration integration probe",
+  "modules": ["./register.ts"]
+}

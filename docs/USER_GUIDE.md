@@ -1785,6 +1785,8 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 
 ## Related documentation
 
+The [native integration probe](development/native.md) is an opt-in source experiment. It does not replace the released configuration interfaces, and its transient toggle does not save settings.
+
 - [Project README](../README.md): introduction, screenshots, and quick installation.
 - [Claude Code:Customize your status line](https://code.claude.com/docs/en/statusline)
 - [Claude Code:Hooks reference](https://code.claude.com/docs/en/hooks)

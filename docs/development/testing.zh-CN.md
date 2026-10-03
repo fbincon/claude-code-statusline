@@ -23,6 +23,8 @@ Windows 使用 `.venv\Scripts\python.exe` 和 `.venv\Scripts\ruff.exe`，设置 
 
 ## 安装包检查
 
+独立 Linux 原生工作流使用实际构建声明、官方插件验证/测试和 TypeScript 检查 Claude Code 2.1.287 与 2.1.288。显式调用的 PTY/人工步骤见[原生入口验证](native.zh-CN.md)；回调测试不能证明终端焦点或视觉表现正确。
+
 按 [发布指南](../RELEASING.zh-CN.md) 从固定提交导出到新目录构建。构建作业先创建本地专属 fixture，再检查它们未进入发行包：
 
 ```bash
