@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- 增加原生 Main/Subagents/Settings 三页，目录驱动选择排序和数值校验、保存后保持面板、冲突显式重载及未知保存结果读取核对；实际 theme/verbose 宿主行独立应用并报告锁定和拒绝。
+
 - 增加完整草稿 JSON apply：与 curses 共用锁内语义 revision，检查主/子状态行安装归属，合并无关设置并复用备份和回滚；补齐原生桥接故障、超时及旧响应处理。
 
 - 为 CLI、curses、向导和生成的 TypeScript 统一带作用域的项目元数据、默认值与互斥规则；增加锁内 JSON describe/read 及不采集实时数据、不持久化的生产样例 spans。

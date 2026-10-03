@@ -1,8 +1,30 @@
 {
   "name": "statusline-native",
   "version": "0.1.0",
-  "description": "Experimental statusline configuration pane and integration probe",
-  "author": { "name": "fbincon" },
+  "description": "Native statusline configuration editor with main, subagent and settings pages",
+  "author": {
+    "name": "fbincon"
+  },
   "license": "MIT",
-  "homepage": "https://github.com/fbincon/claude-code-statusline"
+  "homepage": "https://github.com/fbincon/claude-code-statusline",
+  "userConfig": {
+    "backendExecutable": {
+      "type": "string",
+      "title": "Backend executable",
+      "description": "Absolute matching claude-statusline executable; source development can override it with CLAUDE_STATUSLINE_NATIVE_EXECUTABLE.",
+      "default": "claude-statusline"
+    },
+    "configDir": {
+      "type": "string",
+      "title": "Configuration directory",
+      "description": "Claude configuration directory used by the installer; CLAUDE_CONFIG_DIR takes precedence.",
+      "default": ""
+    },
+    "backendVersion": {
+      "type": "string",
+      "title": "Expected backend version",
+      "description": "Version bound by the installer; empty permits protocol-compatible source development.",
+      "default": ""
+    }
+  }
 }

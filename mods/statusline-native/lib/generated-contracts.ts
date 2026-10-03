@@ -6,6 +6,8 @@ export type Palette = "default" | "ansi";
 export type DirectoryStyle = "full" | "home" | "project-relative" | "basename";
 export type SeparatorStyle = "classic" | "compact";
 export type ScopeLabels = "off" | "when-subagents" | "always";
+export type Scope = "main" | "subagent";
+export type UnavailableReason = "not_observed" | "unsupported_host" | "unknown_host_version" | "source_unavailable" | "condition_not_met";
 export const MAIN_ITEM_IDS = ["model-with-effort", "fast-mode", "thinking", "current-dir", "project-name", "hostname", "git", "pr", "repo", "worktree", "context-remaining", "context-used", "context-window-size", "five-hour-limit", "weekly-limit", "spend-limit", "tokens", "prompt-cache", "prompt-timer", "version", "session", "cost", "agent", "vim-mode"] as const;
 export const SUBAGENT_ITEM_IDS = ["status-elapsed", "status", "name", "model-with-effort", "context-remaining", "context-used", "elapsed", "task", "tokens", "current-dir"] as const;
 export const PALETTE_VALUES = ["default", "ansi"] as const;
@@ -13,6 +15,52 @@ export const DIRECTORYSTYLE_VALUES = ["full", "home", "project-relative", "basen
 export const SEPARATORSTYLE_VALUES = ["classic", "compact"] as const;
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export type Operation = "describe" | "read" | "preview" | "apply";
+export interface CatalogItem {
+  scope: Scope;
+  id: MainItemId | SubagentItemId;
+  label: string;
+  description: string;
+  group: string;
+  sources: string[];
+  examples: string[];
+  default_position: number | null;
+  minimum_version: string | null;
+  format_options: string[];
+  excludes: string[];
+  unavailable_reasons: UnavailableReason[];
+  default_enabled: boolean;
+  minimum_version_status: "verified" | "unknown";
+}
+export interface ChoiceOptions {
+  choices: (string | boolean)[];
+}
+export interface RangeOptions {
+  minimum: number;
+  maximum: number;
+}
+export interface RefreshOptions {
+  minimum: number;
+  maximum: number;
+  special: "event";
+}
+export interface ConfigurationOptions {
+  colors: ChoiceOptions;
+  palette: ChoiceOptions;
+  "directory-style": ChoiceOptions;
+  "separator-style": ChoiceOptions;
+  "scope-labels": ChoiceOptions;
+  "subagent-statusline": ChoiceOptions;
+  padding: RangeOptions;
+  "refresh-interval": RefreshOptions;
+  "hide-vim-mode-indicator": ChoiceOptions;
+}
+export interface Capabilities {
+  host_version: string | null;
+  subagent_rows: "unknown" | "supported" | "unsupported";
+  native_mod: "unknown" | "unverified" | "unsupported";
+  native_mod_loaded: null;
+  data_observation: "not_observed";
+}
 export interface SubagentDraft {
   enabled: boolean;
   items: SubagentItemId[];
@@ -59,13 +107,13 @@ export interface ReadResult {
   revision: string;
   installed: boolean;
   installation: Record<string, unknown>;
-  capabilities: Record<string, unknown>;
+  capabilities: Capabilities;
   backend_version: string;
 }
 export interface DescribeResult {
-  catalog: Record<string, unknown>[];
-  options: Record<string, unknown>;
-  capabilities: Record<string, unknown>;
+  catalog: CatalogItem[];
+  options: ConfigurationOptions;
+  capabilities: Capabilities;
   backend_version: string;
   operations: string[];
 }
@@ -74,13 +122,22 @@ export interface ApplyResult {
   revision: string;
   installed: boolean;
   installation: Record<string, unknown>;
-  capabilities: Record<string, unknown>;
+  capabilities: Capabilities;
   backend_version: string;
   changed: boolean;
   backup_dir: string | null;
 }
-export interface ResultMap { describe: DescribeResult; read: ReadResult; preview: PreviewResult; apply: ApplyResult; }
+export interface ResultMap {
+  describe: DescribeResult;
+  read: ReadResult;
+  preview: PreviewResult;
+  apply: ApplyResult;
+}
 export type ResultFor<O extends Operation> = ResultMap[O];
-export interface Request { protocol_version: typeof PROTOCOL_VERSION; operation: Operation; payload: unknown; }
+export interface Request {
+  protocol_version: typeof PROTOCOL_VERSION;
+  operation: Operation;
+  payload: unknown;
+}
 export type Result = PreviewResult | ReadResult | DescribeResult | ApplyResult;
 export type Response = { protocol_version: typeof PROTOCOL_VERSION; result: Result } | { protocol_version: typeof PROTOCOL_VERSION; error: ProtocolError };

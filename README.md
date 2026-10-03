@@ -223,7 +223,7 @@ Display preferences, caches, backups, and experimental feature preferences remai
 - [Diagnostics and troubleshooting](docs/USER_GUIDE.md#troubleshooting): start with `doctor`, then follow the relevant symptom.
 - [Development and testing](docs/USER_GUIDE.md#appendix-development-and-testing) · [Release guide](docs/RELEASING.md) · [Changelog](CHANGELOG.md).
 - [Architecture](docs/development/architecture.md) · [Validation](docs/development/testing.md) · [Timer metrics and evidence](docs/development/timer.md).
-- [Native integration probe](docs/development/native.md): opt-in source development with confirmed Linux manual acceptance; the full native editor remains Phase 2.
+- [Native configuration editor](docs/development/native.md): source Main/Subagents/Settings pages, revision-protected saves and separate host preferences; three-platform editor acceptance remains pending.
 - [Shared configuration protocol](docs/development/contracts.md): item catalog and internal JSON describe/read/preview/apply contracts for source development.
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include your OS, Python/Claude Code/tool versions, reproduction steps, and diagnostic output with private paths and session content removed.
 

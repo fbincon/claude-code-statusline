@@ -1785,7 +1785,7 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 
 ## Related documentation
 
-The [native integration probe](development/native.md) is an opt-in source experiment. It does not replace the released configuration interfaces, and its transient toggle does not save settings.
+The [native configuration editor](development/native.md) provides Main, Subagents and Settings in a source-loaded Mod, with revision-protected saves and separate host preferences. Stable installation remains v1.1.1; persistent preview installation and human editor acceptance are tracked separately.
 
 - [Project README](../README.md): introduction, screenshots, and quick installation.
 - [Claude Code:Customize your status line](https://code.claude.com/docs/en/statusline)

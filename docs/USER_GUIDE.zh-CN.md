@@ -1635,7 +1635,7 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 
 ## 相关文档
 
-[原生入口验证](development/native.zh-CN.md) 是通过源码显式加载的实验工具，不替代已发布的配置入口，临时切换项不会保存设置。
+[原生配置编辑器](development/native.zh-CN.md) 在源码加载的 Mod 中提供三页、revision 保存保护及独立宿主偏好。稳定安装仍为 v1.1.1；持久预览安装与真人编辑器验收分别记录。
 
 - [项目首页](../README.zh-CN.md)：项目介绍、界面预览和快速安装。
 - [Claude Code：Customize your status line](https://code.claude.com/docs/en/statusline)
