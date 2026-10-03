@@ -2,7 +2,9 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.1.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.1.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+
+本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 准备发布提交
 
@@ -28,7 +30,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.1.0
+RELEASE_TAG=v1.1.1
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -46,8 +48,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-claude_code_statusline-1.1.0-py3-none-any.whl
-claude_code_statusline-1.1.0.tar.gz
+claude_code_statusline-1.1.1-py3-none-any.whl
+claude_code_statusline-1.1.1.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -57,7 +59,7 @@ claude_code_statusline-1.1.0.tar.gz
 - wheel 的版本、平台分类和条件依赖正确，包含 `_platform.py`、`macos_terminal.py` 及两个 skill 模板。
 - 源码包包含 README、变更记录、使用指南、发布指南和截图索引的中英文版本，以及双语 Release 正文、所有平台 PNG 和测试。wheel 元数据使用英文 README。
 - 两种包均不包含 `docs/MACOS_VALIDATION.md`、`.DS_Store`、字节码或本地缓存。
-- 将 wheel 安装到新虚拟环境，在非源码目录运行 `--version`；通过 `tests/ci_smoke.py` 验证已安装包。Linux/macOS 需要 tmux。
+- 将 wheel 安装到新虚拟环境，在非源码目录运行 `--version`；通过 `tools/ci_smoke.py` 验证已安装包。Linux/macOS 需要 tmux。
 - 从源码包另行重建 wheel，核对包文件、元数据和入口，并完成隔离安装验证。
 
 ## 生成与核验校验文件
@@ -68,8 +70,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.1.0-py3-none-any.whl \
-  claude_code_statusline-1.1.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.1.1-py3-none-any.whl \
+  claude_code_statusline-1.1.1.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -78,8 +80,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.1.0-py3-none-any.whl',
-    'claude_code_statusline-1.1.0.tar.gz'
+    'claude_code_statusline-1.1.1-py3-none-any.whl',
+    'claude_code_statusline-1.1.1.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -97,8 +99,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.1.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.1.0.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.1.1-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.1.1.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \

@@ -1,0 +1,101 @@
+"""rendering / preview implementation."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from claude_statusline.config import display as config_display
+from claude_statusline.rendering import items as rendering_items
+from claude_statusline.rendering import layout as rendering_layout
+
+
+class _SampleRenderState(rendering_items._RenderState):
+    """Render deterministic preview values without touching live session state."""
+
+    def totals(self):
+        return "1.2M", "87.5K", "22.4K", None, {}
+
+    def had_subagents(self):
+        return True
+
+    def git(self):
+        text = (
+            f"{self.palette.branch}Git feature/statusline-tui ↑1 ~2 ?1"
+            f"{self.palette.reset}"
+        )
+        return rendering_items._RenderedItem(text, group="repo")
+
+    def prompt_timer(self):
+        return rendering_items._RenderedItem(
+            f"{self.palette.timer}✓ 1m 42s{self.palette.reset}"
+        )
+
+    def hostname(self):
+        return rendering_items._RenderedItem(
+            f"{self.palette.directory}Host devbox{self.palette.reset}",
+            group="location",
+        )
+
+
+def _sample_preview_data():
+    project_dir = Path.home() / "projects" / "claude-code-statusline"
+    project_text = project_dir.as_posix()
+    return {
+        "model": {"id": "claude-opus"},
+        "effort": {"level": "high"},
+        "fast_mode": True,
+        "thinking": {"enabled": True},
+        "workspace": {
+            "current_dir": f"{project_text}/src",
+            "project_dir": project_text,
+            "repo": {"owner": "example", "name": "claude-code-statusline"},
+        },
+        "pr": {"number": 42, "review_state": "approved"},
+        "worktree": {"name": "statusline-tui"},
+        "context_window": {
+            "remaining_percentage": 73,
+            "used_percentage": 27,
+            "context_window_size": 200_000,
+        },
+        "rate_limits": {
+            "five_hour": {"used_percentage": 18},
+            "seven_day": {"used_percentage": 36},
+            "spend_limit": {"used_percentage": 9},
+        },
+        "prompt_cache": {"hit_ratio": 0.91, "cache_write_tokens": 352_000},
+        "version": "2.1.258",
+        "session_name": "demo-session",
+        "session_id": "demo-session",
+        "cost": {
+            "total_cost_usd": 0.12,
+            "total_duration_ms": 750_000,
+            "total_lines_added": 156,
+            "total_lines_removed": 23,
+        },
+        "agent": {"name": "reviewer"},
+        "vim": {"mode": "NORMAL"},
+    }
+
+
+def render_preview_rows(
+    display_config: config_display.DisplayConfig,
+    width: int,
+    padding: int = 0,
+) -> list[str]:
+    """Render deterministic sample rows using the production layout pipeline."""
+    available_width = max(rendering_layout.MIN_CONTENT_WIDTH, int(width))
+    requested_padding = max(0, int(padding))
+    applied_padding = min(
+        requested_padding,
+        max(0, available_width - rendering_layout.MIN_CONTENT_WIDTH),
+    )
+    segments, separator, reset = rendering_items._configured_segments_with_state(
+        _sample_preview_data(), display_config, _SampleRenderState
+    )
+    rows = rendering_layout._layout_segments(
+        segments,
+        available_width - applied_padding,
+        separator=separator,
+        reset=reset,
+    )
+    prefix = " " * applied_padding
+    return [prefix + row for row in rows]

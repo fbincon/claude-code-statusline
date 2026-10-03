@@ -6,3 +6,7 @@ recursive-include docs *.md *.png
 exclude docs/MACOS_VALIDATION.md
 recursive-include tests *.py
 recursive-include src/claude_statusline/resources *.md
+recursive-include tools *.py
+exclude docs/ROADMAP.md
+exclude docs/ROADMAP.zh-CN.md
+global-exclude .DS_Store *.py[cod]
