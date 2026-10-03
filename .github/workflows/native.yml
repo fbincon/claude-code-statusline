@@ -28,7 +28,7 @@ jobs:
           python-version: "3.14"
       - name: Install fixed host and development dependencies
         run: |
-          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund "@anthropic-ai/claude-code@${{ matrix.claude }}"
+          npm install --prefix "$RUNNER_TEMP/claude-host" --no-audit --no-fund "@anthropic-ai/claude-code@${{ matrix.claude }}"
           echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
           npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
           python -m pip install .
