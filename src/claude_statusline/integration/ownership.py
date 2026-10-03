@@ -37,7 +37,14 @@ def resolve_cli_executable(explicit: str | os.PathLike[str] | None = None) -> Pa
         raise integration_models.ConfigurationError(
             f"cannot find {command_name} in PATH; install the package first"
         )
-    return Path(os.path.abspath(os.path.expanduser(value)))
+    path = Path(os.path.abspath(os.path.expanduser(value)))
+    if platform_environment.is_windows() and path.suffix.casefold() != ".exe":
+        # pip's Windows console bootstrap removes .exe from sys.argv[0].
+        # Restore the adjacent launcher instead of selecting another PATH entry.
+        launcher = path.with_name(path.name + ".exe")
+        if launcher.is_file():
+            path = launcher
+    return path
 
 
 def _quoted_executable(executable: Path) -> str:
@@ -146,6 +153,20 @@ def _is_current_cli_command(
         return True
     if _normalized_path(candidate) == _normalized_path(executable):
         return True
+    # Only decode our exact generated POSIX quoting, never a user-authored
+    # shell expression. shlex retains dollar/backtick escapes inside quotes.
+    decoded = candidate.replace("\\$", "$").replace("\\`", "`")
+    if isinstance(command, str) and command.strip() == command_for(
+        Path(decoded), subcommand
+    ):
+        candidate = decoded
+    try:
+        if os.path.normcase(str(Path(candidate).resolve())) == os.path.normcase(
+            str(executable.resolve())
+        ):
+            return True
+    except (OSError, ValueError):
+        pass
     try:
         resolved = shutil.which(candidate)
     except (OSError, ValueError):

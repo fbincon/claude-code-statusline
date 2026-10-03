@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claude-code-statusline"
-version = "1.1.1"
+version = "1.2.0a1"
 description = "A configurable, stateful Claude Code status line for Linux, Windows and macOS"
 readme = "README.md"
 license = "MIT"
@@ -40,6 +40,7 @@ claude-statusline = "claude_statusline.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+py-modules = []
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -49,3 +50,6 @@ claude_statusline = [
   "resources/statusline-config/SKILL.md",
   "resources/statusline-configure/SKILL.md",
 ]
+
+[tool.setuptools.cmdclass]
+build_py = "build_native.BuildPy"

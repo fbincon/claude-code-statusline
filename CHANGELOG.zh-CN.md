@@ -2,16 +2,14 @@
 
 [English](CHANGELOG.md) | **简体中文**
 
-## Unreleased
+## 1.2.0a1 - 2026-10-04
 
-- 增加原生 Main/Subagents/Settings 三页，目录驱动选择排序和数值校验、保存后保持面板、冲突显式重载及未知保存结果读取核对；实际 theme/verbose 宿主行独立应用并报告锁定和拒绝。
-
-- 增加完整草稿 JSON apply：与 curses 共用锁内语义 revision，检查主/子状态行安装归属，合并无关设置并复用备份和回滚；补齐原生桥接故障、超时及旧响应处理。
-
-- 为 CLI、curses、向导和生成的 TypeScript 统一带作用域的项目元数据、默认值与互斥规则；增加锁内 JSON describe/read 及不采集实时数据、不持久化的生产样例 spans。
-
-- 增加显式加载的 TypeScript 原生入口验证，处理命令冲突，提供不保存的颜色切换和 Esc 关闭，保留现有配置入口。
-- 增加实际构建宿主类型、官方 Mod/类型检查及隔离的 Linux PTY/人工验收工具。原生视觉验收仍待完成，本次不发布新版本。
+- 增加原生 Main、Subagents、Settings 三页，使用共享目录选择、互斥、排序和样例预览；完整草稿以 revision 保护保存，成功后保持面板，未知结果先读取核对再重试。
+- 实际 theme/verbose 宿主偏好独立应用，报告锁定、拒绝和部分成功；窄面板保留草稿，关闭/重载使旧响应失效。
+- wheel 从唯一维护源打包匹配的 Mod 运行资源，通过所属本地 marketplace 接入，绑定实际后端并迁移所属配置入口，保留明确禁用，支持暂停、降级及卸载恢复。
+- doctor 分别核对资源哈希、版本、协议、启用和后端绑定，不把磁盘安装当作会话加载；修复 Windows npm/console 入口及 macOS 路径别名。
+- 与 CLI/curses/向导共享目录及 JSON describe/read/preview/apply，增加生成的 TypeScript、平台原生检查和注明来源的真实终端画面。
+- 预览保持原生显式启用，Latest 仍为 v1.1.1；Linux 真人验收已确认，Windows/macOS 原生真人验收待完成，稳定 v1.2.0 保留门槛。
 
 ## 1.1.1 - 2026-10-03
 

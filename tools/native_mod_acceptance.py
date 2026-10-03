@@ -21,7 +21,9 @@ import sys
 import time
 
 
-def prepare(root: Path, backend: Path) -> tuple[Path, dict[str, str]]:
+def prepare(
+    root: Path, backend: Path, *, persistent: bool = False
+) -> tuple[Path, dict[str, str]]:
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     config = root / "Claude config 中文"
     project = root / "project with spaces 中文"
@@ -64,7 +66,13 @@ def prepare(root: Path, backend: Path) -> tuple[Path, dict[str, str]]:
     env.pop("CLAUDECODE", None)
     env["PATH"] = str(backend.parent) + os.pathsep + env.get("PATH", "")
     subprocess.run(
-        [str(backend), "install", "--config-dir", str(config)],
+        [
+            str(backend),
+            "install",
+            "--native-editor" if persistent else "--no-native-editor",
+            "--config-dir",
+            str(config),
+        ],
         cwd=project,
         env=env,
         capture_output=True,
@@ -75,7 +83,14 @@ def prepare(root: Path, backend: Path) -> tuple[Path, dict[str, str]]:
 
 
 def run_pty(
-    root: Path, project: Path, env: dict, claude: str, plugin: Path, columns: int
+    root: Path,
+    project: Path,
+    env: dict,
+    claude: str,
+    plugin: Path,
+    columns: int,
+    *,
+    persistent: bool = False,
 ) -> dict:
     import fcntl
     import pty
@@ -83,6 +98,14 @@ def run_pty(
     import pyte
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
+    subprocess.run(
+        [env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set", "colors", "on"],
+        env=env,
+        cwd=project,
+        capture_output=True,
+        check=True,
+        timeout=30,
+    )
     settings_before = (config / "settings.json").read_bytes()
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 30, columns, 0, 0))
@@ -95,8 +118,7 @@ def run_pty(
     process = subprocess.Popen(
         [
             claude,
-            "--plugin-dir",
-            str(plugin),
+            *([] if persistent else ["--plugin-dir", str(plugin)]),
             "--debug-file",
             str(root / f"debug-{columns}.log"),
         ],
@@ -115,6 +137,7 @@ def run_pty(
 
     def read_until(text: str | tuple[str, ...], *, start: int = 0, timeout: int = 30):
         deadline = time.monotonic() + timeout
+        last_output = time.monotonic()
         while time.monotonic() < deadline:
             if select.select([master], [], [], 0.2)[0]:
                 try:
@@ -123,17 +146,57 @@ def run_pty(
                     break
                 raw.extend(data)
                 stream.feed(decoder.decode(data))
+                last_output = time.monotonic()
             plain = "\n".join(screen.display)
             candidates = (text,) if isinstance(text, str) else text
             compact = re.sub(r"\s+", "", plain)
             for candidate in candidates:
-                if re.sub(r"\s+", "", candidate) in compact:
+                if (
+                    len(raw) > start
+                    and time.monotonic() - last_output >= 0.25
+                    and re.sub(r"\s+", "", candidate) in compact
+                ):
                     return candidate
             if process.poll() is not None:
                 break
         raise RuntimeError(
             f"PTY {columns} columns: did not observe {text!r}; inspect ignored raw/debug logs"
         )
+
+    def capture(name):
+        # Exact decoded terminal cells from the real host; no synthetic UI.
+        path = root / f"screen-{columns}-{name}.json"
+        cells = [
+            [screen.buffer[row][column]._asdict() for column in range(columns)]
+            for row in range(30)
+        ]
+        path.write_text(
+            json.dumps(
+                {"columns": columns, "rows": 30, "cells": cells}, ensure_ascii=False
+            ),
+            encoding="utf-8",
+        )
+        path.chmod(0o600)
+
+    def command(text):
+        prompts = [line for line in screen.display if line.lstrip().startswith("❯")]
+        if not prompts or prompts[-1].split("❯", 1)[1].strip():
+            raise RuntimeError(
+                "Refusing to send a command while the composer is not empty"
+            )
+        os.write(master, text.encode("utf-8") + b"\r")
+
+    def reveal(text):
+        # Inline panes may be shorter than the requested rows. Native Tab
+        # navigation scrolls the focused control into view on that host.
+        for _ in range(16):
+            try:
+                return read_until(text, timeout=1)
+            except RuntimeError:
+                if process.poll() is not None:
+                    raise
+                os.write(master, b"\t")
+        raise RuntimeError(f"Native focus/scroll did not reveal {text!r}")
 
     try:
         # The fresh isolated project may still require its trust acknowledgement.
@@ -142,41 +205,59 @@ def run_pty(
             os.write(master, b"\r")
             read_until("❯")
         offset = len(raw)
-        os.write(master, b"/statusline-configure-native\r")
-        read_until("Colors: on", start=offset)
-        read_until("Shared catalog: 34 scoped items")
-        read_until("Sample preview")
-        offset = len(raw)
-        os.write(master, b"c")
-        read_until("Colors: off", start=offset)
-        os.write(master, b"\x1b")
-        # A local config query proves the prompt receives keys after Esc and
-        # that the old skill/hook entry still resolves without a model turn.
-        time.sleep(0.5)
-        offset = len(raw)
-        os.write(master, b"/statusline-config show\r")
-        # Narrow screens can scroll the first result lines away in one frame.
-        read_until("Hide Vim mode indicator:", start=offset)
-        assert "Draft only." not in "\n".join(screen.display), (
-            "Esc did not close the pane"
+        command(
+            "/statusline-configure" if persistent else "/statusline-configure-native"
         )
-        assert not (config / "claude-statusline.json").exists(), (
-            "Probe persisted a draft"
+        read_until("34 scoped items", start=offset)
+        read_until("Sample preview")
+        capture("main")
+        os.write(master, b"2")
+        reveal("Custom subagent rows")
+        capture("subagents")
+        os.write(master, b"3")
+        reveal("Tool settings")
+        capture("settings")
+        os.write(master, b"c")
+        reveal("Colors: off")
+        os.write(master, b"s")
+        read_until("Tool configuration saved")
+        assert (config / "claude-statusline.json").exists(), (
+            "Save did not create display configuration"
+        )
+        saved = (config / "claude-statusline.json").read_bytes()
+        assert json.loads(saved)["use_colors"] is False
+        capture("saved")
+        os.write(master, b"c")
+        reveal("Colors: on")
+        os.write(master, b"q")
+        time.sleep(0.5)
+        command("/statusline-configure-native")
+        read_until("34 scoped items")
+        os.write(master, b"3")
+        reveal("Colors: off")
+        os.write(master, b"\x1b")
+        time.sleep(0.5)
+        command("/statusline-config show")
+        read_until("Hide Vim mode indicator:")
+        assert (config / "claude-statusline.json").read_bytes() == saved, (
+            "Cancel changed saved display configuration"
         )
         assert (config / "settings.json").read_bytes() == settings_before, (
-            "Probe changed host settings"
+            "Unchanged host fields were rewritten"
         )
         return {
             "columns": columns,
             "passed": True,
             "opened": True,
+            "pages": ["main", "subagents", "settings"],
             "toggle": True,
+            "saved": True,
+            "cancel_reopen": True,
             "esc_return": True,
             "legacy_command": True,
             "catalog_items": 34,
             "sample_preview": True,
-            "draft_saved": False,
-            "settings_changed": False,
+            "persistent_plugin": persistent,
             "manual_visual_acceptance": False,
         }
     finally:
@@ -207,6 +288,11 @@ def main() -> int:
     parser.add_argument("--plugin", type=Path, default=Path("mods/statusline-native"))
     parser.add_argument("--interactive", action="store_true")
     parser.add_argument(
+        "--persistent",
+        action="store_true",
+        help="Install the bundled Mod through the official marketplace, then start without --plugin-dir",
+    )
+    parser.add_argument(
         "--terminal", help="Terminal name/version to record for manual acceptance"
     )
     args = parser.parse_args()
@@ -215,9 +301,11 @@ def main() -> int:
     root = args.report_dir.resolve()
     plugin = args.plugin.resolve()
     backend = args.backend.resolve()
-    project, environment = prepare(root, backend)
+    project, environment = prepare(root, backend, persistent=args.persistent)
     report = {
         "os": platform.platform(),
+        "architecture": platform.machine(),
+        "persistent_plugin": args.persistent,
         "terminal": args.terminal or os.environ.get("TERM_PROGRAM", "unknown")
         if args.interactive
         else "xterm-256color PTY",
@@ -240,20 +328,30 @@ def main() -> int:
         report_path = root / "report.json"
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         print(
-            "Run /statusline-configure-native, check pane placement/focus and toggle c, close with Esc, then /statusline-config show.\n"
+            "Run /statusline-configure-native (also /statusline-configure when installed), verify all three pages, Tab/Enter, narrow/CJK layout, numeric Esc, save/refresh, cancel, host preferences and return to the same session.\n"
             "Repeat in a narrow window. Send no model prompt. Use /exit when finished.\n"
             f"Environment recorded in {report_path}; manual acceptance stays pending until you report the result.",
             flush=True,
         )
         report["interactive_exit_code"] = subprocess.call(
-            [args.claude, "--plugin-dir", str(plugin)], cwd=project, env=environment
+            [args.claude, *([] if args.persistent else ["--plugin-dir", str(plugin)])],
+            cwd=project,
+            env=environment,
         )
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         return report["interactive_exit_code"]
     try:
         for columns in (120, 80):
             report["cases"].append(
-                run_pty(root, project, environment, args.claude, plugin, columns)
+                run_pty(
+                    root,
+                    project,
+                    environment,
+                    args.claude,
+                    plugin,
+                    columns,
+                    persistent=args.persistent,
+                )
             )
     finally:
         (root / "report.json").write_text(

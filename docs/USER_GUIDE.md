@@ -1783,9 +1783,24 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 
 <a id="相关文档"></a>
 
+
+## Native editor preview
+
+The [v1.2.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0a1) includes a matching native Mod in the wheel. Stable installation above remains v1.1.1. Use the preview package for these commands; the stable v1.1.1 CLI does not provide them.
+
+```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0a1/claude_code_statusline-1.2.0a1-py3-none-any.whl"
+claude-statusline install --native-editor
+claude-statusline doctor
+```
+
+Restart Claude Code 2.1.287+ in a trusted terminal, then run `/statusline-configure` or its alias `/statusline-configure-native`. Main/Subagents support selections, ordering and sample preview; Settings contains the nine existing tool settings and separate theme/verbose host preferences. `1/2/3` switch pages, Tab/Enter operate host controls, `s` saves tool configuration and leaves the pane open, `a` applies host preferences, and Esc/`q` discard pending changes. Esc first exits an input. See [native editor behavior](development/native.md).
+
+Previews require explicit enablement. `install --no-native-editor` persists a disabled preference and removes owned native integration. The compatibility `/statusline-configure` launcher is restored only if its experimental preference is enabled. The wizard `/statusline-config` and standalone `claude-statusline configure` remain available. Installation failures retain compatibility configuration and report the actual native state; retry after checking doctor. Native terminal interaction on Linux, Windows and macOS is a separate human acceptance gate; automated platform installation checks do not establish it.
+
 ## Related documentation
 
-The [native configuration editor](development/native.md) provides Main, Subagents and Settings in a source-loaded Mod, with revision-protected saves and separate host preferences. Stable installation remains v1.1.1; persistent preview installation and human editor acceptance are tracked separately.
+The [native configuration editor](development/native.md) provides Main, Subagents and Settings in a source-loaded Mod, with revision-protected saves and separate host preferences. Stable installation remains v1.1.1; native preview installation is opt-in and human editor acceptance remains a separate gate.
 
 - [Project README](../README.md): introduction, screenshots, and quick installation.
 - [Claude Code:Customize your status line](https://code.claude.com/docs/en/statusline)

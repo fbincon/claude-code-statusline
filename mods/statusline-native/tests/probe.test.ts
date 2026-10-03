@@ -23,6 +23,7 @@ test('three pages edit a full draft, save the opening revision and stay open', a
     title: 'Statusline configuration',
     focus: true,
     closeOnEscape: true,
+    rows: 24,
   });
   expect(fixture.calls[0]!.argv).toEqual([
     '/tmp/bin with spaces/claude-statusline',
@@ -393,5 +394,58 @@ test('command collisions and foreign panes pass through', async ($, on) => {
   expect(fixture.registered).toBe(false);
   const ui = await $.ui.mount({ ...PANE, requestId: 'foreign' });
   expect(await ui.find({ type: 'Text', text: 'foreign pane' })).toBeDefined();
+  await ui.unmount();
+});
+
+test(
+  'the installed primary command opens the editor and refuses foreign commands independently',
+  { options: { primaryCommand: true } },
+  async ($, on) => {
+    const fixture = setup(on);
+    await $.session.start(START);
+    await $.command.run({ ...RUN, command: 'statusline-configure' });
+    const ui = await $.ui.mount(PANE);
+    expect(await ui.find({ key: 'save' })).toBeDefined();
+    await ui.press({ key: 'close' });
+    await ui.unmount();
+    fixture.commands = [
+      {
+        name: 'statusline-configure',
+        description: 'Foreign',
+        source: 'plugin',
+        plugin: 'other',
+      },
+    ];
+    await $.session.start(START);
+    expect(
+      (await $.command.run({ ...RUN, command: 'statusline-configure' })).text,
+    ).toBe('foreign command');
+    await $.command.run(RUN);
+    const alias = await $.ui.mount(PANE);
+    expect(await alias.find({ key: 'save' })).toBeDefined();
+    await alias.unmount();
+  },
+);
+
+test('session reload discards pending drafts and numeric focus exit cancels unaccepted values', async ($, on) => {
+  setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await ui.press({ key: 'page-settings' });
+  await ui.input({ key: 'padding', text: '9', kind: 'change' });
+  await $.ui.focus({
+    component: 'Pane',
+    requestId: 'statusline-native',
+    origin: { kind: 'person' },
+  });
+  await ui.redraw();
+  expect((await ui.find({ key: 'padding' }))?.props.value).toBe('0');
+  await ui.press({ key: 'colors' });
+  await $.session.start(START);
+  await $.command.run(RUN);
+  await ui.redraw();
+  await ui.press({ key: 'page-settings' });
+  expect((await ui.find({ key: 'colors' }))?.props.label).toBe('Colors: on');
   await ui.unmount();
 });

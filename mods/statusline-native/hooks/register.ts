@@ -1,4 +1,4 @@
-import type { Register, EngineInterface, PluginOptions } from 'claude-code';
+import type { Register, EngineInterface, PluginOptions, Timer } from 'claude-code';
 import {
   BackendError,
   parseResponse,
@@ -67,6 +67,7 @@ function emptyView(): View {
     preferencesError: '',
     error: '',
     previewError: '',
+    previewBusy: false,
     message: '',
     busy: '',
     uncertain: false,
@@ -83,14 +84,18 @@ function failureText(failure: unknown): string {
 
 interface Session {
   ownsCommand: boolean;
+  ownsPrimary: boolean;
   view: View;
   epoch: number;
   previewKey: string;
+  previewTimer: Timer | null;
   writing: boolean;
   pendingSave: { draft: Draft; revision: string } | null;
 }
 
 function discard(state: Session): void {
+  state.previewTimer?.cancel();
+  state.previewTimer = null;
   state.epoch += 1;
   state.view = emptyView();
   state.previewKey = '';
@@ -332,18 +337,44 @@ async function close($: EngineInterface, state: Session) {
   }
 }
 
+async function openEditor(
+  $: EngineInterface,
+  state: Session,
+  options: PluginOptions,
+) {
+  if (state.writing || state.view.uncertain)
+    return {
+      text: 'Finish checking the pending save before reopening the editor.',
+    };
+  const opening = state.epoch + 1;
+  await load($, state, options);
+  if (state.epoch !== opening) return {};
+  const opened = await $.ui.open({
+    id: PANE,
+    title: 'Statusline configuration',
+    focus: true,
+    closeOnEscape: true,
+    rows: 24,
+  });
+  if (!opened.isPlaced) return { text: opened.reason };
+  return {};
+}
+
 export const register: Register = (on, options) => {
   const state: Session = {
     ownsCommand: false,
+    ownsPrimary: false,
     view: emptyView(),
     epoch: 0,
     previewKey: '',
+    previewTimer: null,
     writing: false,
     pendingSave: null,
   };
 
   on('session.start', async ($, e, next) => {
     state.ownsCommand = false;
+    state.ownsPrimary = false;
     discard(state);
     const open = await $.ui.panes();
     if (open.some((p) => p.id === PANE)) {
@@ -354,15 +385,31 @@ export const register: Register = (on, options) => {
     const collision = commands.find((command) => command.name === COMMAND);
     if (collision && collision.plugin !== 'statusline-native') {
       $.ui.log(
-        '/statusline-configure-native belongs to another command; the native entry is inactive.',
+        '/statusline-configure-native belongs to another command; the alias is inactive.',
       );
-      return next(e);
+    } else {
+      await $.command.register({
+        name: 'statusline-configure-native',
+        description: 'Open the native statusline configuration editor',
+      });
+      state.ownsCommand = true;
     }
-    await $.command.register({
-      name: 'statusline-configure-native',
-      description: 'Open the native statusline configuration editor',
-    });
-    state.ownsCommand = true;
+    if (options.primaryCommand === true) {
+      const primary = commands.find(
+        (command) => command.name === 'statusline-configure',
+      );
+      if (primary && primary.plugin !== 'statusline-native') {
+        $.ui.log(
+          '/statusline-configure belongs to another command; resolve the collision and restart.',
+        );
+      } else {
+        await $.command.register({
+          name: 'statusline-configure',
+          description: 'Open the native statusline configuration editor',
+        });
+        state.ownsPrimary = true;
+      }
+    }
     return next(e);
   });
 
@@ -371,21 +418,14 @@ export const register: Register = (on, options) => {
     { command: 'statusline-configure-native' },
     async ($, e, next) => {
       if (!state.ownsCommand) return next(e);
-      if (state.writing || state.view.uncertain)
-        return {
-          text: 'Finish checking the pending save before reopening the editor.',
-        };
-      const opened = await $.ui.open({
-        id: PANE,
-        title: 'Statusline configuration',
-        focus: true,
-        closeOnEscape: true,
-      });
-      if (!opened.isPlaced) return { text: opened.reason };
-      await load($, state, options);
-      return {};
+      return openEditor($, state, options);
     },
   );
+
+  on('command.run', { command: 'statusline-configure' }, async ($, e, next) => {
+    if (!state.ownsPrimary) return next(e);
+    return openEditor($, state, options);
+  });
 
   on('ui.close', { id: 'statusline-native' }, async ($, e, next) => {
     if (e.origin.kind !== 'unload' && (state.writing || state.view.uncertain)) {
@@ -415,7 +455,8 @@ export const register: Register = (on, options) => {
   });
 
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {
-    if (e.requestId !== PANE || !state.ownsCommand) return next(e);
+    if (e.requestId !== PANE || (!state.ownsCommand && !state.ownsPrimary))
+      return next(e);
     if (e.surface !== 'terminal') {
       const { Text } = $.ui.resolve(e);
       return Text({
@@ -429,22 +470,31 @@ export const register: Register = (on, options) => {
     if (editor && width >= 24 && !state.writing && state.previewKey !== key) {
       state.previewKey = key;
       const requestedEpoch = state.epoch;
-      try {
-        const preview = await callBackend($, options, 'preview', {
-          draft: copyDraft(editor.draft),
-          width,
-        });
-        if (state.epoch === requestedEpoch && state.previewKey === key) {
-          state.view.preview = preview;
-          state.view.previewError = '';
+      const draft = copyDraft(editor.draft);
+      state.previewTimer?.cancel();
+      state.view.previewBusy = true;
+      state.previewTimer = $.clock.after(0, async () => {
+        try {
+          const preview = await callBackend($, options, 'preview', { draft, width });
+          if (state.epoch === requestedEpoch && state.previewKey === key) {
+            state.view.preview = preview;
+            state.view.previewError = '';
+          }
+        } catch (failure) {
+          if (state.epoch === requestedEpoch && state.previewKey === key) {
+            state.view.preview = null;
+            state.view.previewError = failureText(failure);
+          }
+        } finally {
+          if (state.epoch === requestedEpoch && state.previewKey === key) {
+            state.view.previewBusy = false;
+            state.previewTimer = null;
+            $.ui.invalidate('ui.render');
+          }
         }
-      } catch (failure) {
-        if (state.epoch === requestedEpoch && state.previewKey === key) {
-          state.view.preview = null;
-          state.view.previewError = failureText(failure);
-        }
-      }
+      });
     }
+
     const actions: Actions = {
       edit: (change) => {
         if (!state.view.editor || state.writing || state.view.uncertain) return;

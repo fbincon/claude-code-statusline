@@ -33,3 +33,11 @@ Each screenshot reflects its own terminal session, layout, and settings. Display
 - Use PNG and lowercase English filenames, with `-macos` / `-windows` platform suffixes.
 - Keep status lines and configuration pages legible; update README references and this index together.
 - `MANIFEST.in` includes this directory's Markdown and PNGs in the source distribution; CI checks packaging completeness.
+
+## Native editor captures
+
+[Main](native-main-linux.png) · [Subagents](native-subagents-linux.png) · [Settings](native-settings-linux.png)
+
+These three PNGs reconstruct decoded cells captured from a real Linux x86_64 Claude Code 2.1.288 terminal at 120 columns, using the persistent official plugin installation and backend 1.2.0a1 at clean code commit `db4129b75dcc3aa20fc24bbb09946e249038ee2e` (2026-10-04). `tools/render_native_capture.py` crops away the transcript/composer and draws the original cell text/attributes with documentation fonts/default colors; these are terminal captures, not pixel-perfect OS screenshots or invented mockups. Each PNG embeds the commit and source capture SHA256.
+
+The visible statusline values are production sample preview data. Settings continues below the crop through host scrolling/Tab navigation. These images and the 120/80-column automated save/cancel run do not imply human acceptance. Private raw cells/debug streams remain in ignored `dist/validation/phase2-editor-pty-fixed`. Existing macOS/Windows screenshots above show the compatibility TUI; native human screenshots/results for those platforms remain pending.

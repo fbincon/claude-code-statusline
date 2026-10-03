@@ -55,7 +55,6 @@ export function itemPage(
             key: 'item-' + scope,
             label: 'Item',
             value: selected?.id,
-            autoFocus: true,
             options: visible.map((item) => ({
               value: item.id,
               label: `${enabled.includes(item.id) ? '[x]' : '[ ]'} ${item.label}`,

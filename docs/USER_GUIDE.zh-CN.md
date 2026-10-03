@@ -1633,9 +1633,24 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 
 如果全局 `disableAllHooks` 等设置阻止本地 hook，回退 skill 只会说明 hook 未运行，并提示独立命令或 `/statusline-config`；它同时禁止通过 Bash 和 PowerShell 启动 curses。此时可能仍消耗一个极短模型回合，这是插件侧无法避免的例外。
 
+
+## 原生编辑器预览
+
+[v1.2.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0a1) 在 wheel 中包含匹配的原生 Mod。上面的稳定安装仍为 v1.1.1；以下命令需要预览包，已发布的 v1.1.1 CLI 不提供它们。
+
+```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0a1/claude_code_statusline-1.2.0a1-py3-none-any.whl"
+claude-statusline install --native-editor
+claude-statusline doctor
+```
+
+在受信任终端中重启 Claude Code 2.1.287+，运行 `/statusline-configure` 或别名 `/statusline-configure-native`。Main/Subagents 提供选择、排序和样例预览；Settings 提供现有九项工具设置，以及独立的 theme/verbose 宿主偏好。`1/2/3` 切页，Tab/Enter 操作原生控件，`s` 保存工具配置并保持面板打开，`a` 应用宿主偏好，Esc/`q` 丢弃待保存修改；Esc 先退出输入字段。参见[原生编辑器行为](development/native.zh-CN.md)。
+
+预览必须显式启用。`install --no-native-editor` 持久保存禁用偏好并撤下所属原生接入；仅在实验入口偏好已启用时恢复兼容 `/statusline-configure` 启动器。向导 `/statusline-config` 和独立 `claude-statusline configure` 保留。安装失败保留兼容配置并报告实际状态，核对 doctor 后再重试。Linux、Windows、macOS 的真实终端交互另设真人验收门槛，平台安装自动检查不替代它。
+
 ## 相关文档
 
-[原生配置编辑器](development/native.zh-CN.md) 在源码加载的 Mod 中提供三页、revision 保存保护及独立宿主偏好。稳定安装仍为 v1.1.1；持久预览安装与真人编辑器验收分别记录。
+[原生配置编辑器](development/native.zh-CN.md) 在源码加载的 Mod 中提供三页、revision 保存保护及独立宿主偏好。稳定安装仍为 v1.1.1；原生预览安装显式启用，真人编辑器验收另设门槛。
 
 - [项目首页](../README.zh-CN.md)：项目介绍、界面预览和快速安装。
 - [Claude Code：Customize your status line](https://code.claude.com/docs/en/statusline)

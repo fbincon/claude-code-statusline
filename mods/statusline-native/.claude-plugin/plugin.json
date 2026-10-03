@@ -1,6 +1,6 @@
 {
   "name": "statusline-native",
-  "version": "0.1.0",
+  "version": "1.2.0-alpha.1",
   "description": "Native statusline configuration editor with main, subagent and settings pages",
   "author": {
     "name": "fbincon"
@@ -25,6 +25,12 @@
       "title": "Expected backend version",
       "description": "Version bound by the installer; empty permits protocol-compatible source development.",
       "default": ""
+    },
+    "primaryCommand": {
+      "type": "boolean",
+      "title": "Primary configure command",
+      "description": "Register /statusline-configure after the installer migrates its owned compatibility resources.",
+      "default": false
     }
   }
 }

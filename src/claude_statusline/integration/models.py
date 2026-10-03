@@ -75,6 +75,9 @@ class ChangeResult:
     settings_path: Path
     backup_dir: Path | None = None
     changed_paths: tuple[Path, ...] = ()
+    native_state: str | None = None
+    messages: tuple[str, ...] = ()
+    native_failed: bool = False
 
 
 @dataclass(frozen=True)

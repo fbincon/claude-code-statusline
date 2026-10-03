@@ -29,7 +29,7 @@ Windows 使用 `.venv\Scripts\python.exe` 和 `.venv\Scripts\ruff.exe`，设置 
 
 ## 安装包检查
 
-独立 Linux 原生工作流使用实际构建声明、官方插件验证/测试和 TypeScript 检查 Claude Code 2.1.287 与 2.1.288。显式调用的 PTY/人工步骤见[原生入口验证](native.zh-CN.md)；回调测试不能证明终端焦点或视觉表现正确。
+原生工作流检查 Linux 2.1.287/2.1.288 和 Windows/macOS 2.1.288 的实际构建声明、官方插件验证/测试及 TypeScript。`tools/native_install_smoke.py` 验证真实官方 marketplace 安装、绝对后端绑定、完整协议保存、重复安装、外部明确禁用、兼容恢复和卸载，不用认证或模型调用。显式调用的 PTY/人工步骤见[原生入口验证](native.zh-CN.md)；回调测试不能证明终端焦点或视觉表现正确。
 
 按 [发布指南](../RELEASING.zh-CN.md) 从固定提交导出到新目录构建。构建作业先创建本地专属 fixture，再检查它们未进入发行包：
 
@@ -71,3 +71,5 @@ Smoke 使用带空格和中文的临时路径，验证安装 dry-run、安装、
 ```
 
 发布前必须满足所有门槛，包括真实计时证据。另见 [计时约定](timer.zh-CN.md) 和 [架构](architecture.zh-CN.md)。
+
+原生 wheel 必须逐字节包含唯一维护源的运行文件与版本/协议/哈希清单，排除测试、开发依赖和宿主声明；sdist 包含 `src/build_native.py` 及 Mod 开发源，独立重建后包文件、metadata、入口应一致。

@@ -230,6 +230,8 @@ export function setup(on: On) {
     return { value: { isPlaced: true } };
   });
   on('ui.close', () => ({ value: undefined }));
+  on('ui.focus', () => ({}));
+  on('clock.after', () => ({ value: undefined }));
   on('ui.panes', () => ({ value: [] }));
   on('ui.toast', () => ({ value: undefined }));
   on('ui.log', () => ({ value: undefined }));

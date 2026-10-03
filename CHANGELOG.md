@@ -2,16 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
-## Unreleased
+## 1.2.0a1 - 2026-10-04
 
-- Add native Main/Subagents/Settings editing, catalog-driven selection/order and numeric validation, full revision saves that keep the pane open, explicit conflict reload and uncertain-save read checks. Apply actual theme/verbose host rows separately with lock/refusal results.
-
-- Add full-draft JSON apply with locked semantic revisions shared by curses, main/subagent installation ownership checks, merged unrelated settings, backups and rollback. Harden native bridge failures, timeouts and stale-response handling.
-
-- Centralize scoped item metadata/defaults/exclusions for CLI, curses, the wizard and generated TypeScript; add locked JSON describe/read and production sample spans without live collection or persistence.
-
-- Add an opt-in TypeScript native integration probe with command collision handling, transient color toggle and Esc close; preserve existing configuration entry points.
-- Add exact-build host declarations, official Mod/type checks and isolated Linux PTY/manual acceptance tooling. Native visual acceptance is pending; no new release is published.
+- Add the native Main, Subagents and Settings editor with catalog-driven selection, exclusions, ordering and sample preview. Save complete drafts with revision protection, retain the pane after success, and check uncertain save outcomes before retry.
+- Apply actual theme/verbose host preferences separately and report locked/refused/partial results. Preserve drafts in narrow panes and invalidate stale responses on close/reload.
+- Bundle matching runtime Mod resources in wheels from one maintained source. Install through an owned local marketplace, bind the selected backend, migrate owned configure entries, preserve explicit disablement, and support suspension, downgrade and uninstall recovery.
+- Diagnose resource hashes, versions, protocol, enablement and backend binding separately from unverified current-session loading. Fix Windows npm/console entry resolution and macOS aliases.
+- Share the scoped catalog and JSON describe/read/preview/apply contracts with CLI/curses/wizard; add generated TypeScript, platform native checks and documented real terminal captures.
+- Keep preview native integration opt-in and v1.1.1 as Latest. Linux human acceptance is confirmed; Windows/macOS native human acceptance is pending, so stable v1.2.0 remains gated.
 
 ## 1.1.1 - 2026-10-03
 
