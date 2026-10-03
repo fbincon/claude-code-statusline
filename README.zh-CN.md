@@ -203,7 +203,8 @@ pipx uninstall claude-code-statusline
 - [诊断与故障排查](docs/USER_GUIDE.zh-CN.md#故障排查)：先运行 `doctor`，再按具体症状排查。
 - [开发与测试](docs/USER_GUIDE.zh-CN.md#附录开发与测试) · [发布指南](docs/RELEASING.zh-CN.md) · [变更记录](CHANGELOG.zh-CN.md)。
 - [项目架构](docs/development/architecture.zh-CN.md) · [验证与验收](docs/development/testing.zh-CN.md) · [计时指标与证据](docs/development/timer.zh-CN.md)。
-- [原生入口验证](docs/development/native.zh-CN.md)：通过源码显式加载的开发入口；完整原生编辑器及人工视觉验收仍待完成。
+- [原生入口验证](docs/development/native.zh-CN.md)：通过源码显式加载的开发入口，Linux 人工验收已确认通过；完整原生编辑器仍属于 Phase 2。
+- [共享配置协议](docs/development/contracts.zh-CN.md)：源码开发使用的项目目录和内部 JSON describe/read/preview/apply 契约。
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：报告问题时请提供系统、Python/Claude Code/本工具版本、复现步骤，以及去除私人路径和会话内容后的诊断输出。
 
 ## 许可证

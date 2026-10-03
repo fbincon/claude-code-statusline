@@ -116,6 +116,43 @@ def _is_cli_command(
     return False
 
 
+def _is_current_cli_command(
+    command: object,
+    subcommand: str,
+    executable: Path,
+) -> bool:
+    """Match configuration ownership without accepting another absolute install.
+
+    Install/upgrade discovery intentionally recognizes canonical basenames in
+    _is_cli_command. Editors need a narrower match for explicitly bound paths.
+    Keep the canonical PATH commands used by Windows/older installs compatible.
+    Comparing the generated tokens also handles escaped shell characters in a
+    POSIX executable path without unescaping arbitrary user-authored commands.
+    """
+    argv = _split_command(command)
+    if not argv or len(argv) != 2 or argv[1] != subcommand:
+        return False
+    if argv == _split_command(command_for(executable, subcommand)):
+        return True
+    candidate = argv[0]
+    if (
+        "/" not in candidate
+        and "\\" not in candidate
+        and (
+            candidate == "claude-statusline"
+            or candidate.casefold() == "claude-statusline.exe"
+        )
+    ):
+        return True
+    if _normalized_path(candidate) == _normalized_path(executable):
+        return True
+    try:
+        resolved = shutil.which(candidate)
+    except (OSError, ValueError):
+        resolved = None
+    return bool(resolved and _normalized_path(resolved) == _normalized_path(executable))
+
+
 def _is_legacy_python_command(
     command: object,
     target: Path,

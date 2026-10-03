@@ -6,7 +6,7 @@ This is Phase 1 developer tooling, loaded explicitly from source. It is not the 
 
 ## Source layout and checks
 
-`mods/statusline-native` is an independent plugin: `.claude-plugin/plugin.json` identifies it, `hooks/hooks.json` loads `hooks/register.ts`, `lib` contains pure draft logic, and `tests` uses the official Mod kit. Host API calls stay in the entry module so official static analysis can inspect them. Source distributions include these developer files; dependencies, generated host declarations and raw acceptance logs are excluded.
+`mods/statusline-native` is an independent plugin: `.claude-plugin/plugin.json` identifies it, `hooks/hooks.json` loads `hooks/register.ts`, `lib` contains wire parsing, generated contracts and pure draft logic, and `tests` uses the official Mod kit. Host API calls stay in the entry module so official static analysis can inspect them. Source distributions include these developer files; dependencies, generated host declarations and raw acceptance logs are excluded.
 
 Use Node.js 22 for development and a supported Claude Code build. The native workflow pins 2.1.287 and 2.1.288 separately from the Python platform matrix. Run from the repository root:
 
@@ -29,6 +29,8 @@ Run `/statusline-configure-native` in the resulting session. The pane requests f
 
 The temporary name preserves `/statusline-config` and `/statusline-configure`. Before registering, the Mod lists existing commands. A foreign owner prevents registration and the command handler passes through; other panes are also passed through. Reloading its own registration is permitted. Verify the observed command sources and precedence in a real host; do not assume all hooks or skills have the same priority.
 
+Opening reads the shared catalog and effective draft from the bound Python backend, then draws a production sample preview. It reuses the preview for ordinary redraws and requests a new one after a toggle or resize. Backend errors are shown in the pane; preview failures can be retried. The internal [apply contract](contracts.md) supports full saves and conflict protection for future frontends, while this probe keeps its toggle transient and never calls apply.
+
 ## Linux acceptance
 
 The opt-in runner creates a private, isolated Claude configuration and binds the selected backend. It copies only authentication/gateway/model settings, sends local slash commands, and leaves personal settings untouched. Raw terminal/debug files may contain private paths and remain under ignored `dist/validation`.
@@ -39,10 +41,14 @@ The opt-in runner creates a private, isolated Claude configuration and binds the
 .venv/bin/python tools/native_mod_acceptance.py --interactive --report-dir dist/validation/native-manual
 ```
 
-Use a fresh report directory for every invocation. PTY cases cover 120 and 80 columns: open, toggle, Esc, return to the prompt, run the existing local `/statusline-config show`, and confirm no display file was saved. PTY evidence and official callback tests do not constitute manual visual acceptance.
+Use a fresh report directory for every invocation. PTY cases cover 120 and 80 columns: open, confirm the 34-item catalog and sample preview, toggle, Esc, return to the prompt, run the existing local `/statusline-config show`, and confirm no display file was saved or host settings changed. PTY evidence and official callback tests do not constitute manual visual acceptance.
 
 For manual acceptance, record OS, terminal, Claude and backend versions, commit and results. Check the pane's placement, focus, keyboard toggle, Esc, narrow windows and continued use of the same session. Send no model prompt for this check. The native-entry PR stays pending until the maintainer confirms these steps; Windows and macOS native interaction remain unverified until Phase 2 acceptance.
 
+Interactive mode writes environment metadata to `report.json` and leaves `manual_visual_acceptance` false until the maintainer reports the result. Use `--terminal 'name/version'` when the terminal cannot be detected. A session exiting successfully does not establish visual acceptance.
+
 References: [creation and actual-build types](https://code.claude.com/docs/en/plugins/mods/create), [interface and focus](https://code.claude.com/docs/en/plugins/mods/interface), [official tests](https://code.claude.com/docs/en/plugins/mods/test).
 
-Development validation on 2026-10-04: Claude Code 2.1.288 emitted matching declarations and passed strict validation, three official Mod tests and TypeScript checks. Native Linux x86_64 PTY cases at 120/80 columns opened and toggled the pane, returned after Esc and ran the legacy local command without saving. Manual visual/focus acceptance remains pending. The separate CI reports establish the minimum-version result.
+Development validation on 2026-10-04: Claude Code 2.1.287 and 2.1.288 emitted matching declarations and each passed strict validation, 12 official Mod tests and TypeScript checks. Native Linux x86_64 PTY cases at 120/80 columns verified the shared catalog/sample preview, toggled the pane, returned after Esc and ran the legacy local command without display or settings writes. The separate CI reports establish the platform results.
+
+The maintainer confirmed all manual Linux checks on 2026-10-04 for the combined Phase 1 code at `3a65482`, using Claude Code 2.1.288 and the source backend 1.1.1: opening, placement, keyboard focus, toggle, Esc, narrow windows and return to the same session. The isolated interactive runner recorded a clean checkout and exit code 0; the acceptance decision comes from the explicit maintainer confirmation. Terminal product/version was not supplied and remains unknown in the local evidence record. Windows/macOS native interaction and the full native editor remain Phase 2 work.

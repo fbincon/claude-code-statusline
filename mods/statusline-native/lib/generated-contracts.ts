@@ -12,7 +12,7 @@ export const PALETTE_VALUES = ["default", "ansi"] as const;
 export const DIRECTORYSTYLE_VALUES = ["full", "home", "project-relative", "basename"] as const;
 export const SEPARATORSTYLE_VALUES = ["classic", "compact"] as const;
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
-export type Operation = "describe" | "read" | "preview";
+export type Operation = "describe" | "read" | "preview" | "apply";
 export interface SubagentDraft {
   enabled: boolean;
   items: SubagentItemId[];
@@ -69,8 +69,18 @@ export interface DescribeResult {
   backend_version: string;
   operations: string[];
 }
-export interface ResultMap { describe: DescribeResult; read: ReadResult; preview: PreviewResult; }
+export interface ApplyResult {
+  draft: Draft;
+  revision: string;
+  installed: boolean;
+  installation: Record<string, unknown>;
+  capabilities: Record<string, unknown>;
+  backend_version: string;
+  changed: boolean;
+  backup_dir: string | null;
+}
+export interface ResultMap { describe: DescribeResult; read: ReadResult; preview: PreviewResult; apply: ApplyResult; }
 export type ResultFor<O extends Operation> = ResultMap[O];
 export interface Request { protocol_version: typeof PROTOCOL_VERSION; operation: Operation; payload: unknown; }
-export type Result = PreviewResult | ReadResult | DescribeResult;
+export type Result = PreviewResult | ReadResult | DescribeResult | ApplyResult;
 export type Response = { protocol_version: typeof PROTOCOL_VERSION; result: Result } | { protocol_version: typeof PROTOCOL_VERSION; error: ProtocolError };

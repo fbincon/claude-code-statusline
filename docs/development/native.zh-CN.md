@@ -6,7 +6,7 @@
 
 ## 源码结构与检查
 
-`mods/statusline-native` 是独立插件：`.claude-plugin/plugin.json` 提供标识，`hooks/hooks.json` 加载 `hooks/register.ts`，`lib` 放置纯草稿逻辑，`tests` 使用官方 Mod 测试工具。宿主 API 调用保留在入口模块，供官方静态分析检查。源码分发包包含这些开发文件，排除依赖目录、生成的宿主声明和原始验收记录。
+`mods/statusline-native` 是独立插件：`.claude-plugin/plugin.json` 提供标识，`hooks/hooks.json` 加载 `hooks/register.ts`，`lib` 放置协议解析、生成契约和纯草稿逻辑，`tests` 使用官方 Mod 测试工具。宿主 API 调用保留在入口模块，供官方静态分析检查。源码分发包包含这些开发文件，排除依赖目录、生成的宿主声明和原始验收记录。
 
 开发使用 Node.js 22 和支持 Mod 的 Claude Code 构建。原生工作流单独固定测试 2.1.287 与 2.1.288，不扩大 Python 平台矩阵。在仓库根目录执行：
 
@@ -29,6 +29,8 @@ CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --
 
 临时命令名称保留 `/statusline-config` 和 `/statusline-configure`。Mod 注册前先读取已有命令，发现其他归属时不注册，并将命令处理交还宿主；其他面板也继续交由原处理链处理。允许重新注册自己的命令。在真实宿主中记录命令来源与优先级，不能假定所有 hook 和 skill 的优先级相同。
 
+打开时从绑定的 Python 后端读取共享目录和有效草稿，再绘制生产样例预览；普通重绘复用预览，切换或缩放后重新请求。后端故障显示在面板中，预览失败可以重试。内部 [apply 契约](contracts.zh-CN.md) 为后续前端提供完整保存与冲突保护，当前验证入口仍只保留临时切换，始终不调用 apply。
+
 ## Linux 验收
 
 显式调用的验收工具创建私有、隔离的 Claude 配置并绑定指定后端，只复制认证、网关和模型设置，发送本地 slash 命令，不修改日常配置。原始终端与调试记录可能包含私有路径，保留在忽略的 `dist/validation` 下。
@@ -39,10 +41,14 @@ CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --
 .venv/bin/python tools/native_mod_acceptance.py --interactive --report-dir dist/validation/native-manual
 ```
 
-每次使用新的报告目录。PTY 用例覆盖 120 和 80 列：打开、切换、Esc、返回输入框、运行原有本地 `/statusline-config show`，并确认没有保存显示配置。PTY 证据和官方回调测试不能代替人工视觉验收。
+每次使用新的报告目录。PTY 用例覆盖 120 和 80 列：打开、确认 34 项共享目录和样例预览、切换、Esc、返回输入框、运行原有本地 `/statusline-config show`，并确认没有保存显示配置或改变宿主设置。PTY 证据和官方回调测试不能代替人工视觉验收。
 
 人工验收记录 OS、终端、Claude 与后端版本、提交和结果。检查面板位置、焦点、键盘切换、Esc、窄窗口及继续使用原会话。本次检查不发送模型提示词。维护者确认这些步骤之前，原生入口 PR 保持待合并；Windows 和 macOS 原生交互留待 Phase 2 验收。
 
+交互模式将环境信息写入 `report.json`，维护者报告结果之前 `manual_visual_acceptance` 保持 false；终端无法检测时可用 `--terminal '名称/版本'` 显式记录。会话正常退出不代表视觉验收通过。
+
 参考：[创建与实际构建类型](https://code.claude.com/docs/en/plugins/mods/create)、[界面与焦点](https://code.claude.com/docs/en/plugins/mods/interface)、[官方测试](https://code.claude.com/docs/en/plugins/mods/test)。
 
-2026-10-04 开发验证：Claude Code 2.1.288 生成匹配的声明，并通过严格验证、三项官方 Mod 测试和 TypeScript 检查。原生 Linux x86_64 的 120/80 列 PTY 用例完成面板打开、切换、Esc 返回及旧版本地命令调用，没有保存草稿。人工视觉/焦点验收仍待完成；最低版本结果以独立 CI 报告为准。
+2026-10-04 开发验证：Claude Code 2.1.287 和 2.1.288 生成匹配的声明，分别通过严格验证、12 项官方 Mod 测试和 TypeScript 检查。原生 Linux x86_64 的 120/80 列 PTY 用例确认共享目录/样例预览、切换、Esc 返回及旧版本地命令调用，没有写入显示或宿主设置；平台结果以独立 CI 报告为准。
+
+维护者于 2026-10-04 确认提交 `3a65482` 的完整 Phase 1 代码通过全部 Linux 人工检查，使用 Claude Code 2.1.288 和源码后端 1.1.1，覆盖打开、位置、键盘焦点、切换、Esc、窄窗口及返回原会话。隔离交互工具记录了干净 checkout 和退出码 0；验收结论依据维护者的明确确认。终端产品/版本未提供，在本地证据中保留为未知。Windows/macOS 原生交互及完整原生编辑器仍属于 Phase 2。

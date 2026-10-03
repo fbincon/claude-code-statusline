@@ -8,6 +8,8 @@
 
 共享目录/协议测试覆盖严格输入、Unicode 路径和不访问实时来源的样例预览。运行 `python tools/generate_ui_contracts.py --check` 检查 TypeScript 与 Python 定义一致；原生工作流也执行契约测试。参见[协议说明](contracts.zh-CN.md)。
 
+`tests/ui/test_apply_protocol.py` 覆盖加锁前完整草稿校验、两编辑器冲突、等待锁期间的归属变化、外部同名安装、无关设置合并、回滚、v1 迁移、重复保存，以及 CLI/curses/JSON 等价性；还使用安装后的源码 CLI 验证 Unicode/特殊字符路径。官方 Mod 测试覆盖进程拒绝/超时、非法封装、协议不匹配、apply 结果、预览重试、缓存重绘及缩放/关闭后完成的响应。模拟 Mod API 失败时返回 `{ deny: 'reason' }`；直接抛错的测试 stub 会被宿主跳过。
+
 在仓库根目录创建虚拟环境，安装项目和开发工具：
 
 ```bash

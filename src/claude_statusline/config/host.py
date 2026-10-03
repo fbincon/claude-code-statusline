@@ -68,7 +68,11 @@ def _host_from_settings(
 ) -> tuple[config_models.HostConfig, bool]:
     current = settings.get("statusLine")
     command = current.get("command") if isinstance(current, dict) else None
-    installed = integration_ownership._is_cli_command(command, "render", executable)
+    installed = (
+        isinstance(current, dict)
+        and current.get("type") == "command"
+        and integration_ownership._is_current_cli_command(command, "render", executable)
+    )
     if not installed:
         return config_models.DEFAULT_HOST_CONFIG, False
 
@@ -105,8 +109,19 @@ def _settings_with_host(
 ) -> dict:
     current = settings.get("statusLine")
     command = current.get("command") if isinstance(current, dict) else None
-    if not integration_ownership._is_cli_command(command, "render", executable):
-        raise config_models.ConfigCommandError(
+    if (
+        not isinstance(current, dict)
+        or current.get("type") != "command"
+        or not integration_ownership._is_current_cli_command(
+            command, "render", executable
+        )
+    ):
+        error = (
+            config_models.NotInstalledConfig
+            if current is None
+            else config_models.ConfigOwnershipError
+        )
+        raise error(
             "Claude Code statusLine is not installed for this claude-statusline executable"
         )
     updated = copy.deepcopy(settings)
