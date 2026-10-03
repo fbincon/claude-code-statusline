@@ -4,9 +4,11 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.1.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.1.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
+
+Use the commands in [testing and acceptance](development/testing.md) for local checks, installed-package smoke and opt-in real Linux timer evidence. All 13 platform/build CI jobs and real timer acceptance must pass before publishing a timer release. Preserve raw reports only in ignored directories; record tested source, final commit, actual CI links and native-duration/visual limitations honestly.
 
 ## Prepare the release commit
 
@@ -34,7 +36,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.1.0
+RELEASE_TAG=v1.1.1
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -52,8 +54,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-claude_code_statusline-1.1.0-py3-none-any.whl
-claude_code_statusline-1.1.0.tar.gz
+claude_code_statusline-1.1.1-py3-none-any.whl
+claude_code_statusline-1.1.1.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -63,7 +65,7 @@ Before uploading, check:
 - Correct wheel version, platform classifiers, and conditional dependencies, with `_platform.py`, `macos_terminal.py`, and both skill templates included.
 - Source distribution includes both languages of the README, changelog, user guide, release guide, and image index, plus bilingual Release bodies, all platform PNGs, and tests. Wheel metadata uses the English README.
 - Neither distribution includes `docs/MACOS_VALIDATION.md`, `.DS_Store`, bytecode, or local caches.
-- Install the wheel in a new virtual environment, run `--version` outside the source directory, and validate the installed package through `tests/ci_smoke.py`. Linux/macOS require tmux.
+- Install the wheel in a new virtual environment, run `--version` outside the source directory, and validate the installed package through `tools/ci_smoke.py`. Linux/macOS require tmux.
 - Separately rebuild the wheel from the source distribution, compare package files, metadata, and entry points, and verify isolated installation.
 
 <a id="生成与核验校验文件"></a>
@@ -76,8 +78,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.1.0-py3-none-any.whl \
-  claude_code_statusline-1.1.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.1.1-py3-none-any.whl \
+  claude_code_statusline-1.1.1.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -86,8 +88,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.1.0-py3-none-any.whl',
-    'claude_code_statusline-1.1.0.tar.gz'
+    'claude_code_statusline-1.1.1-py3-none-any.whl',
+    'claude_code_statusline-1.1.1.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -107,8 +109,8 @@ Confirm all 13 CI jobs pass for `RELEASE_COMMIT`, and that the remote tag and Re
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.1.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.1.0.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.1.1-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.1.1.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \

@@ -32,9 +32,7 @@ def build_parser():
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    subparsers.add_parser(
-        "render", help="render status line JSON received on stdin"
-    )
+    subparsers.add_parser("render", help="render status line JSON received on stdin")
     subparsers.add_parser(
         "render-subagents", help="render subagent status line tasks as NDJSON"
     )
@@ -188,7 +186,8 @@ def main(argv: list[str] | None = None) -> int:
                     "supported platforms are Linux/WSL, Windows and macOS 14+"
                 )
             result = installer.install_configuration(
-                config_dir, executable,
+                config_dir,
+                executable,
                 dry_run=args.dry_run,
                 force=args.force,
                 experimental_slash_tui=args.experimental_slash_tui,
@@ -221,9 +220,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"[{item.level}] {item.message}")
             return 1 if any(item.level == "ERROR" for item in diagnostics) else 0
         if args.command == "config":
-            print(config_commands.execute_config_namespace(
-                args, config_dir, executable
-            ))
+            print(
+                config_commands.execute_config_namespace(args, config_dir, executable)
+            )
             return 0
     except (installer.ConfigurationError, config_commands.ConfigCommandError) as exc:
         print(f"error: {exc}", file=sys.stderr)

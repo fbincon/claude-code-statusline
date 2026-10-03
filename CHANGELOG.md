@@ -2,12 +2,17 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
-## Unreleased
+## 1.1.1 - 2026-10-03
 
 - Preserve full multi-agent task duration before and after final Stop, including main-agent wrap-up.
 - Freeze failure/interruption evidence and make duplicate terminal hooks and single-turn calibration idempotent.
 - Keep transcript prompt ownership across incremental reads and queued hooks; reject unowned durations and invalid values.
 - Clarify task, native-turn, session-runtime and API-wait definitions; correct the `cost` description.
+
+- Keep background-agent result notification IDs in the original human task and wait for outstanding reports before final wrap-up.
+- Resolve submission evidence before freezing and prevent later transcript scans from changing terminal duration.
+- Split implementation into configuration, rendering, runtime, integration, UI and platform subsystems; retain legacy Python entry points and isolate shared storage/ownership.
+- Group tests by subsystem, fix moved source/Terminal paths, and centralize bilingual documentation, package checks and opt-in acceptance under `tools/`.
 
 ## 1.1.0 - 2026-10-03
 

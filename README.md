@@ -87,22 +87,22 @@ These screenshots show actual Linux, macOS, and Windows terminals. The main stat
 - Claude Code CLI: 2.1.205+ supports individual subagent rows; 2.1.258+ supports local execution of configuration commands with arguments and the experimental TUI launcher. Older or unrecognized versions can still use the main status line and configuration wizard.
 - Git information requires `git` on the system.
 
-The current stable release is [**v1.1.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0), with the same wheel for all these platforms. Native Windows ARM64 Python is not currently guaranteed; ARM devices should use x64 Python emulation. See [requirements](docs/USER_GUIDE.md#requirements) for feature-specific version thresholds.
+The current stable release is [**v1.1.1**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1), with the same wheel for all these platforms. Native Windows ARM64 Python is not currently guaranteed; ARM devices should use x64 Python emulation. See [requirements](docs/USER_GUIDE.md#requirements) for feature-specific version thresholds.
 
 <a id="快速安装"></a>
 
 ## Quick installation
 
-Prepare Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Stable v1.1.0 is available for Linux / WSL / macOS / Windows. See the [user guide](docs/USER_GUIDE.md#install-the-python-package) for installation sources and file verification.
+Prepare Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Stable v1.1.1 is available for Linux / WSL / macOS / Windows. See the [user guide](docs/USER_GUIDE.md#install-the-python-package) for installation sources and file verification.
 
 <a id="从-release-安装推荐"></a>
 
 ### Install from a Release (recommended)
 
-Install the [v1.1.0 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0) directly in Bash / Zsh or PowerShell:
+Install the [v1.1.1 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1) directly in Bash / Zsh or PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.1/claude_code_statusline-1.1.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -115,7 +115,7 @@ You can also download the wheel before installing; see the [user guide](docs/USE
 Requires `git`, without manually cloning or building:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.1"
 pipx ensurepath
 ```
 
@@ -136,7 +136,7 @@ For a local checkout, run `pipx install .` in the project root. See [building an
 
 ### Integrate with Claude Code
 
-After installing the package, **reopen your terminal** so the `PATH` changes from `pipx ensurepath` take effect. Confirm that `--version` prints `claude-statusline 1.1.0` before integrating with Claude Code.
+After installing the package, **reopen your terminal** so the `PATH` changes from `pipx ensurepath` take effect. Confirm that `--version` prints `claude-statusline 1.1.1` before integrating with Claude Code.
 
 Linux / WSL / macOS (Bash / Zsh):
 
@@ -187,10 +187,10 @@ Configuration applies per user. Display preferences are stored in `claude-status
 
 ## Upgrading and uninstalling
 
-To upgrade to v1.1.0, replace the Python package (Bash / Zsh / PowerShell):
+To upgrade to v1.1.1, replace the Python package (Bash / Zsh / PowerShell):
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.0/claude_code_statusline-1.1.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.1/claude_code_statusline-1.1.1-py3-none-any.whl"
 ```
 
 Then rerun `claude-statusline install` and `claude-statusline doctor`; on Windows, use `claude-statusline.exe`. Upgrades preserve display preferences and runtime state in the Claude configuration directory. See the [upgrade guide](docs/USER_GUIDE.md#upgrading) for local wheels, source installs, and version compatibility.
@@ -222,6 +222,7 @@ Display preferences, caches, backups, and experimental feature preferences remai
 - [User guide](docs/USER_GUIDE.md): installation, TUI, CLI, display items, and configuration reference.
 - [Diagnostics and troubleshooting](docs/USER_GUIDE.md#troubleshooting): start with `doctor`, then follow the relevant symptom.
 - [Development and testing](docs/USER_GUIDE.md#appendix-development-and-testing) · [Release guide](docs/RELEASING.md) · [Changelog](CHANGELOG.md).
+- [Architecture](docs/development/architecture.md) · [Validation](docs/development/testing.md) · [Timer metrics and evidence](docs/development/timer.md).
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include your OS, Python/Claude Code/tool versions, reproduction steps, and diagnostic output with private paths and session content removed.
 
 <a id="许可证"></a>

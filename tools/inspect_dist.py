@@ -1,0 +1,144 @@
+"""Inspect release metadata, resources, documentation and distribution exclusions."""
+
+from __future__ import annotations
+
+import argparse
+import os
+from pathlib import Path
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source", type=Path, default=Path.cwd())
+    parser.add_argument("--dist", type=Path, default=Path("dist"))
+    parser.add_argument("--write-exclusion-fixtures", action="store_true")
+    args = parser.parse_args()
+    args.dist = args.dist.resolve()
+    os.chdir(args.source)
+    if args.write_exclusion_fixtures:
+        for name in (
+            "docs/MACOS_VALIDATION.md",
+            "docs/ROADMAP.md",
+            "docs/ROADMAP.zh-CN.md",
+            "docs/.DS_Store",
+        ):
+            path = Path(name)
+            if path.exists():
+                raise SystemExit(
+                    f"Refusing to overwrite an existing fixture target: {path}"
+                )
+            path.write_text("Local-only packaging fixture\n", encoding="utf-8")
+        return
+    import email
+    import runpy
+    import tarfile
+    import re
+    import zipfile
+
+    project = {
+        "version": re.search(
+            r'(?m)^version = "([^"\n]+)"$',
+            Path("pyproject.toml").read_text(encoding="utf-8"),
+        ).group(1)
+    }
+    version = runpy.run_path("src/claude_statusline/_version.py")["__version__"]
+    assert project["version"] == version
+    wheel = list(args.dist.glob("*.whl"))
+    sdist = list(args.dist.glob("*.tar.gz"))
+    assert len(wheel) == len(sdist) == 1
+    distributions = []
+    with zipfile.ZipFile(wheel[0]) as archive:
+        names = set(archive.namelist())
+        distributions.append(names)
+        metadata_name = next(
+            name for name in names if name.endswith(".dist-info/METADATA")
+        )
+        metadata = email.message_from_bytes(archive.read(metadata_name))
+        assert metadata["Version"] == version
+        english_readme = Path("README.md").read_text(encoding="utf-8")
+        assert metadata.get_payload(decode=True).decode("utf-8") == english_readme
+        assert "A Claude Code status line for Linux" in english_readme
+        assert (
+            archive.read("claude_statusline/_version.py")
+            == Path("src/claude_statusline/_version.py").read_bytes()
+        )
+        assert "Operating System :: MacOS :: MacOS X" in metadata.get_all(
+            "Classifier", []
+        )
+        requirements = metadata.get_all("Requires-Dist", [])
+        assert any(
+            "windows-curses>=2.4.2" in value and "win32" in value
+            for value in requirements
+        )
+        for suffix in (
+            "claude_statusline/_platform.py",
+            "claude_statusline/macos_terminal.py",
+            "claude_statusline/resources/statusline-config/SKILL.md",
+            "claude_statusline/resources/statusline-configure/SKILL.md",
+        ):
+            assert any(name.endswith(suffix) for name in names), suffix
+    with tarfile.open(sdist[0], "r:gz") as archive:
+        names = set(archive.getnames())
+        distributions.append(names)
+        for suffix in (
+            "README.md",
+            "README.zh-CN.md",
+            "CHANGELOG.md",
+            "CHANGELOG.zh-CN.md",
+            "docs/USER_GUIDE.md",
+            "docs/USER_GUIDE.zh-CN.md",
+            "docs/RELEASING.md",
+            "docs/RELEASING.zh-CN.md",
+            "src/claude_statusline/_platform.py",
+            "src/claude_statusline/macos_terminal.py",
+            "src/claude_statusline/resources/statusline-config/SKILL.md",
+            "src/claude_statusline/resources/statusline-configure/SKILL.md",
+            "docs/images/README.md",
+            "docs/images/README.zh-CN.md",
+            "docs/releases/v1.0.0.md",
+            "docs/releases/v1.1.0a1.md",
+            "docs/releases/v1.1.0.md",
+            "tools/ci_smoke.py",
+        ):
+            assert any(name.endswith(suffix) for name in names), suffix
+        for notes in Path("docs/releases").glob("*.md"):
+            suffix = notes.as_posix()
+            assert any(name.endswith(suffix) for name in names), suffix
+        for image in Path("docs/images").rglob("*.png"):
+            suffix = image.as_posix()
+            assert any(name.endswith(suffix) for name in names), suffix
+    excluded = {
+        "MACOS_VALIDATION.md",
+        "ROADMAP.md",
+        "ROADMAP.zh-CN.md",
+        ".DS_Store",
+        "__pycache__",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".git",
+    }
+    for names in distributions:
+        for name in names:
+            path = Path(name)
+            assert not excluded.intersection(path.parts), name
+            assert path.suffix not in {".pyc", ".pyo"}, name
+
+    for module in Path("src/claude_statusline").rglob("*.py"):
+        suffix = module.relative_to("src").as_posix()
+        assert suffix in distributions[0], suffix
+        assert any(name.endswith(module.as_posix()) for name in distributions[1]), (
+            module
+        )
+    for directory in ("tests", "tools", "docs/development"):
+        for source in Path(directory).rglob("*"):
+            if source.is_file() and source.suffix in {".py", ".md"}:
+                assert any(
+                    name.endswith(source.as_posix()) for name in distributions[1]
+                ), source
+    print(
+        f"Verified {version}: {len(distributions[0])} wheel entries and {len(distributions[1])} sdist entries."
+    )
+
+
+if __name__ == "__main__":
+    main()
