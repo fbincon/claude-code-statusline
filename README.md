@@ -222,9 +222,10 @@ Display preferences, caches, backups, and experimental feature preferences remai
 
 [Captured native pages and provenance](docs/images/README.md#native-editor-captures).
 
-The v1.2.0a1 candidate includes a matching native Mod in the wheel. Stable installation above remains v1.1.1. Use the candidate package for these commands; the stable v1.1.1 CLI does not provide them.
+The [v1.2.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0a1) includes a matching native Mod in the wheel. Stable installation above remains v1.1.1. Use the preview package for these commands; the stable v1.1.1 CLI does not provide them.
 
 ```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0a1/claude_code_statusline-1.2.0a1-py3-none-any.whl"
 claude-statusline install --native-editor
 claude-statusline doctor
 ```

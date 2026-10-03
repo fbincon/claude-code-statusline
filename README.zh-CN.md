@@ -202,9 +202,10 @@ pipx uninstall claude-code-statusline
 
 [原生界面画面及来源](docs/images/README.zh-CN.md#原生编辑器画面)。
 
-v1.2.0a1 候选包在 wheel 中包含匹配的原生 Mod。上面的稳定安装仍为 v1.1.1；以下命令需要候选包，已发布的 v1.1.1 CLI 不提供它们。
+[v1.2.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0a1) 在 wheel 中包含匹配的原生 Mod。上面的稳定安装仍为 v1.1.1；以下命令需要预览包，已发布的 v1.1.1 CLI 不提供它们。
 
 ```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0a1/claude_code_statusline-1.2.0a1-py3-none-any.whl"
 claude-statusline install --native-editor
 claude-statusline doctor
 ```
