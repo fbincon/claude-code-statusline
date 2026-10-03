@@ -2,6 +2,13 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 1.2.0 - 2026-10-04
+
+- Promote the native configuration editor after confirmed human acceptance on Linux, Windows 11 and macOS 14.5. Unprovided architecture/terminal details remain unknown.
+- Prefer native integration by default on compatible hosts, preserving explicit native/plugin disablement and compatibility fallbacks.
+- Keep explicit compatibility preference repair and force behavior available on older hosts; independently validate stable default activation and compatibility smoke.
+- Synchronize Mod/backend versions, stable installation links, acceptance records and release documentation. UI/runtime modules remain the accepted preview implementation.
+
 ## 1.2.0a1 - 2026-10-04
 
 - Add the native Main, Subagents and Settings editor with catalog-driven selection, exclusions, ordering and sample preview. Save complete drafts with revision protection, retain the pane after success, and check uncertain save outcomes before retry.

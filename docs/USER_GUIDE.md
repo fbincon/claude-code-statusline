@@ -88,7 +88,7 @@ Unavailable items are omitted rather than replaced with empty placeholders. For 
 - `git` for installation from GitHub source or displaying Git information. It is not needed when installing a Release wheel without displaying Git information.
 - tmux or GNOME Terminal on Linux, or tmux or the system Terminal.app on macOS, only for the experimental `/statusline-configure` entry point. Windows uses the system `CREATE_NEW_CONSOLE` facility and needs no additional terminal application.
 
-The current stable release, [v1.1.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1), provides the same pure-Python wheel for all these platforms. See [macOS installation and validation boundaries](#macos-installation-and-validation-boundaries) for terminal requirements. Native Windows ARM64 Python is not currently guaranteed; ARM devices can use x64 Python emulation. Windows automatically installs [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/) from package metadata.
+The current stable release, [v1.2.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0), provides the same pure-Python wheel for all these platforms. See [macOS installation and validation boundaries](#macos-installation-and-validation-boundaries) for terminal requirements. Native Windows ARM64 Python is not currently guaranteed; ARM devices can use x64 Python emulation. Windows automatically installs [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/) from package metadata.
 
 | Feature | Claude Code version requirement |
 | --- | --- |
@@ -106,28 +106,28 @@ After upgrading or downgrading across these feature thresholds, rerun `install` 
 
 ### Install the Python package
 
-Linux / WSL / macOS / Windows users can choose any of the following methods to install stable v1.1.1. The Release wheel and fixed tag provide the same version; default-branch source changes as development continues.
+Linux / WSL / macOS / Windows users can choose any of the following methods to install stable v1.2.0. The Release wheel and fixed tag provide the same version; default-branch source changes as development continues.
 
 **Release URL (recommended; Bash / Zsh / PowerShell):**
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.1/claude_code_statusline-1.1.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
-**Download first:** Download the wheel from the [v1.1.1 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1), then run the following from the download directory.
+**Download first:** Download the wheel from the [v1.2.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0), then run the following from the download directory.
 
 Linux / WSL / macOS (Bash / Zsh):
 
 ```bash
-pipx install ./claude_code_statusline-1.1.1-py3-none-any.whl
+pipx install ./claude_code_statusline-1.2.0-py3-none-any.whl
 pipx ensurepath
 ```
 
 Windows (PowerShell):
 
 ```powershell
-pipx install .\claude_code_statusline-1.1.1-py3-none-any.whl
+pipx install .\claude_code_statusline-1.2.0-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -144,8 +144,8 @@ shasum -a 256 -c SHA256SUMS
 In Windows PowerShell, run the following and compare each digest with its entry in `SHA256SUMS`; hexadecimal letter case does not affect the comparison:
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.1.1-py3-none-any.whl -Algorithm SHA256
-Get-FileHash .\claude_code_statusline-1.1.1.tar.gz -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.2.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.2.0.tar.gz -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
@@ -154,11 +154,11 @@ If you download only the wheel, verify its digest individually with `sha256sum f
 **Source at a fixed tag (requires Git; Bash / Zsh / PowerShell):**
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
 pipx ensurepath
 ```
 
-**Development source:** Use the following for the current default-branch code. This source is not pinned to v1.1.1.
+**Development source:** Use the following for the current default-branch code. This source is not pinned to v1.2.0.
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
@@ -171,15 +171,15 @@ If you already have a local checkout, run `pipx install .` and `pipx ensurepath`
 
 ### macOS installation and validation boundaries
 
-On macOS 14+, use CPython 3.10–3.14 with `curses`. Intel and Apple Silicon use the same v1.1.1 Release wheel, with no additional macOS Python runtime dependencies. Follow the general installation steps above; for an existing installation, replace the Python package using the [upgrade steps](#upgrading).
+On macOS 14+, use CPython 3.10–3.14 with `curses`. Intel and Apple Silicon use the same v1.2.0 Release wheel, with no additional macOS Python runtime dependencies. Follow the general installation steps above; for an existing installation, replace the Python package using the [upgrade steps](#upgrading).
 
-Reopen Bash / Zsh, run `claude-statusline --version`, and confirm that it prints `claude-statusline 1.1.1` before proceeding with integration below.
+Reopen Bash / Zsh, run `claude-statusline --version`, and confirm that it prints `claude-statusline 1.2.0` before proceeding with integration below.
 
 Run `claude-statusline configure` for the standalone interface. After explicitly enabling the experimental entry point, `/statusline-configure` prefers a tmux popup that passes preflight checks; without valid tmux, it uses Terminal.app in a local graphical session. Window closure or retention follows Terminal's preferences. Over SSH or without a graphical session, use the standalone command in the current terminal or the configuration wizard.
 
 See the [project README](../README.md#screenshots) and [image index](images/README.md) for the macOS main status line and all three configuration pages.
 
-**Historical releases:** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) is the macOS preview, with core functionality, the standalone TUI, and the tmux entry point, but no Terminal.app launcher. The [v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) wheel, source distribution, and tag do not support macOS. Use the corresponding Release or fixed tag to reproduce historical behavior; use v1.1.1 for everyday installation.
+**Historical releases:** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) is the macOS preview, with core functionality, the standalone TUI, and the tmux entry point, but no Terminal.app launcher. The [v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) wheel, source distribution, and tag do not support macOS. Use the corresponding Release or fixed tag to reproduce historical behavior; use v1.2.0 for everyday installation.
 
 <a id="接入-claude-code"></a>
 
@@ -1188,7 +1188,7 @@ These last two variables are usually unnecessary. Changing them may temporarily 
 
 ## Upgrading
 
-First upgrade the Python package to stable v1.1.1, then synchronize the Claude Code integration. Users of v1.0.0 or v1.1.0a1 follow the same steps.
+First upgrade the Python package to stable v1.2.0, then synchronize the Claude Code integration. Users of v1.0.0 or v1.1.0a1 follow the same steps.
 
 <a id="替换-python-包"></a>
 
@@ -1199,19 +1199,19 @@ Choose any one of these sources. Release URL and Git URL commands work in Bash /
 **Stable Release URL (recommended; all supported platforms):**
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.1/claude_code_statusline-1.1.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
 ```
 
 **Local wheel:** Download from the Release, [verify the files](#install-the-python-package), and run from the download directory.
 
 ```bash
-pipx install --force ./claude_code_statusline-1.1.1-py3-none-any.whl
+pipx install --force ./claude_code_statusline-1.2.0-py3-none-any.whl
 ```
 
 Windows PowerShell:
 
 ```powershell
-pipx install --force .\claude_code_statusline-1.1.1-py3-none-any.whl
+pipx install --force .\claude_code_statusline-1.2.0-py3-none-any.whl
 ```
 
 Locally built wheels are under the project's `dist/`; use `dist/filename.whl` or `.\dist\filename.whl` accordingly.
@@ -1219,7 +1219,7 @@ Locally built wheels are under the project's `dist/`; use `dist/filename.whl` or
 **Source at a fixed tag:**
 
 ```text
-pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.1"
+pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
 ```
 
 To follow the default branch, replace the tag with `@main`. For local source upgrades, update the checkout first, then run `pipx install --force .` in the project root. Rebuild the wheel first when building yourself. These sources install code from the specified branch or directory; filenames must match the actual generated version.
@@ -1634,7 +1634,7 @@ python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/claude_code_statusline-1.1.1-py3-none-any.whl
+pipx install dist/claude_code_statusline-1.2.0-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -1644,13 +1644,13 @@ Windows PowerShell:
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\claude_code_statusline-1.1.1-py3-none-any.whl
+pipx install .\dist\claude_code_statusline-1.2.0-py3-none-any.whl
 pipx ensurepath
 ```
 
 These filenames correspond to 1.1.1; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](#integrate-with-claude-code).
 
-In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.1.1-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](RELEASING.md) for the complete process.
+In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.2.0-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](RELEASING.md) for the complete process.
 
 <a id="隔离测试与人工验收"></a>
 
@@ -1784,23 +1784,25 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 <a id="相关文档"></a>
 
 
-## Native editor preview
+<a id="native-editor-preview"></a>
 
-The [v1.2.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0a1) includes a matching native Mod in the wheel. Stable installation above remains v1.1.1. Use the preview package for these commands; the stable v1.1.1 CLI does not provide them.
+## Native configuration editor
+
+v1.2.0 bundles a matching native Mod and prefers it by default on compatible Claude Code 2.1.287+ hosts. Explicit native disablement and external plugin disablement remain respected. The installation above already performs this integration; use the commands below to explicitly enable or diagnose it.
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0a1/claude_code_statusline-1.2.0a1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
 claude-statusline install --native-editor
 claude-statusline doctor
 ```
 
 Restart Claude Code 2.1.287+ in a trusted terminal, then run `/statusline-configure` or its alias `/statusline-configure-native`. Main/Subagents support selections, ordering and sample preview; Settings contains the nine existing tool settings and separate theme/verbose host preferences. `1/2/3` switch pages, Tab/Enter operate host controls, `s` saves tool configuration and leaves the pane open, `a` applies host preferences, and Esc/`q` discard pending changes. Esc first exits an input. See [native editor behavior](development/native.md).
 
-Previews require explicit enablement. `install --no-native-editor` persists a disabled preference and removes owned native integration. The compatibility `/statusline-configure` launcher is restored only if its experimental preference is enabled. The wizard `/statusline-config` and standalone `claude-statusline configure` remain available. Installation failures retain compatibility configuration and report the actual native state; retry after checking doctor. Native terminal interaction on Linux, Windows and macOS is a separate human acceptance gate; automated platform installation checks do not establish it.
+Stable installs prefer native; prereleases require explicit enablement. `install --no-native-editor` persists a disabled preference and removes owned native integration. The compatibility `/statusline-configure` launcher is restored only if its experimental preference is enabled. The wizard `/statusline-config` and standalone `claude-statusline configure` remain available. Installation failures retain compatibility configuration and report the actual native state; retry after checking doctor. The maintainer confirmed the full native human checklist on Linux, Windows 11 and macOS 14.5. Architecture/terminal metadata was not supplied for Windows/macOS; see the recorded acceptance limits in the native guide.
 
 ## Related documentation
 
-The [native configuration editor](development/native.md) provides Main, Subagents and Settings in a source-loaded Mod, with revision-protected saves and separate host preferences. Stable installation remains v1.1.1; native preview installation is opt-in and human editor acceptance remains a separate gate.
+The [native configuration editor](development/native.md) provides Main, Subagents and Settings in a source-loaded Mod, with revision-protected saves and separate host preferences. Stable installation remains v1.2.0; native preview installation is opt-in and human editor acceptance remains a separate gate.
 
 - [Project README](../README.md): introduction, screenshots, and quick installation.
 - [Claude Code:Customize your status line](https://code.claude.com/docs/en/statusline)

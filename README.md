@@ -87,22 +87,22 @@ These screenshots show actual Linux, macOS, and Windows terminals. The main stat
 - Claude Code CLI: 2.1.205+ supports individual subagent rows; 2.1.258+ supports local execution of configuration commands with arguments and the experimental TUI launcher. Older or unrecognized versions can still use the main status line and configuration wizard.
 - Git information requires `git` on the system.
 
-The current stable release is [**v1.1.1**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1), with the same wheel for all these platforms. Native Windows ARM64 Python is not currently guaranteed; ARM devices should use x64 Python emulation. See [requirements](docs/USER_GUIDE.md#requirements) for feature-specific version thresholds.
+The current stable release is [**v1.2.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0), with the same wheel for all these platforms. Native Windows ARM64 Python is not currently guaranteed; ARM devices should use x64 Python emulation. See [requirements](docs/USER_GUIDE.md#requirements) for feature-specific version thresholds.
 
 <a id="快速安装"></a>
 
 ## Quick installation
 
-Prepare Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Stable v1.1.1 is available for Linux / WSL / macOS / Windows. See the [user guide](docs/USER_GUIDE.md#install-the-python-package) for installation sources and file verification.
+Prepare Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Stable v1.2.0 is available for Linux / WSL / macOS / Windows. See the [user guide](docs/USER_GUIDE.md#install-the-python-package) for installation sources and file verification.
 
 <a id="从-release-安装推荐"></a>
 
 ### Install from a Release (recommended)
 
-Install the [v1.1.1 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1) directly in Bash / Zsh or PowerShell:
+Install the [v1.2.0 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0) directly in Bash / Zsh or PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.1/claude_code_statusline-1.1.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -115,7 +115,7 @@ You can also download the wheel before installing; see the [user guide](docs/USE
 Requires `git`, without manually cloning or building:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.1.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
 pipx ensurepath
 ```
 
@@ -136,7 +136,7 @@ For a local checkout, run `pipx install .` in the project root. See [building an
 
 ### Integrate with Claude Code
 
-After installing the package, **reopen your terminal** so the `PATH` changes from `pipx ensurepath` take effect. Confirm that `--version` prints `claude-statusline 1.1.1` before integrating with Claude Code.
+After installing the package, **reopen your terminal** so the `PATH` changes from `pipx ensurepath` take effect. Confirm that `--version` prints `claude-statusline 1.2.0` before integrating with Claude Code.
 
 Linux / WSL / macOS (Bash / Zsh):
 
@@ -187,10 +187,10 @@ Configuration applies per user. Display preferences are stored in `claude-status
 
 ## Upgrading and uninstalling
 
-To upgrade to v1.1.1, replace the Python package (Bash / Zsh / PowerShell):
+To upgrade to v1.2.0, replace the Python package (Bash / Zsh / PowerShell):
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.1.1/claude_code_statusline-1.1.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
 ```
 
 Then rerun `claude-statusline install` and `claude-statusline doctor`; on Windows, use `claude-statusline.exe`. Upgrades preserve display preferences and runtime state in the Claude configuration directory. See the [upgrade guide](docs/USER_GUIDE.md#upgrading) for local wheels, source installs, and version compatibility.
@@ -218,21 +218,21 @@ Display preferences, caches, backups, and experimental feature preferences remai
 <a id="文档与帮助"></a>
 
 
-## Native editor preview
+## Native configuration editor
 
 [Captured native pages and provenance](docs/images/README.md#native-editor-captures).
 
-The [v1.2.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0a1) includes a matching native Mod in the wheel. Stable installation above remains v1.1.1. Use the preview package for these commands; the stable v1.1.1 CLI does not provide them.
+v1.2.0 bundles a matching native Mod and prefers it by default on compatible Claude Code 2.1.287+ hosts. Explicit native disablement and external plugin disablement remain respected. The installation above already performs this integration; use the commands below to explicitly enable or diagnose it.
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0a1/claude_code_statusline-1.2.0a1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
 claude-statusline install --native-editor
 claude-statusline doctor
 ```
 
 Restart Claude Code 2.1.287+ in a trusted terminal, then run `/statusline-configure` or its alias `/statusline-configure-native`. Main/Subagents support selections, ordering and sample preview; Settings contains the nine existing tool settings and separate theme/verbose host preferences. `1/2/3` switch pages, Tab/Enter operate host controls, `s` saves tool configuration and leaves the pane open, `a` applies host preferences, and Esc/`q` discard pending changes. Esc first exits an input. See [native editor behavior](docs/development/native.md).
 
-Previews require explicit enablement. `install --no-native-editor` persists a disabled preference and removes owned native integration. The compatibility `/statusline-configure` launcher is restored only if its experimental preference is enabled. The wizard `/statusline-config` and standalone `claude-statusline configure` remain available. Installation failures retain compatibility configuration and report the actual native state; retry after checking doctor. Native terminal interaction on Linux, Windows and macOS is a separate human acceptance gate; automated platform installation checks do not establish it.
+Stable installs prefer native; prereleases require explicit enablement. `install --no-native-editor` persists a disabled preference and removes owned native integration. The compatibility `/statusline-configure` launcher is restored only if its experimental preference is enabled. The wizard `/statusline-config` and standalone `claude-statusline configure` remain available. Installation failures retain compatibility configuration and report the actual native state; retry after checking doctor. The maintainer confirmed the full native human checklist on Linux, Windows 11 and macOS 14.5. Architecture/terminal metadata was not supplied for Windows/macOS; see the recorded acceptance limits in the native guide.
 
 ## Documentation and help
 
@@ -240,7 +240,7 @@ Previews require explicit enablement. `install --no-native-editor` persists a di
 - [Diagnostics and troubleshooting](docs/USER_GUIDE.md#troubleshooting): start with `doctor`, then follow the relevant symptom.
 - [Development and testing](docs/USER_GUIDE.md#appendix-development-and-testing) · [Release guide](docs/RELEASING.md) · [Changelog](CHANGELOG.md).
 - [Architecture](docs/development/architecture.md) · [Validation](docs/development/testing.md) · [Timer metrics and evidence](docs/development/timer.md).
-- [Native configuration editor](docs/development/native.md): source Main/Subagents/Settings pages, revision-protected saves and separate host preferences; three-platform editor acceptance remains pending.
+- [Native configuration editor](docs/development/native.md): source Main/Subagents/Settings pages, revision-protected saves and separate host preferences; human acceptance confirmed on Linux, Windows 11 and macOS 14.5.
 - [Shared configuration protocol](docs/development/contracts.md): item catalog and internal JSON describe/read/preview/apply contracts for source development.
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include your OS, Python/Claude Code/tool versions, reproduction steps, and diagnostic output with private paths and session content removed.
 

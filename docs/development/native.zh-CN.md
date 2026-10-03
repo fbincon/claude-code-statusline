@@ -2,7 +2,7 @@
 
 [English](native.md) | **简体中文**
 
-v1.2.0a1 候选 wheel 已包含 Main、Subagents、Settings 三页。稳定安装仍为 v1.1.1；预览显式启用，三平台真人验收与自动安装和回调测试分别记录。
+v1.2.0 wheel 包含 Main、Subagents、Settings 三页；兼容宿主默认优先原生并保留明确禁用。维护者已确认 Linux、Windows 11、macOS 14.5 真人验收，自动证据及环境边界分别记录。
 
 ## 源码结构与检查
 
@@ -47,11 +47,11 @@ Settings 包含颜色、调色板、目录样式、分隔符、padding、刷新�
 
 ## 持久安装与恢复
 
-安装候选包后运行 `claude-statusline install --native-editor`。后端仅把运行资源放到 `CLAUDE_CONFIG_DIR/statusline-native`，检查哈希清单，然后通过官方 marketplace add/install/configure 命令在 user 范围接入。`claude-statusline-local` 保留给本工具的本地目录 marketplace，绑定绝对后端及配置路径和预期版本。Mod 使用 SemVer `1.2.0-alpha.1` 对应后端 PEP 440 `1.2.0a1`。
+安装 v1.2.0 后运行 `claude-statusline install --native-editor`。后端仅把运行资源放到 `CLAUDE_CONFIG_DIR/statusline-native`，检查哈希清单，然后通过官方 marketplace add/install/configure 命令在 user 范围接入。`claude-statusline-local` 保留给本工具的本地目录 marketplace，绑定绝对后端及配置路径和预期版本。稳定 Mod/后端均为 `1.2.0`，预览 Mod SemVer `1.2.0-alpha.1` 对应后端 PEP 440 `1.2.0a1`。
 
 确认安装成功后，文件事务才移除所属兼容 `/statusline-configure` skill/hook。两个原生命令打开同一编辑器，向导及独立 TUI 保留。外来 skill、命令、目录、marketplace、范围或缓存资源修改均阻止接管，`--force` 也不绕过原生归属保护。Mod 在会话中再次检查命令冲突，主入口和别名分别确认归属。
 
-`claude-statusline-native.json` 单独保存显式启用/禁用，保留 `claude-statusline-features.json`。预览默认关闭；未来稳定版在兼容宿主优先原生，但保留明确的原生 false、旧偏好明确 false 及外部禁用的插件。外部禁用请先自行运行 `claude plugin enable statusline-native@claude-statusline-local --scope user`，再重装。安装器只自动恢复自己记录的宿主降级暂停。
+`claude-statusline-native.json` 单独保存显式启用/禁用，保留 `claude-statusline-features.json`。预览默认关闭；稳定版在兼容宿主优先原生，但保留明确的原生 false、旧偏好明确 false 及外部禁用的插件。外部禁用请先自行运行 `claude plugin enable statusline-native@claude-statusline-local --scope user`，再重装。安装器只自动恢复自己记录的宿主降级暂停。
 
 `install --no-native-editor` 通过官方命令撤下确认所属的插件及 marketplace，仅删除哈希所属文件。禁用偏好保留，实验偏好已启用时才恢复旧启动器。卸载保留偏好、显示配置、运行数据和备份。普通重装幂等；同版本资源变化使用所属官方 uninstall/install，因为官方 update 会保留旧缓存。有限的旧清单允许诊断和重试失败升级，同时拒绝外来缓存内容。
 
@@ -73,8 +73,12 @@ Settings 包含颜色、调色板、目录样式、分隔符、padding、刷新�
 .venv/bin/python tools/native_mod_acceptance.py --persistent --interactive --backend .venv/bin/claude-statusline --terminal 'name/version' --report-dir dist/validation/native-manual
 ```
 
-每次使用新目录。PTY 在 120/80 列检查三页、切换保存、取消重开、Esc 和本地向导，记录终端实际 cells 供截图使用，不把真人验收标成通过。交互模式记录环境及提交，直到维护者确认完整清单前 `manual_visual_acceptance` 始终为 false。Windows/macOS 在真实终端安装同一候选并执行相同清单。收齐三平台真人结果前稳定发布保持待办；首个预览也要求 Linux 真人验收。
+每次使用新目录。PTY 在 120/80 列检查三页、切换保存、取消重开、Esc 和本地向导，记录终端实际 cells 供截图使用，不把真人验收标成通过。交互模式记录环境及提交，直到维护者确认完整清单前 `manual_visual_acceptance` 始终为 false。Windows/macOS 在真实终端安装同一候选并执行相同清单。发布门槛要求记录三平台真人结果，本次确认已记录在下方。
 
 参考：[创建及实际构建类型](https://code.claude.com/docs/en/plugins/mods/create)、[界面与焦点](https://code.claude.com/docs/en/plugins/mods/interface)、[官方测试](https://code.claude.com/docs/en/plugins/mods/test)、[本地 marketplace](https://code.claude.com/docs/en/plugin-marketplaces)。
 
-维护者于 2026-10-04 确认完整 Linux 真人清单通过：隔离安装的 wheel 构建自 `db4129b`，后端 1.2.0a1、Claude Code 2.1.288、Linux x86_64。交互运行记录干净文档提交 `94ddbbd`、退出码 0，Mod 运行资源与被测代码提交一致；验收依据为用户明确确认。终端参数仍是占位文本，终端名称/版本记为未知。原始证据在忽略的 `dist/validation/phase2-human-linux`。后续平台修复涉及 Windows npm 入口和 macOS 可执行路径别名，已验收 Linux UI 运行资源不变。Windows/macOS 真人验收仍待完成。
+维护者于 2026-10-04 确认完整 Linux 真人清单通过：隔离安装的 wheel 构建自 `db4129b`，后端 1.2.0a1、Claude Code 2.1.288、Linux x86_64。交互运行记录干净文档提交 `94ddbbd`、退出码 0，Mod 运行资源与被测代码提交一致；验收依据为用户明确确认。终端参数仍是占位文本，终端名称/版本记为未知。原始证据在忽略的 `dist/validation/phase2-human-linux`。后续平台修复涉及 Windows npm 入口和 macOS 可执行路径别名，已验收 Linux UI 运行资源不变。Windows/macOS 真人验收随后已确认，见下方记录。
+
+## 稳定版验收记录
+
+维护者于 2026-10-04 明确确认 Windows、macOS 均通过基于已发布 v1.2.0a1（`d161e55`）及清单要求 Claude Code 2.1.288 的完整原生真人检查，后续补充系统为 Windows 11、macOS 14.5。未提供架构、终端名称/版本及独立宿主版本命令输出，记为未知，不从 CI 推断。该确认与 Windows Server 2025/macOS 15.7.9 arm64 自动安装报告区分；Linux 记录见上方。稳定变更保留同一 UI 运行模块、同步版本并启用已测试的稳定默认。原始确认元数据保留在忽略的 `dist/validation/phase2-human-windows-macos.json`。

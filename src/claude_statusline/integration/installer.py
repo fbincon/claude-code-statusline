@@ -329,8 +329,14 @@ def install_configuration(
             "cannot enable /statusline-configure: Claude Code "
             f"{minimum}+ is required; found {version_text}"
         )
-    requested = native_preference.requested(config_dir, native_editor)
-    if requested:
+    requested = native_preference.requested(
+        config_dir, native_editor, legacy_override=experimental_slash_tui
+    )
+    if (
+        requested
+        and claude_version is not None
+        and claude_version >= native_integration.MIN_VERSION
+    ):
         native_integration.command_preflight(config_dir)
     native_active = native_integration.active_on_disk(
         config_dir, requested, claude_version

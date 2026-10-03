@@ -63,7 +63,7 @@ def main() -> int:
         assert run("--version").strip() == f"claude-statusline {__version__}", (
             "PATH must select the matching installed backend"
         )
-        run("install", "--experimental-slash-tui")
+        run("install", "--experimental-slash-tui", "--no-native-editor")
         assert (config / "skills/statusline-configure/SKILL.md").is_file()
         run("install", "--native-editor")
         assert not (config / "skills/statusline-configure/SKILL.md").exists()

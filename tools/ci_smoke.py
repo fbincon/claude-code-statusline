@@ -95,6 +95,10 @@ def main():
             return result.stdout
 
         def cli(*arguments, payload=None, expected_returncode=0):
+            # Core smoke keeps compatibility entry assertions independent of
+            # release defaults. Native lifecycle/defaults have their own suite.
+            if arguments and arguments[0] == "install":
+                arguments = (*arguments, "--no-native-editor")
             return run([command, *arguments], payload, expected_returncode)
 
         assert cli("--version").strip() == f"claude-statusline {__version__}"
