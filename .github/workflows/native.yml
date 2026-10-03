@@ -34,6 +34,10 @@ jobs:
           python -m pip install .
       - name: Generate exact-build official declarations
         run: python tools/prepare_mod_types.py
+      - name: Shared protocol contracts
+        run: |
+          python tools/generate_ui_contracts.py --check
+          python -m unittest tests.config.test_catalog tests.ui.test_protocol
       - name: Official static validation
         run: claude plugin validate --strict mods/statusline-native
       - name: Official Mod tests

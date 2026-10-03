@@ -10,13 +10,15 @@
 
 开发使用 Node.js 22 和支持 Mod 的 Claude Code 构建。原生工作流单独固定测试 2.1.287 与 2.1.288，不扩大 Python 平台矩阵。在仓库根目录执行：
 
+先按[本地检查](testing.zh-CN.md#本地检查)将当前 checkout 安装到开发环境。已发布的 v1.1.1 可执行文件没有新的 `ui` 协议；加载验证入口时显式绑定源码后端。
+
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
 .venv/bin/python tools/prepare_mod_types.py
 claude plugin validate --strict mods/statusline-native
 claude plugin test mods/statusline-native
 npm run --prefix mods/statusline-native typecheck
-claude --plugin-dir ./mods/statusline-native
+CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --plugin-dir ./mods/statusline-native
 ```
 
 类型准备工具使用全新的未登录配置，不读取项目设置。宿主加载时先写出声明，随后 print 会话因未登录而退出。检查成功要求声明头与实际可执行文件版本一致，旧文件不能使检查误通过。这不会调用模型。生成的 `.claude-plugin/types` 仅供本地使用，切换宿主版本后重新生成。版本号或 manifest 验证成功不能单独证明模块已经加载。

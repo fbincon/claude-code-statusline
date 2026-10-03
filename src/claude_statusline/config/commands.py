@@ -8,6 +8,7 @@ import shlex
 from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
+from claude_statusline.config import catalog
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 
@@ -51,7 +52,7 @@ def item_listing(
     positions = {item: index for index, item in enumerate(enabled)}
     return [
         {
-            "id": item,
+            **catalog.BY_SCOPE["main"][item].to_dict(),
             "description": description,
             "default_enabled": item in config_display.DEFAULT_ITEMS,
             "enabled": item in positions,
@@ -72,7 +73,7 @@ def subagent_item_listing(
     positions = {item: index for index, item in enumerate(enabled)}
     return [
         {
-            "id": item,
+            **catalog.BY_SCOPE["subagent"][item].to_dict(),
             "description": description,
             "default_enabled": item in config_display.DEFAULT_SUBAGENT_ITEMS,
             "enabled": item in positions,

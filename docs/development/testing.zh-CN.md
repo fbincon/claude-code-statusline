@@ -6,6 +6,8 @@
 
 ## 本地检查
 
+共享目录/协议测试覆盖严格输入、Unicode 路径和不访问实时来源的样例预览。运行 `python tools/generate_ui_contracts.py --check` 检查 TypeScript 与 Python 定义一致；原生工作流也执行契约测试。参见[协议说明](contracts.zh-CN.md)。
+
 在仓库根目录创建虚拟环境，安装项目和开发工具：
 
 ```bash

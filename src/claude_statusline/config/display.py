@@ -7,6 +7,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 from claude_statusline.platforms import files as platform_files
+from claude_statusline.config import catalog
 
 
 LEGACY_SCHEMA_VERSION = 1
@@ -18,78 +19,12 @@ SCHEMA_VERSION = 2
 CONFIG_FILENAME = "claude-statusline.json"
 
 
-# Catalog order keeps same-group items adjacent so wizard-appended items land
-# next to their group anchors (groups join only when adjacent). DEFAULT_ITEMS
-# below stays the legacy ten and is unaffected by this ordering.
-ITEM_CATALOG = {
-    "model-with-effort": "Current model identifier with reasoning effort",
-    "fast-mode": "Indicates fast mode is active",
-    "thinking": "Indicates extended thinking is enabled",
-    "current-dir": "Current working directory",
-    "project-name": "Project directory name",
-    "hostname": "Local hostname",
-    "git": "Git branch, divergence, and working-tree changes",
-    "pr": "Open pull or merge request on the current branch",
-    "repo": "Remote repository owner and name",
-    "worktree": "Worktree name in --worktree sessions",
-    "context-remaining": "Percentage of context window remaining",
-    "context-used": "Percentage of context window used",
-    "context-window-size": "Total context window size",
-    "five-hour-limit": "Remaining five-hour usage limit",
-    "weekly-limit": "Remaining seven-day usage limit",
-    "spend-limit": "Remaining gateway spend limit",
-    "tokens": "Cumulative cache hit, cache miss, and output tokens",
-    "prompt-cache": "Prompt cache hit ratio and cached input tokens",
-    "prompt-timer": "Elapsed time and outcome of the latest prompt",
-    "version": "Claude Code version",
-    "session": "Session name, or the session identifier prefix",
-    "cost": "Session cost, session runtime, and line changes",
-    "agent": "Agent name in --agent sessions",
-    "vim-mode": "Current Vim mode",
-}
-
-
-LEGACY_DEFAULT_ITEMS = (
-    "model-with-effort",
-    "current-dir",
-    "git",
-    "context-remaining",
-    "context-window-size",
-    "five-hour-limit",
-    "weekly-limit",
-    "spend-limit",
-    "tokens",
-    "prompt-timer",
-)
-
-
-# New catalog items are opt-in: DEFAULT_ITEMS intentionally stays the legacy
-# ten, so a machine without a display config renders exactly the 0.1.0/0.2.0
-# status line. Users enable the newer items via /statusline-config.
+# Legacy dictionaries are derived compatibility views of the single catalog.
+ITEM_CATALOG = catalog.descriptions("main")
+LEGACY_DEFAULT_ITEMS = catalog.default_items("main")
 DEFAULT_ITEMS = LEGACY_DEFAULT_ITEMS
-
-
-SUBAGENT_ITEM_CATALOG = {
-    "status-elapsed": "Task status icon combined with elapsed time",
-    "status": "Task status icon",
-    "name": "Agent name or normalized task type",
-    "model-with-effort": "Agent model identifier with reasoning effort",
-    "context-remaining": "Percentage of the agent context window remaining",
-    "context-used": "Percentage of the agent context window used",
-    "elapsed": "Elapsed time for this agent task",
-    "task": "Dynamic task label or description",
-    "tokens": "Agent task token count",
-    "current-dir": "Agent working directory",
-}
-
-
-DEFAULT_SUBAGENT_ITEMS = (
-    "status-elapsed",
-    "name",
-    "model-with-effort",
-    "context-remaining",
-    "task",
-)
+SUBAGENT_ITEM_CATALOG = catalog.descriptions("subagent")
+DEFAULT_SUBAGENT_ITEMS = catalog.default_items("subagent")
 
 
 PALETTES = ("default", "ansi")
@@ -219,7 +154,7 @@ def validate_subagent_items(value: Any) -> tuple[str, ...]:
             raise DisplayConfigError(f"duplicate subagent status line item: {item}")
         seen.add(item)
         result.append(item)
-    if "status-elapsed" in result and ("status" in result or "elapsed" in result):
+    if catalog.conflicts("subagent", result):
         raise DisplayConfigError(
             "subagents.items cannot combine status-elapsed with status or elapsed"
         )

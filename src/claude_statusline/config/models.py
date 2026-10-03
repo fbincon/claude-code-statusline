@@ -87,6 +87,8 @@ class EffectiveConfig:
     subagent_statusline: SubagentStatuslineInfo = field(
         default_factory=SubagentStatuslineInfo
     )
+    revision: str | None = None
+    installation: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {

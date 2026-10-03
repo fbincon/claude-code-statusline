@@ -28,25 +28,13 @@ If the invocation arguments are empty:
    `__CLAUDE_STATUSLINE_COMMAND__ config subagents list-items --json`.
 2. Tell the user that the configuration applies to every Claude Code project.
 3. Use AskUserQuestion with multi-select questions for these groups:
-   - Identity / Repo: `model-with-effort`, `current-dir`, `project-name`,
-     `hostname`, `git`
-   - Context: `context-remaining`, `context-used`, `context-window-size`
-   - Limits: `five-hour-limit`, `weekly-limit`, `spend-limit`
-   - Usage: `tokens`, `prompt-timer`, `cost`, `prompt-cache`
-   - Session: `version`, `session`
-   - Modes: `fast-mode`, `agent`, `vim-mode`, `thinking`
-   - Repository: `pr`, `worktree`, `repo`
-   The Session, Modes, and Repository items plus `project-name`, `hostname`,
-   `context-used`, `cost`, and `prompt-cache` are disabled by default;
-   selecting them here enables them.
+__CLAUDE_STATUSLINE_ITEM_GROUPS__
 4. Preserve the relative order of currently enabled selected items. Append
    newly enabled items in the catalog order returned by `list-items`.
 5. Ask for:
-   - subagent row items: `status-elapsed`, `status`, `name`,
-     `model-with-effort`, `context-remaining`, `context-used`, `elapsed`,
-     `task`, `tokens`, and `current-dir`; `status-elapsed` cannot be combined
-     with `status` or `elapsed` — if the user picks conflicting items, keep
-     `status-elapsed` and drop the other two
+   - subagent row items from the listing; respect its excludes constraints. If the
+     user selects status-elapsed together with status or elapsed, keep the combined
+     item and drop the excluded standalone items.
    - custom subagent rows: on or off
    - scope labels: off, when-subagents, or always
    - colors: on or off

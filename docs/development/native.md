@@ -10,13 +10,15 @@ This is Phase 1 developer tooling, loaded explicitly from source. It is not the 
 
 Use Node.js 22 for development and a supported Claude Code build. The native workflow pins 2.1.287 and 2.1.288 separately from the Python platform matrix. Run from the repository root:
 
+First install this checkout in the development environment as described in [local checks](testing.md#local-checks). The released v1.1.1 executable does not provide the new `ui` protocol. Bind the source backend explicitly when loading the probe.
+
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
 .venv/bin/python tools/prepare_mod_types.py
 claude plugin validate --strict mods/statusline-native
 claude plugin test mods/statusline-native
 npm run --prefix mods/statusline-native typecheck
-claude --plugin-dir ./mods/statusline-native
+CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --plugin-dir ./mods/statusline-native
 ```
 
 The type preparer supplies fresh unauthenticated configuration and no project settings. Loading writes the host's declarations before the print session refuses authentication. Success requires declarations whose header matches the actual executable version; an old file cannot satisfy the check. This runs no model call. Generated `.claude-plugin/types` files are local and must be regenerated after changing host versions. A version number or successful manifest validation alone does not establish that a module loaded.

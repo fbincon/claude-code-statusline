@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Centralize scoped item metadata/defaults/exclusions for CLI, curses, the wizard and generated TypeScript; add locked JSON describe/read and production sample spans without live collection or persistence.
+
 - Add an opt-in TypeScript native integration probe with command collision handling, transient color toggle and Esc close; preserve existing configuration entry points.
 - Add exact-build host declarations, official Mod/type checks and isolated Linux PTY/manual acceptance tooling. Native visual acceptance is pending; no new release is published.
 

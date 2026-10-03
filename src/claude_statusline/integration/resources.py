@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import shlex
 from importlib import resources
+from claude_statusline.config import catalog
 from pathlib import Path
 from claude_statusline.config import storage as config_storage
 from claude_statusline.integration import models as integration_models
@@ -70,7 +71,9 @@ def render_skill(executable: Path) -> bytes:
     )
     rendered = template.replace(
         "__CLAUDE_STATUSLINE_ALLOWED_RULES__", allowed_rules
-    ).replace("__CLAUDE_STATUSLINE_COMMAND__", shell_command)
+    ).replace("__CLAUDE_STATUSLINE_COMMAND__", shell_command).replace(
+        "__CLAUDE_STATUSLINE_ITEM_GROUPS__", catalog.wizard_groups()
+    )
     if "__CLAUDE_STATUSLINE_" in rendered:
         raise integration_models.ConfigurationError(
             "bundled statusline-config skill has unresolved placeholders"
