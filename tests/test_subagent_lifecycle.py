@@ -67,7 +67,7 @@ class AgentLedgerTests(LifecycleTestCase):
         self.event("SubagentStop", 2, agent_id="unknown")
         state = self.event("Stop", 3, agent_id="child")
         self.assertEqual(state["status"], "running")
-        self.assertFalse(state["had_subagents"])
+        self.assertTrue(state["had_subagents"])
         self.assertEqual(ts.load_turn_state("s", "missing"), None)
         self.event(
             "SubagentStart", 4, prompt_id="missing", agent_id="orphan"
@@ -146,12 +146,12 @@ class MainStopTests(LifecycleTestCase):
         )
         state = ts.load_turn_state("s", "p")
         self.assertEqual(state["status"], "running")
-        self.assertEqual(state["phase"], "main")
+        self.assertEqual(state["phase"], "resuming_main")
         self.assertIsNone(state["duration_ns"])
 
         state = self.event("Stop", 9_000_000_000, background_tasks=[])
         self.assertEqual(state["status"], "completed")
-        self.assertIsNone(state["duration_ns"])
+        self.assertEqual(state["duration_ns"], 8_000_000_000)
 
     def test_strong_terminal_states_cannot_be_reopened(self):
         for event, expected in (

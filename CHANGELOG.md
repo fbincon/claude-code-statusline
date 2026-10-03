@@ -2,6 +2,13 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## Unreleased
+
+- Preserve full multi-agent task duration before and after final Stop, including main-agent wrap-up.
+- Freeze failure/interruption evidence and make duplicate terminal hooks and single-turn calibration idempotent.
+- Keep transcript prompt ownership across incremental reads and queued hooks; reject unowned durations and invalid values.
+- Clarify task, native-turn, session-runtime and API-wait definitions; correct the `cost` description.
+
 ## 1.1.0 - 2026-10-03
 
 - Promote macOS core functionality and the standalone TUI to supported status on macOS 14+, Intel / Apple Silicon, CPython 3.10–3.14, retaining native process identity, sleep-inclusive timing, and POSIX file safety.

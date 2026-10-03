@@ -38,7 +38,7 @@ ITEM_CATALOG = {
     "prompt-timer": "Elapsed time and outcome of the latest prompt",
     "version": "Claude Code version",
     "session": "Session name, or the session identifier prefix",
-    "cost": "Session cost, API duration, and line changes",
+    "cost": "Session cost, session runtime, and line changes",
     "agent": "Agent name in --agent sessions",
     "vim-mode": "Current Vim mode",
 }

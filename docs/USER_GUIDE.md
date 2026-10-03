@@ -838,7 +838,7 @@ The following items come from the public status-line payload in Claude Code 2.1.
 | --- | --- | --- |
 | `version` | Claude Code version, such as `v2.1.258` | Omitted without a version |
 | `session` | `Session ` plus the session name set with `/rename`, otherwise the first 8 characters of its ID, such as `Session explain prompt-cache` | Omitted without a session ID |
-| `cost` | Session cost, API duration, and added/deleted lines, such as `Total $0.12 · 12m 30s · +156/-23`; cost always appears (`Total $0.00` without data), while zero duration or both zero line counts are omitted | Omitted without the cost field |
+| `cost` | Session cost, session runtime, and added/deleted lines, such as `Total $0.12 · 12m 30s · +156/-23`; cost always appears (`Total $0.00` without data), while zero duration or both zero line counts are omitted | Omitted without the cost field |
 | `prompt-cache` | Cache hit rate and written tokens, such as `cache 91% · 352K w` | Omitted without prompt_cache, which is absent before the first API response; out-of-range hit rates leave only tokens |
 | `fast-mode` | `fast` when fast mode is enabled | Omitted when disabled |
 | `agent` | Agent name in a `--agent` session, such as `Agent orchestrator` | Omitted without the agent field |
@@ -923,6 +923,17 @@ Sessions with subagents add two running phases:
 ```
 
 Timing starts from the earliest evidence of user submission and ends at the main agent's final `Stop`. If ordinary subagent tasks remain at the main agent's first `Stop`, the timer waits; after the final agent ends, it enters `main wrap-up`. Registry idle state, transcript duration, or a timeout do not complete it automatically. Background shell, server, monitor, and workflow tasks are excluded from the agent ledger. Without the final `Stop`, timing remains active; `StopFailure`, user interruption, and `SessionEnd` still produce immediate terminal states.
+
+The subagent history remains authoritative after the main agent resumes. A delayed native `turn_duration` cannot shorten a multi-agent task or turn failure/interruption into success. Accepted terminal times are frozen; duplicate hooks and later refreshes do not extend them. An ordinary successful single turn can be calibrated once with its matching native duration. Events without reliable prompt ownership are ignored rather than attached to a newer prompt.
+
+| Time metric | Meaning and source |
+| --- | --- |
+| Task duration | `prompt-timer`: earliest user submission to final main `Stop`, or a confirmed failure/interruption; includes queuing, subagents and wrap-up |
+| Native turn duration | Transcript `turn_duration.durationMs`; a single native response, used only for eligible single-turn calibration |
+| Session runtime | `cost.total_duration_ms`; cumulative time the CLI session runs, excluding time between runs/resumes |
+| API wait time | `cost.total_api_duration_ms`; cumulative waiting for API responses; not currently displayed by `cost` |
+
+See the [official status-line fields](https://code.claude.com/docs/en/statusline) for the session and API definitions.
 
 Local shortcut commands such as `/statusline-config show` do not start a new timed prompt. Hiding `tokens` while retaining `prompt-timer` still lets the timer read the necessary transcript state and work normally.
 
