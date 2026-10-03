@@ -49,4 +49,6 @@ CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --
 
 参考：[创建与实际构建类型](https://code.claude.com/docs/en/plugins/mods/create)、[界面与焦点](https://code.claude.com/docs/en/plugins/mods/interface)、[官方测试](https://code.claude.com/docs/en/plugins/mods/test)。
 
-2026-10-04 开发验证：Claude Code 2.1.287 和 2.1.288 生成匹配的声明，分别通过严格验证、12 项官方 Mod 测试和 TypeScript 检查。原生 Linux x86_64 的 120/80 列 PTY 用例完成面板打开、切换、Esc 返回及旧版本地命令调用，没有保存草稿。人工视觉/焦点验收仍待完成；平台结果以独立 CI 报告为准。
+2026-10-04 开发验证：Claude Code 2.1.287 和 2.1.288 生成匹配的声明，分别通过严格验证、12 项官方 Mod 测试和 TypeScript 检查。原生 Linux x86_64 的 120/80 列 PTY 用例确认共享目录/样例预览、切换、Esc 返回及旧版本地命令调用，没有写入显示或宿主设置；平台结果以独立 CI 报告为准。
+
+维护者于 2026-10-04 确认提交 `3a65482` 的完整 Phase 1 代码通过全部 Linux 人工检查，使用 Claude Code 2.1.288 和源码后端 1.1.1，覆盖打开、位置、键盘焦点、切换、Esc、窄窗口及返回原会话。隔离交互工具记录了干净 checkout 和退出码 0；验收结论依据维护者的明确确认。终端产品/版本未提供，在本地证据中保留为未知。Windows/macOS 原生交互及完整原生编辑器仍属于 Phase 2。
