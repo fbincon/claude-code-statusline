@@ -30,6 +30,11 @@ def main() -> int:
         default=Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
     )
     parser.add_argument("--commit", required=True)
+    parser.add_argument(
+        "--symbols-font",
+        type=Path,
+        default=Path("/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf"),
+    )
     args = parser.parse_args()
     raw = args.capture.read_bytes()
     data = json.loads(raw)
@@ -54,6 +59,9 @@ def main() -> int:
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(str(args.font), 20)
     cjk = ImageFont.truetype(str(args.cjk_font), 20)
+    symbols = ImageFont.truetype(str(args.symbols_font), 20)
+    bold_path = args.font.with_name(args.font.stem + "-Bold" + args.font.suffix)
+    bold = ImageFont.truetype(str(bold_path), 20) if bold_path.exists() else font
     colors = {
         "default": "#dedee7",
         "black": "#202127",
@@ -95,7 +103,15 @@ def main() -> int:
             if cell["reverse"]:
                 fg, bg = bg, fg
             draw.rectangle((x, y, x + width, y + height), fill=bg)
-            selected = cjk if any(ord(char) > 0x2E80 for char in cell["data"]) else font
+            selected = (
+                symbols
+                if "\u23f1" in cell["data"]
+                else cjk
+                if any(ord(char) > 0x2E80 for char in cell["data"])
+                else bold
+                if cell["bold"]
+                else font
+            )
             draw.text((x, y), cell["data"], font=selected, fill=fg, stroke_width=0)
     metadata = PngInfo()
     metadata.add_text(
