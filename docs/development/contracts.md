@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v1 is the internal interface for the bundled/source native frontend. Display persistence stays at schema v2, including existing v1 reads; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; the v1.2.0a1 candidate wheel bundles the matching Mod.
+Protocol v1 is the internal interface for the bundled/source native frontend. Display persistence stays at schema v2, including existing v1 reads; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; v1.2.0 and its preview wheel bundle the matching Mod.
 
 ## Catalog
 

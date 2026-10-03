@@ -4,7 +4,7 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.1.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.2.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,13 +12,11 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-The v1.2.0a1 candidate keeps native integration opt-in and stable installation links at v1.1.1. Before publishing the first preview, require merged-commit Python/build checks, the four pinned native jobs (Linux 2.1.287/2.1.288, Windows/macOS 2.1.288), isolated wheel/sdist installation and explicit Linux human editor acceptance. Before v1.2.0, also require Windows/macOS human acceptance at the same fixed candidate, then synchronize stable defaults, versions and links in a release PR. Do not mark Phase 2 complete while human evidence is missing.
+Stable v1.2.0 prefers native integration on compatible hosts while preserving explicit disablement. The maintainer confirmed all three human checklists on the fixed v1.2.0a1 candidate: Linux, Windows 11 and macOS 14.5. Record missing architecture/terminal metadata as unknown; do not infer it from CI. See the [acceptance record](development/native.md#stable-acceptance-record).
 
-Bundle runtime Mod files from `mods/statusline-native` using `src/build_native.py`. The wheel excludes tests, developer dependencies, generated host declarations and raw logs; sdist retains development sources and the build hook. `inspect_dist.py` verifies byte-for-byte runtime resources and the generated version/protocol/hash inventory. Backend PEP 440 `1.2.0a1` corresponds to Mod SemVer `1.2.0-alpha.1`.
+Every candidate requires merged-commit Python/build checks, the four pinned native jobs (Linux 2.1.287/2.1.288, Windows/macOS 2.1.288), isolated wheel/sdist/rebuild and fixed-tag/public installation checks. Core smoke explicitly selects compatibility integration; native smoke separately checks stable defaults, migration and disablement. Build from the verified merge commit, verify tag/draft assets/SHA256, require tag CI, then publish stable v1.2.0 as Latest. Prereleases remain opt-in and never become Latest.
 
-Build from a fixed verified merge commit and compare package files/metadata/entry points with an independent wheel rebuilt from sdist. Run `tools/native_install_smoke.py` in each installed environment; fixed-tag source installation must also pass after tag creation. Capture human OS, architecture, terminal/version, host version, exact commit and all checklist results from [native acceptance](development/native.md#linux-acceptance). Raw evidence stays under ignored `dist/validation`; screenshots document decoded real host terminal cells and never imply human acceptance. Publish v1.2.0a1 as a prerelease with Latest false only after its Linux gate. Stable Latest remains v1.1.1 until the later stable release.
-
-Before Python package downgrade, use the newer package's `install --no-native-editor`, then install/reintegrate the old package. Preserve explicit disabled preferences and document any restriction or unsupported host instead of fabricating session loading.
+Runtime resources come from `mods/statusline-native` through `src/build_native.py`, with a generated hash/version/protocol inventory. Wheel and rebuilt sdist payloads must agree and exclude development dependencies, host declarations and raw reports. Raw evidence stays in ignored `dist/validation`; terminal capture reconstruction and human acceptance are distinct. Before a Python package downgrade, use the newer package's `install --no-native-editor`, then reinstall the old package.
 
 ## Prepare the release commit
 
@@ -46,7 +44,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.1.1
+RELEASE_TAG=v1.2.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -64,8 +62,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-claude_code_statusline-1.1.1-py3-none-any.whl
-claude_code_statusline-1.1.1.tar.gz
+claude_code_statusline-1.2.0-py3-none-any.whl
+claude_code_statusline-1.2.0.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -88,8 +86,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.1.1-py3-none-any.whl \
-  claude_code_statusline-1.1.1.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.2.0-py3-none-any.whl \
+  claude_code_statusline-1.2.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -98,8 +96,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.1.1-py3-none-any.whl',
-    'claude_code_statusline-1.1.1.tar.gz'
+    'claude_code_statusline-1.2.0-py3-none-any.whl',
+    'claude_code_statusline-1.2.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -119,8 +117,8 @@ Confirm all 13 CI jobs pass for `RELEASE_COMMIT`, and that the remote tag and Re
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.1.1-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.1.1.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.2.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.2.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \

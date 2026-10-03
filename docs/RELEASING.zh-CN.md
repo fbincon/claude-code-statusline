@@ -2,19 +2,17 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.1.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.1)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.2.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-v1.2.0a1 候选保持原生显式启用，稳定安装链接仍为 v1.1.1。首个预览发布前要求合并提交的 Python/构建检查、四个固定原生 job（Linux 2.1.287/2.1.288、Windows/macOS 2.1.288）、隔离 wheel/sdist 安装，以及明确的 Linux 真人编辑器验收。v1.2.0 还要求相同固定候选的 Windows/macOS 真人验收，再通过发布 PR 同步稳定默认、版本和链接。真人证据不足时不标记 Phase 2 完成。
+稳定 v1.2.0 在兼容宿主默认优先原生，保留明确禁用。维护者已确认固定 v1.2.0a1 候选的三平台真人清单：Linux、Windows 11、macOS 14.5。缺失的架构/终端元数据记为未知，不从 CI 推断；参见[验收记录](development/native.zh-CN.md#稳定版验收记录)。
 
-`src/build_native.py` 从唯一维护源 `mods/statusline-native` 打包运行资源。wheel 排除测试、开发依赖、宿主声明和原始日志；sdist 保留开发源和构建 hook。`inspect_dist.py` 逐字节核对资源及生成的版本/协议/哈希清单。后端 PEP 440 `1.2.0a1` 对应 Mod SemVer `1.2.0-alpha.1`。
+每个候选要求合并提交的 Python/构建检查、四个固定原生 job（Linux 2.1.287/2.1.288、Windows/macOS 2.1.288）、独立 wheel/sdist/重建及固定标签/公开安装检查。核心 smoke 显式选择兼容接入，原生 smoke 独立检查稳定默认、迁移和禁用。从验证过的合并提交构建，核对标签/草稿资产/SHA256，标签 CI 通过后发布 v1.2.0 并设为 Latest。预览保持显式启用，不设 Latest。
 
-从固定、验证过的合并提交构建，与独立从 sdist 重建的 wheel 比较包文件、metadata 和入口。每个安装环境运行 `tools/native_install_smoke.py`，打标签后也验证固定标签源码安装。[原生验收](development/native.zh-CN.md#linux-验收)记录真人系统、架构、终端及版本、宿主版本、固定提交和全部清单结果。原始证据在忽略的 `dist/validation`；截图注明真实宿主终端 cells 来源，不代表真人已通过。Linux 门槛通过后才能发布 v1.2.0a1，保持 prerelease 与 Latest false；后续稳定发布前 Latest 仍为 v1.1.1。
-
-Python 包降级前先用新包执行 `install --no-native-editor`，再安装并接入旧包。保留明确禁用偏好，记录限制或不兼容状态，不把磁盘安装当作会话已加载。
+运行资源从 `mods/statusline-native` 通过 `src/build_native.py` 打包，生成哈希/版本/协议清单。wheel 与独立 sdist 重建内容应一致，排除开发依赖、宿主声明和原始报告。原始证据在忽略的 `dist/validation`，终端画面重建与真人验收分开记录。Python 包降级前先用新包执行 `install --no-native-editor`，再重新安装旧包。
 
 ## 准备发布提交
 
@@ -40,7 +38,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.1.1
+RELEASE_TAG=v1.2.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -58,8 +56,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-claude_code_statusline-1.1.1-py3-none-any.whl
-claude_code_statusline-1.1.1.tar.gz
+claude_code_statusline-1.2.0-py3-none-any.whl
+claude_code_statusline-1.2.0.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -80,8 +78,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.1.1-py3-none-any.whl \
-  claude_code_statusline-1.1.1.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.2.0-py3-none-any.whl \
+  claude_code_statusline-1.2.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -90,8 +88,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.1.1-py3-none-any.whl',
-    'claude_code_statusline-1.1.1.tar.gz'
+    'claude_code_statusline-1.2.0-py3-none-any.whl',
+    'claude_code_statusline-1.2.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -109,8 +107,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.1.1-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.1.1.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.2.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.2.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \

@@ -127,7 +127,7 @@ class NativeInstallerTests(unittest.TestCase):
         )
 
     def test_first_install_migrates_owned_legacy_and_repeat_is_idempotent(self):
-        self.install(experimental_slash_tui=True)
+        self.install(experimental_slash_tui=True, native_editor=False)
         skill, owner = resources.experimental_skill_paths(self.config)
         self.assertTrue(skill.exists())
         result = self.install(native_editor=True)
@@ -411,6 +411,15 @@ class NativeInstallerTests(unittest.TestCase):
         self.assertTrue(
             (root / "plugins/statusline-native/hooks/register.ts").is_file()
         )
+
+    def test_release_default_activates_native_only_for_stable_versions(self):
+        from claude_statusline._version import __version__
+
+        result = self.install()
+        stable = not any(stage in __version__ for stage in ("a", "b", "rc", "dev"))
+        self.assertEqual(result.native_state, "installed" if stable else "disabled")
+        self.assertEqual(bool(self.host.plugins), stable)
+        self.assertFalse(preference.preference_path(self.config).exists())
 
 
 if __name__ == "__main__":
