@@ -99,8 +99,12 @@ def run_pty(
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
     subprocess.run(
-        [env['CLAUDE_STATUSLINE_NATIVE_EXECUTABLE'], 'config', 'set', 'colors', 'on'],
-        env=env, cwd=project, capture_output=True, check=True, timeout=30,
+        [env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set", "colors", "on"],
+        env=env,
+        cwd=project,
+        capture_output=True,
+        check=True,
+        timeout=30,
     )
     settings_before = (config / "settings.json").read_bytes()
     master, slave = pty.openpty()
@@ -175,10 +179,12 @@ def run_pty(
         path.chmod(0o600)
 
     def command(text):
-        prompts = [line for line in screen.display if line.lstrip().startswith('❯')]
-        if not prompts or prompts[-1].split('❯', 1)[1].strip():
-            raise RuntimeError('Refusing to send a command while the composer is not empty')
-        os.write(master, text.encode('utf-8') + b'\r')
+        prompts = [line for line in screen.display if line.lstrip().startswith("❯")]
+        if not prompts or prompts[-1].split("❯", 1)[1].strip():
+            raise RuntimeError(
+                "Refusing to send a command while the composer is not empty"
+            )
+        os.write(master, text.encode("utf-8") + b"\r")
 
     def reveal(text):
         # Inline panes may be shorter than the requested rows. Native Tab
@@ -189,8 +195,8 @@ def run_pty(
             except RuntimeError:
                 if process.poll() is not None:
                     raise
-                os.write(master, b'\t')
-        raise RuntimeError(f'Native focus/scroll did not reveal {text!r}')
+                os.write(master, b"\t")
+        raise RuntimeError(f"Native focus/scroll did not reveal {text!r}")
 
     try:
         # The fresh isolated project may still require its trust acknowledgement.
@@ -199,7 +205,9 @@ def run_pty(
             os.write(master, b"\r")
             read_until("❯")
         offset = len(raw)
-        command('/statusline-configure-native')
+        command(
+            "/statusline-configure" if persistent else "/statusline-configure-native"
+        )
         read_until("34 scoped items", start=offset)
         read_until("Sample preview")
         capture("main")
@@ -223,13 +231,13 @@ def run_pty(
         reveal("Colors: on")
         os.write(master, b"q")
         time.sleep(0.5)
-        command('/statusline-configure-native')
+        command("/statusline-configure-native")
         read_until("34 scoped items")
         os.write(master, b"3")
         reveal("Colors: off")
         os.write(master, b"\x1b")
         time.sleep(0.5)
-        command('/statusline-config show')
+        command("/statusline-config show")
         read_until("Hide Vim mode indicator:")
         assert (config / "claude-statusline.json").read_bytes() == saved, (
             "Cancel changed saved display configuration"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -19,19 +20,33 @@ def claude_argv(executable: str = "claude") -> list[str]:
     if platform_environment.is_windows() and path.suffix.casefold() in {".cmd", ".bat"}:
         # Avoid cmd.exe interpolation of user-selected paths. Invoke the npm
         # package through Node directly when PATH points at a batch shim.
-        node = shutil.which("node")
-        candidates = (
-            path.parent / "node_modules/@anthropic-ai/claude-code/cli.js",
-            path.parent.parent / "@anthropic-ai/claude-code/cli.js",
+        roots = (
+            path.parent / "node_modules/@anthropic-ai/claude-code",
+            path.parent.parent / "@anthropic-ai/claude-code",
         )
-        script = next(
-            (candidate for candidate in candidates if candidate.is_file()), None
+        for root in roots:
+            metadata = root / "package.json"
+            if not metadata.is_file():
+                continue
+            try:
+                package = json.loads(metadata.read_text(encoding="utf-8"))
+                entry = package["bin"]
+                entry = entry["claude"] if isinstance(entry, dict) else entry
+                if not isinstance(entry, str):
+                    continue
+                target = (root / entry).resolve()
+                if not target.is_relative_to(root.resolve()) or not target.is_file():
+                    continue
+            except (OSError, ValueError, KeyError, TypeError):
+                continue
+            if target.suffix.casefold() == ".exe":
+                return [str(target)]
+            node = shutil.which("node")
+            if node and target.suffix.casefold() in {".js", ".cjs", ".mjs"}:
+                return [str(Path(node).resolve()), str(target)]
+        raise integration_models.ConfigurationError(
+            "Cannot safely resolve Claude batch wrapper; use a native Claude executable or its matching npm package"
         )
-        if not node or script is None:
-            raise integration_models.ConfigurationError(
-                "Cannot safely resolve Claude batch wrapper; use a native Claude executable or its matching Node package"
-            )
-        return [str(Path(node).resolve()), str(script)]
     return [str(path)]
 
 

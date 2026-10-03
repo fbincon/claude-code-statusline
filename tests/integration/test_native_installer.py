@@ -343,6 +343,9 @@ class NativeInstallerTests(unittest.TestCase):
         script = host.parent.parent / "@anthropic-ai/claude-code/cli.js"
         script.parent.mkdir(parents=True)
         script.write_text("cli")
+        (script.parent / "package.json").write_text(
+            json.dumps({"bin": {"claude": "cli.js"}})
+        )
         with (
             mock.patch.object(
                 capabilities.shutil,
@@ -359,6 +362,30 @@ class NativeInstallerTests(unittest.TestCase):
         self.assertEqual(
             argv, [str(Path("/node/node.exe").resolve()), str(script.resolve())]
         )
+
+    def test_windows_npm_native_binary_is_resolved_from_package_bin_metadata(self):
+        host = Path(self.temp.name) / "native npm/node_modules/.bin/claude.cmd"
+        host.parent.mkdir(parents=True)
+        host.write_text("shim")
+        package = host.parent.parent / "@anthropic-ai/claude-code"
+        binary = package / "bin/claude.exe"
+        binary.parent.mkdir(parents=True)
+        binary.write_bytes(b"MZ")
+        (package / "package.json").write_text(
+            json.dumps({"bin": {"claude": "bin/claude.exe"}})
+        )
+        with (
+            mock.patch.object(capabilities.shutil, "which", return_value=str(host)),
+            mock.patch.object(
+                capabilities.platform_environment, "is_windows", return_value=True
+            ),
+        ):
+            self.assertEqual(capabilities.claude_argv(), [str(binary.resolve())])
+            (package / "package.json").write_text(
+                json.dumps({"bin": {"claude": "../outside.cmd"}})
+            )
+            with self.assertRaises(native.ConfigurationError):
+                capabilities.claude_argv()
 
 
 if __name__ == "__main__":

@@ -59,7 +59,7 @@ def main() -> int:
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(str(args.font), 20)
     cjk = ImageFont.truetype(str(args.cjk_font), 20)
-    symbols = ImageFont.truetype(str(args.symbols_font), 20)
+    symbols = ImageFont.truetype(str(args.symbols_font), 12)
     bold_path = args.font.with_name(args.font.stem + "-Bold" + args.font.suffix)
     bold = ImageFont.truetype(str(bold_path), 20) if bold_path.exists() else font
     colors = {
