@@ -1,6 +1,8 @@
 __pycache__/
 .DS_Store
 docs/MACOS_VALIDATION.md
+docs/ROADMAP.md
+docs/ROADMAP.zh-CN.md
 *.py[cod]
 *.egg-info/
 .coverage
