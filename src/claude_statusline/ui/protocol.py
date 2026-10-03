@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 import sys
 
@@ -27,10 +28,18 @@ def _object(value, keys, name):
     return value
 
 
-def validate_draft(value):
+def validate_draft(value, *, require_current_schema=False):
     value = _object(value, ("display", "host"), "draft")
     try:
         parsed = display.validate_display_config(value["display"])
+        if (
+            require_current_schema
+            and value["display"]["schema_version"] != display.SCHEMA_VERSION
+        ):
+            raise RequestError(
+                "invalid_configuration",
+                "apply requires the complete schema v2 draft returned by read",
+            )
         raw = _object(
             value["host"],
             ("padding", "refresh_interval", "hide_vim_mode_indicator"),
@@ -138,6 +147,41 @@ def dispatch(request: object, config_dir: Path, executable: Path):
         }
     if operation == "read":
         return read_result(service.read_effective_config(config_dir, executable))
+    if operation == "apply":
+        _object(payload, ("draft", "expected_revision"), "payload")
+        parsed, parsed_host = validate_draft(
+            payload["draft"], require_current_schema=True
+        )
+        revision = payload["expected_revision"]
+        if (
+            not isinstance(revision, str)
+            or re.fullmatch(r"[0-9a-f]{64}", revision) is None
+        ):
+            raise RequestError(
+                "invalid_request",
+                "expected_revision must be the revision returned by read",
+            )
+        mutation = service.apply_configuration(
+            config_dir,
+            executable,
+            items=list(parsed.items),
+            colors=parsed.use_colors,
+            palette=parsed.palette,
+            directory_style=parsed.directory_style,
+            separator_style=parsed.separator_style,
+            scope_labels=parsed.scope_labels,
+            subagent_items=list(parsed.subagents.items),
+            subagent_statusline=parsed.subagents.enabled,
+            padding=parsed_host.padding,
+            refresh_interval=parsed_host.to_dict()["refresh_interval"],
+            hide_vim_mode_indicator=parsed_host.hide_vim_mode_indicator,
+            expected_revision=revision,
+        )
+        return {
+            **read_result(mutation.effective),
+            "changed": mutation.changed,
+            "backup_dir": str(mutation.backup_dir) if mutation.backup_dir else None,
+        }
     if operation == "preview":
         _object(payload, ("draft", "width"), "payload")
         parsed, parsed_host = validate_draft(payload["draft"])
@@ -194,7 +238,7 @@ def handle(raw: str, config_dir: Path, executable: Path):
         display.DisplayConfigError,
         integration_models.ConfigurationError,
     ) as exc:
-        error = RequestError("invalid_configuration", str(exc))
+        error = RequestError(getattr(exc, "code", "invalid_configuration"), str(exc))
     except OSError as exc:
         error = RequestError("io_error", str(exc))
     except Exception:
@@ -221,7 +265,12 @@ def main(args) -> int:
             else sys.stdin.read()
         )
         directory = ownership.resolve_config_dir(args.config_dir)
-        executable = ownership.resolve_cli_executable()
+        entry = Path(sys.argv[0])
+        executable = ownership.resolve_cli_executable(
+            entry
+            if entry.name.casefold() in {"claude-statusline", "claude-statusline.exe"}
+            else None
+        )
         response, status = handle(raw, directory, executable)
     except (UnicodeError, OSError, integration_models.ConfigurationError) as exc:
         response, status = (

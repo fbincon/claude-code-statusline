@@ -45,6 +45,22 @@ class ConfigCommandError(RuntimeError):
     """Raised for a rejected config command with a user-facing explanation."""
 
 
+class ConfigConflict(ConfigCommandError):
+    code = "configuration_conflict"
+
+
+class NotInstalledConfig(ConfigCommandError):
+    code = "not_installed"
+
+
+class ConfigOwnershipError(ConfigCommandError):
+    code = "ownership_mismatch"
+
+
+class ConfigWriteError(ConfigCommandError):
+    code = "io_error"
+
+
 @dataclass(frozen=True)
 class HostConfig:
     padding: int = 0

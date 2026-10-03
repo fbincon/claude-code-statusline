@@ -8,7 +8,7 @@ from claude_statusline.config import catalog, display
 
 
 PROTOCOL_VERSION = 1
-OPERATIONS = ("describe", "read", "preview")
+OPERATIONS = ("describe", "read", "preview", "apply")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
 Palette = Literal.__getitem__(display.PALETTES)
@@ -83,6 +83,11 @@ class DescribeResult(TypedDict):
     operations: list[str]
 
 
+class ApplyResult(ReadResult):
+    changed: bool
+    backup_dir: str | None
+
+
 ALIASES = {
     "MainItemId": MainItemId,
     "SubagentItemId": SubagentItemId,
@@ -102,5 +107,11 @@ WIRE_TYPES = (
     ProtocolError,
     ReadResult,
     DescribeResult,
+    ApplyResult,
 )
-RESULTS = {"describe": DescribeResult, "read": ReadResult, "preview": PreviewResult}
+RESULTS = {
+    "describe": DescribeResult,
+    "read": ReadResult,
+    "preview": PreviewResult,
+    "apply": ApplyResult,
+}

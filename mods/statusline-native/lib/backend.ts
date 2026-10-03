@@ -7,6 +7,13 @@ export class BackendError extends Error {
   constructor(public readonly code: string, message: string) { super(message); }
 }
 
+export function processFailure(error: unknown): BackendError {
+  if (error instanceof BackendError) return error;
+  const message = error instanceof Error ? error.message : 'The backend process could not run.';
+  const timedOut = error instanceof Error && (error.name === 'TimeoutError' || /timed?\s*out|timeout/i.test(message));
+  return new BackendError(timedOut ? 'backend_timeout' : 'backend_process', message);
+}
+
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -50,19 +57,23 @@ export function parseResponse<O extends Operation>(operation: O, process: { exit
   if (process.isStdoutTruncated) throw new BackendError('backend_output_truncated', 'The backend JSON was truncated by the host.');
   let response: unknown;
   try { response = JSON.parse(process.stdout); }
-  catch { throw new BackendError('invalid_backend_json', 'The backend did not return complete JSON. Bind a backend from this checkout with CLAUDE_STATUSLINE_NATIVE_EXECUTABLE.'); }
+  catch {
+    if (process.exitCode !== 0) throw new BackendError('backend_exit', `The backend exited with status ${process.exitCode}. Bind a backend from this checkout with CLAUDE_STATUSLINE_NATIVE_EXECUTABLE.`);
+    throw new BackendError('invalid_backend_json', 'The backend did not return complete JSON. Bind a backend from this checkout with CLAUDE_STATUSLINE_NATIVE_EXECUTABLE.');
+  }
   if (!object(response) || response.protocol_version !== PROTOCOL_VERSION) throw new BackendError('protocol_mismatch', 'The frontend and backend protocol versions do not match.');
-  if (('error' in response) === ('result' in response)) fail();
+  if (('error' in response) === ('result' in response) || !exact(response, ['protocol_version', 'error' in response ? 'error' : 'result'])) fail();
   if ('error' in response) {
-    if (!object(response.error) || typeof response.error.code !== 'string' || typeof response.error.message !== 'string') fail();
+    if (!object(response.error) || !exact(response.error, ['code', 'message']) || typeof response.error.code !== 'string' || typeof response.error.message !== 'string') fail();
     throw new BackendError(response.error.code, response.error.message);
   }
   if (process.exitCode !== 0) throw new BackendError('backend_exit', `The backend exited with status ${process.exitCode}.`);
   const result = response.result;
   if (!object(result)) fail();
-  if (operation === 'read') {
+  if (operation === 'read' || operation === 'apply') {
     if (!isDraft(result.draft) || typeof result.revision !== 'string' || !/^[0-9a-f]{64}$/.test(result.revision) ||
         typeof result.installed !== 'boolean' || !object(result.installation) || !object(result.capabilities) || typeof result.backend_version !== 'string') fail();
+    if (operation === 'apply' && (typeof result.changed !== 'boolean' || !(result.backup_dir === null || typeof result.backup_dir === 'string'))) fail();
   } else if (operation === 'preview') {
     if (result.sample !== true || !Array.isArray(result.main) || !Array.isArray(result.subagents) ||
         ![...result.main, ...result.subagents].every(row => Array.isArray(row) && row.every(isSpan))) fail();

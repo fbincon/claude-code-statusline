@@ -26,13 +26,19 @@ def installation_identity(settings: dict, executable: Path) -> dict:
         command = current.get("command")
         argv = ownership._split_command(command)
         normalized = None
-        if argv:
-            program = argv[0]
-            resolved = shutil.which(program) or program
-            normalized = [ownership._normalized_path(resolved), *argv[1:]]
-        owned = current.get("type") == "command" and ownership._is_cli_command(
+        owned = current.get("type") == "command" and ownership._is_current_cli_command(
             command, operation, executable
         )
+        if argv:
+            program = argv[0]
+            if owned and ("/" in program or "\\" in program):
+                # Use the actual path for our escaped POSIX command, too.
+                program = str(executable)
+            try:
+                resolved = shutil.which(program) or program
+            except (OSError, ValueError):
+                resolved = program
+            normalized = [ownership._normalized_path(resolved), *argv[1:]]
         result[key] = {
             "state": "owned" if owned else "foreign",
             "type": current.get("type"),

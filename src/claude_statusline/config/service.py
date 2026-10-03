@@ -20,8 +20,13 @@ def _subagent_info(
     settings: dict,
     executable: Path,
 ) -> config_models.SubagentStatuslineInfo:
-    state = integration_capabilities.subagent_statusline_state(
-        settings, executable, integration_capabilities.detect_claude_version()
+    version = integration_capabilities.detect_claude_version()
+    state = (
+        revisions.installation_identity(settings, executable)["subagentStatusLine"][
+            "state"
+        ]
+        if integration_capabilities.supports_subagent_statusline(version)
+        else "unsupported"
     )
     return config_models.SubagentStatuslineInfo(
         enabled=display.subagents.enabled,
@@ -48,7 +53,10 @@ def read_effective_config(
 def _effective_snapshot(display, settings, config_dir, executable):
     host, installed = config_host._host_from_settings(settings, executable)
     return config_models.EffectiveConfig(
-        display, host, installed, config_display.config_path(config_dir),
+        display,
+        host,
+        installed,
+        config_display.config_path(config_dir),
         _subagent_info(display, settings, executable),
         revisions.semantic_revision(display, host, settings, executable),
         revisions.installation_identity(settings, executable),
@@ -140,7 +148,9 @@ def mutate_configuration(
                 and new_settings != settings
             )
             if not display_changed and not settings_changed:
-                effective = _effective_snapshot(display, settings, config_dir, executable)
+                effective = _effective_snapshot(
+                    display, settings, config_dir, executable
+                )
                 return config_models.MutationResult(False, effective)
 
             backup_dir = _backup_transaction(
@@ -184,7 +194,7 @@ def mutate_configuration(
                     if rollback_errors
                     else ""
                 )
-                raise config_models.ConfigCommandError(
+                raise config_models.ConfigWriteError(
                     f"configuration update failed: {exc}{suffix}"
                 ) from exc
 
@@ -200,7 +210,9 @@ def mutate_configuration(
                 if new_settings is not config_models._UNCHANGED
                 else settings
             )
-            effective = _effective_snapshot(effective_display, effective_settings, config_dir, executable)
+            effective = _effective_snapshot(
+                effective_display, effective_settings, config_dir, executable
+            )
             return config_models.MutationResult(True, effective, backup_dir)
     except (
         config_display.DisplayConfigError,
@@ -452,6 +464,7 @@ def apply_configuration(
     subagent_statusline: Any | None = None,
     scope_labels: str | None = None,
     expected: config_models.EffectiveConfig | None = None,
+    expected_revision: str | None = None,
     before_commit: Callable[[], None] | None = None,
 ) -> config_models.MutationResult:
     validated_items = _validated_items(items)
@@ -480,14 +493,36 @@ def apply_configuration(
         # This runs under the installation lock, including after a lock wait.
         if before_commit is not None:
             before_commit()
-        if expected is not None and (
-            current_display != expected.display
-            or current_host != expected.host
-            or installed != expected.installed
-        ):
-            raise config_models.ConfigCommandError(
+        baseline_revision = expected_revision
+        if baseline_revision is None and expected is not None:
+            baseline_revision = expected.revision
+        if baseline_revision is not None:
+            conflict = (
+                revisions.semantic_revision(
+                    current_display, current_host, settings, executable
+                )
+                != baseline_revision
+            )
+        else:
+            conflict = expected is not None and (
+                current_display != expected.display
+                or current_host != expected.host
+                or installed != expected.installed
+            )
+        if conflict:
+            raise config_models.ConfigConflict(
                 "status line configuration changed while the editor was open; "
                 "reopen the editor and try again"
+            )
+        if (
+            revisions.installation_identity(settings, executable)["subagentStatusLine"][
+                "state"
+            ]
+            == "foreign"
+        ):
+            raise config_models.ConfigOwnershipError(
+                "Claude Code subagentStatusLine belongs to another renderer; "
+                "resolve its installation ownership before saving"
             )
         subagents = current_display.subagents
         if validated_subagent_items is not None:

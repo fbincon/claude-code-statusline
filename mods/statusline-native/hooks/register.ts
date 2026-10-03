@@ -1,5 +1,5 @@
 import type { Register, EngineInterface } from 'claude-code';
-import { BackendError, parseResponse, requestText, spanColor } from '../lib/backend.ts';
+import { parseResponse, processFailure, requestText, spanColor } from '../lib/backend.ts';
 import { copyDraft } from '../lib/draft.ts';
 import type { Draft, Operation, PreviewResult, ResultFor } from '../lib/generated-contracts.ts';
 
@@ -7,15 +7,14 @@ const PANE = 'statusline-native';
 const COMMAND = 'statusline-configure-native';
 
 async function callBackend<O extends Operation>($: EngineInterface, operation: O, payload: unknown = {}): Promise<ResultFor<O>> {
-  const executable = await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || 'claude-statusline';
-  const directory = await $.env.get('CLAUDE_CONFIG_DIR');
-  const argv = directory ? [executable, 'ui', '--config-dir', directory] : [executable, 'ui'];
   try {
+    const executable = await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || 'claude-statusline';
+    const directory = await $.env.get('CLAUDE_CONFIG_DIR');
+    const argv = directory ? [executable, 'ui', '--config-dir', directory] : [executable, 'ui'];
     const output = await $.process.run(argv, { stdin: requestText(operation, payload), timeoutMs: 30000 });
     return parseResponse(operation, output);
   } catch (error) {
-    if (error instanceof BackendError) throw error;
-    throw new BackendError('backend_process', error instanceof Error ? error.message : 'The backend could not start or timed out.');
+    throw processFailure(error);
   }
 }
 
@@ -28,10 +27,17 @@ export const register: Register = (on) => {
   let previewKey = '';
   let catalogCount = 0;
 
-  on('session.start', async ($, e, next) => {
-    ownsCommand = false;
+  const discardDraft = () => {
     epoch += 1;
     draft = null;
+    preview = null;
+    previewKey = '';
+    error = null;
+  };
+
+  on('session.start', async ($, e, next) => {
+    ownsCommand = false;
+    discardDraft();
     error = 'Close and reopen /statusline-configure-native to load a fresh draft.';
     const commands = await $.command.list();
     const collision = commands.find(command => command.name === COMMAND);
@@ -68,10 +74,7 @@ export const register: Register = (on) => {
   });
 
   on('ui.close', { id: 'statusline-native' }, ($, e, next) => {
-    epoch += 1;
-    draft = null;
-    preview = null;
-    previewKey = '';
+    discardDraft();
     return next(e);
   });
 
@@ -112,7 +115,10 @@ export const register: Register = (on) => {
       ...(!draft && !error ? [Text({ children: ['Loading backend...'] })] : []),
       ...(preview ? [Text({ children: ['Sample preview'] }), ...preview.main.map(row => Box({ flexDirection: 'row', children:
         row.map(span => Text({ bold: span.bold, color: spanColor(span), children: [span.text] })) }))] : []),
-      Button({ key: 'close', label: 'Close', hotkey: 'q', onPress: async () => { await $.ui.close({ id: PANE }); } }),
+      Button({ key: 'close', label: 'Close', hotkey: 'q', onPress: async () => {
+        discardDraft();
+        await $.ui.close({ id: PANE });
+      } }),
     ] });
   });
 };

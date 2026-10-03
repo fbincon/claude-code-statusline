@@ -8,6 +8,8 @@ Run all ordinary validation with temporary Claude configuration. The tests do no
 
 Shared catalog/protocol tests include strict input, Unicode paths and no-live-I/O sample previews. Run `python tools/generate_ui_contracts.py --check` to verify generated TypeScript agrees with Python; the native workflow also runs these contract tests. See [protocol details](contracts.md).
 
+`tests/ui/test_apply_protocol.py` covers complete draft validation before locking, two editors, ownership changes during a lock wait, same-named foreign installs, unrelated settings merges, rollback, v1 migration, repeat saves and CLI/curses/JSON equivalence. It also exercises the installed source CLI with Unicode/special-character paths. Official Mod tests cover process refusal/timeout, invalid envelopes, protocol mismatches, apply results, preview retry, cached redraws and responses finishing after resize or close. Use `{ deny: 'reason' }` to simulate a failed Mod API call; a throwing test stub is skipped by the host.
+
 From the repository root, create a virtual environment and install the project plus development tools:
 
 ```bash

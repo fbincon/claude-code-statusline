@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Add full-draft JSON apply with locked semantic revisions shared by curses, main/subagent installation ownership checks, merged unrelated settings, backups and rollback. Harden native bridge failures, timeouts and stale-response handling.
+
 - Centralize scoped item metadata/defaults/exclusions for CLI, curses, the wizard and generated TypeScript; add locked JSON describe/read and production sample spans without live collection or persistence.
 
 - Add an opt-in TypeScript native integration probe with command collision handling, transient color toggle and Esc close; preserve existing configuration entry points.

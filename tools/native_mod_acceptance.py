@@ -29,32 +29,61 @@ def prepare(root: Path, backend: Path) -> tuple[Path, dict[str, str]]:
     project.mkdir(mode=0o700)
     source = Path(os.environ.get("CLAUDE_CONFIG_DIR", str(Path.home() / ".claude")))
     settings_path = source / "settings.json"
-    settings = json.loads(settings_path.read_text(encoding="utf-8")) if settings_path.exists() else {}
-    copied = {key: settings[key] for key in ("apiKeyHelper", "env", "model") if key in settings}
+    settings = (
+        json.loads(settings_path.read_text(encoding="utf-8"))
+        if settings_path.exists()
+        else {}
+    )
+    copied = {
+        key: settings[key]
+        for key in ("apiKeyHelper", "env", "model")
+        if key in settings
+    }
     path = config / "settings.json"
     path.write_text(json.dumps(copied, ensure_ascii=False), encoding="utf-8")
     path.chmod(0o600)
-    (config / ".claude.json").write_text(json.dumps({
-        "hasCompletedOnboarding": True, "theme": "dark",
-        "projects": {str(project): {"hasTrustDialogAccepted": True}},
-    }), encoding="utf-8")
+    (config / ".claude.json").write_text(
+        json.dumps(
+            {
+                "hasCompletedOnboarding": True,
+                "theme": "dark",
+                "projects": {str(project): {"hasTrustDialogAccepted": True}},
+            }
+        ),
+        encoding="utf-8",
+    )
     (config / ".claude.json").chmod(0o600)
-    env = dict(os.environ, CLAUDE_CONFIG_DIR=str(config), TERM="xterm-256color",
-               DISABLE_AUTOUPDATER="1", CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1",
-               CLAUDE_STATUSLINE_NATIVE_EXECUTABLE=str(backend))
+    env = dict(
+        os.environ,
+        CLAUDE_CONFIG_DIR=str(config),
+        TERM="xterm-256color",
+        DISABLE_AUTOUPDATER="1",
+        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1",
+        CLAUDE_STATUSLINE_NATIVE_EXECUTABLE=str(backend),
+    )
     env.pop("CLAUDECODE", None)
     env["PATH"] = str(backend.parent) + os.pathsep + env.get("PATH", "")
-    subprocess.run([str(backend), "install", "--config-dir", str(config)],
-                   cwd=project, env=env, capture_output=True, check=True, timeout=30)
+    subprocess.run(
+        [str(backend), "install", "--config-dir", str(config)],
+        cwd=project,
+        env=env,
+        capture_output=True,
+        check=True,
+        timeout=30,
+    )
     return project, env
 
 
-def run_pty(root: Path, project: Path, env: dict, claude: str, plugin: Path, columns: int) -> dict:
+def run_pty(
+    root: Path, project: Path, env: dict, claude: str, plugin: Path, columns: int
+) -> dict:
     import fcntl
     import pty
     import termios
     import pyte
 
+    config = Path(env["CLAUDE_CONFIG_DIR"])
+    settings_before = (config / "settings.json").read_bytes()
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 30, columns, 0, 0))
 
@@ -63,9 +92,22 @@ def run_pty(root: Path, project: Path, env: dict, claude: str, plugin: Path, col
         fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
         os.tcsetpgrp(slave, os.getpgrp())
 
-    process = subprocess.Popen([claude, "--plugin-dir", str(plugin), "--debug-file", str(root / f"debug-{columns}.log")],
-                               cwd=project, env=env, stdin=slave, stdout=slave, stderr=slave,
-                               preexec_fn=terminal, close_fds=True)
+    process = subprocess.Popen(
+        [
+            claude,
+            "--plugin-dir",
+            str(plugin),
+            "--debug-file",
+            str(root / f"debug-{columns}.log"),
+        ],
+        cwd=project,
+        env=env,
+        stdin=slave,
+        stdout=slave,
+        stderr=slave,
+        preexec_fn=terminal,
+        close_fds=True,
+    )
     raw = bytearray()
     screen = pyte.Screen(columns, 30)
     stream = pyte.Stream(screen)
@@ -89,7 +131,9 @@ def run_pty(root: Path, project: Path, env: dict, claude: str, plugin: Path, col
                     return candidate
             if process.poll() is not None:
                 break
-        raise RuntimeError(f"PTY {columns} columns: did not observe {text!r}; inspect ignored raw/debug logs")
+        raise RuntimeError(
+            f"PTY {columns} columns: did not observe {text!r}; inspect ignored raw/debug logs"
+        )
 
     try:
         # The fresh isolated project may still require its trust acknowledgement.
@@ -100,6 +144,8 @@ def run_pty(root: Path, project: Path, env: dict, claude: str, plugin: Path, col
         offset = len(raw)
         os.write(master, b"/statusline-configure-native\r")
         read_until("Colors: on", start=offset)
+        read_until("Shared catalog: 34 scoped items")
+        read_until("Sample preview")
         offset = len(raw)
         os.write(master, b"c")
         read_until("Colors: off", start=offset)
@@ -111,12 +157,28 @@ def run_pty(root: Path, project: Path, env: dict, claude: str, plugin: Path, col
         os.write(master, b"/statusline-config show\r")
         # Narrow screens can scroll the first result lines away in one frame.
         read_until("Hide Vim mode indicator:", start=offset)
-        assert "Draft only." not in "\n".join(screen.display), "Esc did not close the pane"
-        config = Path(env["CLAUDE_CONFIG_DIR"])
-        assert not (config / "claude-statusline.json").exists(), "Probe persisted a draft"
-        return {"columns": columns, "passed": True, "opened": True,
-                "toggle": True, "esc_return": True, "legacy_command": True,
-                "draft_saved": False, "manual_visual_acceptance": False}
+        assert "Draft only." not in "\n".join(screen.display), (
+            "Esc did not close the pane"
+        )
+        assert not (config / "claude-statusline.json").exists(), (
+            "Probe persisted a draft"
+        )
+        assert (config / "settings.json").read_bytes() == settings_before, (
+            "Probe changed host settings"
+        )
+        return {
+            "columns": columns,
+            "passed": True,
+            "opened": True,
+            "toggle": True,
+            "esc_return": True,
+            "legacy_command": True,
+            "catalog_items": 34,
+            "sample_preview": True,
+            "draft_saved": False,
+            "settings_changed": False,
+            "manual_visual_acceptance": False,
+        }
     finally:
         if process.poll() is None:
             os.killpg(process.pid, signal.SIGTERM)
@@ -130,16 +192,23 @@ def run_pty(root: Path, project: Path, env: dict, claude: str, plugin: Path, col
         output = root / f"terminal-{columns}.bin"
         output.write_bytes(raw)
         output.chmod(0o600)
-        (root / f"screen-{columns}.txt").write_text("\n".join(screen.display), encoding="utf-8")
+        (root / f"screen-{columns}.txt").write_text(
+            "\n".join(screen.display), encoding="utf-8"
+        )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report-dir", type=Path, required=True)
-    parser.add_argument("--backend", type=Path, default=Path(".venv/bin/claude-statusline"))
+    parser.add_argument(
+        "--backend", type=Path, default=Path(".venv/bin/claude-statusline")
+    )
     parser.add_argument("--claude", default="claude")
     parser.add_argument("--plugin", type=Path, default=Path("mods/statusline-native"))
     parser.add_argument("--interactive", action="store_true")
+    parser.add_argument(
+        "--terminal", help="Terminal name/version to record for manual acceptance"
+    )
     args = parser.parse_args()
     if not sys.platform.startswith("linux"):
         parser.error("This acceptance runner currently requires native Linux")
@@ -147,20 +216,49 @@ def main() -> int:
     plugin = args.plugin.resolve()
     backend = args.backend.resolve()
     project, environment = prepare(root, backend)
+    report = {
+        "os": platform.platform(),
+        "terminal": args.terminal or os.environ.get("TERM_PROGRAM", "unknown")
+        if args.interactive
+        else "xterm-256color PTY",
+        "claude": subprocess.check_output(
+            [args.claude, "--version"], text=True
+        ).strip(),
+        "backend": subprocess.check_output(
+            [str(backend), "--version"], text=True
+        ).strip(),
+        "commit": subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], text=True
+        ).strip(),
+        "working_tree_dirty": bool(
+            subprocess.check_output(["git", "status", "--porcelain"], text=True).strip()
+        ),
+        "manual_visual_acceptance": False,
+        "cases": [],
+    }
     if args.interactive:
-        print("Run /statusline-configure-native, toggle c, close with Esc, then /statusline-config show.\n"
-              "Repeat in a narrow window. Send no model prompt. Use /exit when finished.", flush=True)
-        return subprocess.call([args.claude, "--plugin-dir", str(plugin)], cwd=project, env=environment)
-    report = {"os": platform.platform(), "terminal": "xterm-256color PTY",
-              "claude": subprocess.check_output([args.claude, "--version"], text=True).strip(),
-              "backend": subprocess.check_output([str(backend), "--version"], text=True).strip(),
-              "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
-              "cases": []}
+        report_path = root / "report.json"
+        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        print(
+            "Run /statusline-configure-native, check pane placement/focus and toggle c, close with Esc, then /statusline-config show.\n"
+            "Repeat in a narrow window. Send no model prompt. Use /exit when finished.\n"
+            f"Environment recorded in {report_path}; manual acceptance stays pending until you report the result.",
+            flush=True,
+        )
+        report["interactive_exit_code"] = subprocess.call(
+            [args.claude, "--plugin-dir", str(plugin)], cwd=project, env=environment
+        )
+        report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        return report["interactive_exit_code"]
     try:
         for columns in (120, 80):
-            report["cases"].append(run_pty(root, project, environment, args.claude, plugin, columns))
+            report["cases"].append(
+                run_pty(root, project, environment, args.claude, plugin, columns)
+            )
     finally:
-        (root / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        (root / "report.json").write_text(
+            json.dumps(report, indent=2) + "\n", encoding="utf-8"
+        )
     print(json.dumps(report, indent=2))
     return 0
 

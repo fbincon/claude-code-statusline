@@ -1,23 +1,11 @@
 import { expect, test } from 'claude-code/testing';
-import { MAIN_ITEM_IDS, SUBAGENT_ITEM_IDS } from '../lib/generated-contracts.ts';
-import type { Draft } from '../lib/generated-contracts.ts';
-
-const BASE: Draft = { display: { schema_version: 2, items: ['model-with-effort'], use_colors: true,
-  palette: 'default', directory_style: 'full', separator_style: 'classic', scope_labels: 'when-subagents',
-  subagents: { enabled: true, items: ['status-elapsed', 'name'] } },
-  host: { padding: 0, refresh_interval: 1, hide_vim_mode_indicator: false } };
-
-const START = { surface: 'terminal', isInteractive: true, cwd: '/work' } as const;
-const RUN = { command: 'statusline-configure-native', args: '', origin: { kind: 'composer' },
-  presentation: { isFullscreen: false, columns: 100 } } as const;
-const PANE = { plugin: 'statusline-native', surface: 'terminal', component: 'Pane',
-  requestId: 'statusline-native', viewport: { columns: 100, rows: 30 },
-  props: { title: 'Probe', isFocused: true, bodyColumns: 60, placement: 'inline',
-    scroll: { offset: 0, bodyRows: 10 }, view: {} } } as const;
+import type { ProcessRunResult } from 'claude-code';
+import { BASE, START, RUN, PANE, description, readResult, output, reply, sample } from './fixtures.ts';
 
 test('the command requests focus and Esc close; toggles are transient', async ($, on) => {
   const opens: unknown[] = [];
   const processes: string[][] = [];
+  const operations: string[] = [];
   on('session.start', () => ({ cwd: '/work' }));
   on('command.list', () => ({ value: [] }));
   on('command.register', () => ({ value: { command: 'statusline-configure-native' } }));
@@ -26,11 +14,10 @@ test('the command requests focus and Esc close; toggles are transient', async ($
   on('env.get', ($, e) => ({ value: e.name === 'CLAUDE_CONFIG_DIR' ? '/tmp/config 中文 $`' : '/tmp/bin with spaces/claude-statusline' }));
   on('process.run', ($, e) => {
     processes.push([...e.argv]);
+    expect(e.init?.timeoutMs).toBe(30000);
     const request = JSON.parse(e.init?.stdin || '{}');
-    const result = request.operation === 'describe' ? { backend_version: 'test', operations: ['describe', 'read', 'preview'], options: {}, capabilities: {},
-      catalog: [...MAIN_ITEM_IDS.map(id => ({ id, scope: 'main', label: id, description: id, default_enabled: false, excludes: [] })),
-        ...SUBAGENT_ITEM_IDS.map(id => ({ id, scope: 'subagent', label: id, description: id, default_enabled: false, excludes: [] }))] } :
-      request.operation === 'read' ? { backend_version: 'test', draft: BASE, revision: '0'.repeat(64), installed: true, installation: {}, capabilities: {} } :
+    operations.push(request.operation);
+    const result = request.operation === 'describe' ? description() : request.operation === 'read' ? readResult() :
       { sample: true, main: [[{ text: 'sample', bold: request.payload.draft.display.use_colors, foreground: null }]], subagents: [] };
     return { value: { exitCode: 0, stdout: JSON.stringify({ protocol_version: 1, result }), stderr: '',
       isStdoutTruncated: false, isStderrTruncated: false } };
@@ -51,7 +38,137 @@ test('the command requests focus and Esc close; toggles are transient', async ($
   await $.command.run(RUN);
   const reopened = await $.ui.mount(PANE);
   expect((await reopened.find({ key: 'colors' }))?.props.label).toBe('Colors: on');
+  expect(operations.includes('apply')).toBe(false);
   await reopened.unmount();
+});
+
+test('backend failures are shown in the pane and reopening recovers', async ($, on) => {
+  let failure: Error | ProcessRunResult | null = null;
+  const processes: string[][] = [];
+  on('session.start', () => ({ cwd: '/work' }));
+  on('command.list', () => ({ value: [] }));
+  on('command.register', () => ({ value: { command: RUN.command } }));
+  on('ui.open', () => ({ value: { isPlaced: true } }));
+  on('ui.close', () => ({ value: undefined }));
+  on('env.get', () => ({ value: undefined }));
+  on('process.run', ($, e) => {
+    processes.push([...e.argv]);
+    if (failure instanceof Error) return { deny: failure.message };
+    if (failure) return { value: failure };
+    const request = JSON.parse(e.init?.stdin || '{}');
+    return { value: reply(request.operation === 'describe' ? description() :
+      request.operation === 'read' ? readResult() : sample('recovered sample')) };
+  });
+  await $.session.start(START);
+  const cases = [
+    { failure: new Error('spawn ENOENT'), message: 'spawn ENOENT' },
+    { failure: new Error('Process timed out'), message: 'Process timed out' },
+    { failure: output('old CLI usage', 2), message: 'exited with status 2' },
+    { failure: output('{'), message: 'complete JSON' },
+    { failure: output(JSON.stringify({ protocol_version: 2, result: {} })), message: 'protocol versions' },
+  ];
+  for (const item of cases) {
+    failure = item.failure;
+    await $.command.run(RUN);
+    const ui = await $.ui.mount(PANE);
+    expect(await ui.find({ type: 'Text', text: item.message })).toBeDefined();
+    expect(await ui.find({ key: 'colors' })).toBeUndefined();
+    await ui.press({ key: 'close' });
+    await ui.unmount();
+  }
+  expect(processes[0]).toEqual(['claude-statusline', 'ui']);
+  failure = null;
+  await $.command.run(RUN);
+  const recovered = await $.ui.mount(PANE);
+  expect((await recovered.find({ key: 'colors' }))?.props.label).toBe('Colors: on');
+  expect(await recovered.find({ type: 'Text', text: 'recovered sample' })).toBeDefined();
+  await recovered.unmount();
+});
+
+test('a failed preview retries the same draft without rereading or saving', async ($, on) => {
+  const operations: string[] = [];
+  let previewRequests = 0;
+  on('session.start', () => ({ cwd: '/work' }));
+  on('command.list', () => ({ value: [] }));
+  on('command.register', () => ({ value: { command: RUN.command } }));
+  on('ui.open', () => ({ value: { isPlaced: true } }));
+  on('env.get', () => ({ value: undefined }));
+  on('process.run', ($, e) => {
+    const request = JSON.parse(e.init?.stdin || '{}');
+    operations.push(request.operation);
+    if (request.operation === 'preview' && ++previewRequests === 1) return { deny: 'Preview timed out' };
+    return { value: reply(request.operation === 'describe' ? description() :
+      request.operation === 'read' ? readResult() : sample('preview recovered')) };
+  });
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  expect(await ui.find({ type: 'Text', text: 'Preview timed out' })).toBeDefined();
+  await ui.press({ key: 'retry' });
+  expect(await ui.find({ type: 'Text', text: 'preview recovered' })).toBeDefined();
+  expect(operations).toEqual(['describe', 'read', 'preview', 'preview']);
+  expect((await ui.find({ key: 'colors' }))?.props.label).toBe('Colors: on');
+  await ui.unmount();
+});
+
+test('an older preview cannot replace the result for the current width', async ($, on) => {
+  let resolveOld!: (value: ProcessRunResult) => void;
+  let started!: () => void;
+  const oldStarted = new Promise<void>(resolve => { started = resolve; });
+  const old = new Promise<ProcessRunResult>(resolve => { resolveOld = resolve; });
+  on('session.start', () => ({ cwd: '/work' }));
+  on('command.list', () => ({ value: [] }));
+  on('command.register', () => ({ value: { command: RUN.command } }));
+  on('ui.open', () => ({ value: { isPlaced: true } }));
+  on('env.get', () => ({ value: undefined }));
+  on('process.run', async ($, e) => {
+    const request = JSON.parse(e.init?.stdin || '{}');
+    if (request.operation === 'preview' && request.payload.width === 40) {
+      started();
+      return { value: await old };
+    }
+    return { value: reply(request.operation === 'describe' ? description() :
+      request.operation === 'read' ? readResult() : sample('current width ' + request.payload.width)) };
+  });
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  const older = ui.redraw({ ...PANE.props, bodyColumns: 40 });
+  await oldStarted;
+  await ui.redraw({ ...PANE.props, bodyColumns: 30 });
+  resolveOld(reply(sample('stale width 40')));
+  await older;
+  expect(await ui.find({ type: 'Text', text: 'current width 30' })).toBeDefined();
+  expect(await ui.find({ type: 'Text', text: 'stale width 40' })).toBeUndefined();
+  await ui.unmount();
+});
+
+test('a read finishing after close cannot restore a discarded draft', async ($, on) => {
+  let finish!: (value: ProcessRunResult) => void;
+  let started!: () => void;
+  const readStarted = new Promise<void>(resolve => { started = resolve; });
+  const delayed = new Promise<ProcessRunResult>(resolve => { finish = resolve; });
+  on('session.start', () => ({ cwd: '/work' }));
+  on('command.list', () => ({ value: [] }));
+  on('command.register', () => ({ value: { command: RUN.command } }));
+  on('ui.open', () => ({ value: { isPlaced: true } }));
+  on('ui.close', () => ({ value: undefined }));
+  on('env.get', () => ({ value: undefined }));
+  on('process.run', async ($, e) => {
+    const request = JSON.parse(e.init?.stdin || '{}');
+    if (request.operation === 'read') { started(); return { value: await delayed }; }
+    return { value: reply(description()) };
+  });
+  await $.session.start(START);
+  const opening = $.command.run(RUN);
+  await readStarted;
+  const ui = await $.ui.mount(PANE);
+  await ui.press({ key: 'close' });
+  finish(reply(readResult(BASE)));
+  await opening;
+  await ui.redraw();
+  expect(await ui.find({ key: 'colors' })).toBeUndefined();
+  await ui.unmount();
 });
 
 test('a command collision passes through without registering or opening', async ($, on) => {
