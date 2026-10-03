@@ -146,6 +146,20 @@ def _is_current_cli_command(
         return True
     if _normalized_path(candidate) == _normalized_path(executable):
         return True
+    # Only decode our exact generated POSIX quoting, never a user-authored
+    # shell expression. shlex retains dollar/backtick escapes inside quotes.
+    decoded = candidate.replace("\\$", "$").replace("\\`", "`")
+    if isinstance(command, str) and command.strip() == command_for(
+        Path(decoded), subcommand
+    ):
+        candidate = decoded
+    try:
+        if os.path.normcase(str(Path(candidate).resolve())) == os.path.normcase(
+            str(executable.resolve())
+        ):
+            return True
+    except (OSError, ValueError):
+        pass
     try:
         resolved = shutil.which(candidate)
     except (OSError, ValueError):

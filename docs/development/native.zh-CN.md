@@ -76,3 +76,5 @@ Settings 包含颜色、调色板、目录样式、分隔符、padding、刷新�
 每次使用新目录。PTY 在 120/80 列检查三页、切换保存、取消重开、Esc 和本地向导，记录终端实际 cells 供截图使用，不把真人验收标成通过。交互模式记录环境及提交，直到维护者确认完整清单前 `manual_visual_acceptance` 始终为 false。Windows/macOS 在真实终端安装同一候选并执行相同清单。收齐三平台真人结果前稳定发布保持待办；首个预览也要求 Linux 真人验收。
 
 参考：[创建及实际构建类型](https://code.claude.com/docs/en/plugins/mods/create)、[界面与焦点](https://code.claude.com/docs/en/plugins/mods/interface)、[官方测试](https://code.claude.com/docs/en/plugins/mods/test)、[本地 marketplace](https://code.claude.com/docs/en/plugin-marketplaces)。
+
+维护者于 2026-10-04 确认完整 Linux 真人清单通过：隔离安装的 wheel 构建自 `db4129b`，后端 1.2.0a1、Claude Code 2.1.288、Linux x86_64。交互运行记录干净文档提交 `94ddbbd`、退出码 0，Mod 运行资源与被测代码提交一致；验收依据为用户明确确认。终端参数仍是占位文本，终端名称/版本记为未知。原始证据在忽略的 `dist/validation/phase2-human-linux`。后续平台修复涉及 Windows npm 入口和 macOS 可执行路径别名，已验收 Linux UI 运行资源不变。Windows/macOS 真人验收仍待完成。

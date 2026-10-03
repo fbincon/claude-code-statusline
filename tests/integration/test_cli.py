@@ -34,6 +34,34 @@ class CliTests(unittest.TestCase):
             str(binary_dir) + os.pathsep + self.cli_env.get("PATH", "")
         )
 
+    def test_administration_uses_the_invoked_console_entry_instead_of_another_path_install(
+        self,
+    ):
+        from claude_statusline import installer
+        from claude_statusline.integration.models import ChangeResult
+        from contextlib import redirect_stdout
+
+        name = "claude-statusline.exe" if os.name == "nt" else "claude-statusline"
+        entry = Path(self.launcher_temp.name) / name
+        with (
+            mock.patch.object(cli.sys, "argv", [str(entry)]),
+            mock.patch.object(
+                installer, "resolve_cli_executable", return_value=entry
+            ) as resolve,
+            mock.patch.object(
+                installer,
+                "install_configuration",
+                return_value=ChangeResult(
+                    "install", False, entry.parent / "settings.json"
+                ),
+            ),
+            redirect_stdout(StringIO()),
+        ):
+            self.assertEqual(
+                cli.main(["install", "--config-dir", self.launcher_temp.name]), 0
+            )
+        resolve.assert_called_once_with(entry.resolve())
+
     def run_cli(self, *arguments, input_text=None, env=None):
         return subprocess.run(
             [sys.executable, "-m", "claude_statusline", *arguments],

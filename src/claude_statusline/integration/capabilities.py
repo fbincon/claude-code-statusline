@@ -19,7 +19,7 @@ def claude_argv(executable: str = "claude") -> list[str]:
     path = Path(resolved).resolve()
     if platform_environment.is_windows() and path.suffix.casefold() in {".cmd", ".bat"}:
         # Avoid cmd.exe interpolation of user-selected paths. Invoke the npm
-        # package through Node directly when PATH points at a batch shim.
+        # package's native binary or Node entry when PATH points at a shim.
         roots = (
             path.parent / "node_modules/@anthropic-ai/claude-code",
             path.parent.parent / "@anthropic-ai/claude-code",

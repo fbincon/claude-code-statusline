@@ -114,7 +114,7 @@ def build_parser():
 
 def _print_change(result, dry_run: bool) -> None:
     if result.native_state is not None:
-        print(f'native editor: {result.native_state}')
+        print(f"native editor: {result.native_state}")
     for message in result.messages:
         print(message)
     if dry_run:
@@ -197,7 +197,14 @@ def main(argv: list[str] | None = None) -> int:
 
     config_dir = installer.resolve_config_dir(args.config_dir)
     try:
-        executable = installer.resolve_cli_executable()
+        from pathlib import Path
+
+        entry = Path(sys.argv[0])
+        executable = installer.resolve_cli_executable(
+            entry.resolve()
+            if entry.name.casefold() in {"claude-statusline", "claude-statusline.exe"}
+            else None
+        )
     except installer.ConfigurationError as exc:
         if args.command == "doctor":
             executable = None

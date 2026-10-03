@@ -60,7 +60,9 @@ def main() -> int:
             )
             return result.stdout
 
-        assert run('--version').strip() == f'claude-statusline {__version__}', 'PATH must select the matching installed backend'
+        assert run("--version").strip() == f"claude-statusline {__version__}", (
+            "PATH must select the matching installed backend"
+        )
         run("install", "--experimental-slash-tui")
         assert (config / "skills/statusline-configure/SKILL.md").is_file()
         run("install", "--native-editor")
@@ -97,6 +99,10 @@ def main() -> int:
                 assert len(response["result"]["catalog"]) == 34
             else:
                 saved = response["result"]
+        assert all(
+            saved["installation"][key]["state"] == "owned"
+            for key in ("statusLine", "subagentStatusLine")
+        ), f"Invoked {backend}: {saved['installation']}"
         saved["draft"]["display"]["use_colors"] = not saved["draft"]["display"][
             "use_colors"
         ]

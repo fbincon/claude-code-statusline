@@ -433,3 +433,46 @@ class ApplyProtocolTests(unittest.TestCase):
         self.settings.write_text(json.dumps(changed, indent=3), encoding="utf-8")
         self.assertEqual(baseline["revision"], self.read()["revision"])
         self.assertTrue(host._host_from_settings(changed, self.exe)[1])
+
+    @unittest.skipIf(os.name == "nt", "POSIX symbolic path aliases")
+    def test_symbolic_backend_aliases_with_shell_characters_share_owned_identity(self):
+        real = self.root / "real backend" / "claude-statusline"
+        real.parent.mkdir()
+        real.write_text("backend")
+        alias = self.root / "alias backend" / "claude-statusline"
+        alias.parent.mkdir()
+        alias.symlink_to(real)
+        settings = json.loads(self.settings.read_text())
+        for key, operation in [
+            ("statusLine", "render"),
+            ("subagentStatusLine", "render-subagents"),
+        ]:
+            settings[key]["command"] = ownership.command_for(alias, operation)
+        self.settings.write_text(json.dumps(settings))
+        baseline, status = protocol.handle(
+            json.dumps({"protocol_version": 1, "operation": "read", "payload": {}}),
+            self.root,
+            real,
+        )
+        self.assertEqual(status, 0)
+        self.assertEqual(
+            baseline["result"]["installation"]["subagentStatusLine"]["state"], "owned"
+        )
+        draft = baseline["result"]["draft"]
+        draft["display"]["use_colors"] = False
+        response, status = protocol.handle(
+            json.dumps(
+                {
+                    "protocol_version": 1,
+                    "operation": "apply",
+                    "payload": {
+                        "draft": draft,
+                        "expected_revision": baseline["result"]["revision"],
+                    },
+                }
+            ),
+            self.root,
+            real,
+        )
+        self.assertEqual(status, 0, response)
+        self.assertTrue(response["result"]["changed"])
