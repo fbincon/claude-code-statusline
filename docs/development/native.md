@@ -1,16 +1,14 @@
-# Native integration probe
+# Native configuration editor
 
 **English** | [简体中文](native.zh-CN.md)
 
-This is Phase 1 developer tooling, loaded explicitly from source. It is not the full native configuration editor and is not installed by the wheel. Stable users retain v1.1.1 and the existing CLI, wizard and standalone TUI.
+The source frontend now provides Main, Subagents and Settings pages. Stable installation remains v1.1.1. The editor is development work for v1.2.0 previews; persistent installation and three-platform acceptance are tracked separately from callback tests.
 
 ## Source layout and checks
 
-`mods/statusline-native` is an independent plugin: `.claude-plugin/plugin.json` identifies it, `hooks/hooks.json` loads `hooks/register.ts`, `lib` contains wire parsing, generated contracts and pure draft logic, and `tests` uses the official Mod kit. Host API calls stay in the entry module so official static analysis can inspect them. Source distributions include these developer files; dependencies, generated host declarations and raw acceptance logs are excluded.
+`mods/statusline-native` is the sole maintained Mod source. `.claude-plugin/plugin.json` declares the plugin and backend options; `hooks/register.ts` owns host calls, opening, saving and response lifetimes. `lib/draft.ts` owns pure selections, exclusions, ordering and numeric buffers; `lib/backend.ts` validates wire responses; `lib/preferences.ts` represents actual host configuration rows. `ui/` draws controls and pages. `tests/` uses the official Mod kit. Host API calls remain in the entry layer for official static analysis.
 
-Use Node.js 22 for development and a supported Claude Code build. The native workflow pins 2.1.287 and 2.1.288 separately from the Python platform matrix. Run from the repository root:
-
-First install this checkout in the development environment as described in [local checks](testing.md#local-checks). The released v1.1.1 executable does not provide the new `ui` protocol. Bind the source backend explicitly when loading the probe.
+Use Node.js 22 and a supported Claude Code build. The native workflow pins 2.1.287 and 2.1.288 independently of the Python platform matrix. First install this checkout in a development environment as described in [local checks](testing.md#local-checks). The released v1.1.1 backend does not expose the new `ui` protocol.
 
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
@@ -21,34 +19,38 @@ npm run --prefix mods/statusline-native typecheck
 CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --plugin-dir ./mods/statusline-native
 ```
 
-The type preparer supplies fresh unauthenticated configuration and no project settings. Loading writes the host's declarations before the print session refuses authentication. Success requires declarations whose header matches the actual executable version; an old file cannot satisfy the check. This runs no model call. Generated `.claude-plugin/types` files are local and must be regenerated after changing host versions. A version number or successful manifest validation alone does not establish that a module loaded.
+Regenerate declarations when changing the host executable. The preparer uses fresh unauthenticated configuration and no project settings; it verifies the emitted header against the actual executable version and runs no model call. Dependencies and generated host declarations stay outside Git and distribution packages. A version or valid manifest alone does not prove session loading.
 
-## Probe behavior
+## Editor behavior
 
-Run `/statusline-configure-native` in the resulting session. The pane requests focus, lets you toggle **Colors** with `c` or keyboard navigation, and closes with Esc or **Close** (`q`). Draft state resets on reopening; it is never saved. A pane may appear beside the transcript or above the prompt, according to the host and terminal width. Focus is a host request, not a guarantee; existing prompt text or another dialog can retain the keyboard.
+Run `/statusline-configure-native`. The pane requests focus and uses the host's placement and scrolling. Main and Subagents consume all 24 main and 10 subagent items from the Python catalog. Select an item, enable/disable it, or move an enabled item up/down. Filtering preserves the complete selection. Mutual exclusions come from the shared catalog; empty selections are valid. Descriptions and examples explain the selected item. Sample preview uses production formatting without live collection.
 
-The temporary name preserves `/statusline-config` and `/statusline-configure`. Before registering, the Mod lists existing commands. A foreign owner prevents registration and the command handler passes through; other panes are also passed through. Reloading its own registration is permitted. Verify the observed command sources and precedence in a real host; do not assume all hooks or skills have the same priority.
+Settings exposes colors, palette, directory style, separator style, padding, refresh interval, Vim indicator, scope labels and custom subagent rows. Numeric ranges and option choices come from `describe`. Refresh accepts `event`. Invalid numeric buffers remain visible and block saving.
 
-Opening reads the shared catalog and effective draft from the bound Python backend, then draws a production sample preview. It reuses the preview for ordinary redraws and requests a new one after a toggle or resize. Backend errors are shown in the pane; preview failures can be retried. The internal [apply contract](contracts.md) supports full saves and conflict protection for future frontends, while this probe keeps its toggle transient and never calls apply.
+Tool configuration and host preferences are separate actions. **Save tool configuration** (`s`) submits the complete draft and opening revision. Success updates the baseline/revision and keeps the pane open; subsequent statusline refreshes use saved settings. A conflict retains the draft and offers **Discard draft and reload**. Timeout or an invalid save response requires **Check saved state** before retry or close. The check rereads saved state rather than submitting another write.
+
+Host settings include only actual `theme` and `verbose` rows from `$.config.list()`. Missing or locked rows explain their state. **Apply host preferences** (`a`) checks each row again before calling `$.config.set()`, and reports applied or refused rows individually. Partial success is retained; it is not a transaction with tool configuration. Closing discards pending preferences, while already applied preferences remain applied.
+
+| Key | Action |
+| --- | --- |
+| Tab / Enter | Move focus / operate the current host control |
+| `1`, `2`, `3` | Main, Subagents, Settings |
+| `s` / `a` | Save tool configuration / apply pending host preferences |
+| `t`, `u`, `d` | Toggle selected item / move it up / move it down |
+| Esc | Leave input editing first; another Esc closes the pane |
+| `q` | Close and discard unsaved changes |
+| `r` | Discard draft and reload saved configuration |
+
+Global shortcuts are handled by native controls and yield while typing in an input. Leaving input editing cancels unaccepted numeric buffers. Below 24 body columns, the pane shows a resize prompt and Close while preserving its draft. Ordinary redraws reuse preview; draft or width changes request another. Closing/reopening invalidates outstanding responses. Applying blocks repeated writes and ordinary closing. Reload discards unsaved state.
+
+The development command preserves the installed wizard and compatibility TUI. Foreign commands prevent registration; foreign panes pass through. Source development can bind an absolute executable with `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE`; `CLAUDE_CONFIG_DIR` is passed as an argument without shell interpolation.
 
 ## Linux acceptance
 
-The opt-in runner creates a private, isolated Claude configuration and binds the selected backend. It copies only authentication/gateway/model settings, sends local slash commands, and leaves personal settings untouched. Raw terminal/debug files may contain private paths and remain under ignored `dist/validation`.
+Use an isolated configuration and the matching source backend. Record OS, architecture, terminal/version, Claude version and fixed commit. Phase 1 manual Linux acceptance at `3a65482` covered the old transient probe; it does not establish acceptance of the three-page editor.
 
-```bash
-.venv/bin/python -m pip install pyte==0.8.2
-.venv/bin/python tools/native_mod_acceptance.py --report-dir dist/validation/native-pty
-.venv/bin/python tools/native_mod_acceptance.py --interactive --report-dir dist/validation/native-manual
-```
+For the editor, check real plugin loading, pane placement and keyboard focus, all three pages, filtering, exclusions and ordering, sample preview, narrow/CJK display, numeric Esc, save then statusline refresh, cancel/reopen, conflicts, separate host application and continuing the same session after closing. Windows and macOS require the same checklist before stable publication. Keep private configuration and terminal/debug streams in ignored `dist/validation`. Publish only sanitized conclusions. Official callback tests and PTY captures do not replace a maintainer's visual acceptance.
 
-Use a fresh report directory for every invocation. PTY cases cover 120 and 80 columns: open, confirm the 34-item catalog and sample preview, toggle, Esc, return to the prompt, run the existing local `/statusline-config show`, and confirm no display file was saved or host settings changed. PTY evidence and official callback tests do not constitute manual visual acceptance.
+The isolated runner and platform installation checks are being updated with persistent integration. Stable release remains pending until Linux, Windows and macOS human results are recorded; the first preview also requires Linux human acceptance.
 
-For manual acceptance, record OS, terminal, Claude and backend versions, commit and results. Check the pane's placement, focus, keyboard toggle, Esc, narrow windows and continued use of the same session. Send no model prompt for this check. The native-entry PR stays pending until the maintainer confirms these steps; Windows and macOS native interaction remain unverified until Phase 2 acceptance.
-
-Interactive mode writes environment metadata to `report.json` and leaves `manual_visual_acceptance` false until the maintainer reports the result. Use `--terminal 'name/version'` when the terminal cannot be detected. A session exiting successfully does not establish visual acceptance.
-
-References: [creation and actual-build types](https://code.claude.com/docs/en/plugins/mods/create), [interface and focus](https://code.claude.com/docs/en/plugins/mods/interface), [official tests](https://code.claude.com/docs/en/plugins/mods/test).
-
-Development validation on 2026-10-04: Claude Code 2.1.287 and 2.1.288 emitted matching declarations and each passed strict validation, 12 official Mod tests and TypeScript checks. Native Linux x86_64 PTY cases at 120/80 columns verified the shared catalog/sample preview, toggled the pane, returned after Esc and ran the legacy local command without display or settings writes. The separate CI reports establish the platform results.
-
-The maintainer confirmed all manual Linux checks on 2026-10-04 for the combined Phase 1 code at `3a65482`, using Claude Code 2.1.288 and the source backend 1.1.1: opening, placement, keyboard focus, toggle, Esc, narrow windows and return to the same session. The isolated interactive runner recorded a clean checkout and exit code 0; the acceptance decision comes from the explicit maintainer confirmation. Terminal product/version was not supplied and remains unknown in the local evidence record. Windows/macOS native interaction and the full native editor remain Phase 2 work.
+References: [creation and actual-build types](https://code.claude.com/docs/en/plugins/mods/create), [interface and focus](https://code.claude.com/docs/en/plugins/mods/interface), [official tests](https://code.claude.com/docs/en/plugins/mods/test), [local marketplaces](https://code.claude.com/docs/en/plugin-marketplaces).

@@ -1,16 +1,14 @@
-# 原生入口验证
+# 原生配置编辑器
 
 [English](native.md) | **简体中文**
 
-这是 Phase 1 的开发验证工具，通过源代码显式加载。它尚非完整原生配置编辑器，wheel 不会安装该 Mod。稳定用户继续使用 v1.1.1，以及现有 CLI、向导和独立 TUI。
+源码前端已提供 Main、Subagents、Settings 三页。稳定安装仍为 v1.1.1；这是面向 v1.2.0 预览的开发工作，持久安装和三平台真人验收与回调测试分别记录。
 
 ## 源码结构与检查
 
-`mods/statusline-native` 是独立插件：`.claude-plugin/plugin.json` 提供标识，`hooks/hooks.json` 加载 `hooks/register.ts`，`lib` 放置协议解析、生成契约和纯草稿逻辑，`tests` 使用官方 Mod 测试工具。宿主 API 调用保留在入口模块，供官方静态分析检查。源码分发包包含这些开发文件，排除依赖目录、生成的宿主声明和原始验收记录。
+`mods/statusline-native` 是唯一维护源。`.claude-plugin/plugin.json` 声明插件及后端选项；`hooks/register.ts` 负责宿主调用、打开、保存及响应生命周期；`lib/draft.ts` 负责选择、互斥、排序和数值缓冲；`lib/backend.ts` 校验协议；`lib/preferences.ts` 表示实际宿主设置行。`ui/` 绘制控件和页面，`tests/` 使用官方 Mod 测试工具。宿主 API 留在入口层以供官方静态分析。
 
-开发使用 Node.js 22 和支持 Mod 的 Claude Code 构建。原生工作流单独固定测试 2.1.287 与 2.1.288，不扩大 Python 平台矩阵。在仓库根目录执行：
-
-先按[本地检查](testing.zh-CN.md#本地检查)将当前 checkout 安装到开发环境。已发布的 v1.1.1 可执行文件没有新的 `ui` 协议；加载验证入口时显式绑定源码后端。
+开发使用 Node.js 22 和支持的 Claude Code 构建。原生工作流独立固定 2.1.287、2.1.288。先按[本地检查](testing.zh-CN.md#本地检查)安装源码后端；已发布的 v1.1.1 后端不提供新 `ui` 协议。
 
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
@@ -21,34 +19,38 @@ npm run --prefix mods/statusline-native typecheck
 CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --plugin-dir ./mods/statusline-native
 ```
 
-类型准备工具使用全新的未登录配置，不读取项目设置。宿主加载时先写出声明，随后 print 会话因未登录而退出。检查成功要求声明头与实际可执行文件版本一致，旧文件不能使检查误通过。这不会调用模型。生成的 `.claude-plugin/types` 仅供本地使用，切换宿主版本后重新生成。版本号或 manifest 验证成功不能单独证明模块已经加载。
+更换宿主后重新生成声明。准备工具使用全新未认证配置并禁用项目设置，检查声明头与实际可执行版本相符，不调用模型。依赖和生成的宿主声明不进入 Git 或分发包。版本号和 manifest 通过校验不能单独证明会话加载。
 
-## 验证入口行为
+## 编辑器行为
 
-在该会话运行 `/statusline-configure-native`。面板请求键盘焦点，支持通过 `c` 或键盘导航切换 **Colors**，通过 Esc 或 **Close**（`q`）关闭。重新打开时草稿重置，切换项始终不会保存。面板可能位于 transcript 旁边或输入框上方，由宿主和终端宽度决定。焦点只是向宿主发出的请求；已有输入文本或其他弹窗可能继续持有键盘。
+运行 `/statusline-configure-native`。面板请求焦点，位置和滚动由宿主决定。Main、Subagents 使用 Python 目录中的 24 个主行和 10 个子代理项目。选择后可启用、禁用或上下移动；过滤保留完整选择。互斥来自共享目录，允许空选择。显示选中项目说明和样例；预览复用生产格式，不采集实时数据。
 
-临时命令名称保留 `/statusline-config` 和 `/statusline-configure`。Mod 注册前先读取已有命令，发现其他归属时不注册，并将命令处理交还宿主；其他面板也继续交由原处理链处理。允许重新注册自己的命令。在真实宿主中记录命令来源与优先级，不能假定所有 hook 和 skill 的优先级相同。
+Settings 包含颜色、调色板、目录样式、分隔符、padding、刷新间隔、Vim 指示器、范围标签和自定义子代理行。选项及数值边界来自 `describe`，刷新支持 `event`。无效数值保留输入并阻止保存。
 
-打开时从绑定的 Python 后端读取共享目录和有效草稿，再绘制生产样例预览；普通重绘复用预览，切换或缩放后重新请求。后端故障显示在面板中，预览失败可以重试。内部 [apply 契约](contracts.zh-CN.md) 为后续前端提供完整保存与冲突保护，当前验证入口仍只保留临时切换，始终不调用 apply。
+工具配置与宿主偏好分别应用。**Save tool configuration**（`s`）提交完整草稿和打开时 revision。成功后更新基线和 revision，保持面板打开，后续状态行刷新使用已保存设置。冲突保留草稿并提供 **Discard draft and reload**。超时或保存响应无效时必须先 **Check saved state**，重新读取核对后才能重试或关闭，避免重复写入。
+
+宿主偏好只使用 `$.config.list()` 实际提供的 `theme`、`verbose` 行，显示缺失和锁定状态。**Apply host preferences**（`a`）逐项重新检查再调用 `$.config.set()`，分别报告成功和拒绝。部分成功保留，不与工具保存形成整体事务。关闭丢弃待应用偏好，已应用偏好仍生效。
+
+| 按键 | 操作 |
+| --- | --- |
+| Tab / Enter | 切换焦点 / 操作当前宿主控件 |
+| `1`、`2`、`3` | Main、Subagents、Settings |
+| `s` / `a` | 保存工具配置 / 应用宿主偏好 |
+| `t`、`u`、`d` | 切换选中项目 / 上移 / 下移 |
+| Esc | 先退出输入编辑，再按一次关闭面板 |
+| `q` | 关闭并丢弃未保存修改 |
+| `r` | 丢弃草稿并重新读取保存配置 |
+
+快捷键由原生控件处理，输入编辑时让位给文本。退出字段编辑会取消未接受的数值缓冲。body 小于 24 列时显示调整窗口提示和关闭操作，保留草稿。普通重绘复用预览，草稿或宽度变化才请求更新；关闭或重开使旧响应失效。应用期间禁止重复写入和普通关闭。重载丢弃未保存状态。
+
+开发命令保留已安装向导和兼容 TUI。外来同名命令阻止注册，其他面板正常透传。通过 `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` 绑定绝对后端路径，`CLAUDE_CONFIG_DIR` 作为参数传递，不进行 shell 插值。
 
 ## Linux 验收
 
-显式调用的验收工具创建私有、隔离的 Claude 配置并绑定指定后端，只复制认证、网关和模型设置，发送本地 slash 命令，不修改日常配置。原始终端与调试记录可能包含私有路径，保留在忽略的 `dist/validation` 下。
+使用隔离配置和对应源码后端，记录系统、架构、终端及版本、Claude 版本和固定提交。Phase 1 在 `3a65482` 的人工 Linux 验收仅覆盖旧的临时验证入口，不能替代三页编辑器验收。
 
-```bash
-.venv/bin/python -m pip install pyte==0.8.2
-.venv/bin/python tools/native_mod_acceptance.py --report-dir dist/validation/native-pty
-.venv/bin/python tools/native_mod_acceptance.py --interactive --report-dir dist/validation/native-manual
-```
+真人检查插件实际加载、面板位置和键盘焦点、三页、过滤、互斥及排序、样例预览、窄窗口/CJK、数值 Esc、保存后状态行刷新、取消和重开、冲突、宿主偏好独立应用，以及关闭后继续同一会话。Windows、macOS 稳定发布前执行同一清单。私有配置和终端/debug 记录保留在忽略的 `dist/validation`，公开文档仅记录脱敏结论。官方回调测试和 PTY 画面不替代真人视觉验收。
 
-每次使用新的报告目录。PTY 用例覆盖 120 和 80 列：打开、确认 34 项共享目录和样例预览、切换、Esc、返回输入框、运行原有本地 `/statusline-config show`，并确认没有保存显示配置或改变宿主设置。PTY 证据和官方回调测试不能代替人工视觉验收。
+隔离验收工具和平台安装检查将随持久接入更新。收齐 Linux、Windows、macOS 真人结果前稳定发布保持待办；首个预览也要求 Linux 真人验收。
 
-人工验收记录 OS、终端、Claude 与后端版本、提交和结果。检查面板位置、焦点、键盘切换、Esc、窄窗口及继续使用原会话。本次检查不发送模型提示词。维护者确认这些步骤之前，原生入口 PR 保持待合并；Windows 和 macOS 原生交互留待 Phase 2 验收。
-
-交互模式将环境信息写入 `report.json`，维护者报告结果之前 `manual_visual_acceptance` 保持 false；终端无法检测时可用 `--terminal '名称/版本'` 显式记录。会话正常退出不代表视觉验收通过。
-
-参考：[创建与实际构建类型](https://code.claude.com/docs/en/plugins/mods/create)、[界面与焦点](https://code.claude.com/docs/en/plugins/mods/interface)、[官方测试](https://code.claude.com/docs/en/plugins/mods/test)。
-
-2026-10-04 开发验证：Claude Code 2.1.287 和 2.1.288 生成匹配的声明，分别通过严格验证、12 项官方 Mod 测试和 TypeScript 检查。原生 Linux x86_64 的 120/80 列 PTY 用例确认共享目录/样例预览、切换、Esc 返回及旧版本地命令调用，没有写入显示或宿主设置；平台结果以独立 CI 报告为准。
-
-维护者于 2026-10-04 确认提交 `3a65482` 的完整 Phase 1 代码通过全部 Linux 人工检查，使用 Claude Code 2.1.288 和源码后端 1.1.1，覆盖打开、位置、键盘焦点、切换、Esc、窄窗口及返回原会话。隔离交互工具记录了干净 checkout 和退出码 0；验收结论依据维护者的明确确认。终端产品/版本未提供，在本地证据中保留为未知。Windows/macOS 原生交互及完整原生编辑器仍属于 Phase 2。
+参考：[创建及实际构建类型](https://code.claude.com/docs/en/plugins/mods/create)、[界面与焦点](https://code.claude.com/docs/en/plugins/mods/interface)、[官方测试](https://code.claude.com/docs/en/plugins/mods/test)、[本地 marketplace](https://code.claude.com/docs/en/plugin-marketplaces)。

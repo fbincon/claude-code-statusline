@@ -69,7 +69,7 @@ def validate_draft(value, *, require_current_schema=False):
         raise RequestError("invalid_configuration", str(exc)) from exc
 
 
-def host_capabilities():
+def host_capabilities() -> contracts.Capabilities:
     version = capabilities.detect_claude_version()
     return {
         "host_version": ".".join(map(str, version)) if version else None,
@@ -88,7 +88,7 @@ def host_capabilities():
     }
 
 
-def configuration_options():
+def configuration_options() -> contracts.ConfigurationOptions:
     return {
         "colors": {"choices": [True, False]},
         "palette": {"choices": list(display.PALETTES)},

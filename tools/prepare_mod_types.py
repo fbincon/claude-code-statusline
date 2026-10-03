@@ -10,11 +10,13 @@ import argparse
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import tempfile
 
 
 def prepare(executable: str, plugin: Path) -> str:
+    executable = str(Path(shutil.which(executable) or executable).resolve())
     version = subprocess.run(
         [executable, "--version"], capture_output=True, text=True, check=True,
         encoding="utf-8", timeout=10,

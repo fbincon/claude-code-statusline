@@ -12,6 +12,8 @@
 
 在仓库根目录创建虚拟环境，安装项目和开发工具：
 
+编辑器测试覆盖三页、完整保存和新 revision、取消重开、数值边界、窄面板、目录互斥排序、实际宿主行、锁定/拒绝/部分成功、冲突、未知保存结果、写入保护及旧响应。准备对应宿主声明后运行 `claude plugin test mods/statusline-native`，不调用模型。
+
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -e . ruff build

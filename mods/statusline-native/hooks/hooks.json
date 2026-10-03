@@ -1,4 +1,6 @@
 {
-  "description": "Opt-in native configuration integration probe",
-  "modules": ["./register.ts"]
+  "description": "Native statusline configuration editor",
+  "modules": [
+    "./register.ts"
+  ]
 }

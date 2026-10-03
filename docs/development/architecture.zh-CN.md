@@ -31,7 +31,7 @@ docs/development/                   架构、测试及计时约定
 
 ## 依赖与边界
 
-显式加载的 TypeScript 验证入口独立放在 `mods/statusline-native`，分开 manifest、hooks、纯逻辑和官方测试。Python 继续负责配置与渲染。源码包包含 Mod 开发文件，wheel 不安装这些文件。参见[原生入口验证](native.zh-CN.md)。
+显式加载的 TypeScript 编辑器放在 `mods/statusline-native`，分为可静态分析的宿主入口、纯草稿及宿主行逻辑、严格协议桥接、生成契约、页面绘制和官方测试。Python 继续负责配置与渲染。源码包包含 Mod 开发文件，wheel 不安装这些文件。参见[原生入口验证](native.zh-CN.md)。
 
 `config.catalog` 定义带作用域的项目和派生兼容视图；`ui.contracts` 定义生成的前端类型，`ui.protocol` 负责 JSON describe/read/preview/apply 传输，`rendering.spans` 将生产样例转换为可绘制输出。`config.revisions` 为锁内读取及 JSON/curses 共用的保存提供覆盖安装归属的语义 revision；apply 复用配置服务事务，返回提交后的快照。参见[共享契约](contracts.zh-CN.md)。
 

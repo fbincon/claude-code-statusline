@@ -12,6 +12,8 @@ Shared catalog/protocol tests include strict input, Unicode paths and no-live-I/
 
 From the repository root, create a virtual environment and install the project plus development tools:
 
+Editor tests cover all three pages, full saves and new revisions, cancel/reopen, numeric boundaries, narrow panes, catalog exclusions and ordering, actual host rows, locks/refusals/partial success, conflicts, uncertain saves, write locks and stale responses. Run `claude plugin test mods/statusline-native` after preparing exact-host declarations; these checks make no model calls.
+
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -e . ruff build

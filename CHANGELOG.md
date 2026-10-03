@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Add native Main/Subagents/Settings editing, catalog-driven selection/order and numeric validation, full revision saves that keep the pane open, explicit conflict reload and uncertain-save read checks. Apply actual theme/verbose host rows separately with lock/refusal results.
+
 - Add full-draft JSON apply with locked semantic revisions shared by curses, main/subagent installation ownership checks, merged unrelated settings, backups and rollback. Harden native bridge failures, timeouts and stale-response handling.
 
 - Centralize scoped item metadata/defaults/exclusions for CLI, curses, the wizard and generated TypeScript; add locked JSON describe/read and production sample spans without live collection or persistence.

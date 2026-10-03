@@ -15,6 +15,65 @@ Palette = Literal.__getitem__(display.PALETTES)
 DirectoryStyle = Literal.__getitem__(display.DIRECTORY_STYLES)
 SeparatorStyle = Literal.__getitem__(display.SEPARATOR_STYLES)
 ScopeLabels = Literal.__getitem__(display.SCOPE_LABELS)
+Scope = Literal["main", "subagent"]
+UnavailableReason = Literal[
+    "not_observed", "unsupported_host", "unknown_host_version",
+    "source_unavailable", "condition_not_met",
+]
+
+
+class CatalogItem(TypedDict):
+    scope: Scope
+    id: MainItemId | SubagentItemId
+    label: str
+    description: str
+    group: str
+    sources: list[str]
+    examples: list[str]
+    default_position: int | None
+    minimum_version: str | None
+    format_options: list[str]
+    excludes: list[str]
+    unavailable_reasons: list[UnavailableReason]
+    default_enabled: bool
+    minimum_version_status: Literal["verified", "unknown"]
+
+
+class ChoiceOptions(TypedDict):
+    choices: list[str | bool]
+
+
+class RangeOptions(TypedDict):
+    minimum: int
+    maximum: int
+
+
+class RefreshOptions(RangeOptions):
+    special: Literal["event"]
+
+
+ConfigurationOptions = TypedDict(
+    "ConfigurationOptions",
+    {
+        "colors": ChoiceOptions,
+        "palette": ChoiceOptions,
+        "directory-style": ChoiceOptions,
+        "separator-style": ChoiceOptions,
+        "scope-labels": ChoiceOptions,
+        "subagent-statusline": ChoiceOptions,
+        "padding": RangeOptions,
+        "refresh-interval": RefreshOptions,
+        "hide-vim-mode-indicator": ChoiceOptions,
+    },
+)
+
+
+class Capabilities(TypedDict):
+    host_version: str | None
+    subagent_rows: Literal["unknown", "supported", "unsupported"]
+    native_mod: Literal["unknown", "unverified", "unsupported"]
+    native_mod_loaded: None
+    data_observation: Literal["not_observed"]
 
 
 class SubagentDraft(TypedDict):
@@ -71,14 +130,14 @@ class ReadResult(TypedDict):
     revision: str
     installed: bool
     installation: dict[str, object]
-    capabilities: dict[str, object]
+    capabilities: Capabilities
     backend_version: str
 
 
 class DescribeResult(TypedDict):
-    catalog: list[dict[str, object]]
-    options: dict[str, object]
-    capabilities: dict[str, object]
+    catalog: list[CatalogItem]
+    options: ConfigurationOptions
+    capabilities: Capabilities
     backend_version: str
     operations: list[str]
 
@@ -95,8 +154,16 @@ ALIASES = {
     "DirectoryStyle": DirectoryStyle,
     "SeparatorStyle": SeparatorStyle,
     "ScopeLabels": ScopeLabels,
+    "Scope": Scope,
+    "UnavailableReason": UnavailableReason,
 }
 WIRE_TYPES = (
+    CatalogItem,
+    ChoiceOptions,
+    RangeOptions,
+    RefreshOptions,
+    ConfigurationOptions,
+    Capabilities,
     SubagentDraft,
     DisplayDraft,
     HostDraft,

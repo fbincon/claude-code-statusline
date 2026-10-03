@@ -65,19 +65,22 @@ def generated():
     for wire in contracts.WIRE_TYPES:
         rows.append(f"export interface {wire.__name__} {{")
         rows.extend(
-            f"  {key}: {type_name(value)};"
+            f"  {json.dumps(key) if '-' in key else key}: {type_name(value)};"
             for key, value in get_type_hints(wire).items()
         )
         rows.append("}")
     rows.extend(
         [
-            "export interface ResultMap { "
-            + " ".join(
-                f"{op}: {wire.__name__};" for op, wire in contracts.RESULTS.items()
+            "export interface ResultMap {\n"
+            + "\n".join(
+                f"  {op}: {wire.__name__};" for op, wire in contracts.RESULTS.items()
             )
-            + " }",
+            + "\n}",
             "export type ResultFor<O extends Operation> = ResultMap[O];",
-            "export interface Request { protocol_version: typeof PROTOCOL_VERSION; operation: Operation; payload: unknown; }",
+            "export interface Request {\n"
+            "  protocol_version: typeof PROTOCOL_VERSION;\n"
+            "  operation: Operation;\n"
+            "  payload: unknown;\n}",
             "export type Result = "
             + " | ".join(
                 wire.__name__
