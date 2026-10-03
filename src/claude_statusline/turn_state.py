@@ -8,6 +8,7 @@ user-interrupt marker that Claude Code does not expose as a hook event.
 
 import hashlib
 import json
+import math
 import os
 import sys
 import time
@@ -131,7 +132,7 @@ _TURN_FIELDS = (
     "ended_wall_ns", "ended_boot_ns", "duration_ns", "boot_id",
     "start_source", "end_source", "end_reason", "error",
     "last_assistant_wall_ns", "updated_wall_ns",
-    "phase", "had_subagents", "active_agents",
+    "phase", "had_subagents", "active_agents", "duration_source",
 )
 
 _TERMINAL_STATUSES = {
@@ -144,10 +145,10 @@ _END_PRIORITY = {
     "session_start": 20,
     "registry_withdrawn": 30,
     "registry_idle": 40,
-    "transcript_interrupt": 50,
+    "transcript_interrupt": 95,
     "local_command": 50,
     "transcript_duration": 60,
-    "hook_session_end": 70,
+    "hook_session_end": 95,
     "hook_stop": 90,
     "hook_stop_failure": 100,
 }
@@ -177,6 +178,17 @@ def _clean_record(record):
     cleaned["active_agents"] = _clean_active_agents(cleaned.get("active_agents"))
     if cleaned["status"] != "running":
         cleaned["active_agents"] = {}
+        if (cleaned["had_subagents"]
+                or cleaned["status"] in ("failed", "interrupted", "unknown")
+                or not isinstance(cleaned.get("duration_ns"), int)):
+            cleaned["duration_ns"] = _elapsed_ns(
+                cleaned, cleaned.get("ended_wall_ns"),
+                cleaned.get("ended_boot_ns"), cleaned.get("boot_id"),
+            )
+            cleaned["duration_source"] = "task"
+        elif not cleaned.get("duration_source"):
+            # Old successful single-turn records can already be calibrated.
+            cleaned["duration_source"] = "native"
     return cleaned
 
 
@@ -296,6 +308,7 @@ def _new_record(prompt_id, clocks, source="hook_submit"):
         "ended_wall_ns": None,
         "ended_boot_ns": None,
         "duration_ns": None,
+        "duration_source": None,
         "boot_id": boot_id,
         "start_source": source,
         "end_source": None,
@@ -389,26 +402,39 @@ def _terminal_record(store, prompt_id, clocks):
     return record
 
 
+def _elapsed_ns(record, ended_wall_ns, ended_boot_ns, boot_id):
+    """Freeze elapsed time using a matching suspend-aware clock when possible."""
+    start_boot = record.get("started_boot_ns")
+    if (boot_id is not None and record.get("boot_id") == boot_id
+            and isinstance(start_boot, int) and isinstance(ended_boot_ns, int)):
+        return max(0, ended_boot_ns - start_boot)
+    start = record.get("started_wall_ns")
+    if isinstance(start, int) and isinstance(ended_wall_ns, int):
+        return max(0, ended_wall_ns - start)
+    return None
+
+
 def _finish_record(record, status, ended_wall_ns, ended_boot_ns, boot_id,
                    source, reason, error=None, duration_ns=None,
                    updated_wall_ns=None):
     """Apply one terminal observation without weakening stronger evidence."""
     if not isinstance(record, dict) or not isinstance(ended_wall_ns, int):
         return False
-    if isinstance(duration_ns, int) and duration_ns >= 0:
-        if (not isinstance(record.get("duration_ns"), int)
-                or source == "transcript_duration"):
-            record["duration_ns"] = duration_ns
     old_source = record.get("end_source")
     old_priority = _END_PRIORITY.get(old_source, 0)
     new_priority = _END_PRIORITY.get(source, 0)
-    old_end = record.get("ended_wall_ns")
     if record.get("status") in _TERMINAL_STATUSES:
-        if new_priority < old_priority:
+        if new_priority <= old_priority:
             return False
-        if (new_priority == old_priority and isinstance(old_end, int)
-                and ended_wall_ns < old_end):
-            return False
+    native = (status == "completed" and not record.get("had_subagents")
+              and isinstance(duration_ns, int) and duration_ns >= 0)
+    if (status == "completed" and source == "hook_stop"
+            and not record.get("had_subagents")
+            and record.get("duration_source") == "native"):
+        duration_ns = record.get("duration_ns")
+        native = isinstance(duration_ns, int)
+    if not native:
+        duration_ns = _elapsed_ns(record, ended_wall_ns, ended_boot_ns, boot_id)
     record.update({
         "status": status,
         "ended_wall_ns": ended_wall_ns,
@@ -418,6 +444,8 @@ def _finish_record(record, status, ended_wall_ns, ended_boot_ns, boot_id,
         "end_source": source,
         "end_reason": reason,
         "error": error,
+        "duration_ns": duration_ns,
+        "duration_source": "native" if native else "task",
         "updated_wall_ns": (
             updated_wall_ns if isinstance(updated_wall_ns, int)
             else time.time_ns()
@@ -431,7 +459,7 @@ def _finish_record(record, status, ended_wall_ns, ended_boot_ns, boot_id,
 def _agent_work_pending(record):
     if not isinstance(record, dict) or record.get("status") != "running":
         return False
-    return bool(record.get("active_agents")) or record.get("phase") in (
+    return bool(record.get("had_subagents") or record.get("active_agents")) or record.get("phase") in (
         "waiting_subagents",
         "resuming_main",
     )
@@ -450,6 +478,7 @@ def _reopen_low_priority_completion(record, wall_ns):
         "ended_wall_ns": None,
         "ended_boot_ns": None,
         "duration_ns": None,
+        "duration_source": None,
         "end_source": None,
         "end_reason": None,
         "error": None,
@@ -488,7 +517,9 @@ def _apply_prompt(store, prompt_id, wall_ns):
             previous, "unknown", wall_ns, None, None, "next_prompt",
             "superseded_without_terminal_event", updated_wall_ns=wall_ns,
         )
-    store["current_prompt_id"] = prompt_id
+    if (previous is None or previous is record
+            or not isinstance(previous_start, int) or wall_ns >= previous_start):
+        store["current_prompt_id"] = prompt_id
     return record
 
 
@@ -498,8 +529,12 @@ def _apply_interrupt(store, wall_ns):
     candidates = []
     for record in store.get("turns", ()):
         start = record.get("started_wall_ns")
-        if (record.get("status") == "running" and isinstance(start, int)
-                and start <= wall_ns):
+        end = record.get("ended_wall_ns")
+        eligible = (record.get("status") == "running"
+                    or (record.get("end_source") in (
+                        "next_prompt", "registry_idle", "transcript_duration"
+                    ) and isinstance(end, int) and wall_ns <= end))
+        if eligible and isinstance(start, int) and start <= wall_ns:
             candidates.append(record)
     if not candidates:
         return None
@@ -536,7 +571,9 @@ def _apply_local_command(store, prompt_id, wall_ns):
 
 def _apply_assistant(store, prompt_id, wall_ns):
     record = _find_turn(store, prompt_id)
-    if record is None or not isinstance(wall_ns, int):
+    if (not prompt_id or record is None or not isinstance(wall_ns, int)
+            or record.get("status") != "running"
+            or wall_ns < (record.get("started_wall_ns") or 0)):
         return None
     old = record.get("last_assistant_wall_ns")
     if not isinstance(old, int) or wall_ns > old:
@@ -555,18 +592,22 @@ def _apply_duration(store, prompt_id, wall_ns, duration_ms):
     if not prompt_id or not isinstance(wall_ns, int):
         return None
     if (not isinstance(duration_ms, (int, float))
-            or isinstance(duration_ms, bool) or duration_ms < 0):
+            or isinstance(duration_ms, bool) or duration_ms < 0
+            or duration_ms > 1e15 or not math.isfinite(duration_ms)):
         return None
-    record = _terminal_record(store, prompt_id, (wall_ns, None, None))
-    pending_agent_work = _agent_work_pending(record)
-    _apply_assistant(store, prompt_id, wall_ns)
-    if pending_agent_work:
+    record = _find_turn(store, prompt_id)
+    if record is None:
+        return None
+    if (record.get("had_subagents") or _agent_work_pending(record)
+            or record.get("status") in ("failed", "interrupted", "ignored", "withdrawn")
+            or wall_ns < (record.get("started_wall_ns") or 0)):
         return record
     duration_ns = int(round(duration_ms * 1_000_000))
     if record.get("end_source") in ("hook_stop", "hook_stop_failure"):
-        if record.get("status") == "completed":
+        if (record.get("status") == "completed"
+                and record.get("duration_source") != "native"):
             record["duration_ns"] = duration_ns
-            record["updated_wall_ns"] = max(_record_key(record), wall_ns)
+            record["duration_source"] = "native"
         return record
     _finish_record(
         record, "completed", wall_ns, None, None,
@@ -587,12 +628,16 @@ def reconcile_transcript_events(session_id, observations):
     ))
 
     def transition(store):
-        observed_prompt_id = store.get("current_prompt_id")
+        observed_prompt_id = None
         for _index, event in indexed:
             if not isinstance(event, dict):
                 continue
             kind = event.get("kind")
             wall_ns = event.get("wall_ns")
+            target = event.get("prompt_id") or observed_prompt_id
+            if (target is None and "prompt_id" not in event
+                    and len(store.get("turns", ())) == 1):
+                target = store["turns"][0].get("prompt_id")
             if kind == "prompt":
                 record = _apply_prompt(store, event.get("prompt_id"), wall_ns)
                 if record is not None:
@@ -602,10 +647,10 @@ def reconcile_transcript_events(session_id, observations):
             elif kind == "local_command":
                 _apply_local_command(store, event.get("prompt_id"), wall_ns)
             elif kind == "assistant":
-                _apply_assistant(store, observed_prompt_id, wall_ns)
+                _apply_assistant(store, target, wall_ns)
             elif kind == "turn_duration":
                 _apply_duration(
-                    store, observed_prompt_id, wall_ns, event.get("duration_ms")
+                    store, target, wall_ns, event.get("duration_ms")
                 )
         _prune_turns(store)
         return store.get("current_prompt_id") or observed_prompt_id
@@ -733,16 +778,30 @@ def _authoritative_subagents(background_tasks, existing, wall_ns):
     return snapshot
 
 
+def _agent_prompt(store, prompt_id, agent_id):
+    if prompt_id:
+        return prompt_id
+    owners = [record["prompt_id"] for record in store.get("turns", ())
+              if agent_id in (record.get("active_agents") or {})]
+    if len(owners) == 1:
+        return owners[0]
+    if len(store.get("turns", ())) == 1:
+        return store.get("current_prompt_id")
+    return None
+
+
 def _start_subagent(store, prompt_id, data, wall_ns):
-    target = prompt_id or store.get("current_prompt_id")
+    target = _agent_prompt(store, prompt_id, _agent_id(data))
     record = _find_turn(store, target)
     agent_id = _agent_id(data)
     if (
         not target
         or record is None
-        or record.get("status") != "running"
         or agent_id is None
+        or wall_ns < (record.get("started_wall_ns") or 0)
     ):
+        return store.get("current_prompt_id")
+    if not _reopen_low_priority_completion(record, wall_ns):
         return store.get("current_prompt_id")
     active = _clean_active_agents(record.get("active_agents"))
     previous = active.get(agent_id)
@@ -764,7 +823,7 @@ def _start_subagent(store, prompt_id, data, wall_ns):
 
 
 def _stop_subagent(store, prompt_id, data, wall_ns):
-    target = prompt_id or store.get("current_prompt_id")
+    target = _agent_prompt(store, prompt_id, _agent_id(data))
     record = _find_turn(store, target)
     agent_id = _agent_id(data)
     if (
@@ -772,8 +831,10 @@ def _stop_subagent(store, prompt_id, data, wall_ns):
         or record is None
         or record.get("status") != "running"
         or agent_id is None
+        or wall_ns < (record.get("started_wall_ns") or 0)
     ):
         return store.get("current_prompt_id")
+    record["had_subagents"] = True
     active = _clean_active_agents(record.get("active_agents"))
     if agent_id in active:
         active.pop(agent_id, None)
@@ -813,6 +874,10 @@ def handle_event(data):
             if record is None:
                 _upsert_turn(store, prompt_id, clocks, "hook_submit")
             previous = _find_turn(store, store.get("current_prompt_id"))
+            if (previous is not None and record is not None and previous is not record
+                    and (record.get("started_wall_ns") or 0)
+                    < (previous.get("started_wall_ns") or 0)):
+                return store.get("current_prompt_id")
             if (
                 isinstance(previous, dict)
                 and previous.get("prompt_id") != prompt_id
@@ -846,7 +911,7 @@ def handle_event(data):
             )
             if snapshot is not None and (
                 record.get("status") == "running"
-                or _reopen_low_priority_completion(record, wall_ns)
+                or (bool(snapshot) and _reopen_low_priority_completion(record, wall_ns))
             ):
                 record["active_agents"] = snapshot
                 if snapshot:
@@ -860,14 +925,13 @@ def handle_event(data):
                     "ended_wall_ns": None,
                     "ended_boot_ns": None,
                     "duration_ns": None,
+                    "duration_source": None,
                     "end_source": None,
                     "end_reason": None,
                     "error": None,
                     "updated_wall_ns": wall_ns,
                 })
             else:
-                if record.get("had_subagents"):
-                    record["duration_ns"] = None
                 _finish_record(
                     record, "completed", wall_ns, boot_ns, boot_id,
                     "hook_stop", "stop", updated_wall_ns=wall_ns,

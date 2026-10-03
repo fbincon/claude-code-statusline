@@ -782,7 +782,7 @@ claude-statusline config reset
 | --- | --- | --- |
 | `version` | Claude Code 版本，例如 `v2.1.258` | 未提供版本时省略 |
 | `session` | `Session ` 前缀 + 会话名称（`/rename` 设置后），否则会话 ID 前 8 位，如 `Session explain prompt-cache` | 没有会话 ID 时省略 |
-| `cost` | 会话金额、API 时长与增删行数，例如 `Total $0.12 · 12m 30s · +156/-23`；金额恒显示（无数据时为 `Total $0.00`），时长为 0 或增删行均为 0 时省略对应部分 | 没有 cost 字段时省略 |
+| `cost` | 会话金额、会话运行时间与增删行数，例如 `Total $0.12 · 12m 30s · +156/-23`；金额恒显示（无数据时为 `Total $0.00`），时长为 0 或增删行均为 0 时省略对应部分 | 没有 cost 字段时省略 |
 | `prompt-cache` | 缓存命中率与写入 token，例如 `cache 91% · 352K w` | 没有 prompt_cache 字段时省略（首次 API 响应前不存在）；命中率越界时只显示 token 部分 |
 | `fast-mode` | fast mode 开启时显示 `fast` | 未开启时省略 |
 | `agent` | `--agent` 会话的 agent 名称，例如 `Agent orchestrator` | 没有 agent 字段时省略 |
@@ -859,6 +859,17 @@ claude-statusline config enable project-name hostname context-used
 ```
 
 计时始终从最早的用户提交证据开始，到主 Agent 最终 `Stop` 为止。主 Agent 首次 `Stop` 若仍有普通 subagent task，就进入等待；最后一个 Agent 结束后进入 `main wrap-up`，不会因 registry idle、transcript duration 或超时自行完成。后台 shell、server、monitor 和 workflow 不进入 Agent ledger。最终 `Stop` 缺失时保持运行；`StopFailure`、用户中断和 `SessionEnd` 仍立即产生终态。
+
+主 Agent 恢复运行后，曾使用子 Agent 的历史证据仍然有效。迟到的原生 `turn_duration` 不会缩短多 Agent 任务，也不会把失败或中断改成成功。接受终态时冻结时间；重复 hook 和后续刷新不延长结果。普通成功单轮允许使用可靠归属的原生时长校准一次。无法可靠归属的事件会被忽略，不会关联到更新的 prompt。
+
+| 时间指标 | 含义与来源 |
+| --- | --- |
+| 任务耗时 | `prompt-timer`：最早用户提交至主 Agent 最终 `Stop`，或已确认失败/中断；包含排队、子 Agent 和收尾 |
+| 原生单轮耗时 | transcript 的 `turn_duration.durationMs`；单次原生响应，仅用于满足条件的单轮校准 |
+| 会话运行时间 | `cost.total_duration_ms`；CLI 会话累计运行时间，不包含两次运行/恢复之间的间隔 |
+| API 等待时间 | `cost.total_api_duration_ms`；累计等待 API 响应的时间，当前 `cost` 不显示它 |
+
+会话与 API 指标定义见 [官方状态栏字段](https://code.claude.com/docs/en/statusline)。
 
 `/statusline-config show` 之类的本地快捷命令不会被当作新的计时 prompt。即使隐藏 `tokens` 但保留 `prompt-timer`，计时器仍会读取所需 transcript 状态并正常工作。
 

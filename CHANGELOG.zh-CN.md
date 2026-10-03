@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md) | **简体中文**
 
+## Unreleased
+
+- 在最终 Stop 前后保留完整多 Agent 任务耗时，包含主 Agent 收尾。
+- 冻结失败/中断证据，让重复终态 hook 与普通单轮校准保持幂等。
+- 在增量读取和排队 hook 之间保留 transcript 的 prompt 归属，拒绝无法归属的 duration 与无效数值。
+- 区分任务、原生单轮、会话运行和 API 等待时间，并修正 `cost` 描述。
+
 ## 1.1.0 - 2026-10-03
 
 - macOS 核心功能与独立 TUI 转为正式支持，范围为 macOS 14+、Intel / Apple Silicon、CPython 3.10–3.14；保留原生进程识别、包含睡眠时间的时钟和 POSIX 文件安全适配。

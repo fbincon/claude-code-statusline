@@ -311,7 +311,7 @@ STATE_LOCKFILE = STATEFILE + ".lock"
 MAX_SESSIONS = 100
 MAX_IDS_PER_SESSION = 5000
 _BASE = {"i": 0, "o": 0, "cc": 0, "cr": 0}
-TURN_SCAN_VERSION = 4
+TURN_SCAN_VERSION = 5
 USAGE_SCAN_VERSION = 2
 GIT_CACHE_VERSION = 2
 GIT_CACHE_TTL_NS = 500_000_000
@@ -497,7 +497,7 @@ def _is_real_prompt_record(record, content):
     return source in _REAL_PROMPT_SOURCES and origin_kind in (None, "human")
 
 
-def _turn_events(lines):
+def _turn_events(lines, prompt_context=None):
     # Keep the legacy newest-event summaries and also return every lifecycle
     # observation in transcript order for the prompt-indexed turn ledger.
     prompt = None
@@ -515,17 +515,20 @@ def _turn_events(lines):
             if ts is not None:
                 observations.append({
                     "kind": "assistant", "wall_ns": int(round(ts * 1_000_000_000)),
+                    "prompt_id": d.get("promptId") or prompt_context,
                 })
             continue
         if d.get("type") == "system" and d.get("subtype") == "turn_duration":
             ts = _ts_to_epoch(d.get("timestamp"))
             duration_ms = d.get("durationMs")
             if (ts is not None and isinstance(duration_ms, (int, float))
-                    and not isinstance(duration_ms, bool) and duration_ms >= 0):
+                    and not isinstance(duration_ms, bool) and duration_ms >= 0
+                    and duration_ms <= 1e15 and math.isfinite(duration_ms)):
                 observations.append({
                     "kind": "turn_duration",
                     "wall_ns": int(round(ts * 1_000_000_000)),
                     "duration_ms": duration_ms,
+                    "prompt_id": d.get("promptId") or prompt_context,
                 })
             continue
         if d.get("type") != "user":
@@ -558,6 +561,7 @@ def _turn_events(lines):
                 "wall_ns": int(round(ts * 1_000_000_000)),
             })
         elif _is_real_prompt_record(d, content):
+            prompt_context = prompt_id
             if prompt is None or ts > prompt["ts"]:
                 prompt = candidate
             observations.append({
@@ -687,10 +691,14 @@ def _merge_ids(ids, new_ids):
     return changed
 
 
-def _maybe_update_turn(entry, lines, session_id=None):
+def _maybe_update_turn(entry, lines, session_id=None, reset_context=False):
     # Max-merge: a transcript rewind or /compact truncation can never move
     # lifecycle metadata backwards.
-    prompt, interrupt, local_command, assistant_activity, observations = _turn_events(lines)
+    context = None if reset_context else entry.get("transcript_prompt_id")
+    prompt, interrupt, local_command, assistant_activity, observations = _turn_events(lines, context)
+    for event in observations:
+        if event.get("kind") == "prompt":
+            entry["transcript_prompt_id"] = event.get("prompt_id")
     if prompt is not None and prompt["ts"] > entry.get("last_pt", 0.0):
         entry["last_pt"] = prompt["ts"]
         entry["last_prompt_id"] = prompt.get("prompt_id")
@@ -736,7 +744,7 @@ def _update_file(entry, path, session_id=None,
         entry["files"][path] = {"size": end, "mtime_ns": mtime}
         _merge_ids(entry["ids"], _parse_usage(lines))
         if track_prompts:
-            _maybe_update_turn(entry, lines, session_id)
+            _maybe_update_turn(entry, lines, session_id, reset_context=True)
         if track_cost:
             _stage_cost_snapshot(entry, lines)
         else:
@@ -752,7 +760,7 @@ def _update_file(entry, path, session_id=None,
         f["size"], f["mtime_ns"] = end, mtime
         _merge_ids(entry["ids"], _parse_usage(lines))
         if track_prompts:
-            _maybe_update_turn(entry, lines, session_id)
+            _maybe_update_turn(entry, lines, session_id, reset_context=True)
         if track_cost:
             _stage_cost_snapshot(entry, lines)
         else:
