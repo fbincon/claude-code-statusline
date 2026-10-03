@@ -10,6 +10,16 @@ This guide is for maintainers. Users should start with [installation in the READ
 
 Use the commands in [testing and acceptance](development/testing.md) for local checks, installed-package smoke and opt-in real Linux timer evidence. All 13 platform/build CI jobs and real timer acceptance must pass before publishing a timer release. Preserve raw reports only in ignored directories; record tested source, final commit, actual CI links and native-duration/visual limitations honestly.
 
+## Native editor release gates
+
+The v1.2.0a1 candidate keeps native integration opt-in and stable installation links at v1.1.1. Before publishing the first preview, require merged-commit Python/build checks, the four pinned native jobs (Linux 2.1.287/2.1.288, Windows/macOS 2.1.288), isolated wheel/sdist installation and explicit Linux human editor acceptance. Before v1.2.0, also require Windows/macOS human acceptance at the same fixed candidate, then synchronize stable defaults, versions and links in a release PR. Do not mark Phase 2 complete while human evidence is missing.
+
+Bundle runtime Mod files from `mods/statusline-native` using `src/build_native.py`. The wheel excludes tests, developer dependencies, generated host declarations and raw logs; sdist retains development sources and the build hook. `inspect_dist.py` verifies byte-for-byte runtime resources and the generated version/protocol/hash inventory. Backend PEP 440 `1.2.0a1` corresponds to Mod SemVer `1.2.0-alpha.1`.
+
+Build from a fixed verified merge commit and compare package files/metadata/entry points with an independent wheel rebuilt from sdist. Run `tools/native_install_smoke.py` in each installed environment; fixed-tag source installation must also pass after tag creation. Capture human OS, architecture, terminal/version, host version, exact commit and all checklist results from [native acceptance](development/native.md#linux-acceptance). Raw evidence stays under ignored `dist/validation`; screenshots document decoded real host terminal cells and never imply human acceptance. Publish v1.2.0a1 as a prerelease with Latest false only after its Linux gate. Stable Latest remains v1.1.1 until the later stable release.
+
+Before Python package downgrade, use the newer package's `install --no-native-editor`, then install/reintegrate the old package. Preserve explicit disabled preferences and document any restriction or unsupported host instead of fabricating session loading.
+
 ## Prepare the release commit
 
 ### Maintain bilingual documentation

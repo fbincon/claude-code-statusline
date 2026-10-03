@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- wheel 打包匹配的原生运行资源，增加显式官方本地 marketplace 接入、独立偏好、所属命令迁移、禁用/降级/卸载恢复及版本/哈希/绑定诊断；补齐 Windows/macOS 真实安装桥接 CI 和 Linux PTY 保存取消画面。真人编辑器验收及发布保持待办。
+
 - 增加原生 Main/Subagents/Settings 三页，目录驱动选择排序和数值校验、保存后保持面板、冲突显式重载及未知保存结果读取核对；实际 theme/verbose 宿主行独立应用并报告锁定和拒绝。
 
 - 增加完整草稿 JSON apply：与 curses 共用锁内语义 revision，检查主/子状态行安装归属，合并无关设置并复用备份和回滚；补齐原生桥接故障、超时及旧响应处理。

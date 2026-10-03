@@ -6,6 +6,16 @@
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
+## 原生编辑器发布门槛
+
+v1.2.0a1 候选保持原生显式启用，稳定安装链接仍为 v1.1.1。首个预览发布前要求合并提交的 Python/构建检查、四个固定原生 job（Linux 2.1.287/2.1.288、Windows/macOS 2.1.288）、隔离 wheel/sdist 安装，以及明确的 Linux 真人编辑器验收。v1.2.0 还要求相同固定候选的 Windows/macOS 真人验收，再通过发布 PR 同步稳定默认、版本和链接。真人证据不足时不标记 Phase 2 完成。
+
+`src/build_native.py` 从唯一维护源 `mods/statusline-native` 打包运行资源。wheel 排除测试、开发依赖、宿主声明和原始日志；sdist 保留开发源和构建 hook。`inspect_dist.py` 逐字节核对资源及生成的版本/协议/哈希清单。后端 PEP 440 `1.2.0a1` 对应 Mod SemVer `1.2.0-alpha.1`。
+
+从固定、验证过的合并提交构建，与独立从 sdist 重建的 wheel 比较包文件、metadata 和入口。每个安装环境运行 `tools/native_install_smoke.py`，打标签后也验证固定标签源码安装。[原生验收](development/native.zh-CN.md#linux-验收)记录真人系统、架构、终端及版本、宿主版本、固定提交和全部清单结果。原始证据在忽略的 `dist/validation`；截图注明真实宿主终端 cells 来源，不代表真人已通过。Linux 门槛通过后才能发布 v1.2.0a1，保持 prerelease 与 Latest false；后续稳定发布前 Latest 仍为 v1.1.1。
+
+Python 包降级前先用新包执行 `install --no-native-editor`，再安装并接入旧包。保留明确禁用偏好，记录限制或不兼容状态，不把磁盘安装当作会话已加载。
+
 ## 准备发布提交
 
 ### 维护双语文档

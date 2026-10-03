@@ -34,6 +34,11 @@ def main():
     import tarfile
     import re
     import zipfile
+    import json
+    import sys
+
+    sys.path.insert(0, str(Path("src").resolve()))
+    from claude_statusline.integration.native_resources import source_files, inventory
 
     project = {
         "version": re.search(
@@ -77,6 +82,28 @@ def main():
             "claude_statusline/resources/statusline-configure/SKILL.md",
         ):
             assert any(name.endswith(suffix) for name in names), suffix
+        runtime = source_files(Path("mods/statusline-native"))
+        prefix = "claude_statusline/resources/statusline-native/"
+        expected = {prefix + name for name in runtime} | {
+            prefix + "resource-manifest.json"
+        }
+        assert {name for name in names if name.startswith(prefix)} == expected
+        for name, raw in runtime.items():
+            assert archive.read(prefix + name) == raw, name
+        assert json.loads(archive.read(prefix + "resource-manifest.json")) == inventory(
+            runtime, version
+        )
+        assert not any(
+            part in name.split("/")
+            for name in names
+            for part in (
+                "tests",
+                "node_modules",
+                "package.json",
+                "package-lock.json",
+                "tsconfig.json",
+            )
+        )
     with tarfile.open(sdist[0], "r:gz") as archive:
         names = set(archive.getnames())
         distributions.append(names)
@@ -99,6 +126,7 @@ def main():
             "docs/releases/v1.1.0a1.md",
             "docs/releases/v1.1.0.md",
             "tools/ci_smoke.py",
+            "src/build_native.py",
         ):
             assert any(name.endswith(suffix) for name in names), suffix
         for notes in Path("docs/releases").glob("*.md"):
@@ -142,9 +170,14 @@ def main():
             and "node_modules" not in source.parts
             and ".claude-plugin/types" not in source.as_posix()
         ):
-            assert any(name.endswith(source.as_posix()) for name in distributions[1]), source
+            assert any(name.endswith(source.as_posix()) for name in distributions[1]), (
+                source
+            )
     for names in distributions:
-        assert not any("/node_modules/" in name or ".claude-plugin/types/" in name for name in names)
+        assert not any(
+            "/node_modules/" in name or ".claude-plugin/types/" in name
+            for name in names
+        )
     print(
         f"Verified {version}: {len(distributions[0])} wheel entries and {len(distributions[1])} sdist entries."
     )

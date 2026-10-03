@@ -15,6 +15,7 @@ export interface View {
   preferencesError: string;
   error: string;
   previewError: string;
+  previewBusy: boolean;
   message: string;
   busy: string;
   uncertain: boolean;
@@ -114,22 +115,26 @@ export function pane(
       Button({
         key: 'page-main',
         label: 'Main',
+        autoFocus: editor.page === 'main' ? true : undefined,
         hotkey: '1',
         onPress: () => actions.page('main'),
       }),
       Button({
         key: 'page-subagents',
         label: 'Subagents',
+        autoFocus: editor.page === 'subagents' ? true : undefined,
         hotkey: '2',
         onPress: () => actions.page('subagents'),
       }),
       Button({
         key: 'page-settings',
         label: 'Settings',
+        autoFocus: editor.page === 'settings' ? true : undefined,
         hotkey: '3',
         onPress: () => actions.page('settings'),
       }),
       Text({ bold: true, children: ['Sample preview'] }),
+    ...(view.previewBusy ? [Text({ dimColor: true, children: ['Updating sample preview...'] })] : []),
       ...(view.previewError
         ? [
             Text({ color: 'red', children: [view.previewError] }),

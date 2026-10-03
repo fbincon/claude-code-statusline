@@ -43,7 +43,9 @@ def build_parser():
         "slash-hook", help="handle claude-statusline slash command hooks"
     )
     config_commands.add_config_parser(subparsers)
-    ui_parser = subparsers.add_parser("ui", help="serve one internal JSON configuration request")
+    ui_parser = subparsers.add_parser(
+        "ui", help="serve one internal JSON configuration request"
+    )
     _common_config_argument(ui_parser)
 
     configure_parser = subparsers.add_parser(
@@ -80,6 +82,20 @@ def build_parser():
         action="store_false",
         help="persistently disable the experimental /statusline-configure entry",
     )
+    native_group = install_parser.add_mutually_exclusive_group()
+    native_group.add_argument(
+        "--native-editor",
+        dest="native_editor",
+        action="store_true",
+        default=None,
+        help="enable the native editor through an owned local marketplace",
+    )
+    native_group.add_argument(
+        "--no-native-editor",
+        dest="native_editor",
+        action="store_false",
+        help="persistently disable and remove owned native editor integration",
+    )
 
     uninstall_parser = subparsers.add_parser(
         "uninstall", help="remove only this tool's Claude Code configuration"
@@ -97,6 +113,10 @@ def build_parser():
 
 
 def _print_change(result, dry_run: bool) -> None:
+    if result.native_state is not None:
+        print(f'native editor: {result.native_state}')
+    for message in result.messages:
+        print(message)
     if dry_run:
         state = "would change" if result.changed else "already correct"
         print(f"{result.action}: {state}: {result.settings_path}")
@@ -197,9 +217,10 @@ def main(argv: list[str] | None = None) -> int:
                 dry_run=args.dry_run,
                 force=args.force,
                 experimental_slash_tui=args.experimental_slash_tui,
+                native_editor=args.native_editor,
             )
             _print_change(result, args.dry_run)
-            return 0
+            return 2 if result.native_failed else 0
         if args.command == "configure":
             if not _platform.is_supported_platform():
                 raise installer.ConfigurationError(
@@ -219,7 +240,7 @@ def main(argv: list[str] | None = None) -> int:
                 config_dir, executable, dry_run=args.dry_run
             )
             _print_change(result, args.dry_run)
-            return 0
+            return 2 if result.native_failed else 0
         if args.command == "doctor":
             diagnostics = installer.collect_diagnostics(config_dir, executable)
             for item in diagnostics:

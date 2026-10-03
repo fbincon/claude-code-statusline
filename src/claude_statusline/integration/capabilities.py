@@ -11,13 +11,38 @@ from claude_statusline.integration import ownership as integration_ownership
 from claude_statusline.platforms import environment as platform_environment
 
 
+def claude_argv(executable: str = "claude") -> list[str]:
+    resolved = shutil.which(executable)
+    if not resolved:
+        raise integration_models.ConfigurationError("Claude Code is not in PATH")
+    path = Path(resolved).resolve()
+    if platform_environment.is_windows() and path.suffix.casefold() in {".cmd", ".bat"}:
+        # Avoid cmd.exe interpolation of user-selected paths. Invoke the npm
+        # package through Node directly when PATH points at a batch shim.
+        node = shutil.which("node")
+        candidates = (
+            path.parent / "node_modules/@anthropic-ai/claude-code/cli.js",
+            path.parent.parent / "@anthropic-ai/claude-code/cli.js",
+        )
+        script = next(
+            (candidate for candidate in candidates if candidate.is_file()), None
+        )
+        if not node or script is None:
+            raise integration_models.ConfigurationError(
+                "Cannot safely resolve Claude batch wrapper; use a native Claude executable or its matching Node package"
+            )
+        return [str(Path(node).resolve()), str(script)]
+    return [str(path)]
+
+
 def detect_claude_version() -> tuple[int, int, int] | None:
-    executable = shutil.which("claude")
-    if not executable:
+    try:
+        command = claude_argv()
+    except integration_models.ConfigurationError:
         return None
     try:
         result = subprocess.run(
-            [executable, "--version"],
+            [*command, "--version"],
             capture_output=True,
             text=True,
             encoding="utf-8",

@@ -13,3 +13,4 @@ prune mods/statusline-native/.claude-plugin/types
 exclude docs/ROADMAP.md
 exclude docs/ROADMAP.zh-CN.md
 global-exclude .DS_Store *.py[cod]
+include src/build_native.py

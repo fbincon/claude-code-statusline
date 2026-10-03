@@ -14,12 +14,19 @@ import shutil
 import subprocess
 import tempfile
 
+from claude_statusline.integration.capabilities import claude_argv
+
 
 def prepare(executable: str, plugin: Path) -> str:
     executable = str(Path(shutil.which(executable) or executable).resolve())
+    command = claude_argv(executable)
     version = subprocess.run(
-        [executable, "--version"], capture_output=True, text=True, check=True,
-        encoding="utf-8", timeout=10,
+        [*command, "--version"],
+        capture_output=True,
+        text=True,
+        check=True,
+        encoding="utf-8",
+        timeout=10,
     ).stdout
     match = re.search(r"\d+\.\d+\.\d+", version)
     if match is None:
@@ -30,19 +37,39 @@ def prepare(executable: str, plugin: Path) -> str:
     declarations = plugin / ".claude-plugin/types/claude-code/index.d.ts"
     declarations.unlink(missing_ok=True)
     environment = {
-        key: value for key, value in os.environ.items()
-        if not key.startswith(("ANTHROPIC_", "AWS_", "GOOGLE_", "CLAUDE_", "CLAUDECODE"))
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith(
+            ("ANTHROPIC_", "AWS_", "GOOGLE_", "CLAUDE_", "CLAUDECODE")
+        )
     }
-    environment.update(DISABLE_AUTOUPDATER="1", CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1")
+    environment.update(
+        DISABLE_AUTOUPDATER="1", CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"
+    )
     with tempfile.TemporaryDirectory(prefix="statusline-mod-types-") as folder:
         environment["CLAUDE_CONFIG_DIR"] = folder
         subprocess.run(
-            [executable, "-p", "/plugin-types", "--plugin-dir", str(plugin),
-             "--max-budget-usd", "0.000001", "--no-session-persistence", "--setting-sources", ""],
-            env=environment, cwd=folder, capture_output=True, timeout=30,
+            [
+                *command,
+                "-p",
+                "/plugin-types",
+                "--plugin-dir",
+                str(plugin),
+                "--max-budget-usd",
+                "0.000001",
+                "--no-session-persistence",
+                "--setting-sources",
+                "",
+            ],
+            env=environment,
+            cwd=folder,
+            capture_output=True,
+            timeout=30,
         )
     if not declarations.is_file():
-        raise RuntimeError(f"Claude Code {version} did not emit Mod types; check host restrictions")
+        raise RuntimeError(
+            f"Claude Code {version} did not emit Mod types; check host restrictions"
+        )
     header = declarations.read_text(encoding="utf-8").splitlines()[0]
     if header != f"// Written by Claude Code {version}.":
         raise RuntimeError(f"Unexpected generated declaration header: {header}")

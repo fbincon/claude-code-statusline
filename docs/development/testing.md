@@ -29,7 +29,7 @@ Tests are grouped by implementation subsystem. CLI, installation and PTY/tmux/sh
 
 ## Installed package checks
 
-The separate Linux native workflow checks Claude Code 2.1.287 and 2.1.288 with exact-build declarations, official plugin validation/tests and TypeScript. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
+The native workflow checks Linux 2.1.287/2.1.288 plus Windows/macOS 2.1.288 with exact-build declarations, official plugin validation/tests and TypeScript. `tools/native_install_smoke.py` validates real official marketplace installation, absolute backend binding, complete protocol saves, repeat install, explicit plugin disable, compatibility restoration and uninstall without credentials/model calls. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
 
 Use the [release guide](../RELEASING.md) to build in a fresh directory from a fixed commit. The build job creates local-only fixtures before building, then checks that they are excluded:
 
@@ -39,7 +39,7 @@ python -m build
 python tools/inspect_dist.py
 ```
 
-Run fixture creation only in a disposable exported source tree; it refuses existing target files. Inspection also accepts `--source PATH --dist PATH`. It checks version agreement, English README metadata, platform requirements, all Python package files, both skill templates, bilingual documentation, tests and maintenance tools. Local ROADMAP files, acceptance notes, bytecode and caches must be absent.
+Run fixture creation only in a disposable exported source tree; it refuses existing target files. Inspection also accepts `--source PATH --dist PATH`. It checks version agreement, English README metadata, platform requirements, all Python package files, both skill templates, bilingual documentation, tests and maintenance tools. The wheel must contain exactly the source runtime Mod files and matching resource inventory, excluding tests, development dependencies and host declarations. The sdist includes `src/build_native.py` and developer Mod files so rebuilding produces identical package contents. Local ROADMAP files, acceptance notes, bytecode and caches must be absent.
 
 After installing a wheel in an isolated environment, run outside the source directory with that environment's CLI on PATH:
 

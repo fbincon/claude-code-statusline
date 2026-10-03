@@ -217,6 +217,20 @@ Display preferences, caches, backups, and experimental feature preferences remai
 
 <a id="文档与帮助"></a>
 
+
+## Native editor preview
+
+The v1.2.0a1 candidate includes a matching native Mod in the wheel. Stable installation above remains v1.1.1. Use the candidate package for these commands; the stable v1.1.1 CLI does not provide them.
+
+```bash
+claude-statusline install --native-editor
+claude-statusline doctor
+```
+
+Restart Claude Code 2.1.287+ in a trusted terminal, then run `/statusline-configure` or its alias `/statusline-configure-native`. Main/Subagents support selections, ordering and sample preview; Settings contains the nine existing tool settings and separate theme/verbose host preferences. `1/2/3` switch pages, Tab/Enter operate host controls, `s` saves tool configuration and leaves the pane open, `a` applies host preferences, and Esc/`q` discard pending changes. Esc first exits an input. See [native editor behavior](docs/development/native.md).
+
+Previews require explicit enablement. `install --no-native-editor` persists a disabled preference and removes owned native integration. The compatibility `/statusline-configure` launcher is restored only if its experimental preference is enabled. The wizard `/statusline-config` and standalone `claude-statusline configure` remain available. Installation failures retain compatibility configuration and report the actual native state; retry after checking doctor. Native terminal interaction on Linux, Windows and macOS is a separate human acceptance gate; automated platform installation checks do not establish it.
+
 ## Documentation and help
 
 - [User guide](docs/USER_GUIDE.md): installation, TUI, CLI, display items, and configuration reference.

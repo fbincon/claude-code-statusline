@@ -16,6 +16,7 @@ from claude_statusline.integration import capabilities as integration_capabiliti
 from claude_statusline.integration import models as integration_models
 from claude_statusline.integration import ownership as integration_ownership
 from claude_statusline.integration import resources as integration_resources
+from claude_statusline.integration import native as native_integration
 from claude_statusline.platforms import clocks as platform_clocks
 from claude_statusline.platforms import environment as platform_environment
 from claude_statusline.platforms import files as platform_files
@@ -493,6 +494,26 @@ def _check_fast_slash(diagnostics, settings, executable, claude_version):
 
 
 def _check_experimental(diagnostics, settings, config_dir, executable, claude_version):
+    if native_integration.active_on_disk(config_dir, True, claude_version):
+        skill, owner = integration_resources.experimental_skill_paths(config_dir)
+        if integration_ownership._is_owned_skill_marker(
+            config_storage._read_optional_bytes(owner)
+        ) or integration_ownership._slash_hook_count(
+            settings, executable, integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME
+        ):
+            diagnostics.append(
+                integration_models.Diagnostic(
+                    "ERROR", "native command migration is incomplete; rerun install"
+                )
+            )
+        else:
+            diagnostics.append(
+                integration_models.Diagnostic(
+                    "OK",
+                    "/statusline-configure: native plugin entry; compatibility preference retained",
+                )
+            )
+        return
     preference_path = config_features.feature_path(config_dir)
     preference_enabled = False
     preference_valid = True
@@ -778,4 +799,7 @@ def collect_diagnostics(
     _check_fast_slash(diagnostics, settings, executable, claude_version)
     _check_experimental(diagnostics, settings, config_dir, executable, claude_version)
     _check_runtime(diagnostics, config_dir, settings_path)
+    diagnostics.extend(
+        native_integration.diagnostics(config_dir, executable, claude_version)
+    )
     return diagnostics

@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v1 is an internal interface for the source-native frontend. Display persistence stays at schema v2, including existing v1 reads; it evolves independently from the protocol. No native editor is installed by the released wheel.
+Protocol v1 is the internal interface for the bundled/source native frontend. Display persistence stays at schema v2, including existing v1 reads; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; the v1.2.0a1 candidate wheel bundles the matching Mod.
 
 ## Catalog
 
@@ -55,7 +55,7 @@ Unrelated settings are merged from the latest locked snapshot. A write failure r
 
 Python wire types in `claude_statusline.ui.contracts` generate `lib/generated-contracts.ts`. Run `tools/generate_ui_contracts.py` to regenerate and `--check` to reject drift. Do not maintain a second item catalog or edit generated types. The Mod uses `$.process.run` with argument arrays and JSON stdin; set `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` to an absolute backend executable if PATH is unsuitable. `CLAUDE_CONFIG_DIR` is passed explicitly when present. No shell interpolation is used.
 
-The bridge rejects malformed or truncated responses, protocol mismatches and nonzero exits, preserving structured backend errors such as conflicts. Process start/refusal errors use `backend_process`; timeout errors use `backend_timeout`. The host process call has a 30-second timeout. The probe displays failures and offers a preview retry; reopening reloads configuration after an opening failure.
+The bridge rejects malformed or truncated responses, protocol mismatches and nonzero exits, preserving structured backend errors such as conflicts. Process start/refusal errors use `backend_process`; timeout errors use `backend_timeout`. The host process call has a 30-second timeout. The editor displays failures and offers a preview retry; reopening reloads configuration after an opening failure.
 
 The native editor reads descriptions/configuration when opened, retains a complete draft and numeric buffers, and requests preview only when draft or width changes. Ordinary redraws reuse preview. Saving sends the baseline revision and retains the pane after updating the committed snapshot. Conflicts retain the draft for explicit discard/reload; ambiguous outcomes require a read check before retry. Closing invalidates outstanding responses and discards pending changes. Host preferences use separate actual-row API calls and per-row results. Generated descriptions cover catalog, choices, ranges and capabilities; the bridge rejects incomplete or duplicate catalog entries, unsupported choices and unsafe display text.
 

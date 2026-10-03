@@ -197,6 +197,20 @@ pipx uninstall claude-code-statusline
 
 卸载会保留显示偏好、缓存、备份和实验功能偏好，详情见[卸载说明](docs/USER_GUIDE.zh-CN.md#卸载)。
 
+
+## 原生编辑器预览
+
+v1.2.0a1 候选包在 wheel 中包含匹配的原生 Mod。上面的稳定安装仍为 v1.1.1；以下命令需要候选包，已发布的 v1.1.1 CLI 不提供它们。
+
+```bash
+claude-statusline install --native-editor
+claude-statusline doctor
+```
+
+在受信任终端中重启 Claude Code 2.1.287+，运行 `/statusline-configure` 或别名 `/statusline-configure-native`。Main/Subagents 提供选择、排序和样例预览；Settings 提供现有九项工具设置，以及独立的 theme/verbose 宿主偏好。`1/2/3` 切页，Tab/Enter 操作原生控件，`s` 保存工具配置并保持面板打开，`a` 应用宿主偏好，Esc/`q` 丢弃待保存修改；Esc 先退出输入字段。参见[原生编辑器行为](docs/development/native.zh-CN.md)。
+
+预览必须显式启用。`install --no-native-editor` 持久保存禁用偏好并撤下所属原生接入；仅在实验入口偏好已启用时恢复兼容 `/statusline-configure` 启动器。向导 `/statusline-config` 和独立 `claude-statusline configure` 保留。安装失败保留兼容配置并报告实际状态，核对 doctor 后再重试。Linux、Windows、macOS 的真实终端交互另设真人验收门槛，平台安装自动检查不替代它。
+
 ## 文档与帮助
 
 - [使用指南](docs/USER_GUIDE.zh-CN.md)：完整安装步骤、TUI、CLI、显示项和配置参考。

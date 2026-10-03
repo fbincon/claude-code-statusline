@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Bundle matching native runtime resources in wheels; add opt-in official local-marketplace installation, independent preference persistence, owned command migration, disable/downgrade/uninstall recovery and version/hash/binding diagnostics. Add real Windows/macOS installation/bridge CI and Linux PTY save/cancel captures. Human editor acceptance and publication remain pending.
+
 - Add native Main/Subagents/Settings editing, catalog-driven selection/order and numeric validation, full revision saves that keep the pane open, explicit conflict reload and uncertain-save read checks. Apply actual theme/verbose host rows separately with lock/refusal results.
 
 - Add full-draft JSON apply with locked semantic revisions shared by curses, main/subagent installation ownership checks, merged unrelated settings, backups and rollback. Harden native bridge failures, timeouts and stale-response handling.

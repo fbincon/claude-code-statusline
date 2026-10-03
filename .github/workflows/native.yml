@@ -6,12 +6,27 @@ on:
 
 jobs:
   mod:
-    name: Linux / Claude Code ${{ matrix.claude }}
-    runs-on: ubuntu-latest
+    name: ${{ matrix.platform }} / Claude Code ${{ matrix.claude }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        claude: ["2.1.287", "2.1.288"]
+        include:
+          - os: ubuntu-latest
+            platform: Linux
+            claude: "2.1.287"
+          - os: ubuntu-latest
+            platform: Linux
+            claude: "2.1.288"
+          - os: windows-latest
+            platform: Windows
+            claude: "2.1.288"
+          - os: macos-15
+            platform: macOS
+            claude: "2.1.288"
+    defaults:
+      run:
+        shell: bash
     env:
       DISABLE_AUTOUPDATER: "1"
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
@@ -37,10 +52,18 @@ jobs:
       - name: Shared protocol contracts
         run: |
           python tools/generate_ui_contracts.py --check
-          python -m unittest tests.config.test_catalog tests.ui.test_protocol tests.ui.test_apply_protocol
+          python -m unittest tests.config.test_catalog tests.ui.test_protocol tests.ui.test_apply_protocol tests.integration.test_native_installer
       - name: Official static validation
         run: claude plugin validate --strict mods/statusline-native
       - name: Official Mod tests
         run: claude plugin test mods/statusline-native
       - name: TypeScript checks
         run: npm run --prefix mods/statusline-native typecheck
+      - name: Official installation and backend bridge
+        run: python tools/native_install_smoke.py --report "$RUNNER_TEMP/native-installation.json"
+      - name: Upload native installation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.platform }}-${{ matrix.claude }}
+          path: ${{ runner.temp }}/native-installation.json
+          if-no-files-found: error

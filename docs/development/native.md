@@ -2,13 +2,13 @@
 
 **English** | [简体中文](native.zh-CN.md)
 
-The source frontend now provides Main, Subagents and Settings pages. Stable installation remains v1.1.1. The editor is development work for v1.2.0 previews; persistent installation and three-platform acceptance are tracked separately from callback tests.
+The v1.2.0a1 candidate bundles Main, Subagents and Settings in the wheel. Stable installation remains v1.1.1. Preview integration is opt-in; three-platform human acceptance is tracked separately from automated installation and callback tests.
 
 ## Source layout and checks
 
 `mods/statusline-native` is the sole maintained Mod source. `.claude-plugin/plugin.json` declares the plugin and backend options; `hooks/register.ts` owns host calls, opening, saving and response lifetimes. `lib/draft.ts` owns pure selections, exclusions, ordering and numeric buffers; `lib/backend.ts` validates wire responses; `lib/preferences.ts` represents actual host configuration rows. `ui/` draws controls and pages. `tests/` uses the official Mod kit. Host API calls remain in the entry layer for official static analysis.
 
-Use Node.js 22 and a supported Claude Code build. The native workflow pins 2.1.287 and 2.1.288 independently of the Python platform matrix. First install this checkout in a development environment as described in [local checks](testing.md#local-checks). The released v1.1.1 backend does not expose the new `ui` protocol.
+Use Node.js 22 and a supported Claude Code build. The native workflow checks Linux 2.1.287/2.1.288 plus Windows/macOS 2.1.288, independently of the Python platform matrix. First install this checkout in a development environment as described in [local checks](testing.md#local-checks). The released v1.1.1 backend does not expose the new `ui` protocol.
 
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
@@ -23,7 +23,7 @@ Regenerate declarations when changing the host executable. The preparer uses fre
 
 ## Editor behavior
 
-Run `/statusline-configure-native`. The pane requests focus and uses the host's placement and scrolling. Main and Subagents consume all 24 main and 10 subagent items from the Python catalog. Select an item, enable/disable it, or move an enabled item up/down. Filtering preserves the complete selection. Mutual exclusions come from the shared catalog; empty selections are valid. Descriptions and examples explain the selected item. Sample preview uses production formatting without live collection.
+Run `/statusline-configure-native` for source development, or `/statusline-configure` after persistent installation. The pane requests focus and uses the host's placement and scrolling. Main and Subagents consume all 24 main and 10 subagent items from the Python catalog. Select an item, enable/disable it, or move an enabled item up/down. Filtering preserves the complete selection. Mutual exclusions come from the shared catalog; empty selections are valid. Descriptions and examples explain the selected item. Sample preview uses production formatting without live collection.
 
 Settings exposes colors, palette, directory style, separator style, padding, refresh interval, Vim indicator, scope labels and custom subagent rows. Numeric ranges and option choices come from `describe`. Refresh accepts `event`. Invalid numeric buffers remain visible and block saving.
 
@@ -45,12 +45,34 @@ Global shortcuts are handled by native controls and yield while typing in an inp
 
 The development command preserves the installed wizard and compatibility TUI. Foreign commands prevent registration; foreign panes pass through. Source development can bind an absolute executable with `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE`; `CLAUDE_CONFIG_DIR` is passed as an argument without shell interpolation.
 
+## Persistent installation and recovery
+
+With the candidate package installed, run `claude-statusline install --native-editor`. The backend stages only runtime resources under `CLAUDE_CONFIG_DIR/statusline-native`, verifies a hash inventory, then uses official marketplace add/install/configure commands at user scope. `claude-statusline-local` is reserved for this tool's local directory marketplace. It binds absolute backend and config paths plus the expected version. The plugin uses SemVer `1.2.0-alpha.1` for backend PEP 440 version `1.2.0a1`.
+
+Only after verified installation does the file transaction remove the owned compatibility `/statusline-configure` skill/hook. Both native command names open the same editor. The wizard and standalone TUI remain available. A foreign skill, command, directory, marketplace, scope or altered cached resource blocks adoption, including with `--force`. Session command collisions are checked again in the Mod; primary and alias ownership are independent.
+
+`claude-statusline-native.json` records explicit native enable/disable separately from `claude-statusline-features.json`. Preview defaults are off. Future stable defaults prefer native on compatible hosts; explicit native false, legacy explicit false and externally disabled plugins remain disabled. Enable an externally disabled plugin with `claude plugin enable statusline-native@claude-statusline-local --scope user` yourself before reinstalling. The installer reenables only a suspension it recorded itself.
+
+`install --no-native-editor` removes the confirmed owned plugin/marketplace through official commands and deletes only hash-owned staged files. It preserves the disabled preference and restores the old launcher only when the experimental preference is enabled. Uninstall retains preferences, display configuration, runtime data and backups. Normal reinstall is idempotent. Same-version changed resources use an owned official uninstall/install because official update otherwise keeps the old cache. A bounded previous inventory lets a refused upgrade be diagnosed and retried without adopting foreign cache content.
+
+Plugin operations and compatibility writes are separate stages. Failed/uncertain operations retain compatibility and report actual state; inspect `doctor` before retrying. Doctor verifies version/protocol, resource hashes, official installation/enablement and backend binding. Current-session loading remains unverified: restart in a trusted terminal and check `/plugin` and the command. Safe/bare mode, `disableAllHooks` or managed policy can prevent loading. Missing resources can be repaired; modified foreign content must be restored or moved aside. For a foreign reserved marketplace, rename/remove its registration explicitly before reinstalling.
+
+After a host downgrade, rerun install with the current backend to suspend native and retain its preference. Before downgrading the Python package, first run `claude-statusline install --no-native-editor` using the new package, then install the old package and run its installer. An old package cannot remove resources introduced by this version.
+
 ## Linux acceptance
 
 Use an isolated configuration and the matching source backend. Record OS, architecture, terminal/version, Claude version and fixed commit. Phase 1 manual Linux acceptance at `3a65482` covered the old transient probe; it does not establish acceptance of the three-page editor.
 
 For the editor, check real plugin loading, pane placement and keyboard focus, all three pages, filtering, exclusions and ordering, sample preview, narrow/CJK display, numeric Esc, save then statusline refresh, cancel/reopen, conflicts, separate host application and continuing the same session after closing. Windows and macOS require the same checklist before stable publication. Keep private configuration and terminal/debug streams in ignored `dist/validation`. Publish only sanitized conclusions. Official callback tests and PTY captures do not replace a maintainer's visual acceptance.
 
-The isolated runner and platform installation checks are being updated with persistent integration. Stable release remains pending until Linux, Windows and macOS human results are recorded; the first preview also requires Linux human acceptance.
+The isolated runner can test the installed plugin without `--plugin-dir`:
+
+```bash
+.venv/bin/python -m pip install pyte==0.8.2
+.venv/bin/python tools/native_mod_acceptance.py --persistent --backend .venv/bin/claude-statusline --report-dir dist/validation/native-pty
+.venv/bin/python tools/native_mod_acceptance.py --persistent --interactive --backend .venv/bin/claude-statusline --terminal 'name/version' --report-dir dist/validation/native-manual
+```
+
+Use a new directory each time. PTY checks open all pages, toggle/save, cancel/reopen, Esc and the local wizard at 120/80 columns. They record decoded terminal cells for screenshots and never mark human acceptance as passed. Interactive mode records environment/commit and keeps `manual_visual_acceptance` false until the maintainer reports the complete checklist. Windows/macOS use the same installed candidate and checklist in a real terminal. Stable release remains pending until all three human results are recorded; the first preview also requires Linux human acceptance.
 
 References: [creation and actual-build types](https://code.claude.com/docs/en/plugins/mods/create), [interface and focus](https://code.claude.com/docs/en/plugins/mods/interface), [official tests](https://code.claude.com/docs/en/plugins/mods/test), [local marketplaces](https://code.claude.com/docs/en/plugin-marketplaces).
