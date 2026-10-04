@@ -75,152 +75,8 @@
 
 [截图文件索引](docs/images/README.zh-CN.md)
 
-## 支持范围
-
-- Linux 原生与 WSL：Python 3.10+。
-- Windows 10/11 原生：CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2`。
-- macOS 14+：CPython 3.10–3.14，Intel / Apple Silicon。支持核心功能和独立 TUI；实验性配置入口优先使用 tmux popup，否则使用本地 Terminal.app。
-- Claude Code CLI：2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持带参数配置命令的本地执行及实验性 TUI 启动器。较旧或无法识别的版本仍可使用主状态栏和配置向导。
-- Git 信息需要系统中存在 `git`。
-
-当前稳定版为 [**v1.2.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0)，以上平台使用同一个 wheel。Windows ARM64 原生 Python 暂不承诺；ARM 设备请使用 x64 Python 仿真。各功能的版本条件见[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
-
-## 快速安装
-
-先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。Linux / WSL / macOS / Windows 均可安装稳定版 v1.2.0。安装来源和文件校验方法见[使用指南](docs/USER_GUIDE.zh-CN.md#安装-python-包)。
-
-### 从 Release 安装（推荐）
-
-在 Bash / Zsh 或 PowerShell 中直接安装 [v1.2.0 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0)：
-
-```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
-pipx ensurepath
-```
-
-也可以下载 wheel 后安装，具体步骤见[使用指南](docs/USER_GUIDE.zh-CN.md#安装-python-包)。
-
-### 从固定标签源码安装
-
-需要系统中存在 `git`，无需手动克隆或构建：
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
-pipx ensurepath
-```
-
-### 从当前源码安装
-
-需要跟踪开发改动时，可从默认分支安装当前源码（需要 Git，Bash / Zsh / PowerShell 通用）。`main` 会随开发更新，需要固定版本时使用上面的 Release 或标签：
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
-pipx ensurepath
-```
-
-已有本地源码时，可在项目根目录执行 `pipx install .`。自行构建 wheel 的步骤见[从源码构建与安装](docs/USER_GUIDE.zh-CN.md#从源码构建与安装)；macOS 终端要求见[macOS 安装说明](docs/USER_GUIDE.zh-CN.md#macos-安装与验证边界)。
-
-### 接入 Claude Code
-
-完成包安装后，**重新打开终端**，让 `pipx ensurepath` 设置的 `PATH` 生效。先确认 `--version` 显示 `claude-statusline 1.2.0`，再接入 Claude Code。
-
-Linux / WSL / macOS（Bash / Zsh）：
-
-```bash
-claude-statusline --version
-claude-statusline install --dry-run
-claude-statusline install
-claude-statusline doctor
-```
-
-Windows（PowerShell）：
-
-```powershell
-claude-statusline.exe --version
-claude-statusline.exe install --dry-run
-claude-statusline.exe install
-claude-statusline.exe doctor
-```
-
-`pipx install` 安装 Python 包，`claude-statusline install` 将状态栏和配置入口接入 Claude Code。若已有其他工具的状态栏或同名 skill，安装器会报告冲突；需要接管时参见[冲突处理](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)。
-
-## 常用配置
-
-安装后，在终端运行 `claude-statusline configure`；Windows 使用 `claude-statusline.exe configure`。TUI 在当前终端打开，最小尺寸为 `64×18`，支持选择条目、排序和样例预览。非数字编辑状态下，Enter 保存全部修改，Esc 取消；Ctrl+C 中断且不保存。
-
-| 入口 | 用途 |
-| --- | --- |
-| `claude-statusline configure` | 使用 TUI 交互调整主栏、子 Agent 行和样式 |
-| Claude Code 内的 `/statusline-config` | 使用问答向导配置，或带参数执行配置命令 |
-| `claude-statusline config ...` | 在终端查看配置、精确排序或用于脚本 |
-| 实验性 `/statusline-configure` | 从 Claude Code 启动外部终端中的 TUI；默认关闭，见[启用说明](docs/USER_GUIDE.zh-CN.md#实验入口-statusline-configure) |
-
-例如，在 Linux / WSL / macOS 中设置精简状态栏：
-
-```bash
-claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
-claude-statusline config set directory-style home
-claude-statusline config show
-```
-
-Windows 将上述命令名替换为 `claude-statusline.exe`。`set-items` 会替换整个启用集合；需要增量调整时使用 `enable`、`disable`。更多示例见[常用配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方)。
-
-配置按用户生效。显示偏好保存在 Claude 配置目录中的 `claude-statusline.json`；配置目录、默认值及历史格式兼容见[配置文件](docs/USER_GUIDE.zh-CN.md#配置文件)。
-
-## 升级与卸载
-
-升级到 v1.2.0 时，替换 Python 包（Bash / Zsh / PowerShell 通用）：
-
-```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
-```
-
-随后重新运行 `claude-statusline install` 和 `claude-statusline doctor`；Windows 使用 `claude-statusline.exe`。升级保留 Claude 配置目录中的显示偏好和运行状态。本地 wheel、源码安装及版本兼容的处理见[升级指南](docs/USER_GUIDE.zh-CN.md#升级)。
-
-卸载时先移除 Claude Code 接入，再删除 Python 包。
-
-Linux / WSL / macOS：
-
-```bash
-claude-statusline uninstall --dry-run
-claude-statusline uninstall
-pipx uninstall claude-code-statusline
-```
-
-Windows：
-
-```powershell
-claude-statusline.exe uninstall --dry-run
-claude-statusline.exe uninstall
-pipx uninstall claude-code-statusline
-```
-
-卸载会保留显示偏好、缓存、备份和实验功能偏好，详情见[卸载说明](docs/USER_GUIDE.zh-CN.md#卸载)。
-
-
-## 原生配置编辑器
-
-### v1.3.0a2：外部 TUI 与会话内 Client
-
-`/statusline-configure` 保留既有外部终端 TUI；`/statusline-configure-native` 打开当前 session 内的实验性 Client TUI，不另开终端。两个入口可独立启用并同时安装，不增加新的命令名。
-
-```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a2/claude_code_statusline-1.3.0a2-py3-none-any.whl"
-claude-statusline install --experimental-slash-tui --native-editor
-claude-statusline doctor
-```
-
-在受信任终端重启 Claude Code。只需一种方式时只传对应启用参数；`--no-experimental-slash-tui`、`--no-native-editor` 分别关闭，不影响另一种。预览版新安装默认都关闭，已有偏好保留；重装恢复旧原生迁移曾移除的已启用外部入口。
-
-Client 打开后先点击区域一次，再用 Tab 切页、上下选择、左右排序、Space 勾选；`/` 搜索、Ctrl+G 取消字段、s 保存继续、f 保存退出、q 丢弃退出。搜索/字段输入期间暂停普通字符快捷键。Esc 由宿主处理：先归还焦点，再关闭。高级 Claude 偏好仍用 h 展开、a 单独应用。内容、栏目及预览采用明确分组；最小正文 32×12，正常空间使用边框，窄窗使用标题分隔线。
-
-两种编辑器可同时打开，保存通过共同版本校验防止覆盖；Client 冲突时保留草稿，r 丢弃重载，结果不明时 k 核对。重复执行原生命令保留当前草稿。详见[完整操作与安装边界](docs/development/native.zh-CN.md#编辑器行为)。
-
-**Latest 稳定版仍为 v1.2.0**。v1.3.0a1 原生控件界面三平台真人验收已获确认；v1.3.0a2 的 Client 真人验收单独记录，当前均待验收。自动 CI 和 Linux PTY 不计为真人验收。
-
-
 <details>
-<summary>Linux Client TUI：三页终端重建画面</summary>
+<summary>会话内 Client：Main、Subagents、Settings（a2 画面，正式版沿用同一交互）</summary>
 
 ![Client Main 分组列表和样例预览](docs/images/client-main-v1.3.0a2-linux.png)
 
@@ -228,20 +84,133 @@ Client 打开后先点击区域一次，再用 Tab 切页、上下选择、左�
 
 ![Client Settings 分组与对齐栏目](docs/images/client-settings-v1.3.0a2-linux.png)
 
-[画面来源及验收边界](docs/images/README.zh-CN.md#v130a2-client-画面)。
+[画面来源及真人验收记录](docs/images/README.zh-CN.md#v130a2-client-画面)。
 
 </details>
 
+
+## 支持范围
+
+- Linux 原生与 WSL：Python 3.10+。
+- Windows 10/11 原生：CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2`。ARM 设备使用 x64 Python 仿真。
+- macOS 14+：CPython 3.10–3.14，Intel / Apple Silicon。
+- Claude Code 2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持外部 TUI 入口与带参数配置命令的本地执行；2.1.287+ 支持会话内 Client。
+- 不兼容或无法识别的宿主暂挂对应入口；基础状态栏、独立终端 TUI、向导和 CLI 继续可用。Git 信息需要系统中存在 `git`。
+
+当前稳定版为 [**v1.3.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0)，以上平台共用同一个 wheel。维护者已确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过；正式版沿用其 Client 交互。完整边界见[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
+
+## 快速安装
+
+先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。下载校验、各平台步骤和源码构建见[使用指南](docs/USER_GUIDE.zh-CN.md#安装-python-包)。
+
+### 从 Release 安装（推荐）
+
+Bash / Zsh / PowerShell 通用：
+
+```text
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
+pipx ensurepath
+```
+
+### 从固定标签源码安装
+
+需要 Git：
+
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.3.0"
+pipx ensurepath
+```
+
+### 从当前源码安装
+
+`main` 随开发变化；本地检出在项目根目录执行 `pipx install .`：
+
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
+pipx ensurepath
+```
+
+### 接入 Claude Code
+
+重新打开终端让 PATH 生效，确认版本为 `claude-statusline 1.3.0`：
+
+```text
+claude-statusline --version
+claude-statusline install --dry-run
+claude-statusline install
+claude-statusline doctor
+```
+
+Windows 使用 `claude-statusline.exe`。包安装与 Claude 接入分为两步；接入后在受信任终端重启 Claude Code 加载插件和命令。正式版两个入口默认启用，但已有明确关闭偏好优先；宿主不兼容时分别暂挂。安装不会打开配置面板或外部终端。第三方资源按所属入口检查冲突，见[冲突处理](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)。
+
+## 常用配置
+
+| 入口 | 用途 |
+| --- | --- |
+| `/statusline-configure-native` | 同一 Claude Code session 内的 Client TUI；默认启用，需 2.1.287+；见[原生配置编辑器](docs/USER_GUIDE.zh-CN.md#原生配置编辑器) |
+| `/statusline-configure` | 外部终端承载现有 TUI；默认启用，需 2.1.258+；见[外部终端入口](docs/USER_GUIDE.zh-CN.md#外部终端入口-statusline-configure) |
+| `claude-statusline configure` | 当前独立终端中的完整 TUI；Windows 使用 `claude-statusline.exe configure` |
+| `/statusline-config` | Claude 问答向导；带参数时按宿主能力本地执行或进入模型回合 |
+| `claude-statusline config ...` | 检查配置、设置精确顺序或运行脚本 |
+
+<a id="v130a2外部-tui-与会话内-client"></a>
+
+### 原生配置编辑器
+
+执行 `/statusline-configure-native` 后**先点击 Client 区域一次**，再使用 Tab 切页、方向键选择/排序、Space 勾选、`/` 搜索、Ctrl+G 取消输入。`s` 保存留页，`f` 保存后退出，`q` 丢弃退出；Esc 由宿主处理。Settings 分为外观、刷新与显示行为、Claude 高级偏好；高级偏好独立 Apply。最小面板正文为 32×12。
+
+### 外部与独立终端 TUI
+
+`/statusline-configure` 沿用 Linux tmux / GNOME Terminal、macOS tmux / Terminal.app 和 Windows 系统新控制台路径。`claude-statusline configure` 直接使用当前终端；最低 64×18。非数值编辑时 Enter 保存、Esc 取消；Ctrl+C 中断且不保存。
+
+两个编辑器可同时打开，旧草稿的保存会被 revision 校验拒绝，避免覆盖新配置。Native 重复打开保留草稿；冲突时 `r` 明确丢弃并重载，保存结果不明时先 `k` 核对。
+
+默认安装、四种安装组合和版本降级见[编辑器安装组合与兼容性](docs/USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。分别关闭：
+
+```text
+claude-statusline install --no-native-editor
+claude-statusline install --no-experimental-slash-tui
+```
+
+历史参数 `--experimental-slash-tui` 继续负责外部入口，与 `--native-editor` 相互独立。示例精简主栏：
+
+```text
+claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
+claude-statusline config set directory-style home
+claude-statusline config show
+```
+
+配置按用户生效；`set-items` 替换全部启用项，`enable` / `disable` 用于增量修改。更多示例见[配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方)。
+
+## 升级与卸载
+
+升级到 v1.3.0：
+
+```text
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
+claude-statusline install
+claude-statusline doctor
+```
+
+Windows 使用 `claude-statusline.exe`；随后重启 Claude Code。保留显示配置、运行状态和已保存的独立启用偏好。旧版外部禁用操作曾删除偏好文件：没有记录时遵循正式版默认启用，需要保持关闭时重新传入 `--no-experimental-slash-tui`。详见[升级指南](docs/USER_GUIDE.zh-CN.md#升级)。
+
+先移除 Claude 接入，再卸载 Python 包：
+
+```text
+claude-statusline uninstall --dry-run
+claude-statusline uninstall
+pipx uninstall claude-code-statusline
+```
+
+显示配置、偏好、缓存与备份保留，见[卸载](docs/USER_GUIDE.zh-CN.md#卸载)。
+
 ## 文档与帮助
 
-- [使用指南](docs/USER_GUIDE.zh-CN.md)：完整安装步骤、TUI、CLI、显示项和配置参考。
-- [诊断与故障排查](docs/USER_GUIDE.zh-CN.md#故障排查)：先运行 `doctor`，再按具体症状排查。
-- [开发与测试](docs/USER_GUIDE.zh-CN.md#附录开发与测试) · [发布指南](docs/RELEASING.zh-CN.md) · [变更记录](CHANGELOG.zh-CN.md)。
-- [项目架构](docs/development/architecture.zh-CN.md) · [验证与验收](docs/development/testing.zh-CN.md) · [计时指标与证据](docs/development/timer.zh-CN.md)。
-- [原生配置编辑器](docs/development/native.zh-CN.md)：Client 操作、两入口独立安装、revision 保存保护及真人验收边界。
-- [共享配置协议](docs/development/contracts.zh-CN.md)：源码开发使用的项目目录和内部 JSON describe/read/preview/apply 契约。
-- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：报告问题时请提供系统、Python/Claude Code/本工具版本、复现步骤，以及去除私人路径和会话内容后的诊断输出。
+- [使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [变更记录](CHANGELOG.zh-CN.md)。
+- [原生编辑器开发与验收](docs/development/native.zh-CN.md) · [架构](docs/development/architecture.zh-CN.md) · [共享协议](docs/development/contracts.zh-CN.md)。
+- [测试与验收](docs/development/testing.zh-CN.md) · [计时指标](docs/development/timer.zh-CN.md) · [发布指南](docs/RELEASING.zh-CN.md)。
+- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：附系统与版本、复现步骤及诊断结果，移除私有路径和会话内容。
 
 ## 许可证
 
-本项目采用 [MIT 许可证](LICENSE)。Copyright (c) 2026 [fbincon](https://github.com/fbincon)。
+[MIT License](LICENSE)，Copyright (c) 2026 [fbincon](https://github.com/fbincon)。

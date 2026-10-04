@@ -4,7 +4,7 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.2.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.3.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,11 +12,15 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-Stable v1.2.0 prefers native integration on compatible hosts while preserving explicit disablement. The maintainer confirmed all three human checklists on the fixed v1.2.0a1 candidate: Linux, Windows 11 and macOS 14.5. Record missing architecture/terminal metadata as unknown; do not infer it from CI. See the [acceptance record](development/native.md#stable-acceptance-record).
+Stable v1.3.0 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
-Every candidate requires merged-commit Python/build checks, the four pinned native jobs (Linux 2.1.287/2.1.288, Windows/macOS 2.1.288), isolated wheel/sdist/rebuild and fixed-tag/public installation checks. Core smoke explicitly selects compatibility integration; native smoke separately checks stable defaults, migration and disablement. Build from the verified merge commit, verify tag/draft assets/SHA256, require tag CI, then publish stable v1.2.0 as Latest. Prereleases remain opt-in and never become Latest.
+On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
-Runtime resources come from `mods/statusline-native` through `src/build_native.py`, with a generated hash/version/protocol inventory. Wheel and rebuilt sdist payloads must agree and exclude development dependencies, host declarations and raw reports. Raw evidence stays in ignored `dist/validation`; terminal capture reconstruction and human acceptance are distinct. Before a Python package downgrade, use the newer package's `install --no-native-editor`, then reinstall the old package.
+Each candidate requires all 13 Python/build and four fixed Mod jobs (Linux 2.1.287/2.1.288, Windows/macOS 2.1.288) on the PR, merge commit and tag. Check stable defaults, persistent disablement, version thresholds, upgrade/downgrade, all four combinations and independent disablement. Core smoke explicitly selects basic integration; native smoke checks actual marketplaces, backend binding, saves and uninstall. An installed wheel must also pass real Linux PTYs with both entries.
+
+Build from the verified merge commit, inspect wheel/sdist/resource inventories and independent rebuilds, verify fixed-tag installation, draft assets and SHA256, require tag CI, then publish stable as Latest and check public downloads/isolated installs. The sole Mod source supplies runtime assets; exclude dependencies, host declarations and raw reports. Raw evidence stays in ignored dist/validation. Before a Python package downgrade, remove native with the newer package's `install --no-native-editor`.
+
+This promotion keeps accepted UI interaction and changes installation policy/documentation; it does not run paid model/timer suites. Releases changing timer behavior still require separate timer acceptance.
 
 ## Prepare the release commit
 
@@ -26,9 +30,9 @@ English is the default at existing documentation paths. Complete Simplified Chin
 
 Store complete bilingual Release bodies in `docs/releases/<tag>.md`, with English first and the original Chinese in an expandable section. Use an English Release title. Preserve version-specific support and validation claims; label links to historical Chinese documentation explicitly. When editing an existing Release, update only its title and body, preserving tags, assets, release type, and Latest selection.
 
-1. Create a release branch from the latest `main` with the `fbincon/` prefix. Synchronize versions in `pyproject.toml`, `src/claude_statusline/_version.py`, and CLI tests.
+1. Create a release branch from the latest `main` with the `fbincon/` prefix. Synchronize versions in `pyproject.toml`, `src/claude_statusline/_version.py`, the Mod manifest, and CLI tests.
 2. Replace the changelog's Unreleased date with the actual release date. Update stable versions and installation/upgrade URLs in the README and user guide, preserving historical support boundaries. These links become available after publication.
-3. Release notes should describe major changes, platforms and Python versions, configuration compatibility, installation, and experimental boundaries, consistent with [requirements](USER_GUIDE.md#requirements).
+3. Release notes should describe major changes, platforms and Python versions, configuration compatibility, installation, and current limitations, consistent with [requirements](USER_GUIDE.md#requirements).
 4. Run unit/integration tests, Ruff, documentation-link checks, and whitespace checks. Tests use temporary Claude configuration and cover installation, idempotent reinstall, conflict rollback, configuration, rendering, doctor, and uninstallation.
 5. Merge through a PR and confirm complete CI passes on the merge commit. Builds, tags, and Releases must all refer to that commit; use its hash rather than a moving branch name.
 
@@ -44,7 +48,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.2.0
+RELEASE_TAG=v1.3.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -62,8 +66,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-claude_code_statusline-1.2.0-py3-none-any.whl
-claude_code_statusline-1.2.0.tar.gz
+claude_code_statusline-1.3.0-py3-none-any.whl
+claude_code_statusline-1.3.0.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -86,8 +90,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.2.0-py3-none-any.whl \
-  claude_code_statusline-1.2.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.3.0-py3-none-any.whl \
+  claude_code_statusline-1.3.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -96,8 +100,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.2.0-py3-none-any.whl',
-    'claude_code_statusline-1.2.0.tar.gz'
+    'claude_code_statusline-1.3.0-py3-none-any.whl',
+    'claude_code_statusline-1.3.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -111,14 +115,14 @@ Use SHA-256, lowercase hexadecimal digests, two spaces, and filenames without di
 
 ## Create a tag and draft Release
 
-Confirm all 13 CI jobs pass for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
+Confirm all 13 Python/build and four Mod CI jobs pass for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
 
 ```bash
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.2.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.2.0.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.3.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.3.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -152,8 +156,8 @@ Release notes must cite actual validation results. Read CI-covered OS versions, 
 
 Related documentation: [pipx installation sources](https://pipx.pypa.io/latest/reference/examples.html), [creating GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository), and [Release linking rules](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases).
 
-## v1.3.0 preview rollout
+<a id="v130-preview-rollout"></a>
 
-v1.3.0a2 pairs with Mod 1.3.0-alpha.2. Keep stable v1.2.0 installation links. Fresh a2 installs default both TUIs off; explicit enablement and existing independent preferences control them. `/statusline-configure` is the existing external TUI; `/statusline-configure-native` is the in-session Client. Both may coexist.
+## v1.3.0 stable promotion
 
-The maintainer confirmed a1 human acceptance on all three platforms. a2 publishes after the complete Python/build and four fixed Mod CI jobs, real Linux Client/external-entry PTYs, independent wheel/sdist rebuilds and installation checks. Record new Client human checks separately as pending. Build from the verified merge commit, verify draft assets/SHA256, require tag CI, then check public downloads and isolated installs. Use prerelease=true and latest=false. Raw reports stay in dist/validation; publish sanitized conclusions only. This UI change does not run the paid timer suite. Future stable promotion needs a separate PR and the candidate's three-platform human acceptance.
+v1.3.0a2 has confirmed three-platform human acceptance. Stable Python/Mod versions are both 1.3.0; both entries default on with independent compatibility suspension. Missing historical preferences follow the new stable default; explicit false remains off. Update current user links and instructions, preserving historical preview tags/assets/release types and contemporaneous records. Create a new v1.3.0 Release with prerelease=false, latest=true after all gates above pass.

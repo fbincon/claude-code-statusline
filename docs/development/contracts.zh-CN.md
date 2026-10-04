@@ -62,4 +62,4 @@ Client 编辑器首次打开时读取目录和配置，保留完整草稿及数�
 参见[架构](architecture.zh-CN.md)、[原生验收](native.zh-CN.md)和[测试](testing.zh-CN.md)。
 
 
-v1.3.0a2 不改变 JSON 协议 v1 或显示 schema。外部 curses 与 Client 使用打开时 revision 保存。Mod 与 Client 的内部端口使用 epoch、严格递增 seq、累计待确认按键及 ack；一帧合并不会丢掉先前按键，保存按顺序处理。端口快照深复制，generation 拒绝迟到 props。该端口不是新的 CLI/public API。
+v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用打开时 revision 保存。Mod 与 Client 的内部端口使用 epoch、严格递增 seq、累计待确认按键及 ack；一帧合并不会丢掉先前按键，保存按顺序处理。端口快照深复制，generation 拒绝迟到 props。该端口不是新的 CLI/public API。

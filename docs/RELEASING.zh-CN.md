@@ -2,17 +2,21 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.2.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.3.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-稳定 v1.2.0 在兼容宿主默认优先原生，保留明确禁用。维护者已确认固定 v1.2.0a1 候选的三平台真人清单：Linux、Windows 11、macOS 14.5。缺失的架构/终端元数据记为未知，不从 CI 推断；参见[验收记录](development/native.zh-CN.md#稳定版验收记录)。
+正式 v1.3.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
-每个候选要求合并提交的 Python/构建检查、四个固定原生 job（Linux 2.1.287/2.1.288、Windows/macOS 2.1.288）、独立 wheel/sdist/重建及固定标签/公开安装检查。核心 smoke 显式选择兼容接入，原生 smoke 独立检查稳定默认、迁移和禁用。从验证过的合并提交构建，核对标签/草稿资产/SHA256，标签 CI 通过后发布 v1.2.0 并设为 Latest。预览保持显式启用，不设 Latest。
+维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
-运行资源从 `mods/statusline-native` 通过 `src/build_native.py` 打包，生成哈希/版本/协议清单。wheel 与独立 sdist 重建内容应一致，排除开发依赖、宿主声明和原始报告。原始证据在忽略的 `dist/validation`，终端画面重建与真人验收分开记录。Python 包降级前先用新包执行 `install --no-native-editor`，再重新安装旧包。
+每个候选要求 PR、合并提交、标签的全部 13 个 Python/build 和四个固定 Mod job（Linux 2.1.287/2.1.288、Windows/macOS 2.1.288）通过。检查正式默认、主动关闭不反弹、版本门槛、升级/降级、四种组合与独立禁用。核心 smoke 显式选择基础接入，原生 smoke 另检查实际 marketplace、后端绑定、保存与卸载。安装后的 wheel 需通过真实 Linux 两入口 PTY。
+
+从验证过的合并提交构建，核对 wheel/sdist、资源清单与独立重建，验证固定标签、草稿资产和 SHA256；标签 CI 通过后发布正式版并设为 Latest，核验公开下载和隔离安装。运行资源由唯一 Mod 源码打包，排除开发依赖、宿主声明和原始报告。原始证据仅留在忽略的 dist/validation。Python 包降级前先用新版 `install --no-native-editor` 移除原生接入。
+
+本轮只提升已验收 UI 的版本并修改安装策略与文档，不运行付费模型/计时套件。涉及计时行为的发布仍需独立的计时验收门槛。
 
 ## 准备发布提交
 
@@ -22,9 +26,9 @@
 
 完整双语 Release 正文保存在 `docs/releases/<tag>.md`，英文在前，原中文置于可展开区域，Release 标题使用英文。保留各版本当时的支持范围和验证结论；历史中文文档链接应明确标注语言。修改现有 Release 时只更新标题与正文，保留标签、附件、发布类型和 Latest 状态。
 
-1. 从最新 `main` 创建 `fbincon/` 前缀的发布分支，同步 `pyproject.toml`、`src/claude_statusline/_version.py` 和 CLI 测试中的版本。
+1. 从最新 `main` 创建 `fbincon/` 前缀的发布分支，同步 `pyproject.toml`、`src/claude_statusline/_version.py` 、Mod manifest 和 CLI 测试中的版本。
 2. 将变更记录中的“未发布”改为实际发布日期。更新 README、使用指南中的稳定版本、安装与升级 URL，保留历史版本的支持范围；这些链接将在本次 Release 发布后生效。
-3. 发布说明列明主要改动、平台和 Python 版本、配置兼容性、安装方式及实验功能边界，与[运行要求](USER_GUIDE.zh-CN.md#运行要求)一致。
+3. 发布说明列明主要改动、平台和 Python 版本、配置兼容性、安装方式及当前限制，与[运行要求](USER_GUIDE.zh-CN.md#运行要求)一致。
 4. 运行单元和集成测试、Ruff、文档链接及空白检查。测试使用临时 Claude 配置，覆盖安装、幂等重装、冲突回滚、配置、渲染、doctor 和卸载。
 5. 通过 PR 合入 `main`，确认合并提交的完整 CI 通过。后续构建、标签和 Release 都指向该提交，不使用移动中的分支名代替提交号。
 
@@ -38,7 +42,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.2.0
+RELEASE_TAG=v1.3.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -56,8 +60,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-claude_code_statusline-1.2.0-py3-none-any.whl
-claude_code_statusline-1.2.0.tar.gz
+claude_code_statusline-1.3.0-py3-none-any.whl
+claude_code_statusline-1.3.0.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -78,8 +82,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.2.0-py3-none-any.whl \
-  claude_code_statusline-1.2.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.3.0-py3-none-any.whl \
+  claude_code_statusline-1.3.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -88,8 +92,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.2.0-py3-none-any.whl',
-    'claude_code_statusline-1.2.0.tar.gz'
+    'claude_code_statusline-1.3.0-py3-none-any.whl',
+    'claude_code_statusline-1.3.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -107,8 +111,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.2.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.2.0.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.3.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.3.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -140,8 +144,8 @@ gh release edit "$RELEASE_TAG" --repo fbincon/claude-code-statusline \
 
 相关文档：[pipx 安装来源](https://pipx.pypa.io/latest/reference/examples.html)、[GitHub 创建 Release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)、[GitHub Release 链接规则](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)。
 
-## v1.3.0 预览推进
+<a id="v130-预览推进"></a>
 
-v1.3.0a2 对应 Mod 1.3.0-alpha.2。保留 v1.2.0 稳定安装链接；a2 新安装默认关闭两种 TUI，显式启用或沿用独立偏好。`/statusline-configure` 负责现有外部 TUI，`/statusline-configure-native` 负责当前 session 的 Client，允许并存。
+## v1.3.0 正式晋升
 
-维护者已确认 a1 三平台真人验收。a2 经完整 Python/build 和四个固定 Mod CI、Linux 真实 Client/外部入口 PTY、独立 wheel/sdist 重建及安装检查后发布预览；新 Client 真人验收另行记录并标待验收。按已核验合并提交构建，核验草稿资产与 SHA256、tag CI、公开下载和独立安装，设置 prerelease=true、latest=false。原始报告留在 dist/validation，仅发布脱敏结论。本轮 UI 变化不调用付费计时套件。未来稳定晋升需独立 PR 及候选三平台真人验收。
+v1.3.0a2 已获三平台真人验收确认。正式版 Python/Mod 均为 1.3.0，两个入口默认启用并独立降级；缺失历史偏好遵循正式默认，明确 false 保持关闭。更新当前用户安装链接和说明；历史预览标签、资产、发布状态与当时记录保留。新建 v1.3.0 Release，设置 prerelease=false、latest=true，通过上述完整验证后发布。

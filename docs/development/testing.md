@@ -70,14 +70,14 @@ An individual parallel run can finish its agents before the first main Stop and 
 .venv/bin/python tools/live_timer_acceptance.py verify-existing dist/validation/live-timer
 ```
 
-All release gates, including the real timer evidence, must pass before publication. See the [timer contract](timer.md) and [architecture](architecture.md).
+Timer releases require all applicable gates, including real timer evidence, before publication; this UI promotion does not invoke that paid suite. See the [timer contract](timer.md) and [architecture](architecture.md).
 
 ## Client and external-entry checks
 
-v1.3.0a2 checks all four installation combinations, independent disablement, restoration of old owned external resources, foreign command collisions, reinstall, downgrade and uninstall. Python tests exercise both external/Client save orders, asserting stale drafts cannot overwrite or create backups and unrelated settings survive.
+v1.3.0 checks all four installation combinations, independent disablement, restoration of old owned external resources, foreign command collisions, reinstall, downgrade and uninstall. Python tests exercise both external/Client save orders, asserting stale drafts cannot overwrite or create backups and unrelated settings survive.
 
 Fixed-host official tests exercise actual Client modules, Space/Tab/arrows, search shortcut isolation, Ctrl+G, numeric boundaries, acknowledged/deduplicated/gapped batches, fast same-frame input, frozen port snapshots, old epochs, repeated opening, saving locks/reconciliation, Client recovery, cached previews and late responses. Layout covers 32×12, grouped borders, CJK and combining characters.
 
 Automated Linux PTYs check initial click, three pages, save/cancel, Esc and continuing the same session at 120×30 docked and 80×48 inline sizes. Persistent mode uses a private tmux server with both entries installed and verifies Client reads a value saved by the original external popup. Run `tools/native_mod_acceptance.py --persistent --report-dir dist/validation/<new-directory>`; keep raw data private and outside distributions. Wheel/sdist/rebuilt-wheel checks verify Client inventories. Ordinary checks make no paid model calls.
 
-The maintainer confirmed a1 human acceptance on all three platforms. a2 Client human acceptance is recorded separately as pending until supplied; automated evidence is not a substitute. This prerelease may publish after all automated gates pass without the paid timer suite.
+On 2026-10-04 the maintainer confirmed a2 Client human acceptance on Linux, Windows and macOS, separately from the earlier a1 result. Stable promotion keeps the accepted interaction; automated checks validate the installation policy and release assets separately. New tests cover both stable defaults, persistent false, boundary versions 2.1.257/258/286/287/288, unknown versions, explicit enablement on old hosts, rollback of version suspension and preserving user plugin disablement. The official installation smoke also checks actual default installation and disablement followed by reinstall. No paid model/timer suite is run.

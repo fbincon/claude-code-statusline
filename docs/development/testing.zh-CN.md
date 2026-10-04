@@ -70,16 +70,16 @@ Smoke 使用带空格和中文的临时路径，验证安装 dry-run、安装、
 .venv/bin/python tools/live_timer_acceptance.py verify-existing dist/validation/live-timer
 ```
 
-发布前必须满足所有门槛，包括真实计时证据。另见 [计时约定](timer.zh-CN.md) 和 [架构](architecture.zh-CN.md)。
+计时行为发布必须满足所有适用门槛，包括真实计时证据；本轮 UI 晋升不调用付费套件。另见 [计时约定](timer.zh-CN.md) 和 [架构](architecture.zh-CN.md)。
 
 原生 wheel 必须逐字节包含唯一维护源的运行文件与版本/协议/哈希清单，排除测试、开发依赖和宿主声明；sdist 包含 `src/build_native.py` 及 Mod 开发源，独立重建后包文件、metadata、入口应一致。
 
 ## Client 与外部入口检查
 
-v1.3.0a2 检查四种安装组合、分别关闭、旧 owned 外部资源恢复、第三方命令冲突、重装、降级和卸载。Python 测试覆盖外部与 Client 两种保存顺序，验证旧草稿冲突时无覆盖、无多余备份，且保留无关配置。
+v1.3.0 检查四种安装组合、分别关闭、旧 owned 外部资源恢复、第三方命令冲突、重装、降级和卸载。Python 测试覆盖外部与 Client 两种保存顺序，验证旧草稿冲突时无覆盖、无多余备份，且保留无关配置。
 
 固定宿主官方测试覆盖真实 Client 模块、Space/Tab/方向键、搜索快捷键隔离、Ctrl+G、数值边界、批次确认/去重/缺口、同帧快速输入、宿主冻结快照、旧 epoch、重复打开、保存锁与结果核对、Client 恢复、预览缓存及迟到响应。布局检查包含 32×12、分组边框、CJK 和组合字符。
 
 Linux 自动 PTY 在 120×30 停靠及 80×48 内嵌布局检查点击获焦、三页、保存、取消、Esc 和继续同一 session。持久模式使用私有 tmux server，同时安装两条入口，验证原有外部 popup 保存后 Client 读取新值。执行 `tools/native_mod_acceptance.py --persistent --report-dir dist/validation/<新目录>`；原始数据私有保存，不进分发包。wheel/sdist/重建 wheel 核对 Client 模块清单。普通检查不调用付费模型。
 
-维护者已确认 a1 三平台真人验收；a2 的 Client 真人验收单独记录、缺项标待验收，自动测试不作替代。本轮预览版可在全部自动门槛通过后发布，不运行付费计时套件。
+2026-10-04 维护者分别确认 a2 Client 在 Linux、Windows、macOS 真人验收通过。正式晋升沿用已验收交互；自动检查另验证安装策略和发布资产。新增覆盖两个正式默认、明确 false、2.1.257/258/286/287/288 及未知版本、旧宿主显式启用、暂挂回滚及主动插件禁用。官方安装 smoke 另核实真实默认安装、关闭后重装不反弹。本轮不调用付费模型/计时套件。

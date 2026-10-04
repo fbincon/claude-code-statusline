@@ -2,6 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 1.3.0 - 2026-10-04
+
+- Promote the accepted a2 Client interaction after maintainer-confirmed human acceptance on Linux, Windows and macOS.
+- Default both external `/statusline-configure` and in-session `/statusline-configure-native` on, preserving recorded disablement. External needs 2.1.258+, Client 2.1.287+; older/unknown hosts suspend independently and restore after upgrade/reinstall.
+- Persist external disablement as schema-v1 false; suspend verified owned plugins with locked backups/rollback while preserving user plugin disablement. Refresh disabled plugins' owned resources and backend binding during package upgrades.
+- Integrate Native into bilingual README common configuration and user-guide navigation; complete combinations, preference files, compatibility, recovery, upgrades and release instructions, preserving legacy anchors and a2 capture provenance.
+- Synchronize Python/Mod at 1.3.0 and update stable links/Latest; display schemas and JSON protocol v1 remain compatible.
+
 ## 1.3.0a2 - 2026-10-04
 
 - Keep `/statusline-configure` as the external terminal TUI and make `/statusline-configure-native` the experimental in-session Client; independently install, disable and use both.
@@ -10,7 +18,7 @@
 - Separate content/preview with grouped borders, emphasized headings, setting groups, aligned columns and compact layouts; retain separate Claude preference application and uncertain-save checks.
 - Use copied snapshots and cumulative acknowledged input to prevent frozen drafts, lost keys, duplicate saves and stale responses; both save paths share revision protection.
 - Cover installation combinations, upgrade recovery, cross-editor saves, Client, distributions and real PTYs; update bilingual guides and capture provenance.
-- Record a1 human acceptance on all three platforms; a2 Client human acceptance remains separately pending. Prerelease publication keeps Latest at v1.2.0.
+- Record a1 human acceptance on all three platforms; a2 Client human acceptance was separately pending at preview publication. Prerelease publication keeps Latest at v1.2.0.
 
 ## 1.3.0a1 - 2026-10-04
 

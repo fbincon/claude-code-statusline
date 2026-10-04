@@ -19,10 +19,11 @@ This guide uses TUI for the terminal user interface and effort for model reasoni
 - [Feature overview](#feature-overview)
 - [Requirements](#requirements)
 - [Installation and integration](#installation-and-integration)
+- [Native configuration editor](#native-configuration-editor)
 - [Standalone interactive TUI](#standalone-interactive-tui)
+- [External terminal `/statusline-configure`](#external-terminal-statusline-configure)
 - [`/statusline-config` wizard](#statusline-config-wizard)
 - [Configuration recipes](#configuration-recipes)
-- [Experimental `/statusline-configure` entry point](#experimental-statusline-configure-entry-point)
 - [`/statusline-config` execution paths](#statusline-config-execution-paths)
 - [CLI overview](#cli-overview)
 - [Configuration command reference](#configuration-command-reference)
@@ -58,7 +59,8 @@ This guide uses TUI for the terminal user interface and effort for model reasoni
 - Time the full task with `prompt-timer`, from user submission to the main agent's final `Stop`, including time spent waiting for subagents and main-agent wrap-up.
 - Show a fixed `Main/Session` scope label on the main line when the current prompt has launched subagents, distinguishing its measurements from individual subagent rows.
 - Use a standalone full-screen TUI to filter, select, reorder, and preview the complete draft after every keystroke.
-- Optionally install `/statusline-configure` to launch the same TUI from a tmux popup or GNOME Terminal tab on Linux, a tmux popup or Terminal.app on macOS, or a new system console on Windows.
+- Stable defaults `/statusline-configure-native` on for Main, Subagents and Settings inside the current session.
+- Stable defaults `/statusline-configure` on to launch the same TUI from a tmux popup or GNOME Terminal tab on Linux, a tmux popup or Terminal.app on macOS, or a new system console on Windows.
 - Wrap automatically in narrow terminals without truncating long fields; prefer `/` or `\` as break points in long paths.
 - Query Git and aggregate transcripts only when needed; hiding the corresponding items avoids unnecessary data collection.
 - Use cross-platform file locks, backups, and atomic replacement for installation, configuration, and uninstallation to prevent concurrent writes, lost updates, and partially written configuration.
@@ -86,15 +88,16 @@ Unavailable items are omitted rather than replaced with empty placeholders. For 
 - [`pipx`](https://pipx.pypa.io/latest/how-to/install-pipx.html) for isolated installation of a Release wheel or GitHub source.
 - `build`, only when building from source.
 - `git` for installation from GitHub source or displaying Git information. It is not needed when installing a Release wheel without displaying Git information.
-- tmux or GNOME Terminal on Linux, or tmux or the system Terminal.app on macOS, only for the experimental `/statusline-configure` entry point. Windows uses the system `CREATE_NEW_CONSOLE` facility and needs no additional terminal application.
+- tmux or GNOME Terminal on Linux, or tmux or the system Terminal.app on macOS, only for the external `/statusline-configure` entry point. Windows uses the system `CREATE_NEW_CONSOLE` facility and needs no additional terminal application.
 
-The current stable release, [v1.2.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0), provides the same pure-Python wheel for all these platforms. See [macOS installation and validation boundaries](#macos-installation-and-validation-boundaries) for terminal requirements. Native Windows ARM64 Python is not currently guaranteed; ARM devices can use x64 Python emulation. Windows automatically installs [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/) from package metadata.
+The current stable release, [v1.3.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0), provides the same pure-Python wheel for all these platforms. See [macOS installation and validation boundaries](#macos-installation-and-validation-boundaries) for terminal requirements. Native Windows ARM64 Python is not currently guaranteed; ARM devices can use x64 Python emulation. Windows automatically installs [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/) from package metadata.
 
 | Feature | Claude Code version requirement |
 | --- | --- |
 | Main status line, CLI, standalone TUI, and configuration wizard | Available on older or unrecognized versions; unavailable fields are omitted |
 | Individual subagent rows and lifecycle hooks | 2.1.205+; per-task effort requires 2.1.214+ |
-| Local execution of `/statusline-config` with arguments, experimental `/statusline-configure` | 2.1.258+ |
+| Local execution of `/statusline-config` with arguments, external `/statusline-configure` | 2.1.258+ |
+| In-session `/statusline-configure-native` Client | 2.1.287+ |
 
 After upgrading or downgrading across these feature thresholds, rerun `install` and `doctor`. See [version compatibility](#version-compatibility).
 
@@ -106,28 +109,28 @@ After upgrading or downgrading across these feature thresholds, rerun `install` 
 
 ### Install the Python package
 
-Linux / WSL / macOS / Windows users can choose any of the following methods to install stable v1.2.0. The Release wheel and fixed tag provide the same version; default-branch source changes as development continues.
+Linux / WSL / macOS / Windows users can choose any of the following methods to install stable v1.3.0. The Release wheel and fixed tag provide the same version; default-branch source changes as development continues.
 
 **Release URL (recommended; Bash / Zsh / PowerShell):**
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
-**Download first:** Download the wheel from the [v1.2.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0), then run the following from the download directory.
+**Download first:** Download the wheel from the [v1.3.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0), then run the following from the download directory.
 
 Linux / WSL / macOS (Bash / Zsh):
 
 ```bash
-pipx install ./claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install ./claude_code_statusline-1.3.0-py3-none-any.whl
 pipx ensurepath
 ```
 
 Windows (PowerShell):
 
 ```powershell
-pipx install .\claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install .\claude_code_statusline-1.3.0-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -144,8 +147,8 @@ shasum -a 256 -c SHA256SUMS
 In Windows PowerShell, run the following and compare each digest with its entry in `SHA256SUMS`; hexadecimal letter case does not affect the comparison:
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.2.0-py3-none-any.whl -Algorithm SHA256
-Get-FileHash .\claude_code_statusline-1.2.0.tar.gz -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.3.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.3.0.tar.gz -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
@@ -154,11 +157,11 @@ If you download only the wheel, verify its digest individually with `sha256sum f
 **Source at a fixed tag (requires Git; Bash / Zsh / PowerShell):**
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.3.0"
 pipx ensurepath
 ```
 
-**Development source:** Use the following for the current default-branch code. This source is not pinned to v1.2.0.
+**Development source:** Use the following for the current default-branch code. This source is not pinned to v1.3.0.
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
@@ -171,15 +174,15 @@ If you already have a local checkout, run `pipx install .` and `pipx ensurepath`
 
 ### macOS installation and validation boundaries
 
-On macOS 14+, use CPython 3.10–3.14 with `curses`. Intel and Apple Silicon use the same v1.2.0 Release wheel, with no additional macOS Python runtime dependencies. Follow the general installation steps above; for an existing installation, replace the Python package using the [upgrade steps](#upgrading).
+On macOS 14+, use CPython 3.10–3.14 with `curses`. Intel and Apple Silicon use the same v1.3.0 Release wheel, with no additional macOS Python runtime dependencies. Follow the general installation steps above; for an existing installation, replace the Python package using the [upgrade steps](#upgrading).
 
-Reopen Bash / Zsh, run `claude-statusline --version`, and confirm that it prints `claude-statusline 1.2.0` before proceeding with integration below.
+Reopen Bash / Zsh, run `claude-statusline --version`, and confirm that it prints `claude-statusline 1.3.0` before proceeding with integration below.
 
-Run `claude-statusline configure` for the standalone interface. After explicitly enabling the experimental entry point, `/statusline-configure` prefers a tmux popup that passes preflight checks; without valid tmux, it uses Terminal.app in a local graphical session. Window closure or retention follows Terminal's preferences. Over SSH or without a graphical session, use the standalone command in the current terminal or the configuration wizard.
+Run `claude-statusline configure` for the standalone interface. After explicitly enabling the external entry point, `/statusline-configure` prefers a tmux popup that passes preflight checks; without valid tmux, it uses Terminal.app in a local graphical session. Window closure or retention follows Terminal's preferences. Over SSH or without a graphical session, use the standalone command in the current terminal or the configuration wizard.
 
 See the [project README](../README.md#screenshots) and [image index](images/README.md) for the macOS main status line and all three configuration pages.
 
-**Historical releases:** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) is the macOS preview, with core functionality, the standalone TUI, and the tmux entry point, but no Terminal.app launcher. The [v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) wheel, source distribution, and tag do not support macOS. Use the corresponding Release or fixed tag to reproduce historical behavior; use v1.2.0 for everyday installation.
+**Historical releases:** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) is the macOS preview, with core functionality, the standalone TUI, and the tmux entry point, but no Terminal.app launcher. The [v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) wheel, source distribution, and tag do not support macOS. Use the corresponding Release or fixed tag to reproduce historical behavior; use v1.3.0 for everyday installation.
 
 <a id="接入-claude-code"></a>
 
@@ -218,8 +221,9 @@ On Windows, `claude-statusline.exe` must resolve from `PATH`. If the command is 
 3. On Claude Code 2.1.205+, installs `subagentStatusLine` with only `type` and `command`, plus `SubagentStart` and `SubagentStop` hooks. These three entries are suspended on older or unknown versions without affecting the main line.
 4. Installs the user-level personal skill at `<CLAUDE_CONFIG_DIR>/skills/statusline-config/SKILL.md`.
 5. On Claude Code 2.1.258+, installs a `UserPromptExpansion` hook to execute `/statusline-config` commands with arguments locally.
-6. Installs or suspends the experimental `/statusline-configure` skill and 600-second hook according to persistent feature preferences; it is disabled on first installation.
-7. Creates backups before actual changes, then writes files atomically.
+6. Installs or suspends the external `/statusline-configure` skill and 600-second hook according to its independent preference; stable defaults it on.
+7. Integrates the in-session Client according to its independent preference and the 2.1.287 threshold; stable defaults it on, suspending on older/unknown hosts.
+8. Creates backups before actual changes, then writes files atomically.
 
 The installer merges into `settings.json`, preserving unrelated settings and hooks. Repeated `install` calls are idempotent: correct configuration does not result in duplicate hooks or unnecessary backups.
 
@@ -239,6 +243,8 @@ claude-statusline install --dry-run
 
 ### Handle an existing status line or skill with the same name
 
+Ownership checks apply to editor entries actually being installed. Foreign Native commands, marketplace or plugin identities cannot be adopted with `--force`; resolve ownership yourself, or explicitly disable that entry when only the other editor is needed.
+
 If `statusLine` or `subagentStatusLine` belongs to another tool, or a `/statusline-config` or `/statusline-configure` skill lacks this tool's ownership marker, the installer rejects the entire operation before backup or writing. Only use the following when you intend to replace those entries:
 
 ```bash
@@ -246,6 +252,64 @@ claude-statusline install --force
 ```
 
 `--force` allows replacement of conflicting main lines, subagent rows, or skills, while still backing up the original files first. To retain a third-party `subagentStatusLine`, run `claude-statusline config set subagent-statusline off` before a normal `install`.
+
+<a id="native-editor-preview"></a>
+
+<a id="v130a2-external-tui-and-in-session-client"></a>
+
+## Native configuration editor
+
+`/statusline-configure-native` opens Client inside the current Claude Code session without another terminal. It shares configuration, directory, catalog, exclusion rules and atomic saves with external `/statusline-configure`, while each editor keeps its draft. Stable defaults both entries on; restart Claude Code in a trusted terminal after installation.
+
+### Editor installation combinations and compatibility
+
+Without recorded preferences, `claude-statusline install` defaults both entries on. Choose an explicit combination:
+
+| Combination | Command |
+| --- | --- |
+| Both entries | `claude-statusline install --native-editor --experimental-slash-tui` |
+| In-session Client only | `claude-statusline install --native-editor --no-experimental-slash-tui` |
+| External TUI only | `claude-statusline install --no-native-editor --experimental-slash-tui` |
+| Basic integration without either TUI entry | `claude-statusline install --no-native-editor --no-experimental-slash-tui` |
+
+On Windows use `claude-statusline.exe`. The two flag pairs are independent; the historical `--experimental-slash-tui` name remains. Explicit flags override recorded preferences, which override defaults. Plugins explicitly disabled through the host remain disabled.
+
+| Claude Code version | External `/statusline-configure` | In-session `/statusline-configure-native` |
+| --- | --- | --- |
+| 2.1.287+ | Default on | Default on |
+| 2.1.258–2.1.286 | Default on | Suspended |
+| Older or unrecognized | Suspended | Suspended |
+
+Defaults apply only to entries without recorded disablement. Unsupported entries do not block basic integration or the other entry; explicit enabling also retains the preference and suspends the affected entry. Rerun `install` and `doctor` after host upgrades/downgrades. Support restores the entry according to preference; only tool-recorded suspension is automatically reenabled. Meanwhile use `claude-statusline configure`, `claude-statusline config ...` or the `/statusline-config` wizard, which uses model turns.
+
+### Opening, navigation and editing
+
+```text
+/statusline-configure-native
+```
+
+Click the Client region once before keyboard operation. Reexecuting the command focuses the existing pane and retains its draft. Esc belongs to the host: it typically leaves region focus before closing the pane. Use Ctrl+G to cancel input.
+
+| Key | Action |
+| --- | --- |
+| Tab / Shift+Tab; 1 / 2 / 3 | Switch Main, Subagents, Settings |
+| ↑ / ↓; PgUp / PgDn; Home / End | Select, page, first/last item |
+| ← / → | Reorder items or adjust a setting |
+| Space / Enter | Toggle items, operate settings or enter/confirm numeric editing |
+| `/`; Ctrl+U; Ctrl+G | Enter search; clear input; cancel and restore its prior state |
+| `s` / `f` / `q` | Save/continue; save/finish; discard/close |
+| `h` / `a` | Unfold advanced Claude preferences / Apply separately |
+| `r` / `k` / `v` | Discard/reload; check saved state; retry preview |
+
+During search or field editing printable characters are input and character shortcuts pause; refresh accepts a number or `event`. Enabled and disabled items can move. Filtered movement swaps adjacent visible items, preserving hidden-item order. Page changes, resizing and preview refresh retain selection and draft; only enabled ordering is persisted.
+
+Settings groups appearance, refresh/display behavior and advanced Claude preferences. Minimum body is 32×12; at 64×20 or larger grouped borders separate regions, with titled separators in compact space. Preview uses fixed samples without collecting live Git, transcripts or model information.
+
+### Saving, conflicts and recovery
+
+Both editors may remain open. The first save wins; an older revision is rejected without overwriting newer configuration. Client retains conflicting drafts; `r` explicitly discards and reloads before editing again. Saving or an unknown result blocks ordinary closure. Use `k` to check saved state before retrying or closing. Retry/Close buttons outside Client recover failures while retaining the host's received draft.
+
+Advanced Claude preferences have separate Apply; Save/Finish does not implicitly apply them. Closing returns to the original session. See [native development and acceptance](development/native.md).
 
 <a id="独立交互式-tui"></a>
 
@@ -319,7 +383,65 @@ Saving checks for external changes made during editing and rejects conflicting w
 
 Exiting with Esc prints `Status line configuration unchanged.` to stdout and returns 0. Argument, TTY, configuration, installation ownership, terminal initialization, or concurrency errors return 2 without a traceback. Only signals available on the current platform are registered. SIGHUP/SIGTERM on Linux/macOS and supported Windows interruption paths restore the terminal before returning the standard interruption result.
 
-The standalone TUI has no automatic timeout. See the [experimental entry point](#experimental-statusline-configure-entry-point) for launcher timeouts.
+The standalone TUI has no automatic timeout. See the [external entry point](#experimental-statusline-configure-entry-point) for launcher timeouts.
+
+<a id="实验入口-statusline-configure"></a>
+
+<a id="experimental-statusline-configure-entry-point"></a>
+
+## External terminal `/statusline-configure`
+
+This entry point requires Claude Code 2.1.258+ and defaults on in stable releases. Once enabled, enter `/statusline-configure` in Claude Code to launch the same TUI as the standalone command.
+
+<a id="启用与关闭"></a>
+
+### Enable and disable
+
+Stable defaults this entry on. Explicit enablement changes only the external preference:
+
+Linux / WSL / macOS:
+
+```bash
+claude-statusline install --experimental-slash-tui
+```
+
+Windows PowerShell:
+
+```powershell
+claude-statusline.exe install --experimental-slash-tui
+```
+
+The preference is stored in `<CLAUDE_CONFIG_DIR>/claude-statusline-features.json` and survives uninstalling the Python package or running `uninstall`. Running a normal `install` again on a compatible version restores the entry point. To disable it permanently and remove this tool's active skill/hook:
+
+Linux / WSL / macOS:
+
+```bash
+claude-statusline install --no-experimental-slash-tui
+```
+
+Windows PowerShell:
+
+```powershell
+claude-statusline.exe install --no-experimental-slash-tui
+```
+
+These two flags are mutually exclusive; omitting both retains recorded preferences, with an enabled stable default when the file is absent. Either can be combined with `--dry-run` or `--force`. `--dry-run` creates no feature, skill, runtime, or backup directories. Explicit enabling on an older or unrecognized host retains the enabled preference and suspends the entry without blocking basic installation. Rerun install after upgrading.
+
+<a id="使用方式"></a>
+
+### Usage
+
+```text
+/statusline-configure
+```
+
+- Linux prefers a popup in the current tmux session; without tmux, it tries a new GNOME Terminal tab.
+- macOS prefers a popup in a valid tmux session; otherwise, it uses Terminal.app in a local graphical session. Window handling follows Terminal's preferences.
+- Windows opens a new console hosted by the system's default terminal.
+- If neither Linux launcher is available, or macOS has neither valid tmux nor the conditions for local Terminal.app, the command suggests running `claude-statusline configure` in a real terminal or using `/statusline-config`.
+- The TUI cancels automatically after 570 seconds without saving; save, cancellation, or error results return to the original Claude conversation.
+
+This entry point accepts no arguments. `help`, `-h`, and `--help` return usage; other arguments are rejected. An external terminal hosts the TUI. See [experimental launchers and result bridging](#experimental-launchers-and-result-bridging) for launcher selection, result handling, and behavior when hooks are disabled.
 
 <a id="statusline-config-问答向导"></a>
 
@@ -348,7 +470,7 @@ The Session, Modes, and Repository groups, plus `project-name`, `hostname`, `con
 
 The wizard preserves the relative order of items that remain enabled, then appends newly enabled items in default catalog order. After all choices, it calls atomic `config apply` once; cancelling partway through writes no configuration.
 
-The wizard uses Claude Code's question components. It does not launch curses or provide a native embedded status-line popup. For Space selection, arrow-key reordering, and live previews, use the [standalone TUI](#standalone-interactive-tui). For scripted ordering, use the `order` subcommand.
+The wizard uses Claude Code's question components. For item toggles, ordering and sample previews, use the [Client editor](#native-configuration-editor) or [standalone TUI](#standalone-interactive-tui). For scripted ordering, use the `order` subcommand.
 
 For example, reduce the status line to five items, then set their exact order:
 
@@ -432,62 +554,6 @@ claude-statusline config reset
 claude-statusline config show
 ```
 
-<a id="实验入口-statusline-configure"></a>
-
-## Experimental `/statusline-configure` entry point
-
-This entry point requires Claude Code 2.1.258+ and is disabled on first installation. Once enabled, enter `/statusline-configure` in Claude Code to launch the same TUI as the standalone command.
-
-<a id="启用与关闭"></a>
-
-### Enable and disable
-
-The experimental entry point is disabled on first installation and must be explicitly enabled:
-
-Linux / WSL / macOS:
-
-```bash
-claude-statusline install --experimental-slash-tui
-```
-
-Windows PowerShell:
-
-```powershell
-claude-statusline.exe install --experimental-slash-tui
-```
-
-The preference is stored in `<CLAUDE_CONFIG_DIR>/claude-statusline-features.json` and survives uninstalling the Python package or running `uninstall`. Running a normal `install` again on a compatible version restores the entry point. To disable it permanently and remove this tool's active skill/hook:
-
-Linux / WSL / macOS:
-
-```bash
-claude-statusline install --no-experimental-slash-tui
-```
-
-Windows PowerShell:
-
-```powershell
-claude-statusline.exe install --no-experimental-slash-tui
-```
-
-These two flags are mutually exclusive; omitting both retains the previous preference. Either can be combined with `--dry-run` or `--force`. `--dry-run` creates no feature, skill, runtime, or backup directories. Explicit enabling requires a recognized Claude Code 2.1.258+; otherwise, the whole operation fails before writing files.
-
-<a id="使用方式"></a>
-
-### Usage
-
-```text
-/statusline-configure
-```
-
-- Linux prefers a popup in the current tmux session; without tmux, it tries a new GNOME Terminal tab.
-- macOS prefers a popup in a valid tmux session; otherwise, it uses Terminal.app in a local graphical session. Window handling follows Terminal's preferences.
-- Windows opens a new console hosted by the system's default terminal.
-- If neither Linux launcher is available, or macOS has neither valid tmux nor the conditions for local Terminal.app, the command suggests running `claude-statusline configure` in a real terminal or using `/statusline-config`.
-- The TUI cancels automatically after 570 seconds without saving; save, cancellation, or error results return to the original Claude conversation.
-
-This entry point accepts no arguments. `help`, `-h`, and `--help` return usage; other arguments are rejected. An external terminal hosts the TUI. See [experimental launchers and result bridging](#experimental-launchers-and-result-bridging) for launcher selection, result handling, and behavior when hooks are disabled.
-
 <a id="statusline-config-的执行方式"></a>
 
 ## `/statusline-config` execution paths
@@ -536,6 +602,7 @@ claude-statusline config [--config-dir PATH] apply ...
 claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force]
   [--experimental-slash-tui | --no-experimental-slash-tui]
+  [--native-editor | --no-native-editor]
   [--config-dir PATH]
 claude-statusline uninstall [--dry-run] [--config-dir PATH]
 claude-statusline doctor [--config-dir PATH]
@@ -1120,24 +1187,28 @@ If display configuration is corrupted:
 
 <a id="实验功能偏好"></a>
 
-### Experimental feature preferences
+<a id="experimental-feature-preferences"></a>
 
-The persistent `/statusline-configure` preference is saved in:
+### Editor enablement preferences
+
+Both independent files use schema v1:
 
 ```text
 <CLAUDE_CONFIG_DIR>/claude-statusline-features.json
+<CLAUDE_CONFIG_DIR>/claude-statusline-native.json
 ```
-
-A missing file means disabled; when enabled, its contents are:
 
 ```json
-{
-  "schema_version": 1,
-  "experimental_slash_tui": true
-}
+{"schema_version": 1, "experimental_slash_tui": false}
 ```
 
-The file has a strict schema, `0600` permissions on Linux/macOS, and inherited ACLs on Windows. Boolean `false` is also read as disabled, but the disable command deletes the file. Normal `install` rejects unknown or missing fields, invalid types, unknown schemas, or malformed JSON. Explicit `--experimental-slash-tui` backs up and repairs it; explicit `--no-experimental-slash-tui` backs up and deletes it.
+```json
+{"schema_version": 1, "native_editor": false}
+```
+
+These booleans control the external entry and in-session Client respectively. A missing file follows the enabled stable default or disabled prerelease default. Explicit enabling/disabling saves true/false; unsupported hosts suspend without rewriting the enabled preference. Reinstall preserves recorded values and uninstall retains them. Since v1.3.0 external disablement saves false instead of deleting its file.
+
+Fields, types, duplicate keys and schema are strictly validated; install/doctor report invalid preferences rather than guessing. Explicit flags back up and repair the corresponding preference. Linux/macOS use 0600 permissions; Windows uses inherited ACLs.
 
 <a id="claude-code-宿主配置"></a>
 
@@ -1188,7 +1259,7 @@ These last two variables are usually unnecessary. Changing them may temporarily 
 
 ## Upgrading
 
-First upgrade the Python package to stable v1.2.0, then synchronize the Claude Code integration. Users of v1.0.0 or v1.1.0a1 follow the same steps.
+First upgrade the Python package to stable v1.3.0, then synchronize the Claude Code integration. Users of v1.0.0 or v1.1.0a1 follow the same steps.
 
 <a id="替换-python-包"></a>
 
@@ -1199,19 +1270,19 @@ Choose any one of these sources. Release URL and Git URL commands work in Bash /
 **Stable Release URL (recommended; all supported platforms):**
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
 ```
 
 **Local wheel:** Download from the Release, [verify the files](#install-the-python-package), and run from the download directory.
 
 ```bash
-pipx install --force ./claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install --force ./claude_code_statusline-1.3.0-py3-none-any.whl
 ```
 
 Windows PowerShell:
 
 ```powershell
-pipx install --force .\claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install --force .\claude_code_statusline-1.3.0-py3-none-any.whl
 ```
 
 Locally built wheels are under the project's `dist/`; use `dist/filename.whl` or `.\dist\filename.whl` accordingly.
@@ -1219,7 +1290,7 @@ Locally built wheels are under the project's `dist/`; use `dist/filename.whl` or
 **Source at a fixed tag:**
 
 ```text
-pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
+pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.3.0"
 ```
 
 To follow the default branch, replace the tag with `@main`. For local source upgrades, update the checkout first, then run `pipx install --force .` in the project root. Rebuild the wheel first when building yourself. These sources install code from the specified branch or directory; filenames must match the actual generated version.
@@ -1227,6 +1298,8 @@ To follow the default branch, replace the tag with `@main`. For local source upg
 <a id="同步-claude-code-接入"></a>
 
 ### Synchronize Claude Code integration
+
+Upgrading from a2 or v1.2.0 preserves recorded true/false. Older external disable commands deleted the file, leaving no way to distinguish never-enabled from deliberately disabled. Absence follows the new enabled default; pass `--no-experimental-slash-tui` to keep it off, or `--no-native-editor` for external-only mode. Restart Claude Code afterward. Reinstall restores enabled owned external resources removed by older native migration.
 
 Linux / WSL / macOS:
 
@@ -1252,13 +1325,13 @@ Rerun `install` to synchronize skill templates, command paths, hooks, and versio
 
 ### Version compatibility
 
-Display configuration and experimental feature preferences have independent formats, currently schema v2 and schema v1 respectively. Upgrading this tool to 1.0.0, 1.1.0a1, 1.1.1, 1.2.0, or 1.3.0a2 introduces no new format conversion; existing schema v2 files remain usable. Earlier schema v1 display configurations follow these rules:
+Display configuration and the independent editor preferences have separate formats, currently schema v2 and schema v1 respectively. Upgrading this tool to 1.0.0, 1.1.0a1, 1.1.1, 1.3.0, or 1.3.0a2 introduces no new format conversion; existing schema v2 files remain usable. Earlier schema v1 display configurations follow these rules:
 
 Schema v1 remains readable: main items, order, colors, palette, directory, and separator remain intact, with v2 defaults supplied in memory. Simply running `render`, `render-subagents`, `doctor`, or `install` does not rewrite v1. The first actual configuration save backs up the original bytes in the same transaction and writes canonical schema v2. Schema v2 strictly rejects unknown/missing fields, duplicates, and incorrect types; schemas above v2 are rejected. Downgrading to 0.5.0 makes the old program fall back to defaults; restore the pre-upgrade backup to edit the old schema again.
 
 Claude Code feature thresholds are independent of this tool's version:
 
-If the experimental entry point is enabled and Claude Code is downgraded below 2.1.258, or its version becomes unrecognizable, a normal `install` retains the preference but removes and suspends the active entry point. After upgrading, rerun `install` to restore it. Always run `install` and `doctor` after crossing this threshold.
+If the external entry point is enabled and Claude Code is downgraded below 2.1.258, or its version becomes unrecognizable, a normal `install` retains the preference but removes and suspends the active entry point. After upgrading, rerun `install` to restore it. Always run `install` and `doctor` after crossing this threshold.
 
 Subagent support has its own 2.1.205 threshold. Versions 2.1.205–2.1.213 omit only per-task effort when unavailable; 2.1.214+ shows full model/effort. Rerun `install` after crossing 2.1.205: downgrading removes only the owned `subagentStatusLine` and two subagent hooks, while upgrading restores them according to `subagents.enabled`.
 
@@ -1302,11 +1375,12 @@ It preserves:
 - Hooks defined by other tools or the user.
 - Third-party `subagentStatusLine`.
 - Display preferences in `claude-statusline.json`.
-- Experimental preferences in `claude-statusline-features.json`; a later normal `install` on a compatible version restores the entry point.
+- Editor enablement preferences in `claude-statusline-features.json`; a later normal `install` on a compatible version restores the entry point.
+- Independent Native preference in `claude-statusline-native.json`; only tool-recorded suspension restores automatically, preserving user plugin disablement.
 - Token, Git, and timer runtime state.
 - Backups created by the installer.
 
-Reinstallation can therefore reuse existing display preferences. To disable the experimental entry point permanently, run `claude-statusline install --no-experimental-slash-tui` first. For complete removal of other retained data, verify the exact paths before deleting files manually.
+Reinstallation can therefore reuse existing display preferences. To keep both entries disabled, run `claude-statusline install --no-native-editor --no-experimental-slash-tui` first. For complete removal of other retained data, verify the exact paths before deleting files manually.
 
 <a id="备份与回滚"></a>
 
@@ -1335,6 +1409,8 @@ If a later step fails during normal writing, the tool automatically attempts tra
 
 ## `doctor` diagnostics
 
+- Independent editor preferences, release defaults and compatibility suspension; Native resources, backend binding, plugin enablement and session-loading boundaries.
+
 ```bash
 claude-statusline doctor
 ```
@@ -1351,7 +1427,7 @@ claude-statusline doctor
 - Correct `/statusline-config` skill and ownership marker.
 - Valid experimental feature file; `0600` on Linux/macOS, without false permission errors on Windows.
 - Whether `/statusline-configure` is `disabled`, `enabled`, or `suspended` due to version incompatibility; when enabled, completeness of the skill, owner marker, unique matcher, and 600-second hook.
-- At least tmux or GNOME Terminal for an enabled experimental entry point on Linux; local Terminal.app and graphical-session conditions plus tmux availability on macOS; system new-console capability on Windows. Diagnostics do not open desktop windows.
+- At least tmux or GNOME Terminal for an enabled external entry point on Linux; local Terminal.app and graphical-session conditions plus tmux availability on macOS; system new-console capability on Windows. Diagnostics do not open desktop windows.
 - macOS architecture, the 14+ OS range, curses, process start identity, sleep-inclusive clock, and parent-directory sync. Unavailable process, clock, or sync capabilities produce WARN degradation messages.
 - Windows `windows-curses` backend, x86/x64 architecture contract, and system new-console launcher.
 - Display JSON, schema v1 migration status, and permissions.
@@ -1418,9 +1494,16 @@ Confirm that `/statusline-config skill` is OK in doctor. If installation happene
 
 <a id="statusline-configure-不可见或显示-suspended"></a>
 
+### `/statusline-configure-native` is missing, ignores keys or cannot save
+
+1. Run `claude-statusline doctor` to check host 2.1.287+, resources and backend binding. Suspension on an older host is compatibility handling.
+2. Check recorded disablement, host plugin disablement, safe/bare mode and policy. If needed, run `install --native-editor` and restart Claude Code in a trusted terminal.
+3. Click the Client region once before keyboard use. Ctrl+G cancels input; Esc remains host-owned.
+4. Conflicts retain the draft; `r` explicitly discards/reloads. Use `k` to check unknown save outcomes and Retry/Close for failures. Reinstall the matching wheel/integration for version or resource mismatch; do not adopt foreign caches manually.
+
 ### `/statusline-configure` is missing or suspended
 
-Confirm explicit enabling and synchronize with the current Claude Code version:
+Check the host version and recorded preference. Stable defaults this entry on; explicitly restore it with:
 
 ```bash
 claude --version
@@ -1428,11 +1511,13 @@ claude-statusline install --experimental-slash-tui
 claude-statusline doctor
 ```
 
-Explicit enabling fails before writing below 2.1.258 or with an unrecognized version. After an enabled installation is downgraded, normal `install` retains the preference but suspends and removes the active skill/hook, hiding the command from the slash menu. Upgrade to a compatible version, rerun normal `install`, and open a new Claude Code session.
+Explicit enabling below 2.1.258 or on an unrecognized host retains the preference and suspends the entry without blocking basic installation. After an enabled installation is downgraded, normal `install` retains the preference but suspends and removes the active skill/hook, hiding the command from the slash menu. Upgrade to a compatible version, rerun normal `install`, and open a new Claude Code session.
 
 <a id="实验入口无法打开新终端"></a>
 
-### Experimental entry point cannot open a terminal
+<a id="experimental-entry-point-cannot-open-a-terminal"></a>
+
+### External entry point cannot open a terminal
 
 The tmux path requires valid `TMUX`, `TMUX_PANE` shaped as `%<digits>`, and access to the target server/pane within a 2-second preflight check in the hook environment. An invalid Linux target falls back to GNOME; macOS checks the local graphical session and Terminal.app instead. Missing prerequisites lead to a standalone-command suggestion. Once tmux is selected successfully, failure inside the popup does not launch another terminal.
 
@@ -1559,10 +1644,10 @@ Frequent internal commands `render`, `render-subagents`, `hook`, and `slash-hook
 - Configuration is global per user; there is no project-level configuration.
 - Apart from optional local hostname via `socket.gethostname()`, metrics come only from Claude Code payloads, local Git, and transcripts.
 - Claude Code `/theme` is not followed; `default` palette uses this project's fixed RGB colors.
-- There is no native Claude Code TUI extension. The experimental entry point uses tmux/GNOME on Linux, tmux/Terminal.app on macOS, and the system new console on Windows, reusing the standalone TUI.
+- In-session Client requires 2.1.287+ and one initial click for focus. Esc belongs to the host; Ctrl+G cancels input. The external entry retains the existing platform terminal launchers.
 - Linux/macOS do not access `/dev/tty`. None of the three platforms writes CSI/alternate-screen sequences to the Claude pane, bypasses hook stdio, caches the current session payload, or persists disabled-item ordering.
-- Experimental TUI launching is not guaranteed in IDEs, `claude -p`, remote Web environments, globally disabled hooks, or terminal environments outside the listed platform launchers.
-- Mouse, drag-and-drop, and custom keybindings are not provided.
+- External TUI launching is not guaranteed in IDEs, `claude -p`, remote Web environments, globally disabled hooks, or terminal environments outside the listed platform launchers.
+- Drag-and-drop and custom keybindings are not provided. Client requires an initial click before keyboard operation; the standalone TUI uses the keyboard.
 - Completion timing includes only ordinary agent-task lifecycles; background shell, server, monitor, workflow, and agent-team-specific ledgers do not block completion.
 - There is no per-agent historical ledger, Git, cache hit/miss/out, or session aggregation; subagent rows show only Claude's current payload.
 - Agent focus is not inferred; the global bottom line always describes the main agent/session.
@@ -1634,7 +1719,7 @@ python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-1.3.0-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -1644,13 +1729,13 @@ Windows PowerShell:
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install .\dist\claude_code_statusline-1.3.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-These filenames correspond to stable v1.2.0; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](#integrate-with-claude-code).
+These filenames correspond to stable v1.3.0; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](#integrate-with-claude-code).
 
-In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.2.0-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](RELEASING.md) for the complete process.
+In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.3.0-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](RELEASING.md) for the complete process.
 
 <a id="隔离测试与人工验收"></a>
 
@@ -1753,7 +1838,9 @@ Global Enter calls the existing atomic configuration transaction once. No change
 
 <a id="实验启动器与结果回传"></a>
 
-### Experimental launchers and result bridging
+<a id="experimental-launchers-and-result-bridging"></a>
+
+### External launchers and result bridging
 
 The external `/statusline-configure` is a terminal launcher and does not bypass hook terminal isolation. Claude Code 2.1.259 command hooks run in a new session without a controlling terminal: hooks and children cannot open `/dev/tty`, and `terminalSequence` cannot draw curses. The slash command therefore serves only as a local launcher for existing `claude-statusline configure` in another supported terminal. It reuses the existing state machine, sample preview, concurrency detection, and atomic save.
 
@@ -1783,32 +1870,9 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 
 <a id="相关文档"></a>
 
-
-<a id="native-editor-preview"></a>
-
-## Native configuration editor
-
-### v1.3.0a2: external TUI and in-session Client
-
-`/statusline-configure` keeps the existing external terminal TUI. `/statusline-configure-native` opens the experimental Client TUI in the current session without another terminal. Enable either or install both; no additional command name is introduced.
-
-```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a2/claude_code_statusline-1.3.0a2-py3-none-any.whl"
-claude-statusline install --experimental-slash-tui --native-editor
-claude-statusline doctor
-```
-
-Restart Claude Code in a trusted terminal. Enable only the desired entry if you need one; `--no-experimental-slash-tui` and `--no-native-editor` disable them independently. Fresh prerelease installs default both off and existing preferences persist. Reinstall restores an enabled owned external entry removed by older native migration.
-
-Click the Client region once, then use Tab for pages, arrows for selection/order and Space for toggles. / enters search, Ctrl+G cancels editing, s saves/continues, f saves/finishes and q discards/closes. Character shortcuts yield during input. Esc is host-owned: it returns focus before closing. h unfolds Claude preferences and a applies them separately. Content/columns/preview have distinct groups; minimum body is 32×12, with borders in normal space and titled separators in compact panes.
-
-Both editors may open concurrently; shared opening revisions prevent overwriting a newer save. Client keeps conflicting drafts: r discards/reloads, k checks an unknown save. Rerunning the native command retains its draft. See [complete controls and installation boundaries](development/native.md#editor-behavior).
-
-**Latest stable remains v1.2.0.** The maintainer confirmed v1.3.0a1's native-control UI passed human acceptance on all three platforms. v1.3.0a2 Client human checks are separate and currently pending; CI and Linux PTY checks are automated evidence.
-
 ## Related documentation
 
-The [native configuration editor](development/native.md) provides Main, Subagents and Settings in a source-loaded Mod, with revision-protected saves and separate host preferences. Stable installation remains v1.2.0; native preview installation is opt-in and human editor acceptance remains a separate gate.
+Stable v1.3.0 integrates both editors by default on compatible hosts. See [native development and acceptance](development/native.md) for the bundled Mod, revision protection and confirmed three-platform human acceptance.
 
 - [Project README](../README.md): introduction, screenshots, and quick installation.
 - [Claude Code:Customize your status line](https://code.claude.com/docs/en/statusline)
