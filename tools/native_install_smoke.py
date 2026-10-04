@@ -63,10 +63,18 @@ def main() -> int:
         assert run("--version").strip() == f"claude-statusline {__version__}", (
             "PATH must select the matching installed backend"
         )
+        run("install", "--no-experimental-slash-tui", "--no-native-editor")
+        assert native.owner(config) is None
+        assert not (config / "skills/statusline-configure/SKILL.md").exists()
         run("install", "--experimental-slash-tui", "--no-native-editor")
         assert (config / "skills/statusline-configure/SKILL.md").is_file()
         run("install", "--native-editor")
+        assert (config / "skills/statusline-configure/SKILL.md").is_file()
+        run("install", "--no-experimental-slash-tui")
+        assert native.owner(config)
         assert not (config / "skills/statusline-configure/SKILL.md").exists()
+        run("install", "--experimental-slash-tui")
+        assert (config / "skills/statusline-configure/SKILL.md").is_file()
         marker = native.owner(config)
         assert marker is not None and marker["backend_version"] == __version__
         settings = (config / "settings.json").read_bytes()
@@ -150,11 +158,12 @@ def main() -> int:
         assert not any(row["id"] == native.PLUGIN for row in host.listing()[1])
         report.update(
             installed=True,
+            four_install_combinations=True,
             repeat=True,
             bridge_saved=True,
             preview=True,
             external_disable_preserved=True,
-            legacy_restored=True,
+            external_entry_preserved=True,
             uninstalled=True,
             resource_files=len(marker["files"]),
             runtime_fingerprint=hashlib.sha256(

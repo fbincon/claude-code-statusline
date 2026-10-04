@@ -19,11 +19,13 @@ import shutil
 import struct
 import subprocess
 import sys
+import tempfile
+import shlex
 import time
 
 
 def prepare(
-    root: Path, backend: Path, *, persistent: bool = False
+    root: Path, backend: Path, *, persistent: bool = False, claude: str = "claude"
 ) -> tuple[Path, dict[str, str]]:
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     config = root / "Claude config 中文"
@@ -65,12 +67,20 @@ def prepare(
         CLAUDE_STATUSLINE_NATIVE_EXECUTABLE=str(backend),
     )
     env.pop("CLAUDECODE", None)
-    env["PATH"] = str(backend.parent) + os.pathsep + env.get("PATH", "")
+    # A fixed npm host resolves to a binary named claude.exe on Linux. Put a
+    # private canonical name on PATH so the installer/backend use that host too.
+    host_directory = root / "host-bin"
+    host_directory.mkdir(mode=0o700)
+    (host_directory / "claude").symlink_to(
+        Path(shutil.which(claude) or claude).resolve()
+    )
+    env["PATH"] = os.pathsep.join((str(backend.parent), str(host_directory), env.get("PATH", "")))
     subprocess.run(
         [
             str(backend),
             "install",
             "--native-editor" if persistent else "--no-native-editor",
+            *(["--experimental-slash-tui"] if persistent else []),
             "--config-dir",
             str(config),
         ],
@@ -78,7 +88,7 @@ def prepare(
         env=env,
         capture_output=True,
         check=True,
-        timeout=30,
+        timeout=180,
     )
     return project, env
 
@@ -117,13 +127,15 @@ def run_pty(
         fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
         os.tcsetpgrp(slave, os.getpgrp())
 
+    command_argv = [claude, *([] if persistent else ["--plugin-dir", str(plugin)]),
+                    "--debug-file", str(root / f"debug-{columns}.log")]
+    tmux_directory = tempfile.TemporaryDirectory(prefix="statusline-client-tmux-") if persistent else None
+    tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
+    if tmux_socket:
+        command_argv = ["tmux", "-f", "/dev/null", "-S", str(tmux_socket),
+                        "new-session", "-s", "validation", shlex.join(command_argv)]
     process = subprocess.Popen(
-        [
-            claude,
-            *([] if persistent else ["--plugin-dir", str(plugin)]),
-            "--debug-file",
-            str(root / f"debug-{columns}.log"),
-        ],
+        command_argv,
         cwd=project,
         env=env,
         stdin=slave,
@@ -133,11 +145,29 @@ def run_pty(
         close_fds=True,
     )
     raw = bytearray()
-    screen = pyte.Screen(columns, terminal_rows)
+    class CaptureScreen(pyte.Screen):
+        def write_process_input(self, data):
+            os.write(master, data.encode("utf-8"))
+
+        def report_device_status(self, mode, **kwargs):
+            # tmux queries the outer terminal's private cursor position. pyte
+            # lacks that keyword; answer it as a normal terminal would.
+            if kwargs.get("private"):
+                if mode == 6:
+                    self.write_process_input(
+                        f"\x1b[?{self.cursor.y + 1};{self.cursor.x + 1}R"
+                    )
+                return
+            super().report_device_status(mode)
+
+    screen = CaptureScreen(columns, terminal_rows)
     stream = pyte.Stream(screen)
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
 
-    def read_until(text: str | tuple[str, ...], *, start: int = 0, timeout: int = 30):
+    def read_until(
+        text: str | tuple[str, ...], *, start: int = 0,
+        timeout: int = 30, quiet: bool = True,
+    ):
         deadline = time.monotonic() + timeout
         last_output = time.monotonic()
         while time.monotonic() < deadline:
@@ -155,7 +185,7 @@ def run_pty(
             for candidate in candidates:
                 if (
                     len(raw) > start
-                    and time.monotonic() - last_output >= 0.25
+                    and (not quiet or time.monotonic() - last_output >= 0.25)
                     and re.sub(r"\s+", "", candidate) in compact
                 ):
                     return candidate
@@ -188,17 +218,13 @@ def run_pty(
             )
         os.write(master, text.encode("utf-8") + b"\r")
 
-    def reveal(text):
-        # Inline panes may be shorter than the requested rows. Native Tab
-        # navigation scrolls the focused control into view on that host.
-        for _ in range(16):
-            try:
-                return read_until(text, timeout=1)
-            except RuntimeError:
-                if process.poll() is not None:
-                    raise
-                os.write(master, b"\t")
-        raise RuntimeError(f"Native focus/scroll did not reveal {text!r}")
+    def click_client():
+        row = next((i for i, line in enumerate(screen.display) if "Filter:" in line), None)
+        if row is None:
+            raise RuntimeError("Client filter row is not visible for focus click")
+        col = screen.display[row].index("Filter:") + 3
+        os.write(master, f"\x1b[<0;{col+1};{row+1}M\x1b[<0;{col+1};{row+1}m".encode())
+        time.sleep(0.3)
 
     try:
         # The fresh isolated project may still require its trust acknowledgement.
@@ -207,77 +233,109 @@ def run_pty(
             os.write(master, b"\r")
             read_until("❯")
         offset = len(raw)
-        command(
-            "/statusline-configure" if persistent else "/statusline-configure-native"
-        )
-        placed = read_until(("Configure Status Line", "Resize pane to 32x12"), start=offset)
-        resized = placed != "Configure Status Line"
+        command("/statusline-configure-native")
+        placed = read_until(("Client TUI", "Resize pane to 32x12"), start=offset)
+        resized = placed != "Client TUI"
         if resized:
-            # Inline panes share height with the composer/statusline. Exercise
-            # terminal resize rather than treating a valid minimum-size prompt
-            # as a load failure or secretly lowering the editor's requirement.
-            import fcntl
-            import termios
-
-            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 42, columns, 0, 0))
-            screen.resize(lines=42, columns=columns)
+            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 48, columns, 0, 0))
+            screen.resize(lines=48, columns=columns)
             os.killpg(process.pid, signal.SIGWINCH)
-            read_until("Configure Status Line")
-        read_until("Preview (sample data)")
+            read_until("Client TUI")
+        read_until("sample data")
         capture("main")
-        # autoFocus and page focus are surface behaviours, not callback tests.
-        os.write(master, b"\r")
+        click_client()
+        os.write(master, b" ")
         read_until("[ ] Model and effort")
-        os.write(master, b"t")
+        os.write(master, b" ")
         read_until("[x] Model and effort")
-        os.write(master, b"n")
-        read_until("2/")
-        capture("main-next")
-        os.write(master, b"p")
-        read_until("[x] Model and effort")
-        os.write(master, b"\r")
-        read_until("[ ] Model and effort")
-        os.write(master, b"t")
-        read_until("[x] Model and effort")
-        os.write(master, b"2")
-        reveal("Custom subagent rows")
-        capture("subagents")
-        os.write(master, b"3")
-        reveal("Tool settings")
-        capture("settings")
-        os.write(master, b"c")
-        reveal("Colors: off")
+        os.write(master, b"/git")
+        read_until("Filter: git")
+        os.write(master, b"\x07")
+        read_until("Filter: [/ search]")
+        os.write(master, b"\x1b[B\x1b[B")
+        read_until("Detail: Git")
+        offset = len(raw)
+        os.write(master, b"\x1b[D")
+        read_until("Main items", start=offset)
         os.write(master, b"s")
         read_until("Tool configuration saved")
-        assert (config / "claude-statusline.json").exists(), (
-            "Save did not create display configuration"
-        )
+        ordered = json.loads((config / "claude-statusline.json").read_bytes())["items"]
+        assert ordered.index("git") < ordered.index("current-dir"), "Left arrow did not move Git before Directory"
+        offset = len(raw)
+        os.write(master, b"\x1b[C")
+        read_until("Main items", start=offset)
+        os.write(master, b"\x1b[H")
+        read_until("[x] Model and effort")
+        os.write(master, b"\x1b[6~")
+        read_until("2/")
+        capture("main-next")
+        os.write(master, b"\x1b[H")
+        read_until("[x] Model and effort")
+        os.write(master, b"\t")
+        read_until("Subagent items")
+        capture("subagents")
+        os.write(master, b"\t")
+        read_until("Tool settings")
+        capture("settings")
+        os.write(master, b"\x1b[B" * 5 + b"\r\x159")
+        read_until("Padding 9 _")
+        os.write(master, b"\x07")
+        read_until("Padding 0")
+        os.write(master, b"\x1b[H")
+        read_until("Colors on")
+        os.write(master, b" ")
+        read_until("Colors off")
+        os.write(master, b"s")
+        read_until("Tool configuration saved")
         saved = (config / "claude-statusline.json").read_bytes()
         assert json.loads(saved)["use_colors"] is False
         capture("saved")
-        os.write(master, b"c")
-        reveal("Colors: on")
+        os.write(master, b" ")
+        read_until("Colors on")
         os.write(master, b"q")
-        time.sleep(0.5)
+        read_until("❯")
         command("/statusline-configure-native")
-        read_until("Configure Status Line")
+        read_until("Client TUI")
+        click_client()
         os.write(master, b"3")
-        reveal("Colors: off")
+        read_until("Colors off")
         os.write(master, b"\x1b")
-        time.sleep(0.5)
+        read_until("Tool settings")
+        assert any("Tool settings" in row for row in screen.display), "First Esc closed Client pane"
+        os.write(master, b"\x1b")
+        read_until("❯")
         command("/statusline-config show")
         read_until("Hide Vim mode indicator:")
-        assert (config / "claude-statusline.json").read_bytes() == saved, (
-            "Cancel changed saved display configuration"
-        )
-        assert (config / "settings.json").read_bytes() == settings_before, (
-            "Unchanged host fields were rewritten"
-        )
+        assert (config / "claude-statusline.json").read_bytes() == saved, "Cancel changed persisted display"
+        assert (config / "settings.json").read_bytes() == settings_before, "Unchanged host fields were rewritten"
         command("/statusline-configure-native")
-        read_until("Configure Status Line")
+        read_until("Client TUI")
+        click_client()
         os.write(master, b"f")
         read_until("❯")
-        time.sleep(0.5)
+        external_verified = False
+        if persistent:
+            command("/statusline-configure")
+            # The guarded curses loop repaints continuously. Wait for its
+            # actual title/search content rather than a silent terminal.
+            read_until("Configure Status Line", quiet=False)
+            read_until("Type to search", quiet=False)
+            capture("external")
+            # Original curses flow: Tab changes page, Space toggles, Enter saves.
+            os.write(master, b"\t\t")
+            read_until("Use arrows to change values", quiet=False)
+            os.write(master, b" ")
+            os.write(master, b"\r")
+            read_until("Status line configuration updated")
+            assert json.loads((config / "claude-statusline.json").read_bytes())["use_colors"] is True
+            command("/statusline-configure-native")
+            read_until("Client TUI")
+            click_client()
+            os.write(master, b"3")
+            read_until("Colors on")
+            os.write(master, b"q")
+            read_until("❯")
+            external_verified = True
         command("/statusline-config show")
         read_until("Hide Vim mode indicator:")
         return {
@@ -288,19 +346,28 @@ def run_pty(
             "opened": True,
             "pages": ["main", "subagents", "settings"],
             "toggle": True,
-            "enter_toggles_focused_item": True,
+            "space_toggles_item": True,
+            "keyboard_after_click": True,
             "pagination": True,
+            "arrow_ordering": True,
+            "search_ctrl_g": True,
+            "numeric_ctrl_g": True,
             "save_and_close": True,
             "saved": True,
             "cancel_reopen": True,
             "esc_return": True,
-            "legacy_command": True,
+            "external_entry_verified": external_verified,
             "catalog_items": 34,
             "sample_preview": True,
             "persistent_plugin": persistent,
             "manual_visual_acceptance": False,
         }
     finally:
+        (root / f"screen-{columns}.txt").write_text(
+            "\n".join(screen.display), encoding="utf-8"
+        )
+        if tmux_socket:
+            subprocess.run(["tmux", "-S", str(tmux_socket), "kill-server"], capture_output=True, timeout=5)
         if process.poll() is None:
             os.killpg(process.pid, signal.SIGTERM)
             try:
@@ -308,14 +375,13 @@ def run_pty(
             except subprocess.TimeoutExpired:
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait(timeout=5)
+        if tmux_directory:
+            tmux_directory.cleanup()
         os.close(master)
         os.close(slave)
         output = root / f"terminal-{columns}.bin"
         output.write_bytes(raw)
         output.chmod(0o600)
-        (root / f"screen-{columns}.txt").write_text(
-            "\n".join(screen.display), encoding="utf-8"
-        )
 
 
 def main() -> int:
@@ -342,7 +408,7 @@ def main() -> int:
     root = args.report_dir.resolve()
     plugin = args.plugin.resolve()
     backend = args.backend.resolve()
-    project, environment = prepare(root, backend, persistent=args.persistent)
+    project, environment = prepare(root, backend, persistent=args.persistent, claude=args.claude)
     report = {
         "os": platform.platform(),
         "architecture": platform.machine(),
@@ -369,7 +435,7 @@ def main() -> int:
         report_path = root / "report.json"
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         print(
-            "Run /statusline-configure-native (also /statusline-configure when installed), verify all three pages, Tab/Enter, narrow/CJK layout, numeric Esc, save/refresh, cancel, host preferences and return to the same session.\n"
+            "Run /statusline-configure-native, click the Client region, verify all three pages, Space/Tab/arrows, numeric Ctrl+G, save/finish, Esc focus/close, cancel, Claude preferences and return to the same session. /statusline-configure separately opens the external TUI.\n"
             "Repeat in a narrow window. Send no model prompt. Use /exit when finished.\n"
             f"Environment recorded in {report_path}; manual acceptance stays pending until you report the result.",
             flush=True,

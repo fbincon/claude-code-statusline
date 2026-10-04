@@ -40,7 +40,7 @@ Each screenshot reflects its own terminal session, layout, and settings. Display
 
 [Main](native-main-v1.3.0a1-linux.png) · [Subagents](native-subagents-v1.3.0a1-linux.png) · [Settings](native-settings-v1.3.0a1-linux.png)
 
-These PNGs reconstruct real decoded cells from Linux x86_64, Claude Code 2.1.288, backend 1.3.0a1 and a persistent official plugin at clean source commit `4cd97dd480aa0025fb9edc7644b872bf3fa6336b` (2026-10-04). The docked terminal measured 120×30; the same automated run also checked 80×48 inline operation. The renderer crops transcript/composer content and embeds the commit and capture hash. Values are production sample data; these are terminal reconstructions, not OS pixel screenshots or mockups. The capture source stays in ignored `dist/validation/native-usability-capture-288`. New human acceptance remains pending on all three platforms.
+These PNGs reconstruct real decoded cells from Linux x86_64, Claude Code 2.1.288, backend 1.3.0a1 and a persistent official plugin at clean source commit `4cd97dd480aa0025fb9edc7644b872bf3fa6336b` (2026-10-04). The docked terminal measured 120×30; the same automated run also checked 80×48 inline operation. The renderer crops transcript/composer content and embeds the commit and capture hash. Values are production sample data; these are terminal reconstructions, not OS pixel screenshots or mockups. The capture source stays in ignored `dist/validation/native-usability-capture-288`. The maintainer subsequently confirmed a1 human acceptance on all three platforms; a2 Client acceptance is separate.
 
 ### v1.2.0 captures
 
@@ -49,3 +49,9 @@ These PNGs reconstruct real decoded cells from Linux x86_64, Claude Code 2.1.288
 These three PNGs reconstruct decoded cells captured from a real Linux x86_64 Claude Code 2.1.288 terminal at 120 columns, using the persistent official plugin installation and backend 1.2.0a1 at clean code commit `db4129b75dcc3aa20fc24bbb09946e249038ee2e` (2026-10-04). `tools/render_native_capture.py` crops away the transcript/composer and draws the original cell text/attributes with documentation fonts/default colors; these are terminal captures, not pixel-perfect OS screenshots or invented mockups. Each PNG embeds the commit and source capture SHA256.
 
 The visible statusline values are production sample preview data. Settings continues below the crop through host scrolling/Tab navigation. These images and the 120/80-column automated save/cancel run do not imply human acceptance. Private raw cells/debug streams remain in ignored `dist/validation/phase2-editor-pty-fixed`. Existing macOS/Windows screenshots above show the compatibility TUI; native screenshots for those platforms were not supplied; the maintainer separately confirmed human results on Windows 11 and macOS 14.5.
+
+### v1.3.0a2 Client captures
+
+[Main](client-main-v1.3.0a2-linux.png) · [Subagents](client-subagents-v1.3.0a2-linux.png) · [Settings](client-settings-v1.3.0a2-linux.png)
+
+These PNGs reconstruct actual terminal cells from Linux x86_64, the Claude Code 2.1.288 interactive host, backend 1.3.0a2 and the persistently installed Mod. Fixed source commit: `2ed1f3ae306776caeffe6a27205a4d680cb8e472`; runtime resources match this candidate. The 120×30 PTY runs in a private tmux server; the same run checks 80×48 inline operation. Cropping excludes transcript/composer/live statusline; Preview is fixed production sample data. These are terminal reconstructions, not OS pixel screenshots or design mockups. Each embeds its commit/capture SHA256; private raw data remains in ignored `dist/validation/client-a2-fixed-288`. Automated captures do not establish a2 human acceptance, which remains separately pending on all three platforms.

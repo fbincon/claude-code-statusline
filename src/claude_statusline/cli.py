@@ -74,13 +74,13 @@ def build_parser():
         dest="experimental_slash_tui",
         action="store_true",
         default=None,
-        help="persistently enable the experimental /statusline-configure entry",
+        help="persistently enable /statusline-configure in an external terminal",
     )
     experimental_group.add_argument(
         "--no-experimental-slash-tui",
         dest="experimental_slash_tui",
         action="store_false",
-        help="persistently disable the experimental /statusline-configure entry",
+        help="persistently disable the external /statusline-configure entry",
     )
     native_group = install_parser.add_mutually_exclusive_group()
     native_group.add_argument(
@@ -88,7 +88,7 @@ def build_parser():
         dest="native_editor",
         action="store_true",
         default=None,
-        help="enable the native editor through an owned local marketplace",
+        help="enable the experimental in-session Client TUI through a local marketplace",
     )
     native_group.add_argument(
         "--no-native-editor",

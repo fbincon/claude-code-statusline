@@ -135,22 +135,23 @@ class NativeInstallerTests(unittest.TestCase):
         files, _ = native_resources.bundled_files()
         for name in (
             "lib/editor/draft.ts", "lib/editor/navigation.ts",
-            "ui/components/item-list.ts", "ui/pages/settings.ts",
+            "ui/client/surface.ts", "ui/components/section.ts",
+            "lib/client/messages.ts", "ui/client/draw.ts",
         ):
             self.assertEqual((root / name).read_bytes(), files[name])
             self.assertEqual((cache / name).read_bytes(), files[name])
         self.install(native_editor=False)
         self.assertFalse(root.exists())
 
-    def test_first_install_migrates_owned_legacy_and_repeat_is_idempotent(self):
+    def test_both_entries_coexist_and_repeat_is_idempotent(self):
         self.install(experimental_slash_tui=True, native_editor=False)
         skill, owner = resources.experimental_skill_paths(self.config)
         self.assertTrue(skill.exists())
         result = self.install(native_editor=True)
         self.assertEqual(result.native_state, "installed")
         self.assertFalse(result.native_failed)
-        self.assertFalse(skill.exists())
-        self.assertFalse(owner.exists())
+        self.assertTrue(skill.exists())
+        self.assertTrue(owner.exists())
         self.assertEqual(self.host.inputs["backendExecutable"], str(self.backend))
         self.assertEqual(self.host.inputs["configDir"], str(self.config))
         self.assertTrue(preference.requested(self.config, None))
@@ -168,6 +169,119 @@ class NativeInstallerTests(unittest.TestCase):
                 for d in native.diagnostics(self.config, self.backend, (2, 1, 288))
             )
         )
+
+    def test_four_install_combinations_and_independent_disablement(self):
+        for external in (False, True):
+            for client in (False, True):
+                with self.subTest(external=external, client=client):
+                    config = self.config / f"case-{external}-{client}"
+                    host = FakeHost(config)
+                    with mock.patch.object(native, "Host", return_value=host):
+                        result = installer.install_configuration(
+                            config, self.backend, claude_version=(2, 1, 288),
+                            experimental_slash_tui=external, native_editor=client,
+                        )
+                        self.assertFalse(result.native_failed)
+                        skill = resources.experimental_skill_paths(config)[0]
+                        self.assertEqual(skill.exists(), external)
+                        self.assertEqual(bool(host.plugins), client)
+                        settings = storage._read_settings(config / "settings.json")[0]
+                        groups = settings["hooks"].get("UserPromptExpansion", [])
+                        self.assertEqual(
+                            sum(group.get("matcher") == "statusline-configure" for group in groups),
+                            int(external),
+                        )
+                        self.assertFalse(installer.install_configuration(
+                            config, self.backend, claude_version=(2, 1, 288)
+                        ).changed)
+                        installer.install_configuration(
+                            config, self.backend, claude_version=(2, 1, 288),
+                            experimental_slash_tui=False,
+                        )
+                        self.assertFalse(skill.exists())
+                        self.assertEqual(bool(host.plugins), client)
+                        installer.install_configuration(
+                            config, self.backend, claude_version=(2, 1, 288),
+                            experimental_slash_tui=True, native_editor=False,
+                        )
+                        self.assertTrue(skill.exists())
+                        self.assertEqual(host.plugins, [])
+
+    def test_reinstall_restores_external_resources_removed_by_old_native_migration(self):
+        self.install(native_editor=True, experimental_slash_tui=True)
+        skill, marker = resources.experimental_skill_paths(self.config)
+        skill.unlink()
+        marker.unlink()
+        settings = storage._read_settings(self.config / "settings.json")[0]
+        settings["hooks"]["UserPromptExpansion"] = [
+            group for group in settings["hooks"]["UserPromptExpansion"]
+            if group.get("matcher") != "statusline-configure"
+        ]
+        self.host.settings("hooks", settings["hooks"])
+        self.host.inputs["primaryCommand"] = "true"
+        result = self.install()
+        self.assertFalse(result.native_failed)
+        self.assertTrue(skill.exists())
+        self.assertTrue(marker.exists())
+        self.assertFalse(self.install().changed)
+        self.assertFalse(any(
+            row.level == "ERROR"
+            for row in native.diagnostics(self.config, self.backend, (2, 1, 288))
+        ))
+
+    def test_foreign_external_skill_does_not_block_native_only_install(self):
+        skill, _ = resources.experimental_skill_paths(self.config)
+        skill.parent.mkdir(parents=True)
+        skill.write_text("Foreign external command")
+        result = self.install(native_editor=True, experimental_slash_tui=False)
+        self.assertFalse(result.native_failed)
+        self.assertEqual(skill.read_text(), "Foreign external command")
+
+    def test_external_false_does_not_disable_stable_native_default(self):
+        self.config.mkdir()
+        (self.config / "claude-statusline-features.json").write_text(
+            '{"schema_version": 1, "experimental_slash_tui": false}'
+        )
+        self.assertTrue(preference.requested(self.config, None, version="1.3.0"))
+
+    def test_external_command_collision_is_checked_only_when_external_is_enabled(self):
+        command = self.config / "commands/statusline-configure.md"
+        command.parent.mkdir(parents=True)
+        command.write_text("Foreign external command")
+        self.assertFalse(self.install(native_editor=True).native_failed)
+        before = (self.config / "settings.json").read_bytes()
+        with self.assertRaisesRegex(installer.integration_models.ConfigurationError, "Foreign /statusline-configure"):
+            self.install(experimental_slash_tui=True)
+        self.assertEqual(command.read_text(), "Foreign external command")
+        self.assertEqual((self.config / "settings.json").read_bytes(), before)
+
+    def test_upgrade_prunes_old_empty_directories_and_disable_reenable_works(self):
+        files, manifest = native_resources.bundled_files()
+        old_files = dict(files, **{"ui/pages/obsolete.ts": b"// old owned UI\n"})
+        with mock.patch.object(native_resources, "bundled_files", return_value=(old_files, manifest)):
+            self.install(native_editor=True)
+        old_directory = self.config / native.DIRECTORY / "plugins/statusline-native/ui/pages"
+        self.assertTrue(old_directory.exists())
+        self.assertFalse(self.install().native_failed)
+        self.assertFalse(old_directory.exists())
+        # Historical inventory also cleans a previously retained empty directory.
+        old_directory.mkdir()
+        self.install(native_editor=False)
+        self.assertFalse((self.config / native.DIRECTORY).exists())
+        self.assertFalse(self.install(native_editor=True).native_failed)
+
+    def test_historical_directory_cleanup_preserves_unknown_files(self):
+        files, manifest = native_resources.bundled_files()
+        old_files = dict(files, **{"ui/pages/obsolete.ts": b"// old owned UI\n"})
+        with mock.patch.object(native_resources, "bundled_files", return_value=(old_files, manifest)):
+            self.install(native_editor=True)
+        directory = self.config / native.DIRECTORY / "plugins/statusline-native/ui/pages"
+        note = directory / "user-note.txt"
+        note.write_text("Preserve this unknown file")
+        self.install()
+        self.assertFalse((directory / "obsolete.ts").exists())
+        self.install(native_editor=False)
+        self.assertEqual(note.read_text(), "Preserve this unknown file")
 
     def test_failure_keeps_compatibility_and_retry_reads_the_actual_inventory(self):
         self.host.refused = "install"
@@ -218,7 +332,7 @@ class NativeInstallerTests(unittest.TestCase):
         self.assertEqual(self.host.calls, [])
 
     def test_foreign_command_is_refused_before_writes_even_with_force(self):
-        skill, _owner = resources.experimental_skill_paths(self.config)
+        skill = self.config / "skills/statusline-configure-native/SKILL.md"
         skill.parent.mkdir(parents=True)
         skill.write_text("Foreign skill")
         with self.assertRaises(native.PluginError):
@@ -252,7 +366,7 @@ class NativeInstallerTests(unittest.TestCase):
         self.assertIn(
             "statusLine", storage._read_settings(self.config / "settings.json")[0]
         )
-        source = self.config / native.DIRECTORY / "plugins/statusline-native/ui/pane.ts"
+        source = self.config / native.DIRECTORY / "plugins/statusline-native/ui/client/draw.ts"
         source.write_text("Foreign source content")
         self.assertTrue(self.install().native_failed)
         self.assertEqual(source.read_text(), "Foreign source content")
@@ -284,7 +398,7 @@ class NativeInstallerTests(unittest.TestCase):
     def test_missing_owned_file_is_repaired_and_uninstall_retains_preferences(self):
         self.install(native_editor=True)
         (
-            self.config / native.DIRECTORY / "plugins/statusline-native/ui/pane.ts"
+            self.config / native.DIRECTORY / "plugins/statusline-native/ui/client/draw.ts"
         ).unlink()
         self.assertEqual(self.install().native_state, "installed")
         result = installer.uninstall_configuration(self.config, self.backend)

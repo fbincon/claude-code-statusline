@@ -2,6 +2,16 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 1.3.0a2 - 2026-10-04
+
+- Keep `/statusline-configure` as the external terminal TUI and make `/statusline-configure-native` the experimental in-session Client; independently install, disable and use both.
+- Restore enabled owned external resources removed by old native migration; remove the Mod's external alias/primaryCommand, check collisions independently and prune obsolete empty directories so disable/re-enable works after upgrading.
+- Add Client arrow navigation/order, Tab pages, Space toggles, explicit search, Ctrl+G cancellation and s/f saving; explain initial click and host-owned Esc.
+- Separate content/preview with grouped borders, emphasized headings, setting groups, aligned columns and compact layouts; retain separate Claude preference application and uncertain-save checks.
+- Use copied snapshots and cumulative acknowledged input to prevent frozen drafts, lost keys, duplicate saves and stale responses; both save paths share revision protection.
+- Cover installation combinations, upgrade recovery, cross-editor saves, Client, distributions and real PTYs; update bilingual guides and capture provenance.
+- Record a1 human acceptance on all three platforms; a2 Client human acceptance remains separately pending. Prerelease publication keeps Latest at v1.2.0.
+
 ## 1.3.0a1 - 2026-10-04
 
 - Preview direct checked native item rows, horizontal tabs, paged content, compact settings and a bounded bottom sample preview.

@@ -76,4 +76,6 @@ flowchart LR
 
 ## 原生编辑器结构
 
-唯一 Mod 维护源为 `mods/statusline-native`：`hooks/` 保留事件注册和宿主 API；`lib/editor/` 负责草稿、导航和数字校验，`lib/` 保留协议桥及生成契约；`ui/components/` 负责列表、分页、预览和操作栏，`ui/pages/` 组合页面，`ui/layout.ts` 分配实际正文宽高。测试按 editor、UI、backend、integration 分组。递归运行打包包含 TypeScript 子目录，排除测试、宿主声明和依赖。Client 探针仅为本地验证证据，不形成第二套维护前端。
+唯一 Mod 源为 `mods/statusline-native`。宿主 API 留在 `hooks/register.ts`，草稿与数值规则在 `lib/editor/`，输入校验、按键及设置在 `lib/client/`，独立端口快照在 `lib/session.ts`。`ui/client/` 维护 Client 输入/绘制；`ui/components/` 提供共享板块，`ui/layout.ts` 计算正文预算。测试对应 backend、client、editor、integration、UI。
+
+`/statusline-configure` 的 Python curses UI/平台启动器保持独立；Mod 只注册 `/statusline-configure-native`。两者可同时安装和打开，保存共用配置服务、revision 校验及事务锁。Client 不访问文件或启动进程，通过有序累积消息批次与宿主通信；快照深复制以隔离宿主冻结行为，序号确认/去重及 epoch 防止重复或迟到输入。递归打包包含 Client 模块，排除测试、宿主声明、依赖及原始验证记录。

@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 from claude_statusline._version import __version__
-from claude_statusline.config import features, storage
+from claude_statusline.config import storage
 from claude_statusline.integration.models import ConfigurationError
 
 FILENAME = "claude-statusline-native.json"
@@ -50,7 +50,6 @@ def requested(
     explicit: bool | None,
     *,
     version: str = __version__,
-    legacy_override: bool | None = None,
 ) -> bool:
     if explicit is not None:
         return explicit
@@ -60,15 +59,4 @@ def requested(
     default = re.search(r"(?:a|b|rc|dev)\d", version) is None
     if not default:
         return False
-    if legacy_override is not None:
-        # An explicit compatibility preference repair/removal is validated by
-        # its own transaction. It must not be blocked by the old malformed file.
-        return default
-    legacy = storage._read_optional_bytes(features.feature_path(config_dir))
-    if legacy is not None:
-        try:
-            if not features.parse_feature_bytes(legacy):
-                return False
-        except features.FeatureConfigError as exc:
-            raise ConfigurationError(str(exc)) from exc
     return default

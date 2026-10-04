@@ -3,13 +3,21 @@ export const MIN_ROWS = 12;
 
 /** Budget a paged body between the header, preview and action rows. */
 export function dimensions(columns: number, rows: number) {
-  const previewRows = Math.min(3, Math.max(1, Math.floor((rows - 8) / 4)));
-  const bodyRows = Math.max(1, rows - 6 - previewRows);
+  const framed = columns >= 64 && rows >= 20;
+  const previewRows = Math.min(3, Math.max(1, Math.floor((rows - 10) / 4)));
+  const previewHeight = previewRows + 1 + (framed ? 2 : 0);
+  const bodyHeight = Math.max(1, rows - 5 - previewHeight);
+  const bodyRows = Math.max(1, bodyHeight - (framed ? 2 : 0) - 1);
   return {
     columns,
     rows,
+    framed,
     previewRows,
+    previewHeight,
+    bodyHeight,
     bodyRows,
+    itemCapacity: Math.max(1, bodyRows - (framed ? 4 : 3)),
+    settingCapacity: Math.max(1, bodyRows - 4),
     available: columns >= MIN_COLUMNS && rows >= MIN_ROWS,
   };
 }

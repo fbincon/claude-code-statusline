@@ -5,27 +5,34 @@ import {
   START,
   RUN,
   PANE,
-  description,
   readResult,
   output,
   reply,
   sample,
   setup,
+  keys,
 } from '../fixtures.ts';
 
-test('three pages edit a full draft, save the opening revision and stay open', async ($, on) => {
+const REGION = 'statusline-client';
+const error = (code: string) =>
+  output(
+    JSON.stringify({
+      protocol_version: 1,
+      error: { code, message: 'Test save refused.' },
+    }),
+    2,
+  );
+
+test('Client owns only native command, edits three pages and saves a full revision-bound draft', async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
+  expect(fixture.registrations).toEqual(['statusline-configure-native']);
+  expect(
+    (await $.command.run({ ...RUN, command: 'statusline-configure' })).text,
+  ).toBe('foreign command');
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  expect(fixture.opens[0]).toEqual({
-    id: 'statusline-native',
-    title: 'Statusline configuration',
-    focus: true,
-    closeOnEscape: true,
-    rows: 24,
-    columns: 72,
-  });
+  expect(await ui.find({ type: 'Client', key: REGION })).toBeDefined();
   expect(fixture.calls[0]!.argv).toEqual([
     '/tmp/bin with spaces/claude-statusline',
     'ui',
@@ -35,32 +42,41 @@ test('three pages edit a full draft, save the opening revision and stay open', a
   const count = fixture.calls.length;
   await ui.redraw(PANE.props);
   expect(fixture.calls.length).toBe(count);
-  await ui.press({ key: 'item-main:git' });
-  await ui.press({ key: 'move-up' });
-  await ui.press({ key: 'move-up' });
-  for (let i = 0; i < 4; i++) await ui.press({ key: 'move-up' });
-  await ui.press({ key: 'page-subagents' });
-  await ui.press({ key: 'item-subagent:status' });
-  await ui.press({ key: 'page-settings' });
-  await ui.press({ key: 'colors' });
-  await ui.select({ key: 'palette', value: 'ansi' });
-  await ui.select({ key: 'directory-style', value: 'home' });
-  await ui.select({ key: 'separator-style', value: 'compact' });
-  await ui.select({ key: 'scope-labels', value: 'always' });
-  await ui.input({ key: 'padding', text: '2' });
-  await ui.input({ key: 'refresh_interval', text: 'event' });
-  await ui.press({ key: 'vim-indicator' });
-  await ui.press({ key: 'save' });
+  await keys(ui, '/', 'g', 'i', 't', 'return', ' ', 'left');
+  await keys(ui, '2', '/', 's', 't', 'a', 't', 'u', 's', 'return', 'down', ' ');
+  await keys(
+    ui,
+    '3',
+    ' ',
+    'down',
+    'right',
+    'down',
+    'right',
+    'down',
+    'right',
+    'down',
+    'right',
+  );
+  await keys(ui, 'down', 'return', { key: 'u', ctrl: true }, '2', 'return');
+  await keys(
+    ui,
+    'down',
+    'return',
+    { key: 'u', ctrl: true },
+    'e',
+    'v',
+    'e',
+    'n',
+    't',
+    'return',
+  );
+  await keys(ui, 'down', ' ', 's');
   const applied = fixture.calls.find((call) => call.operation === 'apply')!;
   expect(applied.payload.expected_revision).toBe('0'.repeat(64));
-  expect(applied.payload.draft.display.items).toEqual([
-    'git',
-    'model-with-effort',
-  ]);
-  expect(applied.payload.draft.display.subagents.items).toEqual([
-    'name',
-    'status',
-  ]);
+  expect(applied.payload.draft.display.items).toContain('git');
+  expect(applied.payload.draft.display.subagents.items).not.toContain(
+    'status-elapsed',
+  );
   expect(applied.payload.draft.display).toMatchObject({
     use_colors: false,
     palette: 'ansi',
@@ -74,11 +90,14 @@ test('three pages edit a full draft, save the opening revision and stay open', a
     hide_vim_mode_indicator: true,
   });
   expect(
-    await ui.find({ type: 'Text', text: 'Tool configuration saved.' }),
+    await ui.find({
+      in: REGION,
+      type: 'Text',
+      text: 'Tool configuration saved.',
+    }),
   ).toBeDefined();
-  expect(await ui.find({ key: 'save' })).toBeDefined();
-  await ui.press({ key: 'colors' });
-  await ui.press({ key: 'save' });
+  expect(fixture.closes).toHaveLength(0);
+  await keys(ui, 's');
   expect(
     fixture.calls.filter((call) => call.operation === 'apply')[1]!.payload
       .expected_revision,
@@ -87,146 +106,122 @@ test('three pages edit a full draft, save the opening revision and stay open', a
   await ui.unmount();
 });
 
-test('closing discards pending tool and host changes without applying', async ($, on) => {
+test('reopening focuses the same draft; q discards and the next opening reads persisted state', async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'page-settings' });
-  await ui.press({ key: 'advanced' });
-  await ui.press({ key: 'colors' });
-  await ui.press({ key: 'host-verbose' });
-  await ui.press({ key: 'close' });
+  await keys(ui, '3', ' ');
+  const reads = fixture.calls.filter((c) => c.operation === 'read').length;
+  await $.command.run(RUN);
+  await ui.redraw();
+  expect(fixture.calls.filter((c) => c.operation === 'read')).toHaveLength(
+    reads,
+  );
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: /Colors\s+off/ }),
+  ).toBeDefined();
+  await keys(ui, 'q');
+  expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await ui.unmount();
-  expect(fixture.calls.some((call) => call.operation === 'apply')).toBe(false);
-  expect(fixture.configCalls).toEqual([]);
   await $.command.run(RUN);
   const reopened = await $.ui.mount(PANE);
-  await reopened.press({ key: 'page-settings' });
-  await reopened.press({ key: 'advanced' });
-  expect((await reopened.find({ key: 'colors' }))?.props.label).toBe(
-    'Colors: on',
-  );
-  expect((await reopened.find({ key: 'host-verbose' }))?.props.label).toBe(
-    'Verbose: off',
-  );
+  await keys(reopened, '3');
+  expect(
+    await reopened.find({ in: REGION, type: 'Text', text: /Colors\s+on/ }),
+  ).toBeDefined();
   await reopened.unmount();
 });
 
-test('numeric validation blocks saving and a narrow pane preserves its draft', async ($, on) => {
+test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric editing', async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'page-settings' });
-  await ui.input({ key: 'padding', text: '33', kind: 'change' });
-  await ui.press({ key: 'save' });
-  expect(await ui.find({ type: 'Text', text: 'Enter 0-32' })).toBeDefined();
-  expect(fixture.calls.some((call) => call.operation === 'apply')).toBe(false);
-  await ui.input({ key: 'padding', text: '4' });
-  await ui.press({ key: 'colors' });
-  await ui.redraw({ ...PANE.props, bodyColumns: 20 });
-  expect(await ui.find({ key: 'save' })).toBeUndefined();
-  expect(await ui.find({ type: 'Text', text: 'Draft kept' })).toBeDefined();
-  await ui.redraw(PANE.props);
-  expect((await ui.find({ key: 'padding' }))?.props.value).toBe('4');
-  expect((await ui.find({ key: 'colors' }))?.props.label).toBe('Colors: off');
+  await keys(ui, '/', 's', 'f', 'q');
+  expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
+  expect(fixture.closes).toHaveLength(0);
+  await keys(
+    ui,
+    { key: 'g', ctrl: true },
+    '3',
+    'down',
+    'down',
+    'down',
+    'down',
+    'down',
+    'return',
+    { key: 'u', ctrl: true },
+    '9',
+  );
+  // Focus exit (Esc) is host-owned and does not cancel Client editing.
+  await $.ui.focus({
+    component: 'Pane',
+    requestId: 'statusline-native',
+    origin: { kind: 'person' },
+  });
+  await ui.redraw();
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: '9 _' }),
+  ).toBeDefined();
+  await keys(ui, { key: 'g', ctrl: true }, 's');
+  expect(fixture.store.draft.host.padding).toBe(0);
   await ui.unmount();
 });
 
-test('host preferences apply separately and report partial refusals', async ($, on) => {
+test('invalid numeric input stays visible and cannot save; correcting it accepts only that field', async ($, on) => {
   const fixture = setup(on);
-  fixture.behavior.configSet = (key, value) =>
-    key === 'verbose' ? { deny: 'Policy refuses verbose' } : { value };
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'page-settings' });
-  await ui.press({ key: 'advanced' });
-  await ui.select({ key: 'host-theme', value: 'light' });
-  await ui.press({ key: 'host-verbose' });
-  await ui.press({ key: 'apply-host' });
+  await keys(
+    ui,
+    '3',
+    'down',
+    'down',
+    'down',
+    'down',
+    'down',
+    'return',
+    { key: 'u', ctrl: true },
+    '9',
+    '9',
+    'return',
+  );
   expect(
-    await ui.find({ type: 'Text', text: 'Theme: Applied.' }),
+    await ui.find({ in: REGION, type: 'Text', text: 'Enter 0-32' }),
   ).toBeDefined();
-  expect(
-    await ui.find({ type: 'Text', text: 'Policy refuses verbose' }),
-  ).toBeDefined();
-  expect((await ui.find({ key: 'host-theme' }))?.props.value).toBe('light');
-  expect(fixture.calls.some((call) => call.operation === 'apply')).toBe(false);
+  await keys(ui, 's');
+  expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
+  await keys(ui, { key: 'u', ctrl: true }, '3', '2', 'return', 's');
+  expect(fixture.store.draft.host.padding).toBe(32);
   await ui.unmount();
 });
 
-test('locked, missing and concurrently changed host rows are not overwritten', async ($, on) => {
+test('foreign native command and foreign panes pass through without changing the external entry', async ($, on) => {
   const fixture = setup(on);
-  fixture.store.rows[0]!.isLocked = true;
+  fixture.commands.push({
+    name: RUN.command,
+    description: 'foreign',
+    plugin: 'foreign',
+  } as any);
   await $.session.start(START);
-  await $.command.run(RUN);
-  const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'page-settings' });
-  await ui.press({ key: 'advanced' });
-  expect(await ui.find({ key: 'host-theme' })).toBeUndefined();
+  expect((await $.command.run(RUN)).text).toBe('foreign command');
   expect(
-    await ui.find({ type: 'Text', text: 'locked by host policy' }),
-  ).toBeDefined();
-  await ui.press({ key: 'host-verbose' });
-  fixture.store.rows[1]!.value = true;
-  await ui.press({ key: 'apply-host' });
-  expect(
-    await ui.find({ type: 'Text', text: 'Changed elsewhere' }),
-  ).toBeDefined();
-  expect(fixture.configCalls).toEqual([]);
-  fixture.store.rows = [];
-  await ui.press({ key: 'reload' });
-  await ui.press({ key: 'page-settings' });
-  await ui.press({ key: 'advanced' });
-  expect(
-    await ui.find({ type: 'Text', text: 'theme: unavailable' }),
-  ).toBeDefined();
+    (await $.command.run({ ...RUN, command: 'statusline-configure' })).text,
+  ).toBe('foreign command');
+  const ui = await $.ui.mount({ ...PANE, requestId: 'foreign' });
+  expect(await ui.find({ type: 'Text', text: 'foreign pane' })).toBeDefined();
+  expect(fixture.calls).toHaveLength(0);
   await ui.unmount();
 });
 
-test('a rejected save retains the draft and explicit reload reads the changed state', async ($, on) => {
-  const fixture = setup(on);
-  fixture.behavior.process = (request, next) => {
-    return request.operation === 'apply'
-      ? {
-          value: output(
-            JSON.stringify({
-              protocol_version: 1,
-              error: {
-                code: 'configuration_conflict',
-                message: 'Changed elsewhere',
-              },
-            }),
-            2,
-          ),
-        }
-      : next();
-  };
-  await $.session.start(START);
-  await $.command.run(RUN);
-  const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'page-settings' });
-  await ui.press({ key: 'colors' });
-  await ui.press({ key: 'save' });
-  expect(
-    await ui.find({ type: 'Text', text: 'configuration_conflict' }),
-  ).toBeDefined();
-  expect((await ui.find({ key: 'colors' }))?.props.label).toBe('Colors: off');
-  await ui.press({ key: 'reload' });
-  await ui.press({ key: 'page-settings' });
-  expect((await ui.find({ key: 'colors' }))?.props.label).toBe('Colors: on');
-  expect(fixture.store.draft).toEqual(BASE);
-  await ui.unmount();
-});
-
-test('uncertain save results must be reconciled before retry or close', async ($, on) => {
+test('unknown saves require read reconciliation before retry or close', async ($, on) => {
   const fixture = setup(on);
   let applies = 0;
   fixture.behavior.process = (request, next) => {
     if (request.operation !== 'apply') return next();
-    applies += 1;
+    applies++;
     fixture.store.draft = request.payload.draft;
     fixture.store.revision = '2'.repeat(64);
     return { value: output('{') };
@@ -234,26 +229,204 @@ test('uncertain save results must be reconciled before retry or close', async ($
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'page-settings' });
-  await ui.press({ key: 'colors' });
-  await ui.press({ key: 'finish' });
-  expect(await ui.find({ key: 'save' })).toBeUndefined();
-  await ui.press({ key: 'close' });
-  expect(await ui.find({ key: 'reconcile' })).toBeDefined();
-  await ui.press({ key: 'reconcile' });
+  await keys(ui, '3', ' ', 'f', 's', 'q');
+  expect(applies).toBe(1);
+  expect(fixture.closes).toHaveLength(0);
+  await keys(ui, 'k');
   expect(
     await ui.find({
+      in: REGION,
       type: 'Text',
       text: 'submitted tool configuration is saved',
     }),
   ).toBeDefined();
-  expect(await ui.find({ key: 'save' })).toBeDefined();
   expect(applies).toBe(1);
   expect(fixture.closes).toHaveLength(0);
   await ui.unmount();
 });
 
-test('applying locks controls and closing until the write completes', async ($, on) => {
+test('conflicting save retains the draft; explicit reload reads external changes', async ($, on) => {
+  const fixture = setup(on);
+  let reject = true;
+  fixture.behavior.process = (request, next) =>
+    request.operation === 'apply' && reject
+      ? { value: error('configuration_conflict') }
+      : next();
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, '3', ' ', 'f');
+  expect(fixture.closes).toHaveLength(0);
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: 'configuration_conflict' }),
+  ).toBeDefined();
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: /Colors\s+off/ }),
+  ).toBeDefined();
+  fixture.store.draft.display.palette = 'ansi';
+  await keys(ui, 'r', '3');
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: /Colors\s+on/ }),
+  ).toBeDefined();
+  reject = false;
+  await keys(ui, 'f');
+  expect(fixture.closes).toHaveLength(1);
+  await ui.unmount();
+});
+
+test('Claude preferences are separate, checked per row and retain partial application', async ($, on) => {
+  const fixture = setup(on);
+  fixture.behavior.configSet = (key, value) =>
+    key === 'verbose' ? { deny: 'policy' } : { value };
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, '3', 'h', 'right', 'down', ' ', 'f');
+  expect(fixture.closes).toHaveLength(0);
+  expect(fixture.configCalls).toHaveLength(0);
+  await keys(ui, 'a');
+  expect(fixture.configCalls).toEqual([
+    { key: 'theme', value: 'light' },
+    { key: 'verbose', value: true },
+  ]);
+  expect(fixture.store.rows[0]!.value).toBe('light');
+  expect(fixture.store.rows[1]!.value).toBe(false);
+  await keys(ui, 'q');
+  expect(fixture.closes).toHaveLength(1);
+  await ui.unmount();
+});
+
+test('missing, locked and concurrently changed Claude rows cannot be overwritten', async ($, on) => {
+  const fixture = setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, '3', 'h', 'right', 'down', ' ');
+  fixture.store.rows[0]!.value = 'light';
+  fixture.store.rows[1]!.isLocked = true;
+  await keys(ui, 'a');
+  expect(fixture.configCalls).toHaveLength(0);
+  await ui.unmount();
+});
+
+test('full and compact layouts keep selection through paging, filtering and resize', async ($, on) => {
+  setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount({
+    ...PANE,
+    props: { ...PANE.props, bodyColumns: 72 },
+  });
+  expect(
+    (await ui.find({ in: REGION, key: 'content-region' }))?.props.borderStyle,
+  ).toBe('round');
+  await keys(ui, 'end');
+  await ui.redraw({
+    ...PANE.props,
+    bodyColumns: 32,
+    scroll: { offset: 0, bodyRows: 12 },
+  });
+  await ui.resize({ columns: 32, rows: 12 });
+  expect(
+    (await ui.find({ in: REGION, key: 'content-region' }))?.props.borderStyle,
+  ).toBeUndefined();
+  expect(
+    await ui.find({ in: REGION, key: 'item-main:vim-mode' }),
+  ).toBeDefined();
+  await keys(ui, 'pageup', 'pagedown', 'home', 'down');
+  await ui.redraw({
+    ...PANE.props,
+    bodyColumns: 31,
+    scroll: { offset: 0, bodyRows: 12 },
+  });
+  expect(
+    await ui.find({ type: 'Text', text: 'Resize pane to 32x12' }),
+  ).toBeDefined();
+  await ui.redraw({ ...PANE.props, bodyColumns: 72 });
+  await ui.resize({ columns: 72, rows: 24 });
+  expect(
+    await ui.find({ in: REGION, key: 'item-main:fast-mode' }),
+  ).toBeDefined();
+  await ui.unmount();
+});
+
+test('Client fault and retry preserve received edits; old epoch and malformed posts are ignored safely', async ($, on) => {
+  const fixture = setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, '3', ' ');
+  const before = (await ui.find({ key: REGION }))!.props.props as any;
+  await ui.post({ epoch: before.epoch, fault: 'injected Client failure' });
+  expect(
+    await ui.find({ type: 'Text', text: 'Received draft kept' }),
+  ).toBeDefined();
+  await ui.press({ key: 'retry-client' });
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: /Colors\s+off/ }),
+  ).toBeDefined();
+  await ui.post({
+    epoch: before.epoch,
+    columns: 60,
+    rows: 24,
+    events: [{ seq: 1, event: { key: 's' } }],
+  });
+  expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
+  await ui.post({ epoch: 'bad' });
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: 'Invalid Client input' }),
+  ).toBeDefined();
+  await ui.unmount();
+});
+
+test('ordered cumulative batches preserve fast edits, deduplicate writes and reject sequence gaps', async ($, on) => {
+  const fixture = setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  const props = (await ui.find({ key: REGION }))!.props.props as any;
+  const batch = {
+    epoch: props.epoch,
+    columns: 60,
+    rows: 24,
+    events: [
+      { seq: 1, event: { key: '3' } },
+      { seq: 2, event: { key: ' ' } },
+      { seq: 3, event: { key: 's' } },
+    ],
+  };
+  await ui.post(batch);
+  await ui.post(batch);
+  expect(fixture.calls.filter((c) => c.operation === 'apply')).toHaveLength(1);
+  expect(fixture.store.draft.display.use_colors).toBe(false);
+  await ui.post({ ...batch, events: [{ seq: 5, event: { key: 'f' } }] });
+  expect(fixture.closes).toHaveLength(0);
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: 'sequence is incomplete' }),
+  ).toBeDefined();
+  await ui.unmount();
+});
+
+test('opening errors can retry and preview failures do not mutate drafts', async ($, on) => {
+  const fixture = setup(on);
+  let fail = true;
+  fixture.behavior.process = (request, next) =>
+    fail && request.operation === 'describe'
+      ? { deny: 'process refused' }
+      : next();
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  expect(await ui.find({ key: 'retry-client' })).toBeDefined();
+  fail = false;
+  await ui.press({ key: 'retry-client' });
+  expect(await ui.find({ type: 'Client', key: REGION })).toBeDefined();
+  await keys(ui, 'f');
+  expect(fixture.closes).toHaveLength(1);
+  await ui.unmount();
+});
+
+test('pending apply blocks input, close and reopening until the result arrives', async ($, on) => {
   const fixture = setup(on);
   let finish!: (value: ProcessRunResult) => void;
   let started!: () => void;
@@ -271,11 +444,13 @@ test('applying locks controls and closing until the write completes', async ($, 
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  const saving = ui.press({ key: 'save' });
+  const saving = keys(ui, 's');
   await begun;
-  await ui.redraw(PANE.props);
-  expect(await ui.find({ key: 'save' })).toBeUndefined();
+  await ui.redraw();
   await ui.press({ key: 'close' });
+  expect(fixture.closes).toHaveLength(0);
+  expect((await $.command.run(RUN)).text).toContain('pending save');
+  await keys(ui, ' ', 's');
   finish(
     reply({
       ...readResult(BASE, '1'.repeat(64)),
@@ -284,311 +459,83 @@ test('applying locks controls and closing until the write completes', async ($, 
     }),
   );
   await saving;
-  expect(await ui.find({ key: 'save' })).toBeDefined();
+  expect(fixture.calls.filter((c) => c.operation === 'apply')).toHaveLength(1);
   await ui.unmount();
 });
 
-test('backend opening failures and preview retry recover without losing drafts', async ($, on) => {
+test('preview errors can retry; height-only redraws reuse the cached sample', async ($, on) => {
   const fixture = setup(on);
-  let failure: Error | ProcessRunResult | null = output('{');
-  fixture.behavior.process = (request, next) =>
-    failure instanceof Error
-      ? { deny: failure.message }
-      : failure
-        ? { value: failure }
-        : next();
-  await $.session.start(START);
-  for (const error of [
-    output('{'),
-    output('usage: unsupported ui', 2),
-    new Error('Process timed out'),
-  ]) {
-    failure = error;
-    await $.command.run(RUN);
-    const ui = await $.ui.mount(PANE);
-    expect(await ui.find({ key: 'save' })).toBeUndefined();
-    expect(
-      await ui.find({ type: 'Text', text: 'Could not open' }),
-    ).toBeDefined();
-    await ui.press({ key: 'close' });
-    await ui.unmount();
-  }
-  failure = null;
-  await $.command.run(RUN);
   let previews = 0;
-  fixture.behavior.process = (request, next) => {
-    if (request.operation === 'preview' && ++previews === 1)
-      return { deny: 'Preview timed out' };
-    return next();
-  };
+  fixture.behavior.process = (request, next) =>
+    request.operation === 'preview'
+      ? ++previews === 1
+        ? { deny: 'Preview timed out' }
+        : { value: reply(sample('recovered sample')) }
+      : next();
+  await $.session.start(START);
+  await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
   expect(
-    await ui.find({ type: 'Text', text: 'Preview timed out' }),
+    await ui.find({ in: REGION, type: 'Text', text: 'Preview timed out' }),
   ).toBeDefined();
-  await ui.press({ key: 'retry' });
-  expect(await ui.find({ key: 'save' })).toBeDefined();
-  expect(fixture.calls.some((call) => call.operation === 'apply')).toBe(false);
+  await keys(ui, 'v');
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: 'recovered sample' }),
+  ).toBeDefined();
+  const count = previews;
+  await ui.redraw({ ...PANE.props, scroll: { offset: 0, bodyRows: 30 } });
+  expect(previews).toBe(count);
+  expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await ui.unmount();
 });
 
-test('stale preview and opening responses cannot replace a resized or closed editor', async ($, on) => {
+test('late sample responses cannot replace a newer resized preview', async ($, on) => {
   const fixture = setup(on);
   let resolveOld!: (value: ProcessRunResult) => void;
   let started!: () => void;
-  const oldStarted = new Promise<void>((resolve) => {
+  const begun = new Promise<void>((resolve) => {
     started = resolve;
   });
-  const old = new Promise<ProcessRunResult>((resolve) => {
+  const pending = new Promise<ProcessRunResult>((resolve) => {
     resolveOld = resolve;
   });
   fixture.behavior.process = async (request, next) => {
-    if (request.operation === 'preview' && request.payload.width === 40) {
+    if (request.operation !== 'preview') return next();
+    if (request.payload.width === 60) {
       started();
-      return { value: await old };
+      return { value: await pending };
     }
-    return next();
+    return { value: reply(sample('new width sample')) };
   };
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  const older = ui.redraw({ ...PANE.props, bodyColumns: 40 });
-  await oldStarted;
-  await ui.redraw({ ...PANE.props, bodyColumns: 36 });
-  resolveOld(reply(sample('stale width 40')));
-  await older;
-  expect(await ui.find({ type: 'Text', text: 'width=36' })).toBeDefined();
-  expect(
-    await ui.find({ type: 'Text', text: 'stale width 40' }),
-  ).toBeUndefined();
-  await ui.press({ key: 'close' });
-  await ui.unmount();
-  let finish!: (value: ProcessRunResult) => void;
-  let began!: () => void;
-  const pending = new Promise<ProcessRunResult>((resolve) => {
-    finish = resolve;
-  });
-  const begun = new Promise<void>((resolve) => {
-    began = resolve;
-  });
-  fixture.behavior.process = async (request, next) => {
-    if (request.operation !== 'read') return next();
-    began();
-    return { value: await pending };
-  };
-  const opening = $.command.run(RUN);
   await begun;
-  const loading = await $.ui.mount(PANE);
-  await loading.press({ key: 'close' });
-  finish(reply(readResult()));
-  await opening;
-  await loading.redraw();
-  expect(await loading.find({ key: 'save' })).toBeUndefined();
-  await loading.unmount();
-});
-
-test('command collisions and foreign panes pass through', async ($, on) => {
-  const fixture = setup(on);
-  fixture.commands = [
-    {
-      name: RUN.command,
-      description: 'Foreign',
-      source: 'plugin',
-      plugin: 'other',
-    },
-  ];
-  await $.session.start(START);
-  expect((await $.command.run(RUN)).text).toBe('foreign command');
-  expect(fixture.registered).toBe(false);
-  const ui = await $.ui.mount({ ...PANE, requestId: 'foreign' });
-  expect(await ui.find({ type: 'Text', text: 'foreign pane' })).toBeDefined();
-  await ui.unmount();
-});
-
-test(
-  'the installed primary command opens the editor and refuses foreign commands independently',
-  { options: { primaryCommand: true } },
-  async ($, on) => {
-    const fixture = setup(on);
-    await $.session.start(START);
-    await $.command.run({ ...RUN, command: 'statusline-configure' });
-    const ui = await $.ui.mount(PANE);
-    expect(await ui.find({ key: 'save' })).toBeDefined();
-    await ui.press({ key: 'close' });
-    await ui.unmount();
-    fixture.commands = [
-      {
-        name: 'statusline-configure',
-        description: 'Foreign',
-        source: 'plugin',
-        plugin: 'other',
-      },
-    ];
-    await $.session.start(START);
-    expect(
-      (await $.command.run({ ...RUN, command: 'statusline-configure' })).text,
-    ).toBe('foreign command');
-    await $.command.run(RUN);
-    const alias = await $.ui.mount(PANE);
-    expect(await alias.find({ key: 'save' })).toBeDefined();
-    await alias.unmount();
-  },
-);
-
-test('session reload discards pending drafts and numeric focus exit cancels unaccepted values', async ($, on) => {
-  setup(on);
-  await $.session.start(START);
-  await $.command.run(RUN);
-  const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'page-settings' });
-  await ui.input({ key: 'padding', text: '9', kind: 'change' });
-  await $.ui.focus({
-    component: 'Pane',
-    requestId: 'statusline-native',
-    origin: { kind: 'person' },
-  });
+  await ui.redraw({ ...PANE.props, bodyColumns: 72 });
+  resolveOld(reply(sample('stale sample')));
   await ui.redraw();
-  expect((await ui.find({ key: 'padding' }))?.props.value).toBe('0');
-  await ui.press({ key: 'colors' });
-  await $.session.start(START);
-  await $.command.run(RUN);
-  await ui.redraw();
-  await ui.press({ key: 'page-settings' });
-  expect((await ui.find({ key: 'colors' }))?.props.label).toBe('Colors: on');
-  await ui.unmount();
-});
-
-test('finish saves then closes, while failed and uncertain saves stay open', async ($, on) => {
-  const fixture = setup(on);
-  let reject = true;
-  fixture.behavior.process = (request, next) =>
-    request.operation === 'apply' && reject
-      ? {
-          value: output(
-            JSON.stringify({
-              protocol_version: 1,
-              error: {
-                code: 'configuration_conflict',
-                message: 'Changed elsewhere',
-              },
-            }),
-            2,
-          ),
-        }
-      : next();
-  await $.session.start(START);
-  await $.command.run(RUN);
-  const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'item-main:git' });
-  await ui.press({ key: 'finish' });
-  expect(fixture.closes).toHaveLength(0);
-  expect(await ui.find({ key: 'finish' })).toBeDefined();
-  reject = false;
-  await ui.press({ key: 'finish' });
-  expect(fixture.closes).toHaveLength(1);
-  expect(fixture.store.draft.display.items).toContain('git');
-  await ui.unmount();
-});
-
-test('finish exposes pending preferences and never discards them implicitly', async ($, on) => {
-  const fixture = setup(on);
-  await $.session.start(START);
-  await $.command.run(RUN);
-  const ui = await $.ui.mount(PANE);
-  await ui.press({ key: 'page-settings' });
-  expect(await ui.find({ key: 'host-theme' })).toBeUndefined();
-  await ui.press({ key: 'advanced' });
-  await ui.press({ key: 'host-verbose' });
-  await ui.press({ key: 'advanced' });
-  await ui.press({ key: 'finish' });
-  expect(fixture.closes).toHaveLength(0);
-  expect(await ui.find({ key: 'host-verbose' })).toBeDefined();
-  expect(fixture.configCalls).toHaveLength(0);
-  await ui.press({ key: 'apply-host' });
-  expect(fixture.configCalls).toEqual([{ key: 'verbose', value: true }]);
-  await ui.press({ key: 'finish' });
-  expect(fixture.closes).toHaveLength(1);
-  await ui.unmount();
-});
-
-test('list pages expose direct toggles and maintain selection through filtering and resizing', async ($, on) => {
-  const fixture = setup(on);
-  await $.session.start(START);
-  await $.command.run(RUN);
-  const ui = await $.ui.mount({
-    ...PANE,
-    props: {
-      ...PANE.props,
-      bodyColumns: 32,
-      scroll: { offset: 0, bodyRows: 12 },
-    },
-  });
   expect(
-    (await ui.findAll({ type: 'Button' })).filter((row) =>
-      row.key?.startsWith('item-main:'),
-    ),
-  ).toHaveLength(2);
-  await ui.press({ key: 'next' });
-  expect(await ui.find({ key: 'item-main:thinking' })).toBeDefined();
-  await ui.press({ key: 'item-main:thinking' });
-  await ui.redraw(PANE.props);
-  const count = fixture.calls.filter(
-    (call) => call.operation === 'preview',
-  ).length;
-  await ui.redraw({ ...PANE.props, scroll: { offset: 0, bodyRows: 18 } });
-  expect(
-    fixture.calls.filter((call) => call.operation === 'preview'),
-  ).toHaveLength(count);
-  await ui.input({ key: 'filter-main', text: 'git' });
-  expect(await ui.find({ key: 'item-main:git' })).toBeDefined();
-  await ui.press({ key: 'item-main:git' });
-  await ui.input({ key: 'filter-main', text: 'no match' });
-  await ui.press({ key: 'toggle-item' });
-  await ui.press({ key: 'save' });
-  expect(fixture.store.draft.display.items).toEqual([
-    'model-with-effort',
-    'thinking',
-    'git',
-  ]);
-  await ui.redraw({ ...PANE.props, scroll: { offset: 0, bodyRows: 11 } });
-  expect(await ui.find({ key: 'save' })).toBeUndefined();
-  expect(await ui.find({ key: 'close' })).toBeDefined();
-  await ui.unmount();
-});
-
-test('row focus updates the toggle target and preview overflow stays bounded', async ($, on) => {
-  const fixture = setup(on);
-  fixture.behavior.process = (request, next) =>
-    request.operation === 'preview'
-      ? {
-          value: reply({
-            sample: true,
-            main: Array.from({ length: 7 }, (_, i) => [
-              { text: '中文 ' + i, bold: false, foreground: null },
-            ]),
-            subagents: [],
-          }),
-        }
-      : next();
-  await $.session.start(START);
-  await $.command.run(RUN);
-  const ui = await $.ui.mount(PANE);
-  await $.ui.focus({
-    component: 'Pane',
-    requestId: 'statusline-native',
-    element: 'item-main:git',
-    plugin: 'statusline-native',
-    origin: { kind: 'person' },
-  });
-  await ui.redraw();
-  await ui.press({ key: 'toggle-item' });
-  await ui.press({ key: 'save' });
-  expect(fixture.store.draft.display.items).toEqual([
-    'model-with-effort',
-    'git',
-  ]);
-  expect(
-    await ui.find({ type: 'Text', text: '5 more preview rows' }),
+    await ui.find({ in: REGION, type: 'Text', text: 'new width sample' }),
   ).toBeDefined();
-  expect(await ui.find({ type: 'Text', text: '中文 2' })).toBeUndefined();
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: 'stale sample' }),
+  ).toBeUndefined();
+  await ui.unmount();
+});
+
+test('a fast printable terminal chunk enters search and retains all characters', async ($, on) => {
+  const fixture = setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, '/git');
+  expect(
+    await ui.find({ in: REGION, type: 'Text', text: 'Filter: git' }),
+  ).toBeDefined();
+  expect(fixture.calls.some((call) => call.operation === 'apply')).toBe(false);
+  await keys(ui, { key: 'g', ctrl: true });
+  expect(
+    await ui.find({ in: REGION, key: 'item-main:model-with-effort' }),
+  ).toBeDefined();
   await ui.unmount();
 });

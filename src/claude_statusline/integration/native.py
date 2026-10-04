@@ -19,11 +19,9 @@ from claude_statusline.config import storage
 from claude_statusline.integration import (
     capabilities,
     native_resources,
-    ownership,
-    resources,
 )
 from claude_statusline.integration.models import ConfigurationError, Diagnostic
-from claude_statusline.platforms import environment
+from claude_statusline.platforms import environment, files as platform_files
 
 MARKETPLACE = "claude-statusline-local"
 PLUGIN = "statusline-native@" + MARKETPLACE
@@ -38,6 +36,15 @@ class NativeResult:
     active: bool = False
     changed: bool = False
     messages: tuple[str, ...] = ()
+
+
+def _binding_matches(options: object, expected: dict) -> bool:
+    inputs = options.get("inputs") if isinstance(options, dict) else None
+    # Old official caches/settings may retain the removed primaryCommand input.
+    # Only declared backend inputs bind this Mod; legacy inputs have no handler.
+    return isinstance(inputs, dict) and all(
+        inputs.get(key) == value for key, value in expected.items()
+    )
 
 
 class PluginError(ConfigurationError):
@@ -56,6 +63,25 @@ def _path(root: Path, name: str) -> Path:
         # callers resolve config_dir first. No link inside an owned root is valid.
         raise PluginError(f"Native resource contains a symlink: {path}")
     return path
+
+
+def _prune_empty_parents(root: Path, paths: list[Path]) -> None:
+    parents = {
+        parent for path in paths for parent in path.parents
+        if parent.is_relative_to(root)
+    }
+    for directory in sorted(parents, key=lambda path: len(path.parts), reverse=True):
+        if any(
+            platform_files.is_link_or_reparse(parent)
+            for parent in (directory, *directory.parents)
+            if parent.is_relative_to(root)
+        ):
+            continue
+        try:
+            directory.rmdir()
+        except OSError:
+            # Unknown files/nonempty directories are never recursively removed.
+            pass
 
 
 def owner(config_dir: Path, *, allow_missing: bool = False) -> dict | None:
@@ -265,14 +291,7 @@ def _cache_owned(
 
 
 def command_preflight(config_dir: Path):
-    skill, marker = resources.experimental_skill_paths(config_dir)
-    if (skill.exists() or marker.exists()) and not ownership._is_owned_skill_marker(
-        storage._read_optional_bytes(marker)
-    ):
-        raise PluginError(
-            "Foreign /statusline-configure skill; move it aside or rename it before native migration"
-        )
-    for command in ("statusline-configure", "statusline-configure-native"):
+    for command in ("statusline-configure-native",):
         if (config_dir / "commands" / (command + ".md")).exists():
             raise PluginError(
                 f"Foreign /{command} command; rename it before native migration"
@@ -332,9 +351,11 @@ def _stage(
                 marker["cache_inventories"].append(snapshot)
         marker["cache_inventories"] = marker["cache_inventories"][:3]
     root = config_dir / DIRECTORY
+    obsolete = []
     if previous:
         for name in previous["files"].keys() - artifacts.keys():
             artifacts[name] = None
+            obsolete.append(_path(root, name))
     artifacts[OWNER_FILE] = storage._json_bytes(marker)
     changed = []
     for name, raw in artifacts.items():
@@ -366,6 +387,7 @@ def _stage(
             raise PluginError(
                 f"Cannot stage native resources: {exc}; rollback errors: {failures}"
             ) from exc
+        _prune_empty_parents(root, obsolete)
     return marker, True
 
 
@@ -403,22 +425,15 @@ def _remove_resources(config_dir: Path, marker: dict):
             raise PluginError("Native ownership changed before removal; run doctor")
         root = config_dir / DIRECTORY
         paths = [_path(root, name) for name in marker["files"]]
+        historical = [
+            _path(root, name)
+            for snapshot in marker["cache_inventories"]
+            for name in snapshot["files"]
+        ]
         for path in paths:
             path.unlink(missing_ok=True)
         (root / OWNER_FILE).unlink()
-        parents = {
-            parent
-            for path in paths
-            for parent in path.parents
-            if parent.is_relative_to(root)
-        }
-        for directory in sorted(
-            parents, key=lambda path: len(path.parts), reverse=True
-        ):
-            try:
-                directory.rmdir()
-            except OSError:
-                pass
+        _prune_empty_parents(root, paths + historical)
 
 
 def integrate(
@@ -522,7 +537,6 @@ def integrate(
             "backendExecutable": str(executable.resolve()),
             "configDir": str(config_dir),
             "backendVersion": current["backend_version"],
-            "primaryCommand": True,
         }
         if row and staged and row.get("version") == current["mod_version"]:
             # Official update is a no-op at the same version. Reinstall only
@@ -561,7 +575,7 @@ def integrate(
             key: str(value).lower() if isinstance(value, bool) else value
             for key, value in values.items()
         }
-        if not isinstance(options, dict) or options.get("inputs") != bound:
+        if not _binding_matches(options, bound):
             raise PluginError(
                 "Native backend binding could not be confirmed; compatibility entry retained"
             )
@@ -653,15 +667,14 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
                 "backendExecutable": str(executable.resolve()) if executable else None,
                 "configDir": str(config_dir.resolve()),
                 "backendVersion": manifest["backend_version"],
-                "primaryCommand": "true",
             }
             result.append(
                 Diagnostic(
-                    "OK" if options.get("inputs") == expected else "ERROR",
+                    "OK" if _binding_matches(options, expected) else "ERROR",
                     "native backend binding: "
                     + (
                         "matches"
-                        if options.get("inputs") == expected
+                        if _binding_matches(options, expected)
                         else "differs; rerun install"
                     ),
                 )

@@ -72,6 +72,12 @@ An individual parallel run can finish its agents before the first main Stop and 
 
 All release gates, including the real timer evidence, must pass before publication. See the [timer contract](timer.md) and [architecture](architecture.md).
 
-## Redesigned native editor checks
+## Client and external-entry checks
 
-v1.3.0a1 adds coverage for direct item controls, disabled/filtered ordering, paging/focus targets, 32×12 body boundaries, height-only preview caching, CJK label clipping, independent numeric acceptance, Finish and pending host preferences. Official tests dispatch focus events; actual API focus and paint are checked in Linux PTYs at 120×30 and 80×48, with new human checks required separately. Callback tests cannot establish automatic keyboard focus for Client regions. Nested runtime resources are checked in staging, the official cache and the built wheel/sdist. All regular checks use temporary configuration and make no paid model calls.
+v1.3.0a2 checks all four installation combinations, independent disablement, restoration of old owned external resources, foreign command collisions, reinstall, downgrade and uninstall. Python tests exercise both external/Client save orders, asserting stale drafts cannot overwrite or create backups and unrelated settings survive.
+
+Fixed-host official tests exercise actual Client modules, Space/Tab/arrows, search shortcut isolation, Ctrl+G, numeric boundaries, acknowledged/deduplicated/gapped batches, fast same-frame input, frozen port snapshots, old epochs, repeated opening, saving locks/reconciliation, Client recovery, cached previews and late responses. Layout covers 32×12, grouped borders, CJK and combining characters.
+
+Automated Linux PTYs check initial click, three pages, save/cancel, Esc and continuing the same session at 120×30 docked and 80×48 inline sizes. Persistent mode uses a private tmux server with both entries installed and verifies Client reads a value saved by the original external popup. Run `tools/native_mod_acceptance.py --persistent --report-dir dist/validation/<new-directory>`; keep raw data private and outside distributions. Wheel/sdist/rebuilt-wheel checks verify Client inventories. Ordinary checks make no paid model calls.
+
+The maintainer confirmed a1 human acceptance on all three platforms. a2 Client human acceptance is recorded separately as pending until supplied; automated evidence is not a substitute. This prerelease may publish after all automated gates pass without the paid timer suite.

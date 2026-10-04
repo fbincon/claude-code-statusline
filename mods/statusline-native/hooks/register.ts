@@ -11,33 +11,20 @@ import {
   requestText,
 } from '../lib/backend.ts';
 import { Editor, copyDraft, sameDraft } from '../lib/editor/draft.ts';
-import {
-  itemKey,
-  pageSelection,
-  settingsKeys,
-} from '../lib/editor/navigation.ts';
 import { canEdit, preferences, preferenceChanged } from '../lib/preferences.ts';
 import type {
   Draft,
   Operation,
   ResultFor,
 } from '../lib/generated-contracts.ts';
-import type { Actions } from '../ui/controls.ts';
-import { pane, contentCapacity } from '../ui/pane.ts';
 import { MIN_COLUMNS, MIN_ROWS } from '../ui/layout.ts';
-import type { View } from '../ui/pane.ts';
+import { clientProps } from '../lib/session.ts';
+import type { View } from '../lib/session.ts';
+import { parseBatch } from '../lib/client/messages.ts';
+import { handleKey } from '../lib/client/keys.ts';
 
 const PANE = 'statusline-native';
 const COMMAND = 'statusline-configure-native';
-
-async function focusElement($: EngineInterface, key: string) {
-  try {
-    await $.ui.focus({ requestId: PANE, key });
-  } catch {
-    // Focus is a surface request: closing, losing the keyboard or a missing
-    // surface must not undo an edit or turn a successful save into a failure.
-  }
-}
 
 async function callBackend<O extends Operation>(
   $: EngineInterface,
@@ -82,6 +69,7 @@ async function callBackend<O extends Operation>(
 function emptyView(): View {
   return {
     editor: null,
+    input: null,
     preview: null,
     preferences: [],
     preferencesError: '',
@@ -104,8 +92,14 @@ function failureText(failure: unknown): string {
 
 interface Session {
   ownsCommand: boolean;
-  ownsPrimary: boolean;
   view: View;
+  ack: number;
+  generation: number;
+  columns: number;
+  rows: number;
+  placed: boolean;
+  clientFault: string;
+  inputChain: Promise<void>;
   epoch: number;
   previewKey: string;
   previewTimer: Timer | null;
@@ -121,6 +115,20 @@ function discard(state: Session): void {
   state.previewKey = '';
   state.writing = false;
   state.pendingSave = null;
+  state.ack = 0;
+  state.placed = false;
+  state.clientFault = '';
+}
+
+function props(state: Session) {
+  return clientProps(
+    state.view,
+    state.epoch,
+    state.ack,
+    ++state.generation,
+    state.columns,
+    state.rows,
+  );
 }
 
 async function load(
@@ -224,7 +232,6 @@ async function save(
     editor.page = 'settings';
     editor.setting = Object.keys(editor.fieldErrors)[0] || 'padding';
     $.ui.invalidate('ui.render');
-    await focusElement($, editor.setting);
     return;
   }
   const saving = state.epoch;
@@ -281,7 +288,6 @@ async function save(
       state.view.message =
         'Tool configuration saved. Host changes pending: a apply, f finish, q discard/close.';
       $.ui.invalidate('ui.render');
-      await focusElement($, editor.setting);
     } else await close($, state);
   }
 }
@@ -385,9 +391,11 @@ async function openEditor(
     return {
       text: 'Finish checking the pending save before reopening the editor.',
     };
-  const opening = state.epoch + 1;
-  await load($, state, options);
-  if (state.epoch !== opening) return {};
+  if (!state.placed) {
+    const opening = state.epoch + 1;
+    await load($, state, options);
+    if (state.epoch !== opening) return {};
+  }
   const opened = await $.ui.open({
     id: PANE,
     title: 'Statusline configuration',
@@ -396,6 +404,7 @@ async function openEditor(
     rows: 24,
     columns: 72,
   });
+  state.placed = opened.isPlaced;
   if (!opened.isPlaced) return { text: opened.reason };
   return {};
 }
@@ -403,9 +412,15 @@ async function openEditor(
 export const register: Register = (on, options) => {
   const state: Session = {
     ownsCommand: false,
-    ownsPrimary: false,
     view: emptyView(),
     epoch: 0,
+    ack: 0,
+    generation: 0,
+    columns: 72,
+    rows: 24,
+    placed: false,
+    clientFault: '',
+    inputChain: Promise.resolve(),
     previewKey: '',
     previewTimer: null,
     writing: false,
@@ -414,7 +429,6 @@ export const register: Register = (on, options) => {
 
   on('session.start', async ($, e, next) => {
     state.ownsCommand = false;
-    state.ownsPrimary = false;
     discard(state);
     const open = await $.ui.panes();
     if (open.some((p) => p.id === PANE)) {
@@ -425,30 +439,14 @@ export const register: Register = (on, options) => {
     const collision = commands.find((command) => command.name === COMMAND);
     if (collision && collision.plugin !== 'statusline-native') {
       $.ui.log(
-        '/statusline-configure-native belongs to another command; the alias is inactive.',
+        '/statusline-configure-native belongs to another command; the Client entry is inactive.',
       );
     } else {
       await $.command.register({
         name: 'statusline-configure-native',
-        description: 'Open the native statusline configuration editor',
+        description: 'Open the experimental in-session Client TUI',
       });
       state.ownsCommand = true;
-    }
-    if (options.primaryCommand === true) {
-      const primary = commands.find(
-        (command) => command.name === 'statusline-configure',
-      );
-      if (primary && primary.plugin !== 'statusline-native') {
-        $.ui.log(
-          '/statusline-configure belongs to another command; resolve the collision and restart.',
-        );
-      } else {
-        await $.command.register({
-          name: 'statusline-configure',
-          description: 'Open the native statusline configuration editor',
-        });
-        state.ownsPrimary = true;
-      }
     }
     return next(e);
   });
@@ -461,11 +459,6 @@ export const register: Register = (on, options) => {
       return openEditor($, state, options);
     },
   );
-
-  on('command.run', { command: 'statusline-configure' }, async ($, e, next) => {
-    if (!state.ownsPrimary) return next(e);
-    return openEditor($, state, options);
-  });
 
   on('ui.close', { id: 'statusline-native' }, async ($, e, next) => {
     if (e.origin.kind !== 'unload' && (state.writing || state.view.uncertain)) {
@@ -481,45 +474,87 @@ export const register: Register = (on, options) => {
     return result;
   });
 
-  on('ui.focus', { component: 'Pane' }, ($, e, next) => {
-    const editor = state.view.editor;
-    if (e.requestId === PANE && editor && !state.writing) {
-      for (const scope of ['main', 'subagent'] as const) {
-        const item = editor
-          .visible(scope)
-          .find((item) => itemKey(scope, item.id) === e.element);
-        if (item && editor.selected[scope] !== item.id) {
-          editor.selected[scope] = item.id;
-          $.ui.invalidate('ui.render');
-        }
-      }
-      if (e.element && settingsKeys(editor.advanced).includes(e.element))
-        editor.setting = e.element;
-    }
+  on('ui.message', { component: 'Pane' }, async ($, e, next) => {
     if (
-      e.requestId === PANE &&
-      e.origin.kind === 'person' &&
-      !e.element &&
-      !state.writing
+      e.requestId !== PANE ||
+      e.element !== 'statusline-client' ||
+      e.module !== 'ui/client/surface.ts' ||
+      e.surface !== 'terminal' ||
+      !state.ownsCommand
+    )
+      return next(e);
+    const fault = e.data as { epoch?: unknown; fault?: unknown } | null;
+    if (
+      fault &&
+      typeof fault === 'object' &&
+      Object.keys(fault).sort().join(',') === 'epoch,fault' &&
+      fault.epoch === state.epoch &&
+      typeof fault.fault === 'string' &&
+      fault.fault.length > 0 &&
+      fault.fault.length <= 200
     ) {
-      if (editor?.activeNumeric) editor.cancelNumeric(editor.activeNumeric);
+      state.clientFault = failureText(fault.fault);
       $.ui.invalidate('ui.render');
+      return {};
     }
-    return next(e);
+    const batch = parseBatch(e.data);
+    if (!batch) {
+      state.view.error = 'Invalid Client input. Retry the Client region.';
+      return { props: props(state) };
+    }
+    const run = state.inputChain.then(async () => {
+      if (batch.epoch !== state.epoch || !state.placed) return {};
+      const currentEpoch = state.epoch;
+      for (const message of batch.events) {
+        if (message.seq <= state.ack) continue;
+        if (message.seq !== state.ack + 1) {
+          state.view.error =
+            'Client input sequence is incomplete. Retry the Client region.';
+          break;
+        }
+        state.ack = message.seq;
+        state.view.message = '';
+        const effect = handleKey(
+          state.view,
+          message.event,
+          batch.columns,
+          batch.rows,
+        );
+        if (effect === 'save' || effect === 'finish') {
+          await save($, state, options, effect === 'finish');
+        } else if (effect === 'close') await close($, state);
+        else if (effect === 'reload') {
+          await load($, state, options);
+          state.placed = true;
+        } else if (effect === 'reconcile') await reconcile($, state, options);
+        else if (effect === 'applyPreferences')
+          await applyPreferences($, state, options);
+        else if (effect === 'retry') state.previewKey = '';
+        if (state.epoch !== currentEpoch) break;
+      }
+      $.ui.invalidate('ui.render');
+      if (state.epoch !== currentEpoch) return {};
+      return { props: props(state) };
+    });
+    state.inputChain = run.then(
+      () => {},
+      () => {},
+    );
+    return run;
   });
 
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {
-    if (e.requestId !== PANE || (!state.ownsCommand && !state.ownsPrimary))
-      return next(e);
-    if (e.surface !== 'terminal') {
-      const { Text } = $.ui.resolve(e);
-      return Text({
+    if (e.requestId !== PANE || !state.ownsCommand) return next(e);
+    const ui = $.ui.resolve(e);
+    if (e.surface !== 'terminal')
+      return ui.Text({
         children: ['Open this editor in the Claude Code terminal CLI.'],
       });
-    }
-    const ui = $.ui.resolve(e);
+    const { Box, Text, Button, Client } = $.ui.resolve(e);
     const width = Math.max(2, Math.min(10000, e.props.bodyColumns));
-    const height = Math.max(0, e.props.scroll.bodyRows);
+    const height = Math.max(0, Math.min(10000, e.props.scroll.bodyRows));
+    state.columns = width;
+    state.rows = height;
     const editor = state.view.editor;
     const key = `${state.epoch}:${width}:${editor ? JSON.stringify(editor.draft) : ''}`;
     if (
@@ -558,111 +593,106 @@ export const register: Register = (on, options) => {
         }
       });
     }
-
-    const actions: Actions = {
-      edit: (change) => {
-        if (!state.view.editor || state.writing || state.view.uncertain) return;
-        change(state.view.editor);
-        state.view.message = '';
-        $.ui.invalidate('ui.render');
-      },
-      filter: async (scope, value) => {
-        if (!editor || state.writing || state.view.uncertain) return;
-        editor.filter(scope, value);
-        $.ui.invalidate('ui.render');
-        if (editor.selected[scope])
-          await focusElement($, itemKey(scope, editor.selected[scope]));
-      },
-      page: async (page) => {
-        if (!state.view.editor || state.writing) return;
-        state.view.editor.page = page;
-        $.ui.invalidate('ui.render');
-        const scope = page === 'main' ? 'main' : 'subagent';
-        const key =
-          page === 'settings'
-            ? state.view.editor.setting
-            : itemKey(scope, state.view.editor.selected[scope]);
-        await focusElement($, key);
-      },
-      paginate: async (delta) => {
-        if (!editor || state.writing) return;
-        const size = contentCapacity(editor.page, height);
-        if (editor.page === 'settings') {
-          editor.setting = pageSelection(
-            settingsKeys(editor.advanced),
-            editor.setting,
-            size,
-            delta,
-          );
-          $.ui.invalidate('ui.render');
-          await focusElement($, editor.setting);
-        } else {
-          const scope = editor.page === 'main' ? 'main' : 'subagent';
-          editor.selected[scope] = pageSelection(
-            editor.visible(scope).map((item) => item.id),
-            editor.selected[scope],
-            size,
-            delta,
-          );
-          $.ui.invalidate('ui.render');
-          if (editor.selected[scope])
-            await focusElement($, itemKey(scope, editor.selected[scope]));
-        }
-      },
-      move: async (delta) => {
-        if (
-          !editor ||
-          state.writing ||
-          state.view.uncertain ||
-          editor.page === 'settings'
-        )
-          return;
-        const scope = editor.page === 'main' ? 'main' : 'subagent';
-        if (editor.move(scope, delta)) {
-          state.view.message = '';
-          $.ui.invalidate('ui.render');
-          await focusElement($, itemKey(scope, editor.selected[scope]));
-        }
-      },
-      advanced: async () => {
-        if (!editor || state.writing) return;
-        editor.advanced = !editor.advanced;
-        editor.setting = editor.advanced ? 'host-theme' : 'colors';
-        $.ui.invalidate('ui.render');
-        await focusElement($, editor.setting);
-      },
-      save: () => save($, state, options),
-      finish: () => save($, state, options, true),
-      close: () => close($, state),
-      reload: async () => {
-        if (!state.writing && !state.view.uncertain)
-          await load($, state, options);
-      },
-      retry: () => {
-        state.previewKey = '';
-        $.ui.invalidate('ui.render');
-      },
-      reconcile: () => reconcile($, state, options),
-      preference: (key, value) => {
-        if (state.writing || state.view.uncertain) return;
-        const preference = state.view.preferences.find(
-          (item) => item.row.key === key,
-        );
-        if (!preference || !canEdit(preference)) return;
-        if (
-          preference.row.kind === 'choice' &&
-          (typeof value !== 'string' ||
-            !preference.row.options?.includes(value))
-        )
-          return;
-        if (preference.row.kind === 'boolean' && typeof value !== 'boolean')
-          return;
-        preference.value = value;
-        preference.result = '';
-        $.ui.invalidate('ui.render');
-      },
-      applyPreferences: () => applyPreferences($, state, options),
+    const retry = async () => {
+      if (state.writing || state.view.uncertain) return;
+      if (!state.view.editor) await load($, state, options);
+      else {
+        state.epoch++;
+        state.ack = 0;
+        state.clientFault = '';
+        state.view.error = '';
+      }
+      state.placed = true;
+      $.ui.invalidate('ui.render');
     };
-    return pane(ui, state.view, width, height, actions);
+    if (
+      editor &&
+      !state.clientFault &&
+      width >= MIN_COLUMNS &&
+      height >= MIN_ROWS
+    ) {
+      return Box({
+        width,
+        height,
+        flexDirection: 'column',
+        children: [
+          Client({
+            key: 'statusline-client',
+            module: '../ui/client/surface.ts',
+            width,
+            height,
+            props: props(state),
+          }),
+          Box({
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: 20,
+            height: 1,
+            flexDirection: 'row',
+            columnGap: 1,
+            children: [
+              Button({ key: 'retry-client', label: 'Retry', onPress: retry }),
+              Button({
+                key: 'close',
+                label: 'Close',
+                onPress: () => close($, state),
+              }),
+            ],
+          }),
+        ],
+      });
+    }
+    return Box({
+      flexDirection: 'column',
+      width,
+      // Keep the requested height while undersized; otherwise an inline host
+      // measures the short error tree and never grows it after a terminal resize.
+      height: Math.max(24, height),
+      children: [
+        Text({
+          bold: true,
+          wrap: 'truncate',
+          children: [
+            width < MIN_COLUMNS || height < MIN_ROWS
+              ? 'Resize pane to 32x12. Draft kept.'
+              : state.clientFault
+                ? 'Client failed. Received draft kept.'
+                : state.view.busy || 'Could not open the Client editor.',
+          ],
+        }),
+        Text({
+          color: 'red',
+          wrap: 'truncate',
+          children: [state.clientFault || state.view.error || ' '],
+        }),
+        ...(state.view.uncertain
+          ? [
+              Button({
+                key: 'reconcile',
+                label: 'Check saved state',
+                hotkey: 'k',
+                onPress: () => reconcile($, state, options),
+              }),
+            ]
+          : []),
+        ...(!state.view.busy && !state.view.uncertain
+          ? [
+              Button({
+                key: 'retry-client',
+                label: 'Retry Client',
+                hotkey: 'r',
+                onPress: retry,
+              }),
+            ]
+          : []),
+        Button({
+          key: 'close',
+          label: 'Discard pending / Close',
+          hotkey: 'q',
+          onPress: () => close($, state),
+        }),
+      ],
+    });
   });
 };
