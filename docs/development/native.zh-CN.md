@@ -82,4 +82,12 @@ v1.2.0 在晋升稳定版前，已获维护者确认 Linux、Windows 11、macOS 
 
 同日维护者另行明确确认 **v1.3.0a2 的 Linux、Windows、macOS 真人验收通过**。此次确认未附终端、架构、宿主版本或独立报告，相关元数据保持未知。正式 v1.3.0 沿用 a2 的 Client 交互，仅调整版本/描述及安装默认与降级策略；这些变更另经回归、真实 Linux PTY、打包和安装验证。自动检查不计作真人验收；本轮不运行付费计时套件。
 
+## Claude Code 2.1.289 交互反馈
+
+2026-10-04 稍后，维护者提供了[三张实际终端截图](../images/README.zh-CN.md#会话内-client-截图)，均可见 Claude Code 2.1.289，并反馈 Linux、Windows 会话内 Client 可以正常使用；macOS Client 面板可以打开，但交互不正常，尚未找到并验证有效的鼠标配置。本次反馈未提供后端或源码版本、准确系统版本、架构与终端版本。
+
+上面的历史发布验收记录保留原有范围。本次 macOS 问题仍未解决，面板打开或自动 CI 通过均不代表鼠标传递、键盘焦点及编辑操作已验证。[官方鼠标报告检查步骤](../USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)作为建议记录，不宣称已验证修复。
+
+后续 macOS 验收应记录宿主、后端、终端版本、终端鼠标报告设置，以及是否经过 tmux 或 SSH；核实首次点击、Tab／方向键／Space、保存重开、丢弃及返回同一会话后，才记录通过。本次文档更新不提供新的 macOS 验收运行结果。
+
 参考：[实际版本 Mod 类型](https://code.claude.com/docs/en/plugins/mods/create)、[官方测试](https://code.claude.com/docs/en/plugins/mods/test)、[本地 marketplace](https://code.claude.com/docs/en/plugin-marketplaces)。

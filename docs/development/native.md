@@ -82,4 +82,12 @@ On 2026-10-04 the maintainer explicitly confirmed v1.3.0a1's redesigned native-c
 
 On the same date the maintainer separately confirmed **v1.3.0a2 human acceptance passed on Linux, Windows and macOS**. No terminal, architecture, exact host versions or independent report accompanied this confirmation; those metadata remain unknown. Stable v1.3.0 retains a2 Client interaction, changing version/description and installation defaults/suspension policy. Regression, real Linux PTY, packaging and installation validate those changes separately. Automated checks are not human acceptance; no paid timer suite is run for this promotion.
 
+## Claude Code 2.1.289 interaction report
+
+Later on 2026-10-04 the maintainer supplied [three actual terminal screenshots](../images/README.md#in-session-client-screenshots), each visibly showing Claude Code 2.1.289, and reported normal in-session Client use on Linux and Windows. On macOS the Client pane opens but interaction is not working correctly. The maintainer has not found or verified a working mouse configuration. Backend/source versions and exact OS, architecture and terminal-version metadata were not supplied for this report.
+
+The earlier release acceptance records above retain their original scope. This later macOS result remains unresolved; an open pane or passing automated CI does not establish mouse delivery, keyboard focus or successful editing. [Official mouse reporting checks](../USER_GUIDE.md#macos-mouse-reporting-and-client-focus) are documented as suggestions, not a verified fix.
+
+A follow-up macOS acceptance record should identify the host, backend and terminal versions, terminal mouse-reporting settings, and whether tmux/SSH is involved. Verify initial click, Tab/arrows/Space, save/reopen, discard and return to the same session before recording success. This documentation update does not supply a new macOS acceptance run.
+
 References: [actual-build Mod types](https://code.claude.com/docs/en/plugins/mods/create), [official tests](https://code.claude.com/docs/en/plugins/mods/test), [local marketplaces](https://code.claude.com/docs/en/plugin-marketplaces).

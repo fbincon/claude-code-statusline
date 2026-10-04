@@ -12,6 +12,18 @@
 | macOS | [statusline-macos.png](statusline-macos.png) | [configure-main-macos.png](configure-main-macos.png) | [configure-subagents-macos.png](configure-subagents-macos.png) | [configure-settings-macos.png](configure-settings-macos.png) |
 | Windows | [statusline-windows.png](statusline-windows.png) | [configure-main-windows.png](configure-main-windows.png) | [configure-subagents-windows.png](configure-subagents-windows.png) | [configure-settings-windows.png](configure-settings-windows.png) |
 
+## 会话内 Client 截图
+
+以下实际终端截图由维护者于 2026-10-04 提供，展示现有 Claude Code 会话内的 Client Main 配置页，以及对话区、输入区和主状态栏。三张截图均可见 Claude Code 2.1.289。未提供后端版本、源码提交、准确系统版本、架构和终端版本，相关信息保持未知。
+
+| 平台 | 截图 | 尺寸 | 维护者交互反馈 |
+| --- | --- | --- | --- |
+| Linux | [client-session-linux.png](client-session-linux.png) | 1414×874 | 可以正常操作 |
+| Windows | [client-session-windows.png](client-session-windows.png) | 1792×1202 | 可以正常操作 |
+| macOS | [client-session-macos.png](client-session-macos.png) | 1347×892 | 面板可以打开；交互异常；有效配置尚未验证 |
+
+原文件名依次为 `linux.png`、`windows.png` 和 `macOS.png`。保留 PNG 原始字节、尺寸和颜色，不裁剪或重绘；会话原文中的先前命令及连接消息同样保留。Client Preview 使用固定样例数据。截图用于展示布局，交互结论来自维护者另行反馈。macOS 检查建议见[使用指南](../USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)；本次反馈与历史验收分别记录在[原生编辑器开发说明](../development/native.zh-CN.md#claude-code-21289-交互反馈)。
+
 ## 展示说明
 
 Linux、macOS 与 Windows 均展示主状态栏和 Main、Subagents、Settings 三页配置界面。macOS / Windows 图片使用平台后缀，PNG 内容、尺寸和颜色保持原样。
@@ -40,7 +52,7 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 
 三张 PNG 来自真实 Linux x86_64 Claude Code 2.1.288、120 列终端的解码 cells，使用官方持久插件接入及后端 1.2.0a1，干净代码提交 `db4129b75dcc3aa20fc24bbb09946e249038ee2e`（2026-10-04）。`tools/render_native_capture.py` 裁掉会话区和输入框，用文档字体及默认颜色绘制原始文本和属性；它们是终端画面重建，不是操作系统逐像素截图或构造的 mockup。PNG 内嵌提交和原始画面 SHA256。
 
-状态行数值为生产样例预览。Settings 下方内容通过宿主滚动/Tab 查看。画面及 120/80 列自动保存取消检查不表示真人验收通过，私有 cells/debug 在忽略的 `dist/validation/phase2-editor-pty-fixed`。上面的 macOS/Windows 图片是兼容 TUI；未提供其原生截图，维护者已另行确认 Windows 11、macOS 14.5 真人结果。
+状态行数值为生产样例预览。Settings 下方内容通过宿主滚动/Tab 查看。画面及 120/80 列自动保存取消检查不表示真人验收通过，私有 cells/debug 在忽略的 `dist/validation/phase2-editor-pty-fixed`。`configure-*-macos.png` 与 `configure-*-windows.png` 是兼容 TUI 图片；该版本发布时未提供这两个平台的原生截图，维护者已另行确认 Windows 11、macOS 14.5 真人结果。
 
 ### v1.3.0a2 Client 画面
 

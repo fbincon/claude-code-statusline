@@ -305,6 +305,20 @@ During search or field editing printable characters are input and character shor
 
 Settings groups appearance, refresh/display behavior and advanced Claude preferences. Minimum body is 32×12; at 64×20 or larger grouped borders separate regions, with titled separators in compact space. Preview uses fixed samples without collecting live Git, transcripts or model information.
 
+### macOS mouse reporting and Client focus
+
+On 2026-10-04 the maintainer supplied screenshots showing Claude Code 2.1.289 and reported normal in-session Client interaction on Linux and Windows. On macOS the pane opens but interaction does not work correctly; a working mouse configuration has not been verified. This feedback concerns `/statusline-configure-native`. The main status line and standalone configuration entries remain available. See the [screenshots](images/README.md#in-session-client-screenshots) and [acceptance record](development/native.md#claude-code-21289-interaction-report).
+
+For Terminal.app, try these checks:
+
+1. In the Terminal window running Claude Code, choose **View → Allow Mouse Reporting** and confirm the menu item is checked. Apple documents this option as selected by default in new windows, so inspect its actual state. See [Apple's mouse reporting guide](https://support.apple.com/guide/terminal/turn-on-mouse-reporting-trmlc69728a5/mac).
+2. Run `/statusline-configure-native`, then click inside the **Client content region** once. Check that Tab changes pages, the arrow keys move selection and Space toggles an item. If keys still go to the conversation input, Client focus has not been established. Use `q` to discard test edits once Client input works.
+3. If interaction still fails, record the macOS version, terminal name/version, output of `claude --version`, whether tmux or SSH is involved, and which clicks/keys fail. Run `claude-statusline doctor` to check integration and backend binding. These diagnostics do not verify mouse delivery or Client focus. Use `claude-statusline configure` in a standalone terminal, or `claude-statusline config ...`, while troubleshooting the session entry.
+
+**These are suggested checks, not a verified fix for the reported macOS environment.** Apple explains that Allow Mouse Reporting permits events to reach an application; the application must also enable mouse reporting. The menu setting alone does not activate that behavior or guarantee Client focus. Apple also lists Command+R as a [toggle for this setting](https://support.apple.com/guide/terminal/keyboard-shortcuts-trmlshtcts/mac); check the menu state after using it.
+
+If using **iTerm2**, check **Settings → Profiles → Terminal → Enable mouse reporting** and **Report mouse clicks & drags**. The latter must permit clicks to reach applications for a click-based focus check. Holding Option temporarily bypasses mouse reporting, so test with a plain click. See [iTerm2's official terminal profile documentation](https://iterm2.com/documentation-preferences-profiles-terminal.html). These iTerm2 checks have not been validated against the maintainer's reported problem.
+
 ### Saving, conflicts and recovery
 
 Both editors may remain open. The first save wins; an older revision is rejected without overwriting newer configuration. Client retains conflicting drafts; `r` explicitly discards and reloads before editing again. Saving or an unknown result blocks ordinary closure. Use `k` to check saved state before retrying or closing. Retry/Close buttons outside Client recover failures while retaining the host's received draft.
@@ -1498,7 +1512,7 @@ Confirm that `/statusline-config skill` is OK in doctor. If installation happene
 
 1. Run `claude-statusline doctor` to check host 2.1.287+, resources and backend binding. Suspension on an older host is compatibility handling.
 2. Check recorded disablement, host plugin disablement, safe/bare mode and policy. If needed, run `install --native-editor` and restart Claude Code in a trusted terminal.
-3. Click the Client region once before keyboard use. Ctrl+G cancels input; Esc remains host-owned.
+3. Click the Client region once before keyboard use. On macOS, follow [mouse reporting and Client focus checks](#macos-mouse-reporting-and-client-focus); the latest reported macOS configuration remains unverified. Ctrl+G cancels input; Esc remains host-owned.
 4. Conflicts retain the draft; `r` explicitly discards/reloads. Use `k` to check unknown save outcomes and Retry/Close for failures. Reinstall the matching wheel/integration for version or resource mismatch; do not adopt foreign caches manually.
 
 ### `/statusline-configure` is missing or suspended
