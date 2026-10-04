@@ -55,7 +55,9 @@ def session_token_counts(entry):
     )
     if not observed:
         return None
-    raw = _display_usage_totals(entry)
+    raw = entry.get("_raw_token_counts")
+    if not isinstance(raw, dict) or set(raw) != {"hit", "miss", "out"}:
+        raw = _display_usage_totals(entry)
     try:
         if not all(math.isfinite(value) and value >= 0 for value in raw.values()):
             return None
@@ -446,12 +448,15 @@ def session_token_totals(data):
                 state["sessions"].pop(next(iter(state["sessions"])))
             runtime_cache._save_state(state)
         displayed = _display_usage_totals(entry, visible)
+        # Reuse these integers when independent items are selected. The extra
+        # view belongs to this result only; it never enters the saved cache.
+        result_entry = dict(entry, _raw_token_counts=displayed)
         return (
             rendering_items.humanize_api_tokens(displayed["hit"]),
             rendering_items.humanize_api_tokens(displayed["miss"]),
             rendering_items.humanize_api_tokens(displayed["out"]),
             entry.get("last_pt"),
-            entry,
+            result_entry,
         )
     finally:
         runtime_cache._release_state_lock(lock_fd)

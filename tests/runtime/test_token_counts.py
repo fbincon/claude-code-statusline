@@ -142,6 +142,20 @@ class RawTokenCountsTests(unittest.TestCase):
             )
         self.assertEqual((snapshot.input_tokens, snapshot.out), (14, 4))
 
+    def test_collected_raw_snapshot_reuses_aggregation_without_changing_persistence(
+        self,
+    ):
+        self.write([assistant("m", i=3, cc=5, cr=6, out=4)])
+        result = usage.session_token_totals(self.data)
+        with mock.patch.object(
+            usage,
+            "_aggregate_visible",
+            side_effect=AssertionError("repeat aggregation"),
+        ):
+            self.assertEqual(usage.session_token_counts(result[4]).input_tokens, 14)
+        state = json.loads((self.root / "state.json").read_text(encoding="utf-8"))
+        self.assertNotIn("_raw_token_counts", state["sessions"]["fixture"])
+
 
 if __name__ == "__main__":
     unittest.main()
