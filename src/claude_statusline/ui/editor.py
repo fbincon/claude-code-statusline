@@ -247,6 +247,7 @@ class EditorState:
     def ensure_visible(self, viewport_height: int) -> None:
         height = max(1, viewport_height)
         if forms.special(self):
+            forms.select(self, self.form_index)
             selected = self.form_index
             maximum = max(0, len(forms.rows(self)) - height)
             self.form_scroll = max(0, min(self.form_scroll, maximum))

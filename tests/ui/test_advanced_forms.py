@@ -70,6 +70,19 @@ class AdvancedFormsTests(unittest.TestCase):
         state.form_input["buffer"] = "100"
         keys.handle_key(state, "\n", 8)
         self.assertEqual(state.display.item_options["model"].priority, 100)
+        self.assertEqual(state.notice, "")
+
+    def test_layout_selection_survives_removing_all_enabled_items(self):
+        state = self.state()
+        state.page = "layout"
+        state.form_index = len(forms.rows(state)) - 1
+        state.display = state.display.with_updates(items=())
+        state.enabled.clear()
+        state.ensure_visible(2)
+        self.assertEqual(state.form_index, 0)
+        self.assertEqual(state.form_scroll, 0)
+        keys.handle_key(state, "\n", 2)
+        self.assertEqual(state.display.layout.rows, ())
 
     def test_layout_boundaries_and_navigation_remain_valid(self):
         state = self.state()

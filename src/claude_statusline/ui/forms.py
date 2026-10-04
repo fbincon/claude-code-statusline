@@ -123,6 +123,7 @@ def select(state, selected):
 
 
 def current(state):
+    select(state, index(state))
     return rows(state)[index(state)]
 
 
@@ -145,6 +146,7 @@ def set_value(state, row, raw):
         )
     elif key.startswith("field:"):
         state.display = editor_fields.set_value(state.display, key[6:], raw)
+    state.notice = ""
 
 
 def adjust(state, direction):
