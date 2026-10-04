@@ -151,3 +151,7 @@ After publication:
 Release notes must cite actual validation results. Read CI-covered OS versions, architectures, and Python versions from the corresponding run reports. Terminal screenshots illustrate appearance; they do not replace real sleep/resume or multi-agent lifecycle acceptance.
 
 Related documentation: [pipx installation sources](https://pipx.pypa.io/latest/reference/examples.html), [creating GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository), and [Release linking rules](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases).
+
+## v1.3.0 preview rollout
+
+The redesigned editor first ships as v1.3.0a1 with Mod version 1.3.0-alpha.1, explicit native enablement, prerelease=true and latest=false. Keep stable v1.2.0 installation links until stable promotion. Use the fixed merged commit, the full Python/build and native CI matrices, independent wheel/sdist rebuild, draft asset hashes, tag CI and public download/installation verification. Old editor acceptance cannot satisfy the new Linux/Windows/macOS human checklist. Only after all three results are recorded should a separate release PR promote matching versions to 1.3.0, repeat the release checks and set Latest. No paid timer suite is required for this UI-only change.

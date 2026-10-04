@@ -1,11 +1,21 @@
-import type { Register, EngineInterface, PluginOptions, Timer } from 'claude-code';
+import type {
+  Register,
+  EngineInterface,
+  PluginOptions,
+  Timer,
+} from 'claude-code';
 import {
   BackendError,
   parseResponse,
   processFailure,
   requestText,
 } from '../lib/backend.ts';
-import { Editor, copyDraft, sameDraft } from '../lib/draft.ts';
+import { Editor, copyDraft, sameDraft } from '../lib/editor/draft.ts';
+import {
+  itemKey,
+  pageSelection,
+  settingsKeys,
+} from '../lib/editor/navigation.ts';
 import { canEdit, preferences, preferenceChanged } from '../lib/preferences.ts';
 import type {
   Draft,
@@ -13,11 +23,21 @@ import type {
   ResultFor,
 } from '../lib/generated-contracts.ts';
 import type { Actions } from '../ui/controls.ts';
-import { pane } from '../ui/pane.ts';
+import { pane, contentCapacity } from '../ui/pane.ts';
+import { MIN_COLUMNS, MIN_ROWS } from '../ui/layout.ts';
 import type { View } from '../ui/pane.ts';
 
 const PANE = 'statusline-native';
 const COMMAND = 'statusline-configure-native';
+
+async function focusElement($: EngineInterface, key: string) {
+  try {
+    await $.ui.focus({ requestId: PANE, key });
+  } catch {
+    // Focus is a surface request: closing, losing the keyboard or a missing
+    // surface must not undo an edit or turn a successful save into a failure.
+  }
+}
 
 async function callBackend<O extends Operation>(
   $: EngineInterface,
@@ -195,13 +215,16 @@ async function save(
   $: EngineInterface,
   state: Session,
   options: PluginOptions,
+  finish = false,
 ) {
   const editor = state.view.editor;
   if (!editor || state.writing || state.view.uncertain) return;
   if (!editor.acceptNumeric()) {
     state.view.error = 'Correct the numeric fields before saving.';
     editor.page = 'settings';
+    editor.setting = Object.keys(editor.fieldErrors)[0] || 'padding';
     $.ui.invalidate('ui.render');
+    await focusElement($, editor.setting);
     return;
   }
   const saving = state.epoch;
@@ -213,6 +236,7 @@ async function save(
   state.writing = true;
   state.view.busy = 'Saving tool configuration...';
   state.view.error = '';
+  let saved = false;
   $.ui.invalidate('ui.render');
   try {
     const result = await callBackend($, options, 'apply', {
@@ -222,6 +246,7 @@ async function save(
     if (state.epoch !== saving) return;
     editor.committed(result);
     state.pendingSave = null;
+    saved = true;
     state.view.message = result.changed
       ? 'Tool configuration saved. Later statusline refreshes use these settings.'
       : 'Tool configuration is already current.';
@@ -247,6 +272,18 @@ async function save(
       $.ui.invalidate('ui.render');
     }
   }
+  if (finish && saved && state.epoch === saving) {
+    if (state.view.preferences.some(preferenceChanged)) {
+      editor.page = 'settings';
+      editor.advanced = true;
+      editor.setting =
+        'host-' + state.view.preferences.find(preferenceChanged)!.row.key;
+      state.view.message =
+        'Tool configuration saved. Host changes pending: a apply, f finish, q discard/close.';
+      $.ui.invalidate('ui.render');
+      await focusElement($, editor.setting);
+    } else await close($, state);
+  }
 }
 
 async function applyPreferences(
@@ -258,6 +295,8 @@ async function applyPreferences(
   const applying = state.epoch;
   state.writing = true;
   state.view.busy = 'Applying host preferences...';
+  state.view.message = '';
+  state.view.preferencesError = '';
   $.ui.invalidate('ui.render');
   try {
     for (const preference of state.view.preferences.filter(preferenceChanged)) {
@@ -355,6 +394,7 @@ async function openEditor(
     focus: true,
     closeOnEscape: true,
     rows: 24,
+    columns: 72,
   });
   if (!opened.isPlaced) return { text: opened.reason };
   return {};
@@ -442,13 +482,27 @@ export const register: Register = (on, options) => {
   });
 
   on('ui.focus', { component: 'Pane' }, ($, e, next) => {
+    const editor = state.view.editor;
+    if (e.requestId === PANE && editor && !state.writing) {
+      for (const scope of ['main', 'subagent'] as const) {
+        const item = editor
+          .visible(scope)
+          .find((item) => itemKey(scope, item.id) === e.element);
+        if (item && editor.selected[scope] !== item.id) {
+          editor.selected[scope] = item.id;
+          $.ui.invalidate('ui.render');
+        }
+      }
+      if (e.element && settingsKeys(editor.advanced).includes(e.element))
+        editor.setting = e.element;
+    }
     if (
       e.requestId === PANE &&
       e.origin.kind === 'person' &&
       !e.element &&
       !state.writing
     ) {
-      state.view.editor?.cancelNumeric();
+      if (editor?.activeNumeric) editor.cancelNumeric(editor.activeNumeric);
       $.ui.invalidate('ui.render');
     }
     return next(e);
@@ -465,9 +519,16 @@ export const register: Register = (on, options) => {
     }
     const ui = $.ui.resolve(e);
     const width = Math.max(2, Math.min(10000, e.props.bodyColumns));
+    const height = Math.max(0, e.props.scroll.bodyRows);
     const editor = state.view.editor;
     const key = `${state.epoch}:${width}:${editor ? JSON.stringify(editor.draft) : ''}`;
-    if (editor && width >= 24 && !state.writing && state.previewKey !== key) {
+    if (
+      editor &&
+      width >= MIN_COLUMNS &&
+      height >= MIN_ROWS &&
+      !state.writing &&
+      state.previewKey !== key
+    ) {
       state.previewKey = key;
       const requestedEpoch = state.epoch;
       const draft = copyDraft(editor.draft);
@@ -475,7 +536,10 @@ export const register: Register = (on, options) => {
       state.view.previewBusy = true;
       state.previewTimer = $.clock.after(0, async () => {
         try {
-          const preview = await callBackend($, options, 'preview', { draft, width });
+          const preview = await callBackend($, options, 'preview', {
+            draft,
+            width,
+          });
           if (state.epoch === requestedEpoch && state.previewKey === key) {
             state.view.preview = preview;
             state.view.previewError = '';
@@ -502,12 +566,73 @@ export const register: Register = (on, options) => {
         state.view.message = '';
         $.ui.invalidate('ui.render');
       },
-      page: (page) => {
+      filter: async (scope, value) => {
+        if (!editor || state.writing || state.view.uncertain) return;
+        editor.filter(scope, value);
+        $.ui.invalidate('ui.render');
+        if (editor.selected[scope])
+          await focusElement($, itemKey(scope, editor.selected[scope]));
+      },
+      page: async (page) => {
         if (!state.view.editor || state.writing) return;
         state.view.editor.page = page;
         $.ui.invalidate('ui.render');
+        const scope = page === 'main' ? 'main' : 'subagent';
+        const key =
+          page === 'settings'
+            ? state.view.editor.setting
+            : itemKey(scope, state.view.editor.selected[scope]);
+        await focusElement($, key);
+      },
+      paginate: async (delta) => {
+        if (!editor || state.writing) return;
+        const size = contentCapacity(editor.page, height);
+        if (editor.page === 'settings') {
+          editor.setting = pageSelection(
+            settingsKeys(editor.advanced),
+            editor.setting,
+            size,
+            delta,
+          );
+          $.ui.invalidate('ui.render');
+          await focusElement($, editor.setting);
+        } else {
+          const scope = editor.page === 'main' ? 'main' : 'subagent';
+          editor.selected[scope] = pageSelection(
+            editor.visible(scope).map((item) => item.id),
+            editor.selected[scope],
+            size,
+            delta,
+          );
+          $.ui.invalidate('ui.render');
+          if (editor.selected[scope])
+            await focusElement($, itemKey(scope, editor.selected[scope]));
+        }
+      },
+      move: async (delta) => {
+        if (
+          !editor ||
+          state.writing ||
+          state.view.uncertain ||
+          editor.page === 'settings'
+        )
+          return;
+        const scope = editor.page === 'main' ? 'main' : 'subagent';
+        if (editor.move(scope, delta)) {
+          state.view.message = '';
+          $.ui.invalidate('ui.render');
+          await focusElement($, itemKey(scope, editor.selected[scope]));
+        }
+      },
+      advanced: async () => {
+        if (!editor || state.writing) return;
+        editor.advanced = !editor.advanced;
+        editor.setting = editor.advanced ? 'host-theme' : 'colors';
+        $.ui.invalidate('ui.render');
+        await focusElement($, editor.setting);
       },
       save: () => save($, state, options),
+      finish: () => save($, state, options, true),
       close: () => close($, state),
       reload: async () => {
         if (!state.writing && !state.view.uncertain)
@@ -538,6 +663,6 @@ export const register: Register = (on, options) => {
       },
       applyPreferences: () => applyPreferences($, state, options),
     };
-    return pane(ui, state.view, width, actions);
+    return pane(ui, state.view, width, height, actions);
   });
 };

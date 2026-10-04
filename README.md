@@ -234,13 +234,25 @@ Restart Claude Code 2.1.287+ in a trusted terminal, then run `/statusline-config
 
 Stable installs prefer native; prereleases require explicit enablement. `install --no-native-editor` persists a disabled preference and removes owned native integration. The compatibility `/statusline-configure` launcher is restored only if its experimental preference is enabled. The wizard `/statusline-config` and standalone `claude-statusline configure` remain available. Installation failures retain compatibility configuration and report the actual native state; retry after checking doctor. The maintainer confirmed the full native human checklist on Linux, Windows 11 and macOS 14.5. Architecture/terminal metadata was not supplied for Windows/macOS; see the recorded acceptance limits in the native guide.
 
+### v1.3.0a1 editor preview
+
+The [v1.3.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) replaces the project dropdown with direct checked rows, horizontal tabs, paged content and a bounded bottom preview. Enter toggles the focused item; `p/n` page, `u/d` reorder, `s` saves and continues, and `f` saves and closes. Settings folds theme/verbose behind `h`; `a` applies them separately. The body needs at least 32 columns × 12 rows. Native Tab/arrows keep their host meanings. See the [complete controls and boundaries](docs/development/native.md#editor-behavior).
+
+```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
+claude-statusline install --native-editor
+claude-statusline doctor
+```
+
+Restart Claude Code in a trusted terminal. This preview requires explicit native enablement and leaves **v1.2.0 as the latest stable release**. New Linux/Windows/macOS human acceptance remains pending; the old UI's acceptance does not cover the redesign.
+
 ## Documentation and help
 
 - [User guide](docs/USER_GUIDE.md): installation, TUI, CLI, display items, and configuration reference.
 - [Diagnostics and troubleshooting](docs/USER_GUIDE.md#troubleshooting): start with `doctor`, then follow the relevant symptom.
 - [Development and testing](docs/USER_GUIDE.md#appendix-development-and-testing) · [Release guide](docs/RELEASING.md) · [Changelog](CHANGELOG.md).
 - [Architecture](docs/development/architecture.md) · [Validation](docs/development/testing.md) · [Timer metrics and evidence](docs/development/timer.md).
-- [Native configuration editor](docs/development/native.md): source Main/Subagents/Settings pages, revision-protected saves and separate host preferences; human acceptance confirmed on Linux, Windows 11 and macOS 14.5.
+- [Native configuration editor](docs/development/native.md): v1.3.0a1 preview controls, revision-protected saves, host preferences and acceptance boundaries.
 - [Shared configuration protocol](docs/development/contracts.md): item catalog and internal JSON describe/read/preview/apply contracts for source development.
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include your OS, Python/Claude Code/tool versions, reproduction steps, and diagnostic output with private paths and session content removed.
 

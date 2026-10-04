@@ -2,6 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 1.3.0a1 - 2026-10-04
+
+- Preview direct checked native item rows, horizontal tabs, paged content, compact settings and a bounded bottom sample preview.
+- Match standalone TUI ordering for enabled/disabled and filtered items; preserve per-scope selection and request focus after page changes.
+- Add f save/close alongside s save/continue; fold host preferences behind h and retain pending preferences, independent application and unknown-save reconciliation.
+- Separate editor/navigation/numeric logic and UI components/pages; package nested runtime modules and validate staging/cache resources.
+- Record the isolated Client focus/key limitation and new automated checks; keep stable v1.2.0 and require new three-platform human acceptance for v1.3.0.
+
 ## 1.2.0 - 2026-10-04
 
 - Promote the native configuration editor after confirmed human acceptance on Linux, Windows 11 and macOS 14.5. Unprovided architecture/terminal details remain unknown.

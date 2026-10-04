@@ -14,7 +14,9 @@ from pathlib import Path
 from unittest import mock
 
 from claude_statusline.config import native as preference, storage
-from claude_statusline.integration import capabilities, installer, native, resources
+from claude_statusline.integration import (
+    capabilities, installer, native, native_resources, resources,
+)
 
 
 class FakeHost:
@@ -125,6 +127,20 @@ class NativeInstallerTests(unittest.TestCase):
             claude_version=kwargs.pop("claude_version", (2, 1, 288)),
             **kwargs,
         )
+
+    def test_nested_runtime_modules_reach_staging_and_official_cache(self):
+        self.install(native_editor=True)
+        root = self.config / native.DIRECTORY / "plugins/statusline-native"
+        cache = Path(self.host.plugins[0]["installPath"])
+        files, _ = native_resources.bundled_files()
+        for name in (
+            "lib/editor/draft.ts", "lib/editor/navigation.ts",
+            "ui/components/item-list.ts", "ui/pages/settings.ts",
+        ):
+            self.assertEqual((root / name).read_bytes(), files[name])
+            self.assertEqual((cache / name).read_bytes(), files[name])
+        self.install(native_editor=False)
+        self.assertFalse(root.exists())
 
     def test_first_install_migrates_owned_legacy_and_repeat_is_idempotent(self):
         self.install(experimental_slash_tui=True, native_editor=False)

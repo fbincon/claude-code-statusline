@@ -214,6 +214,18 @@ claude-statusline doctor
 
 稳定版默认优先原生，预览仍须显式启用。`install --no-native-editor` 持久保存禁用偏好并撤下所属原生接入；仅在实验入口偏好已启用时恢复兼容 `/statusline-configure` 启动器。向导 `/statusline-config` 和独立 `claude-statusline configure` 保留。安装失败保留兼容配置并报告实际状态，核对 doctor 后再重试。维护者已确认 Linux、Windows 11、macOS 14.5 的完整原生真人清单通过；Windows/macOS 未提供架构及终端信息，具体边界见原生指南。
 
+### v1.3.0a1 编辑器预览
+
+[v1.3.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) 将项目下拉框改为直接勾选行，提供横向页签、分页正文和限高底部预览。Enter 切换当前行，`p/n` 翻页，`u/d` 排序，`s` 保存继续，`f` 保存关闭。Settings 用 `h` 展开 theme/verbose，`a` 独立应用。最小要求为正文 32 列 × 12 行；Tab、方向键保留宿主含义。参见[完整操作和边界](docs/development/native.zh-CN.md#编辑器行为)。
+
+```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
+claude-statusline install --native-editor
+claude-statusline doctor
+```
+
+在受信任终端中重启 Claude Code。预览需明确启用原生，**Latest 稳定版仍为 v1.2.0**。新界面的 Linux/Windows/macOS 真人验收均待完成，旧界面验收不能替代。
+
 ## 文档与帮助
 
 - [使用指南](docs/USER_GUIDE.zh-CN.md)：完整安装步骤、TUI、CLI、显示项和配置参考。

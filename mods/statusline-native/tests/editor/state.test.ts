@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing';
-import { Editor } from '../lib/draft.ts';
-import { description, readResult } from './fixtures.ts';
+import { Editor } from '../../lib/editor/draft.ts';
+import { description, readResult } from '../fixtures.ts';
 
 test('item changes preserve the baseline, exclusions and filtered ordering', () => {
   const current = readResult();
@@ -12,6 +12,9 @@ test('item changes preserve the baseline, exclusions and filtered ordering', () 
   expect(editor.move('main', -1)).toBe(false);
   editor.filter('main', '');
   editor.selected.main = 'git';
+  expect(editor.move('main', -1)).toBe(true);
+  // Disabled hostname/project rows remain valid neighbours, just as in curses.
+  expect(editor.move('main', -1)).toBe(true);
   expect(editor.move('main', -1)).toBe(true);
   expect(editor.draft.display.items).toEqual([
     'model-with-effort',
@@ -52,6 +55,36 @@ test('numeric edits validate together, keep invalid buffers and commit explicit 
   expect(editor.buffers.padding).toBe('32');
   editor.committed(readResult(editor.draft, '1'.repeat(64)));
   expect(editor.modified).toBe(false);
+});
+
+test('disabled rows move in the filtered full order without changing the saved enabled set', () => {
+  const editor = new Editor(description(), readResult());
+  editor.selected.main = 'git';
+  const before = [...editor.draft.display.items];
+  expect(editor.move('main', -1)).toBe(true);
+  expect(editor.draft.display.items).toEqual(before);
+  editor.toggle('main', 'git');
+  expect(editor.items('main')).toEqual(['model-with-effort', 'git']);
+  editor.filter('main', 'model-with-effort');
+  expect(editor.selected.main).toBe('model-with-effort');
+  expect(editor.move('main', 1)).toBe(false);
+  editor.filter('main', 'no matches');
+  expect(editor.selected.main).toBe('');
+  expect(editor.toggle('main', '')).toBe(false);
+});
+
+test('accepting one numeric field neither validates nor discards another pending field', () => {
+  const editor = new Editor(description(), readResult());
+  editor.setBuffer('refresh_interval', '3601');
+  editor.setBuffer('padding', '4');
+  expect(editor.acceptNumeric('padding')).toBe(true);
+  expect(editor.draft.host.padding).toBe(4);
+  expect(editor.buffers.refresh_interval).toBe('3601');
+  expect(editor.acceptNumeric()).toBe(false);
+  expect(editor.draft.host.refresh_interval).toBe(1);
+  editor.cancelNumeric('refresh_interval');
+  expect(editor.draft.host.padding).toBe(4);
+  expect(editor.acceptNumeric()).toBe(true);
 });
 
 test('empty selections remain explicit after save and cancel restores numeric buffers', () => {

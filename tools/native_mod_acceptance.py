@@ -15,6 +15,7 @@ import platform
 import re
 import select
 import signal
+import shutil
 import struct
 import subprocess
 import sys
@@ -107,8 +108,9 @@ def run_pty(
         timeout=30,
     )
     settings_before = (config / "settings.json").read_bytes()
+    terminal_rows = 48 if columns < 110 else 30
     master, slave = pty.openpty()
-    fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 30, columns, 0, 0))
+    fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", terminal_rows, columns, 0, 0))
 
     def terminal():
         os.setsid()
@@ -131,7 +133,7 @@ def run_pty(
         close_fds=True,
     )
     raw = bytearray()
-    screen = pyte.Screen(columns, 30)
+    screen = pyte.Screen(columns, terminal_rows)
     stream = pyte.Stream(screen)
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
 
@@ -168,11 +170,11 @@ def run_pty(
         path = root / f"screen-{columns}-{name}.json"
         cells = [
             [screen.buffer[row][column]._asdict() for column in range(columns)]
-            for row in range(30)
+            for row in range(screen.lines)
         ]
         path.write_text(
             json.dumps(
-                {"columns": columns, "rows": 30, "cells": cells}, ensure_ascii=False
+                {"columns": columns, "rows": screen.lines, "cells": cells}, ensure_ascii=False
             ),
             encoding="utf-8",
         )
@@ -208,9 +210,35 @@ def run_pty(
         command(
             "/statusline-configure" if persistent else "/statusline-configure-native"
         )
-        read_until("34 scoped items", start=offset)
-        read_until("Sample preview")
+        placed = read_until(("Configure Status Line", "Resize pane to 32x12"), start=offset)
+        resized = placed != "Configure Status Line"
+        if resized:
+            # Inline panes share height with the composer/statusline. Exercise
+            # terminal resize rather than treating a valid minimum-size prompt
+            # as a load failure or secretly lowering the editor's requirement.
+            import fcntl
+            import termios
+
+            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 42, columns, 0, 0))
+            screen.resize(lines=42, columns=columns)
+            os.killpg(process.pid, signal.SIGWINCH)
+            read_until("Configure Status Line")
+        read_until("Preview (sample data)")
         capture("main")
+        # autoFocus and page focus are surface behaviours, not callback tests.
+        os.write(master, b"\r")
+        read_until("[ ] Model and effort")
+        os.write(master, b"t")
+        read_until("[x] Model and effort")
+        os.write(master, b"n")
+        read_until("2/")
+        capture("main-next")
+        os.write(master, b"p")
+        read_until("[x] Model and effort")
+        os.write(master, b"\r")
+        read_until("[ ] Model and effort")
+        os.write(master, b"t")
+        read_until("[x] Model and effort")
         os.write(master, b"2")
         reveal("Custom subagent rows")
         capture("subagents")
@@ -232,7 +260,7 @@ def run_pty(
         os.write(master, b"q")
         time.sleep(0.5)
         command("/statusline-configure-native")
-        read_until("34 scoped items")
+        read_until("Configure Status Line")
         os.write(master, b"3")
         reveal("Colors: off")
         os.write(master, b"\x1b")
@@ -245,12 +273,24 @@ def run_pty(
         assert (config / "settings.json").read_bytes() == settings_before, (
             "Unchanged host fields were rewritten"
         )
+        command("/statusline-configure-native")
+        read_until("Configure Status Line")
+        os.write(master, b"f")
+        read_until("❯")
+        time.sleep(0.5)
+        command("/statusline-config show")
+        read_until("Hide Vim mode indicator:")
         return {
             "columns": columns,
+            "rows": screen.lines,
+            "resized_from_minimum_prompt": resized,
             "passed": True,
             "opened": True,
             "pages": ["main", "subagents", "settings"],
             "toggle": True,
+            "enter_toggles_focused_item": True,
+            "pagination": True,
+            "save_and_close": True,
             "saved": True,
             "cancel_reopen": True,
             "esc_return": True,
@@ -296,6 +336,7 @@ def main() -> int:
         "--terminal", help="Terminal name/version to record for manual acceptance"
     )
     args = parser.parse_args()
+    args.claude = str(Path(shutil.which(args.claude) or args.claude).resolve())
     if not sys.platform.startswith("linux"):
         parser.error("This acceptance runner currently requires native Linux")
     root = args.report_dir.resolve()

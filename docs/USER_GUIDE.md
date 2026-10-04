@@ -1648,7 +1648,7 @@ pipx install .\dist\claude_code_statusline-1.2.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-These filenames correspond to 1.1.1; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](#integrate-with-claude-code).
+These filenames correspond to stable v1.2.0; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](#integrate-with-claude-code).
 
 In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.2.0-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](RELEASING.md) for the complete process.
 
@@ -1788,17 +1788,19 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 
 ## Native configuration editor
 
-v1.2.0 bundles a matching native Mod and prefers it by default on compatible Claude Code 2.1.287+ hosts. Explicit native disablement and external plugin disablement remain respected. The installation above already performs this integration; use the commands below to explicitly enable or diagnose it.
+### v1.3.0a1 editor preview
+
+The [v1.3.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) replaces the project dropdown with direct checked rows, horizontal tabs, paged content and a bounded bottom preview. Enter toggles the focused item; `p/n` page, `u/d` reorder, `s` saves and continues, and `f` saves and closes. Settings folds theme/verbose behind `h`; `a` applies them separately. The body needs at least 32 columns × 12 rows. Native Tab/arrows keep their host meanings. See the [complete controls and boundaries](development/native.md#editor-behavior).
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
 claude-statusline install --native-editor
 claude-statusline doctor
 ```
 
-Restart Claude Code 2.1.287+ in a trusted terminal, then run `/statusline-configure` or its alias `/statusline-configure-native`. Main/Subagents support selections, ordering and sample preview; Settings contains the nine existing tool settings and separate theme/verbose host preferences. `1/2/3` switch pages, Tab/Enter operate host controls, `s` saves tool configuration and leaves the pane open, `a` applies host preferences, and Esc/`q` discard pending changes. Esc first exits an input. See [native editor behavior](development/native.md).
+Restart Claude Code in a trusted terminal. This preview requires explicit native enablement and leaves **v1.2.0 as the latest stable release**. New Linux/Windows/macOS human acceptance remains pending; the old UI's acceptance does not cover the redesign.
 
-Stable installs prefer native; prereleases require explicit enablement. `install --no-native-editor` persists a disabled preference and removes owned native integration. The compatibility `/statusline-configure` launcher is restored only if its experimental preference is enabled. The wizard `/statusline-config` and standalone `claude-statusline configure` remain available. Installation failures retain compatibility configuration and report the actual native state; retry after checking doctor. The maintainer confirmed the full native human checklist on Linux, Windows 11 and macOS 14.5. Architecture/terminal metadata was not supplied for Windows/macOS; see the recorded acceptance limits in the native guide.
+The standalone TUI and wizard remain available. Stable v1.2.0 still prefers the original native editor; `install --no-native-editor` disables native and restores the compatibility launcher only when its experimental preference is enabled.
 
 ## Related documentation
 

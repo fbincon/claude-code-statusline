@@ -71,3 +71,7 @@ An individual parallel run can finish its agents before the first main Stop and 
 ```
 
 All release gates, including the real timer evidence, must pass before publication. See the [timer contract](timer.md) and [architecture](architecture.md).
+
+## Redesigned native editor checks
+
+v1.3.0a1 adds coverage for direct item controls, disabled/filtered ordering, paging/focus targets, 32×12 body boundaries, height-only preview caching, CJK label clipping, independent numeric acceptance, Finish and pending host preferences. Official tests dispatch focus events; actual API focus and paint are checked in Linux PTYs at 120×30 and 80×48, with new human checks required separately. Callback tests cannot establish automatic keyboard focus for Client regions. Nested runtime resources are checked in staging, the official cache and the built wheel/sdist. All regular checks use temporary configuration and make no paid model calls.

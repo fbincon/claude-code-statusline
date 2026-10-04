@@ -139,3 +139,7 @@ gh release edit "$RELEASE_TAG" --repo fbincon/claude-code-statusline \
 发布说明引用真实验证结果；CI 覆盖的平台版本、架构与 Python 版本从对应运行报告读取。终端截图用于展示，不代替真实睡眠恢复或多 Agent 生命周期验收。
 
 相关文档：[pipx 安装来源](https://pipx.pypa.io/latest/reference/examples.html)、[GitHub 创建 Release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)、[GitHub Release 链接规则](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)。
+
+## v1.3.0 预览推进
+
+新编辑器先以 v1.3.0a1、Mod 1.3.0-alpha.1 发布，明确启用原生，prerelease=true、latest=false；稳定推进前保留 v1.2.0 安装链接。从固定合并提交完成全部 Python/构建及原生 CI、独立 wheel/sdist 重建、草稿附件哈希、标签 CI 和公开下载安装验证。旧界面验收不能替代新的 Linux/Windows/macOS 真人清单。三平台结果齐备后，通过独立发布 PR 将匹配版本推进到 1.3.0，重复发布检查并设置 Latest。本轮仅改 UI，不要求付费计时套件。

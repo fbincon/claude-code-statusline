@@ -74,3 +74,7 @@ Display schema v2, feature schema v1, the schema-1 runtime mirror and lifecycle 
 Keep local ROADMAP files and raw acceptance records out of distributions. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 
 See [testing](testing.md), the [timer contract](timer.md) and the [release guide](../RELEASING.md).
+
+## Native editor structure
+
+The sole Mod source is `mods/statusline-native`: `hooks/` retains event registration and host API calls; `lib/editor/` owns draft, navigation and numeric validation; `lib/` retains the protocol bridge and generated contracts; `ui/components/` owns lists, pagination, preview and toolbars; `ui/pages/` composes pages. `ui/layout.ts` budgets the actual body width/height. Tests are grouped under editor, UI, backend and integration responsibilities. Recursive runtime packaging includes nested TypeScript while excluding tests, generated host types and dependencies. The Client probe remains local validation evidence, not another maintained frontend.
