@@ -18,6 +18,7 @@ This guide uses TUI for the terminal user interface and effort for model reasoni
 
 ## Contents
 
+- [Formatting, layouts and presets](#formatting-layout-presets)
 - [Feature overview](#feature-overview)
 - [Requirements](#requirements)
 - [Installation and integration](#installation-and-integration)
@@ -1922,9 +1923,9 @@ Stable v1.4.0 integrates both editors by default on compatible hosts. See [nativ
 
 <a id="formatting-layout-presets"></a>
 
-## Formatting, layouts and presets (Phase 4)
+## Formatting, layouts and presets (v1.5.0a1 preview)
 
-Existing appearance remains the default. The development schema is v3 and JSON protocol is v2; stable v1.4.0 retains v2/v1. Reading v1/v2 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v3.
+Existing appearance remains the default. The v1.5.0a1 display schema is v3 and JSON protocol is v2; stable v1.4.0 retains v2/v1. Reading v1/v2 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v3.
 
 `model-name`: original/short; `number-format`: legacy/compact/full/grouped; `labels`: legacy/short/off; `icons`: legacy/unicode/ascii/off; `allowance`: remaining/used; `reset-format`: countdown/time/datetime; `reset-timezone`: local/UTC; `threshold-colors`: on/off.
 
