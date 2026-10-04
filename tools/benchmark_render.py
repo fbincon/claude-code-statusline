@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -29,12 +30,13 @@ def measure(action, samples):
     }
 
 
-def benchmark(samples):
+def benchmark(samples, bytecode_mode):
     with tempfile.TemporaryDirectory(prefix="statusline-benchmark-") as directory:
         root = Path(directory)
         os.environ["CLAUDE_CONFIG_DIR"] = str(root / "config")
         os.environ["CLAUDE_STATUSLINE_RUNTIME_DIR"] = str(root / "runtime")
         os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+        os.environ["PYTHONPYCACHEPREFIX"] = str(root / "bytecode")
         from claude_statusline.config.display import DEFAULT_CONFIG
         from claude_statusline.runtime import git, usage
 
@@ -95,6 +97,19 @@ def benchmark(samples):
                 check=True,
             )
 
+        if bytecode_mode == "warm":
+            warm_env = dict(os.environ)
+            warm_env.pop("PYTHONDONTWRITEBYTECODE", None)
+            subprocess.run(
+                [sys.executable, "-m", "claude_statusline", "render"],
+                input=payload,
+                text=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                env=warm_env,
+                check=True,
+            )
+
         result = {
             "python_startup": measure(
                 lambda: subprocess.run(
@@ -109,12 +124,15 @@ def benchmark(samples):
             "git_cold": measure(
                 lambda: git._uncached_git_status(str(project)), samples
             ),
-            "git_warm": measure(lambda: git.git_status(str(project), "warm"), samples),
             "transcript_cold": measure(cold_usage, samples),
             "transcript_warm": measure(
                 lambda: usage.session_token_totals(warm_data), samples
             ),
         }
+        git.git_status(str(project), "warm")
+        result["git_warm"] = measure(
+            lambda: git.git_status(str(project), "warm"), samples
+        )
         return result
 
 
@@ -122,6 +140,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--samples", type=int, default=30)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--bytecode-mode", choices=("warm", "cold"), default="warm")
     args = parser.parse_args()
     if not 5 <= args.samples <= 1000:
         parser.error("samples must be between 5 and 1000")
@@ -135,7 +154,9 @@ def main():
         "commit": commit,
         "python": platform.python_version(),
         "platform": platform.platform(),
-        "metrics": benchmark(args.samples),
+        "metrics": benchmark(args.samples, args.bytecode_mode),
+        "bytecode_mode": args.bytecode_mode,
+        "benchmark_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "fixtures": "isolated local Git repository and one assistant response; no model calls",
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
