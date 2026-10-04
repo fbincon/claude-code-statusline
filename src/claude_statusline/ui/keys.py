@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import curses
 from claude_statusline.ui import editor as ui_editor
+from claude_statusline.ui import forms
+from claude_statusline.config.display import DisplayConfigError
 from claude_statusline.ui import models as ui_models
 
 
@@ -23,6 +25,54 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         state.ensure_visible(viewport_height)
         return None
 
+    if state.form_input is not None:
+        try:
+            if key in ("\x1b", "\x07"):
+                state.form_input = None
+                state.notice = ""
+            elif key == "\x15":
+                state.form_input["buffer"] = ""
+            elif _is_enter(key):
+                return forms.accept(state)
+            elif _is_backspace(key):
+                state.form_input["buffer"] = state.form_input["buffer"][:-1]
+            elif (
+                isinstance(key, str)
+                and key.isprintable()
+                and len(state.form_input["buffer"]) < 4096
+            ):
+                state.form_input["buffer"] += key
+        except DisplayConfigError as exc:
+            state.notice = str(exc)
+        return None
+    if key == "\x07" and state.form_item:
+        state.form_item = None
+        return None
+    if key == "\x05" and state.page in ("items", "subagents"):
+        scope = "subagent" if state.page == "subagents" else "main"
+        item = (
+            state.selected_subagent_item if scope == "subagent" else state.selected_item
+        )
+        if item:
+            state.form_item = (scope, item)
+            state.form_index = state.form_scroll = 0
+        return None
+    if forms.special(state) or (
+        state.page == "settings" and state.setting_index >= len(ui_models.SETTING_NAMES)
+    ):
+        try:
+            if key == "\x13":
+                return ui_models.SAVE
+            if key == "\x1b":
+                return ui_models.CANCEL
+            if _is_enter(key):
+                return forms.begin(state)
+            if key in (curses.KEY_LEFT, curses.KEY_RIGHT, " "):
+                forms.adjust(state, -1 if key == curses.KEY_LEFT else 1)
+                return None
+        except DisplayConfigError as exc:
+            state.notice = str(exc)
+            return None
     if state.numeric_edit is not None:
         if key == "\x1b":
             state.cancel_numeric()
@@ -34,6 +84,8 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
             state.input_digit(key)
         return None
 
+    if key == "\x13":
+        return ui_models.SAVE
     if key == "\x1b":
         return ui_models.CANCEL
     if _is_enter(key):

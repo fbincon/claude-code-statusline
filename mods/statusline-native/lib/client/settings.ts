@@ -1,5 +1,6 @@
 import type { View } from '../session.ts';
-import { canEdit } from '../preferences.ts';
+import { formRows, adjustForm } from './forms.ts';
+import { PREFERENCE_SPECS, specFor, canEdit } from '../preferences.ts';
 
 export interface SettingRow {
   key: string;
@@ -11,6 +12,7 @@ export interface SettingRow {
 
 export function settingRows(view: View): SettingRow[] {
   const e = view.editor!;
+  if (e.detail || e.page === 'layout') return formRows(view);
   const d = e.draft.display;
   const h = e.draft.host;
   const rows: SettingRow[] = [
@@ -78,23 +80,20 @@ export function settingRows(view: View): SettingRow[] {
       editable: true,
     },
   ];
+  rows.push(...formRows(view));
+  rows.push(
+    { key: 'preset-select', label: 'Preset', group: 'Presets / portable files', value: e.preset, editable: true },
+    { key: 'preset-apply', label: 'Expand selected preset', group: 'Presets / portable files', value: 'Enter: replace draft', editable: true },
+    { key: 'import-file', label: 'Import file', group: 'Presets / portable files', value: 'Enter path; Save later', editable: true },
+    { key: 'export-file', label: 'Export current draft', group: 'Presets / portable files', value: 'Enter new path (may be unsaved)', editable: true },
+  );
   if (e.advanced) {
-    for (const key of ['theme', 'verbose']) {
-      const p = view.preferences.find((row) => row.row.key === key);
-      rows.push({
-        key: 'host-' + key,
-        label: p?.row.label || key,
-        group: 'Claude preferences (apply separately)',
-        value: p
-          ? String(p.value) +
-            (p.row.isLocked
-              ? ' [locked by host policy]'
-              : !canEdit(p)
-                ? ' [unsupported control]'
-                : '')
-          : '(unavailable)',
-        editable: !!p && canEdit(p),
-      });
+    for (const spec of PREFERENCE_SPECS) {
+      const p = view.preferences.find((p) => specFor(p)?.id === spec.id);
+      rows.push({ key: 'host-' + (p?.row.key ?? spec.id), label: p?.row.label || spec.label,
+        group: spec.group + ' (apply separately)',
+        value: p ? String(p.value) + (p.row.isLocked ? ' [locked; ' + spec.entry + ']' : !canEdit(p) ? ' [unsupported; ' + spec.entry + ']' : '') + (p.result ? ' · ' + p.result : '') : '(unavailable; ' + spec.entry + ')',
+        editable: !!p && canEdit(p) });
     }
   }
   return rows;
@@ -103,6 +102,13 @@ export function settingRows(view: View): SettingRow[] {
 export function adjustSetting(view: View, delta: -1 | 1): void {
   const e = view.editor!;
   const d = e.draft.display;
+  const form = formRows(view).find((row) => row.key === e.setting);
+  if (form) { adjustForm(view, form, delta); return; }
+  if (e.setting === 'preset-select') {
+    const choices = e.description.presets.map((p) => p.id);
+    e.preset = choices[(choices.indexOf(e.preset) + delta + choices.length) % choices.length]!;
+    return;
+  }
   const choice = (
     key: keyof typeof e.description.options,
     current: string,
@@ -177,7 +183,7 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
         break;
       }
       if (p.row.kind === 'boolean') p.value = !p.value;
-      else {
+      else if (p.row.kind === 'choice') {
         const choices = p.row.options!;
         p.value =
           choices[
@@ -185,6 +191,7 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
               choices.length
           ]!;
       }
+      else if (p.row.kind === 'number') p.value = Number(p.value) + delta;
       p.result = '';
     }
   }

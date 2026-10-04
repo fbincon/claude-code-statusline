@@ -61,7 +61,7 @@ This guide uses TUI for the terminal user interface and effort for model reasoni
 - Time the full task with `prompt-timer`, from user submission to the main agent's final `Stop`, including time spent waiting for subagents and main-agent wrap-up.
 - Show a fixed `Main/Session` scope label on the main line when the current prompt has launched subagents, distinguishing its measurements from individual subagent rows.
 - Use a standalone full-screen TUI to filter, select, reorder, and preview the complete draft after every keystroke.
-- Stable defaults `/statusline-configure-native` on for Main, Subagents and Settings inside the current session.
+- Stable defaults `/statusline-configure-native` on for configuration inside the current session; Phase 4 adds Layout alongside Main, Subagents and Settings.
 - Stable defaults `/statusline-configure` on to launch the same TUI from a tmux popup or GNOME Terminal tab on Linux, a tmux popup or Terminal.app on macOS, or a new system console on Windows.
 - Wrap automatically in narrow terminals without truncating long fields; prefer `/` or `\` as break points in long paths.
 - Query Git and aggregate transcripts only when needed; hiding the corresponding items avoids unnecessary data collection.
@@ -294,7 +294,8 @@ Click the Client region once before keyboard operation. Reexecuting the command 
 
 | Key | Action |
 | --- | --- |
-| Tab / Shift+Tab; 1 / 2 / 3 | Switch Main, Subagents, Settings |
+| Tab / Shift+Tab; 1 / 2 / 3 / 4 | Switch Main, Subagents, Settings, Layout |
+| Ctrl+E / Ctrl+G | Open selected item format / return from the form |
 | ↑ / ↓; PgUp / PgDn; Home / End | Select, page, first/last item |
 | ← / → | Reorder items or adjust a setting |
 | Space / Enter | Toggle items, operate settings or enter/confirm numeric editing |
@@ -345,7 +346,7 @@ claude-statusline.exe configure
 claude-statusline.exe configure --config-dir 'C:\Path With Spaces\Claude 配置'
 ```
 
-The standalone TUI uses the current terminal. Linux/macOS use Python's standard-library `curses`; Windows uses the conditional dependency `windows-curses>=2.4.2` (PDCurses). All three platforms provide the same Main/Subagents/Settings tabs. Startup requires:
+The standalone TUI uses the current terminal. Linux/macOS use Python's standard-library `curses`; Windows uses the conditional dependency `windows-curses>=2.4.2` (PDCurses). All three platforms provide Main/Subagents/Settings/Layout tabs in Phase 4. Startup requires:
 
 - Both stdin and stdout to be TTYs.
 - A terminal capable of initializing curses.
@@ -354,11 +355,11 @@ The standalone TUI uses the current terminal. Linux/macOS use Python's standard-
 
 The minimum terminal size is `64x18`. Smaller windows show the required and current dimensions and wait for resizing; Esc and Ctrl+C still exit. Resizing recalculates list scrolling, sample-preview height, and wrapping. Windows also supports PDCurses `KEY_RESIZE` behavior.
 
-The interface has Main, Subagents, and Settings tabs, with a fixed footer labeled `Preview (sample data)`. Common global keys:
+The Phase 4 interface has Main, Subagents, Settings, and Layout tabs, with a fixed footer labeled `Preview (sample data)`. Common global keys:
 
 | Key | Action |
 | --- | --- |
-| Tab / Shift+Tab | Cycle through Main, Subagents, and Settings; disabled during numeric editing |
+| Tab / Shift+Tab | Cycle through Main, Subagents, Settings, and Layout; disabled during field editing |
 | Enter | Save the entire draft at once when not editing a number |
 | Esc | Cancel and exit without writing configuration when not editing a number |
 | Ctrl+C | Restore the terminal and exit with 130, without saving |
@@ -1215,7 +1216,7 @@ The 10 items above form the default enabled set. `project-name`, `hostname`, `co
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](#backups-and-rollback) and [configuration writes and concurrency](#configuration-writes-and-concurrency).
 
-The current display schema is v2. Historical v1 is readable and is backed up and written as v2 on the first actual configuration save. See [version compatibility](#version-compatibility) for conversion and downgrade recovery.
+The Phase 4 display schema is v3 (stable v1.4.0 uses v2). Historical v1/v2 are readable and are backed up and written as v3 on the first actual configuration save. See [version compatibility](#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 
@@ -1365,9 +1366,9 @@ Rerun `install` to synchronize skill templates, command paths, hooks, and versio
 
 ### Version compatibility
 
-Display configuration and the independent editor preferences have separate formats, currently schema v2 and schema v1 respectively. Upgrading this tool to 1.0.0, 1.1.0a1, 1.1.1, 1.4.0, or 1.3.0a2 introduces no new format conversion; existing schema v2 files remain usable. Earlier schema v1 display configurations follow these rules:
+Phase 4 uses display schema v3 and JSON protocol v2. Stable v1.4.0 uses display v2/protocol v1. Editor enablement, runtime and lifecycle formats remain independent. Historical display v1/v2 configurations follow these rules:
 
-Schema v1 remains readable: main items, order, colors, palette, directory, and separator remain intact, with v2 defaults supplied in memory. Simply running `render`, `render-subagents`, `doctor`, or `install` does not rewrite v1. The first actual configuration save backs up the original bytes in the same transaction and writes canonical schema v2. Schema v2 strictly rejects unknown/missing fields, duplicates, and incorrect types; schemas above v2 are rejected. Downgrading to 0.5.0 makes the old program fall back to defaults; restore the pre-upgrade backup to edit the old schema again.
+Reading v1/v2 retains items, order and appearance and supplies new defaults in memory. `render`, `render-subagents`, `doctor` and `install` do not rewrite the display file. An actual save backs up its original bytes and writes strict schema v3; unknown/missing fields, duplicates, incorrect types and schemas above v3 are refused. Before a downgrade, close both editors, use the newer package to run `install --no-native-editor`, restore the display file from its pre-migration `.before` backup using `metadata.json`, install the older package and rerun `install`/`doctor`. Older packages cannot edit v3. Save a portable export separately if you intend to return to Phase 4 later.
 
 Claude Code feature thresholds are independent of this tool's version:
 
@@ -1919,7 +1920,9 @@ Stable v1.4.0 integrates both editors by default on compatible hosts. See [nativ
 - [Claude Code:Hooks reference](https://code.claude.com/docs/en/hooks)
 - [Claude Code:Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide)
 
-## Phase 4 formatting (in development)
+<a id="formatting-layout-presets"></a>
+
+## Formatting, layouts and presets (Phase 4)
 
 Existing appearance remains the default. The development schema is v3 and JSON protocol is v2; stable v1.4.0 retains v2/v1. Reading v1/v2 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v3.
 
@@ -1962,3 +1965,30 @@ claude-statusline config import ./statusline.json
 ```
 
 Portable format version 1 contains exactly format, version and draft. The draft contains display and tool-managed padding/refresh/Vim options, excluding paths, revisions, ownership, runtime state and Claude preferences. Export defaults to refusing an existing destination; --overwrite explicitly replaces an export, never live configuration or plugin resources. Import replaces the tool draft atomically on save, retaining the existing installation and ownership checks. Files are UTF-8 and limited to 1 MiB; duplicates, non-finite numbers, unknown fields and unsupported versions are refused.
+
+### Editing formats and layouts in either editor
+
+On Main/Subagents select an item and press Ctrl+E. Edit its label, icon, priority, maximum width and inherited format choices; Ctrl+G returns to the item list. Enter opens or accepts text/integer input. `inherit` clears an override, an empty label/icon suppresses it, and `none` clears an optional width/limit. Unicode/ASCII icon modes use built-in characters and need no special font.
+
+Layout chooses auto/explicit and sets “New row before” boundaries for enabled main items. Larger priorities are retained first (default 50); maximum widths count terminal columns, including CJK and combining text. Editing the item order keeps the row partition valid. Explicit layout removes empty rows and never adds continuation lines; auto keeps wrapping.
+
+Settings contains global format choices, risk thresholds, subagent visibility and portable operations. Choose a Preset, then activate Expand selected preset. Import accepts a path and replaces only the draft; inspect Preview, then Save or cancel. Export writes the current draft, including unsaved edits, to a new file; it does not save settings. Relative paths resolve in the host/terminal working directory and `~` expands to the home directory. Errors retain the current draft. Existing export files are refused in both editors; choose a new path or use CLI `--overwrite` for a deliberate replacement.
+
+Client uses `s` to Save/continue, `f` to Save/finish and `q` to discard. In curses, Ctrl+S saves from every page; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. Ctrl+U clears an input and Ctrl+G cancels it; Esc cancels an input first, otherwise discards the curses editor. During field/path editing ordinary characters, including s/f/q, remain input.
+
+| Preset | Main layout | Subagent defaults |
+| --- | --- | --- |
+| minimal | Auto: model/effort, directory, context remaining, task timer | Existing five items |
+| developer | Two rows: model/directory/Git; context remaining/tokens/timer/session cost | Existing five items |
+| monitoring | Three rows: context/three allowances; two resets/cache state/TTL; session cost/duration/API duration/requests/cache misses | Existing five items |
+| multi-agent | Two rows: model/directory/Git; context remaining/tokens/timer | Existing five items, hide completed, up to six host rows, task width 48 |
+
+Risk colors default off, with warning 70% and critical 90%. Colors use actual utilization even when an allowance displays remaining balance. Missing observations stay unavailable, zero remains zero, and expired allowance/reset data is suppressed. Preset fields become normal editable configuration; colors, palette, directory/separator style, refresh and current subagent enablement are retained.
+
+### Claude preferences apply separately
+
+In Client Settings press `h` to unfold Claude appearance, time/title and behavior groups. Theme, verbose, turn duration, reduced motion, tips, progress and notification controls use the current host's actual rows. Available time/title rows are included; missing rows show official guidance. Model, reasoning effort, thinking and fast mode change Claude behavior and have their own group. They are independent of similarly named status-line display switches.
+
+Edit the offered row type/choices and press `a` to Apply. Each row reports its result, including host refusal, locks, external changes and partial success. Tool Save/Finish and portable files do not apply these preferences. Reload explicitly discards pending edits; click the restored Client region before continuing with the keyboard. The host may expose a different type or omit a row; use the indicated official entry such as `/config`, `/model`, `/effort` or `/fast` in that case. The standalone editor manages tool configuration and has no Claude host API.
+
+Phase 4 human acceptance remains pending for Linux/Windows and the available macOS configuration entries. The known macOS Client input limitation is unchanged; use the standalone TUI or CLI there. Automated PTYs and reconstructed captures do not count as human acceptance.

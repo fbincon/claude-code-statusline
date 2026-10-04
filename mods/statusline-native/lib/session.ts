@@ -4,6 +4,8 @@ import type { Preference } from './preferences.ts';
 
 export type InputMode =
   | { kind: 'search'; scope: Scope; original: string; selected: string }
+  | { kind: 'field'; key: string; buffer: string }
+  | { kind: 'path'; action: 'import' | 'export'; buffer: string }
   | { kind: 'numeric'; field: 'padding' | 'refresh_interval' }
   | null;
 
@@ -28,6 +30,10 @@ type EditorData = Pick<
   | 'draft'
   | 'page'
   | 'advanced'
+  | 'detail'
+  | 'preset'
+  | 'path'
+  | 'pendingTransfer'
   | 'setting'
   | 'activeNumeric'
   | 'selected'
@@ -72,6 +78,7 @@ export function clientProps(
               draft: e.draft,
               page: e.page,
               advanced: e.advanced,
+              detail: e.detail, preset: e.preset, path: e.path, pendingTransfer: e.pendingTransfer,
               setting: e.setting,
               activeNumeric: e.activeNumeric,
               selected: e.selected,

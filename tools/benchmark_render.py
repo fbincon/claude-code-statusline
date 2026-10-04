@@ -30,7 +30,7 @@ def measure(action, samples):
     }
 
 
-def benchmark(samples, bytecode_mode):
+def benchmark(samples, bytecode_mode, display_case="legacy"):
     with tempfile.TemporaryDirectory(prefix="statusline-benchmark-") as directory:
         root = Path(directory)
         os.environ["CLAUDE_CONFIG_DIR"] = str(root / "config")
@@ -42,11 +42,39 @@ def benchmark(samples, bytecode_mode):
 
         config = root / "config"
         config.mkdir()
+        selected = DEFAULT_CONFIG.with_updates(items=("model-with-effort",))
+        if display_case != "legacy":
+            from claude_statusline.config import formatting
+
+            selected = selected.with_updates(
+                items=(
+                    "model-with-effort",
+                    "current-dir",
+                    "context-used",
+                    "context-tokens",
+                    "session-cost",
+                ),
+                formatting=formatting.Formatting(
+                    model_name="short",
+                    number_format="grouped",
+                    icons="ascii",
+                    thresholds=formatting.Thresholds(True),
+                ),
+                item_options={
+                    "current-dir": formatting.ItemOptions(max_width=24, priority=20)
+                },
+                layout=formatting.Layout(
+                    "explicit",
+                    (
+                        ("model-with-effort", "current-dir"),
+                        ("context-used", "context-tokens", "session-cost"),
+                    ),
+                )
+                if display_case == "explicit"
+                else formatting.Layout(),
+            )
         (config / "claude-statusline.json").write_text(
-            json.dumps(
-                DEFAULT_CONFIG.with_updates(items=("model-with-effort",)).to_dict()
-            ),
-            encoding="utf-8",
+            json.dumps(selected.to_dict()), encoding="utf-8"
         )
         project = root / "project"
         subprocess.run(["git", "init", "-q", str(project)], check=True)
@@ -85,7 +113,18 @@ def benchmark(samples, bytecode_mode):
         warm_data = {"session_id": "warm", "transcript_path": str(transcript)}
         usage.session_token_totals(warm_data)
         git.git_status(str(project), "warm")
-        payload = json.dumps({"model": {"id": "benchmark-model"}})
+        payload = json.dumps(
+            {
+                "model": {"id": "claude-sonnet-4-6"},
+                "workspace": {"current_dir": str(project)},
+                "context_window": {
+                    "used_percentage": 85,
+                    "context_window_size": 200000,
+                    "current_usage": {"input_tokens": 140000, "output_tokens": 10000},
+                },
+                "cost": {"total_cost_usd": 1234.56},
+            }
+        )
 
         def render():
             subprocess.run(
@@ -141,6 +180,9 @@ def main():
     parser.add_argument("--samples", type=int, default=30)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--bytecode-mode", choices=("warm", "cold"), default="warm")
+    parser.add_argument(
+        "--display-case", choices=("legacy", "formatted", "explicit"), default="legacy"
+    )
     args = parser.parse_args()
     if not 5 <= args.samples <= 1000:
         parser.error("samples must be between 5 and 1000")
@@ -154,7 +196,11 @@ def main():
         "commit": commit,
         "python": platform.python_version(),
         "platform": platform.platform(),
-        "metrics": benchmark(args.samples, args.bytecode_mode),
+        "metrics": benchmark(args.samples, args.bytecode_mode, args.display_case),
+        "display_case": args.display_case,
+        "working_tree_dirty": bool(
+            subprocess.check_output(["git", "status", "--porcelain"], text=True).strip()
+        ),
         "bytecode_mode": args.bytecode_mode,
         "benchmark_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "fixtures": "isolated local Git repository and one assistant response; no model calls",

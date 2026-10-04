@@ -190,6 +190,17 @@ class ExportResult(TypedDict):
     path: str
 
 
+class EditorField(TypedDict):
+    key: str
+    label: str
+    group: str
+    kind: Literal["choice", "boolean", "integer", "text"]
+    choices: list[str]
+    minimum: int
+    maximum: int
+    nullable: bool
+
+
 class DescribeResult(TypedDict):
     catalog: list[CatalogItem]
     options: ConfigurationOptions
@@ -198,6 +209,7 @@ class DescribeResult(TypedDict):
     operations: list[str]
     formatting_options: dict[str, list[str]]
     presets: list[PresetDescription]
+    editor_fields: dict[str, list[EditorField]]
 
 
 class ApplyResult(ReadResult):
@@ -235,6 +247,7 @@ WIRE_TYPES = (
     PreviewResult,
     ProtocolError,
     ReadResult,
+    EditorField,
     PresetDescription,
     TransferResult,
     ExportResult,

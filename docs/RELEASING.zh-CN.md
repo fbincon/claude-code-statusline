@@ -12,7 +12,7 @@
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
-每个候选要求 PR、合并提交、标签的全部 13 个 Python/build 和四个固定 Mod job（Linux 2.1.287/2.1.288、Windows/macOS 2.1.288）通过。检查正式默认、主动关闭不反弹、版本门槛、升级/降级、四种组合与独立禁用。核心 smoke 显式选择基础接入，原生 smoke 另检查实际 marketplace、后端绑定、保存与卸载。安装后的 wheel 需通过真实 Linux 两入口 PTY。
+每个候选要求 PR、合并提交、标签的全部 13 个 Python/build 和五个固定 Mod job（Linux 2.1.287/2.1.288/2.1.289、Windows/macOS 2.1.288）通过。检查正式默认、主动关闭不反弹、版本门槛、升级/降级、四种组合与独立禁用。核心 smoke 显式选择基础接入，原生 smoke 另检查实际 marketplace、后端绑定、保存与卸载。安装后的 wheel 需通过真实 Linux 两入口 PTY。
 
 从验证过的合并提交构建，核对 wheel/sdist、资源清单与独立重建，验证固定标签、草稿资产和 SHA256；标签 CI 通过后发布正式版并设为 Latest，核验公开下载和隔离安装。运行资源由唯一 Mod 源码打包，排除开发依赖、宿主声明和原始报告。原始证据仅留在忽略的 dist/validation。Python 包降级前先用新版 `install --no-native-editor` 移除原生接入。
 
@@ -153,3 +153,9 @@ v1.3.0a2 已获三平台真人验收确认。正式版 Python/Mod 均为 1.3.0�
 ## v1.4.0 显示项发布
 
 本版新增默认关闭的目录项，沿用既有 Client 交互与安装策略。要求固定时钟过期、缺失／零值、原始 token／作用域、完整编辑器／预览与延迟采集检查；保留三平台 CI，检查并独立重建包，运行已安装 wheel 的 Linux PTY，并目视检查扩展目录。继续说明 macOS 输入限制，自动／Agent 目视检查与历史真人验收分开记录。新多行布局和运行时计时变更另需相应额外验收。
+
+## Phase 4 预览与正式晋升
+
+先发布 v1.5.0a1，prerelease=true、latest=false，Latest 保持 v1.4.0。PR、合并构建提交与标签均须通过全部 18 项 CI（13 项 Python／构建、5 项 Mod：Linux 2.1.287／288／289、Windows／macOS 2.1.288）。从安装后的 wheel 运行高级 Linux 持久 PTY，检查真实捕获画面、比较格式／布局性能，并完成独立 wheel／sdist／重建、固定标签及公开下载／安装验证。本范围不运行付费模型／计时套件。
+
+由维护者确认 Linux／Windows 新交互与 macOS 可用入口后再发布 v1.5.0 正式版。自动验证、代理视觉检查与人工验收分别记录；保留 macOS Client 输入限制、schema v3 备份／降级说明及预览显式启用参数。正式版发布并完成公开安装验证前不得标记 Phase 4 完成。

@@ -4,15 +4,14 @@
 
 ## Unreleased
 
-- Add editable minimal/developer/monitoring/multi-agent presets and versioned portable JSON import/export. Imports validate before saving, exports exclude installation/runtime/Claude preferences and protect existing files and live resources.
+- Add complete scoped forms and Layout to both editors, preset/import/export draft actions, and actual-row Claude appearance/time/title/behavior preferences with separate per-row Apply. Validate real curses Ctrl+S without terminal flow-control loss and extend fixed-host CI to Linux 2.1.289.
 
+- Add editable minimal/developer/monitoring/multi-agent presets and versioned portable JSON import/export. Imports validate before saving, exports exclude installation/runtime/Claude preferences and protect existing files and live resources.
 
 - Add explicit rows with priority/terminal-cell width fitting and shared production previews. Subagent filtering, completed hiding, row and task-text limits emit empty content without changing host order.
 
-
 - Add opt-in schema-v3 format settings: short models, numeric formats, labels/icons, risk thresholds, used/remaining allowances and reset styles. Read v1/v2 without writes and migrate with a backup on save.
 - Move the internal JSON contract to protocol v2 and preserve all new fields through complete Client/curses saves; retain owned protocol-v1 resources for upgrade/uninstall.
-
 
 ## 1.4.0 - 2026-10-04
 

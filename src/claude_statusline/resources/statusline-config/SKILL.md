@@ -1,7 +1,7 @@
 ---
 name: statusline-config
 description: Configure the installed claude-statusline display and Claude Code host settings.
-argument-hint: "[show|list-items|set-items|enable|disable|order|subagents|set|reset]"
+argument-hint: "[show|list-items|set-items|enable|disable|order|subagents|set|item|layout|preset|import|export|reset]"
 disable-model-invocation: true
 allowed-tools:
   - AskUserQuestion

@@ -71,3 +71,11 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 ## 草稿传输操作
 
 `preset` 接收 `{draft,preset}`，返回 Python 展开的 `{draft}`；`import` 接收 `{draft,path}`，返回验证后的 `{draft}`，不保存，仅显示文件从当前草稿保留刷新选项；`export` 接收 `{draft,path,overwrite}`，写入可移植文件并返回 `{path}`。导出是独立于设置 Save 的显式文件操作。三者不改变安装或打开时 revision，随后 apply 仍使用原 revision。`describe.presets` 由 Python 唯一预设定义生成。
+
+## 共享编辑表单与宿主偏好
+
+`config.editor_fields` 定义全局与逐项字段的类型、选项、范围及空值行为，生成 `describe.editor_fields` 和 TypeScript `EDITOR_FIELDS`。Client 本地验证后调用生产预览／保存，Python 最终验证；curses 使用同一描述及纯编辑函数。Import／Preset 只替换草稿，Export 可包含未保存修改，都不改变打开时的 revision 或应用 Claude 偏好。
+
+文件操作由宿主 hooks 通过参数数组／JSON stdin 调用 Python，Client 不访问文件。传输／保存期间阻止编辑与普通关闭，epoch 拒绝迟到结果；文本输入保留普通快捷键字符。Ctrl+G 取消输入或返回项目列表，curses 使用 raw 输入模式确保 Ctrl+S 不被终端流控吞掉。
+
+`lib/preferences.ts` 将偏好映射到实际菜单行，例如 `turnDuration`、`reduceMotion`、`tips`、`progressBar`、`notifChannel`。值、类型、选项、提供方和锁来自 `$.config.list()`。独立 Apply 逐项重读后调用 `$.config.set()`，对应行保留部分成功／拒绝等结果；类型／提供方／值变化或选项失效时不写入。缺失／锁定／不支持行给出官方入口，模型／effort／thinking／fast 行为与工具显示格式分组。不得直接写 Claude 持久化键。

@@ -18,6 +18,9 @@ jobs:
           - os: ubuntu-latest
             platform: Linux
             claude: "2.1.288"
+          - os: ubuntu-latest
+            platform: Linux
+            claude: "2.1.289"
           - os: windows-latest
             platform: Windows
             claude: "2.1.288"

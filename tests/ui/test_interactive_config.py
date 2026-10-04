@@ -187,7 +187,7 @@ class ItemStateTests(unittest.TestCase):
         self.assertIn("status-elapsed", state.final_subagent_items())
         self.assertIn("status-elapsed", state.display.subagents.items)
 
-    def test_tabs_cycle_main_subagents_settings_in_both_directions(self):
+    def test_tabs_cycle_four_pages_in_both_directions(self):
         state = ui_editor.EditorState.from_effective(effective())
         self.assertEqual(state.page, "items")
         state.switch_page()
@@ -195,9 +195,11 @@ class ItemStateTests(unittest.TestCase):
         state.switch_page()
         self.assertEqual(state.page, "settings")
         state.switch_page()
+        self.assertEqual(state.page, "layout")
+        state.switch_page()
         self.assertEqual(state.page, "items")
         state.switch_page(-1)
-        self.assertEqual(state.page, "settings")
+        self.assertEqual(state.page, "layout")
 
 
 class SettingStateTests(unittest.TestCase):

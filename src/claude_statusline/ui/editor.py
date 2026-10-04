@@ -10,6 +10,7 @@ from claude_statusline.config import catalog
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 from claude_statusline.ui import models as ui_models
+from claude_statusline.ui import forms
 
 
 @dataclass
@@ -33,6 +34,14 @@ class EditorState:
     selected_subagent_item: str | None = None
     subagent_scroll: int = 0
     numeric_edit: ui_models.NumericEdit | None = None
+    form_item: tuple[str, str] | None = None
+    form_index: int = 0
+    form_scroll: int = 0
+    form_input: dict | None = None
+    pending_action: str | None = None
+    preset: str = "minimal"
+    path: str = "statusline.json"
+    notice: str = ""
 
     @classmethod
     def from_effective(cls, effective: config_models.EffectiveConfig) -> EditorState:
@@ -79,7 +88,7 @@ class EditorState:
             or self.subagent_item_order != initial_subagent_order
         )
         if self.numeric_edit is None:
-            return draft_changed
+            return draft_changed or self.form_input is not None
         original = (
             "event"
             if self.numeric_edit.original is None
@@ -168,9 +177,12 @@ class EditorState:
             self._normalize_item_selection()
 
     def navigate(self, delta: int) -> None:
+        if forms.special(self):
+            forms.select(self, self.form_index + delta)
+            return
         if self.page == "settings":
             self.setting_index = min(
-                len(ui_models.SETTING_NAMES) - 1,
+                len(forms.rows(self)) - 1,
                 max(0, self.setting_index + delta),
             )
             return
@@ -197,6 +209,9 @@ class EditorState:
         self.navigate(direction * max(1, page_size))
 
     def navigate_home(self) -> None:
+        if forms.special(self):
+            self.form_index = 0
+            return
         if self.page == "settings":
             self.setting_index = 0
             return
@@ -212,8 +227,11 @@ class EditorState:
                 self.selected_item = visible[0]
 
     def navigate_end(self) -> None:
+        if forms.special(self):
+            self.form_index = len(forms.rows(self)) - 1
+            return
         if self.page == "settings":
-            self.setting_index = len(ui_models.SETTING_NAMES) - 1
+            self.setting_index = len(forms.rows(self)) - 1
             return
         visible = (
             self._normalize_subagent_selection()
@@ -228,8 +246,17 @@ class EditorState:
 
     def ensure_visible(self, viewport_height: int) -> None:
         height = max(1, viewport_height)
+        if forms.special(self):
+            selected = self.form_index
+            maximum = max(0, len(forms.rows(self)) - height)
+            self.form_scroll = max(0, min(self.form_scroll, maximum))
+            if selected < self.form_scroll:
+                self.form_scroll = selected
+            elif selected >= self.form_scroll + height:
+                self.form_scroll = selected - height + 1
+            return
         if self.page == "settings":
-            maximum = max(0, len(ui_models.SETTING_NAMES) - height)
+            maximum = max(0, len(forms.rows(self)) - height)
             self.settings_scroll = min(maximum, max(0, self.settings_scroll))
             if self.setting_index < self.settings_scroll:
                 self.settings_scroll = self.setting_index
@@ -320,9 +347,10 @@ class EditorState:
     def switch_page(self, direction: int = 1) -> bool:
         if self.numeric_edit is not None:
             return False
-        pages = ("items", "subagents", "settings")
+        pages = ("items", "subagents", "settings", "layout")
         current = pages.index(self.page) if self.page in pages else 0
         self.page = pages[(current + direction) % len(pages)]
+        self.form_item = None
         return True
 
     def _cycle(self, value, choices: tuple, direction: int):
@@ -549,7 +577,9 @@ def save_configuration(
         scope_labels=state.display.scope_labels,
         display_draft=state.display.with_updates(
             items=state.final_items(),
-            subagents=state.display.subagents.with_updates(items=state.final_subagent_items()),
+            subagents=state.display.subagents.with_updates(
+                items=state.final_subagent_items()
+            ),
         ),
         expected=state.baseline,
         before_commit=before_commit,

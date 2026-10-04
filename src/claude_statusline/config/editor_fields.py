@@ -1,0 +1,183 @@
+"""Canonical form descriptors and pure edits for Client and curses."""
+
+from claude_statusline.config import advanced, display, formatting, presets
+import re
+
+
+def field(
+    key,
+    label,
+    group,
+    kind="choice",
+    choices=(),
+    minimum=0,
+    maximum=10000,
+    nullable=False,
+):
+    return {
+        "key": key,
+        "label": label,
+        "group": group,
+        "kind": kind,
+        "choices": list(choices),
+        "minimum": minimum,
+        "maximum": maximum,
+        "nullable": nullable,
+    }
+
+
+GLOBAL = [
+    field(
+        "formatting." + key,
+        key.replace("_", " ").title(),
+        "Formatting",
+        choices=choices,
+    )
+    for key, choices in formatting.FORMAT_CHOICES.items()
+] + [
+    field(
+        "formatting.thresholds.enabled", "Threshold colors", "Risk colors", "boolean"
+    ),
+    field(
+        "formatting.thresholds.warning",
+        "Warning (%)",
+        "Risk colors",
+        "integer",
+        maximum=100,
+    ),
+    field(
+        "formatting.thresholds.critical",
+        "Critical (%)",
+        "Risk colors",
+        "integer",
+        maximum=100,
+    ),
+    field(
+        "subagents.visibility",
+        "Visible agents",
+        "Subagent visibility",
+        choices=("all", "running"),
+    ),
+    field(
+        "subagents.hide_completed", "Hide completed", "Subagent visibility", "boolean"
+    ),
+    field(
+        "subagents.row_limit",
+        "Agent row limit",
+        "Subagent visibility",
+        "integer",
+        nullable=True,
+    ),
+    field(
+        "subagents.task_max_width",
+        "Task text width",
+        "Subagent visibility",
+        "integer",
+        minimum=2,
+        nullable=True,
+    ),
+]
+ITEM = [
+    field("label", "Label (inherit = default)", "Item format", "text", nullable=True),
+    field("icon", "Icon (inherit = default)", "Item format", "text", nullable=True),
+    field("priority", "Priority", "Item fitting", "integer", maximum=100),
+    field(
+        "max_width",
+        "Maximum width",
+        "Item fitting",
+        "integer",
+        minimum=2,
+        nullable=True,
+    ),
+] + [
+    field(
+        key, key.replace("_", " ").title(), "Item format", choices=("inherit", *choices)
+    )
+    for key, choices in formatting.FORMAT_CHOICES.items()
+]
+
+
+def descriptions():
+    return {"global": GLOBAL, "item": ITEM}
+
+
+def value(config, key, scope=None, item=None):
+    if scope is not None:
+        options = (
+            config.item_options if scope == "main" else config.subagents.item_options
+        ).get(item, formatting.ItemOptions())
+        return (
+            options.formatting.get(key, "inherit")
+            if key in formatting.FORMAT_CHOICES
+            else options.to_dict()[key]
+        )
+    data = config.to_dict()
+    for part in key.split("."):
+        data = data[part]
+    return data
+
+
+def parse_value(spec, raw):
+    if spec["kind"] == "boolean":
+        if type(raw) is bool:
+            return raw
+        if raw not in ("on", "off"):
+            raise display.DisplayConfigError("expected on/off")
+        return raw == "on"
+    if spec["kind"] == "integer":
+        if spec["nullable"] and raw in (None, "none", "inherit"):
+            return None
+        try:
+            if type(raw) is not int and not (
+                isinstance(raw, str) and re.fullmatch(r"[0-9]+", raw)
+            ):
+                raise ValueError("expected an integer")
+            raw = int(raw)
+            return formatting.integer(
+                raw, spec["minimum"], spec["maximum"], spec["key"]
+            )
+        except (ValueError, TypeError) as exc:
+            raise display.DisplayConfigError(str(exc) or "expected an integer") from exc
+    if spec["kind"] == "choice" and raw not in spec["choices"]:
+        raise display.DisplayConfigError(
+            "expected one of: " + ", ".join(spec["choices"])
+        )
+    return None if spec["nullable"] and raw == "inherit" else raw
+
+
+def set_value(config, key, raw, scope=None, item=None):
+    fields = ITEM if scope is not None else GLOBAL
+    spec = next((spec for spec in fields if spec["key"] == key), None)
+    if spec is None:
+        raise display.DisplayConfigError("unknown editor field")
+    parsed = parse_value(spec, raw)
+    if scope is not None:
+        return advanced.edit_item(
+            config,
+            scope,
+            item,
+            key,
+            "inherit" if parsed is None and spec["kind"] == "text" else parsed,
+        )
+    data = config.to_dict()
+    target = data
+    parts = key.split(".")
+    for part in parts[:-1]:
+        target = target[part]
+    target[parts[-1]] = parsed
+    return display.validate_display_config(data)
+
+
+def break_before(config, item, enabled):
+    breaks = {row[0] for row in config.layout.rows[1:]}
+    breaks.add(item) if enabled else breaks.discard(item)
+    rows = []
+    for current in config.items:
+        if not rows or current in breaks:
+            rows.append([])
+        rows[-1].append(current)
+    return advanced.edit_layout(config, "explicit", rows)
+
+
+def preset_names():
+    return list(presets.ROWS)

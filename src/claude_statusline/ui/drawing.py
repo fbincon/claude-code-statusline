@@ -9,6 +9,7 @@ from claude_statusline.rendering import preview as rendering_preview
 from claude_statusline.rendering import subagents as rendering_subagents
 from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import models as ui_models
+from claude_statusline.ui import forms
 
 
 _XTERM_BASE_RGB = (
@@ -193,6 +194,15 @@ def _draw_tabs(
         max(0, width - offset),
         active_attr if state.page == "settings" else 0,
     )
+    offset += rendering_layout._display_width(settings) + 2
+    _add_text(
+        screen,
+        2,
+        offset,
+        "[ Layout ]",
+        max(0, width - offset),
+        active_attr if state.page == "layout" else 0,
+    )
 
 
 def _draw_items(
@@ -243,24 +253,20 @@ def _draw_settings(
     width: int,
 ) -> None:
     state.ensure_visible(height)
-    values = state.setting_values()
-    visible_range = range(
-        state.settings_scroll,
-        min(len(ui_models.SETTING_NAMES), state.settings_scroll + height),
-    )
-    for row, index in enumerate(visible_range):
-        line = f"{ui_models.SETTING_NAMES[index]}: {values[index]}"
-        attr = curses.A_REVERSE if index == state.setting_index else 0
-        _add_text(screen, start_y + row, 0, line, width, attr)
-    edit = state.numeric_edit
-    if edit is not None and edit.error and height > len(ui_models.SETTING_NAMES):
+    rows = forms.rows(state)
+    scroll = state.form_scroll if forms.special(state) else state.settings_scroll
+    for offset, row in enumerate(rows[scroll : scroll + height]):
+        editing = state.form_input and state.form_input["row"]["key"] == row["key"]
+        value = (
+            state.form_input["buffer"] + " _" if editing else forms.shown(row["value"])
+        )
         _add_text(
             screen,
-            start_y + min(len(ui_models.SETTING_NAMES), height - 1),
+            start_y + offset,
             0,
-            edit.error,
+            row["label"] + ": " + value,
             width,
-            curses.A_BOLD,
+            curses.A_REVERSE if scroll + offset == forms.index(state) else 0,
         )
 
 
@@ -324,17 +330,35 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     active_attr = curses.A_REVERSE | curses.A_BOLD
     _add_text(screen, 0, 0, "Configure Status Line", width, title_attr)
     description = (
-        "Choose main status line items and their order"
+        "Edit item format: " + state.form_item[1]
+        if state.form_item
+        else "Set explicit rows, priorities and widths"
+        if state.page == "layout"
+        else "Choose main status line items and their order"
         if state.page == "items"
         else "Choose subagent row items and their order"
         if state.page == "subagents"
-        else "Adjust display and Claude host settings"
+        else "Adjust display and tool refresh settings"
     )
     if state.modified:
         description += " (modified)"
     _add_text(screen, 1, 0, description, width, curses.A_DIM)
     _draw_tabs(screen, state, width, active_attr)
-    if state.page == "items":
+    if forms.special(state):
+        _add_text(
+            screen,
+            3,
+            0,
+            state.notice
+            or (
+                "Item format (Ctrl+G back)"
+                if state.form_item
+                else "Explicit rows / priority / width"
+            ),
+            width,
+        )
+        _draw_settings(screen, state, 4, content_height, width)
+    elif state.page == "items":
         _add_text(screen, 3, 0, f"Type to search > {state.search}", width)
         _draw_items(screen, state, 4, content_height, width)
     elif state.page == "subagents":
@@ -351,7 +375,9 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             screen,
             3,
             0,
-            "Use arrows to change values; digits edit numeric settings.",
+            state.notice
+            or (state.numeric_edit.error if state.numeric_edit else "")
+            or "Use arrows to change values; Enter edits new fields. Ctrl+S saves.",
             width,
         )
         _draw_settings(screen, state, 4, content_height, width)
@@ -360,15 +386,23 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     _add_text(screen, separator_y + 1, 0, "Preview (sample data)", width, title_attr)
     _draw_preview(screen, state, preview_start, preview_height, width, mapper)
 
-    if state.numeric_edit is not None:
+    if state.form_input is not None:
+        help_text = "Enter accept  Ctrl+U clear  Ctrl+G restore  Esc restore"
+    elif state.form_item:
+        help_text = (
+            "Arrows select/adjust  Enter edit  Ctrl+G back  Ctrl+S save  Esc cancel"
+        )
+    elif state.page == "layout":
+        help_text = (
+            "Arrows select/adjust  Enter edit  Tab page  Ctrl+S save  Esc cancel"
+        )
+    elif state.numeric_edit is not None:
         help_text = "Digits edit  Backspace delete  Enter accept  Esc restore"
     elif state.page in ("items", "subagents"):
-        help_text = (
-            "Space toggle  ↑↓ navigate  ←→ reorder  Tab next  Enter save  Esc cancel"
-        )
+        help_text = "Space toggle  Ctrl+E format  Arrows select/order  Tab page  Enter save  Esc cancel"
     else:
         help_text = (
-            "Space toggle  ↑↓ navigate  ←→ change  Tab main  Enter save  Esc cancel"
+            "↑↓ select  ←→ adjust  Enter edit/save  Ctrl+S save  Tab page  Esc cancel"
         )
     _add_text(screen, height - 1, 0, help_text, width, curses.A_REVERSE)
     screen.refresh()

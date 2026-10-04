@@ -23,6 +23,8 @@ import tempfile
 import shlex
 import time
 
+from claude_statusline.ui.contracts import PROTOCOL_VERSION
+
 
 def prepare(
     root: Path, backend: Path, *, persistent: bool = False, claude: str = "claude"
@@ -74,7 +76,9 @@ def prepare(
     (host_directory / "claude").symlink_to(
         Path(shutil.which(claude) or claude).resolve()
     )
-    env["PATH"] = os.pathsep.join((str(backend.parent), str(host_directory), env.get("PATH", "")))
+    env["PATH"] = os.pathsep.join(
+        (str(backend.parent), str(host_directory), env.get("PATH", ""))
+    )
     subprocess.run(
         [
             str(backend),
@@ -102,6 +106,7 @@ def run_pty(
     columns: int,
     *,
     persistent: bool = False,
+    advanced: bool = False,
 ) -> dict:
     import fcntl
     import pty
@@ -111,10 +116,22 @@ def run_pty(
     config = Path(env["CLAUDE_CONFIG_DIR"])
     description = subprocess.run(
         [env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "ui"],
-        input=json.dumps({"protocol_version": 1, "operation": "describe", "payload": {}}),
-        text=True, capture_output=True, env=env, cwd=project, check=True, timeout=30,
+        input=json.dumps(
+            {
+                "protocol_version": PROTOCOL_VERSION,
+                "operation": "describe",
+                "payload": {},
+            }
+        ),
+        text=True,
+        capture_output=True,
+        env=env,
+        cwd=project,
+        check=True,
+        timeout=30,
     )
-    catalog_count = len(json.loads(description.stdout)["result"]["catalog"])
+    described = json.loads(description.stdout)["result"]
+    catalog_count = len(described["catalog"])
     subprocess.run(
         [env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set", "colors", "on"],
         env=env,
@@ -126,20 +143,39 @@ def run_pty(
     settings_before = (config / "settings.json").read_bytes()
     terminal_rows = 48 if columns < 110 else 30
     master, slave = pty.openpty()
-    fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", terminal_rows, columns, 0, 0))
+    fcntl.ioctl(
+        slave, termios.TIOCSWINSZ, struct.pack("HHHH", terminal_rows, columns, 0, 0)
+    )
 
     def terminal():
         os.setsid()
         fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
         os.tcsetpgrp(slave, os.getpgrp())
 
-    command_argv = [claude, *([] if persistent else ["--plugin-dir", str(plugin)]),
-                    "--debug-file", str(root / f"debug-{columns}.log")]
-    tmux_directory = tempfile.TemporaryDirectory(prefix="statusline-client-tmux-") if persistent else None
+    command_argv = [
+        claude,
+        *([] if persistent else ["--plugin-dir", str(plugin)]),
+        "--debug-file",
+        str(root / f"debug-{columns}.log"),
+    ]
+    tmux_directory = (
+        tempfile.TemporaryDirectory(prefix="statusline-client-tmux-")
+        if persistent
+        else None
+    )
     tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
     if tmux_socket:
-        command_argv = ["tmux", "-f", "/dev/null", "-S", str(tmux_socket),
-                        "new-session", "-s", "validation", shlex.join(command_argv)]
+        command_argv = [
+            "tmux",
+            "-f",
+            "/dev/null",
+            "-S",
+            str(tmux_socket),
+            "new-session",
+            "-s",
+            "validation",
+            shlex.join(command_argv),
+        ]
     process = subprocess.Popen(
         command_argv,
         cwd=project,
@@ -151,6 +187,7 @@ def run_pty(
         close_fds=True,
     )
     raw = bytearray()
+
     class CaptureScreen(pyte.Screen):
         def write_process_input(self, data):
             os.write(master, data.encode("utf-8"))
@@ -171,8 +208,11 @@ def run_pty(
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
 
     def read_until(
-        text: str | tuple[str, ...], *, start: int = 0,
-        timeout: int = 30, quiet: bool = True,
+        text: str | tuple[str, ...],
+        *,
+        start: int = 0,
+        timeout: int = 30,
+        quiet: bool = True,
     ):
         deadline = time.monotonic() + timeout
         last_output = time.monotonic()
@@ -210,7 +250,8 @@ def run_pty(
         ]
         path.write_text(
             json.dumps(
-                {"columns": columns, "rows": screen.lines, "cells": cells}, ensure_ascii=False
+                {"columns": columns, "rows": screen.lines, "cells": cells},
+                ensure_ascii=False,
             ),
             encoding="utf-8",
         )
@@ -225,11 +266,15 @@ def run_pty(
         os.write(master, text.encode("utf-8") + b"\r")
 
     def click_client():
-        row = next((i for i, line in enumerate(screen.display) if "Filter:" in line), None)
+        row = next(
+            (i for i, line in enumerate(screen.display) if "Filter:" in line), None
+        )
         if row is None:
             raise RuntimeError("Client filter row is not visible for focus click")
         col = screen.display[row].index("Filter:") + 3
-        os.write(master, f"\x1b[<0;{col+1};{row+1}M\x1b[<0;{col+1};{row+1}m".encode())
+        os.write(
+            master, f"\x1b[<0;{col + 1};{row + 1}M\x1b[<0;{col + 1};{row + 1}m".encode()
+        )
         time.sleep(0.3)
 
     try:
@@ -243,7 +288,9 @@ def run_pty(
         placed = read_until(("Client TUI", "Resize pane to 32x12"), start=offset)
         resized = placed != "Client TUI"
         if resized:
-            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 48, columns, 0, 0))
+            fcntl.ioctl(
+                slave, termios.TIOCSWINSZ, struct.pack("HHHH", 48, columns, 0, 0)
+            )
             screen.resize(lines=48, columns=columns)
             os.killpg(process.pid, signal.SIGWINCH)
             read_until("Client TUI")
@@ -266,7 +313,9 @@ def run_pty(
         os.write(master, b"s")
         read_until("Tool configuration saved")
         ordered = json.loads((config / "claude-statusline.json").read_bytes())["items"]
-        assert ordered.index("git") < ordered.index("current-dir"), "Left arrow did not move Git before Directory"
+        assert ordered.index("git") < ordered.index("current-dir"), (
+            "Left arrow did not move Git before Directory"
+        )
         offset = len(raw)
         os.write(master, b"\x1b[C")
         read_until("Main items", start=offset)
@@ -307,13 +356,19 @@ def run_pty(
         read_until("Colors off")
         os.write(master, b"\x1b")
         read_until("Tool settings")
-        assert any("Tool settings" in row for row in screen.display), "First Esc closed Client pane"
+        assert any("Tool settings" in row for row in screen.display), (
+            "First Esc closed Client pane"
+        )
         os.write(master, b"\x1b")
         read_until("❯")
         command("/statusline-config show")
         read_until("Hide Vim mode indicator:")
-        assert (config / "claude-statusline.json").read_bytes() == saved, "Cancel changed persisted display"
-        assert (config / "settings.json").read_bytes() == settings_before, "Unchanged host fields were rewritten"
+        assert (config / "claude-statusline.json").read_bytes() == saved, (
+            "Cancel changed persisted display"
+        )
+        assert (config / "settings.json").read_bytes() == settings_before, (
+            "Unchanged host fields were rewritten"
+        )
         command("/statusline-configure-native")
         read_until("Client TUI")
         click_client()
@@ -333,7 +388,12 @@ def run_pty(
             os.write(master, b" ")
             os.write(master, b"\r")
             read_until("Status line configuration updated")
-            assert json.loads((config / "claude-statusline.json").read_bytes())["use_colors"] is True
+            assert (
+                json.loads((config / "claude-statusline.json").read_bytes())[
+                    "use_colors"
+                ]
+                is True
+            )
             command("/statusline-configure-native")
             read_until("Client TUI")
             click_client()
@@ -344,13 +404,219 @@ def run_pty(
             external_verified = True
         command("/statusline-config show")
         read_until("Hide Vim mode indicator:")
+        if advanced:
+            if not persistent:
+                raise RuntimeError(
+                    "Advanced acceptance requires both persistent entries"
+                )
+            display_path = config / "claude-statusline.json"
+            base = display_path.read_bytes()
+            global_count = len(described["editor_fields"]["global"])
+            preset_index = 9 + global_count
+
+            def client_setting(index, label):
+                os.write(master, b"\x1b[H" + b"\x1b[B" * index)
+                read_until("› " + label)
+
+            def client_value(value, observed):
+                os.write(master, b"\r\x15" + value.encode("utf-8") + b"\r")
+                read_until(observed)
+
+            def external_setting(index, label):
+                os.write(master, b"\x1b[H" + b"\x1b[B" * index)
+                read_until(label, quiet=False)
+
+            def external_value(value, observed):
+                os.write(master, b"\r\x15" + value.encode("utf-8") + b"\r")
+                read_until(observed, quiet=False)
+
+            command("/statusline-configure-native")
+            read_until("Client TUI")
+            click_client()
+            os.write(master, b"\x1b[H\x05")
+            read_until("Item format:")
+            client_value("Engine 中文", "Engine 中文")
+            capture("advanced-item-format")
+            os.write(master, b"\x07" + b"4")
+            read_until("Layout / fitting")
+            client_setting(0, "Layout mode")
+            os.write(master, b"\r")
+            read_until("Layout mode explicit")
+            first_item = json.loads(base)["items"][0]
+            first_label = next(
+                i["label"]
+                for i in described["catalog"]
+                if i["scope"] == "main" and i["id"] == first_item
+            )
+            client_setting(1, first_label + " Priority")
+            client_value("100", "Priority 100")
+            client_setting(2, first_label + " Maximum width")
+            client_value("28", "Maximum width 28")
+            client_setting(3, "New row before")
+            os.write(master, b" ")
+            read_until("New row before")
+            capture("advanced-layout")
+            os.write(master, b"3")
+            read_until("Tool settings")
+            client_setting(1, "Palette")
+            os.write(master, b"\x1b[C")
+            read_until("Palette ansi")
+            os.write(master, b"s")
+            read_until("Tool configuration saved")
+            saved_advanced = display_path.read_bytes()
+            saved_config = json.loads(saved_advanced)
+            assert saved_config["item_options"][first_item]["label"] == "Engine 中文"
+            assert saved_config["item_options"][first_item]["priority"] == 100
+            assert saved_config["item_options"][first_item]["max_width"] == 28
+            assert len(saved_config["layout"]["rows"]) == 2
+            assert saved_config["palette"] == "ansi"
+
+            client_setting(preset_index, "Preset")
+            os.write(master, b"\x1b[C")
+            read_until("Preset developer")
+            client_setting(preset_index + 1, "Expand selected preset")
+            os.write(master, b"\r")
+            read_until("Draft replaced")
+            capture("advanced-preset")
+            portable = project / f"draft-{columns} 中文.json"
+            client_setting(preset_index + 3, "Export current draft")
+            client_value(portable.name, "Exported current draft")
+            exported = json.loads(portable.read_bytes())
+            assert exported["draft"]["display"]["items"] != saved_config["items"]
+            assert (
+                exported["draft"]["display"]["formatting"]["number_format"] == "compact"
+            )
+            assert display_path.read_bytes() == saved_advanced, (
+                "Export saved an unsaved draft"
+            )
+
+            bad = project / f"invalid-{columns}.json"
+            bad.write_text("[]", encoding="utf-8")
+            client_setting(preset_index + 2, "Import file")
+            client_value(bad.name, "import requires")
+            assert display_path.read_bytes() == saved_advanced
+            client_value(portable.name, "Draft replaced")
+            capture("advanced-import")
+            os.write(master, b"q")
+            read_until("❯")
+            assert display_path.read_bytes() == saved_advanced, (
+                "Cancel saved an imported draft"
+            )
+
+            command("/statusline-configure-native")
+            read_until("Client TUI")
+            click_client()
+            os.write(master, b"3h")
+            read_until("Claude preferences")
+            # Exercise actual menu aliases through the interactive writer.
+            client_setting(preset_index + 4, "Theme")
+            os.write(master, b"\x1b[C")
+            read_until("Theme light")
+            client_setting(preset_index + 6, "Show turn duration")
+            os.write(master, b" ")
+            read_until("Show turn duration false")
+            os.write(master, b"a")
+            read_until("Show turn duration: Applied.")
+            assert display_path.read_bytes() == saved_advanced
+            os.write(master, b"r")
+            read_until("Main items")
+            click_client()
+            os.write(master, b"3h")
+            read_until("Claude preferences")
+            client_setting(preset_index + 4, "Theme")
+            read_until("Theme light")
+            client_setting(preset_index + 6, "Show turn duration")
+            read_until("Show turn duration false")
+            capture("advanced-host-preferences")
+            # Restore through the same API; tool saves must preserve its result.
+            os.write(master, b" a")
+            read_until("Show turn duration: Applied.")
+            client_setting(preset_index + 4, "Theme")
+            os.write(master, b"\x1b[Da")
+            read_until("Theme: Applied.")
+            settings_after_preferences = (config / "settings.json").read_bytes()
+            os.write(master, b"q")
+            read_until("❯")
+
+            command("/statusline-configure")
+            read_until("Configure Status Line", quiet=False)
+            os.write(master, b"\t\t")
+            read_until("Use arrows to change values", quiet=False)
+            external_setting(preset_index, "Preset:")
+            os.write(master, b"\x1b[C\x1b[C")
+            read_until("Preset: monitoring", quiet=False)
+            external_setting(preset_index + 1, "Expand selected preset")
+            os.write(master, b"\r")
+            read_until("Preset expanded", quiet=False)
+            external_portable = project / f"external-{columns} 中文.json"
+            external_setting(preset_index + 3, "Export current draft")
+            external_value(external_portable.name, "Exported current draft")
+            assert display_path.read_bytes() == saved_advanced
+            assert (
+                len(
+                    json.loads(external_portable.read_bytes())["draft"]["display"][
+                        "layout"
+                    ]["rows"]
+                )
+                == 3
+            )
+            os.write(master, b"\x1b")
+            read_until("❯")
+            assert display_path.read_bytes() == saved_advanced
+
+            command("/statusline-configure")
+            read_until("Configure Status Line", quiet=False)
+            os.write(master, b"\t\t")
+            read_until("Use arrows to change values", quiet=False)
+            external_setting(preset_index + 2, "Import file")
+            external_value(external_portable.name, "Draft imported")
+            os.write(master, b"\t")
+            read_until("Set explicit rows", quiet=False)
+            external_setting(1, "context-used Priority:")
+            external_value("100", "context-used Priority: 100")
+            external_setting(2, "context-used Maximum width:")
+            external_value("12", "context-used Maximum width: 12")
+            capture("advanced-external-layout")
+            os.write(master, b"\x13")
+            read_until("Status line configuration updated")
+            external_saved = display_path.read_bytes()
+            external_config = json.loads(external_saved)
+            assert external_config["items"][0] == "context-used"
+            assert external_config["item_options"]["context-used"]["priority"] == 100
+            assert external_config["item_options"]["context-used"]["max_width"] == 12
+            assert len(external_config["layout"]["rows"]) == 3
+            assert external_config["palette"] == "ansi"
+            command("/statusline-configure-native")
+            read_until("Client TUI")
+            click_client()
+            read_until("[x] Context used")
+            os.write(master, b"4")
+            read_until("Layout / fitting")
+            client_setting(1, "Context used Priority")
+            read_until("Priority 100")
+            capture("advanced-shared-draft")
+            os.write(master, b"q")
+            read_until("❯")
+            assert display_path.read_bytes() == external_saved
+            assert (config / "settings.json").read_bytes() == settings_after_preferences
+            # Restore the base display so the next terminal size has the same fixture.
+            display_path.write_bytes(base)
         return {
             "columns": columns,
             "rows": screen.lines,
             "resized_from_minimum_prompt": resized,
             "passed": True,
             "opened": True,
-            "pages": ["main", "subagents", "settings"],
+            "pages": [
+                "main",
+                "subagents",
+                "settings",
+                *(["layout"] if advanced else []),
+            ],
+            "advanced_forms": advanced,
+            "preset_export_import_cancel": advanced,
+            "shared_advanced_save": advanced,
+            "interactive_host_preferences": advanced,
             "toggle": True,
             "space_toggles_item": True,
             "keyboard_after_click": True,
@@ -373,7 +639,11 @@ def run_pty(
             "\n".join(screen.display), encoding="utf-8"
         )
         if tmux_socket:
-            subprocess.run(["tmux", "-S", str(tmux_socket), "kill-server"], capture_output=True, timeout=5)
+            subprocess.run(
+                ["tmux", "-S", str(tmux_socket), "kill-server"],
+                capture_output=True,
+                timeout=5,
+            )
         if process.poll() is None:
             os.killpg(process.pid, signal.SIGTERM)
             try:
@@ -400,6 +670,11 @@ def main() -> int:
     parser.add_argument("--plugin", type=Path, default=Path("mods/statusline-native"))
     parser.add_argument("--interactive", action="store_true")
     parser.add_argument(
+        "--advanced",
+        action="store_true",
+        help="Check Phase 4 forms, layout, presets and portable files in both entries",
+    )
+    parser.add_argument(
         "--persistent",
         action="store_true",
         help="Install the bundled Mod through the official marketplace, then start without --plugin-dir",
@@ -408,13 +683,17 @@ def main() -> int:
         "--terminal", help="Terminal name/version to record for manual acceptance"
     )
     args = parser.parse_args()
+    if args.advanced and not args.persistent:
+        parser.error("--advanced requires --persistent to check both editor entries")
     args.claude = str(Path(shutil.which(args.claude) or args.claude).resolve())
     if not sys.platform.startswith("linux"):
         parser.error("This acceptance runner currently requires native Linux")
     root = args.report_dir.resolve()
     plugin = args.plugin.resolve()
     backend = args.backend.resolve()
-    project, environment = prepare(root, backend, persistent=args.persistent, claude=args.claude)
+    project, environment = prepare(
+        root, backend, persistent=args.persistent, claude=args.claude
+    )
     report = {
         "os": platform.platform(),
         "architecture": platform.machine(),
@@ -441,7 +720,7 @@ def main() -> int:
         report_path = root / "report.json"
         report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         print(
-            "Run /statusline-configure-native, click the Client region, verify all three pages, Space/Tab/arrows, numeric Ctrl+G, save/finish, Esc focus/close, cancel, Claude preferences and return to the same session. /statusline-configure separately opens the external TUI.\n"
+            "Run /statusline-configure-native, click the Client region, verify Main/Subagents/Settings/Layout, Ctrl+E item format, presets, import/export, Space/Tab/arrows, numeric Ctrl+G, save/finish, Esc focus/close, cancel, Claude preferences and return to the same session. /statusline-configure separately opens the external TUI.\n"
             "Repeat in a narrow window. Send no model prompt. Use /exit when finished.\n"
             f"Environment recorded in {report_path}; manual acceptance stays pending until you report the result.",
             flush=True,
@@ -464,6 +743,7 @@ def main() -> int:
                     plugin,
                     columns,
                     persistent=args.persistent,
+                    advanced=args.advanced,
                 )
             )
     finally:

@@ -9,7 +9,7 @@ import { NUMERIC_FIELDS, numericValue } from './numeric.ts';
 import type { NumericField } from './numeric.ts';
 export type { NumericField } from './numeric.ts';
 
-export type Page = 'main' | 'subagents' | 'settings';
+export type Page = 'main' | 'subagents' | 'settings' | 'layout';
 
 /** Copy wire data without sharing editable arrays with the opening snapshot. */
 export function copyDraft(draft: Draft): Draft {
@@ -26,6 +26,10 @@ export class Editor {
   baseline: ReadResult;
   page: Page = 'main';
   advanced = false;
+  detail: { scope: Scope; id: string } | null = null;
+  preset = 'minimal';
+  path = 'statusline.json';
+  pendingTransfer: 'import' | 'export' | 'preset' | null = null;
   setting = 'colors';
   activeNumeric: NumericField | null = null;
   selected: Record<Scope, string>;
@@ -56,6 +60,18 @@ export class Editor {
       padding: String(this.draft.host.padding),
       refresh_interval: String(this.draft.host.refresh_interval),
     };
+  }
+
+  replaceDraft(draft: Draft): void {
+    this.draft = copyDraft(draft);
+    for (const scope of ['main', 'subagent'] as const) {
+      this.order[scope] = [...this.items(scope), ...this.catalog(scope).map((i) => i.id).filter((id) => !this.items(scope).includes(id))];
+      if (!this.order[scope].includes(this.selected[scope])) this.selected[scope] = this.order[scope][0] || '';
+    }
+    this.buffers = { padding: String(draft.host.padding), refresh_interval: String(draft.host.refresh_interval) };
+    this.fieldErrors = {};
+    this.activeNumeric = null;
+    this.detail = null;
   }
 
   get modified(): boolean {

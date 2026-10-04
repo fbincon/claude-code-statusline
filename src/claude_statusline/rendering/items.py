@@ -388,11 +388,11 @@ class _RenderState:
                 tmiss = preferences.number(counts.miss, self.fmt)
                 tout = preferences.number(counts.out, self.fmt)
         parts = [
-            f"{self.palette.tokens}hit {thit}{self.palette.reset}",
-            f"{self.palette.tokens}miss {tmiss}{self.palette.reset}",
-            f"{self.palette.tokens}out {tout}{self.palette.reset}",
+            f"{self.palette.tokens}{label} {value}{self.palette.reset}"
+            for label, value in (("hit", thit), ("miss", tmiss), ("out", tout))
+            if value is not None
         ]
-        return _RenderedItem(self.inner_separator.join(parts), group="usage")
+        return _RenderedItem(self.inner_separator.join(parts), group="usage") if parts else None
 
     def input_tokens(self):
         counts = self.raw_totals()

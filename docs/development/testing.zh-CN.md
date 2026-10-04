@@ -29,7 +29,7 @@ Windows 使用 `.venv\Scripts\python.exe` 和 `.venv\Scripts\ruff.exe`，设置 
 
 ## 安装包检查
 
-原生工作流检查 Linux 2.1.287/2.1.288 和 Windows/macOS 2.1.288 的实际构建声明、官方插件验证/测试及 TypeScript。`tools/native_install_smoke.py` 验证真实官方 marketplace 安装、绝对后端绑定、完整协议保存、重复安装、外部明确禁用、兼容恢复和卸载，不用认证或模型调用。显式调用的 PTY/人工步骤见[原生入口验证](native.zh-CN.md)；回调测试不能证明终端焦点或视觉表现正确。
+原生工作流检查 Linux 2.1.287/2.1.288/2.1.289 和 Windows/macOS 2.1.288 的实际构建声明、官方插件验证/测试及 TypeScript。`tools/native_install_smoke.py` 验证真实官方 marketplace 安装、绝对后端绑定、完整协议保存、重复安装、外部明确禁用、兼容恢复和卸载，不用认证或模型调用。显式调用的 PTY/人工步骤见[原生入口验证](native.zh-CN.md)；回调测试不能证明终端焦点或视觉表现正确。
 
 按 [发布指南](../RELEASING.zh-CN.md) 从固定提交导出到新目录构建。构建作业先创建本地专属 fixture，再检查它们未进入发行包：
 
@@ -108,3 +108,9 @@ Linux x86_64／Python 3.14.4、隔离的热字节码各 50 次采样：基线 `0
 | Git warm | 0.010 / 0.016 | 0.036 / 0.048 |
 | Transcript cold | 0.403 / 0.532 | 0.483 / 0.822 |
 | Transcript warm | 0.126 / 0.153 | 0.141 / 0.165 |
+
+## Phase 4 验证
+
+高级表单回归覆盖逐项文本／格式、数字边界、字段取消、分行维护及仅明确保存才写设置的文件操作。原生测试覆盖输入中的快捷键字符、实际宿主行别名、缺失／不支持／锁定、类型／选项变化、逐项部分成功，以及工具 Save 与宿主 Apply 独立。Unicode 文本验证与 Python 一致，256 字符限制按码点计算。
+
+从安装的 wheel 运行 `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`，真实检查 curses 弹窗 Ctrl+S、Client 保存／回读、中文路径、导入错误、未保存草稿导出、取消及两种尺寸的显式布局。人工验收由维护者另行确认；CI 增加固定 Linux 2.1.289，保留原有平台矩阵。

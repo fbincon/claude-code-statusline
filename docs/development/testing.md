@@ -12,7 +12,7 @@ Shared catalog/protocol tests include strict input, Unicode paths and no-live-I/
 
 From the repository root, create a virtual environment and install the project plus development tools:
 
-Editor tests cover all three pages, full saves and new revisions, cancel/reopen, numeric boundaries, narrow panes, catalog exclusions and ordering, actual host rows, locks/refusals/partial success, conflicts, uncertain saves, write locks and stale responses. Run `claude plugin test mods/statusline-native` after preparing exact-host declarations; these checks make no model calls.
+Editor tests cover Main/Subagents/Settings/Layout and scoped forms, full saves and new revisions, cancel/reopen, numeric boundaries, narrow panes, catalog exclusions and ordering, actual host rows, locks/refusals/partial success, conflicts, uncertain saves, write locks and stale responses. Run `claude plugin test mods/statusline-native` after preparing exact-host declarations; these checks make no model calls.
 
 ```bash
 python3 -m venv .venv
@@ -29,7 +29,7 @@ Tests are grouped by implementation subsystem. CLI, installation and PTY/tmux/sh
 
 ## Installed package checks
 
-The native workflow checks Linux 2.1.287/2.1.288 plus Windows/macOS 2.1.288 with exact-build declarations, official plugin validation/tests and TypeScript. `tools/native_install_smoke.py` validates real official marketplace installation, absolute backend binding, complete protocol saves, repeat install, explicit plugin disable, compatibility restoration and uninstall without credentials/model calls. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
+The native workflow checks Linux 2.1.287/2.1.288/2.1.289 plus Windows/macOS 2.1.288 with exact-build declarations, official plugin validation/tests and TypeScript. `tools/native_install_smoke.py` validates real official marketplace installation, absolute backend binding, complete protocol saves, repeat install, explicit plugin disable, compatibility restoration and uninstall without credentials/model calls. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
 
 Use the [release guide](../RELEASING.md) to build in a fresh directory from a fixed commit. The build job creates local-only fixtures before building, then checks that they are excluded:
 
@@ -106,3 +106,9 @@ Measured on Linux x86_64 / Python 3.14.4, 50 samples with isolated warm bytecode
 | Git warm | 0.010 / 0.016 | 0.036 / 0.048 |
 | Transcript cold | 0.403 / 0.532 | 0.483 / 0.822 |
 | Transcript warm | 0.126 / 0.153 | 0.141 / 0.165 |
+
+## Phase 4 verification
+
+Advanced form regressions cover scoped text/format input, numeric bounds, field cancellation, layout partitioning and portable actions that never save until requested. Native tests cover literal shortcut input, actual host row aliases, unsupported/missing/locked rows, changed types/options, per-row partial results and tool-save/host-apply independence. Strict Unicode text validation matches Python and counts code points for the 256-character limit.
+
+Use the installed wheel for `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`. Ctrl+S is checked inside the real curses popup, along with Client save/readback, CJK files, import errors, export of unsaved drafts, cancellation and explicit layout at both terminal sizes. Human acceptance stays pending until the maintainer confirms it. CI adds a fixed Linux 2.1.289 job while retaining the existing platform matrix.
