@@ -45,7 +45,7 @@
 
 ## 功能概览
 
-- 按用户选择显示或隐藏状态项：默认 10 项，另有 14 个可选条目（项目名、本机名、上下文用量、版本、会话、cost、prompt-cache、运行模式、PR/worktree 等）。
+- 按用户选择显示或隐藏状态项：主栏默认 10 项，另有 38 个可选条目（项目名、本机名、上下文用量、版本、会话、cost、prompt-cache、运行模式、PR/worktree 等）。
 - 按配置文件中的顺序渲染状态项。
 - 支持 24 位 RGB 配色、终端 ANSI 配色或完全关闭颜色。
 - 支持完整路径、`~` 路径、项目相对路径和目录 basename。
@@ -671,7 +671,7 @@ claude-statusline config list-items --json
 
 - `id`：传给其他命令的稳定标识符。
 - `description`：显示项说明。
-- `default_enabled`：默认是否启用。默认启用的 10 个条目为 `true`；`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 为 `false`（opt-in）。
+- `default_enabled`：默认是否启用。默认启用的 10 个条目为 `true`；`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 及 v1.4.0 的 24 个新增独立主栏项均为 `false`（opt-in）。
 - `enabled`：当前是否启用。
 - `position`：当前从 0 开始的顺序；禁用时为 `null`。
 
@@ -1109,7 +1109,7 @@ claude-statusline config set refresh-interval event
 
 这是严格 JSON：不接受注释、尾随逗号、未知字段、缺失字段、未知条目或重复条目。建议使用配置命令修改，而不是手工编辑。
 
-上例中的 10 个条目是默认启用集合。`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
+上例中的 10 个条目是默认启用集合。`project-name`、`hostname`、`context-used`、`version`、`session`、`cost`、`prompt-cache`、`fast-mode`、`agent`、`vim-mode`、`thinking`、`pr`、`worktree`、`repo` 以及 v1.4.0 的 24 个新增独立主栏项是可选条目，默认不包含在内；使用 `config enable` 或在向导中勾选后才会写入 `items`。
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](#备份与回滚)及[配置写入与并发](#配置写入与并发)。
 
