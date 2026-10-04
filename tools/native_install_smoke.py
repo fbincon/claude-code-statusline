@@ -17,6 +17,7 @@ import tempfile
 from pathlib import Path
 
 from claude_statusline._version import __version__
+from claude_statusline.config import catalog
 from claude_statusline.config.editor_defaults import enabled_by_default
 from claude_statusline.integration import capabilities, native
 
@@ -117,7 +118,10 @@ def main() -> int:
             )
             assert response["protocol_version"] == 1 and "result" in response
             if operation == "describe":
-                assert len(response["result"]["catalog"]) == 34
+                rows = response["result"]["catalog"]
+                expected_items = {(item.scope, item.id) for item in catalog.ITEMS}
+                assert len(rows) == len(expected_items)
+                assert {(item["scope"], item["id"]) for item in rows} == expected_items
             else:
                 saved = response["result"]
         assert all(
