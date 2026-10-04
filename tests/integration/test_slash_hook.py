@@ -182,6 +182,8 @@ class ExperimentalSlashHookTests(unittest.TestCase):
                 self.assertIn(expected, response["reason"])
                 launch.assert_called_once_with(self.config_dir, self.executable, None)
 
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(config_features, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_stable_default_launches_without_a_preference_file(self):
         with (
             mock.patch.object(integration_capabilities, "detect_claude_version", return_value=(2, 1, 288)),

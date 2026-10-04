@@ -70,6 +70,8 @@ class InstallerTestCase(unittest.TestCase):
 
 
 class InstallTests(InstallerTestCase):
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(config_features, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_empty_config_is_created_with_private_permissions_and_backup(self):
         result = integration_installer.install_configuration(
             self.config, self.executable, claude_version=(2, 1, 258)
@@ -299,6 +301,8 @@ class InstallTests(InstallerTestCase):
 
 
 class ExperimentalInstallTests(InstallerTestCase):
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(config_features, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_default_stable_install_enables_external_entry_without_preference_file(self):
         integration_installer.install_configuration(
             self.config, self.executable, claude_version=(2, 1, 258)
@@ -494,6 +498,8 @@ class ExperimentalInstallTests(InstallerTestCase):
             b"bad",
         )
 
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(config_features, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_unrelated_experimental_skill_ownership_rules_and_force(self):
         skill, owner = integration_resources.experimental_skill_paths(self.config)
         skill.parent.mkdir(parents=True)
