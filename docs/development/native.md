@@ -2,7 +2,7 @@
 
 **English** | [简体中文](native.zh-CN.md)
 
-v1.3.0a2 ships an experimental Client TUI inside the current Claude Code terminal session. `/statusline-configure-native` opens this Mod pane; `/statusline-configure` retains the existing external curses TUI and its platform launcher. Both can be installed together. Stable Latest remains v1.2.0.
+v1.3.0 ships Client TUI inside the current Claude Code terminal session. `/statusline-configure-native` opens this Mod pane; `/statusline-configure` retains the external curses TUI and platform launcher. Stable defaults both on, with independent preferences and version suspension.
 
 ## Source layout and checks
 
@@ -54,18 +54,20 @@ claude-statusline install --experimental-slash-tui --native-editor
 claude-statusline doctor
 ```
 
-Restart Claude Code in a trusted terminal, then use either command. `--experimental-slash-tui` and `--no-experimental-slash-tui` control only the external entry. `--native-editor` and `--no-native-editor` control only Client integration. New prerelease installations default both off; existing independent preferences are preserved. Reinstall restores an enabled owned external skill/hook removed by older native migration. Mod no longer registers the external name or declares `primaryCommand`.
+Restart Claude Code in a trusted terminal, then use either command. `--experimental-slash-tui` and `--no-experimental-slash-tui` control only the external entry. `--native-editor` and `--no-native-editor` control only Client integration. Stable defaults both on, preserving recorded disablement; prereleases default both off. External needs 2.1.258+ and Client 2.1.287+. Older/unknown hosts suspend each independently; explicit enabling also does not fail basic installation for unsupported versions. Reinstall after upgrading restores support. External disablement saves schema-v1 false rather than deleting its file; historical absence follows the new stable default. Reinstall restores an enabled owned external skill/hook removed by older native migration. Mod no longer registers the external name or declares `primaryCommand`.
 
-Native resources are staged under `CLAUDE_CONFIG_DIR/statusline-native`, verified by hash/version/protocol inventory, and installed through official local marketplace commands. The installer binds absolute backend/config paths and backend version. Backend 1.3.0a2 pairs with Mod 1.3.0-alpha.2. Foreign native commands/resources block that integration; external collisions are checked when enabling the external entry. An unrelated external command does not block native-only installation. Altered owned caches are not adopted.
+Native resources are staged under `CLAUDE_CONFIG_DIR/statusline-native`, verified by hash/version/protocol inventory, and installed through official local marketplace commands. The installer binds absolute backend/config paths and backend version. Backend 1.3.0 pairs with Mod 1.3.0. Foreign native commands/resources block that integration; external collisions are checked when enabling the external entry. An unrelated external command does not block native-only installation. Altered owned caches are not adopted.
 
 Native disablement removes only confirmed owned native plugin/marketplace resources. The external entry keeps its own preference and artifacts. Uninstall retains display configuration, preferences, backups and runtime data. Failed operations report actual disk state; doctor checks resources, binding and enablement separately from session loading. Externally disabled plugins stay disabled; only tool-recorded suspension is automatically restored. Safe/bare mode, managed policy and disableAllHooks can prevent Mod loading. Before package downgrade, disable native using the newer package, then install the older package.
+
+On older/unrecognized hosts, a verified owned native plugin is suspended under the installation lock by changing only its enabledPlugins entry and tool suspension marker, with backups and rollback. This path does not call newer Mod APIs and does not turn user disablement into tool suspension. See [user installation combinations](../USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
 ## Linux acceptance
 
 The automated Linux runner uses isolated configuration and sends only local slash commands. It records terminal cells, versions and source state; captures are reconstructions of actual terminal output, not OS screenshots or human acceptance. Persistent mode runs in a private tmux server, exercises Client and the original external popup, and verifies they read each other's saved configuration.
 
 ```bash
-.venv/bin/python tools/native_mod_acceptance.py --persistent --report-dir dist/validation/client-a2-local
+.venv/bin/python tools/native_mod_acceptance.py --persistent --report-dir dist/validation/client-stable-local
 ```
 
 Record each fixed candidate's real loading, initial click, Space/Enter, page/order/search, numeric Ctrl+G, save/finish/cancel, Esc focus/close, narrow/CJK layout, preferences, conflicts and return to the same session. Windows/macOS human checks remain separate from CI.
@@ -76,8 +78,8 @@ The v1.2.0 UI passed the maintainer's Linux, Windows 11 and macOS 14.5 checklist
 
 ## v1.3.0 acceptance status
 
-On 2026-10-04 the maintainer explicitly confirmed v1.3.0a1's redesigned native-control UI passed human acceptance on Linux, Windows and macOS. Additional architecture, terminal and host outputs were not supplied with this confirmation. This establishes the a1 baseline; it does not establish acceptance of a2's Client implementation.
+On 2026-10-04 the maintainer explicitly confirmed v1.3.0a1's redesigned native-control UI passed human acceptance on Linux, Windows and macOS. Additional architecture, terminal and host outputs were not supplied with this confirmation. The a1 and a2 human results are recorded separately.
 
-v1.3.0a2 publishes as an opt-in prerelease after automated CI, packaging/install checks and real Linux PTY checks. Human acceptance of a2 remains pending on all three platforms. Latest remains v1.2.0. No paid timer suite is required for this UI change.
+On the same date the maintainer separately confirmed **v1.3.0a2 human acceptance passed on Linux, Windows and macOS**. No terminal, architecture, exact host versions or independent report accompanied this confirmation; those metadata remain unknown. Stable v1.3.0 retains a2 Client interaction, changing version/description and installation defaults/suspension policy. Regression, real Linux PTY, packaging and installation validate those changes separately. Automated checks are not human acceptance; no paid timer suite is run for this promotion.
 
 References: [actual-build Mod types](https://code.claude.com/docs/en/plugins/mods/create), [official tests](https://code.claude.com/docs/en/plugins/mods/test), [local marketplaces](https://code.claude.com/docs/en/plugin-marketplaces).

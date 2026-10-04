@@ -2,7 +2,7 @@
 
 **简体中文** | [English](native.md)
 
-v1.3.0a2 提供当前 Claude Code 终端 session 内的实验性 Client TUI。`/statusline-configure-native` 打开 Mod 面板；`/statusline-configure` 保留既有外部 curses TUI 及平台启动器。两者可同时安装。Latest 稳定版仍为 v1.2.0。
+v1.3.0 提供当前 Claude Code 终端 session 内的 Client TUI。`/statusline-configure-native` 打开 Mod 面板；`/statusline-configure` 保留既有外部 curses TUI 和平台启动器。正式版默认启用两者，按偏好及宿主版本分别降级。
 
 ## 源码结构与检查
 
@@ -54,18 +54,20 @@ claude-statusline install --experimental-slash-tui --native-editor
 claude-statusline doctor
 ```
 
-在受信任终端中重启 Claude Code，再选择任一命令。`--experimental-slash-tui` / `--no-experimental-slash-tui` 只控制外部入口；`--native-editor` / `--no-native-editor` 只控制 Client。预览版新安装默认都关闭，已有独立偏好保留。若旧原生迁移曾移除已启用的外部 skill/hook，重装会恢复本工具所属资源。Mod 不再注册外部命令名，也不再声明 `primaryCommand`。
+在受信任终端中重启 Claude Code，再选择任一命令。`--experimental-slash-tui` / `--no-experimental-slash-tui` 只控制外部入口；`--native-editor` / `--no-native-editor` 只控制 Client。正式版新安装默认都启用；明确关闭优先，预览版默认都关闭。外部需 2.1.258+，Client 需 2.1.287+，低版本或未知版本分别暂挂，显式启用也不因版本不兼容使基础安装失败。升级后重装恢复。外部关闭保存 schema v1 的 false，不再删除文件；旧版无记录按正式默认处理。若旧原生迁移曾移除已启用的外部 skill/hook，重装会恢复本工具所属资源。Mod 不再注册外部命令名，也不再声明 `primaryCommand`。
 
-原生资源暂存于 `CLAUDE_CONFIG_DIR/statusline-native`，核验哈希、版本及协议清单后，经官方本地 marketplace 命令安装。绑定绝对后端路径、配置目录和版本；后端 1.3.0a2 对应 Mod 1.3.0-alpha.2。外来原生命令或资源阻止该入口安装，外部冲突在启用外部入口时检查；外来外部命令不会阻止仅安装 Client。被修改的 owned 缓存不被接管。
+原生资源暂存于 `CLAUDE_CONFIG_DIR/statusline-native`，核验哈希、版本及协议清单后，经官方本地 marketplace 命令安装。绑定绝对后端路径、配置目录和版本；后端 1.3.0 对应 Mod 1.3.0。外来原生命令或资源阻止该入口安装，外部冲突在启用外部入口时检查；外来外部命令不会阻止仅安装 Client。被修改的 owned 缓存不被接管。
 
 禁用原生只移除核实所属的原生插件、marketplace 和资源，外部入口保留自身偏好及资源。卸载保留显示配置、偏好、备份和运行数据。失败报告实际状态；doctor 分别检查资源、绑定及启用情况，当前 session 加载仍须核实。外部禁用的插件保持禁用，仅自动恢复工具记录的暂挂。safe/bare、管理策略及 disableAllHooks 可阻止加载。降级 Python 包前先用新版禁用原生，再安装旧包。
+
+低版本或无法识别的宿主对已核验所属的原生插件，在安装锁内仅关闭其 enabledPlugins 项并记录工具暂挂，备份设置及 owner 后原子写入，失败回滚。该路径不调用较新 Mod API；主动禁用不转成工具暂挂。参见[用户安装组合](../USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 ## Linux 验收
 
 自动 Linux 运行器使用隔离配置，仅发送本地斜杠命令，记录终端单元格、版本及源码状态；图像是实际终端输出重建，不是系统像素截图或真人验收。持久模式使用私有 tmux server，验证 Client 和既有外部 popup，并核实两者读取对方保存结果。
 
 ```bash
-.venv/bin/python tools/native_mod_acceptance.py --persistent --report-dir dist/validation/client-a2-local
+.venv/bin/python tools/native_mod_acceptance.py --persistent --report-dir dist/validation/client-stable-local
 ```
 
 固定候选需核实实际加载、首次点击、Space/Enter、切页/排序/搜索、数值 Ctrl+G、保存/完成/取消、Esc 焦点及关闭、窄窗/CJK、偏好、冲突和继续同一 session。Windows/macOS 真人检查与 CI 分开记录。
@@ -76,8 +78,8 @@ v1.2.0 在晋升稳定版前，已获维护者确认 Linux、Windows 11、macOS 
 
 ## v1.3.0 验收状态
 
-2026-10-04 维护者明确确认 v1.3.0a1 的新原生控件界面在 Linux、Windows、macOS 真人验收通过。本次确认未补充架构、终端和宿主输出。这是 a1 基线，不代表 a2 Client 已真人验收。
+2026-10-04 维护者明确确认 v1.3.0a1 的新原生控件界面在 Linux、Windows、macOS 真人验收通过。本次确认未补充架构、终端和宿主输出。a1 与 a2 的真人验收分别记录。
 
-v1.3.0a2 经自动 CI、打包/安装及 Linux 真实 PTY 检查后，以显式启用的预览版发布；a2 三平台真人验收均待完成。Latest 仍为 v1.2.0。本轮 UI 变化不运行付费计时验收。
+同日维护者另行明确确认 **v1.3.0a2 的 Linux、Windows、macOS 真人验收通过**。此次确认未附终端、架构、宿主版本或独立报告，相关元数据保持未知。正式 v1.3.0 沿用 a2 的 Client 交互，仅调整版本/描述及安装默认与降级策略；这些变更另经回归、真实 Linux PTY、打包和安装验证。自动检查不计作真人验收；本轮不运行付费计时套件。
 
 参考：[实际版本 Mod 类型](https://code.claude.com/docs/en/plugins/mods/create)、[官方测试](https://code.claude.com/docs/en/plugins/mods/test)、[本地 marketplace](https://code.claude.com/docs/en/plugin-marketplaces)。

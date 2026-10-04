@@ -50,6 +50,49 @@ def check(root: Path) -> tuple[int, list[str]]:
             elif fragment and destination.suffix == ".md":
                 if fragment not in anchors(destination.read_text(encoding="utf-8")):
                     errors.append(f"{page.relative_to(root)}: missing anchor {target}")
+    for suffix, heading, native_anchor in (
+        ("", "Common configuration", "native-configuration-editor"),
+        (".zh-CN", "常用配置", "原生配置编辑器"),
+    ):
+        readme = root / f"README{suffix}.md"
+        guide = root / "docs" / f"USER_GUIDE{suffix}.md"
+        body = readme.read_text(encoding="utf-8")
+        section = re.search(
+            rf"^## {re.escape(heading)}\n(.*?)(?=^## |\Z)", body, re.M | re.S
+        )
+        for command in (
+            "/statusline-configure-native",
+            "/statusline-configure",
+            "/statusline-config",
+            "claude-statusline configure",
+            "claude-statusline config",
+        ):
+            if section is None or not re.search(
+                re.escape(command) + r"(?![\w-])", section[1]
+            ):
+                errors.append(f"{readme.name}: common configuration missing {command}")
+        contents = guide.read_text(encoding="utf-8")
+        for required in (
+            f"](#{native_anchor})",
+            "2.1.287",
+            "2.1.258",
+            "claude-statusline-native.json",
+        ):
+            if required not in contents:
+                errors.append(
+                    f"{guide.relative_to(root)}: missing editor documentation {required}"
+                )
+    legacy = {
+        "README.md": "v130a2-external-tui-and-in-session-client",
+        "README.zh-CN.md": "v130a2外部-tui-与会话内-client",
+        "docs/USER_GUIDE.md": "v130a2-external-tui-and-in-session-client",
+        "docs/USER_GUIDE.zh-CN.md": "v130a2外部-tui-与会话内-client",
+        "docs/RELEASING.md": "v130-preview-rollout",
+        "docs/RELEASING.zh-CN.md": "v130-预览推进",
+    }
+    for name, fragment in legacy.items():
+        if fragment not in anchors((root / name).read_text(encoding="utf-8")):
+            errors.append(f"{name}: missing legacy anchor {fragment}")
     return count, errors
 
 

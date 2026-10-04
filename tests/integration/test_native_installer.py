@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from claude_statusline.config import native as preference, storage
+from claude_statusline.config import features, native as preference, storage
 from claude_statusline.integration import (
     capabilities, installer, native, native_resources, resources,
 )
@@ -207,14 +207,232 @@ class NativeInstallerTests(unittest.TestCase):
                         self.assertTrue(skill.exists())
                         self.assertEqual(host.plugins, [])
 
-    def test_reinstall_restores_external_resources_removed_by_old_native_migration(self):
+    def test_default_and_explicit_enable_follow_each_host_threshold(self):
+        for version in (
+            None,
+            (2, 1, 257),
+            (2, 1, 258),
+            (2, 1, 286),
+            (2, 1, 287),
+            (2, 1, 288),
+        ):
+            for explicit in (False, True):
+                with self.subTest(version=version, explicit=explicit):
+                    config = self.config / f"threshold-{version}-{explicit}"
+                    host = FakeHost(config)
+                    options = (
+                        {"experimental_slash_tui": True, "native_editor": True}
+                        if explicit
+                        else {}
+                    )
+                    with mock.patch.object(native, "Host", return_value=host):
+                        preview = installer.install_configuration(
+                            config,
+                            self.backend,
+                            claude_version=version,
+                            dry_run=True,
+                            **options,
+                        )
+                        self.assertFalse(config.exists())
+                        self.assertEqual(host.calls, [])
+                        result = installer.install_configuration(
+                            config, self.backend, claude_version=version, **options
+                        )
+                        external = version is not None and version >= (2, 1, 258)
+                        client = version is not None and version >= (2, 1, 287)
+                        self.assertFalse(result.native_failed)
+                        self.assertEqual(
+                            result.native_state, "installed" if client else "suspended"
+                        )
+                        self.assertEqual(
+                            resources.experimental_skill_paths(config)[0].exists(),
+                            external,
+                        )
+                        self.assertEqual(bool(host.plugins), client)
+                        self.assertTrue(features.load_experimental_slash_tui(config))
+                        self.assertTrue(preference.requested(config, None))
+                        self.assertEqual(
+                            preview.native_state, "requested" if client else "suspended"
+                        )
+                        self.assertFalse(
+                            installer.install_configuration(
+                                config, self.backend, claude_version=version
+                            ).changed
+                        )
+                        self.assertFalse(
+                            any(
+                                row.level == "ERROR"
+                                for row in native.diagnostics(
+                                    config, self.backend, version
+                                )
+                            )
+                        )
+                        if not client:
+                            self.assertEqual(host.calls, [])
+
+    def test_downgrade_and_unknown_host_suspend_without_new_host_apis(self):
+        self.install()
+        self.host.settings("unrelated", {"keep": True})
+        calls = list(self.host.calls)
+        for version in ((2, 1, 286), (2, 1, 258), (2, 1, 257), None):
+            with self.subTest(version=version):
+                result = self.install(claude_version=version)
+                self.assertFalse(result.native_failed)
+                self.assertEqual(result.native_state, "suspended")
+                self.assertEqual(self.host.calls, calls)
+                self.assertTrue(native.owner(self.config)["suspended"])
+                settings = storage._read_settings(self.config / "settings.json")[0]
+                self.assertFalse(settings["enabledPlugins"][native.PLUGIN])
+                self.assertEqual(settings["unrelated"], {"keep": True})
+                self.assertEqual(
+                    resources.experimental_skill_paths(self.config)[0].exists(),
+                    version is not None and version >= (2, 1, 258),
+                )
+                self.assertFalse(self.install(claude_version=version).changed)
+                self.assertFalse(
+                    any(
+                        row.level == "ERROR"
+                        for row in native.diagnostics(
+                            self.config, self.backend, version
+                        )
+                    )
+                )
+        self.assertEqual(self.install().native_state, "installed")
+        self.assertFalse(native.owner(self.config)["suspended"])
+        self.assertTrue(self.host.listing()[1][0]["enabled"])
+        self.assertTrue(resources.experimental_skill_paths(self.config)[0].exists())
+
+    def test_host_disable_survives_downgrade_and_upgrade(self):
+        self.install()
+        self.host.run("disable", native.PLUGIN)
+        self.assertFalse(native.owner(self.config)["suspended"])
+        self.assertFalse(self.install(claude_version=None).native_failed)
+        self.assertFalse(native.owner(self.config)["suspended"])
+        self.assertEqual(self.install().native_state, "plugin-disabled")
+        self.assertFalse(self.host.listing()[1][0]["enabled"])
+
+    def test_user_disabled_upgrade_refreshes_resources_and_binding(self):
+        files, manifest = native_resources.bundled_files()
+        for version, mod_version in (
+            ("1.2.0", "1.2.0"),
+            ("1.3.0a2", "1.3.0-alpha.2"),
+            ("1.3.0", "1.3.0"),
+        ):
+            with self.subTest(version=version):
+                config = self.config / version
+                host = FakeHost(config)
+                previous_files = dict(files)
+                plugin = json.loads(previous_files[".claude-plugin/plugin.json"])
+                plugin["version"] = mod_version
+                previous_files[".claude-plugin/plugin.json"] = storage._json_bytes(
+                    plugin
+                )
+                previous_files["hooks/register.ts"] += (
+                    b"\n// Previous owned generation\n"
+                )
+                previous_manifest = native_resources.inventory(previous_files, version)
+                with mock.patch.object(native, "Host", return_value=host):
+                    with mock.patch.object(
+                        native_resources,
+                        "bundled_files",
+                        return_value=(previous_files, previous_manifest),
+                    ):
+                        installer.install_configuration(
+                            config, self.backend, claude_version=(2, 1, 288)
+                        )
+                    host.run("disable", native.PLUGIN)
+                    result = installer.install_configuration(
+                        config, self.backend, claude_version=(2, 1, 288)
+                    )
+                    self.assertEqual(result.native_state, "plugin-disabled")
+                    self.assertFalse(result.native_failed)
+                    self.assertTrue(result.changed)
+                    self.assertFalse(host.listing()[1][0]["enabled"])
+                    self.assertEqual(
+                        native.owner(config)["backend_version"],
+                        manifest["backend_version"],
+                    )
+                    self.assertEqual(
+                        host.inputs["backendVersion"], manifest["backend_version"]
+                    )
+                    native._cache_owned(
+                        config,
+                        host.plugins[0],
+                        native.owner(config),
+                        require_current=True,
+                    )
+                    self.assertFalse(any(call[0][0] == "enable" for call in host.calls))
+                    self.assertFalse(
+                        any(
+                            row.level == "ERROR"
+                            for row in native.diagnostics(
+                                config, self.backend, (2, 1, 288)
+                            )
+                        )
+                    )
+                    self.assertFalse(
+                        installer.install_configuration(
+                            config, self.backend, claude_version=(2, 1, 288)
+                        ).changed
+                    )
+
+    def test_old_host_disable_and_uninstall_use_supported_cli_options(self):
+        self.install()
+        original_run = self.host.run
+
+        def old_host_run(*args, **kwargs):
+            if args[0] == "uninstall" or args[:2] == ("marketplace", "remove"):
+                if "--json" in args:
+                    raise native.PluginError("unknown option '--json'")
+            return original_run(*args, **kwargs)
+
+        with mock.patch.object(self.host, "run", side_effect=old_host_run):
+            result = self.install(native_editor=False, claude_version=(2, 1, 258))
+            self.assertFalse(result.native_failed)
+            self.assertEqual(result.native_state, "disabled")
+            self.assertFalse((self.config / native.DIRECTORY).exists())
+            self.assertTrue(resources.experimental_skill_paths(self.config)[0].exists())
+            self.assertFalse(preference.requested(self.config, None))
+            self.install(native_editor=True)
+            removed = installer.uninstall_configuration(self.config, self.backend)
+            self.assertFalse(removed.native_failed)
+            self.assertFalse((self.config / native.DIRECTORY).exists())
+            self.assertEqual(self.host.plugins, [])
+            self.assertEqual(self.host.markets, [])
+
+    def test_version_suspension_rolls_back_settings_if_owner_write_fails(self):
+        self.install()
+        settings_path = self.config / "settings.json"
+        owner_path = self.config / native.DIRECTORY / native.OWNER_FILE
+        before = {path: path.read_bytes() for path in (settings_path, owner_path)}
+        original_write = storage._write_optional_bytes
+        refused = False
+
+        def fail_once(path, raw):
+            nonlocal refused
+            if path == owner_path and raw != before[path] and not refused:
+                refused = True
+                raise OSError("simulated owner write failure")
+            return original_write(path, raw)
+
+        with mock.patch.object(storage, "_write_optional_bytes", side_effect=fail_once):
+            result = self.install(claude_version=(2, 1, 286))
+        self.assertTrue(result.native_failed)
+        self.assertEqual(result.native_state, "blocked")
+        for path, raw in before.items():
+            self.assertEqual(path.read_bytes(), raw)
+
+    def test_reinstall_restores_external_resources_removed_by_old_native_migration(
+        self,
+    ):
         self.install(native_editor=True, experimental_slash_tui=True)
         skill, marker = resources.experimental_skill_paths(self.config)
         skill.unlink()
         marker.unlink()
         settings = storage._read_settings(self.config / "settings.json")[0]
         settings["hooks"]["UserPromptExpansion"] = [
-            group for group in settings["hooks"]["UserPromptExpansion"]
+            group
+            for group in settings["hooks"]["UserPromptExpansion"]
             if group.get("matcher") != "statusline-configure"
         ]
         self.host.settings("hooks", settings["hooks"])
@@ -224,10 +442,12 @@ class NativeInstallerTests(unittest.TestCase):
         self.assertTrue(skill.exists())
         self.assertTrue(marker.exists())
         self.assertFalse(self.install().changed)
-        self.assertFalse(any(
-            row.level == "ERROR"
-            for row in native.diagnostics(self.config, self.backend, (2, 1, 288))
-        ))
+        self.assertFalse(
+            any(
+                row.level == "ERROR"
+                for row in native.diagnostics(self.config, self.backend, (2, 1, 288))
+            )
+        )
 
     def test_foreign_external_skill_does_not_block_native_only_install(self):
         skill, _ = resources.experimental_skill_paths(self.config)
@@ -248,7 +468,7 @@ class NativeInstallerTests(unittest.TestCase):
         command = self.config / "commands/statusline-configure.md"
         command.parent.mkdir(parents=True)
         command.write_text("Foreign external command")
-        self.assertFalse(self.install(native_editor=True).native_failed)
+        self.assertFalse(self.install(native_editor=True, experimental_slash_tui=False).native_failed)
         before = (self.config / "settings.json").read_bytes()
         with self.assertRaisesRegex(installer.integration_models.ConfigurationError, "Foreign /statusline-configure"):
             self.install(experimental_slash_tui=True)
@@ -324,7 +544,7 @@ class NativeInstallerTests(unittest.TestCase):
     def test_restricted_and_unsupported_fresh_hosts_preserve_preference(self):
         result = self.install(native_editor=True, claude_version=(2, 1, 200))
         self.assertEqual(result.native_state, "suspended")
-        self.assertTrue(result.native_failed)
+        self.assertFalse(result.native_failed)
         self.assertTrue(preference.requested(self.config, None))
         self.assertEqual(self.host.calls, [])
         self.host.settings("disableAllHooks", True)

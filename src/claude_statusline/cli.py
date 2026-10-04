@@ -74,7 +74,7 @@ def build_parser():
         dest="experimental_slash_tui",
         action="store_true",
         default=None,
-        help="persistently enable /statusline-configure in an external terminal",
+        help="enable external /statusline-configure (stable default; suspend on unsupported hosts)",
     )
     experimental_group.add_argument(
         "--no-experimental-slash-tui",
@@ -88,7 +88,7 @@ def build_parser():
         dest="native_editor",
         action="store_true",
         default=None,
-        help="enable the experimental in-session Client TUI through a local marketplace",
+        help="enable the in-session Client TUI (stable default; requires Claude Code 2.1.287+)",
     )
     native_group.add_argument(
         "--no-native-editor",

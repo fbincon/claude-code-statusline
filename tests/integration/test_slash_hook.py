@@ -182,6 +182,16 @@ class ExperimentalSlashHookTests(unittest.TestCase):
                 self.assertIn(expected, response["reason"])
                 launch.assert_called_once_with(self.config_dir, self.executable, None)
 
+    def test_stable_default_launches_without_a_preference_file(self):
+        with (
+            mock.patch.object(integration_capabilities, "detect_claude_version", return_value=(2, 1, 288)),
+            mock.patch.object(integration_launcher, "launch", return_value=integration_models.TuiResult(1, "cancelled", 0, "unchanged")) as launch,
+        ):
+            result = json.loads(self.handle(self.experimental_payload()))
+        self.assertEqual(result["decision"], "block")
+        launch.assert_called_once_with(self.config_dir, self.executable, None)
+        self.assertFalse(config_features.feature_path(self.config_dir).exists())
+
     def test_help_and_unsupported_arguments_never_launch(self):
         for arguments in ("help", "-h", "--help", "extra", ["bad"]):
             with (
@@ -197,12 +207,13 @@ class ExperimentalSlashHookTests(unittest.TestCase):
                 launch.assert_not_called()
 
     def test_disabled_corrupt_and_suspended_preferences_do_not_launch(self):
+        self.config_dir.mkdir(parents=True)
+        config_features.feature_path(self.config_dir).write_bytes(config_features.preference_bytes(False))
         with mock.patch.object(integration_launcher, "launch") as launch:
             disabled = json.loads(self.handle(self.experimental_payload()))
             self.assertIn("disabled", disabled["reason"])
             launch.assert_not_called()
 
-        self.config_dir.mkdir(parents=True)
         config_features.feature_path(self.config_dir).write_text(
             "broken", encoding="utf-8"
         )

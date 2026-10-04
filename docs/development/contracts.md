@@ -62,4 +62,4 @@ The Client editor reads descriptions/configuration on its first opening, retains
 See [architecture](architecture.md), [native validation](native.md), and [testing](testing.md).
 
 
-v1.3.0a2 does not change JSON protocol v1 or the display schema. External curses and Client save their opening revisions. The internal Mod/Client port uses epochs, increasing sequences, cumulative pending keys and acknowledgements: coalesced frames retain earlier keys and saves execute in order. Snapshots are deep copies; generation numbers reject stale props. This port is not a new CLI/public API.
+v1.3.0 retains JSON protocol v1 and the display schema. External curses and Client save their opening revisions. The internal Mod/Client port uses epochs, increasing sequences, cumulative pending keys and acknowledgements: coalesced frames retain earlier keys and saves execute in order. Snapshots are deep copies; generation numbers reject stale props. This port is not a new CLI/public API.

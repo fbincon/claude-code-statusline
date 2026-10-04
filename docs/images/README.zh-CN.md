@@ -46,4 +46,4 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 
 [Main](client-main-v1.3.0a2-linux.png) · [Subagents](client-subagents-v1.3.0a2-linux.png) · [Settings](client-settings-v1.3.0a2-linux.png)
 
-三张 PNG 重建 Linux x86_64、Claude Code 2.1.288 交互宿主、后端 1.3.0a2 和持久安装 Mod 的真实终端 cells。固定源码提交 `2ed1f3ae306776caeffe6a27205a4d680cb8e472`，运行时资源与本次候选一致。120×30 PTY 使用私有 tmux server，另验证 80×48 内嵌布局。图片裁去会话、输入区和真实状态栏，Preview 为固定生产样例；不是 OS 像素截图或设计 mockup。图片内嵌提交与原始画面 SHA256，原始数据留在忽略的 `dist/validation/client-a2-fixed-288`。这些自动画面不计为 a2 真人验收，三平台真人结果仍待提供。
+三张 PNG 重建 Linux x86_64、Claude Code 2.1.288 交互宿主、后端 1.3.0a2 和持久安装 Mod 的真实终端 cells。固定源码提交 `2ed1f3ae306776caeffe6a27205a4d680cb8e472`，运行时资源与本次候选一致。120×30 PTY 使用私有 tmux server，另验证 80×48 内嵌布局。图片裁去会话、输入区和真实状态栏，Preview 为固定生产样例；不是 OS 像素截图或设计 mockup。图片内嵌提交与原始画面 SHA256，原始数据留在忽略的 `dist/validation/client-a2-fixed-288`。这些自动画面不计为真人验收。2026-10-04 维护者另行确认 a2 在 Linux、Windows、macOS 真人验收通过，未附终端/架构/宿主详细元数据。正式 v1.3.0 沿用其 Client 交互模块，仅更新版本/描述等元数据；图片保留 a2 文件名和原始来源。

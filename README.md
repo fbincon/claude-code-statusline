@@ -77,170 +77,8 @@ These screenshots show actual Linux, macOS, and Windows terminals. The main stat
 
 [Image file index](docs/images/README.md)
 
-<a id="支持范围"></a>
-
-## Supported platforms
-
-- Native Linux and WSL: Python 3.10+.
-- Native Windows 10/11: CPython 3.10–3.14, x86/x64; automatically installs `windows-curses>=2.4.2`.
-- macOS 14+: CPython 3.10–3.14, Intel / Apple Silicon. Core functionality and the standalone TUI are supported; the experimental configuration entry point prefers tmux popup, otherwise local Terminal.app.
-- Claude Code CLI: 2.1.205+ supports individual subagent rows; 2.1.258+ supports local execution of configuration commands with arguments and the experimental TUI launcher. Older or unrecognized versions can still use the main status line and configuration wizard.
-- Git information requires `git` on the system.
-
-The current stable release is [**v1.2.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0), with the same wheel for all these platforms. Native Windows ARM64 Python is not currently guaranteed; ARM devices should use x64 Python emulation. See [requirements](docs/USER_GUIDE.md#requirements) for feature-specific version thresholds.
-
-<a id="快速安装"></a>
-
-## Quick installation
-
-Prepare Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Stable v1.2.0 is available for Linux / WSL / macOS / Windows. See the [user guide](docs/USER_GUIDE.md#install-the-python-package) for installation sources and file verification.
-
-<a id="从-release-安装推荐"></a>
-
-### Install from a Release (recommended)
-
-Install the [v1.2.0 wheel](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0) directly in Bash / Zsh or PowerShell:
-
-```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
-pipx ensurepath
-```
-
-You can also download the wheel before installing; see the [user guide](docs/USER_GUIDE.md#install-the-python-package).
-
-<a id="从固定标签源码安装"></a>
-
-### Install source at a fixed tag
-
-Requires `git`, without manually cloning or building:
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
-pipx ensurepath
-```
-
-<a id="从当前源码安装"></a>
-
-### Install current source
-
-To follow development changes, install current default-branch source with Git in Bash / Zsh / PowerShell. `main` changes during development; use the Release or fixed tag above when you need a pinned version:
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
-pipx ensurepath
-```
-
-For a local checkout, run `pipx install .` in the project root. See [building and installing from source](docs/USER_GUIDE.md#build-and-install-from-source) to build your own wheel, and [macOS installation notes](docs/USER_GUIDE.md#macos-installation-and-validation-boundaries) for terminal requirements.
-
-<a id="接入-claude-code"></a>
-
-### Integrate with Claude Code
-
-After installing the package, **reopen your terminal** so the `PATH` changes from `pipx ensurepath` take effect. Confirm that `--version` prints `claude-statusline 1.2.0` before integrating with Claude Code.
-
-Linux / WSL / macOS (Bash / Zsh):
-
-```bash
-claude-statusline --version
-claude-statusline install --dry-run
-claude-statusline install
-claude-statusline doctor
-```
-
-Windows (PowerShell):
-
-```powershell
-claude-statusline.exe --version
-claude-statusline.exe install --dry-run
-claude-statusline.exe install
-claude-statusline.exe doctor
-```
-
-`pipx install` installs the Python package; `claude-statusline install` integrates the status line and configuration entry points with Claude Code. The installer reports conflicts with another tool's status line or a skill with the same name. See [conflict handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name) when you intend to take ownership.
-
-<a id="常用配置"></a>
-
-## Common configuration
-
-After installation, run `claude-statusline configure` in a terminal; on Windows, use `claude-statusline.exe configure`. The TUI opens in the current terminal, requires at least `64×18`, and supports item selection, ordering, and sample previews. Outside numeric editing, Enter saves all changes and Esc cancels; Ctrl+C interrupts without saving.
-
-| Entry point | Purpose |
-| --- | --- |
-| `claude-statusline configure` | Configure main line, subagent rows, and styles through the TUI |
-| `/statusline-config` inside Claude Code | Use the question-based wizard, or execute configuration commands with arguments |
-| `claude-statusline config ...` | Inspect configuration, set exact order, or use scripts in a terminal |
-| Experimental `/statusline-configure` | Launch the TUI in an external terminal from Claude Code; disabled by default; see [enabling instructions](docs/USER_GUIDE.md#experimental-statusline-configure-entry-point) |
-
-For example, set a minimal status line on Linux / WSL / macOS:
-
-```bash
-claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
-claude-statusline config set directory-style home
-claude-statusline config show
-```
-
-On Windows, replace the command name with `claude-statusline.exe`. `set-items` replaces the entire enabled set; use `enable` and `disable` for incremental changes. See [configuration recipes](docs/USER_GUIDE.md#configuration-recipes) for more examples.
-
-Configuration applies per user. Display preferences are stored in `claude-statusline.json` inside the Claude configuration directory. See [configuration files](docs/USER_GUIDE.md#configuration-files) for directory selection, defaults, and historical-format compatibility.
-
-<a id="升级与卸载"></a>
-
-## Upgrading and uninstalling
-
-To upgrade to v1.2.0, replace the Python package (Bash / Zsh / PowerShell):
-
-```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
-```
-
-Then rerun `claude-statusline install` and `claude-statusline doctor`; on Windows, use `claude-statusline.exe`. Upgrades preserve display preferences and runtime state in the Claude configuration directory. See the [upgrade guide](docs/USER_GUIDE.md#upgrading) for local wheels, source installs, and version compatibility.
-
-To uninstall, remove the Claude Code integration first, then the Python package.
-
-Linux / WSL / macOS:
-
-```bash
-claude-statusline uninstall --dry-run
-claude-statusline uninstall
-pipx uninstall claude-code-statusline
-```
-
-Windows:
-
-```powershell
-claude-statusline.exe uninstall --dry-run
-claude-statusline.exe uninstall
-pipx uninstall claude-code-statusline
-```
-
-Display preferences, caches, backups, and experimental feature preferences remain. See [uninstallation](docs/USER_GUIDE.md#uninstalling).
-
-<a id="文档与帮助"></a>
-
-
-## Native configuration editor
-
-### v1.3.0a2: external TUI and in-session Client
-
-`/statusline-configure` keeps the existing external terminal TUI. `/statusline-configure-native` opens the experimental Client TUI in the current session without another terminal. Enable either or install both; no additional command name is introduced.
-
-```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a2/claude_code_statusline-1.3.0a2-py3-none-any.whl"
-claude-statusline install --experimental-slash-tui --native-editor
-claude-statusline doctor
-```
-
-Restart Claude Code in a trusted terminal. Enable only the desired entry if you need one; `--no-experimental-slash-tui` and `--no-native-editor` disable them independently. Fresh prerelease installs default both off and existing preferences persist. Reinstall restores an enabled owned external entry removed by older native migration.
-
-Click the Client region once, then use Tab for pages, arrows for selection/order and Space for toggles. / enters search, Ctrl+G cancels editing, s saves/continues, f saves/finishes and q discards/closes. Character shortcuts yield during input. Esc is host-owned: it returns focus before closing. h unfolds Claude preferences and a applies them separately. Content/columns/preview have distinct groups; minimum body is 32×12, with borders in normal space and titled separators in compact panes.
-
-Both editors may open concurrently; shared opening revisions prevent overwriting a newer save. Client keeps conflicting drafts: r discards/reloads, k checks an unknown save. Rerunning the native command retains its draft. See [complete controls and installation boundaries](docs/development/native.md#editor-behavior).
-
-**Latest stable remains v1.2.0.** The maintainer confirmed v1.3.0a1's native-control UI passed human acceptance on all three platforms. v1.3.0a2 Client human checks are separate and currently pending; CI and Linux PTY checks are automated evidence.
-
-
 <details>
-<summary>Linux Client TUI: three reconstructed terminal pages</summary>
+<summary>In-session Client: Main, Subagents, Settings (a2 captures; stable keeps the same interaction)</summary>
 
 ![Client Main: grouped items and sample preview](docs/images/client-main-v1.3.0a2-linux.png)
 
@@ -248,22 +86,153 @@ Both editors may open concurrently; shared opening revisions prevent overwriting
 
 ![Client Settings: grouped and aligned columns](docs/images/client-settings-v1.3.0a2-linux.png)
 
-[Capture provenance and acceptance boundaries](docs/images/README.md#v130a2-client-captures).
+[Capture provenance and human acceptance](docs/images/README.md#v130a2-client-captures).
 
 </details>
 
+
+<a id="支持范围"></a>
+
+## Supported platforms
+
+- Native Linux and WSL: Python 3.10+.
+- Native Windows 10/11: CPython 3.10–3.14, x86/x64; installs `windows-curses>=2.4.2` automatically. ARM devices can use x64 Python emulation.
+- macOS 14+: CPython 3.10–3.14, Intel / Apple Silicon.
+- Claude Code 2.1.205+ supports subagent rows; 2.1.258+ supports the external TUI entry and local configuration commands with arguments; 2.1.287+ supports the in-session Client.
+- Unsupported or unrecognized hosts suspend the affected entries; the main status line, standalone TUI, wizard and CLI remain available. Git information requires `git`.
+
+The current stable release is [**v1.3.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0), using the same wheel across platforms. The maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS; stable retains that Client interaction. See [requirements](docs/USER_GUIDE.md#requirements) for full boundaries.
+
+<a id="快速安装"></a>
+
+## Quick installation
+
+Prepare Python, Claude Code CLI and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Download verification, platform steps and builds are in the [user guide](docs/USER_GUIDE.md#install-the-python-package).
+
+<a id="从-release-安装推荐"></a>
+
+### Install from a Release (recommended)
+
+Bash / Zsh / PowerShell:
+
+```text
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
+pipx ensurepath
+```
+
+<a id="从固定标签源码安装"></a>
+
+### Install source at a fixed tag
+
+Requires Git:
+
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.3.0"
+pipx ensurepath
+```
+
+<a id="从当前源码安装"></a>
+
+### Install current source
+
+`main` changes during development; for a local checkout run `pipx install .` in its root:
+
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
+pipx ensurepath
+```
+
+<a id="接入-claude-code"></a>
+
+### Integrate with Claude Code
+
+Reopen the terminal for PATH changes and confirm `claude-statusline 1.3.0`:
+
+```text
+claude-statusline --version
+claude-statusline install --dry-run
+claude-statusline install
+claude-statusline doctor
+```
+
+On Windows use `claude-statusline.exe`. Package installation and Claude integration are separate steps. Restart Claude Code in a trusted terminal afterward to load the plugin and commands. Stable defaults both entries on, preserving recorded disablement; unsupported hosts suspend them independently. Installation opens neither an editor nor another terminal. Foreign resources are checked by entry ownership; see [conflict handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
+
+<a id="常用配置"></a>
+
+## Common configuration
+
+| Entry point | Purpose |
+| --- | --- |
+| `/statusline-configure-native` | Client TUI inside the current Claude Code session; default on, requires 2.1.287+; see [Native configuration editor](docs/USER_GUIDE.md#native-configuration-editor) |
+| `/statusline-configure` | Existing TUI in a platform terminal; default on, requires 2.1.258+; see [external terminal entry](docs/USER_GUIDE.md#external-terminal-statusline-configure) |
+| `claude-statusline configure` | Complete TUI in the current standalone terminal; Windows uses `claude-statusline.exe configure` |
+| `/statusline-config` | Claude-driven wizard; arguments execute locally or in a model turn according to host capabilities |
+| `claude-statusline config ...` | Inspect configuration, set exact order or run scripts |
+
+<a id="v130a2-external-tui-and-in-session-client"></a>
+
+### Native configuration editor
+
+Run `/statusline-configure-native`, **click the Client region once**, then use Tab for pages, arrows for selection/order, Space for toggles, `/` for search and Ctrl+G to cancel input. `s` saves/continues, `f` saves/finishes and `q` discards/closes; Esc belongs to the host. Settings groups appearance, refresh/display behavior and advanced Claude preferences; preferences have a separate Apply. Minimum pane body: 32×12.
+
+### External and standalone terminal TUI
+
+`/statusline-configure` retains Linux tmux / GNOME Terminal, macOS tmux / Terminal.app and Windows system-console launchers. `claude-statusline configure` uses the current terminal; minimum size is 64×18. Outside numeric editing Enter saves, Esc cancels and Ctrl+C interrupts without saving.
+
+Both editors may open concurrently; revision checks reject stale saves rather than overwriting newer configuration. Reopening Native retains its draft; `r` explicitly discards/reloads after a conflict, and `k` checks an unknown save outcome first.
+
+See [installation combinations and compatibility](docs/USER_GUIDE.md#editor-installation-combinations-and-compatibility) for defaults, all four modes and host downgrades. Disable independently:
+
+```text
+claude-statusline install --no-native-editor
+claude-statusline install --no-experimental-slash-tui
+```
+
+The historical `--experimental-slash-tui` flag continues to control the external entry independently of `--native-editor`. Example minimal main line:
+
+```text
+claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
+claude-statusline config set directory-style home
+claude-statusline config show
+```
+
+Configuration applies per user. `set-items` replaces the enabled set; `enable` / `disable` make incremental changes. See [recipes](docs/USER_GUIDE.md#configuration-recipes).
+
+<a id="升级与卸载"></a>
+
+## Upgrading and uninstalling
+
+Upgrade to v1.3.0:
+
+```text
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
+claude-statusline install
+claude-statusline doctor
+```
+
+On Windows use `claude-statusline.exe`, then restart Claude Code. Display configuration, runtime state and recorded independent preferences persist. Older external disable commands deleted the preference file: absence now follows the stable enabled default. Pass `--no-experimental-slash-tui` again to keep that entry off. See [upgrading](docs/USER_GUIDE.md#upgrading).
+
+Remove Claude integration before the Python package:
+
+```text
+claude-statusline uninstall --dry-run
+claude-statusline uninstall
+pipx uninstall claude-code-statusline
+```
+
+Display preferences, feature preferences, caches and backups remain; see [uninstallation](docs/USER_GUIDE.md#uninstalling).
+
+<a id="文档与帮助"></a>
+
 ## Documentation and help
 
-- [User guide](docs/USER_GUIDE.md): installation, TUI, CLI, display items, and configuration reference.
-- [Diagnostics and troubleshooting](docs/USER_GUIDE.md#troubleshooting): start with `doctor`, then follow the relevant symptom.
-- [Development and testing](docs/USER_GUIDE.md#appendix-development-and-testing) · [Release guide](docs/RELEASING.md) · [Changelog](CHANGELOG.md).
-- [Architecture](docs/development/architecture.md) · [Validation](docs/development/testing.md) · [Timer metrics and evidence](docs/development/timer.md).
-- [Native configuration editor](docs/development/native.md): Client controls, independent external/native installation, revision-protected saves and acceptance boundaries.
-- [Shared configuration protocol](docs/development/contracts.md): item catalog and internal JSON describe/read/preview/apply contracts for source development.
-- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include your OS, Python/Claude Code/tool versions, reproduction steps, and diagnostic output with private paths and session content removed.
+- [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Changelog](CHANGELOG.md).
+- [Native editor development and acceptance](docs/development/native.md) · [Architecture](docs/development/architecture.md) · [Shared protocol](docs/development/contracts.md).
+- [Testing and acceptance](docs/development/testing.md) · [Timer metrics](docs/development/timer.md) · [Release guide](docs/RELEASING.md).
+- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include OS/versions, reproduction and diagnostics with private paths and session content removed.
 
 <a id="许可证"></a>
 
 ## License
 
-This project uses the [MIT License](LICENSE). Copyright (c) 2026 [fbincon](https://github.com/fbincon).
+[MIT License](LICENSE). Copyright (c) 2026 [fbincon](https://github.com/fbincon).

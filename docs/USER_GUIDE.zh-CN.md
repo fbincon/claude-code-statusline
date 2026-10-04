@@ -15,11 +15,11 @@
 - [功能概览](#功能概览)
 - [运行要求](#运行要求)
 - [安装与接入](#安装与接入)
+- [原生配置编辑器](#原生配置编辑器)
 - [独立交互式 TUI](#独立交互式-tui)
+- [外部终端入口 `/statusline-configure`](#外部终端入口-statusline-configure)
 - [`/statusline-config` 问答向导](#statusline-config-问答向导)
 - [常用配置配方](#常用配置配方)
-- [实验入口 `/statusline-configure`](#实验入口-statusline-configure)
-- [会话内 Client TUI](#原生配置编辑器)
 - [`/statusline-config` 的执行方式](#statusline-config-的执行方式)
 - [CLI 总览](#cli-总览)
 - [配置命令详解](#配置命令详解)
@@ -53,7 +53,8 @@
 - `prompt-timer` 覆盖从用户提交到主 Agent 最终 `Stop` 的完整任务；等待子 Agent 和主 Agent 收尾期间持续计时。
 - 主栏在当前 prompt 曾启动子 Agent 时显示固定的 `Main/Session` 范围提示，避免与每个子 Agent 行的口径混淆。
 - 提供独立全屏 TUI，可用键盘筛选、勾选、排序并按键级预览完整草稿。
-- 可选安装 `/statusline-configure`：Linux 从 tmux popup 或 GNOME Terminal 新标签页启动，macOS 优先使用 tmux popup，否则从 Terminal.app 启动，Windows 从系统新控制台启动同一个 TUI。
+- 正式版默认启用 `/statusline-configure-native`，在同一 session 内使用 Client 的 Main、Subagents、Settings 配置页。
+- 正式版默认启用 `/statusline-configure`：Linux 从 tmux popup 或 GNOME Terminal 新标签页启动，macOS 优先使用 tmux popup，否则从 Terminal.app 启动，Windows 从系统新控制台启动同一个 TUI。
 - 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 或 `\` 处分行。
 - Git 查询和 transcript 汇总按需执行：隐藏相应显示项后，不再做不必要的采集。
 - 安装、配置和卸载均使用跨平台文件锁、备份及原子替换，避免并发写入、丢失更新或半写入配置。
@@ -79,15 +80,16 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 - [`pipx`](https://pipx.pypa.io/latest/how-to/install-pipx.html)，用于隔离安装 Release wheel 或 GitHub 源码。
 - `build`，仅在从源码构建时需要。
 - `git`，用于从 GitHub 源码安装或显示 Git 信息；从 Release wheel 安装且不显示 Git 信息时不需要。
-- Linux 的 tmux 或 GNOME Terminal、macOS 的 tmux 或系统 Terminal.app 仅供实验性 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
+- Linux 的 tmux 或 GNOME Terminal、macOS 的 tmux 或系统 Terminal.app 仅供外部 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
 
-当前稳定版 [v1.2.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0) 为以上平台提供同一个纯 Python wheel；macOS 终端要求见[macOS 安装与验证边界](#macos-安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
+当前稳定版 [v1.3.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0) 为以上平台提供同一个纯 Python wheel；macOS 终端要求见[macOS 安装与验证边界](#macos-安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
 
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
 | 主状态栏、CLI、独立 TUI 与配置向导 | 旧版或版本无法识别时仍可使用；缺少的数据项会省略 |
 | 子 Agent 独立行及生命周期 hooks | 2.1.205+；每个任务的 effort 显示需要 2.1.214+ |
-| 带参数 `/statusline-config` 的本地执行、实验性 `/statusline-configure` | 2.1.258+ |
+| 带参数 `/statusline-config` 的本地执行、外部 `/statusline-configure` | 2.1.258+ |
+| 会话内 `/statusline-configure-native` Client | 2.1.287+ |
 
 跨过上述功能门槛升级或降级时，应重新运行 `install` 和 `doctor`，详见[版本兼容](#版本兼容)。
 
@@ -95,28 +97,28 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 
 ### 安装 Python 包
 
-Linux / WSL / macOS / Windows 用户可从以下方式中任选一种，安装稳定版 v1.2.0。Release wheel 与固定标签提供相同版本；默认分支源码会随开发更新。
+Linux / WSL / macOS / Windows 用户可从以下方式中任选一种，安装稳定版 v1.3.0。Release wheel 与固定标签提供相同版本；默认分支源码会随开发更新。
 
 **Release URL（推荐，Bash / Zsh / PowerShell 通用）：**
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
-**下载后安装：** 在 [v1.2.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.2.0) 下载 wheel，并在下载目录执行。
+**下载后安装：** 在 [v1.3.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0) 下载 wheel，并在下载目录执行。
 
 Linux / WSL / macOS（Bash / Zsh）：
 
 ```bash
-pipx install ./claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install ./claude_code_statusline-1.3.0-py3-none-any.whl
 pipx ensurepath
 ```
 
 Windows（PowerShell）：
 
 ```powershell
-pipx install .\claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install .\claude_code_statusline-1.3.0-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -133,8 +135,8 @@ shasum -a 256 -c SHA256SUMS
 Windows PowerShell 使用以下命令，将摘要与 `SHA256SUMS` 中对应文件的值比较（十六进制大小写不影响结果）：
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.2.0-py3-none-any.whl -Algorithm SHA256
-Get-FileHash .\claude_code_statusline-1.2.0.tar.gz -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.3.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.3.0.tar.gz -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
@@ -143,11 +145,11 @@ Get-Content .\SHA256SUMS
 **固定标签源码（需要 Git，Bash / Zsh / PowerShell 通用）：**
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.3.0"
 pipx ensurepath
 ```
 
-**开发分支源码：** 如需默认分支的当前代码，使用以下命令；该来源不固定为 v1.2.0。
+**开发分支源码：** 如需默认分支的当前代码，使用以下命令；该来源不固定为 v1.3.0。
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
@@ -158,15 +160,15 @@ pipx ensurepath
 
 ### macOS 安装与验证边界
 
-macOS 14+ 使用提供 `curses` 的 CPython 3.10–3.14。Intel 与 Apple Silicon 使用相同的 v1.2.0 Release wheel，没有额外 macOS Python 运行依赖，按上面的通用安装步骤即可。已有安装时按[升级步骤](#升级)替换 Python 包。
+macOS 14+ 使用提供 `curses` 的 CPython 3.10–3.14。Intel 与 Apple Silicon 使用相同的 v1.3.0 Release wheel，没有额外 macOS Python 运行依赖，按上面的通用安装步骤即可。已有安装时按[升级步骤](#升级)替换 Python 包。
 
-重新打开 Bash / Zsh 后，运行 `claude-statusline --version`，确认显示 `claude-statusline 1.2.0`，再完成下方接入步骤。
+重新打开 Bash / Zsh 后，运行 `claude-statusline --version`，确认显示 `claude-statusline 1.3.0`，再完成下方接入步骤。
 
 独立界面运行 `claude-statusline configure`。显式启用实验入口后，`/statusline-configure` 优先选择通过预检查的 tmux popup；没有有效 tmux 时，在本地图形会话中使用 Terminal.app。窗口关闭或保留遵循 Terminal 自身偏好。SSH 或没有图形会话时，使用当前终端的独立命令或配置向导。
 
 macOS 主状态栏与三页配置界面的截图见[项目首页](../README.zh-CN.md#界面预览)和[文件索引](images/README.zh-CN.md)。
 
-**历史版本：** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 是 macOS 预览版，包含核心功能、独立 TUI 和 tmux 入口，未包含 Terminal.app 启动器；[v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 的 wheel、源码包和标签不支持 macOS。需要复现历史行为时使用对应 Release 或固定标签，日常安装使用 v1.2.0。
+**历史版本：** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 是 macOS 预览版，包含核心功能、独立 TUI 和 tmux 入口，未包含 Terminal.app 启动器；[v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 的 wheel、源码包和标签不支持 macOS。需要复现历史行为时使用对应 Release 或固定标签，日常安装使用 v1.3.0。
 
 ### 接入 Claude Code
 
@@ -201,8 +203,9 @@ Windows 要求 `claude-statusline.exe` 能从 `PATH` 解析；找不到命令时
 3. Claude Code 2.1.205+ 默认安装只含 `type`、`command` 的 `subagentStatusLine`，并安装 `SubagentStart`、`SubagentStop` hooks；旧版或未知版本会暂挂这三项而不影响主栏。
 4. 安装用户级 personal skill：`<CLAUDE_CONFIG_DIR>/skills/statusline-config/SKILL.md`。
 5. 在 Claude Code 2.1.258 及以上版本中安装 `UserPromptExpansion` hook，让带参数的 `/statusline-config` 在本地执行。
-6. 按持久 feature 偏好安装或暂挂实验性 `/statusline-configure` skill 与 600 秒 hook；首次安装默认关闭。
-7. 在发生实际修改前创建备份，再以原子方式写入文件。
+6. 按独立偏好安装或暂挂外部 `/statusline-configure` skill 与 600 秒 hook；正式版默认启用。
+7. 按独立偏好与 2.1.287 版本门槛接入会话内 Client；正式版默认启用，低版本或未知版本暂挂。
+8. 在发生实际修改前创建备份，再以原子方式写入文件。
 
 安装器会合并而不是整体覆盖 `settings.json`，并保留无关设置和无关 hooks。重复运行 `install` 是幂等的：配置已经正确时不会重复添加 hooks，也不会创建无意义备份。
 
@@ -218,6 +221,8 @@ claude-statusline install --dry-run
 
 ### 处理已有 statusline 或同名 skill
 
+仅对实际安装的编辑器入口检查同名资源。外来 Native 命令、marketplace 或插件身份不能通过 `--force` 接管，需自行解决归属冲突；仅需另一入口时明确关闭冲突入口。
+
 如果已经存在不属于本工具的 `statusLine`、`subagentStatusLine`，或者存在没有本工具所有权标记的 `/statusline-config`、`/statusline-configure` skill，安装器会在备份和写入前拒绝整次操作。确认要替换这些内容时才使用：
 
 ```bash
@@ -225,6 +230,66 @@ claude-statusline install --force
 ```
 
 `--force` 同时允许替换冲突的主栏、子 Agent 行或 skill，并仍会先备份原文件。若只想保留第三方 `subagentStatusLine`，先运行 `claude-statusline config set subagent-statusline off`，再运行普通 `install`。
+
+<a id="native-editor-preview"></a>
+
+<a id="原生编辑器预览"></a>
+
+<a id="v130a2外部-tui-与会话内-client"></a>
+
+## 原生配置编辑器
+
+`/statusline-configure-native` 在当前 Claude Code session 内打开 Client TUI，不另开终端。它与外部 `/statusline-configure` 共用配置、目录、catalog、互斥规则和原子保存服务，各自保留草稿。正式版默认启用两者；安装完成后在受信任终端重启 Claude Code。
+
+### 编辑器安装组合与兼容性
+
+没有已保存偏好时，`claude-statusline install` 默认启用两个入口。要明确选择组合：
+
+| 安装组合 | 命令 |
+| --- | --- |
+| 两个入口 | `claude-statusline install --native-editor --experimental-slash-tui` |
+| 仅会话内 Client | `claude-statusline install --native-editor --no-experimental-slash-tui` |
+| 仅外部 TUI | `claude-statusline install --no-native-editor --experimental-slash-tui` |
+| 基础接入，不安装两个 TUI 入口 | `claude-statusline install --no-native-editor --no-experimental-slash-tui` |
+
+Windows 使用 `claude-statusline.exe`。两组参数相互独立，`--experimental-slash-tui` 的历史名称继续保留。显式参数优先于已保存偏好，已保存偏好优先于默认值；用户在宿主中主动禁用的插件不会自动启用。
+
+| Claude Code 版本 | 外部 `/statusline-configure` | 会话内 `/statusline-configure-native` |
+| --- | --- | --- |
+| 2.1.287+ | 默认启用 | 默认启用 |
+| 2.1.258–2.1.286 | 默认启用 | 暂挂 |
+| 更低或版本无法识别 | 暂挂 | 暂挂 |
+
+表中默认仅适用于未明确关闭的入口。不兼容的入口不阻止基础安装或另一入口，显式启用也保留偏好并暂挂。升级或降级宿主后重新运行 `install` 和 `doctor`；支持恢复后按偏好重新接入，只有工具记录的暂挂才自动恢复。暂挂期间使用 `claude-statusline configure`、`claude-statusline config ...` 或 `/statusline-config` 向导；向导使用模型回合。
+
+### 打开、导航与编辑
+
+```text
+/statusline-configure-native
+```
+
+先点击 Client 区域一次，再用键盘；重复运行命令聚焦现有面板并保留草稿。Esc 属于宿主，通常先退出区域焦点，再关闭面板；取消当前输入使用 Ctrl+G。
+
+| 按键 | 操作 |
+| --- | --- |
+| Tab / Shift+Tab；1 / 2 / 3 | 切换 Main、Subagents、Settings |
+| ↑ / ↓；PgUp / PgDn；Home / End | 选择、翻页、首尾 |
+| ← / → | 调整条目顺序；改变设置值 |
+| Space / Enter | 勾选条目；操作设置或进入／确认数值编辑 |
+| `/`；Ctrl+U；Ctrl+G | 进入搜索；清空输入；取消并恢复输入前状态 |
+| `s` / `f` / `q` | 保存留页／保存成功后退出／丢弃未保存修改退出 |
+| `h` / `a` | 展开 Claude 高级偏好／独立 Apply |
+| `r` / `k` / `v` | 丢弃重载／核对保存状态／重试预览 |
+
+搜索或字段编辑期间普通字符作为输入，暂停字符快捷键；刷新设置接受数字或 `event`。启用和未启用条目都能排序，筛选后移动相邻可见条目，保留隐藏项的相对顺序。切页、缩放和预览刷新保留草稿与选择。仅启用项顺序写入配置。
+
+Settings 区分外观、刷新与显示行为、Claude 偏好〔高级〕。面板正文最小 32×12；≥64×20 使用完整分组边框，紧凑空间使用标题分隔线。样例预览使用固定数据，不采集实时 Git、transcript 或模型信息。
+
+### 保存、冲突与恢复
+
+两个编辑器可以同时打开；先保存者生效，旧 revision 保存被拒绝，不覆盖新配置。Client 保留冲突草稿；`r` 明确丢弃并重新加载后编辑。保存中或结果不明时阻止普通关闭；用 `k` 检查已保存状态，再决定重试或退出。故障时使用面板外的 Retry／Close，保留宿主已接收草稿。
+
+Claude 高级偏好独立 Apply；保存或 Finish 不隐式应用这些偏好。退出后继续原 session。完整开发与验收记录见[原生编辑器](development/native.zh-CN.md)。
 
 ## 独立交互式 TUI
 
@@ -296,7 +361,59 @@ Settings 页固定包含：
 
 Esc 退出后 stdout 输出 `Status line configuration unchanged.`，退出码为 0。参数、TTY、配置、安装归属、终端初始化或并发冲突错误返回 2 且不显示 traceback。程序只注册当前平台实际提供的信号；Linux/macOS 的 SIGHUP/SIGTERM 和 Windows 可用的中断路径都会先恢复终端，再返回标准中断结果。
 
-独立 TUI 没有自动超时；实验性启动入口的超时规则见[实验入口](#实验入口-statusline-configure)。
+独立 TUI 没有自动超时；外部启动入口的超时规则见[实验入口](#实验入口-statusline-configure)。
+
+<a id="实验入口-statusline-configure"></a>
+
+## 外部终端入口 `/statusline-configure`
+
+该入口需要 Claude Code 2.1.258+，正式版默认启用。它始终打开现有外部 TUI，与会话内 Client 分别管理。
+
+### 启用与关闭
+
+正式版默认启用；以下参数显式启用外部入口，不改变 Native 偏好：
+
+Linux / WSL / macOS：
+
+```bash
+claude-statusline install --experimental-slash-tui
+```
+
+Windows PowerShell：
+
+```powershell
+claude-statusline.exe install --experimental-slash-tui
+```
+
+启用偏好保存在 `<CLAUDE_CONFIG_DIR>/claude-statusline-features.json`，卸载 Python 包或运行 `uninstall` 后仍保留。兼容版本上再次运行普通 `install` 会自动恢复入口。永久关闭并删除本工具拥有的活动 skill/hook：
+
+Linux / WSL / macOS：
+
+```bash
+claude-statusline install --no-experimental-slash-tui
+```
+
+Windows PowerShell：
+
+```powershell
+claude-statusline.exe install --no-experimental-slash-tui
+```
+
+两个参数互斥，省略两个参数时保留已保存偏好；没有文件时遵循正式版默认启用。它们都可与 `--dry-run`、`--force` 组合；`--dry-run` 不创建 feature、skill、runtime 或备份目录。低版本或未知版本保留启用偏好，暂挂该入口，不阻止基础安装；升级后重装恢复。
+
+### 使用方式
+
+```text
+/statusline-configure
+```
+
+- Linux 优先在当前 tmux 中打开弹窗；tmux 不可用时尝试 GNOME Terminal 新标签页。
+- macOS 优先使用有效 tmux 会话中的 popup；否则在本地图形会话中使用 Terminal.app。窗口收尾遵循 Terminal 偏好。
+- Windows 打开由系统默认终端承载的新控制台。
+- Linux 两种启动方式均不可用，或 macOS 没有有效 tmux 及本地 Terminal.app 条件时，会提示在真实终端运行 `claude-statusline configure`，或改用 `/statusline-config`。
+- TUI 在 570 秒后自动取消且不保存；保存、取消或错误会返回到原 Claude 对话。
+
+该入口只接受空参数；`help`、`-h`、`--help` 返回用法，其他参数会被拒绝。它通过外部终端承载 TUI。启动选择、结果回传及 hooks 被禁用时的处理见[实验启动器与结果回传](#实验启动器与结果回传)。
 
 ## `/statusline-config` 问答向导
 
@@ -323,7 +440,7 @@ Session、Modes、Repository 组的条目以及 `project-name`、`hostname`、`c
 
 向导会保留仍然启用的条目的相对顺序，并按默认目录顺序把新启用的条目追加到末尾。完成全部选择后，它只调用一次原子 `config apply`；中途取消不会写入任何配置。
 
-这个向导使用 Claude Code 提供的问答组件，不会启动 curses，也不是 Claude Code 原生嵌入式状态栏弹窗。需要 Space 勾选、方向键排序和实时预览时，使用[独立 TUI](#独立交互式-tui)；需要脚本化排序时，使用 `order` 子命令。
+这个向导使用 Claude Code 提供的问答组件，不会启动 curses，也不是 Claude Code 原生嵌入式状态栏弹窗。需要勾选、排序和样例预览时，可用[会话内 Client](#原生配置编辑器)或[独立 TUI](#独立交互式-tui)；需要脚本化排序时，使用 `order` 子命令。
 
 例如，先把状态栏缩减到五项，再精确排序：
 
@@ -391,56 +508,6 @@ claude-statusline config reset
 claude-statusline config show
 ```
 
-## 实验入口 `/statusline-configure`
-
-该入口需要 Claude Code 2.1.258+，首次安装默认关闭。启用后在 Claude Code 输入 `/statusline-configure`，即可启动与独立命令相同的 TUI。
-
-### 启用与关闭
-
-实验入口首次安装默认关闭，必须显式启用：
-
-Linux / WSL / macOS：
-
-```bash
-claude-statusline install --experimental-slash-tui
-```
-
-Windows PowerShell：
-
-```powershell
-claude-statusline.exe install --experimental-slash-tui
-```
-
-启用偏好保存在 `<CLAUDE_CONFIG_DIR>/claude-statusline-features.json`，卸载 Python 包或运行 `uninstall` 后仍保留。兼容版本上再次运行普通 `install` 会自动恢复入口。永久关闭并删除本工具拥有的活动 skill/hook：
-
-Linux / WSL / macOS：
-
-```bash
-claude-statusline install --no-experimental-slash-tui
-```
-
-Windows PowerShell：
-
-```powershell
-claude-statusline.exe install --no-experimental-slash-tui
-```
-
-两个参数互斥，都不传时保留此前偏好。它们都可与 `--dry-run`、`--force` 组合；`--dry-run` 不创建 feature、skill、runtime 或备份目录。显式启用要求可识别的 Claude Code 2.1.258 或更高版本，否则整个操作在写文件前失败。
-
-### 使用方式
-
-```text
-/statusline-configure
-```
-
-- Linux 优先在当前 tmux 中打开弹窗；tmux 不可用时尝试 GNOME Terminal 新标签页。
-- macOS 优先使用有效 tmux 会话中的 popup；否则在本地图形会话中使用 Terminal.app。窗口收尾遵循 Terminal 偏好。
-- Windows 打开由系统默认终端承载的新控制台。
-- Linux 两种启动方式均不可用，或 macOS 没有有效 tmux 及本地 Terminal.app 条件时，会提示在真实终端运行 `claude-statusline configure`，或改用 `/statusline-config`。
-- TUI 在 570 秒后自动取消且不保存；保存、取消或错误会返回到原 Claude 对话。
-
-该入口只接受空参数；`help`、`-h`、`--help` 返回用法，其他参数会被拒绝。它通过外部终端承载 TUI。启动选择、结果回传及 hooks 被禁用时的处理见[实验启动器与结果回传](#实验启动器与结果回传)。
-
 ## `/statusline-config` 的执行方式
 
 无参数和带参数的调用使用不同路径：
@@ -485,6 +552,7 @@ claude-statusline config [--config-dir PATH] apply ...
 claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force]
   [--experimental-slash-tui | --no-experimental-slash-tui]
+  [--native-editor | --no-native-editor]
   [--config-dir PATH]
 claude-statusline uninstall [--dry-run] [--config-dir PATH]
 claude-statusline doctor [--config-dir PATH]
@@ -1039,24 +1107,28 @@ claude-statusline config set refresh-interval event
 
 `items: []` 是合法配置，表示主栏不输出内容；即使范围标签为 `always`，也不会单独制造空主栏。`subagents.items: []` 同样合法，表示每个有效子任务返回空 content。
 
-### 实验功能偏好
+<a id="实验功能偏好"></a>
 
-`/statusline-configure` 的持久偏好保存在：
+### 编辑器启用偏好
+
+两个独立文件均使用 schema v1：
 
 ```text
 <CLAUDE_CONFIG_DIR>/claude-statusline-features.json
+<CLAUDE_CONFIG_DIR>/claude-statusline-native.json
 ```
-
-文件不存在表示关闭；启用时内容固定为：
 
 ```json
-{
-  "schema_version": 1,
-  "experimental_slash_tui": true
-}
+{"schema_version": 1, "experimental_slash_tui": false}
 ```
 
-该文件使用严格 schema；Linux/macOS 权限为 `0600`，Windows 使用继承 ACL。布尔值 `false` 也会按关闭状态读取，但本工具的关闭命令会直接删除文件。普通 `install` 遇到未知字段、缺失字段、错误类型、未知 schema 或损坏 JSON 时拒绝修改；显式 `--experimental-slash-tui` 会先备份再修复，显式 `--no-experimental-slash-tui` 会先备份再删除。
+```json
+{"schema_version": 1, "native_editor": false}
+```
+
+布尔值分别控制外部入口和会话内 Client。正式版缺失文件表示默认启用；预览版缺失文件表示默认关闭。显式启用／关闭保存 true／false，不兼容宿主只暂挂而不改写启用偏好。普通重装保持已有值；卸载保留偏好。外部关闭自 v1.3.0 起保存 false，不再删除文件。
+
+严格校验字段、类型、重复项及 schema；错误由 install／doctor 报告，不自行猜测。显式参数可备份并修复对应偏好。Linux/macOS 文件权限为 0600；Windows 使用继承 ACL。
 
 ### Claude Code 宿主配置
 
@@ -1101,7 +1173,7 @@ claude-statusline.exe config show
 
 ## 升级
 
-先将 Python 包升级到稳定版 v1.2.0，再同步 Claude Code 接入。此前安装 v1.0.0 或 v1.1.0a1 的用户使用相同的升级步骤。
+先将 Python 包升级到稳定版 v1.3.0，再同步 Claude Code 接入。此前安装 v1.0.0 或 v1.1.0a1 的用户使用相同的升级步骤。
 
 ### 替换 Python 包
 
@@ -1110,19 +1182,19 @@ claude-statusline.exe config show
 **稳定版 Release URL（推荐，所有支持平台通用）：**
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
 ```
 
 **本地 wheel：** 从 Release 下载并[核验文件](#安装-python-包)后，在下载目录执行。
 
 ```bash
-pipx install --force ./claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install --force ./claude_code_statusline-1.3.0-py3-none-any.whl
 ```
 
 Windows PowerShell：
 
 ```powershell
-pipx install --force .\claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install --force .\claude_code_statusline-1.3.0-py3-none-any.whl
 ```
 
 自行构建的 wheel 位于项目的 `dist/` 下，相应使用 `dist/文件名.whl` 或 `.\dist\文件名.whl`。
@@ -1130,12 +1202,14 @@ pipx install --force .\claude_code_statusline-1.2.0-py3-none-any.whl
 **固定标签源码：**
 
 ```text
-pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.2.0"
+pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.3.0"
 ```
 
 跟踪默认分支时将标签改为 `@main`；升级本地源码时，先更新源码，再在项目根目录执行 `pipx install --force .`。自行构建时先重新生成 wheel。这些来源获取的是相应分支或目录中的代码，文件名应与实际生成的版本一致。
 
 ### 同步 Claude Code 接入
+
+从 a2 或 v1.2.0 升级时，保存的 true/false 继续优先。旧版外部关闭操作曾删除文件，无法区分“从未启用”与“曾主动关闭”；无记录按正式版默认启用，需要保持关闭时传 `--no-experimental-slash-tui`，仅外部模式加 `--no-native-editor`。接入后重启 Claude Code，旧迁移移除的已启用 owned 外部资源会恢复。
 
 Linux / WSL / macOS：
 
@@ -1159,7 +1233,7 @@ claude-statusline.exe config show
 
 ### 版本兼容
 
-显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1、1.1.1、1.2.0 或 1.3.0a2 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
+显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1、1.1.1、1.3.0 或 1.3.0a2 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
 
 schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出规范的 schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
 
@@ -1201,17 +1275,20 @@ Windows 对应命令为 `claude-statusline.exe uninstall --dry-run`。
 - 当前或通用命令匹配本工具的 `subagentStatusLine`。
 - 本工具的生命周期 hooks 和斜杠命令的本地快捷 hook。
 - 本工具拥有的 `/statusline-config`、`/statusline-configure` skill 及所有权标记。
+- 核验所属的 Native 插件、marketplace 与资源；第三方资源保留。
 
 卸载器会保留：
 
 - 其他工具或用户定义的 hooks。
 - 第三方 `subagentStatusLine`。
 - `claude-statusline.json` 显示偏好。
-- `claude-statusline-features.json` 实验启用偏好；之后兼容版本上的普通 `install` 会恢复入口。
+- `claude-statusline-features.json` 外部启用偏好；之后兼容版本上的普通 `install` 会恢复入口。
+- Native 的独立偏好 `claude-statusline-native.json`；只有工具记录的暂挂在恢复兼容后自动启用，用户在宿主主动禁用继续保留。
 - token、Git 和计时运行状态。
 - 安装器创建的备份。
 
-因此以后重新安装时可以继续使用原有显示偏好。若要永久关闭实验入口，先运行 `claude-statusline install --no-experimental-slash-tui`。如需彻底清除其他保留数据，请先确认具体文件路径后再手工处理。
+因此以后重新安装时可以继续使用原有显示偏好。若要保持两个入口关闭，先分别运行 `claude-statusline install --no-native-editor` 和 `claude-statusline install --no-experimental-slash-tui`。如需彻底清除其他保留数据，请先确认具体文件路径后再手工处理。
+
 
 ## 备份与回滚
 
@@ -1235,6 +1312,8 @@ Windows 对应命令为 `claude-statusline.exe uninstall --dry-run`。
 正常写入过程中如果后一步失败，工具会自动尝试事务内回滚；备份仍会保留，便于检查。
 
 ## `doctor` 诊断
+
+- 两个编辑器的独立启用偏好、默认策略及兼容暂挂，Native 的资源版本、后端绑定、官方插件启用与 session 加载边界。
 
 ```bash
 claude-statusline doctor
@@ -1309,9 +1388,16 @@ claude-statusline doctor
 
 确认 doctor 中 `/statusline-config skill` 为 OK。若安装是在当前 Claude Code 会话启动后完成，可新开一个会话再次检查命令发现情况。
 
+### `/statusline-configure-native` 缺失、无键盘输入或保存失败
+
+1. 运行 `claude-statusline doctor`，核实宿主 2.1.287+、插件资源及后端绑定；低版本暂挂属于兼容处理。
+2. 确认没有明确关闭 Native、宿主主动禁用插件、safe/bare 或策略限制；按需要运行 `install --native-editor` 后在受信任终端重启 Claude Code。
+3. 面板打开后先点击 Client 区域，取消输入用 Ctrl+G；Esc 仍由宿主处理。
+4. 保存冲突保留草稿，`r` 明确丢弃重载；保存结果不明先 `k` 核对，故障用 Retry／Close。版本／资源不匹配时重新安装匹配 wheel 并重装接入，不手工接管外来缓存。
+
 ### `/statusline-configure` 不可见或显示 suspended
 
-先确认已经显式启用，并同步当前 Claude Code 版本：
+先检查宿主版本与已保存偏好；正式版默认启用，可用以下命令显式恢复：
 
 ```bash
 claude --version
@@ -1319,9 +1405,11 @@ claude-statusline install --experimental-slash-tui
 claude-statusline doctor
 ```
 
-版本低于 2.1.258 或无法识别时，显式启用会在写入前失败。已启用后发生降级时，普通 `install` 保留偏好但暂挂并移除活动 skill/hook，所以 slash 菜单中不会显示该命令。升级到兼容版本后重新运行普通 `install`，再新开 Claude Code 会话。
+版本低于 2.1.258 或无法识别时，显式启用保留偏好并暂挂，不阻止基础安装。已启用后发生降级时，普通 `install` 保留偏好但暂挂并移除活动 skill/hook，所以 slash 菜单中不会显示该命令。升级到兼容版本后重新运行普通 `install`，再新开 Claude Code 会话。
 
-### 实验入口无法打开新终端
+<a id="实验入口无法打开新终端"></a>
+
+### 外部入口无法打开新终端
 
 tmux 路径要求 hook 环境中同时存在有效的 `TMUX`、形如 `%<数字>` 的 `TMUX_PANE`，且 2 秒预检查能访问目标 server/pane。Linux 目标失效时会尝试 GNOME；macOS 改为检查本地图形会话和 Terminal.app；缺少条件时提示独立命令。若已成功选择 tmux，popup 内失败不会二次启动其他终端。
 
@@ -1432,10 +1520,10 @@ claude-statusline config set refresh-interval 1
 - 配置仅为用户全局，不提供项目级配置。
 - 除本地 `socket.gethostname()` 提供的可选 hostname 外，不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
 - 不跟随 Claude Code `/theme`；`default` palette 使用本项目固定 RGB 色值。
-- 外部入口使用既有平台启动器；会话内 Client TUI 由独立启用的 Mods 提供，焦点需先点击。
+- 外部入口使用既有平台启动器；会话内 Client TUI 需 2.1.287+，先点击区域获焦，Esc 由宿主处理，Ctrl+G 取消输入。
 - Linux/macOS 不访问 `/dev/tty`；三个平台都不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
-- 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks，或平台所列启动器之外的终端环境中打开实验 TUI。
-- 不提供鼠标、拖拽或自定义键位。
+- 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks，或平台所列启动器之外的终端环境中打开外部 TUI。
+- 不提供拖放或自定义快捷键；Client 首次键盘操作需点击区域，独立 TUI 使用键盘。
 - 计时完成判定只纳入普通 Agent 类 task 的生命周期；后台 shell、server、monitor、workflow 和 agent-team 专用账本不纳入完成阻塞。
 - 不提供 per-agent 历史账本、Git、cache hit/miss/out 或 session 聚合；子 Agent 行只显示 Claude 当前 payload。
 - 不猜测当前焦点 Agent；全局底栏始终是主 Agent/session 范围。
@@ -1499,7 +1587,7 @@ python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-1.3.0-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -1509,13 +1597,13 @@ Windows PowerShell：
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\claude_code_statusline-1.2.0-py3-none-any.whl
+pipx install .\dist\claude_code_statusline-1.3.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-上述文件名对应稳定 v1.2.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
+上述文件名对应稳定 v1.3.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
 
-可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.2.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.zh-CN.md)。
+可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.3.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.zh-CN.md)。
 
 ### 隔离测试与人工验收
 
@@ -1606,7 +1694,9 @@ macOS 的会话进程标识使用 `/bin/ps -o lstart= -p PID`，固定 `LC_ALL=C
 
 全局 Enter 只调用一次现有原子配置事务。无变化不会创建备份；有变化时仍使用单次备份、双文件写入与失败回滚。TUI 启动时记录语义基准，保存时在同一安装锁内检查 display、host 和安装归属；编辑期间如被其他进程修改，会在创建备份和写文件前拒绝。`settings.json` 中与 statusline 无关的字段变化不构成冲突，并会基于锁内最新文件合并保留。
 
-### 实验启动器与结果回传
+<a id="实验启动器与结果回传"></a>
+
+### 外部启动器与结果回传
 
 外部 `/statusline-configure` 沿用终端启动器，没有绕过 hook 的终端隔离；会话内 Client 由另一条 Mod 命令提供。Claude Code 2.1.259 的 command hook 在没有控制终端的新 session 中执行，hook 及其子进程不能打开 `/dev/tty`，`terminalSequence` 也不能绘制 curses 界面。因此本工具只把 slash command 用作本地启动器，并在另一个受支持的终端环境中运行已经存在的 `claude-statusline configure`；状态机、样例预览、并发检测和原子保存没有复制实现。
 
@@ -1635,31 +1725,9 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 如果全局 `disableAllHooks` 等设置阻止本地 hook，回退 skill 只会说明 hook 未运行，并提示独立命令或 `/statusline-config`；它同时禁止通过 Bash 和 PowerShell 启动 curses。此时可能仍消耗一个极短模型回合，这是插件侧无法避免的例外。
 
 
-<a id="原生编辑器预览"></a>
-
-## 原生配置编辑器
-
-### v1.3.0a2：外部 TUI 与会话内 Client
-
-`/statusline-configure` 保留既有外部终端 TUI；`/statusline-configure-native` 打开当前 session 内的实验性 Client TUI，不另开终端。两个入口可独立启用并同时安装，不增加新的命令名。
-
-```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a2/claude_code_statusline-1.3.0a2-py3-none-any.whl"
-claude-statusline install --experimental-slash-tui --native-editor
-claude-statusline doctor
-```
-
-在受信任终端重启 Claude Code。只需一种方式时只传对应启用参数；`--no-experimental-slash-tui`、`--no-native-editor` 分别关闭，不影响另一种。预览版新安装默认都关闭，已有偏好保留；重装恢复旧原生迁移曾移除的已启用外部入口。
-
-Client 打开后先点击区域一次，再用 Tab 切页、上下选择、左右排序、Space 勾选；`/` 搜索、Ctrl+G 取消字段、s 保存继续、f 保存退出、q 丢弃退出。搜索/字段输入期间暂停普通字符快捷键。Esc 由宿主处理：先归还焦点，再关闭。高级 Claude 偏好仍用 h 展开、a 单独应用。内容、栏目及预览采用明确分组；最小正文 32×12，正常空间使用边框，窄窗使用标题分隔线。
-
-两种编辑器可同时打开，保存通过共同版本校验防止覆盖；Client 冲突时保留草稿，r 丢弃重载，结果不明时 k 核对。重复执行原生命令保留当前草稿。详见[完整操作与安装边界](development/native.zh-CN.md#编辑器行为)。
-
-**Latest 稳定版仍为 v1.2.0**。v1.3.0a1 原生控件界面三平台真人验收已获确认；v1.3.0a2 的 Client 真人验收单独记录，当前均待验收。自动 CI 和 Linux PTY 不计为真人验收。
-
 ## 相关文档
 
-[原生配置编辑器](development/native.zh-CN.md) 在源码加载的 Mod 中提供三页、revision 保存保护及独立宿主偏好。稳定安装仍为 v1.2.0；v1.3.0a2 Client 需显式启用并单独真人验收。
+v1.3.0 默认接入两种编辑器；详见[原生编辑器开发与验收](development/native.zh-CN.md)。
 
 - [项目首页](../README.zh-CN.md)：项目介绍、界面预览和快速安装。
 - [Claude Code：Customize your status line](https://code.claude.com/docs/en/statusline)

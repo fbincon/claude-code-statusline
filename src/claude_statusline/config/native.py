@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 from claude_statusline._version import __version__
 from claude_statusline.config import storage
+from claude_statusline.config.editor_defaults import enabled_by_default
 from claude_statusline.integration.models import ConfigurationError
 
 FILENAME = "claude-statusline-native.json"
@@ -56,7 +56,4 @@ def requested(
     raw = storage._read_optional_bytes(preference_path(config_dir))
     if raw is not None:
         return parse(raw)
-    default = re.search(r"(?:a|b|rc|dev)\d", version) is None
-    if not default:
-        return False
-    return default
+    return enabled_by_default(version)
