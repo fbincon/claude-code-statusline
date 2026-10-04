@@ -68,7 +68,9 @@ def main() -> int:
         run("install")
         stable_defaults = enabled_by_default()
         assert bool(native.owner(config)) == stable_defaults
-        assert (config / "skills/statusline-configure/SKILL.md").exists() == stable_defaults
+        assert (
+            config / "skills/statusline-configure/SKILL.md"
+        ).exists() == stable_defaults
         assert not (config / "claude-statusline-features.json").exists()
         assert not (config / "claude-statusline-native.json").exists()
         assert "install: already correct:" in run("install")
@@ -131,6 +133,12 @@ def main() -> int:
         saved["draft"]["display"]["use_colors"] = not saved["draft"]["display"][
             "use_colors"
         ]
+        saved["draft"]["display"]["items"] = list(catalog.BY_SCOPE["main"])
+        saved["draft"]["display"]["subagents"]["items"] = [
+            item
+            for item in catalog.BY_SCOPE["subagent"]
+            if item not in ("status", "elapsed")
+        ]
         applied = json.loads(
             run(
                 "ui",
@@ -145,6 +153,7 @@ def main() -> int:
             )
         )["result"]
         assert applied["changed"] and applied["draft"] == saved["draft"]
+        report["complete_scoped_catalog_saved"] = True
         preview = json.loads(
             run(
                 "ui",

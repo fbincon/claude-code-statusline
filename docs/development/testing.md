@@ -90,4 +90,4 @@ Independent metric tests use fixed clocks, strict missing/zero input, per-scope 
 python tools/benchmark_render.py --samples 30 --report dist/validation/display-performance.json
 ```
 
-Compare P50/P95 on the same machine and Python before/after changes; results include the tested commit. Cold transcript cases use distinct sessions; warm cases reuse state. Treat these small fixtures as a reproducible baseline, not a bound on large repositories or session histories.
+The default warm mode primes an isolated bytecode directory once; `--bytecode-mode cold` uses an empty directory without writing bytecode. This makes old/new startup measurements comparable even when source files have changed. Compare P50/P95 on the same machine and Python before/after changes; results include the tested commit. Cold transcript cases use distinct sessions; warm cases reuse state. Treat these small fixtures as a reproducible baseline, not a bound on large repositories or session histories.

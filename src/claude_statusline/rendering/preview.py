@@ -16,6 +16,11 @@ class _SampleRenderState(rendering_items._RenderState):
     def totals(self):
         return "1.2M", "87.5K", "22.4K", None, {}
 
+    def raw_totals(self):
+        return rendering_items.runtime_usage.SessionTokenCounts(
+            1_200_000, 87_500, 22_400
+        )
+
     def now(self):
         return SAMPLE_NOW
 
@@ -86,7 +91,13 @@ def _sample_preview_data():
         "rate_limits": {
             "five_hour": {"used_percentage": 18, "resets_at": SAMPLE_NOW + 7980},
             "seven_day": {"used_percentage": 36, "resets_at": SAMPLE_NOW + 525600},
-            "spend_limit": {"used_percentage": 9, "resets_at": SAMPLE_NOW + 864000},
+            "spend_limit": {
+                "used_percentage": 9,
+                "resets_at": SAMPLE_NOW + 864000,
+                "used_usd": 31.50,
+                "limit_usd": 350,
+                "period": "monthly",
+            },
         },
         "prompt_cache": {
             "hit_ratio": 0.91,
@@ -98,7 +109,7 @@ def _sample_preview_data():
             "requests": 14,
         },
         "output_style": {"name": "Default"},
-        "version": "2.1.258",
+        "version": "2.1.289",
         "session_name": "demo-session",
         "session_id": "demo-session",
         "cost": {

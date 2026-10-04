@@ -11,7 +11,7 @@ from tools.generate_ui_contracts import generated
 
 class CatalogTests(unittest.TestCase):
     def test_scopes_defaults_and_legacy_descriptions(self):
-        self.assertEqual(len(catalog.BY_SCOPE["main"]), 44)
+        self.assertEqual(len(catalog.BY_SCOPE["main"]), 48)
         self.assertEqual(len(catalog.BY_SCOPE["subagent"]), 14)
         self.assertEqual(
             display.DEFAULT_ITEMS,
@@ -78,3 +78,11 @@ class CatalogTests(unittest.TestCase):
         )
         self.assertTrue(path.is_file(), "Generated frontend contract is missing")
         self.assertEqual(path.read_text(encoding="utf-8"), generated())
+
+    def test_bilingual_reference_covers_every_selectable_id(self):
+        root = Path(__file__).resolve().parents[2] / "docs"
+        for suffix in ("", ".zh-CN"):
+            contents = (root / f"DISPLAY_ITEMS{suffix}.md").read_text(encoding="utf-8")
+            contents += (root / f"USER_GUIDE{suffix}.md").read_text(encoding="utf-8")
+            for item in catalog.ITEMS:
+                self.assertIn(f"`{item.id}`", contents, (suffix, item.scope, item.id))

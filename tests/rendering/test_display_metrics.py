@@ -6,6 +6,7 @@ from unittest import mock
 from claude_statusline.config import catalog, display
 from claude_statusline.rendering import items, layout, preview, subagents
 from claude_statusline.runtime import git, usage
+from tests.support import render_main_items as render
 
 
 BATCH_A = (
@@ -21,17 +22,6 @@ BATCH_A = (
 )
 AGENT_ADDITIONS = ("model", "effort", "context-tokens", "context-window-size")
 NOW = 2_000_000_000
-
-
-def render(data, *selected):
-    config = display.DEFAULT_CONFIG.with_updates(
-        items=selected, use_colors=False, scope_labels="off"
-    )
-    with mock.patch.object(items.time, "time", return_value=NOW):
-        segments, separator, reset = items._configured_segments(data, config)
-    return "\n".join(
-        layout._layout_segments(segments, 2000, separator=separator, reset=reset)
-    )
 
 
 class DisplayMetricsTests(unittest.TestCase):
@@ -368,6 +358,67 @@ class CacheSessionGitTests(unittest.TestCase):
             "Git ↑1 ↓0",
         ):
             self.assertIn(value, text)
+
+
+class GatewayMetricTests(unittest.TestCase):
+    def test_gateway_optional_amount_and_period_are_independent(self):
+        selected = ("spend-limit", "spend-amount", "spend-period")
+        window = {
+            "used_percentage": 62.8,
+            "resets_at": NOW + 500,
+            "used_usd": 314.12,
+            "limit_usd": 500,
+            "period": "monthly",
+        }
+        data = {"rate_limits": {"spend_limit": window}}
+        self.assertEqual(
+            render(data, *selected),
+            "spend 37% left · Spend $314.12 / $500.00 · Spend monthly",
+        )
+        del window["used_usd"]
+        self.assertEqual(render(data, *selected), "spend 37% left · Spend monthly")
+        del window["period"]
+        self.assertEqual(render(data, *selected), "spend 37% left")
+        window.update(used_usd=0, limit_usd=0, period="daily")
+        self.assertEqual(
+            render(data, "spend-amount", "spend-period"),
+            "Spend $0.00 / $0.00 · Spend daily",
+        )
+        window["resets_at"] = NOW
+        self.assertEqual(render(data, *selected), "")
+
+    def test_gateway_invalid_values_are_not_derived_from_percentage(self):
+        for bad in (None, True, "12", -1, float("nan"), float("inf"), 10**1000):
+            window = {
+                "used_percentage": 50,
+                "used_usd": bad,
+                "limit_usd": 500,
+                "period": bad,
+            }
+            self.assertEqual(
+                render(
+                    {"rate_limits": {"spend_limit": window}},
+                    "spend-amount",
+                    "spend-period",
+                ),
+                "",
+            )
+        for item in ("spend-amount", "spend-period"):
+            self.assertEqual(catalog.BY_SCOPE["main"][item].minimum_version, "2.1.284")
+            self.assertIsNone(catalog.BY_SCOPE["main"][item].default_position)
+
+    def test_preview_includes_gateway_and_raw_cumulative_counts(self):
+        selected = ("spend-amount", "spend-period", "input-tokens", "output-tokens")
+        config = display.DEFAULT_CONFIG.with_updates(
+            items=selected, use_colors=False, scope_labels="off"
+        )
+        with mock.patch.object(
+            usage, "session_token_totals", side_effect=AssertionError("live transcript")
+        ):
+            self.assertEqual(
+                preview.render_preview_rows(config, 500),
+                ["Spend $31.50 / $350.00 · Spend monthly | in 1.29M · out 22.4K"],
+            )
 
 
 if __name__ == "__main__":

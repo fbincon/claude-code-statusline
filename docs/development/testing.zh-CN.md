@@ -92,4 +92,4 @@ Linux 自动 PTY 在 120×30 停靠及 80×48 内嵌布局检查点击获焦、�
 python tools/benchmark_render.py --samples 30 --report dist/validation/display-performance.json
 ```
 
-改动前后在同一机器、同一 Python 比较 P50／P95；报告记录被测提交。冷 transcript 样例使用不同会话，热样例复用状态。这是可复现的小样例基线，不代表大型仓库或会话历史的耗时上限。
+默认 warm 模式先预热隔离的字节码目录；`--bytecode-mode cold` 使用空目录并禁止写入，避免源码更新造成旧代码读缓存、新代码每次重新编译的不公平比较。改动前后在同一机器、同一 Python 比较 P50／P95；报告记录被测提交。冷 transcript 样例使用不同会话，热样例复用状态。这是可复现的小样例基线，不代表大型仓库或会话历史的耗时上限。
