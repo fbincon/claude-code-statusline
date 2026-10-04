@@ -4,9 +4,22 @@
 
 A Claude Code status line for Linux, WSL, Windows, and macOS. It shows model and reasoning effort, working directory, Git, context, rate limits, tokens, and per-turn timing. Individual subagent rows are supported. Configure items, order, and styles through a terminal UI (TUI), a wizard inside Claude Code, or the command line.
 
-The Phase 4 candidate adds model/number formats, labels and built-in icons, risk colors, explicit rows with priorities and widths, four editable presets and portable JSON files. Both editors provide item forms and a Layout page. Claude appearance and behavior preferences have a separate Apply action. Existing default appearance is retained; [configuration and downgrade instructions](docs/USER_GUIDE.md#formatting-layout-presets) explain the new options. Stable installation remains v1.4.0 until the preview has been accepted.
+The v1.5.0a1 preview adds model/number formats, labels and built-in icons, risk colors, explicit rows with priorities and widths, four editable presets and portable JSON files. Both editors provide item forms and a Layout page. Claude appearance and behavior preferences have a separate Apply action. Existing default appearance is retained; [configuration and downgrade instructions](docs/USER_GUIDE.md#formatting-layout-presets) explain the new options. Stable installation remains v1.4.0 until the preview has been accepted.
 
 [Formatting, layouts and presets](docs/USER_GUIDE.md#formatting-layout-presets) · [Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Report an issue](https://github.com/fbincon/claude-code-statusline/issues)
+
+
+## Try the Phase 4 preview
+
+[v1.5.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0a1) is a prerelease; v1.4.0 remains Latest. New installations opt into the preview editors explicitly; recorded preferences survive upgrades. Install and synchronize both entries, then restart Claude Code:
+
+```text
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.5.0a1/claude_code_statusline-1.5.0a1-py3-none-any.whl"
+claude-statusline install --experimental-slash-tui --native-editor
+claude-statusline doctor
+```
+
+Review [formats, presets and portable files](docs/USER_GUIDE.md#formatting-layout-presets) before saving. A first save backs up and migrates display v1/v2 to v3; follow the [downgrade procedure](docs/USER_GUIDE.md#version-compatibility) before returning to an older package. Human acceptance for the new Linux/Windows interactions and usable macOS entries is pending; the macOS Client input limitation remains.
 
 <a id="界面预览"></a>
 
@@ -95,6 +108,21 @@ See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-repo
 **Settings: display styles and host settings**
 
 ![Windows Settings configuration page](docs/images/configure-settings-windows.png)
+
+</details>
+
+<details>
+<summary>v1.5.0a1: item formats, Layout, presets and Claude preferences (Linux terminal reconstructions)</summary>
+
+![Item format with CJK label](docs/images/client-format-v1.5.0a1-linux.png)
+
+![Explicit Layout and preview](docs/images/client-layout-v1.5.0a1-linux.png)
+
+![Developer preset preview](docs/images/client-preset-v1.5.0a1-linux.png)
+
+![Separate Claude preferences](docs/images/client-preferences-v1.5.0a1-linux.png)
+
+[Compact Layout and capture provenance](docs/images/README.md#v150a1-phase-4-captures). Human Phase 4 acceptance is pending.
 
 </details>
 

@@ -18,6 +18,7 @@ This guide uses TUI for the terminal user interface and effort for model reasoni
 
 ## Contents
 
+- [Formatting, layouts and presets](#formatting-layout-presets)
 - [Feature overview](#feature-overview)
 - [Requirements](#requirements)
 - [Installation and integration](#installation-and-integration)
@@ -1922,9 +1923,9 @@ Stable v1.4.0 integrates both editors by default on compatible hosts. See [nativ
 
 <a id="formatting-layout-presets"></a>
 
-## Formatting, layouts and presets (Phase 4)
+## Formatting, layouts and presets (v1.5.0a1 preview)
 
-Existing appearance remains the default. The development schema is v3 and JSON protocol is v2; stable v1.4.0 retains v2/v1. Reading v1/v2 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v3.
+Existing appearance remains the default. The v1.5.0a1 display schema is v3 and JSON protocol is v2; stable v1.4.0 retains v2/v1. Reading v1/v2 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v3.
 
 `model-name`: original/short; `number-format`: legacy/compact/full/grouped; `labels`: legacy/short/off; `icons`: legacy/unicode/ascii/off; `allowance`: remaining/used; `reset-format`: countdown/time/datetime; `reset-timezone`: local/UTC; `threshold-colors`: on/off.
 
@@ -1970,7 +1971,7 @@ Portable format version 1 contains exactly format, version and draft. The draft 
 
 On Main/Subagents select an item and press Ctrl+E. Edit its label, icon, priority, maximum width and inherited format choices; Ctrl+G returns to the item list. Enter opens or accepts text/integer input. `inherit` clears an override, an empty label/icon suppresses it, and `none` clears an optional width/limit. Unicode/ASCII icon modes use built-in characters and need no special font.
 
-Layout chooses auto/explicit and sets “New row before” boundaries for enabled main items. Larger priorities are retained first (default 50); maximum widths count terminal columns, including CJK and combining text. Editing the item order keeps the row partition valid. Explicit layout removes empty rows and never adds continuation lines; auto keeps wrapping.
+Layout chooses auto/explicit and sets “New row before” boundaries for enabled main items. Larger priorities are retained first (default 50); maximum widths count terminal columns, including CJK and combining text. Editing the item order keeps the row partition valid. Scope decoration yields to real items when an explicit row is too narrow. Explicit layout removes empty rows and never adds continuation lines; auto keeps wrapping.
 
 Settings contains global format choices, risk thresholds, subagent visibility and portable operations. Choose a Preset, then activate Expand selected preset. Import accepts a path and replaces only the draft; inspect Preview, then Save or cancel. Export writes the current draft, including unsaved edits, to a new file; it does not save settings. Relative paths resolve in the host/terminal working directory and `~` expands to the home directory. Errors retain the current draft. Existing export files are refused in both editors; choose a new path or use CLI `--overwrite` for a deliberate replacement.
 

@@ -207,6 +207,9 @@ class NativeInstallerTests(unittest.TestCase):
                         self.assertTrue(skill.exists())
                         self.assertEqual(host.plugins, [])
 
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(features, "enabled_by_default", new=lambda version="1.5.0": True)
+    @mock.patch.object(preference, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_default_and_explicit_enable_follow_each_host_threshold(self):
         for version in (
             None,
@@ -270,6 +273,9 @@ class NativeInstallerTests(unittest.TestCase):
                         if not client:
                             self.assertEqual(host.calls, [])
 
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(features, "enabled_by_default", new=lambda version="1.5.0": True)
+    @mock.patch.object(preference, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_downgrade_and_unknown_host_suspend_without_new_host_apis(self):
         self.install()
         self.host.settings("unrelated", {"keep": True})
@@ -302,6 +308,9 @@ class NativeInstallerTests(unittest.TestCase):
         self.assertTrue(self.host.listing()[1][0]["enabled"])
         self.assertTrue(resources.experimental_skill_paths(self.config)[0].exists())
 
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(features, "enabled_by_default", new=lambda version="1.5.0": True)
+    @mock.patch.object(preference, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_host_disable_survives_downgrade_and_upgrade(self):
         self.install()
         self.host.run("disable", native.PLUGIN)
@@ -311,6 +320,9 @@ class NativeInstallerTests(unittest.TestCase):
         self.assertEqual(self.install().native_state, "plugin-disabled")
         self.assertFalse(self.host.listing()[1][0]["enabled"])
 
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(features, "enabled_by_default", new=lambda version="1.5.0": True)
+    @mock.patch.object(preference, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_user_disabled_upgrade_refreshes_resources_and_binding(self):
         files, manifest = native_resources.bundled_files()
         for version, mod_version in (
@@ -376,6 +388,9 @@ class NativeInstallerTests(unittest.TestCase):
                         ).changed
                     )
 
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(features, "enabled_by_default", new=lambda version="1.5.0": True)
+    @mock.patch.object(preference, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_old_host_disable_and_uninstall_use_supported_cli_options(self):
         self.install()
         original_run = self.host.run
@@ -400,6 +415,9 @@ class NativeInstallerTests(unittest.TestCase):
             self.assertEqual(self.host.plugins, [])
             self.assertEqual(self.host.markets, [])
 
+    # This scenario exercises stable defaults independently of the candidate version.
+    @mock.patch.object(features, "enabled_by_default", new=lambda version="1.5.0": True)
+    @mock.patch.object(preference, "enabled_by_default", new=lambda version="1.5.0": True)
     def test_version_suspension_rolls_back_settings_if_owner_write_fails(self):
         self.install()
         settings_path = self.config / "settings.json"

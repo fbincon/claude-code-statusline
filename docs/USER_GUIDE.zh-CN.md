@@ -1777,9 +1777,9 @@ v1.4.0 默认接入两种编辑器；详见[原生编辑器开发与验收](deve
 
 <a id="formatting-layout-presets"></a>
 
-## 格式、布局与预设（Phase 4）
+## 格式、布局与预设（v1.5.0a1 预览）
 
-现有默认外观保留。开发版显示 schema v3／JSON 协议 v2；稳定 v1.4.0 仍使用 v2/v1。读取 v1/v2 不重写文件，真实保存才备份迁移。降级前用新版关闭原生编辑器，然后恢复迁移前显示备份；旧程序不能编辑 v3。
+现有默认外观保留。v1.5.0a1 显示 schema v3／JSON 协议 v2；稳定 v1.4.0 仍使用 v2/v1。读取 v1/v2 不重写文件，真实保存才备份迁移。降级前用新版关闭原生编辑器，然后恢复迁移前显示备份；旧程序不能编辑 v3。
 
 `model-name`: original/short; `number-format`: legacy/compact/full/grouped; `labels`: legacy/short/off; `icons`: legacy/unicode/ascii/off; `allowance`: remaining/used; `reset-format`: countdown/time/datetime; `reset-timezone`: local/UTC; `threshold-colors`: on/off.
 
@@ -1825,7 +1825,7 @@ claude-statusline config import ./statusline.json
 
 在 Main/Subagents 选择项目后按 Ctrl+E，编辑标签、图标、保留优先级、最大宽度和继承的格式选项；Ctrl+G 返回项目列表。Enter 打开或接受文本／整数输入。`inherit` 清除覆盖，空标签／图标将其隐藏，`none` 清除可选宽度／限制。Unicode/ASCII 图标使用内置字符，无需额外字体。
 
-Layout 选择 auto/explicit，通过“New row before”设置启用主项目的行边界。较高优先级优先保留，默认 50；最大宽度按终端列计算，包括 CJK 与组合字符。项目排序会同步维护分行。显式布局移除空行且不增加续行，自动布局继续折行。
+Layout 选择 auto/explicit，通过“New row before”设置启用主项目的行边界。较高优先级优先保留，默认 50；最大宽度按终端列计算，包括 CJK 与组合字符。项目排序会同步维护分行。显式行过窄时，范围装饰优先让位给实际项目。 显式布局移除空行且不增加续行，自动布局继续折行。
 
 Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操作。先选择 Preset，再激活 Expand selected preset。Import 输入路径后只替换草稿，检查 Preview 后保存或取消。Export 将当前草稿（含未保存改动）写入新文件，不保存设置。相对路径以宿主／终端工作目录为基准，`~` 展开为用户主目录。出错保留现有草稿；两种编辑器均拒绝覆盖已有导出文件，可换路径，或使用 CLI `--overwrite` 明确替换。
 

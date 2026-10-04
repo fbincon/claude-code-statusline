@@ -45,6 +45,16 @@ class ExplicitLayoutTests(unittest.TestCase):
         self.assertEqual(layout.ANSI_SGR_RE.sub("", result), "e\u0301e\u0301e\u0301…")
         self.assertTrue(result.endswith("\x1b[0m"))
 
+    def test_scope_decoration_does_not_hide_the_only_real_item(self):
+        config = self.config().with_updates(items=("model",), scope_labels="always")
+        self.assertEqual(
+            items.configured_rows({"model": {"id": "Sonnet"}}, config, 6), ["Sonnet"]
+        )
+        self.assertEqual(
+            items.configured_rows({"model": {"id": "Sonnet"}}, config, 40),
+            ["Main/Session | Sonnet"],
+        )
+
     def test_per_item_width_is_applied_before_fitting(self):
         config = advanced.edit_item(self.config(), "main", "model", "max-width", "5")
         rows = items.configured_rows(
