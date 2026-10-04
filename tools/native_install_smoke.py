@@ -17,6 +17,7 @@ import tempfile
 from pathlib import Path
 
 from claude_statusline._version import __version__
+from claude_statusline.config.editor_defaults import enabled_by_default
 from claude_statusline.integration import capabilities, native
 
 
@@ -63,9 +64,21 @@ def main() -> int:
         assert run("--version").strip() == f"claude-statusline {__version__}", (
             "PATH must select the matching installed backend"
         )
+        run("install")
+        stable_defaults = enabled_by_default()
+        assert bool(native.owner(config)) == stable_defaults
+        assert (config / "skills/statusline-configure/SKILL.md").exists() == stable_defaults
+        assert not (config / "claude-statusline-features.json").exists()
+        assert not (config / "claude-statusline-native.json").exists()
+        assert "install: already correct:" in run("install")
+        report["release_defaults_verified"] = True
+        report["default_both_enabled"] = stable_defaults
         run("install", "--no-experimental-slash-tui", "--no-native-editor")
         assert native.owner(config) is None
         assert not (config / "skills/statusline-configure/SKILL.md").exists()
+        assert "install: already correct:" in run("install")
+        assert not (config / "skills/statusline-configure/SKILL.md").exists()
+        assert native.owner(config) is None
         run("install", "--experimental-slash-tui", "--no-native-editor")
         assert (config / "skills/statusline-configure/SKILL.md").is_file()
         run("install", "--native-editor")
