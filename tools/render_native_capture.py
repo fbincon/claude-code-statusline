@@ -31,6 +31,13 @@ def main() -> int:
     )
     parser.add_argument("--commit", required=True)
     parser.add_argument(
+        "--bounds",
+        nargs=4,
+        type=int,
+        metavar=("X", "Y", "WIDTH", "HEIGHT"),
+        help="Explicit cell crop for inline Client or external popup captures",
+    )
+    parser.add_argument(
         "--symbols-font",
         type=Path,
         default=Path("/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf"),
@@ -41,19 +48,31 @@ def main() -> int:
     cells = data["cells"]
     # Crop away the transcript, composer, live model and private configuration
     # paths. The dock separator and global footer come from actual cell data.
-    separator = next(
-        (col for col, cell in enumerate(cells[0]) if cell["data"] == "│"), None
-    )
-    if separator is None:
-        parser.error(
-            "This renderer expects a docked capture; choose the 120-column case"
+    if args.bounds:
+        left, top, columns, end = args.bounds
+        if (
+            min(left, top) < 0
+            or min(columns, end) < 1
+            or left + columns > data["columns"]
+            or top + end > data["rows"]
+        ):
+            parser.error("Crop bounds must fit inside the captured terminal")
+        cells = [line[left : left + columns] for line in cells[top : top + end]]
+        first = 0
+    else:
+        separator = next(
+            (col for col, cell in enumerate(cells[0]) if cell["data"] == "│"), None
         )
-    end = next(
-        (row for row, line in enumerate(cells) if line[separator]["data"] == "─"),
-        len(cells),
-    )
-    first = separator + 1
-    columns = data["columns"] - first
+        if separator is None:
+            parser.error(
+                "Use --bounds for an inline capture, or choose a docked 120-column capture"
+            )
+        end = next(
+            (row for row, line in enumerate(cells) if line[separator]["data"] == "─"),
+            len(cells),
+        )
+        first = separator + 1
+        columns = data["columns"] - first
     width, height = 12, 24
     image = Image.new("RGB", (columns * width + 24, end * height + 24), "#17191e")
     draw = ImageDraw.Draw(image)
@@ -91,7 +110,7 @@ def main() -> int:
         return colors["default"]
 
     for row in range(end):
-        for column in range(first, data["columns"]):
+        for column in range(first, first + columns):
             cell = cells[row][column]
             if not cell["data"]:
                 continue
@@ -120,6 +139,8 @@ def main() -> int:
     )
     metadata.add_text("commit", args.commit)
     metadata.add_text("capture_sha256", hashlib.sha256(raw).hexdigest())
+    if args.bounds:
+        metadata.add_text("cell_bounds", json.dumps(args.bounds))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     image.save(args.output, pnginfo=metadata)
     print(f"{args.output}: {image.width}x{image.height}, captured commit {args.commit}")
