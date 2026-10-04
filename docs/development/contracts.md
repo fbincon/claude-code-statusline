@@ -60,3 +60,5 @@ The bridge rejects malformed or truncated responses, protocol mismatches and non
 The native editor reads descriptions/configuration when opened, retains a complete draft and numeric buffers, and requests preview only when draft or width changes. Ordinary redraws reuse preview. Saving sends the baseline revision and retains the pane after updating the committed snapshot. Conflicts retain the draft for explicit discard/reload; ambiguous outcomes require a read check before retry. Closing invalidates outstanding responses and discards pending changes. Host preferences use separate actual-row API calls and per-row results. Generated descriptions cover catalog, choices, ranges and capabilities; the bridge rejects incomplete or duplicate catalog entries, unsupported choices and unsafe display text.
 
 See [architecture](architecture.md), [native validation](native.md), and [testing](testing.md).
+
+The v1.3.0a1 redesign changes only frontend view/interaction state. Pagination, focus and folded host preferences add no protocol fields or display-schema migration.

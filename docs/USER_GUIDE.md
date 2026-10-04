@@ -1252,7 +1252,7 @@ Rerun `install` to synchronize skill templates, command paths, hooks, and versio
 
 ### Version compatibility
 
-Display configuration and experimental feature preferences have independent formats, currently schema v2 and schema v1 respectively. Upgrading this tool to 1.0.0, 1.1.0a1, or 1.1.1 introduces no new format conversion; existing schema v2 files remain usable. Earlier schema v1 display configurations follow these rules:
+Display configuration and experimental feature preferences have independent formats, currently schema v2 and schema v1 respectively. Upgrading this tool to 1.0.0, 1.1.0a1, 1.1.1, 1.2.0, or 1.3.0a1 introduces no new format conversion; existing schema v2 files remain usable. Earlier schema v1 display configurations follow these rules:
 
 Schema v1 remains readable: main items, order, colors, palette, directory, and separator remain intact, with v2 defaults supplied in memory. Simply running `render`, `render-subagents`, `doctor`, or `install` does not rewrite v1. The first actual configuration save backs up the original bytes in the same transaction and writes canonical schema v2. Schema v2 strictly rejects unknown/missing fields, duplicates, and incorrect types; schemas above v2 are rejected. Downgrading to 0.5.0 makes the old program fall back to defaults; restore the pre-upgrade backup to edit the old schema again.
 
