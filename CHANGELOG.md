@@ -2,6 +2,11 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## Unreleased
+
+- Add original Linux, Windows and macOS screenshots of the in-session Client with Claude Code 2.1.289 to both READMEs and the image index.
+- Record the maintainer's normal Linux/Windows interaction and unresolved macOS input problem separately from historical acceptance; document official Terminal.app/iTerm2 mouse reporting checks and alternative configuration entries without claiming a verified fix.
+
 ## 1.3.0 - 2026-10-04
 
 - Promote the accepted a2 Client interaction after maintainer-confirmed human acceptance on Linux, Windows and macOS.

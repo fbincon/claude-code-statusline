@@ -16,6 +16,18 @@ Screenshots appear in the [project README](../../README.md#screenshots). Main st
 | macOS | [statusline-macos.png](statusline-macos.png) | [configure-main-macos.png](configure-main-macos.png) | [configure-subagents-macos.png](configure-subagents-macos.png) | [configure-settings-macos.png](configure-settings-macos.png) |
 | Windows | [statusline-windows.png](statusline-windows.png) | [configure-main-windows.png](configure-main-windows.png) | [configure-subagents-windows.png](configure-subagents-windows.png) | [configure-settings-windows.png](configure-settings-windows.png) |
 
+## In-session Client screenshots
+
+The maintainer supplied these actual terminal screenshots on 2026-10-04. They show the Client Main page inside an existing Claude Code session, together with the conversation, input area and main status line. All three visibly show Claude Code 2.1.289. Backend version, source commit, exact OS version, architecture and terminal version were not supplied and remain unknown.
+
+| Platform | Screenshot | Dimensions | Maintainer's interaction report |
+| --- | --- | --- | --- |
+| Linux | [client-session-linux.png](client-session-linux.png) | 1414×874 | Normal interaction |
+| Windows | [client-session-windows.png](client-session-windows.png) | 1792×1202 | Normal interaction |
+| macOS | [client-session-macos.png](client-session-macos.png) | 1347×892 | Pane opens; interaction problems; working setup unverified |
+
+Original filenames were `linux.png`, `windows.png` and `macOS.png`, respectively. The PNG bytes, dimensions and colors are preserved without cropping or redrawing. Original session text, including earlier command and connection messages, is retained. Client Preview uses fixed sample data. The screenshots show layout; interaction results come from the maintainer's separate report. Suggested macOS checks are in the [user guide](../USER_GUIDE.md#macos-mouse-reporting-and-client-focus); current feedback is recorded separately from historical acceptance in [native development](../development/native.md#claude-code-21289-interaction-report).
+
 <a id="展示说明"></a>
 
 ## Display notes
@@ -48,7 +60,7 @@ These PNGs reconstruct real decoded cells from Linux x86_64, Claude Code 2.1.288
 
 These three PNGs reconstruct decoded cells captured from a real Linux x86_64 Claude Code 2.1.288 terminal at 120 columns, using the persistent official plugin installation and backend 1.2.0a1 at clean code commit `db4129b75dcc3aa20fc24bbb09946e249038ee2e` (2026-10-04). `tools/render_native_capture.py` crops away the transcript/composer and draws the original cell text/attributes with documentation fonts/default colors; these are terminal captures, not pixel-perfect OS screenshots or invented mockups. Each PNG embeds the commit and source capture SHA256.
 
-The visible statusline values are production sample preview data. Settings continues below the crop through host scrolling/Tab navigation. These images and the 120/80-column automated save/cancel run do not imply human acceptance. Private raw cells/debug streams remain in ignored `dist/validation/phase2-editor-pty-fixed`. Existing macOS/Windows screenshots above show the compatibility TUI; native screenshots for those platforms were not supplied; the maintainer separately confirmed human results on Windows 11 and macOS 14.5.
+The visible statusline values are production sample preview data. Settings continues below the crop through host scrolling/Tab navigation. These images and the 120/80-column automated save/cancel run do not imply human acceptance. Private raw cells/debug streams remain in ignored `dist/validation/phase2-editor-pty-fixed`. The `configure-*-macos.png` and `configure-*-windows.png` images show the compatibility TUI; native screenshots for those platforms were not supplied at that release; the maintainer separately confirmed human results on Windows 11 and macOS 14.5.
 
 ### v1.3.0a2 Client captures
 

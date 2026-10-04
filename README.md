@@ -10,11 +10,32 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. It shows model and
 
 ## Screenshots
 
-These screenshots show actual Linux, macOS, and Windows terminals. The main status line shows session data; the configuration UI's Preview uses fixed sample data. Fonts, colors, and character widths depend on terminal settings.
+The actual terminal screenshots below show Linux, macOS, and Windows sessions. The main status line shows session data; the configuration UI's Preview uses fixed sample data. Historical Linux Client captures are terminal-cell reconstructions, with provenance in the image index. Fonts, colors, and character widths depend on terminal settings.
 
 **Linux main status line**
 
 ![Claude Code main status line: model and effort, directory, Git, context, tokens, and per-turn timing](docs/images/statusline.png)
+
+<details>
+<summary>In-session configuration TUI: Linux, Windows, and macOS (actual terminal screenshots)</summary>
+
+Use `/statusline-configure-native` to open the Client TUI inside the current Claude Code session. These screenshots show Claude Code 2.1.289; the configuration Preview uses sample data.
+
+**Linux: the maintainer reports normal interaction.**
+
+![Linux Claude Code session with the conversation and in-session Client Main configuration page](docs/images/client-session-linux.png)
+
+**Windows: the maintainer reports normal interaction.**
+
+![Windows Claude Code session with the conversation and in-session Client Main configuration page](docs/images/client-session-windows.png)
+
+**macOS: the pane opens, but the maintainer reports interaction problems; a working configuration has not been verified.**
+
+![macOS Claude Code session with the Client Main configuration page open inline](docs/images/client-session-macos.png)
+
+See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) for suggested checks and [screenshot provenance](docs/images/README.md#in-session-client-screenshots) for the supplied images and their limits.
+
+</details>
 
 <details>
 <summary>Linux: Main, Subagents, and Settings configuration pages</summary>
@@ -78,7 +99,7 @@ These screenshots show actual Linux, macOS, and Windows terminals. The main stat
 [Image file index](docs/images/README.md)
 
 <details>
-<summary>In-session Client: Main, Subagents, Settings (a2 captures; stable keeps the same interaction)</summary>
+<summary>In-session Client: Main, Subagents, Settings (reconstructed a2 captures; stable keeps the same interaction)</summary>
 
 ![Client Main: grouped items and sample preview](docs/images/client-main-v1.3.0a2-linux.png)
 
@@ -101,7 +122,7 @@ These screenshots show actual Linux, macOS, and Windows terminals. The main stat
 - Claude Code 2.1.205+ supports subagent rows; 2.1.258+ supports the external TUI entry and local configuration commands with arguments; 2.1.287+ supports the in-session Client.
 - Unsupported or unrecognized hosts suspend the affected entries; the main status line, standalone TUI, wizard and CLI remain available. Git information requires `git`.
 
-The current stable release is [**v1.3.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0), using the same wheel across platforms. The maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS; stable retains that Client interaction. See [requirements](docs/USER_GUIDE.md#requirements) for full boundaries.
+The current stable release is [**v1.3.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0), using the same wheel across platforms. At stable promotion, the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS; stable retains that Client interaction. A later report with Claude Code 2.1.289 confirms normal Linux/Windows interaction but unresolved macOS input problems; see [macOS checks](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [requirements](docs/USER_GUIDE.md#requirements).
 
 <a id="快速安装"></a>
 
@@ -174,6 +195,8 @@ On Windows use `claude-statusline.exe`. Package installation and Claude integrat
 ### Native configuration editor
 
 Run `/statusline-configure-native`, **click the Client region once**, then use Tab for pages, arrows for selection/order, Space for toggles, `/` for search and Ctrl+G to cancel input. `s` saves/continues, `f` saves/finishes and `q` discards/closes; Esc belongs to the host. Settings groups appearance, refresh/display behavior and advanced Claude preferences; preferences have a separate Apply. Minimum pane body: 32×12.
+
+For macOS Terminal.app, check **View → Allow Mouse Reporting** before clicking the Client region. This permits mouse events; the running application must also enable mouse reporting. This suggested setup has not been verified as a fix for the reported macOS problem. See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) for the official references, iTerm2 checks and alternative configuration entry points.
 
 ### External and standalone terminal TUI
 

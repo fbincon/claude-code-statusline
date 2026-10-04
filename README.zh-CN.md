@@ -8,11 +8,32 @@
 
 ## 界面预览
 
-以下截图展示 Linux、macOS 和 Windows 的实际终端界面。主状态栏显示会话数据；配置界面底部的 Preview 使用固定样例数据。字体、颜色和字符宽度会随终端设置变化。
+以下实际终端截图展示 Linux、macOS 和 Windows 的会话界面。主状态栏显示会话数据；配置界面底部的 Preview 使用固定样例数据。历史 Linux Client 画面由终端单元格重建，来源见截图索引。字体、颜色和字符宽度会随终端设置变化。
 
 **Linux 主状态栏**
 
 ![Claude Code 主状态栏：模型与 effort、目录、Git、上下文、token 和逐轮用时](docs/images/statusline.png)
+
+<details>
+<summary>会话内配置 TUI：Linux、Windows 与 macOS 的实际终端截图</summary>
+
+使用 `/statusline-configure-native` 在当前 Claude Code 会话内打开 Client TUI。以下截图显示 Claude Code 2.1.289；配置界面的 Preview 使用样例数据。
+
+**Linux：维护者实测可以正常操作。**
+
+![Linux Claude Code 会话中的对话区与会话内 Client Main 配置页](docs/images/client-session-linux.png)
+
+**Windows：维护者实测可以正常操作。**
+
+![Windows Claude Code 会话中的对话区与会话内 Client Main 配置页](docs/images/client-session-windows.png)
+
+**macOS：面板可以打开，但维护者实测存在交互问题，尚未验证有效配置。**
+
+![macOS Claude Code 会话中内嵌打开的 Client Main 配置页](docs/images/client-session-macos.png)
+
+建议检查步骤见 [macOS 鼠标报告与 Client 焦点](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)，原图来源与说明见[会话内 Client 截图](docs/images/README.zh-CN.md#会话内-client-截图)。
+
+</details>
 
 <details>
 <summary>Linux：Main、Subagents 和 Settings 配置界面</summary>
@@ -76,7 +97,7 @@
 [截图文件索引](docs/images/README.zh-CN.md)
 
 <details>
-<summary>会话内 Client：Main、Subagents、Settings（a2 画面，正式版沿用同一交互）</summary>
+<summary>会话内 Client：Main、Subagents、Settings（a2 终端重建画面，正式版沿用同一交互）</summary>
 
 ![Client Main 分组列表和样例预览](docs/images/client-main-v1.3.0a2-linux.png)
 
@@ -97,7 +118,7 @@
 - Claude Code 2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持外部 TUI 入口与带参数配置命令的本地执行；2.1.287+ 支持会话内 Client。
 - 不兼容或无法识别的宿主暂挂对应入口；基础状态栏、独立终端 TUI、向导和 CLI 继续可用。Git 信息需要系统中存在 `git`。
 
-当前稳定版为 [**v1.3.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0)，以上平台共用同一个 wheel。维护者已确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过；正式版沿用其 Client 交互。完整边界见[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
+当前稳定版为 [**v1.3.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0)，以上平台共用同一个 wheel。晋升正式版时，维护者确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过；正式版沿用其 Client 交互。随后基于 Claude Code 2.1.289 的反馈确认 Linux、Windows 可以正常操作，macOS 输入问题仍未解决；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
 ## 快速安装
 
@@ -158,6 +179,8 @@ Windows 使用 `claude-statusline.exe`。包安装与 Claude 接入分为两步�
 ### 原生配置编辑器
 
 执行 `/statusline-configure-native` 后**先点击 Client 区域一次**，再使用 Tab 切页、方向键选择/排序、Space 勾选、`/` 搜索、Ctrl+G 取消输入。`s` 保存留页，`f` 保存后退出，`q` 丢弃退出；Esc 由宿主处理。Settings 分为外观、刷新与显示行为、Claude 高级偏好；高级偏好独立 Apply。最小面板正文为 32×12。
+
+macOS Terminal.app 用户应先检查**显示 → 允许鼠标报告**（View → Allow Mouse Reporting），再点击 Client 区域。该选项只允许传递鼠标事件，运行中的应用还须启用鼠标报告；这些建议尚未在维护者的 macOS 环境验证解决问题。官方资料、iTerm2 检查项及其他配置入口见 [macOS 鼠标报告与 Client 焦点](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
 
 ### 外部与独立终端 TUI
 

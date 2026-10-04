@@ -2,6 +2,11 @@
 
 [English](CHANGELOG.md) | **简体中文**
 
+## 未发布
+
+- 在中英文 README 与截图索引中加入显示 Claude Code 2.1.289 的 Linux、Windows、macOS 会话内 Client 原始截图。
+- 单独记录维护者反馈的 Linux、Windows 正常交互与 macOS 尚未解决的输入问题，保留历史验收事实；补充 Terminal.app、iTerm2 官方鼠标报告检查建议及其他配置入口，不宣称已验证修复。
+
 ## 1.3.0 - 2026-10-04
 
 - 维护者确认 v1.3.0a2 在 Linux、Windows、macOS 真人验收通过，正式版沿用已验收 Client 交互。

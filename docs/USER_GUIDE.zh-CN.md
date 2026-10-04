@@ -285,6 +285,20 @@ Windows 使用 `claude-statusline.exe`。两组参数相互独立，`--experimen
 
 Settings 区分外观、刷新与显示行为、Claude 偏好〔高级〕。面板正文最小 32×12；≥64×20 使用完整分组边框，紧凑空间使用标题分隔线。样例预览使用固定数据，不采集实时 Git、transcript 或模型信息。
 
+### macOS 鼠标报告与 Client 焦点
+
+2026-10-04 维护者提供了显示 Claude Code 2.1.289 的截图，并反馈 Linux、Windows 会话内 Client 可以正常操作；macOS 面板可以打开，但交互不正常，尚未找到并验证有效的鼠标配置。本次反馈针对 `/statusline-configure-native`；主状态栏与独立配置入口仍可使用。见[截图说明](images/README.zh-CN.md#会话内-client-截图)与[验收记录](development/native.zh-CN.md#claude-code-21289-交互反馈)。
+
+Terminal.app 用户可按以下步骤检查：
+
+1. 在运行 Claude Code 的终端窗口中选择**显示 → 允许鼠标报告**（View → Allow Mouse Reporting），确认菜单项旁有勾号。Apple 说明新窗口默认勾选此项，因此应检查当前窗口的实际状态。见 [Apple 官方鼠标报告说明](https://support.apple.com/zh-cn/guide/terminal/trmlc69728a5/mac)。
+2. 运行 `/statusline-configure-native`，用鼠标点击 **Client 正文区域**一次，再检查 Tab 是否切页、方向键是否移动选择、Space 是否勾选条目。若按键仍进入会话输入框，说明 Client 尚未获得焦点。Client 可以收键后，用 `q` 丢弃测试修改并退出。
+3. 若仍不能正常操作，记录 macOS 版本、终端名称与版本、`claude --version` 输出、是否经过 tmux 或 SSH，以及哪些点击或按键无效。运行 `claude-statusline doctor` 检查接入与后端绑定；诊断结果不代表鼠标事件或 Client 焦点已验证。排查期间可在独立终端运行 `claude-statusline configure`，或使用 `claude-statusline config ...` 配置。
+
+**以上是检查建议，尚未在维护者反馈的 macOS 环境验证有效。** Apple 说明“允许鼠标报告”只允许事件传递给应用，应用本身还须启用鼠标报告；仅勾选菜单不能启用应用的鼠标报告行为，也不保证 Client 获得焦点。Apple 还列出 Command+R 为[切换此选项的快捷键](https://support.apple.com/zh-cn/guide/terminal/trmlshtcts/mac)，使用后应确认菜单实际状态。
+
+若使用 **iTerm2**，检查 **Settings → Profiles → Terminal → Enable mouse reporting** 和 **Report mouse clicks & drags**；后者需允许点击传递给应用，才能检查点击聚焦。按住 Option 会临时绕过鼠标报告，测试时应直接点击。见 [iTerm2 官方终端配置说明](https://iterm2.com/documentation-preferences-profiles-terminal.html)。这些 iTerm2 检查项同样尚未针对维护者反馈的问题验证。
+
 ### 保存、冲突与恢复
 
 两个编辑器可以同时打开；先保存者生效，旧 revision 保存被拒绝，不覆盖新配置。Client 保留冲突草稿；`r` 明确丢弃并重新加载后编辑。保存中或结果不明时阻止普通关闭；用 `k` 检查已保存状态，再决定重试或退出。故障时使用面板外的 Retry／Close，保留宿主已接收草稿。
@@ -1392,7 +1406,7 @@ claude-statusline doctor
 
 1. 运行 `claude-statusline doctor`，核实宿主 2.1.287+、插件资源及后端绑定；低版本暂挂属于兼容处理。
 2. 确认没有明确关闭 Native、宿主主动禁用插件、safe/bare 或策略限制；按需要运行 `install --native-editor` 后在受信任终端重启 Claude Code。
-3. 面板打开后先点击 Client 区域，取消输入用 Ctrl+G；Esc 仍由宿主处理。
+3. 面板打开后先点击 Client 区域；macOS 参照[鼠标报告与 Client 焦点检查](#macos-鼠标报告与-client-焦点)，最新反馈中的有效配置仍未验证。取消输入用 Ctrl+G；Esc 仍由宿主处理。
 4. 保存冲突保留草稿，`r` 明确丢弃重载；保存结果不明先 `k` 核对，故障用 Retry／Close。版本／资源不匹配时重新安装匹配 wheel 并重装接入，不手工接管外来缓存。
 
 ### `/statusline-configure` 不可见或显示 suspended
