@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+- Add opt-in schema-v3 format settings: short models, numeric formats, labels/icons, risk thresholds, used/remaining allowances and reset styles. Read v1/v2 without writes and migrate with a backup on save.
+- Move the internal JSON contract to protocol v2 and preserve all new fields through complete Client/curses saves; retain owned protocol-v1 resources for upgrade/uninstall.
+
+
 ## 1.4.0 - 2026-10-04
 
 - Add opt-in estimated gateway spend amount/period and cumulative input/output tokens. Sum raw cache-inclusive integers using existing all-session snapshots/deltas and expose unavailable data separately from observed zero. The catalog now has 48 main / 14 subagent items.

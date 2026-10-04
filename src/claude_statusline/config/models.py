@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
+from claude_statusline.config.formatting import FORMAT_CHOICES
 
 
 PADDING_MIN = 0
@@ -29,6 +30,9 @@ DISPLAY_OPTION_NAMES = {
     "scope-labels",
     "subagent-statusline",
 }
+
+
+DISPLAY_OPTION_NAMES |= {key.replace("_", "-") for key in FORMAT_CHOICES} | {"threshold-colors", "warning-threshold", "critical-threshold"}
 
 
 HOST_OPTION_NAMES = {

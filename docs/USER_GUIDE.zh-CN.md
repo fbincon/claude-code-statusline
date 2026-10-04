@@ -1076,7 +1076,7 @@ claude-statusline config set refresh-interval event
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "items": [
     "model-with-effort",
     "current-dir",
@@ -1102,7 +1102,31 @@ claude-statusline config set refresh-interval event
       "model-with-effort",
       "context-remaining",
       "task"
-    ]
+    ],
+    "item_options": {},
+    "visibility": "all",
+    "hide_completed": false,
+    "row_limit": null,
+    "task_max_width": null
+  },
+  "formatting": {
+    "model_name": "original",
+    "number_format": "legacy",
+    "labels": "legacy",
+    "icons": "legacy",
+    "allowance": "remaining",
+    "reset_format": "countdown",
+    "reset_timezone": "local",
+    "thresholds": {
+      "enabled": false,
+      "warning": 70,
+      "critical": 90
+    }
+  },
+  "item_options": {},
+  "layout": {
+    "mode": "auto",
+    "rows": []
   }
 }
 ```
@@ -1749,3 +1773,17 @@ v1.4.0 默认接入两种编辑器；详见[原生编辑器开发与验收](deve
 - [Claude Code：Customize your status line](https://code.claude.com/docs/en/statusline)
 - [Claude Code：Hooks reference](https://code.claude.com/docs/en/hooks)
 - [Claude Code：Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide)
+
+## Phase 4 格式配置（开发中）
+
+现有默认外观保留。开发版显示 schema v3／JSON 协议 v2；稳定 v1.4.0 仍使用 v2/v1。读取 v1/v2 不重写文件，真实保存才备份迁移。降级前用新版关闭原生编辑器，然后恢复迁移前显示备份；旧程序不能编辑 v3。
+
+`model-name`: original/short; `number-format`: legacy/compact/full/grouped; `labels`: legacy/short/off; `icons`: legacy/unicode/ascii/off; `allowance`: remaining/used; `reset-format`: countdown/time/datetime; `reset-timezone`: local/UTC; `threshold-colors`: on/off.
+
+阈值默认关闭，warning-threshold 默认 70、critical-threshold 默认 90，警告必须低于严重阈值。
+
+```bash
+claude-statusline config set model-name short
+claude-statusline config set number-format grouped
+claude-statusline config set threshold-colors on
+```

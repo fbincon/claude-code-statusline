@@ -115,7 +115,7 @@ def owner(config_dir: Path, *, allow_missing: bool = False) -> dict | None:
             or value["schema_version"] != 1
             or type(value["suspended"]) is not bool
             or type(value["protocol_version"]) is not int
-            or value["protocol_version"] != 1
+            or value["protocol_version"] not in (1, 2)
             or not isinstance(value["files"], dict)
             or not value["files"]
             or any(

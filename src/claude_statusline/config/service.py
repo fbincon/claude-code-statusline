@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
+from claude_statusline.config.formatting import FORMAT_CHOICES
 from claude_statusline.config import host as config_host
 from claude_statusline.config import models as config_models
 from claude_statusline.config import storage as config_storage
@@ -398,6 +400,30 @@ def _display_with_option(
     display: config_display.DisplayConfig, option: str, value: Any
 ) -> config_display.DisplayConfig:
     try:
+        name = option.replace("-", "_")
+        if name in FORMAT_CHOICES:
+            return display.with_updates(
+                formatting=replace(display.formatting, **{name: value})
+            )
+        if option in ("threshold-colors", "warning-threshold", "critical-threshold"):
+            key = {
+                "threshold-colors": "enabled",
+                "warning-threshold": "warning",
+                "critical-threshold": "critical",
+            }[option]
+            if key == "enabled":
+                value = config_host._parse_toggle(value, option)
+            else:
+                try:
+                    value = int(value)
+                except (ValueError, TypeError) as exc:
+                    raise config_models.ConfigCommandError(
+                        "threshold must be an integer"
+                    ) from exc
+            thresholds = replace(display.formatting.thresholds, **{key: value})
+            return display.with_updates(
+                formatting=replace(display.formatting, thresholds=thresholds)
+            )
         if option == "colors":
             return display.with_updates(
                 use_colors=config_host._parse_toggle(value, option)
@@ -465,8 +491,11 @@ def apply_configuration(
     scope_labels: str | None = None,
     expected: config_models.EffectiveConfig | None = None,
     expected_revision: str | None = None,
+    display_draft: config_display.DisplayConfig | None = None,
     before_commit: Callable[[], None] | None = None,
 ) -> config_models.MutationResult:
+    if display_draft is not None:
+        display_draft = config_display.validate_display_config(display_draft.to_dict())
     validated_items = _validated_items(items)
     validated_subagent_items = (
         _validated_subagent_items(subagent_items)
@@ -545,7 +574,9 @@ def apply_configuration(
             )
         except config_display.DisplayConfigError as exc:
             raise config_models.ConfigCommandError(str(exc)) from exc
-        return display, config_host._settings_with_host(settings, executable, host)
+        return display_draft or display, config_host._settings_with_host(
+            settings, executable, host
+        )
 
     return mutate_configuration(
         config_dir,

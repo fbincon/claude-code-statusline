@@ -9,6 +9,7 @@ import type {
 } from 'claude-code';
 import {
   MAIN_ITEM_IDS,
+  FORMAT_DEFAULTS, FORMAT_CHOICES,
   SUBAGENT_ITEM_IDS,
 } from '../lib/generated-contracts.ts';
 import type {
@@ -23,14 +24,16 @@ import { copyDraft } from '../lib/editor/draft.ts';
 
 export const BASE: Draft = {
   display: {
-    schema_version: 2,
+    schema_version: 3,
     items: ['model-with-effort'],
     use_colors: true,
     palette: 'default',
     directory_style: 'full',
     separator_style: 'classic',
     scope_labels: 'when-subagents',
-    subagents: { enabled: true, items: ['status-elapsed', 'name'] },
+    subagents: { enabled: true, items: ['status-elapsed', 'name'], item_options: {}, visibility: 'all', hide_completed: false, row_limit: null, task_max_width: null },
+    formatting: JSON.parse(JSON.stringify(FORMAT_DEFAULTS)),
+    item_options: {}, layout: { mode: 'auto', rows: [] },
   },
   host: { padding: 0, refresh_interval: 1, hide_vim_mode_indicator: false },
 };
@@ -102,6 +105,7 @@ function catalogItem(scope: Scope, id: CatalogItem['id']): CatalogItem {
 export function description(): DescribeResult {
   return {
     backend_version: 'test',
+    formatting_options: JSON.parse(JSON.stringify(FORMAT_CHOICES)),
     operations: ['describe', 'read', 'preview', 'apply'],
     capabilities: capabilities(),
     options: {
@@ -152,7 +156,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 1, result }));
+  return output(JSON.stringify({ protocol_version: 2, result }));
 }
 
 export function sample(text: string) {

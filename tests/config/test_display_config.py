@@ -72,7 +72,7 @@ class DisplayConfigTests(unittest.TestCase):
         unknown_item = dict(valid, items=["clock"])
         cases.append(unknown_item)
 
-        wrong_version = dict(valid, schema_version=3)
+        wrong_version = dict(valid, schema_version=4)
         cases.append(wrong_version)
 
         wrong_bool = dict(valid, use_colors=1)
@@ -139,7 +139,7 @@ class DisplayConfigTests(unittest.TestCase):
             ):
                 config_display.validate_subagent_items(items)
 
-    def test_schema_one_loads_in_memory_as_v2_without_rewriting(self):
+    def test_schema_one_loads_in_memory_as_v3_without_rewriting(self):
         path = config_display.config_path(self.config_dir)
         legacy = {
             "schema_version": 1,
@@ -152,7 +152,7 @@ class DisplayConfigTests(unittest.TestCase):
         raw = (json.dumps(legacy, separators=(",", ":")) + "\n").encode()
         path.write_bytes(raw)
         config = config_display.load_display_config(self.config_dir)
-        self.assertEqual(config.schema_version, 2)
+        self.assertEqual(config.schema_version, 3)
         self.assertEqual(config.items, ("git", "model-with-effort"))
         self.assertFalse(config.use_colors)
         self.assertEqual(config.scope_labels, "when-subagents")

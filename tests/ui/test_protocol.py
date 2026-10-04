@@ -32,7 +32,7 @@ class ProtocolTests(unittest.TestCase):
         return protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 1,
+                    "protocol_version": 2,
                     "operation": operation,
                     "payload": {} if payload is None else payload,
                     **extra,
@@ -176,9 +176,10 @@ class ProtocolTests(unittest.TestCase):
 
     def test_legacy_draft_empty_rows_and_mutual_exclusions(self):
         value = draft()
+        value["display"] = {k: v for k, v in value["display"].items() if k in display.V1_DISPLAY_KEYS}
         value["display"]["schema_version"] = 1
-        value["display"].pop("subagents")
-        value["display"].pop("scope_labels")
+        value["display"].pop("subagents", None)
+        value["display"].pop("scope_labels", None)
         result, status = self.request("preview", {"draft": value, "width": 80})
         self.assertEqual(status, 0, result)
         empty = draft()
@@ -200,7 +201,7 @@ class ProtocolTests(unittest.TestCase):
         env = dict(os.environ, CLAUDE_CONFIG_DIR=str(self.root))
         raw = json.dumps(
             {
-                "protocol_version": 1,
+                "protocol_version": 2,
                 "operation": "preview",
                 "payload": {"draft": draft(), "width": 80},
             }
@@ -221,5 +222,5 @@ class ProtocolTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, expected, result.stderr)
-            self.assertEqual(json.loads(result.stdout)["protocol_version"], 1)
+            self.assertEqual(json.loads(result.stdout)["protocol_version"], 2)
         self.assertFalse(self.root.exists())

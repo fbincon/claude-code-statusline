@@ -1,4 +1,4 @@
-"""Protocol v1 wire types; TypeScript is generated from these Python types."""
+"""Protocol v2 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display
 
 
-PROTOCOL_VERSION = 1
+PROTOCOL_VERSION = 2
 OPERATIONS = ("describe", "read", "preview", "apply")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
@@ -17,8 +17,11 @@ SeparatorStyle = Literal.__getitem__(display.SEPARATOR_STYLES)
 ScopeLabels = Literal.__getitem__(display.SCOPE_LABELS)
 Scope = Literal["main", "subagent"]
 UnavailableReason = Literal[
-    "not_observed", "unsupported_host", "unknown_host_version",
-    "source_unavailable", "condition_not_met",
+    "not_observed",
+    "unsupported_host",
+    "unknown_host_version",
+    "source_unavailable",
+    "condition_not_met",
 ]
 
 
@@ -76,13 +79,48 @@ class Capabilities(TypedDict):
     data_observation: Literal["not_observed"]
 
 
+class ThresholdDraft(TypedDict):
+    enabled: bool
+    warning: int
+    critical: int
+
+
+class FormattingDraft(TypedDict):
+    model_name: Literal["original", "short"]
+    number_format: Literal["legacy", "compact", "full", "grouped"]
+    labels: Literal["legacy", "short", "off"]
+    icons: Literal["legacy", "unicode", "ascii", "off"]
+    allowance: Literal["remaining", "used"]
+    reset_format: Literal["countdown", "time", "datetime"]
+    reset_timezone: Literal["local", "UTC"]
+    thresholds: ThresholdDraft
+
+
+class ItemOptionsDraft(TypedDict):
+    label: str | None
+    icon: str | None
+    priority: int
+    max_width: int | None
+    formatting: dict[str, str]
+
+
+class LayoutDraft(TypedDict):
+    mode: Literal["auto", "explicit"]
+    rows: list[list[MainItemId]]
+
+
 class SubagentDraft(TypedDict):
     enabled: bool
     items: list[SubagentItemId]
+    item_options: dict[SubagentItemId, ItemOptionsDraft]
+    visibility: Literal["all", "running"]
+    hide_completed: bool
+    row_limit: int | None
+    task_max_width: int | None
 
 
 class DisplayDraft(TypedDict):
-    schema_version: Literal[2]
+    schema_version: Literal[3]
     items: list[MainItemId]
     use_colors: bool
     palette: Palette
@@ -90,6 +128,9 @@ class DisplayDraft(TypedDict):
     separator_style: SeparatorStyle
     scope_labels: ScopeLabels
     subagents: SubagentDraft
+    formatting: FormattingDraft
+    item_options: dict[MainItemId, ItemOptionsDraft]
+    layout: LayoutDraft
 
 
 class HostDraft(TypedDict):
@@ -140,6 +181,7 @@ class DescribeResult(TypedDict):
     capabilities: Capabilities
     backend_version: str
     operations: list[str]
+    formatting_options: dict[str, list[str]]
 
 
 class ApplyResult(ReadResult):
@@ -164,6 +206,10 @@ WIRE_TYPES = (
     RefreshOptions,
     ConfigurationOptions,
     Capabilities,
+    ThresholdDraft,
+    FormattingDraft,
+    ItemOptionsDraft,
+    LayoutDraft,
     SubagentDraft,
     DisplayDraft,
     HostDraft,

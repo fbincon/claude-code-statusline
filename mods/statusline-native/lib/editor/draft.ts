@@ -13,17 +13,7 @@ export type Page = 'main' | 'subagents' | 'settings';
 
 /** Copy wire data without sharing editable arrays with the opening snapshot. */
 export function copyDraft(draft: Draft): Draft {
-  return {
-    display: {
-      ...draft.display,
-      items: [...draft.display.items],
-      subagents: {
-        ...draft.display.subagents,
-        items: [...draft.display.subagents.items],
-      },
-    },
-    host: { ...draft.host },
-  };
+  return JSON.parse(JSON.stringify(draft)) as Draft;
 }
 
 export function sameDraft(left: Draft, right: Draft): boolean {

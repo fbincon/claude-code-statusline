@@ -5,12 +5,12 @@ from __future__ import annotations
 import math
 import socket
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from claude_statusline.config import display as config_display
 from claude_statusline.rendering import formatters as rendering_formatters
 from claude_statusline.rendering import layout as rendering_layout
-from claude_statusline.rendering import metrics
+from claude_statusline.rendering import metrics, preferences
 from claude_statusline.rendering import git as rendering_git
 from claude_statusline.rendering import palette as rendering_palette
 from claude_statusline.rendering import timer as rendering_timer
@@ -49,7 +49,7 @@ def humanize_api_tokens(v):
 
 
 def _rate_limit_item(
-    data, field, label, palette=rendering_palette.DEFAULT_PALETTE, *, now=None
+    data, field, label, palette=rendering_palette.DEFAULT_PALETTE, *, now=None, fmt=None
 ):
     window = metrics.live_rate_window(data, field, now)
     if window is None:
@@ -60,7 +60,10 @@ def _rate_limit_item(
     if (isinstance(used, float) and not math.isfinite(used)) or used < 0:
         return None
     left = 0 if used >= 100 else round(100 - used)
-    return f"{palette.percentage}{label} {left}% left{palette.reset}"
+    value, suffix = (
+        (round(used), "used") if fmt and fmt.allowance == "used" else (left, "left")
+    )
+    return f"{palette.percentage}{label} {value}% {suffix}{palette.reset}"
 
 
 def _rate_limit_segment(data, palette=rendering_palette.DEFAULT_PALETTE):
@@ -152,6 +155,7 @@ class _RenderState:
         self._totals = _NOT_LOADED
         self._counts = _NOT_LOADED
         self._now = None
+        self.fmt = config.formatting
 
     def now(self):
         if self._now is None:
@@ -193,7 +197,7 @@ class _RenderState:
         return bool(isinstance(record, dict) and record.get("had_subagents"))
 
     def model_with_effort(self):
-        model = metrics.model_name(self.data)
+        model = preferences.model_name(metrics.model_name(self.data), self.fmt)
         if not model:
             return None
         text = f"{self.palette.model}{model}"
@@ -205,7 +209,11 @@ class _RenderState:
         return _RenderedItem(text + self.palette.reset, group="model")
 
     def model(self):
-        return self.styled(metrics.model_name(self.data), self.palette.model, "model")
+        return self.styled(
+            preferences.model_name(metrics.model_name(self.data), self.fmt),
+            self.palette.model,
+            "model",
+        )
 
     def effort(self):
         value = rendering_formatters.deep_get(self.data, ("effort", "level"))
@@ -322,10 +330,11 @@ class _RenderState:
         )
 
     def context_window_size(self):
-        value = rendering_formatters.humanize_tokens(
+        value = preferences.number(
             rendering_formatters.deep_get(
                 self.data, ("context_window", "context_window_size")
-            )
+            ),
+            self.fmt,
         )
         if not value:
             return None
@@ -335,13 +344,19 @@ class _RenderState:
         )
 
     def rate_limit(self, field, label):
-        text = _rate_limit_item(self.data, field, label, self.palette, now=self.now())
+        text = _rate_limit_item(
+            self.data, field, label, self.palette, now=self.now(), fmt=self.fmt
+        )
         return _RenderedItem(text, group="limits") if text else None
 
     def rate_reset(self, field, label):
         window = metrics.live_rate_window(self.data, field, self.now())
         value = (
-            metrics.countdown(window.get("resets_at"), self.now()) if window else None
+            preferences.reset_time(
+                window.get("resets_at"), self.now(), self.fmt, metrics.countdown
+            )
+            if window
+            else None
         )
         return self.styled(
             f"{label} reset {value}" if value else None,
@@ -351,13 +366,13 @@ class _RenderState:
 
     def context_tokens(self):
         text = metrics.context_tokens(
-            rendering_formatters.deep_get(self.data, ("context_window",))
+            rendering_formatters.deep_get(self.data, ("context_window",)), self.fmt
         )
         return self.styled(text, self.palette.percentage, "context")
 
     def session_metric(self, item):
         text = metrics.session_metric(
-            rendering_formatters.deep_get(self.data, ("cost",)), item
+            rendering_formatters.deep_get(self.data, ("cost",)), item, self.fmt
         )
         return self.styled(text, self.palette.percentage, "usage")
 
@@ -366,6 +381,12 @@ class _RenderState:
         if not totals:
             return None
         thit, tmiss, tout, _last_pt, _entry = totals
+        if self.fmt.number_format != "legacy":
+            counts = self.raw_totals()
+            if counts is not None:
+                thit = preferences.number(counts.hit, self.fmt)
+                tmiss = preferences.number(counts.miss, self.fmt)
+                tout = preferences.number(counts.out, self.fmt)
         parts = [
             f"{self.palette.tokens}hit {thit}{self.palette.reset}",
             f"{self.palette.tokens}miss {tmiss}{self.palette.reset}",
@@ -379,7 +400,9 @@ class _RenderState:
         if metrics.token_count(value) is None:
             return None
         return self.styled(
-            f"in {humanize_api_tokens(value)}", self.palette.tokens, "usage"
+            f"in {preferences.number(value, self.fmt, humanize_api_tokens)}",
+            self.palette.tokens,
+            "usage",
         )
 
     def output_tokens(self):
@@ -388,7 +411,7 @@ class _RenderState:
         if metrics.token_count(value) is None:
             return None
         return self.styled(
-            f"out {humanize_api_tokens(value)}",
+            f"out {preferences.number(value, self.fmt, humanize_api_tokens)}",
             self.palette.tokens,
             "usage",
         )
@@ -396,7 +419,9 @@ class _RenderState:
     def spend_metric(self, item):
         window = metrics.live_rate_window(self.data, "spend_limit", self.now())
         return self.styled(
-            metrics.spend_metric(window, item), self.palette.percentage, "limits"
+            metrics.spend_metric(window, item, self.fmt),
+            self.palette.percentage,
+            "limits",
         )
 
     def prompt_timer(self):
@@ -456,7 +481,9 @@ class _RenderState:
         return self.styled(f"Style {value}" if value else None, self.palette.model)
 
     def cache_metric(self, item):
-        text = metrics.cache_metric(self.data.get("prompt_cache"), item, self.now())
+        text = metrics.cache_metric(
+            self.data.get("prompt_cache"), item, self.now(), self.fmt
+        )
         return self.styled(text, self.palette.tokens, "usage")
 
     def cost(self):
@@ -469,7 +496,9 @@ class _RenderState:
         usd = float(usd)
         if not math.isfinite(usd):
             return None
-        parts = [f"{self.palette.percentage}Total ${usd:.2f}{self.palette.reset}"]
+        parts = [
+            f"{self.palette.percentage}Total ${preferences.money(usd, self.fmt)}{self.palette.reset}"
+        ]
         duration_ms = cost.get("total_duration_ms")
         if (
             not isinstance(duration_ms, bool)
@@ -502,7 +531,7 @@ class _RenderState:
             parts.append(
                 f"{self.palette.tokens}cache {round(ratio * 100)}%{self.palette.reset}"
             )
-        written = rendering_formatters.humanize_tokens(cache.get("cache_write_tokens"))
+        written = preferences.number(cache.get("cache_write_tokens"), self.fmt)
         if written and written != "0":
             parts.append(f"{self.palette.tokens}{written} w{self.palette.reset}")
         if not parts:
@@ -580,6 +609,36 @@ class _RenderState:
         )
 
     def render(self, item_id):
+        self.fmt, options = preferences.options_for(self.config, item_id)
+        item = self._render(item_id)
+        if item is None:
+            return None
+        text = item.text
+        used = None
+        if item_id in ("context-used", "context-remaining"):
+            context = self.data.get("context_window", {})
+            used = metrics.finite_number(context.get("used_percentage"))
+            if used is None:
+                remaining = metrics.finite_number(context.get("remaining_percentage"))
+                used = (
+                    100 - remaining
+                    if remaining is not None and remaining <= 100
+                    else None
+                )
+        elif item_id in _RATE_LIMIT_ITEMS:
+            window = metrics.live_rate_window(
+                self.data, _RATE_LIMIT_ITEMS[item_id][0], self.now()
+            )
+            used = (
+                metrics.finite_number(window.get("used_percentage")) if window else None
+            )
+        text = preferences.threshold(
+            text, used, self.fmt, self.config, self.palette.percentage
+        )
+        text = preferences.decorate(text, item_id, "main", self.fmt, options)
+        return replace(item, text=text)
+
+    def _render(self, item_id):
         if item_id in _SPEND_ITEMS:
             return self.spend_metric(item_id)
         if item_id in _CACHE_ITEMS:

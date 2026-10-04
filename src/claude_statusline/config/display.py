@@ -8,12 +8,13 @@ from pathlib import Path
 from typing import Any
 from claude_statusline.platforms import files as platform_files
 from claude_statusline.config import catalog
+from claude_statusline.config import formatting as display_formatting
 
 
 LEGACY_SCHEMA_VERSION = 1
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 CONFIG_FILENAME = "claude-statusline.json"
@@ -51,7 +52,7 @@ V1_DISPLAY_KEYS = frozenset(
 )
 
 
-DISPLAY_KEYS = frozenset(
+V2_DISPLAY_KEYS = frozenset(
     {
         *V1_DISPLAY_KEYS,
         "scope_labels",
@@ -60,7 +61,19 @@ DISPLAY_KEYS = frozenset(
 )
 
 
-SUBAGENT_KEYS = frozenset({"enabled", "items"})
+DISPLAY_KEYS = V2_DISPLAY_KEYS | {"formatting", "item_options", "layout"}
+
+SUBAGENT_KEYS = frozenset(
+    {
+        "enabled",
+        "items",
+        "item_options",
+        "visibility",
+        "hide_completed",
+        "row_limit",
+        "task_max_width",
+    }
+)
 
 
 class DisplayConfigError(RuntimeError):
@@ -72,8 +85,24 @@ class SubagentDisplayConfig:
     enabled: bool = True
     items: tuple[str, ...] = DEFAULT_SUBAGENT_ITEMS
 
+    item_options: dict[str, display_formatting.ItemOptions] = field(
+        default_factory=dict
+    )
+    visibility: str = "all"
+    hide_completed: bool = False
+    row_limit: int | None = None
+    task_max_width: int | None = None
+
     def to_dict(self) -> dict[str, Any]:
-        return {"enabled": self.enabled, "items": list(self.items)}
+        return {
+            "enabled": self.enabled,
+            "items": list(self.items),
+            "item_options": {k: v.to_dict() for k, v in self.item_options.items()},
+            "visibility": self.visibility,
+            "hide_completed": self.hide_completed,
+            "row_limit": self.row_limit,
+            "task_max_width": self.task_max_width,
+        }
 
     def with_updates(self, **updates: Any) -> SubagentDisplayConfig:
         return validate_subagent_config(replace(self, **updates).to_dict())
@@ -90,6 +119,14 @@ class DisplayConfig:
     scope_labels: str = "when-subagents"
     subagents: SubagentDisplayConfig = field(default_factory=SubagentDisplayConfig)
 
+    formatting: display_formatting.Formatting = field(
+        default_factory=display_formatting.Formatting
+    )
+    item_options: dict[str, display_formatting.ItemOptions] = field(
+        default_factory=dict
+    )
+    layout: display_formatting.Layout = field(default_factory=display_formatting.Layout)
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
@@ -100,9 +137,14 @@ class DisplayConfig:
             "separator_style": self.separator_style,
             "scope_labels": self.scope_labels,
             "subagents": self.subagents.to_dict(),
+            "formatting": self.formatting.to_dict(),
+            "item_options": {k: v.to_dict() for k, v in self.item_options.items()},
+            "layout": self.layout.to_dict(),
         }
 
     def with_updates(self, **updates: Any) -> DisplayConfig:
+        if "items" in updates and "layout" not in updates:
+            updates["layout"] = self.layout.reordered(updates["items"])
         return validate_display_config(replace(self, **updates).to_dict())
 
 
@@ -173,10 +215,31 @@ def validate_subagent_config(data: Any) -> SubagentDisplayConfig:
     enabled = data.get("enabled")
     if not isinstance(enabled, bool):
         raise DisplayConfigError("subagents.enabled must be true or false")
-    return SubagentDisplayConfig(
-        enabled=enabled,
-        items=validate_subagent_items(data.get("items")),
-    )
+    try:
+        if (
+            data["visibility"] not in ("all", "running")
+            or type(data["hide_completed"]) is not bool
+        ):
+            raise ValueError(
+                "subagent visibility must be all/running and hide_completed a boolean"
+            )
+        return SubagentDisplayConfig(
+            enabled=enabled,
+            items=validate_subagent_items(data.get("items")),
+            item_options=display_formatting.item_options(
+                data["item_options"], SUBAGENT_ITEM_CATALOG
+            ),
+            visibility=data["visibility"],
+            hide_completed=data["hide_completed"],
+            row_limit=display_formatting.integer(
+                data["row_limit"], 0, 10000, "row_limit", nullable=True
+            ),
+            task_max_width=display_formatting.integer(
+                data["task_max_width"], 2, 10000, "task_max_width", nullable=True
+            ),
+        )
+    except ValueError as exc:
+        raise DisplayConfigError(str(exc)) from exc
 
 
 def validate_display_config(data: Any) -> DisplayConfig:
@@ -185,19 +248,23 @@ def validate_display_config(data: Any) -> DisplayConfig:
     version = data.get("schema_version")
     if isinstance(version, bool) or not isinstance(version, int):
         raise DisplayConfigError(
-            f"schema_version must be 1 or {SCHEMA_VERSION}; found {version!r}"
+            f"schema_version must be 1, 2 or {SCHEMA_VERSION}; found {version!r}"
         )
     if version > SCHEMA_VERSION:
         raise DisplayConfigError(
             f"schema_version {version} is newer than supported version {SCHEMA_VERSION}"
         )
-    if version not in (LEGACY_SCHEMA_VERSION, SCHEMA_VERSION):
+    if version not in (1, 2, SCHEMA_VERSION):
         raise DisplayConfigError(
-            f"schema_version must be 1 or {SCHEMA_VERSION}; found {version!r}"
+            f"schema_version must be 1, 2 or {SCHEMA_VERSION}; found {version!r}"
         )
 
     expected_keys = (
-        V1_DISPLAY_KEYS if version == LEGACY_SCHEMA_VERSION else DISPLAY_KEYS
+        V1_DISPLAY_KEYS
+        if version == 1
+        else V2_DISPLAY_KEYS
+        if version == 2
+        else DISPLAY_KEYS
     )
     unknown = sorted(set(data) - expected_keys)
     if unknown:
@@ -214,7 +281,34 @@ def validate_display_config(data: Any) -> DisplayConfig:
     if not isinstance(use_colors, bool):
         raise DisplayConfigError("use_colors must be true or false")
 
+    items = validate_items(data.get("items"))
+    try:
+        fmt = (
+            display_formatting.Formatting.parse(data["formatting"])
+            if version == 3
+            else display_formatting.Formatting()
+        )
+        options = (
+            display_formatting.item_options(data["item_options"], ITEM_CATALOG)
+            if version == 3
+            else {}
+        )
+        layout = (
+            display_formatting.Layout.parse(data["layout"], items)
+            if version == 3
+            else display_formatting.Layout()
+        )
+    except ValueError as exc:
+        raise DisplayConfigError(str(exc)) from exc
+    subagents = data.get("subagents")
+    if version == 2:
+        if not isinstance(subagents, dict) or set(subagents) != {"enabled", "items"}:
+            raise DisplayConfigError("v2 subagents requires exactly enabled and items")
+        subagents = {**SubagentDisplayConfig().to_dict(), **subagents}
     return DisplayConfig(
+        formatting=fmt,
+        item_options=options,
+        layout=layout,
         schema_version=SCHEMA_VERSION,
         items=validate_items(data.get("items")),
         use_colors=use_colors,
@@ -233,7 +327,7 @@ def validate_display_config(data: Any) -> DisplayConfig:
         subagents=(
             SubagentDisplayConfig()
             if version == LEGACY_SCHEMA_VERSION
-            else validate_subagent_config(data.get("subagents"))
+            else validate_subagent_config(subagents)
         ),
     )
 
