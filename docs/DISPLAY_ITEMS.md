@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The current source catalog contains 44 main and 14 subagent items. The independent
+The current source catalog contains 48 main and 14 subagent items. The independent
 items below are opt-in. Existing defaults and compound IDs remain available,
 and compounds may be selected alongside their individual components in any order.
 See the [user guide](USER_GUIDE.md) for the original items and all configuration entry points.
@@ -31,6 +31,10 @@ See the [user guide](USER_GUIDE.md) for the original items and all configuration
 | `git-branch` | `Git main` | Existing local Git branch collection, including `HEAD@<hash>` while detached. |
 | `git-changes` | `Git ~2 ?1` | Staged, unstaged, conflicted and untracked file counts; a known clean worktree shows `Git clean`. |
 | `git-ahead-behind` | `Git ↑1 ↓0` | Difference from configured upstream; synchronized upstream shows zeros, missing upstream hides the item and removed upstream shows `[gone]`. |
+| `spend-amount` | `Spend $31.50 / $350.00` | Optional estimated gateway `used_usd` / `limit_usd`; both must be available. |
+| `spend-period` | `Spend monthly` | Optional gateway `period`: daily, weekly or monthly. |
+| `input-tokens` | `in 1.29M` | Recorded cumulative uncached input + cache writes + cache reads, using raw integers from the same main/subagent session statistics as `tokens`. |
+| `output-tokens` | `out 22.4K` | Recorded cumulative output from the same all-session statistics. |
 
 ## Subagent items
 
@@ -46,6 +50,10 @@ data; main-session values do not fill missing agent fields. Existing agent
 `tokens` means context occupancy, not cumulative API consumption.
 
 ## Clocks, availability and scope
+
+Gateway dollar/period fields require both Claude Code and gateway 2.1.284+. They can be absent, including when nonessential traffic is disabled. Amounts are estimates collected separately, potentially about five minutes behind percentage updates; never derive one from the other. Expired windows hide all their fields.
+
+Cumulative input/output use the existing cost-state snapshot plus transcript deltas, message-ID deduplication and main/nested-agent scope. They sum integers before abbreviation; current-context fields are not cumulative counters. No valid recorded usage means unavailable; an observed all-zero response shows zero. The formatted collector interface remains unchanged; raw snapshots require no additional I/O.
 
 Cache fields require Claude Code 2.1.251+. Cache warmth reports local TTL, not a guarantee of the next server cache hit; request/miss statistics cover only the main conversation. Detailed miss causes remain a later extension. Git components and the compound reuse one cached collector result per refresh.
 

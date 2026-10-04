@@ -145,3 +145,22 @@ def cache_metric(cache: object, item: str, now: float) -> str | None:
     if item == "cache-state":
         return "Cache warm" if remaining else "Cache cold"
     return f"Cache TTL {remaining}" if remaining else None
+
+
+def spend_metric(window: object, item: str) -> str | None:
+    if not isinstance(window, dict):
+        return None
+    if item == "spend-period":
+        period = window.get("period")
+        return (
+            f"Spend {period}"
+            if isinstance(period, str) and period in ("daily", "weekly", "monthly")
+            else None
+        )
+    used = finite_number(window.get("used_usd"))
+    limit = finite_number(window.get("limit_usd"))
+    return (
+        f"Spend ${used:.2f} / ${limit:.2f}"
+        if used is not None and limit is not None
+        else None
+    )

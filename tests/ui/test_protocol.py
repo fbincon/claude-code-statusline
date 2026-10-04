@@ -63,7 +63,7 @@ class ProtocolTests(unittest.TestCase):
         ):
             result, status = self.request("describe")
         self.assertEqual(status, 0)
-        self.assertEqual(len(result["result"]["catalog"]), 58)
+        self.assertEqual(len(result["result"]["catalog"]), 62)
         caps = result["result"]["capabilities"]
         self.assertEqual(caps["native_mod"], "unknown")
         self.assertEqual(caps["data_observation"], "not_observed")
@@ -94,6 +94,12 @@ class ProtocolTests(unittest.TestCase):
 
     def test_preview_reuses_production_formatting_without_live_sources(self):
         value = draft()
+        value["display"]["items"] = list(display.ITEM_CATALOG)
+        value["display"]["subagents"]["items"] = [
+            item
+            for item in display.SUBAGENT_ITEM_CATALOG
+            if item not in ("status", "elapsed")
+        ]
         for colors in (True, False):
             value["display"]["use_colors"] = colors
             for width in (2, 24, 80, 120):

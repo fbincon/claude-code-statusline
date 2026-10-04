@@ -3,12 +3,65 @@
 from __future__ import annotations
 
 import hashlib
+import math
 import os
+from dataclasses import dataclass
 from claude_statusline.rendering import formatters as rendering_formatters
 from claude_statusline.rendering import items as rendering_items
 from claude_statusline.runtime import cache as runtime_cache
 from claude_statusline.runtime import paths as runtime_paths
 from claude_statusline.runtime import transcript as runtime_transcript
+
+
+@dataclass(frozen=True)
+class SessionTokenCounts:
+    """Observed integer totals, using the same all-session accounting as tokens."""
+
+    hit: int
+    miss: int
+    out: int
+
+    @property
+    def input_tokens(self):
+        return self.hit + self.miss
+
+
+def _has_usage(usage, fields):
+    return isinstance(usage, dict) and any(
+        isinstance(usage.get(field), int)
+        and not isinstance(usage[field], bool)
+        and usage[field] >= 0
+        for field in fields
+    )
+
+
+def session_token_counts(entry):
+    """Extract one raw snapshot from collected state, without I/O or rounding.
+
+    A missing observation is None; an observed all-zero response is a snapshot.
+    Counts include cached input, uncached/written input and agent transcripts.
+    """
+    if not isinstance(entry, dict):
+        return None
+    records = entry.get("ids", {})
+    snapshot = entry.get("api_snapshot")
+    base = entry.get("base", {})
+    observed = (
+        isinstance(records, dict)
+        and any(_has_usage(rec, runtime_paths._BASE) for rec in records.values())
+        or _has_usage(snapshot, ("hit", "miss", "out"))
+        or isinstance(base, dict)
+        and any(_usage_int(value) > 0 for value in base.values())
+    )
+    if not observed:
+        return None
+    raw = _display_usage_totals(entry)
+    try:
+        if not all(math.isfinite(value) and value >= 0 for value in raw.values()):
+            return None
+    except (TypeError, OverflowError):
+        return None
+    return SessionTokenCounts(raw["hit"], raw["miss"], raw["out"])
 
 
 def _parse_usage(lines):
@@ -27,7 +80,15 @@ def _parse_usage(lines):
         if not isinstance(mid, str) or not mid:
             continue  # cannot attribute usage: skip this snapshot
         usage = msg.get("usage")
-        if not isinstance(usage, dict):
+        if not _has_usage(
+            usage,
+            (
+                "input_tokens",
+                "output_tokens",
+                "cache_creation_input_tokens",
+                "cache_read_input_tokens",
+            ),
+        ):
             continue  # snapshot without usage: a later one fills it in
         rec = out.setdefault(mid, dict(runtime_paths._BASE))
         for key, field in (
@@ -68,7 +129,15 @@ def _parse_cost_snapshot(lines):
         hit = miss = out = 0
         valid_models = 0
         for usage in model_usage.values():
-            if not isinstance(usage, dict):
+            if not _has_usage(
+                usage,
+                (
+                    "inputTokens",
+                    "outputTokens",
+                    "cacheCreationInputTokens",
+                    "cacheReadInputTokens",
+                ),
+            ):
                 continue
             valid_models += 1
             hit += _usage_int(usage.get("cacheReadInputTokens"))

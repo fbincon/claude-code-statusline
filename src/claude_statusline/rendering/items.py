@@ -35,10 +35,13 @@ def _live_directory(data):
 def humanize_api_tokens(v):
     try:
         v = int(v)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return "0"
     if v >= 1_000_000:
-        value = f"{v / 1_000_000:.2f}".rstrip("0").rstrip(".")
+        try:
+            value = f"{v / 1_000_000:.2f}".rstrip("0").rstrip(".")
+        except OverflowError:
+            return "0"
         return value + "M"
     if v >= 1000:
         return f"{v / 1000:.1f}K"
@@ -98,6 +101,8 @@ _ITEM_METHODS = {
     "context-window-size": "context_window_size",
     "context-tokens": "context_tokens",
     "tokens": "tokens",
+    "input-tokens": "input_tokens",
+    "output-tokens": "output_tokens",
     "prompt-timer": "prompt_timer",
     "version": "version",
     "session": "session",
@@ -131,6 +136,7 @@ _RESET_ITEMS = {
 _SESSION_METRICS = {"session-cost", "session-duration", "api-duration", "lines-changed"}
 _CACHE_ITEMS = {"cache-state", "cache-expires", "cache-misses", "api-requests"}
 _GIT_ITEMS = {"git-branch", "git-changes", "git-ahead-behind"}
+_SPEND_ITEMS = {"spend-amount", "spend-period"}
 
 
 class _RenderState:
@@ -144,6 +150,7 @@ class _RenderState:
         self.live_dir = _live_directory(data)
         self._git = _NOT_LOADED
         self._totals = _NOT_LOADED
+        self._counts = _NOT_LOADED
         self._now = None
 
     def now(self):
@@ -162,6 +169,14 @@ class _RenderState:
         if self._totals is _NOT_LOADED:
             self._totals = runtime_usage.session_token_totals(self.data)
         return self._totals
+
+    def raw_totals(self):
+        if self._counts is _NOT_LOADED:
+            totals = self.totals()
+            self._counts = (
+                runtime_usage.session_token_counts(totals[4]) if totals else None
+            )
+        return self._counts
 
     def had_subagents(self):
         session_id = rendering_formatters.deep_get(self.data, ("session_id",))
@@ -358,6 +373,29 @@ class _RenderState:
         ]
         return _RenderedItem(self.inner_separator.join(parts), group="usage")
 
+    def input_tokens(self):
+        counts = self.raw_totals()
+        value = counts.input_tokens if counts is not None else None
+        if metrics.token_count(value) is None:
+            return None
+        return self.styled(
+            f"in {humanize_api_tokens(value)}", self.palette.tokens, "usage"
+        )
+
+    def output_tokens(self):
+        counts = self.raw_totals()
+        return self.styled(
+            f"out {humanize_api_tokens(counts.out)}" if counts is not None else None,
+            self.palette.tokens,
+            "usage",
+        )
+
+    def spend_metric(self, item):
+        window = metrics.live_rate_window(self.data, "spend_limit", self.now())
+        return self.styled(
+            metrics.spend_metric(window, item), self.palette.percentage, "limits"
+        )
+
     def prompt_timer(self):
         totals = self.totals()
         if not totals:
@@ -539,6 +577,8 @@ class _RenderState:
         )
 
     def render(self, item_id):
+        if item_id in _SPEND_ITEMS:
+            return self.spend_metric(item_id)
         if item_id in _CACHE_ITEMS:
             return self.cache_metric(item_id)
         if item_id in _GIT_ITEMS:
