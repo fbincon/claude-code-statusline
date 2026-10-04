@@ -752,7 +752,7 @@ def configured_rows(data, config, width, state_class=_RenderState):
             index = min(
                 range(len(selected)),
                 key=lambda n: (
-                    101
+                    -1  # The scope decoration must not displace the last real item.
                     if selected[n][0] is None
                     else preferences.options_for(config, selected[n][0])[1].priority,
                     -n,
