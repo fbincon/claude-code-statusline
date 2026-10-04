@@ -527,7 +527,10 @@ def integrate(
             _cache_owned(config_dir, row, marker)
         if not requested or uninstall:
             if row:
-                host.run("uninstall", PLUGIN, "--scope", "user", "--json")
+                # Removal also runs after a host downgrade. Older hosts support
+                # these operations without the newer machine-readable flag;
+                # listing below independently verifies each result.
+                host.run("uninstall", PLUGIN, "--scope", "user")
                 changed = True
                 if any(value.get("id") == PLUGIN for value in host.listing()[1]):
                     raise PluginError(
@@ -535,7 +538,7 @@ def integrate(
                     )
             if registration:
                 host.run(
-                    "marketplace", "remove", MARKETPLACE, "--scope", "user", "--json"
+                    "marketplace", "remove", MARKETPLACE, "--scope", "user"
                 )
                 changed = True
                 if any(value.get("name") == MARKETPLACE for value in host.listing()[0]):
@@ -591,7 +594,7 @@ def integrate(
         if row and staged and row.get("version") == current["mod_version"]:
             # Official update is a no-op at the same version. Reinstall only
             # after verifying every owned cached runtime resource above.
-            host.run("uninstall", PLUGIN, "--scope", "user", "--json")
+            host.run("uninstall", PLUGIN, "--scope", "user")
             row = None
         if row:
             if staged:

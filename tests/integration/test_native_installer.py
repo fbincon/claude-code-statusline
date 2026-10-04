@@ -376,6 +376,30 @@ class NativeInstallerTests(unittest.TestCase):
                         ).changed
                     )
 
+    def test_old_host_disable_and_uninstall_use_supported_cli_options(self):
+        self.install()
+        original_run = self.host.run
+
+        def old_host_run(*args, **kwargs):
+            if args[0] == "uninstall" or args[:2] == ("marketplace", "remove"):
+                if "--json" in args:
+                    raise native.PluginError("unknown option '--json'")
+            return original_run(*args, **kwargs)
+
+        with mock.patch.object(self.host, "run", side_effect=old_host_run):
+            result = self.install(native_editor=False, claude_version=(2, 1, 258))
+            self.assertFalse(result.native_failed)
+            self.assertEqual(result.native_state, "disabled")
+            self.assertFalse((self.config / native.DIRECTORY).exists())
+            self.assertTrue(resources.experimental_skill_paths(self.config)[0].exists())
+            self.assertFalse(preference.requested(self.config, None))
+            self.install(native_editor=True)
+            removed = installer.uninstall_configuration(self.config, self.backend)
+            self.assertFalse(removed.native_failed)
+            self.assertFalse((self.config / native.DIRECTORY).exists())
+            self.assertEqual(self.host.plugins, [])
+            self.assertEqual(self.host.markets, [])
+
     def test_version_suspension_rolls_back_settings_if_owner_write_fails(self):
         self.install()
         settings_path = self.config / "settings.json"
