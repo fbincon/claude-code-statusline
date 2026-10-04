@@ -59,3 +59,11 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 [Main](client-main-v1.3.0a2-linux.png) · [Subagents](client-subagents-v1.3.0a2-linux.png) · [Settings](client-settings-v1.3.0a2-linux.png)
 
 三张 PNG 重建 Linux x86_64、Claude Code 2.1.288 交互宿主、后端 1.3.0a2 和持久安装 Mod 的真实终端 cells。固定源码提交 `2ed1f3ae306776caeffe6a27205a4d680cb8e472`，运行时资源与本次候选一致。120×30 PTY 使用私有 tmux server，另验证 80×48 内嵌布局。图片裁去会话、输入区和真实状态栏，Preview 为固定生产样例；不是 OS 像素截图或设计 mockup。图片内嵌提交与原始画面 SHA256，原始数据留在忽略的 `dist/validation/client-a2-fixed-288`。这些自动画面不计为真人验收。2026-10-04 维护者另行确认 a2 在 Linux、Windows、macOS 真人验收通过，未附终端/架构/宿主详细元数据。正式 v1.3.0 沿用其 Client 交互模块，仅更新版本/描述等元数据；图片保留 a2 文件名和原始来源。
+
+### v1.5.0a1 Phase 4 终端重建画面
+
+[逐项格式](client-format-v1.5.0a1-linux.png) · [Layout](client-layout-v1.5.0a1-linux.png) · [紧凑 Layout](client-layout-compact-v1.5.0a1-linux.png) · [预设预览](client-preset-v1.5.0a1-linux.png) · [Claude 偏好](client-preferences-v1.5.0a1-linux.png)
+
+以上 PNG 来自已安装 v1.5.0a1 wheel、Mod 1.5.0-alpha.1、Claude Code 2.1.289 的真实终端单元格，环境为 Linux x86_64／Python 3.14.4。两种持久入口在 120×30／80×48 高级 PTY 中通过。捕获源为干净本地提交 `07804ba23f98396b1bbb67b795efd9ccf8e6fab3`；发布分支重定基后，公开候选 `e978411ab92b99b44cf99d42f8dfce9eba3cf415` 的源文件树完全一致（`ff77dc8b4b0fa3264b2344a38c98a1786b27e0ee`）。图片元数据保留原捕获提交／哈希；运行 Mod 指纹为 `06510b1cbfc9c28c175cb3fc3a2268cb312de93c5e3f128b3e4effa52158ab10`。
+
+重建工具裁去对话／输入框／实时状态和私有路径，紧凑页使用明确的单元格裁剪范围，并保留 CJK 续列背景。Preview 为生产样例。代理检查确认格式／布局／宿主控件与中文可读；画面属于终端重建，不是系统像素截图或人工验收。原始记录仅保留在忽略的 `dist/validation/phase4/preview-candidate-r2-pty`。Linux／Windows Phase 4 及 macOS 可用入口人工验收待确认，macOS Client 输入问题继续保留。

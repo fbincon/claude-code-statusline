@@ -4,6 +4,8 @@
 
 ## 1.5.0a1 - 2026-10-05
 
+- Keep actual content ahead of scope decoration in narrow explicit rows and preserve form selection when enabled items are removed.
+
 - Add complete scoped forms and Layout to both editors, preset/import/export draft actions, and actual-row Claude appearance/time/title/behavior preferences with separate per-row Apply. Validate real curses Ctrl+S without terminal flow-control loss and extend fixed-host CI to Linux 2.1.289.
 
 - Add editable minimal/developer/monitoring/multi-agent presets and versioned portable JSON import/export. Imports validate before saving, exports exclude installation/runtime/Claude preferences and protect existing files and live resources.

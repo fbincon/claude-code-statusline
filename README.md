@@ -111,6 +111,21 @@ See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-repo
 
 </details>
 
+<details>
+<summary>v1.5.0a1: item formats, Layout, presets and Claude preferences (Linux terminal reconstructions)</summary>
+
+![Item format with CJK label](docs/images/client-format-v1.5.0a1-linux.png)
+
+![Explicit Layout and preview](docs/images/client-layout-v1.5.0a1-linux.png)
+
+![Developer preset preview](docs/images/client-preset-v1.5.0a1-linux.png)
+
+![Separate Claude preferences](docs/images/client-preferences-v1.5.0a1-linux.png)
+
+[Compact Layout and capture provenance](docs/images/README.md#v150a1-phase-4-captures). Human Phase 4 acceptance is pending.
+
+</details>
+
 [Image file index](docs/images/README.md)
 
 <details>

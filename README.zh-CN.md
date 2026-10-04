@@ -135,6 +135,21 @@ claude-statusline doctor
 
 当前稳定版为 [**v1.4.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.4.0)，以上平台共用同一个 wheel。晋升 v1.3.0 正式版时，维护者确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过；正式版沿用其 Client 交互。随后基于 Claude Code 2.1.289 的反馈确认 Linux、Windows 可以正常操作，macOS 输入问题仍未解决；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
+<details>
+<summary>v1.5.0a1：逐项格式、Layout、预设与 Claude 偏好（Linux 终端重建）</summary>
+
+![中文逐项标签](docs/images/client-format-v1.5.0a1-linux.png)
+
+![显式 Layout 与预览](docs/images/client-layout-v1.5.0a1-linux.png)
+
+![Developer 预设预览](docs/images/client-preset-v1.5.0a1-linux.png)
+
+![独立 Claude 偏好](docs/images/client-preferences-v1.5.0a1-linux.png)
+
+[紧凑 Layout 与来源说明](docs/images/README.zh-CN.md#v150a1-phase-4-终端重建画面)。Phase 4 人工验收待确认。
+
+</details>
+
 ## 快速安装
 
 先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。下载校验、各平台步骤和源码构建见[使用指南](docs/USER_GUIDE.zh-CN.md#安装-python-包)。

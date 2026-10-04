@@ -109,6 +109,20 @@ def main() -> int:
             return "#" + value
         return colors["default"]
 
+    # Paint backgrounds first, including wide-character continuation cells.
+    # Later cell backgrounds must not erase the second half of a CJK glyph.
+    for row in range(end):
+        for column in range(first, first + columns):
+            cell = cells[row][column]
+            x, y = 12 + (column - first) * width, 12 + row * height
+            bg = (
+                color(cell["fg"])
+                if cell["reverse"]
+                else color(cell["bg"])
+                if cell["bg"] != "default"
+                else "#17191e"
+            )
+            draw.rectangle((x, y, x + width, y + height), fill=bg)
     for row in range(end):
         for column in range(first, first + columns):
             cell = cells[row][column]
@@ -121,7 +135,6 @@ def main() -> int:
             )
             if cell["reverse"]:
                 fg, bg = bg, fg
-            draw.rectangle((x, y, x + width, y + height), fill=bg)
             selected = (
                 symbols
                 if "\u23f1" in cell["data"]
