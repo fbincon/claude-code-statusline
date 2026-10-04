@@ -57,7 +57,9 @@ class ConfiguredRenderingTests(unittest.TestCase):
             set(rendering_items._ITEM_METHODS)
             | set(rendering_items._RATE_LIMIT_ITEMS)
             | set(rendering_items._RESET_ITEMS)
-            | rendering_items._SESSION_METRICS,
+            | rendering_items._SESSION_METRICS
+            | rendering_items._CACHE_ITEMS
+            | rendering_items._GIT_ITEMS,
         )
 
     def test_default_order_and_adjacent_groups_preserve_legacy_layout(self):

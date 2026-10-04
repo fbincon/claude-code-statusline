@@ -63,7 +63,7 @@ class ProtocolTests(unittest.TestCase):
         ):
             result, status = self.request("describe")
         self.assertEqual(status, 0)
-        self.assertEqual(len(result["result"]["catalog"]), 47)
+        self.assertEqual(len(result["result"]["catalog"]), 58)
         caps = result["result"]["capabilities"]
         self.assertEqual(caps["native_mod"], "unknown")
         self.assertEqual(caps["data_observation"], "not_observed")

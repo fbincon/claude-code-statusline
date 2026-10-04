@@ -196,5 +196,179 @@ class DisplayMetricsTests(unittest.TestCase):
         self.assertIn("API 1m 15s", "\n".join(rows))
 
 
+BATCH_B = (
+    "cache-state",
+    "cache-expires",
+    "cache-misses",
+    "api-requests",
+    "output-style",
+    "session-name",
+    "session-id",
+    "session-id-short",
+    "git-branch",
+    "git-changes",
+    "git-ahead-behind",
+)
+
+
+class CacheSessionGitTests(unittest.TestCase):
+    def test_missing_fields_are_hidden_and_new_items_are_opt_in(self):
+        self.assertEqual(render({}, *BATCH_B), "")
+        for item in BATCH_B:
+            self.assertIsNone(catalog.BY_SCOPE["main"][item].default_position)
+        for item in (
+            "prompt-cache",
+            "cache-state",
+            "cache-expires",
+            "cache-misses",
+            "api-requests",
+        ):
+            self.assertEqual(catalog.BY_SCOPE["main"][item].minimum_version, "2.1.251")
+
+    def test_cache_warmth_cools_at_expiry_and_unknown_is_distinct(self):
+        cache = {"warm": True, "caching_observed": True, "expires_at": NOW + 260}
+        data = {"prompt_cache": cache}
+        self.assertEqual(
+            render(data, "cache-state", "cache-expires"),
+            "Cache warm · Cache TTL 4m 20s",
+        )
+        for expires in (NOW, NOW - 1):
+            cache["expires_at"] = expires
+            self.assertEqual(render(data, "cache-state", "cache-expires"), "Cache cold")
+        for expires in (None, True, "later", float("nan"), float("inf"), -1, 10**1000):
+            cache["expires_at"] = expires
+            self.assertEqual(render(data, "cache-state", "cache-expires"), "")
+        cache.update(expires_at=NOW + 260, warm=False)
+        self.assertEqual(render(data, "cache-state", "cache-expires"), "Cache cold")
+        cache["caching_observed"] = False
+        self.assertEqual(
+            render(data, "cache-state", "cache-expires"), "Cache unobserved"
+        )
+        cache.clear()
+        self.assertEqual(render(data, "cache-state", "cache-expires"), "")
+
+    def test_cache_counts_are_official_main_counts_not_transcript_estimates(self):
+        data = {
+            "prompt_cache": {"misses": 0, "requests": 14, "expected_rebuilds": 8},
+            "context_window": {"total_input_tokens": 999999},
+        }
+        with mock.patch.object(
+            usage, "session_token_totals", side_effect=AssertionError("transcript")
+        ):
+            self.assertEqual(
+                render(data, "cache-misses", "api-requests"),
+                "Cache miss 0 · API requests 14",
+            )
+        for bad in (None, True, "2", -1, 1.5, float("nan"), float("inf"), 10**1000):
+            data["prompt_cache"] = {"misses": bad, "requests": bad}
+            self.assertEqual(render(data, "cache-misses", "api-requests"), "")
+
+    def test_named_short_full_session_and_style_are_independent(self):
+        data = {
+            "session_name": "中文 Demo",
+            "session_id": "abcdefgh-1234-5678",
+            "output_style": {"name": "Explanatory"},
+        }
+        self.assertEqual(
+            render(
+                data,
+                "session",
+                "session-name",
+                "session-id-short",
+                "session-id",
+                "output-style",
+            ),
+            "Session 中文 Demo | Session 中文 Demo | ID abcdefgh | ID abcdefgh-1234-5678 | Style Explanatory",
+        )
+        del data["session_name"]
+        self.assertEqual(
+            render(data, "session", "session-name", "session-id"),
+            "Session abcdefgh | ID abcdefgh-1234-5678",
+        )
+        self.assertEqual(
+            render(
+                {"session_name": 42, "session_id": False, "output_style": {"name": []}},
+                "session-name",
+                "session-id",
+                "output-style",
+            ),
+            "",
+        )
+        self.assertNotIn("\n", render({"session_name": "中文\nDemo"}, "session-name"))
+
+    def test_git_components_and_compound_share_one_collection(self):
+        result = {
+            "kind": "ok",
+            "branch": "main",
+            "oid": "abc1234",
+            "upstream": "origin/main",
+            "upstream_gone": False,
+            "ahead": 2,
+            "behind": 3,
+            "staged": 0,
+            "unstaged": 2,
+            "conflicts": 1,
+            "untracked": 1,
+        }
+        data = {"cwd": "/fixture", "session_id": "test-session"}
+        with mock.patch.object(git, "git_status", return_value=result) as collect:
+            self.assertEqual(
+                render(data, "git", "git-branch", "git-changes", "git-ahead-behind"),
+                "Git main ↑2↓3~2!1?1 · Git main · Git ~2 !1 ?1 · Git ↑2 ↓3",
+            )
+            collect.assert_called_once_with("/fixture", "test-session")
+        result.update(ahead=0, behind=0, unstaged=0, conflicts=0, untracked=0)
+        with mock.patch.object(git, "git_status", return_value=result):
+            self.assertEqual(
+                render(data, "git-changes", "git-ahead-behind"), "Git clean · Git ↑0 ↓0"
+            )
+            result["upstream"] = None
+            self.assertEqual(render(data, "git-ahead-behind"), "")
+            result.update(upstream="origin/main", upstream_gone=True)
+            self.assertEqual(render(data, "git-ahead-behind"), "Git [gone]")
+            result["branch"] = "HEAD@abc1234"
+            self.assertEqual(render(data, "git-branch"), "Git HEAD@abc1234")
+        with mock.patch.object(git, "git_status", return_value={"kind": "not_repo"}):
+            self.assertEqual(
+                render(data, "git-branch", "git-changes", "git-ahead-behind"), ""
+            )
+        with mock.patch.object(git, "git_status", return_value={"kind": "error"}):
+            self.assertEqual(render(data, "git-changes"), "Git!")
+
+    def test_all_new_preview_values_are_fixed_without_collection(self):
+        config = display.DEFAULT_CONFIG.with_updates(
+            items=BATCH_B, scope_labels="off", use_colors=False
+        )
+        with (
+            mock.patch.object(
+                items.time, "time", side_effect=AssertionError("live clock")
+            ),
+            mock.patch.object(
+                git, "git_status", side_effect=AssertionError("live Git")
+            ),
+            mock.patch.object(
+                usage,
+                "session_token_totals",
+                side_effect=AssertionError("live transcript"),
+            ),
+        ):
+            rows = preview.render_preview_rows(config, 1000)
+        text = "\n".join(rows)
+        for value in (
+            "Cache warm",
+            "Cache TTL 4m 20s",
+            "Cache miss 2",
+            "API requests 14",
+            "Style Default",
+            "Session demo-session",
+            "ID demo-session",
+            "ID demo-ses",
+            "Git feature/statusline-tui",
+            "Git ~2 ?1",
+            "Git ↑1 ↓0",
+        ):
+            self.assertIn(value, text)
+
+
 if __name__ == "__main__":
     unittest.main()

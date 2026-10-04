@@ -249,6 +249,7 @@ Display preferences, feature preferences, caches and backups remain; see [uninst
 
 ## Documentation and help
 
+- [Display items and metric definitions](docs/DISPLAY_ITEMS.md).
 - [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Changelog](CHANGELOG.md).
 - [Native editor development and acceptance](docs/development/native.md) · [Architecture](docs/development/architecture.md) · [Shared protocol](docs/development/contracts.md).
 - [Testing and acceptance](docs/development/testing.md) · [Timer metrics](docs/development/timer.md) · [Release guide](docs/RELEASING.md).

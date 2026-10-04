@@ -39,6 +39,17 @@ class PreviewContentTests(unittest.TestCase):
                 "session-duration",
                 "api-duration",
                 "lines-changed",
+                "cache-state",
+                "cache-expires",
+                "cache-misses",
+                "api-requests",
+                "git-branch",
+                "git-changes",
+                "git-ahead-behind",
+                "session-name",
+                "session-id",
+                "session-id-short",
+                "output-style",
             }
         )
         config = config_display.DEFAULT_CONFIG.with_updates(
