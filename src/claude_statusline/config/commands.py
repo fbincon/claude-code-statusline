@@ -8,7 +8,7 @@ import shlex
 from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
-from claude_statusline.config import catalog
+from claude_statusline.config import catalog, advanced
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 
@@ -166,6 +166,15 @@ def add_config_parser(subparsers) -> argparse.ArgumentParser:
     apply_parser.add_argument("--subagent-statusline", choices=("on", "off"))
     apply_parser.add_argument("--scope-labels", choices=config_display.SCOPE_LABELS)
 
+    item = actions.add_parser("item", help="set one scoped item format/priority/width")
+    item.add_argument("scope", choices=("main", "subagent"))
+    item.add_argument("item")
+    item.add_argument("option")
+    item.add_argument("value")
+    layout = actions.add_parser("layout", help="select auto layout or explicit comma-separated rows")
+    layout.add_argument("mode", choices=("auto", "explicit"))
+    layout.add_argument("rows", nargs="*")
+
     actions.add_parser("reset", help="restore display and host defaults")
     return parser
 
@@ -319,6 +328,12 @@ def execute_config_namespace(
             subagent_statusline=args.subagent_statusline,
             scope_labels=args.scope_labels,
         )
+    elif action in ("item", "layout"):
+        def mutate(display, settings, host, installed):
+            updated = (advanced.edit_item(display, args.scope, args.item, args.option, args.value)
+                       if action == "item" else advanced.edit_layout(display, args.mode, [row.split(",") for row in args.rows]))
+            return updated, config_models._UNCHANGED
+        result = config_service.mutate_configuration(config_dir, executable, "config-" + action, mutate)
     elif action == "reset":
         result = config_service.reset_configuration(config_dir, executable)
     else:

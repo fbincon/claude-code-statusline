@@ -119,6 +119,22 @@ def _render_styled_units(units):
     return "".join(output)
 
 
+def truncate_styled(text, width):
+    """Clip terminal cells while preserving combining units and color resets."""
+    if _display_width(text) <= width:
+        return text
+    units = []
+    used = 0
+    for unit in _styled_units(text):
+        if used + unit.width > max(0, width - 1):
+            break
+        units.append(unit)
+        used += unit.width
+    if width > 0:
+        units.append(_StyledUnit("…", 1, units[-1].style if units else ""))
+    return _render_styled_units(units)
+
+
 def _split_ansi_text(text, width, prefer_slashes=False):
     """Split colored text without data loss, optionally preferring path slashes."""
     width = max(MIN_CONTENT_WIDTH, int(width))

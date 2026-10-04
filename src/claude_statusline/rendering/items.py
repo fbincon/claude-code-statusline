@@ -636,6 +636,8 @@ class _RenderState:
             text, used, self.fmt, self.config, self.palette.percentage
         )
         text = preferences.decorate(text, item_id, "main", self.fmt, options)
+        if options.max_width is not None:
+            text = rendering_layout.truncate_styled(text, options.max_width)
         return replace(item, text=text)
 
     def _render(self, item_id):
@@ -710,3 +712,57 @@ def _configured_segments_with_state(data, config, state_class):
         outer_separator,
         palette.reset,
     )
+
+
+def configured_rows(data, config, width, state_class=_RenderState):
+    """One production/preview pipeline; explicit rows never acquire continuations."""
+    if config.layout.mode == "auto":
+        segments, separator, reset = _configured_segments_with_state(
+            data, config, state_class
+        )
+        return rendering_layout._layout_segments(
+            segments, width, separator=separator, reset=reset
+        )
+    width = max(2, width)
+    palette = rendering_palette._palette_for(config)
+    outer, inner = rendering_palette._separators(config, palette)
+    state = state_class(data, config, palette, inner)
+    scope_label = config.scope_labels == "always" or (
+        config.scope_labels == "when-subagents" and state.had_subagents()
+    )
+    rows = []
+    for row in config.layout.rows:
+        selected = [(i, state.render(i)) for i in row]
+        selected = [
+            (i, rendered) for i, rendered in selected if rendered and rendered.text
+        ]
+        if not selected:
+            continue
+        if scope_label and not rows:
+            selected.insert(
+                0, (None, _RenderedItem(f"{palette.timer}Main/Session{palette.reset}"))
+            )
+
+        def join():
+            segments = _coalesce_items([item for _, item in selected], inner)
+            return outer.join(segment.text for segment in segments)
+
+        text = join()
+        while len(selected) > 1 and rendering_layout._display_width(text) > width:
+            index = min(
+                range(len(selected)),
+                key=lambda n: (
+                    101
+                    if selected[n][0] is None
+                    else preferences.options_for(config, selected[n][0])[1].priority,
+                    -n,
+                ),
+            )
+            del selected[index]
+            text = join()
+        rows.append(
+            rendering_layout._ensure_reset(
+                rendering_layout.truncate_styled(text, width), palette.reset
+            )
+        )
+    return rows

@@ -28,12 +28,6 @@ def main():
     except config_display.DisplayConfigError:
         config = config_display.DEFAULT_CONFIG
 
-    segments, separator, reset = rendering_items._configured_segments(data, config)
-    rows = rendering_layout._layout_segments(
-        segments,
-        rendering_layout._terminal_content_width(),
-        separator=separator,
-        reset=reset,
-    )
+    rows = rendering_items.configured_rows(data, config, rendering_layout._terminal_content_width())
     if rows:
         sys.stdout.write("\n".join(rows) + "\n")

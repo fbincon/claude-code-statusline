@@ -1932,3 +1932,19 @@ claude-statusline config set model-name short
 claude-statusline config set number-format grouped
 claude-statusline config set threshold-colors on
 ```
+
+### Explicit layout and subagent visibility
+
+`config layout auto` retains legacy wrapping. Explicit comma-separated rows must flatten to the current item selection in order. `config item main|subagent ID OPTION VALUE` changes label, icon, priority (0–100), max-width (2–10000 or none), or a formatting choice; inherit clears a text/format override. Explicit rows truncate item widths before dropping low priorities, rightmost first on ties, and never add continuation rows.
+
+```bash
+claude-statusline config set-items model current-dir context-used
+claude-statusline config layout explicit model,current-dir context-used
+claude-statusline config item main model priority 100
+claude-statusline config item main current-dir max-width 32
+claude-statusline config set subagent-hide-completed on
+claude-statusline config set subagent-row-limit 6
+claude-statusline config set subagent-task-max-width 48
+```
+
+subagent-visibility accepts all/running. Row/task limits accept none to restore their defaults; row limit 0 hides all custom rows. Hiding completed does not hide failures. Filtering/limits retain host input order and emit empty content for suppressed IDs; omitting an ID would restore its host default.

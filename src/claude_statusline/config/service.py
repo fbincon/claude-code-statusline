@@ -7,6 +7,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
+from claude_statusline.config import advanced
 from claude_statusline.config.formatting import FORMAT_CHOICES
 from claude_statusline.config import host as config_host
 from claude_statusline.config import models as config_models
@@ -400,6 +401,10 @@ def _display_with_option(
     display: config_display.DisplayConfig, option: str, value: Any
 ) -> config_display.DisplayConfig:
     try:
+        if option.startswith("subagent-") and option != "subagent-statusline":
+            return advanced.edit_subagent(
+                display, option.removeprefix("subagent-").replace("-", "_"), value
+            )
         name = option.replace("-", "_")
         if name in FORMAT_CHOICES:
             return display.with_updates(
