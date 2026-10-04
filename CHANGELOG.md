@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 1.4.0 - 2026-10-04
+
 - Add opt-in estimated gateway spend amount/period and cumulative input/output tokens. Sum raw cache-inclusive integers using existing all-session snapshots/deltas and expose unavailable data separately from observed zero. The catalog now has 48 main / 14 subagent items.
 
 - Add eleven opt-in cache/session/Git items: cache warmth/expiry and official main request/miss counts, output style, named/full/short session identity and independent Git fields. Share one Git collection across compound/components and retain unknown versus cold cache state.

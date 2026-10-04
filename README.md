@@ -122,7 +122,7 @@ See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-repo
 - Claude Code 2.1.205+ supports subagent rows; 2.1.258+ supports the external TUI entry and local configuration commands with arguments; 2.1.287+ supports the in-session Client.
 - Unsupported or unrecognized hosts suspend the affected entries; the main status line, standalone TUI, wizard and CLI remain available. Git information requires `git`.
 
-The current stable release is [**v1.3.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0), using the same wheel across platforms. At stable promotion, the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS; stable retains that Client interaction. A later report with Claude Code 2.1.289 confirms normal Linux/Windows interaction but unresolved macOS input problems; see [macOS checks](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [requirements](docs/USER_GUIDE.md#requirements).
+The current stable release is [**v1.4.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.4.0), using the same wheel across platforms. At the v1.3.0 promotion, the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS; stable retains that Client interaction. A later report with Claude Code 2.1.289 confirms normal Linux/Windows interaction but unresolved macOS input problems; see [macOS checks](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [requirements](docs/USER_GUIDE.md#requirements).
 
 <a id="快速安装"></a>
 
@@ -137,7 +137,7 @@ Prepare Python, Claude Code CLI and [pipx](https://pipx.pypa.io/latest/how-to/in
 Bash / Zsh / PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.4.0/claude_code_statusline-1.4.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -148,7 +148,7 @@ pipx ensurepath
 Requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.3.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.4.0"
 pipx ensurepath
 ```
 
@@ -167,7 +167,7 @@ pipx ensurepath
 
 ### Integrate with Claude Code
 
-Reopen the terminal for PATH changes and confirm `claude-statusline 1.3.0`:
+Reopen the terminal for PATH changes and confirm `claude-statusline 1.4.0`:
 
 ```text
 claude-statusline --version
@@ -219,16 +219,18 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
+v1.4.0 provides 48 main and 14 subagent choices; all 28 additions are opt-in. See [independent metrics](docs/DISPLAY_ITEMS.md) for context/cumulative scope, cache/reset expiry and examples.
+
 Configuration applies per user. `set-items` replaces the enabled set; `enable` / `disable` make incremental changes. See [recipes](docs/USER_GUIDE.md#configuration-recipes).
 
 <a id="升级与卸载"></a>
 
 ## Upgrading and uninstalling
 
-Upgrade to v1.3.0:
+Upgrade to v1.4.0:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.4.0/claude_code_statusline-1.4.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
