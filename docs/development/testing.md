@@ -82,7 +82,11 @@ Automated Linux PTYs check initial click, three pages, save/cancel, Esc and cont
 
 On 2026-10-04 the maintainer confirmed a2 Client human acceptance on Linux, Windows and macOS, separately from the earlier a1 result. Stable promotion keeps the accepted interaction; automated checks validate the installation policy and release assets separately. New tests cover both stable defaults, persistent false, boundary versions 2.1.257/258/286/287/288, unknown versions, explicit enablement on old hosts, rollback of version suspension and preserving user plugin disablement. The official installation smoke also checks actual default installation and disablement followed by reinstall. No paid model/timer suite is run.
 
+The v1.4.0 installed wheel from clean `9c9d553` passed core/official-installation smoke and saved the complete scoped catalog. Persistent Linux Claude Code 2.1.289 PTYs passed defaults and a 27-item selection (three existing plus all 24 new main fields) at 120×30 and 80×48. Agent inspection used reconstructed captured cells; `manual_visual_acceptance` remains false. Raw reports stay in ignored dist/validation.
+
 ## Display metric checks and performance
+
+Token-counter regressions also cover partial input/output observations, explicit zero, invalid fields, counter-specific cost-snapshot deltas, nested-agent attribution, collapsed IDs and one-time older-cache recovery without a repeat scan. The final local suite ran 478 tests: 470 passed and eight expected platform skips.
 
 Independent metric tests use fixed clocks, strict missing/zero input, per-scope sources and side-effect-free previews. Git/transcript collectors are lazy and shared within a refresh. Record startup and collection separately using isolated local fixtures (no model calls):
 
@@ -91,3 +95,14 @@ python tools/benchmark_render.py --samples 30 --report dist/validation/display-p
 ```
 
 The default warm mode primes an isolated bytecode directory once; `--bytecode-mode cold` uses an empty directory without writing bytecode. This makes old/new startup measurements comparable even when source files have changed. Compare P50/P95 on the same machine and Python before/after changes; results include the tested commit. Cold transcript cases use distinct sessions; warm cases reuse state. Treat these small fixtures as a reproducible baseline, not a bound on large repositories or session histories.
+
+Measured on Linux x86_64 / Python 3.14.4, 50 samples with isolated warm bytecode: baseline `0670e0d`, completed display code `50eb39f`, identical benchmark SHA256 `8917e61f6e01a3c527fb94054af6c69d99d5d8805416707a48c039bc9054884e`. Small local fixtures and scheduler noise limit conclusions; the render case selects only model-with-effort.
+
+| Metric (ms) | Before P50 / P95 | After P50 / P95 |
+| --- | --- | --- |
+| Python startup | 15.529 / 24.098 | 17.438 / 24.191 |
+| Model-only render process | 48.119 / 59.094 | 50.133 / 59.574 |
+| Git cold | 2.730 / 2.952 | 2.901 / 3.243 |
+| Git warm | 0.010 / 0.016 | 0.036 / 0.048 |
+| Transcript cold | 0.403 / 0.532 | 0.483 / 0.822 |
+| Transcript warm | 0.126 / 0.153 | 0.141 / 0.165 |

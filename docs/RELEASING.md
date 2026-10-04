@@ -20,7 +20,7 @@ Each candidate requires all 13 Python/build and four fixed Mod jobs (Linux 2.1.2
 
 Build from the verified merge commit, inspect wheel/sdist/resource inventories and independent rebuilds, verify fixed-tag installation, draft assets and SHA256, require tag CI, then publish stable as Latest and check public downloads/isolated installs. The sole Mod source supplies runtime assets; exclude dependencies, host declarations and raw reports. Raw evidence stays in ignored dist/validation. Before a Python package downgrade, remove native with the newer package's `install --no-native-editor`.
 
-This promotion keeps accepted UI interaction and changes installation policy/documentation; it does not run paid model/timer suites. Releases changing timer behavior still require separate timer acceptance.
+Display-item releases retain the accepted UI interaction and installation policy; they do not run paid model/timer suites. Releases changing timer behavior still require separate timer acceptance.
 
 ## Prepare the release commit
 
