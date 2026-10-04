@@ -723,7 +723,7 @@ Each JSON item contains:
 
 - `id`: the stable identifier passed to other commands.
 - `description`: a description of the display item.
-- `default_enabled`: whether it is enabled by default. The 10 default items are `true`; `project-name`, `hostname`, `context-used`, `version`, `session`, `cost`, `prompt-cache`, `fast-mode`, `agent`, `vim-mode`, `thinking`, `pr`, `worktree`, and `repo` are `false` (opt-in).
+- `default_enabled`: whether it is enabled by default. The 10 default items are `true`; `project-name`, `hostname`, `context-used`, `version`, `session`, `cost`, `prompt-cache`, `fast-mode`, `agent`, `vim-mode`, `thinking`, `pr`, `worktree`, `repo`, and all 24 new independent main items in v1.4.0 are `false` (opt-in).
 - `enabled`: whether it is currently enabled.
 - `position`: its current zero-based position, or `null` when disabled.
 
@@ -1187,7 +1187,7 @@ The default configuration is equivalent to:
 
 This is strict JSON: comments, trailing commas, unknown or missing fields, unknown items, and duplicates are rejected. Use configuration commands rather than editing it manually.
 
-The 10 items above form the default enabled set. `project-name`, `hostname`, `context-used`, `version`, `session`, `cost`, `prompt-cache`, `fast-mode`, `agent`, `vim-mode`, `thinking`, `pr`, `worktree`, and `repo` are optional and excluded by default; they enter `items` only after `config enable` or selection in the wizard.
+The 10 items above form the default enabled set. `project-name`, `hostname`, `context-used`, `version`, `session`, `cost`, `prompt-cache`, `fast-mode`, `agent`, `vim-mode`, `thinking`, `pr`, `worktree`, `repo`, and all 24 new independent main items in v1.4.0 are optional and excluded by default; they enter `items` only after `config enable` or selection in the wizard.
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](#backups-and-rollback) and [configuration writes and concurrency](#configuration-writes-and-concurrency).
 
