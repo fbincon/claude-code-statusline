@@ -4,8 +4,8 @@ import {
   parseResponse,
   processFailure,
   requestText,
-} from '../lib/backend.ts';
-import { description, output, readResult, reply, sample } from './fixtures.ts';
+} from '../../lib/backend.ts';
+import { description, output, readResult, reply, sample } from '../fixtures.ts';
 
 test('backend errors and protocol mismatches are explicit', () => {
   for (const stdout of [

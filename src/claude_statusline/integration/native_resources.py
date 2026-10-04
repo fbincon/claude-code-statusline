@@ -16,7 +16,11 @@ from claude_statusline.integration.models import ConfigurationError
 def source_files(root: Path) -> dict[str, bytes]:
     paths = [root / ".claude-plugin/plugin.json", root / "hooks/hooks.json"]
     for directory in ("hooks", "lib", "ui"):
-        paths.extend(sorted((root / directory).glob("*.ts")))
+        subtree = root / directory
+        entries = sorted(subtree.rglob("*"))
+        if subtree.is_symlink() or any(path.is_symlink() for path in entries):
+            raise ConfigurationError("Native Mod source contains symlinks")
+        paths.extend(path for path in entries if path.suffix == ".ts")
     if any(not path.is_file() or path.is_symlink() for path in paths):
         raise ConfigurationError("Native Mod source is incomplete or contains symlinks")
     return {path.relative_to(root).as_posix(): path.read_bytes() for path in paths}

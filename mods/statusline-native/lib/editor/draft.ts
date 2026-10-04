@@ -4,10 +4,12 @@ import type {
   Draft,
   ReadResult,
   Scope,
-} from './generated-contracts.ts';
+} from '../generated-contracts.ts';
+import { NUMERIC_FIELDS, numericValue } from './numeric.ts';
+import type { NumericField } from './numeric.ts';
+export type { NumericField } from './numeric.ts';
 
 export type Page = 'main' | 'subagents' | 'settings';
-export type NumericField = 'padding' | 'refresh_interval';
 
 /** Copy wire data without sharing editable arrays with the opening snapshot. */
 export function copyDraft(draft: Draft): Draft {
@@ -33,6 +35,9 @@ export class Editor {
   draft: Draft;
   baseline: ReadResult;
   page: Page = 'main';
+  advanced = false;
+  setting = 'colors';
+  activeNumeric: NumericField | null = null;
   selected: Record<Scope, string>;
   order: Record<Scope, string[]>;
   search: Record<Scope, string> = { main: '', subagent: '' };
@@ -120,10 +125,7 @@ export class Editor {
   }
 
   move(scope: Scope, delta: -1 | 1): boolean {
-    const enabledItems = new Set(this.items(scope));
-    const visible = this.visible(scope)
-      .map((item) => item.id as string)
-      .filter((id) => enabledItems.has(id));
+    const visible = this.visible(scope).map((item) => item.id as string);
     const id = this.selected[scope];
     const index = visible.indexOf(id);
     const target = visible[index + delta];
@@ -140,47 +142,34 @@ export class Editor {
   }
 
   setBuffer(field: NumericField, value: string): void {
+    this.activeNumeric = field;
     this.buffers[field] = value;
     delete this.fieldErrors[field];
   }
 
-  cancelNumeric(): void {
-    for (const field of ['padding', 'refresh_interval'] as const) {
-      this.buffers[field] = String(this.draft.host[field]);
+  cancelNumeric(field?: NumericField): void {
+    for (const key of field ? [field] : NUMERIC_FIELDS) {
+      this.buffers[key] = String(this.draft.host[key]);
+      delete this.fieldErrors[key];
     }
-    this.fieldErrors = {};
+    if (!field || this.activeNumeric === field) this.activeNumeric = null;
   }
 
-  acceptNumeric(): boolean {
+  acceptNumeric(field?: NumericField): boolean {
     const values: Partial<Record<NumericField, number | 'event'>> = {};
-    this.fieldErrors = {};
-    for (const field of ['padding', 'refresh_interval'] as const) {
-      const text = this.buffers[field].trim();
-      const range =
-        field === 'padding'
-          ? this.description.options.padding
-          : this.description.options['refresh-interval'];
-      if (field === 'refresh_interval' && text === 'event') {
-        values[field] = 'event';
-      } else if (
-        /^\d+$/.test(text) &&
-        Number.isSafeInteger(Number(text)) &&
-        Number(text) >= range.minimum &&
-        Number(text) <= range.maximum
-      ) {
-        values[field] = Number(text);
-      } else {
-        this.fieldErrors[field] =
-          `Enter ${range.minimum}-${range.maximum}` +
-          (field === 'refresh_interval' ? ' or event.' : '.');
-      }
+    const fields = field ? [field] : NUMERIC_FIELDS;
+    for (const key of fields) {
+      delete this.fieldErrors[key];
+      const parsed = numericValue(this.description, key, this.buffers[key]);
+      if (parsed.error !== undefined) this.fieldErrors[key] = parsed.error;
+      else values[key] = parsed.value;
     }
-    if (Object.keys(this.fieldErrors).length) return false;
-    this.draft.host.padding = values.padding as number;
-    this.draft.host.refresh_interval = values.refresh_interval as
-      | number
-      | 'event';
-    this.cancelNumeric();
+    if (fields.some((key) => this.fieldErrors[key])) return false;
+    if (values.padding !== undefined)
+      this.draft.host.padding = values.padding as number;
+    if (values.refresh_interval !== undefined)
+      this.draft.host.refresh_interval = values.refresh_interval;
+    this.cancelNumeric(field);
     return true;
   }
 

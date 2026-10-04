@@ -73,3 +73,7 @@ flowchart LR
 本地 ROADMAP 与原始验收记录不进入发行包。发布从固定且已验证的提交导出；包检查覆盖全部正式 Python 模块、兼容入口、资源、测试、工具和双语文档。
 
 另见 [测试](testing.zh-CN.md)、[计时约定](timer.zh-CN.md) 和 [发布指南](../RELEASING.zh-CN.md)。
+
+## 原生编辑器结构
+
+唯一 Mod 维护源为 `mods/statusline-native`：`hooks/` 保留事件注册和宿主 API；`lib/editor/` 负责草稿、导航和数字校验，`lib/` 保留协议桥及生成契约；`ui/components/` 负责列表、分页、预览和操作栏，`ui/pages/` 组合页面，`ui/layout.ts` 分配实际正文宽高。测试按 editor、UI、backend、integration 分组。递归运行打包包含 TypeScript 子目录，排除测试、宿主声明和依赖。Client 探针仅为本地验证证据，不形成第二套维护前端。

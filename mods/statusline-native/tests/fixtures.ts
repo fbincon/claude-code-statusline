@@ -18,7 +18,7 @@ import type {
   ReadResult,
   Scope,
 } from '../lib/generated-contracts.ts';
-import { copyDraft } from '../lib/draft.ts';
+import { copyDraft } from '../lib/editor/draft.ts';
 
 export const BASE: Draft = {
   display: {
@@ -56,7 +56,7 @@ export const PANE = {
     isFocused: true,
     bodyColumns: 60,
     placement: 'inline',
-    scroll: { offset: 0, bodyRows: 10 },
+    scroll: { offset: 0, bodyRows: 24 },
     view: {},
   },
 } as const;
@@ -198,6 +198,7 @@ export function setup(on: On) {
     [];
   const configCalls: { key: string; value: unknown }[] = [];
   const opens: unknown[] = [];
+  const closes: unknown[] = [];
   const behavior: Behavior = {};
   const store = {
     draft: copyDraft(BASE),
@@ -208,6 +209,7 @@ export function setup(on: On) {
     calls,
     configCalls,
     opens,
+    closes,
     store,
     behavior,
     commands: [] as CommandInfo[],
@@ -229,7 +231,11 @@ export function setup(on: On) {
     opens.push(e);
     return { value: { isPlaced: true } };
   });
-  on('ui.close', () => ({ value: undefined }));
+  on('ui.close', ($, e) => {
+    closes.push(e);
+    return { value: undefined };
+  });
+  // Event dispatch is testable here; API focus is verified through real PTYs.
   on('ui.focus', () => ({}));
   on('clock.after', () => ({ value: undefined }));
   on('ui.panes', () => ({ value: [] }));

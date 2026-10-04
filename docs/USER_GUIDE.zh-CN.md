@@ -1158,7 +1158,7 @@ claude-statusline.exe config show
 
 ### 版本兼容
 
-显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1 或 1.1.1 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
+显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1、1.1.1、1.2.0 或 1.3.0a1 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
 
 schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出规范的 schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
 
@@ -1512,7 +1512,7 @@ pipx install .\dist\claude_code_statusline-1.2.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-上述文件名对应 1.1.1；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
+上述文件名对应稳定 v1.2.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
 
 可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.2.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.zh-CN.md)。
 
@@ -1638,21 +1638,23 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 
 ## 原生配置编辑器
 
-v1.2.0 wheel 包含匹配的原生 Mod，在兼容的 Claude Code 2.1.287+ 宿主上默认优先原生；保留明确禁用偏好及外部禁用插件。上面的安装已经执行接入，以下命令可显式启用或诊断。
+### v1.3.0a1 编辑器预览
+
+[v1.3.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) 将项目下拉框改为直接勾选行，提供横向页签、分页正文和限高底部预览。Enter 切换当前行，`p/n` 翻页，`u/d` 排序，`s` 保存继续，`f` 保存关闭。Settings 用 `h` 展开 theme/verbose，`a` 独立应用。最小要求为正文 32 列 × 12 行；Tab、方向键保留宿主含义。参见[完整操作和边界](development/native.zh-CN.md#编辑器行为)。
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
 claude-statusline install --native-editor
 claude-statusline doctor
 ```
 
-在受信任终端中重启 Claude Code 2.1.287+，运行 `/statusline-configure` 或别名 `/statusline-configure-native`。Main/Subagents 提供选择、排序和样例预览；Settings 提供现有九项工具设置，以及独立的 theme/verbose 宿主偏好。`1/2/3` 切页，Tab/Enter 操作原生控件，`s` 保存工具配置并保持面板打开，`a` 应用宿主偏好，Esc/`q` 丢弃待保存修改；Esc 先退出输入字段。参见[原生编辑器行为](development/native.zh-CN.md)。
+在受信任终端中重启 Claude Code。预览需明确启用原生，**Latest 稳定版仍为 v1.2.0**。新界面的 Linux/Windows/macOS 真人验收均待完成，旧界面验收不能替代。
 
-稳定版默认优先原生，预览仍须显式启用。`install --no-native-editor` 持久保存禁用偏好并撤下所属原生接入；仅在实验入口偏好已启用时恢复兼容 `/statusline-configure` 启动器。向导 `/statusline-config` 和独立 `claude-statusline configure` 保留。安装失败保留兼容配置并报告实际状态，核对 doctor 后再重试。维护者已确认 Linux、Windows 11、macOS 14.5 的完整原生真人清单通过；Windows/macOS 未提供架构及终端信息，具体边界见原生指南。
+独立 TUI 与向导继续可用；稳定 v1.2.0 仍默认优先原有原生编辑器。`install --no-native-editor` 禁用原生，仅在实验偏好启用时恢复兼容启动器。
 
 ## 相关文档
 
-[原生配置编辑器](development/native.zh-CN.md) 在源码加载的 Mod 中提供三页、revision 保存保护及独立宿主偏好。稳定安装仍为 v1.2.0；原生预览安装显式启用，真人编辑器验收另设门槛。
+[原生配置编辑器](development/native.zh-CN.md) 在源码加载的 Mod 中提供三页、revision 保存保护及独立宿主偏好。稳定安装仍为 v1.2.0；v1.3.0a1 需显式启用及新一轮真人验收。
 
 - [项目首页](../README.zh-CN.md)：项目介绍、界面预览和快速安装。
 - [Claude Code：Customize your status line](https://code.claude.com/docs/en/statusline)

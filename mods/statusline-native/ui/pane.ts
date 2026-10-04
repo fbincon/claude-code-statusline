@@ -1,12 +1,14 @@
 import type { RenderElement } from 'claude-code';
-import type { Editor } from '../lib/draft.ts';
+import type { Editor, Page } from '../lib/editor/draft.ts';
 import type { PreviewResult } from '../lib/generated-contracts.ts';
 import type { Preference } from '../lib/preferences.ts';
 import { preferenceChanged } from '../lib/preferences.ts';
-import { spanColor } from '../lib/backend.ts';
 import type { Actions, Controls } from './controls.ts';
-import { itemPage } from './items.ts';
-import { preferencePage, settingsPage } from './settings.ts';
+import { dimensions, MIN_COLUMNS, MIN_ROWS } from './layout.ts';
+import { itemPage } from './pages/items.ts';
+import { settingsPage } from './pages/settings.ts';
+import { preview } from './components/preview.ts';
+import { toolbar } from './components/toolbar.ts';
 
 export interface View {
   editor: Editor | null;
@@ -21,54 +23,65 @@ export interface View {
   uncertain: boolean;
 }
 
+export function contentCapacity(page: Page, rows: number): number {
+  return Math.max(
+    1,
+    dimensions(MIN_COLUMNS, rows).bodyRows -
+      (page === 'settings' ? 2 : page === 'subagents' ? 4 : 3),
+  );
+}
+
 export function pane(
   ui: Controls,
   view: View,
   width: number,
+  height: number,
   actions: Actions,
 ): RenderElement {
   const { Box, Text, Button } = ui;
   const editor = view.editor;
+  const pending =
+    !!editor?.modified || view.preferences.some(preferenceChanged);
   const close = Button({
     key: 'close',
-    label:
-      editor?.modified || view.preferences.some(preferenceChanged)
-        ? 'Close / discard pending changes'
-        : 'Close',
+    label: pending ? 'Discard pending changes' : 'Close',
     hotkey: 'q',
+    plain: true,
     onPress: actions.close,
   });
-  const messages = [
-    ...(view.error ? [Text({ color: 'red', children: [view.error] })] : []),
-    ...(view.message ? [Text({ children: [view.message] })] : []),
-  ];
-  if (view.busy) {
+  const layout = dimensions(width, height);
+  if (!layout.available)
     return Box({
       flexDirection: 'column',
-      children: [Text({ children: [view.busy] }), ...messages, close],
-    });
-  }
-  if (width < 24) {
-    return Box({
-      flexDirection: 'column',
+      height: 24,
       children: [
-        Text({ children: ['Widen pane to 24 columns. Draft kept.'] }),
-        ...messages,
+        Text({
+          wrap: 'truncate',
+          children: [`Resize pane to ${MIN_COLUMNS}x${MIN_ROWS}. Draft kept.`],
+        }),
         close,
       ],
     });
-  }
-  if (!editor) {
+  if (view.busy || !editor)
     return Box({
       flexDirection: 'column',
+      height: Math.max(MIN_ROWS, height),
       children: [
         Text({
+          wrap: 'truncate',
           children: [
-            view.error ? 'Could not open the editor.' : 'Loading backend...',
+            view.busy ||
+              (view.error
+                ? 'Could not open the editor.'
+                : 'Loading configuration…'),
           ],
         }),
-        ...messages,
-        ...(view.error
+        Text({
+          wrap: 'truncate',
+          color: view.error ? 'red' : undefined,
+          children: [view.error || ' '],
+        }),
+        ...(view.error && !view.busy
           ? [
               Button({
                 key: 'reload',
@@ -81,121 +94,87 @@ export function pane(
         close,
       ],
     });
-  }
+  const numericError = Object.entries(editor.fieldErrors)
+    .map(([field, error]) => `${field}: ${error}`)
+    .join(' · ');
+  const preferenceResults = editor.advanced
+    ? view.preferences
+        .map((preference) =>
+          preference.result
+            ? `${preference.row.label}: ${preference.result}`
+            : '',
+        )
+        .filter(Boolean)
+        .join(' · ')
+    : '';
+  const notice =
+    numericError ||
+    view.error ||
+    view.message ||
+    (editor.advanced ? view.preferencesError : '') ||
+    preferenceResults ||
+    'Tab: focus · Enter: control';
+  const capacity = contentCapacity(editor.page, height);
   return Box({
     flexDirection: 'column',
+    width,
+    height,
     children: [
-      Text({ bold: true, children: ['Statusline configuration'] }),
       Text({
-        dimColor: true,
-        children: [
-          `Backend ${editor.baseline.backend_version}; ${editor.description.catalog.length} scoped items`,
-        ],
+        bold: true,
+        children: ['Configure Status Line' + (pending ? ' *' : '')],
       }),
-      ...messages,
-      ...(view.uncertain
-        ? [
-            Button({
-              key: 'reconcile',
-              label: 'Check saved state',
-              onPress: actions.reconcile,
-            }),
-          ]
-        : [
-            Button({
-              key: 'save',
-              label: editor.modified
-                ? 'Save tool configuration *'
-                : 'Save tool configuration',
-              hotkey: 's',
-              onPress: actions.save,
-            }),
-          ]),
-      close,
-      Button({
-        key: 'page-main',
-        label: 'Main',
-        autoFocus: editor.page === 'main' ? true : undefined,
-        hotkey: '1',
-        onPress: () => actions.page('main'),
+      Box({
+        flexDirection: 'row',
+        columnGap: 1,
+        children: (['main', 'subagents', 'settings'] as const).map((page, i) =>
+          Button({
+            key: 'page-' + page,
+            label: ['Main', 'Subagents', 'Settings'][i],
+            plain: true,
+            hotkey: String(i + 1),
+            dimColor: editor.page !== page,
+            onPress: () => actions.page(page),
+          }),
+        ),
       }),
-      Button({
-        key: 'page-subagents',
-        label: 'Subagents',
-        autoFocus: editor.page === 'subagents' ? true : undefined,
-        hotkey: '2',
-        onPress: () => actions.page('subagents'),
+      Text({
+        color: numericError || view.error ? 'red' : undefined,
+        wrap: 'truncate',
+        children: [notice],
       }),
-      Button({
-        key: 'page-settings',
-        label: 'Settings',
-        autoFocus: editor.page === 'settings' ? true : undefined,
-        hotkey: '3',
-        onPress: () => actions.page('settings'),
-      }),
-      Text({ bold: true, children: ['Sample preview'] }),
-    ...(view.previewBusy ? [Text({ dimColor: true, children: ['Updating sample preview...'] })] : []),
-      ...(view.previewError
-        ? [
-            Text({ color: 'red', children: [view.previewError] }),
-            Button({
-              key: 'retry',
-              label: 'Retry preview',
-              onPress: actions.retry,
-            }),
-          ]
-        : []),
-      ...(view.preview
-        ? (editor.page === 'subagents'
-            ? view.preview.subagents
-            : view.preview.main
-          ).map((row) =>
-            Box({
-              flexDirection: 'row',
-              children: row.map((span) =>
-                Text({
-                  bold: span.bold,
-                  color: spanColor(span),
-                  children: [span.text],
-                }),
+      Box({
+        flexDirection: 'column',
+        height: layout.bodyRows,
+        children:
+          editor.page === 'settings'
+            ? settingsPage(
+                ui,
+                editor,
+                view.preferences,
+                width,
+                capacity,
+                actions,
+              )
+            : itemPage(
+                ui,
+                editor,
+                editor.page === 'main' ? 'main' : 'subagent',
+                capacity,
+                width,
+                actions,
               ),
-            }),
-          )
-        : []),
-      ...(view.preview &&
-      !(
-        editor.page === 'subagents' ? view.preview.subagents : view.preview.main
-      ).length
-        ? [Text({ dimColor: true, children: ['(empty preview)'] })]
-        : []),
-      ...(editor.page === 'settings'
-        ? [
-            ...settingsPage(ui, editor, actions),
-            ...preferencePage(
-              ui,
-              view.preferences,
-              view.preferencesError,
-              actions,
-            ),
-          ]
-        : itemPage(
-            ui,
-            editor,
-            editor.page === 'main' ? 'main' : 'subagent',
-            actions,
-          )),
-      Button({
-        key: 'reload',
-        label: 'Discard draft and reload',
-        hotkey: 'r',
-        onPress: actions.reload,
       }),
-      Text({
-        dimColor: true,
-        children: [
-          'Tab: focus · Enter: control · 1/2/3: page · s: save · Esc/q: close',
-        ],
-      }),
+      ...preview(
+        ui,
+        view.preview,
+        editor.page === 'subagents',
+        layout.previewRows,
+        view.previewBusy,
+        view.previewError,
+        actions,
+      ),
+      ...toolbar(ui, editor, view.uncertain, pending, actions),
     ],
   });
 }
