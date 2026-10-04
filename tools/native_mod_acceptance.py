@@ -67,7 +67,13 @@ def prepare(
         CLAUDE_STATUSLINE_NATIVE_EXECUTABLE=str(backend),
     )
     env.pop("CLAUDECODE", None)
-    host_directory = Path(shutil.which(claude) or claude).absolute().parent
+    # A fixed npm host resolves to a binary named claude.exe on Linux. Put a
+    # private canonical name on PATH so the installer/backend use that host too.
+    host_directory = root / "host-bin"
+    host_directory.mkdir(mode=0o700)
+    (host_directory / "claude").symlink_to(
+        Path(shutil.which(claude) or claude).resolve()
+    )
     env["PATH"] = os.pathsep.join((str(backend.parent), str(host_directory), env.get("PATH", "")))
     subprocess.run(
         [
