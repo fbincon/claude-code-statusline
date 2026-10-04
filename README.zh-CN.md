@@ -4,7 +4,9 @@
 
 面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
 
-[快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
+Phase 4 候选版增加模型与数字格式、标签与内置图标、风险颜色、带优先级和宽度限制的显式分行、四种可编辑预设及可移植 JSON 文件。两种编辑器均提供逐项表单和 Layout 页；Claude 外观及行为偏好通过独立 Apply 操作应用。默认外观保留，新增选项及降级流程见[配置说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)。预览验收完成前，稳定安装版本仍为 v1.4.0。
+
+[格式、布局与预设](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets) · [快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
 
 ## 界面预览
 

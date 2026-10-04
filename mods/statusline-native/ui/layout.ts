@@ -17,7 +17,7 @@ export function dimensions(columns: number, rows: number) {
     bodyHeight,
     bodyRows,
     itemCapacity: Math.max(1, bodyRows - (framed ? 4 : 3)),
-    settingCapacity: Math.max(1, bodyRows - 4),
+    settingCapacity: Math.max(1, Math.floor((bodyRows - 1) / 2)),
     available: columns >= MIN_COLUMNS && rows >= MIN_ROWS,
   };
 }

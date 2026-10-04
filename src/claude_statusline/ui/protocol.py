@@ -17,6 +17,7 @@ from claude_statusline.config import (
     formatting,
     presets,
     transfer,
+    editor_fields,
 )
 from claude_statusline.integration import capabilities, models as integration_models
 from claude_statusline.ui import contracts
@@ -186,6 +187,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
     if operation == "describe":
         return {
             "presets": presets.descriptions(),
+            "editor_fields": editor_fields.descriptions(),
             "catalog": [item.to_dict() for item in catalog.ITEMS],
             "options": configuration_options(),
             "capabilities": host_capabilities(),

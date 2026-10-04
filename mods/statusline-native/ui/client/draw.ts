@@ -38,6 +38,7 @@ export function draw(
       ],
     });
   const pending = e.modified || view.preferences.some(preferenceChanged);
+  const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
   const notice =
     Object.entries(e.fieldErrors)
       .map(([key, error]) => `${key}: ${error}`)
@@ -47,18 +48,18 @@ export function draw(
     view.message ||
     (e.advanced
       ? view.preferencesError ||
-        view.preferences
-          .map((p) => p.result)
+        (selectedPreference?.result ? selectedPreference.row.label + ': ' + selectedPreference.result : '') || view.preferences
+          .map((p) => p.result ? p.row.label + ': ' + p.result : '')
           .filter(Boolean)
           .join(' · ')
       : '') ||
     'Click this region once for keyboard input. Ctrl+G cancels editing; Esc returns focus.';
   const content: RenderElement[] = [];
   let title = '';
-  if (e.page === 'settings') {
+  if (e.page === 'settings' || e.page === 'layout' || e.detail) {
     title =
-      'Tool settings' +
-      (e.advanced ? ' + Claude preferences' : ' · h Advanced');
+      (e.detail ? 'Item format: ' + e.detail.id + ' · Ctrl+G back' : e.page === 'layout' ? 'Layout / fitting' : 'Tool settings') +
+      (e.page === 'settings' && !e.detail ? (e.advanced ? ' + Claude preferences' : ' · h Advanced') : '');
     const settings = settingRows(view);
     const window = pageWindow(
       settings.map((row) => row.key),
@@ -71,8 +72,8 @@ export function draw(
         group = row.group;
         content.push(line(group, { bold: true, color: 'cyan' }));
       }
-      const editing =
-        view.input?.kind === 'numeric' && view.input.field === row.key;
+      const editing = (view.input?.kind === 'numeric' && view.input.field === row.key) || (view.input?.kind === 'field' && view.input.key === row.key) || (view.input?.kind === 'path' && row.key === view.input.action + '-file');
+      const displayed = editing && (view.input?.kind === 'field' || view.input?.kind === 'path') ? view.input.buffer : row.value;
       const preference = view.preferences.find(
         (p) => 'host-' + p.row.key === row.key,
       );
@@ -82,7 +83,7 @@ export function draw(
           flexShrink: 0,
           children: [
             line(
-              `${e.setting === row.key ? '›' : ' '} ${row.label.padEnd(layout.framed ? 21 : 10)} ${row.value}${editing ? ' _' : ''}${preferenceChangedSafe(preference) ? ' *' : ''}`,
+              `${e.setting === row.key ? '›' : ' '} ${row.label.padEnd(layout.framed ? 21 : 10)} ${displayed}${editing ? ' _' : ''}${preferenceChangedSafe(preference) ? ' *' : ''}`,
               { inverse: e.setting === row.key, dimColor: !row.editable },
             ),
           ],
@@ -192,9 +193,13 @@ export function draw(
   while (preview.length < layout.previewRows) preview.push(line(' '));
   const contextual = view.input
     ? 'Enter accept · Ctrl+G cancel · Ctrl+U clear'
+    : e.detail
+      ? '↑↓ select · ←→ adjust · Enter edit · Ctrl+G back · Tab page'
+    : e.page === 'layout'
+      ? 'Tab page · ↑↓ select · ←→ adjust · Enter edit'
     : e.page === 'settings'
       ? 'Tab page · ↑↓ select · ←→ adjust · h Advanced · a Apply · r Reload'
-      : 'Tab page · ↑↓ select · Space toggle · ←→ order · / search · r Reload';
+      : 'Tab page · ↑↓ select · Space toggle · ←→ order · Ctrl+E format · / search';
   return ui.Box({
     width: columns,
     height: rows,
@@ -209,10 +214,10 @@ export function draw(
         { bold: true },
       ),
       line(
-        (['Main', 'Subagents', 'Settings'] as const)
+        (['Main', 'Subagents', 'Settings', 'Layout'] as const)
           .map(
             (page, i) =>
-              `${i + 1} ${['main', 'subagents', 'settings'][i] === e.page ? '[' + page + ']' : page}`,
+              `${i + 1} ${['main', 'subagents', 'settings', 'layout'][i] === e.page ? '[' + page + ']' : page}`,
           )
           .join(' · '),
         { bold: true },

@@ -72,6 +72,22 @@ class FormattingTests(unittest.TestCase):
             self.assertIsNone(preferences.number(None, fmt))
             self.assertIsNone(preferences.number(True, fmt))
 
+    def test_explicit_icons_replace_or_hide_legacy_glyphs(self):
+        config = display.DEFAULT_CONFIG.with_updates(
+            items=("fast-mode",), scope_labels="off"
+        )
+        for icon, expected in (("FAST", "FAST fast"), ("", "fast")):
+            changed = config.with_updates(
+                item_options={"fast-mode": formatting.ItemOptions(icon=icon)}
+            )
+            rendered = "".join(
+                segment.text
+                for segment in items._configured_segments({"fast_mode": True}, changed)[
+                    0
+                ]
+            )
+            self.assertEqual(layout.ANSI_SGR_RE.sub("", rendered), expected)
+
     def test_reset_absolute_format_has_fixed_clock_and_expiry(self):
         fmt = formatting.Formatting(reset_format="datetime", reset_timezone="UTC")
         self.assertEqual(

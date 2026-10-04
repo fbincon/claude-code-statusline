@@ -8,7 +8,7 @@ v1.3.0 ships Client TUI inside the current Claude Code terminal session. `/statu
 
 `mods/statusline-native` is the only Mod source; the installed plugin identity remains `statusline-native@claude-statusline-local`. `hooks/register.ts` owns host API calls, commands, backend requests, save lifetimes and serialized input batches. `lib/editor/` owns draft/order/numeric rules; `lib/client/` owns validated batches, keys and settings; `lib/session.ts` serializes independent snapshots. `ui/client/` owns surface input and drawing, `ui/components/` reusable sections, and `ui/layout.ts` the cell budget. Tests mirror backend, client, editor, integration and UI responsibilities. The Python curses UI and launcher remain separate and use the same configuration service.
 
-Use Node.js 22, the matching development backend, and the fixed host builds in CI. Regenerate official declarations for each actual host; never reuse declarations from another build. The matrix checks Linux 2.1.287/2.1.288 and Windows/macOS 2.1.288.
+Use Node.js 22, the matching development backend, and the fixed host builds in CI. Regenerate official declarations for each actual host; never reuse declarations from another build. The matrix checks Linux 2.1.287/2.1.288/2.1.289 and Windows/macOS 2.1.288.
 
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
@@ -27,7 +27,8 @@ Click the Client region once after opening, then use the keyboard. Opening with 
 
 | Key | Action |
 | --- | --- |
-| Tab / Shift+Tab; 1/2/3 | Change Main, Subagents and Settings page |
+| Tab / Shift+Tab; 1/2/3/4 | Change Main, Subagents, Settings and Layout page |
+| Ctrl+E / Ctrl+G | Open selected item format / return to its item list |
 | Up/Down; PgUp/PgDn; Home/End | Select, paginate, first/last row |
 | Left/Right | Reorder item rows; adjust settings |
 | Space / Enter | Toggle an item; operate a setting or enter/accept numeric editing |
@@ -45,7 +46,7 @@ Sample preview uses fixed data and production formatting, with at most three row
 
 Reexecuting the native command focuses the existing pane and keeps its draft. External TUI and Client may be open concurrently. Both save through the same short-lived file lock and opening revision: the first commit wins; a stale draft gets a conflict instead of overwriting. Client retains its draft on conflict; r explicitly discards/reloads. Unknown results require k, which reads without resubmitting or automatically closing.
 
-Theme/verbose use actual `$.config.list()` rows. Apply rechecks locks/current values per row, reports partial results, and is separate from tool configuration. Finish does not silently discard pending preferences. On Client failure, received host-side drafts remain available. Retry/Close buttons remain outside Client so load failures can be recovered. Builds 2.1.287/2.1.288 do not provide the later `ui.fault` event; compatible recovery uses caught drawing errors and the native recovery buttons.
+Claude appearance, time/title and model/effort/thinking/fast behavior use actual `$.config.list()` rows. Apply rechecks locks/current values per row, reports partial results, and is separate from tool configuration. Finish does not silently discard pending preferences. On Client failure, received host-side drafts remain available. Retry/Close buttons remain outside Client so load failures can be recovered. Builds 2.1.287/2.1.288 do not provide the later `ui.fault` event; compatible recovery uses caught drawing errors and the native recovery buttons.
 
 ## Persistent installation and recovery
 
@@ -56,7 +57,7 @@ claude-statusline doctor
 
 Restart Claude Code in a trusted terminal, then use either command. `--experimental-slash-tui` and `--no-experimental-slash-tui` control only the external entry. `--native-editor` and `--no-native-editor` control only Client integration. Stable defaults both on, preserving recorded disablement; prereleases default both off. External needs 2.1.258+ and Client 2.1.287+. Older/unknown hosts suspend each independently; explicit enabling also does not fail basic installation for unsupported versions. Reinstall after upgrading restores support. External disablement saves schema-v1 false rather than deleting its file; historical absence follows the new stable default. Reinstall restores an enabled owned external skill/hook removed by older native migration. Mod no longer registers the external name or declares `primaryCommand`.
 
-Native resources are staged under `CLAUDE_CONFIG_DIR/statusline-native`, verified by hash/version/protocol inventory, and installed through official local marketplace commands. The installer binds absolute backend/config paths and backend version. Backend 1.3.0 pairs with Mod 1.3.0. Foreign native commands/resources block that integration; external collisions are checked when enabling the external entry. An unrelated external command does not block native-only installation. Altered owned caches are not adopted.
+Native resources are staged under `CLAUDE_CONFIG_DIR/statusline-native`, verified by hash/version/protocol inventory, and installed through official local marketplace commands. The installer binds absolute backend/config paths and backend version. Backend and Mod must come from the same package version and protocol. Foreign native commands/resources block that integration; external collisions are checked when enabling the external entry. An unrelated external command does not block native-only installation. Altered owned caches are not adopted.
 
 Native disablement removes only confirmed owned native plugin/marketplace resources. The external entry keeps its own preference and artifacts. Uninstall retains display configuration, preferences, backups and runtime data. Failed operations report actual disk state; doctor checks resources, binding and enablement separately from session loading. Externally disabled plugins stay disabled; only tool-recorded suspension is automatically restored. Safe/bare mode, managed policy and disableAllHooks can prevent Mod loading. Before package downgrade, disable native using the newer package, then install the older package.
 
@@ -91,3 +92,9 @@ The earlier release acceptance records above retain their original scope. This l
 A follow-up macOS acceptance record should identify the host, backend and terminal versions, terminal mouse-reporting settings, and whether tmux/SSH is involved. Verify initial click, Tab/arrows/Space, save/reopen, discard and return to the same session before recording success. This documentation update does not supply a new macOS acceptance run.
 
 References: [actual-build Mod types](https://code.claude.com/docs/en/plugins/mods/create), [official tests](https://code.claude.com/docs/en/plugins/mods/test), [local marketplaces](https://code.claude.com/docs/en/plugin-marketplaces).
+
+## Phase 4 editor acceptance
+
+Main/Subagents open scoped formats with Ctrl+E. Layout manages explicit boundaries, priorities and terminal-column widths. Settings expands presets and imports into an unsaved draft, exports that draft separately, and unfolds actual host appearance/time/title/behavior rows. Ctrl+G restores an input or returns from a scoped form; Enter accepts fields. Curses keeps legacy Enter saves and adds Ctrl+S for every page, using raw input to avoid XON/XOFF swallowing the chord.
+
+Run `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>` from an installed candidate wheel. It checks both persistent entries at 120×30 and 80×48, CJK label/path input, ANSI palette, explicit boundaries/priority/width saves, preset/export/import validation, cancellation without writes and cross-editor readback. Raw logs remain private. Human Linux/Windows acceptance and macOS available-entry acceptance are pending; the previously reported macOS Client input limitation remains open.

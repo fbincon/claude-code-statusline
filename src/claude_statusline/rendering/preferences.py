@@ -81,7 +81,7 @@ def decorate(text, item_id, scope, fmt, options):
         return text
     units = layout._styled_units(text)
     plain = "".join(unit.text for unit in units)
-    if fmt.icons != "legacy" and plain[:1] in SYMBOLS:
+    if (fmt.icons != "legacy" or options.icon is not None) and plain[:1] in SYMBOLS:
         removed = 1 + (plain[1:2] == " ")
         units = units[removed:]
         plain = "".join(unit.text for unit in units)

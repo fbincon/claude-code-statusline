@@ -7,7 +7,7 @@ import {
   DIRECTORYSTYLE_VALUES,
   SEPARATORSTYLE_VALUES,
   SCOPELABELS_VALUES,
-  FORMAT_CHOICES, PRESETS,
+  FORMAT_CHOICES, PRESETS, EDITOR_FIELDS,
 } from './generated-contracts.ts';
 import type {
   Capabilities,
@@ -65,7 +65,7 @@ function exact(
 }
 
 function text(value: unknown): value is string {
-  return typeof value === 'string' && !/[\x00-\x1f\x7f]/.test(value);
+  return typeof value === 'string' && !/[\p{Cc}\p{Cs}]/u.test(value);
 }
 
 function strings(value: unknown): value is string[] {
@@ -96,8 +96,8 @@ function itemOptions(value: unknown, ids: readonly string[]): boolean {
   if (!object(value)) return false;
   return Object.entries(value).every(([id, option]) => ids.includes(id) && object(option) &&
     exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting']) &&
-    (option.label === null || (text(option.label) && option.label.length <= 256)) &&
-    (option.icon === null || (text(option.icon) && option.icon.length <= 256)) &&
+    (option.label === null || (text(option.label) && [...option.label].length <= 256)) &&
+    (option.icon === null || (text(option.icon) && [...option.icon].length <= 256)) &&
     range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
     formatOverrides(option.formatting));
 }
@@ -421,6 +421,7 @@ export function parseResponse<O extends Operation>(
       !isCapabilities(result.capabilities) ||
       !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset']) ||
       result.operations.length !== 7 ||
+      JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
       JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
       !object(result.formatting_options) ||
       JSON.stringify(result.formatting_options) !== JSON.stringify(FORMAT_CHOICES) ||

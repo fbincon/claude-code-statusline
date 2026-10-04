@@ -55,7 +55,7 @@
 - `prompt-timer` 覆盖从用户提交到主 Agent 最终 `Stop` 的完整任务；等待子 Agent 和主 Agent 收尾期间持续计时。
 - 主栏在当前 prompt 曾启动子 Agent 时显示固定的 `Main/Session` 范围提示，避免与每个子 Agent 行的口径混淆。
 - 提供独立全屏 TUI，可用键盘筛选、勾选、排序并按键级预览完整草稿。
-- 正式版默认启用 `/statusline-configure-native`，在同一 session 内使用 Client 的 Main、Subagents、Settings 配置页。
+- 正式版默认启用 `/statusline-configure-native`，在同一 session 内使用 Client 配置页；Phase 4 在 Main、Subagents、Settings 之外增加 Layout。
 - 正式版默认启用 `/statusline-configure`：Linux 从 tmux popup 或 GNOME Terminal 新标签页启动，macOS 优先使用 tmux popup，否则从 Terminal.app 启动，Windows 从系统新控制台启动同一个 TUI。
 - 在窄终端中自动换行，不截断长字段；长路径优先在 `/` 或 `\` 处分行。
 - Git 查询和 transcript 汇总按需执行：隐藏相应显示项后，不再做不必要的采集。
@@ -274,7 +274,8 @@ Windows 使用 `claude-statusline.exe`。两组参数相互独立，`--experimen
 
 | 按键 | 操作 |
 | --- | --- |
-| Tab / Shift+Tab；1 / 2 / 3 | 切换 Main、Subagents、Settings |
+| Tab / Shift+Tab；1 / 2 / 3 / 4 | 切换 Main、Subagents、Settings、Layout |
+| Ctrl+E / Ctrl+G | 打开所选项目的格式表单／返回项目列表 |
 | ↑ / ↓；PgUp / PgDn；Home / End | 选择、翻页、首尾 |
 | ← / → | 调整条目顺序；改变设置值 |
 | Space / Enter | 勾选条目；操作设置或进入／确认数值编辑 |
@@ -323,7 +324,7 @@ claude-statusline.exe configure
 claude-statusline.exe configure --config-dir 'C:\Path With Spaces\Claude 配置'
 ```
 
-独立 TUI 使用当前终端。Linux/macOS 使用 Python 标准库的 `curses` 接口，Windows 使用条件依赖 `windows-curses>=2.4.2`（PDCurses）；三个平台提供相同的 Main/Subagents/Settings 页签。启动条件如下：
+独立 TUI 使用当前终端。Linux/macOS 使用 Python 标准库的 `curses` 接口，Windows 使用条件依赖 `windows-curses>=2.4.2`（PDCurses）；Phase 4 在三个平台提供相同的 Main/Subagents/Settings/Layout 页签。启动条件如下：
 
 - stdin 和 stdout 都必须是 TTY。
 - 当前终端必须能初始化 curses。
@@ -332,11 +333,11 @@ claude-statusline.exe configure --config-dir 'C:\Path With Spaces\Claude 配置'
 
 界面最小尺寸为 `64x18`。窗口更小时，界面会显示所需尺寸和当前尺寸并等待放大；此时 Esc 与 Ctrl+C 仍可退出。终端 resize 后会重新计算列表滚动、样例预览高度与换行；Windows 同时兼容 PDCurses 的 `KEY_RESIZE` 行为。
 
-界面包含 Main、Subagents 和 Settings 三个页签，固定底部区域标记为 `Preview (sample data)`。常用全局按键为：
+Phase 4 界面包含 Main、Subagents、Settings 和 Layout 四个页签，固定底部区域标记为 `Preview (sample data)`。常用全局按键为：
 
 | 按键 | 行为 |
 | --- | --- |
-| Tab / Shift+Tab | 在 Main、Subagents、Settings 间循环；数字编辑期间不切换 |
+| Tab / Shift+Tab | 在 Main、Subagents、Settings、Layout 间循环；字段编辑期间不切换 |
 | Enter | 非数字编辑状态下一次性保存整个草稿 |
 | Esc | 非数字编辑状态下取消并退出，不写入配置 |
 | Ctrl+C | 恢复终端并以 130 退出，不保存 |
@@ -1137,7 +1138,7 @@ claude-statusline config set refresh-interval event
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](#备份与回滚)及[配置写入与并发](#配置写入与并发)。
 
-当前显示配置使用 schema v2；历史 schema v1 可读取，首次实际配置保存时会备份并写为 v2。版本转换与降级恢复见[版本兼容](#版本兼容)。
+Phase 4 显示配置使用 schema v3（稳定 v1.4.0 使用 v2）；历史 v1/v2 可读取，首次实际配置保存时备份并写为 v3。版本转换与降级恢复见[版本兼容](#版本兼容)。
 
 如果显示配置损坏：
 
@@ -1273,9 +1274,9 @@ claude-statusline.exe config show
 
 ### 版本兼容
 
-显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1、1.1.1、1.4.0 或 1.3.0a2 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
+Phase 4 使用显示 schema v3 和 JSON 协议 v2，稳定 v1.4.0 使用显示 v2／协议 v1。编辑器启用偏好、运行状态与生命周期格式各自独立。历史显示 v1/v2 适用以下规则：
 
-schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出规范的 schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
+读取 v1/v2 时保留原有条目、顺序与外观，只在内存补齐默认值。`render`、`render-subagents`、`doctor`、`install` 不重写显示文件。真实保存备份原字节并写入严格的 schema v3；未知／缺失字段、重复条目、错误类型及高于 v3 的版本均拒绝。降级前关闭两种编辑器，用新版执行 `install --no-native-editor`，按备份 `metadata.json` 将迁移前的 `.before` 恢复为显示文件，再安装旧包并运行 `install`／`doctor`。旧包不能编辑 v3；未来仍要使用 Phase 4 时，可另存可移植导出文件。
 
 Claude Code 的功能门槛独立于本工具版本：
 
@@ -1774,7 +1775,9 @@ v1.4.0 默认接入两种编辑器；详见[原生编辑器开发与验收](deve
 - [Claude Code：Hooks reference](https://code.claude.com/docs/en/hooks)
 - [Claude Code：Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide)
 
-## Phase 4 格式配置（开发中）
+<a id="formatting-layout-presets"></a>
+
+## 格式、布局与预设（Phase 4）
 
 现有默认外观保留。开发版显示 schema v3／JSON 协议 v2；稳定 v1.4.0 仍使用 v2/v1。读取 v1/v2 不重写文件，真实保存才备份迁移。降级前用新版关闭原生编辑器，然后恢复迁移前显示备份；旧程序不能编辑 v3。
 
@@ -1817,3 +1820,30 @@ claude-statusline config import ./statusline.json
 ```
 
 可移植格式版本 1 仅含 format、version 和 draft。草稿包含 display 与工具管理的 padding／刷新／Vim 选项，不包含路径、revision、所有权、运行状态和 Claude 偏好。导出默认拒绝已存在目标；--overwrite 明确替换导出文件，仍禁止覆盖实时配置和插件资源。导入保存时原子替换工具草稿，保留安装与所有权检查。文件采用 UTF-8，上限 1 MiB；重复字段、非有限数字、未知字段和不支持版本均拒绝。
+
+### 两种编辑器中的格式与布局操作
+
+在 Main/Subagents 选择项目后按 Ctrl+E，编辑标签、图标、保留优先级、最大宽度和继承的格式选项；Ctrl+G 返回项目列表。Enter 打开或接受文本／整数输入。`inherit` 清除覆盖，空标签／图标将其隐藏，`none` 清除可选宽度／限制。Unicode/ASCII 图标使用内置字符，无需额外字体。
+
+Layout 选择 auto/explicit，通过“New row before”设置启用主项目的行边界。较高优先级优先保留，默认 50；最大宽度按终端列计算，包括 CJK 与组合字符。项目排序会同步维护分行。显式布局移除空行且不增加续行，自动布局继续折行。
+
+Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操作。先选择 Preset，再激活 Expand selected preset。Import 输入路径后只替换草稿，检查 Preview 后保存或取消。Export 将当前草稿（含未保存改动）写入新文件，不保存设置。相对路径以宿主／终端工作目录为基准，`~` 展开为用户主目录。出错保留现有草稿；两种编辑器均拒绝覆盖已有导出文件，可换路径，或使用 CLI `--overwrite` 明确替换。
+
+Client 用 `s` 保存并继续、`f` 保存并关闭、`q` 放弃草稿。curses 用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。Ctrl+U 清空输入，Ctrl+G 取消输入；Esc 先取消正在编辑的输入，否则放弃 curses 编辑器。字段／路径输入期间 s/f/q 等普通字符只作为文本。
+
+| 预设 | 主状态栏布局 | 子 Agent 默认 |
+| --- | --- | --- |
+| minimal | 自动：模型／effort、目录、上下文剩余、任务计时 | 原有五项 |
+| developer | 两行：模型／目录／Git；上下文剩余／tokens／计时／会话费用 | 原有五项 |
+| monitoring | 三行：上下文／三种额度；两种重置／缓存状态／TTL；会话费用／时长／API 时长／请求／缓存未命中 | 原有五项 |
+| multi-agent | 两行：模型／目录／Git；上下文剩余／tokens／计时 | 原有五项，隐藏 completed，最多六个宿主行，任务宽度 48 |
+
+风险颜色默认关闭，警告 70%、严重 90%，始终按实际使用比例判断，包括显示剩余额度时。缺失观测保持不可用，零值保留，过期额度／重置数据隐藏。预设展开为普通可编辑配置，保留颜色、调色板、目录／分隔符风格、刷新选项及当前子 Agent 启用状态。
+
+### Claude 宿主偏好独立应用
+
+在 Client Settings 按 `h` 展开 Claude 外观、时间／标题及行为分组。主题、verbose、逐轮计时、减少动画、提示、进度条与通知使用当前宿主实际提供的配置行；适用的时间／标题行也会纳入，缺失行显示官方入口。模型、effort、thinking、fast mode 单列为行为分组，与同名状态栏显示开关独立。
+
+按实际类型／选项编辑后用 `a` Apply。每行保留应用结果，涵盖宿主拒绝、锁定、外部修改与部分成功。工具 Save/Finish 和可移植文件不应用宿主偏好；Reload 明确放弃待处理编辑，继续使用键盘前点击恢复后的 Client 区域。宿主可能改变类型或不提供某行，此时使用提示的 `/config`、`/model`、`/effort`、`/fast` 等官方入口。独立 TUI 只管理工具配置，不能调用 Claude 宿主 API。
+
+Phase 4 的 Linux／Windows 及 macOS 可用入口人工验收仍待确认。macOS Client 输入问题继续作为已知限制，可用独立 TUI 或 CLI 配置；自动 PTY 与终端重建画面不属于人工验收。

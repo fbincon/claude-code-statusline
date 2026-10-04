@@ -22,10 +22,13 @@ Success is `{"protocol_version":2,"result":{...}}`; failure is `{"protocol_versi
 
 | Operation | Payload | Result |
 | --- | --- | --- |
-| `describe` | `{}` | Catalog, configuration option choices/ranges, capabilities, backend version and supported operations |
+| `describe` | `{}` | Catalog, option choices/ranges, formatting choices, editor field descriptors, presets, capabilities, backend version and supported operations |
 | `read` | `{}` | `draft`, `revision`, `installed`, `installation`, capabilities and backend version |
 | `preview` | `{"draft": {...}, "width": 80}` | `sample: true`, `main` and `subagents` rows of drawable spans |
 | `apply` | `{"draft": {...}, "expected_revision": "<read revision>"}` | Saved read snapshot, `changed`, and `backup_dir` (a path or `null`) |
+| `preset` | `{draft,preset}` | Validated expanded `{draft}` |
+| `import` | `{draft,path}` | Validated imported `{draft}` |
+| `export` | `{draft,path,overwrite}` | Export destination `{path}` |
 
 `draft` has exactly `display` (the effective v3 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading an existing display v1 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete v3 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
 
@@ -71,3 +74,11 @@ Protocol v2 returns complete schema-v3 drafts. `formatting` contains shared choi
 ## Draft transfer operations
 
 `preset`: payload `{draft,preset}` returns `{draft}` expanded by Python. `import`: payload `{draft,path}` returns a validated `{draft}` without saving; current host options supply defaults for display-only files. `export`: payload `{draft,path,overwrite}` writes a portable file and returns `{path}`. Export is an explicit file action independent of settings Save. These operations do not change installation or the opening revision; subsequent apply uses the original revision. `describe.presets` is generated from the canonical Python presets.
+
+## Shared editor forms and host preferences
+
+`config.editor_fields` defines global and scoped form descriptors, including kind, choices, bounds and nullable behavior. `describe.editor_fields` and generated `EDITOR_FIELDS` share these definitions. Client changes are validated locally before production preview/apply; Python remains the final validator. Curses uses the same descriptors and pure edits. Import/preset replaces only the draft; export can include unsaved edits. Neither changes the opening revision or applies Claude preferences.
+
+Native file operations are effects handled by the hooks module through Python, with argument arrays and JSON stdin. Client modules do not access files. Pending transfer/apply blocks edits and ordinary close; epochs reject late results. Text input reserves printable shortcuts. Ctrl+G cancels an input or leaves the item form; curses uses raw terminal input so Ctrl+S reaches its save handler.
+
+`lib/preferences.ts` maps supported preference concepts to actual menu row IDs, such as `turnDuration`, `reduceMotion`, `tips`, `progressBar` and `notifChannel`. Runtime values, kinds, choices, providers and locks come from `$.config.list()`. Separate Apply rechecks each row before calling `$.config.set()`, retains partial results beside the corresponding row and refuses changed kinds/owners/values or invalid choices. Missing/locked/unsupported rows show official entry guidance. Model/effort/thinking/fast behavior is grouped separately from tool display formats. No persisted Claude key is written directly.

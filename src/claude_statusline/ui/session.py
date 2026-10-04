@@ -18,6 +18,10 @@ from claude_statusline.ui import drawing as ui_drawing
 from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import keys as ui_keys
 from claude_statusline.ui import models as ui_models
+from claude_statusline.ui import forms
+from claude_statusline.ui import protocol
+from claude_statusline.config import presets, transfer
+from claude_statusline.config.display import DisplayConfigError
 
 
 def _screen_loop(
@@ -27,6 +31,12 @@ def _screen_loop(
     guard: Callable[[], None] | None = None,
 ) -> str:
     screen.keypad(True)
+    # Ctrl+S is the form save chord. cbreak leaves terminal XON/XOFF active,
+    # which can swallow it and freeze output; wrapper restores raw mode on exit.
+    try:
+        curses.raw()
+    except curses.error:
+        pass
     if deadline_at is not None or guard is not None or platform_environment.is_macos():
         # Older macOS curses can restart an interrupted blocking read. Polling
         # lets Python dispatch pending signals without needing another keypress.
@@ -73,6 +83,30 @@ def _screen_loop(
                 return ui_models.CANCEL
             continue
         action = ui_keys.handle_key(state, key, viewport_height)
+        if action == "transfer":
+            try:
+                draft = {
+                    "display": state.display.to_dict(),
+                    "host": state.host.to_dict(),
+                }
+                if state.pending_action == "preset":
+                    draft["display"] = presets.apply(
+                        state.display, state.preset
+                    ).to_dict()
+                    forms.replace_draft(state, draft)
+                    state.notice = "Preset expanded; Ctrl+S saves, Esc discards."
+                elif state.pending_action == "import":
+                    forms.replace_draft(state, transfer.import_file(state.path, draft))
+                    state.notice = "Draft imported; Ctrl+S saves, Esc discards."
+                else:
+                    path = transfer.export_file(
+                        state.path, draft, state.baseline.config_path.parent
+                    )
+                    state.notice = "Exported current draft (may be unsaved): " + path
+            except (DisplayConfigError, protocol.RequestError, OSError) as exc:
+                state.notice = str(exc)
+            state.pending_action = None
+            continue
         if action is not None:
             return action
 

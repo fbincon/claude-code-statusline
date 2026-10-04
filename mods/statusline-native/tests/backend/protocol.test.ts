@@ -4,8 +4,19 @@ import {
   parseResponse,
   processFailure,
   requestText,
+  isDraft,
 } from '../../lib/backend.ts';
 import { description, output, readResult, reply, sample } from '../fixtures.ts';
+
+test('scoped text validation matches Python Unicode limits and rejects unsafe characters', () => {
+  const draft = readResult().draft;
+  draft.display.item_options['model-with-effort'] = { label: '😀'.repeat(256), icon: null, priority: 50, max_width: null, formatting: {} };
+  expect(isDraft(draft)).toBe(true);
+  for (const value of ['😀'.repeat(257), 'bad\u0085text', 'bad\ud800text']) {
+    draft.display.item_options['model-with-effort']!.label = value;
+    expect(isDraft(draft)).toBe(false);
+  }
+});
 
 test('backend errors and protocol mismatches are explicit', () => {
   for (const stdout of [

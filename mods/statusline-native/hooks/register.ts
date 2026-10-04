@@ -11,7 +11,7 @@ import {
   requestText,
 } from '../lib/backend.ts';
 import { Editor, copyDraft, sameDraft } from '../lib/editor/draft.ts';
-import { canEdit, preferences, preferenceChanged } from '../lib/preferences.ts';
+import { canEdit, validPreferenceValue, preferences, preferenceChanged } from '../lib/preferences.ts';
 import type {
   Draft,
   Operation,
@@ -292,6 +292,39 @@ async function save(
   }
 }
 
+async function transferDraft($: EngineInterface, state: Session, options: PluginOptions) {
+  const e = state.view.editor;
+  const action = e?.pendingTransfer;
+  if (!e || !action || state.writing || state.view.uncertain) return;
+  const epoch = state.epoch;
+  e.pendingTransfer = null;
+  state.writing = true;
+  state.view.busy = action === 'export' ? 'Exporting current draft (may be unsaved)...' : 'Loading draft...';
+  $.ui.invalidate('ui.render');
+  try {
+    if (!e.acceptNumeric()) { state.view.message = 'Correct numeric fields first.'; return; }
+    const payload = action === 'preset' ? { draft: copyDraft(e.draft), preset: e.preset } : action === 'import' ? { draft: copyDraft(e.draft), path: e.path } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
+    if (action === 'export') {
+      const result = await callBackend($, options, action, payload);
+      if (state.epoch === epoch) state.view.message = 'Exported current draft (may be unsaved): ' + result.path;
+    } else {
+      const result = await callBackend($, options, action, payload);
+      if (state.epoch === epoch) {
+        e.replaceDraft(result.draft);
+        state.view.message = 'Draft replaced; review preview and Save, or discard with q.';
+        state.previewKey = '';
+      }
+    }
+  } catch (failure) {
+    if (state.epoch === epoch) state.view.message = failureText(failure);
+  } finally {
+    if (state.epoch === epoch) {
+      state.writing = false;
+      state.view.busy = '';
+    }
+  }
+}
+
 async function applyPreferences(
   $: EngineInterface,
   state: Session,
@@ -315,6 +348,7 @@ async function applyPreferences(
       }
       if (
         JSON.stringify(latest.value) !== JSON.stringify(preference.baseline) ||
+        latest.kind !== preference.row.kind ||
         JSON.stringify(latest.provider) !==
           JSON.stringify(preference.row.provider)
       ) {
@@ -327,6 +361,10 @@ async function applyPreferences(
         preference.result = latest.isLocked
           ? 'Locked by host policy; not applied.'
           : 'Unsupported control; not applied.';
+        continue;
+      }
+      if (!validPreferenceValue(preference)) {
+        preference.result = 'Value no longer fits this row; discard and reload.';
         continue;
       }
       try {
@@ -527,6 +565,7 @@ export const register: Register = (on, options) => {
           await load($, state, options);
           state.placed = true;
         } else if (effect === 'reconcile') await reconcile($, state, options);
+        else if (effect === 'transfer') await transferDraft($, state, options);
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);
         else if (effect === 'retry') state.previewKey = '';

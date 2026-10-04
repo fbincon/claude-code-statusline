@@ -16,7 +16,7 @@ Stable v1.4.0 requests both the external TUI and in-session Client by default, p
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
-Each candidate requires all 13 Python/build and four fixed Mod jobs (Linux 2.1.287/2.1.288, Windows/macOS 2.1.288) on the PR, merge commit and tag. Check stable defaults, persistent disablement, version thresholds, upgrade/downgrade, all four combinations and independent disablement. Core smoke explicitly selects basic integration; native smoke checks actual marketplaces, backend binding, saves and uninstall. An installed wheel must also pass real Linux PTYs with both entries.
+Phase 4 candidates require all 13 Python/build and five fixed Mod jobs (Linux 2.1.287/2.1.288/2.1.289, Windows/macOS 2.1.288) on the PR, merge commit and tag. Check stable defaults, persistent disablement, version thresholds, upgrade/downgrade, all four combinations and independent disablement. Core smoke explicitly selects basic integration; native smoke checks actual marketplaces, backend binding, saves and uninstall. An installed wheel must also pass real Linux PTYs with both entries.
 
 Build from the verified merge commit, inspect wheel/sdist/resource inventories and independent rebuilds, verify fixed-tag installation, draft assets and SHA256, require tag CI, then publish stable as Latest and check public downloads/isolated installs. The sole Mod source supplies runtime assets; exclude dependencies, host declarations and raw reports. Raw evidence stays in ignored dist/validation. Before a Python package downgrade, remove native with the newer package's `install --no-native-editor`.
 
@@ -115,7 +115,7 @@ Use SHA-256, lowercase hexadecimal digests, two spaces, and filenames without di
 
 ## Create a tag and draft Release
 
-Confirm all 13 Python/build and four Mod CI jobs pass for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
+Confirm all 13 Python/build and five Mod CI jobs pass for Phase 4 for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
 
 ```bash
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
@@ -165,3 +165,9 @@ v1.3.0a2 has confirmed three-platform human acceptance. Stable Python/Mod versio
 ## v1.4.0 display-item release
 
 This release adds opt-in catalog entries and retains the existing Client interaction and installation policy. Require fixed-clock expiry, missing/zero, raw token/scope, complete editor/preview and lazy-collection checks. Keep the existing three-platform CI, inspect and independently rebuild packages, run installed-wheel Linux PTYs and visually inspect the larger catalog. Document the inherited macOS input limitation and record automated/agent inspection separately from historical human acceptance. New multiline layouts and runtime timing changes require their own additional acceptance.
+
+## Phase 4 preview and stable promotion
+
+Publish v1.5.0a1 first, with prerelease=true and latest=false; v1.4.0 remains Latest. Require all 18 jobs (13 Python/build, five Mod) on the PR, merged build commit and tag. Run installed-wheel advanced persistent Linux PTYs, inspect actual captures, compare formatting/layout performance and complete independent wheel/sdist/rebuild, fixed-tag and public download/install checks. No paid model/timer suite is required for this scope.
+
+The maintainer must confirm Linux/Windows new interactions and the usable macOS entries before v1.5.0 stable promotion. Automated checks, agent visual inspection and human acceptance are separate records. Retain the macOS Client input limitation, schema-v3 backup/downgrade instructions and preview opt-in flags. Do not mark Phase 4 complete until stable publication and public installation validation succeed.
