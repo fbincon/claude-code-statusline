@@ -238,6 +238,8 @@ Stable installs prefer native; prereleases require explicit enablement. `install
 
 The [v1.3.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) replaces the project dropdown with direct checked rows, horizontal tabs, paged content and a bounded bottom preview. Enter toggles the focused item; `p/n` page, `u/d` reorder, `s` saves and continues, and `f` saves and closes. Settings folds theme/verbose behind `h`; `a` applies them separately. The body needs at least 32 columns × 12 rows. Native Tab/arrows keep their host meanings. See the [complete controls and boundaries](docs/development/native.md#editor-behavior).
 
+Preview pages: [Main](docs/images/native-main-v1.3.0a1-linux.png) · [Subagents](docs/images/native-subagents-v1.3.0a1-linux.png) · [Settings](docs/images/native-settings-v1.3.0a1-linux.png). [Capture provenance](docs/images/README.md#v130a1-preview-captures).
+
 ```bash
 pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
 claude-statusline install --native-editor

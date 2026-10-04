@@ -218,6 +218,8 @@ claude-statusline doctor
 
 [v1.3.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) 将项目下拉框改为直接勾选行，提供横向页签、分页正文和限高底部预览。Enter 切换当前行，`p/n` 翻页，`u/d` 排序，`s` 保存继续，`f` 保存关闭。Settings 用 `h` 展开 theme/verbose，`a` 独立应用。最小要求为正文 32 列 × 12 行；Tab、方向键保留宿主含义。参见[完整操作和边界](docs/development/native.zh-CN.md#编辑器行为)。
 
+预览画面：[Main](docs/images/native-main-v1.3.0a1-linux.png) · [Subagents](docs/images/native-subagents-v1.3.0a1-linux.png) · [Settings](docs/images/native-settings-v1.3.0a1-linux.png)。[来源记录](docs/images/README.zh-CN.md#v130a1-预览画面)。
+
 ```bash
 pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
 claude-statusline install --native-editor
