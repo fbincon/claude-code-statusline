@@ -4,6 +4,9 @@
 
 ## Unreleased
 
+- Add explicit rows with priority/terminal-cell width fitting and shared production previews. Subagent filtering, completed hiding, row and task-text limits emit empty content without changing host order.
+
+
 - Add opt-in schema-v3 format settings: short models, numeric formats, labels/icons, risk thresholds, used/remaining allowances and reset styles. Read v1/v2 without writes and migrate with a backup on save.
 - Move the internal JSON contract to protocol v2 and preserve all new fields through complete Client/curses saves; retain owned protocol-v1 resources for upgrade/uninstall.
 

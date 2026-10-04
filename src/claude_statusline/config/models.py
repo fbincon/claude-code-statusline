@@ -35,6 +35,9 @@ DISPLAY_OPTION_NAMES = {
 DISPLAY_OPTION_NAMES |= {key.replace("_", "-") for key in FORMAT_CHOICES} | {"threshold-colors", "warning-threshold", "critical-threshold"}
 
 
+DISPLAY_OPTION_NAMES |= {"subagent-visibility", "subagent-hide-completed", "subagent-row-limit", "subagent-task-max-width"}
+
+
 HOST_OPTION_NAMES = {
     "padding",
     "refresh-interval",

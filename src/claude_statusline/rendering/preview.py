@@ -136,14 +136,9 @@ def render_preview_rows(
         requested_padding,
         max(0, available_width - rendering_layout.MIN_CONTENT_WIDTH),
     )
-    segments, separator, reset = rendering_items._configured_segments_with_state(
-        _sample_preview_data(), display_config, _SampleRenderState
-    )
-    rows = rendering_layout._layout_segments(
-        segments,
-        available_width - applied_padding,
-        separator=separator,
-        reset=reset,
+    rows = rendering_items.configured_rows(
+        _sample_preview_data(), display_config, available_width - applied_padding,
+        _SampleRenderState,
     )
     prefix = " " * applied_padding
     return [prefix + row for row in rows]

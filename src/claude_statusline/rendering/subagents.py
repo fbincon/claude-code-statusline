@@ -293,6 +293,15 @@ def _parts_for_task(
         if not text:
             continue
         text = preferences.decorate(text, item, "subagent", fmt, options)
+        maximum = options.max_width
+        if item == "task" and config.subagents.task_max_width is not None:
+            maximum = (
+                min(maximum, config.subagents.task_max_width)
+                if maximum
+                else config.subagents.task_max_width
+            )
+        if maximum is not None:
+            text = rendering_formatters.truncate_text(text, maximum)
         if item in ("context-used", "context-remaining"):
             count, capacity = (
                 metrics.token_count(task.get("tokenCount")),
@@ -428,7 +437,23 @@ def render_task(
     if not config.subagents.enabled or not config.subagents.items:
         return ""
     current_ms = time.time() * 1000.0 if now_ms is None else float(now_ms)
-    parts = _fit_parts(_parts_for_task(task, config, current_ms), columns)
+    parts = _parts_for_task(task, config, current_ms)
+    if config.subagents.item_options:
+        while (
+            len(parts) > 1
+            and rendering_formatters.display_width(_plain_line(parts)) > columns
+        ):
+            index = min(
+                range(len(parts)),
+                key=lambda n: (
+                    preferences.options_for(config, parts[n].item, "subagent")[
+                        1
+                    ].priority,
+                    -n,
+                ),
+            )
+            del parts[index]
+    parts = _fit_parts(parts, columns)
     content = _render_parts(parts, config)
     # Keep the protocol guarantee defensive even if a future style or field is
     # added without updating the fitting logic.
@@ -448,6 +473,7 @@ def render_payload(
     columns = _columns(data.get("columns"))
     seen: set[str] = set()
     output: list[dict[str, str]] = []
+    visible = 0
     for task in data["tasks"]:
         if not isinstance(task, dict):
             continue
@@ -455,15 +481,32 @@ def render_payload(
         if not isinstance(task_id, str) or not task_id.strip() or task_id in seen:
             continue
         seen.add(task_id)
+        hidden = (
+            (
+                config.subagents.visibility == "running"
+                and task.get("status") != "running"
+            )
+            or (config.subagents.hide_completed and task.get("status") == "completed")
+            or (
+                config.subagents.row_limit is not None
+                and visible >= config.subagents.row_limit
+            )
+        )
         try:
-            content = render_task(
-                task,
-                config,
-                columns=columns,
-                now_ms=now_ms,
+            content = (
+                ""
+                if hidden
+                else render_task(
+                    task,
+                    config,
+                    columns=columns,
+                    now_ms=now_ms,
+                )
             )
         except Exception:
             content = ""
+        if content:
+            visible += 1
         output.append({"id": task_id, "content": content})
     return output
 

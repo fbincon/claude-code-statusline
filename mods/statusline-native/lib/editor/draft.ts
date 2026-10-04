@@ -171,6 +171,21 @@ export class Editor {
 
   private setItems(scope: Scope, items: string[]): void {
     if (scope === 'main') {
+      const layout = this.draft.display.layout;
+      if (layout.mode === 'explicit') {
+        const remaining = [...items] as Draft['display']['items'];
+        const selected = new Set(items);
+        const rows: typeof layout.rows = [];
+        for (const row of layout.rows) {
+          const size = row.filter((id) => selected.has(id)).length;
+          if (size) rows.push(remaining.splice(0, size));
+        }
+        if (remaining.length) {
+          if (rows.length) rows[rows.length - 1]!.push(...remaining);
+          else rows.push(remaining);
+        }
+        layout.rows = rows;
+      }
       this.draft.display.items = items as Draft['display']['items'];
     } else {
       this.draft.display.subagents.items =

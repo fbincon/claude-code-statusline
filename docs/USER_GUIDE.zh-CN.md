@@ -1787,3 +1787,19 @@ claude-statusline config set model-name short
 claude-statusline config set number-format grouped
 claude-statusline config set threshold-colors on
 ```
+
+### 显式布局与子 Agent 显示条件
+
+`config layout auto` 保留原有折行。显式逗号分隔行必须按顺序展平为当前启用项目。`config item main|subagent ID OPTION VALUE` 修改标签、图标、优先级（0–100）、max-width（2–10000 或 none）或格式选项；inherit 清除文本／格式覆盖。显式布局先截短宽度，再隐藏低优先级项目；同级从右向左精简，不增加续行。
+
+```bash
+claude-statusline config set-items model current-dir context-used
+claude-statusline config layout explicit model,current-dir context-used
+claude-statusline config item main model priority 100
+claude-statusline config item main current-dir max-width 32
+claude-statusline config set subagent-hide-completed on
+claude-statusline config set subagent-row-limit 6
+claude-statusline config set subagent-task-max-width 48
+```
+
+subagent-visibility 接受 all/running。行数／任务宽度接受 none 恢复默认；行数 0 隐藏全部自定义行。隐藏 completed 不隐藏失败。筛选与限制沿用宿主输入顺序，对隐藏 ID 输出空内容；省略 ID 会恢复宿主默认行。
