@@ -4,6 +4,8 @@
 
 ## 未发布
 
+- 新增九个默认关闭的独立主栏指标和四个子 Agent 指标，保留组合项、默认选择及 schema v2／协议 v1；隐藏过期额度，提供固定倒计时预览，说明指标作用域与降级恢复。
+
 - 在中英文 README 与截图索引中加入显示 Claude Code 2.1.289 的 Linux、Windows、macOS 会话内 Client 原始截图。
 - 单独记录维护者反馈的 Linux、Windows 正常交互与 macOS 尚未解决的输入问题，保留历史验收事实；补充 Terminal.app、iTerm2 官方鼠标报告检查建议及其他配置入口，不宣称已验证修复。
 

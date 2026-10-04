@@ -2,6 +2,8 @@
 
 [English](USER_GUIDE.md) | **简体中文**
 
+新增独立模型、上下文、额度重置和会话指标、子 Agent 字段及降级恢复见[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)。
+
 本指南覆盖安装、配置、升级、诊断和开发。首次使用可先阅读[项目首页](../README.zh-CN.md)；发布版本的操作见[发布指南](RELEASING.zh-CN.md)。
 
 配置按用户生效，对该用户的所有 Claude Code 项目生效。状态栏渲染读取 Claude Code 输入、本机名、transcript（会话记录）、本地 Git 和状态文件，不自行发起网络请求或消耗模型 token。问答配置向导由 Claude 驱动，会使用模型回合；带参数命令的执行路径见[执行方式](#statusline-config-的执行方式)。

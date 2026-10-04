@@ -83,3 +83,13 @@ v1.3.0 检查四种安装组合、分别关闭、旧 owned 外部资源恢复、
 Linux 自动 PTY 在 120×30 停靠及 80×48 内嵌布局检查点击获焦、三页、保存、取消、Esc 和继续同一 session。持久模式使用私有 tmux server，同时安装两条入口，验证原有外部 popup 保存后 Client 读取新值。执行 `tools/native_mod_acceptance.py --persistent --report-dir dist/validation/<新目录>`；原始数据私有保存，不进分发包。wheel/sdist/重建 wheel 核对 Client 模块清单。普通检查不调用付费模型。
 
 2026-10-04 维护者分别确认 a2 Client 在 Linux、Windows、macOS 真人验收通过。正式晋升沿用已验收交互；自动检查另验证安装策略和发布资产。新增覆盖两个正式默认、明确 false、2.1.257/258/286/287/288 及未知版本、旧宿主显式启用、暂挂回滚及主动插件禁用。官方安装 smoke 另核实真实默认安装、关闭后重装不反弹。本轮不调用付费模型/计时套件。
+
+## 显示指标检查与性能
+
+独立指标测试使用固定时钟，覆盖缺失／合法零值、作用域来源及无副作用预览。Git 与 transcript 延迟采集且每次刷新共享结果。使用隔离的本地样例分别记录启动与采集耗时，不调用模型：
+
+```text
+python tools/benchmark_render.py --samples 30 --report dist/validation/display-performance.json
+```
+
+改动前后在同一机器、同一 Python 比较 P50／P95；报告记录被测提交。冷 transcript 样例使用不同会话，热样例复用状态。这是可复现的小样例基线，不代表大型仓库或会话历史的耗时上限。

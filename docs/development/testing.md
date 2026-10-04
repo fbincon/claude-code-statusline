@@ -81,3 +81,13 @@ Fixed-host official tests exercise actual Client modules, Space/Tab/arrows, sear
 Automated Linux PTYs check initial click, three pages, save/cancel, Esc and continuing the same session at 120×30 docked and 80×48 inline sizes. Persistent mode uses a private tmux server with both entries installed and verifies Client reads a value saved by the original external popup. Run `tools/native_mod_acceptance.py --persistent --report-dir dist/validation/<new-directory>`; keep raw data private and outside distributions. Wheel/sdist/rebuilt-wheel checks verify Client inventories. Ordinary checks make no paid model calls.
 
 On 2026-10-04 the maintainer confirmed a2 Client human acceptance on Linux, Windows and macOS, separately from the earlier a1 result. Stable promotion keeps the accepted interaction; automated checks validate the installation policy and release assets separately. New tests cover both stable defaults, persistent false, boundary versions 2.1.257/258/286/287/288, unknown versions, explicit enablement on old hosts, rollback of version suspension and preserving user plugin disablement. The official installation smoke also checks actual default installation and disablement followed by reinstall. No paid model/timer suite is run.
+
+## Display metric checks and performance
+
+Independent metric tests use fixed clocks, strict missing/zero input, per-scope sources and side-effect-free previews. Git/transcript collectors are lazy and shared within a refresh. Record startup and collection separately using isolated local fixtures (no model calls):
+
+```text
+python tools/benchmark_render.py --samples 30 --report dist/validation/display-performance.json
+```
+
+Compare P50/P95 on the same machine and Python before/after changes; results include the tested commit. Cold transcript cases use distinct sessions; warm cases reuse state. Treat these small fixtures as a reproducible baseline, not a bound on large repositories or session histories.

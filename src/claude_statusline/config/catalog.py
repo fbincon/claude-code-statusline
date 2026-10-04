@@ -58,6 +58,7 @@ def _main(item, label, description, group, sources, example, position=None, **kw
 
 
 def _agent(item, label, description, sources, example, position=None, **kwargs):
+    minimum_version = kwargs.pop("minimum_version", "2.1.205")
     return ItemDefinition(
         "subagent",
         item,
@@ -67,7 +68,7 @@ def _agent(item, label, description, sources, example, position=None, **kwargs):
         tuple(sources),
         (example,),
         position,
-        minimum_version="2.1.205",
+        minimum_version=minimum_version,
         **kwargs,
     )
 
@@ -81,6 +82,22 @@ ITEMS = (
         ("model.id", "effort.level"),
         "claude-opus high",
         0,
+    ),
+    _main(
+        "model",
+        "Model",
+        "Current model identifier, or display name when the identifier is absent",
+        "model",
+        ("model.id", "model.display_name"),
+        "claude-opus",
+    ),
+    _main(
+        "effort",
+        "Effort",
+        "Live reasoning effort of the main conversation",
+        "model",
+        ("effort.level",),
+        "high",
     ),
     _main(
         "fast-mode",
@@ -184,6 +201,18 @@ ITEMS = (
         4,
     ),
     _main(
+        "context-tokens",
+        "Context tokens",
+        "Current input-context tokens, including cache reads/writes, versus window capacity",
+        "context",
+        (
+            "context_window.current_usage",
+            "context_window.total_input_tokens",
+            "context_window.context_window_size",
+        ),
+        "Context 54K / 200K",
+    ),
+    _main(
         "five-hour-limit",
         "Five-hour allowance",
         "Remaining five-hour usage limit",
@@ -193,6 +222,14 @@ ITEMS = (
         5,
     ),
     _main(
+        "five-hour-reset",
+        "Five-hour reset",
+        "Countdown to the five-hour allowance reset",
+        "limits",
+        ("rate_limits.five_hour.resets_at",),
+        "5h reset 2h 13m",
+    ),
+    _main(
         "weekly-limit",
         "Weekly allowance",
         "Remaining seven-day usage limit",
@@ -200,6 +237,14 @@ ITEMS = (
         ("rate_limits.seven_day.used_percentage",),
         "weekly 64% left",
         6,
+    ),
+    _main(
+        "weekly-reset",
+        "Weekly reset",
+        "Countdown to the seven-day allowance reset",
+        "limits",
+        ("rate_limits.seven_day.resets_at",),
+        "weekly reset 6d 2h",
     ),
     _main(
         "spend-limit",
@@ -266,6 +311,38 @@ ITEMS = (
         "Total $0.12 · 12m 30s · +156/-23",
     ),
     _main(
+        "session-cost",
+        "Session cost",
+        "Cumulative session cost in US dollars",
+        "usage",
+        ("cost.total_cost_usd",),
+        "Cost $0.12",
+    ),
+    _main(
+        "session-duration",
+        "Session runtime",
+        "Official cumulative session runtime, distinct from task duration",
+        "usage",
+        ("cost.total_duration_ms",),
+        "Session 12m 30s",
+    ),
+    _main(
+        "api-duration",
+        "API duration",
+        "Official cumulative API request duration, distinct from session and task duration",
+        "usage",
+        ("cost.total_api_duration_ms",),
+        "API 1m 15s",
+    ),
+    _main(
+        "lines-changed",
+        "Lines changed",
+        "Claude's cumulative session line additions/removals, distinct from Git working-tree changes",
+        "usage",
+        ("cost.total_lines_added", "cost.total_lines_removed"),
+        "+156/-23",
+    ),
+    _main(
         "agent",
         "Agent",
         "Agent name in --agent sessions",
@@ -310,6 +387,21 @@ ITEMS = (
         2,
     ),
     _agent(
+        "model",
+        "Agent model",
+        "Resolved agent model identifier",
+        ("tasks.model",),
+        "sonnet-5",
+    ),
+    _agent(
+        "effort",
+        "Agent effort",
+        "Explicit configured agent effort or numeric budget; absent when inherited",
+        ("tasks.effort",),
+        "high",
+        minimum_version="2.1.214",
+    ),
+    _agent(
         "context-remaining",
         "Agent context remaining",
         "Percentage of the agent context window remaining",
@@ -323,6 +415,20 @@ ITEMS = (
         "Percentage of the agent context window used",
         ("tasks.tokenCount", "tasks.contextWindowSize"),
         "42% used",
+    ),
+    _agent(
+        "context-tokens",
+        "Agent context tokens",
+        "Agent context token count versus its model's window capacity",
+        ("tasks.tokenCount", "tasks.contextWindowSize"),
+        "Context 84K / 200K",
+    ),
+    _agent(
+        "context-window-size",
+        "Agent context window",
+        "Resolved agent model's context window capacity",
+        ("tasks.contextWindowSize",),
+        "200K window",
     ),
     _agent(
         "elapsed",

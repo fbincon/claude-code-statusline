@@ -109,6 +109,12 @@ def run_pty(
     import pyte
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
+    description = subprocess.run(
+        [env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "ui"],
+        input=json.dumps({"protocol_version": 1, "operation": "describe", "payload": {}}),
+        text=True, capture_output=True, env=env, cwd=project, check=True, timeout=30,
+    )
+    catalog_count = len(json.loads(description.stdout)["result"]["catalog"])
     subprocess.run(
         [env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set", "colors", "on"],
         env=env,
@@ -357,7 +363,7 @@ def run_pty(
             "cancel_reopen": True,
             "esc_return": True,
             "external_entry_verified": external_verified,
-            "catalog_items": 34,
+            "catalog_items": catalog_count,
             "sample_preview": True,
             "persistent_plugin": persistent,
             "manual_visual_acceptance": False,

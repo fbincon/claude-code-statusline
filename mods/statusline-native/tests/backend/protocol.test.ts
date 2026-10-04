@@ -184,6 +184,6 @@ test('the editor refuses incomplete choices, duplicate catalog entries and missi
     expect(() => parseResponse('describe', reply(value))).toThrow();
   }
   expect(parseResponse('describe', reply(description())).catalog.length).toBe(
-    34,
+    description().catalog.length,
   );
 });

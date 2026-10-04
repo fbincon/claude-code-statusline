@@ -87,10 +87,10 @@ class ItemStateTests(unittest.TestCase):
         state.append_search("VIM")
         self.assertEqual(state.visible_items(), ["vim-mode"])
         state.clear_search()
-        state.append_search("working-TREE")
+        state.append_search("divergence")
         self.assertEqual(state.visible_items(), ["git"])
         state.backspace_search()
-        self.assertEqual(state.search, "working-TRE")
+        self.assertEqual(state.search, "divergenc")
         state.clear_search()
         self.assertEqual(state.visible_items(), state.item_order)
 
@@ -110,17 +110,16 @@ class ItemStateTests(unittest.TestCase):
             effective(items=tuple(config_display.ITEM_CATALOG))
         )
         state.append_search("current")
-        self.assertEqual(
-            state.visible_items(),
-            ["model-with-effort", "current-dir", "pr", "vim-mode"],
-        )
+        visible_before = state.visible_items()
+        self.assertEqual(visible_before[0], "model-with-effort")
+        self.assertIn("current-dir", visible_before)
         hidden_before = [
             item for item in state.item_order if item not in state.visible_items()
         ]
         self.assertTrue(state.move_selected_item(1))
         self.assertEqual(
-            state.item_order[:4],
-            ["fast-mode", "thinking", "current-dir", "model-with-effort"],
+            state.visible_items(),
+            [visible_before[1], visible_before[0], *visible_before[2:]],
         )
         hidden_after = [
             item for item in state.item_order if item not in state.visible_items()
@@ -150,7 +149,8 @@ class ItemStateTests(unittest.TestCase):
             state.final_subagent_items(), config_display.DEFAULT_SUBAGENT_ITEMS
         )
         state.append_search("token")
-        self.assertEqual(state.visible_subagent_items(), ["tokens"])
+        self.assertEqual(state.visible_subagent_items(), ["context-tokens", "tokens"])
+        state.selected_subagent_item = "tokens"
         state.toggle_selected_item()
         self.assertIn("tokens", state.final_subagent_items())
         state.clear_search()
