@@ -124,10 +124,6 @@ test('same-frame coalescing keeps every pending key; acknowledgements send the n
     listener({ key: String.fromCharCode(97 + (i % 26)) });
   expect(sent[sent.length - 1].events).toHaveLength(MAX_BATCH);
   expect(sent[sent.length - 1].events[0].seq).toBe(1);
-  StatuslineClient(first, surface); // Old epochs cannot replace a recovered region.
-  listener({ key: 's' });
-  expect(sent[sent.length - 1].epoch).toBe(2);
-  expect(sent[sent.length - 1].events[1].seq).toBe(2);
   StatuslineClient(clientProps(live, 1, MAX_BATCH, 2, 60, 24), surface);
   expect(sent[sent.length - 1].events).toHaveLength(52);
   expect(sent[sent.length - 1].events[0].seq).toBe(129);
@@ -139,4 +135,8 @@ test('same-frame coalescing keeps every pending key; acknowledgements send the n
   listener({ key: 'q' });
   expect(sent[sent.length - 1].epoch).toBe(2);
   expect(sent[sent.length - 1].events[0].seq).toBe(1);
+  StatuslineClient(first, surface); // Old epochs cannot replace a recovered region.
+  listener({ key: 's' });
+  expect(sent[sent.length - 1].epoch).toBe(2);
+  expect(sent[sent.length - 1].events[1].seq).toBe(2);
 });
