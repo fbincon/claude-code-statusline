@@ -200,33 +200,23 @@ pipx uninstall claude-code-statusline
 
 ## 原生配置编辑器
 
-[原生界面画面及来源](docs/images/README.zh-CN.md#原生编辑器画面)。
+### v1.3.0a2：外部 TUI 与会话内 Client
 
-v1.2.0 wheel 包含匹配的原生 Mod，在兼容的 Claude Code 2.1.287+ 宿主上默认优先原生；保留明确禁用偏好及外部禁用插件。上面的安装已经执行接入，以下命令可显式启用或诊断。
+`/statusline-configure` 保留既有外部终端 TUI；`/statusline-configure-native` 打开当前 session 内的实验性 Client TUI，不另开终端。两个入口可独立启用并同时安装，不增加新的命令名。
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.2.0/claude_code_statusline-1.2.0-py3-none-any.whl"
-claude-statusline install --native-editor
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a2/claude_code_statusline-1.3.0a2-py3-none-any.whl"
+claude-statusline install --experimental-slash-tui --native-editor
 claude-statusline doctor
 ```
 
-在受信任终端中重启 Claude Code 2.1.287+，运行 `/statusline-configure` 或别名 `/statusline-configure-native`。Main/Subagents 提供选择、排序和样例预览；Settings 提供现有九项工具设置，以及独立的 theme/verbose 宿主偏好。`1/2/3` 切页，Tab/Enter 操作原生控件，`s` 保存工具配置并保持面板打开，`a` 应用宿主偏好，Esc/`q` 丢弃待保存修改；Esc 先退出输入字段。参见[原生编辑器行为](docs/development/native.zh-CN.md)。
+在受信任终端重启 Claude Code。只需一种方式时只传对应启用参数；`--no-experimental-slash-tui`、`--no-native-editor` 分别关闭，不影响另一种。预览版新安装默认都关闭，已有偏好保留；重装恢复旧原生迁移曾移除的已启用外部入口。
 
-稳定版默认优先原生，预览仍须显式启用。`install --no-native-editor` 持久保存禁用偏好并撤下所属原生接入；仅在实验入口偏好已启用时恢复兼容 `/statusline-configure` 启动器。向导 `/statusline-config` 和独立 `claude-statusline configure` 保留。安装失败保留兼容配置并报告实际状态，核对 doctor 后再重试。维护者已确认 Linux、Windows 11、macOS 14.5 的完整原生真人清单通过；Windows/macOS 未提供架构及终端信息，具体边界见原生指南。
+Client 打开后先点击区域一次，再用 Tab 切页、上下选择、左右排序、Space 勾选；`/` 搜索、Ctrl+G 取消字段、s 保存继续、f 保存退出、q 丢弃退出。搜索/字段输入期间暂停普通字符快捷键。Esc 由宿主处理：先归还焦点，再关闭。高级 Claude 偏好仍用 h 展开、a 单独应用。内容、栏目及预览采用明确分组；最小正文 32×12，正常空间使用边框，窄窗使用标题分隔线。
 
-### v1.3.0a1 编辑器预览
+两种编辑器可同时打开，保存通过共同版本校验防止覆盖；Client 冲突时保留草稿，r 丢弃重载，结果不明时 k 核对。重复执行原生命令保留当前草稿。详见[完整操作与安装边界](docs/development/native.zh-CN.md#编辑器行为)。
 
-[v1.3.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) 将项目下拉框改为直接勾选行，提供横向页签、分页正文和限高底部预览。Enter 切换当前行，`p/n` 翻页，`u/d` 排序，`s` 保存继续，`f` 保存关闭。Settings 用 `h` 展开 theme/verbose，`a` 独立应用。最小要求为正文 32 列 × 12 行；Tab、方向键保留宿主含义。参见[完整操作和边界](docs/development/native.zh-CN.md#编辑器行为)。
-
-预览画面：[Main](docs/images/native-main-v1.3.0a1-linux.png) · [Subagents](docs/images/native-subagents-v1.3.0a1-linux.png) · [Settings](docs/images/native-settings-v1.3.0a1-linux.png)。[来源记录](docs/images/README.zh-CN.md#v130a1-预览画面)。
-
-```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
-claude-statusline install --native-editor
-claude-statusline doctor
-```
-
-在受信任终端中重启 Claude Code。预览需明确启用原生，**Latest 稳定版仍为 v1.2.0**。新界面的 Linux/Windows/macOS 真人验收均待完成，旧界面验收不能替代。
+**Latest 稳定版仍为 v1.2.0**。v1.3.0a1 原生控件界面三平台真人验收已获确认；v1.3.0a2 的 Client 真人验收单独记录，当前均待验收。自动 CI 和 Linux PTY 不计为真人验收。
 
 ## 文档与帮助
 
@@ -234,7 +224,7 @@ claude-statusline doctor
 - [诊断与故障排查](docs/USER_GUIDE.zh-CN.md#故障排查)：先运行 `doctor`，再按具体症状排查。
 - [开发与测试](docs/USER_GUIDE.zh-CN.md#附录开发与测试) · [发布指南](docs/RELEASING.zh-CN.md) · [变更记录](CHANGELOG.zh-CN.md)。
 - [项目架构](docs/development/architecture.zh-CN.md) · [验证与验收](docs/development/testing.zh-CN.md) · [计时指标与证据](docs/development/timer.zh-CN.md)。
-- [原生配置编辑器](docs/development/native.zh-CN.md)：源码提供三页、revision 保存保护及独立宿主偏好；Linux、Windows 11、macOS 14.5 真人验收已确认。
+- [原生配置编辑器](docs/development/native.zh-CN.md)：Client 操作、两入口独立安装、revision 保存保护及真人验收边界。
 - [共享配置协议](docs/development/contracts.zh-CN.md)：源码开发使用的项目目录和内部 JSON describe/read/preview/apply 契约。
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：报告问题时请提供系统、Python/Claude Code/本工具版本、复现步骤，以及去除私人路径和会话内容后的诊断输出。
 

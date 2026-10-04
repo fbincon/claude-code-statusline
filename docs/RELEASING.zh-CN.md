@@ -142,4 +142,6 @@ gh release edit "$RELEASE_TAG" --repo fbincon/claude-code-statusline \
 
 ## v1.3.0 预览推进
 
-新编辑器先以 v1.3.0a1、Mod 1.3.0-alpha.1 发布，明确启用原生，prerelease=true、latest=false；稳定推进前保留 v1.2.0 安装链接。从固定合并提交完成全部 Python/构建及原生 CI、独立 wheel/sdist 重建、草稿附件哈希、标签 CI 和公开下载安装验证。旧界面验收不能替代新的 Linux/Windows/macOS 真人清单。三平台结果齐备后，通过独立发布 PR 将匹配版本推进到 1.3.0，重复发布检查并设置 Latest。本轮仅改 UI，不要求付费计时套件。
+v1.3.0a2 对应 Mod 1.3.0-alpha.2。保留 v1.2.0 稳定安装链接；a2 新安装默认关闭两种 TUI，显式启用或沿用独立偏好。`/statusline-configure` 负责现有外部 TUI，`/statusline-configure-native` 负责当前 session 的 Client，允许并存。
+
+维护者已确认 a1 三平台真人验收。a2 经完整 Python/build 和四个固定 Mod CI、Linux 真实 Client/外部入口 PTY、独立 wheel/sdist 重建及安装检查后发布预览；新 Client 真人验收另行记录并标待验收。按已核验合并提交构建，核验草稿资产与 SHA256、tag CI、公开下载和独立安装，设置 prerelease=true、latest=false。原始报告留在 dist/validation，仅发布脱敏结论。本轮 UI 变化不调用付费计时套件。未来稳定晋升需独立 PR 及候选三平台真人验收。

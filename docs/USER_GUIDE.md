@@ -1252,7 +1252,7 @@ Rerun `install` to synchronize skill templates, command paths, hooks, and versio
 
 ### Version compatibility
 
-Display configuration and experimental feature preferences have independent formats, currently schema v2 and schema v1 respectively. Upgrading this tool to 1.0.0, 1.1.0a1, 1.1.1, 1.2.0, or 1.3.0a1 introduces no new format conversion; existing schema v2 files remain usable. Earlier schema v1 display configurations follow these rules:
+Display configuration and experimental feature preferences have independent formats, currently schema v2 and schema v1 respectively. Upgrading this tool to 1.0.0, 1.1.0a1, 1.1.1, 1.2.0, or 1.3.0a2 introduces no new format conversion; existing schema v2 files remain usable. Earlier schema v1 display configurations follow these rules:
 
 Schema v1 remains readable: main items, order, colors, palette, directory, and separator remain intact, with v2 defaults supplied in memory. Simply running `render`, `render-subagents`, `doctor`, or `install` does not rewrite v1. The first actual configuration save backs up the original bytes in the same transaction and writes canonical schema v2. Schema v2 strictly rejects unknown/missing fields, duplicates, and incorrect types; schemas above v2 are rejected. Downgrading to 0.5.0 makes the old program fall back to defaults; restore the pre-upgrade backup to edit the old schema again.
 
@@ -1755,7 +1755,7 @@ Global Enter calls the existing atomic configuration transaction once. No change
 
 ### Experimental launchers and result bridging
 
-This is not a native Claude Code TUI extension and does not bypass hook terminal isolation. Claude Code 2.1.259 command hooks run in a new session without a controlling terminal: hooks and children cannot open `/dev/tty`, and `terminalSequence` cannot draw curses. The slash command therefore serves only as a local launcher for existing `claude-statusline configure` in another supported terminal. It reuses the existing state machine, sample preview, concurrency detection, and atomic save.
+The external `/statusline-configure` is a terminal launcher and does not bypass hook terminal isolation. Claude Code 2.1.259 command hooks run in a new session without a controlling terminal: hooks and children cannot open `/dev/tty`, and `terminalSequence` cannot draw curses. The slash command therefore serves only as a local launcher for existing `claude-statusline configure` in another supported terminal. It reuses the existing state machine, sample preview, concurrency detection, and atomic save.
 
 Linux chooses launchers in this order:
 
@@ -1788,19 +1788,23 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 
 ## Native configuration editor
 
-### v1.3.0a1 editor preview
+### v1.3.0a2: external TUI and in-session Client
 
-The [v1.3.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) replaces the project dropdown with direct checked rows, horizontal tabs, paged content and a bounded bottom preview. Enter toggles the focused item; `p/n` page, `u/d` reorder, `s` saves and continues, and `f` saves and closes. Settings folds theme/verbose behind `h`; `a` applies them separately. The body needs at least 32 columns × 12 rows. Native Tab/arrows keep their host meanings. See the [complete controls and boundaries](development/native.md#editor-behavior).
+`/statusline-configure` keeps the existing external terminal TUI. `/statusline-configure-native` opens the experimental Client TUI in the current session without another terminal. Enable either or install both; no additional command name is introduced.
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
-claude-statusline install --native-editor
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a2/claude_code_statusline-1.3.0a2-py3-none-any.whl"
+claude-statusline install --experimental-slash-tui --native-editor
 claude-statusline doctor
 ```
 
-Restart Claude Code in a trusted terminal. This preview requires explicit native enablement and leaves **v1.2.0 as the latest stable release**. New Linux/Windows/macOS human acceptance remains pending; the old UI's acceptance does not cover the redesign.
+Restart Claude Code in a trusted terminal. Enable only the desired entry if you need one; `--no-experimental-slash-tui` and `--no-native-editor` disable them independently. Fresh prerelease installs default both off and existing preferences persist. Reinstall restores an enabled owned external entry removed by older native migration.
 
-The standalone TUI and wizard remain available. Stable v1.2.0 still prefers the original native editor; `install --no-native-editor` disables native and restores the compatibility launcher only when its experimental preference is enabled.
+Click the Client region once, then use Tab for pages, arrows for selection/order and Space for toggles. / enters search, Ctrl+G cancels editing, s saves/continues, f saves/finishes and q discards/closes. Character shortcuts yield during input. Esc is host-owned: it returns focus before closing. h unfolds Claude preferences and a applies them separately. Content/columns/preview have distinct groups; minimum body is 32×12, with borders in normal space and titled separators in compact panes.
+
+Both editors may open concurrently; shared opening revisions prevent overwriting a newer save. Client keeps conflicting drafts: r discards/reloads, k checks an unknown save. Rerunning the native command retains its draft. See [complete controls and installation boundaries](development/native.md#editor-behavior).
+
+**Latest stable remains v1.2.0.** The maintainer confirmed v1.3.0a1's native-control UI passed human acceptance on all three platforms. v1.3.0a2 Client human checks are separate and currently pending; CI and Linux PTY checks are automated evidence.
 
 ## Related documentation
 

@@ -32,7 +32,7 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 
 [Main](native-main-v1.3.0a1-linux.png) · [Subagents](native-subagents-v1.3.0a1-linux.png) · [Settings](native-settings-v1.3.0a1-linux.png)
 
-三张 PNG 重建真实 Linux x86_64、Claude Code 2.1.288、后端 1.3.0a1、官方持久插件的解码 cells，干净源码提交为 `4cd97dd480aa0025fb9edc7644b872bf3fa6336b`（2026-10-04）。停靠终端尺寸 120×30，同一自动运行另检查 80×48 的内嵌操作。渲染器裁去会话/输入区并内嵌提交与原始画面哈希；数值为生产样例，是终端重建，不是 OS 逐像素截图或 mockup。原始来源仅留在忽略的 `dist/validation/native-usability-capture-288`。三平台的新真人验收均待完成。
+三张 PNG 重建真实 Linux x86_64、Claude Code 2.1.288、后端 1.3.0a1、官方持久插件的解码 cells，干净源码提交为 `4cd97dd480aa0025fb9edc7644b872bf3fa6336b`（2026-10-04）。停靠终端尺寸 120×30，同一自动运行另检查 80×48 的内嵌操作。渲染器裁去会话/输入区并内嵌提交与原始画面哈希；数值为生产样例，是终端重建，不是 OS 逐像素截图或 mockup。原始来源仅留在忽略的 `dist/validation/native-usability-capture-288`。维护者随后确认 a1 三平台真人验收通过；a2 Client 真人验收单独记录。
 
 ### v1.2.0 画面
 

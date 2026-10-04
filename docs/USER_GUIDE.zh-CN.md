@@ -19,6 +19,7 @@
 - [`/statusline-config` 问答向导](#statusline-config-问答向导)
 - [常用配置配方](#常用配置配方)
 - [实验入口 `/statusline-configure`](#实验入口-statusline-configure)
+- [会话内 Client TUI](#原生配置编辑器)
 - [`/statusline-config` 的执行方式](#statusline-config-的执行方式)
 - [CLI 总览](#cli-总览)
 - [配置命令详解](#配置命令详解)
@@ -1158,7 +1159,7 @@ claude-statusline.exe config show
 
 ### 版本兼容
 
-显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1、1.1.1、1.2.0 或 1.3.0a1 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
+显示配置格式与实验功能偏好格式各自独立：当前分别为 schema v2 和 schema v1。升级到本工具 1.0.0、1.1.0a1、1.1.1、1.2.0 或 1.3.0a2 不新增配置格式转换；已有 schema v2 文件可继续使用。对于更早版本留下的 schema v1 显示配置，适用以下规则：
 
 schema v1 仍可读取：原有主 items、顺序、颜色、palette、目录和分隔符保持不变，内存中补齐 v2 默认字段。单纯 `render`、`render-subagents`、`doctor` 或 `install` 不重写 v1；第一次真实配置保存会在同一事务中备份原字节，并写出规范的 schema v2。schema v2 严格拒绝未知/缺失字段、重复条目和错误类型，高于 v2 的 schema 拒绝读取。降级到 0.5.0 时旧程序会回退默认显示；要继续编辑旧 schema，需恢复升级前备份。
 
@@ -1431,7 +1432,7 @@ claude-statusline config set refresh-interval 1
 - 配置仅为用户全局，不提供项目级配置。
 - 除本地 `socket.gethostname()` 提供的可选 hostname 外，不增加 Claude Code payload、本地 Git 和 transcript 之外的新指标。
 - 不跟随 Claude Code `/theme`；`default` palette 使用本项目固定 RGB 色值。
-- 不提供 Claude Code 原生 TUI 扩展；Linux 实验入口使用 tmux/GNOME，macOS 使用 tmux/Terminal.app，Windows 使用系统新控制台，并复用同一独立 TUI。
+- 外部入口使用既有平台启动器；会话内 Client TUI 由独立启用的 Mods 提供，焦点需先点击。
 - Linux/macOS 不访问 `/dev/tty`；三个平台都不向 Claude pane 写 CSI/alternate-screen 序列，不绕过 hook stdio，不缓存当前会话 payload，也不持久化禁用条目的排序。
 - 不承诺在 IDE、`claude -p`、远程 Web、全局禁用 hooks，或平台所列启动器之外的终端环境中打开实验 TUI。
 - 不提供鼠标、拖拽或自定义键位。
@@ -1607,7 +1608,7 @@ macOS 的会话进程标识使用 `/bin/ps -o lstart= -p PID`，固定 `LC_ALL=C
 
 ### 实验启动器与结果回传
 
-这不是 Claude Code 原生 TUI 扩展，也没有绕过 hook 的终端隔离。Claude Code 2.1.259 的 command hook 在没有控制终端的新 session 中执行，hook 及其子进程不能打开 `/dev/tty`，`terminalSequence` 也不能绘制 curses 界面。因此本工具只把 slash command 用作本地启动器，并在另一个受支持的终端环境中运行已经存在的 `claude-statusline configure`；状态机、样例预览、并发检测和原子保存没有复制实现。
+外部 `/statusline-configure` 沿用终端启动器，没有绕过 hook 的终端隔离；会话内 Client 由另一条 Mod 命令提供。Claude Code 2.1.259 的 command hook 在没有控制终端的新 session 中执行，hook 及其子进程不能打开 `/dev/tty`，`terminalSequence` 也不能绘制 curses 界面。因此本工具只把 slash command 用作本地启动器，并在另一个受支持的终端环境中运行已经存在的 `claude-statusline configure`；状态机、样例预览、并发检测和原子保存没有复制实现。
 
 Linux 启动器按以下顺序选择：
 
@@ -1638,23 +1639,27 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 
 ## 原生配置编辑器
 
-### v1.3.0a1 编辑器预览
+### v1.3.0a2：外部 TUI 与会话内 Client
 
-[v1.3.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0a1) 将项目下拉框改为直接勾选行，提供横向页签、分页正文和限高底部预览。Enter 切换当前行，`p/n` 翻页，`u/d` 排序，`s` 保存继续，`f` 保存关闭。Settings 用 `h` 展开 theme/verbose，`a` 独立应用。最小要求为正文 32 列 × 12 行；Tab、方向键保留宿主含义。参见[完整操作和边界](development/native.zh-CN.md#编辑器行为)。
+`/statusline-configure` 保留既有外部终端 TUI；`/statusline-configure-native` 打开当前 session 内的实验性 Client TUI，不另开终端。两个入口可独立启用并同时安装，不增加新的命令名。
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a1/claude_code_statusline-1.3.0a1-py3-none-any.whl"
-claude-statusline install --native-editor
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0a2/claude_code_statusline-1.3.0a2-py3-none-any.whl"
+claude-statusline install --experimental-slash-tui --native-editor
 claude-statusline doctor
 ```
 
-在受信任终端中重启 Claude Code。预览需明确启用原生，**Latest 稳定版仍为 v1.2.0**。新界面的 Linux/Windows/macOS 真人验收均待完成，旧界面验收不能替代。
+在受信任终端重启 Claude Code。只需一种方式时只传对应启用参数；`--no-experimental-slash-tui`、`--no-native-editor` 分别关闭，不影响另一种。预览版新安装默认都关闭，已有偏好保留；重装恢复旧原生迁移曾移除的已启用外部入口。
 
-独立 TUI 与向导继续可用；稳定 v1.2.0 仍默认优先原有原生编辑器。`install --no-native-editor` 禁用原生，仅在实验偏好启用时恢复兼容启动器。
+Client 打开后先点击区域一次，再用 Tab 切页、上下选择、左右排序、Space 勾选；`/` 搜索、Ctrl+G 取消字段、s 保存继续、f 保存退出、q 丢弃退出。搜索/字段输入期间暂停普通字符快捷键。Esc 由宿主处理：先归还焦点，再关闭。高级 Claude 偏好仍用 h 展开、a 单独应用。内容、栏目及预览采用明确分组；最小正文 32×12，正常空间使用边框，窄窗使用标题分隔线。
+
+两种编辑器可同时打开，保存通过共同版本校验防止覆盖；Client 冲突时保留草稿，r 丢弃重载，结果不明时 k 核对。重复执行原生命令保留当前草稿。详见[完整操作与安装边界](development/native.zh-CN.md#编辑器行为)。
+
+**Latest 稳定版仍为 v1.2.0**。v1.3.0a1 原生控件界面三平台真人验收已获确认；v1.3.0a2 的 Client 真人验收单独记录，当前均待验收。自动 CI 和 Linux PTY 不计为真人验收。
 
 ## 相关文档
 
-[原生配置编辑器](development/native.zh-CN.md) 在源码加载的 Mod 中提供三页、revision 保存保护及独立宿主偏好。稳定安装仍为 v1.2.0；v1.3.0a1 需显式启用及新一轮真人验收。
+[原生配置编辑器](development/native.zh-CN.md) 在源码加载的 Mod 中提供三页、revision 保存保护及独立宿主偏好。稳定安装仍为 v1.2.0；v1.3.0a2 Client 需显式启用并单独真人验收。
 
 - [项目首页](../README.zh-CN.md)：项目介绍、界面预览和快速安装。
 - [Claude Code：Customize your status line](https://code.claude.com/docs/en/statusline)
