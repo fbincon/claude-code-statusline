@@ -8,7 +8,7 @@ from claude_statusline.config import catalog, display
 
 
 PROTOCOL_VERSION = 2
-OPERATIONS = ("describe", "read", "preview", "apply")
+OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
 Palette = Literal.__getitem__(display.PALETTES)
@@ -175,6 +175,21 @@ class ReadResult(TypedDict):
     backend_version: str
 
 
+class PresetDescription(TypedDict):
+    id: str
+    label: str
+    rows: list[list[MainItemId]]
+    layout_mode: Literal["auto", "explicit"]
+
+
+class TransferResult(TypedDict):
+    draft: Draft
+
+
+class ExportResult(TypedDict):
+    path: str
+
+
 class DescribeResult(TypedDict):
     catalog: list[CatalogItem]
     options: ConfigurationOptions
@@ -182,6 +197,7 @@ class DescribeResult(TypedDict):
     backend_version: str
     operations: list[str]
     formatting_options: dict[str, list[str]]
+    presets: list[PresetDescription]
 
 
 class ApplyResult(ReadResult):
@@ -219,6 +235,9 @@ WIRE_TYPES = (
     PreviewResult,
     ProtocolError,
     ReadResult,
+    PresetDescription,
+    TransferResult,
+    ExportResult,
     DescribeResult,
     ApplyResult,
 )
@@ -227,4 +246,7 @@ RESULTS = {
     "read": ReadResult,
     "preview": PreviewResult,
     "apply": ApplyResult,
+    "import": TransferResult,
+    "export": ExportResult,
+    "preset": TransferResult,
 }

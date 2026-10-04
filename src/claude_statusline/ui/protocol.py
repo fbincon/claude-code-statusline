@@ -8,7 +8,16 @@ from pathlib import Path
 import sys
 
 from claude_statusline._version import __version__
-from claude_statusline.config import catalog, display, host, models, service, formatting
+from claude_statusline.config import (
+    catalog,
+    display,
+    host,
+    models,
+    service,
+    formatting,
+    presets,
+    transfer,
+)
 from claude_statusline.integration import capabilities, models as integration_models
 from claude_statusline.ui import contracts
 
@@ -127,7 +136,8 @@ def dispatch(request: object, config_dir: Path, executable: Path):
         or request["protocol_version"] != contracts.PROTOCOL_VERSION
     ):
         raise RequestError(
-            "unsupported_protocol", "Only protocol_version 2 is supported; reinstall matching frontend/backend resources"
+            "unsupported_protocol",
+            "Only protocol_version 2 is supported; reinstall matching frontend/backend resources",
         )
     operation = request["operation"]
     if not isinstance(operation, str) or operation not in contracts.OPERATIONS:
@@ -135,16 +145,55 @@ def dispatch(request: object, config_dir: Path, executable: Path):
             "unsupported_operation", "Unsupported configuration operation"
         )
     payload = request["payload"]
+    if operation in ("import", "export", "preset"):
+        keys = (
+            ("draft", "path", "overwrite")
+            if operation == "export"
+            else ("draft", "path")
+            if operation == "import"
+            else ("draft", "preset")
+        )
+        _object(payload, keys, "payload")
+        parsed, parsed_host = validate_draft(
+            payload["draft"], require_current_schema=True
+        )
+        current = {"display": parsed.to_dict(), "host": parsed_host.to_dict()}
+        if operation == "preset":
+            if not isinstance(payload["preset"], str):
+                raise RequestError("invalid_request", "preset must be a string")
+            return {
+                "draft": {
+                    "display": presets.apply(parsed, payload["preset"]).to_dict(),
+                    "host": parsed_host.to_dict(),
+                }
+            }
+        path = payload["path"]
+        if not isinstance(path, str) or not path.strip() or "\0" in path:
+            raise RequestError(
+                "invalid_request", "path must be nonempty text without NUL"
+            )
+        if operation == "import":
+            return {"draft": transfer.import_file(path, current)}
+        if type(payload["overwrite"]) is not bool:
+            raise RequestError("invalid_request", "overwrite must be a boolean")
+        return {
+            "path": transfer.export_file(
+                path, current, config_dir, overwrite=payload["overwrite"]
+            )
+        }
     if operation in ("describe", "read"):
         _object(payload, (), "payload")
     if operation == "describe":
         return {
+            "presets": presets.descriptions(),
             "catalog": [item.to_dict() for item in catalog.ITEMS],
             "options": configuration_options(),
             "capabilities": host_capabilities(),
             "backend_version": __version__,
             "operations": list(contracts.OPERATIONS),
-            "formatting_options": {k: list(v) for k, v in formatting.FORMAT_CHOICES.items()},
+            "formatting_options": {
+                k: list(v) for k, v in formatting.FORMAT_CHOICES.items()
+            },
         }
     if operation == "read":
         return read_result(service.read_effective_config(config_dir, executable))

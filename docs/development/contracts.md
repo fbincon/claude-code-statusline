@@ -67,3 +67,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 ## Structured formatting
 
 Protocol v2 returns complete schema-v3 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v3 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
+
+## Draft transfer operations
+
+`preset`: payload `{draft,preset}` returns `{draft}` expanded by Python. `import`: payload `{draft,path}` returns a validated `{draft}` without saving; current host options supply defaults for display-only files. `export`: payload `{draft,path,overwrite}` writes a portable file and returns `{path}`. Export is an explicit file action independent of settings Save. These operations do not change installation or the opening revision; subsequent apply uses the original revision. `describe.presets` is generated from the canonical Python presets.
