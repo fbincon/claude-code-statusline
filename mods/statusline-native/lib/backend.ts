@@ -7,7 +7,7 @@ import {
   DIRECTORYSTYLE_VALUES,
   SEPARATORSTYLE_VALUES,
   SCOPELABELS_VALUES,
-  FORMAT_CHOICES,
+  FORMAT_CHOICES, PRESETS,
 } from './generated-contracts.ts';
 import type {
   Capabilities,
@@ -399,6 +399,10 @@ export function parseResponse<O extends Operation>(
         !(result.backup_dir === null || typeof result.backup_dir === 'string'))
     )
       fail();
+  } else if (operation === 'import' || operation === 'preset') {
+    if (!isDraft(result.draft)) fail();
+  } else if (operation === 'export') {
+    if (!text(result.path) || !result.path) fail();
   } else if (operation === 'preview') {
     if (
       result.sample !== true ||
@@ -415,8 +419,9 @@ export function parseResponse<O extends Operation>(
       !result.backend_version ||
       !isOptions(result.options) ||
       !isCapabilities(result.capabilities) ||
-      !selection(result.operations, ['describe', 'read', 'preview', 'apply']) ||
-      result.operations.length !== 4 ||
+      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset']) ||
+      result.operations.length !== 7 ||
+      JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
       !object(result.formatting_options) ||
       JSON.stringify(result.formatting_options) !== JSON.stringify(FORMAT_CHOICES) ||
       !isCatalog(result.catalog)

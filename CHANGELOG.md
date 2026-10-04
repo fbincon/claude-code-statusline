@@ -4,6 +4,9 @@
 
 ## Unreleased
 
+- Add editable minimal/developer/monitoring/multi-agent presets and versioned portable JSON import/export. Imports validate before saving, exports exclude installation/runtime/Claude preferences and protect existing files and live resources.
+
+
 - Add explicit rows with priority/terminal-cell width fitting and shared production previews. Subagent filtering, completed hiding, row and task-text limits emit empty content without changing host order.
 
 

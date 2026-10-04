@@ -1948,3 +1948,17 @@ claude-statusline config set subagent-task-max-width 48
 ```
 
 subagent-visibility accepts all/running. Row/task limits accept none to restore their defaults; row limit 0 hides all custom rows. Hiding completed does not hide failures. Filtering/limits retain host input order and emit empty content for suppressed IDs; omitting an ID would restore its host default.
+
+### Presets and portable configuration
+
+Presets minimal/developer/monitoring/multi-agent expand to editable drafts. They use short models and compact numbers, preserve colors/palette/directory style and refresh options, and reset scoped item overrides. `--dry-run` prints a validated draft without saving. Imports accept portable envelopes or display-only v1/v2/v3 files; display-only files retain current refresh options.
+
+```bash
+claude-statusline config preset developer --dry-run
+claude-statusline config preset developer
+claude-statusline config export ./statusline.json
+claude-statusline config import ./statusline.json --dry-run
+claude-statusline config import ./statusline.json
+```
+
+Portable format version 1 contains exactly format, version and draft. The draft contains display and tool-managed padding/refresh/Vim options, excluding paths, revisions, ownership, runtime state and Claude preferences. Export defaults to refusing an existing destination; --overwrite explicitly replaces an export, never live configuration or plugin resources. Import replaces the tool draft atomically on save, retaining the existing installation and ownership checks. Files are UTF-8 and limited to 1 MiB; duplicates, non-finite numbers, unknown fields and unsupported versions are refused.

@@ -1803,3 +1803,17 @@ claude-statusline config set subagent-task-max-width 48
 ```
 
 subagent-visibility 接受 all/running。行数／任务宽度接受 none 恢复默认；行数 0 隐藏全部自定义行。隐藏 completed 不隐藏失败。筛选与限制沿用宿主输入顺序，对隐藏 ID 输出空内容；省略 ID 会恢复宿主默认行。
+
+### 预设与可移植配置
+
+minimal/developer/monitoring/multi-agent 预设展开为可编辑草稿，使用模型简称与紧凑数字，保留颜色／调色板／目录样式和刷新选项，重置逐项覆盖。`--dry-run` 输出已验证草稿，不保存。导入接受可移植文件或仅显示的 v1/v2/v3 文件；仅显示文件保留当前刷新选项。
+
+```bash
+claude-statusline config preset developer --dry-run
+claude-statusline config preset developer
+claude-statusline config export ./statusline.json
+claude-statusline config import ./statusline.json --dry-run
+claude-statusline config import ./statusline.json
+```
+
+可移植格式版本 1 仅含 format、version 和 draft。草稿包含 display 与工具管理的 padding／刷新／Vim 选项，不包含路径、revision、所有权、运行状态和 Claude 偏好。导出默认拒绝已存在目标；--overwrite 明确替换导出文件，仍禁止覆盖实时配置和插件资源。导入保存时原子替换工具草稿，保留安装与所有权检查。文件采用 UTF-8，上限 1 MiB；重复字段、非有限数字、未知字段和不支持版本均拒绝。

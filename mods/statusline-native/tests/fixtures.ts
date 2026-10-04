@@ -9,7 +9,7 @@ import type {
 } from 'claude-code';
 import {
   MAIN_ITEM_IDS,
-  FORMAT_DEFAULTS, FORMAT_CHOICES,
+  FORMAT_DEFAULTS, FORMAT_CHOICES, PRESETS,
   SUBAGENT_ITEM_IDS,
 } from '../lib/generated-contracts.ts';
 import type {
@@ -105,8 +105,9 @@ function catalogItem(scope: Scope, id: CatalogItem['id']): CatalogItem {
 export function description(): DescribeResult {
   return {
     backend_version: 'test',
+    presets: JSON.parse(JSON.stringify(PRESETS)),
     formatting_options: JSON.parse(JSON.stringify(FORMAT_CHOICES)),
-    operations: ['describe', 'read', 'preview', 'apply'],
+    operations: ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset'],
     capabilities: capabilities(),
     options: {
       colors: { choices: [true, false] },

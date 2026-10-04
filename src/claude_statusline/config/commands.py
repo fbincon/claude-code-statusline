@@ -8,7 +8,7 @@ import shlex
 from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
-from claude_statusline.config import catalog, advanced
+from claude_statusline.config import catalog, advanced, presets
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 
@@ -166,12 +166,31 @@ def add_config_parser(subparsers) -> argparse.ArgumentParser:
     apply_parser.add_argument("--subagent-statusline", choices=("on", "off"))
     apply_parser.add_argument("--scope-labels", choices=config_display.SCOPE_LABELS)
 
+    preset = actions.add_parser("preset", help="apply an editable display preset")
+    preset.add_argument("preset", choices=tuple(presets.ROWS))
+    preset.add_argument(
+        "--dry-run", action="store_true", help="print the draft without saving"
+    )
+    importing = actions.add_parser(
+        "import", help="validate and import portable/display JSON"
+    )
+    importing.add_argument("path")
+    importing.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="print the validated draft without saving",
+    )
+    exporting = actions.add_parser("export", help="export portable tool configuration")
+    exporting.add_argument("path")
+    exporting.add_argument("--overwrite", action="store_true")
     item = actions.add_parser("item", help="set one scoped item format/priority/width")
     item.add_argument("scope", choices=("main", "subagent"))
     item.add_argument("item")
     item.add_argument("option")
     item.add_argument("value")
-    layout = actions.add_parser("layout", help="select auto layout or explicit comma-separated rows")
+    layout = actions.add_parser(
+        "layout", help="select auto layout or explicit comma-separated rows"
+    )
     layout.add_argument("mode", choices=("auto", "explicit"))
     layout.add_argument("rows", nargs="*")
 
@@ -328,12 +347,69 @@ def execute_config_namespace(
             subagent_statusline=args.subagent_statusline,
             scope_labels=args.scope_labels,
         )
+    elif action in ("preset", "import", "export"):
+        from claude_statusline.ui import protocol, contracts
+
+        current = protocol.read_result(
+            config_service.read_effective_config(config_dir, executable)
+        )
+        payload = {"draft": current["draft"]}
+        if action == "preset":
+            payload["preset"] = args.preset
+        else:
+            payload["path"] = args.path
+        if action == "export":
+            payload["overwrite"] = args.overwrite
+        try:
+            transformed = protocol.dispatch(
+                {
+                    "protocol_version": contracts.PROTOCOL_VERSION,
+                    "operation": action,
+                    "payload": payload,
+                },
+                config_dir,
+                executable,
+            )
+            if action == "export":
+                return "Exported tool configuration: " + transformed["path"]
+            if args.dry_run:
+                return json.dumps(transformed["draft"], ensure_ascii=False, indent=2)
+            saved = protocol.dispatch(
+                {
+                    "protocol_version": contracts.PROTOCOL_VERSION,
+                    "operation": "apply",
+                    "payload": {
+                        "draft": transformed["draft"],
+                        "expected_revision": current["revision"],
+                    },
+                },
+                config_dir,
+                executable,
+            )
+            return (
+                "Status line configuration "
+                + ("updated." if saved["changed"] else "already current.")
+                + (" Backup: " + saved["backup_dir"] if saved["backup_dir"] else "")
+            )
+        except (protocol.RequestError, OSError) as exc:
+            raise config_models.ConfigCommandError(str(exc)) from exc
     elif action in ("item", "layout"):
+
         def mutate(display, settings, host, installed):
-            updated = (advanced.edit_item(display, args.scope, args.item, args.option, args.value)
-                       if action == "item" else advanced.edit_layout(display, args.mode, [row.split(",") for row in args.rows]))
+            updated = (
+                advanced.edit_item(
+                    display, args.scope, args.item, args.option, args.value
+                )
+                if action == "item"
+                else advanced.edit_layout(
+                    display, args.mode, [row.split(",") for row in args.rows]
+                )
+            )
             return updated, config_models._UNCHANGED
-        result = config_service.mutate_configuration(config_dir, executable, "config-" + action, mutate)
+
+        result = config_service.mutate_configuration(
+            config_dir, executable, "config-" + action, mutate
+        )
     elif action == "reset":
         result = config_service.reset_configuration(config_dir, executable)
     else:
