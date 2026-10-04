@@ -218,6 +218,20 @@ Client 打开后先点击区域一次，再用 Tab 切页、上下选择、左�
 
 **Latest 稳定版仍为 v1.2.0**。v1.3.0a1 原生控件界面三平台真人验收已获确认；v1.3.0a2 的 Client 真人验收单独记录，当前均待验收。自动 CI 和 Linux PTY 不计为真人验收。
 
+
+<details>
+<summary>Linux Client TUI：三页终端重建画面</summary>
+
+![Client Main 分组列表和样例预览](docs/images/client-main-v1.3.0a2-linux.png)
+
+![Client Subagents 页面](docs/images/client-subagents-v1.3.0a2-linux.png)
+
+![Client Settings 分组与对齐栏目](docs/images/client-settings-v1.3.0a2-linux.png)
+
+[画面来源及验收边界](docs/images/README.zh-CN.md#v130a2-client-画面)。
+
+</details>
+
 ## 文档与帮助
 
 - [使用指南](docs/USER_GUIDE.zh-CN.md)：完整安装步骤、TUI、CLI、显示项和配置参考。

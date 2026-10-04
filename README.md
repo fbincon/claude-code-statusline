@@ -238,6 +238,20 @@ Both editors may open concurrently; shared opening revisions prevent overwriting
 
 **Latest stable remains v1.2.0.** The maintainer confirmed v1.3.0a1's native-control UI passed human acceptance on all three platforms. v1.3.0a2 Client human checks are separate and currently pending; CI and Linux PTY checks are automated evidence.
 
+
+<details>
+<summary>Linux Client TUI: three reconstructed terminal pages</summary>
+
+![Client Main: grouped items and sample preview](docs/images/client-main-v1.3.0a2-linux.png)
+
+![Client Subagents page](docs/images/client-subagents-v1.3.0a2-linux.png)
+
+![Client Settings: grouped and aligned columns](docs/images/client-settings-v1.3.0a2-linux.png)
+
+[Capture provenance and acceptance boundaries](docs/images/README.md#v130a2-client-captures).
+
+</details>
+
 ## Documentation and help
 
 - [User guide](docs/USER_GUIDE.md): installation, TUI, CLI, display items, and configuration reference.
