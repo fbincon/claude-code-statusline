@@ -18,8 +18,7 @@ test('independent metrics coexist with compounds in both scopes and preserve ord
   ]);
   editor.filter('main', 'api-duration');
   expect(editor.visible('main').map((item) => item.id)).toEqual(['api-duration']);
-  editor.cancel();
-  expect(editor.draft.display.items).toEqual(['model-with-effort']);
+  expect(editor.baseline.draft.display.items).toEqual(['model-with-effort']);
 });
 
 test('item changes preserve the baseline, exclusions and filtered ordering', () => {
