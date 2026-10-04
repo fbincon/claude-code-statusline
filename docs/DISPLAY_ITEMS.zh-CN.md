@@ -2,7 +2,7 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
-当前源码目录包含 33 个主栏项、14 个子 Agent 项。下列独立项默认关闭，现有默认选择和组合 ID
+当前源码目录包含 44 个主栏项、14 个子 Agent 项。下列独立项默认关闭，现有默认选择和组合 ID
 继续可用；允许组合项与其独立项同时选择并自由排序。原有显示项和全部配置入口见[使用指南](USER_GUIDE.zh-CN.md)。
 
 ## 主栏显示项
@@ -18,6 +18,17 @@
 | `session-duration` | `Session 12m 30s` | 官方会话累计运行时间 `cost.total_duration_ms`。 |
 | `api-duration` | `API 1m 15s` | 官方累计 API 请求耗时 `cost.total_api_duration_ms`。 |
 | `lines-changed` | `+156/-23` | `cost.total_lines_added` 与 `cost.total_lines_removed`，两者均须已观测。这是 Claude 的会话编辑统计，与 Git 文件数不同。 |
+| `cache-state` | `Cache warm` | 主对话官方 `prompt_cache.warm`、`caching_observed`、`expires_at`：只有期限内显示 warm，过期为 cold，未观测缓存单独表示。 |
+| `cache-expires` | `Cache TTL 4m 20s` | 仅在已观测主对话缓存仍 warm 时显示 TTL，需有效的未来 `expires_at`。 |
+| `cache-misses` | `Cache miss 2` | 官方 `prompt_cache.misses`，不把压缩或清理后的 `expected_rebuilds` 当成 miss。 |
+| `api-requests` | `API requests 14` | 官方主对话 `prompt_cache.requests`，不包含子 Agent 请求。 |
+| `session-name` | `Session demo-session` | 已观测的 `session_name`，不以 ID 兜底。 |
+| `session-id` | `ID demo-session` | 完整的 `session_id`。 |
+| `session-id-short` | `ID demo-ses` | `session_id` 前八位；原有 `session` 仍优先名称，否则显示短 ID。 |
+| `output-style` | `Style Default` | 官方 `output_style.name`。 |
+| `git-branch` | `Git main` | 复用本地 Git 分支采集，游离 HEAD 显示 `HEAD@<hash>`。 |
+| `git-changes` | `Git ~2 ?1` | 已暂存、未暂存、冲突及未跟踪文件数；确认干净时显示 `Git clean`。 |
+| `git-ahead-behind` | `Git ↑1 ↓0` | 相对已配置上游的提交差距；同步时显示零，无上游时隐藏，上游已移除时显示 `[gone]`。 |
 
 ## 子 Agent 显示项
 
@@ -32,6 +43,8 @@
 现有子 Agent `tokens` 表示上下文占用，不表示 API 累计消耗。
 
 ## 时钟、可用性与作用域
+
+缓存字段需 Claude Code 2.1.251+；warm 说明本地 TTL 有效，不保证下一次请求一定命中服务端缓存。请求／miss 统计仅覆盖主对话，详细 miss 原因留待后续。Git 分项与组合项每次刷新复用同一缓存采集结果。
 
 - 重置时间戳为 Unix **秒**。每次刷新共用一个时钟；不足一秒的未来期限向上取整，依次使用秒、
   分钟／秒、小时／分钟、天／小时显示。过期时旧额度及倒计时同时隐藏；没有时间戳的旧比例输入仍可读取。

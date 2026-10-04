@@ -11,6 +11,7 @@ from pathlib import Path
 from claude_statusline.platforms import environment as platform_environment
 from claude_statusline.platforms import files as platform_files
 from claude_statusline.rendering import palette as rendering_palette
+from claude_statusline.rendering import git as rendering_git
 from claude_statusline.runtime import paths as runtime_paths
 
 
@@ -256,26 +257,13 @@ def _git_segment(result, palette=rendering_palette.DEFAULT_PALETTE):
         return f"{palette.git_error}Git!{palette.reset}"
     if result["kind"] != "ok":
         return None
-    statuses = []
-    if result["upstream_gone"]:
-        statuses.append("[gone]")
-    else:
-        if result["ahead"]:
-            statuses.append(f"↑{result['ahead']}")
-        if result["behind"]:
-            statuses.append(f"↓{result['behind']}")
-    if result["staged"]:
-        staged_separator = (
-            ""
-            if platform_environment.is_windows() or platform_environment.is_wsl()
-            else " "
+    statuses = rendering_git.divergence_markers(result)
+    statuses.extend(
+        rendering_git.change_markers(
+            result,
+            compact_staged=platform_environment.is_windows()
+            or platform_environment.is_wsl(),
         )
-        statuses.append(f"●{staged_separator}{result['staged']}")
-    if result["unstaged"]:
-        statuses.append(f"~{result['unstaged']}")
-    if result["conflicts"]:
-        statuses.append(f"!{result['conflicts']}")
-    if result["untracked"]:
-        statuses.append(f"?{result['untracked']}")
+    )
     suffix = " " + "".join(statuses) if statuses else ""
     return f"{palette.branch}Git {result['branch']}{suffix}{palette.reset}"

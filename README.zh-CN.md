@@ -229,6 +229,7 @@ pipx uninstall claude-code-statusline
 
 ## 文档与帮助
 
+- [显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)。
 - [使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [变更记录](CHANGELOG.zh-CN.md)。
 - [原生编辑器开发与验收](docs/development/native.zh-CN.md) · [架构](docs/development/architecture.zh-CN.md) · [共享协议](docs/development/contracts.zh-CN.md)。
 - [测试与验收](docs/development/testing.zh-CN.md) · [计时指标](docs/development/timer.zh-CN.md) · [发布指南](docs/RELEASING.zh-CN.md)。

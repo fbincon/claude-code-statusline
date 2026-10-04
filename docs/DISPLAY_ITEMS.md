@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The current source catalog contains 33 main and 14 subagent items. The independent
+The current source catalog contains 44 main and 14 subagent items. The independent
 items below are opt-in. Existing defaults and compound IDs remain available,
 and compounds may be selected alongside their individual components in any order.
 See the [user guide](USER_GUIDE.md) for the original items and all configuration entry points.
@@ -20,6 +20,17 @@ See the [user guide](USER_GUIDE.md) for the original items and all configuration
 | `session-duration` | `Session 12m 30s` | Official `cost.total_duration_ms`, the cumulative session runtime. |
 | `api-duration` | `API 1m 15s` | Official `cost.total_api_duration_ms`, the cumulative API request duration. |
 | `lines-changed` | `+156/-23` | `cost.total_lines_added` and `cost.total_lines_removed`; both must be observed. This is Claude's session edit accounting, not Git file counts. |
+| `cache-state` | `Cache warm` | Official main-conversation `prompt_cache.warm`, `caching_observed` and `expires_at`: warm only before expiry; cold after expiry; unobserved caching is distinct. |
+| `cache-expires` | `Cache TTL 4m 20s` | Remaining TTL only while the observed main cache is warm. Requires a valid future `expires_at`. |
+| `cache-misses` | `Cache miss 2` | Official `prompt_cache.misses`, excluding `expected_rebuilds` after compaction or clearing. |
+| `api-requests` | `API requests 14` | Official main-conversation `prompt_cache.requests`; excludes subagent calls. |
+| `session-name` | `Session demo-session` | Observed `session_name`, without an ID fallback. |
+| `session-id` | `ID demo-session` | Full observed `session_id`. |
+| `session-id-short` | `ID demo-ses` | First eight characters of `session_id`. Existing `session` still prefers the name, otherwise the short ID. |
+| `output-style` | `Style Default` | Official `output_style.name`. |
+| `git-branch` | `Git main` | Existing local Git branch collection, including `HEAD@<hash>` while detached. |
+| `git-changes` | `Git ~2 ?1` | Staged, unstaged, conflicted and untracked file counts; a known clean worktree shows `Git clean`. |
+| `git-ahead-behind` | `Git ↑1 ↓0` | Difference from configured upstream; synchronized upstream shows zeros, missing upstream hides the item and removed upstream shows `[gone]`. |
 
 ## Subagent items
 
@@ -35,6 +46,8 @@ data; main-session values do not fill missing agent fields. Existing agent
 `tokens` means context occupancy, not cumulative API consumption.
 
 ## Clocks, availability and scope
+
+Cache fields require Claude Code 2.1.251+. Cache warmth reports local TTL, not a guarantee of the next server cache hit; request/miss statistics cover only the main conversation. Detailed miss causes remain a later extension. Git components and the compound reuse one cached collector result per refresh.
 
 - Reset timestamps are Unix epoch **seconds**. A refresh captures one clock for
   all countdowns. Future fractions round up to a second; displays use seconds,

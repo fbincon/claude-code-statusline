@@ -118,3 +118,30 @@ def session_metric(cost: object, item: str) -> str | None:
         return f"Cost ${number:.2f}"
     label = "Session" if item == "session-duration" else "API"
     return f"{label} {formatters.format_duration(number / 1000)}"
+
+
+def cache_metric(cache: object, item: str, now: float) -> str | None:
+    if not isinstance(cache, dict):
+        return None
+    if item in ("cache-misses", "api-requests"):
+        field, label = (
+            ("misses", "Cache miss")
+            if item == "cache-misses"
+            else ("requests", "API requests")
+        )
+        count = token_count(cache.get(field))
+        return f"{label} {count}" if count is not None else None
+    if cache.get("caching_observed") is False:
+        return "Cache unobserved" if item == "cache-state" else None
+    warm = cache.get("warm")
+    if warm is False:
+        return "Cache cold" if item == "cache-state" else None
+    if warm is not True:
+        return None
+    expires = finite_number(cache.get("expires_at"))
+    if expires is None:
+        return None
+    remaining = countdown(expires, now)
+    if item == "cache-state":
+        return "Cache warm" if remaining else "Cache cold"
+    return f"Cache TTL {remaining}" if remaining else None

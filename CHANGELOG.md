@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Add eleven opt-in cache/session/Git items: cache warmth/expiry and official main request/miss counts, output style, named/full/short session identity and independent Git fields. Share one Git collection across compound/components and retain unknown versus cold cache state.
+
 - Add nine opt-in independent main metrics and four agent metrics, preserving compounds/defaults and schema v2/protocol v1. Suppress expired allowances and provide deterministic countdown previews; document metric scopes and downgrade recovery.
 
 - Add original Linux, Windows and macOS screenshots of the in-session Client with Claude Code 2.1.289 to both READMEs and the image index.

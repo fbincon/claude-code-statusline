@@ -29,6 +29,21 @@ class _SampleRenderState(rendering_items._RenderState):
         )
         return rendering_items._RenderedItem(text, group="repo")
 
+    def git_data(self):
+        return {
+            "kind": "ok",
+            "branch": "feature/statusline-tui",
+            "oid": "abc1234",
+            "upstream": "origin/feature/statusline-tui",
+            "upstream_gone": False,
+            "ahead": 1,
+            "behind": 0,
+            "staged": 0,
+            "unstaged": 2,
+            "conflicts": 0,
+            "untracked": 1,
+        }
+
     def prompt_timer(self):
         return rendering_items._RenderedItem(
             f"{self.palette.timer}✓ 1m 42s{self.palette.reset}"
@@ -73,7 +88,16 @@ def _sample_preview_data():
             "seven_day": {"used_percentage": 36, "resets_at": SAMPLE_NOW + 525600},
             "spend_limit": {"used_percentage": 9, "resets_at": SAMPLE_NOW + 864000},
         },
-        "prompt_cache": {"hit_ratio": 0.91, "cache_write_tokens": 352_000},
+        "prompt_cache": {
+            "hit_ratio": 0.91,
+            "cache_write_tokens": 352_000,
+            "warm": True,
+            "caching_observed": True,
+            "expires_at": SAMPLE_NOW + 260,
+            "misses": 2,
+            "requests": 14,
+        },
+        "output_style": {"name": "Default"},
         "version": "2.1.258",
         "session_name": "demo-session",
         "session_id": "demo-session",

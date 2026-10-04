@@ -11,6 +11,7 @@ from claude_statusline.config import display as config_display
 from claude_statusline.rendering import formatters as rendering_formatters
 from claude_statusline.rendering import layout as rendering_layout
 from claude_statusline.rendering import metrics
+from claude_statusline.rendering import git as rendering_git
 from claude_statusline.rendering import palette as rendering_palette
 from claude_statusline.rendering import timer as rendering_timer
 from claude_statusline.runtime import git as runtime_git
@@ -100,6 +101,10 @@ _ITEM_METHODS = {
     "prompt-timer": "prompt_timer",
     "version": "version",
     "session": "session",
+    "session-name": "session_name",
+    "session-id": "session_id",
+    "session-id-short": "session_id_short",
+    "output-style": "output_style",
     "cost": "cost",
     "prompt-cache": "prompt_cache",
     "fast-mode": "fast_mode",
@@ -124,6 +129,8 @@ _RESET_ITEMS = {
 }
 
 _SESSION_METRICS = {"session-cost", "session-duration", "api-duration", "lines-changed"}
+_CACHE_ITEMS = {"cache-state", "cache-expires", "cache-misses", "api-requests"}
+_GIT_ITEMS = {"git-branch", "git-changes", "git-ahead-behind"}
 
 
 class _RenderState:
@@ -237,15 +244,34 @@ class _RenderState:
             group="location",
         )
 
-    def git(self):
+    def git_data(self):
         if not self.live_dir:
             return None
         if self._git is _NOT_LOADED:
             self._git = runtime_git.git_status(
                 self.live_dir, rendering_formatters.deep_get(self.data, ("session_id",))
             )
-        text = runtime_git._git_segment(self._git, self.palette)
+        return self._git
+
+    def git(self):
+        result = self.git_data()
+        text = runtime_git._git_segment(result, self.palette) if result else None
         return _RenderedItem(text, group="repo") if text else None
+
+    def git_component(self, item):
+        result = self.git_data()
+        text = rendering_git.component(
+            result,
+            item,
+            compact_staged=runtime_git.platform_environment.is_windows()
+            or runtime_git.platform_environment.is_wsl(),
+        )
+        style = (
+            self.palette.git_error
+            if result and result.get("kind") == "error"
+            else self.palette.branch
+        )
+        return self.styled(text, style, "repo")
 
     def context_remaining(self):
         value = rendering_formatters.deep_get(
@@ -353,15 +379,44 @@ class _RenderState:
         return _RenderedItem(f"{self.palette.model}v{value}{self.palette.reset}")
 
     def session(self):
-        name = rendering_formatters.deep_get(self.data, ("session_name",))
-        if isinstance(name, str) and name:
+        name = rendering_formatters.sanitize_payload_text(
+            rendering_formatters.deep_get(self.data, ("session_name",))
+        )
+        if name:
             text = name
         else:
-            sid = rendering_formatters.deep_get(self.data, ("session_id",))
-            if not isinstance(sid, str) or not sid:
+            sid = rendering_formatters.sanitize_payload_text(
+                rendering_formatters.deep_get(self.data, ("session_id",))
+            )
+            if not sid:
                 return None
             text = sid[:8]
         return _RenderedItem(f"{self.palette.model}Session {text}{self.palette.reset}")
+
+    def session_name(self):
+        value = rendering_formatters.sanitize_payload_text(
+            self.data.get("session_name")
+        )
+        return self.styled(f"Session {value}" if value else None, self.palette.model)
+
+    def session_id(self, short=False):
+        value = rendering_formatters.sanitize_payload_text(self.data.get("session_id"))
+        return self.styled(
+            f"ID {value[:8] if short else value}" if value else None, self.palette.model
+        )
+
+    def session_id_short(self):
+        return self.session_id(short=True)
+
+    def output_style(self):
+        value = rendering_formatters.sanitize_payload_text(
+            rendering_formatters.deep_get(self.data, ("output_style", "name"))
+        )
+        return self.styled(f"Style {value}" if value else None, self.palette.model)
+
+    def cache_metric(self, item):
+        text = metrics.cache_metric(self.data.get("prompt_cache"), item, self.now())
+        return self.styled(text, self.palette.tokens, "usage")
 
     def cost(self):
         cost = rendering_formatters.deep_get(self.data, ("cost",))
@@ -484,6 +539,10 @@ class _RenderState:
         )
 
     def render(self, item_id):
+        if item_id in _CACHE_ITEMS:
+            return self.cache_metric(item_id)
+        if item_id in _GIT_ITEMS:
+            return self.git_component(item_id)
         if item_id in _SESSION_METRICS:
             return self.session_metric(item_id)
         reset = _RESET_ITEMS.get(item_id)
