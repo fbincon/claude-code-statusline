@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from claude_statusline._version import __version__
+from claude_statusline.config.editor_defaults import enabled_by_default
 from claude_statusline.platforms import files as platform_files
 
 
@@ -24,18 +26,22 @@ def feature_path(config_dir: Path) -> Path:
     return config_dir / FEATURE_FILENAME
 
 
-def enabled_bytes() -> bytes:
+def preference_bytes(enabled: bool) -> bytes:
     return (
         json.dumps(
             {
                 "schema_version": SCHEMA_VERSION,
-                "experimental_slash_tui": True,
+                "experimental_slash_tui": enabled,
             },
             ensure_ascii=False,
             indent=2,
         )
         + "\n"
     ).encode("utf-8")
+
+
+def enabled_bytes() -> bytes:
+    return preference_bytes(True)
 
 
 def parse_feature_bytes(raw: bytes, path: Path | None = None) -> bool:
@@ -82,12 +88,14 @@ def parse_feature_bytes(raw: bytes, path: Path | None = None) -> bool:
     return enabled
 
 
-def load_experimental_slash_tui(config_dir: Path) -> bool:
+def load_experimental_slash_tui(
+    config_dir: Path, *, version: str = __version__
+) -> bool:
     path = feature_path(config_dir)
     try:
         raw = path.read_bytes()
     except FileNotFoundError:
-        return False
+        return enabled_by_default(version)
     except OSError as exc:
         raise FeatureConfigError(f"cannot read {path}: {exc}") from exc
     return parse_feature_bytes(raw, path)

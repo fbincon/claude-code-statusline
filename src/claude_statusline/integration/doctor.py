@@ -495,7 +495,7 @@ def _check_fast_slash(diagnostics, settings, executable, claude_version):
 
 def _check_experimental(diagnostics, settings, config_dir, executable, claude_version):
     preference_path = config_features.feature_path(config_dir)
-    preference_enabled = False
+    preference_enabled = config_features.enabled_by_default()
     preference_valid = True
     try:
         preference_raw = config_storage._read_optional_bytes(preference_path)
@@ -590,7 +590,8 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
             integration_models.Diagnostic(
                 "WARN",
                 f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME}: suspended on Claude Code "
-                f"{version_text}; rerun install after upgrading",
+                f"{version_text}; requires 2.1.258+; preference retained; rerun install after upgrading. "
+                "Use claude-statusline configure, /statusline-config, or claude-statusline config",
             )
         )
         if experimental_owned or experimental_actions:

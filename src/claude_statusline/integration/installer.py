@@ -41,7 +41,7 @@ def _change_configuration(
     def prepare():
         settings, settings_raw = config_storage._read_settings(settings_path)
         preference_raw = config_storage._read_optional_bytes(preference_path)
-        preference_enabled = False
+        preference_enabled = action == "install" and config_features.enabled_by_default()
         if action == "install" and preference_raw is not None:
             try:
                 preference_enabled = config_features.parse_feature_bytes(
@@ -148,10 +148,10 @@ def _change_configuration(
                 desired_experimental_skill = None
                 desired_experimental_owner = None
 
-            if experimental_slash_tui is True:
-                desired_preference = config_features.enabled_bytes()
-            elif experimental_slash_tui is False:
-                desired_preference = None
+            if experimental_slash_tui is not None:
+                desired_preference = config_features.preference_bytes(
+                    experimental_slash_tui
+                )
             elif preference_raw is not None:
                 # Preserve valid bytes while still repairing private permissions.
                 desired_preference = preference_raw
@@ -322,21 +322,30 @@ def install_configuration(
 ) -> integration_models.ChangeResult:
     if claude_version is integration_models._DETECT_CLAUDE_VERSION:
         claude_version = integration_capabilities.detect_claude_version()
-    if (
-        experimental_slash_tui is True
-        and not integration_capabilities.supports_fast_slash_hook(claude_version)
-    ):
-        version_text = (
-            ".".join(map(str, claude_version))
-            if isinstance(claude_version, tuple)
-            else "unknown"
-        )
-        minimum = ".".join(map(str, integration_models.MIN_FAST_SLASH_VERSION))
-        raise integration_models.ConfigurationError(
-            "cannot enable /statusline-configure: Claude Code "
-            f"{minimum}+ is required; found {version_text}"
-        )
     requested = native_preference.requested(config_dir, native_editor)
+    try:
+        external_requested = (
+            experimental_slash_tui
+            if experimental_slash_tui is not None
+            else config_features.load_experimental_slash_tui(config_dir)
+        )
+    except config_features.FeatureConfigError as exc:
+        raise integration_models.ConfigurationError(str(exc)) from exc
+    external_supported = integration_capabilities.supports_fast_slash_hook(
+        claude_version
+    )
+    native_supported = (
+        claude_version is not None and claude_version >= native_integration.MIN_VERSION
+    )
+    fallback = "Use claude-statusline configure, /statusline-config, or claude-statusline config in the meantime."
+    external_message = (
+        "External TUI disabled by preference."
+        if not external_requested
+        else "External TUI enabled: /statusline-configure opens the existing platform terminal."
+        if external_supported
+        else "External TUI suspended: Claude Code 2.1.258+ is required; preference retained. "
+        "Rerun install after upgrading. " + fallback
+    )
     if (
         requested
         and claude_version is not None
@@ -357,8 +366,17 @@ def install_configuration(
     if dry_run:
         return replace(
             planned,
+            native_state="requested"
+            if requested and native_supported
+            else "suspended"
+            if requested
+            else "disabled",
             messages=(
-                f"Native editor {'requested' if requested else 'disabled'}; plugin operations are not executed by dry-run.",
+                external_message,
+                f"Native editor {'requested' if native_supported else 'suspended: Claude Code 2.1.287+ is required'}; "
+                "plugin operations are not executed by dry-run. " + fallback
+                if requested
+                else "Native editor disabled by preference; plugin operations are not executed by dry-run.",
             ),
         )
     result = _change_configuration(
@@ -378,9 +396,15 @@ def install_configuration(
         result,
         changed=result.changed or native.changed,
         native_state=native.state,
-        messages=native.messages,
+        messages=(external_message,)
+        + native.messages
+        + ((fallback,) if requested and not native_supported else ()),
         native_failed=native.state == "blocked"
-        or (native_editor is True and not native.active),
+        or (
+            native_editor is True
+            and not native.active
+            and not (native.state == "suspended" and not native_supported)
+        ),
     )
 
 

@@ -21,8 +21,13 @@ class FeatureConfigTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
-    def test_missing_file_is_disabled(self):
-        self.assertFalse(config_features.load_experimental_slash_tui(self.config_dir))
+    def test_missing_file_follows_release_default_without_writes(self):
+        for version in ("1.3.0", "1.3.0a2", "1.3.0b1", "1.3.0rc1", "1.3.0.dev1"):
+            with self.subTest(version=version):
+                self.assertEqual(
+                    config_features.load_experimental_slash_tui(self.config_dir, version=version),
+                    version == "1.3.0",
+                )
         self.assertFalse(self.config_dir.exists())
 
     def test_enabled_round_trip_is_canonical_private_and_atomic(self):
@@ -62,6 +67,7 @@ class FeatureConfigTests(unittest.TestCase):
             encoding="utf-8",
         )
         self.assertFalse(config_features.load_experimental_slash_tui(self.config_dir))
+        self.assertEqual(json.loads(config_features.preference_bytes(False))["experimental_slash_tui"], False)
 
     def test_atomic_replace_failure_preserves_original(self):
         self.config_dir.mkdir()

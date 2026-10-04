@@ -436,6 +436,51 @@ def _remove_resources(config_dir: Path, marker: dict):
         _prune_empty_parents(root, paths + historical)
 
 
+def _suspend_for_version(config_dir: Path, marker: dict) -> bool:
+    """Suspend a verified owned plugin without requiring newer host APIs."""
+    with storage._installation_lock(config_dir):
+        if owner(config_dir) != marker:
+            raise PluginError("Native ownership changed before version suspension")
+        settings, original = storage._read_settings(config_dir / "settings.json")
+        if settings.get("enabledPlugins", {}).get(PLUGIN) is not True:
+            # A user's own disablement must not become tool-restorable suspension.
+            return False
+        marker_path = config_dir / DIRECTORY / OWNER_FILE
+        marker_raw = storage._read_optional_bytes(marker_path)
+        settings["enabledPlugins"][PLUGIN] = False
+        changes = [
+            (
+                "settings.json",
+                config_dir / "settings.json",
+                original,
+                storage._json_bytes(settings),
+            ),
+            (
+                "native-owner.json",
+                marker_path,
+                marker_raw,
+                storage._json_bytes(dict(marker, suspended=True)),
+            ),
+        ]
+        storage._backup_artifacts(
+            config_dir, "suspend", [change[:3] for change in changes]
+        )
+        try:
+            for _name, path, _raw, desired in changes:
+                storage._write_optional_bytes(path, desired)
+        except OSError as exc:
+            failures = []
+            for _name, path, raw, _desired in reversed(changes):
+                try:
+                    storage._write_optional_bytes(path, raw)
+                except OSError as rollback:
+                    failures.append(str(rollback))
+            raise PluginError(
+                f"Cannot suspend native editor: {exc}; rollback errors: {failures}"
+            ) from exc
+    return True
+
+
 def integrate(
     config_dir: Path, executable: Path, requested: bool, version, *, uninstall=False
 ) -> NativeResult:
@@ -464,6 +509,15 @@ def integrate(
                 "suspended",
                 messages=(
                     f"Native editor suspended: {restriction or 'Claude Code 2.1.287+ is required'}; preference retained.",
+                ),
+            )
+        if requested and not compatible:
+            changed = _suspend_for_version(config_dir, marker)
+            return NativeResult(
+                "suspended",
+                changed=changed,
+                messages=(
+                    "Native editor suspended: Claude Code 2.1.287+ is required; preference retained. Rerun install after upgrading.",
                 ),
             )
         host = Host(config_dir)
@@ -515,13 +569,9 @@ def integrate(
                     f"Native editor suspended: {restriction or 'unsupported host'}; preference retained. Rerun install after upgrading.",
                 ),
             )
-        if row and row.get("enabled") is not True and not marker["suspended"]:
-            return NativeResult(
-                "plugin-disabled",
-                messages=(
-                    f"{PLUGIN} is explicitly disabled; enable it through claude plugin enable before retrying. Compatibility entry retained.",
-                ),
-            )
+        user_disabled = bool(
+            row and row.get("enabled") is not True and not marker["suspended"]
+        )
         command_preflight(config_dir)
         current, staged = _stage(config_dir, executable, marker)
         changed |= staged
@@ -565,9 +615,16 @@ def integrate(
             changed = True
         markets, plugins = host.listing()
         _registration, saved = _registered(config_dir, markets, plugins, current)
-        if not saved or saved.get("enabled") is not True:
+        if user_disabled and saved and saved.get("enabled") is True:
+            # Updates normally preserve enablement; a same-version reinstall
+            # enables the plugin, so restore the user's choice and verify it.
+            host.run("disable", PLUGIN, "--scope", "user", "--json")
+            changed = True
+            markets, plugins = host.listing()
+            _registration, saved = _registered(config_dir, markets, plugins, current)
+        if not saved or saved.get("enabled") is not (not user_disabled):
             raise PluginError(
-                "Native plugin enablement could not be confirmed; compatibility entry retained"
+                "Native plugin enablement preference could not be confirmed; compatibility entry retained"
             )
         _cache_owned(config_dir, saved, current, require_current=True)
         options = host.run("configure", PLUGIN, "--json", json_result=True)
@@ -580,6 +637,15 @@ def integrate(
                 "Native backend binding could not be confirmed; compatibility entry retained"
             )
         _suspended(config_dir, current, False)
+        if user_disabled:
+            return NativeResult(
+                "plugin-disabled",
+                changed=changed,
+                messages=(
+                    f"{PLUGIN} is explicitly disabled; owned resources and backend binding are current. "
+                    "Enable it through claude plugin enable when wanted. Compatibility entry retained.",
+                ),
+            )
         return NativeResult(
             "installed",
             True,
@@ -618,6 +684,16 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
                 + "; requires 2.1.287+",
             )
         )
+        if enabled and (version is None or version < MIN_VERSION):
+            result.append(
+                Diagnostic(
+                    "WARN",
+                    "native editor: suspended; preference retained; rerun install after upgrading. "
+                    "Use claude-statusline configure, /statusline-config, or claude-statusline config",
+                )
+            )
+            if marker is None:
+                return result
         if marker is None:
             result.append(
                 Diagnostic(
@@ -633,6 +709,16 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
                 f"native resources: owned and complete; Mod {marker['mod_version']}, backend {marker['backend_version']}, protocol {marker['protocol_version']}",
             )
         )
+        if version is None or version < MIN_VERSION:
+            settings = storage._read_settings(config_dir / "settings.json")[0]
+            if settings.get("enabledPlugins", {}).get(PLUGIN) is True:
+                result.append(
+                    Diagnostic(
+                        "ERROR",
+                        "native plugin is still enabled on an unsupported host; rerun install to suspend",
+                    )
+                )
+            return result
         _files, manifest = native_resources.bundled_files()
         if any(
             marker[key] != manifest[key]

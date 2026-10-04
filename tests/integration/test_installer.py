@@ -80,7 +80,7 @@ class InstallTests(InstallerTestCase):
             (result.backup_dir / "metadata.json").read_text(encoding="utf-8")
         )
         self.assertEqual(metadata["settings_path"], str(self.settings_path))
-        self.assertEqual(len(metadata["artifacts"]), 3)
+        self.assertEqual(len(metadata["artifacts"]), 5)
         settings = self.read_settings()
         self.assertEqual(
             settings["statusLine"],
@@ -299,7 +299,7 @@ class InstallTests(InstallerTestCase):
 
 
 class ExperimentalInstallTests(InstallerTestCase):
-    def test_default_install_leaves_experimental_entry_disabled(self):
+    def test_default_stable_install_enables_external_entry_without_preference_file(self):
         integration_installer.install_configuration(
             self.config, self.executable, claude_version=(2, 1, 258)
         )
@@ -307,9 +307,9 @@ class ExperimentalInstallTests(InstallerTestCase):
         experimental_skill, experimental_owner = (
             integration_resources.experimental_skill_paths(self.config)
         )
-        self.assertFalse(experimental_skill.exists())
-        self.assertFalse(experimental_owner.exists())
-        self.assertEqual(self.experimental_hook_count(self.read_settings()), 0)
+        self.assertTrue(experimental_skill.exists())
+        self.assertTrue(experimental_owner.exists())
+        self.assertEqual(self.experimental_hook_count(self.read_settings()), 1)
 
     def test_enable_creates_feature_skill_owner_and_600_second_hook(self):
         result = integration_installer.install_configuration(
@@ -376,7 +376,7 @@ class ExperimentalInstallTests(InstallerTestCase):
         self.assertEqual(result.changed_paths, (feature_path,))
         self.assertEqual(stat.S_IMODE(feature_path.stat().st_mode), 0o600)
 
-    def test_explicit_disable_removes_preference_and_only_owned_active_artifacts(self):
+    def test_explicit_disable_persists_false_and_removes_only_owned_active_artifacts(self):
         integration_installer.install_configuration(
             self.config,
             self.executable,
@@ -389,26 +389,33 @@ class ExperimentalInstallTests(InstallerTestCase):
             experimental_slash_tui=False,
             claude_version=(2, 1, 258),
         )
-        self.assertFalse(config_features.feature_path(self.config).exists())
+        self.assertEqual(config_features.feature_path(self.config).read_bytes(), config_features.preference_bytes(False))
         skill, owner = integration_resources.experimental_skill_paths(self.config)
         self.assertFalse(skill.exists())
         self.assertFalse(owner.exists())
         self.assertEqual(self.experimental_hook_count(self.read_settings()), 0)
+        repeated = integration_installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        )
+        self.assertFalse(repeated.changed)
+        self.assertFalse(skill.exists())
         stable_skill, stable_owner = integration_resources.skill_paths(self.config)
         self.assertTrue(stable_skill.exists())
         self.assertTrue(stable_owner.exists())
 
-    def test_explicit_enable_rejects_old_or_unknown_version_without_writes(self):
+    def test_explicit_enable_suspends_old_or_unknown_version_and_keeps_preference(self):
         for version in ((2, 1, 257), None):
             with self.subTest(version=version):
-                with self.assertRaises(integration_models.ConfigurationError):
-                    integration_installer.install_configuration(
-                        self.config,
-                        self.executable,
-                        experimental_slash_tui=True,
-                        claude_version=version,
-                    )
-                self.assertFalse(self.config.exists())
+                result = integration_installer.install_configuration(
+                    self.config, self.executable,
+                    experimental_slash_tui=True, native_editor=True, claude_version=version,
+                )
+                self.assertFalse(result.native_failed)
+                self.assertEqual(result.native_state, "suspended")
+                self.assertTrue(config_features.load_experimental_slash_tui(self.config))
+                self.assertEqual(self.experimental_hook_count(self.read_settings()), 0)
+                self.assertFalse(integration_resources.experimental_skill_paths(self.config)[0].exists())
+                self.assertIn("External TUI suspended", result.messages[0])
 
     def test_enabled_preference_suspends_on_downgrade_and_restores_on_upgrade(self):
         integration_installer.install_configuration(
@@ -446,7 +453,7 @@ class ExperimentalInstallTests(InstallerTestCase):
         self.assertTrue(owner.exists())
         self.assertEqual(self.experimental_hook_count(self.read_settings()), 1)
 
-    def test_corrupt_preference_requires_explicit_repair_or_removal(self):
+    def test_corrupt_preference_requires_explicit_repair_or_disablement(self):
         self.config.mkdir()
         feature_path = config_features.feature_path(self.config)
         feature_path.write_bytes(b"{broken\n")
@@ -479,7 +486,7 @@ class ExperimentalInstallTests(InstallerTestCase):
             experimental_slash_tui=False,
             claude_version=(2, 1, 258),
         )
-        self.assertFalse(feature_path.exists())
+        self.assertEqual(feature_path.read_bytes(), config_features.preference_bytes(False))
         self.assertEqual(
             (
                 removed.backup_dir / f"{config_features.FEATURE_FILENAME}.before"
@@ -492,9 +499,10 @@ class ExperimentalInstallTests(InstallerTestCase):
         skill.parent.mkdir(parents=True)
         skill.write_text("unrelated\n", encoding="utf-8")
 
-        integration_installer.install_configuration(
-            self.config, self.executable, claude_version=(2, 1, 258)
-        )
+        with self.assertRaises(integration_models.ConfigurationError):
+            integration_installer.install_configuration(
+                self.config, self.executable, claude_version=(2, 1, 258)
+            )
         self.assertEqual(skill.read_text(encoding="utf-8"), "unrelated\n")
         self.assertFalse(owner.exists())
         with self.assertRaises(integration_models.ConfigurationError):
@@ -512,7 +520,10 @@ class ExperimentalInstallTests(InstallerTestCase):
             experimental_slash_tui=False,
             claude_version=(2, 1, 258),
         )
-        self.assertFalse(disabled.changed)
+        self.assertTrue(disabled.changed)
+        self.assertFalse(integration_installer.install_configuration(
+            self.config, self.executable, claude_version=(2, 1, 258)
+        ).changed)
         integration_installer.uninstall_configuration(self.config, self.executable)
         self.assertEqual(skill.read_text(encoding="utf-8"), "unrelated\n")
 
@@ -1030,6 +1041,7 @@ class ResolutionAndDoctorTests(InstallerTestCase):
         integration_installer.install_configuration(
             self.config,
             self.executable,
+            experimental_slash_tui=False,
             claude_version=(2, 1, 258),
         )
         disabled = integration_doctor.collect_diagnostics(

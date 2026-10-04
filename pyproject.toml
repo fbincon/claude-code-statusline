@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claude-code-statusline"
-version = "1.3.0a2"
+version = "1.3.0"
 description = "A configurable, stateful Claude Code status line for Linux, Windows and macOS"
 readme = "README.md"
 license = "MIT"
