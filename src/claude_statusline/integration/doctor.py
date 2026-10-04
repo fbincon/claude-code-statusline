@@ -494,26 +494,6 @@ def _check_fast_slash(diagnostics, settings, executable, claude_version):
 
 
 def _check_experimental(diagnostics, settings, config_dir, executable, claude_version):
-    if native_integration.active_on_disk(config_dir, True, claude_version):
-        skill, owner = integration_resources.experimental_skill_paths(config_dir)
-        if integration_ownership._is_owned_skill_marker(
-            config_storage._read_optional_bytes(owner)
-        ) or integration_ownership._slash_hook_count(
-            settings, executable, integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME
-        ):
-            diagnostics.append(
-                integration_models.Diagnostic(
-                    "ERROR", "native command migration is incomplete; rerun install"
-                )
-            )
-        else:
-            diagnostics.append(
-                integration_models.Diagnostic(
-                    "OK",
-                    "/statusline-configure: native plugin entry; compatibility preference retained",
-                )
-            )
-        return
     preference_path = config_features.feature_path(config_dir)
     preference_enabled = False
     preference_valid = True

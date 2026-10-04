@@ -1,6 +1,7 @@
 """Full-draft atomic saves share CLI/curses transactions and ownership checks."""
 
 from contextlib import contextmanager
+from dataclasses import replace
 import copy
 import io
 import json
@@ -61,6 +62,41 @@ class ApplyProtocolTests(unittest.TestCase):
         response, status = self.request("read")
         self.assertEqual(status, 0, response)
         return response["result"]
+
+    def test_external_and_client_saves_conflict_in_both_orders(self):
+        for client_first in (False, True):
+            with self.subTest(client_first=client_first):
+                current = self.read()
+                external = editor.EditorState.from_effective(
+                    service.read_effective_config(self.root, self.exe)
+                )
+                external.host = replace(external.host, padding=2 if current["draft"]["host"]["padding"] != 2 else 3)
+                client_draft = copy.deepcopy(current["draft"])
+                client_draft["display"]["use_colors"] = not client_draft["display"]["use_colors"]
+                settings = json.loads(self.settings.read_text())
+                settings["permissions"]["allow"].append("Glob")
+                self.settings.write_text(json.dumps(settings))
+                if client_first:
+                    _, status = self.request("apply", {
+                        "draft": client_draft, "expected_revision": current["revision"],
+                    })
+                    self.assertEqual(status, 0)
+                    before = self.settings.read_bytes(), display.config_path(self.root).read_bytes()
+                    with mock.patch.object(service, "_backup_transaction") as backup:
+                        with self.assertRaises(models.ConfigCommandError):
+                            editor.save_configuration(self.root, self.exe, external)
+                else:
+                    editor.save_configuration(self.root, self.exe, external)
+                    before = self.settings.read_bytes(), display.config_path(self.root).read_bytes()
+                    with mock.patch.object(service, "_backup_transaction") as backup:
+                        response, status = self.request("apply", {
+                            "draft": client_draft, "expected_revision": current["revision"],
+                        })
+                        self.assertEqual(status, 2)
+                        self.assertEqual(response["error"]["code"], "configuration_conflict")
+                backup.assert_not_called()
+                self.assertEqual(before, (self.settings.read_bytes(), display.config_path(self.root).read_bytes()))
+                self.assertIn("Glob", json.loads(self.settings.read_text())["permissions"]["allow"])
 
     def test_two_editors_noop_and_unrelated_settings_preserved(self):
         first = self.read()

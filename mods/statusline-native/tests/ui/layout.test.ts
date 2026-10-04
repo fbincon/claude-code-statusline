@@ -1,6 +1,5 @@
 import { expect, test } from 'claude-code/testing';
 import { dimensions, clip, cellWidth } from '../../ui/layout.ts';
-import { contentCapacity } from '../../ui/pane.ts';
 import { pageSelection, pageWindow } from '../../lib/editor/navigation.ts';
 
 test('smallest usable pane budgets all sections and resizing keeps selection visible', () => {
@@ -9,11 +8,10 @@ test('smallest usable pane budgets all sections and resizing keeps selection vis
   expect(dimensions(32, 12).available).toBe(true);
   for (const rows of [12, 18, 24, 40]) {
     const layout = dimensions(32, rows);
-    expect(6 + layout.previewRows + layout.bodyRows).toBe(rows);
+    expect(5 + layout.previewHeight + layout.bodyHeight).toBe(rows);
     expect(layout.previewRows <= 3).toBe(true);
-    for (const page of ['main', 'subagents', 'settings'] as const) {
-      expect(contentCapacity(page, rows) >= 1).toBe(true);
-    }
+    expect(layout.itemCapacity >= 1).toBe(true);
+    expect(layout.settingCapacity >= 1).toBe(true);
   }
   const keys = Array.from({ length: 24 }, (_, i) => String(i));
   expect(pageSelection(keys, '0', 5, -1)).toBe('0');

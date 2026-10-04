@@ -19,8 +19,6 @@ from claude_statusline.config import storage
 from claude_statusline.integration import (
     capabilities,
     native_resources,
-    ownership,
-    resources,
 )
 from claude_statusline.integration.models import ConfigurationError, Diagnostic
 from claude_statusline.platforms import environment
@@ -38,6 +36,15 @@ class NativeResult:
     active: bool = False
     changed: bool = False
     messages: tuple[str, ...] = ()
+
+
+def _binding_matches(options: object, expected: dict) -> bool:
+    inputs = options.get("inputs") if isinstance(options, dict) else None
+    # Old official caches/settings may retain the removed primaryCommand input.
+    # Only declared backend inputs bind this Mod; legacy inputs have no handler.
+    return isinstance(inputs, dict) and all(
+        inputs.get(key) == value for key, value in expected.items()
+    )
 
 
 class PluginError(ConfigurationError):
@@ -265,14 +272,7 @@ def _cache_owned(
 
 
 def command_preflight(config_dir: Path):
-    skill, marker = resources.experimental_skill_paths(config_dir)
-    if (skill.exists() or marker.exists()) and not ownership._is_owned_skill_marker(
-        storage._read_optional_bytes(marker)
-    ):
-        raise PluginError(
-            "Foreign /statusline-configure skill; move it aside or rename it before native migration"
-        )
-    for command in ("statusline-configure", "statusline-configure-native"):
+    for command in ("statusline-configure-native",):
         if (config_dir / "commands" / (command + ".md")).exists():
             raise PluginError(
                 f"Foreign /{command} command; rename it before native migration"
@@ -522,7 +522,6 @@ def integrate(
             "backendExecutable": str(executable.resolve()),
             "configDir": str(config_dir),
             "backendVersion": current["backend_version"],
-            "primaryCommand": True,
         }
         if row and staged and row.get("version") == current["mod_version"]:
             # Official update is a no-op at the same version. Reinstall only
@@ -561,7 +560,7 @@ def integrate(
             key: str(value).lower() if isinstance(value, bool) else value
             for key, value in values.items()
         }
-        if not isinstance(options, dict) or options.get("inputs") != bound:
+        if not _binding_matches(options, bound):
             raise PluginError(
                 "Native backend binding could not be confirmed; compatibility entry retained"
             )
@@ -653,15 +652,14 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
                 "backendExecutable": str(executable.resolve()) if executable else None,
                 "configDir": str(config_dir.resolve()),
                 "backendVersion": manifest["backend_version"],
-                "primaryCommand": "true",
             }
             result.append(
                 Diagnostic(
-                    "OK" if options.get("inputs") == expected else "ERROR",
+                    "OK" if _binding_matches(options, expected) else "ERROR",
                     "native backend binding: "
                     + (
                         "matches"
-                        if options.get("inputs") == expected
+                        if _binding_matches(options, expected)
                         else "differs; rerun install"
                     ),
                 )

@@ -26,7 +26,6 @@ def _change_configuration(
     claude_version: tuple[int, int, int] | None = None,
     experimental_slash_tui: bool | None = None,
     native_editor: bool | None = None,
-    native_active: bool = False,
 ) -> integration_models.ChangeResult:
     settings_path = config_dir / "settings.json"
     skill_path, owner_path = integration_resources.skill_paths(config_dir)
@@ -64,9 +63,17 @@ def _change_configuration(
             display = config_display.load_display_config(config_dir)
         except config_display.DisplayConfigError:
             display = config_display.DEFAULT_CONFIG
-        experimental_active = (
-            preference_enabled and fast_slash_hook and not native_active
+        experimental_active = preference_enabled and fast_slash_hook
+        external_command = config_dir / "commands" / (
+            integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME + ".md"
         )
+        if action == "install" and experimental_active and (
+            external_command.exists() or external_command.is_symlink()
+        ):
+            raise integration_models.ConfigurationError(
+                "Foreign /statusline-configure command; rename it before enabling "
+                "the external TUI"
+            )
         if action == "install":
             updated_settings = integration_install_plan._prepare_install(
                 settings,
@@ -329,18 +336,13 @@ def install_configuration(
             "cannot enable /statusline-configure: Claude Code "
             f"{minimum}+ is required; found {version_text}"
         )
-    requested = native_preference.requested(
-        config_dir, native_editor, legacy_override=experimental_slash_tui
-    )
+    requested = native_preference.requested(config_dir, native_editor)
     if (
         requested
         and claude_version is not None
         and claude_version >= native_integration.MIN_VERSION
     ):
         native_integration.command_preflight(config_dir)
-    native_active = native_integration.active_on_disk(
-        config_dir, requested, claude_version
-    )
     # Prepare the compatibility transaction before any official plugin mutation.
     planned = _change_configuration(
         "install",
@@ -351,7 +353,6 @@ def install_configuration(
         claude_version=claude_version,
         experimental_slash_tui=experimental_slash_tui,
         native_editor=native_editor,
-        native_active=native_active,
     )
     if dry_run:
         return replace(
@@ -369,59 +370,10 @@ def install_configuration(
         claude_version=claude_version,
         experimental_slash_tui=experimental_slash_tui,
         native_editor=native_editor,
-        native_active=native_active,
     )
     native = native_integration.integrate(
         config_dir, executable, requested, claude_version
     )
-    if native_active and not native.active:
-        restored = _change_configuration(
-            "install",
-            config_dir,
-            executable,
-            False,
-            force,
-            claude_version=claude_version,
-            experimental_slash_tui=experimental_slash_tui,
-        )
-        result = replace(
-            result,
-            changed=result.changed or restored.changed,
-            changed_paths=tuple(
-                dict.fromkeys((*result.changed_paths, *restored.changed_paths))
-            ),
-            backup_dir=restored.backup_dir or result.backup_dir,
-        )
-    if native.active:
-        try:
-            migrated = _change_configuration(
-                "install",
-                config_dir,
-                executable,
-                False,
-                force,
-                claude_version=claude_version,
-                experimental_slash_tui=experimental_slash_tui,
-                native_active=True,
-            )
-            result = replace(
-                result,
-                changed=result.changed or migrated.changed,
-                changed_paths=tuple(
-                    dict.fromkeys((*result.changed_paths, *migrated.changed_paths))
-                ),
-                backup_dir=migrated.backup_dir or result.backup_dir,
-            )
-        except integration_models.ConfigurationError as exc:
-            return replace(
-                result,
-                native_state="migration-failed",
-                native_failed=True,
-                messages=(
-                    *native.messages,
-                    f"Native migration refused: {exc}; compatibility entry retained.",
-                ),
-            )
     return replace(
         result,
         changed=result.changed or native.changed,

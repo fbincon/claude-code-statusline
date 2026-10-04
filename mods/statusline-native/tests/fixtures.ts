@@ -3,6 +3,7 @@ import type {
   ConfigRow,
   ConfigSetResult,
   ConfigValue,
+  ClientKeyEvent,
   On,
   ProcessRunResult,
 } from 'claude-code';
@@ -213,11 +214,13 @@ export function setup(on: On) {
     store,
     behavior,
     commands: [] as CommandInfo[],
+    registrations: [] as string[],
     registered: false,
   };
   on('session.start', () => ({ cwd: '/work' }));
   on('command.list', () => ({ value: fixture.commands }));
-  on('command.register', () => {
+  on('command.register', ($, e) => {
+    fixture.registrations.push(e.name);
     fixture.registered = true;
     return { value: { command: RUN.command } };
   });
@@ -241,6 +244,7 @@ export function setup(on: On) {
   on('ui.panes', () => ({ value: [] }));
   on('ui.toast', () => ({ value: undefined }));
   on('ui.log', () => ({ value: undefined }));
+  on('ui.message', () => ({}));
   on('config.list', () => ({ value: store.rows }));
   on('config.set', ($, e) => {
     configCalls.push({ key: e.key, value: e.value });
@@ -304,4 +308,16 @@ export function setup(on: On) {
     return behavior.process ? behavior.process(request, next) : next();
   });
   return fixture;
+}
+
+export async function keys(
+  ui: { key: (event: ClientKeyEvent & { in?: string }) => Promise<void> },
+  ...events: (string | ClientKeyEvent)[]
+) {
+  for (const event of events) {
+    await ui.key({
+      ...(typeof event === 'string' ? { key: event } : event),
+      in: 'statusline-client',
+    });
+  }
 }
