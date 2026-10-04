@@ -20,7 +20,7 @@ export function cancelInput(view: View): void {
 
 /** All transitions are pure; persistence remains in the host hooks module. */
 export function handleKey(view: View, event: ClientKeyEvent, columns: number, rows: number): Effect {
-  const e = view.editor, key = event.key;
+  const e = view.editor, key = event.key === 'space' ? ' ' : event.key;
   if (!e || view.busy) return null;
   if (event.ctrl && key.toLowerCase() === 'g') { cancelInput(view); return null; }
   if (view.uncertain) return key === 'k' ? 'reconcile' : key === 'q' ? 'close' : null;

@@ -51,8 +51,8 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   expect(fixture.calls.some((c) => c.operation === 'preset')).toBe(true);
   expect(fixture.store.draft.host.padding).toBe(0);
   await selectSetting(ui, 'import-file');
-  await keys(ui, 'return', {key:'u',ctrl:true}, '/', '中', '文', '.', 'j', 's', 'o', 'n', 'return');
-  expect(fixture.calls.find((c) => c.operation === 'import')!.payload.path).toBe('/中文.json');
+  await keys(ui, 'return', {key:'u',ctrl:true}, '/', '中', 'space', '文', '.', 'j', 's', 'o', 'n', 'return');
+  expect(fixture.calls.find((c) => c.operation === 'import')!.payload.path).toBe('/中 文.json');
   await selectSetting(ui, 'export-file');
   await keys(ui, 'return', 'return');
   const exported = fixture.calls.find((c) => c.operation === 'export')!;
