@@ -21,7 +21,7 @@ from claude_statusline.integration import (
     native_resources,
 )
 from claude_statusline.integration.models import ConfigurationError, Diagnostic
-from claude_statusline.platforms import environment
+from claude_statusline.platforms import environment, files as platform_files
 
 MARKETPLACE = "claude-statusline-local"
 PLUGIN = "statusline-native@" + MARKETPLACE
@@ -63,6 +63,25 @@ def _path(root: Path, name: str) -> Path:
         # callers resolve config_dir first. No link inside an owned root is valid.
         raise PluginError(f"Native resource contains a symlink: {path}")
     return path
+
+
+def _prune_empty_parents(root: Path, paths: list[Path]) -> None:
+    parents = {
+        parent for path in paths for parent in path.parents
+        if parent.is_relative_to(root)
+    }
+    for directory in sorted(parents, key=lambda path: len(path.parts), reverse=True):
+        if any(
+            platform_files.is_link_or_reparse(parent)
+            for parent in (directory, *directory.parents)
+            if parent.is_relative_to(root)
+        ):
+            continue
+        try:
+            directory.rmdir()
+        except OSError:
+            # Unknown files/nonempty directories are never recursively removed.
+            pass
 
 
 def owner(config_dir: Path, *, allow_missing: bool = False) -> dict | None:
@@ -332,9 +351,11 @@ def _stage(
                 marker["cache_inventories"].append(snapshot)
         marker["cache_inventories"] = marker["cache_inventories"][:3]
     root = config_dir / DIRECTORY
+    obsolete = []
     if previous:
         for name in previous["files"].keys() - artifacts.keys():
             artifacts[name] = None
+            obsolete.append(_path(root, name))
     artifacts[OWNER_FILE] = storage._json_bytes(marker)
     changed = []
     for name, raw in artifacts.items():
@@ -366,6 +387,7 @@ def _stage(
             raise PluginError(
                 f"Cannot stage native resources: {exc}; rollback errors: {failures}"
             ) from exc
+        _prune_empty_parents(root, obsolete)
     return marker, True
 
 
@@ -403,22 +425,15 @@ def _remove_resources(config_dir: Path, marker: dict):
             raise PluginError("Native ownership changed before removal; run doctor")
         root = config_dir / DIRECTORY
         paths = [_path(root, name) for name in marker["files"]]
+        historical = [
+            _path(root, name)
+            for snapshot in marker["cache_inventories"]
+            for name in snapshot["files"]
+        ]
         for path in paths:
             path.unlink(missing_ok=True)
         (root / OWNER_FILE).unlink()
-        parents = {
-            parent
-            for path in paths
-            for parent in path.parents
-            if parent.is_relative_to(root)
-        }
-        for directory in sorted(
-            parents, key=lambda path: len(path.parts), reverse=True
-        ):
-            try:
-                directory.rmdir()
-            except OSError:
-                pass
+        _prune_empty_parents(root, paths + historical)
 
 
 def integrate(

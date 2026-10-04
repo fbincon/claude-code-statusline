@@ -255,6 +255,34 @@ class NativeInstallerTests(unittest.TestCase):
         self.assertEqual(command.read_text(), "Foreign external command")
         self.assertEqual((self.config / "settings.json").read_bytes(), before)
 
+    def test_upgrade_prunes_old_empty_directories_and_disable_reenable_works(self):
+        files, manifest = native_resources.bundled_files()
+        old_files = dict(files, **{"ui/pages/obsolete.ts": b"// old owned UI\n"})
+        with mock.patch.object(native_resources, "bundled_files", return_value=(old_files, manifest)):
+            self.install(native_editor=True)
+        old_directory = self.config / native.DIRECTORY / "plugins/statusline-native/ui/pages"
+        self.assertTrue(old_directory.exists())
+        self.assertFalse(self.install().native_failed)
+        self.assertFalse(old_directory.exists())
+        # Historical inventory also cleans a previously retained empty directory.
+        old_directory.mkdir()
+        self.install(native_editor=False)
+        self.assertFalse((self.config / native.DIRECTORY).exists())
+        self.assertFalse(self.install(native_editor=True).native_failed)
+
+    def test_historical_directory_cleanup_preserves_unknown_files(self):
+        files, manifest = native_resources.bundled_files()
+        old_files = dict(files, **{"ui/pages/obsolete.ts": b"// old owned UI\n"})
+        with mock.patch.object(native_resources, "bundled_files", return_value=(old_files, manifest)):
+            self.install(native_editor=True)
+        directory = self.config / native.DIRECTORY / "plugins/statusline-native/ui/pages"
+        note = directory / "user-note.txt"
+        note.write_text("Preserve this unknown file")
+        self.install()
+        self.assertFalse((directory / "obsolete.ts").exists())
+        self.install(native_editor=False)
+        self.assertEqual(note.read_text(), "Preserve this unknown file")
+
     def test_failure_keeps_compatibility_and_retry_reads_the_actual_inventory(self):
         self.host.refused = "install"
         result = self.install(native_editor=True, experimental_slash_tui=True)

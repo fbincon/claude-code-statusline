@@ -5,7 +5,7 @@
 ## 1.3.0a2 - 2026-10-04
 
 - 保留 `/statusline-configure` 的外部终端 TUI，`/statusline-configure-native` 改为当前 session 的实验性 Client；两入口独立安装、关闭和并存。
-- 恢复旧原生迁移移除的已启用 owned 外部资源，取消 Mod 的外部命令别名和 primaryCommand，分别检查命令冲突。
+- 恢复旧原生迁移移除的已启用 owned 外部资源，取消 Mod 的外部命令别名和 primaryCommand，分别检查命令冲突；清理旧版空目录，支持禁用后再次启用。
 - Client 提供方向键导航/排序、Tab 切页、Space 勾选、显式搜索、Ctrl+G 取消、s 保存及 f 完成；明确点击获焦和宿主 Esc 行为。
 - 分组边框、强调标题、设置分组、栏目对齐和紧凑布局区分内容与预览；保留高级偏好独立应用与结果不明核对。
 - 使用深复制快照及有序累计消息确认，避免冻结、丢键、重复保存及迟到响应；两种保存路径共用 revision 防覆盖。

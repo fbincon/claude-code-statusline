@@ -5,7 +5,7 @@
 ## 1.3.0a2 - 2026-10-04
 
 - Keep `/statusline-configure` as the external terminal TUI and make `/statusline-configure-native` the experimental in-session Client; independently install, disable and use both.
-- Restore enabled owned external resources removed by old native migration; remove the Mod's external alias/primaryCommand and check command collisions independently.
+- Restore enabled owned external resources removed by old native migration; remove the Mod's external alias/primaryCommand, check collisions independently and prune obsolete empty directories so disable/re-enable works after upgrading.
 - Add Client arrow navigation/order, Tab pages, Space toggles, explicit search, Ctrl+G cancellation and s/f saving; explain initial click and host-owned Esc.
 - Separate content/preview with grouped borders, emphasized headings, setting groups, aligned columns and compact layouts; retain separate Claude preference application and uncertain-save checks.
 - Use copied snapshots and cumulative acknowledged input to prevent frozen drafts, lost keys, duplicate saves and stale responses; both save paths share revision protection.
