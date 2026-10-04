@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Add nine opt-in independent main metrics and four agent metrics, preserving compounds/defaults and schema v2/protocol v1. Suppress expired allowances and provide deterministic countdown previews; document metric scopes and downgrade recovery.
+
 - Add original Linux, Windows and macOS screenshots of the in-session Client with Claude Code 2.1.289 to both READMEs and the image index.
 - Record the maintainer's normal Linux/Windows interaction and unresolved macOS input problem separately from historical acceptance; document official Terminal.app/iTerm2 mouse reporting checks and alternative configuration entries without claiming a verified fix.
 

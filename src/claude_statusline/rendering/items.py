@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import math
 import socket
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from claude_statusline.config import display as config_display
 from claude_statusline.rendering import formatters as rendering_formatters
 from claude_statusline.rendering import layout as rendering_layout
+from claude_statusline.rendering import metrics
 from claude_statusline.rendering import palette as rendering_palette
 from claude_statusline.rendering import timer as rendering_timer
 from claude_statusline.runtime import git as runtime_git
@@ -42,12 +44,11 @@ def humanize_api_tokens(v):
     return str(max(0, v))
 
 
-def _rate_limit_item(data, field, label, palette=rendering_palette.DEFAULT_PALETTE):
-    rate_limits = rendering_formatters.deep_get(data, ("rate_limits",))
-    if not isinstance(rate_limits, dict):
-        return None
-    window = rate_limits.get(field)
-    if not isinstance(window, dict):
+def _rate_limit_item(
+    data, field, label, palette=rendering_palette.DEFAULT_PALETTE, *, now=None
+):
+    window = metrics.live_rate_window(data, field, now)
+    if window is None:
         return None
     used = window.get("used_percentage")
     if isinstance(used, bool) or not isinstance(used, (int, float)):
@@ -60,8 +61,9 @@ def _rate_limit_item(data, field, label, palette=rendering_palette.DEFAULT_PALET
 
 def _rate_limit_segment(data, palette=rendering_palette.DEFAULT_PALETTE):
     """Render whichever Claude Code rate-limit windows are present."""
+    now = time.time()
     parts = [
-        _rate_limit_item(data, field, label, palette)
+        _rate_limit_item(data, field, label, palette, now=now)
         for field, label in (
             ("five_hour", "5h"),
             ("seven_day", "weekly"),
@@ -84,6 +86,8 @@ _NOT_LOADED = object()
 
 _ITEM_METHODS = {
     "model-with-effort": "model_with_effort",
+    "model": "model",
+    "effort": "effort",
     "current-dir": "current_dir",
     "project-name": "project_name",
     "hostname": "hostname",
@@ -91,6 +95,7 @@ _ITEM_METHODS = {
     "context-remaining": "context_remaining",
     "context-used": "context_used",
     "context-window-size": "context_window_size",
+    "context-tokens": "context_tokens",
     "tokens": "tokens",
     "prompt-timer": "prompt_timer",
     "version": "version",
@@ -113,6 +118,13 @@ _RATE_LIMIT_ITEMS = {
     "spend-limit": ("spend_limit", "spend"),
 }
 
+_RESET_ITEMS = {
+    "five-hour-reset": ("five_hour", "5h"),
+    "weekly-reset": ("seven_day", "weekly"),
+}
+
+_SESSION_METRICS = {"session-cost", "session-duration", "api-duration", "lines-changed"}
+
 
 class _RenderState:
     """Lazily resolve only the data sources selected by the user."""
@@ -125,6 +137,19 @@ class _RenderState:
         self.live_dir = _live_directory(data)
         self._git = _NOT_LOADED
         self._totals = _NOT_LOADED
+        self._now = None
+
+    def now(self):
+        if self._now is None:
+            self._now = time.time()
+        return self._now
+
+    def styled(self, text, style, group=None):
+        return (
+            _RenderedItem(f"{style}{text}{self.palette.reset}", group=group)
+            if text
+            else None
+        )
 
     def totals(self):
         if self._totals is _NOT_LOADED:
@@ -146,16 +171,27 @@ class _RenderState:
         return bool(isinstance(record, dict) and record.get("had_subagents"))
 
     def model_with_effort(self):
-        model = rendering_formatters.deep_get(
-            self.data, ("model", "id")
-        ) or rendering_formatters.deep_get(self.data, ("model", "display_name"))
+        model = metrics.model_name(self.data)
         if not model:
             return None
         text = f"{self.palette.model}{model}"
-        effort = rendering_formatters.deep_get(self.data, ("effort", "level"))
+        effort = rendering_formatters.sanitize_payload_text(
+            rendering_formatters.deep_get(self.data, ("effort", "level"))
+        )
         if effort:
             text += f" {effort}"
         return _RenderedItem(text + self.palette.reset, group="model")
+
+    def model(self):
+        return self.styled(metrics.model_name(self.data), self.palette.model, "model")
+
+    def effort(self):
+        value = rendering_formatters.deep_get(self.data, ("effort", "level"))
+        return self.styled(
+            rendering_formatters.sanitize_payload_text(value),
+            self.palette.model,
+            "model",
+        )
 
     def current_dir(self):
         if not self.live_dir:
@@ -258,8 +294,31 @@ class _RenderState:
         )
 
     def rate_limit(self, field, label):
-        text = _rate_limit_item(self.data, field, label, self.palette)
+        text = _rate_limit_item(self.data, field, label, self.palette, now=self.now())
         return _RenderedItem(text, group="limits") if text else None
+
+    def rate_reset(self, field, label):
+        window = metrics.live_rate_window(self.data, field, self.now())
+        value = (
+            metrics.countdown(window.get("resets_at"), self.now()) if window else None
+        )
+        return self.styled(
+            f"{label} reset {value}" if value else None,
+            self.palette.percentage,
+            "limits",
+        )
+
+    def context_tokens(self):
+        text = metrics.context_tokens(
+            rendering_formatters.deep_get(self.data, ("context_window",))
+        )
+        return self.styled(text, self.palette.percentage, "context")
+
+    def session_metric(self, item):
+        text = metrics.session_metric(
+            rendering_formatters.deep_get(self.data, ("cost",)), item
+        )
+        return self.styled(text, self.palette.percentage, "usage")
 
     def tokens(self):
         totals = self.totals()
@@ -425,6 +484,11 @@ class _RenderState:
         )
 
     def render(self, item_id):
+        if item_id in _SESSION_METRICS:
+            return self.session_metric(item_id)
+        reset = _RESET_ITEMS.get(item_id)
+        if reset is not None:
+            return self.rate_reset(*reset)
         rate_limit = _RATE_LIMIT_ITEMS.get(item_id)
         if rate_limit is not None:
             return self.rate_limit(*rate_limit)

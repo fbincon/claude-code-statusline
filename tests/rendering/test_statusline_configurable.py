@@ -54,7 +54,10 @@ class ConfiguredRenderingTests(unittest.TestCase):
     def test_renderer_registry_covers_every_configurable_item(self):
         self.assertEqual(
             set(config_display.ITEM_CATALOG),
-            set(rendering_items._ITEM_METHODS) | set(rendering_items._RATE_LIMIT_ITEMS),
+            set(rendering_items._ITEM_METHODS)
+            | set(rendering_items._RATE_LIMIT_ITEMS)
+            | set(rendering_items._RESET_ITEMS)
+            | rendering_items._SESSION_METRICS,
         )
 
     def test_default_order_and_adjacent_groups_preserve_legacy_layout(self):

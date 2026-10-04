@@ -2,6 +2,26 @@ import { expect, test } from 'claude-code/testing';
 import { Editor } from '../../lib/editor/draft.ts';
 import { description, readResult } from '../fixtures.ts';
 
+test('independent metrics coexist with compounds in both scopes and preserve order', () => {
+  const editor = new Editor(description(), readResult());
+  for (const id of ['model', 'effort', 'context-tokens', 'api-duration']) {
+    editor.toggle('main', id);
+  }
+  expect(editor.draft.display.items).toEqual([
+    'model-with-effort', 'model', 'effort', 'context-tokens', 'api-duration',
+  ]);
+  for (const id of ['model-with-effort', 'model', 'effort', 'context-tokens', 'context-window-size']) {
+    editor.toggle('subagent', id);
+  }
+  expect(editor.draft.display.subagents.items).toEqual([
+    'status-elapsed', 'name', 'model-with-effort', 'model', 'effort', 'context-tokens', 'context-window-size',
+  ]);
+  editor.filter('main', 'api-duration');
+  expect(editor.visible('main').map((item) => item.id)).toEqual(['api-duration']);
+  editor.cancel();
+  expect(editor.draft.display.items).toEqual(['model-with-effort']);
+});
+
 test('item changes preserve the baseline, exclusions and filtered ordering', () => {
   const current = readResult();
   const editor = new Editor(description(), current);

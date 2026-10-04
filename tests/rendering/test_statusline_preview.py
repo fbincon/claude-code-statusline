@@ -25,8 +25,24 @@ def plain_rows(config, width=500, padding=0):
 
 class PreviewContentTests(unittest.TestCase):
     def test_all_catalog_items_have_fixed_sample_values_in_draft_order(self):
+        original = tuple(
+            item
+            for item in config_display.ITEM_CATALOG
+            if item
+            not in {
+                "model",
+                "effort",
+                "context-tokens",
+                "five-hour-reset",
+                "weekly-reset",
+                "session-cost",
+                "session-duration",
+                "api-duration",
+                "lines-changed",
+            }
+        )
         config = config_display.DEFAULT_CONFIG.with_updates(
-            items=tuple(config_display.ITEM_CATALOG), use_colors=False
+            items=original, use_colors=False
         )
         rendered = "\n".join(plain_rows(config, width=600))
         expected = (
@@ -48,7 +64,7 @@ class PreviewContentTests(unittest.TestCase):
         )
         self.assertEqual(
             sum(state.render(item) is not None for item in config_display.ITEM_CATALOG),
-            24,
+            len(config_display.ITEM_CATALOG),
         )
 
     def test_toggle_order_separator_directory_padding_and_width_change_preview(self):

@@ -2,6 +2,8 @@
 
 **English** | [简体中文](USER_GUIDE.zh-CN.md)
 
+See [independent display items and metric definitions](DISPLAY_ITEMS.md) for the new opt-in model, context, reset and session metrics, agent fields and downgrade recovery.
+
 <a id="claude-code-statusline-使用指南"></a>
 
 This guide covers installation, configuration, upgrades, diagnostics, and development. New users can start with the [project README](../README.md); maintainers should follow the [release guide](RELEASING.md).

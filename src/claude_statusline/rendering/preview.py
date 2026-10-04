@@ -7,12 +7,17 @@ from claude_statusline.config import display as config_display
 from claude_statusline.rendering import items as rendering_items
 from claude_statusline.rendering import layout as rendering_layout
 
+SAMPLE_NOW = 1_788_400_120
+
 
 class _SampleRenderState(rendering_items._RenderState):
     """Render deterministic preview values without touching live session state."""
 
     def totals(self):
         return "1.2M", "87.5K", "22.4K", None, {}
+
+    def now(self):
+        return SAMPLE_NOW
 
     def had_subagents(self):
         return True
@@ -55,11 +60,18 @@ def _sample_preview_data():
             "remaining_percentage": 73,
             "used_percentage": 27,
             "context_window_size": 200_000,
+            "total_input_tokens": 54_000,
+            "current_usage": {
+                "input_tokens": 35_000,
+                "cache_creation_input_tokens": 12_000,
+                "cache_read_input_tokens": 7_000,
+                "output_tokens": 2_000,
+            },
         },
         "rate_limits": {
-            "five_hour": {"used_percentage": 18},
-            "seven_day": {"used_percentage": 36},
-            "spend_limit": {"used_percentage": 9},
+            "five_hour": {"used_percentage": 18, "resets_at": SAMPLE_NOW + 7980},
+            "seven_day": {"used_percentage": 36, "resets_at": SAMPLE_NOW + 525600},
+            "spend_limit": {"used_percentage": 9, "resets_at": SAMPLE_NOW + 864000},
         },
         "prompt_cache": {"hit_ratio": 0.91, "cache_write_tokens": 352_000},
         "version": "2.1.258",
@@ -68,6 +80,7 @@ def _sample_preview_data():
         "cost": {
             "total_cost_usd": 0.12,
             "total_duration_ms": 750_000,
+            "total_api_duration_ms": 75_000,
             "total_lines_added": 156,
             "total_lines_removed": 23,
         },

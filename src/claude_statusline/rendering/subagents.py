@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
 from claude_statusline.rendering import formatters as rendering_formatters
+from claude_statusline.rendering import metrics
 
 
 DEFAULT_COLUMNS = 80
@@ -32,9 +33,13 @@ STATUS_ICONS = {
 OPTIONAL_DROP_ORDER = (
     "current-dir",
     "tokens",
+    "context-window-size",
+    "context-tokens",
     "context-used",
     "context-remaining",
     "model-with-effort",
+    "effort",
+    "model",
     "task",
 )
 
@@ -130,6 +135,14 @@ def _task_name(task: dict[str, Any]) -> str:
 
 
 def _model_with_effort(task: dict[str, Any]) -> str | None:
+    model = _model(task)
+    if not model:
+        return None
+    effort = metrics.effort_text(task.get("effort"))
+    return f"{model}/{effort}" if effort else model
+
+
+def _model(task: dict[str, Any]) -> str | None:
     model = rendering_formatters.sanitize_payload_text(task.get("model"))
     if not model:
         return None
@@ -137,19 +150,7 @@ def _model_with_effort(task: dict[str, Any]) -> str | None:
         model = model[len("claude-") :]
     if not model:
         return None
-    effort_value = task.get("effort")
-    effort = None
-    if isinstance(effort_value, str):
-        effort = rendering_formatters.sanitize_payload_text(effort_value)
-    elif isinstance(effort_value, int) and not isinstance(effort_value, bool):
-        effort = str(effort_value)
-    elif _finite_number(effort_value) is not None:
-        effort = (
-            f"{effort_value:g}"
-            if isinstance(effort_value, float)
-            else str(effort_value)
-        )
-    return f"{model}/{effort}" if effort else model
+    return model
 
 
 def _context_used(task: dict[str, Any]) -> str | None:
@@ -248,6 +249,18 @@ def _parts_for_task(
         "status-elapsed": (_status_elapsed(task, now_ms), palette.elapsed),
         "name": (name, palette.name),
         "model-with-effort": (_model_with_effort(task), palette.model),
+        "model": (_model(task), palette.model),
+        "effort": (metrics.effort_text(task.get("effort")), palette.model),
+        "context-tokens": (
+            metrics.token_ratio(task.get("tokenCount"), task.get("contextWindowSize")),
+            palette.context,
+        ),
+        "context-window-size": (
+            f"{rendering_formatters.humanize_tokens(task['contextWindowSize'])} window"
+            if metrics.token_count(task.get("contextWindowSize")) not in (None, 0)
+            else None,
+            palette.context,
+        ),
         "context-remaining": (_context_remaining(task), palette.context),
         "context-used": (_context_used(task), palette.context),
         "elapsed": (_elapsed(task, now_ms), palette.elapsed),
