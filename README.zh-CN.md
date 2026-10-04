@@ -118,7 +118,7 @@
 - Claude Code 2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持外部 TUI 入口与带参数配置命令的本地执行；2.1.287+ 支持会话内 Client。
 - 不兼容或无法识别的宿主暂挂对应入口；基础状态栏、独立终端 TUI、向导和 CLI 继续可用。Git 信息需要系统中存在 `git`。
 
-当前稳定版为 [**v1.3.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0)，以上平台共用同一个 wheel。晋升正式版时，维护者确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过；正式版沿用其 Client 交互。随后基于 Claude Code 2.1.289 的反馈确认 Linux、Windows 可以正常操作，macOS 输入问题仍未解决；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
+当前稳定版为 [**v1.4.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.4.0)，以上平台共用同一个 wheel。晋升 v1.3.0 正式版时，维护者确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过；正式版沿用其 Client 交互。随后基于 Claude Code 2.1.289 的反馈确认 Linux、Windows 可以正常操作，macOS 输入问题仍未解决；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
 ## 快速安装
 
@@ -129,7 +129,7 @@
 Bash / Zsh / PowerShell 通用：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.4.0/claude_code_statusline-1.4.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -138,7 +138,7 @@ pipx ensurepath
 需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.3.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.4.0"
 pipx ensurepath
 ```
 
@@ -153,7 +153,7 @@ pipx ensurepath
 
 ### 接入 Claude Code
 
-重新打开终端让 PATH 生效，确认版本为 `claude-statusline 1.3.0`：
+重新打开终端让 PATH 生效，确认版本为 `claude-statusline 1.4.0`：
 
 ```text
 claude-statusline --version
@@ -203,14 +203,16 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
+v1.4.0 提供 48 个主栏、14 个子 Agent 选项，本轮 28 个新增项均默认关闭。上下文／累计作用域、缓存／额度过期及示例见[独立指标说明](docs/DISPLAY_ITEMS.zh-CN.md)。
+
 配置按用户生效；`set-items` 替换全部启用项，`enable` / `disable` 用于增量修改。更多示例见[配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方)。
 
 ## 升级与卸载
 
-升级到 v1.3.0：
+升级到 v1.4.0：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.3.0/claude_code_statusline-1.3.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.4.0/claude_code_statusline-1.4.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```

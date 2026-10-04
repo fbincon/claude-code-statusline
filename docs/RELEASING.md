@@ -4,7 +4,7 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.3.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.3.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.4.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.4.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,7 +12,7 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-Stable v1.3.0 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
+Stable v1.4.0 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
@@ -20,7 +20,7 @@ Each candidate requires all 13 Python/build and four fixed Mod jobs (Linux 2.1.2
 
 Build from the verified merge commit, inspect wheel/sdist/resource inventories and independent rebuilds, verify fixed-tag installation, draft assets and SHA256, require tag CI, then publish stable as Latest and check public downloads/isolated installs. The sole Mod source supplies runtime assets; exclude dependencies, host declarations and raw reports. Raw evidence stays in ignored dist/validation. Before a Python package downgrade, remove native with the newer package's `install --no-native-editor`.
 
-This promotion keeps accepted UI interaction and changes installation policy/documentation; it does not run paid model/timer suites. Releases changing timer behavior still require separate timer acceptance.
+Display-item releases retain the accepted UI interaction and installation policy; they do not run paid model/timer suites. Releases changing timer behavior still require separate timer acceptance.
 
 ## Prepare the release commit
 
@@ -48,7 +48,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.3.0
+RELEASE_TAG=v1.4.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -66,8 +66,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-claude_code_statusline-1.3.0-py3-none-any.whl
-claude_code_statusline-1.3.0.tar.gz
+claude_code_statusline-1.4.0-py3-none-any.whl
+claude_code_statusline-1.4.0.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -90,8 +90,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.3.0-py3-none-any.whl \
-  claude_code_statusline-1.3.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.4.0-py3-none-any.whl \
+  claude_code_statusline-1.4.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -100,8 +100,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.3.0-py3-none-any.whl',
-    'claude_code_statusline-1.3.0.tar.gz'
+    'claude_code_statusline-1.4.0-py3-none-any.whl',
+    'claude_code_statusline-1.4.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -121,8 +121,8 @@ Confirm all 13 Python/build and four Mod CI jobs pass for `RELEASE_COMMIT`, and 
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.3.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.3.0.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.4.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.4.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -161,3 +161,7 @@ Related documentation: [pipx installation sources](https://pipx.pypa.io/latest/r
 ## v1.3.0 stable promotion
 
 v1.3.0a2 has confirmed three-platform human acceptance. Stable Python/Mod versions are both 1.3.0; both entries default on with independent compatibility suspension. Missing historical preferences follow the new stable default; explicit false remains off. Update current user links and instructions, preserving historical preview tags/assets/release types and contemporaneous records. Create a new v1.3.0 Release with prerelease=false, latest=true after all gates above pass.
+
+## v1.4.0 display-item release
+
+This release adds opt-in catalog entries and retains the existing Client interaction and installation policy. Require fixed-clock expiry, missing/zero, raw token/scope, complete editor/preview and lazy-collection checks. Keep the existing three-platform CI, inspect and independently rebuild packages, run installed-wheel Linux PTYs and visually inspect the larger catalog. Document the inherited macOS input limitation and record automated/agent inspection separately from historical human acceptance. New multiline layouts and runtime timing changes require their own additional acceptance.

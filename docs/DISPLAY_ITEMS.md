@@ -55,6 +55,8 @@ Gateway dollar/period fields require both Claude Code and gateway 2.1.284+. They
 
 Cumulative input/output use the existing cost-state snapshot plus transcript deltas, message-ID deduplication and main/nested-agent scope. They sum integers before abbreviation; current-context fields are not cumulative counters. No valid recorded usage means unavailable; an observed all-zero response shows zero. The formatted collector interface remains unchanged; raw snapshots require no additional I/O.
 
+Input and output availability are independent: an output-only observation does not imply zero input. Partial cumulative snapshots retain the other counter's known total and apply each counter's subsequent main/subagent delta from its own snapshot. Older cached sessions recover availability once from available transcripts without recounting message IDs.
+
 Cache fields require Claude Code 2.1.251+. Cache warmth reports local TTL, not a guarantee of the next server cache hit; request/miss statistics cover only the main conversation. Detailed miss causes remain a later extension. Git components and the compound reuse one cached collector result per refresh.
 
 - Reset timestamps are Unix epoch **seconds**. A refresh captures one clock for

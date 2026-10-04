@@ -13,16 +13,21 @@ from claude_statusline.runtime import paths as runtime_paths
 from claude_statusline.runtime import transcript as runtime_transcript
 
 
+_TOKEN_USAGE_FIELDS = {"hit": ("cr",), "miss": ("i", "cc"), "out": ("o",)}
+
+
 @dataclass(frozen=True)
 class SessionTokenCounts:
     """Observed integer totals, using the same all-session accounting as tokens."""
 
-    hit: int
-    miss: int
-    out: int
+    hit: int | None
+    miss: int | None
+    out: int | None
 
     @property
     def input_tokens(self):
+        if self.hit is None or self.miss is None:
+            return None
         return self.hit + self.miss
 
 
@@ -35,6 +40,45 @@ def _has_usage(usage, fields):
     )
 
 
+def _token_observations(entry, positive_only=False):
+    """Keep input/output availability separate from zero-filled accounting."""
+    observed = entry.get("token_observed")
+    if isinstance(observed, dict):
+        return {key: observed.get(key) is True for key in ("input", "output")}
+    records = entry.get("ids", {})
+    records = records.values() if isinstance(records, dict) else ()
+    snapshot = entry.get("api_snapshot")
+    base = entry.get("base", {})
+
+    def has(record, fields):
+        if positive_only:
+            return isinstance(record, dict) and any(
+                _usage_int(record.get(field)) > 0 for field in fields
+            )
+        return _has_usage(record, fields)
+
+    observed = {"input": False, "output": False}
+    for record in records:
+        observed["input"] |= has(record, ("i", "cc", "cr"))
+        observed["output"] |= has(record, ("o",))
+        if all(observed.values()):
+            break
+    observed["input"] |= has(snapshot, ("hit", "miss"))
+    observed["output"] |= has(snapshot, ("out",))
+    if isinstance(base, dict):
+        observed["input"] |= any(
+            _usage_int(base.get(key)) > 0 for key in ("i", "cc", "cr")
+        )
+        observed["output"] |= _usage_int(base.get("o")) > 0
+    return observed
+
+
+def _observe_usage(observed, usage, input_fields, output_fields):
+    if observed is not None:
+        observed["input"] |= _has_usage(usage, input_fields)
+        observed["output"] |= _has_usage(usage, output_fields)
+
+
 def session_token_counts(entry):
     """Extract one raw snapshot from collected state, without I/O or rounding.
 
@@ -43,17 +87,8 @@ def session_token_counts(entry):
     """
     if not isinstance(entry, dict):
         return None
-    records = entry.get("ids", {})
-    snapshot = entry.get("api_snapshot")
-    base = entry.get("base", {})
-    observed = (
-        isinstance(records, dict)
-        and any(_has_usage(rec, runtime_paths._BASE) for rec in records.values())
-        or _has_usage(snapshot, ("hit", "miss", "out"))
-        or isinstance(base, dict)
-        and any(_usage_int(value) > 0 for value in base.values())
-    )
-    if not observed:
+    observed = _token_observations(entry)
+    if not any(observed.values()):
         return None
     raw = entry.get("_raw_token_counts")
     if not isinstance(raw, dict) or set(raw) != {"hit", "miss", "out"}:
@@ -63,10 +98,14 @@ def session_token_counts(entry):
             return None
     except (TypeError, OverflowError):
         return None
-    return SessionTokenCounts(raw["hit"], raw["miss"], raw["out"])
+    return SessionTokenCounts(
+        raw["hit"] if observed["input"] else None,
+        raw["miss"] if observed["input"] else None,
+        raw["out"] if observed["output"] else None,
+    )
 
 
-def _parse_usage(lines):
+def _parse_usage(lines, observed=None):
     # Only top-level "assistant" lines carry message.usage. The same
     # message.id is re-written as several snapshot lines (in subagent
     # transcripts usage even grows: output 0 first, final value later), so
@@ -92,6 +131,12 @@ def _parse_usage(lines):
             ),
         ):
             continue  # snapshot without usage: a later one fills it in
+        _observe_usage(
+            observed,
+            usage,
+            ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"),
+            ("output_tokens",),
+        )
         rec = out.setdefault(mid, dict(runtime_paths._BASE))
         for key, field in (
             ("i", "input_tokens"),
@@ -113,10 +158,11 @@ def _usage_int(value):
     )
 
 
-def _parse_cost_snapshot(lines):
-    """Return the last valid cumulative cost-state token snapshot in a batch."""
+def _parse_cost_snapshot(lines, observed=None):
+    """Return each counter's last valid cost-state snapshot and live delta."""
     latest = None
-    latest_index = None
+    field_indices = {}
+    field_timestamps = {}
     last_timestamp = None
     for index, d in enumerate(lines):
         if isinstance(d, dict):
@@ -130,6 +176,7 @@ def _parse_cost_snapshot(lines):
             continue
         hit = miss = out = 0
         valid_models = 0
+        snapshot_observed = {"input": False, "output": False}
         for usage in model_usage.values():
             if not _has_usage(
                 usage,
@@ -141,30 +188,50 @@ def _parse_cost_snapshot(lines):
                 ),
             ):
                 continue
+            _observe_usage(
+                snapshot_observed,
+                usage,
+                ("inputTokens", "cacheCreationInputTokens", "cacheReadInputTokens"),
+                ("outputTokens",),
+            )
             valid_models += 1
             hit += _usage_int(usage.get("cacheReadInputTokens"))
             miss += _usage_int(usage.get("inputTokens"))
             miss += _usage_int(usage.get("cacheCreationInputTokens"))
             out += _usage_int(usage.get("outputTokens"))
         if valid_models:
-            fingerprint = hashlib.sha256(
-                f"{hit}:{miss}:{out}".encode("ascii")
-            ).hexdigest()
-            latest = {
-                "fingerprint": fingerprint,
-                "hit": hit,
-                "miss": miss,
-                "out": out,
-                "_snapshot_ts": last_timestamp,
-            }
-            latest_index = index
-    if latest is not None and latest_index is not None:
-        latest["_post_ids"] = _parse_usage(lines[latest_index + 1 :])
+            if observed is not None:
+                for key in snapshot_observed:
+                    observed[key] |= snapshot_observed[key]
+            totals = {}
+            if snapshot_observed["input"]:
+                totals.update(hit=hit, miss=miss)
+            if snapshot_observed["output"]:
+                totals["out"] = out
+            latest = dict(latest or {}, **totals)
+            for key in totals:
+                field_indices[key] = index
+                field_timestamps[key] = last_timestamp
+    if latest is not None:
+        latest["fingerprint"] = hashlib.sha256(
+            ":".join(str(latest.get(key)) for key in _TOKEN_USAGE_FIELDS).encode(
+                "ascii"
+            )
+        ).hexdigest()
+        latest["_snapshot_ts"] = field_timestamps
+        post_ids = latest["_post_ids"] = {}
+        for index in set(field_indices.values()):
+            keys = [
+                key
+                for key, field_index in field_indices.items()
+                if field_index == index
+            ]
+            _merge_usage_fields(post_ids, _parse_usage(lines[index + 1 :]), keys)
     return latest
 
 
 def _stage_cost_snapshot(entry, lines, force=False):
-    snapshot = _parse_cost_snapshot(lines)
+    snapshot = _parse_cost_snapshot(lines, entry.get("token_observed"))
     if not isinstance(snapshot, dict):
         return
     current = entry.get("api_snapshot")
@@ -179,18 +246,32 @@ def _stage_subagent_snapshot_delta(entry, lines):
     pending = entry.get("_pending_api_snapshot")
     if not isinstance(pending, dict):
         return
-    snapshot_ts = pending.get("_snapshot_ts")
-    if not isinstance(snapshot_ts, (int, float)):
+    snapshot_times = pending.get("_snapshot_ts")
+    if not isinstance(snapshot_times, dict):
         return
-    after_snapshot = []
+    post_ids = pending.setdefault("_post_ids", {})
     for record in lines:
         if not isinstance(record, dict) or record.get("type") != "assistant":
             continue
         timestamp = runtime_transcript._ts_to_epoch(record.get("timestamp"))
-        if timestamp is not None and timestamp > snapshot_ts:
-            after_snapshot.append(record)
-    post_ids = pending.setdefault("_post_ids", {})
-    _merge_ids(post_ids, _parse_usage(after_snapshot))
+        if timestamp is None:
+            continue
+        keys = [
+            key
+            for key, snapshot_ts in snapshot_times.items()
+            if isinstance(snapshot_ts, (int, float)) and timestamp > snapshot_ts
+        ]
+        if keys:
+            _merge_usage_fields(post_ids, _parse_usage([record]), keys)
+
+
+def _merge_usage_fields(ids, new_ids, keys):
+    """Merge each counter's delta after its own authoritative snapshot."""
+    for mid, new_record in new_ids.items():
+        record = ids.setdefault(mid, dict(runtime_paths._BASE))
+        for key in keys:
+            for field in _TOKEN_USAGE_FIELDS[key]:
+                record[field] = max(record[field], new_record[field])
 
 
 def _merge_ids(ids, new_ids):
@@ -231,7 +312,7 @@ def _update_file(entry, path, session_id=None, track_prompts=False, track_cost=F
         if not lines:
             return False
         entry["files"][path] = {"size": end, "mtime_ns": mtime}
-        _merge_ids(entry["ids"], _parse_usage(lines))
+        _merge_ids(entry["ids"], _parse_usage(lines, entry.get("token_observed")))
         if track_prompts:
             runtime_transcript._maybe_update_turn(
                 entry, lines, session_id, reset_context=True
@@ -249,7 +330,7 @@ def _update_file(entry, path, session_id=None, track_prompts=False, track_cost=F
         if not lines:
             return False
         f["size"], f["mtime_ns"] = end, mtime
-        _merge_ids(entry["ids"], _parse_usage(lines))
+        _merge_ids(entry["ids"], _parse_usage(lines, entry.get("token_observed")))
         if track_prompts:
             runtime_transcript._maybe_update_turn(
                 entry, lines, session_id, reset_context=True
@@ -264,7 +345,7 @@ def _update_file(entry, path, session_id=None, track_prompts=False, track_cost=F
         if not lines:
             return False  # only a partial tail: offset unchanged, retry later
         f["size"], f["mtime_ns"] = end, mtime
-        _merge_ids(entry["ids"], _parse_usage(lines))
+        _merge_ids(entry["ids"], _parse_usage(lines, entry.get("token_observed")))
         if track_prompts:
             runtime_transcript._maybe_update_turn(entry, lines, session_id)
         if track_cost:
@@ -304,6 +385,8 @@ def _display_usage_totals(entry, visible=None):
     return {
         key: _usage_int(snapshot.get(key))
         + max(0, _usage_int(visible.get(key)) - _usage_int(anchor.get(key)))
+        if _has_usage(snapshot, (key,))
+        else visible[key]
         for key in ("hit", "miss", "out")
     }
 
@@ -322,21 +405,23 @@ def _accept_pending_snapshot(entry, visible):
     candidate_display = {
         key: _usage_int(pending.get(key)) + post_visible[key]
         for key in ("hit", "miss", "out")
+        if _has_usage(pending, (key,))
     }
     current = entry.get("api_snapshot")
     first_snapshot = not isinstance(current, dict)
     if not first_snapshot:
         displayed = _display_usage_totals(entry, visible)
-        if any(
-            candidate_display[key] < displayed[key] for key in ("hit", "miss", "out")
-        ):
+        if any(candidate_display[key] < displayed[key] for key in candidate_display):
             return False
-    entry["api_snapshot"] = {
-        key: pending[key] for key in ("fingerprint", "hit", "miss", "out")
-    }
-    entry["api_visible_anchor"] = {
-        key: max(0, visible[key] - post_visible[key]) for key in ("hit", "miss", "out")
-    }
+    snapshot = dict(current) if isinstance(current, dict) else {}
+    snapshot["fingerprint"] = pending["fingerprint"]
+    anchor = entry.get("api_visible_anchor")
+    anchor = dict(anchor) if isinstance(anchor, dict) else {}
+    for key in candidate_display:
+        snapshot[key] = pending[key]
+        anchor[key] = max(0, visible[key] - post_visible[key])
+    entry["api_snapshot"] = snapshot
+    entry["api_visible_anchor"] = anchor
     return True
 
 
@@ -391,6 +476,12 @@ def session_token_totals(data):
             sid, {"files": {}, "ids": {}, "base": dict(runtime_paths._BASE)}
         )
         changed = dropped
+        if not isinstance(entry.get("token_observed"), dict):
+            # Old numeric records defaulted absent fields to zero. Recover
+            # actual zero observations once from available transcripts; retain
+            # positive cached totals if an old transcript is no longer present.
+            entry["token_observed"] = _token_observations(entry, positive_only=True)
+            changed = True
         usage_rescan = False
         if _update_file(
             entry, tpath, session_id=sid, track_prompts=True, track_cost=True
@@ -415,10 +506,12 @@ def session_token_totals(data):
             changed = True
 
         # Existing state entries already point at EOF. Scan only for the latest
-        # authoritative cost snapshot; assistant message IDs remain untouched.
+        # authoritative cost snapshot and field availability. IDs remain
+        # untouched so collapsed messages are not counted a second time.
         if entry.get("usage_scan_version") != runtime_paths.USAGE_SCAN_VERSION:
             lines, _end = runtime_transcript._read_transcript_chunk(tpath, 0)
             if lines:
+                _parse_usage(lines, entry["token_observed"])
                 _stage_cost_snapshot(entry, lines, force=True)
             entry["usage_scan_version"] = runtime_paths.USAGE_SCAN_VERSION
             usage_rescan = True
@@ -432,9 +525,10 @@ def session_token_totals(data):
         for sp in _collect_subagent_files(subs_root):
             if _update_file(entry, sp):
                 changed = True
-            if usage_rescan and isinstance(entry.get("_pending_api_snapshot"), dict):
+            if usage_rescan:
                 sub_lines, _sub_end = runtime_transcript._read_transcript_chunk(sp, 0)
                 if sub_lines:
+                    _parse_usage(sub_lines, entry["token_observed"])
                     _stage_subagent_snapshot_delta(entry, sub_lines)
         if _collapse_ids(entry):
             changed = True

@@ -156,6 +156,217 @@ class RawTokenCountsTests(unittest.TestCase):
         state = json.loads((self.root / "state.json").read_text(encoding="utf-8"))
         self.assertNotIn("_raw_token_counts", state["sessions"]["fixture"])
 
+    def test_partial_usage_does_not_fabricate_the_missing_counter_as_zero(self):
+        self.write(
+            [
+                {
+                    "type": "assistant",
+                    "message": {"id": "output-only", "usage": {"output_tokens": 9}},
+                }
+            ]
+        )
+        for _ in range(2):
+            self.assertEqual(
+                render(self.data, "input-tokens", "output-tokens"), "out 9"
+            )
+
+    def test_input_only_zero_does_not_imply_output_was_observed(self):
+        self.write(
+            [
+                {
+                    "type": "assistant",
+                    "message": {"id": "input-only", "usage": {"input_tokens": 0}},
+                }
+            ]
+        )
+        for _ in range(2):
+            self.assertEqual(render(self.data, "input-tokens", "output-tokens"), "in 0")
+
+    def test_partial_cost_snapshot_keeps_counter_availability_separate(self):
+        self.write(
+            [{"type": "cost-state", "modelUsage": {"model": {"outputTokens": 0}}}]
+        )
+        for _ in range(2):
+            self.assertEqual(
+                render(self.data, "input-tokens", "output-tokens"), "out 0"
+            )
+
+    def test_invalid_input_does_not_become_an_observed_zero(self):
+        for invalid in (None, True, -1, "8", float("nan"), float("inf"), []):
+            with self.subTest(invalid=invalid):
+                self.data["session_id"] = repr(invalid)
+                self.write(
+                    [
+                        {
+                            "type": "assistant",
+                            "message": {
+                                "id": "partial",
+                                "usage": {"input_tokens": invalid, "output_tokens": 0},
+                            },
+                        }
+                    ]
+                )
+                self.assertEqual(
+                    render(self.data, "input-tokens", "output-tokens"), "out 0"
+                )
+
+    def test_later_zero_observation_fills_only_the_missing_counter(self):
+        self.write(
+            [
+                {
+                    "type": "assistant",
+                    "message": {"id": "partial", "usage": {"output_tokens": 9}},
+                }
+            ]
+        )
+        self.assertEqual(render(self.data, "input-tokens", "output-tokens"), "out 9")
+        self.write(
+            [
+                {
+                    "type": "assistant",
+                    "message": {
+                        "id": "partial",
+                        "usage": {"cache_read_input_tokens": 0},
+                    },
+                }
+            ],
+            mode="a",
+        )
+        self.assertEqual(
+            render(self.data, "input-tokens", "output-tokens"), "in 0 · out 9"
+        )
+
+    def test_legacy_zero_observations_are_recovered_once_without_changing_totals(self):
+        self.write(
+            [
+                {
+                    "type": "assistant",
+                    "message": {"id": "main", "usage": {"input_tokens": 0}},
+                }
+            ]
+        )
+        agent = self.root / "session" / "subagents" / "agent-a.jsonl"
+        self.write(
+            [
+                {
+                    "type": "assistant",
+                    "message": {"id": "agent", "usage": {"output_tokens": 0}},
+                }
+            ],
+            path=agent,
+        )
+        self.counts()
+        state_path = self.root / "state.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        entry = state["sessions"]["fixture"]
+        entry.pop("token_observed")
+        entry["usage_scan_version"] = 2
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        self.assertEqual(
+            render(self.data, "input-tokens", "output-tokens"), "in 0 · out 0"
+        )
+        with mock.patch.object(
+            usage.runtime_transcript,
+            "_read_transcript_chunk",
+            side_effect=AssertionError("repeat scan"),
+        ):
+            self.assertEqual(
+                render(self.data, "input-tokens", "output-tokens"), "in 0 · out 0"
+            )
+        self.assertEqual(
+            json.loads(state_path.read_text())["sessions"]["fixture"]["ids"],
+            entry["ids"],
+        )
+
+    def test_observed_zero_survives_collapsing_ids_and_missing_transcripts(self):
+        self.write(
+            [
+                {
+                    "type": "assistant",
+                    "message": {"id": mid, "usage": {"output_tokens": 0}},
+                }
+                for mid in ("a", "b")
+            ]
+        )
+        with mock.patch.object(paths, "MAX_IDS_PER_SESSION", 1):
+            self.assertEqual(
+                render(self.data, "input-tokens", "output-tokens"), "out 0"
+            )
+        self.transcript.unlink()
+        self.assertEqual(render(self.data, "input-tokens", "output-tokens"), "out 0")
+
+    def test_partial_cost_snapshot_preserves_the_other_visible_counter(self):
+        self.write(
+            [
+                {
+                    "type": "assistant",
+                    "message": {"id": "input", "usage": {"input_tokens": 5}},
+                },
+                {"type": "cost-state", "modelUsage": {"model": {"outputTokens": 9}}},
+            ]
+        )
+        for _ in range(2):
+            self.assertEqual(
+                render(self.data, "input-tokens", "output-tokens"), "in 5 · out 9"
+            )
+
+    def test_partial_cost_snapshot_preserves_the_other_authoritative_counter(self):
+        self.write(
+            [{"type": "cost-state", "modelUsage": {"model": {"outputTokens": 9}}}]
+        )
+        self.assertEqual(render(self.data, "input-tokens", "output-tokens"), "out 9")
+        self.write(
+            [{"type": "cost-state", "modelUsage": {"model": {"inputTokens": 5}}}],
+            mode="a",
+        )
+        for _ in range(2):
+            self.assertEqual(
+                render(self.data, "input-tokens", "output-tokens"), "in 5 · out 9"
+            )
+
+    def test_partial_snapshots_in_one_batch_keep_each_counters_live_delta(self):
+        self.write(
+            [
+                {
+                    "type": "cost-state",
+                    "modelUsage": {"model": {"inputTokens": 10, "outputTokens": 20}},
+                },
+                assistant("between", i=2, out=3),
+                {"type": "cost-state", "modelUsage": {"model": {"inputTokens": 12}}},
+                assistant("after", i=1, out=4),
+            ]
+        )
+        for _ in range(2):
+            self.assertEqual((self.counts().input_tokens, self.counts().out), (13, 27))
+
+    def test_partial_snapshots_attribute_subagent_deltas_per_counter(self):
+        self.write(
+            [
+                {
+                    "type": "cost-state",
+                    "timestamp": "2026-10-04T10:00:01Z",
+                    "modelUsage": {"model": {"outputTokens": 20}},
+                },
+                {
+                    "type": "cost-state",
+                    "timestamp": "2026-10-04T10:00:03Z",
+                    "modelUsage": {"model": {"inputTokens": 10}},
+                },
+            ]
+        )
+        agent = self.root / "session" / "subagents" / "agent-a.jsonl"
+        self.write(
+            [
+                dict(
+                    assistant("between", i=2, out=3), timestamp="2026-10-04T10:00:02Z"
+                ),
+                dict(assistant("after", i=1, out=4), timestamp="2026-10-04T10:00:04Z"),
+            ],
+            path=agent,
+        )
+        for _ in range(2):
+            self.assertEqual((self.counts().input_tokens, self.counts().out), (11, 27))
+
 
 if __name__ == "__main__":
     unittest.main()
