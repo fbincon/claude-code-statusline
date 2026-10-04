@@ -5,7 +5,8 @@ from __future__ import annotations
 import math
 import time
 
-from claude_statusline.rendering import formatters
+from claude_statusline.rendering import formatters, preferences
+from claude_statusline.config.formatting import Formatting
 
 
 def finite_number(value: object) -> float | None:
@@ -24,14 +25,16 @@ def token_count(value: object) -> int | None:
     return value
 
 
-def token_ratio(used: object, capacity: object) -> str | None:
+def token_ratio(used: object, capacity: object, fmt=Formatting()) -> str | None:
     count, window = token_count(used), token_count(capacity)
     if count is None or window is None or window == 0:
         return None
-    return f"Context {formatters.humanize_tokens(count)} / {formatters.humanize_tokens(window)}"
+    return (
+        f"Context {preferences.number(count, fmt)} / {preferences.number(window, fmt)}"
+    )
 
 
-def context_tokens(context: object) -> str | None:
+def context_tokens(context: object, fmt=Formatting()) -> str | None:
     if not isinstance(context, dict):
         return None
     if "current_usage" in context:
@@ -51,7 +54,7 @@ def context_tokens(context: object) -> str | None:
         count = sum(parts)
     else:
         count = token_count(context.get("total_input_tokens"))
-    return token_ratio(count, context.get("context_window_size"))
+    return token_ratio(count, context.get("context_window_size"), fmt)
 
 
 def model_name(data: dict) -> str | None:
@@ -95,14 +98,14 @@ def countdown(expires_at: object, now: float) -> str | None:
     return f"{seconds}s"
 
 
-def session_metric(cost: object, item: str) -> str | None:
+def session_metric(cost: object, item: str, fmt=Formatting()) -> str | None:
     if not isinstance(cost, dict):
         return None
     if item == "lines-changed":
         added = token_count(cost.get("total_lines_added"))
         removed = token_count(cost.get("total_lines_removed"))
         return (
-            f"+{added}/-{removed}"
+            f"+{preferences.number(added, fmt, str)}/-{preferences.number(removed, fmt, str)}"
             if added is not None and removed is not None
             else None
         )
@@ -115,12 +118,12 @@ def session_metric(cost: object, item: str) -> str | None:
     if number is None:
         return None
     if item == "session-cost":
-        return f"Cost ${number:.2f}"
+        return f"Cost ${preferences.money(number, fmt)}"
     label = "Session" if item == "session-duration" else "API"
     return f"{label} {formatters.format_duration(number / 1000)}"
 
 
-def cache_metric(cache: object, item: str, now: float) -> str | None:
+def cache_metric(cache: object, item: str, now: float, fmt=Formatting()) -> str | None:
     if not isinstance(cache, dict):
         return None
     if item in ("cache-misses", "api-requests"):
@@ -130,7 +133,11 @@ def cache_metric(cache: object, item: str, now: float) -> str | None:
             else ("requests", "API requests")
         )
         count = token_count(cache.get(field))
-        return f"{label} {count}" if count is not None else None
+        return (
+            f"{label} {preferences.number(count, fmt, str)}"
+            if count is not None
+            else None
+        )
     if cache.get("caching_observed") is False:
         return "Cache unobserved" if item == "cache-state" else None
     warm = cache.get("warm")
@@ -147,7 +154,7 @@ def cache_metric(cache: object, item: str, now: float) -> str | None:
     return f"Cache TTL {remaining}" if remaining else None
 
 
-def spend_metric(window: object, item: str) -> str | None:
+def spend_metric(window: object, item: str, fmt=Formatting()) -> str | None:
     if not isinstance(window, dict):
         return None
     if item == "spend-period":
@@ -160,7 +167,7 @@ def spend_metric(window: object, item: str) -> str | None:
     used = finite_number(window.get("used_usd"))
     limit = finite_number(window.get("limit_usd"))
     return (
-        f"Spend ${used:.2f} / ${limit:.2f}"
+        f"Spend ${preferences.money(used, fmt)} / ${preferences.money(limit, fmt)}"
         if used is not None and limit is not None
         else None
     )

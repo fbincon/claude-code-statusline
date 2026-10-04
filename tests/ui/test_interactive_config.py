@@ -338,6 +338,7 @@ class SaveAndRunTests(unittest.TestCase):
             subagent_items=list(config_display.DEFAULT_SUBAGENT_ITEMS),
             subagent_statusline="on",
             scope_labels="when-subagents",
+            display_draft=state.display.with_updates(items=state.final_items(), subagents=state.display.subagents.with_updates(items=state.final_subagent_items())),
             expected=state.baseline,
             before_commit=None,
         )

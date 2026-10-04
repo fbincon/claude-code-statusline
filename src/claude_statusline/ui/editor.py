@@ -547,6 +547,10 @@ def save_configuration(
         subagent_items=list(state.final_subagent_items()),
         subagent_statusline=("on" if state.display.subagents.enabled else "off"),
         scope_labels=state.display.scope_labels,
+        display_draft=state.display.with_updates(
+            items=state.final_items(),
+            subagents=state.display.subagents.with_updates(items=state.final_subagent_items()),
+        ),
         expected=state.baseline,
         before_commit=before_commit,
     )

@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
 from claude_statusline.rendering import formatters as rendering_formatters
-from claude_statusline.rendering import metrics
+from claude_statusline.rendering import metrics, preferences
 
 
 DEFAULT_COLUMNS = 80
@@ -268,11 +268,43 @@ def _parts_for_task(
         "tokens": (_token_text(task), palette.tokens),
         "current-dir": (_directory_text(task, config), palette.directory),
     }
-    return [
-        _Part(item, values[item][0], values[item][1])
-        for item in config.subagents.items
-        if values[item][0]
-    ]
+    result = []
+    for item in config.subagents.items:
+        text, style = values[item]
+        fmt, options = preferences.options_for(config, item, "subagent")
+        if item in ("model", "model-with-effort"):
+            model = preferences.model_name(_model(task), fmt)
+            effort = metrics.effort_text(task.get("effort"))
+            text = (
+                f"{model}/{effort}"
+                if item == "model-with-effort" and model and effort
+                else model
+            )
+        elif item == "tokens" and fmt.number_format != "legacy":
+            count = metrics.token_count(task.get("tokenCount"))
+            text = preferences.number(count, fmt)
+        elif item == "context-tokens":
+            text = metrics.token_ratio(
+                task.get("tokenCount"), task.get("contextWindowSize"), fmt
+            )
+        elif item == "context-window-size" and fmt.number_format != "legacy":
+            value = preferences.number(task.get("contextWindowSize"), fmt)
+            text = f"{value} window" if value else None
+        if not text:
+            continue
+        text = preferences.decorate(text, item, "subagent", fmt, options)
+        if item in ("context-used", "context-remaining"):
+            count, capacity = (
+                metrics.token_count(task.get("tokenCount")),
+                metrics.token_count(task.get("contextWindowSize")),
+            )
+            risk = count / capacity * 100 if count is not None and capacity else None
+            styled = preferences.threshold(
+                style + text, risk, fmt, config, palette.context
+            )
+            style = styled[: -len(text)] if text else style
+        result.append(_Part(item, text, style))
+    return result
 
 
 def _plain_line(parts: list[_Part]) -> str:

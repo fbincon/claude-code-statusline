@@ -1154,7 +1154,7 @@ The default configuration is equivalent to:
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "items": [
     "model-with-effort",
     "current-dir",
@@ -1180,7 +1180,31 @@ The default configuration is equivalent to:
       "model-with-effort",
       "context-remaining",
       "task"
-    ]
+    ],
+    "item_options": {},
+    "visibility": "all",
+    "hide_completed": false,
+    "row_limit": null,
+    "task_max_width": null
+  },
+  "formatting": {
+    "model_name": "original",
+    "number_format": "legacy",
+    "labels": "legacy",
+    "icons": "legacy",
+    "allowance": "remaining",
+    "reset_format": "countdown",
+    "reset_timezone": "local",
+    "thresholds": {
+      "enabled": false,
+      "warning": 70,
+      "critical": 90
+    }
+  },
+  "item_options": {},
+  "layout": {
+    "mode": "auto",
+    "rows": []
   }
 }
 ```
@@ -1894,3 +1918,17 @@ Stable v1.4.0 integrates both editors by default on compatible hosts. See [nativ
 - [Claude Code:Customize your status line](https://code.claude.com/docs/en/statusline)
 - [Claude Code:Hooks reference](https://code.claude.com/docs/en/hooks)
 - [Claude Code:Automate workflows with hooks](https://code.claude.com/docs/en/hooks-guide)
+
+## Phase 4 formatting (in development)
+
+Existing appearance remains the default. The development schema is v3 and JSON protocol is v2; stable v1.4.0 retains v2/v1. Reading v1/v2 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v3.
+
+`model-name`: original/short; `number-format`: legacy/compact/full/grouped; `labels`: legacy/short/off; `icons`: legacy/unicode/ascii/off; `allowance`: remaining/used; `reset-format`: countdown/time/datetime; `reset-timezone`: local/UTC; `threshold-colors`: on/off.
+
+Warning defaults to 70, critical to 90; thresholds default off. Set warning-threshold and critical-threshold with warning below critical.
+
+```bash
+claude-statusline config set model-name short
+claude-statusline config set number-format grouped
+claude-statusline config set threshold-colors on
+```

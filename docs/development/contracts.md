@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v1 is the internal interface for the bundled/source native frontend. Display persistence stays at schema v2, including existing v1 reads; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; v1.2.0 and its preview wheel bundle the matching Mod.
+Protocol v2 is the internal interface for the bundled/source native frontend. Display persistence uses schema v3, including in-memory v1/v2 migration; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; v1.2.0 and its preview wheel bundle the matching Mod.
 
 ## Catalog
 
@@ -15,10 +15,10 @@ Minimum versions are verified only where evidence exists. The 2.1.205 subagent m
 Run `claude-statusline ui --config-dir PATH` (Windows: `claude-statusline.exe`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":1,"operation":"read","payload":{}}
+{"protocol_version":2,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":1,"result":{...}}`; failure is `{"protocol_version":1,"error":{"code":"...","message":"..."}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":2,"result":{...}}`; failure is `{"protocol_version":2,"error":{"code":"...","message":"..."}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ Success is `{"protocol_version":1,"result":{...}}`; failure is `{"protocol_versi
 | `preview` | `{"draft": {...}, "width": 80}` | `sample: true`, `main` and `subagents` rows of drawable spans |
 | `apply` | `{"draft": {...}, "expected_revision": "<read revision>"}` | Saved read snapshot, `changed`, and `backup_dir` (a path or `null`) |
 
-`draft` has exactly `display` (the effective v2 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading an existing display v1 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete v2 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
+`draft` has exactly `display` (the effective v3 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading an existing display v1 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete v3 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
 
 `read` acquires the existing installation lock for a coherent snapshot and may create its runtime lock directory. `describe` does not create configuration files. `preview` never reads settings, detects the host, collects Git/transcripts or writes caches/locks; it uses production formatting/layout and fixed samples. Missing observations are not zero. Each span has `text`, `bold`, and `foreground` (`null`, `{"kind":"rgb","value":"#rrggbb"}` or `{"kind":"ansi","value":0..15}`). There are no raw ANSI escapes. Both main and subagent rows are returned; an empty selection/disabled subagent display stays empty.
 
@@ -41,7 +41,7 @@ Apply validates the full draft and a 64-character lowercase hexadecimal revision
 
 An explicitly configured absolute renderer path must match the selected backend. Canonical PATH commands remain compatible with Windows and older installations; the resolved command identity participates in the revision. JSON invocation through a bound console-script path uses that entry's identity even if PATH contains another installation. A foreign main or subagent renderer is refused, including a same-named executable in another directory or a non-command setting. An absent subagent renderer is permitted. Apply edits display selections and the owned main renderer's host options; it does not install a renderer or take over a foreign one.
 
-Unrelated settings are merged from the latest locked snapshot. A write failure restores both original files and reports any rollback failure. The first save may create a missing display file or migrate v1 to v2; repeating the returned draft/revision makes no writes or backup when the persisted configuration is already identical. `backup_dir` is present only when the transaction changes files. No model call is needed.
+Unrelated settings are merged from the latest locked snapshot. A write failure restores both original files and reports any rollback failure. The first save may create a missing display file or migrate v1/v2 to v3; repeating the returned draft/revision makes no writes or backup when the persisted configuration is already identical. `backup_dir` is present only when the transaction changes files. No model call is needed.
 
 | Error code | Meaning and recovery |
 | --- | --- |
@@ -63,3 +63,7 @@ See [architecture](architecture.md), [native validation](native.md), and [testin
 
 
 v1.3.0 retains JSON protocol v1 and the display schema. External curses and Client save their opening revisions. The internal Mod/Client port uses epochs, increasing sequences, cumulative pending keys and acknowledgements: coalesced frames retain earlier keys and saves execute in order. Snapshots are deep copies; generation numbers reject stale props. This port is not a new CLI/public API.
+
+## Structured formatting
+
+Protocol v2 returns complete schema-v3 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v3 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.

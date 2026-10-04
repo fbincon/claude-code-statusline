@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 from claude_statusline._version import __version__
-from claude_statusline.config import catalog, display, host, models, service
+from claude_statusline.config import catalog, display, host, models, service, formatting
 from claude_statusline.integration import capabilities, models as integration_models
 from claude_statusline.ui import contracts
 
@@ -38,7 +38,7 @@ def validate_draft(value, *, require_current_schema=False):
         ):
             raise RequestError(
                 "invalid_configuration",
-                "apply requires the complete schema v2 draft returned by read",
+                "apply requires the complete schema v3 draft returned by read",
             )
         raw = _object(
             value["host"],
@@ -127,7 +127,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
         or request["protocol_version"] != contracts.PROTOCOL_VERSION
     ):
         raise RequestError(
-            "unsupported_protocol", "Only protocol_version 1 is supported"
+            "unsupported_protocol", "Only protocol_version 2 is supported; reinstall matching frontend/backend resources"
         )
     operation = request["operation"]
     if not isinstance(operation, str) or operation not in contracts.OPERATIONS:
@@ -144,6 +144,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
             "capabilities": host_capabilities(),
             "backend_version": __version__,
             "operations": list(contracts.OPERATIONS),
+            "formatting_options": {k: list(v) for k, v in formatting.FORMAT_CHOICES.items()},
         }
     if operation == "read":
         return read_result(service.read_effective_config(config_dir, executable))
@@ -176,6 +177,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
             refresh_interval=parsed_host.to_dict()["refresh_interval"],
             hide_vim_mode_indicator=parsed_host.hide_vim_mode_indicator,
             expected_revision=revision,
+            display_draft=parsed,
         )
         return {
             **read_result(mutation.effective),

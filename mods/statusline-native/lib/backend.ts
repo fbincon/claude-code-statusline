@@ -7,6 +7,7 @@ import {
   DIRECTORYSTYLE_VALUES,
   SEPARATORSTYLE_VALUES,
   SCOPELABELS_VALUES,
+  FORMAT_CHOICES,
 } from './generated-contracts.ts';
 import type {
   Capabilities,
@@ -79,6 +80,37 @@ function selection(value: unknown, ids: readonly string[]): value is string[] {
   );
 }
 
+function range(value: unknown, min: number, max: number, nullable = false): boolean {
+  return (nullable && value === null) ||
+    (typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max);
+}
+
+function formatOverrides(value: unknown): boolean {
+  if (!object(value)) return false;
+  return Object.entries(value).every(([key, v]) =>
+    key in FORMAT_CHOICES && typeof v === 'string' &&
+    (FORMAT_CHOICES[key as keyof typeof FORMAT_CHOICES] as readonly string[]).includes(v));
+}
+
+function itemOptions(value: unknown, ids: readonly string[]): boolean {
+  if (!object(value)) return false;
+  return Object.entries(value).every(([id, option]) => ids.includes(id) && object(option) &&
+    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting']) &&
+    (option.label === null || (text(option.label) && option.label.length <= 256)) &&
+    (option.icon === null || (text(option.icon) && option.icon.length <= 256)) &&
+    range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
+    formatOverrides(option.formatting));
+}
+
+function formatting(value: unknown): boolean {
+  if (!object(value) || !exact(value, [...Object.keys(FORMAT_CHOICES), 'thresholds'])) return false;
+  const { thresholds, ...choices } = value;
+  return formatOverrides(choices) && object(thresholds) &&
+    exact(thresholds, ['enabled', 'warning', 'critical']) &&
+    typeof thresholds.enabled === 'boolean' && range(thresholds.warning, 0, 100) &&
+    range(thresholds.critical, 0, 100) && Number(thresholds.warning) < Number(thresholds.critical);
+}
+
 export function isDraft(value: unknown): value is Draft {
   if (
     !object(value) ||
@@ -99,12 +131,14 @@ export function isDraft(value: unknown): value is Draft {
       'separator_style',
       'scope_labels',
       'subagents',
+      'formatting', 'item_options', 'layout',
     ]) ||
     !exact(h, ['padding', 'refresh_interval', 'hide_vim_mode_indicator'])
   )
     return false;
   if (
-    d.schema_version !== 2 ||
+    d.schema_version !== 3 ||
+    !formatting(d.formatting) || !itemOptions(d.item_options, MAIN_ITEM_IDS) ||
     typeof d.use_colors !== 'boolean' ||
     !selection(d.items, MAIN_ITEM_IDS) ||
     !PALETTE_VALUES.some((x) => x === d.palette) ||
@@ -116,11 +150,21 @@ export function isDraft(value: unknown): value is Draft {
   const sub = d.subagents;
   if (
     !object(sub) ||
-    !exact(sub, ['enabled', 'items']) ||
+    !exact(sub, ['enabled', 'items', 'item_options', 'visibility', 'hide_completed', 'row_limit', 'task_max_width']) ||
+    !itemOptions(sub.item_options, SUBAGENT_ITEM_IDS) ||
+    !['all', 'running'].includes(String(sub.visibility)) ||
+    typeof sub.hide_completed !== 'boolean' || !range(sub.row_limit, 0, 10000, true) ||
+    !range(sub.task_max_width, 2, 10000, true) ||
     typeof sub.enabled !== 'boolean' ||
     !selection(sub.items, SUBAGENT_ITEM_IDS)
   )
     return false;
+  const layout = d.layout;
+  if (!object(layout) || !exact(layout, ['mode', 'rows']) ||
+      !['auto', 'explicit'].includes(String(layout.mode)) || !Array.isArray(layout.rows) ||
+      !layout.rows.every((r) => selection(r, MAIN_ITEM_IDS) && r.length > 0) ||
+      (layout.mode === 'auto' ? layout.rows.length !== 0 :
+        JSON.stringify(layout.rows.flat()) !== JSON.stringify(d.items))) return false;
   // Exclusions come from describe; Python remains the final draft validator.
   return (
     typeof h.padding === 'number' &&
@@ -373,6 +417,8 @@ export function parseResponse<O extends Operation>(
       !isCapabilities(result.capabilities) ||
       !selection(result.operations, ['describe', 'read', 'preview', 'apply']) ||
       result.operations.length !== 4 ||
+      !object(result.formatting_options) ||
+      JSON.stringify(result.formatting_options) !== JSON.stringify(FORMAT_CHOICES) ||
       !isCatalog(result.catalog)
     )
       fail();
