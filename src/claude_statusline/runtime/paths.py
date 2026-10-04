@@ -34,7 +34,7 @@ _BASE = {"i": 0, "o": 0, "cc": 0, "cr": 0}
 TURN_SCAN_VERSION = 5
 
 
-USAGE_SCAN_VERSION = 2
+USAGE_SCAN_VERSION = 3
 
 
 GIT_CACHE_VERSION = 2

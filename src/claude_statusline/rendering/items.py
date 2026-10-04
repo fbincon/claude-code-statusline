@@ -384,8 +384,11 @@ class _RenderState:
 
     def output_tokens(self):
         counts = self.raw_totals()
+        value = counts.out if counts is not None else None
+        if metrics.token_count(value) is None:
+            return None
         return self.styled(
-            f"out {humanize_api_tokens(counts.out)}" if counts is not None else None,
+            f"out {humanize_api_tokens(value)}",
             self.palette.tokens,
             "usage",
         )
