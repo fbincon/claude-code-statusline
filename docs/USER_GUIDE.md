@@ -51,7 +51,7 @@ This guide uses TUI for the terminal user interface and effort for model reasoni
 
 ## Feature overview
 
-- Choose which status items to show: 10 defaults and 14 optional items, including project name, hostname, context usage, version, session, cost, prompt-cache, modes, and PR/worktree information.
+- Choose which status items to show: 10 defaults and 38 optional main items, including project name, hostname, context usage, version, session, cost, prompt-cache, modes, and PR/worktree information.
 - Render items in the order specified by the configuration file.
 - Use 24-bit RGB colors, terminal ANSI colors, or no colors.
 - Show full paths, `~` paths, project-relative paths, or directory basenames.
