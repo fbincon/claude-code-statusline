@@ -148,6 +148,11 @@ _LIVE_ITEMS = {
     "active-agents",
     "task-progress",
     "last-tool",
+    "ttft",
+    "output-rate",
+    "prompt-input-tokens",
+    "prompt-output-tokens",
+    "prompt-cost",
 }
 
 

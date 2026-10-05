@@ -143,3 +143,7 @@ Run `python tools/generate_runtime_contracts.py --check`, `python -m unittest te
 ## Phase 5 metric migration
 
 Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration protocol v3 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol remains independently v1. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+
+## Real Phase 5 acceptance
+
+Use `tools/live_metrics_acceptance.py --root dist/validation/phase5/CASE --case single|single-agent|parallel --budget-ledger dist/validation/phase5/budget.json --run-real-calls`. The existing ledger must authorize exactly USD 10 and all attempts/retries share its locked reservations. Unknown cost retains the full cap. Omitting --run-real-calls revalidates captured records without model calls. Do not create a new ledger to reset spending. The harness isolates config, limits tools to Agent and sleep, checks real request sums/latest timing, main wrap-up and repeated frozen agent rendering, and leaves exporters unchanged. Headless checks do not establish human or Windows/macOS session interaction acceptance.

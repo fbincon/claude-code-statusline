@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The current source catalog contains 54 main and 14 subagent items. The independent
+The current source catalog contains 59 main and 14 subagent items. The independent
 items below are opt-in. Existing defaults and compound IDs remain available,
 and compounds may be selected alongside their individual components in any order.
 See the [user guide](USER_GUIDE.md) for the original items and all configuration entry points.
@@ -41,6 +41,11 @@ See the [user guide](USER_GUIDE.md) for the original items and all configuration
 | `task-progress` | `Tasks 3/5` | Completed/total entries from successful structured Task/Todo operations; complete snapshots win. This is not elapsed-task percentage. Partial coverage is marked `*`. |
 | `last-tool` | `Tool Read success` | Most recently started main-thread tool and its observed success, error, denial or interruption. |
 | `branch-diff` | `Diff 3 files +42/-7` | Committed files/additions/deletions from `merge-base(base, HEAD)` to HEAD; binary files only increment files. Auto base: origin/HEAD, local main, then master. No fetch; 2-second total timeout and cache by repository/HEAD/base commit. |
+| `ttft` | `TTFT(host) 0.420s` | Latest main request: host observation from entry into turn.step to the first real text/thinking/tool block. Missing or synthetic streams and invalid clocks remain unavailable. |
+| `output-rate` | `Rate 36.5 tok/s` | Official output tokens / complete observed latest main request duration, including first-content wait. This is not a generation-only rate. |
+| `prompt-input-tokens` | `Prompt in 48K*` | Raw uncached input + cache creation + cache read from deduplicated requests owned by the human task, including verified nested agents and main wrap-up. |
+| `prompt-output-tokens` | `Prompt out 2K*` | Deduplicated official output tokens of that same task. Turn totals are reconciliation evidence, not additional requests. |
+| `prompt-cost` | `Prompt cost $0.0123*` | Attributed official api_request estimates only. Exporters are never enabled or redirected. Missing cost is unavailable; an unjoined official subtotal is marked partial. |
 
 ## Subagent items
 
@@ -111,3 +116,9 @@ The five Phase 5 items default unselected. Collection uses the independent `inst
 Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1/v2/v3 normalize in memory; actual saves back up and migrate to v4, with configuration protocol v3. Restore an older configuration backup before a package downgrade.
 
 Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Prompt-timer priorities remain unchanged.
+
+## Request coverage and SDK fallback
+
+All request items default unselected. Missing observations render `—`; exact zero remains visible and incomplete task coverage adds `*`. A native ref-bearing content block supplies TTFT. Successful requests require official stop usage; synthesized chunks without engine references cannot supply counters. Running totals are partial until completion, sequence coverage and each turn reconciliation agree.
+
+Claude Code 2.1.289 headless paths may omit prompt identity events. Only one completed existing lifecycle interval containing a main turn start can bind it; overlapping or unfinished windows remain unowned. Spawn identities then resolve nested loops, without writing timer state or matching prompt text. SDK live state may stay unavailable until this evidence arrives. Without existing collector telemetry, prompt-cost remains unavailable; no model-price or session-cost delta fallback is used.

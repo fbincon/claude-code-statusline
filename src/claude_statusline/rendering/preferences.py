@@ -56,7 +56,7 @@ def reset_time(expires, now, fmt, countdown):
 
 
 PREFIX = re.compile(
-    r"^(?:Diff|State|Mode|Agents|Tasks|Tool|Cache TTL|Cache miss|API requests|Context|Project|Host|Git|Session|ID|Style|Cost|Total|Cache|Spend|API|5h|weekly|spend) "
+    r"^(?:TTFT\(host\)|Rate|Prompt in|Prompt out|Prompt cost|Diff|State|Mode|Agents|Tasks|Tool|Cache TTL|Cache miss|API requests|Context|Project|Host|Git|Session|ID|Style|Cost|Total|Cache|Spend|API|5h|weekly|spend) "
 )
 SYMBOLS = "✓⏱✗■…⏳⚡"
 ICONS = {

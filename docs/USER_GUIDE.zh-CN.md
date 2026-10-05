@@ -45,7 +45,7 @@
 
 ## 功能概览
 
-- 按用户选择显示或隐藏状态项：主栏默认 10 项，另有 38 个可选条目（项目名、本机名、上下文用量、版本、会话、cost、prompt-cache、运行模式、PR/worktree 等）。
+- 按用户选择显示或隐藏状态项：主栏默认 10 项，另有 49 个可选条目（项目名、本机名、上下文用量、版本、会话、cost、prompt-cache、运行模式、PR/worktree 等）。
 - 按配置文件中的顺序渲染状态项。
 - 支持 24 位 RGB 配色、终端 ANSI 配色或完全关闭颜色。
 - 支持完整路径、`~` 路径、项目相对路径和目录 basename。
@@ -1077,7 +1077,7 @@ claude-statusline config set refresh-interval event
 
 ```json
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "items": [
     "model-with-effort",
     "current-dir",
@@ -1128,6 +1128,9 @@ claude-statusline config set refresh-interval event
   "layout": {
     "mode": "auto",
     "rows": []
+  },
+  "metrics": {
+    "branch_diff_base_ref": null
   }
 }
 ```
@@ -1138,7 +1141,7 @@ claude-statusline config set refresh-interval event
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](#备份与回滚)及[配置写入与并发](#配置写入与并发)。
 
-当前显示配置使用 schema v3；历史 v1/v2 可读取，首次实际配置保存时备份并写为 v3。版本转换与降级恢复见[版本兼容](#版本兼容)。
+当前源码显示配置使用 schema v4；历史 v1/v2/v3 可读取，首次实际配置保存时备份并写为 v4。版本转换与降级恢复见[版本兼容](#版本兼容)。
 
 如果显示配置损坏：
 
@@ -1274,9 +1277,9 @@ claude-statusline.exe config show
 
 ### 版本兼容
 
-正式 v1.5.0 和预览 v1.5.0a1 均使用显示 schema v3／JSON 协议 v2，从 a1 升级不迁移显示配置；历史 v1.4.0 使用显示 v2／协议 v1。编辑器启用偏好、运行状态与生命周期格式各自独立。历史显示 v1/v2 适用以下规则：
+正式 v1.5.0 和预览 v1.5.0a1 均使用显示 schema v3／JSON 协议 v2，从 a1 升级不迁移显示配置；历史 v1.4.0 使用显示 v2／协议 v1。编辑器启用偏好、运行状态与生命周期格式各自独立。当前 Phase 5 源码使用显示 v4／配置协议 v3，历史显示 v1/v2/v3 适用以下规则：
 
-读取 v1/v2 时保留原有条目、顺序与外观，只在内存补齐默认值。`render`、`render-subagents`、`doctor`、`install` 不重写显示文件。真实保存备份原字节并写入严格的 schema v3；未知／缺失字段、重复条目、错误类型及高于 v3 的版本均拒绝。降级前关闭两种编辑器，用新版执行 `install --no-native-editor`，按备份 `metadata.json` 将迁移前的 `.before` 恢复为显示文件，再安装旧包并运行 `install`／`doctor`。旧包不能编辑 v3；未来仍要使用 Phase 4 时，可另存可移植导出文件。
+读取 v1/v2/v3 时保留原有条目、顺序与外观，只在内存补齐默认值。`render`、`render-subagents`、`doctor`、`install` 不重写显示文件。真实保存备份原字节并写入严格的 schema v4；未知／缺失字段、重复条目、错误类型及高于 v4 的版本均拒绝。降级前关闭两种编辑器，用新版执行 `install --no-native-editor`，按备份 `metadata.json` 将迁移前的 `.before` 恢复为显示文件，再安装旧包并运行 `install`／`doctor`。旧包不能编辑 v4；未来仍要使用 Phase 4 时，可另存可移植导出文件。
 
 Claude Code 的功能门槛独立于本工具版本：
 

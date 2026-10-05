@@ -44,6 +44,25 @@ class ItemDefinition:
 
 
 def _main(item, label, description, group, sources, example, position=None, **kwargs):
+    if group == "requests":
+        kwargs.setdefault(
+            "unavailable_reasons",
+            (
+                "not_observed",
+                "unsupported_host",
+                "unknown_host_version",
+                "source_unavailable",
+                "runtime_disabled",
+                "stale",
+                "incomplete",
+                "ambiguous_owner",
+                "missing_stream",
+                "synthetic_response",
+                "abnormal_clock",
+                "inconsistent_request",
+                "request_join_unavailable",
+            ),
+        )
     return ItemDefinition(
         "main",
         item,
@@ -612,6 +631,51 @@ ITEMS = (
             "ambiguous_owner",
             "observed_only",
         ),
+    ),
+    _main(
+        "ttft",
+        "Host-observed TTFT",
+        "Latest main request: turn.step entry to first real text/thinking/tool content, in seconds",
+        "requests",
+        ("native.turn.step",),
+        "TTFT(host) 0.420s",
+        minimum_version="2.1.289",
+    ),
+    _main(
+        "output-rate",
+        "Observed output rate",
+        "Official output tokens divided by the complete observed latest main request duration, including first-content wait",
+        "requests",
+        ("native.turn.step",),
+        "Rate 36.5 tok/s",
+        minimum_version="2.1.289",
+    ),
+    _main(
+        "prompt-input-tokens",
+        "Task input tokens",
+        "Cache-inclusive official request input of the human task, including verified agents and main wrap-up; partial coverage marked",
+        "requests",
+        ("native.requests",),
+        "Prompt in 48K*",
+        minimum_version="2.1.289",
+    ),
+    _main(
+        "prompt-output-tokens",
+        "Task output tokens",
+        "Official request output of the human task, including verified agents and main wrap-up; partial coverage marked",
+        "requests",
+        ("native.requests",),
+        "Prompt out 2K*",
+        minimum_version="2.1.289",
+    ),
+    _main(
+        "prompt-cost",
+        "Task estimated cost",
+        "Official attributed api_request estimates only; no local price estimation or telemetry exporter changes",
+        "requests",
+        ("otel.api_request",),
+        "Prompt cost $0.0123*",
+        minimum_version="2.1.289",
     ),
     _agent(
         "status-elapsed",

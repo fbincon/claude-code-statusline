@@ -145,3 +145,7 @@ Linux x86_64／Python 3.14.4、隔离的热字节码各 50 次采样：基线 `0
 ## Phase 5 指标迁移
 
 显示 schema v4 新增可空 `metrics.branch_diff_base_ref`；配置协议 v3 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议仍为 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+
+## Phase 5 真实验收
+
+使用 `tools/live_metrics_acceptance.py --root dist/validation/phase5/CASE --case single|single-agent|parallel --budget-ledger dist/validation/phase5/budget.json --run-real-calls`。既有 ledger 必须明确授权 10 美元，全部尝试和重试共享加锁预留；费用未知保留整次额度。省略 --run-real-calls 可免费重验记录；不得新建账本重置支出。工具隔离配置，仅允许 Agent 与 sleep，验证真实请求汇总、最新请求时长、主线程收尾和多次冻结代理渲染，保持遥测导出设置。Headless 检查不代表人工或 Windows/macOS 会话交互验收。

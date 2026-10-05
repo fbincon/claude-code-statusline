@@ -2,6 +2,7 @@
 
 from claude_statusline.runtime.live import model
 from claude_statusline.runtime.live import ownership
+from claude_statusline.runtime.live import requests
 
 
 def _trim(values, maximum, stamp="updated_at_ms"):
@@ -102,13 +103,12 @@ def apply(state, observation):
             }
     elif kind == "prompt_alias":
         agent = state["agents"].get(o["payload"]["agent_id"])
-        if (
-            current
-            and agent
-            and agent["epoch"] == epoch
-            and prompt_id not in state["prompts"]
-        ):
-            state["prompt_aliases"][prompt_id] = agent["prompt_id"]
+        if current and prompt_id not in state["prompts"]:
+            state["prompt_aliases"][prompt_id] = (
+                agent["prompt_id"]
+                if agent and agent["epoch"] == epoch
+                else {"agent_id": o["payload"]["agent_id"], "epoch": epoch}
+            )
             while len(state["prompt_aliases"]) > model.MAX_AGENTS:
                 state["prompt_aliases"].pop(next(iter(state["prompt_aliases"])))
     elif kind in ("turn_start", "turn_end"):
@@ -127,6 +127,7 @@ def apply(state, observation):
                 "ended_at_ms": None,
                 "status": "running",
                 "updated_at_ms": stamp,
+                "epoch": epoch,
             }
             state["turns"][key] = turn
             if current and o["agent_id"] is None:
@@ -157,43 +158,54 @@ def apply(state, observation):
             }
     elif kind in ("tool_start", "tool_end"):
         target = ownership.owner(state, o)
-        if target:
-            key = epoch + ":" + o["request_id"]
-            record = state["tools"].get(key)
-            if record is None:
-                record = {
-                    "prompt_id": target,
-                    "agent_id": o["agent_id"],
-                    "name": o["payload"]["name"],
-                    "started_at_ms": stamp,
-                    "updated_at_ms": stamp,
-                    "status": "started",
+        key = epoch + ":" + o["request_id"]
+        record = state["tools"].get(key)
+        if record is None:
+            record = {
+                "prompt_id": target,
+                "agent_id": o["agent_id"],
+                "name": o["payload"]["name"],
+                "started_at_ms": stamp,
+                "updated_at_ms": stamp,
+                "status": "started",
+                "turn_key": ownership.turn_key(epoch, o["turn_id"], o["agent_id"])
+                if o["turn_id"]
+                else None,
+            }
+            state["tools"][key] = record
+        if record["prompt_id"] is None:
+            record["prompt_id"] = target
+        if target is None or record["prompt_id"] == target:
+            if kind == "tool_start":
+                record["started_at_ms"] = min(record["started_at_ms"], stamp)
+            else:
+                rank = {
+                    "started": 0,
+                    "success": 1,
+                    "error": 2,
+                    "denied": 3,
+                    "interrupted": 4,
                 }
-                state["tools"][key] = record
-            if record["prompt_id"] == target:
-                if kind == "tool_start":
-                    record["started_at_ms"] = min(record["started_at_ms"], stamp)
-                else:
-                    rank = {
-                        "started": 0,
-                        "success": 1,
-                        "error": 2,
-                        "denied": 3,
-                        "interrupted": 4,
-                    }
-                    status = o["payload"]["status"]
-                    if rank[status] > rank[record["status"]]:
-                        record["status"] = status
-                record["updated_at_ms"] = max(stamp, record["updated_at_ms"])
-                _trim(state["tools"], model.MAX_TOOLS)
+                status = o["payload"]["status"]
+                if rank[status] > rank[record["status"]]:
+                    record["status"] = status
+            record["updated_at_ms"] = max(stamp, record["updated_at_ms"])
+            _trim(state["tools"], model.MAX_TOOLS)
     elif kind in ("task_snapshot", "task_update"):
         target = ownership.owner(state, o)
-        if current and target and o["agent_id"] is None:
-            provider = target + ":" + o["payload"]["provider"]
+        if current and (target or o["turn_id"]) and o["agent_id"] is None:
+            provider = (
+                (target or ownership.turn_key(epoch, o["turn_id"]))
+                + ":"
+                + o["payload"]["provider"]
+            )
             previous = state["checklists"].get(provider)
             if previous is None:
                 previous = {
                     "prompt_id": target,
+                    "turn_key": ownership.turn_key(epoch, o["turn_id"])
+                    if o["turn_id"]
+                    else None,
                     "tasks": {},
                     "complete": False,
                     "updated_at_ms": 0,
@@ -233,8 +245,6 @@ def apply(state, observation):
         prompt_id = target
         record = state["agents"].get(agent_id)
         if record is None:
-            if not prompt_id or prompt_id not in state["prompts"]:
-                return True
             record = {
                 "prompt_id": prompt_id,
                 "epoch": epoch,
@@ -242,6 +252,12 @@ def apply(state, observation):
                 "ended_at_ms": None,
                 "status": None,
                 "updated_at_ms": stamp,
+                "parent_agent_id": o["parent_agent_id"],
+                "parent_turn_key": ownership.turn_key(
+                    epoch, o["turn_id"], o["parent_agent_id"]
+                )
+                if o["turn_id"] and o["source"] == "native"
+                else None,
             }
             state["agents"][agent_id] = record
         if prompt_id is not None and record["prompt_id"] != prompt_id:
@@ -253,17 +269,33 @@ def apply(state, observation):
             return True
         if kind == "agent_start" and o["source"] == "native":
             record["parent_agent_id"] = o["parent_agent_id"]
+            record["parent_turn_key"] = (
+                ownership.turn_key(epoch, o["turn_id"], o["parent_agent_id"])
+                if o["turn_id"]
+                else None
+            )
             for turn in state["turns"].values():
                 if turn["agent_id"] == agent_id and turn["prompt_id"] is None:
                     turn["prompt_id"] = prompt_id
+            requests.reconcile(state, agent_id, prompt_id)
         field = "started_at_ms" if kind == "agent_start" else "ended_at_ms"
         observed = o["payload"][field]
         if record[field] is None or observed < record[field]:
             record[field] = observed
-        if kind == "agent_end" and record["status"] is None:
-            record["status"] = o["payload"]["status"]
+        if kind == "agent_end":
+            rank = {None: 0, "completed": 1, "failed": 2, "killed": 3, "interrupted": 4}
+            if rank[o["payload"]["status"]] > rank[record["status"]]:
+                record["status"] = o["payload"]["status"]
         record["updated_at_ms"] = max(stamp, record["updated_at_ms"])
         _trim(state["agents"], model.MAX_AGENTS)
+    elif kind in (
+        "request_start",
+        "request_first",
+        "request_end",
+        "request_cost",
+        "turn_usage",
+    ):
+        requests.apply(state, o)
     if gap and current:
         for prompt in state["prompts"].values():
             if not prompt["terminal"]:

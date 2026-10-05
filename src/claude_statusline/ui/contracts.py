@@ -27,6 +27,11 @@ UnavailableReason = Literal[
     "incomplete",
     "ambiguous_owner",
     "observed_only",
+    "missing_stream",
+    "synthetic_response",
+    "abnormal_clock",
+    "inconsistent_request",
+    "request_join_unavailable",
 ]
 
 

@@ -2,7 +2,7 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
-当前源码目录包含 54 个主栏项、14 个子 Agent 项。下列独立项默认关闭，现有默认选择和组合 ID
+当前源码目录包含 59 个主栏项、14 个子 Agent 项。下列独立项默认关闭，现有默认选择和组合 ID
 继续可用；允许组合项与其独立项同时选择并自由排序。原有显示项和全部配置入口见[使用指南](USER_GUIDE.zh-CN.md)。
 
 ## 主栏显示项
@@ -39,6 +39,11 @@
 | `task-progress` | `Tasks 3/5` | 成功的结构化 Task/Todo 操作维护的完成数/总数，完整快照优先；不是耗时百分比。有限覆盖附 `*`。 |
 | `last-tool` | `Tool Read success` | 主线程最近开始的工具及成功、失败、拒绝或中断结果。 |
 | `branch-diff` | `Diff 3 files +42/-7` | 从 `merge-base(base, HEAD)` 到 HEAD 的已提交文件数、增加行和删除行；二进制文件只计文件数。自动基准依次 origin/HEAD、本地 main、master。不 fetch；总超时 2 秒，缓存按仓库、HEAD 和基准提交隔离。 |
+| `ttft` | `TTFT(host) 0.420s` | 最新主线程请求，从进入 turn.step 到首个真实文本、思考或工具内容块的宿主观测时长。缺失或合成流、异常时钟保持不可用。 |
+| `output-rate` | `Rate 36.5 tok/s` | 官方输出 token 除以最新主请求的完整观测耗时，包含首内容等待；不是纯生成速率。 |
+| `prompt-input-tokens` | `Prompt in 48K*` | 同一用户任务去重请求的普通输入＋缓存写入＋缓存读取，包含可靠归属的嵌套代理和主线程收尾。 |
+| `prompt-output-tokens` | `Prompt out 2K*` | 同一完整任务去重请求的官方输出 token；turn 总量只用于核对，不重复相加。 |
+| `prompt-cost` | `Prompt cost $0.0123*` | 仅使用可靠归属的官方 api_request 费用估算。不启用或重定向遥测；缺失费用不可用，缺少请求关联的已观测小计附部分标记。 |
 
 ## 子 Agent 显示项
 
@@ -97,3 +102,9 @@ JSON 协议 v3 为当前契约。最低版本元数据表示已验证的功能�
 使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`，两个编辑器提供同一个可空 Metrics 字段。缺失 ref/merge-base、浅克隆缺历史和超时显示 `Diff —`。显示 v1/v2/v3 只在内存补默认值，实际保存才备份并迁移到 v4，配置协议为 v3；包降级前恢复旧版配置备份。
 
 运行中的代理时长递增；已完成、失败或终止行从可靠 native 或已有生命周期 hook 的结束证据冻结。没有结束证据时保留状态标记，不虚构时长。结束历史在关闭实时采集时仍可用；prompt-timer 完成证据优先级不变。
+
+## 请求覆盖与 SDK 回退
+
+请求项默认不选中。无观测显示 `—`，真实零值可见，不完整任务覆盖附 `*`。带宿主 ref 的真实内容块提供 TTFT，成功请求须具有官方 stop 用量；无宿主引用的合成流不能提供计数器。只有任务结束、序列覆盖及每个 turn 总量核对都成立时才去除部分标记。
+
+Claude Code 2.1.289 headless 路径可能缺失 prompt 身份事件。只有唯一已完成的已有生命周期区间包含主 turn 起点时才关联；重叠或未结束区间保持无归属。再通过启动身份解析嵌套 loop，不写计时状态、不匹配 prompt 文本。SDK 实时状态可能在证据到达前不可用。没有已有 collector 遥测时，prompt-cost 保持不可用；不使用模型价格或会话费用差值兜底。

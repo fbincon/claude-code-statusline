@@ -52,7 +52,7 @@ This guide uses TUI for the terminal user interface and effort for model reasoni
 
 ## Feature overview
 
-- Choose which status items to show: 10 defaults and 38 optional main items, including project name, hostname, context usage, version, session, cost, prompt-cache, modes, and PR/worktree information.
+- Choose which status items to show: 10 defaults and 49 optional main items, including project name, hostname, context usage, version, session, cost, prompt-cache, modes, and PR/worktree information.
 - Render items in the order specified by the configuration file.
 - Use 24-bit RGB colors, terminal ANSI colors, or no colors.
 - Show full paths, `~` paths, project-relative paths, or directory basenames.
@@ -1156,7 +1156,7 @@ The default configuration is equivalent to:
 
 ```json
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "items": [
     "model-with-effort",
     "current-dir",
@@ -1207,6 +1207,9 @@ The default configuration is equivalent to:
   "layout": {
     "mode": "auto",
     "rows": []
+  },
+  "metrics": {
+    "branch_diff_base_ref": null
   }
 }
 ```
@@ -1217,7 +1220,7 @@ The 10 items above form the default enabled set. `project-name`, `hostname`, `co
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](#backups-and-rollback) and [configuration writes and concurrency](#configuration-writes-and-concurrency).
 
-The current display schema is v3. Historical v1/v2 are readable and are backed up and written as v3 on the first actual configuration save. See [version compatibility](#version-compatibility) for conversion and downgrade recovery.
+The current source display schema is v4. Historical v1/v2/v3 are readable and are backed up and written as v4 on the first actual configuration save. See [version compatibility](#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 
@@ -1367,9 +1370,9 @@ Rerun `install` to synchronize skill templates, command paths, hooks, and versio
 
 ### Version compatibility
 
-Stable v1.5.0 and preview v1.5.0a1 use display schema v3 and JSON protocol v2; upgrading from a1 does not migrate display configuration. Historical v1.4.0 uses display v2/protocol v1. Editor enablement, runtime and lifecycle formats remain independent. Historical display v1/v2 configurations follow these rules:
+Stable v1.5.0 and preview v1.5.0a1 use display schema v3 and JSON protocol v2; upgrading from a1 does not migrate display configuration. Historical v1.4.0 uses display v2/protocol v1. Editor enablement, runtime and lifecycle formats remain independent. Current Phase 5 source uses display v4/configuration protocol v3. Historical display v1/v2/v3 configurations follow these rules:
 
-Reading v1/v2 retains items, order and appearance and supplies new defaults in memory. `render`, `render-subagents`, `doctor` and `install` do not rewrite the display file. An actual save backs up its original bytes and writes strict schema v3; unknown/missing fields, duplicates, incorrect types and schemas above v3 are refused. Before a downgrade, close both editors, use the newer package to run `install --no-native-editor`, restore the display file from its pre-migration `.before` backup using `metadata.json`, install the older package and rerun `install`/`doctor`. Older packages cannot edit v3. Save a portable export separately if you intend to return to Phase 4 later.
+Reading v1/v2/v3 retains items, order and appearance and supplies new defaults in memory. `render`, `render-subagents`, `doctor` and `install` do not rewrite the display file. An actual save backs up its original bytes and writes strict schema v4; unknown/missing fields, duplicates, incorrect types and schemas above v4 are refused. Before a downgrade, close both editors, use the newer package to run `install --no-native-editor`, restore the display file from its pre-migration `.before` backup using `metadata.json`, install the older package and rerun `install`/`doctor`. Older packages cannot edit v4. Save a portable export separately if you intend to return to Phase 4 later.
 
 Claude Code feature thresholds are independent of this tool's version:
 
@@ -1925,7 +1928,7 @@ Stable v1.5.0 integrates both editors by default on compatible hosts. See [nativ
 
 ## Formatting, layouts and presets (v1.5.0)
 
-Existing appearance remains the default. Stable v1.5.0 retains the preview's display schema v3 and JSON protocol v2. Reading v1/v2 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v3.
+Existing appearance remains the default. Stable v1.5.0 retains the preview's display schema v3 and JSON protocol v2. Reading v1/v2 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v4.
 
 `model-name`: original/short; `number-format`: legacy/compact/full/grouped; `labels`: legacy/short/off; `icons`: legacy/unicode/ascii/off; `allowance`: remaining/used; `reset-format`: countdown/time/datetime; `reset-timezone`: local/UTC; `threshold-colors`: on/off.
 

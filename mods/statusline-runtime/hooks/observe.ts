@@ -3,8 +3,10 @@ import type { EngineInterface, Register, PluginOptions } from 'claude-code';
 import { Queue, confirmedResponse } from '../lib/queue.ts';
 import { PROTOCOL_VERSION } from '../lib/generated-contracts.ts';
 import { checklist } from '../lib/checklists.ts';
+import { tapStream, usage } from '../lib/streams.ts';
+import { cost } from '../lib/costs.ts';
 
-type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; directory: string; hostVersion: string; turns: Record<string, string> };
+type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[] };
 
 async function bind($: EngineInterface, options: PluginOptions, state: State): Promise<void> {
   const queue = state.queue;
@@ -18,6 +20,7 @@ async function bind($: EngineInterface, options: PluginOptions, state: State): P
   const now = await $.clock.now();
   queue.bind(session, now);
   state.turns = {};
+  state.agentTypes = [];
   queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: now }, now);
   state.ready = true;
 }
@@ -41,7 +44,7 @@ async function flush($: EngineInterface, options: PluginOptions, state: State): 
 
 
 export const register: Register = (on, options: PluginOptions) => {
-  const state: State = { queue: new Queue(), ready: false, busy: false, executable: '', directory: '', hostVersion: '', turns: {} };
+  const state: State = { queue: new Queue(), ready: false, busy: false, executable: '', directory: '', hostVersion: '', turns: {}, agentTypes: [] };
   const queue = state.queue;
   on('session.start', async ($, e, next) => {
     try {
@@ -109,6 +112,19 @@ export const register: Register = (on, options: PluginOptions) => {
     return next(e);
   });
 
+  on('session.append', { door: 'prompt' }, async ($, e, next) => {
+    try {
+      await bind($, options, state);
+      const now = await $.clock.now();
+      if (e.agentId) {
+        queue.push('prompt_alias', { agent_id: e.agentId }, now, { prompt_id: e.uuid, agent_id: e.agentId });
+      } else if (e.message.type === 'user' && ['composer', 'bridge', 'sdk'].includes(e.origin.kind)) {
+        queue.push('prompt', {}, now, { prompt_id: e.uuid });
+      }
+    } catch {}
+    return next(e);
+  });
+
   on('agent.spawn', async ($, e, next) => {
     const loop = e.parentAgentId ?? 'main';
     const turn = state.turns[loop];
@@ -116,6 +132,7 @@ export const register: Register = (on, options: PluginOptions) => {
     const result = await next(e);
     try {
       if (result.agentId && epoch === queue.epoch) {
+        if (!state.agentTypes.includes(e.subagentType)) state.agentTypes.push(e.subagentType);
         const now = await $.clock.now();
         queue.push('agent_start', { started_at_ms: now }, now, {
           agent_id: result.agentId, parent_agent_id: e.parentAgentId ?? null, turn_id: turn ?? null,
@@ -131,8 +148,59 @@ export const register: Register = (on, options: PluginOptions) => {
       const now = await $.clock.now();
       const status = e.isAborted ? 'interrupted' : e.reason === 'error' || e.reason === 'refusal' ? 'failed' : 'completed';
       queue.push('turn_end', { status }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
+      queue.push('turn_usage', { usage: usage(e.usage) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
       if (e.agentId)
         queue.push('agent_end', { ended_at_ms: now, status }, now, { agent_id: e.agentId, turn_id: e.turnId });
+    } catch {}
+    return next(e);
+  });
+
+  on('turn.step', async function* ($, e, next) {
+    const identity = { agent_id: e.agentId ?? null, turn_id: e.turnId, request_id: (e.agentId ?? 'main') + ':' + e.turnId + ':' + String(e.index) };
+    let epoch = queue.epoch;
+    let first = false;
+    let native = false;
+    let counted: Record<string, number> | null = null;
+    let status = 'interrupted';
+    try {
+      await bind($, options, state);
+      epoch = queue.epoch;
+      state.turns[e.agentId ?? 'main'] = e.turnId;
+      const now = await $.clock.now();
+      queue.push('turn_start', {}, now, identity);
+      queue.push('request_start', {}, now, identity);
+    } catch {}
+    const observed = tapStream(next(e), async (item, operation) => {
+      if (epoch !== queue.epoch) return;
+      if (item.done) { if (operation !== 'return') status = 'completed'; return; }
+      const chunk = item.value;
+      if (typeof chunk.ref === 'number') {
+        native = true;
+        const content = chunk.kind === 'tool' || ((chunk.kind === 'text' || chunk.kind === 'thinking') && chunk.text.length > 0);
+        if (content && !first) {
+          first = true;
+          queue.push('request_first', {}, await $.clock.now(), identity);
+        }
+        if (chunk.kind === 'stop') counted = usage(chunk.usage);
+      }
+    });
+    try {
+      return yield* observed;
+    } catch (error) {
+      status = next.signal.aborted ? 'interrupted' : 'failed';
+      throw error;
+    } finally {
+      try {
+        if (epoch === queue.epoch)
+          queue.push('request_end', { native, usage: native ? counted : null, status }, await $.clock.now(), identity);
+      } catch {}
+    }
+  });
+
+  on('telemetry.log', { to: 'collector' }, async ($, e, next) => {
+    try {
+      const row = cost(e, queue.session, state.agentTypes);
+      if (row) queue.push('request_cost', row.payload, await $.clock.now(), row.identity, 'otel');
     } catch {}
     return next(e);
   });

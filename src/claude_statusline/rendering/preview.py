@@ -25,6 +25,11 @@ class _SampleRenderState(rendering_items._RenderState):
                 "active-agents": 2,
                 "task-progress": {"completed": 3, "total": 5},
                 "last-tool": {"name": "Read", "status": "success"},
+                "ttft": 0.42,
+                "output-rate": 36.5,
+                "prompt-input-tokens": 48000,
+                "prompt-output-tokens": 2000,
+                "prompt-cost": 0.0123,
             }.items()
         }
 
