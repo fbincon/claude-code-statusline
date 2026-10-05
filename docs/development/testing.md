@@ -55,7 +55,8 @@ This command makes paid Claude calls. It requires explicit invocation and a tota
 
 ```bash
 .venv/bin/python tools/live_timer_acceptance.py \
-  --budget-usd 10 --report-dir dist/validation/live-timer
+  --budget-usd 10 --budget-ledger dist/validation/task-timer/budget.json \
+  --report-dir dist/validation/live-timer
 ```
 
 Use a new report directory each time. The Linux tool preserves only authentication, gateway environment and model selection in private temporary configuration, binds the tested CLI explicitly through PATH, and replaces owned lifecycle hooks with a recorder that calls the production reducer. It creates a single-agent case and two parallel-agent cases. Agent probes can run only the requested small sleep commands; they do not need repository data.
@@ -166,3 +167,35 @@ python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-stat
 ```
 
 Use `tools/render_native_capture.py --surface external --bounds 0 0 COLUMNS ROWS --commit SOURCE_COMMIT` to reconstruct the real capture JSON; Pillow/fonts are documentation dependencies only. Raw cells, isolated configuration and builds stay in ignored dist/validation; distributions contain only public PNGs and sanitized provenance. Record automated PTYs, agent inspection and human acceptance separately; historical confirmations are not new acceptance of this presentation change. Matching-wheel persistent advanced PTYs must also check external saves and Client readback. All 20 PR/merge/tag jobs and release artifact gates remain required.
+
+## Task timing preview validation
+
+The task-clock preview passed 585 Python tests (577 passed, eight expected platform skips), 41 native and 10 runtime official Mod tests, both TypeScript projects, official static validation, generated contracts, Ruff and documentation links. Installer checks cover default metadata-only timing, persistent explicit opt-out, independent timing/metrics overrides, backed-up installation migrations and matching diagnostic bindings. Regressions include Stop continuation, late native endings, unclosed/overlapping waits, clock loss/reboot/Windows wall adjustments, retained historical values, report/message aliases and indexed submission append/replacement.
+
+Real Linux x86_64 / Python 3.14.4 / Claude Code 2.1.289 probes passed single-agent and parallel wrap-up, blocked Stop continuation, automated SDK question waiting/interruption, default native timing and disabled compatibility collection. Both production timers freeze when available; incomplete execution evidence is hidden. A parallel task retained about 14.1 seconds while its final native turn reported 3.7 seconds. All attempts/retries share the original USD 10 ledger; initial evidence spent USD 0.801859 with zero unknown costs. SDK responses are controlled inputs, not new human acceptance. Real machine suspend and real Windows/macOS model-session acceptance remain pending; CI and simulated clocks are distinct evidence.
+
+Use the existing ledger and a new case directory. Do not initialize another ledger to reset spending. The `wait` and `interrupt` cases additionally need the optional acceptance dependency `claude-agent-sdk`; the SDK uses the actual host on PATH. Omit `--run-real-calls` to revalidate captures without spending:
+
+```bash
+.venv/bin/python tools/task_timer_acceptance.py \
+  --root dist/validation/task-timer/parallel \
+  --case parallel --backend /absolute/venv/bin/claude-statusline \
+  --budget-ledger dist/validation/task-timer/budget.json \
+  --cap-usd 1 --run-real-calls
+```
+
+Cases are `single`, `single-agent`, `parallel`, `stop-continue`, `wait`, `interrupt` and `compat`. Unknown costs retain their full cap and block all new paid attempts. The legacy timer runner also requires this ledger; its capture verification remains available. Keep raw streams, SDK inputs and private configuration under ignored `dist/validation`.
+
+Run `tools/benchmark_task_timer.py --samples 30 --report PATH` under the same interpreter and each source's PYTHONPATH. Baseline `4268743` and the task-clock implementation used identical script SHA256 `808a8b5224fa52584bfa0b9ac09ee052e64dac2b186391af1a0fa5fbcfbf6b4f`, machine and fixtures: 100/10,000/100,000 history rows with one/32 tasks, plus a one-prompt production renderer startup fixture.
+
+| Metric (ms) | Before P50 / P95 | After P50 / P95 |
+| --- | --- | --- |
+| Python startup | 15.548 / 18.292 | 13.667 / 18.026 |
+| Timer imports | 40.502 / 50.502 | 40.548 / 51.444 |
+| Timer render process | 51.673 / 60.577 | 53.221 / 62.110 |
+| Hot refresh: 100,000 rows, 32 tasks | 0.001 / 0.009 | 0.001 / 0.002 |
+| Terminal: 100 rows, 32 tasks | 0.021 / 0.023 | 0.048 / 0.056 |
+| Terminal: 10,000 rows, 32 tasks | 0.861 / 0.893 | 0.048 / 0.061 |
+| Terminal: 100,000 rows, 32 tasks | 9.486 / 9.595 | 0.048 / 0.061 |
+
+Unchanged hot refresh performs no transcript reads; ending lookup reuses the bounded cursor index. At 100,000 rows/32 tasks (16.6 MB), first submission indexing was 9.84 ms before and 22.44 ms after; it still scans the source once. Timer renderer startup increased by approximately 1.5 ms at P50. Measurements are local fixtures with scheduler/cache noise, not performance bounds. The source/report paths and raw histories remain private.

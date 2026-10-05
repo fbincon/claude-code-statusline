@@ -2,16 +2,14 @@
 
 [English](live.md) | **简体中文**
 
-正式 v1.6.0 包含独立、默认关闭的 `statusline-runtime` Mod，要求经过固定构建验证的
-Claude Code 2.1.289，不依赖 native 编辑器偏好。`install --live-metrics` 启用，
-`--no-live-metrics` 保存明确关闭选择；预览与正式版本在偏好缺失时均默认关闭。
-独立 schema 1 文件 `claude-statusline-runtime.json` 不随显示配置导入导出。
-官方安装、所有权检查、备份、回滚、版本暂挂与移除复用参数化的编辑器安装实现。
+随包 `statusline-runtime` Mod 支持已核验的 Claude Code 2.1.289+ 宿主。原生任务计时默认开启，高级实时指标仍按需启用；偏好与编辑器及显示项选择独立。
+
+`claude-statusline-runtime.json` 使用 schema 2：缺省 `native_timing=true`、`live_metrics=false`。旧 schema 1 的显式 false 保留为两者关闭，true 保留为两者启用；重装保留选择。`install --native-timing`／`--no-native-timing` 控制原生计时，`--live-metrics` 开启完整观测，`--no-live-metrics` 保留原先的全部关闭行为；同一命令明确给出的计时选项独立控制计时。不兼容或未知宿主暂挂 Mod，不改写偏好。
 
 ## 运行传输
 
 `claude-statusline runtime --config-dir PATH` 接收一个 UTF-8 JSON 对象并返回一个 JSON
-响应。运行协议 **1** 与配置协议独立演进；stdout 仅含 `{protocol_version,result}`
+响应。运行协议 **2** 与配置协议独立演进；stdout 仅含 `{protocol_version,result}`
 或 `{protocol_version,error}`，成功退出 0，拒绝退出 2。重复字段、不安全身份、非有限／
 负数、未知字段及超过 1 MiB 的请求均被拒绝。`observe` 在写入前校验整批记录。
 
@@ -40,8 +38,7 @@ native 心跳建立 epoch，每 5 秒更新，超过 15 秒失效，时钟倒退
 观测。恢复、清空和结束使实时状态失效；Mod 在这些边界后重新核实会话绑定。
 
 观测 hook 原样传递输入与结果。有界队列在常规事件处理外批量发布，拒绝后按原身份重试，
-溢出仍保留初始化心跳。采集故障不改变模型请求或计时完成状态，`runtime/live` 不写入
-`runtime/turns`。安装器不会启用或重定向遥测导出，也不在状态文件中保留 prompt、回复或
+溢出仍保留初始化心跳。采集故障不改变模型请求或计时完成状态，原生计时观测归并到同一任务存储；高级指标仍只维护派生视图。安装器不会启用或重定向遥测导出，也不在状态文件中保留 prompt、回复或
 任意工具参数。
 
 ## 验证
@@ -71,3 +68,11 @@ Python 保存未归属的 turn、请求、启动和工具；只用唯一已结�
 ## v1.6.0 正式版验收
 
 2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。
+
+## 任务计时接入
+
+运行协议 v2 增加原生报告耗时、等待起止和明确覆盖元数据。兼容接收 v1，但 v1 不证明精确执行耗时。仅计时模式抑制高级数据持久化，仍追踪序号连续性。锁顺序为运行观测锁后任务锁；任务写入不获取运行观测锁。重试保留身份并保持幂等。
+
+print／SDK 未发出 session.append 时，官方 prompt ID／消息 UUID 关联可将唯一已核验生命周期归属提升为原生身份。无归属 turn 保持无归属。发生于会话退出之前的原生完成不因批次迟到而误记中断；消息别名与后台报告别名独立。详见[任务时钟](timer.zh-CN.md)。
+
+`runtime read` 包含 `task-active-timer`；不可用原因包括 `native_timing_disabled`、`wait_coverage_missing`、`incomplete`、`stale`、`abnormal_clock`。当前宿主不能核验权限／问题／MCP 等待的准确起止时，保守隐藏执行耗时。

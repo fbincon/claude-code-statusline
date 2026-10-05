@@ -2,13 +2,15 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
-正式 v1.6.0 目录包含 59 个主栏项、14 个子 Agent 项。下列独立项默认关闭，现有默认选择和组合 ID
+当前目录包含 61 个主栏项、14 个子 Agent 项。下列独立项默认关闭，现有默认选择和组合 ID
 继续可用；允许组合项与其独立项同时选择并自由排序。原有显示项和全部配置入口见[使用指南](USER_GUIDE.zh-CN.md)。
 
 ## 主栏显示项
 
 | ID | 示例 | 定义与来源 |
 | --- | --- | --- |
+| `task-timer` | `✓ 1m 42s` | 人类任务总耗时，包含排队、所属 Agent 和收尾；`prompt-timer` 为兼容别名。 |
+| `task-active-timer` | `Active 1m 30s` | 可选执行耗时；原生用户等待覆盖不完整时隐藏。 |
 | `model` | `claude-opus` | 优先使用 `model.id`，缺失时使用 `model.display_name`。 |
 | `effort` | `high` | 实时 `effort.level`；模型不支持或字段缺失时隐藏。 |
 | `context-tokens` | `Context 54K / 200K` | `context_window.current_usage` 中普通输入、缓存写入和缓存读取之和／窗口容量，不含输出。若分项对象不存在，可用官方 `total_input_tokens`；压缩后明确为 null 时仍视为不可用。 |
@@ -72,7 +74,7 @@
 - 倒计时遵循现有宿主刷新间隔；`event` 只在事件触发时更新，启用显示项不会修改刷新设置。
 - 缺失、异常类型、负数和非有限数值视为不可用，不伪装成零；已观测的零费用、零耗时和零行数照常显示。
   新 token 数需为非负整数，窗口容量需大于零。
-- `prompt-timer` 统计最近一次人的任务，包含子 Agent 和主 Agent 收尾；会话运行时间与累计 API 耗时是
+- `task-timer` 统计最近一次人的任务，包含子 Agent 和主 Agent 收尾；会话运行时间与累计 API 耗时是
   独立官方指标，新增项不改变计时状态机。
 - 文本先净化再渲染。新项和固定样例预览沿用现有配色、分隔符、作用域标签及宽度处理。
 
@@ -84,13 +86,13 @@
 使用独立指标替换主栏选择的示例：
 
 ```text
-claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration prompt-timer
+claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
 ```
 
-CLI 列表与 JSON `describe` 返回共享目录；两个 TUI 和安装的向导统一消费它。显示 schema v4 与
-JSON 协议 v3 为当前契约。最低版本元数据表示已验证的功能边界，不表示实时数据已经到达；缺少证据的最低版本保持未知。
+CLI 列表与 JSON `describe` 返回共享目录；两个 TUI 和安装的向导统一消费它。显示 schema v5 与
+JSON 协议 v4 为当前契约。最低版本元数据表示已验证的功能边界，不表示实时数据已经到达；缺少证据的最低版本保持未知。
 
-即使 schema 不变，旧包仍不认识新增 ID。降级前应使用新版本从两个作用域中移除新 ID，或恢复兼容的配置备份。
+旧包可能无法读取 schema v5，也不认识新增 ID。降级前应使用新版本从两个作用域中移除新 ID，或恢复兼容的配置备份。
 另行遵循[原生接入降级步骤](USER_GUIDE.zh-CN.md#升级)。
 
 ## 实时状态项
@@ -99,9 +101,9 @@ JSON 协议 v3 为当前契约。最低版本元数据表示已验证的功能�
 
 ## 分支基准与已结束代理
 
-使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`，两个编辑器提供同一个可空 Metrics 字段。缺失 ref/merge-base、浅克隆缺历史和超时显示 `Diff —`。显示 v1/v2/v3 只在内存补默认值，实际保存才备份并迁移到 v4，配置协议为 v3；包降级前恢复旧版配置备份。
+使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`，两个编辑器提供同一个可空 Metrics 字段。缺失 ref/merge-base、浅克隆缺历史和超时显示 `Diff —`。显示 v1/v2/v3 只在内存补默认值，实际保存才备份并迁移到 v5，配置协议为 v4；包降级前恢复旧版配置备份。
 
-运行中的代理时长递增；已完成、失败或终止行从可靠 native 或已有生命周期 hook 的结束证据冻结。没有结束证据时保留状态标记，不虚构时长。结束历史在关闭实时采集时仍可用；prompt-timer 完成证据优先级不变。
+运行中的代理时长递增；已完成、失败或终止行从可靠 native 或已有生命周期 hook 的结束证据冻结。没有结束证据时保留状态标记，不虚构时长。结束历史在关闭实时采集时仍可用；任务计时完成证据见[计时契约](development/timer.zh-CN.md)。
 
 ## 请求覆盖与 SDK 回退
 

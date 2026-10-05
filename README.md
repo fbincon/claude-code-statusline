@@ -147,7 +147,7 @@ Claude Code feature requirements: subagent rows 2.1.205+; local argument-based c
 
 ## Quick installation
 
-Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). The current package version is [v1.6.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1); all supported platforms use the same wheel.
+Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). All supported platforms use the same wheel.
 
 ### Install the package
 

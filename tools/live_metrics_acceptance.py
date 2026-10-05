@@ -27,6 +27,8 @@ def reserve(ledger, case, cap):
             value.get("attempts"), list
         ):
             raise ValueError("expected the shared authorized $10 ledger")
+        if any(row.get("cost_known") is False for row in value["attempts"]):
+            raise ValueError("an unknown-cost attempt blocks new paid calls")
         used = sum(
             row.get("known_usd", 0) + row.get("reserved_usd", 0)
             for row in value["attempts"]
@@ -58,6 +60,11 @@ def settle(ledger, identity, cost):
     with files.exclusive_file_lock(ledger.with_suffix(".lock")):
         value = json.loads(ledger.read_bytes())
         row = next(row for row in value["attempts"] if row["id"] == identity)
+        if row["status"] == "finished":
+            return sum(
+                item.get("known_usd", 0) + item.get("reserved_usd", 0)
+                for item in value["attempts"]
+            )
         row.update(
             status="finished",
             known_usd=cost if known else 0,
@@ -95,14 +102,19 @@ def verify(root, backend):
     ]
     state = max(stores, key=lambda row: row["loaded_at_ms"])
     sid = state["session_id"]
-    prompt = state["active_prompt_id"] or state["current_prompt_id"]
+    from claude_statusline.runtime.live import bindings, ownership
+
+    bindings.reconcile(state, config)
+    prompt = ownership.canonical(
+        state, state["active_prompt_id"] or state["current_prompt_id"]
+    )
 
     def read():
         completed = subprocess.run(
             [str(backend), "runtime", "--config-dir", str(config)],
             input=json.dumps(
                 {
-                    "protocol_version": 1,
+                    "protocol_version": 2,
                     "operation": "read",
                     "payload": {"session_id": sid, "prompt_id": prompt},
                 }
@@ -117,7 +129,12 @@ def verify(root, backend):
 
     result = read()
     metrics, state = result["metrics"], result["state"]
-    prompt = state["active_prompt_id"] or state["current_prompt_id"]
+    from claude_statusline.runtime.live import bindings, ownership
+
+    bindings.reconcile(state, config)
+    prompt = ownership.canonical(
+        state, state["active_prompt_id"] or state["current_prompt_id"]
+    )
     assert prompt, "A real human prompt must be bound"
     for item in ("ttft", "output-rate", "prompt-input-tokens", "prompt-output-tokens"):
         assert metrics[item]["value"] is not None, (
@@ -203,10 +220,27 @@ def run(root, backend, plugin, case, ledger, cap):
     project, environment = prepare(root, backend)
     config = Path(environment["CLAUDE_CONFIG_DIR"])
     (config / "claude-statusline-runtime.json").write_bytes(preference_bytes(True))
+    subprocess.run(
+        [
+            str(backend),
+            "install",
+            "--no-native-editor",
+            "--live-metrics",
+            "--config-dir",
+            str(config),
+        ],
+        cwd=project,
+        env=environment,
+        capture_output=True,
+        check=True,
+        timeout=180,
+    )
     environment.update(
         CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE=str(backend),
         CLAUDE_STATUSLINE_RUNTIME_DIR=str(config / "statusline_runtime"),
     )
+    # Use the installed, version-bound Mod. A same-name --plugin-dir module
+    # overrides the installation's userConfig and would test different modes.
     prompt = "Reply with exactly LIVE_SINGLE_OK. Do not use tools."
     if case == "single-agent":
         prompt = (
@@ -227,8 +261,6 @@ def run(root, backend, plugin, case, ledger, cap):
         "--output-format",
         "stream-json",
         "--include-hook-events",
-        "--plugin-dir",
-        str(plugin),
         "--max-budget-usd",
         str(cap),
         "--max-turns",

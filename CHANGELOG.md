@@ -4,6 +4,14 @@
 
 ## Unreleased
 
+## 1.7.0a1 - 2026-10-05
+
+- Replace the prompt clock with a persistent task lifecycle and independent immutable pause/resume clock. Default `task-timer` includes submission, queueing, child agents, reports and main wrap-up; retain `prompt-timer` as an alias in commands, imports, item options and layouts.
+- Add opt-in `task-active-timer`, shown only with complete identity, event, wait and boot-clock evidence. Preserve native turn duration separately; successful endings, failures and interruptions freeze. Treat raw Stop as a candidate, resume on verified activity, and confirm compatibility endings from matched transcript or verified idle evidence.
+- Default native timing metadata on for Claude Code 2.1.289+ while keeping advanced metrics opt-in. Runtime preferences v2 preserve old explicit opt-outs and add independent timing switches; display v5, configuration protocol v4, runtime protocol v2 and lifecycle v4 retain supported older reads and shared compatibility entry points.
+- Use stable Windows boot identity, strict execution-clock degradation and an incremental bounded submission index. Preserve historical frozen values without inventing execution time, and retain explicit background-report/message links across parallel wrap-up.
+- Add regression, default native/disabled collection, shared-budget real Linux lifecycle and history-size performance checks; document migration, downgrade and preview/platform acceptance boundaries. This release is a prerelease with Latest disabled; stable installation links remain at v1.6.1.
+
 ## 1.6.1 - 2026-10-05
 
 - Give all four external TUI pages and item forms distinct page titles, continuous groups, aligned columns, selection and separate Preview. Titled frames start at 64×20; 64×18–19 uses compact separators. Global and page controls have separate rows.

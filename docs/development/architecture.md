@@ -12,8 +12,11 @@ src/claude_statusline/
   rendering/                        Formatting, palette, layout, items,
                                     timer, main/subagent output and preview
   runtime/                          Paths, caches, registry, transcript,
-                                    usage, Git and prompt lifecycle
-    turns/                          Pure records, locked storage and reducer
+                                    usage, Git and task lifecycle
+    timing/                         Immutable pause/resume clock and samples
+    tasks/                          Task ownership, lifecycle, indexed evidence,
+                                    native adapter, collection and locked store
+    turns/                          Compatibility aliases to tasks/
   integration/                      Ownership, capabilities, resources,
                                     installation plan/commit, doctor,
                                     hooks, launcher and result bridge
@@ -74,7 +77,7 @@ Resources continue to load through `importlib.resources` from `claude_statusline
 
 ## Persistence
 
-Current display schema v4 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v3; historical display v1/v2/v3 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from eligible native calibration. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 5 rechecks old caches without resetting cumulative usage.
+Current display schema v5 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1/v2/v3 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
 
 Keep local ROADMAP files and raw acceptance records out of distributions. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 
@@ -96,7 +99,7 @@ Usage state keeps optional input/output observation flags alongside the existing
 
 ## Phase 4 configuration boundaries
 
-Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v4 and protocol v3 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
+Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v5 and protocol v4 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
 
 Curses `ui.forms` and Client `lib/client/forms.ts` expose scoped formats, Layout fitting and global settings from the canonical descriptors. Native hooks alone perform backend/file effects; `lib/preferences.ts` owns actual-row descriptions and supported controls, with separate Claude API application. Production and sample rendering share formatting and explicit layout; lazy Git/transcript collection is retained. No Phase 5 runtime indicators are added.
 
@@ -106,10 +109,16 @@ The opt-in `mods/statusline-runtime` is separate from the Client editor. Both Mo
 
 ## Phase 5 metric migration
 
-Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration protocol v3 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol remains independently v1. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration protocol v3 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol v2 accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
 
 ## External editor structure (v1.6.1)
 
 `ui.layout` computes geometry and grouped windows without terminal/file effects. Headings consume screen rows without becoming selectable fields. `ui.forms` reuses canonical descriptors, gives legacy/portable controls stable keys and groups, and projects a contiguous external display order. `ui.editor`/`ui.keys` dispatch by field identity; drawing owns terminal output. JSON descriptors, Client ordering and wire contracts remain compatible, independent of external presentation order.
 
 Content and Preview use their actual inner widths; resizing preserves drafts and input buffers. Tests follow the existing UI/integration layout, and the standalone PTY helper lives under tools. Production rendering, installation, runtime observation and compatibility entry points retain their responsibilities.
+
+## Task clock structure
+
+The canonical task implementation lives in `runtime/tasks`: model, reducer, agents, native adaptation, incremental evidence, collection and read-only views each have one responsibility. `runtime/timing` contains the pure serializable clock. The former `runtime/turns` modules alias the canonical modules, preserving Python entry points, shared function identity and the existing on-disk location.
+
+Runtime collection has two independent modes. Native timing defaults on for compatible installations; advanced metrics remain opt-in. Both consume bounded, deduplicated metadata. Only the canonical task store decides task outcomes; advanced views derive their ownership from explicit links and verified lifecycle evidence. Formatting does not mutate task state; collection/reconciliation happens before formatting. Display schema 5, configuration protocol 4, runtime protocol 2 and runtime preference schema 2 evolve separately.

@@ -38,7 +38,7 @@ Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude
 
 ## Feature overview
 
-Choose from 59 main-line items and 14 subagent items. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, four editable presets, and portable JSON files.
+Choose from 61 main-line items and 14 subagent items. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, four editable presets, and portable JSON files.
 
 The main line reports main/session data; each subagent row reports its own task. Task timing includes subagent work and main-agent wrap-up. [Display definitions](DISPLAY_ITEMS.md) explain sources, scope, missing observations, and metric limits.
 
@@ -273,7 +273,7 @@ Run `/statusline-config` without arguments to answer questions about main/subage
 Supported argument-based operations are `show`, `list-items`, `set-items`, `enable`, `disable`, `order`, `subagents`, `set`, `apply`, and `reset`:
 
 ```text
-/statusline-config set-items model-with-effort current-dir git context-remaining prompt-timer
+/statusline-config set-items model-with-effort current-dir git context-remaining task-timer
 /statusline-config show
 ```
 
@@ -290,7 +290,7 @@ Use this tool's configuration commands; Claude's built-in `/statusline` may repl
 ### Minimal development view
 
 ```bash
-claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
+claude-statusline config set-items model-with-effort current-dir git context-remaining task-timer
 claude-statusline config set directory-style home
 claude-statusline config set separator-style compact
 ```
@@ -457,7 +457,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-The main catalog contains 59 items, ten enabled by default: `model-with-effort`, `current-dir`, `git`, `context-remaining`, `context-window-size`, `five-hour-limit`, `weekly-limit`, `spend-limit`, `tokens`, and `prompt-timer`.
+The main catalog contains 60 items, ten enabled by default: `model-with-effort`, `current-dir`, `git`, `context-remaining`, `context-window-size`, `five-hour-limit`, `weekly-limit`, `spend-limit`, `tokens`, and `task-timer`.
 
 Common optional items are grouped below; enable them by ID or select them in an editor.
 
@@ -506,7 +506,7 @@ Use Settings or `config set OPTION VALUE` for appearance, directory styles, sepa
 | `claude-statusline-runtime.json` | Independent live-collection preference |
 | `settings.json` | Owned Claude commands, hooks, and host status-line settings |
 
-Use the CLI or editors to update these files. Display schema v4 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
+Use the CLI or editors to update these files. Display schema v5 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
 
 ## Custom configuration directory and environment variables
 
@@ -542,7 +542,7 @@ Restart Claude Code. Installation synchronizes command paths, skill templates, h
 
 ### Version compatibility
 
-Current display schema v4, configuration protocol v3, and independent runtime protocol v1 require matching resources and backend. Supported display v1/v2/v3 files are read without rewriting; an actual save backs up the old bytes and migrates to v4. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
+Current display schema v5, configuration protocol v4, and independent runtime protocol v2 require matching resources and backend. Supported display v1/v2/v3/v4 files are read without rewriting; an actual save backs up the old bytes and migrates to v5. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
 
 Before downgrading, use the newer package to disable/remove integrations that the older package cannot manage, including live collection and the native editor as applicable. Restore a compatible display backup using its `metadata.json`, or remove unsupported item IDs where schema compatibility permits. Then install the old package, run `install` and `doctor`, and restart Claude Code. A portable export can separately retain current display choices for later reuse.
 
@@ -919,3 +919,19 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 [Current configuration and compatibility](#version-compatibility).
 
 </details>
+
+## Task timing preview
+
+The task-clock preview is [v1.7.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0a1). The stable quick-install links above remain stable-release links. To use this preview:
+
+```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0a1/claude_code_statusline-1.7.0a1-py3-none-any.whl"
+claude-statusline install
+claude-statusline config enable task-active-timer
+```
+
+`task-timer` is the default total task clock; `prompt-timer` remains accepted by existing commands and old configuration files. `task-active-timer` is optional and only appears with complete native execution/wait evidence. A raw Stop shows a lower bound (`? ...+`) until an ending is confirmed; a verified continuation resumes the same task. Native turn duration never shortens total elapsed. Session and API durations remain separate.
+
+On compatible hosts, fresh installations collect timing metadata by default; advanced metrics still require `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
+
+Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 5 and retains a backup. Preview limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).

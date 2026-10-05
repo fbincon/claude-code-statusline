@@ -128,7 +128,7 @@ claude-statusline config show
 Scope: user
 Config: /home/user/.claude/claude-statusline.json
 Installed: yes
-Items: model-with-effort, current-dir, git, context-remaining, prompt-timer
+Items: model-with-effort, current-dir, git, context-remaining, task-timer
 Colors: on
 Palette: default
 Directory style: home
@@ -183,7 +183,7 @@ claude-statusline config list-items --json
 一次性替换整个启用集合，同时把参数顺序保存为显示顺序：
 
 ```bash
-claude-statusline config set-items model-with-effort current-dir git prompt-timer
+claude-statusline config set-items model-with-effort current-dir git task-timer
 ```
 
 执行后，未列出的所有条目都会被禁用。它适合从头定义一条精简状态栏。
@@ -211,7 +211,7 @@ claude-statusline config set-items git git
 启用一个或多个条目，并按参数顺序把此前未启用的条目追加到当前列表末尾：
 
 ```bash
-claude-statusline config enable tokens prompt-timer
+claude-statusline config enable tokens task-timer
 ```
 
 已经启用的条目不会重复，也不会因此移动位置。因此 `enable` 适合增量添加，不适合排序。
@@ -231,7 +231,7 @@ claude-statusline config disable spend-limit tokens
 只改变顺序，不改变启用集合：
 
 ```bash
-claude-statusline config order git current-dir model-with-effort prompt-timer
+claude-statusline config order git current-dir model-with-effort task-timer
 ```
 
 参数必须恰好包含当前已启用的每一个条目，并且每个条目只出现一次。少一个、多一个、加入尚未启用的条目或重复条目都会失败。
@@ -240,7 +240,7 @@ claude-statusline config order git current-dir model-with-effort prompt-timer
 
 ```bash
 claude-statusline config show
-claude-statusline config order model-with-effort git current-dir context-remaining prompt-timer
+claude-statusline config order model-with-effort git current-dir context-remaining task-timer
 ```
 
 如果当前启用集合为空，空参数的 `config order` 才是合法排序：
@@ -295,7 +295,7 @@ Linux / WSL / macOS（Bash）：
 
 ```bash
 claude-statusline config apply \
-  --items model-with-effort current-dir git context-remaining prompt-timer \
+  --items model-with-effort current-dir git context-remaining task-timer \
   --subagent-items status-elapsed name model-with-effort context-remaining task \
   --subagent-statusline on \
   --scope-labels when-subagents \
@@ -312,7 +312,7 @@ Windows PowerShell：
 
 ```powershell
 claude-statusline.exe config apply `
-  --items model-with-effort current-dir git context-remaining prompt-timer `
+  --items model-with-effort current-dir git context-remaining task-timer `
   --subagent-items status-elapsed name model-with-effort context-remaining task `
   --subagent-statusline on `
   --scope-labels when-subagents `
@@ -375,7 +375,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v4 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
+可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v5 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
 
 文件采用 UTF-8，导入接受 BOM，上限 1 MiB；重复字段、非有限数字、错误字段及类型、不支持版本均拒绝。相对路径以当前工作目录为基准，`~` 展开。导出校验并写文件，不修改配置；目标已存在时拒绝，除非明确传入 `--overwrite`，该参数仍不能覆盖实时配置和归属本工具的插件或运行资源。编辑器导入只替换未保存草稿，导出包含当前未保存修改。
 
@@ -399,7 +399,7 @@ claude-statusline config reset
 
 ## 可配置显示项
 
-主栏目录共有 59 项，下表列出默认项和常用可选项。完整 ID 使用 `config list-items --json` 查询，独立指标与实时项见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+主栏目录共有 60 项，下表列出默认项和常用可选项。完整 ID 使用 `config list-items --json` 查询，独立指标与实时项见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 默认启用以下全部条目，表格顺序也是首次使用时的默认显示顺序：
 
@@ -414,7 +414,7 @@ claude-statusline config reset
 | `weekly-limit` | 7 天窗口的剩余百分比，显示为 `weekly` | 未提供该窗口时省略 |
 | `spend-limit` | gateway spend 限额的剩余百分比 | 未提供该窗口时省略 |
 | `tokens` | 当前会话累计的 `hit · miss · out` | 没有 session/transcript 信息时省略 |
-| `prompt-timer` | 当前或最近一次真实 prompt 的耗时和结果 | 尚无可识别 prompt 时省略 |
+| `task-timer` | 当前或最近一次真实 prompt 的耗时和结果 | 尚无可识别 prompt 时省略 |
 
 限额百分比由 Claude Code 传入的 `used_percentage` 换算为剩余百分比。本工具不查询账号限额服务，因此实际能显示哪些窗口取决于当前 Claude Code 版本、账号和本次 statusline payload。
 
@@ -506,7 +506,7 @@ claude-statusline config enable project-name hostname context-used
 
 | 时间指标 | 含义与来源 |
 | --- | --- |
-| 任务耗时 | `prompt-timer`：最早用户提交至主 Agent 最终 `Stop`，或已确认失败/中断；包含排队、子 Agent 和收尾 |
+| 任务耗时 | `task-timer`：最早用户提交至主 Agent 最终 `Stop`，或已确认失败/中断；包含排队、子 Agent 和收尾 |
 | 原生单轮耗时 | transcript 的 `turn_duration.durationMs`；单次原生响应，仅用于满足条件的单轮校准 |
 | 会话运行时间 | `cost.total_duration_ms`；CLI 会话累计运行时间，不包含两次运行/恢复之间的间隔 |
 | API 等待时间 | `cost.total_api_duration_ms`；累计等待 API 响应的时间，当前 `cost` 不显示它 |
@@ -515,7 +515,7 @@ claude-statusline config enable project-name hostname context-used
 
 后台 Agent 结果通知可能具有不同宿主 prompt ID；已知 Agent 所属关系使它们仍属于同一用户任务，直到报告交付和主 Agent 收尾完成。冻结前核对提交证据，后续 transcript 刷新不改写终态值。
 
-`/statusline-config show` 之类的本地快捷命令不会被当作新的计时 prompt。即使隐藏 `tokens` 但保留 `prompt-timer`，计时器仍会读取所需 transcript 状态并正常工作。
+`/statusline-config show` 之类的本地快捷命令不会被当作新的计时 prompt。即使隐藏 `tokens` 但保留 `task-timer`，计时器仍会读取所需 transcript 状态并正常工作。
 
 ## 子 Agent 行与三种作用域
 
@@ -623,7 +623,7 @@ Windows drive path、含空格或中文的路径、UNC path 与大小写归一�
 
 ### 刷新间隔
 
-Claude Code 会在相关 UI 或会话事件发生时重跑 statusline。`refresh-interval N` 会在此基础上每 N 秒额外刷新，适合持续更新 `prompt-timer`，或在主会话空闲时观察后台产生的变化。
+Claude Code 会在相关 UI 或会话事件发生时重跑 statusline。`refresh-interval N` 会在此基础上每 N 秒额外刷新，适合持续更新 `task-timer`，或在主会话空闲时观察后台产生的变化。
 
 ```bash
 # 默认：每秒刷新
@@ -636,7 +636,7 @@ claude-statusline config set refresh-interval 5
 claude-statusline config set refresh-interval event
 ```
 
-使用 `event` 时，运行中的 `prompt-timer` 不会按秒连续变化，只会在下一个状态事件触发后更新。
+使用 `event` 时，运行中的 `task-timer` 不会按秒连续变化，只会在下一个状态事件触发后更新。
 
 ## 配置文件
 
@@ -652,7 +652,7 @@ claude-statusline config set refresh-interval event
 
 ```json
 {
-  "schema_version": 4,
+  "schema_version": 5,
   "items": [
     "model-with-effort",
     "current-dir",
@@ -663,7 +663,7 @@ claude-statusline config set refresh-interval event
     "weekly-limit",
     "spend-limit",
     "tokens",
-    "prompt-timer"
+    "task-timer"
   ],
   "use_colors": true,
   "palette": "default",
@@ -712,11 +712,11 @@ claude-statusline config set refresh-interval event
 
 这是严格 JSON：不接受注释、尾随逗号、未知字段、缺失字段、未知条目或重复条目。建议使用配置命令修改，而不是手工编辑。
 
-上例中的十个条目是默认启用集合，其余 49 个主栏项通过 CLI、向导或编辑器明确选择后才会写入 `items`。
+上例中的十个条目是默认启用集合，其余 50 个主栏项通过 CLI、向导或编辑器明确选择后才会写入 `items`。
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
 
-当前源码显示配置使用 schema v4；历史 v1/v2/v3 可读取，首次实际配置保存时备份并写为 v4。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前源码显示配置使用 schema v5；历史 v1/v2/v3/v4 可读取，首次实际配置保存时备份并写为 v5。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 
@@ -751,13 +751,13 @@ claude-statusline config set refresh-interval event
 
 ### 实时采集偏好
 
-`<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` 使用独立 schema v1：
+`<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` 使用独立 schema v2：
 
 ```json
-{"schema_version": 1, "live_metrics": false}
+{"schema_version": 2, "native_timing": true, "live_metrics": false}
 ```
 
-文件缺失时默认 false。`install --live-metrics`、`install --no-live-metrics` 保存独立于两个编辑器的选择；重装保留偏好，不兼容宿主保留偏好但暂挂采集。详见[启用采集与显示](../USER_GUIDE.zh-CN.md#可选实时状态)。
+文件缺失时原生计时默认开启、高级实时指标默认关闭。`install --native-timing`／`--no-native-timing` 独立控制计时；`install --live-metrics` 开启完整采集，`--no-live-metrics` 保留旧全部关闭语义，明确的计时选项可覆盖计时部分；重装保留偏好，不兼容宿主保留偏好但暂挂采集。详见[启用采集与显示](../USER_GUIDE.zh-CN.md#可选实时状态)。
 
 ### Claude Code 宿主配置
 

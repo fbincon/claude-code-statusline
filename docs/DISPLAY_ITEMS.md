@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The stable v1.6.0 catalog contains 59 main and 14 subagent items. The independent
+The current catalog contains 61 main and 14 subagent items. The independent
 items below are opt-in. Existing defaults and compound IDs remain available,
 and compounds may be selected alongside their individual components in any order.
 See the [user guide](USER_GUIDE.md) for the original items and all configuration entry points.
@@ -11,6 +11,8 @@ See the [user guide](USER_GUIDE.md) for the original items and all configuration
 
 | ID | Example | Definition and source |
 | --- | --- | --- |
+| `task-timer` | `✓ 1m 42s` | Total human-task elapsed, including queueing, owned agents and wrap-up; `prompt-timer` remains an alias. |
+| `task-active-timer` | `Active 1m 30s` | Optional execution time; hidden when native user-wait coverage is incomplete. |
 | `model` | `claude-opus` | `model.id`, falling back to `model.display_name`. |
 | `effort` | `high` | Live `effort.level`; no value when unsupported or absent. |
 | `context-tokens` | `Context 54K / 200K` | Current input plus cache creation/read tokens from `context_window.current_usage`, divided by window capacity. Output tokens are excluded. If the component object is absent, use the official `total_input_tokens`; an explicit null after compaction remains unavailable. |
@@ -79,7 +81,7 @@ Cache fields require Claude Code 2.1.251+. Cache warmth reports local TTL, not a
 - Missing, malformed, negative and non-finite values are unavailable, not zero.
   Observed zero cost, duration or line counts render explicitly. New token counts
   require nonnegative integers and window capacities must be positive.
-- `prompt-timer` measures the latest human task, including agents and final
+- `task-timer` measures the latest human task, including agents and final
   wrap-up. Session runtime and cumulative API duration are separate official
   quantities; adding these items does not alter the timer reducer.
 - Text is sanitized before terminal rendering. Existing palettes, separators,
@@ -94,16 +96,15 @@ documented in [Codex's status-line picker](https://learn.chatgpt.com/docs/develo
 For example, replace the main selection with independent metrics:
 
 ```text
-claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration prompt-timer
+claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
 ```
 
 The shared catalog is returned by CLI listings and JSON `describe`. Both TUI
-editors and the installed wizard consume it. Display schema v4 and JSON protocol
-v3 remain the current contracts; minimum-version metadata describes verified boundaries, not
+editors and the installed wizard consume it. Display schema v5 and JSON protocol
+v4 remain the current contracts; minimum-version metadata describes verified boundaries, not
 whether live data has arrived. Unverified field minima remain unknown.
 
-Older packages do not recognize newly selected IDs even though the schema is
-unchanged. Before downgrading, use the newer package to remove new IDs from both
+Older packages do not recognize newly selected IDs and may not read schema v5. Before downgrading, use the newer package to remove new IDs from both
 scopes or restore a compatible configuration backup. Follow the existing
 [native integration downgrade procedure](USER_GUIDE.md#upgrading) separately.
 
@@ -113,9 +114,9 @@ The five Phase 5 items default unselected. Collection uses the independent `inst
 
 ## Branch base and ended agents
 
-Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1/v2/v3 normalize in memory; actual saves back up and migrate to v4, with configuration protocol v3. Restore an older configuration backup before a package downgrade.
+Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1/v2/v3 normalize in memory; actual saves back up and migrate to v5, with configuration protocol v4. Restore an older configuration backup before a package downgrade.
 
-Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Prompt-timer priorities remain unchanged.
+Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Task timing uses the lifecycle evidence described in [timer contracts](development/timer.md).
 
 ## Request coverage and SDK fallback
 

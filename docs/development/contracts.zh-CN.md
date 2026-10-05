@@ -2,11 +2,11 @@
 
 [English](contracts.md) | **简体中文**
 
-协议 v3 是随包或源码原生前端使用的内部接口。显示配置使用 schema v4，v1/v2/v3 在内存中迁移读取；协议与持久化版本独立演进。稳定 v1.1.1 不提供此接口；v1.2.0 及其预览 wheel 包含匹配的 Mod。
+协议 v4 是随包或源码原生前端使用的内部接口。显示配置使用 schema v5，v1/v2/v3/v4 在内存中迁移读取；协议与持久化版本独立演进。稳定 v1.1.1 不提供此接口；v1.2.0 及其预览 wheel 包含匹配的 Mod。
 
 ## 共享目录
 
-`claude_statusline.config.catalog` 以 `(scope, id)` 定义 59 个主显示项和 14 个子 Agent 项，提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；curses 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
+`claude_statusline.config.catalog` 以 `(scope, id)` 定义 61 个主显示项和 14 个子 Agent 项，提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；curses 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 最低版本只在有证据时声明。子 Agent 的 2.1.205 门槛表示行支持，不保证所有可选字段；effort 需要 2.1.214。缓存指标声明最低 2.1.251；网关金额／周期要求宿主和网关均至少 2.1.284。尚未证实的主字段最低版本使用 `null`/`unknown`，不猜测日期。`not_observed` 表示接口尚未观察实时数据，`unsupported_host` 表示已证实的版本边界，`unknown_host_version` 表示版本检测失败，`source_unavailable` 表示来源无法读取，`condition_not_met` 涵盖非 Git 仓库或未启用 fast mode 等条件。这些是可能原因的定义；打开配置不采集实时字段，也不因尚未观察到数据而禁用选择。
 
@@ -27,7 +27,7 @@
 | `preview` | `{"draft": {...}, "width": 80}` | `sample: true`，以及由可绘制 spans 组成的 `main` 和 `subagents` 行 |
 | `apply` | `{"draft": {...}, "expected_revision": "<read 返回的 revision>"}` | 保存后的读取快照、`changed` 和 `backup_dir`（路径或 `null`） |
 
-`draft` 仅包含 `display`（有效 v3 显示配置）和 `host`（`padding`、`refresh_interval`、`hide_vim_mode_indicator`），每个字段均为必填。JSON 宿主布尔/数值严格校验：padding 为 0–32 的整数，refresh 为 1–3600 的整数或 `"event"`；拒绝 `"off"` 等字符串及小数。读取现有显示 v1 文件时只在内存中规范化，不迁移原文件；预览也接受完整的 v1 显示对象。apply 必须使用 read 返回的完整 v3 草稿，避免旧输入静默覆盖新设置。预览宽度为 2–10000 的整数。
+`draft` 仅包含 `display`（有效 schema v5 显示配置）和 `host`（`padding`、`refresh_interval`、`hide_vim_mode_indicator`），每个字段均为必填。JSON 宿主布尔/数值严格校验：padding 为 0–32 的整数，refresh 为 1–3600 的整数或 `"event"`；拒绝 `"off"` 等字符串及小数。读取现有显示 v1 文件时只在内存中规范化，不迁移原文件；预览也接受完整的 v1 显示对象。apply 必须使用 read 返回的完整 schema v5 草稿，避免旧输入静默覆盖新设置。预览宽度为 2–10000 的整数。
 
 `read` 使用现有安装锁获取一致快照，可能创建运行锁目录；`describe` 不创建配置文件。`preview` 不读取设置、检测宿主、采集 Git/transcript 或写缓存/锁，只使用生产格式和布局及固定样例。尚未观察到的数据不是零。每个 span 包含 `text`、`bold`、`foreground`，后者为 `null`、`{"kind":"rgb","value":"#rrggbb"}` 或 `{"kind":"ansi","value":0..15}`，没有原始 ANSI 转义。返回主行和子 Agent 行；空选择和关闭子 Agent 显示仍返回空行列表。
 
@@ -41,7 +41,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 显式设置的 renderer 绝对路径必须与选定后端匹配；保留 Windows 和旧安装使用的规范 PATH 命令兼容性，解析后的命令身份参与 revision。通过绑定的 console-script 路径调用 JSON 接口时，使用该入口的身份，即使 PATH 中存在另一安装。拒绝外部主或子 Agent renderer，包括其他目录下的同名可执行文件和非 command 类型设置；允许子 Agent renderer 尚未安装。apply 只编辑显示选择和本工具主 renderer 的宿主选项，不安装 renderer、不接管外部归属。
 
-无关设置从最新锁内快照合并；写入失败恢复两个文件的原始内容，并报告回滚失败。首次保存可能创建缺失的显示文件或将 v1/v2 迁移至 v3；持久化配置已经相同时，使用返回的草稿/revision 重复保存不写文件、不创建备份。事务实际改变文件时才返回 `backup_dir`，无需调用模型。
+无关设置从最新锁内快照合并；写入失败恢复两个文件的原始内容，并报告回滚失败。首次保存可能创建缺失的显示文件或将 旧 schema 迁移至 v5；持久化配置已经相同时，使用返回的草稿/revision 重复保存不写文件、不创建备份。事务实际改变文件时才返回 `backup_dir`，无需调用模型。
 
 | 错误码 | 含义与恢复 |
 | --- | --- |
@@ -66,7 +66,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## 结构化格式
 
-协议 v3 返回完整 schema v4 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v4 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v4 返回完整 schema v5 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v5 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ## 草稿传输操作
 
@@ -82,4 +82,4 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## Phase 5 指标迁移
 
-显示 schema v4 新增可空 `metrics.branch_diff_base_ref`；配置协议 v3 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议仍为 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+显示 schema v5 保留可空 `metrics.branch_diff_base_ref`；配置协议 v4 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议为 v2，兼容接收 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。

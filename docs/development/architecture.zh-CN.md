@@ -12,8 +12,11 @@ src/claude_statusline/
   rendering/                        格式、颜色、布局、条目、计时、
                                     主栏/子 Agent 输出及预览
   runtime/                          路径、缓存、registry、transcript、
-                                    usage、Git 与 prompt 生命周期
-    turns/                          纯记录逻辑、加锁存储和 reducer
+                                    usage、Git 与任务生命周期
+    timing/                         不可变暂停／恢复时钟与采样
+    tasks/                          任务归属、生命周期、提交索引、
+                                    原生适配、采集和锁内存储
+    turns/                          转发到 tasks/ 的兼容别名
   integration/                      所有权、能力、资源、安装计划/提交、
                                     doctor、hooks、启动器及结果桥
   ui/                               外部终端编辑器与 JSON 后端
@@ -73,7 +76,7 @@ flowchart LR
 
 ## 持久化
 
-当前显示 schema v4 与 feature schema v1、schema-1 运行镜像及生命周期 schema v3 独立演进，历史显示 v1/v2 在保存前只在内存补齐默认值。可选 `duration_source` 区分冻结的任务时间与满足条件的原生校准。可选的 Agent 历史、续接 prompt 别名和待交付报告，使宿主生成的结果通知仍属于同一人类任务；这些记录有界，不改变配置格式。计时 transcript 扫描版本升级到 5，重新核对旧缓存，不重置累计用量。
+当前显示 schema v5 与 feature schema v1、schema-1 运行镜像及生命周期 schema v4 独立演进，历史显示 v1/v2 在保存前只在内存补齐默认值。可选 `duration_source` 区分冻结的任务时间与历史原生证据；新原生单轮耗时独立保存。可选的 Agent 历史、续接 prompt 别名和待交付报告，使宿主生成的结果通知仍属于同一人类任务；这些记录有界，不改变配置格式。计时 transcript 扫描版本升级到 6，重新核对旧缓存，不重置累计用量。
 
 本地 ROADMAP 与原始验收记录不进入发行包。发布从固定且已验证的提交导出；包检查覆盖全部正式 Python 模块、兼容入口、资源、测试、工具和双语文档。
 
@@ -95,7 +98,7 @@ Usage 状态在既有整数统计旁记录可选的输入／输出观测标记�
 
 ## Phase 4 配置边界
 
-Python `config.formatting`、`advanced`、`presets`、`transfer`、`editor_fields` 分别负责格式规则、纯草稿编辑、预设展开、可移植文件与共享表单描述。显示 schema v4／协议 v3 与编辑器启用偏好、运行镜像及生命周期独立。两种编辑器保存完整草稿并沿用配置服务；旧命令保留新增字段，显式 reset 恢复默认。
+Python `config.formatting`、`advanced`、`presets`、`transfer`、`editor_fields` 分别负责格式规则、纯草稿编辑、预设展开、可移植文件与共享表单描述。显示 schema v5／协议 v4 与编辑器启用偏好、运行镜像及生命周期独立。两种编辑器保存完整草稿并沿用配置服务；旧命令保留新增字段，显式 reset 恢复默认。
 
 curses `ui.forms` 与 Client `lib/client/forms.ts` 从同一描述展开逐项格式、Layout 精简及全局设置。原生 hooks 执行后端／文件操作，`lib/preferences.ts` 管理实际宿主行及支持的控件，Claude API 应用保持独立。生产与样例渲染共用格式／显式布局，Git／transcript 继续按需采集；不增加 Phase 5 运行指标。
 
@@ -105,10 +108,16 @@ curses `ui.forms` 与 Client `lib/client/forms.ts` 从同一描述展开逐项�
 
 ## Phase 5 指标迁移
 
-显示 schema v4 新增可空 `metrics.branch_diff_base_ref`；配置协议 v3 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议仍为 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+显示 schema v4 新增可空 `metrics.branch_diff_base_ref`；配置协议 v3 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议为 v2，兼容 v1 但不声明完整执行覆盖。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 ## 外部编辑器结构（v1.6.1）
 
 `ui.layout` 只计算几何与可见分组窗口，标题与字段共同消耗屏幕行，但标题不参与选择。`ui.forms` 复用 canonical 描述，补齐原有设置和文件操作的稳定 key／分组，并集中排列外部字段；`ui.editor` 与 `ui.keys` 按字段身份分派，绘制只负责终端输出。JSON 描述、内部 Client 排列和配置协议继续兼容，外部展示顺序独立于共享配置定义。
 
 内容与 Preview 使用各自的实际内宽；窗口缩放保留草稿和输入缓冲。测试位于现有 UI／集成测试分层，独立 PTY 工具位于 tools。生产 renderer、安装器、运行观测及兼容入口沿用原有职责。
+
+## 任务时钟结构
+
+正式任务实现位于 `runtime/tasks`：模型、reducer、Agent、原生适配、增量证据、采集及只读视图分别承担独立职责；`runtime/timing` 提供纯逻辑、可序列化时钟。原 `runtime/turns` 模块引用相同正式模块，保留 Python 入口、函数共享身份和原存储位置。
+
+运行采集具有两个独立模式：兼容安装默认启用原生计时，高级指标仍按需启用；两者消费有界、去重元数据。任务结果由正式任务存储决定，高级视图使用明确关联和已核验生命周期证据。格式化不改变任务状态，采集／归并先于格式化。显示 schema 5、配置协议 4、运行协议 2、运行偏好 schema 2 独立演进。
