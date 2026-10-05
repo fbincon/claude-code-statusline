@@ -10,6 +10,7 @@ from claude_statusline.rendering import subagents as rendering_subagents
 from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import models as ui_models
 from claude_statusline.ui import forms
+from claude_statusline.ui import layout as ui_layout
 
 
 _XTERM_BASE_RGB = (
@@ -141,6 +142,13 @@ def _clip_text(text: str, maximum_width: int) -> str:
 def _add_text(screen, y: int, x: int, text: str, width: int, attr: int = 0) -> None:
     if y < 0 or x < 0 or width <= 0:
         return
+    height, columns = screen.getmaxyx()
+    if y >= height or x >= columns:
+        return
+    # Writing the bottom-right cell advances curses beyond the last row.
+    width = min(width, columns - x - int(y == height - 1))
+    if width <= 0:
+        return
     clipped = _clip_text(rendering_layout.ANSI_SGR_RE.sub("", text), width)
     try:
         screen.addstr(y, x, clipped, attr)
@@ -148,10 +156,12 @@ def _add_text(screen, y: int, x: int, text: str, width: int, attr: int = 0) -> N
         pass
 
 
-def _draw_ansi(screen, y: int, text: str, width: int, mapper: _ColorMapper) -> None:
-    x = 0
+def _draw_ansi(
+    screen, y: int, text: str, width: int, mapper: _ColorMapper, x: int = 0
+) -> None:
+    end = x + width
     for unit in rendering_layout._styled_units(text):
-        if unit.width and x + unit.width > width:
+        if unit.width and x + unit.width > end:
             break
         try:
             screen.addstr(y, x, unit.text, mapper.style(unit.style))
@@ -161,12 +171,48 @@ def _draw_ansi(screen, y: int, text: str, width: int, mapper: _ColorMapper) -> N
 
 
 def _layout_dimensions(height: int) -> tuple[int, int, int, int]:
-    available = height - 7
-    preview_height = min(5, max(2, available // 3))
-    content_height = max(1, available - preview_height)
-    separator_y = 4 + content_height
-    preview_start = separator_y + 2
-    return content_height, preview_height, separator_y, preview_start
+    """Compatibility view of the canonical screen geometry."""
+    layout = ui_layout.dimensions(ui_models.MIN_TERMINAL_WIDTH, height)
+    return (
+        layout.list_height,
+        layout.preview.inner_height,
+        layout.preview.y,
+        layout.preview.inner_y,
+    )
+
+
+def _column(text: str, width: int) -> str:
+    text = rendering_layout.ANSI_SGR_RE.sub("", text)
+    if rendering_layout._display_width(text) > width:
+        text = _clip_text(text, max(0, width - 1)) + "…"
+    return text + " " * max(0, width - rendering_layout._display_width(text))
+
+
+def _draw_panel(screen, panel: ui_layout.Panel, title: str, title_attr: int) -> None:
+    if panel.framed:
+        _add_text(
+            screen,
+            panel.y,
+            0,
+            "┌" + "─" * (panel.width - 2) + "┐",
+            panel.width,
+            curses.A_DIM,
+        )
+        _add_text(
+            screen,
+            panel.y + panel.height - 1,
+            0,
+            "└" + "─" * (panel.width - 2) + "┘",
+            panel.width,
+            curses.A_DIM,
+        )
+        for y in range(panel.inner_y, panel.y + panel.height - 1):
+            _add_text(screen, y, 0, "│", 1, curses.A_DIM)
+            _add_text(screen, y, panel.width - 1, "│", 1, curses.A_DIM)
+        _add_text(screen, panel.y, 2, " " + title + " ", panel.width - 4, title_attr)
+    else:
+        _add_text(screen, panel.y, 0, "─" * panel.width, panel.width, curses.A_DIM)
+        _add_text(screen, panel.y, 1, " " + title + " ", panel.width - 2, title_attr)
 
 
 def _draw_tabs(
@@ -175,7 +221,14 @@ def _draw_tabs(
     items = "[ Main ]"
     subagents = "[ Subagents ]"
     settings = "[ Settings ]"
-    _add_text(screen, 2, 0, items, width, active_attr if state.page == "items" else 0)
+    _add_text(
+        screen,
+        2,
+        0,
+        items,
+        width,
+        active_attr if state.page == "items" else curses.A_DIM,
+    )
     offset = rendering_layout._display_width(items) + 2
     _add_text(
         screen,
@@ -183,7 +236,7 @@ def _draw_tabs(
         offset,
         subagents,
         max(0, width - offset),
-        active_attr if state.page == "subagents" else 0,
+        active_attr if state.page == "subagents" else curses.A_DIM,
     )
     offset += rendering_layout._display_width(subagents) + 2
     _add_text(
@@ -192,7 +245,7 @@ def _draw_tabs(
         offset,
         settings,
         max(0, width - offset),
-        active_attr if state.page == "settings" else 0,
+        active_attr if state.page == "settings" else curses.A_DIM,
     )
     offset += rendering_layout._display_width(settings) + 2
     _add_text(
@@ -201,7 +254,7 @@ def _draw_tabs(
         offset,
         "[ Layout ]",
         max(0, width - offset),
-        active_attr if state.page == "layout" else 0,
+        active_attr if state.page == "layout" else curses.A_DIM,
     )
 
 
@@ -211,17 +264,9 @@ def _draw_items(
     start_y: int,
     height: int,
     width: int,
+    x: int = 0,
 ) -> None:
-    visible = state.visible_items()
-    state.ensure_visible(height)
-    if not visible:
-        _add_text(screen, start_y, 0, "No matching items", width, curses.A_DIM)
-        return
-    for row, item in enumerate(visible[state.item_scroll : state.item_scroll + height]):
-        enabled = "x" if item in state.enabled else " "
-        line = f"[{enabled}] {item}  {config_display.ITEM_CATALOG[item]}"
-        attr = curses.A_REVERSE if item == state.selected_item else 0
-        _add_text(screen, start_y + row, 0, line, width, attr)
+    _draw_item_rows(screen, state, start_y, height, width, x, "main")
 
 
 def _draw_subagent_items(
@@ -230,19 +275,39 @@ def _draw_subagent_items(
     start_y: int,
     height: int,
     width: int,
+    x: int = 0,
 ) -> None:
-    visible = state.visible_subagent_items()
+    _draw_item_rows(screen, state, start_y, height, width, x, "subagent")
+
+
+def _item_column(width: int) -> int:
+    return min(30, max(18, width // 3))
+
+
+def _draw_item_rows(screen, state, start_y, height, width, x, scope) -> None:
+    subagents = scope == "subagent"
+    visible = state.visible_subagent_items() if subagents else state.visible_items()
     state.ensure_visible(height)
     if not visible:
-        _add_text(screen, start_y, 0, "No matching items", width, curses.A_DIM)
+        _add_text(screen, start_y, x, "No matching items", width, curses.A_DIM)
         return
-    for row, item in enumerate(
-        visible[state.subagent_scroll : state.subagent_scroll + height]
-    ):
-        enabled = "x" if item in state.subagent_enabled else " "
-        line = f"[{enabled}] {item}  {config_display.SUBAGENT_ITEM_CATALOG[item]}"
-        attr = curses.A_REVERSE if item == state.selected_subagent_item else 0
-        _add_text(screen, start_y + row, 0, line, width, attr)
+    scroll = state.subagent_scroll if subagents else state.item_scroll
+    selected = state.selected_subagent_item if subagents else state.selected_item
+    enabled = state.subagent_enabled if subagents else state.enabled
+    descriptions = (
+        config_display.SUBAGENT_ITEM_CATALOG
+        if subagents
+        else config_display.ITEM_CATALOG
+    )
+    for row, item in enumerate(visible[scroll : scroll + height]):
+        line = (
+            f"{'›' if item == selected else ' '} [{'x' if item in enabled else ' '}] "
+            + _column(item, _item_column(width))
+            + "  "
+            + descriptions[item]
+        )
+        attr = curses.A_REVERSE if item == selected else 0
+        _add_text(screen, start_y + row, x, _column(line, width), width, attr)
 
 
 def _draw_settings(
@@ -251,11 +316,25 @@ def _draw_settings(
     start_y: int,
     height: int,
     width: int,
+    x: int = 0,
+    title_attr: int = curses.A_BOLD,
 ) -> None:
     state.ensure_visible(height)
     rows = forms.rows(state)
     scroll = state.form_scroll if forms.special(state) else state.settings_scroll
-    for offset, row in enumerate(rows[scroll : scroll + height]):
+    window = ui_layout.form_window(rows, forms.index(state), scroll, height)
+    label_width = min(
+        44,
+        max(24, width // 2),
+        max(rendering_layout._display_width(row["label"]) + 1 for row in rows),
+    )
+    for offset, line in enumerate(window.lines):
+        if line.index is None:
+            heading = "─ " + line.group + " "
+            heading += "─" * max(0, width - rendering_layout._display_width(heading))
+            _add_text(screen, start_y + offset, x, heading, width, title_attr)
+            continue
+        row = rows[line.index]
         editing = state.form_input and state.form_input["row"]["key"] == row["key"]
         value = (
             state.form_input["buffer"] + " _" if editing else forms.shown(row["value"])
@@ -263,10 +342,16 @@ def _draw_settings(
         _add_text(
             screen,
             start_y + offset,
-            0,
-            row["label"] + ": " + value,
+            x,
+            _column(
+                ("› " if line.index == forms.index(state) else "  ")
+                + _column(row["label"] + ":", label_width)
+                + "  "
+                + value,
+                width,
+            ),
             width,
-            curses.A_REVERSE if scroll + offset == forms.index(state) else 0,
+            curses.A_REVERSE if line.index == forms.index(state) else 0,
         )
 
 
@@ -277,6 +362,7 @@ def _draw_preview(
     height: int,
     width: int,
     mapper: _ColorMapper,
+    x: int = 0,
 ) -> None:
     if state.page == "subagents":
         rows = rendering_subagents.preview_rows(state.display, width)
@@ -285,7 +371,7 @@ def _draw_preview(
             state.display, width, state.host.padding
         )
     if not rows:
-        _add_text(screen, start_y, 0, "(no enabled items)", width, curses.A_DIM)
+        _add_text(screen, start_y, x, "(no enabled items)", width, curses.A_DIM)
         return
     if len(rows) > height:
         visible = rows[: height - 1]
@@ -294,7 +380,7 @@ def _draw_preview(
     else:
         visible = rows
     for offset, row in enumerate(visible):
-        _draw_ansi(screen, start_y + offset, row, width, mapper)
+        _draw_ansi(screen, start_y + offset, row, width, mapper, x)
 
 
 def _draw_small_terminal(screen, height: int, width: int) -> None:
@@ -321,14 +407,19 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         screen.refresh()
         return 1
 
-    content_height, preview_height, separator_y, preview_start = _layout_dimensions(
-        height
-    )
-    state.ensure_visible(content_height)
+    layout = ui_layout.dimensions(width, height)
+    panel = layout.content
+    state.ensure_visible(layout.list_height)
     chrome_color = nearest_terminal_color(142, 211, 211, mapper.colors)
     title_attr = curses.A_BOLD | mapper.foreground(chrome_color)
-    active_attr = curses.A_REVERSE | curses.A_BOLD
-    _add_text(screen, 0, 0, "Configure Status Line", width, title_attr)
+    _add_text(
+        screen,
+        0,
+        0,
+        "Configure Status Line" + (" *" if state.modified else ""),
+        width,
+        title_attr,
+    )
     description = (
         "Edit item format: " + state.form_item[1]
         if state.form_item
@@ -340,70 +431,153 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         if state.page == "subagents"
         else "Adjust display and tool refresh settings"
     )
-    if state.modified:
-        description += " (modified)"
     _add_text(screen, 1, 0, description, width, curses.A_DIM)
-    _draw_tabs(screen, state, width, active_attr)
-    if forms.special(state):
-        _add_text(
-            screen,
-            3,
-            0,
-            state.notice
-            or (
-                "Item format (Ctrl+G back)"
-                if state.form_item
-                else "Explicit rows / priority / width"
-            ),
-            width,
-        )
-        _draw_settings(screen, state, 4, content_height, width)
-    elif state.page == "items":
-        _add_text(screen, 3, 0, f"Type to search > {state.search}", width)
-        _draw_items(screen, state, 4, content_height, width)
-    elif state.page == "subagents":
-        _add_text(
-            screen,
-            3,
-            0,
-            f"Type to search > {state.subagent_search}",
-            width,
-        )
-        _draw_subagent_items(screen, state, 4, content_height, width)
-    else:
-        _add_text(
-            screen,
-            3,
-            0,
-            state.notice
-            or (state.numeric_edit.error if state.numeric_edit else "")
-            or "Use arrows to change values; Enter edits new fields. Ctrl+S saves.",
-            width,
-        )
-        _draw_settings(screen, state, 4, content_height, width)
+    _draw_tabs(screen, state, width, curses.A_REVERSE | curses.A_BOLD)
+    error = state.notice or (state.numeric_edit.error if state.numeric_edit else "")
+    notice = error or (
+        "Item format (Ctrl+G back)"
+        if state.form_item
+        else "Explicit rows / priority / width"
+        if state.page == "layout"
+        else "Use arrows to change values; Enter edits new fields."
+        if state.page == "settings"
+        else "Type to search > "
+        + (state.subagent_search if state.page == "subagents" else state.search)
+    )
+    _add_text(screen, 3, 0, notice, width, curses.A_BOLD if error else curses.A_DIM)
 
-    _add_text(screen, separator_y, 0, "─" * width, width, curses.A_DIM)
-    _add_text(screen, separator_y + 1, 0, "Preview (sample data)", width, title_attr)
-    _draw_preview(screen, state, preview_start, preview_height, width, mapper)
+    is_form = forms.special(state) or state.page == "settings"
+    title = (
+        "Item format / " + state.form_item[0] + ": " + state.form_item[1]
+        if state.form_item
+        else "Layout / rows and fitting"
+        if state.page == "layout"
+        else "Settings / global options"
+        if state.page == "settings"
+        else "Subagent items"
+        if state.page == "subagents"
+        else "Main items"
+    )
+    _draw_panel(screen, panel, title, title_attr)
+    if is_form:
+        rows = forms.rows(state)
+        label_width = min(
+            44,
+            max(24, panel.inner_width // 2),
+            max(rendering_layout._display_width(row["label"]) + 1 for row in rows),
+        )
+        heading = "  " + _column("OPTION", label_width) + "  VALUE"
+        _add_text(
+            screen,
+            panel.inner_y,
+            panel.inner_x,
+            heading,
+            panel.inner_width,
+            curses.A_DIM | curses.A_BOLD,
+        )
+        _draw_settings(
+            screen,
+            state,
+            panel.inner_y + 1,
+            layout.list_height,
+            panel.inner_width,
+            panel.inner_x,
+            title_attr,
+        )
+        scroll = state.form_scroll if forms.special(state) else state.settings_scroll
+        window = ui_layout.form_window(
+            rows, forms.index(state), scroll, layout.list_height
+        )
+        position = f"Fields {window.start + 1}-{window.end}/{len(rows)} · ↑↓ select"
+    else:
+        heading = (
+            "  ON  "
+            + _column("ITEM", _item_column(panel.inner_width))
+            + "  DESCRIPTION"
+        )
+        _add_text(
+            screen,
+            panel.inner_y,
+            panel.inner_x,
+            heading,
+            panel.inner_width,
+            curses.A_DIM | curses.A_BOLD,
+        )
+        if state.page == "subagents":
+            _draw_subagent_items(
+                screen,
+                state,
+                panel.inner_y + 1,
+                layout.list_height,
+                panel.inner_width,
+                panel.inner_x,
+            )
+            visible, scroll, enabled = (
+                state.visible_subagent_items(),
+                state.subagent_scroll,
+                state.subagent_enabled,
+            )
+        else:
+            _draw_items(
+                screen,
+                state,
+                panel.inner_y + 1,
+                layout.list_height,
+                panel.inner_width,
+                panel.inner_x,
+            )
+            visible, scroll, enabled = (
+                state.visible_items(),
+                state.item_scroll,
+                state.enabled,
+            )
+        position = f"Items {scroll + 1 if visible else 0}-{min(len(visible), scroll + layout.list_height)}/{len(visible)} · {len(enabled)} enabled"
+    _add_text(
+        screen,
+        panel.inner_y + panel.inner_height - 1,
+        panel.inner_x,
+        position,
+        panel.inner_width,
+        curses.A_DIM,
+    )
+
+    preview = layout.preview
+    _draw_panel(screen, preview, "Preview (sample data)", title_attr)
+    _draw_preview(
+        screen,
+        state,
+        preview.inner_y,
+        preview.inner_height,
+        preview.inner_width,
+        mapper,
+        preview.inner_x,
+    )
 
     if state.form_input is not None:
-        help_text = "Enter accept  Ctrl+U clear  Ctrl+G restore  Esc restore"
-    elif state.form_item:
-        help_text = (
-            "Arrows select/adjust  Enter edit  Ctrl+G back  Ctrl+S save  Esc cancel"
-        )
-    elif state.page == "layout":
-        help_text = (
-            "Arrows select/adjust  Enter edit  Tab page  Ctrl+S save  Esc cancel"
-        )
+        actions = "Enter accept · Ctrl+G/Esc restore"
+        help_text = "Ctrl+U clear · Backspace delete"
     elif state.numeric_edit is not None:
-        help_text = "Digits edit  Backspace delete  Enter accept  Esc restore"
-    elif state.page in ("items", "subagents"):
-        help_text = "Space toggle  Ctrl+E format  Arrows select/order  Tab page  Enter save  Esc cancel"
+        actions = "Enter accept · Esc restore"
+        help_text = "Digits edit · Backspace delete"
     else:
-        help_text = (
-            "↑↓ select  ←→ adjust  Enter edit/save  Ctrl+S save  Tab page  Esc cancel"
-        )
-    _add_text(screen, height - 1, 0, help_text, width, curses.A_REVERSE)
+        actions = "Ctrl+S save · Esc cancel · Ctrl+C interrupt"
+        if state.form_item:
+            help_text = "↑↓ select · ←→ adjust · Enter edit · Ctrl+G back"
+        elif state.page == "layout":
+            help_text = "Tab page · ↑↓ select · ←→ adjust · Enter edit"
+        elif state.page == "settings":
+            help_text = "Tab page · ↑↓ select · ←→ adjust · Enter edit/save"
+        else:
+            actions = "Enter/Ctrl+S save · Esc cancel · Ctrl+C interrupt"
+            help_text = "Tab page · Space toggle · Ctrl+E format · Arrows select/order"
+    _add_text(
+        screen,
+        layout.actions_y,
+        0,
+        _column(actions, width),
+        width,
+        curses.A_REVERSE | curses.A_BOLD,
+    )
+    _add_text(screen, layout.help_y, 0, help_text, width, curses.A_DIM)
     screen.refresh()
-    return content_height
+    return layout.list_height

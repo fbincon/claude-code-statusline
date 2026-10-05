@@ -26,6 +26,19 @@ SETTING_NAMES = (
     "Custom subagent rows",
 )
 
+# Stable identities retain the original value-tuple order for compatibility.
+SETTING_KEYS = (
+    "colors",
+    "palette",
+    "directory-style",
+    "separator-style",
+    "padding",
+    "refresh_interval",
+    "vim-indicator",
+    "scope-labels",
+    "custom-subagent-rows",
+)
+
 
 SAVE = "save"
 

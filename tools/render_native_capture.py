@@ -1,4 +1,4 @@
-"""Render real decoded terminal cells as a cropped native-pane PNG.
+"""Render real decoded terminal cells as a cropped editor-region PNG.
 
 This is a reconstruction of captured terminal output, not an OS screenshot or
 an invented UI. Requires Pillow and the supplied fonts, only for documentation.
@@ -30,6 +30,7 @@ def main() -> int:
         default=Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
     )
     parser.add_argument("--commit", required=True)
+    parser.add_argument("--surface", choices=("native", "external"), default="native")
     parser.add_argument(
         "--bounds",
         nargs=4,
@@ -148,7 +149,9 @@ def main() -> int:
     metadata = PngInfo()
     metadata.add_text(
         "source",
-        "Decoded cells of a real Claude Code terminal session; cropped to the native pane",
+        "Decoded cells of a real Claude Code terminal session; cropped to the native pane"
+        if args.surface == "native"
+        else "Decoded cells of a real external curses TUI terminal; fixed sample preview",
     )
     metadata.add_text("commit", args.commit)
     metadata.add_text("capture_sha256", hashlib.sha256(raw).hexdigest())

@@ -24,6 +24,8 @@ import shlex
 import time
 
 from claude_statusline.ui.contracts import PROTOCOL_VERSION
+from claude_statusline.ui import editor, forms
+from claude_statusline.config import display, models
 
 
 def prepare(
@@ -422,7 +424,25 @@ def run_pty(
                 os.write(master, b"\r\x15" + value.encode("utf-8") + b"\r")
                 read_until(observed)
 
-            def external_setting(index, label):
+            def external_setting(key, label, draft=None):
+                config_value = (
+                    display.load_display_config(config)
+                    if draft is None
+                    else display.validate_display_config(draft)
+                )
+                state = editor.EditorState.from_effective(
+                    models.EffectiveConfig(
+                        config_value, models.HostConfig(), True, display_path
+                    )
+                )
+                state.page = (
+                    "layout"
+                    if key.startswith(("fit:", "break:")) or key == "layout-mode"
+                    else "settings"
+                )
+                index = next(
+                    i for i, row in enumerate(forms.rows(state)) if row["key"] == key
+                )
                 os.write(master, b"\x1b[H" + b"\x1b[B" * index)
                 read_until(label, quiet=False)
 
@@ -542,14 +562,14 @@ def run_pty(
             read_until("Configure Status Line", quiet=False)
             os.write(master, b"\t\t")
             read_until("Use arrows to change values", quiet=False)
-            external_setting(preset_index, "Preset:")
+            external_setting("preset-select", "Preset:")
             os.write(master, b"\x1b[C\x1b[C")
             read_until("Preset: monitoring", quiet=False)
-            external_setting(preset_index + 1, "Expand selected preset")
+            external_setting("preset-apply", "Expand selected preset")
             os.write(master, b"\r")
             read_until("Preset expanded", quiet=False)
             external_portable = project / f"external-{columns} 中文.json"
-            external_setting(preset_index + 3, "Export current draft")
+            external_setting("export-file", "Export current draft")
             external_value(external_portable.name, "Exported current draft")
             assert display_path.read_bytes() == saved_advanced
             assert (
@@ -568,13 +588,22 @@ def run_pty(
             read_until("Configure Status Line", quiet=False)
             os.write(master, b"\t\t")
             read_until("Use arrows to change values", quiet=False)
-            external_setting(preset_index + 2, "Import file")
+            external_setting("import-file", "Import file")
             external_value(external_portable.name, "Draft imported")
             os.write(master, b"\t")
             read_until("Set explicit rows", quiet=False)
-            external_setting(1, "context-used Priority:")
+            imported_display = json.loads(external_portable.read_bytes())["draft"][
+                "display"
+            ]
+            external_setting(
+                "fit:context-used:priority", "context-used Priority:", imported_display
+            )
             external_value("100", "context-used Priority: 100")
-            external_setting(2, "context-used Maximum width:")
+            external_setting(
+                "fit:context-used:max_width",
+                "context-used Maximum width:",
+                imported_display,
+            )
             external_value("12", "context-used Maximum width: 12")
             capture("advanced-external-layout")
             os.write(master, b"\x13")

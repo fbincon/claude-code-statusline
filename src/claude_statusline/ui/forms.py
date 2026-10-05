@@ -4,6 +4,32 @@ from claude_statusline.config import advanced, editor_fields, presets, catalog
 from claude_statusline.ui import models
 
 
+SETTINGS_GROUPS = (
+    "Appearance",
+    "Refresh / behavior",
+    "Git metrics",
+    "Formatting",
+    "Risk colors",
+    "Subagent visibility",
+    "Presets / portable files",
+)
+APPEARANCE_KEYS = {
+    "colors",
+    "palette",
+    "directory-style",
+    "separator-style",
+    "scope-labels",
+}
+FITTING_FIELDS = tuple(
+    spec for spec in editor_fields.ITEM if spec["key"] in ("priority", "max_width")
+)
+
+
+def _grouped(rows, groups):
+    order = {group: index for index, group in enumerate(groups)}
+    return sorted(rows, key=lambda row: order[row["group"]])
+
+
 def special(state):
     return state.form_item is not None or state.page == "layout"
 
@@ -24,14 +50,17 @@ def rows(state):
     config = state.display
     if state.form_item:
         scope, item = state.form_item
-        return [
-            {
-                **spec,
-                "key": "item:" + spec["key"],
-                "value": editor_fields.value(config, spec["key"], scope, item),
-            }
-            for spec in editor_fields.ITEM
-        ]
+        return _grouped(
+            [
+                {
+                    **spec,
+                    "key": "item:" + spec["key"],
+                    "value": editor_fields.value(config, spec["key"], scope, item),
+                }
+                for spec in editor_fields.ITEM
+            ],
+            ("Item format", "Item fitting"),
+        )
     if state.page == "layout":
         result = [
             {
@@ -42,20 +71,20 @@ def rows(state):
             }
         ]
         starts = {row[0] for row in config.layout.rows[1:]}
+        for item in config.items[1:]:
+            result.append(
+                {
+                    **editor_fields.field(
+                        "break:" + item,
+                        "New row before " + item,
+                        "Row boundaries",
+                        "boolean",
+                    ),
+                    "value": item in starts,
+                }
+            )
         for item in config.items:
-            if item != config.items[0]:
-                result.append(
-                    {
-                        **editor_fields.field(
-                            "break:" + item,
-                            "New row before " + item,
-                            "Row boundaries",
-                            "boolean",
-                        ),
-                        "value": item in starts,
-                    }
-                )
-            for spec in editor_fields.ITEM[2:4]:
+            for spec in FITTING_FIELDS:
                 result.append(
                     {
                         **spec,
@@ -66,9 +95,15 @@ def rows(state):
                 )
         return result
     result = [
-        {"key": "legacy:" + str(i), "label": name, "value": value, "kind": "legacy"}
-        for i, (name, value) in enumerate(
-            zip(models.SETTING_NAMES, state.setting_values())
+        {
+            "key": key,
+            "label": name,
+            "value": value,
+            "kind": "legacy",
+            "group": "Appearance" if key in APPEARANCE_KEYS else "Refresh / behavior",
+        }
+        for key, name, value in zip(
+            models.SETTING_KEYS, models.SETTING_NAMES, state.setting_values()
         )
     ]
     result.extend(
@@ -83,7 +118,10 @@ def rows(state):
         [
             {
                 **editor_fields.field(
-                    "preset-select", "Preset", "Portable files", choices=presets.ROWS
+                    "preset-select",
+                    "Preset",
+                    "Presets / portable files",
+                    choices=presets.ROWS,
                 ),
                 "value": state.preset,
             },
@@ -91,23 +129,26 @@ def rows(state):
                 "key": "preset-apply",
                 "label": "Expand selected preset",
                 "kind": "action",
+                "group": "Presets / portable files",
                 "value": "Enter: replace draft",
             },
             {
                 "key": "import-file",
                 "label": "Import file",
                 "kind": "action",
+                "group": "Presets / portable files",
                 "value": "Enter path; save later",
             },
             {
                 "key": "export-file",
                 "label": "Export current draft",
                 "kind": "action",
+                "group": "Presets / portable files",
                 "value": "Enter new path (may be unsaved)",
             },
         ]
     )
-    return result
+    return _grouped(result, SETTINGS_GROUPS)
 
 
 def index(state):

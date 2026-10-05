@@ -9,6 +9,7 @@ from claude_statusline.ui import drawing as ui_drawing
 from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import keys as ui_keys
 from claude_statusline.ui import models as ui_models
+from claude_statusline.ui import forms
 from claude_statusline.ui import session as ui_session
 
 import io
@@ -203,6 +204,11 @@ class ItemStateTests(unittest.TestCase):
 
 
 class SettingStateTests(unittest.TestCase):
+    def select(self, state, key):
+        state.setting_index = next(
+            i for i, row in enumerate(forms.rows(state)) if row["key"] == key
+        )
+
     def state(self, **kwargs):
         result = ui_editor.EditorState.from_effective(effective(**kwargs))
         result.page = "settings"
@@ -210,50 +216,50 @@ class SettingStateTests(unittest.TestCase):
 
     def test_booleans_and_all_enumerations_cycle(self):
         state = self.state()
-        state.setting_index = 0
+        self.select(state, "colors")
         self.assertTrue(state.toggle_setting())
         self.assertFalse(state.display.use_colors)
         self.assertTrue(state.adjust_setting(-1))
         self.assertTrue(state.display.use_colors)
 
-        for index, field, choices in (
-            (1, "palette", config_display.PALETTES),
-            (2, "directory_style", config_display.DIRECTORY_STYLES),
-            (3, "separator_style", config_display.SEPARATOR_STYLES),
+        for key, field, choices in (
+            ("palette", "palette", config_display.PALETTES),
+            ("directory-style", "directory_style", config_display.DIRECTORY_STYLES),
+            ("separator-style", "separator_style", config_display.SEPARATOR_STYLES),
         ):
-            state.setting_index = index
+            self.select(state, key)
             original = getattr(state.display, field)
             state.adjust_setting(-1)
             self.assertEqual(getattr(state.display, field), choices[-1])
             state.adjust_setting(1)
             self.assertEqual(getattr(state.display, field), original)
 
-        state.setting_index = 6
+        self.select(state, "vim-indicator")
         state.toggle_setting()
         self.assertTrue(state.host.hide_vim_mode_indicator)
         self.assertEqual(state.setting_values()[6], "hide")
 
-        state.setting_index = 7
+        self.select(state, "scope-labels")
         state.adjust_setting(-1)
         self.assertEqual(state.display.scope_labels, "off")
         state.adjust_setting(1)
         self.assertEqual(state.display.scope_labels, "when-subagents")
 
-        state.setting_index = 8
+        self.select(state, "custom-subagent-rows")
         state.toggle_setting()
         self.assertFalse(state.display.subagents.enabled)
         self.assertEqual(state.setting_values()[8], "off")
 
     def test_padding_clamps_and_refresh_custom_value_joins_cycle(self):
         state = self.state(host=config_models.HostConfig(0, 7, False))
-        state.setting_index = 4
+        self.select(state, "padding")
         state.adjust_setting(-1)
         self.assertEqual(state.host.padding, 0)
         state.host = config_models.HostConfig(32, 7, False)
         state.adjust_setting(1)
         self.assertEqual(state.host.padding, 32)
 
-        state.setting_index = 5
+        self.select(state, "refresh_interval")
         self.assertEqual(
             state.refresh_choices(),
             (None, 1, 2, 5, 7, 10, 30, 60, 300, 600, 3600),
@@ -267,7 +273,7 @@ class SettingStateTests(unittest.TestCase):
 
     def test_numeric_edit_accept_error_backspace_and_escape_restore(self):
         state = self.state(host=config_models.HostConfig(4, 7, False))
-        state.setting_index = 4
+        self.select(state, "padding")
         self.assertTrue(state.input_digit("3"))
         self.assertEqual(state.host.padding, 3)
         self.assertTrue(state.input_digit("3"))
@@ -284,7 +290,7 @@ class SettingStateTests(unittest.TestCase):
         self.assertTrue(state.cancel_numeric())
         self.assertEqual(state.host.padding, 3)
 
-        state.setting_index = 5
+        self.select(state, "refresh_interval")
         state.input_digit("0")
         self.assertIn("1 through 3600", state.numeric_edit.error)
         self.assertFalse(state.accept_numeric())
@@ -293,7 +299,7 @@ class SettingStateTests(unittest.TestCase):
 
     def test_numeric_edit_blocks_tabs_and_needs_second_enter_to_save(self):
         state = self.state()
-        state.setting_index = 4
+        self.select(state, "padding")
         state.input_digit("2")
         self.assertIsNone(ui_keys.handle_key(state, "\t", 8))
         self.assertEqual(state.page, "settings")
@@ -340,7 +346,12 @@ class SaveAndRunTests(unittest.TestCase):
             subagent_items=list(config_display.DEFAULT_SUBAGENT_ITEMS),
             subagent_statusline="on",
             scope_labels="when-subagents",
-            display_draft=state.display.with_updates(items=state.final_items(), subagents=state.display.subagents.with_updates(items=state.final_subagent_items())),
+            display_draft=state.display.with_updates(
+                items=state.final_items(),
+                subagents=state.display.subagents.with_updates(
+                    items=state.final_subagent_items()
+                ),
+            ),
             expected=state.baseline,
             before_commit=None,
         )

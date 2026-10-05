@@ -1,6 +1,6 @@
 {
   "name": "statusline-runtime",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Opt-in live statusline observations, independent from the editor",
   "author": {
     "name": "fbincon"
