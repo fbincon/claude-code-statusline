@@ -147,3 +147,9 @@ Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration pr
 ## Real Phase 5 acceptance
 
 Use `tools/live_metrics_acceptance.py --root dist/validation/phase5/CASE --case single|single-agent|parallel --budget-ledger dist/validation/phase5/budget.json --run-real-calls`. The existing ledger must authorize exactly USD 10 and all attempts/retries share its locked reservations. Unknown cost retains the full cap. Omitting --run-real-calls revalidates captured records without model calls. Do not create a new ledger to reset spending. The harness isolates config, limits tools to Agent and sleep, checks real request sums/latest timing, main wrap-up and repeated frozen agent rendering, and leaves exporters unchanged. Headless checks do not establish human or Windows/macOS session interaction acceptance.
+
+## v1.6.0 stable acceptance
+
+On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Exact OS, architecture, terminal and host versions were not supplied. This is the new Phase 5 acceptance record, separate from historical editor confirmation and automated/headless/PTY evidence. The existing macOS Client input limitation remains documented. Stable v1.6.0 retains the accepted runtime implementation, display schema v4, configuration protocol v3 and runtime protocol v1. Editor entries default on for compatible hosts, preserving explicit false; live collection remains independently opt-in and preserves its preference.
+
+Promotion rechecks stable defaults, a1 upgrade preference preservation, both Mod/backend version bindings, all platform CI and installed distributions/PTYs. Captured single-agent/parallel/main-wrap observations can be revalidated without model calls. This version/default-only change does not reset the original USD 10 ledger or repeat the paid suite.

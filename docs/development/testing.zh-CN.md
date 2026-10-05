@@ -149,3 +149,9 @@ Linux x86_64／Python 3.14.4、隔离的热字节码各 50 次采样：基线 `0
 ## Phase 5 真实验收
 
 使用 `tools/live_metrics_acceptance.py --root dist/validation/phase5/CASE --case single|single-agent|parallel --budget-ledger dist/validation/phase5/budget.json --run-real-calls`。既有 ledger 必须明确授权 10 美元，全部尝试和重试共享加锁预留；费用未知保留整次额度。省略 --run-real-calls 可免费重验记录；不得新建账本重置支出。工具隔离配置，仅允许 Agent 与 sleep，验证真实请求汇总、最新请求时长、主线程收尾和多次冻结代理渲染，保持遥测导出设置。Headless 检查不代表人工或 Windows/macOS 会话交互验收。
+
+## v1.6.0 正式版验收
+
+2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。
+
+晋升重验正式默认行为、a1 升级偏好保留、两 Mod／后端版本绑定、全部平台 CI 及已安装分发包／PTY。单代理／并行／主线程收尾捕获记录可免费重验；本次仅版本／默认行为变更，不重置原有 10 美元账本，也不重复付费套件。

@@ -4,7 +4,7 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.5.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.6.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,11 +12,11 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-Stable v1.5.0 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
+Stable v1.6.0 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
-Phase 4 candidates require all 13 Python/build and five fixed Mod jobs (Linux 2.1.287/2.1.288/2.1.289, Windows/macOS 2.1.288) on the PR, merge commit and tag. Check stable defaults, persistent disablement, version thresholds, upgrade/downgrade, all four combinations and independent disablement. Core smoke explicitly selects basic integration; native smoke checks actual marketplaces, backend binding, saves and uninstall. An installed wheel must also pass real Linux PTYs with both entries.
+Phase 5 candidates require all 13 Python/build and seven fixed Mod jobs (Linux 2.1.287/2.1.288/2.1.289, Windows/macOS 2.1.288/2.1.289) on the PR, merge commit and tag. Check stable defaults, persistent disablement, version thresholds, upgrade/downgrade, all four combinations and independent disablement. Core smoke explicitly selects basic integration; native smoke checks actual marketplaces, backend binding, saves and uninstall. An installed wheel must also pass real Linux PTYs with both entries.
 
 Build from the verified merge commit, inspect wheel/sdist/resource inventories and independent rebuilds, verify fixed-tag installation, draft assets and SHA256, require tag CI, then publish stable as Latest and check public downloads/isolated installs. The sole Mod source supplies runtime assets; exclude dependencies, host declarations and raw reports. Raw evidence stays in ignored dist/validation. Before a Python package downgrade, remove native with the newer package's `install --no-native-editor`.
 
@@ -48,7 +48,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.5.0
+RELEASE_TAG=v1.6.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -66,8 +66,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-claude_code_statusline-1.5.0-py3-none-any.whl
-claude_code_statusline-1.5.0.tar.gz
+claude_code_statusline-1.6.0-py3-none-any.whl
+claude_code_statusline-1.6.0.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -90,8 +90,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.5.0-py3-none-any.whl \
-  claude_code_statusline-1.5.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.6.0-py3-none-any.whl \
+  claude_code_statusline-1.6.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -100,8 +100,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.5.0-py3-none-any.whl',
-    'claude_code_statusline-1.5.0.tar.gz'
+    'claude_code_statusline-1.6.0-py3-none-any.whl',
+    'claude_code_statusline-1.6.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -115,14 +115,14 @@ Use SHA-256, lowercase hexadecimal digests, two spaces, and filenames without di
 
 ## Create a tag and draft Release
 
-Confirm all 13 Python/build and five Mod CI jobs pass for Phase 4 for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
+Confirm all 13 Python/build and seven Mod CI jobs pass for Phase 5 for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
 
 ```bash
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.5.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.5.0.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.6.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.6.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -177,3 +177,5 @@ Require all 18 jobs (13 Python/build, five fixed Mod) on the PR, merge commit an
 Publish v1.6.0a1 as prerelease with latest=false after all 20 jobs (13 Python/build and 7 fixed Mod jobs) pass on PR, merge and tag. Build from the fixed verified merge, inspect both Mod inventories, independently rebuild/install wheel and sdist, verify 120x30/80x48 installed-wheel PTYs, draft assets/SHA256 and public URL installs. Keep the original shared USD 10 ledger for every real model probe/retry, reserve unknown costs at the call cap, and stop when exhausted. Require reliable single/parallel/main-wrap request and frozen-duration evidence.
 
 Both preview and stable keep live collection off unless independently requested. Promote to v1.6.0 only after affected real runtime session/platform acceptance is recorded, retaining known conditional metric availability and the macOS Client input limitation. Do not reuse historical editor human acceptance as evidence for new runtime collection; when missing, keep the complete preview and state the gap. Stable promotion uses a separate reviewed PR and verified fixed release assets.
+
+On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS, authorizing stable promotion. Exact OS, architecture, terminal and host versions were not supplied. Promote Python and both Mods to 1.6.0; stable editor defaults apply while recorded false and independent live-metrics choices persist. Display v4/configuration protocol v3/runtime protocol v1 retain the accepted a1 implementation. This version/default promotion requires upgrade/default checks, all 20 PR/merge/tag jobs, fixed-merge artifacts, independent rebuild/install, installed-wheel PTYs and draft/public verification; it does not require repeating paid model calls. Revalidate captured runtime records without calls and preserve the original budget ledger. Publish a new stable Latest release, retaining the a1 tag/assets/prerelease status and known macOS Client input limitation. Record Phase 5 completion only after public stable verification.

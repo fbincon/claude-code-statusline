@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 1.6.0 - 2026-10-05
+
+- Promote the accepted Phase 5 preview after the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Unprovided OS/architecture/terminal/host metadata remains unknown; retain the known macOS Client input limitation.
+- Synchronize Python and both Mods at 1.6.0 and update current installation/upgrade links. Stable editor defaults enable compatible entries, preserving explicit false; live collection remains independently opt-in and preserves recorded preferences.
+- Retain the eleven opt-in items, committed branch comparison, frozen ended-agent durations and accepted runtime implementation. Display schema v4, configuration protocol v3 and runtime protocol v1 are unchanged from a1; older display files migrate only on save. Preserve preview tags/assets/release type and capture provenance.
+- Require all 20 PR/merge/tag jobs, fixed-merge wheel/sdist inspection and independent rebuild/install, installed-wheel PTYs, draft/public SHA256 and isolated URL installations before stable delivery. Revalidate captured runtime records without new paid calls or resetting the original ledger.
+
 ## 1.6.0a1 - 2026-10-05
 
 - Add an independently owned, opt-in live-metrics Mod for fixed Claude Code 2.1.289 hosts, separate from editor enablement.
