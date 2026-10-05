@@ -131,6 +131,11 @@ class NewItemCatalogTests(unittest.TestCase):
                 "active-agents",
                 "task-progress",
                 "last-tool",
+                "ttft",
+                "output-rate",
+                "prompt-input-tokens",
+                "prompt-output-tokens",
+                "prompt-cost",
             ],
         )
 

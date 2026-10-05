@@ -44,6 +44,7 @@ def diagnostics(config_dir, executable, version):
         for row in native.diagnostics(config_dir, executable, version, spec=RUNTIME)
     ]
     active = 0
+    latest = None
     for target in store.root(config_dir).glob("*.json"):
         try:
             import json
@@ -53,6 +54,11 @@ def diagnostics(config_dir, executable, version):
                 store.load(config_dir, session) if isinstance(session, str) else None
             )
             active += int(store.fresh(state, time.time() * 1000))
+            if state and (
+                latest is None
+                or (state["heartbeat_at_ms"] or 0) > (latest["heartbeat_at_ms"] or 0)
+            ):
+                latest = state
         except (OSError, ValueError, TypeError):
             continue
     rows.append(
@@ -61,4 +67,27 @@ def diagnostics(config_dir, executable, version):
             f"runtime collector heartbeats: {active} fresh session(s); stale after {model.STALE_MS // 1000}s. Installation alone does not verify session loading.",
         )
     )
+    if latest is not None:
+        from claude_statusline.runtime.live import snapshot
+
+        points = snapshot.resolve(latest, config_dir, latest["session_id"])
+        sources = sorted(
+            {
+                row["source"]
+                for row in points.values()
+                if row["source"] and row["value"] is not None
+            }
+        )
+        missing = [
+            f"{item}:{row['reason']}"
+            for item, row in points.items()
+            if row["value"] is None
+        ]
+        partial = [item for item, row in points.items() if row["partial"]]
+        rows.append(
+            Diagnostic(
+                "WARN" if missing or partial else "OK",
+                f"runtime sources on host {latest['host_version']}: {', '.join(sources) or 'none'}; unavailable: {', '.join(missing) or 'none'}; partial: {', '.join(partial) or 'none'}",
+            )
+        )
     return rows

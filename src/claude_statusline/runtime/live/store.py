@@ -45,6 +45,8 @@ def empty(session_id):
         "checklists": {},
         "prompt_aliases": {},
         "agent_snapshot": None,
+        "requests": {},
+        "costs": {},
     }
 
 
@@ -68,7 +70,14 @@ def load(config_dir: Path, session_id: str):
             state = {**empty(session_id), **state}
             if not all(
                 isinstance(state[key], dict)
-                for key in ("turns", "tools", "checklists", "prompt_aliases")
+                for key in (
+                    "turns",
+                    "tools",
+                    "checklists",
+                    "prompt_aliases",
+                    "requests",
+                    "costs",
+                )
             ):
                 return None
             for epoch, ledger in state["epochs"].items():
@@ -115,10 +124,86 @@ def load(config_dir: Path, session_id: str):
                 != {"mode", "live", "observed_at_ms", "source"}
             ):
                 return None
+            _validate_views(state)
             return state
-    except (OSError, ValueError, TypeError):
+    except (OSError, ValueError, TypeError, KeyError, AttributeError):
         pass
     return None
+
+
+def _validate_views(state):
+    for table, maximum in (
+        ("turns", model.MAX_TURNS),
+        ("tools", model.MAX_TOOLS),
+        ("requests", model.MAX_REQUESTS),
+        ("costs", model.MAX_REQUESTS),
+    ):
+        if len(state[table]) > maximum:
+            raise ValueError("runtime table exceeds its bound")
+        for row in state[table].values():
+            if not isinstance(row, dict):
+                raise ValueError("invalid runtime view")
+            model.text(row["prompt_id"], "owner", nullable=True)
+            model.number(row["updated_at_ms"], "view time")
+            if table in ("turns", "tools", "requests"):
+                model.text(row["agent_id"], "agent", nullable=True)
+                for name in (
+                    ("started_at_ms", "ended_at_ms")
+                    if table != "tools"
+                    else ("started_at_ms",)
+                ):
+                    if row[name] is not None:
+                        model.number(row[name], name)
+            if table == "turns" and row["status"] not in (
+                "running",
+                "completed",
+                "failed",
+                "interrupted",
+            ):
+                raise ValueError("invalid turn status")
+            if table == "tools":
+                model.text(row["name"], "tool name")
+                if row["status"] not in (
+                    "started",
+                    "success",
+                    "error",
+                    "denied",
+                    "interrupted",
+                ):
+                    raise ValueError("invalid tool status")
+            if table in ("requests", "costs"):
+                model.usage(row["usage"])
+                if type(row["conflict"]) is not bool:
+                    raise ValueError("invalid conflict flag")
+                if table == "requests":
+                    model.text(row["turn_key"], "turn key", maximum=1024)
+                    model.text(row["epoch"], "request epoch")
+                    if type(row["native"]) is not bool or row["status"] not in (
+                        None,
+                        "completed",
+                        "failed",
+                        "interrupted",
+                    ):
+                        raise ValueError("invalid request status")
+                    if row["first_at_ms"] is not None:
+                        model.number(row["first_at_ms"], "first content time")
+                else:
+                    model.number(row["cost_usd"], "cost")
+    for row in state["checklists"].values():
+        if (
+            not isinstance(row, dict)
+            or not isinstance(row["tasks"], dict)
+            or type(row["complete"]) is not bool
+            or len(row["tasks"]) > model.MAX_TASKS
+        ):
+            raise ValueError("invalid checklist")
+        model.text(row["prompt_id"], "checklist owner", nullable=True)
+        model.number(row["updated_at_ms"], "checklist time")
+        if any(
+            value not in ("pending", "in_progress", "completed")
+            for value in row["tasks"].values()
+        ):
+            raise ValueError("invalid checklist entry")
 
 
 def fresh(state, now_ms=None):
@@ -148,6 +233,9 @@ def observe(config_dir: Path, observations):
                     accepted += 1
                 else:
                     ignored += 1
+            from claude_statusline.runtime.live import bindings
+
+            bindings.reconcile(state, config_dir)
             content = json.dumps(
                 state, ensure_ascii=False, allow_nan=False, separators=(",", ":")
             ).encode("utf-8")

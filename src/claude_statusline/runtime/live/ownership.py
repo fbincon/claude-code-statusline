@@ -4,6 +4,15 @@
 def canonical(state, prompt_id):
     for _ in range(32):
         target = state["prompt_aliases"].get(prompt_id)
+        if isinstance(target, dict):
+            agent = state["agents"].get(target["agent_id"])
+            target = (
+                agent["prompt_id"]
+                if agent and agent["epoch"] == target["epoch"]
+                else None
+            )
+            if target is None:
+                return None
         if not target or target == prompt_id:
             break
         prompt_id = target

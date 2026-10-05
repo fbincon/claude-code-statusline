@@ -249,7 +249,7 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
-The catalog contains 48 main and 14 subagent choices; the 28 independent additions introduced in v1.4.0 remain opt-in. See [independent metrics](docs/DISPLAY_ITEMS.md) for context/cumulative scope, cache/reset expiry and examples.
+The catalog contains 59 main and 14 subagent choices; the 28 independent additions introduced in v1.4.0 remain opt-in. See [independent metrics](docs/DISPLAY_ITEMS.md) for context/cumulative scope, cache/reset expiry and examples.
 
 Configuration applies per user. `set-items` replaces the enabled set; `enable` / `disable` make incremental changes. See [recipes](docs/USER_GUIDE.md#configuration-recipes).
 

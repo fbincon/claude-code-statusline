@@ -17,6 +17,7 @@ MAX_AGENTS = 256
 MAX_TURNS = 256
 MAX_TOOLS = 1024
 MAX_TASKS = 1000
+MAX_REQUESTS = 2048
 STALE_MS = 15_000
 
 Source = Literal["native", "classic_hook", "otel"]
@@ -35,6 +36,11 @@ Kind = Literal[
     "tool_end",
     "task_snapshot",
     "task_update",
+    "request_start",
+    "request_first",
+    "request_end",
+    "request_cost",
+    "turn_usage",
 ]
 
 
@@ -200,6 +206,45 @@ def validate(value):
             raise ObservationError("permission.live must be boolean")
         if payload["live"] and value["source"] != "otel":
             raise ObservationError("live permission requires a verified change feed")
+    elif kind in (
+        "request_start",
+        "request_first",
+        "request_end",
+        "request_cost",
+        "turn_usage",
+    ):
+        if kind != "request_cost" and value["source"] != "native":
+            raise ObservationError("request measurements require native observations")
+        if kind == "turn_usage":
+            text(value["turn_id"], "turn_id")
+            exact(payload, ("usage",), kind)
+        else:
+            text(value["request_id"], "request_id")
+            if kind != "request_cost":
+                text(value["turn_id"], "turn_id")
+            keys = (
+                ()
+                if kind in ("request_start", "request_first")
+                else ("usage", "native", "status")
+                if kind == "request_end"
+                else ("cost_usd", "usage")
+            )
+            exact(payload, keys, kind)
+        if kind in ("request_end", "request_cost", "turn_usage"):
+            usage(payload["usage"])
+        if kind == "request_end":
+            if type(payload["native"]) is not bool or payload["status"] not in (
+                "completed",
+                "failed",
+                "interrupted",
+            ):
+                raise ObservationError("invalid request outcome")
+            if not payload["native"] and payload["usage"] is not None:
+                raise ObservationError("synthetic requests cannot claim official usage")
+        if kind == "request_cost":
+            if value["source"] != "otel":
+                raise ObservationError("cost requires official telemetry evidence")
+            number(payload["cost_usd"], "cost_usd")
     elif kind in ("agent_start", "agent_end"):
         keys = (
             ("started_at_ms",) if kind == "agent_start" else ("ended_at_ms", "status")
@@ -216,6 +261,22 @@ def validate(value):
             raise ObservationError("unknown terminal agent status")
     else:
         raise ObservationError("unknown observation kind")
+    return value
+
+
+USAGE_KEYS = (
+    "input_tokens",
+    "output_tokens",
+    "cache_read_input_tokens",
+    "cache_creation_input_tokens",
+)
+
+
+def usage(value):
+    if value is not None:
+        exact(value, USAGE_KEYS, "usage")
+        for key in USAGE_KEYS:
+            number(value[key], key, integer=True)
     return value
 
 

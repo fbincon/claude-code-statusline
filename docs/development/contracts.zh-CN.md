@@ -2,11 +2,11 @@
 
 [English](contracts.md) | **简体中文**
 
-协议 v3 是随包或源码原生前端使用的内部接口。显示配置使用 schema v4，v1/v2 在内存中迁移读取；协议与持久化版本独立演进。稳定 v1.1.1 不提供此接口；v1.2.0 及其预览 wheel 包含匹配的 Mod。
+协议 v3 是随包或源码原生前端使用的内部接口。显示配置使用 schema v4，v1/v2/v3 在内存中迁移读取；协议与持久化版本独立演进。稳定 v1.1.1 不提供此接口；v1.2.0 及其预览 wheel 包含匹配的 Mod。
 
 ## 共享目录
 
-`claude_statusline.config.catalog` 以 `(scope, id)` 定义 48 个主显示项和 14 个子 Agent 项，提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；curses 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
+`claude_statusline.config.catalog` 以 `(scope, id)` 定义 59 个主显示项和 14 个子 Agent 项，提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；curses 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 最低版本只在有证据时声明。子 Agent 的 2.1.205 门槛表示行支持，不保证所有可选字段；effort 需要 2.1.214。缓存指标声明最低 2.1.251；网关金额／周期要求宿主和网关均至少 2.1.284。尚未证实的主字段最低版本使用 `null`/`unknown`，不猜测日期。`not_observed` 表示接口尚未观察实时数据，`unsupported_host` 表示已证实的版本边界，`unknown_host_version` 表示版本检测失败，`source_unavailable` 表示来源无法读取，`condition_not_met` 涵盖非 Git 仓库或未启用 fast mode 等条件。这些是可能原因的定义；打开配置不采集实时字段，也不因尚未观察到数据而禁用选择。
 
@@ -66,7 +66,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## 结构化格式
 
-协议 v3 返回完整 schema v4 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v3 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v3 返回完整 schema v4 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v4 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ## 草稿传输操作
 

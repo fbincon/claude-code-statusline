@@ -7,7 +7,7 @@ from pathlib import Path
 import time
 
 from claude_statusline.config import runtime as preference
-from claude_statusline.runtime.live import model, ownership, store
+from claude_statusline.runtime.live import model, ownership, store, requests
 
 LIVE_ITEMS = (
     "run-state",
@@ -15,6 +15,7 @@ LIVE_ITEMS = (
     "active-agents",
     "task-progress",
     "last-tool",
+    *requests.ITEMS,
 )
 
 
@@ -55,10 +56,15 @@ def resolve(
     result = {item: point(reason=reason or "not_observed") for item in LIVE_ITEMS}
     if state is None or not enabled:
         return result
+    from claude_statusline.runtime.live import bindings
+
+    bindings.reconcile(state, config_dir)
     selected = (
         ownership.canonical(state, prompt_id)
         if prompt_id
-        else state["active_prompt_id"] or state["current_prompt_id"]
+        else ownership.canonical(
+            state, state["active_prompt_id"] or state["current_prompt_id"]
+        )
     )
     prompt = state["prompts"].get(selected)
     if prompt and prompt["epoch"] != state["epoch"] and not prompt["terminal"]:
@@ -143,6 +149,15 @@ def resolve(
         row for row in state["checklists"].values() if row.get("prompt_id") == selected
     ]
     historical = bool(turn and turn["status"] in ("completed", "failed", "interrupted"))
+    result.update(
+        requests.metrics(
+            state,
+            selected,
+            point,
+            live=reason is None,
+            terminal=bool(prompt and prompt["terminal"]),
+        )
+    )
     if lists and (reason is None or historical):
         complete = [checklist for checklist in lists if checklist["complete"]]
         checklist = max(complete or lists, key=lambda item: item["updated_at_ms"])
@@ -185,5 +200,5 @@ def collect(config_dir: Path, session_id, prompt_id=None, *, now_ms=None):
         return resolve(
             state, config_dir, session_id, prompt_id, now_ms=now_ms, enabled=enabled
         )
-    except (OSError, ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return {item: point(reason="source_unavailable") for item in LIVE_ITEMS}
