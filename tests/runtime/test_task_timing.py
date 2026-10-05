@@ -323,6 +323,16 @@ class NativeTimingTests(unittest.TestCase):
         self.assertEqual(active_point(self.root, "s", "p")["reason"], "incomplete")
         self.assertIsNone(active_point(self.root, "s", "p")["value"])
 
+        # Re-check stored evidence even if an earlier collector already marked
+        # the ending as seen and incorrectly advertised complete coverage.
+        def older_coverage(history):
+            history["turns"][0]["active_coverage"] = "complete"
+            return "p"
+
+        store._with_store("s", older_coverage, self.root)
+        live.observe(self.root, rows, timing=True)
+        self.assertEqual(active_point(self.root, "s", "p")["reason"], "incomplete")
+
     def test_duplicate_paired_wait_end_keeps_the_same_execution_clock(self):
         from claude_statusline.runtime.live import store as live
         from claude_statusline.runtime.tasks.view import active_point

@@ -171,6 +171,18 @@ def observe(config_dir, state, observations, *, complete_timing=True):
             )
             if record is None:
                 continue
+            if observation["kind"] == "wait_end":
+                identity = (
+                    epoch,
+                    observation["agent_id"],
+                    observation["turn_id"],
+                    observation["request_id"],
+                )
+                if (
+                    wait_starts.get(identity, observation["seq"] + 1)
+                    >= observation["seq"]
+                ):
+                    record["active_coverage"] = "incomplete"
             identity = epoch + ":" + str(observation["seq"])
             if not model._remember_id(record, "native_wait_seen", identity):
                 continue
@@ -192,17 +204,6 @@ def observe(config_dir, state, observations, *, complete_timing=True):
                 else:
                     timer = timer.pause(token, now)
             else:
-                identity = (
-                    epoch,
-                    observation["agent_id"],
-                    observation["turn_id"],
-                    observation["request_id"],
-                )
-                if (
-                    wait_starts.get(identity, observation["seq"] + 1)
-                    >= observation["seq"]
-                ):
-                    record["active_coverage"] = "incomplete"
                 timer = timer.resume(token, now)
             record["active_clock"] = timer.to_dict()
         for key, record, turn, previous, agent in pending_ends:
