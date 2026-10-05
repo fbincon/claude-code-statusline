@@ -1997,3 +1997,5 @@ On 2026-10-05 the maintainer confirmed Phase 4 human acceptance on Linux and Win
 ## Opt-in live state
 
 Install the independent collector with `claude-statusline install --live-metrics`, then select `run-state permission-mode active-agents task-progress last-tool` in either editor or append those IDs to your `config set-items` selection. New IDs default off. Use `install --no-live-metrics` to save a persistent disabled preference independently of either editor. The collector requires verified Claude Code 2.1.289; missing data displays `—` and partial/recent observations display `*`. See [definitions](DISPLAY_ITEMS.md#live-state-items) and [runtime diagnostics](development/live.md).
+
+The committed branch base is available through `config set branch-diff-base auto|REF` and the shared Metrics form. Source display schema v4/configuration protocol v3 adds this field, retaining in-memory reads of v1/v2/v3 until an actual save backs up and migrates. See [branch and duration definitions](DISPLAY_ITEMS.md#branch-base-and-ended-agents).

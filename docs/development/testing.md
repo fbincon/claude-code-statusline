@@ -139,3 +139,7 @@ Stable changes package/Mod versions and release defaults; formatting, layout, po
 ## Independent runtime checks
 
 Run `python tools/generate_runtime_contracts.py --check`, `python -m unittest tests.runtime.live.test_protocol tests.runtime.live.test_store tests.integration.test_runtime_installer`, and the fixed 2.1.289 runtime Mod validation/tests/typecheck. `python tools/runtime_install_smoke.py --report PATH` uses only temporary configuration and no models. The CI matrix retains all older editor checks and adds Windows/macOS 2.1.289. Mocked protocol heartbeats verify the bridge, not actual session loading. See [live contracts](live.md).
+
+## Phase 5 metric migration
+
+Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration protocol v3 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol remains independently v1. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).

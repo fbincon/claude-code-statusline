@@ -2,7 +2,7 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
-当前源码目录包含 53 个主栏项、14 个子 Agent 项。下列独立项默认关闭，现有默认选择和组合 ID
+当前源码目录包含 54 个主栏项、14 个子 Agent 项。下列独立项默认关闭，现有默认选择和组合 ID
 继续可用；允许组合项与其独立项同时选择并自由排序。原有显示项和全部配置入口见[使用指南](USER_GUIDE.zh-CN.md)。
 
 ## 主栏显示项
@@ -38,6 +38,7 @@
 | `active-agents` | `Agents 2` | 本任务已验证的活跃代理数，包含嵌套代理并按 ID 去重；不统计后台 shell/server/workflow，归属不确定时标记已知小计 `*`。 |
 | `task-progress` | `Tasks 3/5` | 成功的结构化 Task/Todo 操作维护的完成数/总数，完整快照优先；不是耗时百分比。有限覆盖附 `*`。 |
 | `last-tool` | `Tool Read success` | 主线程最近开始的工具及成功、失败、拒绝或中断结果。 |
+| `branch-diff` | `Diff 3 files +42/-7` | 从 `merge-base(base, HEAD)` 到 HEAD 的已提交文件数、增加行和删除行；二进制文件只计文件数。自动基准依次 origin/HEAD、本地 main、master。不 fetch；总超时 2 秒，缓存按仓库、HEAD 和基准提交隔离。 |
 
 ## 子 Agent 显示项
 
@@ -81,8 +82,8 @@
 claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration prompt-timer
 ```
 
-CLI 列表与 JSON `describe` 返回共享目录；两个 TUI 和安装的向导统一消费它。显示 schema v3 与
-JSON 协议 v2 为当前契约。最低版本元数据表示已验证的功能边界，不表示实时数据已经到达；缺少证据的最低版本保持未知。
+CLI 列表与 JSON `describe` 返回共享目录；两个 TUI 和安装的向导统一消费它。显示 schema v4 与
+JSON 协议 v3 为当前契约。最低版本元数据表示已验证的功能边界，不表示实时数据已经到达；缺少证据的最低版本保持未知。
 
 即使 schema 不变，旧包仍不认识新增 ID。降级前应使用新版本从两个作用域中移除新 ID，或恢复兼容的配置备份。
 另行遵循[原生接入降级步骤](USER_GUIDE.zh-CN.md#升级)。
@@ -90,3 +91,9 @@ JSON 协议 v2 为当前契约。最低版本元数据表示已验证的功能�
 ## 实时状态项
 
 以上五项默认不选中，采集使用独立的 `install --live-metrics` 开关，支持已验证的 Claude Code 2.1.289。缺少观测显示 `—`，真实零值显示 `0`，有限覆盖附 `*`。运行协议 `read` 返回来源、时间和具体原因。排队 prompt、旧 epoch 和代理事件不会覆盖新任务；终止历史独立于心跳保存。预览使用确定性样例，不读取实时状态。参见[运行契约](development/live.zh-CN.md)。
+
+## 分支基准与已结束代理
+
+使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`，两个编辑器提供同一个可空 Metrics 字段。缺失 ref/merge-base、浅克隆缺历史和超时显示 `Diff —`。显示 v1/v2/v3 只在内存补默认值，实际保存才备份并迁移到 v4，配置协议为 v3；包降级前恢复旧版配置备份。
+
+运行中的代理时长递增；已完成、失败或终止行从可靠 native 或已有生命周期 hook 的结束证据冻结。没有结束证据时保留状态标记，不虚构时长。结束历史在关闭实时采集时仍可用；prompt-timer 完成证据优先级不变。

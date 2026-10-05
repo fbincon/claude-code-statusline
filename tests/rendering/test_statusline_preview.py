@@ -54,6 +54,7 @@ class PreviewContentTests(unittest.TestCase):
                 "spend-period",
                 "input-tokens",
                 "output-tokens",
+                "branch-diff",
                 *rendering_items._LIVE_ITEMS,
             }
         )

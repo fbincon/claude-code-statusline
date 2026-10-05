@@ -193,6 +193,14 @@ def _context_remaining(task: dict[str, Any]) -> str | None:
 
 
 def _elapsed(task: dict[str, Any], now_ms: float) -> str | None:
+    status = task.get("status")
+    if status not in ("pending", "running", "waiting", "paused"):
+        duration = _finite_number(task.get("_frozen_duration_ms"))
+        return (
+            rendering_formatters.format_duration(duration / 1000)
+            if duration is not None and duration >= 0
+            else None
+        )
     started = task.get("startTime")
     started_number = _finite_number(started)
     if started_number is None:
@@ -230,8 +238,6 @@ def _status_text(task: dict[str, Any]) -> str:
 
 
 def _status_elapsed(task: dict[str, Any], now_ms: float) -> str:
-    # Completed tasks keep counting because the payload has no endTime,
-    # matching the standalone `elapsed` item.
     icon = _status_text(task)
     formatted = _elapsed(task, now_ms)
     return f"{icon} {formatted}" if formatted else icon
@@ -474,6 +480,7 @@ def render_payload(
     seen: set[str] = set()
     output: list[dict[str, str]] = []
     visible = 0
+    endings = None
     for task in data["tasks"]:
         if not isinstance(task, dict):
             continue
@@ -493,6 +500,20 @@ def render_payload(
             )
         )
         try:
+            if (
+                task.get("status") in ("completed", "failed", "killed", "interrupted")
+                and "_frozen_duration_ms" not in task
+            ):
+                session = data.get("session_id")
+                if isinstance(session, str) and session:
+                    if endings is None:
+                        from claude_statusline.runtime.live import durations
+
+                        endings = durations.ended_at(Path(CONFIG_DIR), session)
+                    end = endings.get(task_id)
+                    start = _finite_number(task.get("startTime"))
+                    if end is not None and start is not None and 0 <= start <= end:
+                        task = {**task, "_frozen_duration_ms": end - start}
             content = (
                 ""
                 if hidden
@@ -537,6 +558,7 @@ def preview_rows(config: config_display.DisplayConfig, columns: int) -> list[str
                 "status": "completed",
                 "description": "reviewed lifecycle tests",
                 "startTime": now_ms - 42_000,
+                "_frozen_duration_ms": 42_000,
                 "model": "claude-haiku-4-5",
                 "contextWindowSize": 200_000,
                 "tokenCount": 18_500,

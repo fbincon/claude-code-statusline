@@ -139,7 +139,9 @@ class RendererTests(unittest.TestCase):
                     rendering_subagents.render_task(
                         sample_task(status=status), config, now_ms=NOW_MS
                     ),
-                    f"{marker} 1m 18s",
+                    f"{marker} 1m 18s"
+                    if status in ("pending", "running", "waiting", "paused")
+                    else marker,
                 )
 
     def test_status_elapsed_colors_match_status_and_elapsed(self):

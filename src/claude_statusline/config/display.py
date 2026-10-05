@@ -8,13 +8,14 @@ from pathlib import Path
 from typing import Any
 from claude_statusline.platforms import files as platform_files
 from claude_statusline.config import catalog
+from claude_statusline.config.metrics import Metrics
 from claude_statusline.config import formatting as display_formatting
 
 
 LEGACY_SCHEMA_VERSION = 1
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 
 CONFIG_FILENAME = "claude-statusline.json"
@@ -61,7 +62,8 @@ V2_DISPLAY_KEYS = frozenset(
 )
 
 
-DISPLAY_KEYS = V2_DISPLAY_KEYS | {"formatting", "item_options", "layout"}
+V3_DISPLAY_KEYS = V2_DISPLAY_KEYS | {"formatting", "item_options", "layout"}
+DISPLAY_KEYS = V3_DISPLAY_KEYS | {"metrics"}
 
 SUBAGENT_KEYS = frozenset(
     {
@@ -126,6 +128,7 @@ class DisplayConfig:
         default_factory=dict
     )
     layout: display_formatting.Layout = field(default_factory=display_formatting.Layout)
+    metrics: Metrics = field(default_factory=Metrics)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -140,6 +143,7 @@ class DisplayConfig:
             "formatting": self.formatting.to_dict(),
             "item_options": {k: v.to_dict() for k, v in self.item_options.items()},
             "layout": self.layout.to_dict(),
+            "metrics": self.metrics.to_dict(),
         }
 
     def with_updates(self, **updates: Any) -> DisplayConfig:
@@ -248,15 +252,15 @@ def validate_display_config(data: Any) -> DisplayConfig:
     version = data.get("schema_version")
     if isinstance(version, bool) or not isinstance(version, int):
         raise DisplayConfigError(
-            f"schema_version must be 1, 2 or {SCHEMA_VERSION}; found {version!r}"
+            f"schema_version must be 1, 2, 3 or {SCHEMA_VERSION}; found {version!r}"
         )
     if version > SCHEMA_VERSION:
         raise DisplayConfigError(
             f"schema_version {version} is newer than supported version {SCHEMA_VERSION}"
         )
-    if version not in (1, 2, SCHEMA_VERSION):
+    if version not in (1, 2, 3, SCHEMA_VERSION):
         raise DisplayConfigError(
-            f"schema_version must be 1, 2 or {SCHEMA_VERSION}; found {version!r}"
+            f"schema_version must be 1, 2, 3 or {SCHEMA_VERSION}; found {version!r}"
         )
 
     expected_keys = (
@@ -264,6 +268,8 @@ def validate_display_config(data: Any) -> DisplayConfig:
         if version == 1
         else V2_DISPLAY_KEYS
         if version == 2
+        else V3_DISPLAY_KEYS
+        if version == 3
         else DISPLAY_KEYS
     )
     unknown = sorted(set(data) - expected_keys)
@@ -285,19 +291,20 @@ def validate_display_config(data: Any) -> DisplayConfig:
     try:
         fmt = (
             display_formatting.Formatting.parse(data["formatting"])
-            if version == 3
+            if version >= 3
             else display_formatting.Formatting()
         )
         options = (
             display_formatting.item_options(data["item_options"], ITEM_CATALOG)
-            if version == 3
+            if version >= 3
             else {}
         )
         layout = (
             display_formatting.Layout.parse(data["layout"], items)
-            if version == 3
+            if version >= 3
             else display_formatting.Layout()
         )
+        metrics = Metrics.parse(data["metrics"]) if version >= 4 else Metrics()
     except ValueError as exc:
         raise DisplayConfigError(str(exc)) from exc
     subagents = data.get("subagents")
@@ -309,6 +316,7 @@ def validate_display_config(data: Any) -> DisplayConfig:
         formatting=fmt,
         item_options=options,
         layout=layout,
+        metrics=metrics,
         schema_version=SCHEMA_VERSION,
         items=validate_items(data.get("items")),
         use_colors=use_colors,

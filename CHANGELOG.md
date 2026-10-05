@@ -12,6 +12,8 @@
 
 - Add five opt-in task-scoped state, permission, active-agent, checklist and last-tool items, with deterministic previews, transparent partial markers and read-only diagnostics.
 
+- Add cached committed merge-base branch diffs and shared base-ref configuration; move display to schema v4/configuration protocol v3 with write-only migration. Freeze ended subagent duration from reliable end evidence even when live metrics are off; preserve timer priorities.
+
 ## 1.5.0 - 2026-10-05
 
 - Promote the verified Phase 4 preview after maintainer-confirmed Linux/Windows human acceptance and macOS standalone TUI/CLI acceptance. Preserve the historical macOS Client input limitation; exact terminal/OS/host metadata remains unknown.

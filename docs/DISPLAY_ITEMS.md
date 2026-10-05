@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The current source catalog contains 53 main and 14 subagent items. The independent
+The current source catalog contains 54 main and 14 subagent items. The independent
 items below are opt-in. Existing defaults and compound IDs remain available,
 and compounds may be selected alongside their individual components in any order.
 See the [user guide](USER_GUIDE.md) for the original items and all configuration entry points.
@@ -40,6 +40,7 @@ See the [user guide](USER_GUIDE.md) for the original items and all configuration
 | `active-agents` | `Agents 2` | Verified active agents owned by this task, nested agents included and IDs deduplicated. Excludes background shells/servers/workflows. Uncertain ownership marks the known subtotal `*`. |
 | `task-progress` | `Tasks 3/5` | Completed/total entries from successful structured Task/Todo operations; complete snapshots win. This is not elapsed-task percentage. Partial coverage is marked `*`. |
 | `last-tool` | `Tool Read success` | Most recently started main-thread tool and its observed success, error, denial or interruption. |
+| `branch-diff` | `Diff 3 files +42/-7` | Committed files/additions/deletions from `merge-base(base, HEAD)` to HEAD; binary files only increment files. Auto base: origin/HEAD, local main, then master. No fetch; 2-second total timeout and cache by repository/HEAD/base commit. |
 
 ## Subagent items
 
@@ -92,8 +93,8 @@ claude-statusline config set-items model effort current-dir context-tokens five-
 ```
 
 The shared catalog is returned by CLI listings and JSON `describe`. Both TUI
-editors and the installed wizard consume it. Display schema v3 and JSON protocol
-v2 remain the current contracts; minimum-version metadata describes verified boundaries, not
+editors and the installed wizard consume it. Display schema v4 and JSON protocol
+v3 remain the current contracts; minimum-version metadata describes verified boundaries, not
 whether live data has arrived. Unverified field minima remain unknown.
 
 Older packages do not recognize newly selected IDs even though the schema is
@@ -104,3 +105,9 @@ scopes or restore a compatible configuration backup. Follow the existing
 ## Live state items
 
 The five Phase 5 items default unselected. Collection uses the independent `install --live-metrics` switch on verified Claude Code 2.1.289 hosts. Missing observations render `—`, observed zero renders `0`, and partial coverage adds `*`. Runtime `read` returns source, time and specific reasons. Queued prompts, old epochs and agent events do not overwrite a new main task; terminal history is retained separately from heartbeat freshness. Previews use deterministic fixtures without live I/O. See [runtime contracts](development/live.md).
+
+## Branch base and ended agents
+
+Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1/v2/v3 normalize in memory; actual saves back up and migrate to v4, with configuration protocol v3. Restore an older configuration backup before a package downgrade.
+
+Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Prompt-timer priorities remain unchanged.

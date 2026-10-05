@@ -13,6 +13,9 @@ SAMPLE_NOW = 1_788_400_120
 class _SampleRenderState(rendering_items._RenderState):
     """Render deterministic preview values without touching live session state."""
 
+    def branch_data(self):
+        return {"value": {"files": 3, "added": 42, "removed": 7}, "reason": None}
+
     def live_data(self):
         return {
             key: {"value": value, "partial": key == "permission-mode"}

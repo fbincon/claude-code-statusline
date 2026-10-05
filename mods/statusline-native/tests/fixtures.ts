@@ -24,7 +24,8 @@ import { copyDraft } from '../lib/editor/draft.ts';
 
 export const BASE: Draft = {
   display: {
-    schema_version: 3,
+    schema_version: 4,
+    metrics: { branch_diff_base_ref: null },
     items: ['model-with-effort'],
     use_colors: true,
     palette: 'default',
@@ -158,7 +159,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 2, result }));
+  return output(JSON.stringify({ protocol_version: 3, result }));
 }
 
 export function sample(text: string) {

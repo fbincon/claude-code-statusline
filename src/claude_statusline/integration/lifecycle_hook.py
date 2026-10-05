@@ -14,6 +14,9 @@ def main():
             raw = raw[3:]
         data = json.loads(raw.decode("utf-8"))
         turn_reducer.handle_event(data)
+        from claude_statusline.runtime.live import durations
+
+        durations.observe(data)
     except Exception:
         # Lifecycle hooks must never block, restart, or fail a Claude turn.
         pass

@@ -89,6 +89,7 @@ class NewItemCatalogTests(unittest.TestCase):
                 "git-branch",
                 "git-changes",
                 "git-ahead-behind",
+                "branch-diff",
                 "pr",
                 "repo",
                 "worktree",

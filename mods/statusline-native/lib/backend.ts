@@ -131,13 +131,16 @@ export function isDraft(value: unknown): value is Draft {
       'separator_style',
       'scope_labels',
       'subagents',
-      'formatting', 'item_options', 'layout',
+      'formatting', 'item_options', 'layout', 'metrics',
     ]) ||
     !exact(h, ['padding', 'refresh_interval', 'hide_vim_mode_indicator'])
   )
     return false;
   if (
-    d.schema_version !== 3 ||
+    d.schema_version !== 4 ||
+    !object(d.metrics) || !exact(d.metrics, ['branch_diff_base_ref']) ||
+    !(d.metrics.branch_diff_base_ref === null || (text(d.metrics.branch_diff_base_ref) && [...d.metrics.branch_diff_base_ref].length <= 256 &&
+      d.metrics.branch_diff_base_ref.length > 0 && !/[\s]|^-/.test(d.metrics.branch_diff_base_ref))) ||
     !formatting(d.formatting) || !itemOptions(d.item_options, MAIN_ITEM_IDS) ||
     typeof d.use_colors !== 'boolean' ||
     !selection(d.items, MAIN_ITEM_IDS) ||

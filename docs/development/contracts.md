@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v2 is the internal interface for the bundled/source native frontend. Display persistence uses schema v3, including in-memory v1/v2 migration; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; v1.2.0 and its preview wheel bundle the matching Mod.
+Protocol v3 is the internal interface for the bundled/source native frontend. Display persistence uses schema v4, including in-memory v1/v2/v3 migration; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; v1.2.0 and its preview wheel bundle the matching Mod.
 
 ## Catalog
 
@@ -15,10 +15,10 @@ Minimum versions are verified only where evidence exists. The 2.1.205 subagent m
 Run `claude-statusline ui --config-dir PATH` (Windows: `claude-statusline.exe`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":2,"operation":"read","payload":{}}
+{"protocol_version":3,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":2,"result":{...}}`; failure is `{"protocol_version":2,"error":{"code":"...","message":"..."}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":3,"result":{...}}`; failure is `{"protocol_version":3,"error":{"code":"...","message":"..."}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -69,7 +69,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 
 ## Structured formatting
 
-Protocol v2 returns complete schema-v3 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v3 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
+Protocol v3 returns complete schema-v4 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v4 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
 
 ## Draft transfer operations
 
@@ -82,3 +82,7 @@ Protocol v2 returns complete schema-v3 drafts. `formatting` contains shared choi
 Native file operations are effects handled by the hooks module through Python, with argument arrays and JSON stdin. Client modules do not access files. Pending transfer/apply blocks edits and ordinary close; epochs reject late results. Text input reserves printable shortcuts. Ctrl+G cancels an input or leaves the item form; curses uses raw terminal input so Ctrl+S reaches its save handler.
 
 `lib/preferences.ts` maps supported preference concepts to actual menu row IDs, such as `turnDuration`, `reduceMotion`, `tips`, `progressBar` and `notifChannel`. Runtime values, kinds, choices, providers and locks come from `$.config.list()`. Separate Apply rechecks each row before calling `$.config.set()`, retains partial results beside the corresponding row and refuses changed kinds/owners/values or invalid choices. Missing/locked/unsupported rows show official entry guidance. Model/effort/thinking/fast behavior is grouped separately from tool display formats. No persisted Claude key is written directly.
+
+## Phase 5 metric migration
+
+Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration protocol v3 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol remains independently v1. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
