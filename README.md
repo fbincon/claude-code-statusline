@@ -4,27 +4,27 @@
 
 A Claude Code status line for Linux, WSL, Windows, and macOS. It shows model and reasoning effort, working directory, Git, context, rate limits, tokens, and per-turn timing. Individual subagent rows are supported. Configure items, order, and styles through a terminal UI (TUI), a wizard inside Claude Code, or the command line.
 
-Stable v1.5.0 adds model/number formats, labels and built-in icons, risk colors, explicit rows with priorities and widths, four editable presets and portable JSON files. Both editors provide item forms and a Layout page. Claude appearance and behavior preferences have a separate Apply action. Existing default appearance is retained; [configuration and downgrade instructions](docs/USER_GUIDE.md#formatting-layout-presets) explain the new options.
+Stable v1.6.0 includes model/number formats, labels and built-in icons, risk colors, explicit rows with priorities and widths, four editable presets and portable JSON files. Both editors provide item forms and a Layout page. Claude appearance and behavior preferences have a separate Apply action. Existing default appearance is retained; [configuration and downgrade instructions](docs/USER_GUIDE.md#formatting-layout-presets) explain the options.
 
 [Formatting, layouts and presets](docs/USER_GUIDE.md#formatting-layout-presets) · [Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Report an issue](https://github.com/fbincon/claude-code-statusline/issues)
 
-## Phase 5 preview: v1.6.0a1
+## Phase 5 in stable v1.6.0
 
-[The live-metrics preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0a1) adds eleven opt-in items, committed branch comparisons and frozen ended-agent durations. Latest stable remains v1.5.0. Collection is independently off by default on both preview and stable; after installing the preview wheel, run `claude-statusline install --live-metrics` and select items in either editor or CLI. Tested runtime host: Claude Code 2.1.289. See [definitions and conditional availability](docs/DISPLAY_ITEMS.md#request-coverage-and-sdk-fallback), [release notes](docs/releases/v1.6.0a1.md) and [installation](docs/USER_GUIDE.md#phase-5-preview-installation). Stable promotion waits for the new runtime acceptance, with the existing macOS Client input limitation retained.
+[v1.6.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0) promotes the accepted live-metrics preview: eleven opt-in items, committed branch comparisons and frozen ended-agent durations. On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS; exact OS, architecture, terminal and host versions were not supplied. Tested runtime host: Claude Code 2.1.289. Collection remains independently off by default. Enable it with `claude-statusline install --live-metrics` and select items in either editor or CLI. See [definitions and conditional availability](docs/DISPLAY_ITEMS.md#request-coverage-and-sdk-fallback), [release notes](docs/releases/v1.6.0.md) and [installation](docs/USER_GUIDE.md#phase-5-stable-installation). The existing macOS Client input limitation remains documented.
 
-## Phase 4 in stable v1.5.0
+<a id="phase-4-in-stable-v150"></a>
 
-[v1.5.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0) promotes the accepted Phase 4 preview. Stable installation requests both editor entries on compatible hosts, preserving each recorded disablement. Upgrade the package, synchronize integration and restart Claude Code:
+## Upgrade to v1.6.0
 
-```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.5.0/claude_code_statusline-1.5.0-py3-none-any.whl"
+Stable installation requests both editor entries on compatible hosts, preserving each recorded disablement. Upgrade the package, synchronize integration and restart Claude Code:
+
+```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
 
-Upgrading from v1.5.0a1 retains display schema v3 and protocol v2. Older display v1/v2 files migrate with a backup only on an actual save; use the [downgrade instructions](docs/USER_GUIDE.md#version-compatibility) before returning to an older package. Missing editor preferences follow stable defaults; explicit false remains off. To deliberately enable both entries, use `install --experimental-slash-tui --native-editor`. The [historical preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0a1) and its assets remain available.
-
-On 2026-10-05 the maintainer confirmed Phase 4 human acceptance on Linux and Windows and on macOS through the standalone TUI/CLI. Exact OS, architecture, terminal and host versions were not supplied. This confirmation does not declare the earlier macOS in-session Client input problem fixed.
+Upgrading from v1.6.0a1 retains display schema v4, configuration protocol v3 and independent runtime protocol v1. Older display v1/v2/v3 files migrate with a backup only on an actual save; use the [downgrade instructions](docs/USER_GUIDE.md#version-compatibility) before returning to an older package. Missing editor preferences follow stable defaults; explicit false remains off. Live-metrics preferences persist independently. To deliberately enable both editors, use `install --experimental-slash-tui --native-editor`. The [historical v1.6.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0a1) and its assets remain available.
 
 <a id="界面预览"></a>
 
@@ -156,7 +156,7 @@ See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-repo
 - Claude Code 2.1.205+ supports subagent rows; 2.1.258+ supports the external TUI entry and local configuration commands with arguments; 2.1.287+ supports the in-session Client.
 - Unsupported or unrecognized hosts suspend the affected entries; the main status line, standalone TUI, wizard and CLI remain available. Git information requires `git`.
 
-The current stable release is [**v1.5.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0), using the same wheel across platforms. Phase 4 human acceptance is confirmed on Linux/Windows and macOS standalone TUI/CLI; the earlier macOS Client input limitation remains. See [macOS checks](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [requirements](docs/USER_GUIDE.md#requirements).
+The current stable release is [**v1.6.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0), using the same wheel across platforms. Phase 5 acceptance is confirmed on Linux, Windows and macOS; the earlier macOS Client input limitation remains. See [macOS checks](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [requirements](docs/USER_GUIDE.md#requirements).
 
 <a id="快速安装"></a>
 
@@ -171,7 +171,7 @@ Prepare Python, Claude Code CLI and [pipx](https://pipx.pypa.io/latest/how-to/in
 Bash / Zsh / PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.5.0/claude_code_statusline-1.5.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -182,7 +182,7 @@ pipx ensurepath
 Requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.5.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.0"
 pipx ensurepath
 ```
 
@@ -201,7 +201,7 @@ pipx ensurepath
 
 ### Integrate with Claude Code
 
-Reopen the terminal for PATH changes and confirm `claude-statusline 1.5.0`:
+Reopen the terminal for PATH changes and confirm `claude-statusline 1.6.0`:
 
 ```text
 claude-statusline --version
@@ -261,10 +261,10 @@ Configuration applies per user. `set-items` replaces the enabled set; `enable` /
 
 ## Upgrading and uninstalling
 
-Upgrade to v1.5.0:
+Upgrade to v1.6.0:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.5.0/claude_code_statusline-1.5.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```

@@ -2,17 +2,17 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.5.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.6.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-正式 v1.5.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
+正式 v1.6.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
-每个候选要求 PR、合并提交、标签的全部 13 个 Python/build 和五个固定 Mod job（Linux 2.1.287/2.1.288/2.1.289、Windows/macOS 2.1.288）通过。检查正式默认、主动关闭不反弹、版本门槛、升级/降级、四种组合与独立禁用。核心 smoke 显式选择基础接入，原生 smoke 另检查实际 marketplace、后端绑定、保存与卸载。安装后的 wheel 需通过真实 Linux 两入口 PTY。
+Phase 5 候选要求 PR、合并提交、标签的全部 13 个 Python/build 和七个固定 Mod job（Linux 2.1.287/2.1.288/2.1.289、Windows/macOS 2.1.288/2.1.289）通过。检查正式默认、主动关闭不反弹、版本门槛、升级/降级、四种组合与独立禁用。核心 smoke 显式选择基础接入，原生 smoke 另检查实际 marketplace、后端绑定、保存与卸载。安装后的 wheel 需通过真实 Linux 两入口 PTY。
 
 从验证过的合并提交构建，核对 wheel/sdist、资源清单与独立重建，验证固定标签、草稿资产和 SHA256；标签 CI 通过后发布正式版并设为 Latest，核验公开下载和隔离安装。运行资源由唯一 Mod 源码打包，排除开发依赖、宿主声明和原始报告。原始证据仅留在忽略的 dist/validation。Python 包降级前先用新版 `install --no-native-editor` 移除原生接入。
 
@@ -42,7 +42,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.5.0
+RELEASE_TAG=v1.6.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -60,8 +60,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-claude_code_statusline-1.5.0-py3-none-any.whl
-claude_code_statusline-1.5.0.tar.gz
+claude_code_statusline-1.6.0-py3-none-any.whl
+claude_code_statusline-1.6.0.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -82,8 +82,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.5.0-py3-none-any.whl \
-  claude_code_statusline-1.5.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.6.0-py3-none-any.whl \
+  claude_code_statusline-1.6.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -92,8 +92,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.5.0-py3-none-any.whl',
-    'claude_code_statusline-1.5.0.tar.gz'
+    'claude_code_statusline-1.6.0-py3-none-any.whl',
+    'claude_code_statusline-1.6.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -111,8 +111,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.5.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.5.0.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.6.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.6.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -165,3 +165,5 @@ PR、合并提交、标签均须通过全部 18 项 CI（13 项 Python／构建�
 PR、合并提交和标签的全部 20 项 CI（13 项 Python／构建、7 项固定 Mod）通过后，以 prerelease、latest=false 发布 v1.6.0a1。从已验证固定合并提交构建，检查双 Mod 清单、独立重建／安装 wheel 和 sdist、安装 wheel 的 120x30／80x48 PTY、草稿资产／SHA256 及公开 URL 安装。所有真实模型探测和重试保留原有共享 10 美元账本，费用未知预留整次额度，耗尽即停止；要求可靠的单代理／并行／主线程收尾请求和冻结时长证据。
 
 预览和正式版均保持独立实时采集默认关闭。受影响的真实运行会话／平台验收记录齐备后，再通过独立评审 PR 和固定资产晋升 v1.6.0；保留条件性指标不可用及 macOS Client 输入限制。历史编辑器人工确认不能替代新采集验收；证据不足时保留完整预览并准确记录缺口。
+
+2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过，并要求正式晋升；未提供具体 OS、架构、终端和宿主版本。Python 和两 Mod 同步到 1.6.0，采用正式编辑器默认行为，保留明确 false 及独立实时采集偏好。显示 v4／配置协议 v3／运行协议 v1 沿用已验收 a1 实现。本次版本／默认行为晋升重验升级与默认路径、全部 20 项 PR／合并／标签 CI、固定合并资产、独立重建／安装、安装 wheel 的 PTY 及草稿／公开验证，无需重复付费模型调用；免费重验捕获运行记录并保留原预算账本。新建正式 Latest，保留 a1 标签／资产／预览状态及已知 macOS Client 输入限制。公开正式版验证完成后才记录 Phase 5 完成。

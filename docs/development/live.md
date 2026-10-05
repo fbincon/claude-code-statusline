@@ -2,7 +2,7 @@
 
 **English** | [简体中文](live.zh-CN.md)
 
-Phase 5 source development adds an independent, opt-in `statusline-runtime` Mod.
+Stable v1.6.0 includes an independent, opt-in `statusline-runtime` Mod.
 It requires a verified Claude Code 2.1.289 build and does not depend on the native
 editor preference. `install --live-metrics` enables it; `--no-live-metrics` retains
 an explicit disabled choice. Absence defaults off for previews and stable releases.
@@ -81,3 +81,7 @@ Runtime v1 adds request_start/first/end, turn_usage and request_cost. Local requ
 Python retains unbound turns/requests/spawns/tools and reconciles only unique completed lifecycle intervals with explicit spawn parents. No advanced metric writes lifecycle state. Unowned workflows/forks are excluded; task token sums include verified nested agents and main wrap-up, and turn.complete totals only check coverage. Conflicting duplicates invalidate their request; missing usage is unknown, zero is real. TTFT and output-rate refer to the latest main request and reject backward/zero duration clocks. Existing api_request collector records may provide an attributed estimated-cost subtotal; unjoined coverage remains partial.
 
 Official user_prompt telemetry links prompt.id to message.uuid explicitly; differing UUIDs and delayed cost records never use text or token-count matching. Unbound costs remain unavailable until the linked message belongs to a verified executing/completed task.
+
+## v1.6.0 stable acceptance
+
+On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Exact OS, architecture, terminal and host versions were not supplied. This is the new Phase 5 acceptance record, separate from historical editor confirmation and automated/headless/PTY evidence. The existing macOS Client input limitation remains documented. Stable v1.6.0 retains the accepted runtime implementation, display schema v4, configuration protocol v3 and runtime protocol v1. Editor entries default on for compatible hosts, preserving explicit false; live collection remains independently opt-in and preserves its preference.

@@ -2,7 +2,7 @@
 
 [English](live.md) | **简体中文**
 
-Phase 5 源码开发新增独立、默认关闭的 `statusline-runtime` Mod，要求经过固定构建验证的
+正式 v1.6.0 包含独立、默认关闭的 `statusline-runtime` Mod，要求经过固定构建验证的
 Claude Code 2.1.289，不依赖 native 编辑器偏好。`install --live-metrics` 启用，
 `--no-live-metrics` 保存明确关闭选择；预览与正式版本在偏好缺失时均默认关闭。
 独立 schema 1 文件 `claude-statusline-runtime.json` 不随显示配置导入导出。
@@ -67,3 +67,7 @@ Turn ID 将主线程工具及代理启动绑定到执行中的任务，不受新
 Python 保存未归属的 turn、请求、启动和工具；只用唯一已结束生命周期区间和明确父级启动身份核对。高级指标不写生命周期状态。无归属 workflow/fork 排除；任务 token 包含已验证嵌套代理和主线程收尾，turn.complete 总量仅核对覆盖。冲突重复令请求不可用；缺失用量未知，零值是真实观测。TTFT 和输出率对应最新主请求，拒绝倒退或零耗时时钟。已有 api_request collector 记录可提供可靠归属费用估算小计，未关联覆盖仍标为部分。
 
 官方 user_prompt 遥测以 prompt.id 和 message.uuid 明确关联；不同 UUID 或延迟费用不通过文本／token 数匹配。只有关联消息属于已验证的执行／结束任务后，未归属费用才可显示。
+
+## v1.6.0 正式版验收
+
+2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。

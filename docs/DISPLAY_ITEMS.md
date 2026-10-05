@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The current source catalog contains 59 main and 14 subagent items. The independent
+The stable v1.6.0 catalog contains 59 main and 14 subagent items. The independent
 items below are opt-in. Existing defaults and compound IDs remain available,
 and compounds may be selected alongside their individual components in any order.
 See the [user guide](USER_GUIDE.md) for the original items and all configuration entry points.
