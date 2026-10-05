@@ -137,6 +137,18 @@ def observe(config_dir, state, observations, *, complete_timing=True):
             if not contiguous or (state["invalidated"] and turn["ended_at_ms"] is None):
                 record["active_coverage"] = "incomplete"
             pending_ends.append((key, record, turn, previous, agent))
+        wait_starts = {}
+        for event in state.get("wait_events", {}).values():
+            if event["kind"] == "wait_start":
+                identity = (
+                    event["epoch"],
+                    event["agent_id"],
+                    event["turn_id"],
+                    event["request_id"],
+                )
+                wait_starts[identity] = min(
+                    wait_starts.get(identity, event["seq"]), event["seq"]
+                )
         for observation in sorted(
             state.get("wait_events", {}).values(), key=lambda item: item["seq"]
         ):
@@ -180,6 +192,17 @@ def observe(config_dir, state, observations, *, complete_timing=True):
                 else:
                     timer = timer.pause(token, now)
             else:
+                identity = (
+                    epoch,
+                    observation["agent_id"],
+                    observation["turn_id"],
+                    observation["request_id"],
+                )
+                if (
+                    wait_starts.get(identity, observation["seq"] + 1)
+                    >= observation["seq"]
+                ):
+                    record["active_coverage"] = "incomplete"
                 timer = timer.resume(token, now)
             record["active_clock"] = timer.to_dict()
         for key, record, turn, previous, agent in pending_ends:

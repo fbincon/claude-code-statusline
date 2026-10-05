@@ -307,6 +307,37 @@ class NativeTimingTests(unittest.TestCase):
         self.assertIsNone(active_point(self.root, "s", "p")["value"])
         self.assertEqual(active_point(self.root, "s", "p")["reason"], "incomplete")
 
+    def test_wait_end_without_a_start_cannot_claim_complete_execution_time(self):
+        from claude_statusline.runtime.live import store as live
+        from claude_statusline.runtime.tasks.view import active_point
+
+        rows = self.observations()
+        rows.pop(3)
+        for seq, row in enumerate(rows):
+            row["seq"] = seq
+        with mock.patch(
+            "claude_statusline.runtime.tasks.native._sample",
+            side_effect=lambda wall, *args, **kwargs: Sample(wall, wall, "test"),
+        ):
+            live.observe(self.root, rows, timing=True)
+        self.assertEqual(active_point(self.root, "s", "p")["reason"], "incomplete")
+        self.assertIsNone(active_point(self.root, "s", "p")["value"])
+
+    def test_duplicate_paired_wait_end_keeps_the_same_execution_clock(self):
+        from claude_statusline.runtime.live import store as live
+        from claude_statusline.runtime.tasks.view import active_point
+
+        rows = self.observations()
+        rows.insert(5, dict(rows[4], observed_at_ms=4500))
+        for seq, row in enumerate(rows):
+            row["seq"] = seq
+        with mock.patch(
+            "claude_statusline.runtime.tasks.native._sample",
+            side_effect=lambda wall, *args, **kwargs: Sample(wall, wall, "test"),
+        ):
+            live.observe(self.root, rows, timing=True)
+        self.assertEqual(active_point(self.root, "s", "p")["value"], 3)
+
     def test_native_ending_before_session_exit_corrects_delayed_exit_inference(self):
         from claude_statusline.runtime.live import store as live
 
