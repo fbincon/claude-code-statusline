@@ -202,6 +202,31 @@ class TaskTimingTests(unittest.TestCase):
             model._elapsed_ns(model._new_record("p", start), *end), 10 * 10**9
         )
 
+    def test_explicit_native_message_link_preserves_earlier_queued_submission(self):
+        from claude_statusline.runtime.tasks import model, native
+
+        message = model._new_record("message", (10**9, None, None), "native_submit")
+        hook = model._new_record("hook", (3 * 10**9, 3 * 10**9, "boot"))
+        history = {"turns": [message, hook], "current_prompt_id": "hook"}
+        native._link(history, "hook", "message")
+        self.assertEqual(len(history["turns"]), 1)
+        self.assertEqual(hook["started_wall_ns"], 10**9)
+        self.assertEqual(hook["started_boot_ns"], 10**9)
+        self.assertEqual(
+            model._elapsed_ns(hook, 9 * 10**9, 9 * 10**9, "boot"), 8 * 10**9
+        )
+
+    def test_message_link_does_not_rewrite_a_confirmed_frozen_task(self):
+        from claude_statusline.runtime.tasks import model, native
+
+        message = model._new_record("message", (10**9, None, None), "native_submit")
+        hook = model._new_record("hook", (3 * 10**9, 3 * 10**9, "boot"))
+        hook.update(status="completed", duration_ns=6 * 10**9, ended_wall_ns=9 * 10**9)
+        history = {"turns": [message, hook], "current_prompt_id": "hook"}
+        native._link(history, "hook", "message")
+        self.assertEqual(hook["started_wall_ns"], 3 * 10**9)
+        self.assertEqual(hook["duration_ns"], 6 * 10**9)
+
 
 class NativeTimingTests(unittest.TestCase):
     def setUp(self):
