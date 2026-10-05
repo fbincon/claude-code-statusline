@@ -1,54 +1,37 @@
-# 计时指标与生命周期证据
+# 任务时钟与生命周期证据
 
 [English](timer.md) | **简体中文**
 
-`prompt-timer` 测量用户任务。使用过子 Agent 的任务包含提交/排队、全部 Agent 工作与主 Agent 收尾，只由主 Agent 最终 `Stop` 确认完成；失败和中断各自具有终态证据。超时不伪造完成。
+`task-timer` 从最早可信的人类提交开始，覆盖排队、Agent 工作与主 Agent 收尾。`prompt-timer` 保留为输入兼容别名。可选的 `task-active-timer` 从执行开始计时，扣除已核验的用户等待。原生单轮耗时、会话运行时间和累计 API 耗时分别保存。
 
-## 独立指标
+## 职责结构
 
-| 指标 | 来源 | v1.1.1 中的用途 |
-| --- | --- | --- |
-| 任务耗时 | 最早可信提交与已接受终态的时钟 | 多 Agent、失败及中断任务的冻结结果 |
-| 原生单轮耗时 | transcript 的 `turn_duration.durationMs` | 普通成功单轮满足条件时校准一次 |
-| 会话运行时间 | `cost.total_duration_ms` | 现有复合 `cost` 条目中的时间 |
-| API 累计等待时间 | `cost.total_api_duration_ms` | 独立定义，当前 `cost` 不显示 |
+`runtime/timing` 提供纯逻辑、可持久恢复的计时核心。累计时间、暂停与恢复的设计参考 [Codex StatusTimer](https://github.com/openai/codex/blob/823ea830c0fd418b09ff02d36cad9a1fff66465b/codex-rs/tui/src/status_indicator_widget/timer.rs)，本项目以 Python 实现，并增加启动域时钟样本及重叠等待身份。
 
-会话运行时间跨恢复累计，不包含会话未运行的间隔；API 等待时间是等待 API 响应的时间，见 [官方状态栏字段](https://code.claude.com/docs/en/statusline)。
+`runtime/tasks` 集中管理任务身份、生命周期转换、提交证据索引、原子存储、原生适配与只读指标视图。`runtime/turns` 和原 Python 入口引用相同的正式模块。采集与归并先于格式化；预览使用固定快照，不访问运行数据。
 
-## 证据优先级
+## 完成判定
 
-| 优先级 | 证据 |
-| --- | --- |
-| 100 | `StopFailure` |
-| 95 | 按时间归属的 transcript 中断，或运行中会话的 `SessionEnd` |
-| 90 | 主 Agent 最终 `Stop` |
-| 60 | 可靠归属的普通原生 duration |
-| 50 | 本地命令排除 |
-| 40 / 30 | 已核验进程的 registry 完成 / 撤回 |
-| 20 / 10 | 恢复/启动时未知结束 / 新 prompt 替换 |
+传统 `Stop` 是停止尝试。没有进一步确认时显示 `? <耗时>+`，表示已知下界。可信续跑撤销候选，不重置提交时钟；没有新活动的重复停止尝试保持幂等。
 
-修改任何终态字段前，先检查归属与适用条件。较弱证据不修改状态、时长或错误；重复同优先级终态保持幂等。中断时间落在该任务内时，可替换较早到达的弱推断完成；最终失败可覆盖较弱成功证据。
+匹配的主线程 `turn.complete` 确认单轮结束。任务还须满足所属 Agent 已结束、必要报告已交付、主 Agent 收尾完成。已知后台 Agent 通知通过明确别名续接原人类任务。人类消息 UUID 别名与报告别名分别记录，普通同步 Agent 不要求后台通知。
 
-原生校准是普通成功且无子 Agent 历史任务的有限例外：只修改一次 duration，保留最终 Stop 时间戳，不校准失败、中断或经历过 Agent 的任务。升级时，已有 duration 的旧普通成功记录视为已经校准。
+兼容完成证据包括可靠归属的 transcript 终态和核验过进程身份的 idle registry。无归属原生 turn 不附加给当前任务。epoch 序号缺口、旧 epoch 和有歧义的排队身份保持不完整。超时和心跳过期不伪造完成。
 
-## 子 Agent 阶段与冻结时钟
+失败与用户中断冻结已接受结果。原生终态若明确发生于随后会话退出之前，可以修正退出时的推断；迟到批次不会将正常完成的 print 会话误记为中断。强失败证据仍优先于成功声明。
 
-主 Stop 时仍有普通 Agent 则进入 `waiting_subagents`，最后一个子 Agent Stop 后进入 `resuming_main`。真实主 assistant 活动可使阶段回到 `main`，但持久 `had_subagents` 仍阻止 duration、idle 和撤回推断。即使缺少 start hook，`SubagentStop` 也能证明 Agent 历史。孤立或 Agent 内部事件不创建新的主任务。
+## 独立耗时
 
-迟到的 Agent start 只可重新打开 native/registry 推断完成，并清除校准，不会重新打开主 Stop、失败或中断等强终态。Stop 快照可修正缺少或重复的 Agent hook。Claude Code 会为结构化 Agent 结果通知触发新的 `UserPromptSubmit` ID。已知 Agent ID 将这些宿主 ID 关联到最初的人类任务；待交付报告阻止第一条通知的 Stop 在剩余报告和收尾前结束任务。经确认且此前尚未交付的新报告可继续一个表面上已 Stop 的任务；重复报告、失败和中断仍保持冻结。Shell/server/monitor/workflow 不进入 Agent 计时。
+任务耗时优先使用相同启动域、包含睡眠时间的起止样本，缺失时退化到经过校验的墙钟。Linux 使用 `CLOCK_BOOTTIME` 和 boot ID；macOS 使用连续时钟与启动 UUID；Windows 使用 uptime 和启动 GUID，不再从墙钟估计启动分钟。时钟或 API 不可用时记录退化；冻结值不会因重启或刷新改变。
 
-接受终态前，先从已写入的 transcript 核对一次匹配的真实用户提交；后续扫描不改写强终态已冻结的起点。接受终态时，优先使用匹配且包含睡眠时间的起止时钟，否则使用墙钟，冻结纳秒耗时。重启后的刷新不重新解释冻结值。未知结束仍显示为下界。旧记录中被缩短的多 Agent 或中断时长，可从已存起止证据恢复。
+原生 `durationMs` 独立记录，始终不校准任务总耗时。8 秒任务在收到 1.5 秒原生单轮耗时后仍为 8 秒。
 
-## Prompt 归属
+执行耗时使用独立的累计／恢复时钟。并行工作不相加，主 Agent 等待仍在工作的 Agent 时继续执行。等待请求具有独立身份，重叠等待不会提前恢复。当前宿主并非在所有权限、问题和 MCP 等待中提供准确起止，因此这些任务隐藏执行耗时并报告 `wait_coverage_missing`；不能证明并行等待及依赖覆盖时报告 `incomplete`。缺失观测不当作零等待。
 
-Hook ID 标识所属主 prompt。增量 transcript 解析保留最近已确认的真实 prompt，与当前 hook prompt 独立，防止提前到达的排队 hook 抢走旧 duration。明确的 observation ID 优先。完整扫描重置解析上下文；重放旧 prompt 不替换更新的当前任务。本地命令不成为计时任务。
+## 存储与兼容
 
-缺少 ID 或可信 transcript 上下文时，不把 duration 默认关联到当前 prompt。内部 reducer 为旧直接调用保留只有一条记录时的 fallback；真实解析事件会显式携带缺失归属，禁用此 fallback。缺少 prompt ID 的 Agent 事件须有已知所属关系或唯一无歧义任务。
+保留原存储位置和 schema-1 镜像。生命周期 v4 读取 v2/v3；旧冻结值保留为当时记录的历史，不重新解释成新指标。缺少执行证据时保持不可用。读取与预览不迁移文件，写入由会话锁保护并原子发布。
 
-计时扫描版本 5 会重新读取旧 transcript 元数据。显示 schema v2、feature schema v1、运行镜像 schema 1 与生命周期 schema 3 保持兼容；`duration_source`、已知 `agent_ids`、`prompt_aliases` 和 `pending_agent_reports` 为可选元数据。Agent 历史与续接 ID 各限制为每任务 256 项。
+提交证据按 transcript 身份和完整行游标建立索引，仅保留有界 prompt ID。追加刷新只读新尾部，未变化文件不全量扫描；截断或重写使索引失效。已核验提交供终态 hook 复用，后续重放不改写强终态的冻结起点。
 
-## 回归示例
-
-第 1 秒提交，第 2 秒启动 Agent，第 3 秒主 Stop，第 4 秒 Agent Stop，第 9 秒最终主 Stop。迟到的 `durationMs=1000` 到达前后，任务都保持 `✓ 0m 08s`。测试覆盖恢复为 main、并行/重复 hooks、排队 prompt、本地命令、中断/失败顺序、有限 duration 校验和重启后的时钟回退。
-
-真实会话证据及视觉验收边界见 [测试](testing.zh-CN.md)，面向用户的标记见 [使用指南](../reference/cli.zh-CN.md#prompt-计时标记)。
+另见[运行契约](live.zh-CN.md)、[测试](testing.zh-CN.md)和[用户计时标记](../reference/cli.zh-CN.md#prompt-计时标记)。

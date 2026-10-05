@@ -7,6 +7,7 @@ from pathlib import Path
 import time
 
 from claude_statusline.config import runtime as preference
+from claude_statusline.integration.models import ConfigurationError
 from claude_statusline.runtime.live import model, ownership, store, requests
 
 LIVE_ITEMS = (
@@ -195,10 +196,17 @@ def collect(config_dir: Path, session_id, prompt_id=None, *, now_ms=None):
     if not isinstance(session_id, str) or not session_id:
         return {item: point(reason="not_observed") for item in LIVE_ITEMS}
     try:
-        enabled = preference.requested(config_dir)
+        enabled = preference.metrics_requested(config_dir)
         state = store.load(config_dir, session_id) if enabled else None
         return resolve(
             state, config_dir, session_id, prompt_id, now_ms=now_ms, enabled=enabled
         )
-    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+    except (
+        ConfigurationError,
+        OSError,
+        ValueError,
+        KeyError,
+        TypeError,
+        AttributeError,
+    ):
         return {item: point(reason="source_unavailable") for item in LIVE_ITEMS}

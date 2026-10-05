@@ -18,7 +18,7 @@ class MetricsConfigTests(unittest.TestCase):
             raw = json.dumps(data).encode()
             path.write_bytes(raw)
             config = display.load_display_config(root)
-            self.assertEqual(config.schema_version, 4)
+            self.assertEqual(config.schema_version, 5)
             self.assertEqual(config.metrics.branch_diff_base_ref, None)
             self.assertEqual(config.formatting.number_format, "grouped")
             self.assertEqual(path.read_bytes(), raw)

@@ -67,9 +67,9 @@ def verify(directory: Path, executable: Path, environment: dict, multi: bool) ->
     state = next(
         row for row in state["lifecycle"]["turns"] if row["prompt_id"] == prompt
     )
-    assert state["status"] == "completed", f"Unexpected task ending: {state['status']}"
-    assert state["end_source"] == "hook_stop", "A real final main Stop is required"
-    assert isinstance(state["duration_ns"], int)
+    assert any(row["event"].get("hook_event_name") == "Stop" for row in hooks), (
+        "A real main Stop is required"
+    )
     transcript = Path(submit["event"]["transcript_path"])
     transcript_rows = records(transcript)
     durations = [
@@ -101,6 +101,7 @@ def verify(directory: Path, executable: Path, environment: dict, multi: bool) ->
         "workspace": {"current_dir": str(directory)},
     }
     rendered = []
+    frozen_durations = []
     for _ in range(2):
         completed = subprocess.run(
             [str(executable), "render"],
@@ -116,13 +117,29 @@ def verify(directory: Path, executable: Path, environment: dict, multi: bool) ->
         timer = re.search(r"✓\s+(?:\d+h\s+)?\d+m\s+\d+s", plain)
         assert timer, "Production renderer must show a completed task"
         rendered.append(timer.group())
+        snapshot = json.loads(state_path.read_bytes())
+        frozen_durations.append(
+            next(
+                row["duration_ns"]
+                for row in snapshot["lifecycle"]["turns"]
+                if row["prompt_id"] == prompt
+            )
+        )
         time.sleep(1)
     assert rendered[0] == rendered[1], "Frozen renderer values must remain stable"
     final = json.loads(state_path.read_text(encoding="utf-8"))
     final = next(
         row for row in final["lifecycle"]["turns"] if row["prompt_id"] == prompt
     )
-    assert final["duration_ns"] == state["duration_ns"], (
+    assert final["status"] == "completed", f"Unexpected task ending: {final['status']}"
+    assert final["end_source"] in (
+        "hook_stop",
+        "transcript_stop",
+        "transcript_duration",
+        "native_turn_end",
+        "registry_idle",
+    )
+    assert final["duration_ns"] == frozen_durations[0] == frozen_durations[1], (
         "Transcript refresh must preserve task duration"
     )
     return {
@@ -133,7 +150,7 @@ def verify(directory: Path, executable: Path, environment: dict, multi: bool) ->
         "waiting_observed": waiting,
         "wrap_up_observed": wrap_up,
         "native_duration_records": len(durations),
-        "task_duration_ns": state["duration_ns"],
+        "task_duration_ns": final["duration_ns"],
         "rendered_timer": rendered[0],
     }
 
@@ -171,7 +188,14 @@ def run_case(directory: Path, executable: Path, cap: float, multi: bool) -> dict
     )
     environment.pop("CLAUDECODE", None)
     subprocess.run(
-        [str(executable), "install", "--config-dir", str(config)],
+        [
+            str(executable),
+            "install",
+            "--no-native-editor",
+            "--no-live-metrics",
+            "--config-dir",
+            str(config),
+        ],
         env=environment,
         cwd=project,
         capture_output=True,
@@ -365,6 +389,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--budget-usd", type=float, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
+    parser.add_argument("--budget-ledger", type=Path, required=True)
     args = parser.parse_args()
     if sys.platform != "linux":
         parser.error("This opt-in real-session acceptance currently requires Linux")
@@ -376,6 +401,7 @@ def main() -> int:
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     executable = Path(sys.executable).parent / "claude-statusline"
     import platform
+    from live_metrics_acceptance import reserve, settle
     from claude_statusline import __version__
 
     report = {
@@ -398,7 +424,18 @@ def main() -> int:
         remaining = args.budget_usd - report["reserved_spend_usd"]
         if remaining <= 0:
             break
-        case = run_case(root / name, executable, min(cap, remaining), multi)
+        call_cap = min(cap, remaining)
+        identity = reserve(args.budget_ledger.resolve(), str(root / name), call_cap)
+        try:
+            case = run_case(root / name, executable, call_cap, multi)
+        except BaseException:
+            settle(args.budget_ledger.resolve(), identity, None)
+            raise
+        settle(
+            args.budget_ledger.resolve(),
+            identity,
+            case.get("cost_usd") if case.get("cost_known") else None,
+        )
         report["cases"].append(case)
         report["reserved_spend_usd"] += case["reserved_spend_usd"]
         (root / "report.json").write_text(

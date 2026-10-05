@@ -46,7 +46,21 @@ class TurnStateTestCase(unittest.TestCase):
         }
         payload.update(extra)
         with mock.patch.object(turn_store, "now_clocks", return_value=clocks(wall_ns)):
-            return turn_reducer.handle_event(payload)
+            result = turn_reducer.handle_event(payload)
+            state = turn_store.load_turn_state(sid, prompt_id)
+            if (
+                name == "Stop"
+                and state
+                and not state.get("active_agents")
+                and not (
+                    state.get("prompt_aliases") and state.get("pending_agent_reports")
+                )
+                and state.get("status") in ("running", "completed")
+            ):
+                result = turn_reducer.confirm_completion(
+                    sid, prompt_id, wall_ns=wall_ns
+                )
+            return result
 
 
 class LifecycleTransitionTests(TurnStateTestCase):
@@ -60,7 +74,7 @@ class LifecycleTransitionTests(TurnStateTestCase):
         self.event("s", "A", "Stop", 11_000_000_000)
         completed = turn_store.load_turn_state("s", "A")
         self.assertEqual(completed["status"], "completed")
-        self.assertEqual(completed["end_source"], "hook_stop")
+        self.assertEqual(completed["end_source"], "native_turn_end")
         self.assertEqual(completed["ended_wall_ns"], 11_000_000_000)
 
     def test_stop_without_submit_isolated_from_newer_current_turn(self):
@@ -213,7 +227,7 @@ class MigrationAndStorageTests(TurnStateTestCase):
         with open(turn_store._state_path("s"), "r", encoding="utf-8") as stream:
             published = json.load(stream)
         self.assertEqual(published["schema"], 1)
-        self.assertEqual(published["lifecycle"]["schema"], 3)
+        self.assertEqual(published["lifecycle"]["schema"], 4)
         self.assertEqual(published["prompt_id"], "A")
         self.assertEqual(published["status"], "completed")
 

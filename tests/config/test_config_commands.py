@@ -392,7 +392,7 @@ class HostAndTransactionTests(ConfigCommandTestCase):
             raw,
         )
         stored = json.loads(path.read_text(encoding="utf-8"))
-        self.assertEqual(stored["schema_version"], 4)
+        self.assertEqual(stored["schema_version"], 5)
         self.assertEqual(stored["items"], ["git"])
         self.assertEqual(stored["scope_labels"], "always")
 

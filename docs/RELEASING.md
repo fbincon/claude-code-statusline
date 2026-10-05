@@ -185,3 +185,11 @@ On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and
 This patch changes external curses presentation and field grouping. Display v4, configuration protocol v3, runtime protocol v1 and integration preferences remain compatible; Python and both Mods share the release version. Verify field identity after regrouping, nonselectable headings, scrolling, resizing, Unicode, numeric/text editing, saving and cancellation. Installed-wheel standalone PTYs cover 64×18, 64×20, 80×24, 120×30 and 80×48; official persistent advanced PTYs retain 120×30/80×48 and editor readback.
 
 Require all 20 PR/merge/tag jobs, fixed-merge builds, inventories, independent rebuild/install, v1.6.0 upgrades and draft/public bytes/SHA256. Record screenshot source commits, sample data and reconstruction provenance; distinguish agent inspection from human acceptance. Runtime implementation is inherited, so this patch uses free tests and local commands. Publish a new v1.6.1 Latest release and preserve historical tags, assets and evidence.
+
+## Task timing prerelease gates
+
+For v1.7.0a1, retain the stable installation target and publish prerelease with `--latest=false`. Require all 20 PR/merge/tag jobs and build from the fixed verified merge SHA. Both Mod SemVer versions use `1.7.0-alpha.1` for Python `1.7.0a1`.
+
+Use the existing shared USD 10 ledger for every real attempt and retry. The task acceptance runner covers default timing, parallel reports/wrap-up, blocked Stop continuation, controlled SDK waiting/interruption and explicit collection opt-out; see [task timing validation](development/testing.md#task-timing-preview-validation). Do not publish with a failed required case, unknown cost or exhausted budget. Repeat verification of captured source evidence against the installed distribution without calling models.
+
+Validate installed core/native/runtime smoke, matching-wheel external and Client PTYs, wheel/sdist inventories, independent rebuild/install, draft download/checksums and tag CI before publication. Public asset bytes and fixed-tag/URL isolated installs must be checked after publication. Record automatic SDK input separately from human interaction; real sleep and Windows/macOS model sessions remain explicit preview boundaries.

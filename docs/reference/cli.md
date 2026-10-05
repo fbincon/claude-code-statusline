@@ -132,7 +132,7 @@ Example output:
 Scope: user
 Config: /home/user/.claude/claude-statusline.json
 Installed: yes
-Items: model-with-effort, current-dir, git, context-remaining, prompt-timer
+Items: model-with-effort, current-dir, git, context-remaining, task-timer
 Colors: on
 Palette: default
 Directory style: home
@@ -176,7 +176,7 @@ Each JSON item contains:
 
 - `id`: the stable identifier passed to other commands.
 - `description`: a description of the display item.
-- `default_enabled`: ten main items are `true`; the other 49 main items are `false` (opt-in).
+- `default_enabled`: ten main items are `true`; the other 50 main items are `false` (opt-in).
 - `enabled`: whether it is currently enabled.
 - `position`: its current zero-based position, or `null` when disabled.
 
@@ -187,7 +187,7 @@ The shared catalog also returns `scope`, `label`, `group`, `sources`, `examples`
 Replace the entire enabled set at once and save argument order as display order:
 
 ```bash
-claude-statusline config set-items model-with-effort current-dir git prompt-timer
+claude-statusline config set-items model-with-effort current-dir git task-timer
 ```
 
 All items not listed become disabled. This is useful for defining a minimal status line from scratch.
@@ -215,7 +215,7 @@ claude-statusline config set-items git git
 Enable one or more items, appending previously disabled items in argument order:
 
 ```bash
-claude-statusline config enable tokens prompt-timer
+claude-statusline config enable tokens task-timer
 ```
 
 Already enabled items are neither duplicated nor moved. Use `enable` for incremental additions, not reordering.
@@ -235,7 +235,7 @@ Disabling a valid item that is already disabled is idempotent and does not affec
 Change only the order, retaining the enabled set:
 
 ```bash
-claude-statusline config order git current-dir model-with-effort prompt-timer
+claude-statusline config order git current-dir model-with-effort task-timer
 ```
 
 Arguments must contain every currently enabled item exactly once. Missing or extra items, currently disabled items, and duplicates all cause failure.
@@ -244,7 +244,7 @@ Inspect the current set before reordering:
 
 ```bash
 claude-statusline config show
-claude-statusline config order model-with-effort git current-dir context-remaining prompt-timer
+claude-statusline config order model-with-effort git current-dir context-remaining task-timer
 ```
 
 An empty `config order` argument list is valid only when the enabled set is empty:
@@ -299,7 +299,7 @@ Linux / WSL / macOS (Bash):
 
 ```bash
 claude-statusline config apply \
-  --items model-with-effort current-dir git context-remaining prompt-timer \
+  --items model-with-effort current-dir git context-remaining task-timer \
   --subagent-items status-elapsed name model-with-effort context-remaining task \
   --subagent-statusline on \
   --scope-labels when-subagents \
@@ -316,7 +316,7 @@ Windows PowerShell:
 
 ```powershell
 claude-statusline.exe config apply `
-  --items model-with-effort current-dir git context-remaining prompt-timer `
+  --items model-with-effort current-dir git context-remaining task-timer `
   --subagent-items status-elapsed name model-with-effort context-remaining task `
   --subagent-statusline on `
   --scope-labels when-subagents `
@@ -405,7 +405,7 @@ This command:
 
 ## Configurable display items
 
-The main catalog has 59 items. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
+The main catalog has 60 items. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
 
 All the following items are enabled by default; table order is also the initial display order:
 
@@ -420,7 +420,7 @@ All the following items are enabled by default; table order is also the initial 
 | `weekly-limit` | Remaining percentage of the 7-day window, labeled `weekly` | Omitted without this window |
 | `spend-limit` | Remaining percentage of the gateway spend limit | Omitted without this window |
 | `tokens` | Cumulative session `hit · miss · out` | Omitted without session/transcript information |
-| `prompt-timer` | Duration and result of the current or latest real prompt | Omitted until a prompt can be identified |
+| `task-timer` | Duration and result of the current or latest real prompt | Omitted until a prompt can be identified |
 
 Limit percentages are calculated from Claude Code's `used_percentage`. This tool does not query account-limit services; available windows depend on the Claude Code version, account, and current status-line payload.
 
@@ -495,6 +495,8 @@ Counts use compact notation, such as `950`, `12.4K`, or `1.05M`. They do not ind
 
 <a id="prompt-计时标记"></a>
 
+<a id="prompt-timer-markers"></a>
+
 ### Prompt timing markers
 
 | Marker | Meaning |
@@ -520,7 +522,7 @@ The subagent history remains authoritative after the main agent resumes. A delay
 
 | Time metric | Meaning and source |
 | --- | --- |
-| Task duration | `prompt-timer`: earliest user submission to final main `Stop`, or a confirmed failure/interruption; includes queuing, subagents and wrap-up |
+| Task duration | `task-timer`: earliest user submission to final main `Stop`, or a confirmed failure/interruption; includes queuing, subagents and wrap-up |
 | Native turn duration | Transcript `turn_duration.durationMs`; a single native response, used only for eligible single-turn calibration |
 | Session runtime | `cost.total_duration_ms`; cumulative time the CLI session runs, excluding time between runs/resumes |
 | API wait time | `cost.total_api_duration_ms`; cumulative waiting for API responses; not currently displayed by `cost` |
@@ -529,7 +531,7 @@ See the [official status-line fields](https://code.claude.com/docs/en/statusline
 
 Background-agent result notifications can have different host prompt IDs; known agent ownership keeps them in the same user task until every report and main-agent wrap-up finishes. Submission evidence is checked before freezing, so later transcript refreshes do not revise terminal values.
 
-Local shortcut commands such as `/statusline-config show` do not start a new timed prompt. Hiding `tokens` while retaining `prompt-timer` still lets the timer read the necessary transcript state and work normally.
+Local shortcut commands such as `/statusline-config show` do not start a new timed prompt. Hiding `tokens` while retaining `task-timer` still lets the timer read the necessary transcript state and work normally.
 
 <a id="子-agent-行与三种作用域"></a>
 
@@ -649,7 +651,7 @@ Adjacent items in the following semantic groups join with ` · ` and share the s
 
 ### Refresh interval
 
-Claude Code reruns the status line on relevant UI or session events. `refresh-interval N` adds refreshes every N seconds, useful for continuously updating `prompt-timer` or observing background changes while the main session is idle.
+Claude Code reruns the status line on relevant UI or session events. `refresh-interval N` adds refreshes every N seconds, useful for continuously updating `task-timer` or observing background changes while the main session is idle.
 
 ```bash
 # Default: refresh every second
@@ -662,7 +664,7 @@ claude-statusline config set refresh-interval 5
 claude-statusline config set refresh-interval event
 ```
 
-With `event`, an active `prompt-timer` does not advance visibly every second; it updates only on the next status event.
+With `event`, an active `task-timer` does not advance visibly every second; it updates only on the next status event.
 
 <a id="配置文件"></a>
 
@@ -682,7 +684,7 @@ The default configuration is equivalent to:
 
 ```json
 {
-  "schema_version": 4,
+  "schema_version": 5,
   "items": [
     "model-with-effort",
     "current-dir",
@@ -693,7 +695,7 @@ The default configuration is equivalent to:
     "weekly-limit",
     "spend-limit",
     "tokens",
-    "prompt-timer"
+    "task-timer"
   ],
   "use_colors": true,
   "palette": "default",
@@ -742,7 +744,7 @@ The default configuration is equivalent to:
 
 This is strict JSON: comments, trailing commas, unknown or missing fields, unknown items, and duplicates are rejected. Use configuration commands rather than editing it manually.
 
-The ten items above form the default enabled set. The other 49 main items enter `items` only after explicit selection in CLI, wizard, or an editor.
+The ten items above form the default enabled set. The other 50 main items enter `items` only after explicit selection in CLI, wizard, or an editor.
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [configuration writes and concurrency](../development/README.md#configuration-writes-and-concurrency).
 
@@ -786,7 +788,7 @@ Fields, types, duplicate keys and schema are strictly validated; install/doctor 
 `<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` uses its own schema v1:
 
 ```json
-{"schema_version": 1, "live_metrics": false}
+{"schema_version": 2, "native_timing": true, "live_metrics": false}
 ```
 
 A missing file defaults to false. `install --live-metrics` / `install --no-live-metrics` records the choice independently of both editors. Reinstall preserves it; unsupported hosts retain the preference but suspend collection. [Enabling collection and display](../USER_GUIDE.md#opt-in-live-state).

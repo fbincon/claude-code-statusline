@@ -44,9 +44,11 @@ def empty(session_id):
         "tools": {},
         "checklists": {},
         "prompt_aliases": {},
+        "prompt_links": {},
         "agent_snapshot": None,
         "requests": {},
         "costs": {},
+        "wait_events": {},
     }
 
 
@@ -75,6 +77,7 @@ def load(config_dir: Path, session_id: str):
                     "tools",
                     "checklists",
                     "prompt_aliases",
+                    "prompt_links",
                     "requests",
                     "costs",
                 )
@@ -132,6 +135,20 @@ def load(config_dir: Path, session_id: str):
 
 
 def _validate_views(state):
+    if len(state["prompt_links"]) > model.MAX_AGENTS:
+        raise ValueError("prompt links exceed their bound")
+    for alias, target in state["prompt_links"].items():
+        model.text(alias, "prompt link")
+        model.text(target, "message link")
+    if (
+        not isinstance(state["wait_events"], dict)
+        or len(state["wait_events"]) > model.MAX_SEEN
+    ):
+        raise ValueError("invalid waiting evidence")
+    for row in state["wait_events"].values():
+        model.validate(row)
+        if row["kind"] not in ("wait_start", "wait_end", "wait_unknown"):
+            raise ValueError("invalid waiting event kind")
     for table, maximum in (
         ("turns", model.MAX_TURNS),
         ("tools", model.MAX_TOOLS),
@@ -217,7 +234,9 @@ def fresh(state, now_ms=None):
     )
 
 
-def observe(config_dir: Path, observations):
+def observe(
+    config_dir: Path, observations, *, timing=False, complete_timing=True, advanced=True
+):
     from claude_statusline.runtime.live.reducer import apply
 
     accepted = ignored = 0
@@ -229,13 +248,23 @@ def observe(config_dir: Path, observations):
         with files.exclusive_file_lock(target.with_suffix(".lock")):
             state = load(config_dir, session_id) or empty(session_id)
             for item in rows:
-                if apply(state, item):
+                if apply(
+                    state,
+                    item,
+                    metadata_only=not advanced
+                    and item["kind"] not in model.TIMING_KINDS,
+                ):
                     accepted += 1
                 else:
                     ignored += 1
             from claude_statusline.runtime.live import bindings
 
             bindings.reconcile(state, config_dir)
+            if timing:
+                # Fixed order: live lock -> task lock. Task writers never take a live lock.
+                from claude_statusline.runtime.tasks.native import observe
+
+                observe(config_dir, state, rows, complete_timing=complete_timing)
             content = json.dumps(
                 state, ensure_ascii=False, allow_nan=False, separators=(",", ":")
             ).encode("utf-8")

@@ -14,24 +14,36 @@ from claude_statusline.runtime.live import model, store
 
 def dispatch(request, config_dir: Path):
     model.exact(request, ("protocol_version", "operation", "payload"), "request")
-    if (
-        type(request["protocol_version"]) is not int
-        or request["protocol_version"] != model.PROTOCOL_VERSION
-    ):
+    if type(request["protocol_version"]) is not int or request[
+        "protocol_version"
+    ] not in (1, model.PROTOCOL_VERSION):
         raise model.ObservationError(
             "unsupported runtime protocol; reinstall matching Mod/backend"
         )
-    enabled = preference.requested(config_dir)
+    modes = preference.load(config_dir)
+    enabled = modes.enabled
     payload = request["payload"]
     if request["operation"] == "observe":
         model.exact(payload, ("observations",), "payload")
         observations = model.validate_batch(payload["observations"])
         counts = (
-            store.observe(config_dir, observations)
+            store.observe(
+                config_dir,
+                observations,
+                timing=modes.native_timing,
+                complete_timing=request["protocol_version"] == model.PROTOCOL_VERSION,
+                advanced=modes.live_metrics,
+            )
             if enabled
             else {"accepted": 0, "ignored": len(observations)}
         )
-        return {"backend_version": __version__, "enabled": enabled, **counts}
+        return {
+            "backend_version": __version__,
+            "enabled": enabled,
+            "native_timing": modes.native_timing,
+            "live_metrics": modes.live_metrics,
+            **counts,
+        }
     if request["operation"] == "read":
         model.exact(payload, ("session_id", "prompt_id"), "payload")
         session_id = model.text(payload["session_id"], "session_id")
@@ -48,10 +60,15 @@ def dispatch(request, config_dir: Path):
         from claude_statusline.runtime.live import snapshot
 
         metrics = snapshot.resolve(
-            state, config_dir, session_id, prompt_id, enabled=enabled
+            state, config_dir, session_id, prompt_id, enabled=modes.live_metrics
         )
 
+        from claude_statusline.runtime.tasks.view import active_point
+
+        metrics["task-active-timer"] = active_point(config_dir, session_id, prompt_id)
         return {
+            "native_timing": modes.native_timing,
+            "live_metrics": modes.live_metrics,
             "backend_version": __version__,
             "session_id": session_id,
             "prompt_id": prompt_id or (state["current_prompt_id"] if state else None),
@@ -90,7 +107,10 @@ def main(args):
         request = json.loads(
             raw.decode("utf-8-sig"), object_pairs_hook=_unique, parse_constant=_constant
         )
+        if isinstance(request, dict) and type(request.get("protocol_version")) is int:
+            response["protocol_version"] = request["protocol_version"]
         response["result"] = dispatch(request, resolve_config_dir(args.config_dir))
+        response["protocol_version"] = request["protocol_version"]
     except (
         model.ObservationError,
         ConfigurationError,

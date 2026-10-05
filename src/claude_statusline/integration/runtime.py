@@ -1,18 +1,18 @@
-"""Independent live-metrics Mod, using the shared owned-plugin installer."""
+"""Native task timing and advanced observations, using the shared owned-plugin installer."""
 
 from dataclasses import replace
 
 from claude_statusline.integration import native
 from claude_statusline.integration.mods import RUNTIME
-from claude_statusline.integration.models import Diagnostic
+from claude_statusline.integration.models import ConfigurationError, Diagnostic
 from claude_statusline.runtime.live import model, store
 import time
 
 
 def _message(message):
     for before, after in (
-        ("Native editor", "Live metrics"),
-        ("native editor", "live metrics"),
+        ("Native editor", "Runtime collection"),
+        ("native editor", "runtime collection"),
         ("native Mod", "runtime Mod"),
         ("Native resource", "Runtime resource"),
         ("native plugin", "runtime plugin"),
@@ -39,6 +39,12 @@ def integrate(config_dir, executable, requested, version, *, uninstall=False):
 
 
 def diagnostics(config_dir, executable, version):
+    from claude_statusline.config import runtime as preferences
+
+    try:
+        preferences.load(config_dir)
+    except (ConfigurationError, OSError) as error:
+        return [Diagnostic("ERROR", str(error))]
     rows = [
         Diagnostic(row.level, _message(row.message))
         for row in native.diagnostics(config_dir, executable, version, spec=RUNTIME)
@@ -70,7 +76,16 @@ def diagnostics(config_dir, executable, version):
     if latest is not None:
         from claude_statusline.runtime.live import snapshot
 
-        points = snapshot.resolve(latest, config_dir, latest["session_id"])
+        from claude_statusline.config import runtime as preferences
+        from claude_statusline.runtime.tasks.view import active_point
+
+        modes = preferences.load(config_dir)
+        points = snapshot.resolve(
+            latest, config_dir, latest["session_id"], enabled=modes.live_metrics
+        )
+        points["task-active-timer"] = active_point(config_dir, latest["session_id"])
+        if not modes.live_metrics:
+            points = {"task-active-timer": points["task-active-timer"]}
         sources = sorted(
             {
                 row["source"]

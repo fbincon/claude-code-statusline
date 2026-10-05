@@ -63,7 +63,7 @@ class NewItemCatalogTests(unittest.TestCase):
                 "weekly-limit",
                 "spend-limit",
                 "tokens",
-                "prompt-timer",
+                "task-timer",
             ),
         )
         self.assertEqual(
@@ -112,7 +112,8 @@ class NewItemCatalogTests(unittest.TestCase):
                 "cache-expires",
                 "cache-misses",
                 "api-requests",
-                "prompt-timer",
+                "task-timer",
+                "task-active-timer",
                 "version",
                 "session",
                 "session-name",

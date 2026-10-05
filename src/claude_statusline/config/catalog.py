@@ -414,13 +414,21 @@ ITEMS = (
         minimum_version="2.1.251",
     ),
     _main(
-        "prompt-timer",
-        "Task timer",
-        "Elapsed time and outcome of the latest prompt",
+        "task-timer",
+        "Task total time",
+        "Total elapsed time and outcome of the latest human task, including queue and agents",
         "usage",
         ("lifecycle_hooks", "conversation_transcript"),
         "✓ 1m 42s",
         9,
+    ),
+    _main(
+        "task-active-timer", "Task execution time",
+        "Execution elapsed time, excluding verified user waits; requires complete native coverage",
+        "usage", ("native_task_timing",), "✓ Active 1m 30s",
+        minimum_version="2.1.289",
+        unavailable_reasons=("unsupported_host", "unknown_host_version", "source_unavailable", "native_timing_disabled", "not_observed", "incomplete",
+                             "wait_coverage_missing", "abnormal_clock", "stale"),
     ),
     _main(
         "version",
@@ -831,3 +839,10 @@ def wizard_groups() -> str:
         "   Use default_enabled, format_options and excludes from the live listings; do not infer defaults from this grouping."
     )
     return "\n".join(lines)
+
+
+ITEM_ALIASES = {"prompt-timer": "task-timer"}
+
+
+def canonical_item(item):
+    return ITEM_ALIASES.get(item, item)

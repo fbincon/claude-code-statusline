@@ -109,6 +109,23 @@ def _turn_events(lines, prompt_context=None):
                     }
                 )
             continue
+        if d.get("type") == "system" and d.get("subtype") == "stop_hook_summary":
+            ts = _ts_to_epoch(d.get("timestamp"))
+            if (
+                ts is not None
+                and d.get("preventedContinuation") is False
+                and d.get("hookErrors") == []
+                and d.get("hookAdditionalContext") in (None, [])
+                and not d.get("stopReason")
+            ):
+                observations.append(
+                    {
+                        "kind": "confirmed_stop",
+                        "wall_ns": int(round(ts * 1e9)),
+                        "prompt_id": d.get("promptId") or prompt_context,
+                    }
+                )
+            continue
         if d.get("type") == "system" and d.get("subtype") == "turn_duration":
             ts = _ts_to_epoch(d.get("timestamp"))
             duration_ms = d.get("durationMs")

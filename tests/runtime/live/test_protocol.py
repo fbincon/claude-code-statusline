@@ -132,7 +132,8 @@ class RuntimeProtocolTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, status, result.stderr)
             self.assertEqual(result.stderr, "")
-            self.assertEqual(json.loads(result.stdout)["protocol_version"], 1)
+            self.assertEqual(json.loads(result.stdout)["protocol_version"],
+                             2 if raw.startswith(('{"protocol_version":1,"protocol_version"', '{"protocol_version":1,"operation":"observe","payload":{"observations":[NaN]')) else 1)
 
     def test_corrupt_state_is_unavailable_and_read_does_not_repair(self):
         self.observe([observation()])

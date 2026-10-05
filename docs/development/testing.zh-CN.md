@@ -55,7 +55,8 @@ Smoke 使用带空格和中文的临时路径，验证安装 dry-run、安装、
 
 ```bash
 .venv/bin/python tools/live_timer_acceptance.py \
-  --budget-usd 10 --report-dir dist/validation/live-timer
+  --budget-usd 10 --budget-ledger dist/validation/task-timer/budget.json \
+  --report-dir dist/validation/live-timer
 ```
 
 每次使用新报告目录。Linux 工具只把认证、网关环境和模型选择写入私有临时配置，显式通过 PATH 绑定被测 CLI，并将所属生命周期 hook 替换为调用生产 reducer 的记录器。工具运行单 Agent 和两次并行 Agent 场景。Agent probe 仅运行指定的小型 sleep 命令，无需访问仓库数据。
@@ -168,3 +169,35 @@ python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-stat
 ```
 
 截图用 `tools/render_native_capture.py --surface external --bounds 0 0 COLUMNS ROWS --commit SOURCE_COMMIT` 从真实捕获 JSON 重建；Pillow 和字体仅用于文档。原始数据、隔离配置和构建留在忽略的 dist/validation，分发包只含公开图片与脱敏来源。自动 PTY、代理视觉检查与真人验收分别记录；历史人工确认不作为本次展示修改的新增真人验收。双入口还须运行匹配 wheel 的持久高级 PTY，核实外部保存后的 Client 互读。全部 20 项 PR／合并／标签 CI 与正式资产检查继续适用。
+
+## 任务计时预览验证
+
+任务计时预览通过 586 项 Python 测试（578 项通过、8 项预期平台跳过）、41 项原生编辑器及 10 项运行 Mod 官方测试，以及两个 TypeScript 项目、官方静态验证、生成契约、Ruff 和文档链接检查。安装验证覆盖默认仅计时元数据、持久显式关闭、独立开关、安装事务备份迁移及诊断绑定；回归覆盖 Stop 续跑、迟到原生结束、未闭合／重叠等待、时钟失效／重启／Windows 校时、历史冻结值、报告／消息别名与提交索引追加／替换。
+
+真实 Linux x86_64／Python 3.14.4／Claude Code 2.1.289 已验证单 Agent、并行及收尾、阻止 Stop 后续跑、自动 SDK 问题等待／中断、默认原生计时及关闭后的兼容采集。生产计时可用时冻结，不完整执行证据隐藏。真实并行任务约 14.1 秒，最后原生单轮为 3.7 秒。全部尝试及重试共用原 10 美元账本，初始证据费用 0.801859 美元，无未知费用。SDK 回复为受控输入，不是真人验收；真实机器睡眠及真实 Windows/macOS 模型会话待验，CI 和模拟时钟独立记录。
+
+必须使用既有账本和新案例目录，不得新建账本重置花费。`wait`／`interrupt` 额外需要可选验收依赖 `claude-agent-sdk`，SDK 使用 PATH 中实际宿主。不加 `--run-real-calls` 即仅复核已有记录：
+
+```bash
+.venv/bin/python tools/task_timer_acceptance.py \
+  --root dist/validation/task-timer/parallel \
+  --case parallel --backend /absolute/venv/bin/claude-statusline \
+  --budget-ledger dist/validation/task-timer/budget.json \
+  --cap-usd 1 --run-real-calls
+```
+
+案例为 `single`、`single-agent`、`parallel`、`stop-continue`、`wait`、`interrupt`、`compat`。费用未知时保留全部额度，阻止新增付费尝试；旧计时脚本同样要求此账本，并保留历史记录复核。原始流、SDK 输入和私有配置保留在忽略的 `dist/validation`。
+
+同一解释器和机器、相同脚本 SHA256 `808a8b5224fa52584bfa0b9ac09ee052e64dac2b186391af1a0fa5fbcfbf6b4f`，在各源码 PYTHONPATH 下运行 `tools/benchmark_task_timer.py --samples 30 --report PATH`，比较基线 `4268743` 与任务计时实现。样例覆盖 100／10,000／100,000 行、1／32 任务，启动另使用单 prompt 生产 renderer：
+
+| Metric (ms) | Before P50 / P95 | After P50 / P95 |
+| --- | --- | --- |
+| Python startup | 15.548 / 18.292 | 13.667 / 18.026 |
+| Timer imports | 40.502 / 50.502 | 40.548 / 51.444 |
+| Timer render process | 51.673 / 60.577 | 53.221 / 62.110 |
+| Hot refresh: 100,000 rows, 32 tasks | 0.001 / 0.009 | 0.001 / 0.002 |
+| Terminal: 100 rows, 32 tasks | 0.021 / 0.023 | 0.048 / 0.056 |
+| Terminal: 10,000 rows, 32 tasks | 0.861 / 0.893 | 0.048 / 0.061 |
+| Terminal: 100,000 rows, 32 tasks | 9.486 / 9.595 | 0.048 / 0.061 |
+
+未变化的热刷新不读取 transcript；终态查找复用有界游标索引。100,000 行／32 任务（16.6 MB）的首次提交索引从 9.84 ms 变为 22.44 ms，仍需扫描一次源文件。计时 renderer 启动 P50 增加约 1.5 ms；本地样例、调度和缓存噪声限制结论，不构成性能上界。原始历史和路径报告保持私有。

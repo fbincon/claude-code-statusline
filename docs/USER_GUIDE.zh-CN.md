@@ -38,7 +38,7 @@
 
 ## 功能概览
 
-主栏支持 59 个条目，子 Agent 行支持 14 个条目，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、四种可编辑预设及可移植 JSON 文件。
+主栏支持 61 个条目，子 Agent 行支持 14 个条目，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、四种可编辑预设及可移植 JSON 文件。
 
 主栏显示主会话数据，各子 Agent 行显示自己的任务数据；任务计时包含子 Agent 工作和主 Agent 收尾。[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)说明数据来源、作用域、缺失观测和指标边界。
 
@@ -275,7 +275,7 @@ claude-statusline install --no-experimental-slash-tui
 支持的带参数操作为 `show`、`list-items`、`set-items`、`enable`、`disable`、`order`、`subagents`、`set`、`apply`、`reset`：
 
 ```text
-/statusline-config set-items model-with-effort current-dir git context-remaining prompt-timer
+/statusline-config set-items model-with-effort current-dir git context-remaining task-timer
 /statusline-config show
 ```
 
@@ -288,7 +288,7 @@ claude-statusline install --no-experimental-slash-tui
 ### 精简开发视图
 
 ```bash
-claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
+claude-statusline config set-items model-with-effort current-dir git context-remaining task-timer
 claude-statusline config set directory-style home
 claude-statusline config set separator-style compact
 ```
@@ -443,7 +443,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-主栏目录共 59 项，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`prompt-timer`。
+主栏目录共 61 项，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
 
 常用可选项按下表分组，通过 ID 启用或在编辑器中选择。
 
@@ -492,7 +492,7 @@ Token 为会话累计：`hit` 是缓存读取输入，`miss` 是普通输入与�
 | `claude-statusline-runtime.json` | 实时采集的独立偏好 |
 | `settings.json` | 本工具接入的 Claude 命令、hooks 和宿主状态栏选项 |
 
-通过 CLI 或编辑器修改。显示 schema v4 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
+通过 CLI 或编辑器修改。显示 schema v5 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
 
 ## 自定义配置目录与环境变量
 
@@ -528,7 +528,7 @@ claude-statusline config show
 
 ### 版本兼容
 
-当前显示 schema v4、配置协议 v3、独立运行协议 v1 要求前后端资源匹配。兼容的显示 v1/v2/v3 文件读取时不重写，实际保存才备份原字节并迁移为 v4；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
+当前显示 schema v5、配置协议 v4、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1/v2/v3/v4 文件读取时不重写，实际保存才备份原字节并迁移为 v5；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
 
 降级前使用新版关闭或移除旧版无法管理的接入，包括适用的实时采集和原生编辑器。根据备份 `metadata.json` 恢复兼容显示文件，或在 schema 兼容时移除不支持的条目 ID。随后安装旧包、运行 `install` 和 `doctor`，并重启 Claude Code。可移植导出可另行保留当前显示选择，供以后恢复。
 
@@ -814,3 +814,19 @@ claude-statusline config set refresh-interval 1
 [当前配置与兼容说明](#版本兼容)。
 
 </details>
+
+## 任务计时预览
+
+任务计时预览为 [v1.7.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0a1)，上文快速安装链接继续指向稳定版。安装预览：
+
+```bash
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0a1/claude_code_statusline-1.7.0a1-py3-none-any.whl"
+claude-statusline install
+claude-statusline config enable task-active-timer
+```
+
+`task-timer` 默认显示任务总耗时，旧命令和旧配置仍可使用 `prompt-timer`。可选 `task-active-timer` 只在原生执行／等待证据完整时出现。原始 Stop 未确认时显示下界 `? ...+`，可信续跑继续同一任务；原生单轮耗时不缩短总耗时，会话和 API 耗时分别定义。
+
+兼容宿主的新安装默认采集计时元数据，高级指标仍需 `install --live-metrics`。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
+
+降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 5 并备份。预览限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。

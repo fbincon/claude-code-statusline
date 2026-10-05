@@ -107,7 +107,8 @@ _ITEM_METHODS = {
     "tokens": "tokens",
     "input-tokens": "input_tokens",
     "output-tokens": "output_tokens",
-    "prompt-timer": "prompt_timer",
+    "task-timer": "prompt_timer",
+    "task-active-timer": "active_timer",
     "version": "version",
     "session": "session",
     "session-name": "session_name",
@@ -305,6 +306,17 @@ class _RenderState:
             f"{self.palette.directory}Project {name}{self.palette.reset}",
             group="location",
         )
+
+    def active_timer(self):
+        from claude_statusline.runtime.tasks.view import active_point
+
+        self.totals()  # Shared collection stage; native task state stays authoritative.
+        point = active_point(Path(runtime_paths.CONFIG_DIR), self.data.get("session_id"),
+                             self.data.get("prompt_id"))
+        if point["value"] is None:
+            return None
+        value = rendering_formatters.format_duration(point["value"])
+        return self.styled(f"Active {value}", self.palette.timer)
 
     def hostname(self):
         try:

@@ -11,7 +11,7 @@ from tools.generate_ui_contracts import generated
 
 class CatalogTests(unittest.TestCase):
     def test_scopes_defaults_and_legacy_descriptions(self):
-        self.assertEqual(len(catalog.BY_SCOPE["main"]), 59)
+        self.assertEqual(len(catalog.BY_SCOPE["main"]), 60)
         self.assertEqual(len(catalog.BY_SCOPE["subagent"]), 14)
         self.assertEqual(
             display.DEFAULT_ITEMS,
@@ -25,7 +25,7 @@ class CatalogTests(unittest.TestCase):
                 "weekly-limit",
                 "spend-limit",
                 "tokens",
-                "prompt-timer",
+                "task-timer",
             ),
         )
         self.assertEqual(

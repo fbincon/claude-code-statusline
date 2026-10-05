@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from dataclasses import replace
 from claude_statusline.config import display as config_display
@@ -29,6 +30,7 @@ def _change_configuration(
     experimental_slash_tui: bool | None = None,
     native_editor: bool | None = None,
     live_metrics: bool | None = None,
+    native_timing: bool | None = None,
 ) -> integration_models.ChangeResult:
     settings_path = config_dir / "settings.json"
     skill_path, owner_path = integration_resources.skill_paths(config_dir)
@@ -257,21 +259,48 @@ def _change_configuration(
                     ),
                 )
             )
-        if action == "install" and live_metrics is not None:
+        if action == "install":
+            display_path = config_display.config_path(config_dir)
+            display_raw = config_storage._read_optional_bytes(display_path)
+            if (
+                display_raw is not None
+                and json.loads(display_raw.decode("utf-8-sig"))["schema_version"]
+                != config_display.SCHEMA_VERSION
+            ):
+                desired_display = config_storage._json_bytes(display.to_dict())
+                candidates.append(
+                    (
+                        config_display.CONFIG_FILENAME,
+                        display_path,
+                        display_raw,
+                        desired_display,
+                        True,
+                    )
+                )
             runtime_path = runtime_preference.preference_path(config_dir)
             runtime_raw = config_storage._read_optional_bytes(runtime_path)
-            desired_runtime = runtime_preference.preference_bytes(live_metrics)
-            candidates.append(
-                (
-                    runtime_preference.FILENAME,
-                    runtime_path,
-                    runtime_raw,
-                    desired_runtime,
-                    artifact_changed(
-                        runtime_path, runtime_raw, desired_runtime, enforce_private=True
-                    ),
+            if (
+                runtime_raw is not None
+                or live_metrics is not None
+                or native_timing is not None
+            ):
+                desired_runtime = runtime_preference.preference_bytes(
+                    live_metrics, native_timing=native_timing, config_dir=config_dir
                 )
-            )
+                candidates.append(
+                    (
+                        runtime_preference.FILENAME,
+                        runtime_path,
+                        runtime_raw,
+                        desired_runtime,
+                        artifact_changed(
+                            runtime_path,
+                            runtime_raw,
+                            desired_runtime,
+                            enforce_private=True,
+                        ),
+                    )
+                )
         return [candidate for candidate in candidates if candidate[4]]
 
     if dry_run:
@@ -341,6 +370,7 @@ def install_configuration(
     experimental_slash_tui: bool | None = None,
     native_editor: bool | None = None,
     live_metrics: bool | None = None,
+    native_timing: bool | None = None,
     claude_version: tuple[int, int, int]
     | None
     | object = integration_models._DETECT_CLAUDE_VERSION,
@@ -348,7 +378,9 @@ def install_configuration(
     if claude_version is integration_models._DETECT_CLAUDE_VERSION:
         claude_version = integration_capabilities.detect_claude_version()
     requested = native_preference.requested(config_dir, native_editor)
-    runtime_requested = runtime_preference.requested(config_dir, live_metrics)
+    runtime_requested = runtime_preference.load(
+        config_dir, live_metrics, native_timing
+    ).enabled
     try:
         external_requested = (
             experimental_slash_tui
@@ -389,6 +421,7 @@ def install_configuration(
         experimental_slash_tui=experimental_slash_tui,
         native_editor=native_editor,
         live_metrics=live_metrics,
+        native_timing=native_timing,
     )
     if dry_run:
         return replace(
@@ -406,7 +439,7 @@ def install_configuration(
                 else "Native editor disabled by preference; plugin operations are not executed by dry-run.",
             )
             + (
-                f"Live metrics {'requested' if runtime_requested else 'disabled'}; requires Claude Code 2.1.289+; dry-run performs no plugin operations.",
+                f"Runtime collection {'requested' if runtime_requested else 'disabled'}; requires Claude Code 2.1.289+; dry-run performs no plugin operations.",
             ),
         )
     result = _change_configuration(
@@ -419,6 +452,7 @@ def install_configuration(
         experimental_slash_tui=experimental_slash_tui,
         native_editor=native_editor,
         live_metrics=live_metrics,
+        native_timing=native_timing,
     )
     native = native_integration.integrate(
         config_dir, executable, requested, claude_version
@@ -437,7 +471,9 @@ def install_configuration(
         native_failed=native.state == "blocked"
         or runtime.state == "blocked"
         or (
-            live_metrics is True and not runtime.active and runtime.state != "suspended"
+            (live_metrics is True or native_timing is True)
+            and not runtime.active
+            and runtime.state != "suspended"
         )
         or (
             native_editor is True

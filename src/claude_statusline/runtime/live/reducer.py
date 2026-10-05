@@ -1,4 +1,4 @@
-"""Merge observations without changing the prompt-timer lifecycle reducer."""
+"""Deduplicate runtime observations and maintain derived live metric views."""
 
 from claude_statusline.runtime.live import model
 from claude_statusline.runtime.live import ownership
@@ -11,7 +11,7 @@ def _trim(values, maximum, stamp="updated_at_ms"):
             values.pop(key, None)
 
 
-def apply(state, observation):
+def apply(state, observation, *, metadata_only=False):
     o = observation
     epoch = o["epoch"]
     kind = o["kind"]
@@ -40,6 +40,7 @@ def apply(state, observation):
             agent_snapshot=None,
             checklists={},
             prompt_aliases={},
+            prompt_links={},
         )
         for prompt in state["prompts"].values():
             if not prompt.get("terminal"):
@@ -58,6 +59,8 @@ def apply(state, observation):
         ledger["floor"] = max(removed)
         ledger["seen"] = ledger["seen"][-model.MAX_SEEN :]
     current = epoch == state["epoch"]
+    if metadata_only:
+        return True
     if kind == "heartbeat":
         if current and (
             state["heartbeat_at_ms"] is None or stamp >= state["heartbeat_at_ms"]
@@ -83,6 +86,7 @@ def apply(state, observation):
                 "updated_at_ms": stamp,
                 "started_at_ms": stamp,
                 "epoch": epoch,
+                "source": o["source"],
                 "complete": not gap,
                 "terminal": False,
             },
@@ -102,12 +106,26 @@ def apply(state, observation):
                 "source": o["source"],
             }
     elif kind == "prompt_link":
-        if current and prompt_id not in state["prompts"]:
-            state["prompt_aliases"][prompt_id] = o["payload"]["message_id"]
-            while len(state["prompt_aliases"]) > model.MAX_AGENTS:
-                state["prompt_aliases"].pop(next(iter(state["prompt_aliases"])))
+        target = o["payload"]["message_id"]
+        if current:
+            state["prompt_links"][prompt_id] = target
+            while len(state["prompt_links"]) > model.MAX_AGENTS:
+                state["prompt_links"].pop(next(iter(state["prompt_links"])))
+            state["prompt_aliases"][prompt_id] = target
+            if target not in state["prompts"] and prompt_id not in state["prompts"]:
+                state["prompts"][target] = {
+                    "epoch": epoch,
+                    "started_at_ms": stamp,
+                    "updated_at_ms": stamp,
+                    "complete": not gap,
+                    "terminal": False,
+                    "source": "otel",
+                }
+                state["current_prompt_id"] = target
+                _trim(state["prompts"], model.MAX_PROMPTS)
     elif kind == "prompt_alias":
         agent = state["agents"].get(o["payload"]["agent_id"])
+        fresh_report = prompt_id not in state["prompt_aliases"]
         if current and prompt_id not in state["prompts"]:
             state["prompt_aliases"][prompt_id] = (
                 agent["prompt_id"]
@@ -116,6 +134,22 @@ def apply(state, observation):
             )
             while len(state["prompt_aliases"]) > model.MAX_AGENTS:
                 state["prompt_aliases"].pop(next(iter(state["prompt_aliases"])))
+        if (
+            current
+            and fresh_report
+            and o["source"] == "classic_hook"
+            and o["agent_id"] is None
+            and agent is not None
+            and agent["ended_at_ms"] is not None
+        ):
+            target = agent["prompt_id"]
+            prompt = state["prompts"].get(target)
+            if prompt:
+                prompt["terminal"] = False
+                state["active_prompt_id"] = target
+    elif kind in ("wait_start", "wait_end", "wait_unknown"):
+        state["wait_events"][epoch + ":" + str(seq)] = dict(o)
+        _trim(state["wait_events"], model.MAX_SEEN, "observed_at_ms")
     elif kind in ("turn_start", "turn_end"):
         if not current:
             return True
@@ -146,6 +180,9 @@ def apply(state, observation):
             turn.update(
                 ended_at_ms=stamp, status=o["payload"]["status"], updated_at_ms=stamp
             )
+            if "duration_ms" in o["payload"]:
+                turn["duration_ms"] = o["payload"]["duration_ms"]
+                turn["wait_coverage"] = o["payload"]["wait_coverage"]
             prompt = state["prompts"].get(turn["prompt_id"])
             if prompt and o["agent_id"] is None:
                 prompt["terminal"] = not any(

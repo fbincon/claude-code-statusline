@@ -77,7 +77,7 @@ def main():
             command(
                 "runtime",
                 data={
-                    "protocol_version": 1,
+                    "protocol_version": 2,
                     "operation": "observe",
                     "payload": {"observations": [observation]},
                 },
@@ -88,7 +88,7 @@ def main():
             command(
                 "runtime",
                 data={
-                    "protocol_version": 1,
+                    "protocol_version": 2,
                     "operation": "read",
                     "payload": {"session_id": "runtime-smoke", "prompt_id": None},
                 },

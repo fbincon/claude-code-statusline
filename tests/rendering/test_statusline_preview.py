@@ -71,7 +71,7 @@ class PreviewContentTests(unittest.TestCase):
             "Context 73% left · Context 27% used · 200K window | "
             "5h 82% left · weekly 64% left · spend 91% left | "
             "hit 1.2M · miss 87.5K · out 22.4K · cache 91% · 352K w | "
-            "✓ 1m 42s | v2.1.289 | Session demo-session | "
+            "✓ 1m 42s | Active 1m 30s | v2.1.289 | Session demo-session | "
             "Total $0.12 · 12m 30s · +156/-23 | Agent reviewer | vim NORMAL"
         )
         self.assertEqual(rendered, expected)

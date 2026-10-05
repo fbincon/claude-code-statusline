@@ -2,10 +2,12 @@
 
 from dataclasses import replace
 
-from claude_statusline.config import display, formatting
+from claude_statusline.config import catalog, display, formatting
 
 
 def edit_item(config, scope, item, option, value):
+    if scope == "main":
+        item = catalog.canonical_item(item)
     definitions = (
         display.ITEM_CATALOG if scope == "main" else display.SUBAGENT_ITEM_CATALOG
     )
@@ -52,11 +54,9 @@ def edit_layout(config, mode, rows=None):
         "rows": rows
         or ([list(config.items)] if mode == "explicit" and config.items else []),
     }
-    try:
-        layout = formatting.Layout.parse(draft, config.items)
-    except ValueError as exc:
-        raise display.DisplayConfigError(str(exc)) from exc
-    return config.with_updates(layout=layout)
+    data = config.to_dict()
+    data["layout"] = draft
+    return display.validate_display_config(data)
 
 
 def edit_subagent(config, field, value):

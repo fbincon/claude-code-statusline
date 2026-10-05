@@ -2,18 +2,14 @@
 
 **English** | [简体中文](live.zh-CN.md)
 
-Stable v1.6.0 includes an independent, opt-in `statusline-runtime` Mod.
-It requires a verified Claude Code 2.1.289 build and does not depend on the native
-editor preference. `install --live-metrics` enables it; `--no-live-metrics` retains
-an explicit disabled choice. Absence defaults off for previews and stable releases.
-The separate schema-1 `claude-statusline-runtime.json` is not imported/exported as
-display configuration. Official installation, ownership checks, backups, rollback,
-version suspension and removal share the editor's parameterized implementation.
+The bundled `statusline-runtime` Mod supports verified Claude Code 2.1.289+ hosts. Native task timing defaults on; advanced live metrics remain opt-in. These preferences are independent of the editor and of the visible item selection.
+
+`claude-statusline-runtime.json` uses schema 2: `native_timing` defaults to true and `live_metrics` to false. A schema-1 explicit false keeps both disabled; explicit true keeps both enabled. Reinstall retains saved choices. `install --native-timing` / `--no-native-timing` controls timing; `--live-metrics` enables complete observations and `--no-live-metrics` preserves the old all-off behavior. An explicit timing switch in the same command controls timing separately. Unsupported/unknown hosts suspend the Mod without changing preferences.
 
 ## Runtime transport
 
 `claude-statusline runtime --config-dir PATH` receives one UTF-8 JSON object and
-returns one JSON response. Runtime protocol **1** evolves independently from the
+returns one JSON response. Runtime protocol **2** evolves independently from the
 configuration protocol. Stdout contains only `{protocol_version,result}` or
 `{protocol_version,error}`; success exits 0, refused requests exit 2. Duplicate
 fields, unsafe identities, nonfinite/negative numbers, unknown fields and requests
@@ -85,3 +81,11 @@ Official user_prompt telemetry links prompt.id to message.uuid explicitly; diffe
 ## v1.6.0 stable acceptance
 
 On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Exact OS, architecture, terminal and host versions were not supplied. This is the new Phase 5 acceptance record, separate from historical editor confirmation and automated/headless/PTY evidence. The existing macOS Client input limitation remains documented. Stable v1.6.0 retains the accepted runtime implementation, display schema v4, configuration protocol v3 and runtime protocol v1. Editor entries default on for compatible hosts, preserving explicit false; live collection remains independently opt-in and preserves its preference.
+
+## Task timing integration
+
+Protocol v2 adds native reported duration, wait start/end and explicit coverage metadata. V1 requests remain readable but cannot establish complete execution-time coverage. Timing-only mode suppresses advanced persistence while still tracking sequence continuity. The live observation lock precedes the task lock; task writers never acquire a live lock. Retries preserve identities and remain idempotent.
+
+Official prompt-ID/message-UUID links can promote a uniquely verified lifecycle owner when print/SDK mode omitted session.append. Unbound live turns stay unbound. Completion recorded before session exit remains completed when its batch arrives late. Message aliases and background-report aliases are distinct. See [task clocks](timer.md).
+
+`runtime read` includes `task-active-timer`; unavailable reasons include `native_timing_disabled`, `wait_coverage_missing`, `incomplete`, `stale` and `abnormal_clock`. The current host conservatively hides execution time for permission/question/MCP waiting whose exact boundaries cannot be proved.

@@ -2,11 +2,11 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v3 is the internal interface for the bundled/source native frontend. Display persistence uses schema v4, including in-memory v1/v2/v3 migration; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; v1.2.0 and its preview wheel bundle the matching Mod.
+Protocol v4 is the internal interface for the bundled/source native frontend. Display persistence uses schema v5, including in-memory v1/v2/v3/v4 migration; it evolves independently from the protocol. Stable v1.1.1 does not include this interface; v1.2.0 and its preview wheel bundle the matching Mod.
 
 ## Catalog
 
-`claude_statusline.config.catalog` defines the 59 main and 14 subagent items by `(scope, id)`. Definitions carry labels, descriptions, groups, sources, examples, default positions, format options, exclusions and unavailable-reason codes. Legacy catalog dictionaries and default tuples are derived views; existing IDs, descriptions, default selections and ordering are preserved. CLI JSON listings add metadata without removing their existing enabled/position fields. Curses and the installed wizard consume the same definitions and exclusions.
+`claude_statusline.config.catalog` defines the 61 main and 14 subagent items by `(scope, id)`. Definitions carry labels, descriptions, groups, sources, examples, default positions, format options, exclusions and unavailable-reason codes. Legacy catalog dictionaries and default tuples are derived views; existing IDs, descriptions, default selections and ordering are preserved. CLI JSON listings add metadata without removing their existing enabled/position fields. Curses and the installed wizard consume the same definitions and exclusions.
 
 Minimum versions are verified only where evidence exists. The 2.1.205 subagent minimum denotes row support, not every optional field: effort requires 2.1.214. Independent agent effort declares 2.1.214. New independent metrics are opt-in and can coexist with compounds; see [display definitions](../DISPLAY_ITEMS.md). Cache metrics declare 2.1.251; optional gateway dollar/period metrics declare 2.1.284 on both host and gateway. Unverified main-field minima remain `null`/`unknown` instead of guessed dates. `not_observed` means the interface has not inspected live data, `unsupported_host` means a verified version boundary, `unknown_host_version` means detection failed, `source_unavailable` means a source cannot be read, and `condition_not_met` covers items such as Git outside a repository or fast mode while inactive. These are definitions of possible reasons; opening configuration does not collect live field availability or disable selections for missing observations.
 
@@ -30,7 +30,7 @@ Success is `{"protocol_version":3,"result":{...}}`; failure is `{"protocol_versi
 | `import` | `{draft,path}` | Validated imported `{draft}` |
 | `export` | `{draft,path,overwrite}` | Export destination `{path}` |
 
-`draft` has exactly `display` (the effective v3 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading an existing display v1 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete v3 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
+`draft` has exactly `display` (the effective schema-v5 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading an existing display v1 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete schema-v5 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
 
 `read` acquires the existing installation lock for a coherent snapshot and may create its runtime lock directory. `describe` does not create configuration files. `preview` never reads settings, detects the host, collects Git/transcripts or writes caches/locks; it uses production formatting/layout and fixed samples. Missing observations are not zero. Each span has `text`, `bold`, and `foreground` (`null`, `{"kind":"rgb","value":"#rrggbb"}` or `{"kind":"ansi","value":0..15}`). There are no raw ANSI escapes. Both main and subagent rows are returned; an empty selection/disabled subagent display stays empty.
 
@@ -44,7 +44,7 @@ Apply validates the full draft and a 64-character lowercase hexadecimal revision
 
 An explicitly configured absolute renderer path must match the selected backend. Canonical PATH commands remain compatible with Windows and older installations; the resolved command identity participates in the revision. JSON invocation through a bound console-script path uses that entry's identity even if PATH contains another installation. A foreign main or subagent renderer is refused, including a same-named executable in another directory or a non-command setting. An absent subagent renderer is permitted. Apply edits display selections and the owned main renderer's host options; it does not install a renderer or take over a foreign one.
 
-Unrelated settings are merged from the latest locked snapshot. A write failure restores both original files and reports any rollback failure. The first save may create a missing display file or migrate v1/v2 to v3; repeating the returned draft/revision makes no writes or backup when the persisted configuration is already identical. `backup_dir` is present only when the transaction changes files. No model call is needed.
+Unrelated settings are merged from the latest locked snapshot. A write failure restores both original files and reports any rollback failure. The first save may create a missing display file or migrate older schemas to v5; repeating the returned draft/revision makes no writes or backup when the persisted configuration is already identical. `backup_dir` is present only when the transaction changes files. No model call is needed.
 
 | Error code | Meaning and recovery |
 | --- | --- |
@@ -69,7 +69,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 
 ## Structured formatting
 
-Protocol v3 returns complete schema-v4 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v4 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
+Protocol v4 returns complete schema-v5 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v5 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
 
 ## Draft transfer operations
 
@@ -85,4 +85,4 @@ Native file operations are effects handled by the hooks module through Python, w
 
 ## Phase 5 metric migration
 
-Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration protocol v3 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol remains independently v1. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+Display schema v5 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v4 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).

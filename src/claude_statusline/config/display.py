@@ -15,7 +15,7 @@ from claude_statusline.config import formatting as display_formatting
 LEGACY_SCHEMA_VERSION = 1
 
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 CONFIG_FILENAME = "claude-statusline.json"
@@ -177,6 +177,7 @@ def validate_items(value: Any) -> tuple[str, ...]:
     for item in value:
         if not isinstance(item, str):
             raise DisplayConfigError("every items entry must be a string")
+        item = catalog.canonical_item(item)
         if item not in ITEM_CATALOG:
             raise DisplayConfigError(f"unknown status line item: {item}")
         if item in seen:
@@ -252,15 +253,15 @@ def validate_display_config(data: Any) -> DisplayConfig:
     version = data.get("schema_version")
     if isinstance(version, bool) or not isinstance(version, int):
         raise DisplayConfigError(
-            f"schema_version must be 1, 2, 3 or {SCHEMA_VERSION}; found {version!r}"
+            f"schema_version must be 1, 2, 3, 4 or {SCHEMA_VERSION}; found {version!r}"
         )
     if version > SCHEMA_VERSION:
         raise DisplayConfigError(
             f"schema_version {version} is newer than supported version {SCHEMA_VERSION}"
         )
-    if version not in (1, 2, 3, SCHEMA_VERSION):
+    if version not in (1, 2, 3, 4, SCHEMA_VERSION):
         raise DisplayConfigError(
-            f"schema_version must be 1, 2, 3 or {SCHEMA_VERSION}; found {version!r}"
+            f"schema_version must be 1, 2, 3, 4 or {SCHEMA_VERSION}; found {version!r}"
         )
 
     expected_keys = (
@@ -287,6 +288,37 @@ def validate_display_config(data: Any) -> DisplayConfig:
     if not isinstance(use_colors, bool):
         raise DisplayConfigError("use_colors must be true or false")
 
+    data = dict(data)
+    # Normalize aliases everywhere before validating uniqueness and references.
+    raw_items = data.get("items")
+    if isinstance(raw_items, list):
+        data["items"] = [
+            catalog.canonical_item(item) if isinstance(item, str) else item
+            for item in raw_items
+        ]
+    options = data.get("item_options")
+    if isinstance(options, dict):
+        canonical = {}
+        for key, value in options.items():
+            name = catalog.canonical_item(key)
+            if name in canonical:
+                raise DisplayConfigError("conflicting item aliases in item_options")
+            canonical[name] = value
+        data["item_options"] = canonical
+    layout = data.get("layout")
+    if isinstance(layout, dict) and isinstance(layout.get("rows"), list):
+        data["layout"] = {
+            **layout,
+            "rows": [
+                [
+                    catalog.canonical_item(item) if isinstance(item, str) else item
+                    for item in row
+                ]
+                if isinstance(row, list)
+                else row
+                for row in layout["rows"]
+            ],
+        }
     items = validate_items(data.get("items"))
     try:
         fmt = (

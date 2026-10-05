@@ -346,10 +346,11 @@ class ProcessAndClockTests(unittest.TestCase):
             mock.patch.object(
                 platform_clocks, "_windows_uptime_ns", return_value=100 * minute
             ),
+            mock.patch.object(platform_clocks, "_windows_boot_id", return_value="windows:boot-guid"),
         ):
             self.assertEqual(
                 platform_clocks.now_clocks(),
-                (wall, 100 * minute, "windows:900"),
+                (wall, 100 * minute, "windows:boot-guid"),
             )
 
         with (

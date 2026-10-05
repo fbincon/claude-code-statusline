@@ -1,54 +1,37 @@
-# Timer metrics and lifecycle evidence
+# Task clocks and lifecycle evidence
 
 **English** | [简体中文](timer.zh-CN.md)
 
-`prompt-timer` measures a user task. A task that has used subagents includes submission/queuing, all agent work and main-agent wrap-up. It completes only on the final main `Stop`; failure and interruption provide their own terminal evidence. No timeout fabricates completion.
+`task-timer` measures the latest human task from its earliest trusted submission through queueing, agent work and main-agent wrap-up. `prompt-timer` remains an input alias. `task-active-timer` is optional and measures execution after it starts, excluding verified user waits. Native turn duration, session runtime and cumulative API duration are separate quantities.
 
-## Separate metrics
+## Structure
 
-| Metric | Source | Role in v1.1.1 |
-| --- | --- | --- |
-| Task elapsed | Earliest trusted submit and accepted ending clocks | Frozen result for multi-agent tasks, failures and interruptions |
-| Native turn duration | Transcript `turn_duration.durationMs` | One eligible calibration for an ordinary successful single turn |
-| Session runtime | `cost.total_duration_ms` | Duration in the existing compound `cost` item |
-| Cumulative API wait | `cost.total_api_duration_ms` | Defined separately; not displayed by `cost` |
+`runtime/timing` contains a pure, persistent elapsed clock. Its accumulated-time, pause and resume design follows [Codex StatusTimer](https://github.com/openai/codex/blob/823ea830c0fd418b09ff02d36cad9a1fff66465b/codex-rs/tui/src/status_indicator_widget/timer.rs); this project implements the design in Python and adds boot-domain samples and overlapping wait identities.
 
-Session runtime accumulates across resumes and excludes periods when the session is not running; API wait is the time spent waiting for API responses. See the [official status-line fields](https://code.claude.com/docs/en/statusline).
+`runtime/tasks` owns task identity, lifecycle transitions, indexed submission evidence, atomic storage, native adaptation and read-only metric views. `runtime/turns` and the original Python entry points alias the same canonical modules. Collection/reconciliation precedes formatting; preview uses fixed snapshots without runtime I/O.
 
-## Evidence priority
+## Completion
 
-| Priority | Evidence |
-| --- | --- |
-| 100 | `StopFailure` |
-| 95 | Chronologically matched transcript interruption or running-session `SessionEnd` |
-| 90 | Final main `Stop` |
-| 60 | Reliably attributed ordinary native duration |
-| 50 | Local command exclusion |
-| 40 / 30 | Process-verified registry completion / withdrawal |
-| 20 / 10 | Resume/startup unknown ending / replacement by a new prompt |
+A classic `Stop` is an attempted ending. Without further confirmation it shows `? <elapsed>+`, the known lower bound. Verified continuation clears that candidate without resetting the submission clock. Duplicate attempts without new activity remain idempotent.
 
-Ownership and eligibility are checked before changing any terminal fields. Weaker evidence cannot change status, duration or errors; repeated equal-priority endings are idempotent. Interruption can replace an earlier weak inferred completion when its timestamp falls within that task. A final failure can supersede weaker success evidence.
+A matched main `turn.complete` confirms a turn. A task completes only when its owned agents and required reports are resolved and the main agent has finished wrap-up. Known background-agent notifications retain the original human task through explicit aliases. Human-message UUID aliases and report aliases are tracked separately: ordinary synchronous agents do not require a background notification.
 
-Native calibration is a narrow exception for a successful task without subagent history. It changes the duration once while retaining the final Stop timestamp. It never calibrates a failed, interrupted or agent-backed task. An old successful record already containing a duration is treated as previously calibrated when upgrading.
+Compatible fallback evidence includes a correctly attributed transcript ending or process-verified idle registry. Unowned native turns never attach to the current task. Epoch sequence gaps, old epochs and ambiguous queued identities remain incomplete. No timeout or expired heartbeat fabricates completion.
 
-## Subagent phases and frozen clocks
+Failures and user interruptions freeze the accepted result. A native ending demonstrably recorded before a subsequent session exit can correct a session-exit inference; a late batch must not turn a normally completed print-mode run into an interruption. Strong failure evidence still wins over a success claim.
 
-A main Stop with in-flight ordinary agents enters `waiting_subagents`; the final subagent stop enters `resuming_main`. Genuine main-assistant activity can return the phase to `main`, but the persistent `had_subagents` flag still blocks duration, idle and withdrawal inference. `SubagentStop` also establishes agent history when its start hook was missing. Orphan/internal events do not create a new main task.
+## Independent clock values
 
-A late agent start may reopen only native/registry inferred completion, clearing its calibration. It cannot reopen a strong main Stop, failure or interruption. A Stop snapshot can reconcile missing or duplicate agent hooks. Claude Code can issue a new `UserPromptSubmit` ID for a structured agent-result notification. Known agent IDs associate those host IDs with the original human task; pending reports prevent the first notification's Stop from ending the task before the remaining report and wrap-up. A verified, previously undelivered report can continue an apparent Stop, while duplicate reports, failure and interruption stay frozen. Shell/server/monitor/workflow tasks are excluded.
+Task elapsed uses matching suspend-aware start/end samples when available, otherwise validated wall time. Linux uses `CLOCK_BOOTTIME` and the boot ID; macOS uses continuous time and a boot-session UUID; Windows uses uptime and a boot GUID rather than a wall-derived boot minute. Clock/API failure degrades availability. Frozen values do not change after a reboot or refresh.
 
-Before accepting an ending, resolve the matching real user submission from the already-written transcript once. Strong frozen starts are not revised by later transcript scans. When accepting an ending, freeze elapsed nanoseconds using matching suspend-aware start/end clocks, otherwise wall clocks. Refreshing after reboot does not reinterpret the frozen value. Unknown endings remain marked as a lower bound. Old shortened multi-agent or interrupted durations are reconstructed from persisted start/end evidence.
+The native turn's reported `durationMs` is recorded independently and never calibrates task elapsed. In particular, an 8-second task stays 8 seconds when a 1.5-second native turn arrives.
 
-## Prompt ownership
+Execution time uses its own accumulated/resume clock. Parallel work is not added twice. Main-agent waiting while an agent executes remains execution time. Waiting requests have independent identities so overlapping waits cannot resume early. The current host does not expose precise permission/question/MCP wait boundaries in every case; such tasks hide the execution metric and report `wait_coverage_missing`. Parallel wait/dependency coverage that cannot be proved reports `incomplete`. Missing data is never treated as zero user wait.
 
-Hook IDs identify their main prompt. The incremental transcript parser retains its last confirmed real prompt independently of the current hook prompt, so an early queued hook cannot steal an older duration. Explicit observation IDs take precedence. Full scans reset parsing context; replaying an older prompt does not replace a newer current task. Local commands never become the timed task.
+## Persistence and compatibility
 
-Without an ID or trustworthy transcript context, duration observations are not assigned to the current prompt. The internal reducer retains a single-record fallback for older direct callers; real parsed records explicitly carry absent ownership to disable that fallback. Subagent events without prompt IDs require existing ownership or a single unambiguous task.
+The storage location and schema-1 mirror remain unchanged. Lifecycle v4 reads v2/v3; old frozen values remain recorded history rather than being reinterpreted into a new metric. Missing execution evidence stays unavailable. Reads and previews do not migrate files; writes occur under the session lock and atomically publish normalized state.
 
-Timing scan version 5 refreshes old transcript metadata. Display schema v2, feature schema v1, runtime mirror schema 1 and lifecycle schema 3 remain compatible; `duration_source`, known `agent_ids`, `prompt_aliases` and `pending_agent_reports` are optional metadata. Agent history and continuation IDs are bounded to 256 per task.
+Submission evidence is indexed by transcript identity and complete-line cursor, retaining a bounded set of prompt IDs. Append-only refreshes read the new tail; unchanged files do not trigger a full scan. Truncation/rewrite invalidates the index. A verified submission is reused by ending hooks, and strong frozen starts are not rewritten by later transcript replay.
 
-## Regression example
-
-Submit at second 1, start an agent at 2, main Stop at 3, agent Stop at 4 and final main Stop at 9. Both before and after a later `durationMs=1000`, the task remains `✓ 0m 08s`. Tests cover main resumption, parallel/duplicate hooks, queued prompts, local commands, interruption/failure ordering, finite duration validation and clock reboot fallback.
-
-For real-session evidence and its visual boundaries, see [testing](testing.md). User-facing markers are documented in the [user guide](../reference/cli.md#prompt-timing-markers).
+See [runtime contracts](live.md), [testing](testing.md) and [user-facing timer markers](../reference/cli.md#prompt-timer-markers).

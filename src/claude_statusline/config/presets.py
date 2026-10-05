@@ -7,11 +7,11 @@ from claude_statusline.config import display, formatting
 
 ROWS = {
     "minimal": (
-        ("model-with-effort", "current-dir", "context-remaining", "prompt-timer"),
+        ("model-with-effort", "current-dir", "context-remaining", "task-timer"),
     ),
     "developer": (
         ("model-with-effort", "current-dir", "git"),
-        ("context-remaining", "tokens", "prompt-timer", "session-cost"),
+        ("context-remaining", "tokens", "task-timer", "session-cost"),
     ),
     "monitoring": (
         ("context-used", "five-hour-limit", "weekly-limit", "spend-limit"),
@@ -26,7 +26,7 @@ ROWS = {
     ),
     "multi-agent": (
         ("model-with-effort", "current-dir", "git"),
-        ("context-remaining", "tokens", "prompt-timer"),
+        ("context-remaining", "tokens", "task-timer"),
     ),
 }
 
