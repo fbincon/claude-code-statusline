@@ -8,6 +8,10 @@ Stable v1.5.0 adds model/number formats, labels and built-in icons, risk colors,
 
 [Formatting, layouts and presets](docs/USER_GUIDE.md#formatting-layout-presets) · [Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Report an issue](https://github.com/fbincon/claude-code-statusline/issues)
 
+## Phase 5 preview: v1.6.0a1
+
+[The live-metrics preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0a1) adds eleven opt-in items, committed branch comparisons and frozen ended-agent durations. Latest stable remains v1.5.0. Collection is independently off by default on both preview and stable; after installing the preview wheel, run `claude-statusline install --live-metrics` and select items in either editor or CLI. Tested runtime host: Claude Code 2.1.289. See [definitions and conditional availability](docs/DISPLAY_ITEMS.md#request-coverage-and-sdk-fallback), [release notes](docs/releases/v1.6.0a1.md) and [installation](docs/USER_GUIDE.md#phase-5-preview-installation). Stable promotion waits for the new runtime acceptance, with the existing macOS Client input limitation retained.
+
 ## Phase 4 in stable v1.5.0
 
 [v1.5.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0) promotes the accepted Phase 4 preview. Stable installation requests both editor entries on compatible hosts, preserving each recorded disablement. Upgrade the package, synchronize integration and restart Claude Code:

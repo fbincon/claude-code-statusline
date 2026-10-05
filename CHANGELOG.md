@@ -4,9 +4,11 @@
 
 ## Unreleased
 
+## 1.6.0a1 - 2026-10-05
+
 - Add an independently owned, opt-in live-metrics Mod for fixed Claude Code 2.1.289 hosts, separate from editor enablement.
 - Add strict runtime protocol v1, bounded session/prompt/agent history, atomic concurrent storage, exact retry identities and freshness/invalidation diagnostics.
-- Package both Mods through shared version/hash inventories; extend official installation smoke and fixed-host CI to Windows/macOS 2.1.289. Display schema v3 and configuration protocol v2 remain unchanged in this foundation.
+- Package both Mods through shared version/hash inventories; extend official installation smoke and fixed-host CI to Windows/macOS 2.1.289. The complete preview uses display schema v4/configuration protocol v3; runtime protocol v1 remains independent.
 
 - Add five opt-in task-scoped state, permission, active-agent, checklist and last-tool items, with deterministic previews, transparent partial markers and read-only diagnostics.
 

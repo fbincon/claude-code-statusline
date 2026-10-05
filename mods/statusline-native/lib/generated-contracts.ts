@@ -18,6 +18,7 @@ export const PALETTE_VALUES = ["default", "ansi"] as const;
 export const DIRECTORYSTYLE_VALUES = ["full", "home", "project-relative", "basename"] as const;
 export const SEPARATORSTYLE_VALUES = ["classic", "compact"] as const;
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
+export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
 export type Operation = "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset";
 export interface CatalogItem {
   scope: Scope;

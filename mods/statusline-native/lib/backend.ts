@@ -7,6 +7,7 @@ import {
   DIRECTORYSTYLE_VALUES,
   SEPARATORSTYLE_VALUES,
   SCOPELABELS_VALUES,
+  UNAVAILABLEREASON_VALUES,
   FORMAT_CHOICES, PRESETS, EDITOR_FIELDS,
 } from './generated-contracts.ts';
 import type {
@@ -263,13 +264,7 @@ function isCatalog(value: unknown): value is CatalogItem[] {
       return false;
     seen.add(key);
     return item.unavailable_reasons.every((reason) =>
-      [
-        'not_observed',
-        'unsupported_host',
-        'unknown_host_version',
-        'source_unavailable',
-        'condition_not_met',
-      ].includes(reason),
+      UNAVAILABLEREASON_VALUES.some((known) => known === reason),
     );
   });
 }
