@@ -77,7 +77,7 @@ def generated():
         rows.append(
             f"export const {constant} = {json.dumps(list(catalog.BY_SCOPE[scope]))} as const;"
         )
-    for name in ("Palette", "DirectoryStyle", "SeparatorStyle", "ScopeLabels"):
+    for name in ("Palette", "DirectoryStyle", "SeparatorStyle", "ScopeLabels", "UnavailableReason"):
         rows.append(
             f"export const {name.upper()}_VALUES = {json.dumps(list(get_args(contracts.ALIASES[name])))} as const;"
         )

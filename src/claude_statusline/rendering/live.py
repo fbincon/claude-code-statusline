@@ -34,6 +34,10 @@ def metric(points, item, fmt):
         value = f"{value:.3g} tok/s"
     elif item == "prompt-cost":
         value = "$" + (
-            preferences.money(value, fmt) if value >= 0.01 else f"{value:.6g}"
+            f"{value:.6g}"
+            if 0 < value < 0.0001
+            else f"{value:,.4f}"
+            if fmt.number_format == "grouped"
+            else f"{value:.4f}"
         )
     return f"{LABELS[item]} {value}{suffix}"

@@ -7,6 +7,15 @@ import {
   isDraft,
 } from '../../lib/backend.ts';
 import { description, output, readResult, reply, sample } from '../fixtures.ts';
+import { UNAVAILABLEREASON_VALUES } from '../../lib/generated-contracts.ts';
+
+test('all generated unavailable reasons are accepted and future unknown reasons refused', () => {
+  const value = description();
+  value.catalog[0]!.unavailable_reasons = [...UNAVAILABLEREASON_VALUES];
+  expect(parseResponse('describe', reply(value)).catalog.length).toBe(value.catalog.length);
+  (value.catalog[0]!.unavailable_reasons as string[]).push('unknown-future-reason');
+  expect(() => parseResponse('describe', reply(value))).toThrow();
+});
 
 test('scoped text validation matches Python Unicode limits and rejects unsafe characters', () => {
   const draft = readResult().draft;

@@ -97,6 +97,17 @@ def reconcile(state, config_dir):
             turn = state["turns"].get(row.get("turn_key"))
             if row["prompt_id"] is None and turn:
                 row["prompt_id"] = turn["prompt_id"]
+    from claude_statusline.runtime.live import ownership
+
+    for row in state["costs"].values():
+        if row["prompt_id"] is None:
+            target = ownership.canonical(state, row.get("owner_alias"))
+            if target and any(
+                turn["prompt_id"] == target
+                and turn["started_at_ms"] <= row["updated_at_ms"]
+                for turn in state["turns"].values()
+            ):
+                row["prompt_id"] = target
     from claude_statusline.runtime.live import model as live_model
 
     for key in sorted(

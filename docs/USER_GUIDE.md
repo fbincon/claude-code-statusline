@@ -2002,3 +2002,16 @@ On 2026-10-05 the maintainer confirmed Phase 4 human acceptance on Linux and Win
 Install the independent collector with `claude-statusline install --live-metrics`, then select `run-state permission-mode active-agents task-progress last-tool` in either editor or append those IDs to your `config set-items` selection. New IDs default off. Use `install --no-live-metrics` to save a persistent disabled preference independently of either editor. The collector requires verified Claude Code 2.1.289; missing data displays `—` and partial/recent observations display `*`. See [definitions](DISPLAY_ITEMS.md#live-state-items) and [runtime diagnostics](development/live.md).
 
 The committed branch base is available through `config set branch-diff-base auto|REF` and the shared Metrics form. Source display schema v4/configuration protocol v3 adds this field, retaining in-memory reads of v1/v2/v3 until an actual save backs up and migrates. See [branch and duration definitions](DISPLAY_ITEMS.md#branch-base-and-ended-agents).
+
+## Phase 5 preview installation
+
+Latest stable remains v1.5.0. Install the complete runtime preview explicitly:
+
+```text
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0a1/claude_code_statusline-1.6.0a1-py3-none-any.whl"
+claude-statusline install --live-metrics --native-editor --experimental-slash-tui
+claude-statusline config enable run-state permission-mode active-agents task-progress last-tool branch-diff ttft output-rate prompt-input-tokens prompt-output-tokens prompt-cost
+claude-statusline doctor
+```
+
+Restart Claude Code to load the installed collector. Use `install --no-live-metrics` to retain a persistent disablement independently of either editor. Reinstall after host/package upgrades to restore compatible owned resources. Before a downgrade, use this newer package to disable/remove live and native integration, restore a compatible display backup, then install the older package. Schema v4 and configuration protocol v3 require matching frontend/backend resources; historical v1/v2/v3 reads migrate only on actual save. Windows/macOS runtime installation CI does not establish real session acceptance; new collector support remains preview.

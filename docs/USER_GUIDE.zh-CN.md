@@ -1856,3 +1856,16 @@ Client 用 `s` 保存并继续、`f` 保存并关闭、`q` 放弃草稿。curses
 使用 `claude-statusline install --live-metrics` 安装独立采集器，再通过任一编辑器选择 `run-state permission-mode active-agents task-progress last-tool`，或将这些 ID 添加到 `config set-items` 选择。新项默认关闭。`install --no-live-metrics` 保存独立于两个编辑器的持久关闭偏好。采集要求已验证的 Claude Code 2.1.289；缺失数据显示 `—`，有限覆盖或最近观测附 `*`。参见[指标定义](DISPLAY_ITEMS.zh-CN.md#实时状态项)和[运行诊断](development/live.zh-CN.md)。
 
 已提交分支基准可通过 `config set branch-diff-base auto|REF` 和共享 Metrics 表单配置。当前源码的显示 schema v4、配置协议 v3 新增此字段，v1/v2/v3 读取只在内存补默认值，实际保存才备份迁移。参见[分支与时长定义](DISPLAY_ITEMS.zh-CN.md#分支基准与已结束代理)。
+
+## Phase 5 预览安装
+
+Latest 正式版仍为 v1.5.0，完整实时指标预览需要明确安装：
+
+```text
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0a1/claude_code_statusline-1.6.0a1-py3-none-any.whl"
+claude-statusline install --live-metrics --native-editor --experimental-slash-tui
+claude-statusline config enable run-state permission-mode active-agents task-progress last-tool branch-diff ttft output-rate prompt-input-tokens prompt-output-tokens prompt-cost
+claude-statusline doctor
+```
+
+重启 Claude Code 加载安装的采集器。`install --no-live-metrics` 保存独立于两个编辑器的持久关闭偏好；宿主／包升级后重新 install 恢复兼容的所有权资源。降级前先用新版关闭／移除实时及原生接入、恢复兼容显示备份，再安装旧包。显示 schema v4／配置协议 v3 要求前后端匹配，v1/v2/v3 只在真实保存迁移。Windows/macOS 运行安装 CI 不等于真实会话验收；新增采集支持保持预览状态。

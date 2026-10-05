@@ -8,6 +8,10 @@
 
 [格式、布局与预设](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets) · [快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
 
+## Phase 5 预览：v1.6.0a1
+
+[实时指标预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0a1) 增加十一项可选指标、已提交分支差异和已结束代理时长冻结，Latest 正式版仍为 v1.5.0。预览和正式版的采集都独立默认关闭；安装预览 wheel 后使用 `claude-statusline install --live-metrics`，再通过任一编辑器或 CLI 选择显示项。已测试运行宿主为 Claude Code 2.1.289。参见[指标口径与条件性可用](docs/DISPLAY_ITEMS.zh-CN.md#请求覆盖与-sdk-回退)、[发布说明](docs/releases/v1.6.0a1.md)和[安装步骤](docs/USER_GUIDE.zh-CN.md#phase-5-预览安装)。新运行采集验收齐备后再晋升正式版，保留已有 macOS Client 输入限制。
+
 ## 正式 v1.5.0 的 Phase 4 功能
 
 [v1.5.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0) 晋升已验收的 Phase 4 预览。正式安装在兼容宿主默认请求启用两种编辑器，保留各自已记录的关闭偏好。升级包、同步接入后重启 Claude Code：

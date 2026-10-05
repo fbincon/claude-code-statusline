@@ -1,13 +1,30 @@
 {
   "name": "statusline-runtime",
-  "version": "1.5.0",
+  "version": "1.6.0-alpha.1",
   "description": "Opt-in live statusline observations, independent from the editor",
-  "author": {"name": "fbincon"},
+  "author": {
+    "name": "fbincon"
+  },
   "license": "MIT",
   "homepage": "https://github.com/fbincon/claude-code-statusline",
   "userConfig": {
-    "backendExecutable": {"type": "string", "title": "Backend executable", "description": "Absolute matching claude-statusline executable", "default": "claude-statusline"},
-    "configDir": {"type": "string", "title": "Configuration directory", "description": "Owned Claude configuration directory", "default": ""},
-    "backendVersion": {"type": "string", "title": "Expected backend version", "description": "Version bound by the installer", "default": ""}
+    "backendExecutable": {
+      "type": "string",
+      "title": "Backend executable",
+      "description": "Absolute matching claude-statusline executable",
+      "default": "claude-statusline"
+    },
+    "configDir": {
+      "type": "string",
+      "title": "Configuration directory",
+      "description": "Owned Claude configuration directory",
+      "default": ""
+    },
+    "backendVersion": {
+      "type": "string",
+      "title": "Expected backend version",
+      "description": "Version bound by the installer",
+      "default": ""
+    }
   }
 }

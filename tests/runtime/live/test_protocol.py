@@ -67,6 +67,7 @@ class RuntimeProtocolTests(unittest.TestCase):
         self.assertFalse(store.root(self.config).exists())
         for field, value in (
             ("observed_at_ms", float("nan")),
+            ("observed_at_ms", -(10**1000)),
             ("source", "unknown"),
             ("session_id", "bad\x1bpath"),
         ):
@@ -84,6 +85,16 @@ class RuntimeProtocolTests(unittest.TestCase):
     def test_json_stdout_errors_and_utf8_cli_paths(self):
         env = dict(os.environ, PYTHONPATH=str(SOURCE_ROOT), PYTHONDONTWRITEBYTECODE="1")
         for raw, status in (
+            (
+                json.dumps(
+                    {
+                        "protocol_version": 1,
+                        "operation": "observe",
+                        "payload": {"observations": [observation(at=-(10**1000))]},
+                    }
+                ),
+                2,
+            ),
             (
                 '{"protocol_version":1,"protocol_version":1,"operation":"read","payload":{}}',
                 2,
