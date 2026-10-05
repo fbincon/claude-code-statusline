@@ -137,3 +137,7 @@ Linux x86_64／Python 3.14.4、隔离的热字节码各 50 次采样：基线 `0
 2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。
 
 正式版调整包／Mod 版本及发布默认值，格式、布局、可移植文件、宿主应用与已验收输入行为沿用已验证预览。自动 CI／PTY 与代理视觉检查分别记录；历史图片保留 a1 文件名、捕获哈希及原始源码提交。
+
+## 独立运行检查
+
+运行 `python tools/generate_runtime_contracts.py --check`、`python -m unittest tests.runtime.live.test_protocol tests.runtime.live.test_store tests.integration.test_runtime_installer`，以及固定 2.1.289 的运行 Mod 验证／测试／类型检查。`python tools/runtime_install_smoke.py --report PATH` 仅使用临时配置，不调用模型。CI 保留全部旧编辑器检查并增加 Windows／macOS 2.1.289。模拟协议心跳验证桥接，不代表真实会话加载。另见[实时契约](live.zh-CN.md)。

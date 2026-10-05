@@ -17,6 +17,7 @@ from claude_statusline.integration import models as integration_models
 from claude_statusline.integration import ownership as integration_ownership
 from claude_statusline.integration import resources as integration_resources
 from claude_statusline.integration import native as native_integration
+from claude_statusline.integration import runtime as runtime_integration
 from claude_statusline.platforms import clocks as platform_clocks
 from claude_statusline.platforms import environment as platform_environment
 from claude_statusline.platforms import files as platform_files
@@ -783,4 +784,5 @@ def collect_diagnostics(
     diagnostics.extend(
         native_integration.diagnostics(config_dir, executable, claude_version)
     )
+    diagnostics.extend(runtime_integration.diagnostics(config_dir, executable, claude_version))
     return diagnostics

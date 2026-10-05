@@ -14,12 +14,11 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from claude_statusline.config import native as preference
 from claude_statusline.config import storage
 from claude_statusline.integration import (
     capabilities,
-    native_resources,
 )
+from claude_statusline.integration.mods import ModSpec, NATIVE
 from claude_statusline.integration.models import ConfigurationError, Diagnostic
 from claude_statusline.platforms import environment, files as platform_files
 
@@ -67,7 +66,9 @@ def _path(root: Path, name: str) -> Path:
 
 def _prune_empty_parents(root: Path, paths: list[Path]) -> None:
     parents = {
-        parent for path in paths for parent in path.parents
+        parent
+        for path in paths
+        for parent in path.parents
         if parent.is_relative_to(root)
     }
     for directory in sorted(parents, key=lambda path: len(path.parts), reverse=True):
@@ -84,9 +85,11 @@ def _prune_empty_parents(root: Path, paths: list[Path]) -> None:
             pass
 
 
-def owner(config_dir: Path, *, allow_missing: bool = False) -> dict | None:
+def owner(
+    config_dir: Path, *, allow_missing: bool = False, spec: ModSpec = NATIVE
+) -> dict | None:
     config_dir = config_dir.resolve()
-    root = config_dir / DIRECTORY
+    root = config_dir / spec.name
     if root.is_symlink():
         raise PluginError(f"Refusing unrelated native directory: {root}")
     raw = storage._read_optional_bytes(root / OWNER_FILE)
@@ -115,7 +118,7 @@ def owner(config_dir: Path, *, allow_missing: bool = False) -> dict | None:
             or value["schema_version"] != 1
             or type(value["suspended"]) is not bool
             or type(value["protocol_version"]) is not int
-            or value["protocol_version"] not in (1, 2)
+            or value["protocol_version"] not in (1, 2, 3)
             or not isinstance(value["files"], dict)
             or not value["files"]
             or any(
@@ -135,7 +138,7 @@ def owner(config_dir: Path, *, allow_missing: bool = False) -> dict | None:
                 or set(snapshot) != {"mod_version", "files"}
                 or not isinstance(snapshot["mod_version"], str)
                 or not isinstance(snapshot["files"], dict)
-                or "plugins/statusline-native/.claude-plugin/plugin.json"
+                or f"plugins/{spec.name}/.claude-plugin/plugin.json"
                 not in snapshot["files"]
             ):
                 raise ValueError("invalid cache snapshot")
@@ -148,7 +151,7 @@ def owner(config_dir: Path, *, allow_missing: bool = False) -> dict | None:
                     raise ValueError("invalid cache resource digest")
                 if not (
                     name == ".claude-plugin/marketplace.json"
-                    or name.startswith("plugins/statusline-native/")
+                    or name.startswith(f"plugins/{spec.name}/")
                 ):
                     raise ValueError("unexpected cached resource")
                 _path(root, name)
@@ -161,7 +164,7 @@ def owner(config_dir: Path, *, allow_missing: bool = False) -> dict | None:
                 raise ValueError("invalid resource digest")
             if not (
                 name == ".claude-plugin/marketplace.json"
-                or name.startswith("plugins/statusline-native/")
+                or name.startswith(f"plugins/{spec.name}/")
             ):
                 raise ValueError("unexpected owned resource")
             path = _path(root, name)
@@ -239,31 +242,41 @@ class Host:
 
 
 def _registered(
-    config_dir: Path, marketplaces: list[dict], plugins: list[dict], marker: dict | None
+    config_dir: Path,
+    marketplaces: list[dict],
+    plugins: list[dict],
+    marker: dict | None,
+    *,
+    spec: ModSpec = NATIVE,
 ):
-    matches = [row for row in marketplaces if row.get("name") == MARKETPLACE]
+    matches = [row for row in marketplaces if row.get("name") == spec.marketplace]
     if matches and (
         len(matches) != 1
         or matches[0].get("source") != "directory"
-        or Path(matches[0].get("path", "")).resolve() != config_dir / DIRECTORY
+        or Path(matches[0].get("path", "")).resolve() != config_dir / spec.name
         or marker is None
     ):
         raise PluginError(
-            f"Foreign marketplace {MARKETPLACE}; rename/remove its registration yourself before retrying"
+            f"Foreign marketplace {spec.marketplace}; rename/remove its registration yourself before retrying"
         )
-    rows = [row for row in plugins if row.get("id") == PLUGIN]
+    rows = [row for row in plugins if row.get("id") == spec.plugin]
     if rows and (len(rows) != 1 or rows[0].get("scope") != "user" or marker is None):
         raise PluginError(
-            f"Foreign or ambiguous plugin {PLUGIN}; resolve its scope/ownership before retrying"
+            f"Foreign or ambiguous plugin {spec.plugin}; resolve its scope/ownership before retrying"
         )
     return matches, rows[0] if rows else None
 
 
 def _cache_owned(
-    config_dir: Path, row: dict, marker: dict, *, require_current=False
+    config_dir: Path,
+    row: dict,
+    marker: dict,
+    *,
+    require_current=False,
+    spec: ModSpec = NATIVE,
 ) -> Path:
     path = Path(row.get("installPath", "")).resolve()
-    expected = config_dir / "plugins/cache" / MARKETPLACE / "statusline-native"
+    expected = config_dir / "plugins/cache" / spec.marketplace / spec.name
     if not path.is_relative_to(expected) or path == expected:
         raise PluginError(
             "Installed native Mod location/version differs from the owned inventory; run doctor"
@@ -276,7 +289,7 @@ def _cache_owned(
             continue
         matched = True
         for name, digest in snapshot["files"].items():
-            prefix = "plugins/statusline-native/"
+            prefix = f"plugins/{spec.name}/"
             if name.startswith(prefix):
                 target = _path(path, name[len(prefix) :])
                 content = storage._read_optional_bytes(target)
@@ -290,7 +303,9 @@ def _cache_owned(
     )
 
 
-def command_preflight(config_dir: Path):
+def command_preflight(config_dir: Path, *, spec: ModSpec = NATIVE):
+    if spec.name == "statusline-runtime":
+        return
     for command in ("statusline-configure-native",):
         if (config_dir / "commands" / (command + ".md")).exists():
             raise PluginError(
@@ -303,26 +318,24 @@ def command_preflight(config_dir: Path):
 
 
 def _stage(
-    config_dir: Path, executable: Path, previous: dict | None
+    config_dir: Path, executable: Path, previous: dict | None, *, spec: ModSpec = NATIVE
 ) -> tuple[dict, bool]:
-    files, manifest = native_resources.bundled_files()
+    files, manifest = spec.bundled_files()
     market = {
-        "name": MARKETPLACE,
+        "name": spec.marketplace,
         "owner": {"name": "fbincon"},
         "metadata": {
             "description": "Matching native editor bundled with claude-code-statusline"
         },
         "plugins": [
             {
-                "name": "statusline-native",
-                "source": "./plugins/statusline-native",
+                "name": spec.name,
+                "source": f"./plugins/{spec.name}",
                 "version": manifest["mod_version"],
             }
         ],
     }
-    artifacts = {
-        "plugins/statusline-native/" + name: raw for name, raw in files.items()
-    }
+    artifacts = {f"plugins/{spec.name}/" + name: raw for name, raw in files.items()}
     artifacts[".claude-plugin/marketplace.json"] = storage._json_bytes(market)
     marker = {
         "owner": "claude-code-statusline",
@@ -350,7 +363,7 @@ def _stage(
             if snapshot not in marker["cache_inventories"]:
                 marker["cache_inventories"].append(snapshot)
         marker["cache_inventories"] = marker["cache_inventories"][:3]
-    root = config_dir / DIRECTORY
+    root = config_dir / spec.name
     obsolete = []
     if previous:
         for name in previous["files"].keys() - artifacts.keys():
@@ -367,7 +380,7 @@ def _stage(
         return marker, False
     with storage._installation_lock(config_dir):
         # Recheck ownership after waiting for a concurrent file transaction.
-        if owner(config_dir, allow_missing=True) != previous:
+        if owner(config_dir, allow_missing=True, spec=spec) != previous:
             raise PluginError("Native ownership changed while staging; rerun install")
         storage._backup_artifacts(
             config_dir,
@@ -391,39 +404,43 @@ def _stage(
     return marker, True
 
 
-def _suspended(config_dir: Path, marker: dict, enabled: bool):
+def _suspended(
+    config_dir: Path, marker: dict, enabled: bool, *, spec: ModSpec = NATIVE
+):
     if marker["suspended"] != enabled:
         with storage._installation_lock(config_dir):
-            if owner(config_dir) != marker:
+            if owner(config_dir, spec=spec) != marker:
                 raise PluginError("Native ownership changed before suspension update")
             marker = dict(marker, suspended=enabled)
             storage._write_optional_bytes(
-                config_dir / DIRECTORY / OWNER_FILE, storage._json_bytes(marker)
+                config_dir / spec.name / OWNER_FILE, storage._json_bytes(marker)
             )
     return marker
 
 
-def active_on_disk(config_dir: Path, requested: bool, version) -> bool:
-    if not requested or version is None or version < MIN_VERSION:
+def active_on_disk(
+    config_dir: Path, requested: bool, version, *, spec: ModSpec = NATIVE
+) -> bool:
+    if not requested or version is None or version < spec.minimum_version:
         return False
     try:
-        marker = owner(config_dir)
+        marker = owner(config_dir, spec=spec)
         settings = storage._read_settings(config_dir / "settings.json")[0]
         return bool(
             marker
             and not marker["suspended"]
             and settings.get("disableAllHooks") is not True
-            and settings.get("enabledPlugins", {}).get(PLUGIN) is True
+            and settings.get("enabledPlugins", {}).get(spec.plugin) is True
         )
     except (ConfigurationError, AttributeError):
         return False
 
 
-def _remove_resources(config_dir: Path, marker: dict):
+def _remove_resources(config_dir: Path, marker: dict, *, spec: ModSpec = NATIVE):
     with storage._installation_lock(config_dir):
-        if owner(config_dir, allow_missing=True) != marker:
+        if owner(config_dir, allow_missing=True, spec=spec) != marker:
             raise PluginError("Native ownership changed before removal; run doctor")
-        root = config_dir / DIRECTORY
+        root = config_dir / spec.name
         paths = [_path(root, name) for name in marker["files"]]
         historical = [
             _path(root, name)
@@ -436,18 +453,20 @@ def _remove_resources(config_dir: Path, marker: dict):
         _prune_empty_parents(root, paths + historical)
 
 
-def _suspend_for_version(config_dir: Path, marker: dict) -> bool:
+def _suspend_for_version(
+    config_dir: Path, marker: dict, *, spec: ModSpec = NATIVE
+) -> bool:
     """Suspend a verified owned plugin without requiring newer host APIs."""
     with storage._installation_lock(config_dir):
-        if owner(config_dir) != marker:
+        if owner(config_dir, spec=spec) != marker:
             raise PluginError("Native ownership changed before version suspension")
         settings, original = storage._read_settings(config_dir / "settings.json")
-        if settings.get("enabledPlugins", {}).get(PLUGIN) is not True:
+        if settings.get("enabledPlugins", {}).get(spec.plugin) is not True:
             # A user's own disablement must not become tool-restorable suspension.
             return False
-        marker_path = config_dir / DIRECTORY / OWNER_FILE
+        marker_path = config_dir / spec.name / OWNER_FILE
         marker_raw = storage._read_optional_bytes(marker_path)
-        settings["enabledPlugins"][PLUGIN] = False
+        settings["enabledPlugins"][spec.plugin] = False
         changes = [
             (
                 "settings.json",
@@ -482,12 +501,18 @@ def _suspend_for_version(config_dir: Path, marker: dict) -> bool:
 
 
 def integrate(
-    config_dir: Path, executable: Path, requested: bool, version, *, uninstall=False
+    config_dir: Path,
+    executable: Path,
+    requested: bool,
+    version,
+    *,
+    uninstall=False,
+    spec: ModSpec = NATIVE,
 ) -> NativeResult:
     config_dir = config_dir.resolve()
     changed = False
     try:
-        marker = owner(config_dir, allow_missing=True)
+        marker = owner(config_dir, allow_missing=True, spec=spec)
         if not requested and marker is None:
             return NativeResult(
                 "disabled",
@@ -503,7 +528,7 @@ def integrate(
             is True
             else ""
         )
-        compatible = version is not None and version >= MIN_VERSION
+        compatible = version is not None and version >= spec.minimum_version
         if requested and marker is None and (not compatible or restriction):
             return NativeResult(
                 "suspended",
@@ -512,7 +537,7 @@ def integrate(
                 ),
             )
         if requested and not compatible:
-            changed = _suspend_for_version(config_dir, marker)
+            changed = _suspend_for_version(config_dir, marker, spec=spec)
             return NativeResult(
                 "suspended",
                 changed=changed,
@@ -522,31 +547,31 @@ def integrate(
             )
         host = Host(config_dir)
         markets, plugins = host.listing()
-        registration, row = _registered(config_dir, markets, plugins, marker)
+        registration, row = _registered(config_dir, markets, plugins, marker, spec=spec)
         if row:
-            _cache_owned(config_dir, row, marker)
+            _cache_owned(config_dir, row, marker, spec=spec)
         if not requested or uninstall:
             if row:
                 # Removal also runs after a host downgrade. Older hosts support
                 # these operations without the newer machine-readable flag;
                 # listing below independently verifies each result.
-                host.run("uninstall", PLUGIN, "--scope", "user")
+                host.run("uninstall", spec.plugin, "--scope", "user")
                 changed = True
-                if any(value.get("id") == PLUGIN for value in host.listing()[1]):
+                if any(value.get("id") == spec.plugin for value in host.listing()[1]):
                     raise PluginError(
                         "Plugin removal could not be confirmed; native resources retained"
                     )
             if registration:
-                host.run(
-                    "marketplace", "remove", MARKETPLACE, "--scope", "user"
-                )
+                host.run("marketplace", "remove", spec.marketplace, "--scope", "user")
                 changed = True
-                if any(value.get("name") == MARKETPLACE for value in host.listing()[0]):
+                if any(
+                    value.get("name") == spec.marketplace for value in host.listing()[0]
+                ):
                     raise PluginError(
                         "Marketplace removal could not be confirmed; native resources retained"
                     )
             if marker:
-                _remove_resources(config_dir, marker)
+                _remove_resources(config_dir, marker, spec=spec)
                 changed = True
             return NativeResult(
                 "disabled",
@@ -557,14 +582,14 @@ def integrate(
             )
         if not compatible or restriction:
             if row and row.get("enabled") is True:
-                host.run("disable", PLUGIN, "--scope", "user", "--json")
+                host.run("disable", spec.plugin, "--scope", "user", "--json")
                 changed = True
                 if any(
-                    value.get("id") == PLUGIN and value.get("enabled")
+                    value.get("id") == spec.plugin and value.get("enabled")
                     for value in host.listing()[1]
                 ):
                     raise PluginError("Plugin suspension could not be confirmed")
-                _suspended(config_dir, marker, True)
+                _suspended(config_dir, marker, True, spec=spec)
             return NativeResult(
                 "suspended",
                 changed=changed,
@@ -575,17 +600,17 @@ def integrate(
         user_disabled = bool(
             row and row.get("enabled") is not True and not marker["suspended"]
         )
-        command_preflight(config_dir)
-        current, staged = _stage(config_dir, executable, marker)
+        command_preflight(config_dir, spec=spec)
+        current, staged = _stage(config_dir, executable, marker, spec=spec)
         changed |= staged
-        root = config_dir / DIRECTORY
+        root = config_dir / spec.name
         host.run("validate", "--strict", str(root))
-        host.run("validate", "--strict", str(root / "plugins/statusline-native"))
+        host.run("validate", "--strict", str(root / f"plugins/{spec.name}"))
         if not registration:
             host.run("marketplace", "add", str(root))
             changed = True
         elif staged:
-            host.run("marketplace", "update", MARKETPLACE)
+            host.run("marketplace", "update", spec.marketplace)
         values = {
             "backendExecutable": str(executable.resolve()),
             "configDir": str(config_dir),
@@ -594,17 +619,17 @@ def integrate(
         if row and staged and row.get("version") == current["mod_version"]:
             # Official update is a no-op at the same version. Reinstall only
             # after verifying every owned cached runtime resource above.
-            host.run("uninstall", PLUGIN, "--scope", "user")
+            host.run("uninstall", spec.plugin, "--scope", "user")
             row = None
         if row:
             if staged:
-                host.run("update", PLUGIN, "--scope", "user", "--json")
-            host.run("configure", PLUGIN, "--values-stdin", values=values)
+                host.run("update", spec.plugin, "--scope", "user", "--json")
+            host.run("configure", spec.plugin, "--values-stdin", values=values)
             if marker["suspended"]:
-                host.run("enable", PLUGIN, "--scope", "user", "--json")
+                host.run("enable", spec.plugin, "--scope", "user", "--json")
                 changed = True
         else:
-            argv = ["install", PLUGIN, "--scope", "user", "--json"]
+            argv = ["install", spec.plugin, "--scope", "user", "--json"]
             for key, value in values.items():
                 argv.extend(
                     [
@@ -617,20 +642,24 @@ def integrate(
             host.run(*argv)
             changed = True
         markets, plugins = host.listing()
-        _registration, saved = _registered(config_dir, markets, plugins, current)
+        _registration, saved = _registered(
+            config_dir, markets, plugins, current, spec=spec
+        )
         if user_disabled and saved and saved.get("enabled") is True:
             # Updates normally preserve enablement; a same-version reinstall
             # enables the plugin, so restore the user's choice and verify it.
-            host.run("disable", PLUGIN, "--scope", "user", "--json")
+            host.run("disable", spec.plugin, "--scope", "user", "--json")
             changed = True
             markets, plugins = host.listing()
-            _registration, saved = _registered(config_dir, markets, plugins, current)
+            _registration, saved = _registered(
+                config_dir, markets, plugins, current, spec=spec
+            )
         if not saved or saved.get("enabled") is not (not user_disabled):
             raise PluginError(
                 "Native plugin enablement preference could not be confirmed; compatibility entry retained"
             )
-        _cache_owned(config_dir, saved, current, require_current=True)
-        options = host.run("configure", PLUGIN, "--json", json_result=True)
+        _cache_owned(config_dir, saved, current, require_current=True, spec=spec)
+        options = host.run("configure", spec.plugin, "--json", json_result=True)
         bound = {
             key: str(value).lower() if isinstance(value, bool) else value
             for key, value in values.items()
@@ -639,13 +668,13 @@ def integrate(
             raise PluginError(
                 "Native backend binding could not be confirmed; compatibility entry retained"
             )
-        _suspended(config_dir, current, False)
+        _suspended(config_dir, current, False, spec=spec)
         if user_disabled:
             return NativeResult(
                 "plugin-disabled",
                 changed=changed,
                 messages=(
-                    f"{PLUGIN} is explicitly disabled; owned resources and backend binding are current. "
+                    f"{spec.plugin} is explicitly disabled; owned resources and backend binding are current. "
                     "Enable it through claude plugin enable when wanted. Compatibility entry retained.",
                 ),
             )
@@ -668,26 +697,28 @@ def integrate(
         )
 
 
-def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diagnostic]:
+def diagnostics(
+    config_dir: Path, executable: Path | None, version, *, spec: ModSpec = NATIVE
+) -> list[Diagnostic]:
     result = []
     try:
-        enabled = preference.requested(config_dir, None)
+        enabled = spec.requested(config_dir)
         result.append(
             Diagnostic(
                 "OK",
                 f"native editor preference: {'enabled' if enabled else 'disabled'}",
             )
         )
-        marker = owner(config_dir)
+        marker = owner(config_dir, spec=spec)
         result.append(
             Diagnostic(
-                "OK" if version and version >= MIN_VERSION else "WARN",
+                "OK" if version and version >= spec.minimum_version else "WARN",
                 "native Mod host: "
                 + (".".join(map(str, version)) if version else "unknown")
                 + "; requires 2.1.287+",
             )
         )
-        if enabled and (version is None or version < MIN_VERSION):
+        if enabled and (version is None or version < spec.minimum_version):
             result.append(
                 Diagnostic(
                     "WARN",
@@ -712,9 +743,9 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
                 f"native resources: owned and complete; Mod {marker['mod_version']}, backend {marker['backend_version']}, protocol {marker['protocol_version']}",
             )
         )
-        if version is None or version < MIN_VERSION:
+        if version is None or version < spec.minimum_version:
             settings = storage._read_settings(config_dir / "settings.json")[0]
-            if settings.get("enabledPlugins", {}).get(PLUGIN) is True:
+            if settings.get("enabledPlugins", {}).get(spec.plugin) is True:
                 result.append(
                     Diagnostic(
                         "ERROR",
@@ -722,7 +753,7 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
                     )
                 )
             return result
-        _files, manifest = native_resources.bundled_files()
+        _files, manifest = spec.bundled_files()
         if any(
             marker[key] != manifest[key]
             for key in ("backend_version", "mod_version", "protocol_version")
@@ -735,7 +766,9 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
             )
         host = Host(config_dir.resolve())
         markets, plugins = host.listing()
-        registration, row = _registered(config_dir.resolve(), markets, plugins, marker)
+        registration, row = _registered(
+            config_dir.resolve(), markets, plugins, marker, spec=spec
+        )
         result.append(
             Diagnostic(
                 "OK" if registration else "ERROR",
@@ -744,14 +777,16 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
             )
         )
         if row:
-            _cache_owned(config_dir.resolve(), row, marker, require_current=True)
+            _cache_owned(
+                config_dir.resolve(), row, marker, require_current=True, spec=spec
+            )
             result.append(
                 Diagnostic(
                     "OK" if row.get("enabled") else "WARN",
                     f"native plugin on disk: installed, enabled={row.get('enabled')}, tool-suspended={marker['suspended']}",
                 )
             )
-            options = host.run("configure", PLUGIN, "--json", json_result=True)
+            options = host.run("configure", spec.plugin, "--json", json_result=True)
             expected = {
                 "backendExecutable": str(executable.resolve()) if executable else None,
                 "configDir": str(config_dir.resolve()),
@@ -772,7 +807,7 @@ def diagnostics(config_dir: Path, executable: Path | None, version) -> list[Diag
             result.append(
                 Diagnostic("ERROR", "native plugin on disk: missing; rerun install")
             )
-        command_preflight(config_dir)
+        command_preflight(config_dir, spec=spec)
         settings = storage._read_settings(config_dir / "settings.json")[0]
         if settings.get("disableAllHooks") is True:
             result.append(

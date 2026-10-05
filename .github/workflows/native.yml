@@ -27,6 +27,12 @@ jobs:
           - os: macos-15
             platform: macOS
             claude: "2.1.288"
+          - os: windows-latest
+            platform: Windows
+            claude: "2.1.289"
+          - os: macos-15
+            platform: macOS
+            claude: "2.1.289"
     defaults:
       run:
         shell: bash
@@ -40,7 +46,9 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: mods/statusline-native/package-lock.json
+          cache-dependency-path: |
+            mods/statusline-native/package-lock.json
+            mods/statusline-runtime/package-lock.json
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
@@ -49,13 +57,15 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/claude-host" --no-audit --no-fund "@anthropic-ai/claude-code@${{ matrix.claude }}"
           echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
           npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
+          npm ci --prefix mods/statusline-runtime --ignore-scripts --no-audit --no-fund
           python -m pip install .
       - name: Generate exact-build official declarations
         run: python tools/prepare_mod_types.py
       - name: Shared protocol contracts
         run: |
           python tools/generate_ui_contracts.py --check
-          python -m unittest tests.config.test_catalog tests.ui.test_protocol tests.ui.test_apply_protocol tests.integration.test_native_installer
+          python tools/generate_runtime_contracts.py --check
+          python -m unittest tests.config.test_catalog tests.ui.test_protocol tests.ui.test_apply_protocol tests.integration.test_native_installer tests.integration.test_runtime_installer tests.runtime.live.test_protocol tests.runtime.live.test_store
       - name: Official static validation
         run: claude plugin validate --strict mods/statusline-native
       - name: Official Mod tests
@@ -64,9 +74,19 @@ jobs:
         run: npm run --prefix mods/statusline-native typecheck
       - name: Official installation and backend bridge
         run: python tools/native_install_smoke.py --report "$RUNNER_TEMP/native-installation.json"
+      - name: Independent runtime Mod and installation
+        if: matrix.claude == '2.1.289'
+        run: |
+          python tools/prepare_mod_types.py --plugin mods/statusline-runtime
+          claude plugin validate --strict mods/statusline-runtime
+          claude plugin test mods/statusline-runtime
+          npm run --prefix mods/statusline-runtime typecheck
+          python tools/runtime_install_smoke.py --report "$RUNNER_TEMP/runtime-installation.json"
       - name: Upload native installation evidence
         uses: actions/upload-artifact@v4
         with:
           name: native-${{ matrix.platform }}-${{ matrix.claude }}
-          path: ${{ runner.temp }}/native-installation.json
+          path: |
+            ${{ runner.temp }}/native-installation.json
+            ${{ runner.temp }}/runtime-installation.json
           if-no-files-found: error

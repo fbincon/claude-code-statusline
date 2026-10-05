@@ -2,6 +2,12 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## Unreleased
+
+- Add an independently owned, opt-in live-metrics Mod for fixed Claude Code 2.1.289 hosts, separate from editor enablement.
+- Add strict runtime protocol v1, bounded session/prompt/agent history, atomic concurrent storage, exact retry identities and freshness/invalidation diagnostics.
+- Package both Mods through shared version/hash inventories; extend official installation smoke and fixed-host CI to Windows/macOS 2.1.289. Display schema v3 and configuration protocol v2 remain unchanged in this foundation.
+
 ## 1.5.0 - 2026-10-05
 
 - Promote the verified Phase 4 preview after maintainer-confirmed Linux/Windows human acceptance and macOS standalone TUI/CLI acceptance. Preserve the historical macOS Client input limitation; exact terminal/OS/host metadata remains unknown.

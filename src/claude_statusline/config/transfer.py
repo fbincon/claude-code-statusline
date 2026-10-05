@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import tempfile
 
-from claude_statusline.config import display, features, native
+from claude_statusline.config import display, features, native, runtime
 
 
 FORMAT = "claude-code-statusline"
@@ -78,9 +78,12 @@ def export_file(path, draft, config_dir, *, overwrite=False):
                 display.CONFIG_FILENAME,
                 features.FEATURE_FILENAME,
                 native.FILENAME,
+                runtime.FILENAME,
             )
         }
         or (root / "statusline-native") in resolved.parents
+        or (root / "statusline-runtime") in resolved.parents
+        or (root / "statusline_runtime") in resolved.parents
     ):
         raise display.DisplayConfigError(
             "export cannot replace live configuration or owned plugin resources"

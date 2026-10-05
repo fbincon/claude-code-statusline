@@ -39,6 +39,7 @@ def main():
 
     sys.path.insert(0, str(Path("src").resolve()))
     from claude_statusline.integration.native_resources import source_files, inventory
+    from claude_statusline.integration.mods import SPECS
 
     project = {
         "version": re.search(
@@ -82,17 +83,18 @@ def main():
             "claude_statusline/resources/statusline-configure/SKILL.md",
         ):
             assert any(name.endswith(suffix) for name in names), suffix
-        runtime = source_files(Path("mods/statusline-native"))
-        prefix = "claude_statusline/resources/statusline-native/"
-        expected = {prefix + name for name in runtime} | {
-            prefix + "resource-manifest.json"
-        }
-        assert {name for name in names if name.startswith(prefix)} == expected
-        for name, raw in runtime.items():
-            assert archive.read(prefix + name) == raw, name
-        assert json.loads(archive.read(prefix + "resource-manifest.json")) == inventory(
-            runtime, version
-        )
+        for spec in SPECS:
+            runtime = source_files(Path("mods") / spec.name)
+            prefix = "claude_statusline/resources/" + spec.name + "/"
+            expected = {prefix + name for name in runtime} | {
+                prefix + "resource-manifest.json"
+            }
+            assert {name for name in names if name.startswith(prefix)} == expected
+            for name, raw in runtime.items():
+                assert archive.read(prefix + name) == raw, name
+            assert json.loads(
+                archive.read(prefix + "resource-manifest.json")
+            ) == inventory(runtime, version, spec.name)
         assert not any(
             part in name.split("/")
             for name in names
@@ -163,7 +165,9 @@ def main():
                 assert any(
                     name.endswith(source.as_posix()) for name in distributions[1]
                 ), source
-    for source in Path("mods/statusline-native").rglob("*"):
+    for source in (
+        path for spec in SPECS for path in (Path("mods") / spec.name).rglob("*")
+    ):
         if (
             source.is_file()
             and source.suffix in {".json", ".ts"}

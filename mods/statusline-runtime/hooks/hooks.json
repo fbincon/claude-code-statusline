@@ -1,0 +1,1 @@
+{"description": "Independent live observation collector", "modules": ["./observe.ts"]}
