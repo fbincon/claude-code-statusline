@@ -20,7 +20,8 @@ from claude_statusline.integration import (
 
 
 class FakeHost:
-    def __init__(self, config):
+    def __init__(self, config, spec=native.NATIVE):
+        self.spec = spec
         self.config = config
         self.markets = []
         self.plugins = []
@@ -32,7 +33,7 @@ class FakeHost:
         settings = storage._read_settings(self.config / "settings.json")[0]
         for row in self.plugins:
             row["enabled"] = settings.get("enabledPlugins", {}).get(
-                native.PLUGIN, False
+                self.spec.plugin, False
             )
         return copy.deepcopy(self.markets), copy.deepcopy(self.plugins)
 
@@ -51,29 +52,29 @@ class FakeHost:
             if args[1] == "add":
                 self.markets = [
                     {
-                        "name": native.MARKETPLACE,
+                        "name": self.spec.marketplace,
                         "source": "directory",
-                        "path": str(self.config / native.DIRECTORY),
+                        "path": str(self.config / self.spec.name),
                     }
                 ]
             elif args[1] == "remove":
                 self.markets = []
         elif args[0] in {"install", "update"}:
-            source = self.config / native.DIRECTORY / "plugins/statusline-native"
+            source = self.config / self.spec.name / "plugins" / self.spec.name
             version = json.loads((source / ".claude-plugin/plugin.json").read_text())[
                 "version"
             ]
             target = (
                 self.config
                 / "plugins/cache"
-                / native.MARKETPLACE
-                / "statusline-native"
+                / self.spec.marketplace
+                / self.spec.name
                 / version
             )
             shutil.copytree(source, target, dirs_exist_ok=True)
             self.plugins = [
                 {
-                    "id": native.PLUGIN,
+                    "id": self.spec.plugin,
                     "scope": "user",
                     "version": version,
                     "installPath": str(target),
@@ -81,7 +82,7 @@ class FakeHost:
                 }
             ]
             if args[0] == "install":
-                self.settings("enabledPlugins", {native.PLUGIN: True})
+                self.settings("enabledPlugins", {self.spec.plugin: True})
                 self.inputs = dict(
                     value.split("=", 1)
                     for index, value in enumerate(args)
@@ -98,7 +99,7 @@ class FakeHost:
             if json_result:
                 return {"inputs": copy.deepcopy(self.inputs)}
         elif args[0] in {"disable", "enable"}:
-            self.settings("enabledPlugins", {native.PLUGIN: args[0] == "enable"})
+            self.settings("enabledPlugins", {self.spec.plugin: args[0] == "enable"})
         elif args[0] == "uninstall":
             self.plugins = []
             self.settings("enabledPlugins", {})

@@ -7,6 +7,7 @@ from dataclasses import replace
 from claude_statusline.config import display as config_display
 from claude_statusline.config import features as config_features
 from claude_statusline.config import native as native_preference
+from claude_statusline.config import runtime as runtime_preference
 from claude_statusline.config import storage as config_storage
 from claude_statusline.integration import capabilities as integration_capabilities
 from claude_statusline.integration import install_plan as integration_install_plan
@@ -14,6 +15,7 @@ from claude_statusline.integration import models as integration_models
 from claude_statusline.integration import ownership as integration_ownership
 from claude_statusline.integration import resources as integration_resources
 from claude_statusline.integration import native as native_integration
+from claude_statusline.integration import runtime as runtime_integration
 from claude_statusline.platforms import files as platform_files
 
 
@@ -26,6 +28,7 @@ def _change_configuration(
     claude_version: tuple[int, int, int] | None = None,
     experimental_slash_tui: bool | None = None,
     native_editor: bool | None = None,
+    live_metrics: bool | None = None,
 ) -> integration_models.ChangeResult:
     settings_path = config_dir / "settings.json"
     skill_path, owner_path = integration_resources.skill_paths(config_dir)
@@ -41,7 +44,9 @@ def _change_configuration(
     def prepare():
         settings, settings_raw = config_storage._read_settings(settings_path)
         preference_raw = config_storage._read_optional_bytes(preference_path)
-        preference_enabled = action == "install" and config_features.enabled_by_default()
+        preference_enabled = (
+            action == "install" and config_features.enabled_by_default()
+        )
         if action == "install" and preference_raw is not None:
             try:
                 preference_enabled = config_features.parse_feature_bytes(
@@ -64,11 +69,15 @@ def _change_configuration(
         except config_display.DisplayConfigError:
             display = config_display.DEFAULT_CONFIG
         experimental_active = preference_enabled and fast_slash_hook
-        external_command = config_dir / "commands" / (
-            integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME + ".md"
+        external_command = (
+            config_dir
+            / "commands"
+            / (integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME + ".md")
         )
-        if action == "install" and experimental_active and (
-            external_command.exists() or external_command.is_symlink()
+        if (
+            action == "install"
+            and experimental_active
+            and (external_command.exists() or external_command.is_symlink())
         ):
             raise integration_models.ConfigurationError(
                 "Foreign /statusline-configure command; rename it before enabling "
@@ -248,6 +257,21 @@ def _change_configuration(
                     ),
                 )
             )
+        if action == "install" and live_metrics is not None:
+            runtime_path = runtime_preference.preference_path(config_dir)
+            runtime_raw = config_storage._read_optional_bytes(runtime_path)
+            desired_runtime = runtime_preference.preference_bytes(live_metrics)
+            candidates.append(
+                (
+                    runtime_preference.FILENAME,
+                    runtime_path,
+                    runtime_raw,
+                    desired_runtime,
+                    artifact_changed(
+                        runtime_path, runtime_raw, desired_runtime, enforce_private=True
+                    ),
+                )
+            )
         return [candidate for candidate in candidates if candidate[4]]
 
     if dry_run:
@@ -316,6 +340,7 @@ def install_configuration(
     force: bool = False,
     experimental_slash_tui: bool | None = None,
     native_editor: bool | None = None,
+    live_metrics: bool | None = None,
     claude_version: tuple[int, int, int]
     | None
     | object = integration_models._DETECT_CLAUDE_VERSION,
@@ -323,6 +348,7 @@ def install_configuration(
     if claude_version is integration_models._DETECT_CLAUDE_VERSION:
         claude_version = integration_capabilities.detect_claude_version()
     requested = native_preference.requested(config_dir, native_editor)
+    runtime_requested = runtime_preference.requested(config_dir, live_metrics)
     try:
         external_requested = (
             experimental_slash_tui
@@ -362,6 +388,7 @@ def install_configuration(
         claude_version=claude_version,
         experimental_slash_tui=experimental_slash_tui,
         native_editor=native_editor,
+        live_metrics=live_metrics,
     )
     if dry_run:
         return replace(
@@ -377,6 +404,9 @@ def install_configuration(
                 "plugin operations are not executed by dry-run. " + fallback
                 if requested
                 else "Native editor disabled by preference; plugin operations are not executed by dry-run.",
+            )
+            + (
+                f"Live metrics {'requested' if runtime_requested else 'disabled'}; requires Claude Code 2.1.289+; dry-run performs no plugin operations.",
             ),
         )
     result = _change_configuration(
@@ -388,18 +418,27 @@ def install_configuration(
         claude_version=claude_version,
         experimental_slash_tui=experimental_slash_tui,
         native_editor=native_editor,
+        live_metrics=live_metrics,
     )
     native = native_integration.integrate(
         config_dir, executable, requested, claude_version
     )
+    runtime = runtime_integration.integrate(
+        config_dir, executable, runtime_requested, claude_version
+    )
     return replace(
         result,
-        changed=result.changed or native.changed,
+        changed=result.changed or native.changed or runtime.changed,
         native_state=native.state,
         messages=(external_message,)
         + native.messages
+        + runtime.messages
         + ((fallback,) if requested and not native_supported else ()),
         native_failed=native.state == "blocked"
+        or runtime.state == "blocked"
+        or (
+            live_metrics is True and not runtime.active and runtime.state != "suspended"
+        )
         or (
             native_editor is True
             and not native.active
@@ -417,6 +456,17 @@ def uninstall_configuration(
     planned = _change_configuration("uninstall", config_dir, executable, True)
     if dry_run:
         return planned
+    runtime = runtime_integration.integrate(
+        config_dir, executable, False, None, uninstall=True
+    )
+    if runtime.state == "blocked":
+        return replace(
+            planned,
+            changed=runtime.changed,
+            changed_paths=(),
+            messages=runtime.messages,
+            native_failed=True,
+        )
     native = native_integration.integrate(
         config_dir, executable, False, None, uninstall=True
     )
@@ -432,7 +482,7 @@ def uninstall_configuration(
     result = _change_configuration("uninstall", config_dir, executable, False)
     return replace(
         result,
-        changed=result.changed or native.changed,
+        changed=result.changed or native.changed or runtime.changed,
         native_state=native.state,
-        messages=native.messages,
+        messages=native.messages + runtime.messages,
     )

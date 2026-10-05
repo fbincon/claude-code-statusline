@@ -1,0 +1,157 @@
+"""Session-isolated, locked atomic storage for live evidence and bounded history."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path
+import time
+
+from claude_statusline.platforms import files
+from claude_statusline.runtime.live import model
+
+
+def root(config_dir: Path):
+    configured = os.environ.get("CLAUDE_STATUSLINE_RUNTIME_DIR")
+    return (
+        Path(configured) if configured else config_dir / "statusline_runtime"
+    ) / "live"
+
+
+def path(config_dir: Path, session_id: str):
+    key = hashlib.sha256(session_id.encode("utf-8")).hexdigest()
+    return root(config_dir) / (key + ".json")
+
+
+def empty(session_id):
+    return {
+        "schema_version": 1,
+        "session_id": session_id,
+        "epoch": None,
+        "loaded_at_ms": None,
+        "heartbeat_at_ms": None,
+        "host_version": None,
+        "invalidated": None,
+        "current_prompt_id": None,
+        "epochs": {},
+        "prompts": {},
+        "agents": {},
+        "permission": None,
+    }
+
+
+def load(config_dir: Path, session_id: str):
+    try:
+        target = path(config_dir, session_id)
+        if target.is_symlink():
+            return None
+        state = json.loads(target.read_bytes())
+        if (
+            isinstance(state, dict)
+            and set(state) == set(empty(session_id))
+            and state["schema_version"] == 1
+            and state["session_id"] == session_id
+            and all(
+                isinstance(state[key], dict) for key in ("epochs", "prompts", "agents")
+            )
+        ):
+            for epoch, ledger in state["epochs"].items():
+                model.text(epoch, "epoch")
+                model.exact(
+                    ledger, ("seen", "floor", "high", "updated_at_ms"), "epoch ledger"
+                )
+                if (
+                    not isinstance(ledger["seen"], list)
+                    or len(ledger["seen"]) > model.MAX_SEEN
+                    or any(type(seq) is not int or seq < 0 for seq in ledger["seen"])
+                    or any(
+                        type(ledger[key]) is not int or ledger[key] < -1
+                        for key in ("floor", "high")
+                    )
+                ):
+                    return None
+            if state["epoch"] is not None and state["epoch"] not in state["epochs"]:
+                return None
+            for record in state["prompts"].values():
+                if not isinstance(record, dict) or not {
+                    "updated_at_ms",
+                    "started_at_ms",
+                    "epoch",
+                    "complete",
+                    "terminal",
+                } <= set(record):
+                    return None
+                model.number(record["updated_at_ms"], "prompt time")
+            for record in state["agents"].values():
+                if not isinstance(record, dict) or not {
+                    "prompt_id",
+                    "epoch",
+                    "started_at_ms",
+                    "ended_at_ms",
+                    "status",
+                    "updated_at_ms",
+                } <= set(record):
+                    return None
+                model.number(record["updated_at_ms"], "agent time")
+            if state["permission"] is not None and (
+                not isinstance(state["permission"], dict)
+                or set(state["permission"])
+                != {"mode", "live", "observed_at_ms", "source"}
+            ):
+                return None
+            return state
+    except (OSError, ValueError, TypeError):
+        pass
+    return None
+
+
+def fresh(state, now_ms=None):
+    now_ms = time.time() * 1000 if now_ms is None else now_ms
+    stamp = state.get("heartbeat_at_ms") if state else None
+    return bool(
+        state
+        and not state["invalidated"]
+        and type(stamp) in (float, int)
+        and 0 <= now_ms - stamp <= model.STALE_MS
+    )
+
+
+def observe(config_dir: Path, observations):
+    from claude_statusline.runtime.live.reducer import apply
+
+    accepted = ignored = 0
+    grouped = {}
+    for item in observations:
+        grouped.setdefault(item["session_id"], []).append(item)
+    for session_id, rows in grouped.items():
+        target = path(config_dir, session_id)
+        with files.exclusive_file_lock(target.with_suffix(".lock")):
+            state = load(config_dir, session_id) or empty(session_id)
+            for item in rows:
+                if apply(state, item):
+                    accepted += 1
+                else:
+                    ignored += 1
+            content = json.dumps(
+                state, ensure_ascii=False, allow_nan=False, separators=(",", ":")
+            ).encode("utf-8")
+            files.atomic_write_bytes(target, content, 0o600)
+    prune(config_dir)
+    return {"accepted": accepted, "ignored": ignored}
+
+
+def prune(config_dir):
+    try:
+        entries = [
+            p
+            for p in root(config_dir).glob("*.json")
+            if p.is_file() and not p.is_symlink()
+        ]
+        entries.sort(key=lambda p: p.stat().st_mtime_ns, reverse=True)
+        for target in entries[model.MAX_SESSIONS :]:
+            # Lock files remain fixed inodes; a delayed writer can reuse them.
+            with files.exclusive_file_lock(target.with_suffix(".lock")):
+                target.unlink(missing_ok=True)
+    except OSError:
+        pass

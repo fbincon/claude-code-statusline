@@ -23,17 +23,22 @@ class BuildPy(build_py):
                 source_files,
             )
 
-            files = source_files(source / "mods/statusline-native")
-            manifest = inventory(files, __version__)
+            from claude_statusline.integration.mods import SPECS
+
+            inventories = [
+                (spec.name, source_files(source / "mods" / spec.name)) for spec in SPECS
+            ]
+            manifests = {
+                name: inventory(files, __version__, name) for name, files in inventories
+            }
         finally:
             sys.path.pop(0)
-        destination = (
-            Path(self.build_lib) / "claude_statusline/resources/statusline-native"
-        )
-        for name, raw in files.items():
-            path = destination / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(raw)
-        (destination / "resource-manifest.json").write_text(
-            json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
-        )
+        for name, files in inventories:
+            destination = Path(self.build_lib) / "claude_statusline/resources" / name
+            for relative, raw in files.items():
+                path = destination / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(raw)
+            (destination / "resource-manifest.json").write_text(
+                json.dumps(manifests[name], indent=2) + "\n", encoding="utf-8"
+            )

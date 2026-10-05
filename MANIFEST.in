@@ -10,6 +10,9 @@ recursive-include tools *.py
 recursive-include mods/statusline-native *.json *.ts
 prune mods/statusline-native/node_modules
 prune mods/statusline-native/.claude-plugin/types
+recursive-include mods/statusline-runtime *.json *.ts
+prune mods/statusline-runtime/node_modules
+prune mods/statusline-runtime/.claude-plugin/types
 exclude docs/ROADMAP.md
 exclude docs/ROADMAP.zh-CN.md
 global-exclude .DS_Store *.py[cod]

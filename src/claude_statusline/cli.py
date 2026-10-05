@@ -47,6 +47,10 @@ def build_parser():
         "ui", help="serve one internal JSON configuration request"
     )
     _common_config_argument(ui_parser)
+    runtime_parser = subparsers.add_parser(
+        "runtime", help="serve one independent live-observation JSON request"
+    )
+    _common_config_argument(runtime_parser)
 
     configure_parser = subparsers.add_parser(
         "configure", help="open the interactive status line configuration editor"
@@ -95,6 +99,20 @@ def build_parser():
         dest="native_editor",
         action="store_false",
         help="persistently disable and remove owned native editor integration",
+    )
+    runtime_group = install_parser.add_mutually_exclusive_group()
+    runtime_group.add_argument(
+        "--live-metrics",
+        dest="live_metrics",
+        action="store_true",
+        default=None,
+        help="enable independent runtime collection (opt-in; Claude Code 2.1.289+)",
+    )
+    runtime_group.add_argument(
+        "--no-live-metrics",
+        dest="live_metrics",
+        action="store_false",
+        help="persistently disable independent runtime collection",
     )
 
     uninstall_parser = subparsers.add_parser(
@@ -164,6 +182,10 @@ def main(argv: list[str] | None = None) -> int:
         from claude_statusline.ui import protocol
 
         return protocol.main(args)
+    if args.command == "runtime":
+        from claude_statusline.runtime.live import protocol
+
+        return protocol.main(args)
 
     if args.command == "render":
         from . import statusline
@@ -225,6 +247,7 @@ def main(argv: list[str] | None = None) -> int:
                 force=args.force,
                 experimental_slash_tui=args.experimental_slash_tui,
                 native_editor=args.native_editor,
+                live_metrics=args.live_metrics,
             )
             _print_change(result, args.dry_run)
             return 2 if result.native_failed else 0

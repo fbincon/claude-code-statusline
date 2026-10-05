@@ -135,3 +135,7 @@ The model-only P50 rises about 4.1 ms (8%); P95 rises about 1.7 ms. Five-item fo
 On 2026-10-05 the maintainer confirmed Phase 4 human acceptance on Linux and Windows and on macOS through the standalone TUI/CLI. Exact OS, architecture, terminal and host versions were not supplied. This confirmation does not declare the earlier macOS in-session Client input problem fixed.
 
 Stable changes package/Mod versions and release defaults; formatting, layout, portable files, host application and accepted input behavior remain those of the verified preview. Automated CI/PTYs and agent capture inspection remain independent evidence. Historical preview images keep their a1 filenames, capture hashes and original source commits.
+
+## Independent runtime checks
+
+Run `python tools/generate_runtime_contracts.py --check`, `python -m unittest tests.runtime.live.test_protocol tests.runtime.live.test_store tests.integration.test_runtime_installer`, and the fixed 2.1.289 runtime Mod validation/tests/typecheck. `python tools/runtime_install_smoke.py --report PATH` uses only temporary configuration and no models. The CI matrix retains all older editor checks and adds Windows/macOS 2.1.289. Mocked protocol heartbeats verify the bridge, not actual session loading. See [live contracts](live.md).

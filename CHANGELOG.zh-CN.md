@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md) | **简体中文**
 
+## Unreleased
+
+- 新增独立所有权、默认关闭的实时指标 Mod，固定验证 Claude Code 2.1.289，与编辑器启用偏好分离。
+- 新增严格运行协议 v1、有界会话／prompt／代理历史、原子并发存储、准确重试身份及心跳／失效诊断。
+- 通过共享版本／哈希清单打包两 Mod，扩展实际官方安装 smoke 和 Windows／macOS 2.1.289 CI。本批基础实现沿用显示 schema v3 与配置协议 v2。
+
 ## 1.5.0 - 2026-10-05
 
 - 维护者确认 Linux／Windows 人工验收及 macOS 独立 TUI／CLI 通过后，晋升已验证 Phase 4 预览；保留历史 macOS Client 输入限制，具体终端／OS／宿主元数据仍未知。
