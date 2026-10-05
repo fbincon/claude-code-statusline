@@ -1,7 +1,8 @@
-"""Independent, opt-in live-metrics preference (never an editor preference)."""
+"""Independent preferences for native timing and optional advanced observations."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import json
 from pathlib import Path
 
@@ -11,40 +12,101 @@ from claude_statusline.integration.models import ConfigurationError
 FILENAME = "claude-statusline-runtime.json"
 
 
+@dataclass(frozen=True)
+class Preferences:
+    native_timing: bool = True
+    live_metrics: bool = False
+
+    @property
+    def enabled(self):
+        return self.native_timing or self.live_metrics
+
+    def to_dict(self):
+        return {
+            "schema_version": 2,
+            "native_timing": self.native_timing,
+            "live_metrics": self.live_metrics,
+        }
+
+
 def preference_path(config_dir: Path) -> Path:
     return config_dir / FILENAME
 
 
-def parse(raw: bytes) -> bool:
+def parse_preferences(raw: bytes) -> Preferences:
     def unique(pairs):
-        value = {}
-        for key, item in pairs:
-            if key in value:
+        result = {}
+        for key, value in pairs:
+            if key in result:
                 raise ValueError("duplicate runtime preference field")
-            value[key] = item
-        return value
+            result[key] = value
+        return result
 
     try:
         value = json.loads(raw.decode("utf-8"), object_pairs_hook=unique)
-        if (
-            not isinstance(value, dict)
-            or set(value) != {"schema_version", "live_metrics"}
-            or type(value["schema_version"]) is not int
-            or value["schema_version"] != 1
-            or type(value["live_metrics"]) is not bool
+        if not isinstance(value, dict) or type(value.get("schema_version")) is not int:
+            raise ValueError("expected runtime preference schema 1 or 2")
+        if value["schema_version"] == 1 and set(value) == {
+            "schema_version",
+            "live_metrics",
+        }:
+            if type(value["live_metrics"]) is not bool:
+                raise ValueError("live_metrics must be a boolean")
+            return Preferences(value["live_metrics"], value["live_metrics"])
+        if value["schema_version"] != 2 or set(value) != {
+            "schema_version",
+            "native_timing",
+            "live_metrics",
+        }:
+            raise ValueError(
+                "expected schema_version 2, native_timing and live_metrics"
+            )
+        if any(
+            type(value[key]) is not bool for key in ("native_timing", "live_metrics")
         ):
-            raise ValueError("expected schema_version 1 and a live_metrics boolean")
-        return value["live_metrics"]
-    except (UnicodeError, ValueError) as exc:
-        raise ConfigurationError(f"Invalid {FILENAME}: {exc}") from exc
+            raise ValueError("runtime preferences must be booleans")
+        return Preferences(value["native_timing"], value["live_metrics"])
+    except (UnicodeError, ValueError) as error:
+        raise ConfigurationError(f"Invalid {FILENAME}: {error}") from error
 
 
-def preference_bytes(enabled: bool) -> bytes:
-    return storage._json_bytes({"schema_version": 1, "live_metrics": enabled})
+def parse(raw: bytes) -> bool:
+    """Compatibility view: whether any runtime collector was requested."""
+    return parse_preferences(raw).enabled
+
+
+def load(config_dir: Path, live_metrics=None, native_timing=None) -> Preferences:
+    if live_metrics is not None:
+        return Preferences(
+            live_metrics if native_timing is None else native_timing, live_metrics
+        )
+    raw = storage._read_optional_bytes(preference_path(config_dir))
+    value = parse_preferences(raw) if raw is not None else Preferences()
+    if native_timing is not None:
+        value = Preferences(native_timing, value.live_metrics)
+    return value
+
+
+def preference_bytes(
+    enabled: bool | None = None, *, native_timing=None, config_dir: Path | None = None
+) -> bytes:
+    base = (
+        load(config_dir, enabled, native_timing)
+        if config_dir
+        else (
+            Preferences(bool(enabled), bool(enabled))
+            if enabled is not None
+            else Preferences()
+        )
+    )
+    if native_timing is not None:
+        base = Preferences(native_timing, base.live_metrics)
+    return storage._json_bytes(base.to_dict())
 
 
 def requested(config_dir: Path, explicit: bool | None = None) -> bool:
-    if explicit is not None:
-        return explicit
-    raw = storage._read_optional_bytes(preference_path(config_dir))
-    return parse(raw) if raw is not None else False
+    return load(config_dir, explicit).enabled
+
+
+def metrics_requested(config_dir: Path) -> bool:
+    return load(config_dir).live_metrics

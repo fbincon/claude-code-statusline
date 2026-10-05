@@ -115,6 +115,12 @@ def build_parser():
         help="persistently disable independent runtime collection",
     )
 
+    timing_group = install_parser.add_mutually_exclusive_group()
+    timing_group.add_argument("--native-timing", action="store_true", default=None,
+                              help="enable native task timing (default on compatible hosts)")
+    timing_group.add_argument("--no-native-timing", dest="native_timing", action="store_false",
+                              help="disable native timing while retaining hook/transcript timing")
+
     uninstall_parser = subparsers.add_parser(
         "uninstall", help="remove only this tool's Claude Code configuration"
     )
@@ -248,6 +254,7 @@ def main(argv: list[str] | None = None) -> int:
                 experimental_slash_tui=args.experimental_slash_tui,
                 native_editor=args.native_editor,
                 live_metrics=args.live_metrics,
+                native_timing=args.native_timing,
             )
             _print_change(result, args.dry_run)
             return 2 if result.native_failed else 0

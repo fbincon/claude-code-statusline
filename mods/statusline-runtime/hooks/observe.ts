@@ -4,7 +4,9 @@ import { Queue, confirmedResponse } from '../lib/queue.ts';
 import { PROTOCOL_VERSION } from '../lib/generated-contracts.ts';
 import { checklist } from '../lib/checklists.ts';
 import { tapStream, usage } from '../lib/streams.ts';
-import { cost, promptLink } from '../lib/costs.ts';
+import { cost } from '../lib/costs.ts';
+import { promptLink, reportAgent } from '../lib/identity.ts';
+import { WaitCoverage } from '../lib/timing.ts';
 
 type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[] };
 
@@ -46,6 +48,16 @@ async function flush($: EngineInterface, options: PluginOptions, state: State): 
 export const register: Register = (on, options: PluginOptions) => {
   const state: State = { queue: new Queue(), ready: false, busy: false, executable: '', directory: '', hostVersion: '', turns: {}, agentTypes: [] };
   const queue = state.queue;
+  queue.timing = options.nativeTiming !== false;
+  queue.metrics = options.liveMetrics === true;
+  const waitCoverage = new WaitCoverage();
+  const unknownWait = (reason: string, at: number, agent?: string) => {
+    for (const [loop, turn] of Object.entries(state.turns)) {
+      if (agent && loop !== agent) continue;
+      waitCoverage.mark(loop, turn);
+      queue.push('wait_unknown', { reason }, at, { turn_id: turn, agent_id: loop === 'main' ? null : loop });
+    }
+  };
   on('session.start', async ($, e, next) => {
     try {
       await bind($, options, state);
@@ -72,7 +84,10 @@ export const register: Register = (on, options: PluginOptions) => {
     try {
       await bind($, options, state);
       const now = await $.clock.now();
-      if (e.prompt_id && !e.agent_id && !/^\s*<(?:command-|local-command-|bash-)/.test(e.prompt))
+      const report = reportAgent(e.prompt);
+      if (report && e.prompt_id)
+        queue.push('prompt_alias', { agent_id: report }, now, { prompt_id: e.prompt_id }, 'classic_hook');
+      if (e.prompt_id && !e.agent_id && !report && !/^\s*<(?:command-|local-command-|bash-)/.test(e.prompt))
         queue.push('prompt', {}, now, { prompt_id: e.prompt_id }, 'classic_hook');
       if (e.prompt_id && e.agent_id)
         queue.push('prompt_alias', { agent_id: e.agent_id }, now, { prompt_id: e.prompt_id, agent_id: e.agent_id }, 'classic_hook');
@@ -147,11 +162,12 @@ export const register: Register = (on, options: PluginOptions) => {
       await bind($, options, state);
       const now = await $.clock.now();
       const status = e.isAborted ? 'interrupted' : e.reason === 'error' || e.reason === 'refusal' ? 'failed' : 'completed';
-      queue.push('turn_end', { status }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
+      queue.push('turn_end', { status, duration_ms: e.durationMs, wait_coverage: waitCoverage.finish(e.agentId ?? 'main', e.turnId) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
       queue.push('turn_usage', { usage: usage(e.usage) }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
       if (e.agentId)
         queue.push('agent_end', { ended_at_ms: now, status }, now, { agent_id: e.agentId, turn_id: e.turnId });
     } catch {}
+    delete state.turns[e.agentId ?? 'main'];
     return next(e);
   });
 
@@ -170,6 +186,7 @@ export const register: Register = (on, options: PluginOptions) => {
       queue.push('turn_start', {}, now, identity);
       queue.push('request_start', {}, now, identity);
     } catch {}
+    if (!queue.metrics) return yield* next(e);
     const observed = tapStream(next(e), async (item, operation) => {
       if (epoch !== queue.epoch) return;
       if (item.done) { if (operation !== 'return') status = 'completed'; return; }
@@ -201,15 +218,31 @@ export const register: Register = (on, options: PluginOptions) => {
     try {
       const link = promptLink(e, queue.session);
       if (link) queue.push('prompt_link', link.payload, await $.clock.now(), link.identity, 'otel');
-      const row = cost(e, queue.session, state.agentTypes);
+      const row = queue.metrics ? cost(e, queue.session, state.agentTypes) : null;
       if (row) queue.push('request_cost', row.payload, await $.clock.now(), row.identity, 'otel');
     } catch {}
     return next(e);
   });
 
+  // A declarative 'ask' does not expose when the actual approval dialog
+  // opens/closes. Preserve that uncertainty instead of subtracting tool time.
+  on('tool.check', async ($, e, next) => {
+    const result = await next(e);
+    if (e.tool_use_id && result.decision === 'ask') {
+      try { unknownWait('permission_wait_unobserved', await $.clock.now()); } catch {}
+    }
+    return result;
+  });
+  on('classic.Elicitation', async ($, e, next) => {
+    try { unknownWait('mcp_wait_unobserved', await $.clock.now()); } catch {}
+    return next(e);
+  });
   on('tool.call', async ($, e, next) => {
     const identity = { agent_id: e.agentId ?? null, turn_id: state.turns[e.agentId ?? 'main'] ?? null, request_id: e.tool_use_id };
     const epoch = queue.epoch;
+    if (e.tool === 'AskUserQuestion' || e.tool.startsWith('mcp__')) {
+      try { unknownWait('question_wait_unobserved', await $.clock.now(), e.agentId); } catch {}
+    }
     try { queue.push('tool_start', { name: e.tool }, await $.clock.now(), identity); } catch {}
     try {
       const result = await next(e);
@@ -217,7 +250,7 @@ export const register: Register = (on, options: PluginOptions) => {
         if (epoch === queue.epoch) {
           const now = await $.clock.now();
           queue.push('tool_end', { name: e.tool, status: result.deny !== undefined ? 'denied' : result.isError ? 'error' : 'success' }, now, identity);
-          if (result.deny === undefined && !result.isError) {
+          if (queue.metrics && result.deny === undefined && !result.isError) {
             const change = checklist(e.tool, e, result.result);
             if (change) queue.push(change.kind, change.payload, now, identity);
           }

@@ -1,10 +1,17 @@
 /** Bounded, retryable batches. Host access belongs to the hooks entry. */
-import type { Observation, Kind, Source } from './generated-contracts.ts';
+import { PROTOCOL_VERSION, type Observation, type Kind, type Source } from './generated-contracts.ts';
+
+export const TIMING_KINDS: ReadonlySet<Kind> = new Set([
+  'heartbeat', 'invalidate', 'prompt', 'prompt_alias', 'prompt_link',
+  'agent_start', 'agent_end', 'turn_start', 'turn_end', 'agents',
+  'wait_start', 'wait_end', 'wait_unknown',
+]);
 
 export type Identity = Partial<Pick<Observation,
   'prompt_id' | 'agent_id' | 'parent_agent_id' | 'turn_id' | 'request_id'>>;
 
 export class Queue {
+  constructor(public timing = true, public metrics = true) {}
   pending: Observation[] = [];
   sequence = 0;
   session = '';
@@ -23,7 +30,7 @@ export class Queue {
 
   push(kind: Kind, payload: Record<string, unknown>, at: number,
        identity: Identity = {}, source: Source = 'native'): void {
-    if (!this.session) return;
+    if (!this.session || (!this.metrics && (!this.timing || !TIMING_KINDS.has(kind)))) return;
     const record: Observation = {
       session_id: this.session, epoch: this.epoch, seq: this.sequence++,
       observed_at_ms: at, source, kind,
@@ -51,7 +58,7 @@ export function confirmedResponse(stdout: string, expected: string, count?: numb
   try {
     const value = JSON.parse(stdout) as Record<string, unknown>;
     const result = value.result as Record<string, unknown> | undefined;
-    return value.protocol_version === 1 && result !== undefined &&
+    return value.protocol_version === PROTOCOL_VERSION && result !== undefined &&
       typeof result.backend_version === 'string' && (!expected || result.backend_version === expected) &&
       typeof result.enabled === 'boolean' &&
       typeof result.accepted === 'number' && Number.isInteger(result.accepted) && result.accepted >= 0 &&

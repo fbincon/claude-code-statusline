@@ -71,7 +71,9 @@ class InstallerTestCase(unittest.TestCase):
 
 class InstallTests(InstallerTestCase):
     # This scenario exercises stable defaults independently of the candidate version.
-    @mock.patch.object(config_features, "enabled_by_default", new=lambda version="1.5.0": True)
+    @mock.patch.object(
+        config_features, "enabled_by_default", new=lambda version="1.5.0": True
+    )
     def test_empty_config_is_created_with_private_permissions_and_backup(self):
         result = integration_installer.install_configuration(
             self.config, self.executable, claude_version=(2, 1, 258)
@@ -302,8 +304,12 @@ class InstallTests(InstallerTestCase):
 
 class ExperimentalInstallTests(InstallerTestCase):
     # This scenario exercises stable defaults independently of the candidate version.
-    @mock.patch.object(config_features, "enabled_by_default", new=lambda version="1.5.0": True)
-    def test_default_stable_install_enables_external_entry_without_preference_file(self):
+    @mock.patch.object(
+        config_features, "enabled_by_default", new=lambda version="1.5.0": True
+    )
+    def test_default_stable_install_enables_external_entry_without_preference_file(
+        self,
+    ):
         integration_installer.install_configuration(
             self.config, self.executable, claude_version=(2, 1, 258)
         )
@@ -380,7 +386,9 @@ class ExperimentalInstallTests(InstallerTestCase):
         self.assertEqual(result.changed_paths, (feature_path,))
         self.assertEqual(stat.S_IMODE(feature_path.stat().st_mode), 0o600)
 
-    def test_explicit_disable_persists_false_and_removes_only_owned_active_artifacts(self):
+    def test_explicit_disable_persists_false_and_removes_only_owned_active_artifacts(
+        self,
+    ):
         integration_installer.install_configuration(
             self.config,
             self.executable,
@@ -393,7 +401,10 @@ class ExperimentalInstallTests(InstallerTestCase):
             experimental_slash_tui=False,
             claude_version=(2, 1, 258),
         )
-        self.assertEqual(config_features.feature_path(self.config).read_bytes(), config_features.preference_bytes(False))
+        self.assertEqual(
+            config_features.feature_path(self.config).read_bytes(),
+            config_features.preference_bytes(False),
+        )
         skill, owner = integration_resources.experimental_skill_paths(self.config)
         self.assertFalse(skill.exists())
         self.assertFalse(owner.exists())
@@ -411,14 +422,23 @@ class ExperimentalInstallTests(InstallerTestCase):
         for version in ((2, 1, 257), None):
             with self.subTest(version=version):
                 result = integration_installer.install_configuration(
-                    self.config, self.executable,
-                    experimental_slash_tui=True, native_editor=True, claude_version=version,
+                    self.config,
+                    self.executable,
+                    experimental_slash_tui=True,
+                    native_editor=True,
+                    claude_version=version,
                 )
                 self.assertFalse(result.native_failed)
                 self.assertEqual(result.native_state, "suspended")
-                self.assertTrue(config_features.load_experimental_slash_tui(self.config))
+                self.assertTrue(
+                    config_features.load_experimental_slash_tui(self.config)
+                )
                 self.assertEqual(self.experimental_hook_count(self.read_settings()), 0)
-                self.assertFalse(integration_resources.experimental_skill_paths(self.config)[0].exists())
+                self.assertFalse(
+                    integration_resources.experimental_skill_paths(self.config)[
+                        0
+                    ].exists()
+                )
                 self.assertIn("External TUI suspended", result.messages[0])
 
     def test_enabled_preference_suspends_on_downgrade_and_restores_on_upgrade(self):
@@ -490,7 +510,9 @@ class ExperimentalInstallTests(InstallerTestCase):
             experimental_slash_tui=False,
             claude_version=(2, 1, 258),
         )
-        self.assertEqual(feature_path.read_bytes(), config_features.preference_bytes(False))
+        self.assertEqual(
+            feature_path.read_bytes(), config_features.preference_bytes(False)
+        )
         self.assertEqual(
             (
                 removed.backup_dir / f"{config_features.FEATURE_FILENAME}.before"
@@ -499,7 +521,9 @@ class ExperimentalInstallTests(InstallerTestCase):
         )
 
     # This scenario exercises stable defaults independently of the candidate version.
-    @mock.patch.object(config_features, "enabled_by_default", new=lambda version="1.5.0": True)
+    @mock.patch.object(
+        config_features, "enabled_by_default", new=lambda version="1.5.0": True
+    )
     def test_unrelated_experimental_skill_ownership_rules_and_force(self):
         skill, owner = integration_resources.experimental_skill_paths(self.config)
         skill.parent.mkdir(parents=True)
@@ -527,9 +551,11 @@ class ExperimentalInstallTests(InstallerTestCase):
             claude_version=(2, 1, 258),
         )
         self.assertTrue(disabled.changed)
-        self.assertFalse(integration_installer.install_configuration(
-            self.config, self.executable, claude_version=(2, 1, 258)
-        ).changed)
+        self.assertFalse(
+            integration_installer.install_configuration(
+                self.config, self.executable, claude_version=(2, 1, 258)
+            ).changed
+        )
         integration_installer.uninstall_configuration(self.config, self.executable)
         self.assertEqual(skill.read_text(encoding="utf-8"), "unrelated\n")
 
@@ -774,7 +800,7 @@ class SubagentInstallTests(InstallerTestCase):
             "third-party agents",
         )
 
-    def test_dry_run_idempotence_and_v1_display_read_only(self):
+    def test_dry_run_is_read_only_and_install_backs_up_the_v1_display_migration(self):
         self.config.mkdir(parents=True)
         legacy = {
             "schema_version": 1,
@@ -801,18 +827,26 @@ class SubagentInstallTests(InstallerTestCase):
         diagnostics = integration_doctor.collect_diagnostics(
             self.config, self.executable, claude_version=(2, 1, 205)
         )
-        self.assertTrue(
+        self.assertFalse(
             any(
                 item.level == "WARN" and "schema v1" in item.message
                 for item in diagnostics
             )
         )
+        self.assertEqual(json.loads(display_path.read_bytes())["schema_version"], 5)
+        self.assertEqual(
+            (
+                first.backup_dir / (config_display.CONFIG_FILENAME + ".before")
+            ).read_bytes(),
+            raw,
+        )
+        migrated = display_path.read_bytes()
         second = integration_installer.install_configuration(
             self.config, self.executable, claude_version=(2, 1, 205)
         )
         self.assertTrue(first.changed)
         self.assertFalse(second.changed)
-        self.assertEqual(display_path.read_bytes(), raw)
+        self.assertEqual(display_path.read_bytes(), migrated)
 
 
 class UninstallTests(InstallerTestCase):

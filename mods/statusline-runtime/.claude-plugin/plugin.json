@@ -1,7 +1,7 @@
 {
   "name": "statusline-runtime",
-  "version": "1.6.1",
-  "description": "Opt-in live statusline observations, independent from the editor",
+  "version": "1.7.0-alpha.1",
+  "description": "Native task timing and optional advanced statusline observations",
   "author": {
     "name": "fbincon"
   },
@@ -25,6 +25,18 @@
       "title": "Expected backend version",
       "description": "Version bound by the installer",
       "default": ""
+    },
+    "nativeTiming": {
+      "type": "boolean",
+      "title": "Native task timing",
+      "description": "Collect task lifecycle and waiting evidence",
+      "default": true
+    },
+    "liveMetrics": {
+      "type": "boolean",
+      "title": "Advanced live metrics",
+      "description": "Collect request, cost, tool and checklist metrics",
+      "default": false
     }
   }
 }

@@ -30,9 +30,9 @@ test('overflow stays bounded and preserves bootstrap while marking a sequence ga
 });
 
 test('backend refusal, malformed envelopes and version mismatches cannot acknowledge data', () => {
-  const good = {protocol_version: 1, result: {backend_version: 'test', enabled: true, accepted: 1, ignored: 0}};
+  const good = {protocol_version: 2, result: {backend_version: 'test', enabled: true, accepted: 1, ignored: 0}};
   expect(confirmedResponse(JSON.stringify(good), 'test')).toBe(true);
   expect(confirmedResponse(JSON.stringify(good), 'other')).toBe(false);
   expect(confirmedResponse('not json', '')).toBe(false);
-  expect(confirmedResponse(JSON.stringify({protocol_version: 1, error: {code: 'refused'}}), '')).toBe(false);
+  expect(confirmedResponse(JSON.stringify({protocol_version: 2, error: {code: 'refused'}}), '')).toBe(false);
 });

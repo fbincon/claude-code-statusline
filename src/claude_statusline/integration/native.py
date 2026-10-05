@@ -42,7 +42,8 @@ def _binding_matches(options: object, expected: dict) -> bool:
     # Old official caches/settings may retain the removed primaryCommand input.
     # Only declared backend inputs bind this Mod; legacy inputs have no handler.
     return isinstance(inputs, dict) and all(
-        inputs.get(key) == value for key, value in expected.items()
+        inputs.get(key) == (str(value).lower() if isinstance(value, bool) else value)
+        for key, value in expected.items()
     )
 
 
@@ -118,7 +119,7 @@ def owner(
             or value["schema_version"] != 1
             or type(value["suspended"]) is not bool
             or type(value["protocol_version"]) is not int
-            or value["protocol_version"] not in (1, 2, 3)
+            or value["protocol_version"] not in (1, 2, 3, 4)
             or not isinstance(value["files"], dict)
             or not value["files"]
             or any(
@@ -615,6 +616,7 @@ def integrate(
             "backendExecutable": str(executable.resolve()),
             "configDir": str(config_dir),
             "backendVersion": current["backend_version"],
+            **_runtime_modes(config_dir, spec),
         }
         if row and staged and row.get("version") == current["mod_version"]:
             # Official update is a no-op at the same version. Reinstall only
@@ -791,6 +793,7 @@ def diagnostics(
                 "backendExecutable": str(executable.resolve()) if executable else None,
                 "configDir": str(config_dir.resolve()),
                 "backendVersion": manifest["backend_version"],
+                **_runtime_modes(config_dir, spec),
             }
             result.append(
                 Diagnostic(
@@ -825,3 +828,15 @@ def diagnostics(
     except (ConfigurationError, OSError, ValueError, TypeError) as exc:
         result.append(Diagnostic("ERROR", "native editor: " + str(exc)))
     return result
+
+
+def _runtime_modes(config_dir, spec):
+    if spec.name != "statusline-runtime":
+        return {}
+    from claude_statusline.config import runtime
+
+    preferences = runtime.load(config_dir)
+    return {
+        "nativeTiming": preferences.native_timing,
+        "liveMetrics": preferences.live_metrics,
+    }

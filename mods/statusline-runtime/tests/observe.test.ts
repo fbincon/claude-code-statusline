@@ -1,7 +1,10 @@
 import { test, expect, mock } from 'claude-code/testing';
 import type { Observation } from '../lib/generated-contracts.ts';
 
-test('collector passes synthetic request content and result through, without inventing real usage', async ($, on) => {
+for (const advanced of [false, true]) test(
+  advanced ? 'advanced collection preserves streams and includes request observations' :
+    'default timing collector preserves synthetic streams and excludes advanced data',
+  advanced ? { options: { liveMetrics: true } } : {}, async ($, on) => {
   const clock = mock.clock(on, { now: 1000 });
   mock.env(on, { CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE: 'test-backend' });
   on('session.start', () => ({ cwd: '/work' }));
@@ -13,7 +16,7 @@ test('collector passes synthetic request content and result through, without inv
   on('process.run', async ($, e) => {
     const request = JSON.parse(e.init?.stdin ?? '{}');
     rows.push(...request.payload.observations);
-    return { value: { exitCode: 0, stdout: JSON.stringify({ protocol_version: 1, result: {
+    return { value: { exitCode: 0, stdout: JSON.stringify({ protocol_version: 2, result: {
       backend_version: 'test', enabled: true, accepted: request.payload.observations.length, ignored: 0,
     } }), stderr: '', isStdoutTruncated: false, isStderrTruncated: false } };
   });
@@ -33,8 +36,11 @@ test('collector passes synthetic request content and result through, without inv
   expect((await stream.next()).value).toEqual(answer);
   await clock.advance(1000);
   const end = rows.find(row => row.kind === 'request_end');
-  expect(end?.payload.native).toBe(false);
-  expect(end?.payload.usage).toBe(null);
+  if (advanced) {
+    expect(end?.payload.native).toBe(false);
+    expect(end?.payload.usage).toBe(null);
+  } else expect(end).toBe(undefined);
+  expect(rows.some(row => row.kind === 'turn_start')).toBe(true);
   expect(rows.some(row => row.kind === 'request_first')).toBe(false);
   expect(JSON.stringify(rows).includes('private prompt')).toBe(false);
 });

@@ -138,7 +138,7 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 4 ||
+    d.schema_version !== 5 ||
     !object(d.metrics) || !exact(d.metrics, ['branch_diff_base_ref']) ||
     !(d.metrics.branch_diff_base_ref === null || (text(d.metrics.branch_diff_base_ref) && [...d.metrics.branch_diff_base_ref].length <= 256 &&
       d.metrics.branch_diff_base_ref.length > 0 && !/[\s]|^-/.test(d.metrics.branch_diff_base_ref))) ||

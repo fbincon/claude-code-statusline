@@ -17,9 +17,9 @@ class LiveBudgetTests(unittest.TestCase):
                 reserve(ledger, "retry", 0.01)
             self.assertEqual(settle(ledger, a, None), 10)
             self.assertEqual(settle(ledger, b, 0), 6)
-            reserve(ledger, "retry", 4)
             with self.assertRaises(ValueError):
-                reserve(ledger, "extra", 0.01)
+                reserve(ledger, "retry", 4)
+            self.assertEqual(settle(ledger, a, 0), 6)
 
     def test_zero_and_known_costs_release_only_unused_reservations(self):
         with tempfile.TemporaryDirectory() as folder:
