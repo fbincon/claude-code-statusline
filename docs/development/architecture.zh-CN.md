@@ -68,7 +68,7 @@ flowchart LR
 
 ## 持久化
 
-显示 schema v2、feature schema v1、schema-1 运行镜像和生命周期 schema v3 保持兼容。可选 `duration_source` 区分冻结的任务时间与满足条件的原生校准。可选的 Agent 历史、续接 prompt 别名和待交付报告，使宿主生成的结果通知仍属于同一人类任务；这些记录有界，不改变配置格式。计时 transcript 扫描版本升级到 5，重新核对旧缓存，不重置累计用量。
+当前显示 schema v3 与 feature schema v1、schema-1 运行镜像及生命周期 schema v3 独立演进，历史显示 v1/v2 在保存前只在内存补齐默认值。可选 `duration_source` 区分冻结的任务时间与满足条件的原生校准。可选的 Agent 历史、续接 prompt 别名和待交付报告，使宿主生成的结果通知仍属于同一人类任务；这些记录有界，不改变配置格式。计时 transcript 扫描版本升级到 5，重新核对旧缓存，不重置累计用量。
 
 本地 ROADMAP 与原始验收记录不进入发行包。发布从固定且已验证的提交导出；包检查覆盖全部正式 Python 模块、兼容入口、资源、测试、工具和双语文档。
 
