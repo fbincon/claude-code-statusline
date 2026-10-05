@@ -72,7 +72,7 @@ class DisplayConfigTests(unittest.TestCase):
         unknown_item = dict(valid, items=["clock"])
         cases.append(unknown_item)
 
-        wrong_version = dict(valid, schema_version=5)
+        wrong_version = dict(valid, schema_version=6)
         cases.append(wrong_version)
 
         wrong_bool = dict(valid, use_colors=1)
@@ -152,7 +152,7 @@ class DisplayConfigTests(unittest.TestCase):
         raw = (json.dumps(legacy, separators=(",", ":")) + "\n").encode()
         path.write_bytes(raw)
         config = config_display.load_display_config(self.config_dir)
-        self.assertEqual(config.schema_version, 4)
+        self.assertEqual(config.schema_version, 5)
         self.assertEqual(config.items, ("git", "model-with-effort"))
         self.assertFalse(config.use_colors)
         self.assertEqual(config.scope_labels, "when-subagents")

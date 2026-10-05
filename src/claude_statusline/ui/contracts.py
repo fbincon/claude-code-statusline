@@ -1,4 +1,4 @@
-"""Protocol v3 wire types; TypeScript is generated from these Python types."""
+"""Protocol v4 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display
 
 
-PROTOCOL_VERSION = 3
+PROTOCOL_VERSION = 4
 OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
@@ -23,6 +23,8 @@ UnavailableReason = Literal[
     "source_unavailable",
     "condition_not_met",
     "runtime_disabled",
+    "native_timing_disabled",
+    "wait_coverage_missing",
     "stale",
     "incomplete",
     "ambiguous_owner",
@@ -134,7 +136,7 @@ class MetricsDraft(TypedDict):
 
 
 class DisplayDraft(TypedDict):
-    schema_version: Literal[4]
+    schema_version: Literal[5]
     items: list[MainItemId]
     use_colors: bool
     palette: Palette

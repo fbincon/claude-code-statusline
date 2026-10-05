@@ -74,6 +74,11 @@ class _SampleRenderState(rendering_items._RenderState):
             f"{self.palette.timer}✓ 1m 42s{self.palette.reset}"
         )
 
+    def active_timer(self):
+        return rendering_items._RenderedItem(
+            f"{self.palette.timer}Active 1m 30s{self.palette.reset}"
+        )
+
     def hostname(self):
         return rendering_items._RenderedItem(
             f"{self.palette.directory}Host devbox{self.palette.reset}",
