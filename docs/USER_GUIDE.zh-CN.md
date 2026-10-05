@@ -445,6 +445,15 @@ claude-statusline config subagents list-items
 
 主栏目录共 59 项，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`prompt-timer`。
 
+常用可选项按下表分组，通过 ID 启用或在编辑器中选择。
+
+| 分组 | 可选 ID |
+| --- | --- |
+| 身份与会话 | `project-name`、`hostname`、`version`、`session`、`agent` |
+| 运行模式 | `fast-mode`、`thinking`、`vim-mode` |
+| 仓库 | `pr`、`repo`、`worktree` |
+| 上下文与用量 | `context-used`、`cost`、`prompt-cache` |
+
 子 Agent 目录共 14 项，默认启用五项：`status-elapsed`、`name`、`model-with-effort`、`context-remaining`、`task`。组合项 `status-elapsed` 与独立 `status`、`elapsed` 互斥。完整目录和缺失数据行为见[字段参考](reference/cli.zh-CN.md#可配置显示项)及[指标定义](DISPLAY_ITEMS.zh-CN.md)。
 
 ## 主状态栏显示含义

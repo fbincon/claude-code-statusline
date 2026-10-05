@@ -459,6 +459,15 @@ claude-statusline config subagents list-items
 
 The main catalog contains 59 items, ten enabled by default: `model-with-effort`, `current-dir`, `git`, `context-remaining`, `context-window-size`, `five-hour-limit`, `weekly-limit`, `spend-limit`, `tokens`, and `prompt-timer`.
 
+Common optional items are grouped below; enable them by ID or select them in an editor.
+
+| Group | Optional IDs |
+| --- | --- |
+| Identity and session | `project-name`, `hostname`, `version`, `session`, `agent` |
+| Modes | `fast-mode`, `thinking`, `vim-mode` |
+| Repository | `pr`, `repo`, `worktree` |
+| Context and usage | `context-used`, `cost`, `prompt-cache` |
+
 The subagent catalog contains 14 items, five enabled by default: `status-elapsed`, `name`, `model-with-effort`, `context-remaining`, and `task`. Composite `status-elapsed` excludes separate `status`/`elapsed`. See [field reference](reference/cli.md#configurable-display-items) and [metric definitions](DISPLAY_ITEMS.md) for the full catalog and unavailable-data behavior.
 
 ## Main status line fields
