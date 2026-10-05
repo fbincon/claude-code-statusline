@@ -34,13 +34,14 @@ def apply(state, o):
             turn["usage"] = o["payload"]["usage"]
         return
     if kind == "request_cost":
-        if target is None or not any(
+        if target is not None and not any(
             t["prompt_id"] == target for t in state["turns"].values()
         ):
             return
         previous = state["costs"].get(o["request_id"])
         value = {
             "prompt_id": target,
+            "owner_alias": o["prompt_id"],
             "cost_usd": o["payload"]["cost_usd"],
             "usage": o["payload"]["usage"],
             "updated_at_ms": stamp,
@@ -49,7 +50,10 @@ def apply(state, o):
         }
         if previous is None:
             state["costs"][o["request_id"]] = value
-        elif any(previous[k] != value[k] for k in ("prompt_id", "cost_usd", "usage")):
+        elif any(previous[k] != value[k] for k in ("cost_usd", "usage")) or (
+            previous.get("owner_alias") != value["owner_alias"]
+            and previous["prompt_id"] != target
+        ):
             previous["conflict"] = True
         _bounded(state, state["costs"])
         return
@@ -102,7 +106,20 @@ def reconcile(state, agent_id, prompt_id):
             request["prompt_id"] = prompt_id
 
 
+def reconcile_costs(state):
+    for row in state["costs"].values():
+        if row["prompt_id"] is None:
+            target = ownership.canonical(state, row.get("owner_alias"))
+            if target and any(
+                turn["prompt_id"] == target
+                and turn["started_at_ms"] <= row["updated_at_ms"]
+                for turn in state["turns"].values()
+            ):
+                row["prompt_id"] = target
+
+
 def metrics(state, selected, point, *, live, terminal):
+    reconcile_costs(state)
     points = {item: point(reason="not_observed") for item in ITEMS}
     if selected is None:
         return points
@@ -111,7 +128,7 @@ def metrics(state, selected, point, *, live, terminal):
         for key, row in state["requests"].items()
         if row["prompt_id"] == selected
     }
-    if not rows or (not live and not terminal):
+    if not live and not terminal:
         return points
     main = [
         row
@@ -217,7 +234,7 @@ def metrics(state, selected, point, *, live, terminal):
     ]
     if costs:
         joined = {row["request_key"] for row in costs if row["request_key"] in rows}
-        cost_partial = partial or joined != set(rows)
+        cost_partial = partial or not rows or joined != set(rows)
         points["prompt-cost"] = point(
             sum(row["cost_usd"] for row in costs),
             "request_join_unavailable" if cost_partial else None,

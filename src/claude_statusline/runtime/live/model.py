@@ -41,6 +41,7 @@ Kind = Literal[
     "request_end",
     "request_cost",
     "turn_usage",
+    "prompt_link",
 ]
 
 
@@ -128,6 +129,12 @@ def validate(value):
         text(value["prompt_id"], "prompt_id")
         if value["agent_id"] is not None:
             raise ObservationError("a human prompt belongs to main")
+    elif kind == "prompt_link":
+        exact(payload, ("message_id",), "official prompt link")
+        text(value["prompt_id"], "prompt_id")
+        text(payload["message_id"], "message_id")
+        if value["source"] != "otel":
+            raise ObservationError("prompt links require official telemetry")
     elif kind == "prompt_alias":
         exact(payload, ("agent_id",), "prompt alias")
         text(value["prompt_id"], "prompt_id")

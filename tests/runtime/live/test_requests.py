@@ -211,3 +211,22 @@ class RequestTests(unittest.TestCase):
             },
         )
         self.assertIsNone(self.points()["prompt-output-tokens"]["value"])
+
+    def test_official_prompt_uuid_links_late_cost_without_guessing_message_identity(
+        self,
+    ):
+        self.request()
+        self.finish()
+        self.send(
+            "request_cost",
+            prompt="otel-p",
+            request_id="server-r",
+            source="otel",
+            payload={"cost_usd": 0.0123, "usage": USAGE},
+        )
+        self.assertIsNone(self.points()["prompt-cost"]["value"])
+        self.send(
+            "prompt_link", prompt="otel-p", source="otel", payload={"message_id": "p"}
+        )
+        self.assertAlmostEqual(self.points()["prompt-cost"]["value"], 0.0123)
+        self.assertTrue(self.points()["prompt-cost"]["partial"])

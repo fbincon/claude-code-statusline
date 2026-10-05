@@ -1,6 +1,14 @@
 import { test, expect } from 'claude-code/testing';
 import { tapStream, usage } from '../lib/streams.ts';
-import { cost } from '../lib/costs.ts';
+import { cost, promptLink } from '../lib/costs.ts';
+
+test('official prompt/message UUID link is explicit and excludes command and workflow prompts', () => {
+  const event = { to: 'collector' as const, event: 'user_prompt', loggedAt: '2026-10-05T00:00:00Z',
+    attributes: { 'session.id': 's', 'prompt.id': 'otel-p', 'message.uuid': 'message-p' } };
+  expect(promptLink(event, 's')).toEqual({ identity: { prompt_id: 'otel-p' }, payload: { message_id: 'message-p' } });
+  expect(promptLink({ ...event, attributes: { ...event.attributes, command_name: 'compact' } }, 's')).toBe(null);
+  expect(promptLink(event, 'other')).toBe(null);
+});
 
 test('stream chunks, result, cancellation and thrown objects pass through unchanged', async () => {
   const chunk = { kind: 'text', text: 'original' };

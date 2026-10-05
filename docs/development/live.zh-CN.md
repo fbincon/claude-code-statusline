@@ -65,3 +65,5 @@ Turn ID 将主线程工具及代理启动绑定到执行中的任务，不受新
 独立运行协议 v1 新增 request_start/first/end、turn_usage 和 request_cost。本地请求 ID 包含 turn、agent、step；官方费用使用独立服务端请求 ID 去重。用量要求四项非负整数。宿主引用区分真实与合成流，迭代器 next/return/throw、块和结果原样传递，观测失败独立降级。
 
 Python 保存未归属的 turn、请求、启动和工具；只用唯一已结束生命周期区间和明确父级启动身份核对。高级指标不写生命周期状态。无归属 workflow/fork 排除；任务 token 包含已验证嵌套代理和主线程收尾，turn.complete 总量仅核对覆盖。冲突重复令请求不可用；缺失用量未知，零值是真实观测。TTFT 和输出率对应最新主请求，拒绝倒退或零耗时时钟。已有 api_request collector 记录可提供可靠归属费用估算小计，未关联覆盖仍标为部分。
+
+官方 user_prompt 遥测以 prompt.id 和 message.uuid 明确关联；不同 UUID 或延迟费用不通过文本／token 数匹配。只有关联消息属于已验证的执行／结束任务后，未归属费用才可显示。

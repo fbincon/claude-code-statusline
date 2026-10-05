@@ -4,7 +4,7 @@ import { Queue, confirmedResponse } from '../lib/queue.ts';
 import { PROTOCOL_VERSION } from '../lib/generated-contracts.ts';
 import { checklist } from '../lib/checklists.ts';
 import { tapStream, usage } from '../lib/streams.ts';
-import { cost } from '../lib/costs.ts';
+import { cost, promptLink } from '../lib/costs.ts';
 
 type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[] };
 
@@ -199,6 +199,8 @@ export const register: Register = (on, options: PluginOptions) => {
 
   on('telemetry.log', { to: 'collector' }, async ($, e, next) => {
     try {
+      const link = promptLink(e, queue.session);
+      if (link) queue.push('prompt_link', link.payload, await $.clock.now(), link.identity, 'otel');
       const row = cost(e, queue.session, state.agentTypes);
       if (row) queue.push('request_cost', row.payload, await $.clock.now(), row.identity, 'otel');
     } catch {}

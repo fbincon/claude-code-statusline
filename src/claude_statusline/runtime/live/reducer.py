@@ -101,6 +101,11 @@ def apply(state, observation):
                 "observed_at_ms": stamp,
                 "source": o["source"],
             }
+    elif kind == "prompt_link":
+        if current and prompt_id not in state["prompts"]:
+            state["prompt_aliases"][prompt_id] = o["payload"]["message_id"]
+            while len(state["prompt_aliases"]) > model.MAX_AGENTS:
+                state["prompt_aliases"].pop(next(iter(state["prompt_aliases"])))
     elif kind == "prompt_alias":
         agent = state["agents"].get(o["payload"]["agent_id"])
         if current and prompt_id not in state["prompts"]:
