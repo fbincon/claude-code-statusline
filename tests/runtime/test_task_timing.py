@@ -99,6 +99,23 @@ class TaskTimingTests(unittest.TestCase):
             json.loads(runtime.preference_bytes(True))["schema_version"], 2
         )
 
+    def test_invalid_preferences_hide_derived_timers_and_remain_diagnosable(self):
+        from claude_statusline.integration.runtime import diagnostics
+        from claude_statusline.runtime.live.snapshot import collect
+        from claude_statusline.runtime.tasks.view import active_point
+
+        runtime.preference_path(self.root).write_bytes(b'{"schema_version":2}')
+        self.assertEqual(active_point(self.root, "s")["reason"], "source_unavailable")
+        self.assertTrue(
+            all(
+                point["reason"] == "source_unavailable"
+                for point in collect(self.root, "s").values()
+            )
+        )
+        result = diagnostics(self.root, None, (2, 1, 289))
+        self.assertEqual(result[0].level, "ERROR")
+        self.assertIn(runtime.FILENAME, result[0].message)
+
     def test_aliases_work_in_item_mutations_and_explicit_layouts(self):
         from claude_statusline.config import advanced
 

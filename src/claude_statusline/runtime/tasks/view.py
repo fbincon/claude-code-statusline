@@ -1,6 +1,7 @@
 """Read-only task metric views with explicit coverage and clock limitations."""
 
 from claude_statusline.config import runtime
+from claude_statusline.integration.models import ConfigurationError
 from claude_statusline.runtime.live import store as live_store
 from claude_statusline.runtime.tasks import store
 from claude_statusline.runtime.timing.clock import Sample, StatusTimer
@@ -16,7 +17,11 @@ def active_point(config_dir, session_id, prompt_id=None):
     }
     if not session_id:
         return result
-    if not runtime.load(config_dir).native_timing:
+    try:
+        native_timing = runtime.load(config_dir).native_timing
+    except (ConfigurationError, OSError):
+        return dict(result, reason="source_unavailable")
+    if not native_timing:
         return dict(result, reason="native_timing_disabled")
     record = store.load_turn_state(session_id, prompt_id, config_dir=config_dir)
     if record is None:

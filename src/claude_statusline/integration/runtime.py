@@ -4,7 +4,7 @@ from dataclasses import replace
 
 from claude_statusline.integration import native
 from claude_statusline.integration.mods import RUNTIME
-from claude_statusline.integration.models import Diagnostic
+from claude_statusline.integration.models import ConfigurationError, Diagnostic
 from claude_statusline.runtime.live import model, store
 import time
 
@@ -39,6 +39,12 @@ def integrate(config_dir, executable, requested, version, *, uninstall=False):
 
 
 def diagnostics(config_dir, executable, version):
+    from claude_statusline.config import runtime as preferences
+
+    try:
+        preferences.load(config_dir)
+    except (ConfigurationError, OSError) as error:
+        return [Diagnostic("ERROR", str(error))]
     rows = [
         Diagnostic(row.level, _message(row.message))
         for row in native.diagnostics(config_dir, executable, version, spec=RUNTIME)
