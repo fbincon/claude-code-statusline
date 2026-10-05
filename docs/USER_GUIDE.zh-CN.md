@@ -1851,3 +1851,5 @@ Client 用 `s` 保存并继续、`f` 保存并关闭、`q` 放弃草稿。curses
 ## 可选实时状态
 
 使用 `claude-statusline install --live-metrics` 安装独立采集器，再通过任一编辑器选择 `run-state permission-mode active-agents task-progress last-tool`，或将这些 ID 添加到 `config set-items` 选择。新项默认关闭。`install --no-live-metrics` 保存独立于两个编辑器的持久关闭偏好。采集要求已验证的 Claude Code 2.1.289；缺失数据显示 `—`，有限覆盖或最近观测附 `*`。参见[指标定义](DISPLAY_ITEMS.zh-CN.md#实时状态项)和[运行诊断](development/live.zh-CN.md)。
+
+已提交分支基准可通过 `config set branch-diff-base auto|REF` 和共享 Metrics 表单配置。当前源码的显示 schema v4、配置协议 v3 新增此字段，v1/v2/v3 读取只在内存补默认值，实际保存才备份迁移。参见[分支与时长定义](DISPLAY_ITEMS.zh-CN.md#分支基准与已结束代理)。

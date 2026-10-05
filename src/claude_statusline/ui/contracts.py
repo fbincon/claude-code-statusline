@@ -1,4 +1,4 @@
-"""Protocol v2 wire types; TypeScript is generated from these Python types."""
+"""Protocol v3 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display
 
 
-PROTOCOL_VERSION = 2
+PROTOCOL_VERSION = 3
 OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
@@ -124,8 +124,12 @@ class SubagentDraft(TypedDict):
     task_max_width: int | None
 
 
+class MetricsDraft(TypedDict):
+    branch_diff_base_ref: str | None
+
+
 class DisplayDraft(TypedDict):
-    schema_version: Literal[3]
+    schema_version: Literal[4]
     items: list[MainItemId]
     use_colors: bool
     palette: Palette
@@ -136,6 +140,7 @@ class DisplayDraft(TypedDict):
     formatting: FormattingDraft
     item_options: dict[MainItemId, ItemOptionsDraft]
     layout: LayoutDraft
+    metrics: MetricsDraft
 
 
 class HostDraft(TypedDict):
@@ -244,6 +249,7 @@ WIRE_TYPES = (
     ItemOptionsDraft,
     LayoutDraft,
     SubagentDraft,
+    MetricsDraft,
     DisplayDraft,
     HostDraft,
     Draft,

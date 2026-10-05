@@ -2,7 +2,7 @@
 
 [English](contracts.md) | **简体中文**
 
-协议 v2 是随包或源码原生前端使用的内部接口。显示配置使用 schema v3，v1/v2 在内存中迁移读取；协议与持久化版本独立演进。稳定 v1.1.1 不提供此接口；v1.2.0 及其预览 wheel 包含匹配的 Mod。
+协议 v3 是随包或源码原生前端使用的内部接口。显示配置使用 schema v4，v1/v2 在内存中迁移读取；协议与持久化版本独立演进。稳定 v1.1.1 不提供此接口；v1.2.0 及其预览 wheel 包含匹配的 Mod。
 
 ## 共享目录
 
@@ -15,10 +15,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows 使用 `claude-statusline.exe`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":2,"operation":"read","payload":{}}
+{"protocol_version":3,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":2,"result":{...}}`；失败为 `{"protocol_version":2,"error":{"code":"...","message":"..."}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":3,"result":{...}}`；失败为 `{"protocol_version":3,"error":{"code":"...","message":"..."}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 | 操作 | Payload | 结果 |
 | --- | --- | --- |
@@ -66,7 +66,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## 结构化格式
 
-协议 v2 返回完整 schema v3 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v3 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v3 返回完整 schema v4 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v3 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ## 草稿传输操作
 
@@ -79,3 +79,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 文件操作由宿主 hooks 通过参数数组／JSON stdin 调用 Python，Client 不访问文件。传输／保存期间阻止编辑与普通关闭，epoch 拒绝迟到结果；文本输入保留普通快捷键字符。Ctrl+G 取消输入或返回项目列表，curses 使用 raw 输入模式确保 Ctrl+S 不被终端流控吞掉。
 
 `lib/preferences.ts` 将偏好映射到实际菜单行，例如 `turnDuration`、`reduceMotion`、`tips`、`progressBar`、`notifChannel`。值、类型、选项、提供方和锁来自 `$.config.list()`。独立 Apply 逐项重读后调用 `$.config.set()`，对应行保留部分成功／拒绝等结果；类型／提供方／值变化或选项失效时不写入。缺失／锁定／不支持行给出官方入口，模型／effort／thinking／fast 行为与工具显示格式分组。不得直接写 Claude 持久化键。
+
+## Phase 5 指标迁移
+
+显示 schema v4 新增可空 `metrics.branch_diff_base_ref`；配置协议 v3 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议仍为 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。

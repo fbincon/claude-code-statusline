@@ -26,57 +26,75 @@ def field(
     }
 
 
-GLOBAL = [
-    field(
-        "formatting." + key,
-        key.replace("_", " ").title(),
-        "Formatting",
-        choices=choices,
-    )
-    for key, choices in formatting.FORMAT_CHOICES.items()
-] + [
-    field(
-        "formatting.thresholds.enabled", "Threshold colors", "Risk colors", "boolean"
-    ),
-    field(
-        "formatting.thresholds.warning",
-        "Warning (%)",
-        "Risk colors",
-        "integer",
-        maximum=100,
-    ),
-    field(
-        "formatting.thresholds.critical",
-        "Critical (%)",
-        "Risk colors",
-        "integer",
-        maximum=100,
-    ),
-    field(
-        "subagents.visibility",
-        "Visible agents",
-        "Subagent visibility",
-        choices=("all", "running"),
-    ),
-    field(
-        "subagents.hide_completed", "Hide completed", "Subagent visibility", "boolean"
-    ),
-    field(
-        "subagents.row_limit",
-        "Agent row limit",
-        "Subagent visibility",
-        "integer",
-        nullable=True,
-    ),
-    field(
-        "subagents.task_max_width",
-        "Task text width",
-        "Subagent visibility",
-        "integer",
-        minimum=2,
-        nullable=True,
-    ),
-]
+GLOBAL = (
+    [
+        field(
+            "metrics.branch_diff_base_ref",
+            "Branch diff base (inherit = auto)",
+            "Git metrics",
+            "text",
+            nullable=True,
+        ),
+    ]
+    + [
+        field(
+            "formatting." + key,
+            key.replace("_", " ").title(),
+            "Formatting",
+            choices=choices,
+        )
+        for key, choices in formatting.FORMAT_CHOICES.items()
+    ]
+    + [
+        field(
+            "formatting.thresholds.enabled",
+            "Threshold colors",
+            "Risk colors",
+            "boolean",
+        ),
+        field(
+            "formatting.thresholds.warning",
+            "Warning (%)",
+            "Risk colors",
+            "integer",
+            maximum=100,
+        ),
+        field(
+            "formatting.thresholds.critical",
+            "Critical (%)",
+            "Risk colors",
+            "integer",
+            maximum=100,
+        ),
+        field(
+            "subagents.visibility",
+            "Visible agents",
+            "Subagent visibility",
+            choices=("all", "running"),
+        ),
+        field(
+            "subagents.hide_completed",
+            "Hide completed",
+            "Subagent visibility",
+            "boolean",
+        ),
+        field(
+            "subagents.row_limit",
+            "Agent row limit",
+            "Subagent visibility",
+            "integer",
+            nullable=True,
+        ),
+        field(
+            "subagents.task_max_width",
+            "Task text width",
+            "Subagent visibility",
+            "integer",
+            minimum=2,
+            nullable=True,
+        ),
+    ]
+)
 ITEM = [
     field("label", "Label (inherit = default)", "Item format", "text", nullable=True),
     field("icon", "Icon (inherit = default)", "Item format", "text", nullable=True),

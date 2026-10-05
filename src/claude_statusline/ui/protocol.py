@@ -48,7 +48,7 @@ def validate_draft(value, *, require_current_schema=False):
         ):
             raise RequestError(
                 "invalid_configuration",
-                "apply requires the complete schema v3 draft returned by read",
+                "apply requires the complete schema v4 draft returned by read",
             )
         raw = _object(
             value["host"],
@@ -138,7 +138,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
     ):
         raise RequestError(
             "unsupported_protocol",
-            "Only protocol_version 2 is supported; reinstall matching frontend/backend resources",
+            "Only protocol_version 3 is supported; reinstall matching frontend/backend resources",
         )
     operation = request["operation"]
     if not isinstance(operation, str) or operation not in contracts.OPERATIONS:

@@ -312,17 +312,17 @@ def _check_display(diagnostics, config_dir):
             diagnostics.append(
                 integration_models.Diagnostic("OK", "display config: built-in defaults")
             )
-        if display_source_schema == config_display.LEGACY_SCHEMA_VERSION:
+        if display_source_schema is not None and display_source_schema < config_display.SCHEMA_VERSION:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "WARN",
-                    "display config schema v1 is valid and will migrate to v2 on "
+                    f"display config schema v{display_source_schema} is valid and will migrate to v4 on "
                     "the next configuration save",
                 )
             )
         elif display_source_schema == config_display.SCHEMA_VERSION:
             diagnostics.append(
-                integration_models.Diagnostic("OK", "display config schema: v2")
+                integration_models.Diagnostic("OK", "display config schema: v4")
             )
     except config_display.DisplayConfigError as exc:
         diagnostics.append(integration_models.Diagnostic("ERROR", str(exc)))

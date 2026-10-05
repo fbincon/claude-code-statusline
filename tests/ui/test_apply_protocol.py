@@ -49,7 +49,7 @@ class ApplyProtocolTests(unittest.TestCase):
         return protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 2,
+                    "protocol_version": 3,
                     "operation": operation,
                     "payload": payload or {},
                 }
@@ -277,13 +277,13 @@ class ApplyProtocolTests(unittest.TestCase):
         path.write_bytes(original)
         baseline = self.read()
         self.assertEqual(path.read_bytes(), original)
-        self.assertEqual(baseline["draft"]["display"]["schema_version"], 3)
+        self.assertEqual(baseline["draft"]["display"]["schema_version"], 4)
         saved, status = self.request(
             "apply",
             {"draft": baseline["draft"], "expected_revision": baseline["revision"]},
         )
         self.assertEqual(status, 0, saved)
-        self.assertEqual(json.loads(path.read_bytes())["schema_version"], 3)
+        self.assertEqual(json.loads(path.read_bytes())["schema_version"], 4)
         backup = Path(saved["result"]["backup_dir"]) / "claude-statusline.json.before"
         self.assertEqual(backup.read_bytes(), original)
 
@@ -329,7 +329,7 @@ class ApplyProtocolTests(unittest.TestCase):
             mock.patch.object(
                 sys,
                 "stdin",
-                io.StringIO('{"protocol_version":2,"operation":"read","payload":{}}'),
+                io.StringIO('{"protocol_version":3,"operation":"read","payload":{}}'),
             ),
             mock.patch.object(sys, "stdout", stdout),
             mock.patch.object(
@@ -367,7 +367,7 @@ class ApplyProtocolTests(unittest.TestCase):
             process = subprocess.run(
                 [str(executable), "ui", "--config-dir", str(self.root)],
                 input=json.dumps(
-                    {"protocol_version": 2, "operation": operation, "payload": payload}
+                    {"protocol_version": 3, "operation": operation, "payload": payload}
                 ).encode("utf-8"),
                 capture_output=True,
                 check=False,
@@ -488,7 +488,7 @@ class ApplyProtocolTests(unittest.TestCase):
             settings[key]["command"] = ownership.command_for(alias, operation)
         self.settings.write_text(json.dumps(settings))
         baseline, status = protocol.handle(
-            json.dumps({"protocol_version": 2, "operation": "read", "payload": {}}),
+            json.dumps({"protocol_version": 3, "operation": "read", "payload": {}}),
             self.root,
             real,
         )
@@ -501,7 +501,7 @@ class ApplyProtocolTests(unittest.TestCase):
         response, status = protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 2,
+                    "protocol_version": 3,
                     "operation": "apply",
                     "payload": {
                         "draft": draft,

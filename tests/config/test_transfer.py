@@ -22,7 +22,7 @@ class TransferTests(unittest.TestCase):
 
     def request(self, op, payload):
         return protocol.handle(
-            json.dumps({"protocol_version": 2, "operation": op, "payload": payload}),
+            json.dumps({"protocol_version": 3, "operation": op, "payload": payload}),
             self.config,
             Path("/tool"),
         )
@@ -111,7 +111,7 @@ class TransferTests(unittest.TestCase):
             raw = json.dumps(legacy).encode()
             file.write_bytes(raw)
             imported = transfer.import_file(file, self.draft)
-            self.assertEqual(imported["display"]["schema_version"], 3)
+            self.assertEqual(imported["display"]["schema_version"], 4)
             self.assertEqual(imported["host"], self.draft["host"])
             self.assertEqual(file.read_bytes(), raw)
 

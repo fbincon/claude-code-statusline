@@ -69,7 +69,7 @@ Resources continue to load through `importlib.resources` from `claude_statusline
 
 ## Persistence
 
-Current display schema v3 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v3; historical display v1/v2 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from eligible native calibration. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 5 rechecks old caches without resetting cumulative usage.
+Current display schema v4 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v3; historical display v1/v2/v3 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from eligible native calibration. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 5 rechecks old caches without resetting cumulative usage.
 
 Keep local ROADMAP files and raw acceptance records out of distributions. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 
@@ -91,10 +91,14 @@ Usage state keeps optional input/output observation flags alongside the existing
 
 ## Phase 4 configuration boundaries
 
-Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v3 and protocol v2 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
+Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v4 and protocol v3 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
 
 Curses `ui.forms` and Client `lib/client/forms.ts` expose scoped formats, Layout fitting and global settings from the canonical descriptors. Native hooks alone perform backend/file effects; `lib/preferences.ts` owns actual-row descriptions and supported controls, with separate Claude API application. Production and sample rendering share formatting and explicit layout; lazy Git/transcript collection is retained. No Phase 5 runtime indicators are added.
 
 ## Independent runtime collection
 
 The opt-in `mods/statusline-runtime` is separate from the Client editor. Both Mods use explicit identities in the shared owned-plugin installer and resource inventory. `runtime/live/` owns the strict runtime protocol, per-session locks, atomic observation state and bounded history; configuration transactions and `runtime/turns` remain separate. The collector publishes only metadata, keeps exact retry identities, renews its session binding after resumes and reports stale or incomplete evidence. See [live contracts](live.md).
+
+## Phase 5 metric migration
+
+Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration protocol v3 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol remains independently v1. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).

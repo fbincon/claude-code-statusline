@@ -401,6 +401,13 @@ def _display_with_option(
     display: config_display.DisplayConfig, option: str, value: Any
 ) -> config_display.DisplayConfig:
     try:
+        if option == "branch-diff-base":
+            return display.with_updates(
+                metrics=replace(
+                    display.metrics,
+                    branch_diff_base_ref=None if value == "auto" else value,
+                )
+            )
         if option.startswith("subagent-") and option != "subagent-statusline":
             return advanced.edit_subagent(
                 display, option.removeprefix("subagent-").replace("-", "_"), value

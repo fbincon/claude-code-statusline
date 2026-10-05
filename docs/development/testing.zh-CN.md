@@ -141,3 +141,7 @@ Linux x86_64／Python 3.14.4、隔离的热字节码各 50 次采样：基线 `0
 ## 独立运行检查
 
 运行 `python tools/generate_runtime_contracts.py --check`、`python -m unittest tests.runtime.live.test_protocol tests.runtime.live.test_store tests.integration.test_runtime_installer`，以及固定 2.1.289 的运行 Mod 验证／测试／类型检查。`python tools/runtime_install_smoke.py --report PATH` 仅使用临时配置，不调用模型。CI 保留全部旧编辑器检查并增加 Windows／macOS 2.1.289。模拟协议心跳验证桥接，不代表真实会话加载。另见[实时契约](live.zh-CN.md)。
+
+## Phase 5 指标迁移
+
+显示 schema v4 新增可空 `metrics.branch_diff_base_ref`；配置协议 v3 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议仍为 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。

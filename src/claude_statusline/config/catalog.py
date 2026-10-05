@@ -185,6 +185,14 @@ ITEMS = (
         "Git ↑1 ↓0",
     ),
     _main(
+        "branch-diff",
+        "Committed branch diff",
+        "Files and added/deleted lines from merge-base(base, HEAD) to HEAD; excludes uncommitted edits",
+        "repo",
+        ("git.merge-base", "git.diff.numstat"),
+        "Diff 3 files +42/-7",
+    ),
+    _main(
         "pr",
         "Pull request",
         "Open pull or merge request on the current branch",

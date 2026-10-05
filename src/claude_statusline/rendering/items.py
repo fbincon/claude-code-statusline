@@ -123,6 +123,7 @@ _ITEM_METHODS = {
     "pr": "pr",
     "worktree": "worktree",
     "repo": "repo",
+    "branch-diff": "branch_diff",
 }
 
 
@@ -198,6 +199,22 @@ class _RenderState:
             self.palette.percentage,
             "activity",
         )
+
+    def branch_data(self):
+        from claude_statusline.runtime import branch_diff
+
+        return branch_diff.collect(
+            _live_directory(self.data), self.config.metrics.branch_diff_base_ref
+        )
+
+    def branch_diff(self):
+        value = self.branch_data()["value"]
+        text = (
+            "Diff —"
+            if value is None
+            else f"Diff {value['files']} files +{value['added']}/-{value['removed']}"
+        )
+        return self.styled(text, self.palette.branch, "repo")
 
     def totals(self):
         if self._totals is _NOT_LOADED:
