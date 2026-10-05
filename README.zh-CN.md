@@ -4,9 +4,13 @@
 
 面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
 
-正式 v1.6.0 包含模型与数字格式、标签与内置图标、风险颜色、带优先级和宽度限制的显式分行、四种可编辑预设及可移植 JSON 文件。两种编辑器均提供逐项表单和 Layout 页；Claude 外观及行为偏好通过独立 Apply 操作应用。默认外观保留，选项及降级流程见[配置说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)。
+正式 v1.6.1 包含模型与数字格式、标签与内置图标、风险颜色、带优先级和宽度限制的显式分行、四种可编辑预设及可移植 JSON 文件。两种编辑器均提供逐项表单和 Layout 页；Claude 外观及行为偏好通过独立 Apply 操作应用。默认外观保留，选项及降级流程见[配置说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)。
 
 [格式、布局与预设](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets) · [快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
+
+## v1.6.1：外部 TUI 栏目层级
+
+`/statusline-configure` 和独立 `claude-statusline configure` 现在使用独立内容与 Preview 板块、连续分组、对齐栏目及明显的选中行。Settings 按用途归组；Layout 区分模式、行边界和逐项适配。64×20 起使用边框，64×18–19 保留紧凑分隔；现有配置与按键语义兼容。参见[分组说明](docs/USER_GUIDE.zh-CN.md#external-tui-sections)和[发布说明](docs/releases/v1.6.1.md)。
 
 ## 正式 v1.6.0 的 Phase 5 功能
 
@@ -14,15 +18,17 @@
 
 <a id="正式-v150-的-phase-4-功能"></a>
 
-## 升级到 v1.6.0
+## 升级到 v1.6.1
 
 正式安装在兼容宿主默认请求启用两种编辑器，保留各自已记录的关闭偏好。升级包、同步接入后重启 Claude Code：
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
+
+从 v1.6.0 升级无需显示配置迁移，保存的配置与编辑器偏好继续保留。
 
 从 v1.6.0a1 升级沿用显示 schema v4、配置协议 v3 和独立运行协议 v1；旧 v1/v2/v3 显示文件仅在真实保存时备份并迁移，返回旧包前按[降级流程](docs/USER_GUIDE.zh-CN.md#版本兼容)操作。缺失编辑器偏好使用正式默认，明确 false 保持关闭；实时采集偏好独立保留。需要主动启用两入口时使用 `install --experimental-slash-tui --native-editor`。[历史 v1.6.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0a1)及其资产继续保留。
 
@@ -56,7 +62,20 @@ claude-statusline doctor
 </details>
 
 <details>
-<summary>Linux：Main、Subagents 和 Settings 配置界面</summary>
+<summary>v1.6.1：外部 TUI 分组与紧凑布局（Linux 终端捕获重建）</summary>
+
+以下画面来自安装 wheel 后的真实 curses PTY，Preview 使用固定样例值；源提交、尺寸及检查类型见[截图索引](docs/images/README.zh-CN.md#external-tui-v161)。
+
+![外部 Settings：连续分组、对齐栏目及独立 Preview](docs/images/external-settings-v1.6.1-linux.png)
+![外部 Layout：模式、行边界和逐项适配](docs/images/external-layout-v1.6.1-linux.png)
+![64×18 紧凑 Settings：标题与横线分隔](docs/images/external-settings-compact-v1.6.1-linux.png)
+
+[Main](docs/images/external-main-v1.6.1-linux.png) · [Subagents](docs/images/external-subagents-v1.6.1-linux.png) · [格式详情](docs/images/external-format-v1.6.1-linux.png) · [紧凑 Layout](docs/images/external-layout-compact-v1.6.1-linux.png)
+
+</details>
+
+<details>
+<summary>历史 Linux：Main、Subagents 和 Settings 配置界面</summary>
 
 **Main：选择主状态栏条目并调整顺序。**
 
@@ -137,7 +156,7 @@ claude-statusline doctor
 - Claude Code 2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持外部 TUI 入口与带参数配置命令的本地执行；2.1.287+ 支持会话内 Client。
 - 不兼容或无法识别的宿主暂挂对应入口；基础状态栏、独立终端 TUI、向导和 CLI 继续可用。Git 信息需要系统中存在 `git`。
 
-当前稳定版为 [**v1.6.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0)，以上平台共用同一个 wheel。Phase 5 的 Linux、Windows、macOS 验收已确认，历史 macOS Client 输入限制保留；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
+当前稳定版为 [**v1.6.1**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1)，以上平台共用同一个 wheel。Phase 5 的 Linux、Windows、macOS 验收已确认，历史 macOS Client 输入限制保留；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
 <details>
 <summary>v1.5.0a1：逐项格式、Layout、预设与 Claude 偏好（Linux 终端重建）</summary>
@@ -163,7 +182,7 @@ claude-statusline doctor
 Bash / Zsh / PowerShell 通用：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -172,7 +191,7 @@ pipx ensurepath
 需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
 pipx ensurepath
 ```
 
@@ -187,7 +206,7 @@ pipx ensurepath
 
 ### 接入 Claude Code
 
-重新打开终端让 PATH 生效，确认版本为 `claude-statusline 1.6.0`：
+重新打开终端让 PATH 生效，确认版本为 `claude-statusline 1.6.1`：
 
 ```text
 claude-statusline --version
@@ -243,10 +262,10 @@ claude-statusline config show
 
 ## 升级与卸载
 
-升级到 v1.6.0：
+升级到 v1.6.1：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
