@@ -2,7 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The current source catalog contains 48 main and 14 subagent items. The independent
+The current source catalog contains 53 main and 14 subagent items. The independent
 items below are opt-in. Existing defaults and compound IDs remain available,
 and compounds may be selected alongside their individual components in any order.
 See the [user guide](USER_GUIDE.md) for the original items and all configuration entry points.
@@ -35,6 +35,11 @@ See the [user guide](USER_GUIDE.md) for the original items and all configuration
 | `spend-period` | `Spend monthly` | Optional gateway `period`: daily, weekly or monthly. |
 | `input-tokens` | `in 1.29M` | Recorded cumulative uncached input + cache writes + cache reads, using raw integers from the same main/subagent session statistics as `tokens`. |
 | `output-tokens` | `out 22.4K` | Recorded cumulative output from the same all-session statistics. |
+| `run-state` | `State waiting agents` | Verified main execution, agent wait, wrap-up and terminal state of the user task. Reliable lifecycle evidence wins; expired or ambiguous sources render `—`. |
+| `permission-mode` | `Mode plan*` | Actual event mode. Hook snapshots are marked `*` as recent observations and expire after 15 seconds; settings defaults are never treated as live mode. |
+| `active-agents` | `Agents 2` | Verified active agents owned by this task, nested agents included and IDs deduplicated. Excludes background shells/servers/workflows. Uncertain ownership marks the known subtotal `*`. |
+| `task-progress` | `Tasks 3/5` | Completed/total entries from successful structured Task/Todo operations; complete snapshots win. This is not elapsed-task percentage. Partial coverage is marked `*`. |
+| `last-tool` | `Tool Read success` | Most recently started main-thread tool and its observed success, error, denial or interruption. |
 
 ## Subagent items
 
@@ -87,11 +92,15 @@ claude-statusline config set-items model effort current-dir context-tokens five-
 ```
 
 The shared catalog is returned by CLI listings and JSON `describe`. Both TUI
-editors and the installed wizard consume it. Display schema v2 and JSON protocol
-v1 are unchanged; minimum-version metadata describes verified boundaries, not
+editors and the installed wizard consume it. Display schema v3 and JSON protocol
+v2 remain the current contracts; minimum-version metadata describes verified boundaries, not
 whether live data has arrived. Unverified field minima remain unknown.
 
 Older packages do not recognize newly selected IDs even though the schema is
 unchanged. Before downgrading, use the newer package to remove new IDs from both
 scopes or restore a compatible configuration backup. Follow the existing
 [native integration downgrade procedure](USER_GUIDE.md#upgrading) separately.
+
+## Live state items
+
+The five Phase 5 items default unselected. Collection uses the independent `install --live-metrics` switch on verified Claude Code 2.1.289 hosts. Missing observations render `—`, observed zero renders `0`, and partial coverage adds `*`. Runtime `read` returns source, time and specific reasons. Queued prompts, old epochs and agent events do not overwrite a new main task; terminal history is retained separately from heartbeat freshness. Previews use deterministic fixtures without live I/O. See [runtime contracts](development/live.md).

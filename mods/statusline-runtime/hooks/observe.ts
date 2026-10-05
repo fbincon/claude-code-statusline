@@ -2,8 +2,9 @@
 import type { EngineInterface, Register, PluginOptions } from 'claude-code';
 import { Queue, confirmedResponse } from '../lib/queue.ts';
 import { PROTOCOL_VERSION } from '../lib/generated-contracts.ts';
+import { checklist } from '../lib/checklists.ts';
 
-type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; directory: string; hostVersion: string };
+type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; directory: string; hostVersion: string; turns: Record<string, string> };
 
 async function bind($: EngineInterface, options: PluginOptions, state: State): Promise<void> {
   const queue = state.queue;
@@ -16,6 +17,7 @@ async function bind($: EngineInterface, options: PluginOptions, state: State): P
   state.hostVersion = (await $.session.version()).version;
   const now = await $.clock.now();
   queue.bind(session, now);
+  state.turns = {};
   queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: now }, now);
   state.ready = true;
 }
@@ -39,7 +41,7 @@ async function flush($: EngineInterface, options: PluginOptions, state: State): 
 
 
 export const register: Register = (on, options: PluginOptions) => {
-  const state: State = { queue: new Queue(), ready: false, busy: false, executable: '', directory: '', hostVersion: '' };
+  const state: State = { queue: new Queue(), ready: false, busy: false, executable: '', directory: '', hostVersion: '', turns: {} };
   const queue = state.queue;
   on('session.start', async ($, e, next) => {
     try {
@@ -49,7 +51,13 @@ export const register: Register = (on, options: PluginOptions) => {
       $.clock.every(5000, async () => {
         try {
           await bind($, options, state);
-          queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: queue.loadedAt }, await $.clock.now());
+          const now = await $.clock.now();
+          queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: queue.loadedAt }, now);
+          const agents = await $.agent.list();
+          queue.push('agents', { agents: agents.slice(0, 256).map(agent => ({
+            id: agent.id, parent_id: agent.parentId ?? null, status: agent.status,
+            local: !agent.teammateId || Boolean(state.turns[agent.id]),
+          })) }, now);
           await flush($, options, state);
         } catch {}
       });
@@ -63,6 +71,8 @@ export const register: Register = (on, options: PluginOptions) => {
       const now = await $.clock.now();
       if (e.prompt_id && !e.agent_id && !/^\s*<(?:command-|local-command-|bash-)/.test(e.prompt))
         queue.push('prompt', {}, now, { prompt_id: e.prompt_id }, 'classic_hook');
+      if (e.prompt_id && e.agent_id)
+        queue.push('prompt_alias', { agent_id: e.agent_id }, now, { prompt_id: e.prompt_id, agent_id: e.agent_id }, 'classic_hook');
       if (e.permission_mode)
         queue.push('permission', { mode: e.permission_mode, live: false }, now,
                    { prompt_id: e.prompt_id ?? null, agent_id: e.agent_id ?? null }, 'classic_hook');
@@ -88,6 +98,69 @@ export const register: Register = (on, options: PluginOptions) => {
                  { prompt_id: e.prompt_id ?? null, agent_id: e.agent_id }, 'classic_hook');
     } catch {}
     return next(e);
+  });
+
+  on('turn.start', async ($, e, next) => {
+    try {
+      await bind($, options, state);
+      state.turns.main = e.turnId;
+      queue.push('turn_start', {}, await $.clock.now(), { turn_id: e.turnId });
+    } catch {}
+    return next(e);
+  });
+
+  on('agent.spawn', async ($, e, next) => {
+    const loop = e.parentAgentId ?? 'main';
+    const turn = state.turns[loop];
+    const epoch = queue.epoch;
+    const result = await next(e);
+    try {
+      if (result.agentId && epoch === queue.epoch) {
+        const now = await $.clock.now();
+        queue.push('agent_start', { started_at_ms: now }, now, {
+          agent_id: result.agentId, parent_agent_id: e.parentAgentId ?? null, turn_id: turn ?? null,
+        });
+      }
+    } catch {}
+    return result;
+  });
+
+  on('turn.complete', async ($, e, next) => {
+    try {
+      await bind($, options, state);
+      const now = await $.clock.now();
+      const status = e.isAborted ? 'interrupted' : e.reason === 'error' || e.reason === 'refusal' ? 'failed' : 'completed';
+      queue.push('turn_end', { status }, now, { agent_id: e.agentId ?? null, turn_id: e.turnId });
+      if (e.agentId)
+        queue.push('agent_end', { ended_at_ms: now, status }, now, { agent_id: e.agentId, turn_id: e.turnId });
+    } catch {}
+    return next(e);
+  });
+
+  on('tool.call', async ($, e, next) => {
+    const identity = { agent_id: e.agentId ?? null, turn_id: state.turns[e.agentId ?? 'main'] ?? null, request_id: e.tool_use_id };
+    const epoch = queue.epoch;
+    try { queue.push('tool_start', { name: e.tool }, await $.clock.now(), identity); } catch {}
+    try {
+      const result = await next(e);
+      try {
+        if (epoch === queue.epoch) {
+          const now = await $.clock.now();
+          queue.push('tool_end', { name: e.tool, status: result.deny !== undefined ? 'denied' : result.isError ? 'error' : 'success' }, now, identity);
+          if (result.deny === undefined && !result.isError) {
+            const change = checklist(e.tool, e, result.result);
+            if (change) queue.push(change.kind, change.payload, now, identity);
+          }
+        }
+      } catch {}
+      return result;
+    } catch (error) {
+      try {
+        if (epoch === queue.epoch)
+          queue.push('tool_end', { name: e.tool, status: next.signal.aborted ? 'interrupted' : 'error' }, await $.clock.now(), identity);
+      } catch {}
+      throw error;
+    }
   });
 
   on('session.end', async ($, e, next) => {

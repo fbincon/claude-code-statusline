@@ -1847,3 +1847,7 @@ Client 用 `s` 保存并继续、`f` 保存并关闭、`q` 放弃草稿。curses
 按实际类型／选项编辑后用 `a` Apply。每行保留应用结果，涵盖宿主拒绝、锁定、外部修改与部分成功。工具 Save/Finish 和可移植文件不应用宿主偏好；Reload 明确放弃待处理编辑，继续使用键盘前点击恢复后的 Client 区域。宿主可能改变类型或不提供某行，此时使用提示的 `/config`、`/model`、`/effort`、`/fast` 等官方入口。独立 TUI 只管理工具配置，不能调用 Claude 宿主 API。
 
 2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。macOS Client 输入问题继续作为已知限制，可用独立 TUI 或 CLI 配置；自动 PTY 与终端重建画面不属于人工验收。
+
+## 可选实时状态
+
+使用 `claude-statusline install --live-metrics` 安装独立采集器，再通过任一编辑器选择 `run-state permission-mode active-agents task-progress last-tool`，或将这些 ID 添加到 `config set-items` 选择。新项默认关闭。`install --no-live-metrics` 保存独立于两个编辑器的持久关闭偏好。采集要求已验证的 Claude Code 2.1.289；缺失数据显示 `—`，有限覆盖或最近观测附 `*`。参见[指标定义](DISPLAY_ITEMS.zh-CN.md#实时状态项)和[运行诊断](development/live.zh-CN.md)。

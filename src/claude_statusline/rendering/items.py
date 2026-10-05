@@ -7,6 +7,7 @@ import socket
 import time
 from dataclasses import dataclass, replace
 from pathlib import Path
+from claude_statusline.runtime import paths as runtime_paths
 from claude_statusline.config import display as config_display
 from claude_statusline.rendering import formatters as rendering_formatters
 from claude_statusline.rendering import layout as rendering_layout
@@ -140,6 +141,13 @@ _SESSION_METRICS = {"session-cost", "session-duration", "api-duration", "lines-c
 _CACHE_ITEMS = {"cache-state", "cache-expires", "cache-misses", "api-requests"}
 _GIT_ITEMS = {"git-branch", "git-changes", "git-ahead-behind"}
 _SPEND_ITEMS = {"spend-amount", "spend-period"}
+_LIVE_ITEMS = {
+    "run-state",
+    "permission-mode",
+    "active-agents",
+    "task-progress",
+    "last-tool",
+}
 
 
 class _RenderState:
@@ -154,6 +162,7 @@ class _RenderState:
         self._git = _NOT_LOADED
         self._totals = _NOT_LOADED
         self._counts = _NOT_LOADED
+        self._live = _NOT_LOADED
         self._now = None
         self.fmt = config.formatting
 
@@ -167,6 +176,27 @@ class _RenderState:
             _RenderedItem(f"{style}{text}{self.palette.reset}", group=group)
             if text
             else None
+        )
+
+    def live_data(self):
+        if self._live is _NOT_LOADED:
+            from claude_statusline.runtime.live import snapshot
+
+            self._live = snapshot.collect(
+                Path(runtime_paths.CONFIG_DIR),
+                self.data.get("session_id"),
+                self.data.get("prompt_id"),
+                now_ms=self.now() * 1000,
+            )
+        return self._live
+
+    def live_metric(self, item):
+        from claude_statusline.rendering import live
+
+        return self.styled(
+            live.metric(self.live_data(), item, self.fmt),
+            self.palette.percentage,
+            "activity",
         )
 
     def totals(self):
@@ -392,7 +422,11 @@ class _RenderState:
             for label, value in (("hit", thit), ("miss", tmiss), ("out", tout))
             if value is not None
         ]
-        return _RenderedItem(self.inner_separator.join(parts), group="usage") if parts else None
+        return (
+            _RenderedItem(self.inner_separator.join(parts), group="usage")
+            if parts
+            else None
+        )
 
     def input_tokens(self):
         counts = self.raw_totals()
@@ -641,6 +675,8 @@ class _RenderState:
         return replace(item, text=text)
 
     def _render(self, item_id):
+        if item_id in _LIVE_ITEMS:
+            return self.live_metric(item_id)
         if item_id in _SPEND_ITEMS:
             return self.spend_metric(item_id)
         if item_id in _CACHE_ITEMS:

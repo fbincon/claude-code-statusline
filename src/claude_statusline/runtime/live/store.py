@@ -38,6 +38,13 @@ def empty(session_id):
         "prompts": {},
         "agents": {},
         "permission": None,
+        "active_prompt_id": None,
+        "current_main_turn_id": None,
+        "turns": {},
+        "tools": {},
+        "checklists": {},
+        "prompt_aliases": {},
+        "agent_snapshot": None,
     }
 
 
@@ -49,13 +56,21 @@ def load(config_dir: Path, session_id: str):
         state = json.loads(target.read_bytes())
         if (
             isinstance(state, dict)
-            and set(state) == set(empty(session_id))
+            and {"schema_version", "session_id", "epochs", "prompts", "agents"}
+            <= set(state)
+            and set(state) <= set(empty(session_id))
             and state["schema_version"] == 1
             and state["session_id"] == session_id
             and all(
                 isinstance(state[key], dict) for key in ("epochs", "prompts", "agents")
             )
         ):
+            state = {**empty(session_id), **state}
+            if not all(
+                isinstance(state[key], dict)
+                for key in ("turns", "tools", "checklists", "prompt_aliases")
+            ):
+                return None
             for epoch, ledger in state["epochs"].items():
                 model.text(epoch, "epoch")
                 model.exact(

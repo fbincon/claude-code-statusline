@@ -60,7 +60,8 @@ class ConfiguredRenderingTests(unittest.TestCase):
             | rendering_items._SESSION_METRICS
             | rendering_items._CACHE_ITEMS
             | rendering_items._GIT_ITEMS
-            | rendering_items._SPEND_ITEMS,
+            | rendering_items._SPEND_ITEMS
+            | rendering_items._LIVE_ITEMS,
         )
 
     def test_default_order_and_adjacent_groups_preserve_legacy_layout(self):

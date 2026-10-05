@@ -125,6 +125,11 @@ class NewItemCatalogTests(unittest.TestCase):
                 "lines-changed",
                 "agent",
                 "vim-mode",
+                "run-state",
+                "permission-mode",
+                "active-agents",
+                "task-progress",
+                "last-tool",
             ],
         )
 

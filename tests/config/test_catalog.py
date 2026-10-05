@@ -11,7 +11,7 @@ from tools.generate_ui_contracts import generated
 
 class CatalogTests(unittest.TestCase):
     def test_scopes_defaults_and_legacy_descriptions(self):
-        self.assertEqual(len(catalog.BY_SCOPE["main"]), 48)
+        self.assertEqual(len(catalog.BY_SCOPE["main"]), 53)
         self.assertEqual(len(catalog.BY_SCOPE["subagent"]), 14)
         self.assertEqual(
             display.DEFAULT_ITEMS,

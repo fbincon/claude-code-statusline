@@ -55,3 +55,7 @@ native 心跳建立 epoch，每 5 秒更新，超过 15 秒失效，时钟倒退
 另见[架构](architecture.zh-CN.md)、[测试](testing.zh-CN.md)、
 [官方 Mods 事件](https://code.claude.com/docs/en/plugins/mods/reference)和
 [官方遥测](https://code.claude.com/docs/en/monitoring-usage)。
+
+## 状态视图
+
+Turn ID 将主线程工具及代理启动绑定到执行中的任务，不受新排队 prompt 影响。Native 启动结果建立父子归属，未知 loop ID 保持不可用。Task/Todo 快照和更新按 prompt 保存，重载时清空。成功的空快照表示 0/0，与无观测不同。最近开始的主线程工具优先，即使更早的并行工具稍后才结束。心跳过期后仍可读取终止历史，未结束的实时观测不继续显示。

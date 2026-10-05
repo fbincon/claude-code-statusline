@@ -69,3 +69,11 @@ heartbeat do not establish real-session loading or human interaction acceptance.
 See [architecture](architecture.md), [testing](testing.md),
 [official Mods events](https://code.claude.com/docs/en/plugins/mods/reference), and
 [official telemetry](https://code.claude.com/docs/en/monitoring-usage).
+
+## State views
+
+Turn IDs bind main tools and agent spawns to the executing task, independently of a newly queued prompt. Native spawn results establish parent/child ownership; unknown loop IDs remain unavailable. Task/Todo snapshots and updates are kept per prompt and reset on reload. Successful empty snapshots represent 0/0, distinct from no observation. The newest started main tool wins even if an older parallel tool finishes later. Terminal state and results remain readable after heartbeat expiration; unfinished live observations do not.
+
+## State views
+
+Turn IDs bind main tools and agent spawns to the executing task, independently of a newly queued prompt. Native spawn results establish parent/child ownership; unknown loop IDs remain unavailable. Task/Todo snapshots and updates are kept per prompt and reset on reload. Successful empty snapshots represent 0/0, distinct from no observation. The newest started main tool wins even if an older parallel tool finishes later. Terminal state and results remain readable after heartbeat expiration; unfinished live observations do not.
