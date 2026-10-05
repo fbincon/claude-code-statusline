@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 1.6.1 - 2026-10-05
+
+- Give all four external TUI pages and item forms distinct page titles, continuous groups, aligned columns, selection and separate Preview. Titled frames start at 64×20; 64×18–19 uses compact separators. Global and page controls have separate rows.
+- Group Settings by purpose and separate Layout mode, row boundaries and item fitting. Dispatch legacy controls by stable field key; group headings are nonselectable and consume viewport/paging budget.
+- Isolate pure UI geometry/windows, add boundary/Unicode/color regressions and installed-package five-size PTYs, and document actual captures in both languages. Python and both Mods are 1.6.1; display v4, configuration protocol v3, runtime protocol v1 and recorded preferences remain compatible.
+
 ## 1.6.0 - 2026-10-05
 
 - Promote the accepted Phase 5 preview after the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Unprovided OS/architecture/terminal/host metadata remains unknown; retain the known macOS Client input limitation.

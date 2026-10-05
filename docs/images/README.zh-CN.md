@@ -77,3 +77,23 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 ## v1.6.0 正式版验收
 
 2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。
+
+<a id="external-tui-v161"></a>
+
+## v1.6.1 外部 TUI 捕获
+
+这七张 PNG 从已安装 wheel 的真实 curses PTY 单元格重建。源提交为 `ceb70bb127eb33d6257d47498b947f1f4c57a7f2`，后端与双 Mod 版本为 1.6.1；环境为 Linux x86_64（kernel 7.0.0-38-generic）、Python 3.14.4、xterm-256color PTY 和 pyte 0.8.2。五个独立尺寸通过四页／详情、输入中缩放、取消字节一致、重排后的数值保存／回读。捕获保存在忽略的 `dist/validation/tui-sections-candidate/external-pty`。
+
+80×24 展示 Main、Subagents、Settings、Layout 和格式详情；64×18 展示紧凑 Settings 与 Layout。截图 fixture 选择三个主显示项以展示分组；详情的中文与组合字符来自真实输入，Preview 为生产固定样例。图片显示终端文本／属性的重建画面，使用文档字体与颜色；它们不是 OS 像素截图或设计稿。PNG 元数据嵌入源提交和捕获 SHA256，完整捕获哈希如下。
+
+代理目视检查确认七个画面的标题、表头、分组、选中行、Preview 与操作区可辨；自动报告的 `manual_visual_acceptance` 保持 false。本次没有新增维护者真人验收，历史三平台确认保留原范围。独立 TUI 捕获不声称来自 Claude 会话；真实双入口命令／配置互读另由官方持久 PTY 验证。
+
+| 图片 | 终端单元格 | 捕获 JSON SHA256 |
+| --- | --- | --- |
+| [external-main-v1.6.1-linux.png](external-main-v1.6.1-linux.png) | 80x24 | `d7309f186324c8859ec727531d0579ed1c2f04e9848bf3fc7d5d202b67fcea4f` |
+| [external-subagents-v1.6.1-linux.png](external-subagents-v1.6.1-linux.png) | 80x24 | `1fc7f0d99f0c147430a0c64affde00b9f882a7e5d15f80b1988d633e0053b39a` |
+| [external-settings-v1.6.1-linux.png](external-settings-v1.6.1-linux.png) | 80x24 | `4efee90b89d03ea6c2c2eae20c2cdc9ad7fd83031db74bc59938cc170e77f594` |
+| [external-layout-v1.6.1-linux.png](external-layout-v1.6.1-linux.png) | 80x24 | `35a984e75835c49bbc7f6fc3787882c572501f742c9e229c176cda352f2bb8a8` |
+| [external-format-v1.6.1-linux.png](external-format-v1.6.1-linux.png) | 80x24 | `05bc122708050434348990c38049c30ce524b5d65657e181062ec8419f403063` |
+| [external-settings-compact-v1.6.1-linux.png](external-settings-compact-v1.6.1-linux.png) | 64x18 | `bec340ec3d1160d87e0a7d977460ee5eb446cf9cdf87f5ee17866b2c9b9d1819` |
+| [external-layout-compact-v1.6.1-linux.png](external-layout-compact-v1.6.1-linux.png) | 64x18 | `2ac330a789c6d0d8f7065e7876cc319198586c97edaf4419a0590a2939abe077` |

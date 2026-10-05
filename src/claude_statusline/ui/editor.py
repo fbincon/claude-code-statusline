@@ -11,6 +11,7 @@ from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 from claude_statusline.ui import models as ui_models
 from claude_statusline.ui import forms
+from claude_statusline.ui import layout as ui_layout
 
 
 @dataclass
@@ -206,6 +207,19 @@ class EditorState:
             self.selected_item = selected
 
     def navigate_page(self, direction: int, page_size: int) -> None:
+        if forms.special(self) or self.page == "settings":
+            self.ensure_visible(page_size)
+            scroll = self.form_scroll if forms.special(self) else self.settings_scroll
+            rows = forms.rows(self)
+            if direction < 0:
+                window = ui_layout.form_window(
+                    rows[: forms.index(self)][::-1], 0, 0, page_size
+                )
+            else:
+                window = ui_layout.form_window(
+                    rows, forms.index(self), scroll, page_size
+                )
+            page_size = window.end - window.start
         self.navigate(direction * max(1, page_size))
 
     def navigate_home(self) -> None:
@@ -246,23 +260,16 @@ class EditorState:
 
     def ensure_visible(self, viewport_height: int) -> None:
         height = max(1, viewport_height)
-        if forms.special(self):
-            forms.select(self, self.form_index)
-            selected = self.form_index
-            maximum = max(0, len(forms.rows(self)) - height)
-            self.form_scroll = max(0, min(self.form_scroll, maximum))
-            if selected < self.form_scroll:
-                self.form_scroll = selected
-            elif selected >= self.form_scroll + height:
-                self.form_scroll = selected - height + 1
-            return
-        if self.page == "settings":
-            maximum = max(0, len(forms.rows(self)) - height)
-            self.settings_scroll = min(maximum, max(0, self.settings_scroll))
-            if self.setting_index < self.settings_scroll:
-                self.settings_scroll = self.setting_index
-            elif self.setting_index >= self.settings_scroll + height:
-                self.settings_scroll = self.setting_index - height + 1
+        if forms.special(self) or self.page == "settings":
+            forms.select(self, forms.index(self))
+            scroll = self.form_scroll if forms.special(self) else self.settings_scroll
+            window = ui_layout.form_window(
+                forms.rows(self), forms.index(self), scroll, height
+            )
+            if forms.special(self):
+                self.form_scroll = window.start
+            else:
+                self.settings_scroll = window.start
             return
         if self.page == "subagents":
             visible = self._normalize_subagent_selection()
@@ -371,18 +378,19 @@ class EditorState:
     def toggle_setting(self) -> bool:
         if self.numeric_edit is not None:
             return False
-        if self.setting_index == 0:
+        key = forms.current(self)["key"]
+        if key == "colors":
             self.display = self.display.with_updates(
                 use_colors=not self.display.use_colors
             )
             return True
-        if self.setting_index == 6:
+        if key == "vim-indicator":
             self.host = replace(
                 self.host,
                 hide_vim_mode_indicator=not self.host.hide_vim_mode_indicator,
             )
             return True
-        if self.setting_index == 8:
+        if key == "custom-subagent-rows":
             self.display = self.display.with_updates(
                 subagents=self.display.subagents.with_updates(
                     enabled=not self.display.subagents.enabled
@@ -396,16 +404,16 @@ class EditorState:
             raise ValueError("setting direction must be -1 or 1")
         if self.numeric_edit is not None:
             return False
-        index = self.setting_index
-        if index in (0, 6, 8):
+        key = forms.current(self)["key"]
+        if key in ("colors", "vim-indicator", "custom-subagent-rows"):
             return self.toggle_setting()
-        if index == 1:
+        if key == "palette":
             self.display = self.display.with_updates(
                 palette=self._cycle(
                     self.display.palette, config_display.PALETTES, direction
                 )
             )
-        elif index == 2:
+        elif key == "directory-style":
             self.display = self.display.with_updates(
                 directory_style=self._cycle(
                     self.display.directory_style,
@@ -413,7 +421,7 @@ class EditorState:
                     direction,
                 )
             )
-        elif index == 3:
+        elif key == "separator-style":
             self.display = self.display.with_updates(
                 separator_style=self._cycle(
                     self.display.separator_style,
@@ -421,17 +429,17 @@ class EditorState:
                     direction,
                 )
             )
-        elif index == 4:
+        elif key == "padding":
             value = min(
                 config_models.PADDING_MAX,
                 max(config_models.PADDING_MIN, self.host.padding + direction),
             )
             self.host = replace(self.host, padding=value)
-        elif index == 5:
+        elif key == "refresh_interval":
             choices = self.refresh_choices()
             value = self._cycle(self.host.refresh_interval, choices, direction)
             self.host = replace(self.host, refresh_interval=value)
-        elif index == 7:
+        elif key == "scope-labels":
             self.display = self.display.with_updates(
                 scope_labels=self._cycle(
                     self.display.scope_labels, config_display.SCOPE_LABELS, direction
@@ -442,7 +450,10 @@ class EditorState:
         return True
 
     def set_refresh_event(self) -> bool:
-        if self.numeric_edit is not None or self.setting_index != 5:
+        if (
+            self.numeric_edit is not None
+            or forms.current(self)["key"] != "refresh_interval"
+        ):
             return False
         self.host = replace(self.host, refresh_interval=None)
         return True
@@ -450,7 +461,9 @@ class EditorState:
     def input_digit(self, digit: str) -> bool:
         if len(digit) != 1 or not digit.isascii() or not digit.isdigit():
             return False
-        field = {4: "padding", 5: "refresh"}.get(self.setting_index)
+        field = {"padding": "padding", "refresh_interval": "refresh"}.get(
+            forms.current(self)["key"]
+        )
         if field is None:
             return False
         if self.numeric_edit is None:

@@ -84,7 +84,7 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 - `git`，用于从 GitHub 源码安装或显示 Git 信息；从 Release wheel 安装且不显示 Git 信息时不需要。
 - Linux 的 tmux 或 GNOME Terminal、macOS 的 tmux 或系统 Terminal.app 仅供外部 `/statusline-configure` 使用；Windows 使用系统 `CREATE_NEW_CONSOLE`，无需额外终端程序。
 
-当前稳定版 [v1.6.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0) 为以上平台提供同一个纯 Python wheel；macOS 终端要求见[macOS 安装与验证边界](#macos-安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
+当前稳定版 [v1.6.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1) 为以上平台提供同一个纯 Python wheel；macOS 终端要求见[macOS 安装与验证边界](#macos-安装与验证边界)。Windows ARM64 原生 Python 暂不承诺；ARM 设备可使用 x64 Python 仿真。Windows 会从包元数据自动安装 [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/)。
 
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
@@ -99,28 +99,28 @@ claude-model high | ~/code/project | Git main ↑1●2~1 | Context 73% left · 1
 
 ### 安装 Python 包
 
-Linux / WSL / macOS / Windows 用户可从以下方式中任选一种，安装稳定版 v1.6.0。Release wheel 与固定标签提供相同版本；默认分支源码会随开发更新。
+Linux / WSL / macOS / Windows 用户可从以下方式中任选一种，安装稳定版 v1.6.1。Release wheel 与固定标签提供相同版本；默认分支源码会随开发更新。
 
 **Release URL（推荐，Bash / Zsh / PowerShell 通用）：**
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
-**下载后安装：** 在 [v1.6.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0) 下载 wheel，并在下载目录执行。
+**下载后安装：** 在 [v1.6.1 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1) 下载 wheel，并在下载目录执行。
 
 Linux / WSL / macOS（Bash / Zsh）：
 
 ```bash
-pipx install ./claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install ./claude_code_statusline-1.6.1-py3-none-any.whl
 pipx ensurepath
 ```
 
 Windows（PowerShell）：
 
 ```powershell
-pipx install .\claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install .\claude_code_statusline-1.6.1-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -137,8 +137,8 @@ shasum -a 256 -c SHA256SUMS
 Windows PowerShell 使用以下命令，将摘要与 `SHA256SUMS` 中对应文件的值比较（十六进制大小写不影响结果）：
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.6.0-py3-none-any.whl -Algorithm SHA256
-Get-FileHash .\claude_code_statusline-1.6.0.tar.gz -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.6.1-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.6.1.tar.gz -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
@@ -147,11 +147,11 @@ Get-Content .\SHA256SUMS
 **固定标签源码（需要 Git，Bash / Zsh / PowerShell 通用）：**
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
 pipx ensurepath
 ```
 
-**开发分支源码：** 如需默认分支的当前代码，使用以下命令；该来源不固定为 v1.6.0。
+**开发分支源码：** 如需默认分支的当前代码，使用以下命令；该来源不固定为 v1.6.1。
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
@@ -162,15 +162,15 @@ pipx ensurepath
 
 ### macOS 安装与验证边界
 
-macOS 14+ 使用提供 `curses` 的 CPython 3.10–3.14。Intel 与 Apple Silicon 使用相同的 v1.6.0 Release wheel，没有额外 macOS Python 运行依赖，按上面的通用安装步骤即可。已有安装时按[升级步骤](#升级)替换 Python 包。
+macOS 14+ 使用提供 `curses` 的 CPython 3.10–3.14。Intel 与 Apple Silicon 使用相同的 v1.6.1 Release wheel，没有额外 macOS Python 运行依赖，按上面的通用安装步骤即可。已有安装时按[升级步骤](#升级)替换 Python 包。
 
-重新打开 Bash / Zsh 后，运行 `claude-statusline --version`，确认显示 `claude-statusline 1.6.0`，再完成下方接入步骤。
+重新打开 Bash / Zsh 后，运行 `claude-statusline --version`，确认显示 `claude-statusline 1.6.1`，再完成下方接入步骤。
 
 独立界面运行 `claude-statusline configure`。显式启用实验入口后，`/statusline-configure` 优先选择通过预检查的 tmux popup；没有有效 tmux 时，在本地图形会话中使用 Terminal.app。窗口关闭或保留遵循 Terminal 自身偏好。SSH 或没有图形会话时，使用当前终端的独立命令或配置向导。
 
 macOS 主状态栏与三页配置界面的截图见[项目首页](../README.zh-CN.md#界面预览)和[文件索引](images/README.zh-CN.md)。
 
-**历史版本：** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 是 macOS 预览版，包含核心功能、独立 TUI 和 tmux 入口，未包含 Terminal.app 启动器；[v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 的 wheel、源码包和标签不支持 macOS。需要复现历史行为时使用对应 Release 或固定标签，日常安装使用 v1.6.0。
+**历史版本：** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) 是 macOS 预览版，包含核心功能、独立 TUI 和 tmux 入口，未包含 Terminal.app 启动器；[v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) 的 wheel、源码包和标签不支持 macOS。需要复现历史行为时使用对应 Release 或固定标签，日常安装使用 v1.6.1。
 
 ### 接入 Claude Code
 
@@ -338,8 +338,9 @@ Phase 4 界面包含 Main、Subagents、Settings 和 Layout 四个页签，固�
 | 按键 | 行为 |
 | --- | --- |
 | Tab / Shift+Tab | 在 Main、Subagents、Settings、Layout 间循环；字段编辑期间不切换 |
-| Enter | 非数字编辑状态下一次性保存整个草稿 |
-| Esc | 非数字编辑状态下取消并退出，不写入配置 |
+| Enter | 项目／原有设置行保存；高级字段进入编辑或接受输入 |
+| Ctrl+S | 非字段输入状态下保存完整草稿 |
+| Esc | 先恢复当前字段输入；否则取消并退出，不写入配置 |
 | Ctrl+C | 恢复终端并以 130 退出，不保存 |
 
 Main 和 Subagents 页分别维护自己的选择、搜索、滚动、启用集合与排序，并支持：
@@ -356,7 +357,30 @@ Main 和 Subagents 页分别维护自己的选择、搜索、滚动、启用集�
 
 每页初始完整顺序都是“当前启用项的原顺序 + 尚未启用项的目录顺序”。筛选期间，左右键以相邻的可见搜索结果为移动目标，隐藏条目的相对顺序不变。没有搜索结果时显示 `No matching items`，切换和移动键不执行操作。保存时 Main 写入 `items`，Subagents 写入 `subagents.items`；禁用项的临时位置不会进入 schema。
 
-Settings 页固定包含：
+<a id="external-tui-sections"></a>
+
+### 外部 TUI 的分组与页面层级（v1.6.1）
+
+页面依次显示应用标题、活动页签、通知、内容、`Preview (sample data)` 和两行操作提示。64×20 起，内容与 Preview 使用独立标题边框；64×18–19 使用紧凑横线。最低尺寸仍为 64×18。窗口缩放会保留草稿、字段选择和输入缓冲；无颜色终端通过粗体、反显与分隔线保留层级。
+
+Main／Subagents 的 `ON`、`ITEM`、`DESCRIPTION` 栏目区分勾选、项目 ID 与说明；Settings／Layout／格式详情的 `OPTION` 与 `VALUE` 对齐。字段按用途集中排列：
+
+| Settings 分组 | 内容 |
+| --- | --- |
+| Appearance | 颜色、调色板、目录、分隔符、作用域标签 |
+| Refresh / behavior | Padding、刷新间隔、Vim 指示器、子 Agent 自定义行 |
+| Git metrics | 分支差异基准 |
+| Formatting | 模型与数字格式、标签、图标、配额及重置时间格式 |
+| Risk colors | 阈值颜色与警告／严重百分比 |
+| Subagent visibility | 可见代理、完成行隐藏、行数与任务文本宽度 |
+| Presets / portable files | 预设展开、导入与当前草稿导出 |
+
+Layout 依次显示 `Layout` 模式、`Row boundaries` 行边界和 `Item fitting` 优先级／宽度；适配字段沿用当前主显示项顺序。Ctrl+E 打开的详情先集中显示 `Item format`，再显示 `Item fitting`。
+
+分组标题和栏目表头不能选中。向下滚动至分组中部时仍显示所属标题；Fields／Items 表示可见位置。PageUp／PageDown 按当前窗口可显示的字段容量移动。Preview 按板块内宽计算换行，显示 2–5 行，溢出时最后一行报告剩余行数。
+
+原有字段操作如下；新增格式、布局与便携文件控制见[格式、布局与预设](#formatting-layout-presets)：
+
 
 | 设置 | 值域与操作 |
 | --- | --- |
@@ -364,10 +388,10 @@ Settings 页固定包含：
 | Palette | `default/ansi`；Left/Right 循环；colors 关闭时仍可编辑和保存 |
 | Directory style | `full/home/project-relative/basename`；Left/Right 循环 |
 | Separator style | `classic/compact`；Left/Right 循环 |
+| Scope labels | `off/when-subagents/always`；Left/Right 循环 |
 | Padding | `0–32`；Left/Right 增减 1；数字键进入编辑 |
 | Refresh interval | `event` 或 `1–3600`；Left/Right 在 `event, 1, 2, 5, 10, 30, 60, 300, 600, 3600` 间循环，`e` 设为 event，数字键进入编辑 |
 | Built-in Vim indicator | `show/hide`；Space 或 Left/Right 切换，并映射到 `hideVimModeIndicator` |
-| Scope labels | `off/when-subagents/always`；Left/Right 循环 |
 | Custom subagent rows | `on/off`；Space 或 Left/Right 切换 |
 
 当前刷新值若不在预设中，会按数值位置临时加入循环，不会仅因打开界面而改变。数字编辑时，第一个数字建立新缓冲区，后续数字追加，Backspace 删除；Enter 校验并接受字段值但不保存整个界面，再按一次 Enter 才全局保存。非法或越界值会保留编辑状态并显示内联错误；Esc 先取消数字编辑并恢复原字段值。
@@ -1217,7 +1241,7 @@ claude-statusline.exe config show
 
 ## 升级
 
-先将 Python 包升级到稳定版 v1.6.0，再同步 Claude Code 接入。此前安装 v1.0.0 或 v1.1.0a1 的用户使用相同的升级步骤。
+先将 Python 包升级到稳定版 v1.6.1，再同步 Claude Code 接入。此前安装 v1.0.0 或 v1.1.0a1 的用户使用相同的升级步骤。
 
 ### 替换 Python 包
 
@@ -1226,19 +1250,19 @@ claude-statusline.exe config show
 **稳定版 Release URL（推荐，所有支持平台通用）：**
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 ```
 
 **本地 wheel：** 从 Release 下载并[核验文件](#安装-python-包)后，在下载目录执行。
 
 ```bash
-pipx install --force ./claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install --force ./claude_code_statusline-1.6.1-py3-none-any.whl
 ```
 
 Windows PowerShell：
 
 ```powershell
-pipx install --force .\claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install --force .\claude_code_statusline-1.6.1-py3-none-any.whl
 ```
 
 自行构建的 wheel 位于项目的 `dist/` 下，相应使用 `dist/文件名.whl` 或 `.\dist\文件名.whl`。
@@ -1246,7 +1270,7 @@ pipx install --force .\claude_code_statusline-1.6.0-py3-none-any.whl
 **固定标签源码：**
 
 ```text
-pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.0"
+pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
 ```
 
 跟踪默认分支时将标签改为 `@main`；升级本地源码时，先更新源码，再在项目根目录执行 `pipx install --force .`。自行构建时先重新生成 wheel。这些来源获取的是相应分支或目录中的代码，文件名应与实际生成的版本一致。
@@ -1277,7 +1301,7 @@ claude-statusline.exe config show
 
 ### 版本兼容
 
-正式 v1.6.0 和预览 v1.6.0a1 均使用显示 schema v4、配置协议 v3 及独立运行协议 v1，从 a1 升级不迁移显示配置；历史 v1.5.0/v1.5.0a1 使用显示 v3／配置协议 v2，v1.4.0 使用显示 v2／协议 v1。编辑器启用偏好、实时采集偏好与生命周期格式各自独立。历史显示 v1/v2/v3 适用以下规则：
+正式 v1.6.1、v1.6.0 和预览 v1.6.0a1 均使用显示 schema v4、配置协议 v3 及独立运行协议 v1，从 a1 升级不迁移显示配置；历史 v1.5.0/v1.5.0a1 使用显示 v3／配置协议 v2，v1.4.0 使用显示 v2／协议 v1。编辑器启用偏好、实时采集偏好与生命周期格式各自独立。历史显示 v1/v2/v3 适用以下规则：
 
 读取 v1/v2/v3 时保留原有条目、顺序与外观，只在内存补齐默认值。`render`、`render-subagents`、`doctor`、`install` 不重写显示文件。真实保存备份原字节并写入严格的 schema v4；未知／缺失字段、重复条目、错误类型及高于 v4 的版本均拒绝。降级前关闭两种编辑器，用新版执行 `install --no-native-editor`，按备份 `metadata.json` 将迁移前的 `.before` 恢复为显示文件，再安装旧包并运行 `install`／`doctor`。旧包不能编辑 v4；未来仍要使用 Phase 4 时，可另存可移植导出文件。
 
@@ -1631,7 +1655,7 @@ python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-1.6.1-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -1641,13 +1665,13 @@ Windows PowerShell：
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install .\dist\claude_code_statusline-1.6.1-py3-none-any.whl
 pipx ensurepath
 ```
 
-上述文件名对应稳定 v1.6.0；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
+上述文件名对应稳定 v1.6.1；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](#接入-claude-code)。
 
-可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.6.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.zh-CN.md)。
+可在已激活的构建环境中用 `python -m zipfile -l dist/claude_code_statusline-1.6.1-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](RELEASING.zh-CN.md)。
 
 ### 隔离测试与人工验收
 
@@ -1771,7 +1795,7 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 
 ## 相关文档
 
-v1.6.0 默认接入两种编辑器；详见[原生编辑器开发与验收](development/native.zh-CN.md)。
+v1.6.1 默认接入两种编辑器；详见[原生编辑器开发与验收](development/native.zh-CN.md)。
 
 - [项目首页](../README.zh-CN.md)：项目介绍、界面预览和快速安装。
 - [Claude Code：Customize your status line](https://code.claude.com/docs/en/statusline)
@@ -1782,9 +1806,9 @@ v1.6.0 默认接入两种编辑器；详见[原生编辑器开发与验收](deve
 
 <a id="格式布局与预设v150"></a>
 
-## 格式、布局与预设（v1.6.0）
+## 格式、布局与预设（v1.6.1）
 
-现有默认外观保留，正式 v1.6.0 使用显示 schema v4／配置协议 v3。读取 v1/v2/v3 不重写文件，真实保存才备份迁移。降级前用新版关闭原生编辑器，然后恢复迁移前显示备份；旧程序不能编辑 v4。
+现有默认外观保留，正式 v1.6.1 使用显示 schema v4／配置协议 v3。读取 v1/v2/v3 不重写文件，真实保存才备份迁移。降级前用新版关闭原生编辑器，然后恢复迁移前显示备份；旧程序不能编辑 v4。
 
 `model-name`: original/short; `number-format`: legacy/compact/full/grouped; `labels`: legacy/short/off; `icons`: legacy/unicode/ascii/off; `allowance`: remaining/used; `reset-format`: countdown/time/datetime; `reset-timezone`: local/UTC; `threshold-colors`: on/off.
 
@@ -1863,10 +1887,10 @@ Client 用 `s` 保存并继续、`f` 保存并关闭、`q` 放弃草稿。curses
 
 ## Phase 5 正式版安装
 
-安装正式 v1.6.0，需要实时指标时再显式启用。无采集偏好时普通 `install` 保持关闭，已有选择独立于两种编辑器保留：
+安装正式 v1.6.1，需要实时指标时再显式启用。无采集偏好时普通 `install` 保持关闭，已有选择独立于两种编辑器保留：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 claude-statusline install --live-metrics
 claude-statusline config enable run-state permission-mode active-agents task-progress last-tool branch-diff ttft output-rate prompt-input-tokens prompt-output-tokens prompt-cost
 claude-statusline doctor

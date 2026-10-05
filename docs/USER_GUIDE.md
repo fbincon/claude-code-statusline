@@ -93,7 +93,7 @@ Unavailable items are omitted rather than replaced with empty placeholders. For 
 - `git` for installation from GitHub source or displaying Git information. It is not needed when installing a Release wheel without displaying Git information.
 - tmux or GNOME Terminal on Linux, or tmux or the system Terminal.app on macOS, only for the external `/statusline-configure` entry point. Windows uses the system `CREATE_NEW_CONSOLE` facility and needs no additional terminal application.
 
-The current stable release, [v1.6.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0), provides the same pure-Python wheel for all these platforms. See [macOS installation and validation boundaries](#macos-installation-and-validation-boundaries) for terminal requirements. Native Windows ARM64 Python is not currently guaranteed; ARM devices can use x64 Python emulation. Windows automatically installs [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/) from package metadata.
+The current stable release, [v1.6.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1), provides the same pure-Python wheel for all these platforms. See [macOS installation and validation boundaries](#macos-installation-and-validation-boundaries) for terminal requirements. Native Windows ARM64 Python is not currently guaranteed; ARM devices can use x64 Python emulation. Windows automatically installs [`windows-curses>=2.4.2`](https://pypi.org/project/windows-curses/) from package metadata.
 
 | Feature | Claude Code version requirement |
 | --- | --- |
@@ -112,28 +112,28 @@ After upgrading or downgrading across these feature thresholds, rerun `install` 
 
 ### Install the Python package
 
-Linux / WSL / macOS / Windows users can choose any of the following methods to install stable v1.6.0. The Release wheel and fixed tag provide the same version; default-branch source changes as development continues.
+Linux / WSL / macOS / Windows users can choose any of the following methods to install stable v1.6.1. The Release wheel and fixed tag provide the same version; default-branch source changes as development continues.
 
 **Release URL (recommended; Bash / Zsh / PowerShell):**
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
-**Download first:** Download the wheel from the [v1.6.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0), then run the following from the download directory.
+**Download first:** Download the wheel from the [v1.6.1 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1), then run the following from the download directory.
 
 Linux / WSL / macOS (Bash / Zsh):
 
 ```bash
-pipx install ./claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install ./claude_code_statusline-1.6.1-py3-none-any.whl
 pipx ensurepath
 ```
 
 Windows (PowerShell):
 
 ```powershell
-pipx install .\claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install .\claude_code_statusline-1.6.1-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -150,8 +150,8 @@ shasum -a 256 -c SHA256SUMS
 In Windows PowerShell, run the following and compare each digest with its entry in `SHA256SUMS`; hexadecimal letter case does not affect the comparison:
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.6.0-py3-none-any.whl -Algorithm SHA256
-Get-FileHash .\claude_code_statusline-1.6.0.tar.gz -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.6.1-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.6.1.tar.gz -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
@@ -160,11 +160,11 @@ If you download only the wheel, verify its digest individually with `sha256sum f
 **Source at a fixed tag (requires Git; Bash / Zsh / PowerShell):**
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
 pipx ensurepath
 ```
 
-**Development source:** Use the following for the current default-branch code. This source is not pinned to v1.6.0.
+**Development source:** Use the following for the current default-branch code. This source is not pinned to v1.6.1.
 
 ```text
 pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
@@ -177,15 +177,15 @@ If you already have a local checkout, run `pipx install .` and `pipx ensurepath`
 
 ### macOS installation and validation boundaries
 
-On macOS 14+, use CPython 3.10–3.14 with `curses`. Intel and Apple Silicon use the same v1.6.0 Release wheel, with no additional macOS Python runtime dependencies. Follow the general installation steps above; for an existing installation, replace the Python package using the [upgrade steps](#upgrading).
+On macOS 14+, use CPython 3.10–3.14 with `curses`. Intel and Apple Silicon use the same v1.6.1 Release wheel, with no additional macOS Python runtime dependencies. Follow the general installation steps above; for an existing installation, replace the Python package using the [upgrade steps](#upgrading).
 
-Reopen Bash / Zsh, run `claude-statusline --version`, and confirm that it prints `claude-statusline 1.6.0` before proceeding with integration below.
+Reopen Bash / Zsh, run `claude-statusline --version`, and confirm that it prints `claude-statusline 1.6.1` before proceeding with integration below.
 
 Run `claude-statusline configure` for the standalone interface. After explicitly enabling the external entry point, `/statusline-configure` prefers a tmux popup that passes preflight checks; without valid tmux, it uses Terminal.app in a local graphical session. Window closure or retention follows Terminal's preferences. Over SSH or without a graphical session, use the standalone command in the current terminal or the configuration wizard.
 
 See the [project README](../README.md#screenshots) and [image index](images/README.md) for the macOS main status line and all three configuration pages.
 
-**Historical releases:** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) is the macOS preview, with core functionality, the standalone TUI, and the tmux entry point, but no Terminal.app launcher. The [v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) wheel, source distribution, and tag do not support macOS. Use the corresponding Release or fixed tag to reproduce historical behavior; use v1.6.0 for everyday installation.
+**Historical releases:** [v1.1.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.1.0a1) is the macOS preview, with core functionality, the standalone TUI, and the tmux entry point, but no Terminal.app launcher. The [v1.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.0.0) wheel, source distribution, and tag do not support macOS. Use the corresponding Release or fixed tag to reproduce historical behavior; use v1.6.1 for everyday installation.
 
 <a id="接入-claude-code"></a>
 
@@ -361,8 +361,9 @@ The Phase 4 interface has Main, Subagents, Settings, and Layout tabs, with a fix
 | Key | Action |
 | --- | --- |
 | Tab / Shift+Tab | Cycle through Main, Subagents, Settings, and Layout; disabled during field editing |
-| Enter | Save the entire draft at once when not editing a number |
-| Esc | Cancel and exit without writing configuration when not editing a number |
+| Enter | Save from item/legacy-setting rows; edit or accept advanced fields |
+| Ctrl+S | Save the complete draft outside field input |
+| Esc | Restore active field input; otherwise cancel and exit without writes |
 | Ctrl+C | Restore the terminal and exit with 130, without saving |
 
 The Main and Subagents pages each maintain their own selection, search, scroll position, enabled items, and order, and support:
@@ -379,7 +380,30 @@ The Main and Subagents pages each maintain their own selection, search, scroll p
 
 Each page starts with the currently enabled items in their existing order, followed by disabled items in catalog order. While filtering, Left/Right moves relative to adjacent visible search results and preserves the relative order of hidden items. With no results, `No matching items` is shown, and toggle/move keys have no effect. Saving writes Main to `items` and Subagents to `subagents.items`; temporary positions of disabled items are not persisted in the schema.
 
-The Settings page contains:
+<a id="external-tui-sections"></a>
+
+### External TUI sections and page hierarchy (v1.6.1)
+
+The page shows the application title, active tab, notice, content, `Preview (sample data)` and two action rows. At 64×20 or larger, content and Preview have separate titled frames; 64×18–19 uses compact horizontal separators. Minimum size remains 64×18. Resizing preserves the draft, field selection and input buffer. Bold text, inverse selection and separators retain hierarchy without color.
+
+Main/Subagents align `ON`, `ITEM` and `DESCRIPTION` for toggles, item IDs and descriptions. Settings/Layout/item forms align `OPTION` and `VALUE`. Related fields are contiguous:
+
+| Settings group | Contents |
+| --- | --- |
+| Appearance | Colors, palette, directory, separator and scope labels |
+| Refresh / behavior | Padding, refresh interval, Vim indicator and custom subagent rows |
+| Git metrics | Branch comparison base |
+| Formatting | Model/number formats, labels, icons, allowance and reset formats |
+| Risk colors | Threshold colors and warning/critical percentages |
+| Subagent visibility | Visible agents, completed hiding, row limit and task width |
+| Presets / portable files | Preset expansion, import and current-draft export |
+
+Layout separates `Layout` mode, `Row boundaries` and `Item fitting` priorities/widths; fitting fields follow the current main-item order. Ctrl+E forms group `Item format` before `Item fitting`.
+
+Group titles and column headings are not selectable. Scrolling into a group repeats its title. Fields/Items report the visible range; PageUp/PageDown account for the editable capacity of the current window. Preview uses the panel's inner width and retains 2–5 sample rows, with a remaining-row notice on overflow.
+
+Existing field controls follow; advanced formats, layouts and portable files are covered in [Formatting, layouts and presets](#formatting-layout-presets):
+
 
 | Setting | Values and controls |
 | --- | --- |
@@ -387,10 +411,10 @@ The Settings page contains:
 | Palette | `default/ansi`; cycle with Left/Right; editable and saved even when colors are off |
 | Directory style | `full/home/project-relative/basename`; cycle with Left/Right |
 | Separator style | `classic/compact`; cycle with Left/Right |
+| Scope labels | `off/when-subagents/always`; cycle with Left/Right |
 | Padding | `0–32`; change by 1 with Left/Right; number keys start editing |
 | Refresh interval | `event` or `1–3600`; Left/Right cycles through `event, 1, 2, 5, 10, 30, 60, 300, 600, 3600`; `e` selects event; number keys start editing |
 | Built-in Vim indicator | `show/hide`; toggle with Space or Left/Right; maps to `hideVimModeIndicator` |
-| Scope labels | `off/when-subagents/always`; cycle with Left/Right |
 | Custom subagent rows | `on/off`; toggle with Space or Left/Right |
 
 A refresh value outside the presets is temporarily inserted at its numeric position in the cycle; opening the interface does not change it. During numeric editing, the first digit starts a new buffer, subsequent digits append, and Backspace deletes. Enter validates and accepts the field without saving the entire interface; a second Enter performs the global save. Invalid or out-of-range values keep editing active and show an inline error. Esc cancels numeric editing and restores the previous field value.
@@ -1304,7 +1328,7 @@ These last two variables are usually unnecessary. Changing them may temporarily 
 
 ## Upgrading
 
-First upgrade the Python package to stable v1.6.0, then synchronize the Claude Code integration. Users of v1.0.0 or v1.1.0a1 follow the same steps.
+First upgrade the Python package to stable v1.6.1, then synchronize the Claude Code integration. Users of v1.0.0 or v1.1.0a1 follow the same steps.
 
 <a id="替换-python-包"></a>
 
@@ -1315,19 +1339,19 @@ Choose any one of these sources. Release URL and Git URL commands work in Bash /
 **Stable Release URL (recommended; all supported platforms):**
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 ```
 
 **Local wheel:** Download from the Release, [verify the files](#install-the-python-package), and run from the download directory.
 
 ```bash
-pipx install --force ./claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install --force ./claude_code_statusline-1.6.1-py3-none-any.whl
 ```
 
 Windows PowerShell:
 
 ```powershell
-pipx install --force .\claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install --force .\claude_code_statusline-1.6.1-py3-none-any.whl
 ```
 
 Locally built wheels are under the project's `dist/`; use `dist/filename.whl` or `.\dist\filename.whl` accordingly.
@@ -1335,7 +1359,7 @@ Locally built wheels are under the project's `dist/`; use `dist/filename.whl` or
 **Source at a fixed tag:**
 
 ```text
-pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.0"
+pipx install --force "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
 ```
 
 To follow the default branch, replace the tag with `@main`. For local source upgrades, update the checkout first, then run `pipx install --force .` in the project root. Rebuild the wheel first when building yourself. These sources install code from the specified branch or directory; filenames must match the actual generated version.
@@ -1370,7 +1394,7 @@ Rerun `install` to synchronize skill templates, command paths, hooks, and versio
 
 ### Version compatibility
 
-Stable v1.6.0 and preview v1.6.0a1 use display schema v4, configuration protocol v3 and independent runtime protocol v1; upgrading from a1 does not migrate display configuration. Historical v1.5.0/v1.5.0a1 use display v3/configuration protocol v2, and v1.4.0 uses display v2/protocol v1. Editor enablement, live-metrics preference and lifecycle formats remain independent. Historical display v1/v2/v3 configurations follow these rules:
+Stable v1.6.1/v1.6.0 and preview v1.6.0a1 use display schema v4, configuration protocol v3 and independent runtime protocol v1; upgrading from a1 does not migrate display configuration. Historical v1.5.0/v1.5.0a1 use display v3/configuration protocol v2, and v1.4.0 uses display v2/protocol v1. Editor enablement, live-metrics preference and lifecycle formats remain independent. Historical display v1/v2/v3 configurations follow these rules:
 
 Reading v1/v2/v3 retains items, order and appearance and supplies new defaults in memory. `render`, `render-subagents`, `doctor` and `install` do not rewrite the display file. An actual save backs up its original bytes and writes strict schema v4; unknown/missing fields, duplicates, incorrect types and schemas above v4 are refused. Before a downgrade, close both editors, use the newer package to run `install --no-native-editor`, restore the display file from its pre-migration `.before` backup using `metadata.json`, install the older package and rerun `install`/`doctor`. Older packages cannot edit v4. Save a portable export separately if you intend to return to Phase 4 later.
 
@@ -1764,7 +1788,7 @@ python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install dist/claude_code_statusline-1.6.1-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -1774,13 +1798,13 @@ Windows PowerShell:
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\claude_code_statusline-1.6.0-py3-none-any.whl
+pipx install .\dist\claude_code_statusline-1.6.1-py3-none-any.whl
 pipx ensurepath
 ```
 
-These filenames correspond to stable v1.6.0; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](#integrate-with-claude-code).
+These filenames correspond to stable v1.6.1; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](#integrate-with-claude-code).
 
-In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.6.0-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](RELEASING.md) for the complete process.
+In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.6.1-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](RELEASING.md) for the complete process.
 
 <a id="隔离测试与人工验收"></a>
 
@@ -1917,7 +1941,7 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 
 ## Related documentation
 
-Stable v1.6.0 integrates both editors by default on compatible hosts. See [native development and acceptance](development/native.md) for the bundled Mod, revision protection and confirmed three-platform human acceptance.
+Stable v1.6.1 integrates both editors by default on compatible hosts. See [native development and acceptance](development/native.md) for the bundled Mod, revision protection and historical three-platform Client acceptance.
 
 - [Project README](../README.md): introduction, screenshots, and quick installation.
 - [Claude Code:Customize your status line](https://code.claude.com/docs/en/statusline)
@@ -1928,9 +1952,9 @@ Stable v1.6.0 integrates both editors by default on compatible hosts. See [nativ
 
 <a id="formatting-layouts-and-presets-v150"></a>
 
-## Formatting, layouts and presets (v1.6.0)
+## Formatting, layouts and presets (v1.6.1)
 
-Existing appearance remains the default. Stable v1.6.0 uses display schema v4 and configuration protocol v3. Reading v1/v2/v3 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v4.
+Existing appearance remains the default. Stable v1.6.1 uses display schema v4 and configuration protocol v3. Reading v1/v2/v3 does not rewrite files; actual saves back up and migrate. Before downgrading, disable native with the newer package and restore the pre-migration display backup. Older packages cannot edit v4.
 
 `model-name`: original/short; `number-format`: legacy/compact/full/grouped; `labels`: legacy/short/off; `icons`: legacy/unicode/ascii/off; `allowance`: remaining/used; `reset-format`: countdown/time/datetime; `reset-timezone`: local/UTC; `threshold-colors`: on/off.
 
@@ -2009,10 +2033,10 @@ The committed branch base is available through `config set branch-diff-base auto
 
 ## Phase 5 stable installation
 
-Install stable v1.6.0 and explicitly opt into live metrics if desired. Ordinary `install` keeps collection off when no preference exists; recorded choices persist independently of both editors:
+Install stable v1.6.1 and explicitly opt into live metrics if desired. Ordinary `install` keeps collection off when no preference exists; recorded choices persist independently of both editors:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 claude-statusline install --live-metrics
 claude-statusline config enable run-state permission-mode active-agents task-progress last-tool branch-diff ttft output-rate prompt-input-tokens prompt-output-tokens prompt-cost
 claude-statusline doctor

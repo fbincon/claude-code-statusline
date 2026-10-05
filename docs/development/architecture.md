@@ -17,8 +17,13 @@ src/claude_statusline/
   integration/                      Ownership, capabilities, resources,
                                     installation plan/commit, doctor,
                                     hooks, launcher and result bridge
-  ui/                               Models, draft editor, keys, drawing,
-                                    terminal session and save/cancel lifecycle
+  ui/                               External terminal editor and JSON backend
+    models.py                       Terminal bounds, outcomes and stable field keys
+    editor.py, forms.py              Draft state, grouped fields and pure edits
+    layout.py                       Panel geometry and grouped viewport budgets
+    drawing.py, keys.py              Terminal drawing and keyboard dispatch
+    session.py                      Terminal lifecycle, saves/cancel and file effects
+    protocol.py, contracts.py        JSON backend and generated wire contracts
   platforms/                        OS detection, files, processes, clocks
                                     and the Terminal.app adapter
   resources/                        Bundled configuration skill templates
@@ -102,3 +107,9 @@ The opt-in `mods/statusline-runtime` is separate from the Client editor. Both Mo
 ## Phase 5 metric migration
 
 Display schema v4 adds nullable `metrics.branch_diff_base_ref`; configuration protocol v3 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3 reads have no write effects; a real save backs up and migrates. Runtime observation protocol remains independently v1. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+
+## External editor structure (v1.6.1)
+
+`ui.layout` computes geometry and grouped windows without terminal/file effects. Headings consume screen rows without becoming selectable fields. `ui.forms` reuses canonical descriptors, gives legacy/portable controls stable keys and groups, and projects a contiguous external display order. `ui.editor`/`ui.keys` dispatch by field identity; drawing owns terminal output. JSON descriptors, Client ordering and wire contracts remain compatible, independent of external presentation order.
+
+Content and Preview use their actual inner widths; resizing preserves drafts and input buffers. Tests follow the existing UI/integration layout, and the standalone PTY helper lives under tools. Production rendering, installation, runtime observation and compatibility entry points retain their responsibilities.

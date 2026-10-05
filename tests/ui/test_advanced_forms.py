@@ -61,7 +61,11 @@ class AdvancedFormsTests(unittest.TestCase):
             keys.handle_key(state, char, 8)
         keys.handle_key(state, "\n", 8)
         self.assertEqual(state.display.item_options["model"].label, "Engine")
-        state.form_index = 2
+        state.form_index = next(
+            i
+            for i, row in enumerate(forms.rows(state))
+            if row["key"] == "item:priority"
+        )
         keys.handle_key(state, "\n", 8)
         state.form_input["buffer"] = "101"
         keys.handle_key(state, "\n", 8)

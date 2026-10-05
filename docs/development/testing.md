@@ -153,3 +153,16 @@ Use `tools/live_metrics_acceptance.py --root dist/validation/phase5/CASE --case 
 On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Exact OS, architecture, terminal and host versions were not supplied. This is the new Phase 5 acceptance record, separate from historical editor confirmation and automated/headless/PTY evidence. The existing macOS Client input limitation remains documented. Stable v1.6.0 retains the accepted runtime implementation, display schema v4, configuration protocol v3 and runtime protocol v1. Editor entries default on for compatible hosts, preserving explicit false; live collection remains independently opt-in and preserves its preference.
 
 Promotion rechecks stable defaults, a1 upgrade preference preservation, both Mod/backend version bindings, all platform CI and installed distributions/PTYs. Captured single-agent/parallel/main-wrap observations can be revalidated without model calls. This version/default-only change does not reset the original USD 10 ledger or repeat the paid suite.
+
+## v1.6.1 external TUI grouping checks
+
+Local validation passed 561 Python tests (553 passed, eight expected platform skips), 41 native and eight runtime official Mod tests, both TypeScript projects, generated contracts and Ruff. Added UI checks cover contiguous groups, stable field keys, nonselectable headings, grouped paging, CJK/combining text, 0/8/16/256 colors and drawing bounds on every page. 64×18/19 uses compact separators; frames start at 64×20.
+
+Install the matching wheel and `pyte` into an isolated environment, then run the free PTY helper below with a fresh report directory. It checks four pages, detail forms, resizing during input, byte-identical cancellation and regrouped numeric save/readback at 64×18, 64×20, 80×24, 120×30 and 80×48:
+
+```bash
+python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-statusline \
+  --report-dir dist/validation/external-tui-NEW --commit SOURCE_COMMIT
+```
+
+Use `tools/render_native_capture.py --surface external --bounds 0 0 COLUMNS ROWS --commit SOURCE_COMMIT` to reconstruct the real capture JSON; Pillow/fonts are documentation dependencies only. Raw cells, isolated configuration and builds stay in ignored dist/validation; distributions contain only public PNGs and sanitized provenance. Record automated PTYs, agent inspection and human acceptance separately; historical confirmations are not new acceptance of this presentation change. Matching-wheel persistent advanced PTYs must also check external saves and Client readback. All 20 PR/merge/tag jobs and release artifact gates remain required.

@@ -155,3 +155,16 @@ Linux x86_64／Python 3.14.4、隔离的热字节码各 50 次采样：基线 `0
 2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。
 
 晋升重验正式默认行为、a1 升级偏好保留、两 Mod／后端版本绑定、全部平台 CI 及已安装分发包／PTY。单代理／并行／主线程收尾捕获记录可免费重验；本次仅版本／默认行为变更，不重置原有 10 美元账本，也不重复付费套件。
+
+## v1.6.1 外部 TUI 分组验证
+
+本地 561 项 Python 测试中 553 项通过、8 项预期平台跳过；native 41 项与 runtime 8 项官方 Mod 测试、双 TypeScript、生成契约及 Ruff 通过。新增 UI 回归覆盖连续归组、稳定字段 key、标题不可选中、跨组分页、中文／组合字符、0／8／16／256 色和全部页面的绘制边界。64×18／19 使用紧凑分隔，64×20 起使用边框。
+
+安装匹配 wheel 后，在隔离环境额外安装 `pyte`，运行下列免费 PTY 验证；每次使用新的报告目录。它以私有配置检查四页、格式详情、输入中缩放、取消不写盘和重排后的数值保存，尺寸为 64×18、64×20、80×24、120×30、80×48：
+
+```bash
+python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-statusline \
+  --report-dir dist/validation/external-tui-NEW --commit SOURCE_COMMIT
+```
+
+截图用 `tools/render_native_capture.py --surface external --bounds 0 0 COLUMNS ROWS --commit SOURCE_COMMIT` 从真实捕获 JSON 重建；Pillow 和字体仅用于文档。原始数据、隔离配置和构建留在忽略的 dist/validation，分发包只含公开图片与脱敏来源。自动 PTY、代理视觉检查与真人验收分别记录；历史人工确认不作为本次展示修改的新增真人验收。双入口还须运行匹配 wheel 的持久高级 PTY，核实外部保存后的 Client 互读。全部 20 项 PR／合并／标签 CI 与正式资产检查继续适用。

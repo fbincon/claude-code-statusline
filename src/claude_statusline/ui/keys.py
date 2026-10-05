@@ -58,7 +58,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
             state.form_index = state.form_scroll = 0
         return None
     if forms.special(state) or (
-        state.page == "settings" and state.setting_index >= len(ui_models.SETTING_NAMES)
+        state.page == "settings" and forms.current(state)["kind"] != "legacy"
     ):
         try:
             if key == "\x13":

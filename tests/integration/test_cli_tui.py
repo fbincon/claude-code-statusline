@@ -4,6 +4,8 @@ from claude_statusline.integration import bridge as integration_bridge
 from claude_statusline.platforms import files as platform_files
 from claude_statusline.platforms import macos_terminal as platform_macos_terminal
 from claude_statusline.platforms import processes as platform_processes
+from claude_statusline.config import display as config_display, models as config_models
+from claude_statusline.ui import editor as ui_editor, forms
 
 import json
 import os
@@ -333,9 +335,21 @@ class ConfigurePtyTests(unittest.TestCase):
 
         # Down, disable current-dir, select git, move it right, open Settings,
         # toggle colors, select Padding, enter 3, accept it, then save.
+        state = ui_editor.EditorState.from_effective(
+            config_models.EffectiveConfig(
+                config_display.DEFAULT_CONFIG,
+                config_models.HostConfig(),
+                True,
+                self.display_path,
+            )
+        )
+        state.page = "settings"
+        padding_index = next(
+            i for i, row in enumerate(forms.rows(state)) if row["key"] == "padding"
+        )
         os.write(
             master,
-            b"\x1bOB \x1bOB\x1bOC\t\t\x1bOC" + b"\x1bOB" * 4 + b"3\r\r",
+            b"\x1bOB \x1bOB\x1bOC\t\t\x1bOC" + b"\x1bOB" * padding_index + b"3\r\r",
         )
         self.assertEqual(self._wait_exit(), 0)
         output = self._finish_output(output)

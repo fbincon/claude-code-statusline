@@ -16,8 +16,13 @@ src/claude_statusline/
     turns/                          纯记录逻辑、加锁存储和 reducer
   integration/                      所有权、能力、资源、安装计划/提交、
                                     doctor、hooks、启动器及结果桥
-  ui/                               模型、编辑草稿、键盘、绘制、
-                                    终端会话及保存/取消生命周期
+  ui/                               外部终端编辑器与 JSON 后端
+    models.py                       终端边界、结果及稳定字段 key
+    editor.py, forms.py              草稿状态、字段分组及纯配置编辑
+    layout.py                       板块尺寸、分组标题及可见窗口预算
+    drawing.py, keys.py              终端绘制及键盘分派
+    session.py                      终端会话、保存/取消与文件操作
+    protocol.py, contracts.py        JSON 后端及生成类型契约
   platforms/                        系统识别、文件、进程、时钟及
                                     Terminal.app 适配
   resources/                        配置 skill 模板
@@ -101,3 +106,9 @@ curses `ui.forms` 与 Client `lib/client/forms.ts` 从同一描述展开逐项�
 ## Phase 5 指标迁移
 
 显示 schema v4 新增可空 `metrics.branch_diff_base_ref`；配置协议 v3 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议仍为 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+
+## 外部编辑器结构（v1.6.1）
+
+`ui.layout` 只计算几何与可见分组窗口，标题与字段共同消耗屏幕行，但标题不参与选择。`ui.forms` 复用 canonical 描述，补齐原有设置和文件操作的稳定 key／分组，并集中排列外部字段；`ui.editor` 与 `ui.keys` 按字段身份分派，绘制只负责终端输出。JSON 描述、内部 Client 排列和配置协议继续兼容，外部展示顺序独立于共享配置定义。
+
+内容与 Preview 使用各自的实际内宽；窗口缩放保留草稿和输入缓冲。测试位于现有 UI／集成测试分层，独立 PTY 工具位于 tools。生产 renderer、安装器、运行观测及兼容入口沿用原有职责。

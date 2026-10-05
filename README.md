@@ -4,9 +4,13 @@
 
 A Claude Code status line for Linux, WSL, Windows, and macOS. It shows model and reasoning effort, working directory, Git, context, rate limits, tokens, and per-turn timing. Individual subagent rows are supported. Configure items, order, and styles through a terminal UI (TUI), a wizard inside Claude Code, or the command line.
 
-Stable v1.6.0 includes model/number formats, labels and built-in icons, risk colors, explicit rows with priorities and widths, four editable presets and portable JSON files. Both editors provide item forms and a Layout page. Claude appearance and behavior preferences have a separate Apply action. Existing default appearance is retained; [configuration and downgrade instructions](docs/USER_GUIDE.md#formatting-layout-presets) explain the options.
+Stable v1.6.1 includes model/number formats, labels and built-in icons, risk colors, explicit rows with priorities and widths, four editable presets and portable JSON files. Both editors provide item forms and a Layout page. Claude appearance and behavior preferences have a separate Apply action. Existing default appearance is retained; [configuration and downgrade instructions](docs/USER_GUIDE.md#formatting-layout-presets) explain the options.
 
 [Formatting, layouts and presets](docs/USER_GUIDE.md#formatting-layout-presets) · [Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Report an issue](https://github.com/fbincon/claude-code-statusline/issues)
+
+## v1.6.1: Clearer external TUI sections
+
+`/statusline-configure` and standalone `claude-statusline configure` now use separate content and Preview regions, continuous groups, aligned columns and distinct selection. Settings groups related options; Layout separates mode, row boundaries and item fitting. Frames start at 64×20; 64×18–19 retains compact separators. Existing configuration and key semantics remain compatible. See [section behavior](docs/USER_GUIDE.md#external-tui-sections) and [release notes](docs/releases/v1.6.1.md).
 
 ## Phase 5 in stable v1.6.0
 
@@ -14,15 +18,17 @@ Stable v1.6.0 includes model/number formats, labels and built-in icons, risk col
 
 <a id="phase-4-in-stable-v150"></a>
 
-## Upgrade to v1.6.0
+## Upgrade to v1.6.1
 
 Stable installation requests both editor entries on compatible hosts, preserving each recorded disablement. Upgrade the package, synchronize integration and restart Claude Code:
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
+
+Upgrading from v1.6.0 needs no display migration and retains saved configuration and editor preferences.
 
 Upgrading from v1.6.0a1 retains display schema v4, configuration protocol v3 and independent runtime protocol v1. Older display v1/v2/v3 files migrate with a backup only on an actual save; use the [downgrade instructions](docs/USER_GUIDE.md#version-compatibility) before returning to an older package. Missing editor preferences follow stable defaults; explicit false remains off. Live-metrics preferences persist independently. To deliberately enable both editors, use `install --experimental-slash-tui --native-editor`. The [historical v1.6.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0a1) and its assets remain available.
 
@@ -58,7 +64,20 @@ See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-repo
 </details>
 
 <details>
-<summary>Linux: Main, Subagents, and Settings configuration pages</summary>
+<summary>v1.6.1: External TUI groups and compact layout (Linux terminal reconstructions)</summary>
+
+These images reconstruct real curses PTYs from the installed wheel. Preview uses fixed samples; [capture provenance](docs/images/README.md#external-tui-v161) records the source, dimensions and inspection type.
+
+![External Settings: continuous groups, aligned columns and separate Preview](docs/images/external-settings-v1.6.1-linux.png)
+![External Layout: mode, row boundaries and item fitting](docs/images/external-layout-v1.6.1-linux.png)
+![Compact 64×18 Settings: titles and horizontal separators](docs/images/external-settings-compact-v1.6.1-linux.png)
+
+[Main](docs/images/external-main-v1.6.1-linux.png) · [Subagents](docs/images/external-subagents-v1.6.1-linux.png) · [Item format](docs/images/external-format-v1.6.1-linux.png) · [Compact Layout](docs/images/external-layout-compact-v1.6.1-linux.png)
+
+</details>
+
+<details>
+<summary>Historical Linux: Main, Subagents, and Settings configuration pages</summary>
 
 **Main: select main status line items and change their order.**
 
@@ -156,7 +175,7 @@ See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-repo
 - Claude Code 2.1.205+ supports subagent rows; 2.1.258+ supports the external TUI entry and local configuration commands with arguments; 2.1.287+ supports the in-session Client.
 - Unsupported or unrecognized hosts suspend the affected entries; the main status line, standalone TUI, wizard and CLI remain available. Git information requires `git`.
 
-The current stable release is [**v1.6.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0), using the same wheel across platforms. Phase 5 acceptance is confirmed on Linux, Windows and macOS; the earlier macOS Client input limitation remains. See [macOS checks](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [requirements](docs/USER_GUIDE.md#requirements).
+The current stable release is [**v1.6.1**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1), using the same wheel across platforms. Phase 5 acceptance is confirmed on Linux, Windows and macOS; the earlier macOS Client input limitation remains. See [macOS checks](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [requirements](docs/USER_GUIDE.md#requirements).
 
 <a id="快速安装"></a>
 
@@ -171,7 +190,7 @@ Prepare Python, Claude Code CLI and [pipx](https://pipx.pypa.io/latest/how-to/in
 Bash / Zsh / PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -182,7 +201,7 @@ pipx ensurepath
 Requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
 pipx ensurepath
 ```
 
@@ -201,7 +220,7 @@ pipx ensurepath
 
 ### Integrate with Claude Code
 
-Reopen the terminal for PATH changes and confirm `claude-statusline 1.6.0`:
+Reopen the terminal for PATH changes and confirm `claude-statusline 1.6.1`:
 
 ```text
 claude-statusline --version
@@ -261,10 +280,10 @@ Configuration applies per user. `set-items` replaces the enabled set; `enable` /
 
 ## Upgrading and uninstalling
 
-Upgrade to v1.6.0:
+Upgrade to v1.6.1:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.0/claude_code_statusline-1.6.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
