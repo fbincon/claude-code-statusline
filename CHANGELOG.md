@@ -2,6 +2,13 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 1.5.0 - 2026-10-05
+
+- Promote the verified Phase 4 preview after maintainer-confirmed Linux/Windows human acceptance and macOS standalone TUI/CLI acceptance. Preserve the historical macOS Client input limitation; exact terminal/OS/host metadata remains unknown.
+- Synchronize Python/Mod at 1.5.0 and stable installation/upgrade links. Both editor entries default on for supported hosts, preserving recorded false and independent compatibility suspension.
+- Retain display schema v3, JSON protocol v2, existing appearance and the accepted formats, explicit layouts, presets, portable files and separate actual-row Claude preference application. Preserve a1 tags/assets and capture provenance.
+- Require PR/merge/tag CI, final installed-wheel PTYs, independent package rebuild/install, SHA256 and public installation verification before stable Latest publication.
+
 ## 1.5.0a1 - 2026-10-05
 
 - Keep actual content ahead of scope decoration in narrow explicit rows and preserve form selection when enabled items are removed.

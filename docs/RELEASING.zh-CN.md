@@ -2,13 +2,13 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.4.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.4.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.5.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-正式 v1.4.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
+正式 v1.5.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
@@ -42,7 +42,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.4.0
+RELEASE_TAG=v1.5.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -60,8 +60,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-claude_code_statusline-1.4.0-py3-none-any.whl
-claude_code_statusline-1.4.0.tar.gz
+claude_code_statusline-1.5.0-py3-none-any.whl
+claude_code_statusline-1.5.0.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -82,8 +82,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.4.0-py3-none-any.whl \
-  claude_code_statusline-1.4.0.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.5.0-py3-none-any.whl \
+  claude_code_statusline-1.5.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -92,8 +92,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.4.0-py3-none-any.whl',
-    'claude_code_statusline-1.4.0.tar.gz'
+    'claude_code_statusline-1.5.0-py3-none-any.whl',
+    'claude_code_statusline-1.5.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -111,8 +111,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.4.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.4.0.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.5.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.5.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -156,6 +156,6 @@ v1.3.0a2 已获三平台真人验收确认。正式版 Python/Mod 均为 1.3.0�
 
 ## Phase 4 预览与正式晋升
 
-先发布 v1.5.0a1，prerelease=true、latest=false，Latest 保持 v1.4.0。PR、合并构建提交与标签均须通过全部 18 项 CI（13 项 Python／构建、5 项 Mod：Linux 2.1.287／288／289、Windows／macOS 2.1.288）。从安装后的 wheel 运行高级 Linux 持久 PTY，检查真实捕获画面、比较格式／布局性能，并完成独立 wheel／sdist／重建、固定标签及公开下载／安装验证。本范围不运行付费模型／计时套件。
+v1.5.0a1 已从 `b7181a6` 公开验证。2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。 正式 Python／Mod 均为 1.5.0，兼容宿主默认启用两入口，保留明确 false；显示 schema v3、协议 v2 与已验收交互保持一致。历史预览标签／资产／发布状态及截图文件名保留。
 
-由维护者确认 Linux／Windows 新交互与 macOS 可用入口后再发布 v1.5.0 正式版。自动验证、代理视觉检查与人工验收分别记录；保留 macOS Client 输入限制、schema v3 备份／降级说明及预览显式启用参数。正式版发布并完成公开安装验证前不得标记 Phase 4 完成。
+PR、合并提交、标签均须通过全部 18 项 CI（13 项 Python／构建、5 项固定 Mod）。从固定已验证合并提交构建，运行安装后高级 Linux PTY、独立 wheel／sdist／重建验证，核对草稿 SHA256／字节，再以 prerelease=false、latest=true 发布并检查公开下载／URL 安装。本次版本／默认值晋升不运行付费模型／计时套件；公开正式验证成功后记录 Phase 4 完成。

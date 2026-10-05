@@ -111,11 +111,11 @@ Measured on Linux x86_64 / Python 3.14.4, 50 samples with isolated warm bytecode
 
 Advanced form regressions cover scoped text/format input, numeric bounds, field cancellation, layout partitioning and portable actions that never save until requested. Native tests cover literal shortcut input, actual host row aliases, unsupported/missing/locked rows, changed types/options, per-row partial results and tool-save/host-apply independence. Strict Unicode text validation matches Python and counts code points for the 256-character limit.
 
-Use the installed wheel for `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`. Ctrl+S is checked inside the real curses popup, along with Client save/readback, CJK files, import errors, export of unsaved drafts, cancellation and explicit layout at both terminal sizes. Human acceptance stays pending until the maintainer confirms it. CI adds a fixed Linux 2.1.289 job while retaining the existing platform matrix.
+Use the installed wheel for `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`. Ctrl+S is checked inside the real curses popup, along with Client save/readback, CJK files, import errors, export of unsaved drafts, cancellation and explicit layout at both terminal sizes. The maintainer confirmed Phase 4 human acceptance on 2026-10-05; macOS acceptance covers standalone TUI/CLI. CI adds a fixed Linux 2.1.289 job while retaining the existing platform matrix.
 
 ### v1.5.0a1 candidate evidence
 
-On 2026-10-05, the preview suite passed 507 tests (499 pass, eight platform skips) and 40 official Mod tests. Installed clean `07804ba` v1.5.0a1 wheel passed core and actual official-installation smoke plus advanced persistent 120×30 / 80×48 PTYs, including theme/turn-duration Apply/reload and independent tool saves. The rebased `e978411` source tree is byte-identical. Agent capture inspection is recorded in the [image index](../images/README.md#v150a1-phase-4-captures); human acceptance remains pending.
+On 2026-10-05, the preview suite passed 507 tests (499 pass, eight platform skips) and 40 official Mod tests. Installed clean `07804ba` v1.5.0a1 wheel passed core and actual official-installation smoke plus advanced persistent 120×30 / 80×48 PTYs, including theme/turn-duration Apply/reload and independent tool saves. The rebased `e978411` source tree is byte-identical. Agent capture inspection is recorded in the [image index](../images/README.md#v150a1-phase-4-captures); human acceptance was pending at the capture and was confirmed on 2026-10-05 (macOS standalone TUI/CLI).
 
 Same machine, Python 3.14.4 and benchmark SHA-256 prefix `0f299dcff19d`, 50 samples with isolated warm bytecode, baseline `6c7826e` and formatter `a040243`:
 
@@ -129,3 +129,9 @@ Same machine, Python 3.14.4 and benchmark SHA-256 prefix `0f299dcff19d`, 50 samp
 | Transcript warm | 0.142 / 0.162 | 0.139 / 0.150 |
 
 The model-only P50 rises about 4.1 ms (8%); P95 rises about 1.7 ms. Five-item formatted/explicit cases measure 52.690/60.660 and 53.498/62.186 ms and are different fixtures from the baseline. Scheduling noise, small fixture size and cache state limit conclusions; these are measurements, not a performance bound. Use `--display-case legacy|formatted|explicit` to reproduce; the baseline uses the identical newer harness with its original runtime source. Lazy collectors remain covered by regressions.
+
+## v1.5.0 stable acceptance
+
+On 2026-10-05 the maintainer confirmed Phase 4 human acceptance on Linux and Windows and on macOS through the standalone TUI/CLI. Exact OS, architecture, terminal and host versions were not supplied. This confirmation does not declare the earlier macOS in-session Client input problem fixed.
+
+Stable changes package/Mod versions and release defaults; formatting, layout, portable files, host application and accepted input behavior remain those of the verified preview. Automated CI/PTYs and agent capture inspection remain independent evidence. Historical preview images keep their a1 filenames, capture hashes and original source commits.

@@ -97,4 +97,10 @@ v1.2.0 在晋升稳定版前，已获维护者确认 Linux、Windows 11、macOS 
 
 Main/Subagents 用 Ctrl+E 打开逐项格式；Layout 管理显式行边界、优先级与终端列宽；Settings 将预设／导入展开为未保存草稿，另行导出，并展开宿主实际外观／时间／标题／行为行。Ctrl+G 恢复输入或返回列表，Enter 接受字段。curses 保留旧 Enter 保存并增加任意页 Ctrl+S，使用 raw 模式避免 XON/XOFF 吞键。
 
-从安装的候选 wheel 运行 `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`。覆盖 120×30／80×48 两种尺寸、两种持久入口、中文标签／路径、ANSI 调色板、显式分行／优先级／宽度保存、预设／导出／导入验证、取消不写入及跨编辑器回读。原始日志保持私有。Linux／Windows 及 macOS 可用入口人工验收待确认，之前报告的 macOS Client 输入问题仍未解决。
+从安装的候选 wheel 运行 `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`。覆盖 120×30／80×48 两种尺寸、两种持久入口、中文标签／路径、ANSI 调色板、显式分行／优先级／宽度保存、预设／导出／导入验证、取消不写入及跨编辑器回读。原始日志保持私有。Linux／Windows 及 macOS 可用入口人工验收已于 2026-10-05 确认，之前报告的 macOS Client 输入问题仍未解决。
+
+## v1.5.0 正式验收
+
+2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。
+
+正式版调整包／Mod 版本及发布默认值，格式、布局、可移植文件、宿主应用与已验收输入行为沿用已验证预览。自动 CI／PTY 与代理视觉检查分别记录；历史图片保留 a1 文件名、捕获哈希及原始源码提交。

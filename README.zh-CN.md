@@ -4,22 +4,23 @@
 
 面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
 
-v1.5.0a1 预览版增加模型与数字格式、标签与内置图标、风险颜色、带优先级和宽度限制的显式分行、四种可编辑预设及可移植 JSON 文件。两种编辑器均提供逐项表单和 Layout 页；Claude 外观及行为偏好通过独立 Apply 操作应用。默认外观保留，新增选项及降级流程见[配置说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)。预览验收完成前，稳定安装版本仍为 v1.4.0。
+正式 v1.5.0 增加模型与数字格式、标签与内置图标、风险颜色、带优先级和宽度限制的显式分行、四种可编辑预设及可移植 JSON 文件。两种编辑器均提供逐项表单和 Layout 页；Claude 外观及行为偏好通过独立 Apply 操作应用。默认外观保留，新增选项及降级流程见[配置说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)。
 
 [格式、布局与预设](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets) · [快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
 
+## 正式 v1.5.0 的 Phase 4 功能
 
-## 试用 Phase 4 预览版
-
-[v1.5.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0a1) 为预览版，Latest 保持 v1.4.0。全新安装需显式启用预览编辑器；升级保留已记录的启用偏好。安装并同步两种入口后，重启 Claude Code：
+[v1.5.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0) 晋升已验收的 Phase 4 预览。正式安装在兼容宿主默认请求启用两种编辑器，保留各自已记录的关闭偏好。升级包、同步接入后重启 Claude Code：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.5.0a1/claude_code_statusline-1.5.0a1-py3-none-any.whl"
-claude-statusline install --experimental-slash-tui --native-editor
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.5.0/claude_code_statusline-1.5.0-py3-none-any.whl"
+claude-statusline install
 claude-statusline doctor
 ```
 
-保存前阅读[格式、预设和可移植配置](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)。首次保存会备份并将显示 v1/v2 迁移为 v3，返回旧包前按[降级流程](docs/USER_GUIDE.zh-CN.md#版本兼容)操作。Linux／Windows 新交互及 macOS 可用入口人工验收待确认，macOS Client 输入问题继续保留。
+从 v1.5.0a1 升级沿用显示 schema v3／协议 v2；旧 v1/v2 显示文件仅在真实保存时备份并迁移，返回旧包前按[降级流程](docs/USER_GUIDE.zh-CN.md#版本兼容)操作。缺失编辑器偏好使用正式默认，明确 false 保持关闭；需要主动启用两入口时使用 `install --experimental-slash-tui --native-editor`。[历史预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0a1) 及其资产继续保留。
+
+2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。
 
 ## 界面预览
 
@@ -124,7 +125,6 @@ claude-statusline doctor
 
 </details>
 
-
 ## 支持范围
 
 - Linux 原生与 WSL：Python 3.10+。
@@ -133,7 +133,7 @@ claude-statusline doctor
 - Claude Code 2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持外部 TUI 入口与带参数配置命令的本地执行；2.1.287+ 支持会话内 Client。
 - 不兼容或无法识别的宿主暂挂对应入口；基础状态栏、独立终端 TUI、向导和 CLI 继续可用。Git 信息需要系统中存在 `git`。
 
-当前稳定版为 [**v1.4.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.4.0)，以上平台共用同一个 wheel。晋升 v1.3.0 正式版时，维护者确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过；正式版沿用其 Client 交互。随后基于 Claude Code 2.1.289 的反馈确认 Linux、Windows 可以正常操作，macOS 输入问题仍未解决；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
+当前稳定版为 [**v1.5.0**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.5.0)，以上平台共用同一个 wheel。Phase 4 的 Linux／Windows 与 macOS 独立 TUI／CLI 人工验收已确认，历史 macOS Client 输入限制保留；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
 <details>
 <summary>v1.5.0a1：逐项格式、Layout、预设与 Claude 偏好（Linux 终端重建）</summary>
@@ -146,7 +146,7 @@ claude-statusline doctor
 
 ![独立 Claude 偏好](docs/images/client-preferences-v1.5.0a1-linux.png)
 
-[紧凑 Layout 与来源说明](docs/images/README.zh-CN.md#v150a1-phase-4-终端重建画面)。Phase 4 人工验收待确认。
+[紧凑 Layout 与来源说明](docs/images/README.zh-CN.md#v150a1-phase-4-终端重建画面)。Phase 4 人工验收已确认，图片保留原预览来源。
 
 </details>
 
@@ -159,7 +159,7 @@ claude-statusline doctor
 Bash / Zsh / PowerShell 通用：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.4.0/claude_code_statusline-1.4.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.5.0/claude_code_statusline-1.5.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -168,7 +168,7 @@ pipx ensurepath
 需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.4.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.5.0"
 pipx ensurepath
 ```
 
@@ -183,7 +183,7 @@ pipx ensurepath
 
 ### 接入 Claude Code
 
-重新打开终端让 PATH 生效，确认版本为 `claude-statusline 1.4.0`：
+重新打开终端让 PATH 生效，确认版本为 `claude-statusline 1.5.0`：
 
 ```text
 claude-statusline --version
@@ -233,16 +233,16 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
-v1.4.0 提供 48 个主栏、14 个子 Agent 选项，本轮 28 个新增项均默认关闭。上下文／累计作用域、缓存／额度过期及示例见[独立指标说明](docs/DISPLAY_ITEMS.zh-CN.md)。
+目录包含 48 个主栏、14 个子 Agent 选项，v1.4.0 引入的 28 个独立项继续默认关闭。上下文／累计作用域、缓存／额度过期及示例见[独立指标说明](docs/DISPLAY_ITEMS.zh-CN.md)。
 
 配置按用户生效；`set-items` 替换全部启用项，`enable` / `disable` 用于增量修改。更多示例见[配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方)。
 
 ## 升级与卸载
 
-升级到 v1.4.0：
+升级到 v1.5.0：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.4.0/claude_code_statusline-1.4.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.5.0/claude_code_statusline-1.5.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
