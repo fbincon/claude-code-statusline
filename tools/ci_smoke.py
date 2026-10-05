@@ -98,7 +98,7 @@ def main():
             # Core smoke keeps compatibility entry assertions independent of
             # release defaults. Native lifecycle/defaults have their own suite.
             if arguments and arguments[0] == "install":
-                arguments = (*arguments, "--no-native-editor")
+                arguments = (*arguments, "--no-native-editor", "--no-live-metrics")
             return run([command, *arguments], payload, expected_returncode)
 
         assert cli("--version").strip() == f"claude-statusline {__version__}"
@@ -150,7 +150,7 @@ def main():
         )
         cli("config", "set", "colors", "off")
         value = json.loads(cli("config", "show", "--json"))
-        assert value["display"]["items"][-2:] == ["tokens", "prompt-timer"]
+        assert value["display"]["items"][-2:] == ["tokens", "task-timer"]
         report["checks"].append("config-round-trip")
 
         run(["git", "init", "-q"])
@@ -214,6 +214,23 @@ def main():
         assert all(label in output for label in ("hit", "miss", "out")), output
         assert "⏱" in output, output
         cli("hook", payload={**event, "hook_event_name": "Stop"})
+        output = cli("render", payload=payload)
+        assert "?" in output and "+" in output, output
+        with transcript.open("a", encoding="utf-8") as stream:
+            stream.write(
+                json.dumps(
+                    {
+                        "type": "system",
+                        "subtype": "stop_hook_summary",
+                        "promptId": prompt_id,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "preventedContinuation": False,
+                        "hookErrors": [],
+                        "hookAdditionalContext": [],
+                    }
+                )
+                + "\n"
+            )
         output = cli("render", payload=payload)
         assert "✓" in output, output
         state_file = (
