@@ -1,3 +1,4 @@
+import { MAIN_ITEM_IDS } from '../../lib/generated-contracts.ts';
 import { expect, test } from 'claude-code/testing';
 import type { ProcessRunResult } from 'claude-code';
 import {
@@ -331,7 +332,7 @@ test('full and compact layouts keep selection through paging, filtering and resi
     (await ui.find({ in: REGION, key: 'content-region' }))?.props.borderStyle,
   ).toBeUndefined();
   expect(
-    await ui.find({ in: REGION, key: 'item-main:vim-mode' }),
+    await ui.find({ in: REGION, key: 'item-main:' + MAIN_ITEM_IDS[MAIN_ITEM_IDS.length - 1] }),
   ).toBeDefined();
   await keys(ui, 'pageup', 'pagedown', 'home', 'down');
   await ui.redraw({

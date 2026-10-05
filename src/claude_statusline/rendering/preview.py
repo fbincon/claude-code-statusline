@@ -13,6 +13,18 @@ SAMPLE_NOW = 1_788_400_120
 class _SampleRenderState(rendering_items._RenderState):
     """Render deterministic preview values without touching live session state."""
 
+    def live_data(self):
+        return {
+            key: {"value": value, "partial": key == "permission-mode"}
+            for key, value in {
+                "run-state": "waiting agents",
+                "permission-mode": "plan",
+                "active-agents": 2,
+                "task-progress": {"completed": 3, "total": 5},
+                "last-tool": {"name": "Read", "status": "success"},
+            }.items()
+        }
+
     def totals(self):
         return "1.2M", "87.5K", "22.4K", None, {}
 
@@ -137,7 +149,9 @@ def render_preview_rows(
         max(0, available_width - rendering_layout.MIN_CONTENT_WIDTH),
     )
     rows = rendering_items.configured_rows(
-        _sample_preview_data(), display_config, available_width - applied_padding,
+        _sample_preview_data(),
+        display_config,
+        available_width - applied_padding,
         _SampleRenderState,
     )
     prefix = " " * applied_padding

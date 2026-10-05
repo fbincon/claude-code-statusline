@@ -54,6 +54,7 @@ class PreviewContentTests(unittest.TestCase):
                 "spend-period",
                 "input-tokens",
                 "output-tokens",
+                *rendering_items._LIVE_ITEMS,
             }
         )
         config = config_display.DEFAULT_CONFIG.with_updates(
@@ -134,6 +135,7 @@ class PreviewContentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="statusline-preview-") as directory:
             root = Path(directory)
             with (
+                mock.patch("claude_statusline.runtime.live.snapshot.collect") as live_collect,
                 mock.patch.object(runtime_git, "git_status") as git_status,
                 mock.patch.object(
                     runtime_usage, "session_token_totals"
@@ -146,6 +148,7 @@ class PreviewContentTests(unittest.TestCase):
             ):
                 rows = rendering_preview.render_preview_rows(config, 80)
             self.assertTrue(rows)
+            live_collect.assert_not_called()
             git_status.assert_not_called()
             token_totals.assert_not_called()
             timer.assert_not_called()

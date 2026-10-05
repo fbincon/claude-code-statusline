@@ -22,6 +22,11 @@ UnavailableReason = Literal[
     "unknown_host_version",
     "source_unavailable",
     "condition_not_met",
+    "runtime_disabled",
+    "stale",
+    "incomplete",
+    "ambiguous_owner",
+    "observed_only",
 ]
 
 

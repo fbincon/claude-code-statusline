@@ -45,6 +45,8 @@ def dispatch(request, config_dir: Path):
             if state is None
             else state["invalidated"] or (None if live else "stale")
         )
+        from claude_statusline.runtime.live import snapshot
+
         return {
             "backend_version": __version__,
             "session_id": session_id,
@@ -54,6 +56,9 @@ def dispatch(request, config_dir: Path):
             "reason": reason,
             "observed_at_ms": state["heartbeat_at_ms"] if state else None,
             "state": state,
+            "metrics": snapshot.resolve(
+                state, config_dir, session_id, prompt_id, enabled=enabled
+            ),
         }
     raise model.ObservationError("unsupported runtime operation")
 

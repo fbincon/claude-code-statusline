@@ -14,11 +14,27 @@ MAX_EPOCHS = 32
 MAX_SEEN = 4096
 MAX_PROMPTS = 32
 MAX_AGENTS = 256
+MAX_TURNS = 256
+MAX_TOOLS = 1024
+MAX_TASKS = 1000
 STALE_MS = 15_000
 
 Source = Literal["native", "classic_hook", "otel"]
 Kind = Literal[
-    "heartbeat", "invalidate", "prompt", "permission", "agent_start", "agent_end"
+    "heartbeat",
+    "invalidate",
+    "prompt",
+    "prompt_alias",
+    "permission",
+    "agent_start",
+    "agent_end",
+    "turn_start",
+    "turn_end",
+    "agents",
+    "tool_start",
+    "tool_end",
+    "task_snapshot",
+    "task_update",
 ]
 
 
@@ -106,6 +122,77 @@ def validate(value):
         text(value["prompt_id"], "prompt_id")
         if value["agent_id"] is not None:
             raise ObservationError("a human prompt belongs to main")
+    elif kind == "prompt_alias":
+        exact(payload, ("agent_id",), "prompt alias")
+        text(value["prompt_id"], "prompt_id")
+        text(payload["agent_id"], "agent_id")
+    elif kind in ("turn_start", "turn_end"):
+        text(value["turn_id"], "turn_id")
+        exact(payload, () if kind == "turn_start" else ("status",), kind)
+        if kind == "turn_end" and payload["status"] not in (
+            "completed",
+            "failed",
+            "interrupted",
+        ):
+            raise ObservationError("invalid turn status")
+    elif kind == "agents":
+        exact(payload, ("agents",), "agent snapshot")
+        if (
+            not isinstance(payload["agents"], list)
+            or len(payload["agents"]) > MAX_AGENTS
+        ):
+            raise ObservationError("too many agents")
+        for agent in payload["agents"]:
+            exact(agent, ("id", "parent_id", "status", "local"), "agent")
+            text(agent["id"], "agent id")
+            text(agent["parent_id"], "parent_id", nullable=True)
+            if type(agent["local"]) is not bool or agent["status"] not in (
+                "pending",
+                "running",
+                "waiting",
+                "idle",
+                "completed",
+                "failed",
+                "killed",
+            ):
+                raise ObservationError("invalid agent snapshot")
+        if len({agent["id"] for agent in payload["agents"]}) != len(payload["agents"]):
+            raise ObservationError("duplicate agent identity")
+    elif kind in ("tool_start", "tool_end"):
+        text(value["request_id"], "tool use id")
+        exact(payload, ("name",) if kind == "tool_start" else ("name", "status"), kind)
+        text(payload["name"], "tool name")
+        if kind == "tool_end" and payload["status"] not in (
+            "success",
+            "error",
+            "denied",
+            "interrupted",
+        ):
+            raise ObservationError("invalid tool outcome")
+    elif kind in ("task_snapshot", "task_update"):
+        exact(
+            payload,
+            ("provider", "tasks")
+            if kind == "task_snapshot"
+            else ("provider", "id", "status"),
+            kind,
+        )
+        if payload["provider"] not in ("tasks", "todos"):
+            raise ObservationError("unknown checklist provider")
+        tasks = (
+            payload["tasks"]
+            if kind == "task_snapshot"
+            else [{"id": payload["id"], "status": payload["status"]}]
+        )
+        if not isinstance(tasks, list) or len(tasks) > MAX_TASKS:
+            raise ObservationError("too many checklist entries")
+        for task in tasks:
+            exact(task, ("id", "status"), "task")
+            text(task["id"], "task id")
+            if task["status"] not in ("pending", "in_progress", "completed", "deleted"):
+                raise ObservationError("invalid checklist status")
+        if len({task["id"] for task in tasks}) != len(tasks):
+            raise ObservationError("duplicate checklist identity")
     elif kind == "permission":
         exact(payload, ("mode", "live"), "permission")
         text(payload["mode"], "mode", maximum=64)
