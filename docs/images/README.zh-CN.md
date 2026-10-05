@@ -66,4 +66,10 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 
 以上 PNG 来自已安装 v1.5.0a1 wheel、Mod 1.5.0-alpha.1、Claude Code 2.1.289 的真实终端单元格，环境为 Linux x86_64／Python 3.14.4。两种持久入口在 120×30／80×48 高级 PTY 中通过。捕获源为干净本地提交 `07804ba23f98396b1bbb67b795efd9ccf8e6fab3`；发布分支重定基后，公开候选 `e978411ab92b99b44cf99d42f8dfce9eba3cf415` 的源文件树完全一致（`ff77dc8b4b0fa3264b2344a38c98a1786b27e0ee`）。图片元数据保留原捕获提交／哈希；运行 Mod 指纹为 `06510b1cbfc9c28c175cb3fc3a2268cb312de93c5e3f128b3e4effa52158ab10`。
 
-重建工具裁去对话／输入框／实时状态和私有路径，紧凑页使用明确的单元格裁剪范围，并保留 CJK 续列背景。Preview 为生产样例。代理检查确认格式／布局／宿主控件与中文可读；画面属于终端重建，不是系统像素截图或人工验收。原始记录仅保留在忽略的 `dist/validation/phase4/preview-candidate-r2-pty`。Linux／Windows Phase 4 及 macOS 可用入口人工验收待确认，macOS Client 输入问题继续保留。
+重建工具裁去对话／输入框／实时状态和私有路径，紧凑页使用明确的单元格裁剪范围，并保留 CJK 续列背景。Preview 为生产样例。代理检查确认格式／布局／宿主控件与中文可读；画面属于终端重建，不是系统像素截图或人工验收。原始记录仅保留在忽略的 `dist/validation/phase4/preview-candidate-r2-pty`。Linux／Windows Phase 4 及 macOS 独立 TUI／CLI 人工验收已于 2026-10-05 确认，macOS Client 输入问题继续保留。
+
+## v1.5.0 正式验收
+
+2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。
+
+正式版调整包／Mod 版本及发布默认值，格式、布局、可移植文件、宿主应用与已验收输入行为沿用已验证预览。自动 CI／PTY 与代理视觉检查分别记录；历史图片保留 a1 文件名、捕获哈希及原始源码提交。

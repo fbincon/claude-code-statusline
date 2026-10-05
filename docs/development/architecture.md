@@ -69,7 +69,7 @@ Resources continue to load through `importlib.resources` from `claude_statusline
 
 ## Persistence
 
-Display schema v2, feature schema v1, the schema-1 runtime mirror and lifecycle schema v3 remain compatible. Optional `duration_source` distinguishes frozen task elapsed time from eligible native calibration. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 5 rechecks old caches without resetting cumulative usage.
+Current display schema v3 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v3; historical display v1/v2 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from eligible native calibration. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 5 rechecks old caches without resetting cumulative usage.
 
 Keep local ROADMAP files and raw acceptance records out of distributions. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 

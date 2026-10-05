@@ -2,7 +2,7 @@
 
 **简体中文** | [English](native.md)
 
-v1.3.0 提供当前 Claude Code 终端 session 内的 Client TUI。`/statusline-configure-native` 打开 Mod 面板；`/statusline-configure` 保留既有外部 curses TUI 和平台启动器。正式版默认启用两者，按偏好及宿主版本分别降级。
+从 v1.3.0 起提供当前 Claude Code 终端 session 内的 Client TUI。`/statusline-configure-native` 打开 Mod 面板；`/statusline-configure` 保留既有外部 curses TUI 和平台启动器。正式版默认启用两者，按偏好及宿主版本分别降级。
 
 ## 源码结构与检查
 
@@ -57,7 +57,7 @@ claude-statusline doctor
 
 在受信任终端中重启 Claude Code，再选择任一命令。`--experimental-slash-tui` / `--no-experimental-slash-tui` 只控制外部入口；`--native-editor` / `--no-native-editor` 只控制 Client。正式版新安装默认都启用；明确关闭优先，预览版默认都关闭。外部需 2.1.258+，Client 需 2.1.287+，低版本或未知版本分别暂挂，显式启用也不因版本不兼容使基础安装失败。升级后重装恢复。外部关闭保存 schema v1 的 false，不再删除文件；旧版无记录按正式默认处理。若旧原生迁移曾移除已启用的外部 skill/hook，重装会恢复本工具所属资源。Mod 不再注册外部命令名，也不再声明 `primaryCommand`。
 
-原生资源暂存于 `CLAUDE_CONFIG_DIR/statusline-native`，核验哈希、版本及协议清单后，经官方本地 marketplace 命令安装。绑定绝对后端路径、配置目录和版本；后端 1.3.0 对应 Mod 1.3.0。外来原生命令或资源阻止该入口安装，外部冲突在启用外部入口时检查；外来外部命令不会阻止仅安装 Client。被修改的 owned 缓存不被接管。
+原生资源暂存于 `CLAUDE_CONFIG_DIR/statusline-native`，核验哈希、版本及协议清单后，经官方本地 marketplace 命令安装。绑定绝对后端路径、配置目录和版本；后端与 Mod 应来自同一版本和协议的安装包，正式版均为 1.5.0。外来原生命令或资源阻止该入口安装，外部冲突在启用外部入口时检查；外来外部命令不会阻止仅安装 Client。被修改的 owned 缓存不被接管。
 
 禁用原生只移除核实所属的原生插件、marketplace 和资源，外部入口保留自身偏好及资源。卸载保留显示配置、偏好、备份和运行数据。失败报告实际状态；doctor 分别检查资源、绑定及启用情况，当前 session 加载仍须核实。外部禁用的插件保持禁用，仅自动恢复工具记录的暂挂。safe/bare、管理策略及 disableAllHooks 可阻止加载。降级 Python 包前先用新版禁用原生，再安装旧包。
 
@@ -97,4 +97,10 @@ v1.2.0 在晋升稳定版前，已获维护者确认 Linux、Windows 11、macOS 
 
 Main/Subagents 用 Ctrl+E 打开逐项格式；Layout 管理显式行边界、优先级与终端列宽；Settings 将预设／导入展开为未保存草稿，另行导出，并展开宿主实际外观／时间／标题／行为行。Ctrl+G 恢复输入或返回列表，Enter 接受字段。curses 保留旧 Enter 保存并增加任意页 Ctrl+S，使用 raw 模式避免 XON/XOFF 吞键。
 
-从安装的候选 wheel 运行 `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`。覆盖 120×30／80×48 两种尺寸、两种持久入口、中文标签／路径、ANSI 调色板、显式分行／优先级／宽度保存、预设／导出／导入验证、取消不写入及跨编辑器回读。原始日志保持私有。Linux／Windows 及 macOS 可用入口人工验收待确认，之前报告的 macOS Client 输入问题仍未解决。
+从安装的候选 wheel 运行 `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>`。覆盖 120×30／80×48 两种尺寸、两种持久入口、中文标签／路径、ANSI 调色板、显式分行／优先级／宽度保存、预设／导出／导入验证、取消不写入及跨编辑器回读。原始日志保持私有。Linux／Windows 及 macOS 可用入口人工验收已于 2026-10-05 确认，之前报告的 macOS Client 输入问题仍未解决。
+
+## v1.5.0 正式验收
+
+2026-10-05，维护者确认 Phase 4 在 Linux、Windows，以及 macOS 的独立 TUI／CLI 入口人工验收通过；未提供具体 OS、架构、终端和宿主版本。本次确认不表示此前 macOS 会话内 Client 输入问题已修复。
+
+正式版调整包／Mod 版本及发布默认值，格式、布局、可移植文件、宿主应用与已验收输入行为沿用已验证预览。自动 CI／PTY 与代理视觉检查分别记录；历史图片保留 a1 文件名、捕获哈希及原始源码提交。

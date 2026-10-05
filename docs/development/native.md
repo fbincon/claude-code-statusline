@@ -2,7 +2,7 @@
 
 **English** | [简体中文](native.zh-CN.md)
 
-v1.3.0 ships Client TUI inside the current Claude Code terminal session. `/statusline-configure-native` opens this Mod pane; `/statusline-configure` retains the external curses TUI and platform launcher. Stable defaults both on, with independent preferences and version suspension.
+Since v1.3.0, the project provides Client TUI inside the current Claude Code terminal session. `/statusline-configure-native` opens this Mod pane; `/statusline-configure` retains the external curses TUI and platform launcher. Stable defaults both on, with independent preferences and version suspension.
 
 ## Source layout and checks
 
@@ -97,4 +97,10 @@ References: [actual-build Mod types](https://code.claude.com/docs/en/plugins/mod
 
 Main/Subagents open scoped formats with Ctrl+E. Layout manages explicit boundaries, priorities and terminal-column widths. Settings expands presets and imports into an unsaved draft, exports that draft separately, and unfolds actual host appearance/time/title/behavior rows. Ctrl+G restores an input or returns from a scoped form; Enter accepts fields. Curses keeps legacy Enter saves and adds Ctrl+S for every page, using raw input to avoid XON/XOFF swallowing the chord.
 
-Run `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>` from an installed candidate wheel. It checks both persistent entries at 120×30 and 80×48, CJK label/path input, ANSI palette, explicit boundaries/priority/width saves, preset/export/import validation, cancellation without writes and cross-editor readback. Raw logs remain private. Human Linux/Windows acceptance and macOS available-entry acceptance are pending; the previously reported macOS Client input limitation remains open.
+Run `tools/native_mod_acceptance.py --persistent --advanced --report-dir dist/validation/<new-directory>` from an installed candidate wheel. It checks both persistent entries at 120×30 and 80×48, CJK label/path input, ANSI palette, explicit boundaries/priority/width saves, preset/export/import validation, cancellation without writes and cross-editor readback. Raw logs remain private. Human Linux/Windows and macOS available-entry acceptance was confirmed on 2026-10-05; the previously reported macOS Client input limitation remains open.
+
+## v1.5.0 stable acceptance
+
+On 2026-10-05 the maintainer confirmed Phase 4 human acceptance on Linux and Windows and on macOS through the standalone TUI/CLI. Exact OS, architecture, terminal and host versions were not supplied. This confirmation does not declare the earlier macOS in-session Client input problem fixed.
+
+Stable changes package/Mod versions and release defaults; formatting, layout, portable files, host application and accepted input behavior remain those of the verified preview. Automated CI/PTYs and agent capture inspection remain independent evidence. Historical preview images keep their a1 filenames, capture hashes and original source commits.
