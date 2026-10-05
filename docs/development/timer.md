@@ -51,4 +51,4 @@ Timing scan version 5 refreshes old transcript metadata. Display schema v2, feat
 
 Submit at second 1, start an agent at 2, main Stop at 3, agent Stop at 4 and final main Stop at 9. Both before and after a later `durationMs=1000`, the task remains `✓ 0m 08s`. Tests cover main resumption, parallel/duplicate hooks, queued prompts, local commands, interruption/failure ordering, finite duration validation and clock reboot fallback.
 
-For real-session evidence and its visual boundaries, see [testing](testing.md). User-facing markers are documented in the [user guide](../USER_GUIDE.md#prompt-timing-markers).
+For real-session evidence and its visual boundaries, see [testing](testing.md). User-facing markers are documented in the [user guide](../reference/cli.md#prompt-timing-markers).

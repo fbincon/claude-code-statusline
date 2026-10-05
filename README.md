@@ -2,225 +2,165 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-A Claude Code status line for Linux, WSL, Windows, and macOS. It shows model and reasoning effort, working directory, Git, context, rate limits, tokens, and per-turn timing. Individual subagent rows are supported. Configure items, order, and styles through a terminal UI (TUI), a wizard inside Claude Code, or the command line.
+[![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
+[![Native Mod](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml)
+[MIT License](LICENSE)
 
-Stable v1.6.1 includes model/number formats, labels and built-in icons, risk colors, explicit rows with priorities and widths, four editable presets and portable JSON files. Both editors provide item forms and a Layout page. Claude appearance and behavior preferences have a separate Apply action. Existing default appearance is retained; [configuration and downgrade instructions](docs/USER_GUIDE.md#formatting-layout-presets) explain the options.
+A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reasoning effort, directory, Git, context, usage limits, tokens, and task timing at a glance. Configure the main line and individual subagent rows through an in-session editor, a terminal UI, a wizard, or the CLI.
 
-[Formatting, layouts and presets](docs/USER_GUIDE.md#formatting-layout-presets) · [Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Report an issue](https://github.com/fbincon/claude-code-statusline/issues)
-
-## v1.6.1: Clearer external TUI sections
-
-`/statusline-configure` and standalone `claude-statusline configure` now use separate content and Preview regions, continuous groups, aligned columns and distinct selection. Settings groups related options; Layout separates mode, row boundaries and item fitting. Frames start at 64×20; 64×18–19 retains compact separators. Existing configuration and key semantics remain compatible. See [section behavior](docs/USER_GUIDE.md#external-tui-sections) and [release notes](docs/releases/v1.6.1.md).
-
-## Phase 5 in stable v1.6.0
-
-[v1.6.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0) promotes the accepted live-metrics preview: eleven opt-in items, committed branch comparisons and frozen ended-agent durations. On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS; exact OS, architecture, terminal and host versions were not supplied. Tested runtime host: Claude Code 2.1.289. Collection remains independently off by default. Enable it with `claude-statusline install --live-metrics` and select items in either editor or CLI. See [definitions and conditional availability](docs/DISPLAY_ITEMS.md#request-coverage-and-sdk-fallback), [release notes](docs/releases/v1.6.0.md) and [installation](docs/USER_GUIDE.md#phase-5-stable-installation). The existing macOS Client input limitation remains documented.
+[Features](#features) · [Screenshots](#screenshots) · [Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting)
 
 <a id="phase-4-in-stable-v150"></a>
+<a id="phase-5-in-stable-v160"></a>
+<a id="v161-clearer-external-tui-sections"></a>
 
-## Upgrade to v1.6.1
+## Features
 
-Stable installation requests both editor entries on compatible hosts, preserving each recorded disablement. Upgrade the package, synchronize integration and restart Claude Code:
+- **Choose what to show:** 59 main-line items and 14 subagent items; enable, hide, search, and reorder them.
+- **Track the right scope:** session token totals, per-task subagent rows, and a timer covering the user's task through subagent work and main-agent wrap-up.
+- **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
+- **Start from a preset:** minimal, developer, monitoring, and multi-agent presets expand into editable settings; import and export portable JSON.
+- **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
+- **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and prompt usage are opt-in. Missing or partial observations stay distinguishable.
 
-```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
-claude-statusline install
-claude-statusline doctor
-```
-
-Upgrading from v1.6.0 needs no display migration and retains saved configuration and editor preferences.
-
-Upgrading from v1.6.0a1 retains display schema v4, configuration protocol v3 and independent runtime protocol v1. Older display v1/v2/v3 files migrate with a backup only on an actual save; use the [downgrade instructions](docs/USER_GUIDE.md#version-compatibility) before returning to an older package. Missing editor preferences follow stable defaults; explicit false remains off. Live-metrics preferences persist independently. To deliberately enable both editors, use `install --experimental-slash-tui --native-editor`. The [historical v1.6.0a1 preview](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0a1) and its assets remain available.
+Rendering uses Claude Code input and local state without making network requests or using model tokens. The question-and-answer wizard uses Claude model turns. See [field definitions](docs/DISPLAY_ITEMS.md) for data sources and availability.
 
 <a id="界面预览"></a>
 
 ## Screenshots
 
-The actual terminal screenshots below show Linux, macOS, and Windows sessions. The main status line shows session data; the configuration UI's Preview uses fixed sample data. Historical Linux Client captures are terminal-cell reconstructions, with provenance in the image index. Fonts, colors, and character widths depend on terminal settings.
+Main status lines show actual session data. Configuration Preview regions use fixed samples. New TUI screenshots are supplied terminal captures; the three standalone main-status-line images are retained from the earlier gallery. Fonts, colors, and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
 
 **Linux main status line**
 
-![Claude Code main status line: model and effort, directory, Git, context, tokens, and per-turn timing](docs/images/statusline.png)
+![Linux Claude Code main status line showing model and effort, directory, Git, context, tokens, and task timing](docs/images/statusline/linux.png)
 
 <details>
 <summary>In-session configuration TUI: Linux, Windows, and macOS (actual terminal screenshots)</summary>
 
-Use `/statusline-configure-native` to open the Client TUI inside the current Claude Code session. These screenshots show Claude Code 2.1.289; the configuration Preview uses sample data.
+Open `/statusline-configure-native` inside the current Claude Code session, then click the Client region once before using the keyboard. These images visibly show Claude Code 2.1.289.
 
-**Linux: the maintainer reports normal interaction.**
+**Linux**
 
-![Linux Claude Code session with the conversation and in-session Client Main configuration page](docs/images/client-session-linux.png)
+![Linux Claude Code session with the docked Client Main page and the main status line](docs/images/tui/native/linux/session.png)
 
-**Windows: the maintainer reports normal interaction.**
+**Windows**
 
-![Windows Claude Code session with the conversation and in-session Client Main configuration page](docs/images/client-session-windows.png)
+![Windows Terminal Claude Code session with the docked Client Main page and the main status line](docs/images/tui/native/windows/session.png)
 
-**macOS: the pane opens, but the maintainer reports interaction problems; a working configuration has not been verified.**
+**macOS**
 
-![macOS Claude Code session with the Client Main configuration page open inline](docs/images/client-session-macos.png)
+![macOS Terminal.app Claude Code session with the inline Client Main page and the main status line](docs/images/tui/native/macos/session.png)
 
-See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) for suggested checks and [screenshot provenance](docs/images/README.md#in-session-client-screenshots) for the supplied images and their limits.
-
-</details>
-
-<details>
-<summary>v1.6.1: External TUI groups and compact layout (Linux terminal reconstructions)</summary>
-
-These images reconstruct real curses PTYs from the installed wheel. Preview uses fixed samples; [capture provenance](docs/images/README.md#external-tui-v161) records the source, dimensions and inspection type.
-
-![External Settings: continuous groups, aligned columns and separate Preview](docs/images/external-settings-v1.6.1-linux.png)
-![External Layout: mode, row boundaries and item fitting](docs/images/external-layout-v1.6.1-linux.png)
-![Compact 64×18 Settings: titles and horizontal separators](docs/images/external-settings-compact-v1.6.1-linux.png)
-
-[Main](docs/images/external-main-v1.6.1-linux.png) · [Subagents](docs/images/external-subagents-v1.6.1-linux.png) · [Item format](docs/images/external-format-v1.6.1-linux.png) · [Compact Layout](docs/images/external-layout-compact-v1.6.1-linux.png)
+The existing macOS Client interaction limitation and suggested checks are documented in [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
 
 </details>
 
 <details>
-<summary>Historical Linux: Main, Subagents, and Settings configuration pages</summary>
+<summary>Linux: Main, Subagents, and Settings configuration pages</summary>
 
-**Main: select main status line items and change their order.**
+These pages use the external `/statusline-configure` TUI.
 
-![Main configuration page: main status line items and sample preview](docs/images/configure-main.png)
+**Main: select and reorder main status line items.**
 
-**Subagents: configure subagent row items and order.**
+![Linux external TUI Main page with item descriptions and sample preview](docs/images/tui/external/linux/main.png)
 
-![Subagents configuration page: subagent items and sample preview](docs/images/configure-subagents.png)
+**Subagents: choose items and ordering for individual agent rows.**
 
-**Settings: change colors, directory style, separators, refresh interval, and other options.**
+![Linux external TUI Subagents page with sample running and completed agents](docs/images/tui/external/linux/subagents.png)
 
-![Settings configuration page: display styles and Claude Code host options](docs/images/configure-settings.png)
+**Settings: adjust appearance, refresh behavior, and formatting.**
+
+![Linux external TUI Settings page with grouped options and sample preview](docs/images/tui/external/linux/settings.png)
 
 </details>
 
 <details>
-<summary>macOS: main status line and all three configuration pages in Terminal.app</summary>
+<summary>macOS: main status line and three configuration pages in Terminal.app</summary>
 
 **Main status line**
 
-![Claude Code main status line in macOS Terminal.app](docs/images/statusline-macos.png)
+![Claude Code main status line in macOS Terminal.app](docs/images/statusline/macos.png)
 
-**Main: main status line items and sample preview**
+**Main**
 
-![macOS Main configuration page](docs/images/configure-main-macos.png)
+![macOS Terminal.app external TUI Main page](docs/images/tui/external/macos/main.png)
 
-**Subagents: subagent rows and sample preview**
+**Subagents**
 
-![macOS Subagents configuration page](docs/images/configure-subagents-macos.png)
+![macOS Terminal.app external TUI Subagents page](docs/images/tui/external/macos/subagents.png)
 
-**Settings: display styles and host settings**
+**Settings**
 
-![macOS Settings configuration page](docs/images/configure-settings-macos.png)
+![macOS Terminal.app external TUI Settings page](docs/images/tui/external/macos/settings.png)
 
 </details>
 
 <details>
-<summary>Windows: main status line and all three configuration pages in Windows Terminal</summary>
+<summary>Windows: main status line and three configuration pages in Windows Terminal</summary>
 
 **Main status line**
 
-![Claude Code main status line in Windows Terminal](docs/images/statusline-windows.png)
+![Claude Code main status line in Windows Terminal](docs/images/statusline/windows.png)
 
-**Main: main status line items and sample preview**
+**Main**
 
-![Windows Main configuration page](docs/images/configure-main-windows.png)
+![Windows Terminal external TUI Main page](docs/images/tui/external/windows/main.png)
 
-**Subagents: subagent rows and sample preview**
+**Subagents**
 
-![Windows Subagents configuration page](docs/images/configure-subagents-windows.png)
+![Windows Terminal external TUI Subagents page](docs/images/tui/external/windows/subagents.png)
 
-**Settings: display styles and host settings**
+**Settings**
 
-![Windows Settings configuration page](docs/images/configure-settings-windows.png)
-
-</details>
-
-<details>
-<summary>v1.5.0a1: item formats, Layout, presets and Claude preferences (Linux terminal reconstructions)</summary>
-
-![Item format with CJK label](docs/images/client-format-v1.5.0a1-linux.png)
-
-![Explicit Layout and preview](docs/images/client-layout-v1.5.0a1-linux.png)
-
-![Developer preset preview](docs/images/client-preset-v1.5.0a1-linux.png)
-
-![Separate Claude preferences](docs/images/client-preferences-v1.5.0a1-linux.png)
-
-[Compact Layout and capture provenance](docs/images/README.md#v150a1-phase-4-captures). Phase 4 human acceptance is confirmed; the images retain their original preview provenance.
+![Windows Terminal external TUI Settings page](docs/images/tui/external/windows/settings.png)
 
 </details>
 
-[Image file index](docs/images/README.md)
-
-<details>
-<summary>In-session Client: Main, Subagents, Settings (reconstructed a2 captures; stable keeps the same interaction)</summary>
-
-![Client Main: grouped items and sample preview](docs/images/client-main-v1.3.0a2-linux.png)
-
-![Client Subagents page](docs/images/client-subagents-v1.3.0a2-linux.png)
-
-![Client Settings: grouped and aligned columns](docs/images/client-settings-v1.3.0a2-linux.png)
-
-[Capture provenance and human acceptance](docs/images/README.md#v130a2-client-captures).
-
-</details>
-
-<a id="支持范围"></a>
+Layout screenshots are in the [layout guide](docs/USER_GUIDE.md#formatting-layout-presets). Earlier screenshots and terminal reconstructions remain in the [archive](docs/images/archive/README.md).
 
 ## Supported platforms
 
-- Native Linux and WSL: Python 3.10+.
-- Native Windows 10/11: CPython 3.10–3.14, x86/x64; installs `windows-curses>=2.4.2` automatically. ARM devices can use x64 Python emulation.
-- macOS 14+: CPython 3.10–3.14, Intel / Apple Silicon.
-- Claude Code 2.1.205+ supports subagent rows; 2.1.258+ supports the external TUI entry and local configuration commands with arguments; 2.1.287+ supports the in-session Client.
-- Unsupported or unrecognized hosts suspend the affected entries; the main status line, standalone TUI, wizard and CLI remain available. Git information requires `git`.
+| Platform | Supported environment |
+| --- | --- |
+| Linux / WSL | Python 3.10+ |
+| Windows 10/11 | CPython 3.10–3.14, x86/x64; `windows-curses>=2.4.2` installs automatically |
+| macOS 14+ | CPython 3.10–3.14, Intel / Apple Silicon |
 
-The current stable release is [**v1.6.1**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1), using the same wheel across platforms. Phase 5 acceptance is confirmed on Linux, Windows and macOS; the earlier macOS Client input limitation remains. See [macOS checks](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [requirements](docs/USER_GUIDE.md#requirements).
+Windows ARM devices can use x64 Python emulation; native ARM64 Python is outside the current support contract. Git information requires `git`.
 
+Claude Code feature requirements: subagent rows 2.1.205+; local argument-based configuration and external TUI entry 2.1.258+; in-session Client 2.1.287+; live-metrics collection 2.1.289+. Unsupported or unknown host versions suspend the corresponding integration. See [requirements](docs/USER_GUIDE.md#requirements).
+
+<a id="install-current-source"></a>
+<a id="install-from-a-release-recommended"></a>
+<a id="install-source-at-a-fixed-tag"></a>
+<a id="从-release-安装推荐"></a>
+<a id="从固定标签源码安装"></a>
+<a id="从当前源码安装"></a>
+<a id="升级与卸载"></a>
+<a id="常用配置"></a>
 <a id="快速安装"></a>
+<a id="接入-claude-code"></a>
+<a id="支持范围"></a>
+<a id="文档与帮助"></a>
+<a id="许可证"></a>
 
 ## Quick installation
 
-Prepare Python, Claude Code CLI and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Download verification, platform steps and builds are in the [user guide](docs/USER_GUIDE.md#install-the-python-package).
+Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). The current package version is [v1.6.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1); all supported platforms use the same wheel.
 
-<a id="从-release-安装推荐"></a>
+### Install the package
 
-### Install from a Release (recommended)
-
-Bash / Zsh / PowerShell:
+Bash, Zsh, and PowerShell:
 
 ```text
 pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
-<a id="从固定标签源码安装"></a>
-
-### Install source at a fixed tag
-
-Requires Git:
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
-pipx ensurepath
-```
-
-<a id="从当前源码安装"></a>
-
-### Install current source
-
-`main` changes during development; for a local checkout run `pipx install .` in its root:
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
-pipx ensurepath
-```
-
-<a id="接入-claude-code"></a>
-
 ### Integrate with Claude Code
 
-Reopen the terminal for PATH changes and confirm `claude-statusline 1.6.1`:
+Reopen the terminal so PATH changes take effect, then run:
 
 ```text
 claude-statusline --version
@@ -229,42 +169,48 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-On Windows use `claude-statusline.exe`. Package installation and Claude integration are separate steps. Restart Claude Code in a trusted terminal afterward to load the plugin and commands. Stable defaults both entries on, preserving recorded disablement; unsupported hosts suspend them independently. Installation opens neither an editor nor another terminal. Foreign resources are checked by entry ownership; see [conflict handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
+On Windows, use `claude-statusline.exe`. Restart Claude Code in a trusted terminal after integration.
 
-<a id="常用配置"></a>
+Both editors default on for compatible hosts, respecting saved disablement preferences. Live collection defaults off. Package installation and Claude integration are separate steps; `install` does not open an editor. Existing conflicting resources require [explicit handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
+
+<details>
+<summary>Other installation methods</summary>
+
+Install source from the fixed release tag (requires Git):
+
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
+```
+
+Use `@main` to follow current development, or run `pipx install .` from a local checkout. Then run `pipx ensurepath` and complete integration above.
+
+Download checksums and platform-specific instructions are in the [installation guide](docs/USER_GUIDE.md#installation-and-integration); source builds are in the [development guide](docs/development/README.md#build-and-install-from-source).
+
+</details>
 
 ## Common configuration
 
-| Entry point | Purpose |
+| Entry point | Use |
 | --- | --- |
-| `/statusline-configure-native` | Client TUI inside the current Claude Code session; default on, requires 2.1.287+; see [Native configuration editor](docs/USER_GUIDE.md#native-configuration-editor) |
-| `/statusline-configure` | Existing TUI in a platform terminal; default on, requires 2.1.258+; see [external terminal entry](docs/USER_GUIDE.md#external-terminal-statusline-configure) |
-| `claude-statusline configure` | Complete TUI in the current standalone terminal; Windows uses `claude-statusline.exe configure` |
-| `/statusline-config` | Claude-driven wizard; arguments execute locally or in a model turn according to host capabilities |
-| `claude-statusline config ...` | Inspect configuration, set exact order or run scripts |
+| `/statusline-configure-native` | Client TUI in the current session; see [native editor](docs/USER_GUIDE.md#native-configuration-editor) |
+| `/statusline-configure` | TUI in a supported external terminal; see [external entry](docs/USER_GUIDE.md#external-terminal-statusline-configure) |
+| `claude-statusline configure` | Full TUI in the current standalone terminal |
+| `/statusline-config` | Claude question-and-answer wizard; supported argument-based commands execute locally on compatible hosts |
+| `claude-statusline config ...` | Inspect settings, set exact ordering, or configure from scripts |
 
 <a id="v130a2-external-tui-and-in-session-client"></a>
 
 ### Native configuration editor
 
-Run `/statusline-configure-native`, **click the Client region once**, then use Tab for pages, arrows for selection/order, Space for toggles, `/` for search and Ctrl+G to cancel input. `s` saves/continues, `f` saves/finishes and `q` discards/closes; Esc belongs to the host. Settings groups appearance, refresh/display behavior and advanced Claude preferences; preferences have a separate Apply. Minimum pane body: 32×12.
-
-For macOS Terminal.app, check **View → Allow Mouse Reporting** before clicking the Client region. This permits mouse events; the running application must also enable mouse reporting. This suggested setup has not been verified as a fix for the reported macOS problem. See [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus) for the official references, iTerm2 checks and alternative configuration entry points.
+Click the Client region once. Use Tab to change pages, arrows to select or reorder, Space to toggle, and `/` to search. `s` saves and stays, `f` saves and closes, and `q` discards unsaved changes. Ctrl+E opens item formatting; Ctrl+G cancels input. Claude preferences apply separately.
 
 ### External and standalone terminal TUI
 
-`/statusline-configure` retains Linux tmux / GNOME Terminal, macOS tmux / Terminal.app and Windows system-console launchers. `claude-statusline configure` uses the current terminal; minimum size is 64×18. Outside numeric editing Enter saves, Esc cancels and Ctrl+C interrupts without saving.
+Use Tab to change pages, Space to toggle, and arrows to select or reorder. Ctrl+S saves after field input is finished; Enter saves on item and original settings rows, or edits/confirms advanced fields. Esc cancels input first, then cancels the editor; Ctrl+C interrupts without saving. The minimum terminal size is 64×18.
 
-Both editors may open concurrently; revision checks reject stale saves rather than overwriting newer configuration. Reopening Native retains its draft; `r` explicitly discards/reloads after a conflict, and `k` checks an unknown save outcome first.
+The external entry uses tmux or GNOME Terminal on Linux, tmux or Terminal.app on macOS, and the system's new-console launcher on Windows. For SSH or unavailable launchers, run `claude-statusline configure` in the current terminal.
 
-See [installation combinations and compatibility](docs/USER_GUIDE.md#editor-installation-combinations-and-compatibility) for defaults, all four modes and host downgrades. Disable independently:
-
-```text
-claude-statusline install --no-native-editor
-claude-statusline install --no-experimental-slash-tui
-```
-
-The historical `--experimental-slash-tui` flag continues to control the external entry independently of `--native-editor`. Example minimal main line:
+Define a compact main line:
 
 ```text
 claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
@@ -272,15 +218,13 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
-The catalog contains 59 main and 14 subagent choices; the 28 independent additions introduced in v1.4.0 remain opt-in. See [independent metrics](docs/DISPLAY_ITEMS.md) for context/cumulative scope, cache/reset expiry and examples.
+Configuration is per user. `set-items` replaces the enabled set; `enable` and `disable` make incremental changes. See [recipes](docs/USER_GUIDE.md#configuration-recipes), [formatting and layouts](docs/USER_GUIDE.md#formatting-layout-presets), and the [CLI reference](docs/reference/cli.md).
 
-Configuration applies per user. `set-items` replaces the enabled set; `enable` / `disable` make incremental changes. See [recipes](docs/USER_GUIDE.md#configuration-recipes).
-
-<a id="升级与卸载"></a>
+<a id="upgrade-to-v161"></a>
 
 ## Upgrading and uninstalling
 
-Upgrade to v1.6.1:
+Upgrade the package, synchronize integration, then restart Claude Code:
 
 ```text
 pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
@@ -288,9 +232,9 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-On Windows use `claude-statusline.exe`, then restart Claude Code. Display configuration, runtime state and recorded independent preferences persist. Older external disable commands deleted the preference file: absence now follows the stable enabled default. Pass `--no-experimental-slash-tui` again to keep that entry off. See [upgrading](docs/USER_GUIDE.md#upgrading).
+Saved display settings, runtime state, and integration preferences remain. For older display schemas or package downgrade, follow [version compatibility](docs/USER_GUIDE.md#version-compatibility).
 
-Remove Claude integration before the Python package:
+Remove Claude integration before uninstalling the package:
 
 ```text
 claude-statusline uninstall --dry-run
@@ -298,19 +242,48 @@ claude-statusline uninstall
 pipx uninstall claude-code-statusline
 ```
 
-Display preferences, feature preferences, caches and backups remain; see [uninstallation](docs/USER_GUIDE.md#uninstalling).
+Display settings and backups remain available; see [uninstalling](docs/USER_GUIDE.md#uninstalling).
 
-<a id="文档与帮助"></a>
+## Project structure
+
+```text
+claude-code-statusline/
+├── README.md / README.zh-CN.md
+├── docs/
+│   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md
+│   ├── reference/                  # CLI and configuration reference
+│   ├── images/                     # Current screenshots and archive
+│   ├── development/                # Setup, architecture and validation
+│   └── releases/                   # Historical release notes
+├── src/claude_statusline/
+│   ├── config/
+│   ├── integration/
+│   ├── platforms/
+│   ├── rendering/
+│   ├── runtime/
+│   └── ui/
+├── mods/
+│   ├── statusline-native/
+│   └── statusline-runtime/
+├── tests/
+│   ├── config/
+│   ├── integration/
+│   ├── platforms/
+│   ├── rendering/
+│   ├── runtime/
+│   └── ui/
+├── tools/
+└── pyproject.toml
+```
 
 ## Documentation and help
 
-- [Display items and metric definitions](docs/DISPLAY_ITEMS.md).
-- [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting) · [Changelog](CHANGELOG.md).
-- [Native editor development and acceptance](docs/development/native.md) · [Architecture](docs/development/architecture.md) · [Shared protocol](docs/development/contracts.md).
-- [Testing and acceptance](docs/development/testing.md) · [Timer metrics](docs/development/timer.md) · [Release guide](docs/RELEASING.md).
-- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include OS/versions, reproduction and diagnostics with private paths and session content removed.
-
-<a id="许可证"></a>
+- [User guide](docs/USER_GUIDE.md): installation, editors, recipes, upgrades, and troubleshooting.
+- [CLI reference](docs/reference/cli.md): commands, options, fields, files, and exit codes.
+- [Display items and metric definitions](docs/DISPLAY_ITEMS.md): scope, sources, and availability.
+- [Development guide](docs/development/README.md) · [Release process](docs/RELEASING.md).
+- [Changelog](CHANGELOG.md) · [Releases](https://github.com/fbincon/claude-code-statusline/releases).
+- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include versions, reproduction steps, and diagnostic results; remove private paths and session content.
 
 ## License
 
