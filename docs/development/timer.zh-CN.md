@@ -51,4 +51,4 @@ Hook ID 标识所属主 prompt。增量 transcript 解析保留最近已确认�
 
 第 1 秒提交，第 2 秒启动 Agent，第 3 秒主 Stop，第 4 秒 Agent Stop，第 9 秒最终主 Stop。迟到的 `durationMs=1000` 到达前后，任务都保持 `✓ 0m 08s`。测试覆盖恢复为 main、并行/重复 hooks、排队 prompt、本地命令、中断/失败顺序、有限 duration 校验和重启后的时钟回退。
 
-真实会话证据及视觉验收边界见 [测试](testing.zh-CN.md)，面向用户的标记见 [使用指南](../USER_GUIDE.zh-CN.md#prompt-计时标记)。
+真实会话证据及视觉验收边界见 [测试](testing.zh-CN.md)，面向用户的标记见 [使用指南](../reference/cli.zh-CN.md#prompt-计时标记)。

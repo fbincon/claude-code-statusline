@@ -115,7 +115,7 @@ Use the installed wheel for `tools/native_mod_acceptance.py --persistent --advan
 
 ### v1.5.0a1 candidate evidence
 
-On 2026-10-05, the preview suite passed 507 tests (499 pass, eight platform skips) and 40 official Mod tests. Installed clean `07804ba` v1.5.0a1 wheel passed core and actual official-installation smoke plus advanced persistent 120×30 / 80×48 PTYs, including theme/turn-duration Apply/reload and independent tool saves. The rebased `e978411` source tree is byte-identical. Agent capture inspection is recorded in the [image index](../images/README.md#v150a1-phase-4-captures); human acceptance was pending at the capture and was confirmed on 2026-10-05 (macOS standalone TUI/CLI).
+On 2026-10-05, the preview suite passed 507 tests (499 pass, eight platform skips) and 40 official Mod tests. Installed clean `07804ba` v1.5.0a1 wheel passed core and actual official-installation smoke plus advanced persistent 120×30 / 80×48 PTYs, including theme/turn-duration Apply/reload and independent tool saves. The rebased `e978411` source tree is byte-identical. Agent capture inspection is recorded in the [image index](../images/archive/README.md#v150a1-phase-4-captures); human acceptance was pending at the capture and was confirmed on 2026-10-05 (macOS standalone TUI/CLI).
 
 Same machine, Python 3.14.4 and benchmark SHA-256 prefix `0f299dcff19d`, 50 samples with isolated warm bytecode, baseline `6c7826e` and formatter `a040243`:
 

@@ -2,92 +2,74 @@
 
 [English](README.md) | **简体中文**
 
-面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和逐轮用时。支持子 Agent 独立状态行，可通过终端交互界面（TUI）、Claude Code 内的配置向导或命令行调整显示项、顺序和样式。
+[![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
+[![Native Mod](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml)
+[MIT License](LICENSE)
 
-正式 v1.6.1 包含模型与数字格式、标签与内置图标、风险颜色、带优先级和宽度限制的显式分行、四种可编辑预设及可移植 JSON 文件。两种编辑器均提供逐项表单和 Layout 页；Claude 外观及行为偏好通过独立 Apply 操作应用。默认外观保留，选项及降级流程见[配置说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)。
+面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，集中显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和任务用时。主状态栏与子 Agent 独立行可通过会话内编辑器、终端交互界面（TUI）、问答向导或 CLI 配置。
 
-[格式、布局与预设](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets) · [快速安装](#快速安装) · [常用配置](#常用配置) · [完整使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [报告问题](https://github.com/fbincon/claude-code-statusline/issues)
+[功能概览](#功能概览) · [界面预览](#界面预览) · [快速安装](#快速安装) · [常用配置](#常用配置) · [使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查)
 
-## v1.6.1：外部 TUI 栏目层级
-
-`/statusline-configure` 和独立 `claude-statusline configure` 现在使用独立内容与 Preview 板块、连续分组、对齐栏目及明显的选中行。Settings 按用途归组；Layout 区分模式、行边界和逐项适配。64×20 起使用边框，64×18–19 保留紧凑分隔；现有配置与按键语义兼容。参见[分组说明](docs/USER_GUIDE.zh-CN.md#external-tui-sections)和[发布说明](docs/releases/v1.6.1.md)。
-
-## 正式 v1.6.0 的 Phase 5 功能
-
-[v1.6.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0) 晋升已验收的实时指标预览：十一项可选指标、已提交分支差异和已结束代理时长冻结。2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。已测试运行宿主为 Claude Code 2.1.289。采集继续独立默认关闭，用 `claude-statusline install --live-metrics` 启用，再通过任一编辑器或 CLI 选择显示项。参见[指标口径与条件性可用](docs/DISPLAY_ITEMS.zh-CN.md#请求覆盖与-sdk-回退)、[发布说明](docs/releases/v1.6.0.md)和[安装步骤](docs/USER_GUIDE.zh-CN.md#phase-5-正式版安装)。已有 macOS Client 输入限制继续记录。
-
+<a id="v161外部-tui-栏目层级"></a>
 <a id="正式-v150-的-phase-4-功能"></a>
+<a id="正式-v160-的-phase-5-功能"></a>
 
-## 升级到 v1.6.1
+## 功能概览
 
-正式安装在兼容宿主默认请求启用两种编辑器，保留各自已记录的关闭偏好。升级包、同步接入后重启 Claude Code：
+- **选择显示内容：** 支持 59 个主栏条目和 14 个子 Agent 条目，可启用、隐藏、筛选和排序。
+- **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含子 Agent 工作和主 Agent 收尾的完整任务计时。
+- **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
+- **从预设开始：** minimal、developer、monitoring、multi-agent 四种预设可展开编辑，支持可移植 JSON 导入和导出。
+- **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
+- **按需开启实时指标：** 运行状态、代理数量、工具进度、请求用时和逐任务用量需主动启用；缺失数据和部分观测分别标记。
 
-```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
-claude-statusline install
-claude-statusline doctor
-```
-
-从 v1.6.0 升级无需显示配置迁移，保存的配置与编辑器偏好继续保留。
-
-从 v1.6.0a1 升级沿用显示 schema v4、配置协议 v3 和独立运行协议 v1；旧 v1/v2/v3 显示文件仅在真实保存时备份并迁移，返回旧包前按[降级流程](docs/USER_GUIDE.zh-CN.md#版本兼容)操作。缺失编辑器偏好使用正式默认，明确 false 保持关闭；实时采集偏好独立保留。需要主动启用两入口时使用 `install --experimental-slash-tui --native-editor`。[历史 v1.6.0a1 预览](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.0a1)及其资产继续保留。
+状态栏渲染读取 Claude Code 输入和本地状态，不自行发起网络请求或使用模型 token。问答向导使用 Claude 模型回合。数据来源与可用条件见[显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)。
 
 ## 界面预览
 
-以下实际终端截图展示 Linux、macOS 和 Windows 的会话界面。主状态栏显示会话数据；配置界面底部的 Preview 使用固定样例数据。历史 Linux Client 画面由终端单元格重建，来源见截图索引。字体、颜色和字符宽度会随终端设置变化。
+主状态栏使用实际会话数据，配置界面的 Preview 使用固定样例。TUI 展示换用新提供的终端截图，三张独立主状态栏图沿用旧图库。字体、颜色与显示宽度随终端设置变化。[图片来源与归档索引](docs/images/README.zh-CN.md)。
 
 **Linux 主状态栏**
 
-![Claude Code 主状态栏：模型与 effort、目录、Git、上下文、token 和逐轮用时](docs/images/statusline.png)
+![Linux Claude Code 主状态栏：模型与 effort、目录、Git、上下文、token 和任务用时](docs/images/statusline/linux.png)
 
 <details>
 <summary>会话内配置 TUI：Linux、Windows 与 macOS 的实际终端截图</summary>
 
-使用 `/statusline-configure-native` 在当前 Claude Code 会话内打开 Client TUI。以下截图显示 Claude Code 2.1.289；配置界面的 Preview 使用样例数据。
+在当前 Claude Code 会话内运行 `/statusline-configure-native`，先点击 Client 区域一次，再使用键盘。以下图片均可见 Claude Code 2.1.289。
 
-**Linux：维护者实测可以正常操作。**
+**Linux**
 
-![Linux Claude Code 会话中的对话区与会话内 Client Main 配置页](docs/images/client-session-linux.png)
+![Linux Claude Code 会话中的停靠式 Client Main 配置页与主状态栏](docs/images/tui/native/linux/session.png)
 
-**Windows：维护者实测可以正常操作。**
+**Windows**
 
-![Windows Claude Code 会话中的对话区与会话内 Client Main 配置页](docs/images/client-session-windows.png)
+![Windows Terminal 中 Claude Code 会话的停靠式 Client Main 配置页与主状态栏](docs/images/tui/native/windows/session.png)
 
-**macOS：面板可以打开，但维护者实测存在交互问题，尚未验证有效配置。**
+**macOS**
 
-![macOS Claude Code 会话中内嵌打开的 Client Main 配置页](docs/images/client-session-macos.png)
+![macOS Terminal.app 中 Claude Code 会话的内嵌 Client Main 配置页与主状态栏](docs/images/tui/native/macos/session.png)
 
-建议检查步骤见 [macOS 鼠标报告与 Client 焦点](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)，原图来源与说明见[会话内 Client 截图](docs/images/README.zh-CN.md#会话内-client-截图)。
-
-</details>
-
-<details>
-<summary>v1.6.1：外部 TUI 分组与紧凑布局（Linux 终端捕获重建）</summary>
-
-以下画面来自安装 wheel 后的真实 curses PTY，Preview 使用固定样例值；源提交、尺寸及检查类型见[截图索引](docs/images/README.zh-CN.md#external-tui-v161)。
-
-![外部 Settings：连续分组、对齐栏目及独立 Preview](docs/images/external-settings-v1.6.1-linux.png)
-![外部 Layout：模式、行边界和逐项适配](docs/images/external-layout-v1.6.1-linux.png)
-![64×18 紧凑 Settings：标题与横线分隔](docs/images/external-settings-compact-v1.6.1-linux.png)
-
-[Main](docs/images/external-main-v1.6.1-linux.png) · [Subagents](docs/images/external-subagents-v1.6.1-linux.png) · [格式详情](docs/images/external-format-v1.6.1-linux.png) · [紧凑 Layout](docs/images/external-layout-compact-v1.6.1-linux.png)
+已有 macOS Client 交互限制与检查建议见 [macOS 鼠标报告与 Client 焦点](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
 
 </details>
 
 <details>
-<summary>历史 Linux：Main、Subagents 和 Settings 配置界面</summary>
+<summary>Linux：Main、Subagents 和 Settings 配置界面</summary>
+
+以下页面由外部 `/statusline-configure` TUI 提供。
 
 **Main：选择主状态栏条目并调整顺序。**
 
-![Main 配置页：主状态栏条目与样例预览](docs/images/configure-main.png)
+![Linux 外部 TUI Main 页：显示项、说明与样例预览](docs/images/tui/external/linux/main.png)
 
-**Subagents：配置子 Agent 行的条目与顺序。**
+**Subagents：选择子 Agent 行的条目与顺序。**
 
-![Subagents 配置页：子 Agent 条目与样例预览](docs/images/configure-subagents.png)
+![Linux 外部 TUI Subagents 页：运行中与已完成代理的样例预览](docs/images/tui/external/linux/subagents.png)
 
-**Settings：调整颜色、目录样式、分隔符和刷新间隔等选项。**
+**Settings：调整外观、刷新行为和格式。**
 
-![Settings 配置页：显示样式和 Claude Code 宿主选项](docs/images/configure-settings.png)
+![Linux 外部 TUI Settings 页：分组设置与样例预览](docs/images/tui/external/linux/settings.png)
 
 </details>
 
@@ -96,19 +78,19 @@ claude-statusline doctor
 
 **主状态栏**
 
-![macOS Terminal.app 中的 Claude Code 主状态栏](docs/images/statusline-macos.png)
+![macOS Terminal.app 中的 Claude Code 主状态栏](docs/images/statusline/macos.png)
 
-**Main：主状态栏条目与样例预览**
+**Main**
 
-![macOS Main 配置页](docs/images/configure-main-macos.png)
+![macOS Terminal.app 外部 TUI Main 配置页](docs/images/tui/external/macos/main.png)
 
-**Subagents：子 Agent 行与样例预览**
+**Subagents**
 
-![macOS Subagents 配置页](docs/images/configure-subagents-macos.png)
+![macOS Terminal.app 外部 TUI Subagents 配置页](docs/images/tui/external/macos/subagents.png)
 
-**Settings：显示样式与宿主设置**
+**Settings**
 
-![macOS Settings 配置页](docs/images/configure-settings-macos.png)
+![macOS Terminal.app 外部 TUI Settings 配置页](docs/images/tui/external/macos/settings.png)
 
 </details>
 
@@ -117,96 +99,56 @@ claude-statusline doctor
 
 **主状态栏**
 
-![Windows Terminal 中的 Claude Code 主状态栏](docs/images/statusline-windows.png)
+![Windows Terminal 中的 Claude Code 主状态栏](docs/images/statusline/windows.png)
 
-**Main：主状态栏条目与样例预览**
+**Main**
 
-![Windows Main 配置页](docs/images/configure-main-windows.png)
+![Windows Terminal 外部 TUI Main 配置页](docs/images/tui/external/windows/main.png)
 
-**Subagents：子 Agent 行与样例预览**
+**Subagents**
 
-![Windows Subagents 配置页](docs/images/configure-subagents-windows.png)
+![Windows Terminal 外部 TUI Subagents 配置页](docs/images/tui/external/windows/subagents.png)
 
-**Settings：显示样式与宿主设置**
+**Settings**
 
-![Windows Settings 配置页](docs/images/configure-settings-windows.png)
-
-</details>
-
-[截图文件索引](docs/images/README.zh-CN.md)
-
-<details>
-<summary>会话内 Client：Main、Subagents、Settings（a2 终端重建画面，正式版沿用同一交互）</summary>
-
-![Client Main 分组列表和样例预览](docs/images/client-main-v1.3.0a2-linux.png)
-
-![Client Subagents 页面](docs/images/client-subagents-v1.3.0a2-linux.png)
-
-![Client Settings 分组与对齐栏目](docs/images/client-settings-v1.3.0a2-linux.png)
-
-[画面来源及真人验收记录](docs/images/README.zh-CN.md#v130a2-client-画面)。
+![Windows Terminal 外部 TUI Settings 配置页](docs/images/tui/external/windows/settings.png)
 
 </details>
+
+Layout 截图见[布局操作说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)，旧截图与终端重建画面见[归档索引](docs/images/archive/README.zh-CN.md)。
 
 ## 支持范围
 
-- Linux 原生与 WSL：Python 3.10+。
-- Windows 10/11 原生：CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2`。ARM 设备使用 x64 Python 仿真。
-- macOS 14+：CPython 3.10–3.14，Intel / Apple Silicon。
-- Claude Code 2.1.205+ 支持子 Agent 独立状态行；2.1.258+ 支持外部 TUI 入口与带参数配置命令的本地执行；2.1.287+ 支持会话内 Client。
-- 不兼容或无法识别的宿主暂挂对应入口；基础状态栏、独立终端 TUI、向导和 CLI 继续可用。Git 信息需要系统中存在 `git`。
+| 平台 | 支持环境 |
+| --- | --- |
+| Linux / WSL | Python 3.10+ |
+| Windows 10/11 | CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2` |
+| macOS 14+ | CPython 3.10–3.14，Intel / Apple Silicon |
 
-当前稳定版为 [**v1.6.1**](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1)，以上平台共用同一个 wheel。Phase 5 的 Linux、Windows、macOS 验收已确认，历史 macOS Client 输入限制保留；见 [macOS 检查建议](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)与[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
+Windows ARM 设备可使用 x64 Python 仿真；原生 ARM64 Python 暂不在支持范围。Git 信息需要系统中存在 `git`。
 
-<details>
-<summary>v1.5.0a1：逐项格式、Layout、预设与 Claude 偏好（Linux 终端重建）</summary>
+Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地执行与外部 TUI 入口需 2.1.258+，会话内 Client 需 2.1.287+，实时指标采集需 2.1.289+。版本不兼容或无法识别时，对应接入暂挂。详见[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
-![中文逐项标签](docs/images/client-format-v1.5.0a1-linux.png)
-
-![显式 Layout 与预览](docs/images/client-layout-v1.5.0a1-linux.png)
-
-![Developer 预设预览](docs/images/client-preset-v1.5.0a1-linux.png)
-
-![独立 Claude 偏好](docs/images/client-preferences-v1.5.0a1-linux.png)
-
-[紧凑 Layout 与来源说明](docs/images/README.zh-CN.md#v150a1-phase-4-终端重建画面)。Phase 4 人工验收已确认，图片保留原预览来源。
-
-</details>
+<a id="从-release-安装推荐"></a>
+<a id="从固定标签源码安装"></a>
+<a id="从当前源码安装"></a>
 
 ## 快速安装
 
-先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。下载校验、各平台步骤和源码构建见[使用指南](docs/USER_GUIDE.zh-CN.md#安装-python-包)。
+先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。当前软件包版本为 [v1.6.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1)，支持平台共用同一个 wheel。
 
-### 从 Release 安装（推荐）
+### 安装软件包
 
-Bash / Zsh / PowerShell 通用：
+Bash、Zsh、PowerShell 通用：
 
 ```text
 pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
-### 从固定标签源码安装
-
-需要 Git：
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
-pipx ensurepath
-```
-
-### 从当前源码安装
-
-`main` 随开发变化；本地检出在项目根目录执行 `pipx install .`：
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
-pipx ensurepath
-```
-
 ### 接入 Claude Code
 
-重新打开终端让 PATH 生效，确认版本为 `claude-statusline 1.6.1`：
+重新打开终端，让 PATH 设置生效，再执行：
 
 ```text
 claude-statusline --version
@@ -215,40 +157,48 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows 使用 `claude-statusline.exe`。包安装与 Claude 接入分为两步；接入后在受信任终端重启 Claude Code 加载插件和命令。正式版两个入口默认启用，但已有明确关闭偏好优先；宿主不兼容时分别暂挂。安装不会打开配置面板或外部终端。第三方资源按所属入口检查冲突，见[冲突处理](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)。
+Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claude Code。
+
+两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；实时采集默认关闭。软件包安装与 Claude 接入是两个步骤，`install` 不会打开编辑器。已有冲突资源需按[冲突处理说明](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
+
+<details>
+<summary>其他安装方式</summary>
+
+从固定发布标签安装源码，需要 Git：
+
+```text
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
+```
+
+使用 `@main` 跟踪当前开发源码；本地检出可在仓库根目录执行 `pipx install .`。随后运行 `pipx ensurepath`，并完成上面的接入步骤。
+
+下载校验和平台步骤见[安装指南](docs/USER_GUIDE.zh-CN.md#安装与接入)，源码构建见[开发指南](docs/development/README.zh-CN.md#从源码构建与安装)。
+
+</details>
 
 ## 常用配置
 
 | 入口 | 用途 |
 | --- | --- |
-| `/statusline-configure-native` | 同一 Claude Code session 内的 Client TUI；默认启用，需 2.1.287+；见[原生配置编辑器](docs/USER_GUIDE.zh-CN.md#原生配置编辑器) |
-| `/statusline-configure` | 外部终端承载现有 TUI；默认启用，需 2.1.258+；见[外部终端入口](docs/USER_GUIDE.zh-CN.md#外部终端入口-statusline-configure) |
-| `claude-statusline configure` | 当前独立终端中的完整 TUI；Windows 使用 `claude-statusline.exe configure` |
-| `/statusline-config` | Claude 问答向导；带参数时按宿主能力本地执行或进入模型回合 |
-| `claude-statusline config ...` | 检查配置、设置精确顺序或运行脚本 |
+| `/statusline-configure-native` | 当前会话内的 Client TUI，见[原生配置编辑器](docs/USER_GUIDE.zh-CN.md#原生配置编辑器) |
+| `/statusline-configure` | 由受支持的外部终端承载 TUI，见[外部入口](docs/USER_GUIDE.zh-CN.md#外部终端入口-statusline-configure) |
+| `claude-statusline configure` | 当前独立终端中的完整 TUI |
+| `/statusline-config` | Claude 问答向导；支持的带参数命令在兼容宿主本地执行 |
+| `claude-statusline config ...` | 检查配置、设置精确顺序或从脚本配置 |
 
 <a id="v130a2外部-tui-与会话内-client"></a>
 
 ### 原生配置编辑器
 
-执行 `/statusline-configure-native` 后**先点击 Client 区域一次**，再使用 Tab 切页、方向键选择/排序、Space 勾选、`/` 搜索、Ctrl+G 取消输入。`s` 保存留页，`f` 保存后退出，`q` 丢弃退出；Esc 由宿主处理。Settings 分为外观、刷新与显示行为、Claude 高级偏好；高级偏好独立 Apply。最小面板正文为 32×12。
-
-macOS Terminal.app 用户应先检查**显示 → 允许鼠标报告**（View → Allow Mouse Reporting），再点击 Client 区域。该选项只允许传递鼠标事件，运行中的应用还须启用鼠标报告；这些建议尚未在维护者的 macOS 环境验证解决问题。官方资料、iTerm2 检查项及其他配置入口见 [macOS 鼠标报告与 Client 焦点](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
+先点击 Client 区域一次，再用 Tab 切页、方向键选择或排序、Space 勾选、`/` 搜索。`s` 保存留页，`f` 保存并退出，`q` 丢弃未保存修改。Ctrl+E 打开逐项格式表单，Ctrl+G 取消输入。Claude 偏好使用独立 Apply 操作。
 
 ### 外部与独立终端 TUI
 
-`/statusline-configure` 沿用 Linux tmux / GNOME Terminal、macOS tmux / Terminal.app 和 Windows 系统新控制台路径。`claude-statusline configure` 直接使用当前终端；最低 64×18。非数值编辑时 Enter 保存、Esc 取消；Ctrl+C 中断且不保存。
+用 Tab 切页、Space 勾选、方向键选择或排序。完成字段输入后用 Ctrl+S 保存；项目页及原有设置行的 Enter 用于保存，高级字段的 Enter 用于编辑或确认输入。Esc 先取消输入，再取消编辑器；Ctrl+C 中断且不保存。最低终端尺寸为 64×18。
 
-两个编辑器可同时打开，旧草稿的保存会被 revision 校验拒绝，避免覆盖新配置。Native 重复打开保留草稿；冲突时 `r` 明确丢弃并重载，保存结果不明时先 `k` 核对。
+外部入口在 Linux 使用 tmux 或 GNOME Terminal，在 macOS 使用 tmux 或 Terminal.app，在 Windows 使用系统新控制台启动器。SSH 或启动器不可用时，在当前终端运行 `claude-statusline configure`。
 
-默认安装、四种安装组合和版本降级见[编辑器安装组合与兼容性](docs/USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。分别关闭：
-
-```text
-claude-statusline install --no-native-editor
-claude-statusline install --no-experimental-slash-tui
-```
-
-历史参数 `--experimental-slash-tui` 继续负责外部入口，与 `--native-editor` 相互独立。示例精简主栏：
+定义精简主栏：
 
 ```text
 claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
@@ -256,13 +206,13 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
-目录包含 48 个主栏、14 个子 Agent 选项，v1.4.0 引入的 28 个独立项继续默认关闭。上下文／累计作用域、缓存／额度过期及示例见[独立指标说明](docs/DISPLAY_ITEMS.zh-CN.md)。
+配置按用户生效。`set-items` 替换启用集合，`enable`、`disable` 用于增量调整。更多操作见[配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方)、[格式与布局](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)和 [CLI 参考](docs/reference/cli.zh-CN.md)。
 
-配置按用户生效；`set-items` 替换全部启用项，`enable` / `disable` 用于增量修改。更多示例见[配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方)。
+<a id="升级到-v161"></a>
 
 ## 升级与卸载
 
-升级到 v1.6.1：
+升级软件包并同步接入，然后重启 Claude Code：
 
 ```text
 pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
@@ -270,9 +220,9 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows 使用 `claude-statusline.exe`；随后重启 Claude Code。保留显示配置、运行状态和已保存的独立启用偏好。旧版外部禁用操作曾删除偏好文件：没有记录时遵循正式版默认启用，需要保持关闭时重新传入 `--no-experimental-slash-tui`。详见[升级指南](docs/USER_GUIDE.zh-CN.md#升级)。
+保留显示配置、运行状态和接入偏好。旧显示 schema 与软件包降级操作见[版本兼容](docs/USER_GUIDE.zh-CN.md#版本兼容)。
 
-先移除 Claude 接入，再卸载 Python 包：
+先移除 Claude 接入，再卸载软件包：
 
 ```text
 claude-statusline uninstall --dry-run
@@ -280,15 +230,48 @@ claude-statusline uninstall
 pipx uninstall claude-code-statusline
 ```
 
-显示配置、偏好、缓存与备份保留，见[卸载](docs/USER_GUIDE.zh-CN.md#卸载)。
+显示配置与备份继续保留，详见[卸载](docs/USER_GUIDE.zh-CN.md#卸载)。
+
+## 项目结构
+
+```text
+claude-code-statusline/
+├── README.md / README.zh-CN.md
+├── docs/
+│   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md
+│   ├── reference/                  # CLI 与配置参考
+│   ├── images/                     # 当前截图与归档
+│   ├── development/                # 开发、架构与验证
+│   └── releases/                   # 历史发布说明
+├── src/claude_statusline/
+│   ├── config/
+│   ├── integration/
+│   ├── platforms/
+│   ├── rendering/
+│   ├── runtime/
+│   └── ui/
+├── mods/
+│   ├── statusline-native/
+│   └── statusline-runtime/
+├── tests/
+│   ├── config/
+│   ├── integration/
+│   ├── platforms/
+│   ├── rendering/
+│   ├── runtime/
+│   └── ui/
+├── tools/
+└── pyproject.toml
+```
 
 ## 文档与帮助
 
-- [显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)。
-- [使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查) · [变更记录](CHANGELOG.zh-CN.md)。
-- [原生编辑器开发与验收](docs/development/native.zh-CN.md) · [架构](docs/development/architecture.zh-CN.md) · [共享协议](docs/development/contracts.zh-CN.md)。
-- [测试与验收](docs/development/testing.zh-CN.md) · [计时指标](docs/development/timer.zh-CN.md) · [发布指南](docs/RELEASING.zh-CN.md)。
-- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：附系统与版本、复现步骤及诊断结果，移除私有路径和会话内容。
+- [使用指南](docs/USER_GUIDE.zh-CN.md)：安装、编辑器、配方、升级与排障。
+- [CLI 参考](docs/reference/cli.zh-CN.md)：命令、选项、字段、文件和退出码。
+- [显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)：作用域、数据来源和可用条件。
+- [开发指南](docs/development/README.zh-CN.md) · [发布流程](docs/RELEASING.zh-CN.md)。
+- [变更记录](CHANGELOG.zh-CN.md) · [Releases](https://github.com/fbincon/claude-code-statusline/releases)。
+- [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：附版本、复现步骤与诊断结果，移除私有路径和会话内容。
 
 ## 许可证
 

@@ -1,107 +1,91 @@
-# Interface Screenshots
+# Screenshots
 
 **English** | [简体中文](README.zh-CN.md)
 
-<a id="界面截图"></a>
+The current gallery contains 18 images: three retained main status lines, three new in-session Client screenshots and twelve new external configuration pages. Earlier images and capture records are in the [archive](archive/README.md).
 
-Screenshots appear in the [project README](../../README.md#screenshots). Main status line images come from actual Claude sessions; configuration `Preview (sample data)` uses fixed samples. The two Subagents previews are not evidence of acceptance testing with real parallel agents.
+PNG bytes, dimensions, colors and metadata are preserved. Main status lines show session data; configuration `Preview (sample data)` uses fixed examples, not actual token usage or evidence of real parallel agents.
 
-<a id="文件索引"></a>
+## Directory layout
 
-## File index
+```text
+images/
+├── statusline/{linux,macos,windows}.png
+├── tui/native/{linux,macos,windows}/session.png
+├── tui/external/{linux,macos,windows}/{main,subagents,settings,layout}.png
+└── archive/
+    ├── screenshots/{native,external}/{linux,macos,windows}/
+    └── reconstructions/<source-version>/linux/
+```
 
-| Platform | Main status line | Main | Subagents | Settings |
-| --- | --- | --- | --- | --- |
-| Linux | [statusline.png](statusline.png) | [configure-main.png](configure-main.png) | [configure-subagents.png](configure-subagents.png) | [configure-settings.png](configure-settings.png) |
-| macOS | [statusline-macos.png](statusline-macos.png) | [configure-main-macos.png](configure-main-macos.png) | [configure-subagents-macos.png](configure-subagents-macos.png) | [configure-settings-macos.png](configure-settings-macos.png) |
-| Windows | [statusline-windows.png](statusline-windows.png) | [configure-main-windows.png](configure-main-windows.png) | [configure-subagents-windows.png](configure-subagents-windows.png) | [configure-settings-windows.png](configure-settings-windows.png) |
+## Current images
+
+| Platform | Main status line | In-session Client | Main | Subagents | Settings | Layout |
+| --- | --- | --- | --- | --- | --- | --- |
+| Linux | [PNG](statusline/linux.png) | [PNG](tui/native/linux/session.png) | [PNG](tui/external/linux/main.png) | [PNG](tui/external/linux/subagents.png) | [PNG](tui/external/linux/settings.png) | [PNG](tui/external/linux/layout.png) |
+| macOS | [PNG](statusline/macos.png) | [PNG](tui/native/macos/session.png) | [PNG](tui/external/macos/main.png) | [PNG](tui/external/macos/subagents.png) | [PNG](tui/external/macos/settings.png) | [PNG](tui/external/macos/layout.png) |
+| Windows | [PNG](statusline/windows.png) | [PNG](tui/native/windows/session.png) | [PNG](tui/external/windows/main.png) | [PNG](tui/external/windows/subagents.png) | [PNG](tui/external/windows/settings.png) | [PNG](tui/external/windows/layout.png) |
 
 ## In-session Client screenshots
 
-The maintainer supplied these actual terminal screenshots on 2026-10-04. They show the Client Main page inside an existing Claude Code session, together with the conversation, input area and main status line. All three visibly show Claude Code 2.1.289. Backend version, source commit, exact OS version, architecture and terminal version were not supplied and remain unknown.
+The supplied screenshots visibly show Claude Code 2.1.289: docked panes on Linux and Windows, and an inline pane on macOS. Conversation text, earlier command results and connection messages are preserved.
 
-| Platform | Screenshot | Dimensions | Maintainer's interaction report |
+Existing reports describe usable Client interaction on Linux and Windows and an opening pane with interaction problems on macOS. New static images update the layout examples; they do not independently verify saving, keyboard focus or resolution of that issue. See the [user guide](../USER_GUIDE.md#macos-mouse-reporting-and-client-focus) for checks and the [native editor record](../development/native.md#claude-code-21289-interaction-report) for historical feedback.
+
+## Sources and hashes
+
+Original filenames date the new external screenshots to 2026-10-05, in Main, Subagents, Settings and Layout order. macOS images show Terminal.app; Windows images show Windows Terminal. Exact OS, architecture, terminal-version and backend-commit metadata were not supplied. Retained main status lines come from the old repository; their original record did not give a capture date.
+
+<details>
+<summary>Original filenames, repository paths, dimensions and PNG SHA-256</summary>
+
+| Original source path | Repository file | Dimensions | PNG SHA-256 |
 | --- | --- | --- | --- |
-| Linux | [client-session-linux.png](client-session-linux.png) | 1414×874 | Normal interaction |
-| Windows | [client-session-windows.png](client-session-windows.png) | 1792×1202 | Normal interaction |
-| macOS | [client-session-macos.png](client-session-macos.png) | 1347×892 | Pane opens; interaction problems; working setup unverified |
+| Old repository: `docs/images/statusline-macos.png` | [statusline/macos.png](statusline/macos.png) | 936×498 | `3c2c286af82268dbbf8e599c9ce236a75c7897eca9093a2d43eb48cfab04e3d8` |
+| Old repository: `docs/images/statusline-windows.png` | [statusline/windows.png](statusline/windows.png) | 1708×985 | `874efc5bfac0128e70c224c799eef4c441da21623d8bee8076c797e3c2993093` |
+| Old repository: `docs/images/statusline.png` | [statusline/linux.png](statusline/linux.png) | 1191×790 | `07d3a28c82e1b4fb099da5ac8a758c1fc1d1f3bbd712d85f812a7a3ad858d035` |
+| Supplied directory: `statusline-configure-native打开的内部TUI展示/Linux.png` | [tui/native/linux/session.png](tui/native/linux/session.png) | 1105×714 | `6e9b4974de7ae5c04b54d15a23bd53ecda6706a894f67c480db8fce293315f31` |
+| Supplied directory: `statusline-configure-native打开的内部TUI展示/Windows.png` | [tui/native/windows/session.png](tui/native/windows/session.png) | 1831×1197 | `9316798d77190af04031dc84cba3788aee517674cad184623621180c9b59a6ae` |
+| Supplied directory: `statusline-configure-native打开的内部TUI展示/macOS.png` | [tui/native/macos/session.png](tui/native/macos/session.png) | 1161×933 | `610a1908dc7596bea234eec6171082628792c345818b54dbb5fa00a4d88c658b` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-05 17-34-20.png` | [tui/external/linux/main.png](tui/external/linux/main.png) | 1110×757 | `10d8ed857c17e4bb22ebebbd2b5e4bc95a79358f728306722baec170695c607f` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-05 17-34-27.png` | [tui/external/linux/subagents.png](tui/external/linux/subagents.png) | 1110×757 | `5f55a2d58fa635dbfd127b6c5ddebd9f938e4949325f88cd25374d3e9edb3779` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-05 17-34-39.png` | [tui/external/linux/settings.png](tui/external/linux/settings.png) | 1110×757 | `c4bf0164906dcfaf85052705c32be32ed570b4bfa6367a254598c26556162a4d` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-05 17-34-45.png` | [tui/external/linux/layout.png](tui/external/linux/layout.png) | 1110×757 | `740fb59a8c98f81367639425cb2e59ed46cd24107c5a7eb8b2f9ac15cbb8956d` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-05 174922.png` | [tui/external/windows/main.png](tui/external/windows/main.png) | 1826×1193 | `443fb7fbe8df82bb221f9fc878e2061f98ec04a551fb2c24785017a021d566f0` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-05 175019.png` | [tui/external/windows/subagents.png](tui/external/windows/subagents.png) | 1826×1192 | `f0d3e194fbbd7c8a8e6b85b132992c0cc3c80b1424125685db03e2cdb4404e55` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-05 175031.png` | [tui/external/windows/settings.png](tui/external/windows/settings.png) | 1825×1193 | `0fccc6e38cc58bd399e6b929b1181de9772eddd6861a5a4e791122e98ed8e633` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-05 175039.png` | [tui/external/windows/layout.png](tui/external/windows/layout.png) | 1828×1194 | `868d8923e1b074ae80e8b79981da26a9645bfde59aab1a469ea95e080ff97837` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-05 180915.png` | [tui/external/macos/main.png](tui/external/macos/main.png) | 1138×723 | `0e6b9cb93766c3729933610f75df8a516a84254ab014273f6df98014f6b891b2` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-05 180940.png` | [tui/external/macos/subagents.png](tui/external/macos/subagents.png) | 1140×725 | `26ef13f510806ad9e3f1065ad8fb1114b5ec5d315c4cb5399ce4fe8ab473de42` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-05 180956.png` | [tui/external/macos/settings.png](tui/external/macos/settings.png) | 1141×725 | `467deebb5acd95d970f22aa0a48a09d119f1087d48b34852dcb310e8afe5b034` |
+| Supplied directory: `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-05 181009.png` | [tui/external/macos/layout.png](tui/external/macos/layout.png) | 1137×724 | `0b0e37797e2c4122a22fa8689a3a7764bef4b5ff6dbd423d9709495e3b329e17` |
 
-Original filenames were `linux.png`, `windows.png` and `macOS.png`, respectively. The PNG bytes, dimensions and colors are preserved without cropping or redrawing. Original session text, including earlier command and connection messages, is retained. Client Preview uses fixed sample data. The screenshots show layout; interaction results come from the maintainer's separate report. Suggested macOS checks are in the [user guide](../USER_GUIDE.md#macos-mouse-reporting-and-client-focus); current feedback is recorded separately from historical acceptance in [native development](../development/native.md#claude-code-21289-interaction-report).
-
-<a id="展示说明"></a>
-
-## Display notes
-
-Linux, macOS, and Windows each show the main status line and Main, Subagents, and Settings configuration pages. macOS / Windows images use platform suffixes; PNG contents, dimensions, and colors are preserved.
-
-macOS images show Terminal.app; Windows images show Windows Terminal.
-
-Each screenshot reflects its own terminal session, layout, and settings. Display items, palette, fonts, and window width may differ.
-
-<a id="更新约定"></a>
+</details>
 
 ## Updating screenshots
 
-- Use PNG and lowercase English filenames, with `-macos` / `-windows` platform suffixes.
-- Keep status lines and configuration pages legible; update README references and this index together.
-- `MANIFEST.in` includes this directory's Markdown and PNGs in the source distribution; CI checks packaging completeness.
+- Use lowercase English filenames and group current images by entry point, platform and page.
+- Update both READMEs, the user guides, index and hashes together; preserve originals and archive replaced screenshots.
+- Keep source versions, filenames, capture commits and metadata for historical reconstructions; do not relabel them as new-version screenshots.
+- `MANIFEST.in` recursively includes Markdown and PNG files; distribution inspection verifies source-package completeness.
 
-## Native editor captures
-
-### v1.3.0a1 preview captures
-
-[Main](native-main-v1.3.0a1-linux.png) · [Subagents](native-subagents-v1.3.0a1-linux.png) · [Settings](native-settings-v1.3.0a1-linux.png)
-
-These PNGs reconstruct real decoded cells from Linux x86_64, Claude Code 2.1.288, backend 1.3.0a1 and a persistent official plugin at clean source commit `4cd97dd480aa0025fb9edc7644b872bf3fa6336b` (2026-10-04). The docked terminal measured 120×30; the same automated run also checked 80×48 inline operation. The renderer crops transcript/composer content and embeds the commit and capture hash. Values are production sample data; these are terminal reconstructions, not OS pixel screenshots or mockups. The capture source stays in ignored `dist/validation/native-usability-capture-288`. The maintainer subsequently confirmed a1 human acceptance on all three platforms; a2 Client acceptance is separate.
-
-### v1.2.0 captures
-
-[Main](native-main-linux.png) · [Subagents](native-subagents-linux.png) · [Settings](native-settings-linux.png)
-
-These three PNGs reconstruct decoded cells captured from a real Linux x86_64 Claude Code 2.1.288 terminal at 120 columns, using the persistent official plugin installation and backend 1.2.0a1 at clean code commit `db4129b75dcc3aa20fc24bbb09946e249038ee2e` (2026-10-04). `tools/render_native_capture.py` crops away the transcript/composer and draws the original cell text/attributes with documentation fonts/default colors; these are terminal captures, not pixel-perfect OS screenshots or invented mockups. Each PNG embeds the commit and source capture SHA256.
-
-The visible statusline values are production sample preview data. Settings continues below the crop through host scrolling/Tab navigation. These images and the 120/80-column automated save/cancel run do not imply human acceptance. Private raw cells/debug streams remain in ignored `dist/validation/phase2-editor-pty-fixed`. The `configure-*-macos.png` and `configure-*-windows.png` images show the compatibility TUI; native screenshots for those platforms were not supplied at that release; the maintainer separately confirmed human results on Windows 11 and macOS 14.5.
-
-### v1.3.0a2 Client captures
-
-[Main](client-main-v1.3.0a2-linux.png) · [Subagents](client-subagents-v1.3.0a2-linux.png) · [Settings](client-settings-v1.3.0a2-linux.png)
-
-These PNGs reconstruct actual terminal cells from Linux x86_64, the Claude Code 2.1.288 interactive host, backend 1.3.0a2 and the persistently installed Mod. Fixed source commit: `2ed1f3ae306776caeffe6a27205a4d680cb8e472`; runtime resources match this candidate. The 120×30 PTY runs in a private tmux server; the same run checks 80×48 inline operation. Cropping excludes transcript/composer/live statusline; Preview is fixed production sample data. These are terminal reconstructions, not OS pixel screenshots or design mockups. Each embeds its commit/capture SHA256; private raw data remains in ignored `dist/validation/client-a2-fixed-288`. These captures do not establish human acceptance. On 2026-10-04 the maintainer separately confirmed a2 human acceptance on Linux, Windows and macOS; exact terminal/architecture/host metadata were not supplied. Stable v1.3.0 retains these Client interaction modules, with updated version/description metadata. Images keep their original a2 filenames and provenance.
-
-### v1.5.0a1 Phase 4 captures
-
-[Item format](client-format-v1.5.0a1-linux.png) · [Layout](client-layout-v1.5.0a1-linux.png) · [Compact Layout](client-layout-compact-v1.5.0a1-linux.png) · [Preset preview](client-preset-v1.5.0a1-linux.png) · [Claude preferences](client-preferences-v1.5.0a1-linux.png)
-
-These PNGs reconstruct real decoded cells from the installed v1.5.0a1 wheel, Mod 1.5.0-alpha.1 and Claude Code 2.1.289 on Linux x86_64 / Python 3.14.4. Both persistent entries passed advanced PTYs at 120×30 and 80×48. The capture source was clean local commit `07804ba23f98396b1bbb67b795efd9ccf8e6fab3`; after rebasing the release branch, public candidate `e978411ab92b99b44cf99d42f8dfce9eba3cf415` has exactly the same source tree (`ff77dc8b4b0fa3264b2344a38c98a1786b27e0ee`). Images preserve the original capture commit/hash in metadata. Runtime Mod fingerprint: `06510b1cbfc9c28c175cb3fc3a2268cb312de93c5e3f128b3e4effa52158ab10`.
-
-The renderer crops transcript/composer/live status and private paths, uses explicit cell bounds for the compact pane, and preserves CJK continuation-cell backgrounds. Preview values are production samples. Agent inspection confirmed readable format/layout/host controls and CJK text; these are terminal reconstructions, not OS screenshots or human acceptance. Raw reports remain in ignored `dist/validation/phase4/preview-candidate-r2-pty`. Linux/Windows Phase 4 and macOS standalone TUI/CLI human acceptance was confirmed on 2026-10-05; the macOS Client input limitation remains open.
-
-## v1.5.0 stable acceptance
-
-On 2026-10-05 the maintainer confirmed Phase 4 human acceptance on Linux and Windows and on macOS through the standalone TUI/CLI. Exact OS, architecture, terminal and host versions were not supplied. This confirmation does not declare the earlier macOS in-session Client input problem fixed.
-
-Stable changes package/Mod versions and release defaults; formatting, layout, portable files, host application and accepted input behavior remain those of the verified preview. Automated CI/PTYs and agent capture inspection remain independent evidence. Historical preview images keep their a1 filenames, capture hashes and original source commits.
-
-## v1.6.0 stable acceptance
-
-On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Exact OS, architecture, terminal and host versions were not supplied. This is the new Phase 5 acceptance record, separate from historical editor confirmation and automated/headless/PTY evidence. The existing macOS Client input limitation remains documented. Stable v1.6.0 retains the accepted runtime implementation, display schema v4, configuration protocol v3 and runtime protocol v1. Editor entries default on for compatible hosts, preserving explicit false; live collection remains independently opt-in and preserves its preference.
-
+<a id="display-notes"></a>
 <a id="external-tui-v161"></a>
+<a id="file-index"></a>
+<a id="interface-screenshots"></a>
+<a id="native-editor-captures"></a>
+<a id="v120-captures"></a>
+<a id="v130a1-preview-captures"></a>
+<a id="v130a2-client-captures"></a>
+<a id="v150-stable-acceptance"></a>
+<a id="v150a1-phase-4-captures"></a>
+<a id="v160-stable-acceptance"></a>
+<a id="v161-external-tui-captures"></a>
+<a id="展示说明"></a>
+<a id="文件索引"></a>
+<a id="更新约定"></a>
+<a id="界面截图"></a>
 
-## v1.6.1 external TUI captures
+## Historical provenance
 
-These seven PNGs reconstruct actual curses PTY cells from the installed wheel at source commit `ceb70bb127eb33d6257d47498b947f1f4c57a7f2`, backend/both Mods 1.6.1. Environment: Linux x86_64 (kernel 7.0.0-38-generic), Python 3.14.4, xterm-256color PTY and pyte 0.8.2. Five standalone sizes passed four pages/detail, resize during input, byte-identical cancellation and regrouped numeric save/readback. Raw captures remain in ignored `dist/validation/tui-sections-candidate/external-pty`.
-
-80×24 shows Main, Subagents, Settings, Layout and item formatting; 64×18 shows compact Settings/Layout. The screenshot fixture selects three main items to expose grouping. CJK/combining text comes from actual field input; Preview uses production fixed samples. Images reconstruct terminal text/attributes with documentation fonts/colors; they are not OS pixel screenshots or design mockups. PNG metadata embeds source commit/capture SHA256; full capture digests follow.
-
-Agent inspection confirmed distinct titles, columns, groups, selected rows, Preview and controls in all seven images. Automated `manual_visual_acceptance` stays false; no new maintainer human acceptance is claimed and historical platform confirmations retain their original scope. Standalone captures do not claim a Claude session; official persistent PTYs independently verify both slash entries and configuration readback.
-
-| Image | Terminal cells | Capture JSON SHA256 |
-| --- | --- | --- |
-| [external-main-v1.6.1-linux.png](external-main-v1.6.1-linux.png) | 80x24 | `d7309f186324c8859ec727531d0579ed1c2f04e9848bf3fc7d5d202b67fcea4f` |
-| [external-subagents-v1.6.1-linux.png](external-subagents-v1.6.1-linux.png) | 80x24 | `1fc7f0d99f0c147430a0c64affde00b9f882a7e5d15f80b1988d633e0053b39a` |
-| [external-settings-v1.6.1-linux.png](external-settings-v1.6.1-linux.png) | 80x24 | `4efee90b89d03ea6c2c2eae20c2cdc9ad7fd83031db74bc59938cc170e77f594` |
-| [external-layout-v1.6.1-linux.png](external-layout-v1.6.1-linux.png) | 80x24 | `35a984e75835c49bbc7f6fc3787882c572501f742c9e229c176cda352f2bb8a8` |
-| [external-format-v1.6.1-linux.png](external-format-v1.6.1-linux.png) | 80x24 | `05bc122708050434348990c38049c30ce524b5d65657e181062ec8419f403063` |
-| [external-settings-compact-v1.6.1-linux.png](external-settings-compact-v1.6.1-linux.png) | 64x18 | `bec340ec3d1160d87e0a7d977460ee5eb446cf9cdf87f5ee17866b2c9b9d1819` |
-| [external-layout-compact-v1.6.1-linux.png](external-layout-compact-v1.6.1-linux.png) | 64x18 | `2ac330a789c6d0d8f7065e7876cc319198586c97edaf4419a0590a2939abe077` |
+Provenance for older links has moved to the [archive index](archive/README.md), including earlier session screenshots, native previews, format/layout previews and external TUI captures. Original commits, capture hashes and acceptance scope remain in the archive.
