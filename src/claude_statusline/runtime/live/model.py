@@ -90,9 +90,9 @@ def text(value, name, *, nullable=False, maximum=256):
 def number(value, name, *, integer=False):
     if (
         type(value) not in (int, float)
+        or value < 0
         or (type(value) in (int, float) and value > 9_007_199_254_740_991)
         or not math.isfinite(value)
-        or value < 0
         or (integer and type(value) is not int)
     ):
         raise ObservationError(
