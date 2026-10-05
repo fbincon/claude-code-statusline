@@ -65,6 +65,49 @@ def reconcile(state, config_dir):
             state["active_prompt_id"] = prompt
             if state["current_prompt_id"] is None:
                 state["current_prompt_id"] = prompt
+    for row in history.get("turns", ()):
+        identities = {row["prompt_id"], *row.get("prompt_aliases", ())}
+        identities.update(
+            state["prompt_links"][alias]
+            for alias in tuple(identities)
+            if alias in state["prompt_links"]
+        )
+        candidates = [key for key in state["prompts"] if key in identities]
+        if not candidates:
+            continue
+        canonical_prompt = min(
+            candidates, key=lambda key: state["prompts"][key]["started_at_ms"]
+        )
+        if row.get("status") in ("completed", "failed", "interrupted"):
+            state["prompts"][canonical_prompt]["terminal"] = True
+            state["prompts"][canonical_prompt]["updated_at_ms"] = max(
+                state["prompts"][canonical_prompt]["updated_at_ms"],
+                row.get("ended_wall_ns", 0) / 1e6,
+            )
+        for alias in identities:
+            if alias != canonical_prompt:
+                state["prompt_aliases"][alias] = canonical_prompt
+    # The SDK can omit session.append while official user_prompt telemetry
+    # still supplies the exact hook-ID/message-UUID pair. Promote an already
+    # verified lifecycle owner through that pair, never through prompt text.
+    for alias, target in tuple(state["prompt_aliases"].items()):
+        if not isinstance(target, str) or alias == target:
+            continue
+        source = state["prompts"].get(alias)
+        destination = state["prompts"].get(target)
+        if source is None:
+            continue
+        if destination is None:
+            state["prompts"][target] = dict(source, source="explicit_prompt_link")
+        for table in ("turns", "agents", "requests", "tools", "checklists", "costs"):
+            for row in state[table].values():
+                if row.get("prompt_id") == alias:
+                    row["prompt_id"] = target
+        if state["active_prompt_id"] == alias:
+            state["active_prompt_id"] = target
+        if state["current_prompt_id"] == alias:
+            state["current_prompt_id"] = target
+        state["prompts"].pop(alias, None)
     # Spawn identity, never a child's time or text, links nested loops.
     for _ in range(32):
         changed = False

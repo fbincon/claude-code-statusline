@@ -42,6 +42,18 @@ class LifecycleTestCase(unittest.TestCase):
             turn_store, "now_clocks", return_value=(wall_ns, wall_ns, "boot")
         ):
             turn_reducer.handle_event(payload)
+            state = turn_store.load_turn_state("s", prompt_id)
+            if (
+                name == "Stop"
+                and not extra.get("agent_id")
+                and state
+                and not state.get("active_agents")
+                and not (
+                    state.get("prompt_aliases") and state.get("pending_agent_reports")
+                )
+                and state.get("status") in ("running", "completed")
+            ):
+                turn_reducer.confirm_completion("s", prompt_id, wall_ns=wall_ns)
         return turn_store.load_turn_state("s", prompt_id)
 
 
@@ -92,7 +104,10 @@ class MainStopTests(LifecycleTestCase):
         self.event("UserPromptSubmit", 1)
         turn_reducer.reconcile_transcript_events(
             "s",
-            [{"kind": "turn_duration", "wall_ns": 3, "duration_ms": 2}],
+            [
+                {"kind": "assistant", "prompt_id": "p", "wall_ns": 2},
+                {"kind": "turn_duration", "wall_ns": 3, "duration_ms": 2},
+            ],
         )
         self.assertEqual(turn_store.load_turn_state("s", "p")["status"], "completed")
         state = self.event(
@@ -219,7 +234,7 @@ class MigrationConcurrencyAndRenderingTests(LifecycleTestCase):
         with open(turn_store._state_path("s"), encoding="utf-8") as stream:
             published = json.load(stream)
         self.assertEqual(published["schema"], 1)
-        self.assertEqual(published["lifecycle"]["schema"], 3)
+        self.assertEqual(published["lifecycle"]["schema"], 4)
         self.assertTrue(published["had_subagents"])
 
     def test_concurrent_agent_starts_publish_valid_complete_ledger(self):

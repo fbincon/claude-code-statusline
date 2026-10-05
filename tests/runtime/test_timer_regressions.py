@@ -136,14 +136,14 @@ class TaskDurationRegressions(TimerTestCase):
         self.event("Stop", 20, background_tasks=[])
         self.duration(21, 2500)
         self.assertEqual(turn_store.load_turn_state("s", "p"), before)
-        self.assertEqual(before["duration_ns"], 1_500_000_000)
+        self.assertEqual(before["duration_ns"], 8_000_000_000)
 
-    def test_single_turn_calibration_before_final_stop_is_retained(self):
+    def test_single_turn_native_length_does_not_replace_final_task_elapsed(self):
         self.event("UserPromptSubmit", 1)
         self.duration(7, 1500)
         self.event("Stop", 9, background_tasks=[])
         self.assertEqual(
-            turn_store.load_turn_state("s", "p")["duration_ns"], 1_500_000_000
+            turn_store.load_turn_state("s", "p")["duration_ns"], 8_000_000_000
         )
 
     def test_parallel_agents_and_local_command_keep_task_boundary(self):
@@ -195,7 +195,7 @@ class TaskDurationRegressions(TimerTestCase):
         runtime_transcript._maybe_update_turn(entry, [duration_line(3.5, 1500)], "s")
         self.assertEqual(turn_store.load_turn_state("s", "new")["status"], "running")
         self.assertEqual(
-            turn_store.load_turn_state("s", "old")["duration_ns"], 1_500_000_000
+            turn_store.load_turn_state("s", "old")["duration_ns"], 2_000_000_000
         )
 
     def test_replayed_old_prompt_does_not_replace_new_current_prompt(self):
@@ -242,6 +242,7 @@ class TaskDurationRegressions(TimerTestCase):
                     "background_tasks": [],
                 }
             )
+        turn_reducer.confirm_completion("s", "p", wall_ns=101_000_000_000)
         state = turn_store.load_turn_state("s", "p")
         with mock.patch.object(
             turn_store, "now_clocks", return_value=(200_000_000_000, 1, "new-boot")
@@ -258,7 +259,7 @@ class TaskDurationRegressions(TimerTestCase):
                 self.duration(5, value)
                 self.assertEqual(turn_store.load_turn_state("s", "p"), before)
 
-    def test_legacy_corrupted_multi_agent_duration_is_reconstructed(self):
+    def test_legacy_frozen_multi_agent_duration_is_preserved_as_recorded(self):
         self.task()
         self.event("Stop", 9, background_tasks=[])
         state = turn_store._load_unlocked("s")
@@ -268,5 +269,5 @@ class TaskDurationRegressions(TimerTestCase):
             record.pop("duration_source", None)
         turn_store._atomic_write("s", state)
         self.assertEqual(
-            turn_store.load_turn_state("s", "p")["duration_ns"], 8_000_000_000
+            turn_store.load_turn_state("s", "p")["duration_ns"], 1_000_000_000
         )

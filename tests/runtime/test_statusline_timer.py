@@ -104,7 +104,22 @@ class TimerTestCase(unittest.TestCase):
         payload.update(extra)
         clocks = (wall_ns, wall_ns, "test-boot")
         with mock.patch.object(turn_store, "now_clocks", return_value=clocks):
-            return turn_reducer.handle_event(payload)
+            result = turn_reducer.handle_event(payload)
+            state = turn_store.load_turn_state(sid, prompt_id)
+            if (
+                name == "Stop"
+                and not extra.get("agent_id")
+                and state
+                and not state.get("active_agents")
+                and not (
+                    state.get("prompt_aliases") and state.get("pending_agent_reports")
+                )
+                and state.get("status") in ("running", "completed")
+            ):
+                result = turn_reducer.confirm_completion(
+                    sid, prompt_id, wall_ns=wall_ns
+                )
+            return result
 
 
 class QueueAndCompletionTests(TimerTestCase):
@@ -137,7 +152,9 @@ class QueueAndCompletionTests(TimerTestCase):
         new_state = turn_store.load_turn_state(sid, new_prompt)
         self.assertEqual(old_state["status"], "interrupted")
         self.assertEqual(new_state["status"], "completed")
-        self.assertEqual(new_state["duration_ns"], duration_ms * 1_000_000)
+        self.assertAlmostEqual(
+            new_state["duration_ns"], duration_ms * 1_000_000, delta=1000
+        )
 
         first = rendering_timer._timer_segment(sid, new_prompt, entry["last_pt"], entry)
         with mock.patch.object(

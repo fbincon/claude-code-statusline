@@ -29,6 +29,40 @@ def _windows_uptime_ns() -> int:
     return int(get_tick_count()) * 1_000_000
 
 
+def _windows_boot_id() -> str | None:
+    """Query the boot GUID; never derive boot identity from adjustable wall time."""
+    import ctypes
+    import uuid
+
+    class BootEnvironment(ctypes.Structure):
+        _fields_ = (
+            ("identifier", ctypes.c_ubyte * 16),
+            ("firmware", ctypes.c_uint32),
+            ("flags", ctypes.c_uint64),
+        )
+
+    try:
+        query = ctypes.WinDLL("ntdll").NtQuerySystemInformation
+        query.argtypes = (
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_uint32),
+        )
+        query.restype = ctypes.c_int32
+        result = BootEnvironment()
+        length = ctypes.c_uint32()
+        status = query(
+            90, ctypes.byref(result), ctypes.sizeof(result), ctypes.byref(length)
+        )
+        if status < 0:
+            return None
+        identity = uuid.UUID(bytes_le=bytes(result.identifier))
+        return f"windows:{identity}" if identity.int else None
+    except (AttributeError, OSError, TypeError, ValueError):
+        return None
+
+
 @lru_cache(maxsize=1)
 def _macos_clock_api():
     """Bind the user-space LibSystem APIs lazily, with both 64-bit ABIs."""
@@ -99,8 +133,8 @@ def now_clocks() -> tuple[int, int | None, str | None]:
             return wall_ns, None, None
         if boot_ns < 0 or boot_ns > wall_ns:
             return wall_ns, None, None
-        boot_minute = (wall_ns - boot_ns) // _MINUTE_NS
-        return wall_ns, boot_ns, f"windows:{boot_minute}"
+        domain = _windows_boot_id()
+        return (wall_ns, boot_ns, domain) if domain else (wall_ns, None, None)
 
     if platform_environment.is_linux():
         boot_ns = None

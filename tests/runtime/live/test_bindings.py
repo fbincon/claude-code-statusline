@@ -11,6 +11,49 @@ from tests.runtime.live.support import observation
 
 
 class LifecycleBindingTests(unittest.TestCase):
+    def test_report_message_links_survive_alias_flattening_and_keep_the_human_task(
+        self,
+    ):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            state = store.empty("s")
+            for key, stamp in (("human-message", 1000), ("report-message", 2000)):
+                state["prompts"][key] = {
+                    "epoch": "e",
+                    "started_at_ms": stamp,
+                    "updated_at_ms": stamp,
+                    "complete": True,
+                    "terminal": False,
+                    "source": "otel",
+                }
+            state["prompt_aliases"].update(
+                {"human-hook": "human-message", "report-hook": "human-message"}
+            )
+            state["prompt_links"].update(
+                {"human-hook": "human-message", "report-hook": "report-message"}
+            )
+            record = timer._new_record("human-hook", (10**9, None, None))
+            record["prompt_aliases"] = ["human-message", "report-hook"]
+            record["report_aliases"] = ["report-hook"]
+            path = store.root(root).parent / "turns" / store.path(root, "s").name
+            path.parent.mkdir(parents=True)
+            path.write_text(
+                json.dumps(
+                    {
+                        "session_id": "s",
+                        "lifecycle": {
+                            "schema": 4,
+                            "turns": [record],
+                            "current_prompt_id": "human-hook",
+                        },
+                    }
+                )
+            )
+            bindings.reconcile(state, root)
+            self.assertEqual(state["prompt_aliases"]["report-message"], "human-message")
+            self.assertNotIn("report-message", state["prompts"])
+            self.assertEqual(state["prompt_links"]["report-hook"], "report-message")
+
     def test_completed_unique_window_binds_requests_and_nested_spawns_without_timer_writes(
         self,
     ):

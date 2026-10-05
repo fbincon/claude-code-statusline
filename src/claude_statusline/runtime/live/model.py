@@ -6,7 +6,7 @@ import math
 import unicodedata
 from typing import Literal, TypedDict
 
-PROTOCOL_VERSION = 1
+PROTOCOL_VERSION = 2
 MAX_BATCH = 256
 MAX_BYTES = 1_048_576
 MAX_SESSIONS = 100
@@ -31,6 +31,9 @@ Kind = Literal[
     "agent_end",
     "turn_start",
     "turn_end",
+    "wait_start",
+    "wait_end",
+    "wait_unknown",
     "agents",
     "tool_start",
     "tool_end",
@@ -43,6 +46,25 @@ Kind = Literal[
     "turn_usage",
     "prompt_link",
 ]
+
+
+TIMING_KINDS = frozenset(
+    {
+        "heartbeat",
+        "invalidate",
+        "prompt",
+        "prompt_alias",
+        "prompt_link",
+        "agent_start",
+        "agent_end",
+        "turn_start",
+        "turn_end",
+        "agents",
+        "wait_start",
+        "wait_end",
+        "wait_unknown",
+    }
+)
 
 
 class Observation(TypedDict):
@@ -141,13 +163,31 @@ def validate(value):
         text(payload["agent_id"], "agent_id")
     elif kind in ("turn_start", "turn_end"):
         text(value["turn_id"], "turn_id")
-        exact(payload, () if kind == "turn_start" else ("status",), kind)
+        if kind == "turn_start":
+            exact(payload, (), kind)
+        else:
+            keys = {"status"}
+            if "duration_ms" in payload:
+                keys |= {"duration_ms", "wait_coverage"}
+            exact(payload, keys, kind)
+            if "duration_ms" in payload:
+                number(payload["duration_ms"], "native duration")
+                if type(payload["wait_coverage"]) is not bool:
+                    raise ObservationError("wait_coverage must be a boolean")
         if kind == "turn_end" and payload["status"] not in (
             "completed",
             "failed",
             "interrupted",
         ):
             raise ObservationError("invalid turn status")
+    elif kind in ("wait_start", "wait_end", "wait_unknown"):
+        text(value["turn_id"], "turn_id")
+        if kind == "wait_unknown":
+            exact(payload, ("reason",), kind)
+            text(payload["reason"], "wait reason")
+        else:
+            text(value["request_id"], "wait request id")
+            exact(payload, (), kind)
     elif kind == "agents":
         exact(payload, ("agents",), "agent snapshot")
         if (

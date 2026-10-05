@@ -31,7 +31,7 @@ MAX_IDS_PER_SESSION = 5000
 _BASE = {"i": 0, "o": 0, "cc": 0, "cr": 0}
 
 
-TURN_SCAN_VERSION = 5
+TURN_SCAN_VERSION = 6
 
 
 USAGE_SCAN_VERSION = 3
