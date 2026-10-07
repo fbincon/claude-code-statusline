@@ -144,6 +144,29 @@ gh release edit "$RELEASE_TAG" --repo fbincon/claude-code-statusline \
 
 相关文档：[pipx 安装来源](https://pipx.pypa.io/latest/reference/examples.html)、[GitHub 创建 Release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)、[GitHub Release 链接规则](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)。
 
+## Gitee 代码与 Release 同步
+
+[GitHub](https://github.com/fbincon/claude-code-statusline) 是日常开发 PR、合并、CI 和发布的主库，[Gitee](https://gitee.com/fbincon/claude-code-statusline) 是公开同步库。同步随维护任务执行，不使用自动 CI 镜像。保留 GitHub 的 `origin` 和 `main` 上游，首次配置时单独添加 SSH 远程：
+
+```bash
+git remote add gitee git@gitee.com:fbincon/claude-code-statusline.git
+```
+
+同步前检查 `git remote -v`、当前分支和远程引用。获取已验证的 GitHub `main`，确认所需 CI 通过，再用显式 refspec 将相同提交推送到 Gitee `main`。逐个推送 GitHub 已有版本标签，不重新创建标签。例如，本地 `main` 已更新到通过验证的 GitHub 提交后：
+
+```bash
+git push gitee main:refs/heads/main
+git push gitee refs/tags/v1.7.3:refs/tags/v1.7.3
+```
+
+核对两平台 `main` 和标签对象 ID 完全一致，保留带注释标签及其目标提交。历史功能分支仅按需推送。引用出现分叉时先排查，日常同步不得强推或使用 `git push --mirror`。Gitee PR 验收使用临时目标分支和功能分支，确认合并后仅删除这些分支并保留 PR 记录。
+
+Git 推送不会复制 Release 元数据与附件。GitHub 发行版发布并验证后，通过 [Gitee 官方 MCP](https://gitee.com/oschina/mcp-gitee) 创建同版本 Release，沿用固定标签、提交、英文标题、双语说明和预发布状态，并在 Gitee 说明中补充已验证的 Gitee 下载链接。发布状态按 Gitee 实际 API 能力处理。创建 Release 的工具不能替代附件上传：使用[官方 Release 附件 API](https://gitee.com/api/v5/swagger) 的 `POST /repos/{owner}/{repo}/releases/{release_id}/attach_files` 上传原始 wheel、源码包及 `SHA256SUMS`。
+
+将 GitHub 已发布的原始附件下载到新的目录并先验证，再上传到 Gitee。Gitee 上已有同版本 Release 时复用匹配的元数据与附件，仅上传缺失文件；存在内容冲突时停止。上传后匿名重新下载 Gitee 的三个附件，核对名称、大小、SHA256，并与 GitHub 原件逐字节比较。通过后记录 Gitee Release 地址与固定提交，保留 GitHub 的真实验证结论和支持边界。
+
+认证配置保存在维护者本机：使用专用 Gitee SSH 身份和系统密钥环保存的私人令牌。Codex 可通过 `http_headers_helper` 提供 MCP 认证头，附件客户端在进程内读取同一密钥环条目。不得把令牌写入仓库、文档、URL、命令参数或日志。版本控制使用标准 `git`，Gitee 平台操作使用 MCP/API；`gh` 继续用于 GitHub。
+
 <a id="v130-预览推进"></a>
 
 ## v1.3.0 正式晋升
