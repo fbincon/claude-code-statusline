@@ -139,7 +139,7 @@ class DisplayConfigTests(unittest.TestCase):
             ):
                 config_display.validate_subagent_items(items)
 
-    def test_schema_one_loads_in_memory_as_v4_without_rewriting(self):
+    def test_schema_one_loads_as_current_schema_without_rewriting(self):
         path = config_display.config_path(self.config_dir)
         legacy = {
             "schema_version": 1,

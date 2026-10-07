@@ -266,6 +266,35 @@ class ApplyProtocolTests(unittest.TestCase):
         self.assertEqual(self.settings.read_bytes(), before)
         self.assertFalse(display.config_path(self.root).exists())
 
+    def test_legacy_draft_error_tracks_the_supported_schema_without_writes(self):
+        baseline = self.read()
+        legacy = copy.deepcopy(baseline["draft"])
+        legacy["display"] = {
+            key: value
+            for key, value in legacy["display"].items()
+            if key in display.V1_DISPLAY_KEYS
+        }
+        legacy["display"]["schema_version"] = 1
+        before = self.settings.read_bytes()
+        for version in (display.SCHEMA_VERSION, display.SCHEMA_VERSION + 1):
+            with (
+                self.subTest(version=version),
+                mock.patch.object(display, "SCHEMA_VERSION", version),
+                mock.patch.object(storage, "_installation_lock") as lock,
+            ):
+                response, status = self.request(
+                    "apply", {"draft": legacy, "expected_revision": baseline["revision"]}
+                )
+                self.assertEqual(status, 2)
+                self.assertEqual(response["error"]["code"], "invalid_configuration")
+                self.assertEqual(
+                    response["error"]["message"],
+                    f"apply requires the complete schema v{version} draft returned by read",
+                )
+                lock.assert_not_called()
+        self.assertEqual(self.settings.read_bytes(), before)
+        self.assertFalse(display.config_path(self.root).exists())
+
     def test_legacy_file_is_read_without_writes_and_migrated_on_apply(self):
         legacy = display.DEFAULT_CONFIG.to_dict()
         legacy = {k: v for k, v in legacy.items() if k in display.V1_DISPLAY_KEYS}
