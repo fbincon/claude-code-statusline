@@ -68,13 +68,23 @@ def project_identity(root=ROOT):
         f'__version__ = "{result["version"]}"' in version_source,
         "Python metadata and runtime versions differ",
     )
+    version_match = re.fullmatch(
+        r"(\d+\.\d+\.\d+)(?:(a|b|rc)(\d+))?", result["version"]
+    )
+    require(version_match is not None, "Unsupported backend release version")
+    base, stage, number = version_match.groups()
+    mod_version = base + (
+        "-" + {"a": "alpha", "b": "beta", "rc": "rc"}[stage] + "." + number
+        if stage
+        else ""
+    )
     for name in ("statusline-native", "statusline-runtime"):
         manifest = json.loads(
             (root / "mods" / name / ".claude-plugin/plugin.json").read_text(
                 encoding="utf-8"
             )
         )
-        require(manifest["version"] == result["version"], f"{name} version differs")
+        require(manifest["version"] == mod_version, f"{name} version differs")
     return result
 
 

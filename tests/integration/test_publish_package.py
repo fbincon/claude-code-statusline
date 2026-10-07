@@ -157,6 +157,40 @@ class DistributionTests(unittest.TestCase):
 
 
 class AcceptanceTests(unittest.TestCase):
+    def test_existing_python_and_mod_prerelease_identifiers_remain_compatible(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "src/claude_statusline").mkdir(parents=True)
+            for python_version, mod_version in (
+                ("1.7.4a1", "1.7.4-alpha.1"),
+                ("1.7.4b2", "1.7.4-beta.2"),
+                ("1.7.4rc3", "1.7.4-rc.3"),
+            ):
+                with self.subTest(version=python_version):
+                    (root / "pyproject.toml").write_text(
+                        f'[project]\nname = "{publish.DISTRIBUTION}"\nversion = "{python_version}"\n',
+                        encoding="utf-8",
+                    )
+                    (root / "src/claude_statusline/_version.py").write_text(
+                        f'__version__ = "{python_version}"\n', encoding="utf-8"
+                    )
+                    for name in ("statusline-native", "statusline-runtime"):
+                        path = root / "mods" / name / ".claude-plugin/plugin.json"
+                        path.parent.mkdir(parents=True, exist_ok=True)
+                        path.write_text(
+                            json.dumps({"version": mod_version}), encoding="utf-8"
+                        )
+                    self.assertEqual(
+                        publish.project_identity(root)["version"], python_version
+                    )
+                    path.write_text(
+                        json.dumps({"version": python_version}), encoding="utf-8"
+                    )
+                    with self.assertRaisesRegex(
+                        publish.PublicationError, "version differs"
+                    ):
+                        publish.project_identity(root)
+
     def client(self, conclusion="success", count=13, *, latest_failed=False):
         run = {
             "id": 42,
