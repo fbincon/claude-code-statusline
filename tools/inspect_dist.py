@@ -12,6 +12,7 @@ def main():
     parser.add_argument("--source", type=Path, default=Path.cwd())
     parser.add_argument("--dist", type=Path, default=Path("dist"))
     parser.add_argument("--write-exclusion-fixtures", action="store_true")
+    parser.add_argument("--check-long-description", action="store_true")
     args = parser.parse_args()
     args.dist = args.dist.resolve()
     os.chdir(args.source)
@@ -41,11 +42,10 @@ def main():
     from claude_statusline.integration.native_resources import source_files, inventory
     from claude_statusline.integration.mods import SPECS
 
+    project_body = Path("pyproject.toml").read_text(encoding="utf-8")
     project = {
-        "version": re.search(
-            r'(?m)^version = "([^"\n]+)"$',
-            Path("pyproject.toml").read_text(encoding="utf-8"),
-        ).group(1)
+        key: re.search(rf'(?m)^{key} = "([^"\n]+)"$', project_body).group(1)
+        for key in ("name", "version")
     }
     version = runpy.run_path("src/claude_statusline/_version.py")["__version__"]
     assert project["version"] == version
@@ -60,9 +60,23 @@ def main():
             name for name in names if name.endswith(".dist-info/METADATA")
         )
         metadata = email.message_from_bytes(archive.read(metadata_name))
+        assert metadata["Name"] == project["name"] == "fbincon-claude-code-statusline"
         assert metadata["Version"] == version
+        assert metadata["Description-Content-Type"] == "text/markdown"
         english_readme = Path("README.md").read_text(encoding="utf-8")
         assert metadata.get_payload(decode=True).decode("utf-8") == english_readme
+        if args.check_long_description:
+            from readme_renderer.markdown import render
+
+            rendered = render(english_readme)
+            assert rendered is not None, "Install readme-renderer[md] to check Markdown"
+            rendered_anchors = set(re.findall(r'id="([^"\n]+)"', rendered))
+            for target in re.findall(r'(?:href|src)="([^"\n]+)"', rendered):
+                assert target.startswith("https://") or (
+                    target.startswith("#") and target[1:] in rendered_anchors
+                ), (
+                    f"PyPI long description has an unresolved link: {target}"
+                )
         assert "A Claude Code status line for Linux" in english_readme
         assert (
             archive.read("claude_statusline/_version.py")

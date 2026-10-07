@@ -10,6 +10,10 @@ from urllib.parse import unquote
 
 LOCAL_ONLY = {"ROADMAP.md", "ROADMAP.zh-CN.md", "MACOS_VALIDATION.md"}
 LINKS = re.compile(r"\[[^\]\n]*\]\(([^\s)]+)(?:\s+[^)]*)?\)")
+REPOSITORY_LINKS = (
+    "https://github.com/fbincon/claude-code-statusline/blob/main/",
+    "https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/",
+)
 
 
 def anchors(body: str) -> set[str]:
@@ -40,10 +44,19 @@ def check(root: Path) -> tuple[int, list[str]]:
             if not counterpart.is_file():
                 errors.append(f"{page.relative_to(root)}: missing Chinese counterpart")
         for target in LINKS.findall(body):
-            if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-                continue
+            repository_target = next(
+                (target.removeprefix(prefix) for prefix in REPOSITORY_LINKS if target.startswith(prefix)),
+                None,
+            )
+            if repository_target is not None:
+                target = repository_target
+                origin = root
+            else:
+                if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
+                    continue
+                origin = page.parent
             path, _, fragment = unquote(target).partition("#")
-            destination = (page.parent / path).resolve() if path else page
+            destination = (origin / path).resolve() if path else page
             count += 1
             if not destination.exists():
                 errors.append(f"{page.relative_to(root)}: missing {target}")
