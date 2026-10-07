@@ -268,7 +268,7 @@ def release_gates(client, tag, commit, target):
             )
     if target == "pypi":
         ci["testpypi"] = successful_run(
-            client, "publish.yml", commit, tag, "workflow_dispatch", 8
+            client, "publish.yml", commit, tag, "workflow_dispatch", 9
         )
     return ci
 
@@ -325,7 +325,7 @@ def index_files(target, evidence, missing_ok=False):
     return result
 
 
-def prepare(args):
+def release_context(args):
     version = version_for(args.tag)
     require(
         project_identity()["version"] == version, "Checkout and tag versions differ"
@@ -340,7 +340,7 @@ def prepare(args):
         "Dispatch the workflow on the exact version tag, not main",
     )
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
-    require(token, "A read-only GitHub token is required")
+    require(token, "A scoped GitHub token is required")
     client = GitHub(token)
     commit = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
@@ -364,55 +364,109 @@ def prepare(args):
         and set(assets) == {*filenames(version), "SHA256SUMS"},
         "Release is missing an asset or contains unexpected filenames",
     )
+    return client, commit, version, ci, release
+
+
+def fetch(args):
+    # GitHub hides draft listings from the read-only Actions actor. This task
+    # uses a short-lived Contents:write token solely for authenticated GETs;
+    # it neither installs dependencies nor builds/executes distribution code.
+    client, commit, version, ci, release = release_context(args)
+    directory = args.assets / "artifacts"
+    directory.mkdir(parents=True, exist_ok=True)
+    require(not any(directory.iterdir()), "Use an empty asset download directory")
+    for asset in release["assets"]:
+        client.download(asset, directory / asset["name"])
+    files = validate_distributions(directory, version)
+    receipt = {
+        "commit": commit,
+        "release": {
+            key: release[key] for key in ("id", "tag_name", "draft", "prerelease")
+        },
+        "files": files,
+        "ci": ci,
+    }
+    (args.assets / "release.json").write_text(
+        json.dumps(receipt, indent=2) + "\n", encoding="utf-8"
+    )
+    print(f"Downloaded and verified {args.tag} assets from Release {release['id']}.")
+
+
+def prepare(args):
+    version = version_for(args.tag)
+    require(
+        project_identity()["version"] == version, "Checkout and tag versions differ"
+    )
+    require(
+        os.environ.get("GITHUB_REF", f"refs/tags/{args.tag}")
+        == f"refs/tags/{args.tag}",
+        "Dispatch on the exact version tag",
+    )
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    require(token, "A read-only GitHub token is required")
+    client = GitHub(token)
+    commit = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+    ).strip()
+    ci = release_gates(client, args.tag, commit, args.target)
+    receipt = json.loads((args.assets / "release.json").read_text(encoding="utf-8"))
+    release = receipt["release"]
+    require(
+        receipt["commit"] == commit and release["tag_name"] == args.tag,
+        "Downloaded release source differs",
+    )
+    require(
+        release["prerelease"] == bool(re.search(r"(?:a|b|rc)\d+$", version)),
+        "Release prerelease flag differs",
+    )
+    if args.target == "pypi":
+        require(not release["draft"], "Formal publication requires a published Release")
     args.dist.mkdir(parents=True, exist_ok=True)
     require(not any(args.dist.iterdir()), "Use an empty distribution output directory")
-    with tempfile.TemporaryDirectory(prefix="statusline-release-") as temporary:
-        directory = Path(temporary)
-        for name, asset in assets.items():
-            client.download(asset, directory / name)
-        files = validate_distributions(directory, version)
-        # Inspect all resources and exclusions against this exact tagged source.
-        subprocess.run(
-            [
-                sys.executable,
-                str(ROOT / "tools/inspect_dist.py"),
-                "--source",
-                str(ROOT),
-                "--dist",
-                str(directory),
-                "--check-long-description",
-            ],
-            check=True,
-        )
-        subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "twine",
-                "check",
-                "--strict",
-                *(str(directory / name) for name in files),
-            ],
-            check=True,
-        )
-        evidence = {
-            "distribution": DISTRIBUTION,
-            "version": version,
-            "tag": args.tag,
-            "commit": commit,
-            "release_id": release["id"],
-            "files": files,
-            "ci": ci,
-        }
-        if args.target == "pypi":
-            index_files("testpypi", evidence)
-        present = index_files(args.target, evidence, missing_ok=True)
-        for name in files.keys() - present.keys():
-            shutil.copyfile(directory / name, args.dist / name)
-        args.evidence.parent.mkdir(parents=True, exist_ok=True)
-        args.evidence.write_text(
-            json.dumps(evidence, indent=2) + "\n", encoding="utf-8"
-        )
+    directory = args.assets / "artifacts"
+    require(directory.is_dir(), "Missing downloaded Release assets")
+    files = validate_distributions(directory, version)
+    require(files == receipt["files"], "Downloaded receipt and distributions differ")
+    # Inspect all resources and exclusions against this exact tagged source.
+    subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "tools/inspect_dist.py"),
+            "--source",
+            str(ROOT),
+            "--dist",
+            str(directory),
+            "--check-long-description",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "twine",
+            "check",
+            "--strict",
+            *(str(directory / name) for name in files),
+        ],
+        check=True,
+    )
+    evidence = {
+        "distribution": DISTRIBUTION,
+        "version": version,
+        "tag": args.tag,
+        "commit": commit,
+        "release_id": release["id"],
+        "files": files,
+        "ci": ci,
+    }
+    if args.target == "pypi":
+        index_files("testpypi", evidence)
+    present = index_files(args.target, evidence, missing_ok=True)
+    for name in files.keys() - present.keys():
+        shutil.copyfile(directory / name, args.dist / name)
+    args.evidence.parent.mkdir(parents=True, exist_ok=True)
+    args.evidence.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     output = os.environ.get("GITHUB_OUTPUT")
     if output:
         with open(output, "a", encoding="utf-8") as stream:
@@ -486,13 +540,15 @@ def verify_index(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for name in ("prepare", "verify-index"):
+    for name in ("fetch", "prepare", "verify-index"):
         command = subparsers.add_parser(name)
         command.add_argument("--target", choices=INDEX_HOSTS, required=True)
-        command.add_argument("--dist", type=Path, required=True)
-        command.add_argument("--evidence", type=Path, required=True)
-        if name == "prepare":
+        if name != "fetch":
+            command.add_argument("--dist", type=Path, required=True)
+            command.add_argument("--evidence", type=Path, required=True)
+        if name in ("fetch", "prepare"):
             command.add_argument("--tag", required=True)
+            command.add_argument("--assets", type=Path, required=True)
         else:
             command.add_argument("--install", action="store_true")
             command.add_argument(
@@ -500,7 +556,9 @@ def main():
             )
     args = parser.parse_args()
     try:
-        (prepare if args.command == "prepare" else verify_index)(args)
+        {"fetch": fetch, "prepare": prepare, "verify-index": verify_index}[
+            args.command
+        ](args)
     except (
         ValueError,
         OSError,
