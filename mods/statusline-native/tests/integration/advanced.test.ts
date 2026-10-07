@@ -20,8 +20,10 @@ test('item format and explicit layout save a complete draft while text reserves 
   const ui = await $.ui.mount(PANE);
   await keys(ui, {key:'e',ctrl:true}, 'return', {key:'u',ctrl:true}, 's', 'f', 'q', '中', '文', 'return');
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
-  await keys(ui, 'down', 'down', 'return', {key:'u',ctrl:true}, '1', '0', '0', 'return',
-    'down', 'return', {key:'u',ctrl:true}, '5', 'return', {key:'g',ctrl:true}, '4', 'home', 'return', 's');
+  await selectSetting(ui, 'item:priority');
+  await keys(ui, 'return', {key:'u',ctrl:true}, '1', '0', '0', 'return');
+  await selectSetting(ui, 'item:max_width');
+  await keys(ui, 'return', {key:'u',ctrl:true}, '5', 'return', {key:'g',ctrl:true}, '4', 'home', 'return', 's');
   const d = fixture.store.draft.display;
   expect(d.item_options['model-with-effort']?.label).toBe('sfq中文');
   expect(d.item_options['model-with-effort']?.priority).toBe(100);

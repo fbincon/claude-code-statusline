@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing';
 import { dimensions, clip, cellWidth } from '../../ui/layout.ts';
-import { pageSelection, pageWindow } from '../../lib/editor/navigation.ts';
+import { formPages, formSelection, formWindow, pageSelection, pageWindow } from '../../lib/editor/navigation.ts';
 
 test('smallest usable pane budgets all sections and resizing keeps selection visible', () => {
   expect(dimensions(31, 12).available).toBe(false);
@@ -11,7 +11,7 @@ test('smallest usable pane budgets all sections and resizing keeps selection vis
     expect(5 + layout.previewHeight + layout.bodyHeight).toBe(rows);
     expect(layout.previewRows <= 3).toBe(true);
     expect(layout.itemCapacity >= 1).toBe(true);
-    expect(layout.settingCapacity >= 1).toBe(true);
+    expect(layout.formHeight >= 1).toBe(true);
   }
   const keys = Array.from({ length: 24 }, (_, i) => String(i));
   expect(pageSelection(keys, '0', 5, -1)).toBe('0');
@@ -20,6 +20,39 @@ test('smallest usable pane budgets all sections and resizing keeps selection vis
   const window = pageWindow(keys, '23', 2);
   expect(keys.slice(window.start, window.end)).toContain('23');
   expect(pageSelection([], '', 1, 1)).toBe('');
+});
+
+test('grouped pages fill actual rows, repeat context and never orphan headings', () => {
+  const rows = ['A', 'A', 'A', 'A', 'A', 'B', 'C', 'C', 'C'].map((group, i) => ({ key: String(i), group }));
+  expect(formPages(rows, 8)[0]!.end).toBe(6);
+  for (let height = 1; height < 16; height++) {
+    const pages = formPages(rows, height);
+    expect(pages.flatMap((p) => p.lines.filter((line) => line.index !== null).map((line) => line.index))).toEqual(rows.map((_, i) => i));
+    for (const page of pages) {
+      expect(page.lines.length <= height).toBe(true);
+      if (height > 1) expect(page.lines[0]!.index).toBeNull();
+      page.lines.forEach((line, i) => {
+        if (line.index === null) {
+          expect(page.lines[i + 1]?.index !== null).toBe(true);
+          expect(page.lines[i + 1]?.group).toBe(line.group);
+        }
+      });
+    }
+    for (const row of rows) expect(formWindow(rows, row.key, height).lines.some((line) => line.index === Number(row.key))).toBe(true);
+  }
+  expect(formPages([], 0)).toHaveLength(1);
+  expect(formSelection([], '', 1, 1)).toBe('');
+});
+
+test('page keys retain field offsets and clamp on the final page and boundaries', () => {
+  const rows = ['A', 'A', 'A', 'B', 'B', 'C', 'C'].map((group, i) => ({ key: String(i), group }));
+  expect(formSelection(rows, '1', 4, 1)).toBe('4');
+  expect(formSelection(rows, '4', 4, -1)).toBe('1');
+  expect(formSelection(rows, '4', 4, 1)).toBe('6');
+  expect(formSelection(rows, '6', 4, 1)).toBe('6');
+  expect(formSelection(rows, '1', 4, -1)).toBe('1');
+  expect(pageSelection(['0', '1', '2', '3', '4', '5'], '2', 3, 1)).toBe('5');
+  expect(pageSelection(['0', '1', '2', '3'], '2', 3, 1)).toBe('3');
 });
 
 test('long CJK and combining labels fit without breaking Unicode pairs', () => {

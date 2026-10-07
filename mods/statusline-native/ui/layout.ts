@@ -5,9 +5,10 @@ export const MIN_ROWS = 12;
 export function dimensions(columns: number, rows: number) {
   const framed = columns >= 64 && rows >= 20;
   const previewRows = Math.min(3, Math.max(1, Math.floor((rows - 10) / 4)));
-  const previewHeight = previewRows + 1 + (framed ? 2 : 0);
+  const previewHeight = previewRows + (framed ? 2 : 1);
   const bodyHeight = Math.max(1, rows - 5 - previewHeight);
-  const bodyRows = Math.max(1, bodyHeight - (framed ? 2 : 0) - 1);
+  const bodyRows = Math.max(1, bodyHeight - (framed ? 2 : 1));
+  const tableHeading = columns >= 64;
   return {
     columns,
     rows,
@@ -16,8 +17,9 @@ export function dimensions(columns: number, rows: number) {
     previewHeight,
     bodyHeight,
     bodyRows,
-    itemCapacity: Math.max(1, bodyRows - (framed ? 4 : 3)),
-    settingCapacity: Math.max(1, Math.floor((bodyRows - 1) / 2)),
+    tableHeading,
+    itemCapacity: Math.max(1, bodyRows - (tableHeading ? 4 : 3)),
+    formHeight: Math.max(1, bodyRows - (tableHeading ? 2 : 1)),
     available: columns >= MIN_COLUMNS && rows >= MIN_ROWS,
   };
 }
@@ -49,6 +51,7 @@ export function cellWidth(char: string): number {
 
 /** Clip labels by cells without splitting UTF-16 pairs or combining marks. */
 export function clip(text: string, width: number): string {
+  if (width <= 0) return '';
   const characters = [...text.replace(/[\x00-\x1f\x7f]/g, ' ')];
   if (characters.reduce((size, char) => size + cellWidth(char), 0) <= width)
     return characters.join('');
@@ -61,4 +64,14 @@ export function clip(text: string, width: number): string {
     used += size;
   }
   return width > 0 ? result + '…' : '';
+}
+
+export function displayWidth(text: string): number {
+  return [...text].reduce((size, char) => size + cellWidth(char), 0);
+}
+
+/** Pad clipped labels by terminal cells, including wide and combining text. */
+export function column(text: string, width: number): string {
+  const label = clip(text, width);
+  return label + ' '.repeat(Math.max(0, width - displayWidth(label)));
 }

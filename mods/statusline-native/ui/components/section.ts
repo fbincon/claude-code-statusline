@@ -1,6 +1,9 @@
 import type { ClientElements, RenderElement } from 'claude-code';
-import { clip } from '../layout.ts';
+import { clip, displayWidth } from '../layout.ts';
+import { shortcutSpans, spanLine } from './shortcuts.ts';
+import type { Shortcut, TextSpan } from './shortcuts.ts';
 
+/** Draw a cell-sized frame: the title occupies the top edge, not a body row. */
 export function section(
   ui: ClientElements,
   key: string,
@@ -9,25 +12,37 @@ export function section(
   width: number,
   height: number,
   framed: boolean,
+  hints: readonly Shortcut[] = [],
 ): RenderElement {
-  const inner = Math.max(1, width - (framed ? 2 : 0));
+  const edge = { color: 'gray', dimColor: true };
+  const label = clip(title, Math.max(1, width - 5));
+  const titleSpans: TextSpan[] = [{ text: ' ' + label + ' ', style: { bold: true, color: 'cyan' } }];
+  titleSpans.push(...shortcutSpans(hints, Math.max(0, width - 3 - displayWidth(' ' + label + ' '))));
+  const used = titleSpans.reduce((n, s) => n + displayWidth(s.text), 0);
+  const top = spanLine(ui, [
+    { text: framed ? '╭─' : '─', style: edge },
+    ...titleSpans,
+    { text: '─'.repeat(Math.max(0, width - used - (framed ? 3 : 1))) + (framed ? '╮' : ''), style: edge },
+  ], width);
+  const body = children.slice(0, Math.max(0, height - (framed ? 2 : 1)));
   return ui.Box({
     key,
     width,
     height,
     flexDirection: 'column',
     flexShrink: 0,
-    borderStyle: framed ? 'round' : undefined,
-    borderColor: 'gray',
     overflow: 'hidden',
     children: [
-      ui.Text({
-        bold: true,
-        color: 'cyan',
-        wrap: 'truncate',
-        children: [clip(framed ? title : '─ ' + title + ' ─', inner)],
-      }),
-      ...children,
+      top,
+      ...body.map((child) => framed ? ui.Box({
+        flexDirection: 'row', flexShrink: 0, height: 1, width,
+        children: [
+          ui.Text({ ...edge, children: ['│'] }),
+          ui.Box({ width: width - 2, height: 1, flexShrink: 0, overflow: 'hidden', children: [child] }),
+          ui.Text({ ...edge, children: ['│'] }),
+        ],
+      }) : child),
+      ...(framed ? [ui.Text({ ...edge, wrap: 'truncate', children: ['╰' + '─'.repeat(Math.max(0, width - 2)) + '╯'] })] : []),
     ],
   });
 }

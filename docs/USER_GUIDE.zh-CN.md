@@ -66,10 +66,10 @@
 
 ### 安装 Python 包
 
-安装 [v1.7.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) wheel，各支持平台使用同一个软件包：
+安装 [v1.7.1 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.1) wheel，各支持平台使用同一个软件包：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -77,22 +77,22 @@ pipx ensurepath
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.7.0-py3-none-any.whl
+sha256sum claude_code_statusline-1.7.1-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.7.0-py3-none-any.whl
+shasum -a 256 claude_code_statusline-1.7.1-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.7.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.7.1-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.7.0-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.7.0-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.7.1-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.7.1-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
 pipx ensurepath
 ```
 
@@ -154,6 +154,12 @@ macOS 使用相同 wheel 和安装流程，CPython 需要提供 curses。外部�
 ## 原生配置编辑器
 
 `/statusline-configure-native` 在当前 Claude Code session 内打开 Client TUI，不另开终端。它与外部 `/statusline-configure` 共用配置、目录、catalog、互斥规则和原子保存服务，各自保留草稿。正式版默认启用两者；安装完成后在受信任终端重启 Claude Code。
+
+### 页面层级与分页
+
+内容和 Preview 分区显示，较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键用白色粗体，作用说明用普通字重。
+
+Settings、Layout 和逐项格式详情按分组标题与字段实际占用的行数填满后分页。上下键只选择字段；PageUp／PageDown 切换页面并尽量保留页内位置，Home／End 到首尾。缩放后重新计算页面，保留草稿、选中字段和输入缓冲。Layout 按布局模式、行边界、逐项适配连续排列。
 
 ### 编辑器安装组合与兼容性
 
@@ -405,15 +411,9 @@ Client 用 `s` 保存并继续、`f` 保存并关闭、`q` 放弃草稿。curses
 
 ### Claude 宿主偏好独立应用
 
-在 Client Settings 按 `h` 展开 Claude 外观、时间／标题及行为分组。主题、verbose、逐轮计时、减少动画、提示、进度条与通知使用当前宿主实际提供的配置行；适用的时间／标题行也会纳入，缺失行显示官方入口。模型、effort、thinking、fast mode 单列为行为分组，与同名状态栏显示开关独立。
+在 Client Settings 按 `h`（Claude preferences）展开／收起 Claude 外观、时间／标题及行为分组。主题、verbose、逐轮计时、减少动画、提示、进度条与通知使用当前宿主实际提供的配置行；适用的时间／标题行也会纳入，缺失行显示官方入口。模型、effort、thinking、fast mode 单列为行为分组，与同名状态栏显示开关独立。
 
 按实际类型／选项编辑后用 `a` Apply。每行保留应用结果，涵盖宿主拒绝、锁定、外部修改与部分成功。工具 Save/Finish 和可移植文件不应用宿主偏好；Reload 明确放弃待处理编辑，继续使用键盘前点击恢复后的 Client 区域。宿主可能改变类型或不提供某行，此时使用提示的 `/config`、`/model`、`/effort`、`/fast` 等官方入口。独立 TUI 只管理工具配置，不能调用 Claude 宿主 API。
-
-**Layout 页面示例（Linux）：**
-
-![Linux 外部 TUI Layout 页：模式、行边界与逐项优先级及宽度](images/tui/external/linux/layout.png)
-
-其他平台：[macOS Layout](images/tui/external/macos/layout.png) · [Windows Layout](images/tui/external/windows/layout.png)。
 
 <a id="phase-5-预览安装"></a>
 <a id="phase-5-正式版安装"></a>
@@ -510,7 +510,7 @@ claude-statusline configure --config-dir /path/to/claude-config
 ### 替换 Python 包
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 ```
 
 本地 wheel 或源码安装使用 `pipx install --force`，参数为更新或构建后的原文件、固定标签 Git URL 或本地检出目录。
@@ -822,7 +822,7 @@ claude-statusline config set refresh-interval 1
 [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) 已包含任务计时。使用稳定版 wheel 升级：
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```

@@ -71,6 +71,10 @@ def prepare(
         CLAUDE_STATUSLINE_NATIVE_EXECUTABLE=str(backend),
     )
     env.pop("CLAUDECODE", None)
+    # Exercise real terminal styles even when the parent automation disables
+    # ANSI output. Colorless geometry is covered separately by UI tests.
+    env.pop("NO_COLOR", None)
+    env["FORCE_COLOR"] = "3"
     # A fixed npm host resolves to a binary named claude.exe on Linux. Put a
     # private canonical name on PATH so the installer/backend use that host too.
     host_directory = root / "host-bin"
@@ -250,6 +254,15 @@ def run_pty(
             [screen.buffer[row][column]._asdict() for column in range(columns)]
             for row in range(screen.lines)
         ]
+        if "external" not in name:
+            footer = next(
+                (row[col : col + 6] for row in cells for col in range(columns - 5)
+                 if "".join(cell["data"] for cell in row[col : col + 6]) == "s Save"),
+                None,
+            )
+            assert footer is not None, "Native action row is missing from capture"
+            assert footer[0]["bold"] and footer[0]["fg"] in ("white", "brightwhite", "ffffff"), "Save key lost its white bold style"
+            assert all(not cell["bold"] for cell in footer[2:]), "Save description inherited the key's bold style"
         path.write_text(
             json.dumps(
                 {"columns": columns, "rows": screen.lines, "cells": cells},
@@ -306,7 +319,7 @@ def run_pty(
         os.write(master, b"/git")
         read_until("Filter: git")
         os.write(master, b"\x07")
-        read_until("Filter: [/ search]")
+        read_until("Filter: / search")
         os.write(master, b"\x1b[B\x1b[B")
         read_until("Detail: Git")
         offset = len(raw)
@@ -335,27 +348,27 @@ def run_pty(
         read_until("Tool settings")
         capture("settings")
         os.write(master, b"\x1b[B" * 5 + b"\r\x159")
-        read_until("Padding 9 _")
+        read_until("Padding: 9 _")
         os.write(master, b"\x07")
-        read_until("Padding 0")
+        read_until("Padding: 0")
         os.write(master, b"\x1b[H")
-        read_until("Colors on")
+        read_until("Colors: on")
         os.write(master, b" ")
-        read_until("Colors off")
+        read_until("Colors: off")
         os.write(master, b"s")
         read_until("Tool configuration saved")
         saved = (config / "claude-statusline.json").read_bytes()
         assert json.loads(saved)["use_colors"] is False
         capture("saved")
         os.write(master, b" ")
-        read_until("Colors on")
+        read_until("Colors: on")
         os.write(master, b"q")
         read_until("❯")
         command("/statusline-configure-native")
         read_until("Client TUI")
         click_client()
         os.write(master, b"3")
-        read_until("Colors off")
+        read_until("Colors: off")
         os.write(master, b"\x1b")
         read_until("Tool settings")
         assert any("Tool settings" in row for row in screen.display), (
@@ -400,7 +413,7 @@ def run_pty(
             read_until("Client TUI")
             click_client()
             os.write(master, b"3")
-            read_until("Colors on")
+            read_until("Colors: on")
             os.write(master, b"q")
             read_until("❯")
             external_verified = True
@@ -413,10 +426,19 @@ def run_pty(
                 )
             display_path = config / "claude-statusline.json"
             base = display_path.read_bytes()
-            global_count = len(described["editor_fields"]["global"])
-            preset_index = 9 + global_count
 
-            def client_setting(index, label):
+            def client_setting(key, label):
+                if key == "layout.mode" or key.startswith(("break:", "fit:")):
+                    items = json.loads(display_path.read_bytes())["items"]
+                    field_keys = ["layout.mode"] + ["break:" + item for item in items[1:]]
+                    field_keys += ["fit:" + item + ":" + name for item in items for name in ("priority", "max_width")]
+                else:
+                    field_keys = ["colors", "palette", "directory-style", "separator-style", "scope-labels", "padding", "refresh_interval", "vim-indicator", "settings-subagent-statusline"]
+                    field_keys += ["field:" + field["key"] for field in described["editor_fields"]["global"]]
+                    field_keys += ["preset-select", "preset-apply", "import-file", "export-file"]
+                    # Canonical identities keep the spec order even for missing host rows.
+                    field_keys += ["host-" + name for name in ("theme", "verbose", "showTurnDuration", "prefersReducedMotion", "spinnerTipsEnabled", "terminalProgressBarEnabled", "preferredNotifChannel", "timeFormat", "timeZone", "title", "model", "effort", "thinking", "fast")]
+                index = field_keys.index(key)
                 os.write(master, b"\x1b[H" + b"\x1b[B" * index)
                 read_until("› " + label)
 
@@ -459,28 +481,28 @@ def run_pty(
             capture("advanced-item-format")
             os.write(master, b"\x07" + b"4")
             read_until("Layout / fitting")
-            client_setting(0, "Layout mode")
+            client_setting("layout.mode", "Layout mode")
             os.write(master, b"\r")
-            read_until("Layout mode explicit")
+            read_until("Layout mode: explicit")
             first_item = json.loads(base)["items"][0]
             first_label = next(
                 i["label"]
                 for i in described["catalog"]
                 if i["scope"] == "main" and i["id"] == first_item
             )
-            client_setting(1, first_label + " Priority")
-            client_value("100", "Priority 100")
-            client_setting(2, first_label + " Maximum width")
-            client_value("28", "Maximum width 28")
-            client_setting(3, "New row before")
+            client_setting("fit:" + first_item + ":priority", first_label + " Priority")
+            client_value("100", "Priority: 100")
+            client_setting("fit:" + first_item + ":max_width", first_label + " Maximum width")
+            client_value("28", "Maximum width: 28")
+            client_setting("break:" + json.loads(base)["items"][1], "New row before")
             os.write(master, b" ")
             read_until("New row before")
             capture("advanced-layout")
             os.write(master, b"3")
             read_until("Tool settings")
-            client_setting(1, "Palette")
+            client_setting("palette", "Palette")
             os.write(master, b"\x1b[C")
-            read_until("Palette ansi")
+            read_until("Palette: ansi")
             os.write(master, b"s")
             read_until("Tool configuration saved")
             saved_advanced = display_path.read_bytes()
@@ -491,15 +513,15 @@ def run_pty(
             assert len(saved_config["layout"]["rows"]) == 2
             assert saved_config["palette"] == "ansi"
 
-            client_setting(preset_index, "Preset")
+            client_setting("preset-select", "Preset")
             os.write(master, b"\x1b[C")
-            read_until("Preset developer")
-            client_setting(preset_index + 1, "Expand selected preset")
+            read_until("Preset: developer")
+            client_setting("preset-apply", "Expand selected preset")
             os.write(master, b"\r")
             read_until("Draft replaced")
             capture("advanced-preset")
             portable = project / f"draft-{columns} 中文.json"
-            client_setting(preset_index + 3, "Export current draft")
+            client_setting("export-file", "Export current draft")
             client_value(portable.name, "Exported current draft")
             exported = json.loads(portable.read_bytes())
             assert exported["draft"]["display"]["items"] != saved_config["items"]
@@ -512,7 +534,7 @@ def run_pty(
 
             bad = project / f"invalid-{columns}.json"
             bad.write_text("[]", encoding="utf-8")
-            client_setting(preset_index + 2, "Import file")
+            client_setting("import-file", "Import file")
             client_value(bad.name, "import requires")
             assert display_path.read_bytes() == saved_advanced
             client_value(portable.name, "Draft replaced")
@@ -529,12 +551,12 @@ def run_pty(
             os.write(master, b"3h")
             read_until("Claude preferences")
             # Exercise actual menu aliases through the interactive writer.
-            client_setting(preset_index + 4, "Theme")
+            client_setting("host-theme", "Theme")
             os.write(master, b"\x1b[C")
-            read_until("Theme light")
-            client_setting(preset_index + 6, "Show turn duration")
+            read_until("Theme: light")
+            client_setting("host-showTurnDuration", "Show turn duration")
             os.write(master, b" ")
-            read_until("Show turn duration false")
+            read_until("Show turn duration: false")
             os.write(master, b"a")
             read_until("Show turn duration: Applied.")
             assert display_path.read_bytes() == saved_advanced
@@ -543,15 +565,15 @@ def run_pty(
             click_client()
             os.write(master, b"3h")
             read_until("Claude preferences")
-            client_setting(preset_index + 4, "Theme")
-            read_until("Theme light")
-            client_setting(preset_index + 6, "Show turn duration")
-            read_until("Show turn duration false")
+            client_setting("host-theme", "Theme")
+            read_until("Theme: light")
+            client_setting("host-showTurnDuration", "Show turn duration")
+            read_until("Show turn duration: false")
             capture("advanced-host-preferences")
             # Restore through the same API; tool saves must preserve its result.
             os.write(master, b" a")
             read_until("Show turn duration: Applied.")
-            client_setting(preset_index + 4, "Theme")
+            client_setting("host-theme", "Theme")
             os.write(master, b"\x1b[Da")
             read_until("Theme: Applied.")
             settings_after_preferences = (config / "settings.json").read_bytes()
@@ -621,8 +643,8 @@ def run_pty(
             read_until("[x] Context used")
             os.write(master, b"4")
             read_until("Layout / fitting")
-            client_setting(1, "Context used Priority")
-            read_until("Priority 100")
+            client_setting("fit:context-used:priority", "Context used Priority")
+            read_until("Priority: 100")
             capture("advanced-shared-draft")
             os.write(master, b"q")
             read_until("❯")
@@ -646,6 +668,7 @@ def run_pty(
             "preset_export_import_cancel": advanced,
             "shared_advanced_save": advanced,
             "interactive_host_preferences": advanced,
+            "shortcut_styles": True,
             "toggle": True,
             "space_toggles_item": True,
             "keyboard_after_click": True,

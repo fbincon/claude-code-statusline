@@ -120,7 +120,7 @@ test('reopening focuses the same draft; q discards and the next opening reads pe
     reads,
   );
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /Colors\s+off/ }),
+    await ui.find({ in: REGION, type: 'Text', text: /Colors:\s+off/ }),
   ).toBeDefined();
   await keys(ui, 'q');
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
@@ -129,7 +129,7 @@ test('reopening focuses the same draft; q discards and the next opening reads pe
   const reopened = await $.ui.mount(PANE);
   await keys(reopened, '3');
   expect(
-    await reopened.find({ in: REGION, type: 'Text', text: /Colors\s+on/ }),
+    await reopened.find({ in: REGION, type: 'Text', text: /Colors:\s+on/ }),
   ).toBeDefined();
   await reopened.unmount();
 });
@@ -262,12 +262,12 @@ test('conflicting save retains the draft; explicit reload reads external changes
     await ui.find({ in: REGION, type: 'Text', text: 'configuration_conflict' }),
   ).toBeDefined();
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /Colors\s+off/ }),
+    await ui.find({ in: REGION, type: 'Text', text: /Colors:\s+off/ }),
   ).toBeDefined();
   fixture.store.draft.display.palette = 'ansi';
   await keys(ui, 'r', '3');
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /Colors\s+on/ }),
+    await ui.find({ in: REGION, type: 'Text', text: /Colors:\s+on/ }),
   ).toBeDefined();
   reject = false;
   await keys(ui, 'f');
@@ -319,8 +319,8 @@ test('full and compact layouts keep selection through paging, filtering and resi
     props: { ...PANE.props, bodyColumns: 72 },
   });
   expect(
-    (await ui.find({ in: REGION, key: 'content-region' }))?.props.borderStyle,
-  ).toBe('round');
+    await ui.find({ in: REGION, type: 'Text', text: /╭─ Main items/ }),
+  ).toBeDefined();
   await keys(ui, 'end');
   await ui.redraw({
     ...PANE.props,
@@ -329,7 +329,7 @@ test('full and compact layouts keep selection through paging, filtering and resi
   });
   await ui.resize({ columns: 32, rows: 12 });
   expect(
-    (await ui.find({ in: REGION, key: 'content-region' }))?.props.borderStyle,
+    await ui.find({ in: REGION, type: 'Text', text: /╭─ Main items/ }),
   ).toBeUndefined();
   expect(
     await ui.find({ in: REGION, key: 'item-main:' + MAIN_ITEM_IDS[MAIN_ITEM_IDS.length - 1] }),
@@ -364,7 +364,7 @@ test('Client fault and retry preserve received edits; old epoch and malformed po
   ).toBeDefined();
   await ui.press({ key: 'retry-client' });
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: /Colors\s+off/ }),
+    await ui.find({ in: REGION, type: 'Text', text: /Colors:\s+off/ }),
   ).toBeDefined();
   await ui.post({
     epoch: before.epoch,

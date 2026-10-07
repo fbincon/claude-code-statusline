@@ -168,6 +168,59 @@ class GroupWindowTests(unittest.TestCase):
 
 
 class DrawingTests(unittest.TestCase):
+    def test_shortcut_keys_and_labels_have_independent_styles_on_every_page(self):
+        for page in ("items", "subagents", "settings", "layout", "detail"):
+            for colors in (0, 8, 16, 256):
+                state = EditorState.from_effective(effective())
+                if page == "detail":
+                    state.form_item = ("main", state.selected_item)
+                else:
+                    state.page = page
+                screen = Screen(64, 20)
+                drawing._draw_screen(screen, state, Mapper(colors))
+                calls = [c for c in screen.calls if c[0] >= 18]
+                key_calls = [c for c in calls if c[3] & curses.A_BOLD]
+                self.assertTrue(key_calls)
+                self.assertTrue(all(not c[3] & curses.A_REVERSE for c in calls))
+                self.assertTrue(all(c[2].strip() == c[2] for c in key_calls))
+                self.assertTrue(any(c[2] == " save" and not c[3] & curses.A_BOLD for c in calls))
+                self.assertTrue(any("Ctrl+S" in c[2] for c in key_calls))
+                self.assertTrue(any(c[2] in ("Tab", "↑↓") for c in key_calls))
+
+    def test_shortcut_groups_clip_at_cell_boundaries_without_partial_bindings(self):
+        from claude_statusline.ui.shortcuts import Hint
+
+        screen = Screen(16, 5)
+        drawing._draw_shortcuts(
+            screen, 4,
+            [Hint("Ctrl+G", "cancel editing", "cancel"), Hint("Esc", "restore")],
+            16, Mapper(),
+        )
+        self.assertIn("Ctrl+G cancel", screen.text)
+        self.assertNotIn("Esc", screen.text)
+        self.assertEqual(
+            [c[2] for c in screen.calls if c[3] & curses.A_BOLD], ["Ctrl+G"]
+        )
+        from claude_statusline.ui.shortcuts import segments
+
+        for width in range(1, 25):
+            result = segments([Hint("Enter", "保存中文 é", "保存")], width)
+            self.assertLessEqual(sum(render_layout._display_width(text) for text, _ in result), width)
+            self.assertTrue(not result or result[0] == ("Enter", True))
+
+    def test_portable_file_action_keys_use_the_same_styles_as_footer_keys(self):
+        state = EditorState.from_effective(effective())
+        state.page = "settings"
+        select(state, "export-file")
+        screen = Screen(120, 30)
+        drawing._draw_screen(screen, state, Mapper())
+        geometry = layout.dimensions(120, 30)
+        self.assertTrue(any(
+            text == "Enter" and attr & curses.A_BOLD
+            and geometry.content.inner_y < y < geometry.preview.y
+            for y, _, text, attr in screen.calls
+        ))
+
     def test_all_pages_at_boundaries_without_overlaps_or_out_of_bounds_writes(self):
         for width, height in (
             (64, 18),
