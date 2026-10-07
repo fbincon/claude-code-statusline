@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 1.7.0 - 2026-10-07
+
+- Promote the accepted task timing preview after the maintainer confirmed v1.7.0a1 validation on Linux, macOS and Windows. Exact OS, architecture, terminal and host versions were not supplied with this confirmation.
+- Synchronize Python and both Mods at 1.7.0, update stable installation and upgrade links, and publish a new stable Latest release. Compatible stable installs request both editors and preserve recorded disablement; native timing and advanced metrics retain their independent preferences.
+- Retain the accepted task clocks, submission and agent ownership, wait-coverage diagnostics, compatibility aliases and schema contracts: display v5, configuration protocol v4, runtime preferences v2, runtime protocol v2 and lifecycle v4.
+- Require PR, merge and tag CI, fixed-merge package inspection, independent rebuild/install, installed editor and runtime smoke, captured-session revalidation and draft/public asset verification. Preserve the a1 tag, assets, prerelease status and original shared-budget ledger; stable promotion uses no new paid model calls.
+
 ## 1.7.0a1 - 2026-10-07
 
 - Replace the prompt clock with a persistent task lifecycle and independent immutable pause/resume clock. Default `task-timer` includes submission, queueing, child agents, reports and main wrap-up; retain `prompt-timer` as an alias in commands, imports, item options and layouts.

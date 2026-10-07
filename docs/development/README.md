@@ -91,7 +91,7 @@ python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/claude_code_statusline-1.6.1-py3-none-any.whl
+pipx install dist/claude_code_statusline-1.7.0-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -101,13 +101,13 @@ Windows PowerShell:
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\claude_code_statusline-1.6.1-py3-none-any.whl
+pipx install .\dist\claude_code_statusline-1.7.0-py3-none-any.whl
 pipx ensurepath
 ```
 
-These filenames correspond to stable v1.6.1; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](../USER_GUIDE.md#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](../USER_GUIDE.md#integrate-with-claude-code).
+These filenames correspond to stable v1.7.0; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](../USER_GUIDE.md#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](../USER_GUIDE.md#integrate-with-claude-code).
 
-In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.6.1-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](../RELEASING.md) for the complete process.
+In an activated build environment, inspect the wheel with `python -m zipfile -l dist/claude_code_statusline-1.7.0-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](../RELEASING.md) for the complete process.
 
 <a id="隔离测试与人工验收"></a>
 

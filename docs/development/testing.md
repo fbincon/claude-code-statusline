@@ -199,3 +199,9 @@ Run `tools/benchmark_task_timer.py --samples 30 --report PATH` under the same in
 | Terminal: 100,000 rows, 32 tasks | 9.486 / 9.595 | 0.048 / 0.061 |
 
 Unchanged hot refresh performs no transcript reads; ending lookup reuses the bounded cursor index. At 100,000 rows/32 tasks (16.6 MB), first submission indexing was 9.84 ms before and 22.44 ms after; it still scans the source once. Timer renderer startup increased by approximately 1.5 ms at P50. Measurements are local fixtures with scheduler/cache noise, not performance bounds. The source/report paths and raw histories remain private.
+
+## v1.7.0 stable acceptance
+
+On 2026-10-07 the maintainer confirmed the v1.7.0a1 preview had been validated on Linux, macOS and Windows. Exact OS, architecture, terminal and Claude Code versions were not supplied. This confirms platform acceptance; automated CI, SDK-controlled scenarios and hardware sleep/resume evidence remain separate records.
+
+Stable 1.7.0 keeps the accepted task timing code and contracts. Validate stable editor defaults, saved opt-outs, compatible/unknown hosts, and a1-to-stable resource/backend upgrades with the installed package. The existing 590-test Python suite, 51 official Mod tests, generated contracts, TypeScript, Ruff, documentation and all PR/merge/tag CI gates apply. Revalidate the six captured scenarios with the stable wheel without paid calls, preserve the original USD 0.801859 ledger, and verify independent rebuilds, both editor PTYs, draft/public assets and URL installations. See the [stable Release record](../releases/v1.7.0.md).

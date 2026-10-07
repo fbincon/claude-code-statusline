@@ -4,7 +4,7 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.6.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,7 +12,7 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-Stable v1.6.1 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
+Stable v1.7.0 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
@@ -48,7 +48,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.6.1
+RELEASE_TAG=v1.7.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -66,8 +66,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-claude_code_statusline-1.6.1-py3-none-any.whl
-claude_code_statusline-1.6.1.tar.gz
+claude_code_statusline-1.7.0-py3-none-any.whl
+claude_code_statusline-1.7.0.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -90,8 +90,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.6.1-py3-none-any.whl \
-  claude_code_statusline-1.6.1.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.7.0-py3-none-any.whl \
+  claude_code_statusline-1.7.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -100,8 +100,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.6.1-py3-none-any.whl',
-    'claude_code_statusline-1.6.1.tar.gz'
+    'claude_code_statusline-1.7.0-py3-none-any.whl',
+    'claude_code_statusline-1.7.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -121,8 +121,8 @@ Confirm all 13 Python/build and seven Mod CI jobs pass for Phase 5 for `RELEASE_
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.6.1-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.6.1.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.7.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.7.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -193,3 +193,11 @@ For v1.7.0a1, retain the stable installation target and publish prerelease with 
 Use the existing shared USD 10 ledger for every real attempt and retry. The task acceptance runner covers default timing, parallel reports/wrap-up, blocked Stop continuation, controlled SDK waiting/interruption and explicit collection opt-out; see [task timing validation](development/testing.md#task-timing-preview-validation). Do not publish with a failed required case, unknown cost or exhausted budget. Repeat verification of captured source evidence against the installed distribution without calling models.
 
 Validate installed core/native/runtime smoke, matching-wheel external and Client PTYs, wheel/sdist inventories, independent rebuild/install, draft download/checksums and tag CI before publication. Public asset bytes and fixed-tag/URL isolated installs must be checked after publication. Record automatic SDK input separately from human interaction; real sleep and Windows/macOS model sessions remain explicit preview boundaries.
+
+## v1.7.0 stable promotion
+
+On 2026-10-07 the maintainer confirmed v1.7.0a1 validation on Linux, macOS and Windows and requested stable Latest publication. The confirmation supplies no exact OS, architecture, terminal or host versions, and no separate hardware sleep/resume record. Preserve the contemporaneous preview evidence and earlier platform troubleshooting details.
+
+Promote Python and both Mods to 1.7.0, update current stable installation/upgrade links, and retain the accepted timing implementation and schema contracts. Stable editor defaults request both supported entries; saved false and explicit plugin disablement remain respected. Native timing metadata defaults on for compatible fresh installs, advanced metrics off, and existing runtime choices remain independent. Preserve a1 tags, assets, release type, screenshots and the shared USD 10 ledger.
+
+Require all 20 jobs on the reviewed PR, fixed merge and annotated stable tag; inspect wheel/sdist and both Mod inventories, independently rebuild/install, check a1-to-stable upgrades, installed core/native/runtime smoke and both editor PTYs, and revalidate six captured real scenarios without new model calls. Verify draft bytes/SHA256 and tag CI before publication. Publish the new stable Release with prerelease=false and latest=true; verify anonymous public downloads and isolated public-wheel/fixed-tag URL installs before recording completion.

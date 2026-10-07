@@ -16,7 +16,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 
 ## Features
 
-- **Choose what to show:** 59 main-line items and 14 subagent items; enable, hide, search, and reorder them.
+- **Choose what to show:** 60 main-line items and 14 subagent items; enable, hide, search, and reorder them.
 - **Track the right scope:** session token totals, per-task subagent rows, and a timer covering the user's task through subagent work and main-agent wrap-up.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
 - **Start from a preset:** minimal, developer, monitoring, and multi-agent presets expand into editable settings; import and export portable JSON.
@@ -129,7 +129,7 @@ Layout screenshots are in the [layout guide](docs/USER_GUIDE.md#formatting-layou
 
 Windows ARM devices can use x64 Python emulation; native ARM64 Python is outside the current support contract. Git information requires `git`.
 
-Claude Code feature requirements: subagent rows 2.1.205+; local argument-based configuration and external TUI entry 2.1.258+; in-session Client 2.1.287+; live-metrics collection 2.1.289+. Unsupported or unknown host versions suspend the corresponding integration. See [requirements](docs/USER_GUIDE.md#requirements).
+Claude Code feature requirements: subagent rows 2.1.205+; local argument-based configuration and external TUI entry 2.1.258+; in-session Client 2.1.287+; native timing and advanced live-metrics collection 2.1.289+. Unsupported or unknown host versions suspend the corresponding integration. See [requirements](docs/USER_GUIDE.md#requirements).
 
 <a id="install-current-source"></a>
 <a id="install-from-a-release-recommended"></a>
@@ -154,7 +154,7 @@ Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/i
 Bash, Zsh, and PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -171,7 +171,7 @@ claude-statusline doctor
 
 On Windows, use `claude-statusline.exe`. Restart Claude Code in a trusted terminal after integration.
 
-Both editors default on for compatible hosts, respecting saved disablement preferences. Live collection defaults off. Package installation and Claude integration are separate steps; `install` does not open an editor. Existing conflicting resources require [explicit handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
+Both editors default on for compatible hosts, respecting saved disablement preferences. Native timing metadata defaults on for Claude Code 2.1.289+; advanced live metrics remain opt-in. Package installation and Claude integration are separate steps; `install` does not open an editor. Existing conflicting resources require [explicit handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
 
 <details>
 <summary>Other installation methods</summary>
@@ -179,7 +179,7 @@ Both editors default on for compatible hosts, respecting saved disablement prefe
 Install source from the fixed release tag (requires Git):
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.0"
 ```
 
 Use `@main` to follow current development, or run `pipx install .` from a local checkout. Then run `pipx ensurepath` and complete integration above.
@@ -227,7 +227,7 @@ Configuration is per user. `set-items` replaces the enabled set; `enable` and `d
 Upgrade the package, synchronize integration, then restart Claude Code:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```

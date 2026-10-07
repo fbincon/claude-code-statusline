@@ -16,7 +16,7 @@
 
 ## 功能概览
 
-- **选择显示内容：** 支持 59 个主栏条目和 14 个子 Agent 条目，可启用、隐藏、筛选和排序。
+- **选择显示内容：** 支持 60 个主栏条目和 14 个子 Agent 条目，可启用、隐藏、筛选和排序。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含子 Agent 工作和主 Agent 收尾的完整任务计时。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
 - **从预设开始：** minimal、developer、monitoring、multi-agent 四种预设可展开编辑，支持可移植 JSON 导入和导出。
@@ -127,7 +127,7 @@ Layout 截图见[布局操作说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-
 
 Windows ARM 设备可使用 x64 Python 仿真；原生 ARM64 Python 暂不在支持范围。Git 信息需要系统中存在 `git`。
 
-Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地执行与外部 TUI 入口需 2.1.258+，会话内 Client 需 2.1.287+，实时指标采集需 2.1.289+。版本不兼容或无法识别时，对应接入暂挂。详见[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
+Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地执行与外部 TUI 入口需 2.1.258+，会话内 Client 需 2.1.287+，原生计时和高级实时指标采集需 2.1.289+。版本不兼容或无法识别时，对应接入暂挂。详见[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
 <a id="从-release-安装推荐"></a>
 <a id="从固定标签源码安装"></a>
@@ -142,7 +142,7 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 Bash、Zsh、PowerShell 通用：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -159,7 +159,7 @@ claude-statusline doctor
 
 Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claude Code。
 
-两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；实时采集默认关闭。软件包安装与 Claude 接入是两个步骤，`install` 不会打开编辑器。已有冲突资源需按[冲突处理说明](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
+两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；Claude Code 2.1.289+ 默认采集原生计时元数据，高级实时指标仍按需启用。软件包安装与 Claude 接入是两个步骤，`install` 不会打开编辑器。已有冲突资源需按[冲突处理说明](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
 
 <details>
 <summary>其他安装方式</summary>
@@ -167,7 +167,7 @@ Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claud
 从固定发布标签安装源码，需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.0"
 ```
 
 使用 `@main` 跟踪当前开发源码；本地检出可在仓库根目录执行 `pipx install .`。随后运行 `pipx ensurepath`，并完成上面的接入步骤。
@@ -215,7 +215,7 @@ claude-statusline config show
 升级软件包并同步接入，然后重启 Claude Code：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
