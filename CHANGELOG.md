@@ -4,7 +4,7 @@
 
 ## Unreleased
 
-## 1.7.0a1 - 2026-10-06
+## 1.7.0a1 - 2026-10-07
 
 - Replace the prompt clock with a persistent task lifecycle and independent immutable pause/resume clock. Default `task-timer` includes submission, queueing, child agents, reports and main wrap-up; retain `prompt-timer` as an alias in commands, imports, item options and layouts.
 - Add opt-in `task-active-timer`, shown only with complete identity, event, wait and boot-clock evidence. Preserve native turn duration separately; successful endings, failures and interruptions freeze. Treat raw Stop as a candidate, resume on verified activity, and confirm compatibility endings from matched transcript or verified idle evidence.
