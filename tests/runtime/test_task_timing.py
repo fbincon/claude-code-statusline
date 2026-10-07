@@ -202,6 +202,31 @@ class TaskTimingTests(unittest.TestCase):
             model._elapsed_ns(model._new_record("p", start), *end), 10 * 10**9
         )
 
+    def test_explicit_native_message_link_preserves_earlier_queued_submission(self):
+        from claude_statusline.runtime.tasks import model, native
+
+        message = model._new_record("message", (10**9, None, None), "native_submit")
+        hook = model._new_record("hook", (3 * 10**9, 3 * 10**9, "boot"))
+        history = {"turns": [message, hook], "current_prompt_id": "hook"}
+        native._link(history, "hook", "message")
+        self.assertEqual(len(history["turns"]), 1)
+        self.assertEqual(hook["started_wall_ns"], 10**9)
+        self.assertEqual(hook["started_boot_ns"], 10**9)
+        self.assertEqual(
+            model._elapsed_ns(hook, 9 * 10**9, 9 * 10**9, "boot"), 8 * 10**9
+        )
+
+    def test_message_link_does_not_rewrite_a_confirmed_frozen_task(self):
+        from claude_statusline.runtime.tasks import model, native
+
+        message = model._new_record("message", (10**9, None, None), "native_submit")
+        hook = model._new_record("hook", (3 * 10**9, 3 * 10**9, "boot"))
+        hook.update(status="completed", duration_ns=6 * 10**9, ended_wall_ns=9 * 10**9)
+        history = {"turns": [message, hook], "current_prompt_id": "hook"}
+        native._link(history, "hook", "message")
+        self.assertEqual(hook["started_wall_ns"], 3 * 10**9)
+        self.assertEqual(hook["duration_ns"], 6 * 10**9)
+
 
 class NativeTimingTests(unittest.TestCase):
     def setUp(self):
@@ -306,6 +331,47 @@ class NativeTimingTests(unittest.TestCase):
             live.observe(self.root, rows, timing=True)
         self.assertIsNone(active_point(self.root, "s", "p")["value"])
         self.assertEqual(active_point(self.root, "s", "p")["reason"], "incomplete")
+
+    def test_wait_end_without_a_start_cannot_claim_complete_execution_time(self):
+        from claude_statusline.runtime.live import store as live
+        from claude_statusline.runtime.tasks.view import active_point
+
+        rows = self.observations()
+        rows.pop(3)
+        for seq, row in enumerate(rows):
+            row["seq"] = seq
+        with mock.patch(
+            "claude_statusline.runtime.tasks.native._sample",
+            side_effect=lambda wall, *args, **kwargs: Sample(wall, wall, "test"),
+        ):
+            live.observe(self.root, rows, timing=True)
+        self.assertEqual(active_point(self.root, "s", "p")["reason"], "incomplete")
+        self.assertIsNone(active_point(self.root, "s", "p")["value"])
+
+        # Re-check stored evidence even if an earlier collector already marked
+        # the ending as seen and incorrectly advertised complete coverage.
+        def older_coverage(history):
+            history["turns"][0]["active_coverage"] = "complete"
+            return "p"
+
+        store._with_store("s", older_coverage, self.root)
+        live.observe(self.root, rows, timing=True)
+        self.assertEqual(active_point(self.root, "s", "p")["reason"], "incomplete")
+
+    def test_duplicate_paired_wait_end_keeps_the_same_execution_clock(self):
+        from claude_statusline.runtime.live import store as live
+        from claude_statusline.runtime.tasks.view import active_point
+
+        rows = self.observations()
+        rows.insert(5, dict(rows[4], observed_at_ms=4500))
+        for seq, row in enumerate(rows):
+            row["seq"] = seq
+        with mock.patch(
+            "claude_statusline.runtime.tasks.native._sample",
+            side_effect=lambda wall, *args, **kwargs: Sample(wall, wall, "test"),
+        ):
+            live.observe(self.root, rows, timing=True)
+        self.assertEqual(active_point(self.root, "s", "p")["value"], 3)
 
     def test_native_ending_before_session_exit_corrects_delayed_exit_inference(self):
         from claude_statusline.runtime.live import store as live

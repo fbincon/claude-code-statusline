@@ -31,6 +31,33 @@ def _link(history, alias, target):
     original = model._find_turn(history, alias)
     message = model._find_turn(history, target)
     if original and message and original is not message:
+        earlier, previous = (
+            message.get("started_wall_ns"),
+            original.get("started_wall_ns"),
+        )
+        if (
+            original["status"] == "running"
+            and not original.get("historical_frozen")
+            and type(earlier) is int
+            and type(previous) is int
+            and earlier < previous
+        ):
+            boot = original.get("started_boot_ns")
+            offset = previous - earlier
+            if type(message.get("started_boot_ns")) is int and message.get("boot_id"):
+                boot, domain = message["started_boot_ns"], message["boot_id"]
+            else:
+                boot = (
+                    boot - offset if type(boot) is int and 0 <= offset <= boot else None
+                )
+                domain = original.get("boot_id") if boot is not None else None
+            original.update(
+                started_wall_ns=earlier,
+                started_boot_ns=boot,
+                boot_id=domain,
+                start_source=message.get("start_source"),
+                submission_verified=message.get("submission_verified", False),
+            )
         for item in message.get("prompt_aliases", []):
             model._remember_id(original, "prompt_aliases", item)
         history["turns"].remove(message)
@@ -137,6 +164,18 @@ def observe(config_dir, state, observations, *, complete_timing=True):
             if not contiguous or (state["invalidated"] and turn["ended_at_ms"] is None):
                 record["active_coverage"] = "incomplete"
             pending_ends.append((key, record, turn, previous, agent))
+        wait_starts = {}
+        for event in state.get("wait_events", {}).values():
+            if event["kind"] == "wait_start":
+                identity = (
+                    event["epoch"],
+                    event["agent_id"],
+                    event["turn_id"],
+                    event["request_id"],
+                )
+                wait_starts[identity] = min(
+                    wait_starts.get(identity, event["seq"]), event["seq"]
+                )
         for observation in sorted(
             state.get("wait_events", {}).values(), key=lambda item: item["seq"]
         ):
@@ -159,6 +198,18 @@ def observe(config_dir, state, observations, *, complete_timing=True):
             )
             if record is None:
                 continue
+            if observation["kind"] == "wait_end":
+                identity = (
+                    epoch,
+                    observation["agent_id"],
+                    observation["turn_id"],
+                    observation["request_id"],
+                )
+                if (
+                    wait_starts.get(identity, observation["seq"] + 1)
+                    >= observation["seq"]
+                ):
+                    record["active_coverage"] = "incomplete"
             identity = epoch + ":" + str(observation["seq"])
             if not model._remember_id(record, "native_wait_seen", identity):
                 continue
