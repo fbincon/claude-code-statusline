@@ -11,6 +11,8 @@ from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import models as ui_models
 from claude_statusline.ui import forms
 from claude_statusline.ui import layout as ui_layout
+from claude_statusline.ui import shortcuts
+from claude_statusline.ui.shortcuts import Hint
 
 
 _XTERM_BASE_RGB = (
@@ -170,6 +172,19 @@ def _draw_ansi(
         x += unit.width
 
 
+def _draw_shortcuts(screen, y, hints, width, mapper, x=0, prefix="", attr=0) -> None:
+    height, columns = screen.getmaxyx()
+    width = max(0, min(width, columns - x - int(y == height - 1)))
+    key_attr = curses.A_BOLD | mapper.foreground(
+        nearest_terminal_color(255, 255, 255, mapper.colors)
+    )
+    for text, is_key in shortcuts.segments(hints, width, prefix):
+        _add_text(screen, y, x, text, width, attr | (key_attr if is_key else curses.A_DIM))
+        size = rendering_layout._display_width(text)
+        x += size
+        width -= size
+
+
 def _layout_dimensions(height: int) -> tuple[int, int, int, int]:
     """Compatibility view of the canonical screen geometry."""
     layout = ui_layout.dimensions(ui_models.MIN_TERMINAL_WIDTH, height)
@@ -318,6 +333,7 @@ def _draw_settings(
     width: int,
     x: int = 0,
     title_attr: int = curses.A_BOLD,
+    mapper: _ColorMapper | None = None,
 ) -> None:
     state.ensure_visible(height)
     rows = forms.rows(state)
@@ -353,6 +369,14 @@ def _draw_settings(
             width,
             curses.A_REVERSE if line.index == forms.index(state) else 0,
         )
+        if row["kind"] == "action" and not editing and mapper is not None:
+            prefix_width = 2 + label_width + 2
+            _draw_shortcuts(
+                screen, start_y + offset,
+                [Hint("Enter", value.removeprefix("Enter").lstrip(": "), "expand" if row["key"] == "preset-apply" else "path")],
+                width - prefix_width, mapper, x + prefix_width,
+                attr=curses.A_REVERSE if line.index == forms.index(state) else 0,
+            )
 
 
 def _draw_preview(
@@ -444,7 +468,12 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         else "Type to search > "
         + (state.subagent_search if state.page == "subagents" else state.search)
     )
-    _add_text(screen, 3, 0, notice, width, curses.A_BOLD if error else curses.A_DIM)
+    if not error and state.form_item:
+        _draw_shortcuts(screen, 3, [Hint("Ctrl+G", "back")], width, mapper, prefix="Item format · ")
+    elif not error and state.page == "settings":
+        _draw_shortcuts(screen, 3, [Hint("Enter", "edits new fields.", "edit")], width, mapper, prefix="Use arrows to change values; ")
+    else:
+        _add_text(screen, 3, 0, notice, width, curses.A_BOLD if error else curses.A_DIM)
 
     is_form = forms.special(state) or state.page == "settings"
     title = (
@@ -483,12 +512,13 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             panel.inner_width,
             panel.inner_x,
             title_attr,
+            mapper,
         )
         scroll = state.form_scroll if forms.special(state) else state.settings_scroll
         window = ui_layout.form_window(
             rows, forms.index(state), scroll, layout.list_height
         )
-        position = f"Fields {window.start + 1}-{window.end}/{len(rows)} · ↑↓ select"
+        position = f"Fields {window.start + 1}-{window.end}/{len(rows)}"
     else:
         heading = (
             "  ON  "
@@ -532,13 +562,11 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
                 state.enabled,
             )
         position = f"Items {scroll + 1 if visible else 0}-{min(len(visible), scroll + layout.list_height)}/{len(visible)} · {len(enabled)} enabled"
-    _add_text(
-        screen,
-        panel.inner_y + panel.inner_height - 1,
-        panel.inner_x,
-        position,
-        panel.inner_width,
-        curses.A_DIM,
+    _draw_shortcuts(
+        screen, panel.inner_y + panel.inner_height - 1,
+        [Hint("↑↓", "select")] if is_form else [],
+        panel.inner_width, mapper, panel.inner_x,
+        position + (" · " if is_form else ""),
     )
 
     preview = layout.preview
@@ -554,30 +582,23 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     )
 
     if state.form_input is not None:
-        actions = "Enter accept · Ctrl+G/Esc restore"
-        help_text = "Ctrl+U clear · Backspace delete"
+        actions = [Hint("Enter", "accept"), Hint("Ctrl+G/Esc", "restore")]
+        help_text = [Hint("Ctrl+U", "clear"), Hint("Backspace", "delete")]
     elif state.numeric_edit is not None:
-        actions = "Enter accept · Esc restore"
-        help_text = "Digits edit · Backspace delete"
+        actions = [Hint("Enter", "accept"), Hint("Esc", "restore")]
+        help_text = [Hint("Digits", "edit"), Hint("Backspace", "delete")]
     else:
-        actions = "Ctrl+S save · Esc cancel · Ctrl+C interrupt"
+        actions = [Hint("Ctrl+S", "save"), Hint("Esc", "cancel"), Hint("Ctrl+C", "interrupt")]
         if state.form_item:
-            help_text = "↑↓ select · ←→ adjust · Enter edit · Ctrl+G back"
+            help_text = [Hint("↑↓", "select"), Hint("←→", "adjust"), Hint("Enter", "edit"), Hint("Ctrl+G", "back")]
         elif state.page == "layout":
-            help_text = "Tab page · ↑↓ select · ←→ adjust · Enter edit"
+            help_text = [Hint("Tab", "page"), Hint("↑↓", "select"), Hint("←→", "adjust"), Hint("Enter", "edit")]
         elif state.page == "settings":
-            help_text = "Tab page · ↑↓ select · ←→ adjust · Enter edit/save"
+            help_text = [Hint("Tab", "page"), Hint("↑↓", "select"), Hint("←→", "adjust"), Hint("Enter", "edit/save")]
         else:
-            actions = "Enter/Ctrl+S save · Esc cancel · Ctrl+C interrupt"
-            help_text = "Tab page · Space toggle · Ctrl+E format · Arrows select/order"
-    _add_text(
-        screen,
-        layout.actions_y,
-        0,
-        _column(actions, width),
-        width,
-        curses.A_REVERSE | curses.A_BOLD,
-    )
-    _add_text(screen, layout.help_y, 0, help_text, width, curses.A_DIM)
+            actions = [Hint("Enter/Ctrl+S", "save"), Hint("Esc", "cancel"), Hint("Ctrl+C", "interrupt")]
+            help_text = [Hint("Tab", "page"), Hint("Space", "toggle"), Hint("Ctrl+E", "format"), Hint("↑↓", "select"), Hint("←→", "order")]
+    _draw_shortcuts(screen, layout.actions_y, actions, width, mapper)
+    _draw_shortcuts(screen, layout.help_y, help_text, width, mapper)
     screen.refresh()
     return layout.list_height

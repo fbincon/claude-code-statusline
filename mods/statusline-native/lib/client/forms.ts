@@ -37,7 +37,8 @@ export function formRows(view: View): FormRow[] {
     const options = (map as Record<string, NonNullable<Draft['display']['item_options'][keyof Draft['display']['item_options']]>>)[e.detail.id];
     return e.description.editor_fields.item!.map((spec) => row(spec, 'item:' + spec.key,
       spec.key in e.description.formatting_options ? options?.formatting[spec.key] ?? 'inherit' :
-      options?.[spec.key as keyof typeof options] ?? (spec.key === 'priority' ? 50 : null)));
+      options?.[spec.key as keyof typeof options] ?? (spec.key === 'priority' ? 50 : null)))
+      .sort((a, b) => Number(a.group === 'Item fitting') - Number(b.group === 'Item fitting'));
   }
   if (e.page === 'layout') {
     const result = [row({ key: 'layout.mode', label: 'Layout mode', group: 'Layout', kind: 'choice', choices: ['auto', 'explicit'], minimum: 0, maximum: 0, nullable: false }, 'layout.mode', d.layout.mode)];
@@ -45,6 +46,9 @@ export function formRows(view: View): FormRow[] {
     for (const id of d.items) {
       const label = e.catalog('main').find((i) => i.id === id)!.label;
       if (id !== d.items[0]) result.push(row({ key: 'break:' + id, label: 'New row before ' + label, group: 'Row boundaries', kind: 'boolean', choices: [], minimum: 0, maximum: 0, nullable: false }, 'break:' + id, starts.has(id)));
+    }
+    for (const id of d.items) {
+      const label = e.catalog('main').find((i) => i.id === id)!.label;
       for (const name of ['priority', 'max_width']) {
         const spec = e.description.editor_fields.item!.find((s) => s.key === name)!;
         result.push(row({ ...spec, label: label + ' ' + spec.label, group: 'Item fitting' }, 'fit:' + id + ':' + name,
