@@ -255,14 +255,34 @@ def run_pty(
             for row in range(screen.lines)
         ]
         if "external" not in name:
+            def find_cells(label):
+                return next(
+                    ((index, row[col : col + len(label)])
+                     for index, row in enumerate(cells)
+                     for col in range(columns - len(label) + 1)
+                     if "".join(cell["data"] for cell in row[col : col + len(label)]) == label),
+                    None,
+                )
+
+            heading = find_cells("Configure Status Line")
+            preview = find_cells("Preview · sample data")
+            assert heading and preview, "Client title or preview heading is missing"
+            assert heading[1][0]["bold"], "Client heading lost its bold style"
+            assert heading[1][0]["fg"] == preview[1][0]["fg"], "Client heading must match the preview heading color"
             footer = next(
-                (row[col : col + 6] for row in cells for col in range(columns - 5)
-                 if "".join(cell["data"] for cell in row[col : col + 6]) == "s Save"),
+                ((index, row[col : col + 6]) for index, row in enumerate(cells) for col in range(columns - 5)
+                 if "".join(cell["data"] for cell in row[col : col + 6]) == "S save"),
                 None,
             )
             assert footer is not None, "Native action row is missing from capture"
-            assert footer[0]["bold"] and footer[0]["fg"] in ("white", "brightwhite", "ffffff"), "Save key lost its white bold style"
-            assert all(not cell["bold"] for cell in footer[2:]), "Save description inherited the key's bold style"
+            assert footer[1][0]["bold"] and footer[1][0]["fg"] in ("white", "brightwhite", "ffffff"), "Save key lost its white bold style"
+            assert all(not cell["bold"] for cell in footer[1][2:]), "Save description inherited the key's bold style"
+            help_text = " ".join("".join(cell["data"] for cell in row) for row in cells[footer[0]:])
+            expected = ["Tab page", "↑↓ select", "←→ adjust", "Enter edit"]
+            if name in ("main", "main-next", "subagents"):
+                expected = ["Tab page", "Space toggle", "↑↓ select", "←→ order", "Ctrl+E format", "/ search"]
+            positions = [help_text.index(label) for label in expected]
+            assert positions == sorted(positions), "Client page shortcuts are out of order"
         path.write_text(
             json.dumps(
                 {"columns": columns, "rows": screen.lines, "cells": cells},
@@ -300,15 +320,15 @@ def run_pty(
             read_until("❯")
         offset = len(raw)
         command("/statusline-configure-native")
-        placed = read_until(("Client TUI", "Resize pane to 32x12"), start=offset)
-        resized = placed != "Client TUI"
+        placed = read_until(("Configure Status Line", "Resize pane to 32x12"), start=offset)
+        resized = placed != "Configure Status Line"
         if resized:
             fcntl.ioctl(
                 slave, termios.TIOCSWINSZ, struct.pack("HHHH", 48, columns, 0, 0)
             )
             screen.resize(lines=48, columns=columns)
             os.killpg(process.pid, signal.SIGWINCH)
-            read_until("Client TUI")
+            read_until("Configure Status Line")
         read_until("sample data")
         capture("main")
         click_client()
@@ -325,7 +345,7 @@ def run_pty(
         offset = len(raw)
         os.write(master, b"\x1b[D")
         read_until("Main items", start=offset)
-        os.write(master, b"s")
+        os.write(master, b"S")
         read_until("Tool configuration saved")
         ordered = json.loads((config / "claude-statusline.json").read_bytes())["items"]
         assert ordered.index("git") < ordered.index("current-dir"), (
@@ -355,17 +375,17 @@ def run_pty(
         read_until("Colors: on")
         os.write(master, b" ")
         read_until("Colors: off")
-        os.write(master, b"s")
+        os.write(master, b"S")
         read_until("Tool configuration saved")
         saved = (config / "claude-statusline.json").read_bytes()
         assert json.loads(saved)["use_colors"] is False
         capture("saved")
         os.write(master, b" ")
         read_until("Colors: on")
-        os.write(master, b"q")
+        os.write(master, b"Q")
         read_until("❯")
         command("/statusline-configure-native")
-        read_until("Client TUI")
+        read_until("Configure Status Line")
         click_client()
         os.write(master, b"3")
         read_until("Colors: off")
@@ -385,9 +405,9 @@ def run_pty(
             "Unchanged host fields were rewritten"
         )
         command("/statusline-configure-native")
-        read_until("Client TUI")
+        read_until("Configure Status Line")
         click_client()
-        os.write(master, b"f")
+        os.write(master, b"F")
         read_until("❯")
         external_verified = False
         if persistent:
@@ -410,11 +430,11 @@ def run_pty(
                 is True
             )
             command("/statusline-configure-native")
-            read_until("Client TUI")
+            read_until("Configure Status Line")
             click_client()
             os.write(master, b"3")
             read_until("Colors: on")
-            os.write(master, b"q")
+            os.write(master, b"Q")
             read_until("❯")
             external_verified = True
         command("/statusline-config show")
@@ -473,11 +493,11 @@ def run_pty(
                 read_until(observed, quiet=False)
 
             command("/statusline-configure-native")
-            read_until("Client TUI")
+            read_until("Configure Status Line")
             click_client()
             os.write(master, b"\x1b[H\x05")
             read_until("Item format:")
-            client_value("Engine 中文", "Engine 中文")
+            client_value("Engine SfQ 中文", "Engine SfQ 中文")
             capture("advanced-item-format")
             os.write(master, b"\x07" + b"4")
             read_until("Layout / fitting")
@@ -503,11 +523,11 @@ def run_pty(
             client_setting("palette", "Palette")
             os.write(master, b"\x1b[C")
             read_until("Palette: ansi")
-            os.write(master, b"s")
+            os.write(master, b"S")
             read_until("Tool configuration saved")
             saved_advanced = display_path.read_bytes()
             saved_config = json.loads(saved_advanced)
-            assert saved_config["item_options"][first_item]["label"] == "Engine 中文"
+            assert saved_config["item_options"][first_item]["label"] == "Engine SfQ 中文"
             assert saved_config["item_options"][first_item]["priority"] == 100
             assert saved_config["item_options"][first_item]["max_width"] == 28
             assert len(saved_config["layout"]["rows"]) == 2
@@ -539,16 +559,16 @@ def run_pty(
             assert display_path.read_bytes() == saved_advanced
             client_value(portable.name, "Draft replaced")
             capture("advanced-import")
-            os.write(master, b"q")
+            os.write(master, b"Q")
             read_until("❯")
             assert display_path.read_bytes() == saved_advanced, (
                 "Cancel saved an imported draft"
             )
 
             command("/statusline-configure-native")
-            read_until("Client TUI")
+            read_until("Configure Status Line")
             click_client()
-            os.write(master, b"3h")
+            os.write(master, b"3H")
             read_until("Claude preferences")
             # Exercise actual menu aliases through the interactive writer.
             client_setting("host-theme", "Theme")
@@ -557,13 +577,13 @@ def run_pty(
             client_setting("host-showTurnDuration", "Show turn duration")
             os.write(master, b" ")
             read_until("Show turn duration: false")
-            os.write(master, b"a")
+            os.write(master, b"A")
             read_until("Show turn duration: Applied.")
             assert display_path.read_bytes() == saved_advanced
-            os.write(master, b"r")
+            os.write(master, b"R")
             read_until("Main items")
             click_client()
-            os.write(master, b"3h")
+            os.write(master, b"3H")
             read_until("Claude preferences")
             client_setting("host-theme", "Theme")
             read_until("Theme: light")
@@ -571,13 +591,13 @@ def run_pty(
             read_until("Show turn duration: false")
             capture("advanced-host-preferences")
             # Restore through the same API; tool saves must preserve its result.
-            os.write(master, b" a")
+            os.write(master, b" A")
             read_until("Show turn duration: Applied.")
             client_setting("host-theme", "Theme")
-            os.write(master, b"\x1b[Da")
+            os.write(master, b"\x1b[DA")
             read_until("Theme: Applied.")
             settings_after_preferences = (config / "settings.json").read_bytes()
-            os.write(master, b"q")
+            os.write(master, b"Q")
             read_until("❯")
 
             command("/statusline-configure")
@@ -638,7 +658,7 @@ def run_pty(
             assert len(external_config["layout"]["rows"]) == 3
             assert external_config["palette"] == "ansi"
             command("/statusline-configure-native")
-            read_until("Client TUI")
+            read_until("Configure Status Line")
             click_client()
             read_until("[x] Context used")
             os.write(master, b"4")
@@ -646,7 +666,7 @@ def run_pty(
             client_setting("fit:context-used:priority", "Context used Priority")
             read_until("Priority: 100")
             capture("advanced-shared-draft")
-            os.write(master, b"q")
+            os.write(master, b"Q")
             read_until("❯")
             assert display_path.read_bytes() == external_saved
             assert (config / "settings.json").read_bytes() == settings_after_preferences
@@ -669,6 +689,8 @@ def run_pty(
             "shared_advanced_save": advanced,
             "interactive_host_preferences": advanced,
             "shortcut_styles": True,
+            "heading_color_and_page_order": True,
+            "uppercase_controls_and_literal_case": True,
             "toggle": True,
             "space_toggles_item": True,
             "keyboard_after_click": True,

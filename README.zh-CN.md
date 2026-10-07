@@ -154,7 +154,7 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 Bash、Zsh、PowerShell 通用：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -179,7 +179,7 @@ Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claud
 从固定发布标签安装源码，需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
 ```
 
 使用 `@main` 跟踪当前开发源码；本地检出可在仓库根目录执行 `pipx install .`。随后运行 `pipx ensurepath`，并完成上面的接入步骤。
@@ -202,7 +202,7 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
 
 ### 原生配置编辑器
 
-先点击 Client 区域一次，再用 Tab 切页、方向键选择或排序、Space 勾选、`/` 搜索。`s` 保存留页，`f` 保存并退出，`q` 丢弃未保存修改。Ctrl+E 打开逐项格式表单，Ctrl+G 取消输入。Claude 偏好使用独立 Apply 操作。
+先点击 Client 区域一次，再用 Tab 切页、Space 勾选、方向键选择或排序、Ctrl+E 打开逐项格式、`/` 搜索。`S` 保存留页，`F` 保存并退出，`Q` 丢弃未保存修改，小写字母同样有效。底部快捷键随页面或输入状态变化；Ctrl+G 取消输入。Claude 偏好使用独立 Apply 操作。
 
 ### 外部与独立终端 TUI
 
@@ -227,7 +227,7 @@ claude-statusline config show
 升级软件包并同步接入，然后重启 Claude Code：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```

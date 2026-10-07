@@ -8,6 +8,10 @@
 
 `mods/statusline-native` 是唯一 Mod 源码，安装身份仍为 `statusline-native@claude-statusline-local`。`hooks/register.ts` 负责宿主 API、命令、后端请求、保存生命周期与输入批次串行处理；`lib/editor/` 负责草稿、排序及数值规则；`lib/client/` 负责消息校验、按键和设置；`lib/session.ts` 生成独立快照。`ui/client/` 负责 Client 输入和绘制，`ui/components/` 提供共享板块，`ui/layout.ts` 计算单元格预算。测试对应 backend、client、editor、integration、UI。Python curses 界面与启动器独立维护，共用配置服务。
 
+`ui/client/help.ts` 根据状态选择底部快捷键并计算换行预算，绘制与键盘分页共同使用 `editorLayout`；完整提示组换行放在 `ui/components/shortcuts.ts`。大标题为青色 **Configure Status Line**。所有非编辑页面提示以 Tab 开头；Main/Subagents 顺序为 Tab、Space、选择方向键、排序方向键、Ctrl+E、搜索。Settings 用 H 展开／收起偏好，展开后才显示 A；逐项格式显示 Ctrl+G 返回。Filter 保留搜索入口。编辑时显示接受／取消／清空／删除；普通字母快捷键仅在非编辑且无 Ctrl/Meta 时兼容 ASCII 大小写。Esc 仍由宿主管理。
+
+32×12 下先缩短说明，再省略 V/R/Esc 等次要提示；详情／计数行让出空间，保留当前操作、选中项及一行实际样例预览。缩放保留状态，绘制与导航使用同一预算重新计算。本次展示改动不改变协议或配置 schema。
+
 开发使用 Node.js 22、匹配的后端和固定宿主。每个宿主重新生成官方声明，不能复用其他版本类型。CI 检查 Linux 2.1.287/2.1.288/2.1.289，以及 Windows/macOS 2.1.288。
 
 ```bash
@@ -34,9 +38,9 @@ CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --
 | Space / Enter | 勾选条目；操作设置或进入/确认数值编辑 |
 | / | 进入列表搜索；Enter 结束搜索输入 |
 | Ctrl+U / Ctrl+G | 清空输入 / 恢复搜索或数值的编辑前状态 |
-| s / f / q | 保存继续 / 保存成功后退出 / 丢弃未保存修改并退出 |
-| h / a | 折叠或展开 Claude 偏好 / 单独应用 |
-| r / k / v | 丢弃重载 / 核对结果不明的保存 / 重试样例预览 |
+| S / F / Q | 保存继续 / 保存成功后退出 / 丢弃未保存修改并退出 |
+| H / A | 折叠或展开 Claude 偏好 / 单独应用 |
+| R / K / V | 丢弃重载 / 核对结果不明的保存 / 重试样例预览 |
 
 搜索及数值编辑时，s/f/q 等普通字符作为输入；确认或 Ctrl+G 后恢复快捷键。刷新值支持数字或 `event`。保存校验所有数值缓冲。启用与未启用条目都能排序；筛选后移动相邻可见条目，隐藏条目的相对顺序保留，仅保存启用项顺序。子 Agent 互斥规则来自共享 catalog。
 

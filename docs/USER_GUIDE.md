@@ -66,10 +66,10 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 
 ### Install the Python package
 
-Install the [v1.7.1 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.1) wheel; it is the same package on all supported platforms:
+Install the [v1.7.2 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.2) wheel; it is the same package on all supported platforms:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -77,22 +77,22 @@ Alternatively download the wheel, source archive, and `SHA256SUMS` from that rel
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.7.1-py3-none-any.whl
+sha256sum claude_code_statusline-1.7.2-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.7.1-py3-none-any.whl
+shasum -a 256 claude_code_statusline-1.7.2-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.7.1-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.7.2-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.7.1-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.7.1-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.7.2-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.7.2-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
 pipx ensurepath
 ```
 
@@ -155,7 +155,18 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 
 ### Page hierarchy and pagination
 
-Content and Preview occupy separate sections. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys are white and bold; their action descriptions use regular weight.
+The cyan **Configure Status Line** heading matches the Content and Preview titles. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys are white and bold; action descriptions are lowercase and use regular weight. Letter shortcuts display uppercase and accept either case outside input editing.
+
+Page shortcuts appear in the footer, following the separate save/finish/close/preview group. Every page starts with `Tab page`:
+
+| Page | Footer order |
+| --- | --- |
+| Main / Subagents | `Tab page · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
+| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
+| Item format | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
+
+Settings offers H outside editing and A only while Claude preferences are expanded. `/ search` remains beside Filter and also appears in the footer on idle item pages. Editing replaces ordinary shortcuts with accept/cancel/clear/delete; Esc remains a host focus action. Busy operations and unknown saves show their applicable controls. Complete hints wrap without splitting a key from its description. At 32×12, compact descriptions and fewer detail rows preserve selection, basic controls and a sample preview; secondary preview/reload/focus hints may be omitted.
 
 Settings, Layout and item-format details fill each page using the actual field and group-heading rows. Arrow keys select fields only. PageUp/PageDown move between pages while retaining the field offset where possible; Home/End select the first/last field. Resizing recomputes pages and retains the draft, selected field and input buffer. Layout groups mode, row boundaries and item fitting consecutively.
 
@@ -196,9 +207,9 @@ Click the Client region once before keyboard operation. Reexecuting the command 
 | ← / → | Reorder items or adjust a setting |
 | Space / Enter | Toggle items, operate settings or enter/confirm numeric editing |
 | `/`; Ctrl+U; Ctrl+G | Enter search; clear input; cancel and restore its prior state |
-| `s` / `f` / `q` | Save/continue; save/finish; discard/close |
-| `h` / `a` | Unfold advanced Claude preferences / Apply separately |
-| `r` / `k` / `v` | Discard/reload; check saved state; retry preview |
+| `S` / `F` / `Q` | Save/continue; save/finish; discard/close |
+| `H` / `A` | Unfold advanced Claude preferences / Apply separately |
+| `R` / `K` / `V` | Discard/reload; check saved state; retry preview |
 
 During search or field editing printable characters are input and character shortcuts pause; refresh accepts a number or `event`. Enabled and disabled items can move. Filtered movement swaps adjacent visible items, preserving hidden-item order. Page changes, resizing and preview refresh retain selection and draft; only enabled ordering is persisted.
 
@@ -211,7 +222,7 @@ On 2026-10-04 the maintainer supplied screenshots showing Claude Code 2.1.289 an
 For Terminal.app, try these checks:
 
 1. In the Terminal window running Claude Code, choose **View → Allow Mouse Reporting** and confirm the menu item is checked. Apple documents this option as selected by default in new windows, so inspect its actual state. See [Apple's mouse reporting guide](https://support.apple.com/guide/terminal/turn-on-mouse-reporting-trmlc69728a5/mac).
-2. Run `/statusline-configure-native`, then click inside the **Client content region** once. Check that Tab changes pages, the arrow keys move selection and Space toggles an item. If keys still go to the conversation input, Client focus has not been established. Use `q` to discard test edits once Client input works.
+2. Run `/statusline-configure-native`, then click inside the **Client content region** once. Check that Tab changes pages, the arrow keys move selection and Space toggles an item. If keys still go to the conversation input, Client focus has not been established. Use `Q` to discard test edits once Client input works.
 3. If interaction still fails, record the macOS version, terminal name/version, output of `claude --version`, whether tmux or SSH is involved, and which clicks/keys fail. Run `claude-statusline doctor` to check integration and backend binding. These diagnostics do not verify mouse delivery or Client focus. Use `claude-statusline configure` in a standalone terminal, or `claude-statusline config ...`, while troubleshooting the session entry.
 
 **These are suggested checks, not a verified fix for the reported macOS environment.** Apple explains that Allow Mouse Reporting permits events to reach an application; the application must also enable mouse reporting. The menu setting alone does not activate that behavior or guarantee Client focus. Apple also lists Command+R as a [toggle for this setting](https://support.apple.com/guide/terminal/keyboard-shortcuts-trmlshtcts/mac); check the menu state after using it.
@@ -220,7 +231,7 @@ If using **iTerm2**, check **Settings → Profiles → Terminal → Enable mouse
 
 ### Saving, conflicts and recovery
 
-Both editors may remain open. The first save wins; an older revision is rejected without overwriting newer configuration. Client retains conflicting drafts; `r` explicitly discards and reloads before editing again. Saving or an unknown result blocks ordinary closure. Use `k` to check saved state before retrying or closing. Retry/Close buttons outside Client recover failures while retaining the host's received draft.
+Both editors may remain open. The first save wins; an older revision is rejected without overwriting newer configuration. Client retains conflicting drafts; `R` explicitly discards and reloads before editing again. Saving or an unknown result blocks ordinary closure. Use `K` to check saved state before retrying or closing. Retry/Close buttons outside Client recover failures while retaining the host's received draft.
 
 Advanced Claude preferences have separate Apply; Save/Finish does not implicitly apply them. Closing returns to the original session. See [native development and acceptance](development/native.md).
 
@@ -412,7 +423,7 @@ Layout chooses auto/explicit and sets “New row before” boundaries for enable
 
 Settings contains global format choices, risk thresholds, subagent visibility and portable operations. Choose a Preset, then activate Expand selected preset. Import accepts a path and replaces only the draft; inspect Preview, then Save or cancel. Export writes the current draft, including unsaved edits, to a new file; it does not save settings. Relative paths resolve in the host/terminal working directory and `~` expands to the home directory. Errors retain the current draft. Existing export files are refused in both editors; choose a new path or use CLI `--overwrite` for a deliberate replacement.
 
-Client uses `s` to Save/continue, `f` to Save/finish and `q` to discard. In curses, Ctrl+S saves from every page; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Legacy padding/refresh numeric editing keeps Backspace deletion and Esc restoration; Esc outside editing discards the curses editor. During field/path editing ordinary characters, including s/f/q, remain input.
+Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In curses, Ctrl+S saves from every page; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Legacy padding/refresh numeric editing keeps Backspace deletion and Esc restoration; Esc outside editing discards the curses editor. During field/path editing ordinary characters, including s/f/q, remain input.
 
 | Preset | Main layout | Subagent defaults |
 | --- | --- | --- |
@@ -425,9 +436,9 @@ Risk colors default off, with warning 70% and critical 90%. Colors use actual ut
 
 ### Claude preferences apply separately
 
-In Client Settings press `h` (Claude preferences) to show or hide Claude appearance, time/title and behavior groups. Theme, verbose, turn duration, reduced motion, tips, progress and notification controls use the current host's actual rows. Available time/title rows are included; missing rows show official guidance. Model, reasoning effort, thinking and fast mode change Claude behavior and have their own group. They are independent of similarly named status-line display switches.
+In Client Settings press `H` (Claude preferences) to show or hide Claude appearance, time/title and behavior groups. Theme, verbose, turn duration, reduced motion, tips, progress and notification controls use the current host's actual rows. Available time/title rows are included; missing rows show official guidance. Model, reasoning effort, thinking and fast mode change Claude behavior and have their own group. They are independent of similarly named status-line display switches.
 
-Edit the offered row type/choices and press `a` to Apply. Each row reports its result, including host refusal, locks, external changes and partial success. Tool Save/Finish and portable files do not apply these preferences. Reload explicitly discards pending edits; click the restored Client region before continuing with the keyboard. The host may expose a different type or omit a row; use the indicated official entry such as `/config`, `/model`, `/effort` or `/fast` in that case. The standalone editor manages tool configuration and has no Claude host API.
+Edit the offered row type/choices and press `A` to Apply. Each row reports its result, including host refusal, locks, external changes and partial success. Tool Save/Finish and portable files do not apply these preferences. Reload explicitly discards pending edits; click the restored Client region before continuing with the keyboard. The host may expose a different type or omit a row; use the indicated official entry such as `/config`, `/model`, `/effort` or `/fast` in that case. The standalone editor manages tool configuration and has no Claude host API.
 
 <a id="phase-5-preview-installation"></a>
 <a id="phase-5-stable-installation"></a>
@@ -524,7 +535,7 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 ### Replace the Python package
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 ```
 
 For local wheels or source installations, use `pipx install --force` with the original file, fixed-tag Git URL, or local checkout after updating/building it.
@@ -630,7 +641,7 @@ Confirm that `/statusline-config skill` is OK in doctor. If installation happene
 1. Run `claude-statusline doctor` to check host 2.1.287+, resources and backend binding. Suspension on an older host is compatibility handling.
 2. Check recorded disablement, host plugin disablement, safe/bare mode and policy. If needed, run `install --native-editor` and restart Claude Code in a trusted terminal.
 3. Click the Client region once before keyboard use. On macOS, follow [mouse reporting and Client focus checks](#macos-mouse-reporting-and-client-focus); the latest reported macOS configuration remains unverified. Ctrl+G cancels input; Esc remains host-owned.
-4. Conflicts retain the draft; `r` explicitly discards/reloads. Use `k` to check unknown save outcomes and Retry/Close for failures. Reinstall the matching wheel/integration for version or resource mismatch; do not adopt foreign caches manually.
+4. Conflicts retain the draft; `R` explicitly discards/reloads. Use `K` to check unknown save outcomes and Retry/Close for failures. Reinstall the matching wheel/integration for version or resource mismatch; do not adopt foreign caches manually.
 
 ### `/statusline-configure` is missing or suspended
 
@@ -927,7 +938,7 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 Task timing is included in [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0). Upgrade using the stable wheel:
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```

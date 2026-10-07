@@ -66,10 +66,10 @@
 
 ### 安装 Python 包
 
-安装 [v1.7.1 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.1) wheel，各支持平台使用同一个软件包：
+安装 [v1.7.2 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.2) wheel，各支持平台使用同一个软件包：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -77,22 +77,22 @@ pipx ensurepath
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.7.1-py3-none-any.whl
+sha256sum claude_code_statusline-1.7.2-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.7.1-py3-none-any.whl
+shasum -a 256 claude_code_statusline-1.7.2-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.7.1-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.7.2-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.7.1-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.7.1-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.7.2-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.7.2-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
 pipx ensurepath
 ```
 
@@ -157,7 +157,18 @@ macOS 使用相同 wheel 和安装流程，CPython 需要提供 curses。外部�
 
 ### 页面层级与分页
 
-内容和 Preview 分区显示，较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键用白色粗体，作用说明用普通字重。
+青色大标题 **Configure Status Line** 与内容、Preview 标题颜色一致。较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键用白色粗体，作用说明用小写和普通字重。字母快捷键显示大写，非输入编辑状态下大小写均有效。
+
+页面快捷键集中到底部，保存／完成／退出／预览另成一组；各页都以 `Tab page` 开头：
+
+| 页面 | 底部展示顺序 |
+| --- | --- |
+| Main / Subagents | `Tab page · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
+| Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
+| 逐项格式 | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
+
+Settings 非编辑时显示 H，展开 Claude preferences 后才显示 A。`/ search` 保留在 Filter 旁，也在未编辑的条目页底部显示。编辑时改为接受／取消／清空／删除提示；Esc 仍表示宿主焦点操作。忙碌与保存结果不明时只显示对应控制。快捷键按完整的“按键＋说明”换行；32×12 下缩短说明、减少详情行，保留选中项、基本操作和样例预览，必要时省略预览／重载／焦点等次要提示。
 
 Settings、Layout 和逐项格式详情按分组标题与字段实际占用的行数填满后分页。上下键只选择字段；PageUp／PageDown 切换页面并尽量保留页内位置，Home／End 到首尾。缩放后重新计算页面，保留草稿、选中字段和输入缓冲。Layout 按布局模式、行边界、逐项适配连续排列。
 
@@ -198,9 +209,9 @@ Windows 使用 `claude-statusline.exe`。两组参数相互独立，`--experimen
 | ← / → | 调整条目顺序；改变设置值 |
 | Space / Enter | 勾选条目；操作设置或进入／确认数值编辑 |
 | `/`；Ctrl+U；Ctrl+G | 进入搜索；清空输入；取消并恢复输入前状态 |
-| `s` / `f` / `q` | 保存留页／保存成功后退出／丢弃未保存修改退出 |
-| `h` / `a` | 展开 Claude 高级偏好／独立 Apply |
-| `r` / `k` / `v` | 丢弃重载／核对保存状态／重试预览 |
+| `S` / `F` / `Q` | 保存留页／保存成功后退出／丢弃未保存修改退出 |
+| `H` / `A` | 展开 Claude 高级偏好／独立 Apply |
+| `R` / `K` / `V` | 丢弃重载／核对保存状态／重试预览 |
 
 搜索或字段编辑期间普通字符作为输入，暂停字符快捷键；刷新设置接受数字或 `event`。启用和未启用条目都能排序，筛选后移动相邻可见条目，保留隐藏项的相对顺序。切页、缩放和预览刷新保留草稿与选择。仅启用项顺序写入配置。
 
@@ -213,7 +224,7 @@ Settings 区分外观、刷新与显示行为、Claude 偏好〔高级〕。面�
 Terminal.app 用户可按以下步骤检查：
 
 1. 在运行 Claude Code 的终端窗口中选择**显示 → 允许鼠标报告**（View → Allow Mouse Reporting），确认菜单项旁有勾号。Apple 说明新窗口默认勾选此项，因此应检查当前窗口的实际状态。见 [Apple 官方鼠标报告说明](https://support.apple.com/zh-cn/guide/terminal/trmlc69728a5/mac)。
-2. 运行 `/statusline-configure-native`，用鼠标点击 **Client 正文区域**一次，再检查 Tab 是否切页、方向键是否移动选择、Space 是否勾选条目。若按键仍进入会话输入框，说明 Client 尚未获得焦点。Client 可以收键后，用 `q` 丢弃测试修改并退出。
+2. 运行 `/statusline-configure-native`，用鼠标点击 **Client 正文区域**一次，再检查 Tab 是否切页、方向键是否移动选择、Space 是否勾选条目。若按键仍进入会话输入框，说明 Client 尚未获得焦点。Client 可以收键后，用 `Q` 丢弃测试修改并退出。
 3. 若仍不能正常操作，记录 macOS 版本、终端名称与版本、`claude --version` 输出、是否经过 tmux 或 SSH，以及哪些点击或按键无效。运行 `claude-statusline doctor` 检查接入与后端绑定；诊断结果不代表鼠标事件或 Client 焦点已验证。排查期间可在独立终端运行 `claude-statusline configure`，或使用 `claude-statusline config ...` 配置。
 
 **以上是检查建议，尚未在维护者反馈的 macOS 环境验证有效。** Apple 说明“允许鼠标报告”只允许事件传递给应用，应用本身还须启用鼠标报告；仅勾选菜单不能启用应用的鼠标报告行为，也不保证 Client 获得焦点。Apple 还列出 Command+R 为[切换此选项的快捷键](https://support.apple.com/zh-cn/guide/terminal/trmlshtcts/mac)，使用后应确认菜单实际状态。
@@ -222,7 +233,7 @@ Terminal.app 用户可按以下步骤检查：
 
 ### 保存、冲突与恢复
 
-两个编辑器可以同时打开；先保存者生效，旧 revision 保存被拒绝，不覆盖新配置。Client 保留冲突草稿；`r` 明确丢弃并重新加载后编辑。保存中或结果不明时阻止普通关闭；用 `k` 检查已保存状态，再决定重试或退出。故障时使用面板外的 Retry／Close，保留宿主已接收草稿。
+两个编辑器可以同时打开；先保存者生效，旧 revision 保存被拒绝，不覆盖新配置。Client 保留冲突草稿；`R` 明确丢弃并重新加载后编辑。保存中或结果不明时阻止普通关闭；用 `K` 检查已保存状态，再决定重试或退出。故障时使用面板外的 Retry／Close，保留宿主已接收草稿。
 
 Claude 高级偏好独立 Apply；保存或 Finish 不隐式应用这些偏好。退出后继续原 session。完整开发与验收记录见[原生编辑器](development/native.zh-CN.md)。
 
@@ -398,7 +409,7 @@ Layout 选择 auto/explicit，通过“New row before”设置启用主项目的
 
 Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操作。先选择 Preset，再激活 Expand selected preset。Import 输入路径后只替换草稿，检查 Preview 后保存或取消。Export 将当前草稿（含未保存改动）写入新文件，不保存设置。相对路径以宿主／终端工作目录为基准，`~` 展开为用户主目录。出错保留现有草稿；两种编辑器均拒绝覆盖已有导出文件，可换路径，或使用 CLI `--overwrite` 明确替换。
 
-Client 用 `s` 保存并继续、`f` 保存并关闭、`q` 放弃草稿。curses 用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。新表单用 Ctrl+U 清空、Ctrl+G 取消输入；原有 padding／refresh 数字编辑保留 Backspace 删除与 Esc 恢复，编辑以外的 Esc 放弃 curses 编辑器。字段／路径输入期间 s/f/q 等普通字符只作为文本。
+Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。curses 用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。新表单用 Ctrl+U 清空、Ctrl+G 取消输入；原有 padding／refresh 数字编辑保留 Backspace 删除与 Esc 恢复，编辑以外的 Esc 放弃 curses 编辑器。字段／路径输入期间 s/f/q 等普通字符只作为文本。
 
 | 预设 | 主状态栏布局 | 子 Agent 默认 |
 | --- | --- | --- |
@@ -411,9 +422,9 @@ Client 用 `s` 保存并继续、`f` 保存并关闭、`q` 放弃草稿。curses
 
 ### Claude 宿主偏好独立应用
 
-在 Client Settings 按 `h`（Claude preferences）展开／收起 Claude 外观、时间／标题及行为分组。主题、verbose、逐轮计时、减少动画、提示、进度条与通知使用当前宿主实际提供的配置行；适用的时间／标题行也会纳入，缺失行显示官方入口。模型、effort、thinking、fast mode 单列为行为分组，与同名状态栏显示开关独立。
+在 Client Settings 按 `H`（Claude preferences）展开／收起 Claude 外观、时间／标题及行为分组。主题、verbose、逐轮计时、减少动画、提示、进度条与通知使用当前宿主实际提供的配置行；适用的时间／标题行也会纳入，缺失行显示官方入口。模型、effort、thinking、fast mode 单列为行为分组，与同名状态栏显示开关独立。
 
-按实际类型／选项编辑后用 `a` Apply。每行保留应用结果，涵盖宿主拒绝、锁定、外部修改与部分成功。工具 Save/Finish 和可移植文件不应用宿主偏好；Reload 明确放弃待处理编辑，继续使用键盘前点击恢复后的 Client 区域。宿主可能改变类型或不提供某行，此时使用提示的 `/config`、`/model`、`/effort`、`/fast` 等官方入口。独立 TUI 只管理工具配置，不能调用 Claude 宿主 API。
+按实际类型／选项编辑后用 `A` Apply。每行保留应用结果，涵盖宿主拒绝、锁定、外部修改与部分成功。工具 Save/Finish 和可移植文件不应用宿主偏好；Reload 明确放弃待处理编辑，继续使用键盘前点击恢复后的 Client 区域。宿主可能改变类型或不提供某行，此时使用提示的 `/config`、`/model`、`/effort`、`/fast` 等官方入口。独立 TUI 只管理工具配置，不能调用 Claude 宿主 API。
 
 <a id="phase-5-预览安装"></a>
 <a id="phase-5-正式版安装"></a>
@@ -510,7 +521,7 @@ claude-statusline configure --config-dir /path/to/claude-config
 ### 替换 Python 包
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 ```
 
 本地 wheel 或源码安装使用 `pipx install --force`，参数为更新或构建后的原文件、固定标签 Git URL 或本地检出目录。
@@ -606,7 +617,7 @@ claude-statusline doctor
 1. 运行 `claude-statusline doctor`，核实宿主 2.1.287+、插件资源及后端绑定；低版本暂挂属于兼容处理。
 2. 确认没有明确关闭 Native、宿主主动禁用插件、safe/bare 或策略限制；按需要运行 `install --native-editor` 后在受信任终端重启 Claude Code。
 3. 面板打开后先点击 Client 区域；macOS 参照[鼠标报告与 Client 焦点检查](#macos-鼠标报告与-client-焦点)，最新反馈中的有效配置仍未验证。取消输入用 Ctrl+G；Esc 仍由宿主处理。
-4. 保存冲突保留草稿，`r` 明确丢弃重载；保存结果不明先 `k` 核对，故障用 Retry／Close。版本／资源不匹配时重新安装匹配 wheel 并重装接入，不手工接管外来缓存。
+4. 保存冲突保留草稿，`R` 明确丢弃重载；保存结果不明先 `K` 核对，故障用 Retry／Close。版本／资源不匹配时重新安装匹配 wheel 并重装接入，不手工接管外来缓存。
 
 ### `/statusline-configure` 不可见或显示 suspended
 
@@ -822,7 +833,7 @@ claude-statusline config set refresh-interval 1
 [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) 已包含任务计时。使用稳定版 wheel 升级：
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```

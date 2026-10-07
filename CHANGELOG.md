@@ -4,6 +4,14 @@
 
 ## Unreleased
 
+## 1.7.2 - 2026-10-07
+
+- Rename the in-session heading to Configure Status Line and match the cyan section titles. Display uppercase letter keys with lowercase descriptions, retaining numbered page labels and standard modifier-key spelling.
+- Consolidate controls in a state-aware wrapping footer. All pages put Tab first; Main/Subagents order is Tab, Space, select, order, format and search. Keep Filter's search entry, show H/A only in the applicable Settings state, and separate editing/recovery controls from ordinary actions.
+- Share footer geometry with keyboard pagination. Minimum 32×12 panes preserve the selected row and a real sample preview, shortening descriptions and omitting secondary hints when height is limited.
+- Accept both ASCII cases for ordinary shortcuts outside editing; preserve literal mixed-case text, Ctrl/Meta combinations and Shift+Tab. Update official regressions, installed terminal acceptance and bilingual instructions.
+- Synchronize Python and both Mods to 1.7.2. Existing configuration, protocols, installation preferences and timing behavior remain compatible; retain historical screenshots and provenance.
+
 ## 1.7.1 - 2026-10-07
 
 - Put in-session Client section titles on the frame edge and fill Settings, Layout and item-detail pages using actual group/field rows. Paging retains field offsets and resizing retains draft input and selection.

@@ -83,9 +83,9 @@ export function settingRows(view: View): SettingRow[] {
   rows.push(...formRows(view));
   rows.push(
     { key: 'preset-select', label: 'Preset', group: 'Presets / portable files', value: e.preset, editable: true },
-    { key: 'preset-apply', label: 'Expand selected preset', group: 'Presets / portable files', value: 'Enter: replace draft', editable: true },
-    { key: 'import-file', label: 'Import file', group: 'Presets / portable files', value: 'Enter path; Save later', editable: true },
-    { key: 'export-file', label: 'Export current draft', group: 'Presets / portable files', value: 'Enter new path (may be unsaved)', editable: true },
+    { key: 'preset-apply', label: 'Expand selected preset', group: 'Presets / portable files', value: 'replace draft; save later', editable: true },
+    { key: 'import-file', label: 'Import file', group: 'Presets / portable files', value: 'file path; save later', editable: true },
+    { key: 'export-file', label: 'Export current draft', group: 'Presets / portable files', value: 'new file path (may be unsaved)', editable: true },
   );
   if (e.advanced) {
     for (const spec of PREFERENCE_SPECS) {

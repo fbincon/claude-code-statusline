@@ -18,14 +18,14 @@ test('item format and explicit layout save a complete draft while text reserves 
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, {key:'e',ctrl:true}, 'return', {key:'u',ctrl:true}, 's', 'f', 'q', '中', '文', 'return');
+  await keys(ui, {key:'E',ctrl:true}, 'return', {key:'U',ctrl:true}, 's', 'F', 'Q', '中', '文', 'return');
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await selectSetting(ui, 'item:priority');
   await keys(ui, 'return', {key:'u',ctrl:true}, '1', '0', '0', 'return');
   await selectSetting(ui, 'item:max_width');
   await keys(ui, 'return', {key:'u',ctrl:true}, '5', 'return', {key:'g',ctrl:true}, '4', 'home', 'return', 's');
   const d = fixture.store.draft.display;
-  expect(d.item_options['model-with-effort']?.label).toBe('sfq中文');
+  expect(d.item_options['model-with-effort']?.label).toBe('sFQ中文');
   expect(d.item_options['model-with-effort']?.priority).toBe(100);
   expect(d.item_options['model-with-effort']?.max_width).toBe(5);
   expect(d.layout).toEqual({mode:'explicit',rows:[['model-with-effort']]});
@@ -72,9 +72,9 @@ test('actual host row aliases apply separately and unavailable behavior rows rem
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '3', 'h');
+  await keys(ui, '3', 'H');
   await selectSetting(ui, 'host-turnDuration');
-  await keys(ui, ' ', 'a');
+  await keys(ui, ' ', 'A');
   expect(fixture.configCalls).toEqual([{key:'turnDuration',value:false}]);
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await selectSetting(ui, 'host-effort');
