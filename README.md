@@ -1,14 +1,15 @@
 # Claude Code Statusline
 
-**English** | [简体中文](README.zh-CN.md)
+**English** | [简体中文](https://github.com/fbincon/claude-code-statusline/blob/main/README.zh-CN.md)
 
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
 [![Native Mod](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml)
-[MIT License](LICENSE)
+[PyPI](https://pypi.org/project/fbincon-claude-code-statusline/)
+[MIT License](https://github.com/fbincon/claude-code-statusline/blob/main/LICENSE)
 
 A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reasoning effort, directory, Git, context, usage limits, tokens, and task timing at a glance. Configure the main line and individual subagent rows through an in-session editor, a terminal UI, a wizard, or the CLI.
 
-[Features](#features) · [Screenshots](#screenshots) · [Quick installation](#quick-installation) · [Common configuration](#common-configuration) · [User guide](docs/USER_GUIDE.md) · [Troubleshooting](docs/USER_GUIDE.md#troubleshooting)
+[Features](https://github.com/fbincon/claude-code-statusline/blob/main/README.md#features) · [Screenshots](https://github.com/fbincon/claude-code-statusline/blob/main/README.md#screenshots) · [Quick installation](https://github.com/fbincon/claude-code-statusline/blob/main/README.md#quick-installation) · [Common configuration](https://github.com/fbincon/claude-code-statusline/blob/main/README.md#common-configuration) · [User guide](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md) · [Troubleshooting](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#troubleshooting)
 
 <a id="phase-4-in-stable-v150"></a>
 <a id="phase-5-in-stable-v160"></a>
@@ -23,13 +24,13 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
 - **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and per-task usage are opt-in. Missing or partial observations stay distinguishable.
 
-Rendering uses Claude Code input and local state without making network requests or using model tokens. The question-and-answer wizard uses Claude model turns. See [field definitions](docs/DISPLAY_ITEMS.md) for data sources and availability.
+Rendering uses Claude Code input and local state without making network requests or using model tokens. The question-and-answer wizard uses Claude model turns. See [field definitions](https://github.com/fbincon/claude-code-statusline/blob/main/docs/DISPLAY_ITEMS.md) for data sources and availability.
 
 <a id="界面预览"></a>
 
 ## Screenshots
 
-The main status line at the bottom of session screenshots shows actual data; configuration Preview regions use fixed samples. Fonts, colors and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
+The main status line at the bottom of session screenshots shows actual data; configuration Preview regions use fixed samples. Fonts, colors and widths depend on terminal settings. [Image sources and archive](https://github.com/fbincon/claude-code-statusline/blob/main/docs/images/README.md).
 
 ### In-session TUI
 
@@ -37,22 +38,22 @@ Run `/statusline-configure-native` inside the current Claude Code session, then 
 
 **Linux: Main and the status line**
 
-![Linux in-session TUI Main page and actual main status line](docs/images/tui/native/linux/main.png)
+![Linux in-session TUI Main page and actual main status line](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/linux/main.png)
 
 <details>
 <summary>Linux: Subagents, Settings, Layout</summary>
 
 **Subagents: choose items and ordering for individual agent rows.**
 
-![Linux in-session TUI Subagents page with sample preview](docs/images/tui/native/linux/subagents.png)
+![Linux in-session TUI Subagents page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/linux/subagents.png)
 
 **Settings: adjust appearance, refresh behavior and formatting.**
 
-![Linux in-session TUI Settings page with sample preview](docs/images/tui/native/linux/settings.png)
+![Linux in-session TUI Settings page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/linux/settings.png)
 
 **Layout: set rows, item priorities and maximum widths.**
 
-![Linux in-session TUI Layout page with sample preview](docs/images/tui/native/linux/layout.png)
+![Linux in-session TUI Layout page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/linux/layout.png)
 
 </details>
 
@@ -61,30 +62,30 @@ Run `/statusline-configure-native` inside the current Claude Code session, then 
 
 **Main: select and reorder main status line items.**
 
-![Windows in-session TUI Main page with sample preview](docs/images/tui/native/windows/main.png)
+![Windows in-session TUI Main page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/windows/main.png)
 
 **Subagents: choose items and ordering for individual agent rows.**
 
-![Windows in-session TUI Subagents page with sample preview](docs/images/tui/native/windows/subagents.png)
+![Windows in-session TUI Subagents page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/windows/subagents.png)
 
 **Settings: adjust appearance, refresh behavior and formatting.**
 
-![Windows in-session TUI Settings page with sample preview](docs/images/tui/native/windows/settings.png)
+![Windows in-session TUI Settings page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/windows/settings.png)
 
 **Layout: set rows, item priorities and maximum widths.**
 
-![Windows in-session TUI Layout page with sample preview](docs/images/tui/native/windows/layout.png)
+![Windows in-session TUI Layout page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/windows/layout.png)
 
 </details>
 
 <details>
 <summary>macOS: Main</summary>
 
-Only Main was supplied for this batch. The existing interaction limitation and checks are documented in [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
+Only Main was supplied for this batch. The existing interaction limitation and checks are documented in [macOS mouse reporting and Client focus](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
 
 **Main: select and reorder main status line items.**
 
-![macOS in-session TUI Main page with sample preview](docs/images/tui/native/macos/main.png)
+![macOS in-session TUI Main page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/macos/main.png)
 
 </details>
 
@@ -97,19 +98,19 @@ Run `/statusline-configure` in Claude Code, or `claude-statusline configure` in 
 
 **Main: select and reorder main status line items.**
 
-![Linux external TUI Main page with sample preview](docs/images/tui/external/linux/main.png)
+![Linux external TUI Main page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/linux/main.png)
 
 **Subagents: choose items and ordering for individual agent rows.**
 
-![Linux external TUI Subagents page with sample preview](docs/images/tui/external/linux/subagents.png)
+![Linux external TUI Subagents page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/linux/subagents.png)
 
 **Settings: adjust appearance, refresh behavior and formatting.**
 
-![Linux external TUI Settings page with sample preview](docs/images/tui/external/linux/settings.png)
+![Linux external TUI Settings page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/linux/settings.png)
 
 **Layout: set rows, item priorities and maximum widths.**
 
-![Linux external TUI Layout page with sample preview](docs/images/tui/external/linux/layout.png)
+![Linux external TUI Layout page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/linux/layout.png)
 
 </details>
 
@@ -118,19 +119,19 @@ Run `/statusline-configure` in Claude Code, or `claude-statusline configure` in 
 
 **Main: select and reorder main status line items.**
 
-![Windows external TUI Main page with sample preview](docs/images/tui/external/windows/main.png)
+![Windows external TUI Main page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/windows/main.png)
 
 **Subagents: choose items and ordering for individual agent rows.**
 
-![Windows external TUI Subagents page with sample preview](docs/images/tui/external/windows/subagents.png)
+![Windows external TUI Subagents page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/windows/subagents.png)
 
 **Settings: adjust appearance, refresh behavior and formatting.**
 
-![Windows external TUI Settings page with sample preview](docs/images/tui/external/windows/settings.png)
+![Windows external TUI Settings page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/windows/settings.png)
 
 **Layout: set rows, item priorities and maximum widths.**
 
-![Windows external TUI Layout page with sample preview](docs/images/tui/external/windows/layout.png)
+![Windows external TUI Layout page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/windows/layout.png)
 
 </details>
 
@@ -139,23 +140,23 @@ Run `/statusline-configure` in Claude Code, or `claude-statusline configure` in 
 
 **Main: select and reorder main status line items.**
 
-![macOS external TUI Main page with sample preview](docs/images/tui/external/macos/main.png)
+![macOS external TUI Main page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/macos/main.png)
 
 **Subagents: choose items and ordering for individual agent rows.**
 
-![macOS external TUI Subagents page with sample preview](docs/images/tui/external/macos/subagents.png)
+![macOS external TUI Subagents page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/macos/subagents.png)
 
 **Settings: adjust appearance, refresh behavior and formatting.**
 
-![macOS external TUI Settings page with sample preview](docs/images/tui/external/macos/settings.png)
+![macOS external TUI Settings page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/macos/settings.png)
 
 **Layout: set rows, item priorities and maximum widths.**
 
-![macOS external TUI Layout page with sample preview](docs/images/tui/external/macos/layout.png)
+![macOS external TUI Layout page with sample preview](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/macos/layout.png)
 
 </details>
 
-Earlier screenshots and terminal reconstructions remain in the [archive](docs/images/archive/README.md).
+Earlier screenshots and terminal reconstructions remain in the [archive](https://github.com/fbincon/claude-code-statusline/blob/main/docs/images/archive/README.md).
 
 ## Supported platforms
 
@@ -167,7 +168,7 @@ Earlier screenshots and terminal reconstructions remain in the [archive](docs/im
 
 Windows ARM devices can use x64 Python emulation; native ARM64 Python is outside the current support contract. Git information requires `git`.
 
-Claude Code feature requirements: subagent rows 2.1.205+; local argument-based configuration and external TUI entry 2.1.258+; in-session Client 2.1.287+; native timing and advanced live-metrics collection 2.1.289+. Unsupported or unknown host versions suspend the corresponding integration. See [requirements](docs/USER_GUIDE.md#requirements).
+Claude Code feature requirements: subagent rows 2.1.205+; local argument-based configuration and external TUI entry 2.1.258+; in-session Client 2.1.287+; native timing and advanced live-metrics collection 2.1.289+. Unsupported or unknown host versions suspend the corresponding integration. See [requirements](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#requirements).
 
 <a id="install-current-source"></a>
 <a id="install-from-a-release-recommended"></a>
@@ -192,7 +193,7 @@ Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/i
 Bash, Zsh, and PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
@@ -209,20 +210,20 @@ claude-statusline doctor
 
 On Windows, use `claude-statusline.exe`. Restart Claude Code in a trusted terminal after integration.
 
-Both editors default on for compatible hosts, respecting saved disablement preferences. Native timing metadata defaults on for Claude Code 2.1.289+; advanced live metrics remain opt-in. Package installation and Claude integration are separate steps; `install` does not open an editor. Existing conflicting resources require [explicit handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
+Both editors default on for compatible hosts, respecting saved disablement preferences. Native timing metadata defaults on for Claude Code 2.1.289+; advanced live metrics remain opt-in. Package installation and Claude integration are separate steps; `install` does not open an editor. Existing conflicting resources require [explicit handling](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
 
 <details>
 <summary>Other installation methods</summary>
 
-Install source from the fixed release tag (requires Git):
+Install the development source (requires Git):
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 ```
 
-Use `@main` to follow current development, or run `pipx install .` from a local checkout. Then run `pipx ensurepath` and complete integration above.
+Run `pipx install .` from a local checkout. Fixed-tag installation and verified Release wheels are covered in the installation guide. Then run `pipx ensurepath` and complete integration above.
 
-Download checksums and platform-specific instructions are in the [installation guide](docs/USER_GUIDE.md#installation-and-integration); source builds are in the [development guide](docs/development/README.md#build-and-install-from-source).
+Download checksums and platform-specific instructions are in the [installation guide](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#installation-and-integration); source builds are in the [development guide](https://github.com/fbincon/claude-code-statusline/blob/main/docs/development/README.md#build-and-install-from-source).
 
 </details>
 
@@ -230,8 +231,8 @@ Download checksums and platform-specific instructions are in the [installation g
 
 | Entry point | Use |
 | --- | --- |
-| `/statusline-configure-native` | Client TUI in the current session; see [native editor](docs/USER_GUIDE.md#native-configuration-editor) |
-| `/statusline-configure` | TUI in a supported external terminal; see [external entry](docs/USER_GUIDE.md#external-terminal-statusline-configure) |
+| `/statusline-configure-native` | Client TUI in the current session; see [native editor](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#native-configuration-editor) |
+| `/statusline-configure` | TUI in a supported external terminal; see [external entry](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#external-terminal-statusline-configure) |
 | `claude-statusline configure` | Full TUI in the current standalone terminal |
 | `/statusline-config` | Claude question-and-answer wizard; supported argument-based commands execute locally on compatible hosts |
 | `claude-statusline config ...` | Inspect settings, set exact ordering, or configure from scripts |
@@ -256,7 +257,7 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
-Configuration is per user. `set-items` replaces the enabled set; `enable` and `disable` make incremental changes. See [recipes](docs/USER_GUIDE.md#configuration-recipes), [formatting and layouts](docs/USER_GUIDE.md#formatting-layout-presets), and the [CLI reference](docs/reference/cli.md).
+Configuration is per user. `set-items` replaces the enabled set; `enable` and `disable` make incremental changes. See [recipes](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#configuration-recipes), [formatting and layouts](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#formatting-layout-presets), and the [CLI reference](https://github.com/fbincon/claude-code-statusline/blob/main/docs/reference/cli.md).
 
 <a id="upgrade-to-v161"></a>
 
@@ -265,28 +266,36 @@ Configuration is per user. `set-items` replaces the enabled set; `enable` and `d
 Upgrade the package, synchronize integration, then restart Claude Code:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx upgrade fbincon-claude-code-statusline
 claude-statusline install
 claude-statusline doctor
 ```
 
-Saved display settings, runtime state, and integration preferences remain. For older display schemas or package downgrade, follow [version compatibility](docs/USER_GUIDE.md#version-compatibility).
+Existing wheel installations from this repository should first follow the [package-name migration](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#migrate-the-previous-distribution-name). Saved display settings, runtime state, and integration preferences remain. For older display schemas or package downgrade, follow [version compatibility](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#version-compatibility).
 
 Remove Claude integration before uninstalling the package:
 
 ```text
 claude-statusline uninstall --dry-run
 claude-statusline uninstall
-pipx uninstall claude-code-statusline
+pipx uninstall fbincon-claude-code-statusline
 ```
 
-Display settings and backups remain available; see [uninstalling](docs/USER_GUIDE.md#uninstalling).
+Display settings and backups remain available; see [uninstalling](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md#uninstalling).
 
 ## Project structure
 
 ```text
 claude-code-statusline/
+├── .github/workflows/
+│   ├── ci.yml
+│   ├── native.yml
+│   └── publish.yml
 ├── README.md / README.zh-CN.md
+├── CHANGELOG.md / CHANGELOG.zh-CN.md
+├── LICENSE
+├── MANIFEST.in
+├── pyproject.toml
 ├── docs/
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md
 │   ├── reference/                  # CLI and configuration reference
@@ -297,17 +306,20 @@ claude-code-statusline/
 │   │   └── archive/
 │   ├── development/                # Setup, architecture and validation
 │   └── releases/                   # Historical release notes
-├── src/claude_statusline/
-│   ├── config/
-│   ├── integration/
-│   ├── platforms/
-│   ├── rendering/
-│   ├── runtime/
-│   │   ├── live/
-│   │   ├── tasks/
-│   │   ├── timing/
-│   │   └── turns/
-│   └── ui/
+├── src/
+│   ├── build_native.py
+│   └── claude_statusline/
+│       ├── config/
+│       ├── integration/
+│       ├── platforms/
+│       ├── rendering/
+│       ├── runtime/
+│       │   ├── live/
+│       │   ├── tasks/
+│       │   ├── timing/
+│       │   └── turns/
+│       ├── resources/
+│       └── ui/
 ├── mods/
 │   ├── statusline-native/
 │   └── statusline-runtime/
@@ -318,19 +330,21 @@ claude-code-statusline/
 │   ├── rendering/
 │   ├── runtime/
 │   └── ui/
-├── tools/
-└── pyproject.toml
+└── tools/
+    ├── inspect_dist.py
+    ├── publish_package.py
+    └── check_docs.py
 ```
 
 ## Documentation and help
 
-- [User guide](docs/USER_GUIDE.md): installation, editors, recipes, upgrades, and troubleshooting.
-- [CLI reference](docs/reference/cli.md): commands, options, fields, files, and exit codes.
-- [Display items and metric definitions](docs/DISPLAY_ITEMS.md): scope, sources, and availability.
-- [Development guide](docs/development/README.md) · [Release process](docs/RELEASING.md).
-- [Changelog](CHANGELOG.md) · [Releases](https://github.com/fbincon/claude-code-statusline/releases).
+- [User guide](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.md): installation, editors, recipes, upgrades, and troubleshooting.
+- [CLI reference](https://github.com/fbincon/claude-code-statusline/blob/main/docs/reference/cli.md): commands, options, fields, files, and exit codes.
+- [Display items and metric definitions](https://github.com/fbincon/claude-code-statusline/blob/main/docs/DISPLAY_ITEMS.md): scope, sources, and availability.
+- [Development guide](https://github.com/fbincon/claude-code-statusline/blob/main/docs/development/README.md) · [Release process](https://github.com/fbincon/claude-code-statusline/blob/main/docs/RELEASING.md).
+- [Changelog](https://github.com/fbincon/claude-code-statusline/blob/main/CHANGELOG.md) · [Releases](https://github.com/fbincon/claude-code-statusline/releases).
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include versions, reproduction steps, and diagnostic results; remove private paths and session content.
 
 ## License
 
-[MIT License](LICENSE). Copyright (c) 2026 [fbincon](https://github.com/fbincon).
+[MIT License](https://github.com/fbincon/claude-code-statusline/blob/main/LICENSE). Copyright (c) 2026 [fbincon](https://github.com/fbincon).

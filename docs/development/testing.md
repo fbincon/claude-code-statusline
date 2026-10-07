@@ -16,7 +16,7 @@ Editor tests cover Main/Subagents/Settings/Layout and scoped forms, full saves a
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -e . ruff build
+.venv/bin/python -m pip install -e . ruff build twine 'readme-renderer[md]'
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests -t . -v
 .venv/bin/ruff check --select F,E9 src tests tools
 .venv/bin/python tools/check_docs.py
@@ -36,7 +36,7 @@ Use the [release guide](../RELEASING.md) to build in a fresh directory from a fi
 ```bash
 python tools/inspect_dist.py --write-exclusion-fixtures
 python -m build
-python tools/inspect_dist.py
+python tools/inspect_dist.py --check-long-description
 ```
 
 Run fixture creation only in a disposable exported source tree; it refuses existing target files. Inspection also accepts `--source PATH --dist PATH`. It checks version agreement, English README metadata, platform requirements, all Python package files, both skill templates, bilingual documentation, tests and maintenance tools. The wheel must contain exactly the source runtime Mod files and matching resource inventory, excluding tests, development dependencies and host declarations. The sdist includes `src/build_native.py` and developer Mod files so rebuilding produces identical package contents. Local ROADMAP files, acceptance notes, bytecode and caches must be absent.

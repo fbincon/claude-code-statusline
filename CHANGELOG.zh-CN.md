@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 1.7.4 - 2026-10-08
+
+- 将分发名改为 `fbincon-claude-code-statusline` 用于 PyPI，保留 `claude_statusline` 导入、`claude-statusline` CLI、配置归属与可移植导出；Python 与两个 Mod manifest 同步为 1.7.4。
+- 新增基于已验证 Release 附件的 GitHub Actions 可信发布：准确标签／主分支 CI 门槛、TestPyPI 验收、公开 Release 后正式上传、索引下载／安装验证与部分上传重试校验。PyPI、GitHub 和 Gitee 使用相同原始附件。
+- 双语 README 使用不依赖项目版本的 PyPI 命令，修复长描述图片／文档链接并展开仓库结构；补充旧 wheel 迁移及双语维护者发布流程，CI 增加严格包元数据检查。
+
 ## 1.7.3 - 2026-10-07
 
 - doctor 成功与迁移提示显示实际支持的显示 schema，apply 草稿要求使用同一版本常量；补充旧版、当前及版本常量变化的只读回归。
