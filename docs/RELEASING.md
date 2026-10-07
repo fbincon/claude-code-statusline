@@ -190,6 +190,8 @@ Inspect the returned run and wait for all nine jobs to succeed. Dispatching on `
 
 Six index jobs anonymously download both files, compare digests and bytes with the verified Release assets, install that exact wheel and run isolated CLI/configuration smoke. Windows dependencies come from normal PyPI. The successful TestPyPI run must have the same tag and commit as the formal Release. Raw evidence remains in ignored directories or Actions artifacts.
 
+Fresh uploads may briefly return 404 or an incomplete file list while index caches update. Index verification polls these read-only states every five seconds for up to three minutes. Permission errors, unexpected identities, conflicting hashes and extra files fail immediately; publication is not repeated by this polling.
+
 If a run fails, retain the draft and diagnose the failed gate. Reruns compare already uploaded files before skipping them and upload only missing files; conflicting hashes or extra files stop publication. Rerun the workflow after fixing account/publisher settings or transient failures. Version tags and published attachments retain their original history. After formal publication, follow the Gitee synchronization procedure below using these same three assets.
 
 ## Gitee code and Release synchronization

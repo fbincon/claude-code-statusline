@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- 对刚上传版本最多等待三分钟，使索引可见；仅重试缺失／404 读取，权限、身份与校验和错误立即拒绝，不重复上传。
+
 ## 1.7.4 - 2026-10-08
 
 - 将分发名改为 `fbincon-claude-code-statusline` 用于 PyPI，保留 `claude_statusline` 导入、`claude-statusline` CLI、配置归属与可移植导出；Python 与两个 Mod manifest 同步为 1.7.4。

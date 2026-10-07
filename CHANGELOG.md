@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Wait up to three minutes for newly uploaded versions to become visible in the package index. Retry only incomplete/404 reads; reject permission, identity and checksum errors immediately without repeating uploads.
+
 ## 1.7.4 - 2026-10-08
 
 - Rename the distribution to `fbincon-claude-code-statusline` for PyPI while preserving the `claude_statusline` import, `claude-statusline` CLI, configuration ownership and portable exports. Synchronize Python and both Mod manifests at 1.7.4.

@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 from urllib.error import HTTPError
 from urllib.parse import quote, urlencode, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
@@ -31,6 +32,10 @@ SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 
 class PublicationError(ValueError):
     """A release failed an identity, integrity or acceptance gate."""
+
+
+class IndexNotReady(PublicationError):
+    """A newly uploaded version is not fully visible in the index yet."""
 
 
 def require(condition, message):
@@ -319,10 +324,30 @@ def index_files(target, evidence, missing_ok=False):
         )
         result[name] = asset
     if not missing_ok:
-        require(
-            set(result) == set(evidence["files"]), "Index is missing a distribution"
-        )
+        if set(result) != set(evidence["files"]):
+            raise IndexNotReady("Index is missing a distribution")
     return result
+
+
+def wait_for_index(target, evidence, timeout=180):
+    """Poll incomplete/404 reads; reject integrity and permission errors immediately."""
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            return index_files(target, evidence)
+        except HTTPError as error:
+            if error.code != 404:
+                raise
+            error.close()
+        except IndexNotReady:
+            pass
+        remaining = deadline - time.monotonic()
+        require(
+            remaining > 0,
+            f"{target} version {evidence['version']} did not become visible within {timeout}s",
+        )
+        print(f"Waiting for {target} version {evidence['version']} index visibility...")
+        time.sleep(min(5, remaining))
 
 
 def release_context(args):
@@ -490,7 +515,7 @@ def verify_index(args):
         require(
             SHA256.fullmatch(value["sha256"]) is not None, "Invalid evidence digest"
         )
-    assets = index_files(args.target, evidence)
+    assets = wait_for_index(args.target, evidence)
     args.dist.mkdir(parents=True, exist_ok=True)
     require(not any(args.dist.iterdir()), "Use an empty package download directory")
     for name, asset in assets.items():
