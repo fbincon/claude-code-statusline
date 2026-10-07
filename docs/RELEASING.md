@@ -152,7 +152,7 @@ After publication:
 
 1. Check the tag resolves to the build commit and asset names, sizes, digests, and release type are correct. Confirm the [latest stable entry point](https://github.com/fbincon/claude-code-statusline/releases/latest) points to this stable release.
 2. Redownload all three assets from public URLs, verify checksums, and compare them with local artifacts.
-3. Wait for all eight formal publishing jobs, including six index installation jobs on Linux, Windows and macOS with Python 3.10/3.14. Run the README's package-name installation command in independent pipx directories, check version, and run CLI smoke tests. Verify fixed-tag source and source-distribution installations as well.
+3. Wait for all nine formal publishing jobs, including six index installation jobs on Linux, Windows and macOS with Python 3.10/3.14. Run the README's package-name installation command in independent pipx directories, check version, and run CLI smoke tests. Verify fixed-tag source and source-distribution installations as well.
 4. Check version, date, tag and asset URLs agree across the versioned guides, changelog and release notes. README retains generic commands and links to migration instructions; check its long description, image and documentation links on PyPI.
 5. Confirm a clean workspace and record release links, commit, and CI results. Keep detailed local reports in ignored directories outside distributions.
 
@@ -173,7 +173,7 @@ Create separate accounts on [PyPI](https://pypi.org/account/register/) and [Test
 | Workflow filename | `publish.yml` |
 | Environment | `pypi` on PyPI, `testpypi` on TestPyPI |
 
-Create matching GitHub Environments restricted to version tags `v*`. Only the upload job receives `id-token: write`; preparation has read-only repository/Actions access and verifies main/tag CI. Upload jobs download verified artifacts without checking out or building source. Actions are pinned to commit hashes and PyPA generates publishing attestations. No long-lived PyPI token is needed. A pending publisher does not reserve the package name; recheck it before the first upload.
+Create matching GitHub Environments restricted to version tags `v*`. Only the upload job receives `id-token: write`. GitHub requires push access to expose private drafts, so an isolated fetch job uses a short-lived `contents: write` token only for stdlib API reads, downloads and hash checks, without dependency installation or distribution execution. Subsequent preparation has read-only repository/Actions access and verifies main/tag CI. Upload jobs download verified artifacts without checking out or building source. Actions are pinned to commit hashes and PyPA generates publishing attestations. No long-lived PyPI token is needed. A pending publisher does not reserve the package name; recheck it before the first upload.
 
 ## TestPyPI acceptance
 
@@ -186,7 +186,7 @@ gh run list --repo fbincon/claude-code-statusline --workflow publish.yml \
   --branch "$RELEASE_TAG" --event workflow_dispatch --limit 1
 ```
 
-Inspect the returned run and wait for all eight jobs to succeed. Dispatching on `main` is rejected. The verification tool checks the tag commit is on main, both successful 13-job Python/build and seven-job Mod runs for main and tag, exact filenames, SHA256, package metadata, CLI identity, resources and strict long-description rendering. It then uploads only the two distributions to TestPyPI.
+Inspect the returned run and wait for all nine jobs to succeed. Dispatching on `main` is rejected. The verification tool checks the tag commit is on main, both successful 13-job Python/build and seven-job Mod runs for main and tag, exact filenames, SHA256, package metadata, CLI identity, resources and strict long-description rendering. It then uploads only the two distributions to TestPyPI.
 
 Six index jobs anonymously download both files, compare digests and bytes with the verified Release assets, install that exact wheel and run isolated CLI/configuration smoke. Windows dependencies come from normal PyPI. The successful TestPyPI run must have the same tag and commit as the formal Release. Raw evidence remains in ignored directories or Actions artifacts.
 

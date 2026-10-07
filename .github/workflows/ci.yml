@@ -95,6 +95,8 @@ jobs:
   build:
     name: Build and inspect distributions
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

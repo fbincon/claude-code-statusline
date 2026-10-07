@@ -157,6 +157,58 @@ class DistributionTests(unittest.TestCase):
 
 
 class AcceptanceTests(unittest.TestCase):
+    def test_read_only_preparation_rejects_a_receipt_from_another_commit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            receipt = {"commit": "b" * 40, "release": {"tag_name": "v1.7.4"}}
+            (root / "release.json").write_text(json.dumps(receipt), encoding="utf-8")
+            args = SimpleNamespace(tag="v1.7.4", target="testpypi", assets=root)
+            with (
+                mock.patch.object(
+                    publish, "project_identity", return_value={"version": "1.7.4"}
+                ),
+                mock.patch.object(publish, "GitHub"),
+                mock.patch.object(publish, "release_gates", return_value={}),
+                mock.patch.object(
+                    publish.subprocess, "check_output", return_value="a" * 40
+                ),
+                mock.patch.object(publish.subprocess, "run") as execute,
+                mock.patch.dict(
+                    publish.os.environ, {"GH_TOKEN": "fixture-token"}, clear=True
+                ),
+            ):
+                with self.assertRaisesRegex(publish.PublicationError, "source differs"):
+                    publish.prepare(args)
+                execute.assert_not_called()
+
+    def test_release_lookup_accepts_exact_visible_draft_and_published_tags(self):
+        for draft in (True, False):
+            with self.subTest(draft=draft):
+                client = mock.Mock()
+                expected = {"id": 42, "tag_name": "v1.7.4", "draft": draft}
+                client.pages.return_value = iter(
+                    [{"id": 41, "tag_name": "v1.7.3", "draft": False}, expected]
+                )
+                self.assertEqual(publish.release_for_tag(client, "v1.7.4"), expected)
+                client.pages.assert_called_once_with("/releases")
+                client.get.assert_not_called()
+        for releases in ([], [{"tag_name": "v1.7.4"}, {"tag_name": "v1.7.4"}]):
+            client = mock.Mock()
+            client.pages.return_value = iter(releases)
+            with self.assertRaisesRegex(
+                publish.PublicationError, "one visible Release"
+            ):
+                publish.release_for_tag(client, "v1.7.4")
+
+    def test_release_array_pagination_reads_drafts_beyond_the_first_page(self):
+        client = publish.GitHub("fixture-token")
+        expected = {"tag_name": "v1.7.4", "draft": True}
+        client.get = mock.Mock(
+            side_effect=[[{"tag_name": f"v0.0.{i}"} for i in range(100)], [expected]]
+        )
+        self.assertEqual(publish.release_for_tag(client, "v1.7.4"), expected)
+        self.assertEqual(client.get.call_count, 2)
+
     def test_existing_python_and_mod_prerelease_identifiers_remain_compatible(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -264,7 +316,7 @@ class AcceptanceTests(unittest.TestCase):
         self.assertEqual(check.call_count, 5)
         self.assertEqual(
             check.call_args.args[1:],
-            ("publish.yml", commit, "v1.7.4", "workflow_dispatch", 8),
+            ("publish.yml", commit, "v1.7.4", "workflow_dispatch", 9),
         )
 
     def test_unmerged_or_moved_tags_fail_before_acceptance_checks(self):
@@ -298,7 +350,7 @@ class AcceptanceTests(unittest.TestCase):
             ),
         ):
             with self.assertRaisesRegex(publish.PublicationError, "exact version tag"):
-                publish.prepare(args)
+                publish.release_context(args)
 
     def test_asset_redirect_drops_github_credentials(self):
         def opener(handler):

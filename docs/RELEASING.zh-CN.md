@@ -140,7 +140,7 @@ gh release edit "$RELEASE_TAG" --repo fbincon/claude-code-statusline \
 
 1. 检查标签解析到构建提交，附件名称、大小、摘要和发布类型正确；确认[最新稳定版入口](https://github.com/fbincon/claude-code-statusline/releases/latest)指向本次稳定版。
 2. 从公开下载 URL 重新下载三个附件，核验清单并与本地产物比较。
-3. 等待全部八项正式发布任务，包括 Linux、Windows、macOS 的 Python 3.10/3.14 六项索引安装验证。在独立 pipx 目录中执行 README 的包名安装命令，检查版本并运行 CLI smoke；验证固定标签源码及源码包安装。
+3. 等待全部九项正式发布任务，包括 Linux、Windows、macOS 的 Python 3.10/3.14 六项索引安装验证。在独立 pipx 目录中执行 README 的包名安装命令，检查版本并运行 CLI smoke；验证固定标签源码及源码包安装。
 4. 检查带版本指南、变更记录及发布说明中的版本、日期、标签与附件 URL 一致。README 保留通用命令和迁移入口；检查其 PyPI 长描述、图片与文档链接。
 5. 确认工作区干净，记录发布链接、提交号和 CI 结果。详细本地报告存放在忽略目录中，不加入安装包。
 
@@ -161,7 +161,7 @@ PyPI 分发名为 `fbincon-claude-code-statusline`；仓库、导入包、CLI、
 | Workflow filename | `publish.yml` |
 | Environment | 正式站 `pypi`，测试站 `testpypi` |
 
-创建同名 GitHub Environment，并限制部署来源为 `v*` 版本标签。仅上传任务获得 `id-token: write`；准备任务只读仓库与 Actions，验证主分支和标签 CI。上传任务仅下载已验证产物，不检出或构建源码。Actions 固定提交哈希，PyPA 生成发布证明，无需长期 PyPI Token。待生效发布者不预留包名，首次上传前再次核验名称。
+创建同名 GitHub Environment，并限制部署来源为 `v*` 版本标签。仅上传任务获得 `id-token: write`。GitHub 要求推送权限才能读取私有草稿，因此独立下载任务使用短期 `contents: write` 令牌，仅执行标准库 API 读取、下载和哈希校验，不安装依赖或执行分发包代码；后续准备任务只读仓库与 Actions，验证主分支和标签 CI。上传任务仅下载已验证产物，不检出或构建源码。Actions 固定提交哈希，PyPA 生成发布证明，无需长期 PyPI Token。待生效发布者不预留包名，首次上传前再次核验名称。
 
 ## TestPyPI 验收
 
@@ -174,7 +174,7 @@ gh run list --repo fbincon/claude-code-statusline --workflow publish.yml \
   --branch "$RELEASE_TAG" --event workflow_dispatch --limit 1
 ```
 
-核对返回的运行记录，等待全部八项任务成功；使用 `main` 作为运行引用会被拒绝。校验工具检查标签提交位于主分支、主分支与标签各自通过 13 项 Python/build 与七项 Mod CI、准确文件名、SHA256、元数据、CLI 身份、资源和严格长描述渲染，再将两个分发包上传 TestPyPI。
+核对返回的运行记录，等待全部九项任务成功；使用 `main` 作为运行引用会被拒绝。校验工具检查标签提交位于主分支、主分支与标签各自通过 13 项 Python/build 与七项 Mod CI、准确文件名、SHA256、元数据、CLI 身份、资源和严格长描述渲染，再将两个分发包上传 TestPyPI。
 
 六项索引任务匿名下载两个包，与已验证 Release 附件比较哈希和字节，安装准确的 wheel，并执行隔离 CLI／配置 smoke。Windows 依赖从正常 PyPI 解析。正式发布要求 TestPyPI 成功运行对应相同标签和提交；原始证据留在忽略目录或 Actions 产物中。
 
