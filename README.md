@@ -29,7 +29,7 @@ Rendering uses Claude Code input and local state without making network requests
 
 ## Screenshots
 
-Main status lines show actual session data. Configuration Preview regions use fixed samples. New TUI screenshots are supplied terminal captures; the three standalone main-status-line images are retained from the earlier gallery. Fonts, colors, and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
+Main status lines show actual session data. Configuration Preview regions use fixed samples. The images are actual terminal examples with their original captures and provenance retained. Fonts, colors, and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
 
 **Linux main status line**
 
@@ -57,7 +57,7 @@ The existing macOS Client interaction limitation and suggested checks are docume
 </details>
 
 <details>
-<summary>Linux: Main, Subagents, and Settings configuration pages</summary>
+<summary>Linux: Main, Subagents, Settings, and Layout configuration pages</summary>
 
 These pages use the external `/statusline-configure` TUI.
 
@@ -73,10 +73,14 @@ These pages use the external `/statusline-configure` TUI.
 
 ![Linux external TUI Settings page with grouped options and sample preview](docs/images/tui/external/linux/settings.png)
 
+**Layout: set rows, item priorities, and maximum widths.**
+
+![Linux external TUI Layout page showing mode, row boundaries, item priorities and widths](docs/images/tui/external/linux/layout.png)
+
 </details>
 
 <details>
-<summary>macOS: main status line and three configuration pages in Terminal.app</summary>
+<summary>macOS: main status line and four configuration pages in Terminal.app</summary>
 
 **Main status line**
 
@@ -94,10 +98,14 @@ These pages use the external `/statusline-configure` TUI.
 
 ![macOS Terminal.app external TUI Settings page](docs/images/tui/external/macos/settings.png)
 
+**Layout**
+
+![macOS Terminal.app external TUI Layout page showing mode, row boundaries, item priorities and widths](docs/images/tui/external/macos/layout.png)
+
 </details>
 
 <details>
-<summary>Windows: main status line and three configuration pages in Windows Terminal</summary>
+<summary>Windows: main status line and four configuration pages in Windows Terminal</summary>
 
 **Main status line**
 
@@ -115,9 +123,13 @@ These pages use the external `/statusline-configure` TUI.
 
 ![Windows Terminal external TUI Settings page](docs/images/tui/external/windows/settings.png)
 
+**Layout**
+
+![Windows Terminal external TUI Layout page showing mode, row boundaries, item priorities and widths](docs/images/tui/external/windows/layout.png)
+
 </details>
 
-Layout screenshots are in the [layout guide](docs/USER_GUIDE.md#formatting-layout-presets). Earlier screenshots and terminal reconstructions remain in the [archive](docs/images/archive/README.md).
+Earlier screenshots and terminal reconstructions remain in the [archive](docs/images/archive/README.md).
 
 ## Supported platforms
 
@@ -154,7 +166,7 @@ Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/i
 Bash, Zsh, and PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -179,7 +191,7 @@ Both editors default on for compatible hosts, respecting saved disablement prefe
 Install source from the fixed release tag (requires Git):
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
 ```
 
 Use `@main` to follow current development, or run `pipx install .` from a local checkout. Then run `pipx ensurepath` and complete integration above.
@@ -227,7 +239,7 @@ Configuration is per user. `set-items` replaces the enabled set; `enable` and `d
 Upgrade the package, synchronize integration, then restart Claude Code:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```

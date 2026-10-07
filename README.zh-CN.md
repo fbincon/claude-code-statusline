@@ -27,7 +27,7 @@
 
 ## 界面预览
 
-主状态栏使用实际会话数据，配置界面的 Preview 使用固定样例。TUI 展示换用新提供的终端截图，三张独立主状态栏图沿用旧图库。字体、颜色与显示宽度随终端设置变化。[图片来源与归档索引](docs/images/README.zh-CN.md)。
+主状态栏使用实际会话数据，配置界面的 Preview 使用固定样例。图片为实际终端示例，沿用原始捕获与来源记录。字体、颜色与显示宽度随终端设置变化。[图片来源与归档索引](docs/images/README.zh-CN.md)。
 
 **Linux 主状态栏**
 
@@ -55,7 +55,7 @@
 </details>
 
 <details>
-<summary>Linux：Main、Subagents 和 Settings 配置界面</summary>
+<summary>Linux：Main、Subagents、Settings 和 Layout 配置界面</summary>
 
 以下页面由外部 `/statusline-configure` TUI 提供。
 
@@ -71,10 +71,14 @@
 
 ![Linux 外部 TUI Settings 页：分组设置与样例预览](docs/images/tui/external/linux/settings.png)
 
+**Layout：设置分行、逐项优先级与最大宽度。**
+
+![Linux 外部 TUI Layout 页：模式、行边界与逐项优先级及宽度](docs/images/tui/external/linux/layout.png)
+
 </details>
 
 <details>
-<summary>macOS：Terminal.app 中的主状态栏与三页配置界面</summary>
+<summary>macOS：Terminal.app 中的主状态栏与四页配置界面</summary>
 
 **主状态栏**
 
@@ -92,10 +96,14 @@
 
 ![macOS Terminal.app 外部 TUI Settings 配置页](docs/images/tui/external/macos/settings.png)
 
+**Layout**
+
+![macOS Terminal.app 外部 TUI Layout 页：模式、行边界与逐项优先级及宽度](docs/images/tui/external/macos/layout.png)
+
 </details>
 
 <details>
-<summary>Windows：Windows Terminal 中的主状态栏与三页配置界面</summary>
+<summary>Windows：Windows Terminal 中的主状态栏与四页配置界面</summary>
 
 **主状态栏**
 
@@ -113,9 +121,13 @@
 
 ![Windows Terminal 外部 TUI Settings 配置页](docs/images/tui/external/windows/settings.png)
 
+**Layout**
+
+![Windows Terminal 外部 TUI Layout 页：模式、行边界与逐项优先级及宽度](docs/images/tui/external/windows/layout.png)
+
 </details>
 
-Layout 截图见[布局操作说明](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)，旧截图与终端重建画面见[归档索引](docs/images/archive/README.zh-CN.md)。
+旧截图与终端重建画面见[归档索引](docs/images/archive/README.zh-CN.md)。
 
 ## 支持范围
 
@@ -142,7 +154,7 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 Bash、Zsh、PowerShell 通用：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -167,7 +179,7 @@ Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claud
 从固定发布标签安装源码，需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
 ```
 
 使用 `@main` 跟踪当前开发源码；本地检出可在仓库根目录执行 `pipx install .`。随后运行 `pipx ensurepath`，并完成上面的接入步骤。
@@ -215,7 +227,7 @@ claude-statusline config show
 升级软件包并同步接入，然后重启 Claude Code：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```

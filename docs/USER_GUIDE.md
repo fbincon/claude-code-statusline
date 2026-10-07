@@ -66,10 +66,10 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 
 ### Install the Python package
 
-Install the [v1.7.0 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) wheel; it is the same package on all supported platforms:
+Install the [v1.7.1 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.1) wheel; it is the same package on all supported platforms:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -77,22 +77,22 @@ Alternatively download the wheel, source archive, and `SHA256SUMS` from that rel
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.7.0-py3-none-any.whl
+sha256sum claude_code_statusline-1.7.1-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.7.0-py3-none-any.whl
+shasum -a 256 claude_code_statusline-1.7.1-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.7.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.7.1-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.7.0-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.7.0-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.7.1-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.7.1-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
 pipx ensurepath
 ```
 
@@ -152,6 +152,12 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 ## Native configuration editor
 
 `/statusline-configure-native` opens Client inside the current Claude Code session without another terminal. It shares configuration, directory, catalog, exclusion rules and atomic saves with external `/statusline-configure`, while each editor keeps its draft. Stable defaults both entries on; restart Claude Code in a trusted terminal after installation.
+
+### Page hierarchy and pagination
+
+Content and Preview occupy separate sections. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys are white and bold; their action descriptions use regular weight.
+
+Settings, Layout and item-format details fill each page using the actual field and group-heading rows. Arrow keys select fields only. PageUp/PageDown move between pages while retaining the field offset where possible; Home/End select the first/last field. Resizing recomputes pages and retains the draft, selected field and input buffer. Layout groups mode, row boundaries and item fitting consecutively.
 
 ### Editor installation combinations and compatibility
 
@@ -419,15 +425,9 @@ Risk colors default off, with warning 70% and critical 90%. Colors use actual ut
 
 ### Claude preferences apply separately
 
-In Client Settings press `h` to unfold Claude appearance, time/title and behavior groups. Theme, verbose, turn duration, reduced motion, tips, progress and notification controls use the current host's actual rows. Available time/title rows are included; missing rows show official guidance. Model, reasoning effort, thinking and fast mode change Claude behavior and have their own group. They are independent of similarly named status-line display switches.
+In Client Settings press `h` (Claude preferences) to show or hide Claude appearance, time/title and behavior groups. Theme, verbose, turn duration, reduced motion, tips, progress and notification controls use the current host's actual rows. Available time/title rows are included; missing rows show official guidance. Model, reasoning effort, thinking and fast mode change Claude behavior and have their own group. They are independent of similarly named status-line display switches.
 
 Edit the offered row type/choices and press `a` to Apply. Each row reports its result, including host refusal, locks, external changes and partial success. Tool Save/Finish and portable files do not apply these preferences. Reload explicitly discards pending edits; click the restored Client region before continuing with the keyboard. The host may expose a different type or omit a row; use the indicated official entry such as `/config`, `/model`, `/effort` or `/fast` in that case. The standalone editor manages tool configuration and has no Claude host API.
-
-**Layout example (Linux):**
-
-![Linux external TUI Layout page showing mode, row boundaries, item priorities and widths](images/tui/external/linux/layout.png)
-
-Other platforms: [macOS Layout](images/tui/external/macos/layout.png) · [Windows Layout](images/tui/external/windows/layout.png).
 
 <a id="phase-5-preview-installation"></a>
 <a id="phase-5-stable-installation"></a>
@@ -524,7 +524,7 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 ### Replace the Python package
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 ```
 
 For local wheels or source installations, use `pipx install --force` with the original file, fixed-tag Git URL, or local checkout after updating/building it.
@@ -927,7 +927,7 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 Task timing is included in [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0). Upgrade using the stable wheel:
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```

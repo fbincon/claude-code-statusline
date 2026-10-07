@@ -4,6 +4,14 @@
 
 ## Unreleased
 
+## 1.7.1 - 2026-10-07
+
+- Put in-session Client section titles on the frame edge and fill Settings, Layout and item-detail pages using actual group/field rows. Paging retains field offsets and resizing retains draft input and selection.
+- Keep Layout mode, row boundaries and item fitting in consecutive groups, and group item formats before fitting controls. Align field/value columns by terminal cells.
+- Draw white bold shortcut keys and regular dim action descriptions in both editors; fit complete shortcut groups in narrow viewports. Retain h to show/hide clearly named Claude preferences and their separate Apply action.
+- Move the existing Linux, macOS and Windows Layout examples into the README platform galleries. Preserve PNG bytes and capture provenance; remove the duplicated user-guide examples and gallery redirects.
+- Synchronize Python and both Mods to 1.7.1. Display schema v5, configuration protocol v4, runtime protocol v2, saved preferences and installation defaults remain compatible.
+
 ## 1.7.0 - 2026-10-07
 
 - Promote the accepted task timing preview after the maintainer confirmed v1.7.0a1 validation on Linux, macOS and Windows. Exact OS, architecture, terminal and host versions were not supplied with this confirmation.
