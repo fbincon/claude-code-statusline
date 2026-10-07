@@ -1,14 +1,15 @@
 # Claude Code Statusline
 
-[English](README.md) | **简体中文**
+[English](https://github.com/fbincon/claude-code-statusline/blob/main/README.md) | **简体中文**
 
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
 [![Native Mod](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml)
-[MIT License](LICENSE)
+[PyPI](https://pypi.org/project/fbincon-claude-code-statusline/)
+[MIT License](https://github.com/fbincon/claude-code-statusline/blob/main/LICENSE)
 
 面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，集中显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和任务用时。主状态栏与子 Agent 独立行可通过会话内编辑器、终端交互界面（TUI）、问答向导或 CLI 配置。
 
-[功能概览](#功能概览) · [界面预览](#界面预览) · [快速安装](#快速安装) · [常用配置](#常用配置) · [使用指南](docs/USER_GUIDE.zh-CN.md) · [故障排查](docs/USER_GUIDE.zh-CN.md#故障排查)
+[功能概览](https://github.com/fbincon/claude-code-statusline/blob/main/README.zh-CN.md#功能概览) · [界面预览](https://github.com/fbincon/claude-code-statusline/blob/main/README.zh-CN.md#界面预览) · [快速安装](https://github.com/fbincon/claude-code-statusline/blob/main/README.zh-CN.md#快速安装) · [常用配置](https://github.com/fbincon/claude-code-statusline/blob/main/README.zh-CN.md#常用配置) · [使用指南](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md) · [故障排查](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#故障排查)
 
 <a id="v161外部-tui-栏目层级"></a>
 <a id="正式-v150-的-phase-4-功能"></a>
@@ -23,11 +24,11 @@
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
 - **按需开启实时指标：** 运行状态、代理数量、工具进度、请求用时和逐任务用量需主动启用；缺失数据和部分观测分别标记。
 
-状态栏渲染读取 Claude Code 输入和本地状态，不自行发起网络请求或使用模型 token。问答向导使用 Claude 模型回合。数据来源与可用条件见[显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)。
+状态栏渲染读取 Claude Code 输入和本地状态，不自行发起网络请求或使用模型 token。问答向导使用 Claude 模型回合。数据来源与可用条件见[显示项与指标定义](https://github.com/fbincon/claude-code-statusline/blob/main/docs/DISPLAY_ITEMS.zh-CN.md)。
 
 ## 界面预览
 
-会话底部主状态栏显示实际数据，配置 Preview 使用固定样例。字体、颜色和宽度随终端设置变化。[图片来源与归档索引](docs/images/README.zh-CN.md)。
+会话底部主状态栏显示实际数据，配置 Preview 使用固定样例。字体、颜色和宽度随终端设置变化。[图片来源与归档索引](https://github.com/fbincon/claude-code-statusline/blob/main/docs/images/README.zh-CN.md)。
 
 ### 会话内 TUI
 
@@ -35,22 +36,22 @@
 
 **Linux：Main 与主状态栏**
 
-![Linux 会话内 TUI Main 页与实际主状态栏](docs/images/tui/native/linux/main.png)
+![Linux 会话内 TUI Main 页与实际主状态栏](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/linux/main.png)
 
 <details>
 <summary>Linux：Subagents、Settings、Layout</summary>
 
 **Subagents：选择子 Agent 行的条目与顺序。**
 
-![Linux 会话内 TUI Subagents 配置页与样例预览](docs/images/tui/native/linux/subagents.png)
+![Linux 会话内 TUI Subagents 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/linux/subagents.png)
 
 **Settings：调整外观、刷新行为和格式。**
 
-![Linux 会话内 TUI Settings 配置页与样例预览](docs/images/tui/native/linux/settings.png)
+![Linux 会话内 TUI Settings 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/linux/settings.png)
 
 **Layout：设置分行、逐项优先级与最大宽度。**
 
-![Linux 会话内 TUI Layout 配置页与样例预览](docs/images/tui/native/linux/layout.png)
+![Linux 会话内 TUI Layout 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/linux/layout.png)
 
 </details>
 
@@ -59,30 +60,30 @@
 
 **Main：选择主状态栏条目并调整顺序。**
 
-![Windows 会话内 TUI Main 配置页与样例预览](docs/images/tui/native/windows/main.png)
+![Windows 会话内 TUI Main 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/windows/main.png)
 
 **Subagents：选择子 Agent 行的条目与顺序。**
 
-![Windows 会话内 TUI Subagents 配置页与样例预览](docs/images/tui/native/windows/subagents.png)
+![Windows 会话内 TUI Subagents 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/windows/subagents.png)
 
 **Settings：调整外观、刷新行为和格式。**
 
-![Windows 会话内 TUI Settings 配置页与样例预览](docs/images/tui/native/windows/settings.png)
+![Windows 会话内 TUI Settings 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/windows/settings.png)
 
 **Layout：设置分行、逐项优先级与最大宽度。**
 
-![Windows 会话内 TUI Layout 配置页与样例预览](docs/images/tui/native/windows/layout.png)
+![Windows 会话内 TUI Layout 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/windows/layout.png)
 
 </details>
 
 <details>
 <summary>macOS：Main</summary>
 
-本批次仅提供 Main 截图。已有输入限制与检查建议见 [macOS 鼠标报告与 Client 焦点](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
+本批次仅提供 Main 截图。已有输入限制与检查建议见 [macOS 鼠标报告与 Client 焦点](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
 
 **Main：选择主状态栏条目并调整顺序。**
 
-![macOS 会话内 TUI Main 配置页与样例预览](docs/images/tui/native/macos/main.png)
+![macOS 会话内 TUI Main 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/native/macos/main.png)
 
 </details>
 
@@ -95,19 +96,19 @@
 
 **Main：选择主状态栏条目并调整顺序。**
 
-![Linux 外部 TUI Main 配置页与样例预览](docs/images/tui/external/linux/main.png)
+![Linux 外部 TUI Main 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/linux/main.png)
 
 **Subagents：选择子 Agent 行的条目与顺序。**
 
-![Linux 外部 TUI Subagents 配置页与样例预览](docs/images/tui/external/linux/subagents.png)
+![Linux 外部 TUI Subagents 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/linux/subagents.png)
 
 **Settings：调整外观、刷新行为和格式。**
 
-![Linux 外部 TUI Settings 配置页与样例预览](docs/images/tui/external/linux/settings.png)
+![Linux 外部 TUI Settings 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/linux/settings.png)
 
 **Layout：设置分行、逐项优先级与最大宽度。**
 
-![Linux 外部 TUI Layout 配置页与样例预览](docs/images/tui/external/linux/layout.png)
+![Linux 外部 TUI Layout 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/linux/layout.png)
 
 </details>
 
@@ -116,19 +117,19 @@
 
 **Main：选择主状态栏条目并调整顺序。**
 
-![Windows 外部 TUI Main 配置页与样例预览](docs/images/tui/external/windows/main.png)
+![Windows 外部 TUI Main 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/windows/main.png)
 
 **Subagents：选择子 Agent 行的条目与顺序。**
 
-![Windows 外部 TUI Subagents 配置页与样例预览](docs/images/tui/external/windows/subagents.png)
+![Windows 外部 TUI Subagents 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/windows/subagents.png)
 
 **Settings：调整外观、刷新行为和格式。**
 
-![Windows 外部 TUI Settings 配置页与样例预览](docs/images/tui/external/windows/settings.png)
+![Windows 外部 TUI Settings 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/windows/settings.png)
 
 **Layout：设置分行、逐项优先级与最大宽度。**
 
-![Windows 外部 TUI Layout 配置页与样例预览](docs/images/tui/external/windows/layout.png)
+![Windows 外部 TUI Layout 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/windows/layout.png)
 
 </details>
 
@@ -137,23 +138,23 @@
 
 **Main：选择主状态栏条目并调整顺序。**
 
-![macOS 外部 TUI Main 配置页与样例预览](docs/images/tui/external/macos/main.png)
+![macOS 外部 TUI Main 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/macos/main.png)
 
 **Subagents：选择子 Agent 行的条目与顺序。**
 
-![macOS 外部 TUI Subagents 配置页与样例预览](docs/images/tui/external/macos/subagents.png)
+![macOS 外部 TUI Subagents 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/macos/subagents.png)
 
 **Settings：调整外观、刷新行为和格式。**
 
-![macOS 外部 TUI Settings 配置页与样例预览](docs/images/tui/external/macos/settings.png)
+![macOS 外部 TUI Settings 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/macos/settings.png)
 
 **Layout：设置分行、逐项优先级与最大宽度。**
 
-![macOS 外部 TUI Layout 配置页与样例预览](docs/images/tui/external/macos/layout.png)
+![macOS 外部 TUI Layout 配置页与样例预览](https://raw.githubusercontent.com/fbincon/claude-code-statusline/main/docs/images/tui/external/macos/layout.png)
 
 </details>
 
-旧截图与终端重建画面见[归档索引](docs/images/archive/README.zh-CN.md)。
+旧截图与终端重建画面见[归档索引](https://github.com/fbincon/claude-code-statusline/blob/main/docs/images/archive/README.zh-CN.md)。
 
 ## 支持范围
 
@@ -165,7 +166,7 @@
 
 Windows ARM 设备可使用 x64 Python 仿真；原生 ARM64 Python 暂不在支持范围。Git 信息需要系统中存在 `git`。
 
-Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地执行与外部 TUI 入口需 2.1.258+，会话内 Client 需 2.1.287+，原生计时和高级实时指标采集需 2.1.289+。版本不兼容或无法识别时，对应接入暂挂。详见[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
+Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地执行与外部 TUI 入口需 2.1.258+，会话内 Client 需 2.1.287+，原生计时和高级实时指标采集需 2.1.289+。版本不兼容或无法识别时，对应接入暂挂。详见[运行要求](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#运行要求)。
 
 <a id="从-release-安装推荐"></a>
 <a id="从固定标签源码安装"></a>
@@ -180,7 +181,7 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 Bash、Zsh、PowerShell 通用：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
@@ -197,20 +198,20 @@ claude-statusline doctor
 
 Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claude Code。
 
-两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；Claude Code 2.1.289+ 默认采集原生计时元数据，高级实时指标仍按需启用。软件包安装与 Claude 接入是两个步骤，`install` 不会打开编辑器。已有冲突资源需按[冲突处理说明](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
+两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；Claude Code 2.1.289+ 默认采集原生计时元数据，高级实时指标仍按需启用。软件包安装与 Claude 接入是两个步骤，`install` 不会打开编辑器。已有冲突资源需按[冲突处理说明](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
 
 <details>
 <summary>其他安装方式</summary>
 
-从固定发布标签安装源码，需要 Git：
+安装开发源码，需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 ```
 
-使用 `@main` 跟踪当前开发源码；本地检出可在仓库根目录执行 `pipx install .`。随后运行 `pipx ensurepath`，并完成上面的接入步骤。
+本地检出可在仓库根目录执行 `pipx install .`。固定标签和已校验的 Release wheel 安装见安装指南。随后运行 `pipx ensurepath`，并完成上面的接入步骤。
 
-下载校验和平台步骤见[安装指南](docs/USER_GUIDE.zh-CN.md#安装与接入)，源码构建见[开发指南](docs/development/README.zh-CN.md#从源码构建与安装)。
+下载校验和平台步骤见[安装指南](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#安装与接入)，源码构建见[开发指南](https://github.com/fbincon/claude-code-statusline/blob/main/docs/development/README.zh-CN.md#从源码构建与安装)。
 
 </details>
 
@@ -218,8 +219,8 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
 
 | 入口 | 用途 |
 | --- | --- |
-| `/statusline-configure-native` | 当前会话内的 Client TUI，见[原生配置编辑器](docs/USER_GUIDE.zh-CN.md#原生配置编辑器) |
-| `/statusline-configure` | 由受支持的外部终端承载 TUI，见[外部入口](docs/USER_GUIDE.zh-CN.md#外部终端入口-statusline-configure) |
+| `/statusline-configure-native` | 当前会话内的 Client TUI，见[原生配置编辑器](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#原生配置编辑器) |
+| `/statusline-configure` | 由受支持的外部终端承载 TUI，见[外部入口](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#外部终端入口-statusline-configure) |
 | `claude-statusline configure` | 当前独立终端中的完整 TUI |
 | `/statusline-config` | Claude 问答向导；支持的带参数命令在兼容宿主本地执行 |
 | `claude-statusline config ...` | 检查配置、设置精确顺序或从脚本配置 |
@@ -244,7 +245,7 @@ claude-statusline config set directory-style home
 claude-statusline config show
 ```
 
-配置按用户生效。`set-items` 替换启用集合，`enable`、`disable` 用于增量调整。更多操作见[配置配方](docs/USER_GUIDE.zh-CN.md#常用配置配方)、[格式与布局](docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)和 [CLI 参考](docs/reference/cli.zh-CN.md)。
+配置按用户生效。`set-items` 替换启用集合，`enable`、`disable` 用于增量调整。更多操作见[配置配方](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#常用配置配方)、[格式与布局](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#formatting-layout-presets)和 [CLI 参考](https://github.com/fbincon/claude-code-statusline/blob/main/docs/reference/cli.zh-CN.md)。
 
 <a id="升级到-v161"></a>
 
@@ -253,28 +254,36 @@ claude-statusline config show
 升级软件包并同步接入，然后重启 Claude Code：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx upgrade fbincon-claude-code-statusline
 claude-statusline install
 claude-statusline doctor
 ```
 
-保留显示配置、运行状态和接入偏好。旧显示 schema 与软件包降级操作见[版本兼容](docs/USER_GUIDE.zh-CN.md#版本兼容)。
+本仓库已有 wheel 安装请先按[软件包名称迁移](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#迁移旧分发名称)操作。保留显示配置、运行状态和接入偏好。旧显示 schema 与软件包降级操作见[版本兼容](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#版本兼容)。
 
 先移除 Claude 接入，再卸载软件包：
 
 ```text
 claude-statusline uninstall --dry-run
 claude-statusline uninstall
-pipx uninstall claude-code-statusline
+pipx uninstall fbincon-claude-code-statusline
 ```
 
-显示配置与备份继续保留，详见[卸载](docs/USER_GUIDE.zh-CN.md#卸载)。
+显示配置与备份继续保留，详见[卸载](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md#卸载)。
 
 ## 项目结构
 
 ```text
 claude-code-statusline/
+├── .github/workflows/
+│   ├── ci.yml
+│   ├── native.yml
+│   └── publish.yml
 ├── README.md / README.zh-CN.md
+├── CHANGELOG.md / CHANGELOG.zh-CN.md
+├── LICENSE
+├── MANIFEST.in
+├── pyproject.toml
 ├── docs/
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md
 │   ├── reference/                  # CLI 与配置参考
@@ -285,17 +294,20 @@ claude-code-statusline/
 │   │   └── archive/
 │   ├── development/                # 开发、架构与验证
 │   └── releases/                   # 历史发布说明
-├── src/claude_statusline/
-│   ├── config/
-│   ├── integration/
-│   ├── platforms/
-│   ├── rendering/
-│   ├── runtime/
-│   │   ├── live/
-│   │   ├── tasks/
-│   │   ├── timing/
-│   │   └── turns/
-│   └── ui/
+├── src/
+│   ├── build_native.py
+│   └── claude_statusline/
+│       ├── config/
+│       ├── integration/
+│       ├── platforms/
+│       ├── rendering/
+│       ├── runtime/
+│       │   ├── live/
+│       │   ├── tasks/
+│       │   ├── timing/
+│       │   └── turns/
+│       ├── resources/
+│       └── ui/
 ├── mods/
 │   ├── statusline-native/
 │   └── statusline-runtime/
@@ -306,19 +318,21 @@ claude-code-statusline/
 │   ├── rendering/
 │   ├── runtime/
 │   └── ui/
-├── tools/
-└── pyproject.toml
+└── tools/
+    ├── inspect_dist.py
+    ├── publish_package.py
+    └── check_docs.py
 ```
 
 ## 文档与帮助
 
-- [使用指南](docs/USER_GUIDE.zh-CN.md)：安装、编辑器、配方、升级与排障。
-- [CLI 参考](docs/reference/cli.zh-CN.md)：命令、选项、字段、文件和退出码。
-- [显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)：作用域、数据来源和可用条件。
-- [开发指南](docs/development/README.zh-CN.md) · [发布流程](docs/RELEASING.zh-CN.md)。
-- [变更记录](CHANGELOG.zh-CN.md) · [Releases](https://github.com/fbincon/claude-code-statusline/releases)。
+- [使用指南](https://github.com/fbincon/claude-code-statusline/blob/main/docs/USER_GUIDE.zh-CN.md)：安装、编辑器、配方、升级与排障。
+- [CLI 参考](https://github.com/fbincon/claude-code-statusline/blob/main/docs/reference/cli.zh-CN.md)：命令、选项、字段、文件和退出码。
+- [显示项与指标定义](https://github.com/fbincon/claude-code-statusline/blob/main/docs/DISPLAY_ITEMS.zh-CN.md)：作用域、数据来源和可用条件。
+- [开发指南](https://github.com/fbincon/claude-code-statusline/blob/main/docs/development/README.zh-CN.md) · [发布流程](https://github.com/fbincon/claude-code-statusline/blob/main/docs/RELEASING.zh-CN.md)。
+- [变更记录](https://github.com/fbincon/claude-code-statusline/blob/main/CHANGELOG.zh-CN.md) · [Releases](https://github.com/fbincon/claude-code-statusline/releases)。
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：附版本、复现步骤与诊断结果，移除私有路径和会话内容。
 
 ## 许可证
 
-[MIT License](LICENSE)，Copyright (c) 2026 [fbincon](https://github.com/fbincon)。
+[MIT License](https://github.com/fbincon/claude-code-statusline/blob/main/LICENSE)，Copyright (c) 2026 [fbincon](https://github.com/fbincon)。

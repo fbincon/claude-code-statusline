@@ -66,33 +66,35 @@
 
 ### 安装 Python 包
 
-安装 [v1.7.3 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.3) wheel，各支持平台使用同一个软件包：
+从 [PyPI](https://pypi.org/project/fbincon-claude-code-statusline/) 安装稳定包：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
+
+分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.7.4 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.4) 提供相同的 wheel 与源码包。
 
 也可从该 Release 下载 wheel、源码包和 `SHA256SUMS`，将下载文件的 SHA-256 与对应条目比较：
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.7.3-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.7.3-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.7.3-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.7.4-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.7.3-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.7.3-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.7.4-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.7.4-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.4"
 pipx ensurepath
 ```
 
@@ -532,10 +534,26 @@ claude-statusline configure --config-dir /path/to/claude-config
 
 ## 升级
 
+### 迁移旧分发名称
+
+本仓库 1.7.3 及更早 Release wheel 使用分发名 `claude-code-statusline`；PyPI 上该名称属于另一个项目。移除前先用 `pipx list --json` 和 `claude-statusline --version` 确认旧安装来自本仓库。索引安装与后续升级使用新名称。
+
+迁移时先关闭 Claude Code。移除旧 pipx 环境，安装新分发包并同步接入：
+
+```text
+pipx uninstall claude-code-statusline
+pipx install fbincon-claude-code-statusline
+claude-statusline install --dry-run
+claude-statusline install
+claude-statusline doctor
+```
+
+pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.7.4，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
+
 ### 替换 Python 包
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx upgrade fbincon-claude-code-statusline
 ```
 
 本地 wheel 或源码安装使用 `pipx install --force`，参数为更新或构建后的原文件、固定标签 Git URL 或本地检出目录。
@@ -566,7 +584,7 @@ Claude 宿主版本跨过功能门槛时，各接入独立按偏好暂挂或恢�
 ```text
 claude-statusline uninstall --dry-run
 claude-statusline uninstall
-pipx uninstall claude-code-statusline
+pipx uninstall fbincon-claude-code-statusline
 ```
 
 Windows 使用 `claude-statusline.exe`。卸载只移除归属本工具的命令、hooks、skills、插件和资源，第三方设置保留。显示文件、编辑器及实时偏好、缓存、任务状态和备份保留供重装复用。如需重装后继续关闭某项接入，先明确保存对应 `install --no-...` 偏好。
@@ -852,10 +870,10 @@ claude-statusline config set refresh-interval 1
 
 ## 任务计时
 
-[v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) 已包含任务计时。使用稳定版 wheel 升级：
+[v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) 已包含任务计时。升级稳定软件包：
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx upgrade fbincon-claude-code-statusline
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```

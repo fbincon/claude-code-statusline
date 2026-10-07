@@ -66,33 +66,35 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 
 ### Install the Python package
 
-Install the [v1.7.3 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.3) wheel; it is the same package on all supported platforms:
+Install the stable package from [PyPI](https://pypi.org/project/fbincon-claude-code-statusline/):
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
+
+The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.7.4 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.4) provides the same wheel and source distribution.
 
 Alternatively download the wheel, source archive, and `SHA256SUMS` from that release. Compare the downloaded file's SHA-256 with the corresponding entry:
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.7.3-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.7.3-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.7.3-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.7.4-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.7.3-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.7.3-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.7.4-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.7.4-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.4"
 pipx ensurepath
 ```
 
@@ -546,10 +548,26 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 
 ## Upgrading
 
+### Migrate the previous distribution name
+
+Versions through 1.7.3 used the distribution name `claude-code-statusline` for this repository’s Release wheels. That name on PyPI belongs to another project. Check `pipx list --json` and `claude-statusline --version` to confirm the existing installation came from this repository before removing it. Use the new name for index installations and future upgrades.
+
+Close Claude Code during migration. Remove the old pipx environment, install the new distribution and refresh integration:
+
+```text
+pipx uninstall claude-code-statusline
+pipx install fbincon-claude-code-statusline
+claude-statusline install --dry-run
+claude-statusline install
+claude-statusline doctor
+```
+
+The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.7.4 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
+
 ### Replace the Python package
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx upgrade fbincon-claude-code-statusline
 ```
 
 For local wheels or source installations, use `pipx install --force` with the original file, fixed-tag Git URL, or local checkout after updating/building it.
@@ -580,7 +598,7 @@ Remove integration while the CLI is still installed:
 ```text
 claude-statusline uninstall --dry-run
 claude-statusline uninstall
-pipx uninstall claude-code-statusline
+pipx uninstall fbincon-claude-code-statusline
 ```
 
 Windows uses `claude-statusline.exe`. The uninstaller removes only owned commands, hooks, skills, plugins, and resources; third-party settings remain. Display files, editor/live preferences, caches, task state, and backups remain for reuse. Keep integrations disabled across a later reinstall by explicitly saving the corresponding `install --no-...` preferences first.
@@ -957,10 +975,10 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 
 ## Task timing
 
-Task timing is included in [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0). Upgrade using the stable wheel:
+Task timing is included in [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0). Upgrade the stable package:
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
+pipx upgrade fbincon-claude-code-statusline
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```

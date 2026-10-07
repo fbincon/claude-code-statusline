@@ -1,14 +1,14 @@
-# 发布 GitHub Release
+# 发布 GitHub、PyPI 与 Gitee Release
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.7.3](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.3)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.7.4](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.4)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-正式 v1.7.3 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
+正式 v1.7.4 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
@@ -27,7 +27,7 @@ Phase 5 候选要求 PR、合并提交、标签的全部 13 个 Python/build 和
 完整双语 Release 正文保存在 `docs/releases/<tag>.md`，英文在前，原中文置于可展开区域，Release 标题使用英文。保留各版本当时的支持范围和验证结论；历史中文文档链接应明确标注语言。修改现有 Release 时只更新标题与正文，保留标签、附件、发布类型和 Latest 状态。
 
 1. 从最新 `main` 创建 `fbincon/` 前缀的发布分支，同步 `pyproject.toml`、`src/claude_statusline/_version.py` 、Mod manifest 和 CLI 测试中的版本。
-2. 将变更记录中的“未发布”改为实际发布日期。更新 README、使用指南中的稳定版本、安装与升级 URL，保留历史版本的支持范围；这些链接将在本次 Release 发布后生效。
+2. 在双语变更记录中添加版本和实际发布日期。README 安装与升级命令保持不依赖项目版本；固定版本示例放在使用与发布指南中更新。保留历史支持范围和 Release 记录。
 3. 发布说明列明主要改动、平台和 Python 版本、配置兼容性、安装方式及当前限制，与[运行要求](USER_GUIDE.zh-CN.md#运行要求)一致。
 4. 运行单元和集成测试、Ruff、文档链接及空白检查。测试使用临时 Claude 配置，覆盖安装、幂等重装、冲突回滚、配置、渲染、doctor 和卸载。
 5. 通过 PR 合入 `main`，确认合并提交的完整 CI 通过。后续构建、标签和 Release 都指向该提交，不使用移动中的分支名代替提交号。
@@ -42,7 +42,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.7.3
+RELEASE_TAG=v1.7.4
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -52,16 +52,18 @@ mkdir -p "$RELEASE_SOURCE" "$RELEASE_ASSETS"
 git archive "$RELEASE_COMMIT" | tar -x -C "$RELEASE_SOURCE"
 
 python3 -m venv "$RELEASE_ROOT/build-env"
-"$RELEASE_ROOT/build-env/bin/python" -m pip install build
+"$RELEASE_ROOT/build-env/bin/python" -m pip install build twine 'readme-renderer[md]'
 "$RELEASE_ROOT/build-env/bin/python" -m build \
   --outdir "$RELEASE_ASSETS" "$RELEASE_SOURCE"
+"$RELEASE_ROOT/build-env/bin/python" -m twine check --strict \
+  "$RELEASE_ASSETS/"*.whl "$RELEASE_ASSETS/"*.tar.gz
 ```
 
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-claude_code_statusline-1.7.3-py3-none-any.whl
-claude_code_statusline-1.7.3.tar.gz
+fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
+fbincon_claude_code_statusline-1.7.4.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -82,8 +84,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.7.3-py3-none-any.whl \
-  claude_code_statusline-1.7.3.tar.gz > SHA256SUMS
+sha256sum fbincon_claude_code_statusline-1.7.4-py3-none-any.whl \
+  fbincon_claude_code_statusline-1.7.4.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -92,8 +94,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.7.3-py3-none-any.whl',
-    'claude_code_statusline-1.7.3.tar.gz'
+    'fbincon_claude_code_statusline-1.7.4-py3-none-any.whl',
+    'fbincon_claude_code_statusline-1.7.4.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -111,8 +113,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.7.3-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.7.3.tar.gz" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.4-py3-none-any.whl" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.4.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -122,6 +124,8 @@ gh release create "$RELEASE_TAG" \
 先将实际发布说明写入上述 `release-notes.md`，保留真实换行。标签推送会触发 CI，也应全部通过。通过 `gh release download` 将草稿附件下载到新的目录，核验 SHA256SUMS 并与本地产物逐字节比较。GitHub 自动生成的 Source code ZIP/TAR 不能替代 wheel 附件。
 
 ## 正式发布与下载验证
+
+公开 GitHub Release 前先完成 [TestPyPI 验收](#testpypi-验收)。公开操作自动触发正式 PyPI 工作流，使用相同 Release 附件，并要求 TestPyPI 运行成功、索引哈希一致；发布时不重新构建。
 
 版本号不含预发布标识的稳定版设置为 Latest：
 
@@ -136,13 +140,45 @@ gh release edit "$RELEASE_TAG" --repo fbincon/claude-code-statusline \
 
 1. 检查标签解析到构建提交，附件名称、大小、摘要和发布类型正确；确认[最新稳定版入口](https://github.com/fbincon/claude-code-statusline/releases/latest)指向本次稳定版。
 2. 从公开下载 URL 重新下载三个附件，核验清单并与本地产物比较。
-3. 在独立的 pipx 目录中执行 README 的公开 wheel URL 安装命令，检查版本并运行 CLI smoke；验证固定标签源码及源码包也可安装。
-4. 检查 README、使用指南、变更记录和发布说明中的版本、日期、标签、附件 URL 与相对链接一致。
+3. 等待全部八项正式发布任务，包括 Linux、Windows、macOS 的 Python 3.10/3.14 六项索引安装验证。在独立 pipx 目录中执行 README 的包名安装命令，检查版本并运行 CLI smoke；验证固定标签源码及源码包安装。
+4. 检查带版本指南、变更记录及发布说明中的版本、日期、标签与附件 URL 一致。README 保留通用命令和迁移入口；检查其 PyPI 长描述、图片与文档链接。
 5. 确认工作区干净，记录发布链接、提交号和 CI 结果。详细本地报告存放在忽略目录中，不加入安装包。
 
 发布说明引用真实验证结果；CI 覆盖的平台版本、架构与 Python 版本从对应运行报告读取。终端截图用于展示，不代替真实睡眠恢复或多 Agent 生命周期验收。
 
 相关文档：[pipx 安装来源](https://pipx.pypa.io/latest/reference/examples.html)、[GitHub 创建 Release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)、[GitHub Release 链接规则](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)。
+
+## 可信发布者配置
+
+PyPI 分发名为 `fbincon-claude-code-statusline`；仓库、导入包、CLI、配置归属标记和可移植导出格式保持原身份。旧分发名在 PyPI 上属于另一个项目，已有安装见[迁移步骤](USER_GUIDE.zh-CN.md#迁移旧分发名称)。
+
+分别注册 [PyPI](https://pypi.org/account/register/) 和 [TestPyPI](https://test.pypi.org/account/register/) 账号，验证邮箱并配置双因素认证。在各站账号 Publishing 页面添加 [GitHub 待生效发布者](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/)：
+
+| 字段 | 设置 |
+| --- | --- |
+| Project name | `fbincon-claude-code-statusline` |
+| Owner / Repository | `fbincon` / `claude-code-statusline` |
+| Workflow filename | `publish.yml` |
+| Environment | 正式站 `pypi`，测试站 `testpypi` |
+
+创建同名 GitHub Environment，并限制部署来源为 `v*` 版本标签。仅上传任务获得 `id-token: write`；准备任务只读仓库与 Actions，验证主分支和标签 CI。上传任务仅下载已验证产物，不检出或构建源码。Actions 固定提交哈希，PyPA 生成发布证明，无需长期 PyPI Token。待生效发布者不预留包名，首次上传前再次核验名称。
+
+## TestPyPI 验收
+
+主分支与标签 CI 全部通过，草稿恰好包含带版本的 wheel、源码包和 `SHA256SUMS` 后，在对应标签触发：
+
+```bash
+gh workflow run publish.yml --repo fbincon/claude-code-statusline \
+  --ref "$RELEASE_TAG" -f tag="$RELEASE_TAG"
+gh run list --repo fbincon/claude-code-statusline --workflow publish.yml \
+  --branch "$RELEASE_TAG" --event workflow_dispatch --limit 1
+```
+
+核对返回的运行记录，等待全部八项任务成功；使用 `main` 作为运行引用会被拒绝。校验工具检查标签提交位于主分支、主分支与标签各自通过 13 项 Python/build 与七项 Mod CI、准确文件名、SHA256、元数据、CLI 身份、资源和严格长描述渲染，再将两个分发包上传 TestPyPI。
+
+六项索引任务匿名下载两个包，与已验证 Release 附件比较哈希和字节，安装准确的 wheel，并执行隔离 CLI／配置 smoke。Windows 依赖从正常 PyPI 解析。正式发布要求 TestPyPI 成功运行对应相同标签和提交；原始证据留在忽略目录或 Actions 产物中。
+
+失败时保留草稿并排查失败门槛。重跑会先比较已上传文件，仅跳过一致文件、上传缺失文件；哈希冲突或额外文件会停止发布。修复账号、发布者设置或暂时性故障后重跑，保留原版本标签和已发布附件。正式发布后按下文 Gitee 流程同步相同三个附件。
 
 ## Gitee 代码与 Release 同步
 
@@ -156,7 +192,7 @@ git remote add gitee git@gitee.com:fbincon/claude-code-statusline.git
 
 ```bash
 git push gitee main:refs/heads/main
-git push gitee refs/tags/v1.7.3:refs/tags/v1.7.3
+git push gitee refs/tags/v1.7.4:refs/tags/v1.7.4
 ```
 
 核对两平台 `main` 和标签对象 ID 完全一致，保留带注释标签及其目标提交。历史功能分支仅按需推送。引用出现分叉时先排查，日常同步不得强推或使用 `git push --mirror`。Gitee PR 验收使用临时目标分支和功能分支，确认合并后仅删除这些分支并保留 PR 记录。
@@ -225,7 +261,7 @@ Python 和两 Mod 晋升为 1.7.0，更新当前稳定安装／升级入口，�
 
 要求本地完整检查、全部 20 项 PR／合并／标签 CI、已安装核心／原生／运行 smoke、两编辑器 PTY 和 1.7.1 升级。从验证后的固定合并提交构建，检查清单、独立重建／安装、草稿／公开资产、SHA256 和 URL 安装。原始捕获留在忽略目录，历史截图保留；README 维护使用说明和当前安装链接，更新记录放在 CHANGELOG 与 Release。门槛通过后发布 v1.7.2 正式 Latest，不运行付费模型／计时套件。
 
-## v1.7.3 文档与诊断修正
+## v1.7.4 文档与诊断修正
 
 验证 schema 成功及迁移提示随显示版本常量变化、兼容 v1–v4 文件的诊断不写入、旧草稿在加锁前拒绝。按源码核对当前双语目录数量、协议示例、采集默认值和计时说明，保留按版本记录的验收数据。提供的 21 张 PNG 保留原字节及哈希，被替换的 18 张图库图片保留来源。
 

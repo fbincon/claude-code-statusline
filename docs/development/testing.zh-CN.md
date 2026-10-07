@@ -16,7 +16,7 @@
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -e . ruff build
+.venv/bin/python -m pip install -e . ruff build twine 'readme-renderer[md]'
 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests -t . -v
 .venv/bin/ruff check --select F,E9 src tests tools
 .venv/bin/python tools/check_docs.py
@@ -36,7 +36,7 @@ Windows 使用 `.venv\Scripts\python.exe` 和 `.venv\Scripts\ruff.exe`，设置 
 ```bash
 python tools/inspect_dist.py --write-exclusion-fixtures
 python -m build
-python tools/inspect_dist.py
+python tools/inspect_dist.py --check-long-description
 ```
 
 仅在可丢弃的导出源码中创建 fixture；已有同名文件时工具会拒绝覆盖。检查支持 `--source PATH --dist PATH`，覆盖版本一致性、英文 README 元数据、平台依赖、全部 Python 包文件、两个 skill 模板、双语文档、测试与维护工具。本地 ROADMAP、验收记录、字节码和缓存必须排除。

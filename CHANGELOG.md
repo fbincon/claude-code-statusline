@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 1.7.4 - 2026-10-08
+
+- Rename the distribution to `fbincon-claude-code-statusline` for PyPI while preserving the `claude_statusline` import, `claude-statusline` CLI, configuration ownership and portable exports. Synchronize Python and both Mod manifests at 1.7.4.
+- Add tokenless GitHub Actions publishing from verified Release attachments: exact-tag/main CI gates, TestPyPI acceptance, formal upload on Release publication, index download/install checks and verified retries of partial uploads. Keep the same original assets across PyPI, GitHub and Gitee.
+- Use version-independent PyPI commands in both READMEs, resolve long-description image/document links, expand the repository tree, and document existing wheel migrations and the bilingual maintainer publishing process. Validate strict package metadata in CI.
+
 ## 1.7.3 - 2026-10-07
 
 - Report the actual supported display schema in doctor success and migration messages; derive the apply-draft requirement from the same constant. Add read-only legacy/current/future-version regressions.

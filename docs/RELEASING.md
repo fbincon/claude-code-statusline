@@ -1,10 +1,10 @@
-# Publishing GitHub Releases
+# Publishing GitHub, PyPI and Gitee Releases
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.7.3](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.3); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.7.4](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.4); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,7 +12,7 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-Stable v1.7.3 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
+Stable v1.7.4 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
@@ -31,7 +31,7 @@ English is the default at existing documentation paths. Complete Simplified Chin
 Store complete bilingual Release bodies in `docs/releases/<tag>.md`, with English first and the original Chinese in an expandable section. Use an English Release title. Preserve version-specific support and validation claims; label links to historical Chinese documentation explicitly. When editing an existing Release, update only its title and body, preserving tags, assets, release type, and Latest selection.
 
 1. Create a release branch from the latest `main` with the `fbincon/` prefix. Synchronize versions in `pyproject.toml`, `src/claude_statusline/_version.py`, the Mod manifest, and CLI tests.
-2. Replace the changelog's Unreleased date with the actual release date. Update stable versions and installation/upgrade URLs in the README and user guide, preserving historical support boundaries. These links become available after publication.
+2. Add the version and actual release date to both changelogs. Keep README installation and upgrade commands independent of the project version; update fixed-version examples in the user and release guides. Preserve historical support boundaries and Release records.
 3. Release notes should describe major changes, platforms and Python versions, configuration compatibility, installation, and current limitations, consistent with [requirements](USER_GUIDE.md#requirements).
 4. Run unit/integration tests, Ruff, documentation-link checks, and whitespace checks. Tests use temporary Claude configuration and cover installation, idempotent reinstall, conflict rollback, configuration, rendering, doctor, and uninstallation.
 5. Merge through a PR and confirm complete CI passes on the merge commit. Builds, tags, and Releases must all refer to that commit; use its hash rather than a moving branch name.
@@ -48,7 +48,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.7.3
+RELEASE_TAG=v1.7.4
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -58,16 +58,18 @@ mkdir -p "$RELEASE_SOURCE" "$RELEASE_ASSETS"
 git archive "$RELEASE_COMMIT" | tar -x -C "$RELEASE_SOURCE"
 
 python3 -m venv "$RELEASE_ROOT/build-env"
-"$RELEASE_ROOT/build-env/bin/python" -m pip install build
+"$RELEASE_ROOT/build-env/bin/python" -m pip install build twine 'readme-renderer[md]'
 "$RELEASE_ROOT/build-env/bin/python" -m build \
   --outdir "$RELEASE_ASSETS" "$RELEASE_SOURCE"
+"$RELEASE_ROOT/build-env/bin/python" -m twine check --strict \
+  "$RELEASE_ASSETS/"*.whl "$RELEASE_ASSETS/"*.tar.gz
 ```
 
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-claude_code_statusline-1.7.3-py3-none-any.whl
-claude_code_statusline-1.7.3.tar.gz
+fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
+fbincon_claude_code_statusline-1.7.4.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -90,8 +92,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.7.3-py3-none-any.whl \
-  claude_code_statusline-1.7.3.tar.gz > SHA256SUMS
+sha256sum fbincon_claude_code_statusline-1.7.4-py3-none-any.whl \
+  fbincon_claude_code_statusline-1.7.4.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -100,8 +102,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.7.3-py3-none-any.whl',
-    'claude_code_statusline-1.7.3.tar.gz'
+    'fbincon_claude_code_statusline-1.7.4-py3-none-any.whl',
+    'fbincon_claude_code_statusline-1.7.4.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -121,8 +123,8 @@ Confirm all 13 Python/build and seven Mod CI jobs pass for Phase 5 for `RELEASE_
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.7.3-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.7.3.tar.gz" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.4-py3-none-any.whl" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.4.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -134,6 +136,8 @@ Write the actual notes to `release-notes.md` above with real newlines first. Pus
 <a id="正式发布与下载验证"></a>
 
 ## Publish and verify downloads
+
+Complete [TestPyPI acceptance](#testpypi-acceptance) before publishing the GitHub Release. Publication triggers the formal PyPI workflow automatically. It uses these same Release attachments and requires the successful TestPyPI run and matching index digests; it does not rebuild packages.
 
 Mark a stable version without a prerelease identifier as Latest:
 
@@ -148,13 +152,45 @@ After publication:
 
 1. Check the tag resolves to the build commit and asset names, sizes, digests, and release type are correct. Confirm the [latest stable entry point](https://github.com/fbincon/claude-code-statusline/releases/latest) points to this stable release.
 2. Redownload all three assets from public URLs, verify checksums, and compare them with local artifacts.
-3. Run the README's public wheel URL installation command in independent pipx directories, check version, and run CLI smoke tests. Verify fixed-tag source and source-distribution installations as well.
-4. Check version, date, tag, asset URLs, and relative links agree across README, user guide, changelog, and release notes.
+3. Wait for all eight formal publishing jobs, including six index installation jobs on Linux, Windows and macOS with Python 3.10/3.14. Run the README's package-name installation command in independent pipx directories, check version, and run CLI smoke tests. Verify fixed-tag source and source-distribution installations as well.
+4. Check version, date, tag and asset URLs agree across the versioned guides, changelog and release notes. README retains generic commands and links to migration instructions; check its long description, image and documentation links on PyPI.
 5. Confirm a clean workspace and record release links, commit, and CI results. Keep detailed local reports in ignored directories outside distributions.
 
 Release notes must cite actual validation results. Read CI-covered OS versions, architectures, and Python versions from the corresponding run reports. Terminal screenshots illustrate appearance; they do not replace real sleep/resume or multi-agent lifecycle acceptance.
 
 Related documentation: [pipx installation sources](https://pipx.pypa.io/latest/reference/examples.html), [creating GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository), and [Release linking rules](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases).
+
+## Trusted publisher setup
+
+The PyPI distribution is `fbincon-claude-code-statusline`; the repository, import package, CLI, ownership marker and portable export format keep their existing identities. The older distribution name belongs to another project on PyPI. See [existing-installation migration](USER_GUIDE.md#migrate-the-previous-distribution-name).
+
+Create separate accounts on [PyPI](https://pypi.org/account/register/) and [TestPyPI](https://test.pypi.org/account/register/), verify email and configure two-factor authentication. In each account's Publishing page, register a [pending GitHub publisher](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/) with:
+
+| Field | Value |
+| --- | --- |
+| Project name | `fbincon-claude-code-statusline` |
+| Owner / Repository | `fbincon` / `claude-code-statusline` |
+| Workflow filename | `publish.yml` |
+| Environment | `pypi` on PyPI, `testpypi` on TestPyPI |
+
+Create matching GitHub Environments restricted to version tags `v*`. Only the upload job receives `id-token: write`; preparation has read-only repository/Actions access and verifies main/tag CI. Upload jobs download verified artifacts without checking out or building source. Actions are pinned to commit hashes and PyPA generates publishing attestations. No long-lived PyPI token is needed. A pending publisher does not reserve the package name; recheck it before the first upload.
+
+## TestPyPI acceptance
+
+After all main and tag CI jobs pass and the draft contains exactly the versioned wheel, source distribution and `SHA256SUMS`, dispatch on that exact tag:
+
+```bash
+gh workflow run publish.yml --repo fbincon/claude-code-statusline \
+  --ref "$RELEASE_TAG" -f tag="$RELEASE_TAG"
+gh run list --repo fbincon/claude-code-statusline --workflow publish.yml \
+  --branch "$RELEASE_TAG" --event workflow_dispatch --limit 1
+```
+
+Inspect the returned run and wait for all eight jobs to succeed. Dispatching on `main` is rejected. The verification tool checks the tag commit is on main, both successful 13-job Python/build and seven-job Mod runs for main and tag, exact filenames, SHA256, package metadata, CLI identity, resources and strict long-description rendering. It then uploads only the two distributions to TestPyPI.
+
+Six index jobs anonymously download both files, compare digests and bytes with the verified Release assets, install that exact wheel and run isolated CLI/configuration smoke. Windows dependencies come from normal PyPI. The successful TestPyPI run must have the same tag and commit as the formal Release. Raw evidence remains in ignored directories or Actions artifacts.
+
+If a run fails, retain the draft and diagnose the failed gate. Reruns compare already uploaded files before skipping them and upload only missing files; conflicting hashes or extra files stop publication. Rerun the workflow after fixing account/publisher settings or transient failures. Version tags and published attachments retain their original history. After formal publication, follow the Gitee synchronization procedure below using these same three assets.
 
 ## Gitee code and Release synchronization
 
@@ -168,7 +204,7 @@ Before synchronizing, inspect `git remote -v`, the current branch, and the remot
 
 ```bash
 git push gitee main:refs/heads/main
-git push gitee refs/tags/v1.7.3:refs/tags/v1.7.3
+git push gitee refs/tags/v1.7.4:refs/tags/v1.7.4
 ```
 
 Verify both hosts expose identical `main` and tag object IDs. Preserve annotated tags and their target commits. Historical feature branches are pushed only when needed. If a ref has diverged, investigate before writing; never use force-push or `git push --mirror` for routine synchronization. Gitee PR acceptance uses temporary target and feature branches, preserving the PR record and removing only those branches after verified merging.
@@ -237,7 +273,7 @@ Verify the cyan Configure Status Line heading, uppercase key/lowercase action st
 
 Require complete local checks and all 20 PR/merge/tag jobs, installed core/native/runtime smoke, both editor PTYs and 1.7.1 upgrades. Build from the verified merge SHA, inspect inventories, independently rebuild/install, and verify draft/public assets, SHA256 and URL installs. Keep raw captures ignored and historical screenshots intact. README contains usage and current install links; release history belongs in changelogs and Release notes. Publish v1.7.2 as stable Latest after the gates pass; no paid model/timer suite is required.
 
-## v1.7.3 documentation and diagnostics
+## v1.7.4 documentation and diagnostics
 
 Verify schema success/migration messages against the supported display version, supported v1–v4 files without diagnostic writes, and rejected legacy drafts before locking. Audit current bilingual catalog counts, protocol examples, collector defaults and timer explanations against source; preserve versioned acceptance records. The supplied 21 PNGs retain their original bytes and hashes, and the replaced 18-image gallery retains its provenance.
 
