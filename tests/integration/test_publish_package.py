@@ -157,6 +157,34 @@ class DistributionTests(unittest.TestCase):
 
 
 class AcceptanceTests(unittest.TestCase):
+    def test_release_lookup_accepts_exact_visible_draft_and_published_tags(self):
+        for draft in (True, False):
+            with self.subTest(draft=draft):
+                client = mock.Mock()
+                expected = {"id": 42, "tag_name": "v1.7.4", "draft": draft}
+                client.pages.return_value = iter(
+                    [{"id": 41, "tag_name": "v1.7.3", "draft": False}, expected]
+                )
+                self.assertEqual(publish.release_for_tag(client, "v1.7.4"), expected)
+                client.pages.assert_called_once_with("/releases")
+                client.get.assert_not_called()
+        for releases in ([], [{"tag_name": "v1.7.4"}, {"tag_name": "v1.7.4"}]):
+            client = mock.Mock()
+            client.pages.return_value = iter(releases)
+            with self.assertRaisesRegex(
+                publish.PublicationError, "one visible Release"
+            ):
+                publish.release_for_tag(client, "v1.7.4")
+
+    def test_release_array_pagination_reads_drafts_beyond_the_first_page(self):
+        client = publish.GitHub("fixture-token")
+        expected = {"tag_name": "v1.7.4", "draft": True}
+        client.get = mock.Mock(
+            side_effect=[[{"tag_name": f"v0.0.{i}"} for i in range(100)], [expected]]
+        )
+        self.assertEqual(publish.release_for_tag(client, "v1.7.4"), expected)
+        self.assertEqual(client.get.call_count, 2)
+
     def test_existing_python_and_mod_prerelease_identifiers_remain_compatible(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -95,6 +95,8 @@ jobs:
   build:
     name: Build and inspect distributions
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -111,3 +113,15 @@ jobs:
         run: python tools/inspect_dist.py --check-long-description
       - name: Validate PyPI metadata and long description
         run: python -m twine check --strict dist/*.whl dist/*.tar.gz
+      - name: Probe authenticated draft listing with read-only access
+        if: github.ref == 'refs/heads/fbincon/pypi-draft-release-lookup'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import os
+          from tools.publish_package import GitHub, release_for_tag
+          release = release_for_tag(GitHub(os.environ['GH_TOKEN']), 'v1.7.4')
+          assert release['draft'] and len(release['assets']) == 3
+          print('Read-only draft lookup passed:', release['id'])
+          PY

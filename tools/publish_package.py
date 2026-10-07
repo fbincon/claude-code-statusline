@@ -171,11 +171,12 @@ class GitHub:
         with urlopen(request, timeout=60) as response:
             return json.load(response)
 
-    def pages(self, path, key):
+    def pages(self, path, key=None):
         page = 1
         separator = "&" if "?" in path else "?"
         while True:
-            values = self.get(f"{path}{separator}per_page=100&page={page}")[key]
+            response = self.get(f"{path}{separator}per_page=100&page={page}")
+            values = response[key] if key is not None else response
             yield from values
             if len(values) < 100:
                 return
@@ -272,6 +273,16 @@ def release_gates(client, tag, commit, target):
     return ci
 
 
+def release_for_tag(client, tag):
+    # The tag endpoint returns published releases only, even for their owner.
+    # Authenticated release listings also include drafts visible to this actor.
+    matches = [
+        release for release in client.pages("/releases") if release["tag_name"] == tag
+    ]
+    require(len(matches) == 1, "Expected one visible Release for the exact tag")
+    return matches[0]
+
+
 def index_files(target, evidence, missing_ok=False):
     host = INDEX_HOSTS[target]
     url = f"https://{host}/pypi/{DISTRIBUTION}/{evidence['version']}/json"
@@ -335,7 +346,7 @@ def prepare(args):
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
     ).strip()
     ci = release_gates(client, args.tag, commit, args.target)
-    release = client.get("/releases/tags/" + quote(args.tag, safe=""))
+    release = release_for_tag(client, args.tag)
     require(release["tag_name"] == args.tag, "Release tag differs")
     prerelease = bool(re.search(r"(?:a|b|rc)\d+$", version))
     require(
