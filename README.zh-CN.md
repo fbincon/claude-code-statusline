@@ -17,7 +17,7 @@
 ## 功能概览
 
 - **选择显示内容：** 支持 60 个主栏条目和 14 个子 Agent 条目，可启用、隐藏、筛选和排序。
-- **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含子 Agent 工作和主 Agent 收尾的完整任务计时。
+- **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
 - **从预设开始：** minimal、developer、monitoring、multi-agent 四种预设可展开编辑，支持可移植 JSON 导入和导出。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
@@ -27,103 +27,129 @@
 
 ## 界面预览
 
-主状态栏使用实际会话数据，配置界面的 Preview 使用固定样例。图片为实际终端示例，沿用原始捕获与来源记录。字体、颜色与显示宽度随终端设置变化。[图片来源与归档索引](docs/images/README.zh-CN.md)。
+会话底部主状态栏显示实际数据，配置 Preview 使用固定样例。字体、颜色和宽度随终端设置变化。[图片来源与归档索引](docs/images/README.zh-CN.md)。
 
-**Linux 主状态栏**
+### 会话内 TUI
 
-![Linux Claude Code 主状态栏：模型与 effort、目录、Git、上下文、token 和任务用时](docs/images/statusline/linux.png)
+在当前 Claude Code 会话运行 `/statusline-configure-native`，先点击 Client 区域一次，再使用键盘。
 
-<details>
-<summary>会话内配置 TUI：Linux、Windows 与 macOS 的实际终端截图</summary>
+**Linux：Main 与主状态栏**
 
-在当前 Claude Code 会话内运行 `/statusline-configure-native`，先点击 Client 区域一次，再使用键盘。以下图片均可见 Claude Code 2.1.289。
-
-**Linux**
-
-![Linux Claude Code 会话中的停靠式 Client Main 配置页与主状态栏](docs/images/tui/native/linux/session.png)
-
-**Windows**
-
-![Windows Terminal 中 Claude Code 会话的停靠式 Client Main 配置页与主状态栏](docs/images/tui/native/windows/session.png)
-
-**macOS**
-
-![macOS Terminal.app 中 Claude Code 会话的内嵌 Client Main 配置页与主状态栏](docs/images/tui/native/macos/session.png)
-
-已有 macOS Client 交互限制与检查建议见 [macOS 鼠标报告与 Client 焦点](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
-
-</details>
+![Linux 会话内 TUI Main 页与实际主状态栏](docs/images/tui/native/linux/main.png)
 
 <details>
-<summary>Linux：Main、Subagents、Settings 和 Layout 配置界面</summary>
-
-以下页面由外部 `/statusline-configure` TUI 提供。
-
-**Main：选择主状态栏条目并调整顺序。**
-
-![Linux 外部 TUI Main 页：显示项、说明与样例预览](docs/images/tui/external/linux/main.png)
+<summary>Linux：Subagents、Settings、Layout</summary>
 
 **Subagents：选择子 Agent 行的条目与顺序。**
 
-![Linux 外部 TUI Subagents 页：运行中与已完成代理的样例预览](docs/images/tui/external/linux/subagents.png)
+![Linux 会话内 TUI Subagents 配置页与样例预览](docs/images/tui/native/linux/subagents.png)
 
 **Settings：调整外观、刷新行为和格式。**
 
-![Linux 外部 TUI Settings 页：分组设置与样例预览](docs/images/tui/external/linux/settings.png)
+![Linux 会话内 TUI Settings 配置页与样例预览](docs/images/tui/native/linux/settings.png)
 
 **Layout：设置分行、逐项优先级与最大宽度。**
 
-![Linux 外部 TUI Layout 页：模式、行边界与逐项优先级及宽度](docs/images/tui/external/linux/layout.png)
+![Linux 会话内 TUI Layout 配置页与样例预览](docs/images/tui/native/linux/layout.png)
 
 </details>
 
 <details>
-<summary>macOS：Terminal.app 中的主状态栏与四页配置界面</summary>
+<summary>Windows：Main、Subagents、Settings、Layout</summary>
 
-**主状态栏**
+**Main：选择主状态栏条目并调整顺序。**
 
-![macOS Terminal.app 中的 Claude Code 主状态栏](docs/images/statusline/macos.png)
+![Windows 会话内 TUI Main 配置页与样例预览](docs/images/tui/native/windows/main.png)
 
-**Main**
+**Subagents：选择子 Agent 行的条目与顺序。**
 
-![macOS Terminal.app 外部 TUI Main 配置页](docs/images/tui/external/macos/main.png)
+![Windows 会话内 TUI Subagents 配置页与样例预览](docs/images/tui/native/windows/subagents.png)
 
-**Subagents**
+**Settings：调整外观、刷新行为和格式。**
 
-![macOS Terminal.app 外部 TUI Subagents 配置页](docs/images/tui/external/macos/subagents.png)
+![Windows 会话内 TUI Settings 配置页与样例预览](docs/images/tui/native/windows/settings.png)
 
-**Settings**
+**Layout：设置分行、逐项优先级与最大宽度。**
 
-![macOS Terminal.app 外部 TUI Settings 配置页](docs/images/tui/external/macos/settings.png)
-
-**Layout**
-
-![macOS Terminal.app 外部 TUI Layout 页：模式、行边界与逐项优先级及宽度](docs/images/tui/external/macos/layout.png)
+![Windows 会话内 TUI Layout 配置页与样例预览](docs/images/tui/native/windows/layout.png)
 
 </details>
 
 <details>
-<summary>Windows：Windows Terminal 中的主状态栏与四页配置界面</summary>
+<summary>macOS：Main</summary>
 
-**主状态栏**
+本批次仅提供 Main 截图。已有输入限制与检查建议见 [macOS 鼠标报告与 Client 焦点](docs/USER_GUIDE.zh-CN.md#macos-鼠标报告与-client-焦点)。
 
-![Windows Terminal 中的 Claude Code 主状态栏](docs/images/statusline/windows.png)
+**Main：选择主状态栏条目并调整顺序。**
 
-**Main**
+![macOS 会话内 TUI Main 配置页与样例预览](docs/images/tui/native/macos/main.png)
 
-![Windows Terminal 外部 TUI Main 配置页](docs/images/tui/external/windows/main.png)
+</details>
 
-**Subagents**
+### 外部 TUI
 
-![Windows Terminal 外部 TUI Subagents 配置页](docs/images/tui/external/windows/subagents.png)
+在 Claude Code 中运行 `/statusline-configure`，或在独立终端运行 `claude-statusline configure`。
 
-**Settings**
+<details>
+<summary>Linux：Main、Subagents、Settings、Layout</summary>
 
-![Windows Terminal 外部 TUI Settings 配置页](docs/images/tui/external/windows/settings.png)
+**Main：选择主状态栏条目并调整顺序。**
 
-**Layout**
+![Linux 外部 TUI Main 配置页与样例预览](docs/images/tui/external/linux/main.png)
 
-![Windows Terminal 外部 TUI Layout 页：模式、行边界与逐项优先级及宽度](docs/images/tui/external/windows/layout.png)
+**Subagents：选择子 Agent 行的条目与顺序。**
+
+![Linux 外部 TUI Subagents 配置页与样例预览](docs/images/tui/external/linux/subagents.png)
+
+**Settings：调整外观、刷新行为和格式。**
+
+![Linux 外部 TUI Settings 配置页与样例预览](docs/images/tui/external/linux/settings.png)
+
+**Layout：设置分行、逐项优先级与最大宽度。**
+
+![Linux 外部 TUI Layout 配置页与样例预览](docs/images/tui/external/linux/layout.png)
+
+</details>
+
+<details>
+<summary>Windows：Main、Subagents、Settings、Layout</summary>
+
+**Main：选择主状态栏条目并调整顺序。**
+
+![Windows 外部 TUI Main 配置页与样例预览](docs/images/tui/external/windows/main.png)
+
+**Subagents：选择子 Agent 行的条目与顺序。**
+
+![Windows 外部 TUI Subagents 配置页与样例预览](docs/images/tui/external/windows/subagents.png)
+
+**Settings：调整外观、刷新行为和格式。**
+
+![Windows 外部 TUI Settings 配置页与样例预览](docs/images/tui/external/windows/settings.png)
+
+**Layout：设置分行、逐项优先级与最大宽度。**
+
+![Windows 外部 TUI Layout 配置页与样例预览](docs/images/tui/external/windows/layout.png)
+
+</details>
+
+<details>
+<summary>macOS：Main、Subagents、Settings、Layout</summary>
+
+**Main：选择主状态栏条目并调整顺序。**
+
+![macOS 外部 TUI Main 配置页与样例预览](docs/images/tui/external/macos/main.png)
+
+**Subagents：选择子 Agent 行的条目与顺序。**
+
+![macOS 外部 TUI Subagents 配置页与样例预览](docs/images/tui/external/macos/subagents.png)
+
+**Settings：调整外观、刷新行为和格式。**
+
+![macOS 外部 TUI Settings 配置页与样例预览](docs/images/tui/external/macos/settings.png)
+
+**Layout：设置分行、逐项优先级与最大宽度。**
+
+![macOS 外部 TUI Layout 配置页与样例预览](docs/images/tui/external/macos/layout.png)
 
 </details>
 
@@ -154,7 +180,7 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 Bash、Zsh、PowerShell 通用：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -179,7 +205,7 @@ Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claud
 从固定发布标签安装源码，需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
 ```
 
 使用 `@main` 跟踪当前开发源码；本地检出可在仓库根目录执行 `pipx install .`。随后运行 `pipx ensurepath`，并完成上面的接入步骤。
@@ -213,7 +239,7 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
 定义精简主栏：
 
 ```text
-claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
+claude-statusline config set-items model-with-effort current-dir git context-remaining task-timer
 claude-statusline config set directory-style home
 claude-statusline config show
 ```
@@ -227,7 +253,7 @@ claude-statusline config show
 升级软件包并同步接入，然后重启 Claude Code：
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
@@ -253,6 +279,10 @@ claude-code-statusline/
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md
 │   ├── reference/                  # CLI 与配置参考
 │   ├── images/                     # 当前截图与归档
+│   │   ├── tui/
+│   │   │   ├── native/
+│   │   │   └── external/
+│   │   └── archive/
 │   ├── development/                # 开发、架构与验证
 │   └── releases/                   # 历史发布说明
 ├── src/claude_statusline/
@@ -261,6 +291,10 @@ claude-code-statusline/
 │   ├── platforms/
 │   ├── rendering/
 │   ├── runtime/
+│   │   ├── live/
+│   │   ├── tasks/
+│   │   ├── timing/
+│   │   └── turns/
 │   └── ui/
 ├── mods/
 │   ├── statusline-native/

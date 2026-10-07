@@ -2,7 +2,7 @@
 
 **English** | [简体中文](architecture.zh-CN.md)
 
-The Python package keeps the existing CLI, configuration formats and storage locations. Version 1.1.1 groups implementation by responsibility and retains lazy compatibility modules at the original Python paths.
+The Python package keeps the existing CLI, configuration formats and storage locations. Implementation is grouped by responsibility and retains lazy compatibility modules at the original Python paths.
 
 ```text
 src/claude_statusline/
@@ -13,6 +13,7 @@ src/claude_statusline/
                                     timer, main/subagent output and preview
   runtime/                          Paths, caches, registry, transcript,
                                     usage, Git and task lifecycle
+    live/                           Independent timing/metrics observations
     timing/                         Immutable pause/resume clock and samples
     tasks/                          Task ownership, lifecycle, indexed evidence,
                                     native adapter, collection and locked store
@@ -77,7 +78,7 @@ Resources continue to load through `importlib.resources` from `claude_statusline
 
 ## Persistence
 
-Current display schema v5 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1/v2/v3 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
+Current display schema v5 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1/v2/v3/v4/v3 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
 
 Keep local ROADMAP files and raw acceptance records out of distributions. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 
@@ -85,7 +86,7 @@ See [testing](testing.md), the [timer contract](timer.md) and the [release guide
 
 ## Native editor structure
 
-The sole Mod source remains `mods/statusline-native`. Host APIs stay in `hooks/register.ts`, draft/numeric rules in `lib/editor/`, validated batches/keys/settings in `lib/client/`, and independent port snapshots in `lib/session.ts`. `ui/client/` owns Client input/drawing, `ui/components/` reusable sections, and `ui/layout.ts` the body budget. Tests mirror backend, client, editor, integration and UI.
+The sole editor Mod source remains `mods/statusline-native`. Host APIs stay in `hooks/register.ts`, draft/numeric rules in `lib/editor/`, validated batches/keys/settings in `lib/client/`, and independent port snapshots in `lib/session.ts`. `ui/client/` owns Client input/drawing, `ui/components/` reusable sections, and `ui/layout.ts` the body budget. Tests mirror backend, client, editor, integration and UI.
 
 The external `/statusline-configure` Python curses UI/platform launcher remains separate. Mod registers only `/statusline-configure-native`. Both can install/open together and use the same configuration service, revision checks and transaction lock. Client neither accesses files nor starts processes: cumulative ordered messages reach the host, copied snapshots isolate recursive host freezing, and sequence acknowledgements/deduplication plus epochs reject repeated/late input. Recursive packaging includes Client modules and excludes tests, host declarations, dependencies and raw validation reports.
 

@@ -2,7 +2,11 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-This archive preserves 33 images from earlier documentation and their original provenance. The [current image index](../README.md) lists the new screenshots and retained main status lines. Historical reports below retain their original dates and scope; moving a file does not create a new acceptance result.
+This archive preserves 51 images from earlier documentation and their original provenance. The [current image index](../README.md) lists the new in-session and external TUI screenshots. Historical reports below retain their original dates and scope; moving a file does not create a new acceptance result.
+
+## Gallery replacement batch
+
+The [18-image gallery replaced on 2026-10-07](screenshots/replaced-2026-10-07/README.md) preserves the former main status lines, in-session Main screenshots and four-page external galleries with their original filenames and PNG hashes. Replacement dates do not change capture dates or acceptance claims.
 
 <a id="界面截图"></a>
 
@@ -14,9 +18,9 @@ Screenshots appear in the [project README](../../../README.md#screenshots). Main
 
 | Platform | Main status line | Main | Subagents | Settings |
 | --- | --- | --- | --- | --- |
-| Linux | [statusline.png](../statusline/linux.png) | [configure-main.png](screenshots/external/linux/main.png) | [configure-subagents.png](screenshots/external/linux/subagents.png) | [configure-settings.png](screenshots/external/linux/settings.png) |
-| macOS | [statusline-macos.png](../statusline/macos.png) | [configure-main-macos.png](screenshots/external/macos/main.png) | [configure-subagents-macos.png](screenshots/external/macos/subagents.png) | [configure-settings-macos.png](screenshots/external/macos/settings.png) |
-| Windows | [statusline-windows.png](../statusline/windows.png) | [configure-main-windows.png](screenshots/external/windows/main.png) | [configure-subagents-windows.png](screenshots/external/windows/subagents.png) | [configure-settings-windows.png](screenshots/external/windows/settings.png) |
+| Linux | [statusline.png](screenshots/replaced-2026-10-07/statusline/linux.png) | [configure-main.png](screenshots/external/linux/main.png) | [configure-subagents.png](screenshots/external/linux/subagents.png) | [configure-settings.png](screenshots/external/linux/settings.png) |
+| macOS | [statusline-macos.png](screenshots/replaced-2026-10-07/statusline/macos.png) | [configure-main-macos.png](screenshots/external/macos/main.png) | [configure-subagents-macos.png](screenshots/external/macos/subagents.png) | [configure-settings-macos.png](screenshots/external/macos/settings.png) |
+| Windows | [statusline-windows.png](screenshots/replaced-2026-10-07/statusline/windows.png) | [configure-main-windows.png](screenshots/external/windows/main.png) | [configure-subagents-windows.png](screenshots/external/windows/subagents.png) | [configure-settings-windows.png](screenshots/external/windows/settings.png) |
 
 ## In-session Client screenshots
 

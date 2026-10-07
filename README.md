@@ -17,11 +17,11 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 ## Features
 
 - **Choose what to show:** 60 main-line items and 14 subagent items; enable, hide, search, and reorder them.
-- **Track the right scope:** session token totals, per-task subagent rows, and a timer covering the user's task through subagent work and main-agent wrap-up.
+- **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
 - **Start from a preset:** minimal, developer, monitoring, and multi-agent presets expand into editable settings; import and export portable JSON.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
-- **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and prompt usage are opt-in. Missing or partial observations stay distinguishable.
+- **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and per-task usage are opt-in. Missing or partial observations stay distinguishable.
 
 Rendering uses Claude Code input and local state without making network requests or using model tokens. The question-and-answer wizard uses Claude model turns. See [field definitions](docs/DISPLAY_ITEMS.md) for data sources and availability.
 
@@ -29,103 +29,129 @@ Rendering uses Claude Code input and local state without making network requests
 
 ## Screenshots
 
-Main status lines show actual session data. Configuration Preview regions use fixed samples. The images are actual terminal examples with their original captures and provenance retained. Fonts, colors, and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
+The main status line at the bottom of session screenshots shows actual data; configuration Preview regions use fixed samples. Fonts, colors and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
 
-**Linux main status line**
+### In-session TUI
 
-![Linux Claude Code main status line showing model and effort, directory, Git, context, tokens, and task timing](docs/images/statusline/linux.png)
+Run `/statusline-configure-native` inside the current Claude Code session, then click the Client region once before using the keyboard.
 
-<details>
-<summary>In-session configuration TUI: Linux, Windows, and macOS (actual terminal screenshots)</summary>
+**Linux: Main and the status line**
 
-Open `/statusline-configure-native` inside the current Claude Code session, then click the Client region once before using the keyboard. These images visibly show Claude Code 2.1.289.
-
-**Linux**
-
-![Linux Claude Code session with the docked Client Main page and the main status line](docs/images/tui/native/linux/session.png)
-
-**Windows**
-
-![Windows Terminal Claude Code session with the docked Client Main page and the main status line](docs/images/tui/native/windows/session.png)
-
-**macOS**
-
-![macOS Terminal.app Claude Code session with the inline Client Main page and the main status line](docs/images/tui/native/macos/session.png)
-
-The existing macOS Client interaction limitation and suggested checks are documented in [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
-
-</details>
+![Linux in-session TUI Main page and actual main status line](docs/images/tui/native/linux/main.png)
 
 <details>
-<summary>Linux: Main, Subagents, Settings, and Layout configuration pages</summary>
-
-These pages use the external `/statusline-configure` TUI.
-
-**Main: select and reorder main status line items.**
-
-![Linux external TUI Main page with item descriptions and sample preview](docs/images/tui/external/linux/main.png)
+<summary>Linux: Subagents, Settings, Layout</summary>
 
 **Subagents: choose items and ordering for individual agent rows.**
 
-![Linux external TUI Subagents page with sample running and completed agents](docs/images/tui/external/linux/subagents.png)
+![Linux in-session TUI Subagents page with sample preview](docs/images/tui/native/linux/subagents.png)
 
-**Settings: adjust appearance, refresh behavior, and formatting.**
+**Settings: adjust appearance, refresh behavior and formatting.**
 
-![Linux external TUI Settings page with grouped options and sample preview](docs/images/tui/external/linux/settings.png)
+![Linux in-session TUI Settings page with sample preview](docs/images/tui/native/linux/settings.png)
 
-**Layout: set rows, item priorities, and maximum widths.**
+**Layout: set rows, item priorities and maximum widths.**
 
-![Linux external TUI Layout page showing mode, row boundaries, item priorities and widths](docs/images/tui/external/linux/layout.png)
-
-</details>
-
-<details>
-<summary>macOS: main status line and four configuration pages in Terminal.app</summary>
-
-**Main status line**
-
-![Claude Code main status line in macOS Terminal.app](docs/images/statusline/macos.png)
-
-**Main**
-
-![macOS Terminal.app external TUI Main page](docs/images/tui/external/macos/main.png)
-
-**Subagents**
-
-![macOS Terminal.app external TUI Subagents page](docs/images/tui/external/macos/subagents.png)
-
-**Settings**
-
-![macOS Terminal.app external TUI Settings page](docs/images/tui/external/macos/settings.png)
-
-**Layout**
-
-![macOS Terminal.app external TUI Layout page showing mode, row boundaries, item priorities and widths](docs/images/tui/external/macos/layout.png)
+![Linux in-session TUI Layout page with sample preview](docs/images/tui/native/linux/layout.png)
 
 </details>
 
 <details>
-<summary>Windows: main status line and four configuration pages in Windows Terminal</summary>
+<summary>Windows: Main, Subagents, Settings, Layout</summary>
 
-**Main status line**
+**Main: select and reorder main status line items.**
 
-![Claude Code main status line in Windows Terminal](docs/images/statusline/windows.png)
+![Windows in-session TUI Main page with sample preview](docs/images/tui/native/windows/main.png)
 
-**Main**
+**Subagents: choose items and ordering for individual agent rows.**
 
-![Windows Terminal external TUI Main page](docs/images/tui/external/windows/main.png)
+![Windows in-session TUI Subagents page with sample preview](docs/images/tui/native/windows/subagents.png)
 
-**Subagents**
+**Settings: adjust appearance, refresh behavior and formatting.**
 
-![Windows Terminal external TUI Subagents page](docs/images/tui/external/windows/subagents.png)
+![Windows in-session TUI Settings page with sample preview](docs/images/tui/native/windows/settings.png)
 
-**Settings**
+**Layout: set rows, item priorities and maximum widths.**
 
-![Windows Terminal external TUI Settings page](docs/images/tui/external/windows/settings.png)
+![Windows in-session TUI Layout page with sample preview](docs/images/tui/native/windows/layout.png)
 
-**Layout**
+</details>
 
-![Windows Terminal external TUI Layout page showing mode, row boundaries, item priorities and widths](docs/images/tui/external/windows/layout.png)
+<details>
+<summary>macOS: Main</summary>
+
+Only Main was supplied for this batch. The existing interaction limitation and checks are documented in [macOS mouse reporting and Client focus](docs/USER_GUIDE.md#macos-mouse-reporting-and-client-focus).
+
+**Main: select and reorder main status line items.**
+
+![macOS in-session TUI Main page with sample preview](docs/images/tui/native/macos/main.png)
+
+</details>
+
+### External TUI
+
+Run `/statusline-configure` in Claude Code, or `claude-statusline configure` in a standalone terminal.
+
+<details>
+<summary>Linux: Main, Subagents, Settings, Layout</summary>
+
+**Main: select and reorder main status line items.**
+
+![Linux external TUI Main page with sample preview](docs/images/tui/external/linux/main.png)
+
+**Subagents: choose items and ordering for individual agent rows.**
+
+![Linux external TUI Subagents page with sample preview](docs/images/tui/external/linux/subagents.png)
+
+**Settings: adjust appearance, refresh behavior and formatting.**
+
+![Linux external TUI Settings page with sample preview](docs/images/tui/external/linux/settings.png)
+
+**Layout: set rows, item priorities and maximum widths.**
+
+![Linux external TUI Layout page with sample preview](docs/images/tui/external/linux/layout.png)
+
+</details>
+
+<details>
+<summary>Windows: Main, Subagents, Settings, Layout</summary>
+
+**Main: select and reorder main status line items.**
+
+![Windows external TUI Main page with sample preview](docs/images/tui/external/windows/main.png)
+
+**Subagents: choose items and ordering for individual agent rows.**
+
+![Windows external TUI Subagents page with sample preview](docs/images/tui/external/windows/subagents.png)
+
+**Settings: adjust appearance, refresh behavior and formatting.**
+
+![Windows external TUI Settings page with sample preview](docs/images/tui/external/windows/settings.png)
+
+**Layout: set rows, item priorities and maximum widths.**
+
+![Windows external TUI Layout page with sample preview](docs/images/tui/external/windows/layout.png)
+
+</details>
+
+<details>
+<summary>macOS: Main, Subagents, Settings, Layout</summary>
+
+**Main: select and reorder main status line items.**
+
+![macOS external TUI Main page with sample preview](docs/images/tui/external/macos/main.png)
+
+**Subagents: choose items and ordering for individual agent rows.**
+
+![macOS external TUI Subagents page with sample preview](docs/images/tui/external/macos/subagents.png)
+
+**Settings: adjust appearance, refresh behavior and formatting.**
+
+![macOS external TUI Settings page with sample preview](docs/images/tui/external/macos/settings.png)
+
+**Layout: set rows, item priorities and maximum widths.**
+
+![macOS external TUI Layout page with sample preview](docs/images/tui/external/macos/layout.png)
 
 </details>
 
@@ -166,7 +192,7 @@ Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/i
 Bash, Zsh, and PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -191,7 +217,7 @@ Both editors default on for compatible hosts, respecting saved disablement prefe
 Install source from the fixed release tag (requires Git):
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
 ```
 
 Use `@main` to follow current development, or run `pipx install .` from a local checkout. Then run `pipx ensurepath` and complete integration above.
@@ -225,7 +251,7 @@ The external entry uses tmux or GNOME Terminal on Linux, tmux or Terminal.app on
 Define a compact main line:
 
 ```text
-claude-statusline config set-items model-with-effort current-dir git context-remaining prompt-timer
+claude-statusline config set-items model-with-effort current-dir git context-remaining task-timer
 claude-statusline config set directory-style home
 claude-statusline config show
 ```
@@ -239,7 +265,7 @@ Configuration is per user. `set-items` replaces the enabled set; `enable` and `d
 Upgrade the package, synchronize integration, then restart Claude Code:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```
@@ -265,6 +291,10 @@ claude-code-statusline/
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md
 │   ├── reference/                  # CLI and configuration reference
 │   ├── images/                     # Current screenshots and archive
+│   │   ├── tui/
+│   │   │   ├── native/
+│   │   │   └── external/
+│   │   └── archive/
 │   ├── development/                # Setup, architecture and validation
 │   └── releases/                   # Historical release notes
 ├── src/claude_statusline/
@@ -273,6 +303,10 @@ claude-code-statusline/
 │   ├── platforms/
 │   ├── rendering/
 │   ├── runtime/
+│   │   ├── live/
+│   │   ├── tasks/
+│   │   ├── timing/
+│   │   └── turns/
 │   └── ui/
 ├── mods/
 │   ├── statusline-native/

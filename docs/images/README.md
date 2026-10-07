@@ -2,72 +2,106 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-The current gallery contains 18 images: three retained main status lines, three new in-session Client screenshots and twelve new external configuration pages. Earlier images and capture records are in the [archive](archive/README.md).
+The current gallery contains 21 original screenshots supplied on 2026-10-07: nine in-session TUI pages and twelve external TUI pages. The former 18-image README gallery and older records remain in the [archive](archive/README.md).
 
-PNG bytes, dimensions, colors and metadata are preserved. Main status lines show session data; configuration `Preview (sample data)` uses fixed examples, not actual token usage or evidence of real parallel agents.
+PNG bytes, dimensions, colors and metadata are preserved. Main status lines at the bottom of session screenshots show session data; configuration Preview regions use fixed samples and do not establish actual token usage or parallel-agent acceptance.
 
 ## Directory layout
 
 ```text
 images/
-├── statusline/{linux,macos,windows}.png
-├── tui/native/{linux,macos,windows}/session.png
-├── tui/external/{linux,macos,windows}/{main,subagents,settings,layout}.png
+├── tui/
+│   ├── native/
+│   │   ├── linux/
+│   │   │   ├── main.png
+│   │   │   ├── subagents.png
+│   │   │   ├── settings.png
+│   │   │   └── layout.png
+│   │   ├── windows/
+│   │   │   ├── main.png
+│   │   │   ├── subagents.png
+│   │   │   ├── settings.png
+│   │   │   └── layout.png
+│   │   └── macos/
+│   │       └── main.png
+│   └── external/
+│       ├── linux/
+│       │   ├── main.png
+│       │   ├── subagents.png
+│       │   ├── settings.png
+│       │   └── layout.png
+│       ├── windows/
+│       │   ├── main.png
+│       │   ├── subagents.png
+│       │   ├── settings.png
+│       │   └── layout.png
+│       └── macos/
+│           ├── main.png
+│           ├── subagents.png
+│           ├── settings.png
+│           └── layout.png
 └── archive/
-    ├── screenshots/{native,external}/{linux,macos,windows}/
-    └── reconstructions/<source-version>/linux/
+    ├── screenshots/
+    │   └── replaced-2026-10-07/
+    └── reconstructions/
 ```
 
 ## Current images
 
-| Platform | Main status line | In-session Client | Main | Subagents | Settings | Layout |
-| --- | --- | --- | --- | --- | --- | --- |
-| Linux | [PNG](statusline/linux.png) | [PNG](tui/native/linux/session.png) | [PNG](tui/external/linux/main.png) | [PNG](tui/external/linux/subagents.png) | [PNG](tui/external/linux/settings.png) | [PNG](tui/external/linux/layout.png) |
-| macOS | [PNG](statusline/macos.png) | [PNG](tui/native/macos/session.png) | [PNG](tui/external/macos/main.png) | [PNG](tui/external/macos/subagents.png) | [PNG](tui/external/macos/settings.png) | [PNG](tui/external/macos/layout.png) |
-| Windows | [PNG](statusline/windows.png) | [PNG](tui/native/windows/session.png) | [PNG](tui/external/windows/main.png) | [PNG](tui/external/windows/subagents.png) | [PNG](tui/external/windows/settings.png) | [PNG](tui/external/windows/layout.png) |
+| Entry | Platform | Main | Subagents | Settings | Layout |
+| --- | --- | --- | --- | --- | --- |
+| In-session | Linux | [PNG](tui/native/linux/main.png) | [PNG](tui/native/linux/subagents.png) | [PNG](tui/native/linux/settings.png) | [PNG](tui/native/linux/layout.png) |
+| In-session | Windows | [PNG](tui/native/windows/main.png) | [PNG](tui/native/windows/subagents.png) | [PNG](tui/native/windows/settings.png) | [PNG](tui/native/windows/layout.png) |
+| In-session | macOS | [PNG](tui/native/macos/main.png) | Not supplied | Not supplied | Not supplied |
+| External | Linux | [PNG](tui/external/linux/main.png) | [PNG](tui/external/linux/subagents.png) | [PNG](tui/external/linux/settings.png) | [PNG](tui/external/linux/layout.png) |
+| External | Windows | [PNG](tui/external/windows/main.png) | [PNG](tui/external/windows/subagents.png) | [PNG](tui/external/windows/settings.png) | [PNG](tui/external/windows/layout.png) |
+| External | macOS | [PNG](tui/external/macos/main.png) | [PNG](tui/external/macos/subagents.png) | [PNG](tui/external/macos/settings.png) | [PNG](tui/external/macos/layout.png) |
 
 ## In-session Client screenshots
 
-The supplied screenshots visibly show Claude Code 2.1.289: docked panes on Linux and Windows, and an inline pane on macOS. Conversation text, earlier command results and connection messages are preserved.
+The session screenshots visibly show Claude Code 2.1.292: docked regions on Linux and Windows, and an inline region on macOS. Linux and Windows provide all four pages; only Main was supplied for macOS. Conversation text, earlier command results and connection messages remain unmodified.
 
-Existing reports describe usable Client interaction on Linux and Windows and an opening pane with interaction problems on macOS. New static images update the layout examples; they do not independently verify saving, keyboard focus or resolution of that issue. See the [user guide](../USER_GUIDE.md#macos-mouse-reporting-and-client-focus) for checks and the [native editor record](../development/native.md#claude-code-21289-interaction-report) for historical feedback.
+Static images update the layout examples without independently verifying saves, keyboard focus or resolution of the historical macOS input issue. See the [user guide](../USER_GUIDE.md#macos-mouse-reporting-and-client-focus) and [native editor record](../development/native.md#claude-code-21289-interaction-report) for checks and historical feedback.
 
 ## Sources and hashes
 
-Original filenames date the new external screenshots to 2026-10-05, in Main, Subagents, Settings and Layout order. macOS images show Terminal.app; Windows images show Windows Terminal. Exact OS, architecture, terminal-version and backend-commit metadata were not supplied. Retained main status lines come from the old repository; their original record did not give a capture date.
+The supplied directory groups files by entry and platform; original filenames record 2026-10-07. Files map to Main, Subagents, Settings and Layout in order, with only Main supplied for the macOS Client. Exact OS, architecture, terminal-version and backend-commit metadata were not supplied.
 
 <details>
 <summary>Original filenames, repository paths, dimensions and PNG SHA-256</summary>
 
 | Original source path | Repository file | Dimensions | PNG SHA-256 |
 | --- | --- | --- | --- |
-| Old repository: `docs/images/statusline-macos.png` | [statusline/macos.png](statusline/macos.png) | 936×498 | `3c2c286af82268dbbf8e599c9ce236a75c7897eca9093a2d43eb48cfab04e3d8` |
-| Old repository: `docs/images/statusline-windows.png` | [statusline/windows.png](statusline/windows.png) | 1708×985 | `874efc5bfac0128e70c224c799eef4c441da21623d8bee8076c797e3c2993093` |
-| Old repository: `docs/images/statusline.png` | [statusline/linux.png](statusline/linux.png) | 1191×790 | `07d3a28c82e1b4fb099da5ac8a758c1fc1d1f3bbd712d85f812a7a3ad858d035` |
-| Supplied directory: `statusline-configure-native打开的内部TUI展示/Linux.png` | [tui/native/linux/session.png](tui/native/linux/session.png) | 1105×714 | `6e9b4974de7ae5c04b54d15a23bd53ecda6706a894f67c480db8fce293315f31` |
-| Supplied directory: `statusline-configure-native打开的内部TUI展示/Windows.png` | [tui/native/windows/session.png](tui/native/windows/session.png) | 1831×1197 | `9316798d77190af04031dc84cba3788aee517674cad184623621180c9b59a6ae` |
-| Supplied directory: `statusline-configure-native打开的内部TUI展示/macOS.png` | [tui/native/macos/session.png](tui/native/macos/session.png) | 1161×933 | `610a1908dc7596bea234eec6171082628792c345818b54dbb5fa00a4d88c658b` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-05 17-34-20.png` | [tui/external/linux/main.png](tui/external/linux/main.png) | 1110×757 | `10d8ed857c17e4bb22ebebbd2b5e4bc95a79358f728306722baec170695c607f` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-05 17-34-27.png` | [tui/external/linux/subagents.png](tui/external/linux/subagents.png) | 1110×757 | `5f55a2d58fa635dbfd127b6c5ddebd9f938e4949325f88cd25374d3e9edb3779` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-05 17-34-39.png` | [tui/external/linux/settings.png](tui/external/linux/settings.png) | 1110×757 | `c4bf0164906dcfaf85052705c32be32ed570b4bfa6367a254598c26556162a4d` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-05 17-34-45.png` | [tui/external/linux/layout.png](tui/external/linux/layout.png) | 1110×757 | `740fb59a8c98f81367639425cb2e59ed46cd24107c5a7eb8b2f9ac15cbb8956d` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-05 174922.png` | [tui/external/windows/main.png](tui/external/windows/main.png) | 1826×1193 | `443fb7fbe8df82bb221f9fc878e2061f98ec04a551fb2c24785017a021d566f0` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-05 175019.png` | [tui/external/windows/subagents.png](tui/external/windows/subagents.png) | 1826×1192 | `f0d3e194fbbd7c8a8e6b85b132992c0cc3c80b1424125685db03e2cdb4404e55` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-05 175031.png` | [tui/external/windows/settings.png](tui/external/windows/settings.png) | 1825×1193 | `0fccc6e38cc58bd399e6b929b1181de9772eddd6861a5a4e791122e98ed8e633` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-05 175039.png` | [tui/external/windows/layout.png](tui/external/windows/layout.png) | 1828×1194 | `868d8923e1b074ae80e8b79981da26a9645bfde59aab1a469ea95e080ff97837` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-05 180915.png` | [tui/external/macos/main.png](tui/external/macos/main.png) | 1138×723 | `0e6b9cb93766c3729933610f75df8a516a84254ab014273f6df98014f6b891b2` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-05 180940.png` | [tui/external/macos/subagents.png](tui/external/macos/subagents.png) | 1140×725 | `26ef13f510806ad9e3f1065ad8fb1114b5ec5d315c4cb5399ce4fe8ab473de42` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-05 180956.png` | [tui/external/macos/settings.png](tui/external/macos/settings.png) | 1141×725 | `467deebb5acd95d970f22aa0a48a09d119f1087d48b34852dcb310e8afe5b034` |
-| Supplied directory: `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-05 181009.png` | [tui/external/macos/layout.png](tui/external/macos/layout.png) | 1137×724 | `0b0e37797e2c4122a22fa8689a3a7764bef4b5ff6dbd423d9709495e3b329e17` |
+| `statusline-configure-native打开的内部TUI展示/Linux/Screenshot From 2026-10-07 19-36-44.png` | [tui/native/linux/main.png](tui/native/linux/main.png) | 1009×729 | `7e83baab8ce567609978d9047b91ba0c7ba8d251b366350d1698f9c1f9e09298` |
+| `statusline-configure-native打开的内部TUI展示/Linux/Screenshot From 2026-10-07 19-36-54.png` | [tui/native/linux/subagents.png](tui/native/linux/subagents.png) | 1009×729 | `d197811741c03a2b3132a0fdbcdbabbb4050bff304f5b0727422f9c0898c6eb5` |
+| `statusline-configure-native打开的内部TUI展示/Linux/Screenshot From 2026-10-07 19-37-00.png` | [tui/native/linux/settings.png](tui/native/linux/settings.png) | 1009×729 | `20119c8cd5ee120fe105ecd525a821da7ad39cf1c9ca3b43ef46dec25b6a83cb` |
+| `statusline-configure-native打开的内部TUI展示/Linux/Screenshot From 2026-10-07 19-37-08.png` | [tui/native/linux/layout.png](tui/native/linux/layout.png) | 1009×729 | `b18a6d0625c30245efdff61bc11580cf49da1498d8da2164df05234f310fe3ea` |
+| `statusline-configure-native打开的内部TUI展示/Windows/屏幕截图 2026-10-07 195919.png` | [tui/native/windows/main.png](tui/native/windows/main.png) | 1634×1165 | `3f3e8e079c2cb347c0ccead1134748fa7e77d4bddae3c3028a6b595e58631cd8` |
+| `statusline-configure-native打开的内部TUI展示/Windows/屏幕截图 2026-10-07 195934.png` | [tui/native/windows/subagents.png](tui/native/windows/subagents.png) | 1629×1160 | `41c9a07bad74b88f7f1cbc0a5aaa84c3a85bf389b5613940c929f74227622261` |
+| `statusline-configure-native打开的内部TUI展示/Windows/屏幕截图 2026-10-07 195951.png` | [tui/native/windows/settings.png](tui/native/windows/settings.png) | 1629×1167 | `7a64fd05dfd96a5ed0a9d9c8e5e0fcc165facf4cd811496744ac91742cc00f3b` |
+| `statusline-configure-native打开的内部TUI展示/Windows/屏幕截图 2026-10-07 200002.png` | [tui/native/windows/layout.png](tui/native/windows/layout.png) | 1628×1159 | `4d5f47308447b73b8a7e326157354b2a3ff1fd3f3ce3842376aa2ed3a16fdb16` |
+| `statusline-configure-native打开的内部TUI展示/macOS/屏幕截图 2026-10-07 203809.png` | [tui/native/macos/main.png](tui/native/macos/main.png) | 1278×931 | `154cdd288166e0c440a76259ae735bc8ad2a08141253d44fd0bb5f2349b0e26e` |
+| `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-07 19-38-20.png` | [tui/external/linux/main.png](tui/external/linux/main.png) | 1079×732 | `43c46bc311172520832b5752547a9c6a5126eefdc97c44cb1ce5231e9db5b263` |
+| `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-07 19-38-26.png` | [tui/external/linux/subagents.png](tui/external/linux/subagents.png) | 1079×732 | `6265f3cdf3ce6eaa28111da2f20f0b1fa8b5d6404d1af59142be2f3c35b49f86` |
+| `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-07 19-38-32.png` | [tui/external/linux/settings.png](tui/external/linux/settings.png) | 1079×732 | `0ff095e837fcf80941d6dae0636e8c2a2a3761ebc4311dba4673e54b74996cdc` |
+| `statusline-configure打开的外部TUI展示/Linux/Screenshot From 2026-10-07 19-38-37.png` | [tui/external/linux/layout.png](tui/external/linux/layout.png) | 1079×732 | `cd6199536efe9904f0d1c861e01538bf5e7783313d01de9faca8c30274b7ba20` |
+| `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-07 200100.png` | [tui/external/windows/main.png](tui/external/windows/main.png) | 1632×1163 | `fcb2139cdc67938b51b5bca2cb8687a0471636c15e31d45a99d2d8e3b727e0c2` |
+| `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-07 200110.png` | [tui/external/windows/subagents.png](tui/external/windows/subagents.png) | 1629×1163 | `f72372ea786a5a3fa1f008cf4a9bc2b590c31aadc138318fcd45d80cf61e4c50` |
+| `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-07 200120.png` | [tui/external/windows/settings.png](tui/external/windows/settings.png) | 1629×1162 | `448fe8539f791b98009196d5fb42028f892466cb378811b4ee306475e985bfb9` |
+| `statusline-configure打开的外部TUI展示/Windows/屏幕截图 2026-10-07 200137.png` | [tui/external/windows/layout.png](tui/external/windows/layout.png) | 1625×1163 | `bc400e643217e9b1f1cf365478b80d8f1bfa2f2f1c0e9a30b408f6db25bb22aa` |
+| `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-07 203857.png` | [tui/external/macos/main.png](tui/external/macos/main.png) | 1292×842 | `1822b19c3807cc4a3b84c69cc42441dcade2f8891c56a42627dbf07a1f280969` |
+| `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-07 203909.png` | [tui/external/macos/subagents.png](tui/external/macos/subagents.png) | 1287×848 | `33f6dc1501a6aa394561e2f1febf6a8290a2983ca1d7bc8e4e4482090b1b2109` |
+| `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-07 203920.png` | [tui/external/macos/settings.png](tui/external/macos/settings.png) | 1289×846 | `207637fb8365b339ab054e83e4428c417aac4b2e9b910bffd1173e5a1f4e1c81` |
+| `statusline-configure打开的外部TUI展示/macOS/屏幕截图 2026-10-07 203930.png` | [tui/external/macos/layout.png](tui/external/macos/layout.png) | 1291×843 | `dbdb3d1f0d9e820f23059deadd20f3da0c7edc7df425fd59ceaeecd5a49aa741` |
 
 </details>
 
 ## Updating screenshots
 
-- Use lowercase English filenames and group current images by entry point, platform and page.
-- Update both READMEs, the user guides, index and hashes together; preserve originals and archive replaced screenshots.
-- Keep source versions, filenames, capture commits and metadata for historical reconstructions; do not relabel them as new-version screenshots.
-- `MANIFEST.in` recursively includes Markdown and PNG files; distribution inspection verifies source-package completeness.
+- Use lowercase English filenames grouped by entry, platform and page.
+- Update both READMEs, related guides, indexes and hashes together; preserve sources and archive replaced images.
+- Preserve historical capture versions, filenames, commits and metadata; replacement batch dates are not capture dates.
+- `MANIFEST.in` includes Markdown and PNG files; distribution inspection verifies source-package completeness.
 
 <a id="display-notes"></a>
 <a id="external-tui-v161"></a>
@@ -85,7 +119,8 @@ Original filenames date the new external screenshots to 2026-10-05, in Main, Sub
 <a id="文件索引"></a>
 <a id="更新约定"></a>
 <a id="界面截图"></a>
+<a id="current-images"></a>
 
 ## Historical provenance
 
-Provenance for older links has moved to the [archive index](archive/README.md), including earlier session screenshots, native previews, format/layout previews and external TUI captures. Original commits, capture hashes and acceptance scope remain in the archive.
+Original captures, hashes and acceptance scope for older links remain in the [archive index](archive/README.md).

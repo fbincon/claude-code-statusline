@@ -88,13 +88,14 @@ claude-statusline doctor --config-dir /path/to/claude-config
 | `doctor` | Diagnose installation without rewriting settings or opening an editor |
 | `configure` | Open curses in the current terminal; requires valid settings, installation ownership, TTY input/output, and at least 64×18 |
 
-All commands accept `--config-dir PATH` after the command name. The three independent `install` preference pairs are:
+All commands accept `--config-dir PATH` after the command name. The four independent `install` preference pairs are:
 
 - `--native-editor` / `--no-native-editor`: in-session Client, Claude Code 2.1.287+.
 - `--experimental-slash-tui` / `--no-experimental-slash-tui`: external entry, 2.1.258+.
-- `--live-metrics` / `--no-live-metrics`: independent collection, 2.1.289+.
+- `--native-timing` / `--no-native-timing`: native timing metadata, 2.1.289+.
+- `--live-metrics` / `--no-live-metrics`: advanced live collection, 2.1.289+.
 
-Each pair is mutually exclusive. Explicit flags override saved values, which override defaults. Editors default on; collection defaults off. Incompatible or unknown hosts suspend requested integration without discarding its preference. Host-disabled plugins remain disabled. Restart Claude Code after changing integration. See [installation](../USER_GUIDE.md#installation-and-integration), [backups](../USER_GUIDE.md#backups-and-rollback), and [uninstalling](../USER_GUIDE.md#uninstalling).
+Each pair is mutually exclusive. Explicit flags override saved values, which override defaults. Editors and native timing default on; advanced live metrics default off. `--no-live-metrics` retains the legacy choice to disable both timing and advanced collection; an explicit timing flag in the same command controls timing separately. Incompatible or unknown hosts suspend requested integration without discarding its preference. Host-disabled plugins remain disabled. Restart Claude Code after changing integration. See [installation](../USER_GUIDE.md#installation-and-integration), [backups](../USER_GUIDE.md#backups-and-rollback), and [uninstalling](../USER_GUIDE.md#uninstalling).
 
 ## Slash-command support
 
@@ -379,7 +380,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v4 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v5 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
 
 Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
 
@@ -497,43 +498,43 @@ Counts use compact notation, such as `950`, `12.4K`, or `1.05M`. They do not ind
 
 <a id="prompt-timer-markers"></a>
 
-### Prompt timing markers
+<a id="prompt-timing-markers"></a>
+
+### Task timing markers
 
 | Marker | Meaning |
 | --- | --- |
-| `⏱` | Prompt is running; time continues increasing |
-| `✓` | Prompt completed normally |
-| `■` | Prompt was interrupted or the session ended |
+| `⏱` | Task is running; time continues increasing |
+| `✓` | Task completion is reliably confirmed |
+| `■` | Task was interrupted or the session ended |
 | `✗` | Claude Code reported execution failure |
-| `?` | Previous run has no confirmed ending event; time is followed by `+` |
+| `? <elapsed>+` | A Stop candidate is unconfirmed or historical ending evidence is incomplete; shows the known elapsed lower bound |
 
-Sessions with subagents add two running phases:
+Owned agents and main-agent wrap-up add two running phases:
 
 ```text
 ⏱ 4m 12s
 ⏳ 2 agents · 4m 12s
 ⏳ main wrap-up · 4m 12s
+? 4m 35s+
 ✓ 4m 35s
 ```
 
-Timing starts from the earliest evidence of user submission and ends at the main agent's final `Stop`. If ordinary subagent tasks remain at the main agent's first `Stop`, the timer waits; after the final agent ends, it enters `main wrap-up`. Registry idle state, transcript duration, or a timeout do not complete it automatically. Background shell, server, monitor, and workflow tasks are excluded from the agent ledger. Without the final `Stop`, timing remains active; `StopFailure`, user interruption, and `SessionEnd` still produce immediate terminal states.
+`task-timer` starts at the earliest trusted user submission and includes queueing, user waits, owned agents, required reports and main-agent wrap-up. A classic `Stop` is an ending candidate; verified continuation clears it without resetting the clock. Completion needs an attributed native ending or verified transcript/process-idle evidence, plus resolved agents, reports and wrap-up. No timeout or expired heartbeat fabricates completion. Background shell, server, monitor, workflow and agent-team ledgers do not block completion.
 
-The subagent history remains authoritative after the main agent resumes. A delayed native `turn_duration` cannot shorten a multi-agent task or turn failure/interruption into success. Accepted terminal times are frozen; duplicate hooks and later refreshes do not extend them. An ordinary successful single turn can be calibrated once with its matching native duration. Events without reliable prompt ownership are ignored rather than attached to a newer prompt.
+Reliable failures and user interruptions freeze the accepted terminal value; duplicate hooks and later refreshes do not extend it. Native single-turn duration is recorded independently and never calibrates task clocks. Events without reliable ownership do not attach to a newer task. `prompt-timer` in old configuration or commands is an alias of `task-timer`, not an extra catalog item.
 
 | Time metric | Meaning and source |
 | --- | --- |
-| Task duration | `task-timer`: earliest user submission to final main `Stop`, or a confirmed failure/interruption; includes queuing, subagents and wrap-up |
-| Native turn duration | Transcript `turn_duration.durationMs`; a single native response, used only for eligible single-turn calibration |
+| Task total time | `task-timer`: earliest trusted submission to confirmed completion, failure or interruption, including queueing, waits, agents and wrap-up |
+| Task execution time | `task-active-timer`: accumulated time after execution starts, excluding verified user waits; shown only with complete native coverage |
+| Native turn duration | Transcript `turn_duration.durationMs` or an attributed native completion report; recorded separately and cannot replace task total time |
 | Session runtime | `cost.total_duration_ms`; cumulative time the CLI session runs, excluding time between runs/resumes |
-| API wait time | `cost.total_api_duration_ms`; cumulative waiting for API responses; not currently displayed by `cost` |
+| API wait time | `cost.total_api_duration_ms`; cumulative waiting for API responses, shown by the independent `api-duration` item |
 
-See the [official status-line fields](https://code.claude.com/docs/en/statusline) for the session and API definitions.
+See the [official status-line fields](https://code.claude.com/docs/en/statusline) for session and API definitions. Execution time defaults unselected and requires native timing on Claude Code 2.1.289+. Incomplete coverage, unknown wait boundaries, stale state or abnormal clocks hide it instead of assuming zero waiting. See [enabling task clocks](../USER_GUIDE.md#task-total-and-execution-time) and the [timing contract](../development/timer.md).
 
-Background-agent result notifications can have different host prompt IDs; known agent ownership keeps them in the same user task until every report and main-agent wrap-up finishes. Submission evidence is checked before freezing, so later transcript refreshes do not revise terminal values.
-
-Local shortcut commands such as `/statusline-config show` do not start a new timed prompt. Hiding `tokens` while retaining `task-timer` still lets the timer read the necessary transcript state and work normally.
-
-<a id="子-agent-行与三种作用域"></a>
+Background-agent reports can have different host prompt IDs; explicit ownership retains the original human task. Local shortcuts such as `/statusline-config show` do not start a new timed task. Hiding `tokens` still permits task timing.
 
 ## Subagent rows and the three scopes
 
@@ -748,7 +749,7 @@ The ten items above form the default enabled set. The other 50 main items enter 
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [configuration writes and concurrency](../development/README.md#configuration-writes-and-concurrency).
 
-The current source display schema is v4. Historical v1/v2/v3 are readable and are backed up and written as v4 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
+The current source display schema is v5. Historical v1/v2/v3/v4 are readable and are backed up and written as v5 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 
@@ -785,13 +786,13 @@ Fields, types, duplicate keys and schema are strictly validated; install/doctor 
 
 ### Live-collection preference
 
-`<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` uses its own schema v1:
+`<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` uses its own schema v2:
 
 ```json
 {"schema_version": 2, "native_timing": true, "live_metrics": false}
 ```
 
-A missing file defaults to false. `install --live-metrics` / `install --no-live-metrics` records the choice independently of both editors. Reinstall preserves it; unsupported hosts retain the preference but suspend collection. [Enabling collection and display](../USER_GUIDE.md#opt-in-live-state).
+A missing file defaults to native timing on and advanced metrics off. `install --native-timing` / `install --no-native-timing` controls timing independently; `--live-metrics` enables complete collection and `--no-live-metrics` retains the legacy all-off choice. An explicit timing flag overrides the timing part. Reinstall preserves saved preferences; unsupported hosts retain them but suspend collection. [Enabling collection and display](../USER_GUIDE.md#opt-in-live-state).
 
 <a id="claude-code-宿主配置"></a>
 

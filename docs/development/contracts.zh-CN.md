@@ -2,11 +2,11 @@
 
 [English](contracts.md) | **简体中文**
 
-协议 v4 是随包或源码原生前端使用的内部接口。显示配置使用 schema v5，v1/v2/v3/v4 在内存中迁移读取；协议与持久化版本独立演进。稳定 v1.1.1 不提供此接口；v1.2.0 及其预览 wheel 包含匹配的 Mod。
+协议 v4 是随包或源码原生前端使用的内部接口。显示配置使用 schema v5，v1/v2/v3/v4 在内存中迁移读取；协议与持久化版本独立演进。前后端资源应来自同一软件包版本。
 
 ## 共享目录
 
-`claude_statusline.config.catalog` 以 `(scope, id)` 定义 61 个主显示项和 14 个子 Agent 项，提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；curses 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
+`claude_statusline.config.catalog` 以 `(scope, id)` 定义 60 个主显示项和 14 个子 Agent 项，提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；curses 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 最低版本只在有证据时声明。子 Agent 的 2.1.205 门槛表示行支持，不保证所有可选字段；effort 需要 2.1.214。缓存指标声明最低 2.1.251；网关金额／周期要求宿主和网关均至少 2.1.284。尚未证实的主字段最低版本使用 `null`/`unknown`，不猜测日期。`not_observed` 表示接口尚未观察实时数据，`unsupported_host` 表示已证实的版本边界，`unknown_host_version` 表示版本检测失败，`source_unavailable` 表示来源无法读取，`condition_not_met` 涵盖非 Git 仓库或未启用 fast mode 等条件。这些是可能原因的定义；打开配置不采集实时字段，也不因尚未观察到数据而禁用选择。
 
@@ -15,10 +15,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows 使用 `claude-statusline.exe`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":3,"operation":"read","payload":{}}
+{"protocol_version":4,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":3,"result":{...}}`；失败为 `{"protocol_version":3,"error":{"code":"...","message":"..."}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":4,"result":{...}}`；失败为 `{"protocol_version":4,"error":{"code":"...","message":"..."}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 | 操作 | Payload | 结果 |
 | --- | --- | --- |
@@ -27,7 +27,7 @@
 | `preview` | `{"draft": {...}, "width": 80}` | `sample: true`，以及由可绘制 spans 组成的 `main` 和 `subagents` 行 |
 | `apply` | `{"draft": {...}, "expected_revision": "<read 返回的 revision>"}` | 保存后的读取快照、`changed` 和 `backup_dir`（路径或 `null`） |
 
-`draft` 仅包含 `display`（有效 schema v5 显示配置）和 `host`（`padding`、`refresh_interval`、`hide_vim_mode_indicator`），每个字段均为必填。JSON 宿主布尔/数值严格校验：padding 为 0–32 的整数，refresh 为 1–3600 的整数或 `"event"`；拒绝 `"off"` 等字符串及小数。读取现有显示 v1 文件时只在内存中规范化，不迁移原文件；预览也接受完整的 v1 显示对象。apply 必须使用 read 返回的完整 schema v5 草稿，避免旧输入静默覆盖新设置。预览宽度为 2–10000 的整数。
+`draft` 仅包含 `display`（有效 schema v5 显示配置）和 `host`（`padding`、`refresh_interval`、`hide_vim_mode_indicator`），每个字段均为必填。JSON 宿主布尔/数值严格校验：padding 为 0–32 的整数，refresh 为 1–3600 的整数或 `"event"`；拒绝 `"off"` 等字符串及小数。读取兼容显示 v1/v2/v3/v4 文件时只在内存中规范化，不迁移原文件；预览也接受完整的 v1 显示对象。apply 必须使用 read 返回的完整 schema v5 草稿，避免旧输入静默覆盖新设置。预览宽度为 2–10000 的整数。
 
 `read` 使用现有安装锁获取一致快照，可能创建运行锁目录；`describe` 不创建配置文件。`preview` 不读取设置、检测宿主、采集 Git/transcript 或写缓存/锁，只使用生产格式和布局及固定样例。尚未观察到的数据不是零。每个 span 包含 `text`、`bold`、`foreground`，后者为 `null`、`{"kind":"rgb","value":"#rrggbb"}` 或 `{"kind":"ansi","value":0..15}`，没有原始 ANSI 转义。返回主行和子 Agent 行；空选择和关闭子 Agent 显示仍返回空行列表。
 
@@ -82,4 +82,4 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## Phase 5 指标迁移
 
-显示 schema v5 保留可空 `metrics.branch_diff_base_ref`；配置协议 v4 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3 读取不写盘，真实保存才备份迁移；独立运行观测协议为 v2，兼容接收 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+显示 schema v5 保留可空 `metrics.branch_diff_base_ref`；配置协议 v4 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3/v4 读取不写盘，真实保存才备份迁移；独立运行观测协议为 v2，兼容接收 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。

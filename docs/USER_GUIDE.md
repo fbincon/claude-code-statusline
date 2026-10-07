@@ -66,10 +66,10 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 
 ### Install the Python package
 
-Install the [v1.7.2 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.2) wheel; it is the same package on all supported platforms:
+Install the [v1.7.3 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.3) wheel; it is the same package on all supported platforms:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -77,22 +77,22 @@ Alternatively download the wheel, source archive, and `SHA256SUMS` from that rel
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.7.2-py3-none-any.whl
+sha256sum claude_code_statusline-1.7.3-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.7.2-py3-none-any.whl
+shasum -a 256 claude_code_statusline-1.7.3-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.7.2-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.7.3-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.7.2-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.7.2-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.7.3-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.7.3-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
 pipx ensurepath
 ```
 
@@ -213,7 +213,7 @@ Click the Client region once before keyboard operation. Reexecuting the command 
 
 During search or field editing printable characters are input and character shortcuts pause; refresh accepts a number or `event`. Enabled and disabled items can move. Filtered movement swaps adjacent visible items, preserving hidden-item order. Page changes, resizing and preview refresh retain selection and draft; only enabled ordering is persisted.
 
-Settings groups appearance, refresh/display behavior and advanced Claude preferences. Minimum body is 32×12; at 64×20 or larger grouped borders separate regions, with titled separators in compact space. Preview uses fixed samples without collecting live Git, transcripts or model information.
+Settings groups appearance, refresh/display behavior, Git metrics, formatting, risk colors, subagent visibility, presets/portable files and advanced Claude preferences. Minimum body is 32×12; at 64×20 or larger grouped borders separate regions, with titled separators in compact space. Preview uses fixed samples without collecting live Git, transcripts or model information.
 
 ### macOS mouse reporting and Client focus
 
@@ -453,11 +453,11 @@ claude-statusline config enable run-state permission-mode active-agents task-pro
 claude-statusline doctor
 ```
 
-Restart Claude Code to load collection. Additional items are `branch-diff`, `ttft`, `output-rate`, `prompt-input-tokens`, `prompt-output-tokens`, and `prompt-cost`. Use either editor or `config enable` to select them. They are all off in the default item selection; live collection requires Claude Code 2.1.289+ and does not turn on with an editor alone.
+Restart Claude Code to load collection. Additional collected items are `ttft`, `output-rate`, `prompt-input-tokens`, `prompt-output-tokens`, and `prompt-cost`. Use either editor or `config enable` to select them. They are all off in the default item selection; live collection requires Claude Code 2.1.289+ and does not turn on with an editor alone.
 
 `claude-statusline install --no-live-metrics` preserves the legacy choice to disable both timing and advanced collection. Add `--native-timing` to retain timing metadata. Ordinary reinstall preserves saved choices. Missing live observations show `—`; limited coverage or recent observations can carry `*`. [Metric definitions](DISPLAY_ITEMS.md#live-state-items) explain per-field collection and request coverage; [runtime diagnostics](development/live.md) cover collection problems.
 
-Configure committed branch comparison separately with `claude-statusline config set branch-diff-base auto` or a safe local Git ref. `branch-diff` excludes uncommitted worktree edits; it does not fetch remotes. [Branch and ended-agent definitions](DISPLAY_ITEMS.md#branch-base-and-ended-agents).
+`branch-diff` is a separate default-off item backed by local Git and works without the native collector. Select it with `claude-statusline config enable branch-diff`, and configure committed branch comparison with `claude-statusline config set branch-diff-base auto` or a safe local Git ref. It excludes uncommitted worktree edits and does not fetch remotes. [Branch and ended-agent definitions](DISPLAY_ITEMS.md#branch-base-and-ended-agents).
 
 ## Configurable display items
 
@@ -487,7 +487,21 @@ Git uses `↑N`/`↓N` for upstream divergence, `● N` (Linux/macOS) or `●N` 
 
 Tokens show session totals: `hit` is cache-read input, `miss` is ordinary input plus cache creation, and `out` is output. This includes discoverable subagent transcripts and is separate from context occupancy or rate limits.
 
-The task timer shows `⏱` while running, `✓` on success, `■` on interruption, `✗` on failure, and `?`/`+` when completion is uncertain. With agents it can show `waiting agents` or `main wrap-up` until the final main `Stop`. [Detailed markers and timing scope](reference/cli.md#main-status-line-fields).
+### Task total and execution time
+
+`task-timer` measures the latest human task from its earliest trusted submission, including queueing, user waits, owned subagents and main-agent wrap-up. It is enabled by default. `prompt-timer` remains a compatibility alias accepted by configuration commands and imports; saved configuration uses `task-timer`.
+
+The timer shows `⏱` while running, `✓` on success, `■` on interruption, `✗` on failure, and `? <elapsed>+` when an ending is unconfirmed. With agents it can show `⏳ 2 agents · <elapsed>` or `⏳ main wrap-up · <elapsed>`. A classic `Stop` is an ending candidate; verified continuation retains the same task and clock. Completion requires reliable ending evidence, resolved owned agents and required reports, and finished main-agent wrap-up. Accepted terminal values freeze. [Detailed markers and timing scope](reference/cli.md#prompt-timer-markers).
+
+`task-active-timer` is optional and unselected by default. It measures execution after work starts, excluding verified user waits; concurrent work is not counted twice. It requires native timing on Claude Code 2.1.289+ and complete task/wait observations. Enable it with:
+
+```text
+claude-statusline install --native-timing
+claude-statusline config enable task-active-timer
+claude-statusline doctor
+```
+
+Restart Claude Code after changing collector integration. Compatible fresh installs already default to native timing on; explicit saved disablement remains respected. Advanced live metrics are independent and need not be enabled for this timer. Missing observations, incomplete wait coverage, stale state or an untrusted clock hide execution time rather than assuming zero waiting. Native single-turn duration, session runtime and cumulative API duration are separate quantities and do not calibrate either task clock. See the [timing contract](development/timer.md).
 
 ## Subagent rows and the three scopes
 
@@ -535,7 +549,7 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 ### Replace the Python package
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 ```
 
 For local wheels or source installations, use `pipx install --force` with the original file, fixed-tag Git URL, or local checkout after updating/building it.
@@ -590,6 +604,14 @@ claude-statusline doctor
 Doctor checks platform/Python, PATH, configuration validity, command ownership, hooks, editor preferences/resources, host compatibility, launch prerequisites, runtime collection, and writable state. It does not rewrite configuration or open editor windows; macOS may check parent-directory synchronization capability. Passing diagnostics does not independently verify GUI focus or human interaction.
 
 `[OK]` passes; `[WARN]` describes degradation and still allows exit 0; any `[ERROR]` makes exit 1. For stale integration, run `install`, rerun `doctor`, then restart Claude Code. Resolve ownership conflicts before using `--force`.
+
+For an existing display configuration file, the schema check reports the supported version, currently `[OK] display config schema: v5`. A valid older file instead reports, for example:
+
+```text
+[WARN] display config schema v4 is valid and will migrate to v5 on the next configuration save
+```
+
+This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v4 and runtime protocol v2.
 
 <a id="故障排查"></a>
 
@@ -773,7 +795,7 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 - Desktop external launchers support the listed platform terminals. Other terminals can use standalone `configure` or tmux; IDE, print mode, web sessions, and globally disabled hooks do not guarantee an external editor.
 - Optional live fields require independent collection and valid observations; they do not infer missing measurements or focused-agent identity.
 - Subagent rows expose current task fields rather than a historical ledger or per-agent Git/cache/session aggregation.
-- Task completion waits for ordinary agent tasks and final main Stop; background shell/server/monitor/workflow and agent-team ledgers do not block completion.
+- Task completion requires confirmed ending evidence and resolved ordinary agent tasks/reports and main wrap-up. A classic Stop alone is a candidate; no timeout or expired heartbeat fabricates completion. Background shell/server/monitor/workflow and agent-team ledgers do not block completion.
 - Colors do not follow Claude's `/theme`; the default palette uses fixed project colors.
 
 ## Related documentation
@@ -938,7 +960,7 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 Task timing is included in [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0). Upgrade using the stable wheel:
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```

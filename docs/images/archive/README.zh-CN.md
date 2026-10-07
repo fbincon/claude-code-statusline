@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-本页保留此前文档使用的 33 张图片和原来源记录。当前展示使用的新截图及保留的主状态栏图见[当前图片索引](../README.zh-CN.md)。以下历史反馈按原日期和范围保留；不会因文件迁移而成为新的验收结论。
+本页保留此前文档使用的 51 张图片和原来源记录。当前展示使用的新会话内与外部 TUI 截图见[当前图片索引](../README.zh-CN.md)。以下历史反馈按原日期和范围保留；不会因文件迁移而成为新的验收结论。
 
 截图在[项目首页](../../../README.zh-CN.md#界面预览)展示。主状态栏图片来自实际 Claude 会话；配置页中的 `Preview (sample data)` 使用固定样例，Subagents 配置页的两条预览不代表真实并行 Agent 的验收结果。
 
@@ -10,9 +10,9 @@
 
 | 平台 | 主状态栏 | Main | Subagents | Settings |
 | --- | --- | --- | --- | --- |
-| Linux | [statusline.png](../statusline/linux.png) | [configure-main.png](screenshots/external/linux/main.png) | [configure-subagents.png](screenshots/external/linux/subagents.png) | [configure-settings.png](screenshots/external/linux/settings.png) |
-| macOS | [statusline-macos.png](../statusline/macos.png) | [configure-main-macos.png](screenshots/external/macos/main.png) | [configure-subagents-macos.png](screenshots/external/macos/subagents.png) | [configure-settings-macos.png](screenshots/external/macos/settings.png) |
-| Windows | [statusline-windows.png](../statusline/windows.png) | [configure-main-windows.png](screenshots/external/windows/main.png) | [configure-subagents-windows.png](screenshots/external/windows/subagents.png) | [configure-settings-windows.png](screenshots/external/windows/settings.png) |
+| Linux | [statusline.png](screenshots/replaced-2026-10-07/statusline/linux.png) | [configure-main.png](screenshots/external/linux/main.png) | [configure-subagents.png](screenshots/external/linux/subagents.png) | [configure-settings.png](screenshots/external/linux/settings.png) |
+| macOS | [statusline-macos.png](screenshots/replaced-2026-10-07/statusline/macos.png) | [configure-main-macos.png](screenshots/external/macos/main.png) | [configure-subagents-macos.png](screenshots/external/macos/subagents.png) | [configure-settings-macos.png](screenshots/external/macos/settings.png) |
+| Windows | [statusline-windows.png](screenshots/replaced-2026-10-07/statusline/windows.png) | [configure-main-windows.png](screenshots/external/windows/main.png) | [configure-subagents-windows.png](screenshots/external/windows/subagents.png) | [configure-settings-windows.png](screenshots/external/windows/settings.png) |
 
 ## 会话内 Client 截图
 
@@ -81,6 +81,10 @@ macOS 图片展示 Terminal.app 中的界面，Windows 图片展示 Windows Term
 ## v1.6.0 正式版验收
 
 2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。
+
+## 图库替换批次
+
+[2026-10-07 替换的 18 张图库图片](screenshots/replaced-2026-10-07/README.zh-CN.md)保留原主状态栏、会话内 Main 截图和外部四页图库，以及原文件名和 PNG 哈希。替换日期不改变捕获日期或验收结论。
 
 <a id="external-tui-v161"></a>
 
