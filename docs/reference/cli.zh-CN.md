@@ -86,13 +86,14 @@ claude-statusline doctor --config-dir /path/to/claude-config
 | `doctor` | 诊断安装，不重写配置、不打开编辑器 |
 | `configure` | 在当前终端打开 curses，要求配置有效、接入归属正确、输入输出为 TTY、尺寸至少 64×18 |
 
-各命令均可在命令名后使用 `--config-dir PATH`。`install` 的三组独立偏好参数为：
+各命令均可在命令名后使用 `--config-dir PATH`。`install` 的四组独立偏好参数为：
 
 - `--native-editor` / `--no-native-editor`：会话内 Client，需 Claude Code 2.1.287+。
 - `--experimental-slash-tui` / `--no-experimental-slash-tui`：外部入口，需 2.1.258+。
-- `--live-metrics` / `--no-live-metrics`：独立采集，需 2.1.289+。
+- `--native-timing` / `--no-native-timing`：原生计时元数据，需 2.1.289+。
+- `--live-metrics` / `--no-live-metrics`：高级实时采集，需 2.1.289+。
 
-每组参数互斥。显式参数优先于已保存值，已保存值优先于默认值；编辑器默认启用，采集默认关闭。不兼容或未知宿主暂挂请求的接入并保留偏好，宿主中主动禁用的插件保持禁用。接入变化后重启 Claude Code。详见[安装](../USER_GUIDE.zh-CN.md#安装与接入)、[备份](../USER_GUIDE.zh-CN.md#备份与回滚)和[卸载](../USER_GUIDE.zh-CN.md#卸载)。
+每组参数互斥。显式参数优先于已保存值，已保存值优先于默认值；编辑器和原生计时默认启用，高级实时指标默认关闭。`--no-live-metrics` 保留同时关闭计时和高级采集的旧语义，同一命令中的显式计时参数可单独决定计时部分。不兼容或未知宿主暂挂请求的接入并保留偏好，宿主中主动禁用的插件保持禁用。接入变化后重启 Claude Code。详见[安装](../USER_GUIDE.zh-CN.md#安装与接入)、[备份](../USER_GUIDE.zh-CN.md#备份与回滚)和[卸载](../USER_GUIDE.zh-CN.md#卸载)。
 
 ## slash 命令支持范围
 
@@ -481,41 +482,43 @@ claude-statusline config enable project-name hostname context-used
 
 数值使用紧凑格式，例如 `950`、`12.4K`、`1.05M`。这不是剩余上下文，也不是限额用量；上下文与限额由各自条目显示。
 
-### Prompt 计时标记
+<a id="prompt-计时标记"></a>
+
+### 任务计时标记
 
 | 标记 | 含义 |
 | --- | --- |
-| `⏱` | prompt 正在运行，时间持续增长 |
-| `✓` | prompt 正常完成 |
-| `■` | prompt 被中断或会话结束 |
+| `⏱` | 任务正在运行，时间持续增长 |
+| `✓` | 任务已可靠确认完成 |
+| `■` | 任务被中断或会话结束 |
 | `✗` | Claude Code 报告执行失败 |
-| `?` | 上一次运行没有可确认的结束事件；时间后会带 `+` |
+| `? <elapsed>+` | Stop 候选尚未确认，或历史结束证据不完整；显示已知耗时下界 |
 
-子 Agent 会话增加两个运行阶段：
+所属代理和主 Agent 收尾有两个运行阶段：
 
 ```text
 ⏱ 4m 12s
 ⏳ 2 agents · 4m 12s
 ⏳ main wrap-up · 4m 12s
+? 4m 35s+
 ✓ 4m 35s
 ```
 
-计时始终从最早的用户提交证据开始，到主 Agent 最终 `Stop` 为止。主 Agent 首次 `Stop` 若仍有普通 subagent task，就进入等待；最后一个 Agent 结束后进入 `main wrap-up`，不会因 registry idle、transcript duration 或超时自行完成。后台 shell、server、monitor 和 workflow 不进入 Agent ledger。最终 `Stop` 缺失时保持运行；`StopFailure`、用户中断和 `SessionEnd` 仍立即产生终态。
+`task-timer` 从最早可信用户提交开始，包含排队、用户等待、所属代理、必要报告和主 Agent 收尾。传统 `Stop` 是结束候选，可信继续活动取消候选并沿用原时钟。完成需要可归属的原生完成或已核验的 transcript／进程 idle 结束证据，以及代理、报告和收尾均已处理；超时或心跳过期不会推定完成。后台 shell、server、monitor、workflow 和 agent-team 账本不阻塞完成。
 
-主 Agent 恢复运行后，曾使用子 Agent 的历史证据仍然有效。迟到的原生 `turn_duration` 不会缩短多 Agent 任务，也不会把失败或中断改成成功。接受终态时冻结时间；重复 hook 和后续刷新不延长结果。普通成功单轮允许使用可靠归属的原生时长校准一次。无法可靠归属的事件会被忽略，不会关联到更新的 prompt。
+可靠失败或用户中断冻结已接受的终态值，重复 hook 和后续刷新不延长结果。原生单轮耗时独立保存，不校准任务时钟；无可靠归属的事件不会关联到更新的任务。旧配置和命令中的 `prompt-timer` 是 `task-timer` 别名，不另计为目录项。
 
 | 时间指标 | 含义与来源 |
 | --- | --- |
-| 任务耗时 | `task-timer`：最早用户提交至主 Agent 最终 `Stop`，或已确认失败/中断；包含排队、子 Agent 和收尾 |
-| 原生单轮耗时 | transcript 的 `turn_duration.durationMs`；单次原生响应，仅用于满足条件的单轮校准 |
-| 会话运行时间 | `cost.total_duration_ms`；CLI 会话累计运行时间，不包含两次运行/恢复之间的间隔 |
-| API 等待时间 | `cost.total_api_duration_ms`；累计等待 API 响应的时间，当前 `cost` 不显示它 |
+| 任务总耗时 | `task-timer`：最早可信提交至已确认完成、失败或中断，包含排队、等待、代理及收尾 |
+| 任务执行耗时 | `task-active-timer`：开始执行后的累计耗时，排除已核实的用户等待；完整原生覆盖才显示 |
+| 原生单轮耗时 | transcript 的 `turn_duration.durationMs` 或所属原生完成报告；独立记录，不能替代任务总耗时 |
+| 会话运行时间 | `cost.total_duration_ms`；CLI 会话累计运行时间，不包含两次运行／恢复之间的间隔 |
+| API 等待时间 | `cost.total_api_duration_ms`；累计等待 API 响应的时间，由独立 `api-duration` 项显示 |
 
-会话与 API 指标定义见 [官方状态栏字段](https://code.claude.com/docs/en/statusline)。
+会话与 API 指标定义见[官方状态栏字段](https://code.claude.com/docs/en/statusline)。执行耗时默认未选中，需要 Claude Code 2.1.289+ 原生计时；覆盖不完整、等待边界未知、状态过期或时钟异常时隐藏，不假设等待为零。启用步骤见[用户指南](../USER_GUIDE.zh-CN.md#任务总耗时与执行耗时)，归属与结束规则见[计时契约](../development/timer.zh-CN.md)。
 
-后台 Agent 结果通知可能具有不同宿主 prompt ID；已知 Agent 所属关系使它们仍属于同一用户任务，直到报告交付和主 Agent 收尾完成。冻结前核对提交证据，后续 transcript 刷新不改写终态值。
-
-`/statusline-config show` 之类的本地快捷命令不会被当作新的计时 prompt。即使隐藏 `tokens` 但保留 `task-timer`，计时器仍会读取所需 transcript 状态并正常工作。
+后台代理报告可能具有不同宿主 prompt ID，明确所属关系使其继续属于原人类任务。本地 `/statusline-config show` 等快捷命令不启动新计时任务；隐藏 `tokens` 后仍可保留任务计时。
 
 ## 子 Agent 行与三种作用域
 

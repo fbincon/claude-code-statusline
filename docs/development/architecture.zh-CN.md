@@ -2,7 +2,7 @@
 
 [English](architecture.md) | **简体中文**
 
-Python 包保留现有 CLI、配置格式和存储位置。v1.1.1 按职责组织实现，并在原 Python 路径保留延迟加载的兼容模块。
+Python 包保留现有 CLI、配置格式和存储位置。实现按职责组织，并在原 Python 路径保留延迟加载的兼容模块。
 
 ```text
 src/claude_statusline/
@@ -13,6 +13,7 @@ src/claude_statusline/
                                     主栏/子 Agent 输出及预览
   runtime/                          路径、缓存、registry、transcript、
                                     usage、Git 与任务生命周期
+    live/                           独立计时／指标观测
     timing/                         不可变暂停／恢复时钟与采样
     tasks/                          任务归属、生命周期、提交索引、
                                     原生适配、采集和锁内存储
@@ -76,7 +77,7 @@ flowchart LR
 
 ## 持久化
 
-当前显示 schema v5 与 feature schema v1、schema-1 运行镜像及生命周期 schema v4 独立演进，历史显示 v1/v2 在保存前只在内存补齐默认值。可选 `duration_source` 区分冻结的任务时间与历史原生证据；新原生单轮耗时独立保存。可选的 Agent 历史、续接 prompt 别名和待交付报告，使宿主生成的结果通知仍属于同一人类任务；这些记录有界，不改变配置格式。计时 transcript 扫描版本升级到 6，重新核对旧缓存，不重置累计用量。
+当前显示 schema v5 与 feature schema v1、schema-1 运行镜像及生命周期 schema v4 独立演进，历史显示 v1/v2/v3/v4 在保存前只在内存补齐默认值。可选 `duration_source` 区分冻结的任务时间与历史原生证据；新原生单轮耗时独立保存。可选的 Agent 历史、续接 prompt 别名和待交付报告，使宿主生成的结果通知仍属于同一人类任务；这些记录有界，不改变配置格式。计时 transcript 扫描版本升级到 6，重新核对旧缓存，不重置累计用量。
 
 本地 ROADMAP 与原始验收记录不进入发行包。发布从固定且已验证的提交导出；包检查覆盖全部正式 Python 模块、兼容入口、资源、测试、工具和双语文档。
 
@@ -84,7 +85,7 @@ flowchart LR
 
 ## 原生编辑器结构
 
-唯一 Mod 源为 `mods/statusline-native`。宿主 API 留在 `hooks/register.ts`，草稿与数值规则在 `lib/editor/`，输入校验、按键及设置在 `lib/client/`，独立端口快照在 `lib/session.ts`。`ui/client/` 维护 Client 输入/绘制；`ui/components/` 提供共享板块，`ui/layout.ts` 计算正文预算。测试对应 backend、client、editor、integration、UI。
+唯一编辑器 Mod 源为 `mods/statusline-native`。宿主 API 留在 `hooks/register.ts`，草稿与数值规则在 `lib/editor/`，输入校验、按键及设置在 `lib/client/`，独立端口快照在 `lib/session.ts`。`ui/client/` 维护 Client 输入/绘制；`ui/components/` 提供共享板块，`ui/layout.ts` 计算正文预算。测试对应 backend、client、editor、integration、UI。
 
 `/statusline-configure` 的 Python curses UI/平台启动器保持独立；Mod 只注册 `/statusline-configure-native`。两者可同时安装和打开，保存共用配置服务、revision 校验及事务锁。Client 不访问文件或启动进程，通过有序累积消息批次与宿主通信；快照深复制以隔离宿主冻结行为，序号确认/去重及 epoch 防止重复或迟到输入。递归打包包含 Client 模块，排除测试、宿主声明、依赖及原始验证记录。
 

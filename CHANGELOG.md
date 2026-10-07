@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 1.7.3 - 2026-10-07
+
+- Report the actual supported display schema in doctor success and migration messages; derive the apply-draft requirement from the same constant. Add read-only legacy/current/future-version regressions.
+- Refresh both README galleries with 21 original TUI screenshots grouped by entry, platform and page. Archive the former 18-image gallery with original PNG bytes, source records and hashes.
+- Audit bilingual README, user/CLI guides, display definitions and development docs. Correct catalog counts to 60 main/14 subagent items, protocol-v4 examples, independent timing/metrics defaults, CI coverage and task-completion explanations; retain historical acceptance records.
+- Document optional execution time, incomplete coverage, canonical task-timer and its prompt-timer alias, and independent native/session/API durations. Synchronize Python and both Mods to 1.7.3 and stable installation links.
+
 ## 1.7.2 - 2026-10-07
 
 - Rename the in-session heading to Configure Status Line and match the cyan section titles. Display uppercase letter keys with lowercase descriptions, retaining numbered page labels and standard modifier-key spelling.

@@ -29,7 +29,7 @@ Tests are grouped by implementation subsystem. CLI, installation and PTY/tmux/sh
 
 ## Installed package checks
 
-The native workflow checks Linux 2.1.287/2.1.288/2.1.289 plus Windows/macOS 2.1.288 with exact-build declarations, official plugin validation/tests and TypeScript. `tools/native_install_smoke.py` validates real official marketplace installation, absolute backend binding, complete protocol saves, repeat install, explicit plugin disable, compatibility restoration and uninstall without credentials/model calls. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
+The native workflow checks Linux 2.1.287/2.1.288/2.1.289 plus Windows/macOS 2.1.288/2.1.289 with exact-build declarations, official plugin validation/tests and TypeScript. `tools/native_install_smoke.py` validates real official marketplace installation, absolute backend binding, complete protocol saves, repeat install, explicit plugin disable, compatibility restoration and uninstall without credentials/model calls. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
 
 Use the [release guide](../RELEASING.md) to build in a fresh directory from a fixed commit. The build job creates local-only fixtures before building, then checks that they are excluded:
 

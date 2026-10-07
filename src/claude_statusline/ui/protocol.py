@@ -48,7 +48,8 @@ def validate_draft(value, *, require_current_schema=False):
         ):
             raise RequestError(
                 "invalid_configuration",
-                "apply requires the complete schema v5 draft returned by read",
+                f"apply requires the complete schema v{display.SCHEMA_VERSION} "
+                "draft returned by read",
             )
         raw = _object(
             value["host"],

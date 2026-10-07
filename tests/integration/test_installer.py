@@ -933,6 +933,116 @@ class UninstallTests(InstallerTestCase):
         self.assertEqual(self.read_settings(), original)
 
 
+class DisplaySchemaDoctorTests(InstallerTestCase):
+    def write_display(self, version):
+        value = config_display.DEFAULT_CONFIG.to_dict()
+        keys = {
+            1: config_display.V1_DISPLAY_KEYS,
+            2: config_display.V2_DISPLAY_KEYS,
+            3: config_display.V3_DISPLAY_KEYS,
+        }.get(version, config_display.DISPLAY_KEYS)
+        value = {key: item for key, item in value.items() if key in keys}
+        value["schema_version"] = version
+        if version == 2:
+            value["subagents"] = {
+                key: item
+                for key, item in value["subagents"].items()
+                if key in ("enabled", "items")
+            }
+        self.config.mkdir(exist_ok=True)
+        path = config_display.config_path(self.config)
+        path.write_bytes((json.dumps(value) + "\n").encode("utf-8"))
+        path.chmod(0o600)
+        return path
+
+    def check_without_writes(self, path):
+        before = path.read_bytes()
+        files = set(self.config.iterdir())
+        diagnostics = []
+        parsed, source = integration_doctor._check_display(diagnostics, self.config)
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(set(self.config.iterdir()), files)
+        return parsed, source, diagnostics
+
+    def test_current_schema_reports_its_actual_version_without_writes(self):
+        version = config_display.SCHEMA_VERSION
+        parsed, source, diagnostics = self.check_without_writes(
+            self.write_display(version)
+        )
+        self.assertEqual(source, version)
+        self.assertEqual(parsed.schema_version, version)
+        self.assertIn(
+            integration_models.Diagnostic("OK", f"display config schema: v{version}"),
+            diagnostics,
+        )
+
+    def test_all_supported_legacy_schemas_report_current_migration_target(self):
+        for version in (1, 2, 3, 4):
+            with self.subTest(version=version):
+                parsed, source, diagnostics = self.check_without_writes(
+                    self.write_display(version)
+                )
+                self.assertEqual(source, version)
+                self.assertEqual(parsed.schema_version, config_display.SCHEMA_VERSION)
+                self.assertIn(
+                    integration_models.Diagnostic(
+                        "WARN",
+                        f"display config schema v{version} is valid and will migrate "
+                        f"to v{config_display.SCHEMA_VERSION} on the next configuration save",
+                    ),
+                    diagnostics,
+                )
+
+    def test_schema_messages_follow_a_changed_supported_version(self):
+        future = config_display.SCHEMA_VERSION + 1
+        with mock.patch.object(config_display, "SCHEMA_VERSION", future):
+            for source, level, text in (
+                (future, "OK", f"display config schema: v{future}"),
+                (4, "WARN", f"migrate to v{future} on the next configuration save"),
+            ):
+                with self.subTest(source=source):
+                    parsed, version, diagnostics = self.check_without_writes(
+                        self.write_display(source)
+                    )
+                    self.assertEqual(parsed.schema_version, future)
+                    self.assertEqual(version, source)
+                    self.assertTrue(
+                        any(d.level == level and text in d.message for d in diagnostics)
+                    )
+
+    def test_missing_display_uses_defaults_without_creating_files(self):
+        diagnostics = []
+        parsed, source = integration_doctor._check_display(diagnostics, self.config)
+        self.assertEqual(parsed, config_display.DEFAULT_CONFIG)
+        self.assertIsNone(source)
+        self.assertFalse(self.config.exists())
+        self.assertEqual(
+            diagnostics,
+            [integration_models.Diagnostic("OK", "display config: built-in defaults")],
+        )
+
+    def test_invalid_and_newer_schemas_report_errors_without_writes(self):
+        cases = (
+            (b"{broken\n", "invalid JSON"),
+            (b'{"schema_version":0}\n', "schema_version must be"),
+            (
+                json.dumps({"schema_version": config_display.SCHEMA_VERSION + 1}).encode(),
+                "newer than supported version",
+            ),
+        )
+        self.config.mkdir()
+        path = config_display.config_path(self.config)
+        for raw, message in cases:
+            with self.subTest(raw=raw):
+                path.write_bytes(raw)
+                parsed, source, diagnostics = self.check_without_writes(path)
+                self.assertIsNone(parsed)
+                self.assertIsNone(source)
+                self.assertTrue(
+                    any(d.level == "ERROR" and message in d.message for d in diagnostics)
+                )
+
+
 class ResolutionAndDoctorTests(InstallerTestCase):
     def test_config_dir_precedence(self):
         explicit = self.root / "explicit"

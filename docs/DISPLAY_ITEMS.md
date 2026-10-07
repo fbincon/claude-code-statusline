@@ -2,10 +2,7 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
-The current catalog contains 61 main and 14 subagent items. The independent
-items below are opt-in. Existing defaults and compound IDs remain available,
-and compounds may be selected alongside their individual components in any order.
-See the [user guide](USER_GUIDE.md) for the original items and all configuration entry points.
+The current catalog contains 60 main and 14 subagent items, with 10 and five enabled by default. The tables highlight independent metrics and task timers; the [user guide](USER_GUIDE.md#configurable-display-items) lists default selections and configuration entry points. `prompt-timer` is an alias of `task-timer`, not an additional catalog item. Main-line compounds can coexist with their individual components; subagent `status-elapsed` excludes separate `status` and `elapsed`.
 
 ## Main items
 
@@ -114,7 +111,7 @@ The five Phase 5 items default unselected. Collection uses the independent `inst
 
 ## Branch base and ended agents
 
-Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1/v2/v3 normalize in memory; actual saves back up and migrate to v5, with configuration protocol v4. Restore an older configuration backup before a package downgrade.
+Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1/v2/v3/v4 normalize in memory; actual saves back up and migrate to v5, with configuration protocol v4. Restore an older configuration backup before a package downgrade.
 
 Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Task timing uses the lifecycle evidence described in [timer contracts](development/timer.md).
 

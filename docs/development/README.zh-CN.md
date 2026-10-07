@@ -114,7 +114,7 @@ macOS 用户可在安装了当前 wheel 的 Python 虚拟环境中，显式执�
 
 自动验收应先对临时 `CLAUDE_CONFIG_DIR` 执行 install dry-run、install、doctor、幂等重装、冲突回滚和 uninstall，绝不触碰真实配置。代码和安装事务通过后，再由用户决定是否把 wheel 安装到真实配置。
 
-真实多 Agent 视觉检查会产生模型费用，工具不会自动发起。用户参与的最终人工验收应检查：默认由本工具管理的 `subagentStatusLine` 和两个唯一 hooks；无子 Agent 时主栏显示正确；两个不同模型/effort 的并行 Agent 各自显示正确行；主栏计时器依次显示 Agent 数量和 `main wrap-up`；最终主 `Stop` 冻结完整用时；进入子 Agent transcript 时全局栏只声明 `Main/Session`；最后运行 `doctor`，并确认 `uninstall --dry-run` 只命中本工具拥有的配置。
+真实多 Agent 视觉检查会产生模型费用，工具不会自动发起。用户参与的最终人工验收应检查：默认由本工具管理的 `subagentStatusLine` 和两个唯一 hooks；无子 Agent 时主栏显示正确；两个不同模型/effort 的并行 Agent 各自显示正确行；主栏计时器依次显示 Agent 数量和 `main wrap-up`；主 Stop 候选经可靠完成证据确认后冻结完整用时；进入子 Agent transcript 时全局栏只声明 `Main/Session`；最后运行 `doctor`，并确认 `uninstall --dry-run` 只命中本工具拥有的配置。
 
 <a id="附录内部命令"></a>
 

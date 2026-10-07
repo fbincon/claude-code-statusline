@@ -66,10 +66,10 @@
 
 ### 安装 Python 包
 
-安装 [v1.7.2 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.2) wheel，各支持平台使用同一个软件包：
+安装 [v1.7.3 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.3) wheel，各支持平台使用同一个软件包：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -77,22 +77,22 @@ pipx ensurepath
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.7.2-py3-none-any.whl
+sha256sum claude_code_statusline-1.7.3-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.7.2-py3-none-any.whl
+shasum -a 256 claude_code_statusline-1.7.3-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.7.2-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.7.3-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.7.2-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.7.2-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.7.3-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.7.3-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.3"
 pipx ensurepath
 ```
 
@@ -215,7 +215,7 @@ Windows 使用 `claude-statusline.exe`。两组参数相互独立，`--experimen
 
 搜索或字段编辑期间普通字符作为输入，暂停字符快捷键；刷新设置接受数字或 `event`。启用和未启用条目都能排序，筛选后移动相邻可见条目，保留隐藏项的相对顺序。切页、缩放和预览刷新保留草稿与选择。仅启用项顺序写入配置。
 
-Settings 区分外观、刷新与显示行为、Claude 偏好〔高级〕。面板正文最小 32×12；≥64×20 使用完整分组边框，紧凑空间使用标题分隔线。样例预览使用固定数据，不采集实时 Git、transcript 或模型信息。
+Settings 区分外观、刷新与显示行为、Git 指标、格式、风险颜色、子 Agent 可见性、预设／可移植文件和 Claude 偏好〔高级〕。面板正文最小 32×12；≥64×20 使用完整分组边框，紧凑空间使用标题分隔线。样例预览使用固定数据，不采集实时 Git、transcript 或模型信息。
 
 ### macOS 鼠标报告与 Client 焦点
 
@@ -439,11 +439,11 @@ claude-statusline config enable run-state permission-mode active-agents task-pro
 claude-statusline doctor
 ```
 
-重启 Claude Code 加载采集器。其他条目为 `branch-diff`、`ttft`、`output-rate`、`prompt-input-tokens`、`prompt-output-tokens`、`prompt-cost`，通过任一编辑器或 `config enable` 选择。它们都不在默认启用集合中，实时采集需 Claude Code 2.1.289+，只启用编辑器不会开启采集。
+重启 Claude Code 加载采集器。其他采集条目为 `ttft`、`output-rate`、`prompt-input-tokens`、`prompt-output-tokens`、`prompt-cost`，通过任一编辑器或 `config enable` 选择。它们都不在默认启用集合中，实时采集需 Claude Code 2.1.289+，只启用编辑器不会开启采集。
 
 `claude-statusline install --no-live-metrics` 保留原先同时关闭计时和高级采集的选择；加上 `--native-timing` 可保留计时元数据。普通重装保留已保存选择。缺失实时观测显示 `—`，有限覆盖或最近观测可附 `*`。采集口径和请求覆盖见[指标定义](DISPLAY_ITEMS.zh-CN.md#实时状态项)，采集问题见[运行诊断](development/live.zh-CN.md)。
 
-已提交分支比较可另行设置 `claude-statusline config set branch-diff-base auto` 或安全的本地 Git ref。`branch-diff` 不包含未提交工作树修改，也不 fetch 远程，详见[分支与已结束代理定义](DISPLAY_ITEMS.zh-CN.md#分支基准与已结束代理)。
+`branch-diff` 是独立的默认未选中项，数据来自本地 Git，无需原生采集器。使用 `claude-statusline config enable branch-diff` 选择，再通过 `claude-statusline config set branch-diff-base auto` 或安全的本地 Git ref 设置已提交分支比较。它不包含未提交工作树修改，也不 fetch 远程，详见[分支与已结束代理定义](DISPLAY_ITEMS.zh-CN.md#分支基准与已结束代理)。
 
 ## 可配置显示项
 
@@ -473,7 +473,21 @@ Git 使用 `↑N`、`↓N` 表示与上游的提交差距，`● N`（Linux/macO
 
 Token 为会话累计：`hit` 是缓存读取输入，`miss` 是普通输入与缓存创建之和，`out` 是输出。统计包含可发现的子 Agent transcript，与上下文占用或限额口径不同。
 
-任务计时使用 `⏱` 表示运行、`✓` 表示成功、`■` 表示中断、`✗` 表示失败、`?`/`+` 表示结束不确定。有子 Agent 时可显示 `waiting agents` 或 `main wrap-up`，直到主 Agent 最终 `Stop`。详见[标记与计时范围](reference/cli.zh-CN.md#主状态栏显示含义)。
+### 任务总耗时与执行耗时
+
+`task-timer` 从最近一次人类任务最早可信提交开始计时，包含排队、用户等待、所属子 Agent 和主 Agent 收尾，默认启用。`prompt-timer` 作为兼容别名继续被配置命令和导入接受，保存后的配置使用 `task-timer`。
+
+计时使用 `⏱` 表示运行、`✓` 表示成功、`■` 表示中断、`✗` 表示失败；结束未确认时显示 `? <elapsed>+`。有子 Agent 时可显示 `⏳ 2 agents · <elapsed>` 或 `⏳ main wrap-up · <elapsed>`。传统 `Stop` 是结束候选，可信继续活动保留原任务和时钟；完成需要可靠结束证据、所属代理及必要报告已处理、主 Agent 收尾完成。已接受的终态值冻结。详见[标记与计时范围](reference/cli.zh-CN.md#prompt-计时标记)。
+
+`task-active-timer` 为可选项，默认未选中；从开始执行后累计耗时，排除已核实的用户等待，并行工作不会重复累加。它需要 Claude Code 2.1.289+ 的原生计时及完整任务／等待观测，可这样启用：
+
+```text
+claude-statusline install --native-timing
+claude-statusline config enable task-active-timer
+claude-statusline doctor
+```
+
+改变采集器接入后重启 Claude Code。兼容宿主新安装已默认开启原生计时，已保存的显式关闭仍受尊重；高级实时指标独立管理，此计时项无需开启它们。缺失观测、等待覆盖不完整、状态过期或时钟不可信时隐藏执行耗时，不把未知等待当作零。原生单轮耗时、会话运行时间和累计 API 耗时是独立指标，不校准两个任务时钟，详见[计时契约](development/timer.zh-CN.md)。
 
 ## 子 Agent 行与三种作用域
 
@@ -521,7 +535,7 @@ claude-statusline configure --config-dir /path/to/claude-config
 ### 替换 Python 包
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 ```
 
 本地 wheel 或源码安装使用 `pipx install --force`，参数为更新或构建后的原文件、固定标签 Git URL 或本地检出目录。
@@ -576,6 +590,14 @@ claude-statusline doctor
 Doctor 检查平台与 Python、PATH、配置有效性、命令归属、hooks、编辑器偏好及资源、宿主兼容、启动条件、实时采集和状态目录。它不重写配置、不打开编辑器窗口；macOS 可检查父目录同步能力。诊断通过不另行证明 GUI 焦点或人工交互有效。
 
 `[OK]` 表示通过，`[WARN]` 表示降级但仍可返回 0，存在 `[ERROR]` 时返回 1。接入过时先运行 `install`、再次 `doctor`，然后重启 Claude Code。归属冲突先检查具体目标，再决定是否使用 `--force`。
+
+已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v5`。有效旧文件改为提示，例如：
+
+```text
+[WARN] display config schema v4 is valid and will migrate to v5 on the next configuration save
+```
+
+此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v4、运行协议 v2 分别管理版本。
 
 ## 故障排查
 
@@ -735,7 +757,7 @@ claude-statusline config set refresh-interval 1
 - 外部桌面启动器支持列明的平台终端；其他终端可使用独立 `configure` 或 tmux。IDE、print 模式、Web 会话和全局禁用 hooks 不保证能打开外部编辑器。
 - 可选实时字段需独立采集和有效观测，不推定缺失测量或当前焦点代理。
 - 子 Agent 行提供当前任务字段，不提供历史账本、逐代理 Git、缓存或会话聚合。
-- 完成判定等待普通 Agent 任务和主 Agent 最终 Stop；后台 shell/server/monitor/workflow 与 agent-team 账本不阻塞完成。
+- 完成判定需要已确认的结束证据、普通 Agent 任务及报告已处理、主 Agent 收尾完成。传统 Stop 只是候选，超时或心跳过期不会推定完成；后台 shell/server/monitor/workflow 与 agent-team 账本不阻塞完成。
 - 配色不跟随 Claude `/theme`，默认 palette 使用固定项目颜色。
 
 ## 相关文档
@@ -833,7 +855,7 @@ claude-statusline config set refresh-interval 1
 [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) 已包含任务计时。使用稳定版 wheel 升级：
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.3/claude_code_statusline-1.7.3-py3-none-any.whl"
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```

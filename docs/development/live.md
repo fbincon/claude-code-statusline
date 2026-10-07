@@ -47,7 +47,7 @@ state. The Mod refreshes its session binding after these boundaries.
 Observation hooks pass their input/result through unchanged. A bounded queue batches
 publication outside routine event handling, retries exact identities after refusal,
 and preserves the bootstrap heartbeat during overflow. Collector failure does not
-alter model requests or timer completion. `runtime/live` never writes `runtime/turns`.
+alter model requests or timer completion. Advanced metric views do not decide task outcomes; native timing observations use the canonical task reducer and its lock after the live-observation lock.
 The installer does not enable or redirect telemetry exporters or retain prompts,
 answers or arbitrary tool arguments in this store.
 
@@ -72,7 +72,7 @@ Turn IDs bind main tools and agent spawns to the executing task, independently o
 
 ## Requests
 
-Runtime v1 adds request_start/first/end, turn_usage and request_cost. Local request IDs include turn/agent/step, and official cost IDs deduplicate server requests independently. Typed usage requires all four nonnegative integer counters. Engine references distinguish real and synthetic stream content. Iterator next/return/throw, chunks and results are passed through unchanged; observation failure is isolated.
+Runtime protocol v2 retains the v1 request_start/first/end, turn_usage and request_cost observations. Local request IDs include turn/agent/step, and official cost IDs deduplicate server requests independently. Typed usage requires all four nonnegative integer counters. Engine references distinguish real and synthetic stream content. Iterator next/return/throw, chunks and results are passed through unchanged; observation failure is isolated.
 
 Python retains unbound turns/requests/spawns/tools and reconciles only unique completed lifecycle intervals with explicit spawn parents. No advanced metric writes lifecycle state. Unowned workflows/forks are excluded; task token sums include verified nested agents and main wrap-up, and turn.complete totals only check coverage. Conflicting duplicates invalidate their request; missing usage is unknown, zero is real. TTFT and output-rate refer to the latest main request and reject backward/zero duration clocks. Existing api_request collector records may provide an attributed estimated-cost subtotal; unjoined coverage remains partial.
 

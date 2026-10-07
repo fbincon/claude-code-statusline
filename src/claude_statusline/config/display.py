@@ -409,7 +409,7 @@ def read_display_config(config_dir: Path) -> tuple[DisplayConfig, bytes | None]:
 
 
 def read_display_config_schema(config_dir: Path) -> int | None:
-    """Return the on-disk schema without changing a migratable v1 file."""
+    """Return the on-disk schema without rewriting a supported legacy file."""
     path = config_path(config_dir)
     try:
         raw = path.read_bytes()
