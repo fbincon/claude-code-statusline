@@ -2,13 +2,13 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.6.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-正式 v1.6.1 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
+正式 v1.7.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
@@ -42,7 +42,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.6.1
+RELEASE_TAG=v1.7.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -60,8 +60,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-claude_code_statusline-1.6.1-py3-none-any.whl
-claude_code_statusline-1.6.1.tar.gz
+claude_code_statusline-1.7.0-py3-none-any.whl
+claude_code_statusline-1.7.0.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -82,8 +82,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.6.1-py3-none-any.whl \
-  claude_code_statusline-1.6.1.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.7.0-py3-none-any.whl \
+  claude_code_statusline-1.7.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -92,8 +92,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.6.1-py3-none-any.whl',
-    'claude_code_statusline-1.6.1.tar.gz'
+    'claude_code_statusline-1.7.0-py3-none-any.whl',
+    'claude_code_statusline-1.7.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -111,8 +111,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.6.1-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.6.1.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.7.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.7.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -181,3 +181,11 @@ v1.7.0a1 保留稳定安装入口，以 prerelease 和 `--latest=false` 发布�
 每次真实尝试及重试均使用既有共享 10 美元账本。验收脚本覆盖默认原生计时、并行报告／收尾、阻止 Stop 后续跑、受控 SDK 等待／中断及显式关闭；见[任务计时验证](development/testing.zh-CN.md#任务计时预览验证)。必需案例失败、费用未知或预算耗尽时停止发布。对安装后的分发包复核既有证据，无需再次调用模型。
 
 发布前完成核心／编辑器／运行采集安装 smoke、匹配 wheel 的外部及 Client PTY、分发清单、独立重建／安装、草稿下载／校验及标签 CI；公开后核对资产字节与固定标签／URL 隔离安装。SDK 自动输入与真人交互分开，真实睡眠和 Windows/macOS 模型会话作为明确预览边界保留。
+
+## v1.7.0 正式晋升
+
+2026-10-07，维护者确认 v1.7.0a1 已在 Linux、macOS、Windows 完成验证，并要求发布稳定 Latest。本次确认未提供具体 OS、架构、终端或宿主版本，也未单独提供硬件睡眠／恢复记录；保留预览发布时的原始证据和此前平台故障排查说明。
+
+Python 和两 Mod 晋升为 1.7.0，更新当前稳定安装／升级入口，沿用已验收计时实现及协议。正式编辑器默认请求启用两个兼容入口，保留已保存 false 和主动禁用插件。兼容宿主新安装默认开启原生计时元数据、高级指标关闭，已有运行选择继续独立保存。保留 a1 标签、资产、预览状态、截图及原 10 美元共享账本。
+
+要求已审查 PR、固定合并提交和正式带注释标签各自全部 20 项 CI 通过；检查 wheel／sdist 和两个 Mod 清单，独立重建／安装，核验 a1 到正式版升级、已安装核心／原生／运行 smoke 和双编辑器 PTY，免费复核六个真实场景，不新增模型调用。公开前核验草稿字节／SHA256 和标签 CI；新正式 Release 设置 prerelease=false、latest=true，匿名公开下载及公开 wheel／固定标签 URL 隔离安装均通过后记录完成。

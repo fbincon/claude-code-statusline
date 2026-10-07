@@ -38,7 +38,7 @@ Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude
 
 ## Feature overview
 
-Choose from 61 main-line items and 14 subagent items. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, four editable presets, and portable JSON files.
+Choose from 60 main-line items and 14 subagent items. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, four editable presets, and portable JSON files.
 
 The main line reports main/session data; each subagent row reports its own task. Task timing includes subagent work and main-agent wrap-up. [Display definitions](DISPLAY_ITEMS.md) explain sources, scope, missing observations, and metric limits.
 
@@ -58,7 +58,7 @@ Install Claude Code CLI and [pipx](https://pipx.pypa.io/latest/how-to/install-pi
 | Subagent rows and lifecycle hooks | 2.1.205+; per-task effort 2.1.214+ |
 | Local argument-based slash commands, external TUI entry | 2.1.258+ |
 | In-session Client editor | 2.1.287+ |
-| Independent live-metrics collection | 2.1.289+ |
+| Native timing and advanced live-metrics collection | 2.1.289+ |
 
 The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app on macOS, and a system new console on Windows. In other terminal environments, run the standalone editor directly. After crossing a host-version requirement, rerun `install` and `doctor`.
 
@@ -66,10 +66,10 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 
 ### Install the Python package
 
-Install the [v1.6.1 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1) wheel; it is the same package on all supported platforms:
+Install the [v1.7.0 release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) wheel; it is the same package on all supported platforms:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -77,22 +77,22 @@ Alternatively download the wheel, source archive, and `SHA256SUMS` from that rel
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.6.1-py3-none-any.whl
+sha256sum claude_code_statusline-1.7.0-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.6.1-py3-none-any.whl
+shasum -a 256 claude_code_statusline-1.7.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.6.1-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.7.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.6.1-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.6.1-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./claude_code_statusline-1.7.0-py3-none-any.whl` (PowerShell: `.\claude_code_statusline-1.7.0-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.0"
 pipx ensurepath
 ```
 
@@ -115,7 +115,7 @@ Windows uses `claude-statusline.exe` and requires that executable on PATH. Resta
 
 The installer merges owned status-line commands, timing/subagent hooks, configuration skills, and compatible editor integrations into the user configuration. It preserves unrelated settings and hooks, backs up actual changes, and uses atomic writes. Repeated installation is idempotent.
 
-The two editor entries default on when there is no saved preference. Explicit parameters override saved preferences; saved preferences override defaults. Unsupported integrations suspend without losing the preference. The live collector is independent and defaults off. Existing valid padding, refresh, and Vim-indicator choices remain; a new installation refreshes once per second.
+The two editor entries default on when there is no saved preference. Explicit parameters override saved preferences; saved preferences override defaults. Unsupported integrations suspend without losing the preference. Native timing and advanced collection have independent preferences; compatible fresh installs default to timing metadata on and advanced metrics off. Existing valid padding, refresh, and Vim-indicator choices remain; a new installation refreshes once per second.
 
 ### Preview installation
 
@@ -444,7 +444,7 @@ claude-statusline doctor
 
 Restart Claude Code to load collection. Additional items are `branch-diff`, `ttft`, `output-rate`, `prompt-input-tokens`, `prompt-output-tokens`, and `prompt-cost`. Use either editor or `config enable` to select them. They are all off in the default item selection; live collection requires Claude Code 2.1.289+ and does not turn on with an editor alone.
 
-`claude-statusline install --no-live-metrics` persists an independent disablement preference. Ordinary reinstall preserves an existing choice. Missing live observations show `—`; limited coverage or recent observations can carry `*`. [Metric definitions](DISPLAY_ITEMS.md#live-state-items) explain per-field collection and request coverage; [runtime diagnostics](development/live.md) cover collection problems.
+`claude-statusline install --no-live-metrics` preserves the legacy choice to disable both timing and advanced collection. Add `--native-timing` to retain timing metadata. Ordinary reinstall preserves saved choices. Missing live observations show `—`; limited coverage or recent observations can carry `*`. [Metric definitions](DISPLAY_ITEMS.md#live-state-items) explain per-field collection and request coverage; [runtime diagnostics](development/live.md) cover collection problems.
 
 Configure committed branch comparison separately with `claude-statusline config set branch-diff-base auto` or a safe local Git ref. `branch-diff` excludes uncommitted worktree edits; it does not fetch remotes. [Branch and ended-agent definitions](DISPLAY_ITEMS.md#branch-base-and-ended-agents).
 
@@ -503,7 +503,7 @@ Use Settings or `config set OPTION VALUE` for appearance, directory styles, sepa
 | `claude-statusline.json` | Display settings, item order, formats, layouts, subagent visibility |
 | `claude-statusline-features.json` | Independent external-editor preference |
 | `claude-statusline-native.json` | Independent in-session Client preference |
-| `claude-statusline-runtime.json` | Independent live-collection preference |
+| `claude-statusline-runtime.json` | Independent native timing and advanced collection preferences |
 | `settings.json` | Owned Claude commands, hooks, and host status-line settings |
 
 Use the CLI or editors to update these files. Display schema v5 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
@@ -524,7 +524,7 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 ### Replace the Python package
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 ```
 
 For local wheels or source installations, use `pipx install --force` with the original file, fixed-tag Git URL, or local checkout after updating/building it.
@@ -920,12 +920,14 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 
 </details>
 
-## Task timing preview
+<a id="task-timing-preview"></a>
 
-The task-clock preview is [v1.7.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0a1). The stable quick-install links above remain stable-release links. To use this preview:
+## Task timing
+
+Task timing is included in [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0). Upgrade using the stable wheel:
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0a1/claude_code_statusline-1.7.0a1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```
@@ -934,4 +936,4 @@ claude-statusline config enable task-active-timer
 
 On compatible hosts, fresh installations collect timing metadata by default; advanced metrics still require `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
 
-Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 5 and retains a backup. Preview limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
+Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 5 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).

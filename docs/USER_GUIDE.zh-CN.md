@@ -38,7 +38,7 @@
 
 ## 功能概览
 
-主栏支持 61 个条目，子 Agent 行支持 14 个条目，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、四种可编辑预设及可移植 JSON 文件。
+主栏支持 60 个条目，子 Agent 行支持 14 个条目，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、四种可编辑预设及可移植 JSON 文件。
 
 主栏显示主会话数据，各子 Agent 行显示自己的任务数据；任务计时包含子 Agent 工作和主 Agent 收尾。[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)说明数据来源、作用域、缺失观测和指标边界。
 
@@ -58,7 +58,7 @@
 | 子 Agent 行及生命周期 hooks | 2.1.205+；逐任务 effort 需 2.1.214+ |
 | 带参数 slash 命令的本地执行、外部 TUI 入口 | 2.1.258+ |
 | 会话内 Client 编辑器 | 2.1.287+ |
-| 独立实时指标采集 | 2.1.289+ |
+| 原生计时及高级实时指标采集 | 2.1.289+ |
 
 外部启动器在 Linux 使用 tmux 或 GNOME Terminal，在 macOS 使用 tmux 或 Terminal.app，在 Windows 使用系统新控制台。其他终端环境可直接运行独立编辑器。升级或降级跨过功能门槛后，重新运行 `install` 和 `doctor`。
 
@@ -66,10 +66,10 @@
 
 ### 安装 Python 包
 
-安装 [v1.6.1 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.6.1) wheel，各支持平台使用同一个软件包：
+安装 [v1.7.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) wheel，各支持平台使用同一个软件包：
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -77,22 +77,22 @@ pipx ensurepath
 
 ```bash
 # Linux / WSL
-sha256sum claude_code_statusline-1.6.1-py3-none-any.whl
+sha256sum claude_code_statusline-1.7.0-py3-none-any.whl
 # macOS
-shasum -a 256 claude_code_statusline-1.6.1-py3-none-any.whl
+shasum -a 256 claude_code_statusline-1.7.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\claude_code_statusline-1.6.1-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\claude_code_statusline-1.7.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.6.1-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.6.1-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./claude_code_statusline-1.7.0-py3-none-any.whl`，PowerShell 路径为 `.\claude_code_statusline-1.7.0-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.6.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.0"
 pipx ensurepath
 ```
 
@@ -115,7 +115,7 @@ Windows 使用 `claude-statusline.exe`，并确保该可执行文件位于 PATH�
 
 安装器将本工具拥有的状态栏命令、计时及子 Agent hooks、配置 skills 和兼容的编辑器接入合并到用户配置中，保留无关设置与 hooks。实际修改前创建备份，并通过原子写入保存；重复安装是幂等的。
 
-没有保存偏好时，两个编辑器入口默认启用。显式参数优先于已保存偏好，已保存偏好优先于默认值；不兼容的接入暂挂，但保留偏好。实时采集独立管理，默认关闭。现有有效的 padding、刷新间隔和 Vim 指示器选项保留；首次安装默认每秒刷新。
+没有保存偏好时，两个编辑器入口默认启用。显式参数优先于已保存偏好，已保存偏好优先于默认值；不兼容的接入暂挂，但保留偏好。原生计时和高级实时采集分别管理偏好；兼容宿主新安装默认开启计时元数据，高级指标默认关闭。现有有效的 padding、刷新间隔和 Vim 指示器选项保留；首次安装默认每秒刷新。
 
 ### 安装前预览
 
@@ -430,7 +430,7 @@ claude-statusline doctor
 
 重启 Claude Code 加载采集器。其他条目为 `branch-diff`、`ttft`、`output-rate`、`prompt-input-tokens`、`prompt-output-tokens`、`prompt-cost`，通过任一编辑器或 `config enable` 选择。它们都不在默认启用集合中，实时采集需 Claude Code 2.1.289+，只启用编辑器不会开启采集。
 
-`claude-statusline install --no-live-metrics` 保存独立关闭偏好，普通重装保留已有选择。缺失实时观测显示 `—`，有限覆盖或最近观测可附 `*`。采集口径和请求覆盖见[指标定义](DISPLAY_ITEMS.zh-CN.md#实时状态项)，采集问题见[运行诊断](development/live.zh-CN.md)。
+`claude-statusline install --no-live-metrics` 保留原先同时关闭计时和高级采集的选择；加上 `--native-timing` 可保留计时元数据。普通重装保留已保存选择。缺失实时观测显示 `—`，有限覆盖或最近观测可附 `*`。采集口径和请求覆盖见[指标定义](DISPLAY_ITEMS.zh-CN.md#实时状态项)，采集问题见[运行诊断](development/live.zh-CN.md)。
 
 已提交分支比较可另行设置 `claude-statusline config set branch-diff-base auto` 或安全的本地 Git ref。`branch-diff` 不包含未提交工作树修改，也不 fetch 远程，详见[分支与已结束代理定义](DISPLAY_ITEMS.zh-CN.md#分支基准与已结束代理)。
 
@@ -443,7 +443,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-主栏目录共 61 项，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
+主栏目录共 60 项，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
 
 常用可选项按下表分组，通过 ID 启用或在编辑器中选择。
 
@@ -489,7 +489,7 @@ Token 为会话累计：`hit` 是缓存读取输入，`miss` 是普通输入与�
 | `claude-statusline.json` | 显示项、顺序、格式、布局和子 Agent 可见性 |
 | `claude-statusline-features.json` | 外部编辑器的独立偏好 |
 | `claude-statusline-native.json` | 会话内 Client 的独立偏好 |
-| `claude-statusline-runtime.json` | 实时采集的独立偏好 |
+| `claude-statusline-runtime.json` | 原生计时和高级采集的独立偏好 |
 | `settings.json` | 本工具接入的 Claude 命令、hooks 和宿主状态栏选项 |
 
 通过 CLI 或编辑器修改。显示 schema v5 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
@@ -510,7 +510,7 @@ claude-statusline configure --config-dir /path/to/claude-config
 ### 替换 Python 包
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.6.1/claude_code_statusline-1.6.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 ```
 
 本地 wheel 或源码安装使用 `pipx install --force`，参数为更新或构建后的原文件、固定标签 Git URL 或本地检出目录。
@@ -815,12 +815,14 @@ claude-statusline config set refresh-interval 1
 
 </details>
 
-## 任务计时预览
+<a id="任务计时预览"></a>
 
-任务计时预览为 [v1.7.0a1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0a1)，上文快速安装链接继续指向稳定版。安装预览：
+## 任务计时
+
+[v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) 已包含任务计时。使用稳定版 wheel 升级：
 
 ```bash
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0a1/claude_code_statusline-1.7.0a1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.0/claude_code_statusline-1.7.0-py3-none-any.whl"
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```
@@ -829,4 +831,4 @@ claude-statusline config enable task-active-timer
 
 兼容宿主的新安装默认采集计时元数据，高级指标仍需 `install --live-metrics`。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
 
-降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 5 并备份。预览限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
+降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 5 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。

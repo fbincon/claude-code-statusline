@@ -201,3 +201,9 @@ python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-stat
 | Terminal: 100,000 rows, 32 tasks | 9.486 / 9.595 | 0.048 / 0.061 |
 
 未变化的热刷新不读取 transcript；终态查找复用有界游标索引。100,000 行／32 任务（16.6 MB）的首次提交索引从 9.84 ms 变为 22.44 ms，仍需扫描一次源文件。计时 renderer 启动 P50 增加约 1.5 ms；本地样例、调度和缓存噪声限制结论，不构成性能上界。原始历史和路径报告保持私有。
+
+## v1.7.0 正式验收
+
+2026-10-07，维护者确认 v1.7.0a1 预览已在 Linux、macOS、Windows 完成验证，未提供具体 OS、架构、终端和 Claude Code 版本。该确认记录平台验收；自动 CI、SDK 受控场景和硬件睡眠／恢复证据继续分别记录。
+
+正式 1.7.0 沿用已验收任务计时实现和协议。使用安装包核验正式编辑器默认、已保存关闭选择、兼容／未知宿主以及 a1 到正式版的资源／后端升级。继续运行现有 590 项 Python、51 项官方 Mod 测试、生成契约、TypeScript、Ruff、文档和全部 PR／合并／标签 CI。稳定 wheel 免费复核六个捕获场景，保留原 0.801859 美元账本，并核验独立重建、双编辑器 PTY、草稿／公开资产和 URL 安装。详见[正式 Release 记录](../releases/v1.7.0.md)。
