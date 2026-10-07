@@ -156,6 +156,29 @@ Release notes must cite actual validation results. Read CI-covered OS versions, 
 
 Related documentation: [pipx installation sources](https://pipx.pypa.io/latest/reference/examples.html), [creating GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository), and [Release linking rules](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases).
 
+## Gitee code and Release synchronization
+
+[GitHub](https://github.com/fbincon/claude-code-statusline) is the primary repository for development PRs, merges, CI, and publication. [Gitee](https://gitee.com/fbincon/claude-code-statusline) is the public synchronized repository. Synchronization runs as part of maintainer tasks, rather than through an automatic CI mirror. Keep `origin` and the `main` upstream on GitHub; add the separate SSH remote once:
+
+```bash
+git remote add gitee git@gitee.com:fbincon/claude-code-statusline.git
+```
+
+Before synchronizing, inspect `git remote -v`, the current branch, and the remote refs. Fetch the verified GitHub `main`, confirm its required CI passes, and push that exact commit to Gitee `main` with an explicit refspec. Push each GitHub version tag without recreating it. For example, after updating local `main` to the validated GitHub commit:
+
+```bash
+git push gitee main:refs/heads/main
+git push gitee refs/tags/v1.7.3:refs/tags/v1.7.3
+```
+
+Verify both hosts expose identical `main` and tag object IDs. Preserve annotated tags and their target commits. Historical feature branches are pushed only when needed. If a ref has diverged, investigate before writing; never use force-push or `git push --mirror` for routine synchronization. Gitee PR acceptance uses temporary target and feature branches, preserving the PR record and removing only those branches after verified merging.
+
+Git pushes do not copy Release metadata or assets. After the GitHub release is published and verified, create the matching Gitee Release using the [official Gitee MCP server](https://gitee.com/oschina/mcp-gitee). Use the same fixed tag, commit, English title, bilingual notes, and prerelease status; add verified Gitee download links to the Gitee notes. Gitee publishing states should follow its actual API capabilities. Its Release creation tool does not replace attachment upload: use the [official Release attachment API](https://gitee.com/api/v5/swagger) at `POST /repos/{owner}/{repo}/releases/{release_id}/attach_files` for the original wheel, source distribution, and `SHA256SUMS`.
+
+Download GitHub's original published assets into a fresh directory and verify them before upload. For an existing Gitee Release, reuse matching metadata and assets, upload only missing files, and stop on conflicting content. After upload, anonymously redownload all three Gitee assets, verify names, sizes, and SHA256, and compare bytes with the GitHub originals. Record the Gitee Release URL and fixed commit after these checks pass. Preserve the GitHub validation claims and support boundaries.
+
+Authentication is local to each maintainer's machine: use a dedicated Gitee SSH identity and a personal token stored in the system keyring. Codex can supply MCP authentication through `http_headers_helper`; attachment clients read the same keyring entry inside the process. Never put tokens in the repository, documentation, URLs, command arguments, or logs. Use standard `git` for version control and the Gitee MCP/API for Gitee platform operations; `gh` remains a GitHub client.
+
 <a id="v130-preview-rollout"></a>
 
 ## v1.3.0 stable promotion
