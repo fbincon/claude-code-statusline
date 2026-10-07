@@ -3,7 +3,7 @@ import type { View } from '../session.ts';
 import { settingRows, adjustSetting } from './settings.ts';
 import { formRows, setFormValue } from './forms.ts';
 import { canEdit, validPreferenceValue } from '../preferences.ts';
-import { dimensions } from '../../ui/layout.ts';
+import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
 
 export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | null;
@@ -22,9 +22,10 @@ export function cancelInput(view: View): void {
 /** All transitions are pure; persistence remains in the host hooks module. */
 export function handleKey(view: View, event: ClientKeyEvent, columns: number, rows: number): Effect {
   const e = view.editor, key = event.key === 'space' ? ' ' : event.key;
+  const shortcut = /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
   if (!e || view.busy) return null;
   if (event.ctrl && key.toLowerCase() === 'g') { cancelInput(view); return null; }
-  if (view.uncertain) return key === 'k' ? 'reconcile' : key === 'q' ? 'close' : null;
+  if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
   const input = view.input;
   if (input?.kind === 'field' || input?.kind === 'path') {
     if (event.ctrl && key.toLowerCase() === 'u') input.buffer = '';
@@ -70,25 +71,25 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     return null;
   }
   if (event.ctrl || event.meta) return null;
-  if (key === 'q') return 'close';
-  if (key === 's') return 'save';
-  if (key === 'f') return 'finish';
-  if (key === 'r') return 'reload';
-  if (key === 'v') return 'retry';
-  if (key === 'k') return 'reconcile';
-  if (key === 'a' && e.page === 'settings' && !e.detail && e.advanced) return 'applyPreferences';
-  if (key === 'h' && e.page === 'settings' && !e.detail) { e.advanced = !e.advanced; e.setting = e.advanced ? settingRows(view).find((r) => r.key.startsWith('host-'))!.key : 'colors'; return null; }
+  if (shortcut === 'q') return 'close';
+  if (shortcut === 's') return 'save';
+  if (shortcut === 'f') return 'finish';
+  if (shortcut === 'r') return 'reload';
+  if (shortcut === 'v') return 'retry';
+  if (shortcut === 'k') return 'reconcile';
+  if (shortcut === 'a' && e.page === 'settings' && !e.detail && e.advanced) return 'applyPreferences';
+  if (shortcut === 'h' && e.page === 'settings' && !e.detail) { e.advanced = !e.advanced; e.setting = e.advanced ? settingRows(view).find((r) => r.key.startsWith('host-'))!.key : 'colors'; return null; }
   const pages = ['main', 'subagents', 'settings', 'layout'] as const;
   if (key === 'tab') { e.page = pages[(pages.indexOf(e.page) + (event.shift ? 3 : 1)) % 4]!; e.detail = null; if (e.page === 'settings' || e.page === 'layout') e.setting = settingRows(view).find((r) => r.key === e.setting)?.key ?? settingRows(view)[0]!.key; return null; }
   if (['1', '2', '3', '4'].includes(key)) { e.page = pages[Number(key) - 1]!; e.detail = null; if (e.page === 'settings' || e.page === 'layout') e.setting = settingRows(view).find((r) => r.key === e.setting)?.key ?? settingRows(view)[0]!.key; return null; }
-  if (!dimensions(columns, rows).available) return null;
+  const size = editorLayout(view, columns, rows);
+  if (!size.available) return null;
   const isSettings = !!e.detail || e.page === 'settings' || e.page === 'layout';
   const scope = e.page === 'main' ? 'main' : 'subagent';
   const settings = isSettings ? settingRows(view) : [];
   const keys = isSettings ? settings.map((row) => row.key) : e.visible(scope).map((row) => row.id as string);
   const selected = isSettings ? e.setting : e.selected[scope];
   let index = Math.max(0, keys.indexOf(selected));
-  const size = dimensions(columns, rows);
   if (key === 'up') index--;
   else if (key === 'down') index++;
   else if (key === 'pageup' || key === 'pagedown') {

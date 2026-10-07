@@ -166,7 +166,7 @@ Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/i
 Bash, Zsh, and PowerShell:
 
 ```text
-pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 pipx ensurepath
 ```
 
@@ -191,7 +191,7 @@ Both editors default on for compatible hosts, respecting saved disablement prefe
 Install source from the fixed release tag (requires Git):
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.1"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.2"
 ```
 
 Use `@main` to follow current development, or run `pipx install .` from a local checkout. Then run `pipx ensurepath` and complete integration above.
@@ -214,7 +214,7 @@ Download checksums and platform-specific instructions are in the [installation g
 
 ### Native configuration editor
 
-Click the Client region once. Use Tab to change pages, arrows to select or reorder, Space to toggle, and `/` to search. `s` saves and stays, `f` saves and closes, and `q` discards unsaved changes. Ctrl+E opens item formatting; Ctrl+G cancels input. Claude preferences apply separately.
+Click the Client region once. Use Tab to change pages, Space to toggle, arrows to select or reorder, Ctrl+E for item formatting, and `/` to search. `S` saves and stays, `F` saves and closes, and `Q` discards unsaved changes; lowercase letters work too. Footer controls follow the current page or input mode. Ctrl+G cancels input. Claude preferences apply separately.
 
 ### External and standalone terminal TUI
 
@@ -239,7 +239,7 @@ Configuration is per user. `set-items` replaces the enabled set; `enable` and `d
 Upgrade the package, synchronize integration, then restart Claude Code:
 
 ```text
-pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.1/claude_code_statusline-1.7.1-py3-none-any.whl"
+pipx install --force "https://github.com/fbincon/claude-code-statusline/releases/download/v1.7.2/claude_code_statusline-1.7.2-py3-none-any.whl"
 claude-statusline install
 claude-statusline doctor
 ```

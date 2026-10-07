@@ -2,13 +2,13 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.7.1](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.1)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.7.2](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.2)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-正式 v1.7.1 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
+正式 v1.7.2 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
@@ -42,7 +42,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.7.1
+RELEASE_TAG=v1.7.2
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -60,8 +60,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-claude_code_statusline-1.7.1-py3-none-any.whl
-claude_code_statusline-1.7.1.tar.gz
+claude_code_statusline-1.7.2-py3-none-any.whl
+claude_code_statusline-1.7.2.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -82,8 +82,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum claude_code_statusline-1.7.1-py3-none-any.whl \
-  claude_code_statusline-1.7.1.tar.gz > SHA256SUMS
+sha256sum claude_code_statusline-1.7.2-py3-none-any.whl \
+  claude_code_statusline-1.7.2.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -92,8 +92,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'claude_code_statusline-1.7.1-py3-none-any.whl',
-    'claude_code_statusline-1.7.1.tar.gz'
+    'claude_code_statusline-1.7.2-py3-none-any.whl',
+    'claude_code_statusline-1.7.2.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -111,8 +111,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.7.1-py3-none-any.whl" \
-  "$RELEASE_ASSETS/claude_code_statusline-1.7.1.tar.gz" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.7.2-py3-none-any.whl" \
+  "$RELEASE_ASSETS/claude_code_statusline-1.7.2.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -195,3 +195,9 @@ Python 和两 Mod 晋升为 1.7.0，更新当前稳定安装／升级入口，�
 本次补丁将 Client 标题移入框线，按实际分组／字段行数分页，集中 Layout 和格式详情分组，并统一两编辑器的快捷键样式。保留 h 展开宿主偏好与独立 Apply、配置与运行协议及安装默认行为。README 展示四页现有截图，原始 PNG 与来源记录保留。
 
 运行完整本地检查及全部 20 项 PR／合并／标签 CI，验证隔离安装包的外部五尺寸 PTY、会话内持久高级 PTY、两个入口互读及 1.7.0 升级。固定合并提交构建、独立重建、包清单、草稿／公开 SHA256 和安装入口验证沿用本指南；不运行付费计时验收。自动化与画面检查不新增真人或其他平台终端验收记录。
+
+## v1.7.2 Client 底部快捷键优化
+
+验证青色 Configure Status Line 大标题、大写按键／小写说明、各页 Tab 优先、条件提示和完整组换行；Main/Subagents 顺序为 Tab、Space、选择、排序、Ctrl+E、搜索。普通字母兼容大小写，不改变输入文本及组合键；保留 32×12、选中字段、预览和共享分页预算，外部编辑器及配置／运行协议兼容。
+
+要求本地完整检查、全部 20 项 PR／合并／标签 CI、已安装核心／原生／运行 smoke、两编辑器 PTY 和 1.7.1 升级。从验证后的固定合并提交构建，检查清单、独立重建／安装、草稿／公开资产、SHA256 和 URL 安装。原始捕获留在忽略目录，历史截图保留；README 维护使用说明和当前安装链接，更新记录放在 CHANGELOG 与 Release。门槛通过后发布 v1.7.2 正式 Latest，不运行付费模型／计时套件。

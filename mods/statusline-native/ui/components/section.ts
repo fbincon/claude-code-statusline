@@ -1,7 +1,7 @@
 import type { ClientElements, RenderElement } from 'claude-code';
 import { clip, displayWidth } from '../layout.ts';
-import { shortcutSpans, spanLine } from './shortcuts.ts';
-import type { Shortcut, TextSpan } from './shortcuts.ts';
+import { spanLine } from './shortcuts.ts';
+import type { TextSpan } from './shortcuts.ts';
 
 /** Draw a cell-sized frame: the title occupies the top edge, not a body row. */
 export function section(
@@ -12,12 +12,10 @@ export function section(
   width: number,
   height: number,
   framed: boolean,
-  hints: readonly Shortcut[] = [],
 ): RenderElement {
   const edge = { color: 'gray', dimColor: true };
   const label = clip(title, Math.max(1, width - 5));
   const titleSpans: TextSpan[] = [{ text: ' ' + label + ' ', style: { bold: true, color: 'cyan' } }];
-  titleSpans.push(...shortcutSpans(hints, Math.max(0, width - 3 - displayWidth(' ' + label + ' '))));
   const used = titleSpans.reduce((n, s) => n + displayWidth(s.text), 0);
   const top = spanLine(ui, [
     { text: framed ? '╭─' : '─', style: edge },

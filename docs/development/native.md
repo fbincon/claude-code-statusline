@@ -8,6 +8,10 @@ Since v1.3.0, the project provides Client TUI inside the current Claude Code ter
 
 `mods/statusline-native` is the only Mod source; the installed plugin identity remains `statusline-native@claude-statusline-local`. `hooks/register.ts` owns host API calls, commands, backend requests, save lifetimes and serialized input batches. `lib/editor/` owns draft/order/numeric rules; `lib/client/` owns validated batches, keys and settings; `lib/session.ts` serializes independent snapshots. `ui/client/` owns surface input and drawing, `ui/components/` reusable sections, and `ui/layout.ts` the cell budget. Tests mirror backend, client, editor, integration and UI responsibilities. The Python curses UI and launcher remain separate and use the same configuration service.
 
+`ui/client/help.ts` selects state-dependent footer controls and computes their wrapped row budget. Drawing and keyboard pagination both use `editorLayout`; complete hint wrapping lives in `ui/components/shortcuts.ts`. The heading is cyan **Configure Status Line**. All idle page controls begin with Tab; Main/Subagents order is Tab, Space, selection arrows, ordering arrows, Ctrl+E and search. Settings offers H to show/hide preferences and A only when expanded; item forms offer Ctrl+G back. Filter retains its search entry. Editing offers accept/cancel/clear/delete, while ordinary letter shortcuts accept either ASCII case only outside editing and Ctrl/Meta combinations. Esc remains host-owned.
+
+At 32×12, shorten hints and omit secondary V/R/Esc help before sacrificing current controls. Auxiliary detail/count rows yield space to the footer; the selected row and one actual sample row remain visible. Resizing retains state and recomputes both rendering and navigation from the same budget. These presentation changes do not modify protocol or configuration schemas.
+
 Use Node.js 22, the matching development backend, and the fixed host builds in CI. Regenerate official declarations for each actual host; never reuse declarations from another build. The matrix checks Linux 2.1.287/2.1.288/2.1.289 and Windows/macOS 2.1.288.
 
 ```bash
@@ -34,9 +38,9 @@ Click the Client region once after opening, then use the keyboard. Opening with 
 | Space / Enter | Toggle an item; operate a setting or enter/accept numeric editing |
 | / | Enter search on an item page; Enter finishes search input |
 | Ctrl+U / Ctrl+G | Clear input / restore the search or numeric value before editing |
-| s / f / q | Save and continue / save then finish / discard pending changes and close |
-| h / a | Fold/unfold Claude preferences / apply them separately |
-| r / k / v | Discard and reload / check an unknown save / retry sample preview |
+| S / F / Q | Save and continue / save then finish / discard pending changes and close |
+| H / A | Fold/unfold Claude preferences / apply them separately |
+| R / K / V | Discard and reload / check an unknown save / retry sample preview |
 
 During search/numeric editing, ordinary characters are input, including s/f/q; shortcuts resume after acceptance or Ctrl+G. Refresh accepts a number or `event`. Saving validates every numeric buffer. Enabled and disabled rows can move; filtered movement uses adjacent visible rows and preserves hidden rows' relative order. Only enabled item order is persisted. Subagent exclusions come from the shared catalog.
 
