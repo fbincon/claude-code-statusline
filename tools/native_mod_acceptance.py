@@ -71,6 +71,10 @@ def prepare(
         CLAUDE_STATUSLINE_NATIVE_EXECUTABLE=str(backend),
     )
     env.pop("CLAUDECODE", None)
+    # Exercise real terminal styles even when the parent automation disables
+    # ANSI output. Colorless geometry is covered separately by UI tests.
+    env.pop("NO_COLOR", None)
+    env["FORCE_COLOR"] = "3"
     # A fixed npm host resolves to a binary named claude.exe on Linux. Put a
     # private canonical name on PATH so the installer/backend use that host too.
     host_directory = root / "host-bin"
@@ -250,6 +254,15 @@ def run_pty(
             [screen.buffer[row][column]._asdict() for column in range(columns)]
             for row in range(screen.lines)
         ]
+        if "external" not in name:
+            footer = next(
+                (row[col : col + 6] for row in cells for col in range(columns - 5)
+                 if "".join(cell["data"] for cell in row[col : col + 6]) == "s Save"),
+                None,
+            )
+            assert footer is not None, "Native action row is missing from capture"
+            assert footer[0]["bold"] and footer[0]["fg"] in ("white", "brightwhite", "ffffff"), "Save key lost its white bold style"
+            assert all(not cell["bold"] for cell in footer[2:]), "Save description inherited the key's bold style"
         path.write_text(
             json.dumps(
                 {"columns": columns, "rows": screen.lines, "cells": cells},
@@ -306,7 +319,7 @@ def run_pty(
         os.write(master, b"/git")
         read_until("Filter: git")
         os.write(master, b"\x07")
-        read_until("Filter: [/ search]")
+        read_until("Filter: / search")
         os.write(master, b"\x1b[B\x1b[B")
         read_until("Detail: Git")
         offset = len(raw)
@@ -655,6 +668,7 @@ def run_pty(
             "preset_export_import_cancel": advanced,
             "shared_advanced_save": advanced,
             "interactive_host_preferences": advanced,
+            "shortcut_styles": True,
             "toggle": True,
             "space_toggles_item": True,
             "keyboard_after_click": True,
