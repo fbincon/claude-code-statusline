@@ -55,6 +55,11 @@ def prepare(
         for key in ("apiKeyHelper", "env", "model")
         if key in settings
     }
+    version = subprocess.check_output([claude, "--version"], text=True, timeout=10)
+    build = tuple(map(int, re.search(r"\d+\.\d+\.\d+", version).group().split(".")))
+    if build >= (2, 1, 294):
+        # Current hosts resolve settings.theme before the legacy global value.
+        copied["theme"] = theme
     path = config / "settings.json"
     path.write_text(json.dumps(copied, ensure_ascii=False), encoding="utf-8")
     path.chmod(0o600)
