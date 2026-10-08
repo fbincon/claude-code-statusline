@@ -31,6 +31,12 @@ CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --
 
 预览内容每个单元格使用 `#17191e` 背景，包括空白和溢出提示行；无颜色样例使用 `#dedee7`。后端 RGB／ANSI span 保留原始颜色，预览框标题跟随宿主主题。无需新增显示设置或协议字段。
 
+[Linux 浅色／深色捕获来源](../images/README.zh-CN.md#主题终端捕获)。图片是实际终端单元格的裁剪重建，与系统截图及真人验收分别记录。
+
+![浅色主题原生编辑器](../images/tui/native/linux/themes/main-light.png)
+
+![深色主题原生编辑器](../images/tui/native/linux/themes/main-dark.png)
+
 ## 编辑器行为
 
 打开后先点击 Client 区域一次，再用键盘。Linux 2.1.288 实测中 `focus: true` 未让 Client 自动收键。Esc 不传给 Client：第一次归还输入焦点，之后可关闭面板。取消字段编辑使用 Ctrl+G。保存中或结果不明时阻止普通关闭。

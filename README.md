@@ -59,6 +59,17 @@ Run `/statusline-configure-native` inside the current Claude Code session, then 
 </details>
 
 <details>
+<summary>Linux: light and dark themes</summary>
+
+The editor follows Claude’s applied theme; preview colors remain on a separate dark surface. These images reconstruct real terminal cells. [Capture provenance](docs/images/README.md#theme-terminal-captures).
+
+![Linux light theme native editor](docs/images/tui/native/linux/themes/main-light.png)
+
+![Linux dark theme native editor](docs/images/tui/native/linux/themes/main-dark.png)
+
+</details>
+
+<details>
 <summary>Windows: Main, Subagents, Settings, Layout</summary>
 
 **Main: select and reorder main status line items.**

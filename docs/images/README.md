@@ -124,3 +124,12 @@ The supplied directory groups files by entry and platform; original filenames re
 ## Historical provenance
 
 Original captures, hashes and acceptance scope for older links remain in the [archive index](archive/README.md).
+
+## Theme terminal captures
+
+Two additional Linux images were reconstructed on 2026-10-09 from actual Claude Code 2.1.294 truecolor PTY cells, cropped to the native editor. They are agent-inspected terminal captures, separate from the 21 original screenshots and from human acceptance. Source commit: `bb687df044d7e875c4817d9b1fc8c905749834bc`; viewport 120×30; OS Linux x86_64. All pages, forms and separate theme Apply are checked at both 120×30 and 80×48. Raw cells and private session logs stay in ignored validation directories.
+
+| Theme | Capture | Size | PNG SHA256 | Cell SHA256 |
+| --- | --- | --- | --- | --- |
+| light | [main-light.png](tui/native/linux/themes/main-light.png) | 888×576 | `08eee7ab45ad74814280c770c2c51c4772456382e1d80ff7c75edcb166205b11` | `0d74c602d9b8dc21e05349fcb9c1be65eba07b79c1518d85705b3a082f19686d` |
+| dark | [main-dark.png](tui/native/linux/themes/main-dark.png) | 888×576 | `ec5292f49b7adc18089d02ea94dab021c25a01e025ef5ea5177c36183da9908b` | `1bed1c71d5956fe7a4b3eab602bc2ed4b2b57d85db77523babb7038684807433` |

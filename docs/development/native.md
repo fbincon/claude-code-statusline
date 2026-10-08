@@ -31,6 +31,12 @@ Source loading exposes only `/statusline-configure-native`. Dependencies, genera
 
 Preview content fills every cell with `#17191e`, including empty and overflow rows, with `#dedee7` for uncolored samples. Backend RGB/ANSI spans keep their original colors. Preview frame titles follow the host theme. No new display setting or protocol field is needed.
 
+[Linux light/dark capture provenance](../images/README.md#theme-terminal-captures). These are cropped reconstructions of real terminal cells, not OS screenshots or new human acceptance.
+
+![Light theme native editor](../images/tui/native/linux/themes/main-light.png)
+
+![Dark theme native editor](../images/tui/native/linux/themes/main-dark.png)
+
 ## Editor behavior
 
 Click the Client region once after opening, then use the keyboard. Opening with `focus: true` does not establish Client keyboard focus in the tested Linux 2.1.288 host. Esc is not delivered to Client: first it returns input focus, then it can close the pane. Use Ctrl+G to cancel field editing. Saving or an unknown save outcome blocks ordinary closing.

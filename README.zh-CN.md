@@ -57,6 +57,17 @@
 </details>
 
 <details>
+<summary>Linux：浅色和深色主题</summary>
+
+编辑器跟随 Claude 实际主题，预览配色保留在独立深底上。图片根据实际终端单元格重建。[捕获来源](docs/images/README.zh-CN.md#主题终端捕获)。
+
+![Linux 浅色主题原生编辑器](docs/images/tui/native/linux/themes/main-light.png)
+
+![Linux 深色主题原生编辑器](docs/images/tui/native/linux/themes/main-dark.png)
+
+</details>
+
+<details>
 <summary>Windows：Main、Subagents、Settings、Layout</summary>
 
 **Main：选择主状态栏条目并调整顺序。**
