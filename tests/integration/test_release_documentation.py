@@ -22,7 +22,7 @@ def release(tag, body=""):
     version = tag[1:]
     prefix = (
         "fbincon_claude_code_statusline"
-        if version in {"1.7.4", "1.7.5"}
+        if tuple(map(int, re.match(r"(\d+)\.(\d+)\.(\d+)", version).groups())) >= (1, 7, 4)
         else "claude_code_statusline"
     )
     assets = [
@@ -144,6 +144,15 @@ class GiteeNotesTests(unittest.TestCase):
         self.assertIn(target["assets"][0]["browser_download_url"], notes)
         self.assertIn("download directory", notes)
         self.assertNotIn(f'pipx install --force "{GITEE}/', notes)
+
+    def test_pinned_index_install_uses_local_wheel_and_rejects_another_version(self):
+        source, target = release("v1.7.6", "pipx install --force fbincon-claude-code-statusline==1.7.6")
+        notes = render("v1.7.6", source, [target])
+        self.assertIn(f'pipx install --force "./{target["assets"][0]["name"]}"', notes)
+        self.assertNotIn('"==1.7.6', notes)
+        source["body"] = "pipx install --force fbincon-claude-code-statusline==1.7.7"
+        with self.assertRaisesRegex(ValueError, "Pinned installation version differs"):
+            render("v1.7.6", source, [target])
 
     def test_keep_github_workflows_issues_and_original_provenance(self):
         source, target = release(

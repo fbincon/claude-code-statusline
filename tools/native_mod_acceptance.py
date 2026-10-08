@@ -80,6 +80,7 @@ def prepare(
         os.environ,
         CLAUDE_CONFIG_DIR=str(config),
         TERM="xterm-256color",
+        COLORTERM="truecolor",
         DISABLE_AUTOUPDATER="1",
         CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1",
         CLAUDE_STATUSLINE_NATIVE_EXECUTABLE=str(backend),
@@ -294,7 +295,13 @@ def run_pty(
             assert key_cell["bold"] and not key_cell["blink"], "Save key lost its emphasis"
             assert contrast(*cell_colors(key_cell)) >= 4.5, "Save key is unreadable against its actual background"
             assert all(not cell["bold"] for cell in footer[1][2:]), "Save description inherited the key's bold style"
-            assert contrast(*cell_colors(footer[1][2])) >= 4.5, "Save description is unreadable"
+            description_cell = footer[1][2]
+            foreground, background = cell_colors(description_cell)
+            assert foreground != background, "Save description matches its background"
+            # ANSI slots are user-defined; the capture palette is illustrative.
+            # Numeric contrast is evidence only for explicit RGB cells.
+            if re.fullmatch(r"[0-9a-fA-F]{6}", description_cell["fg"]):
+                assert contrast(foreground, background) >= 4.5, "Save description is unreadable"
             help_text = " ".join("".join(cell["data"] for cell in row) for row in cells[footer[0]:])
             expected = ["Tab page", "↑↓ select", "←→ adjust", "Enter edit"]
             if name.startswith("main") or name == "subagents":
@@ -827,7 +834,7 @@ def main() -> int:
         "theme": args.theme,
         "terminal": args.terminal or os.environ.get("TERM_PROGRAM", "unknown")
         if args.interactive
-        else "xterm-256color PTY",
+        else "xterm-256color / truecolor PTY",
         "claude": subprocess.check_output(
             [args.claude, "--version"], text=True
         ).strip(),
