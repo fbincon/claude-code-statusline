@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fbincon-claude-code-statusline"
-version = "1.7.4"
+version = "1.7.5"
 description = "A configurable, stateful Claude Code status line for Linux, Windows and macOS"
 readme = "README.md"
 license = "MIT"
@@ -53,3 +53,4 @@ claude_statusline = [
 
 [tool.setuptools.cmdclass]
 build_py = "build_native.BuildPy"
+egg_info = "build_native.EggInfo"

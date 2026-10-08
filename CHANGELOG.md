@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## 1.7.5 - 2026-10-08
+
+- Use relative documentation, language, license and screenshot links so the same main branch works on GitHub and Gitee. Generate fixed-tag GitHub links only in package metadata for the PyPI description; source READMEs retain generic package commands and no version/update section.
+- Add a local Gitee Release-note renderer using public GitHub metadata and verified Gitee attachment URLs. Preserve historical package names, tags, support claims and prerelease status; document repeatable task-driven synchronization and note backups.
+- Synchronize Python and both Mod release manifests to 1.7.5. CLI, configuration, runtime behavior and the repository layout remain compatible.
 - Wait up to three minutes for newly uploaded versions to become visible in the package index. Retry only incomplete/404 reads; reject permission, identity and checksum errors immediately without repeating uploads.
 
 ## 1.7.4 - 2026-10-08

@@ -2,13 +2,13 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.7.4](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.4)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.7.5](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.5)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-正式 v1.7.4 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
+正式 v1.7.5 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
@@ -23,6 +23,8 @@ Phase 5 候选要求 PR、合并提交、标签的全部 13 个 Python/build 和
 ### 维护双语文档
 
 现有文档路径以英文为默认版本，完整简体中文版使用同目录的 `.zh-CN.md` 后缀。首页、使用指南、发布指南、变更记录和截图说明的修改应同步维护两种语言，包括语言切换和同语言链接；英文路径保留旧中文标题锚点。
+
+仓库文档、语言切换、许可证、截图与页内导航使用相对链接。GitHub CI、Issues、项目元数据与源码安装命令继续保持 GitHub 主库身份。setuptools 元数据钩子将 README 链接转换为固定 GitHub 标签地址供 PyPI 使用，不修改源码 README；检查 wheel 与 sdist 长描述，并确认 sdist 保留原始 README。行内代码与代码块中的命令示例不参与通用链接转换。
 
 完整双语 Release 正文保存在 `docs/releases/<tag>.md`，英文在前，原中文置于可展开区域，Release 标题使用英文。保留各版本当时的支持范围和验证结论；历史中文文档链接应明确标注语言。修改现有 Release 时只更新标题与正文，保留标签、附件、发布类型和 Latest 状态。
 
@@ -42,7 +44,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.7.4
+RELEASE_TAG=v1.7.5
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -62,8 +64,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
-fbincon_claude_code_statusline-1.7.4.tar.gz
+fbincon_claude_code_statusline-1.7.5-py3-none-any.whl
+fbincon_claude_code_statusline-1.7.5.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -84,8 +86,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum fbincon_claude_code_statusline-1.7.4-py3-none-any.whl \
-  fbincon_claude_code_statusline-1.7.4.tar.gz > SHA256SUMS
+sha256sum fbincon_claude_code_statusline-1.7.5-py3-none-any.whl \
+  fbincon_claude_code_statusline-1.7.5.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -94,8 +96,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'fbincon_claude_code_statusline-1.7.4-py3-none-any.whl',
-    'fbincon_claude_code_statusline-1.7.4.tar.gz'
+    'fbincon_claude_code_statusline-1.7.5-py3-none-any.whl',
+    'fbincon_claude_code_statusline-1.7.5.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -113,8 +115,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.4-py3-none-any.whl" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.4.tar.gz" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.5-py3-none-any.whl" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.5.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -194,7 +196,7 @@ git remote add gitee git@gitee.com:fbincon/claude-code-statusline.git
 
 ```bash
 git push gitee main:refs/heads/main
-git push gitee refs/tags/v1.7.4:refs/tags/v1.7.4
+git push gitee refs/tags/v1.7.5:refs/tags/v1.7.5
 ```
 
 核对两平台 `main` 和标签对象 ID 完全一致，保留带注释标签及其目标提交。历史功能分支仅按需推送。引用出现分叉时先排查，日常同步不得强推或使用 `git push --mirror`。Gitee PR 验收使用临时目标分支和功能分支，确认合并后仅删除这些分支并保留 PR 记录。
@@ -202,6 +204,24 @@ git push gitee refs/tags/v1.7.4:refs/tags/v1.7.4
 Git 推送不会复制 Release 元数据与附件。GitHub 发行版发布并验证后，通过 [Gitee 官方 MCP](https://gitee.com/oschina/mcp-gitee) 创建同版本 Release，沿用固定标签、提交、英文标题、双语说明和预发布状态，并在 Gitee 说明中补充已验证的 Gitee 下载链接。发布状态按 Gitee 实际 API 能力处理。创建 Release 的工具不能替代附件上传：使用[官方 Release 附件 API](https://gitee.com/api/v5/swagger) 的 `POST /repos/{owner}/{repo}/releases/{release_id}/attach_files` 上传原始 wheel、源码包及 `SHA256SUMS`。
 
 将 GitHub 已发布的原始附件下载到新的目录并先验证，再上传到 Gitee。Gitee 上已有同版本 Release 时复用匹配的元数据与附件，仅上传缺失文件；存在内容冲突时停止。上传后匿名重新下载 Gitee 的三个附件，核对名称、大小、SHA256，并与 GitHub 原件逐字节比较。通过后记录 Gitee Release 地址与固定提交，保留 GitHub 的真实验证结论和支持边界。
+
+### 生成平台适配说明
+
+修改现有 Gitee 说明前，将完整 Release JSON（含正文、标签、预发布状态与附件清单）保存至忽略的验收目录。以当前 GitHub 公开发行版 JSON 为权威来源；检出目录中的历史说明可能早于最终公开验证记录。保留 GitHub 标题／正文、历史标签对象和软件包字节。
+
+对应 Gitee Release 及已验证附件就绪后，导出当前 Gitee 发行版集合（包含全部分页），在本地生成：
+
+```bash
+python tools/render_gitee_release.py \
+  --tag "$RELEASE_TAG" \
+  --github-release-json "$RELEASE_ROOT/github-release.json" \
+  --gitee-releases-json "$RELEASE_ROOT/gitee-releases.json" \
+  --output "$RELEASE_ROOT/gitee-notes.md"
+```
+
+生成器不发起网络请求或平台写入，使用实际附件地址并保留各版本分发名。相对文档地址以 `docs/releases/<tag>.md` 为基准；显式分支／标签引用保留原含义。安装／更新命令使用对应 Gitee wheel 或源码引用；GitHub Actions、Issues 与原始发布来源保持真实平台。附件缺失／重复、标签或包身份不符、预发布属性冲突时，在写入输出前停止。
+
+检查 Markdown，与权威来源和快照对比，核验文档目标与安装命令，再通过官方 MCP/API 仅更新 Gitee 正文。MCP 缺少的发行版更新能力使用 `PATCH /repos/{owner}/{repo}/releases/{release_id}`，字段以表单编码提交。更新后重新读取，确认标签、预发布属性及附件清单未变。重复同步仍从 GitHub 重新生成，附录不会累积；仅说明更新需要回滚时恢复已保存正文。网页导航与 API／附件检查分别记录；遇到验证码时，由用户完成后继续网页验收。
 
 认证配置保存在维护者本机：使用专用 Gitee SSH 身份和系统密钥环保存的私人令牌。Codex 可通过 `http_headers_helper` 提供 MCP 认证头，附件客户端在进程内读取同一密钥环条目。不得把令牌写入仓库、文档、URL、命令参数或日志。版本控制使用标准 `git`，Gitee 平台操作使用 MCP/API；`gh` 继续用于 GitHub。
 
@@ -263,7 +283,7 @@ Python 和两 Mod 晋升为 1.7.0，更新当前稳定安装／升级入口，�
 
 要求本地完整检查、全部 20 项 PR／合并／标签 CI、已安装核心／原生／运行 smoke、两编辑器 PTY 和 1.7.1 升级。从验证后的固定合并提交构建，检查清单、独立重建／安装、草稿／公开资产、SHA256 和 URL 安装。原始捕获留在忽略目录，历史截图保留；README 维护使用说明和当前安装链接，更新记录放在 CHANGELOG 与 Release。门槛通过后发布 v1.7.2 正式 Latest，不运行付费模型／计时套件。
 
-## v1.7.4 文档与诊断修正
+## v1.7.5 文档与诊断修正
 
 验证 schema 成功及迁移提示随显示版本常量变化、兼容 v1–v4 文件的诊断不写入、旧草稿在加锁前拒绝。按源码核对当前双语目录数量、协议示例、采集默认值和计时说明，保留按版本记录的验收数据。提供的 21 张 PNG 保留原字节及哈希，被替换的 18 张图库图片保留来源。
 
