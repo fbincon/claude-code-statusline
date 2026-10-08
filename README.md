@@ -287,53 +287,53 @@ Display settings and backups remain available; see [uninstalling](docs/USER_GUID
 
 ```text
 claude-code-statusline/
-├── .github/workflows/
-│   ├── ci.yml
-│   ├── native.yml
-│   └── publish.yml
-├── README.md / README.zh-CN.md
-├── CHANGELOG.md / CHANGELOG.zh-CN.md
-├── LICENSE
-├── MANIFEST.in
-├── pyproject.toml
-├── docs/
-│   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md
-│   ├── reference/                  # CLI and configuration reference
-│   ├── images/                     # Current screenshots and archive
-│   │   ├── tui/
-│   │   │   ├── native/
-│   │   │   └── external/
-│   │   └── archive/
-│   ├── development/                # Setup, architecture and validation
-│   └── releases/                   # Historical release notes
-├── src/
-│   ├── build_native.py
-│   └── claude_statusline/
-│       ├── config/
-│       ├── integration/
-│       ├── platforms/
-│       ├── rendering/
-│       ├── runtime/
-│       │   ├── live/
-│       │   ├── tasks/
-│       │   ├── timing/
-│       │   └── turns/
-│       ├── resources/
-│       └── ui/
-├── mods/
-│   ├── statusline-native/
-│   └── statusline-runtime/
-├── tests/
-│   ├── config/
-│   ├── integration/
-│   ├── platforms/
-│   ├── rendering/
-│   ├── runtime/
-│   └── ui/
-└── tools/
-    ├── inspect_dist.py
-    ├── publish_package.py
-    └── check_docs.py
+├── .github/workflows/                       # GitHub Actions workflows
+│   ├── ci.yml                               # Cross-platform tests and distribution builds
+│   ├── native.yml                           # Mod validation, type checks and installation tests
+│   └── publish.yml                          # PyPI/TestPyPI publication and install verification
+├── README.md / README.zh-CN.md              # Project overview and quick start
+├── CHANGELOG.md / CHANGELOG.zh-CN.md        # Versioned change history
+├── LICENSE                                  # MIT license
+├── MANIFEST.in                              # Source distribution file selection
+├── pyproject.toml                           # Package metadata, dependencies and build configuration
+├── docs/                                    # User, reference and development documentation
+│   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # Installation, configuration and troubleshooting
+│   ├── reference/                           # CLI and configuration reference
+│   ├── images/                              # Current TUI screenshots and historical archives
+│   │   ├── tui/                             # Current configuration editor screenshots
+│   │   │   ├── native/                      # In-session configuration editor screenshots
+│   │   │   └── external/                    # External terminal configuration editor screenshots
+│   │   └── archive/                         # Historical screenshots and UI reconstructions
+│   ├── development/                         # Development setup, architecture and validation
+│   └── releases/                            # Historical release notes
+├── src/                                     # Python source and build extensions
+│   ├── build_native.py                      # Mod resource bundling and package README link rewriting
+│   └── claude_statusline/                   # Python CLI and implementation modules
+│       ├── config/                          # Configuration models, storage, migrations and commands
+│       ├── integration/                     # Claude Code setup, install transactions, hooks and diagnostics
+│       ├── platforms/                       # Cross-platform files, processes, clocks and terminals
+│       ├── rendering/                       # Statusline formatting, colors, layout and previews
+│       ├── runtime/                         # Session data collection, caches and task state
+│       │   ├── live/                        # Independent observation protocol, aggregation and storage
+│       │   ├── tasks/                       # User task ownership, lifecycle and timing state
+│       │   ├── timing/                      # Pure pause/resume clock logic
+│       │   └── turns/                       # Compatibility aliases forwarding to tasks/
+│       ├── resources/                       # Bundled configuration skill templates
+│       └── ui/                              # External terminal editor and shared JSON backend
+├── mods/                                    # Claude Code TypeScript Mods
+│   ├── statusline-native/                   # In-session configuration editor Mod
+│   └── statusline-runtime/                  # Native task timing and optional advanced metrics Mod
+├── tests/                                   # Python unit and integration tests
+│   ├── config/                              # Configuration, formatting, migration and transfer tests
+│   ├── integration/                         # CLI, installation, packaging and compatibility tests
+│   ├── platforms/                           # Platform adapters and terminal integration tests
+│   ├── rendering/                           # Statusline formatting, layout and metric display tests
+│   ├── runtime/                             # Session state, task lifecycle and timing tests
+│   └── ui/                                  # Configuration editor, layout and protocol tests
+└── tools/                                   # Development, validation and release utilities
+    ├── inspect_dist.py                      # Wheel/sdist metadata, contents and exclusion checks
+    ├── publish_package.py                   # Release asset validation and package index install checks
+    └── check_docs.py                        # Documentation links, anchors and bilingual pair checks
 ```
 
 ## Documentation and help
