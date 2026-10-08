@@ -275,53 +275,53 @@ pipx uninstall fbincon-claude-code-statusline
 
 ```text
 claude-code-statusline/
-├── .github/workflows/
-│   ├── ci.yml
-│   ├── native.yml
-│   └── publish.yml
-├── README.md / README.zh-CN.md
-├── CHANGELOG.md / CHANGELOG.zh-CN.md
-├── LICENSE
-├── MANIFEST.in
-├── pyproject.toml
-├── docs/
-│   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md
-│   ├── reference/                  # CLI 与配置参考
-│   ├── images/                     # 当前截图与归档
-│   │   ├── tui/
-│   │   │   ├── native/
-│   │   │   └── external/
-│   │   └── archive/
-│   ├── development/                # 开发、架构与验证
-│   └── releases/                   # 历史发布说明
-├── src/
-│   ├── build_native.py
-│   └── claude_statusline/
-│       ├── config/
-│       ├── integration/
-│       ├── platforms/
-│       ├── rendering/
-│       ├── runtime/
-│       │   ├── live/
-│       │   ├── tasks/
-│       │   ├── timing/
-│       │   └── turns/
-│       ├── resources/
-│       └── ui/
-├── mods/
-│   ├── statusline-native/
-│   └── statusline-runtime/
-├── tests/
-│   ├── config/
-│   ├── integration/
-│   ├── platforms/
-│   ├── rendering/
-│   ├── runtime/
-│   └── ui/
-└── tools/
-    ├── inspect_dist.py
-    ├── publish_package.py
-    └── check_docs.py
+├── .github/workflows/                       # GitHub Actions 工作流
+│   ├── ci.yml                               # 跨平台测试与分发包构建
+│   ├── native.yml                           # Mod 校验、类型检查与安装验证
+│   └── publish.yml                          # PyPI/TestPyPI 发布与安装验证
+├── README.md / README.zh-CN.md              # 项目概览与快速开始
+├── CHANGELOG.md / CHANGELOG.zh-CN.md        # 版本变更记录
+├── LICENSE                                  # MIT 许可证
+├── MANIFEST.in                              # 源码包文件收录规则
+├── pyproject.toml                           # 软件包元数据、依赖与构建配置
+├── docs/                                    # 使用、参考与开发文档
+│   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # 安装、配置与故障排查
+│   ├── reference/                           # CLI 与配置参考
+│   ├── images/                              # 当前 TUI 截图与历史归档
+│   │   ├── tui/                             # 当前配置编辑器截图
+│   │   │   ├── native/                      # 会话内配置编辑器截图
+│   │   │   └── external/                    # 外部终端配置编辑器截图
+│   │   └── archive/                         # 历史截图与界面重建记录
+│   ├── development/                         # 开发环境、架构与验证
+│   └── releases/                            # 历史发布说明
+├── src/                                     # Python 源码与构建扩展
+│   ├── build_native.py                      # Mod 资源打包与软件包 README 链接转换
+│   └── claude_statusline/                   # Python CLI 与实现模块
+│       ├── config/                          # 配置模型、存储、迁移与命令
+│       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
+│       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配
+│       ├── rendering/                       # 状态栏格式、颜色、布局与预览
+│       ├── runtime/                         # 会话数据采集、缓存与任务状态
+│       │   ├── live/                        # 独立运行观测协议、归并与存储
+│       │   ├── tasks/                       # 用户任务归属、生命周期与计时状态
+│       │   ├── timing/                      # 支持暂停与恢复的纯逻辑时钟
+│       │   └── turns/                       # 转发至 tasks/ 的兼容别名
+│       ├── resources/                       # 随包提供的配置 Skill 模板
+│       └── ui/                              # 外部终端编辑器与共享 JSON 后端
+├── mods/                                    # Claude Code TypeScript Mod
+│   ├── statusline-native/                   # 会话内配置编辑器 Mod
+│   └── statusline-runtime/                  # 原生任务计时与可选高级指标采集 Mod
+├── tests/                                   # Python 单元与集成测试
+│   ├── config/                              # 配置、格式、迁移与导入导出测试
+│   ├── integration/                         # CLI、安装、打包与兼容性测试
+│   ├── platforms/                           # 平台适配与终端集成测试
+│   ├── rendering/                           # 状态栏格式、布局与指标显示测试
+│   ├── runtime/                             # 会话状态、任务生命周期与计时测试
+│   └── ui/                                  # 配置编辑器、布局与协议测试
+└── tools/                                   # 开发、验证与发布工具
+    ├── inspect_dist.py                      # wheel/sdist 元数据、内容与排除规则检查
+    ├── publish_package.py                   # 发布资产校验与软件源安装验证
+    └── check_docs.py                        # 文档链接、锚点与双语配对检查
 ```
 
 ## 文档与帮助
