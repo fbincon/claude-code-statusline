@@ -4,7 +4,7 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.7.4](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.4); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.7.5](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.5); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,7 +12,7 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-Stable v1.7.4 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
+Stable v1.7.5 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
@@ -27,6 +27,8 @@ Display-item releases retain the accepted UI interaction and installation policy
 ### Maintain bilingual documentation
 
 English is the default at existing documentation paths. Complete Simplified Chinese versions use the `.zh-CN.md` suffix in the same directory. Update both languages together, including README, user guide, release guide, changelog, and image index. Keep language switches and links within each language current; retain legacy Chinese heading anchors at the English paths.
+
+Use relative links for repository documentation, language switches, license files, screenshots and same-page sections. GitHub CI, Issues, package metadata and source-install commands retain their primary GitHub identity. The setuptools metadata hook converts README destinations into fixed-tag GitHub links for PyPI without editing the source README. Check both wheel and sdist descriptions and preserve the original README in the sdist. Inline code and fenced command examples are not rewritten by this conversion.
 
 Store complete bilingual Release bodies in `docs/releases/<tag>.md`, with English first and the original Chinese in an expandable section. Use an English Release title. Preserve version-specific support and validation claims; label links to historical Chinese documentation explicitly. When editing an existing Release, update only its title and body, preserving tags, assets, release type, and Latest selection.
 
@@ -48,7 +50,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.7.4
+RELEASE_TAG=v1.7.5
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -68,8 +70,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
-fbincon_claude_code_statusline-1.7.4.tar.gz
+fbincon_claude_code_statusline-1.7.5-py3-none-any.whl
+fbincon_claude_code_statusline-1.7.5.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -92,8 +94,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum fbincon_claude_code_statusline-1.7.4-py3-none-any.whl \
-  fbincon_claude_code_statusline-1.7.4.tar.gz > SHA256SUMS
+sha256sum fbincon_claude_code_statusline-1.7.5-py3-none-any.whl \
+  fbincon_claude_code_statusline-1.7.5.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -102,8 +104,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'fbincon_claude_code_statusline-1.7.4-py3-none-any.whl',
-    'fbincon_claude_code_statusline-1.7.4.tar.gz'
+    'fbincon_claude_code_statusline-1.7.5-py3-none-any.whl',
+    'fbincon_claude_code_statusline-1.7.5.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -123,8 +125,8 @@ Confirm all 13 Python/build and seven Mod CI jobs pass for Phase 5 for `RELEASE_
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.4-py3-none-any.whl" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.4.tar.gz" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.5-py3-none-any.whl" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.5.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -206,7 +208,7 @@ Before synchronizing, inspect `git remote -v`, the current branch, and the remot
 
 ```bash
 git push gitee main:refs/heads/main
-git push gitee refs/tags/v1.7.4:refs/tags/v1.7.4
+git push gitee refs/tags/v1.7.5:refs/tags/v1.7.5
 ```
 
 Verify both hosts expose identical `main` and tag object IDs. Preserve annotated tags and their target commits. Historical feature branches are pushed only when needed. If a ref has diverged, investigate before writing; never use force-push or `git push --mirror` for routine synchronization. Gitee PR acceptance uses temporary target and feature branches, preserving the PR record and removing only those branches after verified merging.
@@ -214,6 +216,24 @@ Verify both hosts expose identical `main` and tag object IDs. Preserve annotated
 Git pushes do not copy Release metadata or assets. After the GitHub release is published and verified, create the matching Gitee Release using the [official Gitee MCP server](https://gitee.com/oschina/mcp-gitee). Use the same fixed tag, commit, English title, bilingual notes, and prerelease status; add verified Gitee download links to the Gitee notes. Gitee publishing states should follow its actual API capabilities. Its Release creation tool does not replace attachment upload: use the [official Release attachment API](https://gitee.com/api/v5/swagger) at `POST /repos/{owner}/{repo}/releases/{release_id}/attach_files` for the original wheel, source distribution, and `SHA256SUMS`.
 
 Download GitHub's original published assets into a fresh directory and verify them before upload. For an existing Gitee Release, reuse matching metadata and assets, upload only missing files, and stop on conflicting content. After upload, anonymously redownload all three Gitee assets, verify names, sizes, and SHA256, and compare bytes with the GitHub originals. Record the Gitee Release URL and fixed commit after these checks pass. Preserve the GitHub validation claims and support boundaries.
+
+### Generate platform-specific notes
+
+Before modifying existing Gitee notes, save its complete Release JSON, including body, tag, prerelease status and asset list, in an ignored validation directory. Read the current public GitHub Release JSON as the canonical source; historical files in the checkout may predate final public validation. Keep GitHub titles/bodies and all historical tag objects and package bytes intact.
+
+After the matching Gitee Release and its verified attachments exist, export the current Gitee Release collection (including all pages) and render locally:
+
+```bash
+python tools/render_gitee_release.py \
+  --tag "$RELEASE_TAG" \
+  --github-release-json "$RELEASE_ROOT/github-release.json" \
+  --gitee-releases-json "$RELEASE_ROOT/gitee-releases.json" \
+  --output "$RELEASE_ROOT/gitee-notes.md"
+```
+
+The renderer makes no network requests or platform writes. It uses actual attachment URLs, retaining each version's distribution name. Relative document links resolve from `docs/releases/<tag>.md`; explicit branch/tag refs keep their original meaning. Installation/update commands use the matching Gitee wheel or source ref. GitHub Actions, Issues and original publication provenance retain their real platform. Missing or duplicate assets, a wrong tag, package identity or prerelease mismatch stop generation before writing the output.
+
+Review the Markdown, compare it with the canonical source and snapshot, and validate document targets and installation commands. Use the official MCP/API to update only the Gitee body; release updates missing from MCP use `PATCH /repos/{owner}/{repo}/releases/{release_id}` with form-encoded fields. Re-read the release afterward and check its tag, prerelease flag and attachment list remain unchanged. Repeated synchronization renders from GitHub again, so appendices do not accumulate; restore the saved body if a note-only update needs rollback. Record actual browser navigation separately from API and attachment checks; a CAPTCHA requires user completion before browser acceptance can resume.
 
 Authentication is local to each maintainer's machine: use a dedicated Gitee SSH identity and a personal token stored in the system keyring. Codex can supply MCP authentication through `http_headers_helper`; attachment clients read the same keyring entry inside the process. Never put tokens in the repository, documentation, URLs, command arguments, or logs. Use standard `git` for version control and the Gitee MCP/API for Gitee platform operations; `gh` remains a GitHub client.
 
@@ -275,7 +295,7 @@ Verify the cyan Configure Status Line heading, uppercase key/lowercase action st
 
 Require complete local checks and all 20 PR/merge/tag jobs, installed core/native/runtime smoke, both editor PTYs and 1.7.1 upgrades. Build from the verified merge SHA, inspect inventories, independently rebuild/install, and verify draft/public assets, SHA256 and URL installs. Keep raw captures ignored and historical screenshots intact. README contains usage and current install links; release history belongs in changelogs and Release notes. Publish v1.7.2 as stable Latest after the gates pass; no paid model/timer suite is required.
 
-## v1.7.4 documentation and diagnostics
+## v1.7.5 documentation and diagnostics
 
 Verify schema success/migration messages against the supported display version, supported v1–v4 files without diagnostic writes, and rejected legacy drafts before locking. Audit current bilingual catalog counts, protocol examples, collector defaults and timer explanations against source; preserve versioned acceptance records. The supplied 21 PNGs retain their original bytes and hashes, and the replaced 18-image gallery retains its provenance.
 

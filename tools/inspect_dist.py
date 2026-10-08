@@ -39,6 +39,8 @@ def main():
     import sys
 
     sys.path.insert(0, str(Path("src").resolve()))
+    sys.path.insert(0, str(Path("tools").resolve()))
+    from markdown_links import pypi_readme
     from claude_statusline.integration.native_resources import source_files, inventory
     from claude_statusline.integration.mods import SPECS
 
@@ -64,11 +66,12 @@ def main():
         assert metadata["Version"] == version
         assert metadata["Description-Content-Type"] == "text/markdown"
         english_readme = Path("README.md").read_text(encoding="utf-8")
-        assert metadata.get_payload(decode=True).decode("utf-8") == english_readme
+        long_description = pypi_readme(english_readme, version)
+        assert metadata.get_payload(decode=True).decode("utf-8") == long_description
         if args.check_long_description:
             from readme_renderer.markdown import render
 
-            rendered = render(english_readme)
+            rendered = render(long_description)
             assert rendered is not None, "Install readme-renderer[md] to check Markdown"
             rendered_anchors = set(re.findall(r'id="([^"\n]+)"', rendered))
             for target in re.findall(r'(?:href|src)="([^"\n]+)"', rendered):
@@ -123,6 +126,10 @@ def main():
     with tarfile.open(sdist[0], "r:gz") as archive:
         names = set(archive.getnames())
         distributions.append(names)
+        root = next(name.split("/")[0] for name in names)
+        assert archive.extractfile(f"{root}/README.md").read() == Path("README.md").read_bytes()
+        sdist_metadata = email.message_from_bytes(archive.extractfile(f"{root}/PKG-INFO").read())
+        assert sdist_metadata.get_payload(decode=True).decode("utf-8") == long_description
         for suffix in (
             "README.md",
             "README.zh-CN.md",

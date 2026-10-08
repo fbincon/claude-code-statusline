@@ -84,7 +84,7 @@ python3 -m venv .venv-build
 source .venv-build/bin/activate
 python -m pip install --upgrade build
 python -m build
-pipx install dist/fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
+pipx install dist/fbincon_claude_code_statusline-1.7.5-py3-none-any.whl
 pipx ensurepath
 ```
 
@@ -94,13 +94,13 @@ Windows PowerShell：
 py -3.10 -m venv .venv-build
 .\.venv-build\Scripts\python.exe -m pip install --upgrade build
 .\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\fbincon_claude_code_statusline-1.7.4-py3-none-any.whl
+pipx install .\dist\fbincon_claude_code_statusline-1.7.5-py3-none-any.whl
 pipx ensurepath
 ```
 
-上述文件名对应稳定 v1.7.4；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](../USER_GUIDE.zh-CN.md#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](../USER_GUIDE.zh-CN.md#接入-claude-code)。
+上述文件名对应稳定 v1.7.5；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](../USER_GUIDE.zh-CN.md#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](../USER_GUIDE.zh-CN.md#接入-claude-code)。
 
-可在已激活的构建环境中用 `python -m zipfile -l dist/fbincon_claude_code_statusline-1.7.4-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](../RELEASING.zh-CN.md)。
+可在已激活的构建环境中用 `python -m zipfile -l dist/fbincon_claude_code_statusline-1.7.5-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](../RELEASING.zh-CN.md)。
 
 ### 隔离测试与人工验收
 
