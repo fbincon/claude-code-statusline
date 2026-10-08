@@ -22,6 +22,7 @@
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
 - **从预设开始：** minimal、developer、monitoring、multi-agent 四种预设可展开编辑，支持可移植 JSON 导入和导出。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
+- **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在独立深底上保留原始配色。
 - **按需开启实时指标：** 运行状态、代理数量、工具进度、请求用时和逐任务用量需主动启用；缺失数据和部分观测分别标记。
 
 状态栏渲染读取 Claude Code 输入和本地状态，不自行发起网络请求或使用模型 token。问答向导使用 Claude 模型回合。数据来源与可用条件见[显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)。
@@ -52,6 +53,17 @@
 **Layout：设置分行、逐项优先级与最大宽度。**
 
 ![Linux 会话内 TUI Layout 配置页与样例预览](docs/images/tui/native/linux/layout.png)
+
+</details>
+
+<details>
+<summary>Linux：浅色和深色主题</summary>
+
+编辑器跟随 Claude 实际主题，预览配色保留在独立深底上。图片根据实际终端单元格重建。[捕获来源](docs/images/README.zh-CN.md#主题终端捕获)。
+
+![Linux 浅色主题原生编辑器](docs/images/tui/native/linux/themes/main-light.png)
+
+![Linux 深色主题原生编辑器](docs/images/tui/native/linux/themes/main-dark.png)
 
 </details>
 
@@ -310,6 +322,11 @@ claude-code-statusline/
 │       └── ui/                              # 外部终端编辑器与共享 JSON 后端
 ├── mods/                                    # Claude Code TypeScript Mod
 │   ├── statusline-native/                   # 会话内配置编辑器 Mod
+│   │   ├── hooks/                           # 宿主 API、命令、保存与恢复
+│   │   ├── lib/                             # 后端、草稿、输入与独立快照
+│   │   ├── ui/                              # Client 绘制、组件、主题与布局
+│   │   │   └── theme.ts                     # 宿主颜色职责与独立预览背景
+│   │   └── tests/                           # 按后端、Client、编辑器、集成与 UI 分组测试
 │   └── statusline-runtime/                  # 原生任务计时与可选高级指标采集 Mod
 ├── tests/                                   # Python 单元与集成测试
 │   ├── config/                              # 配置、格式、迁移与导入导出测试

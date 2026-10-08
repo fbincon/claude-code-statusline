@@ -73,28 +73,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.7.5 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.5) provides the same wheel and source distribution.
+The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.7.6 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.6) provides the same wheel and source distribution.
 
 Alternatively download the wheel, source archive, and `SHA256SUMS` from that release. Compare the downloaded file's SHA-256 with the corresponding entry:
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.7.5-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.7.6-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.7.5-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.7.6-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.7.5-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.7.6-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.7.5-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.7.5-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.7.6-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.7.6-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.5"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.6"
 pipx ensurepath
 ```
 
@@ -155,9 +155,11 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 
 `/statusline-configure-native` opens Client inside the current Claude Code session without another terminal. It shares configuration, directory, catalog, exclusion rules and atomic saves with external `/statusline-configure`, while each editor keeps its draft. Stable defaults both entries on; restart Claude Code in a trusted terminal after installation.
 
+The editor follows Claude’s applied theme, including light/dark variants, color-blind themes and host-supported auto/custom themes. The sample preview keeps status-line colors on a separate dark background, including uncolored and empty rows. Theme edits in Claude preferences take effect through the separate Apply action.
+
 ### Page hierarchy and pagination
 
-The cyan **Configure Status Line** heading matches the Content and Preview titles. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys are white and bold; action descriptions are lowercase and use regular weight. Letter shortcuts display uppercase and accept either case outside input editing.
+The theme-accent **Configure Status Line** heading matches the Content and Preview titles. Larger panes place section titles on the frame; smaller panes use compact headings. Active tabs, group headings and selected fields have distinct styles. Shortcut keys use the current theme’s primary text color and bold weight; action descriptions are lowercase, use the theme’s inactive color and regular weight. Keys are judged by readability, not a fixed color. Letter shortcuts display uppercase and accept either case outside input editing.
 
 Page shortcuts appear in the footer, following the separate save/finish/close/preview group. Every page starts with `Tab page`:
 
@@ -562,7 +564,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.7.5 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
+The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.7.6 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
 
 ### Replace the Python package
 
@@ -814,7 +816,7 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 - Optional live fields require independent collection and valid observations; they do not infer missing measurements or focused-agent identity.
 - Subagent rows expose current task fields rather than a historical ledger or per-agent Git/cache/session aggregation.
 - Task completion requires confirmed ending evidence and resolved ordinary agent tasks/reports and main wrap-up. A classic Stop alone is a candidate; no timeout or expired heartbeat fabricates completion. Background shell/server/monitor/workflow and agent-team ledgers do not block completion.
-- Colors do not follow Claude's `/theme`; the default palette uses fixed project colors.
+- Status-line output colors use the configured project palette; in-session editor text and controls follow Claude's applied theme.
 
 ## Related documentation
 

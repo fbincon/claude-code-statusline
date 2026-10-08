@@ -142,9 +142,14 @@ def render(tag, source, releases):
         lambda match: f"git+{GITEE}.git@{match[1]}",
         body,
     )
+    def index_install(match):
+        if match[1]:
+            require(match[1] == tag[1:], "Pinned installation version differs from the Release")
+        return f'pipx install --force "{wheel_path}"'
+
     body = re.sub(
-        r"\bpipx\s+(?:install|upgrade)\s+(?:--force\s+)?(?:fbincon-)?claude-code-statusline(?![\w-])",
-        f'pipx install --force "{wheel_path}"',
+        r"\bpipx\s+(?:install|upgrade)\s+(?:--force\s+)?(?:fbincon-)?claude-code-statusline(?![\w-])(?:==([A-Za-z0-9.]+))?",
+        index_install,
         body,
     )
 

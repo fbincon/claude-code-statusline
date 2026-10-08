@@ -33,6 +33,15 @@ jobs:
           - os: macos-15
             platform: macOS
             claude: "2.1.289"
+          - os: ubuntu-latest
+            platform: Linux
+            claude: "2.1.294"
+          - os: windows-latest
+            platform: Windows
+            claude: "2.1.294"
+          - os: macos-15
+            platform: macOS
+            claude: "2.1.294"
     defaults:
       run:
         shell: bash
@@ -75,7 +84,7 @@ jobs:
       - name: Official installation and backend bridge
         run: python tools/native_install_smoke.py --report "$RUNNER_TEMP/native-installation.json"
       - name: Independent runtime Mod and installation
-        if: matrix.claude == '2.1.289'
+        if: matrix.claude == '2.1.289' || matrix.claude == '2.1.294'
         run: |
           python tools/prepare_mod_types.py --plugin mods/statusline-runtime
           claude plugin validate --strict mods/statusline-runtime

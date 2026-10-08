@@ -266,7 +266,7 @@ def release_gates(client, tag, commit, target):
         "Release commit is not on main",
     )
     ci = {}
-    for workflow, count in (("ci.yml", 13), ("native.yml", 7)):
+    for workflow, count in (("ci.yml", 13), ("native.yml", 10)):
         for branch in ("main", tag):
             ci[f"{workflow}:{branch}"] = successful_run(
                 client, workflow, commit, branch, "push", count

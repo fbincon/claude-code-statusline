@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 1.7.6 - 2026-10-09
+
+- Follow applied Claude themes in the in-session editor using explicit semantic text/background/selection colors, bold primary-text shortcut keys, readable inactive descriptions and themed recovery controls. Preserve separate host preference Apply and existing editor/protocol behavior.
+- Fill sample preview rows with a dedicated dark background while retaining original RGB/ANSI spans and a neutral foreground for uncolored samples; share accurate default/reverse color decoding between capture rendering and PTY acceptance.
+- Add page/state, separate theme Apply/refusal and terminal color regressions; extend fixed-host CI to Claude Code 2.1.294 on all three platforms and require 13 Python/build plus ten Mod jobs. Add reproducible theme captures and bilingual instructions.
+- Synchronize Python and both Mod release manifests to 1.7.6.
+
 - Generate Gitee wheel instructions as verified download links followed by local pipx installation. Direct pip/pipx asset URL downloads can return HTTP 403 while browser/curl downloads succeed; preserve published package bytes and GitHub installation commands.
 
 ## 1.7.5 - 2026-10-08

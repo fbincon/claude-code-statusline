@@ -29,7 +29,7 @@ Tests are grouped by implementation subsystem. CLI, installation and PTY/tmux/sh
 
 ## Installed package checks
 
-The native workflow checks Linux 2.1.287/2.1.288/2.1.289 plus Windows/macOS 2.1.288/2.1.289 with exact-build declarations, official plugin validation/tests and TypeScript. `tools/native_install_smoke.py` validates real official marketplace installation, absolute backend binding, complete protocol saves, repeat install, explicit plugin disable, compatibility restoration and uninstall without credentials/model calls. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
+The native workflow checks Linux 2.1.287/2.1.288/2.1.289/2.1.294 plus Windows/macOS 2.1.288/2.1.289/2.1.294 with exact-build declarations, official plugin validation/tests and TypeScript. `tools/native_install_smoke.py` validates real official marketplace installation, absolute backend binding, complete protocol saves, repeat install, explicit plugin disable, compatibility restoration and uninstall without credentials/model calls. Opt-in PTY/manual procedures are in [native integration](native.md); callback tests do not establish terminal focus or visual correctness.
 
 Use the [release guide](../RELEASING.md) to build in a fresh directory from a fixed commit. The build job creates local-only fixtures before building, then checks that they are excluded:
 
@@ -208,12 +208,25 @@ Stable 1.7.0 keeps the accepted task timing code and contracts. Validate stable 
 
 ## TUI polish acceptance
 
-Grouped-page regressions cover actual visible rows, repeated group context, non-orphan headings, boundary paging and retained field offsets. Drawing checks all four pages and item details at 32×12, 64×18, 64×20, 80×24, 120×30 and 80×48, including selected keys and input buffers across resize. Shortcut checks verify regular descriptions, separate white bold keys, whole-group clipping, CJK/combining text and external 0/8/16/256 colors.
+Grouped-page regressions cover actual visible rows, repeated group context, non-orphan headings, boundary paging and retained field offsets. Drawing checks all four pages and item details at 32×12, 64×18, 64×20, 80×24, 120×30 and 80×48, including selected keys and input buffers across resize. Shortcut checks verify regular descriptions, separate bold keys (host theme text in Client), whole-group clipping, CJK/combining text and external 0/8/16/256 colors.
 
 Run all checks above, both official Mod validators/tests and TypeScript. Use new report directories for the external five-size PTY helper and installed `native_mod_acceptance.py --persistent --advanced` checks covering both editors, formatting, layout, portable files and host preferences. The acceptance runner locates fields by stable identity and records source and host version. Inspect raw captures privately; retain gallery PNGs and their provenance. Automated results do not establish new human acceptance.
 
 ## Client footer and letter controls
 
-Native regressions check the cyan Configure Status Line heading, uppercase key/lowercase description styles, Tab-first order on all pages, conditional H/A/search/input/recovery controls, complete-group wrapping, actual one-row sample previews and shared footer/paging budgets. Sizes include 32×12, 32×13, 48×12, 64×18, 64×20, 80×24, 120×30 and 80×48, with fields, paths, numeric/search input, expanded preferences and busy/unknown states. Case tests preserve mixed-case text, CJK and combining marks, Ctrl/Meta boundaries, Ctrl+E/G/U and Shift+Tab. Official mounted tests also exercise uppercase controls and literal mixed-case text.
+Native regressions check the theme-accent Configure Status Line heading, uppercase key/lowercase description styles, Tab-first order on all pages, conditional H/A/search/input/recovery controls, complete-group wrapping, actual one-row sample previews and shared footer/paging budgets. Sizes include 32×12, 32×13, 48×12, 64×18, 64×20, 80×24, 120×30 and 80×48, with fields, paths, numeric/search input, expanded preferences and busy/unknown states. Case tests preserve mixed-case text, CJK and combining marks, Ctrl/Meta boundaries, Ctrl+E/G/U and Shift+Tab. Official mounted tests also exercise uppercase controls and literal mixed-case text.
 
 The installed persistent PTY helper checks the new title against Preview's real terminal color, S save key/description styles and ordered page controls. It exercises uppercase save/finish/discard/preference operations and mixed-case item text alongside the existing editing, resizing and shared-configuration checks. Use fresh ignored reports and inspect reconstructed terminal captures; preserve historical galleries and distinguish automation from human/platform acceptance. Follow the release guide for complete PR/merge/tag CI and installed distributions.
+
+## Native theme acceptance
+
+Run each supported theme in a new ignored report directory:
+
+```bash
+.venv/bin/python tools/native_mod_acceptance.py --theme light --theme-only \
+  --report-dir dist/validation/theme-light
+```
+
+Repeat for dark, light-daltonized, dark-daltonized, light-ansi, dark-ansi, auto and `custom:statusline-validation-light` on a host that supports them. The custom fixture uses a light base with explicit text/inverse/inactive/accent overrides. Each run captures four pages and an item form at 120×30 and 80×48, checks primary key/description contrast against decoded backgrounds, and verifies unsaved theme edits and separate successful Apply without saving the tool draft. Theme reads prefer current settings over legacy global storage. Run full persistent/advanced acceptance separately for saving and cross-editor readback.
+
+`tools/terminal_colors.py` resolves foreground and background defaults separately before reverse video; both acceptance and capture rendering use it. RGB cells are exact; named ANSI colors use the documented capture palette and do not establish a physical terminal’s custom ANSI definitions. Reconstructed images are terminal evidence, separate from OS screenshots or human acceptance.

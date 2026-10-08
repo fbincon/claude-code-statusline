@@ -11,6 +11,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from terminal_colors import cell_colors
+
 
 def main() -> int:
     from PIL import Image, ImageDraw, ImageFont
@@ -75,54 +77,22 @@ def main() -> int:
         first = separator + 1
         columns = data["columns"] - first
     width, height = 12, 24
-    image = Image.new("RGB", (columns * width + 24, end * height + 24), "#17191e")
+    default_fg = data.get("terminal_foreground", "#dedee7")
+    default_bg = data.get("terminal_background", "#17191e")
+    image = Image.new("RGB", (columns * width + 24, end * height + 24), default_bg)
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(str(args.font), 20)
     cjk = ImageFont.truetype(str(args.cjk_font), 20)
     symbols = ImageFont.truetype(str(args.symbols_font), 12)
     bold_path = args.font.with_name(args.font.stem + "-Bold" + args.font.suffix)
     bold = ImageFont.truetype(str(bold_path), 20) if bold_path.exists() else font
-    colors = {
-        "default": "#dedee7",
-        "black": "#202127",
-        "red": "#f08080",
-        "green": "#85c99a",
-        "brown": "#e5c07b",
-        "yellow": "#e5c07b",
-        "blue": "#87aade",
-        "magenta": "#cba2e5",
-        "cyan": "#85d1db",
-        "white": "#dedee7",
-        "brightblack": "#858895",
-        "brightred": "#fca5a5",
-        "brightgreen": "#a6e3a1",
-        "brightyellow": "#f9e2af",
-        "brightblue": "#89b4fa",
-        "brightmagenta": "#cba6f7",
-        "brightcyan": "#94e2d5",
-        "brightwhite": "#ffffff",
-    }
-
-    def color(value):
-        if value in colors:
-            return colors[value]
-        if len(value) == 6 and all(c in "0123456789abcdef" for c in value.lower()):
-            return "#" + value
-        return colors["default"]
-
     # Paint backgrounds first, including wide-character continuation cells.
     # Later cell backgrounds must not erase the second half of a CJK glyph.
     for row in range(end):
         for column in range(first, first + columns):
             cell = cells[row][column]
             x, y = 12 + (column - first) * width, 12 + row * height
-            bg = (
-                color(cell["fg"])
-                if cell["reverse"]
-                else color(cell["bg"])
-                if cell["bg"] != "default"
-                else "#17191e"
-            )
+            _, bg = cell_colors(cell, default_fg, default_bg)
             draw.rectangle((x, y, x + width, y + height), fill=bg)
     for row in range(end):
         for column in range(first, first + columns):
@@ -130,12 +100,7 @@ def main() -> int:
             if not cell["data"]:
                 continue
             x, y = 12 + (column - first) * width, 12 + row * height
-            fg, bg = (
-                color(cell["fg"]),
-                color(cell["bg"]) if cell["bg"] != "default" else "#17191e",
-            )
-            if cell["reverse"]:
-                fg, bg = bg, fg
+            fg, bg = cell_colors(cell, default_fg, default_bg)
             selected = (
                 symbols
                 if "\u23f1" in cell["data"]
