@@ -219,7 +219,7 @@ python tools/render_gitee_release.py \
   --output "$RELEASE_ROOT/gitee-notes.md"
 ```
 
-生成器不发起网络请求或平台写入，使用实际附件地址并保留各版本分发名。相对文档地址以 `docs/releases/<tag>.md` 为基准；显式分支／标签引用保留原含义。安装／更新命令使用对应 Gitee wheel 或源码引用；GitHub Actions、Issues 与原始发布来源保持真实平台。附件缺失／重复、标签或包身份不符、预发布属性冲突时，在写入输出前停止。
+从已验证的当前 main 分支运行生成器。它不发起网络请求或平台写入，使用实际附件地址并保留各版本分发名。相对文档地址以 `docs/releases/<tag>.md` 为基准；显式分支／标签引用保留原含义。即使浏览器／curl 下载正常，Gitee 也可能对 pip／pipx 直接 URL 请求返回 HTTP 403，因此 wheel 说明先链接至 Gitee 附件，要求下载并核验校验和后，在下载目录安装本地 wheel。源码引用、GitHub Actions、Issues 与原始发布来源保留原含义。附件缺失／重复、标签或包身份不符、预发布属性冲突时，在写入输出前停止。
 
 检查 Markdown，与权威来源和快照对比，核验文档目标与安装命令，再通过官方 MCP/API 仅更新 Gitee 正文。MCP 缺少的发行版更新能力使用 `PATCH /repos/{owner}/{repo}/releases/{release_id}`，字段以表单编码提交。更新后重新读取，确认标签、预发布属性及附件清单未变。重复同步仍从 GitHub 重新生成，附录不会累积；仅说明更新需要回滚时恢复已保存正文。网页导航与 API／附件检查分别记录；遇到验证码时，由用户完成后继续网页验收。
 

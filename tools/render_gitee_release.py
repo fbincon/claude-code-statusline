@@ -96,6 +96,7 @@ def render(tag, source, releases):
     for name in names:
         require((tag, name) in catalog, f"Missing matching Gitee asset: {tag}/{name}")
     wheel_url = catalog[tag, wheels[0]]
+    wheel_path = "./" + wheels[0]
 
     def rewrite(target, is_image=False):
         if not target or target.startswith("#"):
@@ -143,9 +144,36 @@ def render(tag, source, releases):
     )
     body = re.sub(
         r"\bpipx\s+(?:install|upgrade)\s+(?:--force\s+)?(?:fbincon-)?claude-code-statusline(?![\w-])",
-        f'pipx install --force "{wheel_url}"',
+        f'pipx install --force "{wheel_path}"',
         body,
     )
+
+    def local_install(match):
+        url = match[3]
+        require(url in catalog.values(), "Unknown Gitee wheel installation URL")
+        name = unquote(url.rsplit("/", 1)[1])
+        return f'{match[1]} "./{name}"'
+
+    body = re.sub(
+        r"(\bpipx\s+install(?:\s+--force)?)\s+([\"']?)("
+        + re.escape(GITEE)
+        + r"/releases/download/[^\s\"'`<>]+\.whl)\2",
+        local_install,
+        body,
+    )
+    download = (
+        f"> Download [{wheels[0]}]({wheel_url}) and "
+        f"[SHA256SUMS]({catalog[tag, 'SHA256SUMS']}) from Gitee, verify the checksum, "
+        "then run the wheel installation commands from the download directory. "
+        "Gitee can reject direct pip/pipx URL downloads with HTTP 403.\n"
+        "> 从 Gitee 下载上述 wheel 和 SHA256SUMS，核验校验和后，在下载目录运行 "
+        "wheel 安装命令。Gitee 可能对 pip／pipx 直接 URL 下载返回 HTTP 403。\n\n"
+    )
+    if body.startswith("# ") and "\n" in body:
+        heading, remainder = body.split("\n", 1)
+        body = heading + "\n\n" + download + remainder.lstrip("\n")
+    else:
+        body = download + body
     source_url = f"{GITHUB}/releases/tag/{tag}"
     require(source.get("html_url") == source_url, "Original GitHub Release URL differs")
     published = source["published_at"]
@@ -161,8 +189,10 @@ def render(tag, source, releases):
 
 Install or update this exact version / 安装或更新至此固定版本：
 
+Download the wheel and SHA256SUMS using the Gitee links below, verify the checksum, and run from the download directory. / 从下方 Gitee 链接下载 wheel 和 SHA256SUMS，核验后在下载目录执行。
+
 ```text
-pipx install --force "{wheel_url}"
+pipx install --force "{wheel_path}"
 pipx ensurepath
 claude-statusline install --dry-run
 claude-statusline install

@@ -126,11 +126,24 @@ class GiteeNotesTests(unittest.TestCase):
         )
         notes = render("v1.7.5", source, [target])
         self.assertIn(
-            f'pipx install --force "{target["assets"][0]["browser_download_url"]}"',
+            f'pipx install --force "./{target["assets"][0]["name"]}"',
             notes,
         )
         self.assertIn(f"git+{GITEE}.git@v1.7.5", notes)
         self.assertIn("pipx uninstall claude-code-statusline", notes)
+
+    def test_download_link_retained_but_pipx_installs_local_wheel(self):
+        source, target = release("v1.7.2")
+        name = source["assets"][0]["name"]
+        source["body"] = (
+            f'# v1.7.2\n\n```text\npipx install --force "{GITHUB}/releases/download/v1.7.2/{name}"\n```\n'
+        )
+        notes = render("v1.7.2", source, [target])
+        self.assertTrue(notes.startswith("# v1.7.2\n"))
+        self.assertIn(f'pipx install --force "./{name}"', notes)
+        self.assertIn(target["assets"][0]["browser_download_url"], notes)
+        self.assertIn("download directory", notes)
+        self.assertNotIn(f'pipx install --force "{GITEE}/', notes)
 
     def test_keep_github_workflows_issues_and_original_provenance(self):
         source, target = release(
