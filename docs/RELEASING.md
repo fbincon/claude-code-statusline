@@ -188,7 +188,7 @@ gh run list --repo fbincon/claude-code-statusline --workflow publish.yml \
   --branch "$RELEASE_TAG" --event workflow_dispatch --limit 1
 ```
 
-Inspect the returned run and wait for all nine jobs to succeed. Dispatching on `main` is rejected. The verification tool checks the tag commit is on main, both successful 13-job Python/build and seven-job Mod runs for main and tag, exact filenames, SHA256, package metadata, CLI identity, resources and strict long-description rendering. It then uploads only the two distributions to TestPyPI.
+Inspect the returned run and wait for all nine jobs to succeed. Dispatching on `main` is rejected. The verification tool checks the tag commit is on main, both successful 13-job Python/build and ten-job Mod runs for main and tag, exact filenames, SHA256, package metadata, CLI identity, resources and strict long-description rendering. It then uploads only the two distributions to TestPyPI.
 
 Six index jobs anonymously download both files, compare digests and bytes with the verified Release assets, install that exact wheel and run isolated CLI/configuration smoke. Windows dependencies come from normal PyPI. The successful TestPyPI run must have the same tag and commit as the formal Release. Raw evidence remains in ignored directories or Actions artifacts.
 
