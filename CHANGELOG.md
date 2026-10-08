@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Generate Gitee wheel instructions as verified download links followed by local pipx installation. Direct pip/pipx asset URL downloads can return HTTP 403 while browser/curl downloads succeed; preserve published package bytes and GitHub installation commands.
+
 ## 1.7.5 - 2026-10-08
 
 - Use relative documentation, language, license and screenshot links so the same main branch works on GitHub and Gitee. Generate fixed-tag GitHub links only in package metadata for the PyPI description; source READMEs retain generic package commands and no version/update section.

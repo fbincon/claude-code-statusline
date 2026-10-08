@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- Gitee wheel 说明改为先下载并校验，再用 pipx 安装本地文件；直接 pip／pipx 附件 URL 下载可能返回 HTTP 403，而浏览器／curl 下载正常。保留已发布软件包字节及 GitHub 安装命令。
+
 ## 1.7.5 - 2026-10-08
 
 - 文档、语言切换、许可证与截图使用相对链接，使同一 main 分支适配 GitHub 和 Gitee；仅在包元数据中生成固定 GitHub 标签链接用于 PyPI 介绍。源码 README 保留通用包名命令，不新增版本／更新说明区。
