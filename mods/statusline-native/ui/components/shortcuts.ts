@@ -1,5 +1,6 @@
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
 import { clip, displayWidth } from '../layout.ts';
+import { styles } from '../theme.ts';
 
 export interface Shortcut {
   key: string;
@@ -42,7 +43,7 @@ export function shortcutSpans(hints: readonly Shortcut[], width: number, prefix 
   let used = 0;
   if (prefix) {
     const text = clip(prefix, width);
-    spans.push({ text, style: { dimColor: true } });
+    spans.push({ text, style: styles.muted });
     used = displayWidth(text);
   }
   const full = hints.map((h) => h.key + ' ' + h.label).join(' · ');
@@ -53,9 +54,9 @@ export function shortcutSpans(hints: readonly Shortcut[], width: number, prefix 
     const separator = count ? ' · ' : '';
     const size = displayWidth(separator + hint.key + ' ' + label);
     if (used + size > width) break;
-    if (separator) spans.push({ text: separator, style: { dimColor: true } });
-    spans.push({ text: hint.key, style: { color: 'white', bold: true, dimColor: false } });
-    spans.push({ text: ' ' + label, style: { bold: false, dimColor: true } });
+    if (separator) spans.push({ text: separator, style: styles.muted });
+    spans.push({ text: hint.key, style: styles.key });
+    spans.push({ text: ' ' + label, style: { ...styles.muted, bold: false } });
     used += size;
     count++;
   }
@@ -73,7 +74,7 @@ export function spanLine(ui: ClientElements, spans: readonly TextSpan[], width: 
     children.push(ui.Text({ ...span.style, children: [text] }));
     remaining -= displayWidth(text);
   }
-  return ui.Text({ wrap: 'truncate', bold: false, ...style, children });
+  return ui.Text({ wrap: 'truncate', bold: false, ...styles.text, ...style, children });
 }
 
 export function shortcuts(ui: ClientElements, hints: readonly Shortcut[], width: number, prefix = ''): RenderElement {

@@ -22,6 +22,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
 - **Start from a preset:** minimal, developer, monitoring, and multi-agent presets expand into editable settings; import and export portable JSON.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
+- **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain their colors on a separate dark background.
 - **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and per-task usage are opt-in. Missing or partial observations stay distinguishable.
 
 Rendering uses Claude Code input and local state without making network requests or using model tokens. The question-and-answer wizard uses Claude model turns. See [field definitions](docs/DISPLAY_ITEMS.md) for data sources and availability.
@@ -322,6 +323,11 @@ claude-code-statusline/
 │       └── ui/                              # External terminal editor and shared JSON backend
 ├── mods/                                    # Claude Code TypeScript Mods
 │   ├── statusline-native/                   # In-session configuration editor Mod
+│   │   ├── hooks/                           # Host APIs, commands, saves and recovery
+│   │   ├── lib/                             # Backend, drafts, input and independent snapshots
+│   │   ├── ui/                              # Client drawing, components, theme and geometry
+│   │   │   └── theme.ts                     # Host color roles and independent preview surface
+│   │   └── tests/                           # Tests grouped by backend, client, editor, integration and UI
 │   └── statusline-runtime/                  # Native task timing and optional advanced metrics Mod
 ├── tests/                                   # Python unit and integration tests
 │   ├── config/                              # Configuration, formatting, migration and transfer tests

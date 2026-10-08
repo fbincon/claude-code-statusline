@@ -73,28 +73,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.7.5 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.5) 提供相同的 wheel 与源码包。
+分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.7.6 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.6) 提供相同的 wheel 与源码包。
 
 也可从该 Release 下载 wheel、源码包和 `SHA256SUMS`，将下载文件的 SHA-256 与对应条目比较：
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.7.5-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.7.6-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.7.5-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.7.6-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.7.5-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.7.6-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.7.5-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.7.5-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.7.6-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.7.6-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.5"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.6"
 pipx ensurepath
 ```
 
@@ -157,9 +157,11 @@ macOS 使用相同 wheel 和安装流程，CPython 需要提供 curses。外部�
 
 `/statusline-configure-native` 在当前 Claude Code session 内打开 Client TUI，不另开终端。它与外部 `/statusline-configure` 共用配置、目录、catalog、互斥规则和原子保存服务，各自保留草稿。正式版默认启用两者；安装完成后在受信任终端重启 Claude Code。
 
+编辑器跟随 Claude 实际应用的主题，包括浅色／深色、色弱主题及宿主支持的 auto／自定义主题。样例预览在独立深底上保留状态栏颜色，无颜色样例和空白行也使用明确的背景。Claude 偏好中的主题草稿通过独立 Apply 操作生效。
+
 ### 页面层级与分页
 
-青色大标题 **Configure Status Line** 与内容、Preview 标题颜色一致。较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键用白色粗体，作用说明用小写和普通字重。字母快捷键显示大写，非输入编辑状态下大小写均有效。
+主题强调色大标题 **Configure Status Line** 与内容、Preview 标题颜色一致。较大窗口将栏目标题放在框线中，较小窗口使用紧凑标题。活动页签、分组标题和选中字段分别显示；快捷键使用当前主题的主要文字色并保持加粗，作用说明使用小写、主题辅助色和普通字重。按可读性验收，不限定具体颜色。字母快捷键显示大写，非输入编辑状态下大小写均有效。
 
 页面快捷键集中到底部，保存／完成／退出／预览另成一组；各页都以 `Tab page` 开头：
 
@@ -548,7 +550,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.7.5，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
+pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.7.6，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
 
 ### 替换 Python 包
 

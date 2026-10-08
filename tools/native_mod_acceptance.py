@@ -18,6 +18,7 @@ import signal
 import shutil
 import struct
 import subprocess
+from terminal_colors import cell_colors, contrast
 import sys
 import tempfile
 import shlex
@@ -28,8 +29,14 @@ from claude_statusline.ui import editor, forms
 from claude_statusline.config import display, models
 
 
+def current_theme(config: Path) -> str:
+    settings = json.loads((config / "settings.json").read_text(encoding="utf-8"))
+    legacy = json.loads((config / ".claude.json").read_text(encoding="utf-8"))
+    return settings["theme"] if "theme" in settings else legacy.get("theme", "auto")
+
+
 def prepare(
-    root: Path, backend: Path, *, persistent: bool = False, claude: str = "claude"
+    root: Path, backend: Path, *, persistent: bool = False, claude: str = "claude", theme: str = "dark"
 ) -> tuple[Path, dict[str, str]]:
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     config = root / "Claude config 中文"
@@ -55,13 +62,20 @@ def prepare(
         json.dumps(
             {
                 "hasCompletedOnboarding": True,
-                "theme": "dark",
+                "theme": theme,
                 "projects": {str(project): {"hasTrustDialogAccepted": True}},
             }
         ),
         encoding="utf-8",
     )
     (config / ".claude.json").chmod(0o600)
+    if theme == "custom:statusline-validation-light":
+        themes = config / "themes"
+        themes.mkdir()
+        (themes / "statusline-validation-light.json").write_text(json.dumps({
+            "name": "Statusline validation light", "base": "light",
+            "overrides": {"text": "#213547", "inverseText": "#f6f3ec", "inactive": "#4b5563", "suggestion": "#2458a6"},
+        }), encoding="utf-8")
     env = dict(
         os.environ,
         CLAUDE_CONFIG_DIR=str(config),
@@ -113,6 +127,7 @@ def run_pty(
     *,
     persistent: bool = False,
     advanced: bool = False,
+    theme_only: bool = False,
 ) -> dict:
     import fcntl
     import pty
@@ -275,17 +290,22 @@ def run_pty(
                 None,
             )
             assert footer is not None, "Native action row is missing from capture"
-            assert footer[1][0]["bold"] and footer[1][0]["fg"] in ("white", "brightwhite", "ffffff"), "Save key lost its white bold style"
+            key_cell = footer[1][0]
+            assert key_cell["bold"] and not key_cell["blink"], "Save key lost its emphasis"
+            assert contrast(*cell_colors(key_cell)) >= 4.5, "Save key is unreadable against its actual background"
             assert all(not cell["bold"] for cell in footer[1][2:]), "Save description inherited the key's bold style"
+            assert contrast(*cell_colors(footer[1][2])) >= 4.5, "Save description is unreadable"
             help_text = " ".join("".join(cell["data"] for cell in row) for row in cells[footer[0]:])
             expected = ["Tab page", "↑↓ select", "←→ adjust", "Enter edit"]
-            if name in ("main", "main-next", "subagents"):
+            if name.startswith("main") or name == "subagents":
                 expected = ["Tab page", "Space toggle", "↑↓ select", "←→ order", "Ctrl+E format", "/ search"]
             positions = [help_text.index(label) for label in expected]
             assert positions == sorted(positions), "Client page shortcuts are out of order"
         path.write_text(
             json.dumps(
-                {"columns": columns, "rows": screen.lines, "cells": cells},
+                {"columns": columns, "rows": screen.lines, "cells": cells,
+                 "theme": current_theme(config),
+                 "terminal_foreground": "#dedee7", "terminal_background": "#17191e"},
                 ensure_ascii=False,
             ),
             encoding="utf-8",
@@ -332,6 +352,36 @@ def run_pty(
         read_until("sample data")
         capture("main")
         click_client()
+        if theme_only:
+            tool_before = (config / "claude-statusline.json").read_bytes()
+            for key, label, name in ((b"2", "Subagent items", "subagents"),
+                                     (b"3", "Tool settings", "settings"),
+                                     (b"4", "Layout / fitting", "advanced-layout"),
+                                     (b"1\x05", "Item format:", "advanced-item-format")):
+                os.write(master, key)
+                read_until(label)
+                capture(name)
+            os.write(master, b"\x073H")
+            read_until("Claude preferences")
+            # H selects the actual host theme row. Draft changes must not apply.
+            theme_before = current_theme(config)
+            os.write(master, b"\x1b[C")
+            read_until("Theme:")
+            assert current_theme(config) == theme_before
+            os.write(master, b"A")
+            read_until("Theme: Applied.")
+            assert current_theme(config) != theme_before
+            os.write(master, b"1")
+            read_until("Main items")
+            capture("main-after-theme-apply")
+            assert (config / "claude-statusline.json").read_bytes() == tool_before
+            os.write(master, b"q")
+            read_until("❯")
+            command("/exit")
+            process.wait(timeout=10)
+            return {"columns": columns, "rows": screen.lines, "theme": theme_before,
+                    "four_pages_and_item_form": True, "theme_apply_separate": True,
+                    "sample_preview": True, "manual_visual_acceptance": False}
         os.write(master, b" ")
         read_until("[ ] Model and effort")
         os.write(master, b" ")
@@ -741,6 +791,8 @@ def main() -> int:
         "--backend", type=Path, default=Path(".venv/bin/claude-statusline")
     )
     parser.add_argument("--claude", default="claude")
+    parser.add_argument("--theme", default="dark", choices=("dark", "light", "dark-daltonized", "light-daltonized", "dark-ansi", "light-ansi", "auto", "custom:statusline-validation-light"))
+    parser.add_argument("--theme-only", action="store_true", help="Capture all pages and verify separate theme Apply without changing tool configuration")
     parser.add_argument("--plugin", type=Path, default=Path("mods/statusline-native"))
     parser.add_argument("--interactive", action="store_true")
     parser.add_argument(
@@ -766,12 +818,13 @@ def main() -> int:
     plugin = args.plugin.resolve()
     backend = args.backend.resolve()
     project, environment = prepare(
-        root, backend, persistent=args.persistent, claude=args.claude
+        root, backend, persistent=args.persistent, claude=args.claude, theme=args.theme
     )
     report = {
         "os": platform.platform(),
         "architecture": platform.machine(),
         "persistent_plugin": args.persistent,
+        "theme": args.theme,
         "terminal": args.terminal or os.environ.get("TERM_PROGRAM", "unknown")
         if args.interactive
         else "xterm-256color PTY",
@@ -808,6 +861,15 @@ def main() -> int:
         return report["interactive_exit_code"]
     try:
         for columns in (120, 80):
+            # Each viewport starts in the requested theme even after Apply in
+            # the preceding case; preserve all other private fixture settings.
+            config = Path(environment["CLAUDE_CONFIG_DIR"])
+            for filename in (".claude.json", "settings.json"):
+                path = config / filename
+                settings = json.loads(path.read_text(encoding="utf-8"))
+                if "theme" in settings:
+                    settings["theme"] = args.theme
+                    path.write_text(json.dumps(settings), encoding="utf-8")
             report["cases"].append(
                 run_pty(
                     root,
@@ -818,6 +880,7 @@ def main() -> int:
                     columns,
                     persistent=args.persistent,
                     advanced=args.advanced,
+                    theme_only=args.theme_only,
                 )
             )
     finally:

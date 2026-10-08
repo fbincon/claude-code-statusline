@@ -315,6 +315,10 @@ class AcceptanceTests(unittest.TestCase):
             publish.release_gates(client, "v1.7.4", commit, "pypi")
         self.assertEqual(check.call_count, 5)
         self.assertEqual(
+            [call.args[-1] for call in check.call_args_list],
+            [13, 13, 10, 10, 9],
+        )
+        self.assertEqual(
             check.call_args.args[1:],
             ("publish.yml", commit, "v1.7.4", "workflow_dispatch", 9),
         )

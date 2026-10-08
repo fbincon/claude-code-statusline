@@ -113,3 +113,31 @@ test('changed host kinds and choices are refused per row while independent rows 
   expect(await ui.find({in:'statusline-client',type:'Text',text:/Value no longer fits/})).toBeDefined();
   await ui.unmount();
 });
+
+test('theme drafts apply separately, refusals preserve the actual theme and recovery stays themed', async ($, on) => {
+  const fixture = setup(on);
+  fixture.behavior.configSet = () => ({ deny: 'Theme locked by policy' });
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  for (const key of ['retry-client', 'close']) {
+    const button = (await ui.find({ type: 'Button', key }))!;
+    expect(button.props.variant).toBe('primary');
+    expect(button.props.dimColor).toBe(false);
+  }
+  await keys(ui, '3', 'h');
+  await selectSetting(ui, 'host-theme');
+  await keys(ui, 'right');
+  expect(fixture.store.rows.find((row) => row.key === 'theme')!.value).toBe('dark');
+  expect(fixture.configCalls).toEqual([]);
+  await keys(ui, 'a');
+  expect(fixture.store.rows.find((row) => row.key === 'theme')!.value).toBe('dark');
+  expect(await ui.find({ in: 'statusline-client', type: 'Text', text: /Refused: Theme locked/ })).toBeDefined();
+  fixture.behavior.configSet = (key, value) => ({ value });
+  await keys(ui, 'a');
+  expect(fixture.store.rows.find((row) => row.key === 'theme')!.value).toBe('light');
+  expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
+  await keys(ui, '1');
+  expect(await ui.find({ in: 'statusline-client', type: 'Text', text: 'Configure Status Line' })).toBeDefined();
+  await ui.unmount();
+});

@@ -18,6 +18,7 @@ import type {
   ResultFor,
 } from '../lib/generated-contracts.ts';
 import { MIN_COLUMNS, MIN_ROWS } from '../ui/layout.ts';
+import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
 import { parseBatch } from '../lib/client/messages.ts';
@@ -587,6 +588,7 @@ export const register: Register = (on, options) => {
     const ui = $.ui.resolve(e);
     if (e.surface !== 'terminal')
       return ui.Text({
+        ...styles.text,
         children: ['Open this editor in the Claude Code terminal CLI.'],
       });
     const { Box, Text, Button, Client } = $.ui.resolve(e);
@@ -651,6 +653,7 @@ export const register: Register = (on, options) => {
       height >= MIN_ROWS
     ) {
       return Box({
+        backgroundColor: styles.text.backgroundColor,
         width,
         height,
         flexDirection: 'column',
@@ -671,8 +674,9 @@ export const register: Register = (on, options) => {
             flexDirection: 'row',
             columnGap: 1,
             children: [
-              Button({ key: 'retry-client', label: 'Retry', onPress: retry }),
+              Button({ ...recoveryButton, key: 'retry-client', label: 'Retry', onPress: retry }),
               Button({
+                ...recoveryButton,
                 key: 'close',
                 label: 'Close',
                 onPress: () => close($, state),
@@ -683,6 +687,7 @@ export const register: Register = (on, options) => {
       });
     }
     return Box({
+      backgroundColor: styles.text.backgroundColor,
       flexDirection: 'column',
       width,
       // Keep the requested height while undersized; otherwise an inline host
@@ -690,6 +695,7 @@ export const register: Register = (on, options) => {
       height: Math.max(24, height),
       children: [
         Text({
+          ...styles.text,
           bold: true,
           wrap: 'truncate',
           children: [
@@ -701,13 +707,14 @@ export const register: Register = (on, options) => {
           ],
         }),
         Text({
-          color: 'red',
+          ...styles.error,
           wrap: 'truncate',
           children: [state.clientFault || state.view.error || ' '],
         }),
         ...(state.view.uncertain
           ? [
               Button({
+                ...recoveryButton,
                 key: 'reconcile',
                 label: 'Check saved state',
                 hotkey: 'k',
@@ -718,6 +725,7 @@ export const register: Register = (on, options) => {
         ...(!state.view.busy && !state.view.uncertain
           ? [
               Button({
+                ...recoveryButton,
                 key: 'retry-client',
                 label: 'Retry Client',
                 hotkey: 'r',
@@ -726,6 +734,7 @@ export const register: Register = (on, options) => {
             ]
           : []),
         Button({
+          ...recoveryButton,
           key: 'close',
           label: 'Discard pending / Close',
           hotkey: 'q',

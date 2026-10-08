@@ -1,5 +1,6 @@
 import type { ClientElements, RenderElement } from 'claude-code';
 import { clip, displayWidth } from '../layout.ts';
+import { styles } from '../theme.ts';
 import { spanLine } from './shortcuts.ts';
 import type { TextSpan } from './shortcuts.ts';
 
@@ -13,9 +14,9 @@ export function section(
   height: number,
   framed: boolean,
 ): RenderElement {
-  const edge = { color: 'gray', dimColor: true };
+  const edge = styles.muted;
   const label = clip(title, Math.max(1, width - 5));
-  const titleSpans: TextSpan[] = [{ text: ' ' + label + ' ', style: { bold: true, color: 'cyan' } }];
+  const titleSpans: TextSpan[] = [{ text: ' ' + label + ' ', style: { ...styles.accent, bold: true } }];
   const used = titleSpans.reduce((n, s) => n + displayWidth(s.text), 0);
   const top = spanLine(ui, [
     { text: framed ? '╭─' : '─', style: edge },

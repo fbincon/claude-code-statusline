@@ -95,7 +95,7 @@ test('resizing keeps field and input state; h exposes separate host application'
   expect(settingRows(state).some((r) => r.key.startsWith('host-'))).toBe(false);
 });
 
-test('the cyan heading and footer keep page controls ordered and out of content titles', () => {
+test('the theme accent heading and footer keep page controls ordered and out of content titles', () => {
   for (const page of ['main', 'subagents', 'settings', 'layout', 'detail']) {
     const state = view(), e = state.editor!;
     if (page === 'detail') e.detail = { scope: 'main', id: 'model-with-effort' };
@@ -110,7 +110,7 @@ test('the cyan heading and footer keep page controls ordered and out of content 
     const tree = draw(elements, state, 120, 30) as unknown as Node;
     const heading = tree.children[0] as Node;
     expect(text(heading)).toBe('Configure Status Line');
-    expect(heading.props.color).toBe('cyan');
+    expect(heading.props.color).toBe('suggestion');
     expect(heading.props.bold).toBe(true);
     expect(text(tree.children[1]!).replace(/[\[\]]/g, '')).toContain('2 Subagents');
     expect(text(tree.children[2]!)).toBe('Click region for keys.');
@@ -207,12 +207,13 @@ test('footer wrapping retains selection, input and a real sample row at the mini
   }
 });
 
-test('keys are white and bold while action labels stay regular, including narrow groups', () => {
+test('keys follow theme text and stay bold while action labels stay regular, including narrow groups', () => {
   const hints = [{ key: 'Ctrl+G', label: 'cancel editing', short: 'cancel' }, { key: 'Esc', label: 'focus' }];
   const spans = shortcutSpans(hints, 25);
   expect(spans.map((s) => s.text).join('')).toBe('Ctrl+G cancel · Esc focus');
   expect(spans.filter((s) => s.style?.bold).map((s) => s.text)).toEqual(['Ctrl+G', 'Esc']);
-  expect(spans.filter((s) => s.style?.bold).every((s) => s.style?.color === 'white' && s.style?.dimColor === false)).toBe(true);
+  expect(spans.filter((s) => s.style?.bold).every((s) => s.style?.color === 'text' && s.style?.dimColor === false)).toBe(true);
+  expect(spans.filter((s) => s.style?.bold === false).every((s) => s.style?.color === 'inactive' && s.style?.dimColor === false)).toBe(true);
   expect(shortcutSpans(hints, 8)).toEqual([]);
   for (const width of [1, 12, 32, 64]) {
     const parts = shortcutSpans([{ key: 'Enter', label: '保存中文 é', short: '保存' }], width);

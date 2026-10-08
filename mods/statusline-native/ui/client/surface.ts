@@ -8,6 +8,7 @@ import {
 } from '../../lib/client/messages.ts';
 import type { KeyMessage } from '../../lib/client/messages.ts';
 import { draw } from './draw.ts';
+import { styles } from '../theme.ts';
 
 interface State {
   epoch: number;
@@ -79,6 +80,7 @@ export default function StatuslineClient(
       fault: String(error).slice(0, 200) || 'Client drawing failed',
     });
     return surface.elements.Text({
+      ...styles.text,
       children: ['Client failed. Use Retry or Close; received draft kept.'],
     });
   }
