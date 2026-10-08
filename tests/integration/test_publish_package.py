@@ -391,6 +391,74 @@ class AcceptanceTests(unittest.TestCase):
 
 
 class IndexTests(unittest.TestCase):
+    def test_new_version_404_is_polled_without_repeating_uploads(self):
+        expected = {"fixture.whl": {"sha256": "a" * 64}}
+        error = HTTPError("https://test.pypi.org", 404, "Not ready", {}, None)
+        with (
+            mock.patch.object(
+                publish, "index_files", side_effect=[error, expected]
+            ) as lookup,
+            mock.patch.object(publish.time, "monotonic", return_value=0),
+            mock.patch.object(publish.time, "sleep") as sleep,
+        ):
+            self.assertEqual(
+                publish.wait_for_index("testpypi", {"version": "1.7.4"}), expected
+            )
+        self.assertEqual(lookup.call_count, 2)
+        sleep.assert_called_once_with(5)
+
+    def test_partially_visible_index_is_polled(self):
+        expected = {"fixture.whl": {"sha256": "a" * 64}}
+        with (
+            mock.patch.object(
+                publish,
+                "index_files",
+                side_effect=[publish.IndexNotReady("missing"), expected],
+            ),
+            mock.patch.object(publish.time, "monotonic", return_value=0),
+            mock.patch.object(publish.time, "sleep") as sleep,
+        ):
+            self.assertEqual(
+                publish.wait_for_index("pypi", {"version": "1.7.4"}), expected
+            )
+        sleep.assert_called_once_with(5)
+
+    def test_index_integrity_failure_is_not_retried(self):
+        with (
+            mock.patch.object(
+                publish,
+                "index_files",
+                side_effect=publish.PublicationError("digest differs"),
+            ),
+            mock.patch.object(publish.time, "sleep") as sleep,
+        ):
+            with self.assertRaisesRegex(publish.PublicationError, "digest differs"):
+                publish.wait_for_index("pypi", {"version": "1.7.4"})
+        sleep.assert_not_called()
+
+    def test_index_permission_failure_is_not_retried(self):
+        error = HTTPError("https://pypi.org", 403, "Forbidden", {}, None)
+        with (
+            mock.patch.object(publish, "index_files", side_effect=error),
+            mock.patch.object(publish.time, "sleep") as sleep,
+        ):
+            with self.assertRaises(HTTPError):
+                publish.wait_for_index("pypi", {"version": "1.7.4"})
+        sleep.assert_not_called()
+        error.close()
+
+    def test_unavailable_index_has_a_bounded_deadline(self):
+        with (
+            mock.patch.object(
+                publish, "index_files", side_effect=publish.IndexNotReady("missing")
+            ),
+            mock.patch.object(publish.time, "monotonic", side_effect=[0, 181]),
+            mock.patch.object(publish.time, "sleep") as sleep,
+        ):
+            with self.assertRaisesRegex(publish.PublicationError, "within 180s"):
+                publish.wait_for_index("testpypi", {"version": "1.7.4"})
+        sleep.assert_not_called()
+
     def setUp(self):
         self.files = {
             name: {"sha256": "a" * 64, "size": 100}
