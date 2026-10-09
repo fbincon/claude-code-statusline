@@ -471,7 +471,7 @@ def run_pty(
         os.write(master, b"\t")
         read_until("Tool settings")
         capture("settings")
-        os.write(master, b"\x1b[B" * 5 + b"\r\x159")
+        os.write(master, b"\x1b[H" + b"\x1b[B" * 6 + b"\r\x159")
         read_until("Padding: 9 _")
         os.write(master, b"\x07")
         read_until("Padding: 0")
