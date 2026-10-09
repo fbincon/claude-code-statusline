@@ -39,7 +39,7 @@ def field_label(row, language):
 
 def value_label(row, language):
     value, key = row["value"], row["key"]
-    if key == "ui-language":
+    if key in ("ui-language", "field:statusline_language"):
         return LANGUAGE_NAMES[value]
     if key == "preset-select":
         return translate("presets." + value, language)

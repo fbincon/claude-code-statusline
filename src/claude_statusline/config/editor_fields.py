@@ -31,6 +31,12 @@ def field(
 GLOBAL = (
     [
         field(
+            "statusline_language",
+            "Statusline language (save with display settings)",
+            "Appearance",
+            choices=display.STATUSLINE_LANGUAGES,
+        ),
+        field(
             "metrics.branch_diff_base_ref",
             "Branch diff base (inherit = auto)",
             "Git metrics",

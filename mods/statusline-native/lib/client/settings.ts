@@ -90,7 +90,10 @@ export function settingRows(view: View): SettingRow[] {
       editable: true,
     },
   ];
-  rows.push(...formRows(view));
+  const fields = formRows(view);
+  const appearanceEnd = rows.findIndex(row => row.group !== 'Appearance');
+  rows.splice(appearanceEnd, 0, ...fields.filter(row => row.group === 'Appearance'));
+  rows.push(...fields.filter(row => row.group !== 'Appearance'));
   rows.push(
     { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
     { key: 'preset-select', label: 'Preset', group: 'Presets / portable files', value: e.preset, editable: true },

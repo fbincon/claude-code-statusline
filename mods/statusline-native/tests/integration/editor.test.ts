@@ -127,20 +127,9 @@ test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric edi
   await keys(ui, '/', 's', 'f', 'q');
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   expect(fixture.closes).toHaveLength(0);
-  await keys(
-    ui,
-    { key: 'g', ctrl: true },
-    '3',
-    'down',
-    'down',
-    'down',
-    'down',
-    'down',
-    'down',
-    'return',
-    { key: 'u', ctrl: true },
-    '9',
-  );
+  await keys(ui, {key: 'g', ctrl: true}, '3');
+  await selectSetting(ui, 'padding');
+  await keys(ui, 'return', {key: 'u', ctrl: true}, '9');
   // Focus exit (Esc) is host-owned and does not cancel Client editing.
   await $.ui.focus({
     component: 'Pane',
@@ -161,21 +150,9 @@ test('invalid numeric input stays visible and cannot save; correcting it accepts
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(
-    ui,
-    '3',
-    'down',
-    'down',
-    'down',
-    'down',
-    'down',
-    'down',
-    'return',
-    { key: 'u', ctrl: true },
-    '9',
-    '9',
-    'return',
-  );
+  await keys(ui, '3');
+  await selectSetting(ui, 'padding');
+  await keys(ui, 'return', {key: 'u', ctrl: true}, '9', '9', 'return');
   expect(
     await ui.find({ in: REGION, type: 'Text', text: 'Enter 0-32' }),
   ).toBeDefined();

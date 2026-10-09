@@ -1151,5 +1151,6 @@
   "statusline.short.subagent.task": "任务标签",
   "statusline.short.subagent.tokens": "代理令牌",
   "statusline.short.subagent.current-dir": "目录",
-  "config.show.statusline_language": "状态栏语言：{value}"
+  "config.show.statusline_language": "状态栏语言：{value}",
+  "fields.global.statusline_language.label": "状态栏语言（随显示设置保存）"
 }

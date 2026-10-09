@@ -1153,7 +1153,8 @@ export const LOCALES = {
     "statusline.short.subagent.task": "Task label",
     "statusline.short.subagent.tokens": "Agent tokens",
     "statusline.short.subagent.current-dir": "Agent directory",
-    "config.show.statusline_language": "Statusline language: {value}"
+    "config.show.statusline_language": "Statusline language: {value}",
+    "fields.global.statusline_language.label": "Statusline language (save with display settings)"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -2308,7 +2309,8 @@ export const LOCALES = {
     "statusline.short.subagent.task": "任务标签",
     "statusline.short.subagent.tokens": "代理令牌",
     "statusline.short.subagent.current-dir": "目录",
-    "config.show.statusline_language": "状态栏语言：{value}"
+    "config.show.statusline_language": "状态栏语言：{value}",
+    "fields.global.statusline_language.label": "状态栏语言（随显示设置保存）"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

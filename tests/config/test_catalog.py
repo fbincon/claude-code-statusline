@@ -86,3 +86,15 @@ class CatalogTests(unittest.TestCase):
             contents += (root / f"USER_GUIDE{suffix}.md").read_text(encoding="utf-8")
             for item in catalog.ITEMS:
                 self.assertIn(f"`{item.id}`", contents, (suffix, item.scope, item.id))
+
+
+class LanguageWizardContractTests(unittest.TestCase):
+    def test_legacy_wizard_reads_interface_language_and_saves_output_language_atomically(self):
+        rendered = resources.render_skill(Path('/tmp/renderer')).decode('utf-8')
+        self.assertIn('config language show --json', rendered)
+        self.assertIn('config list-items`', rendered)
+        self.assertIn('ui_language', rendered)
+        self.assertIn('English / 简体中文', rendered)
+        self.assertIn('--statusline-language en|zh-CN', rendered)
+        self.assertIn('Do not write anything if the user cancels', rendered)
+        self.assertEqual(rendered.count(' config apply '), 1)

@@ -3,7 +3,7 @@ import type { View } from '../session.ts';
 import type { SettingRow } from '../client/settings.ts';
 import { PREFERENCE_SPECS, specFor, canEdit } from '../preferences.ts';
 import { preferenceResult } from './messages.ts';
-import { t, text } from './index.ts';
+import { t, text, LANGUAGE_NAMES } from './index.ts';
 import type { Language } from './index.ts';
 import type { Shortcut } from '../../ui/components/shortcuts.ts';
 
@@ -61,6 +61,8 @@ export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[
       }
     } else if (row.key === 'ui-language') {
       // Both autonyms remain recognizable in either interface language.
+    } else if (row.key === 'field:statusline_language') {
+      value = LANGUAGE_NAMES[view.editor!.draft.display.statusline_language];
     } else if (row.key === 'preset-select') value = t('presets.' + value, language);
     else if (['preset-apply','import-file','export-file'].includes(row.key)) value = t('native.actions.' + row.key, language);
     else if (!row.key.endsWith(':label') && !row.key.endsWith(':icon') && !row.key.endsWith('base_ref')) value = valueLabel(value, language);
