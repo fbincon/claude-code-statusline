@@ -22,7 +22,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
 - **Start from a preset:** minimal, developer, monitoring, and multi-agent presets expand into editable settings; import and export portable JSON.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
-- **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain their colors on a separate dark background.
+- **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain production colors on a separately chosen light/dark background.
 - **Follow terminal colors:** external TUI text and bold keys use terminal defaults; previews show the selected palette on the current terminal background.
 - **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and per-task usage are opt-in. Missing or partial observations stay distinguishable.
 
@@ -36,7 +36,7 @@ The main status line at the bottom of session screenshots shows actual data; con
 
 ### In-session TUI
 
-Run `/statusline-configure-native` inside the current Claude Code session, then click the Client region once before using the keyboard.
+Run `/statusline-configure-native` inside the current Claude Code session, then click the Client region once before using the keyboard. The editor follows the Claude theme; choose the preview background to match the terminal and compare the selected palette. [Compare terminal/theme combinations](docs/development/native.md#terminal-background-previews).
 
 **Linux: Main and the status line**
 
@@ -62,7 +62,7 @@ Run `/statusline-configure-native` inside the current Claude Code session, then 
 <details>
 <summary>Linux: light and dark themes</summary>
 
-The editor follows Claude’s applied theme; preview colors remain on a separate dark surface. These images reconstruct real terminal cells. [Capture provenance](docs/images/README.md#theme-terminal-captures).
+Earlier theme captures used a dark preview surface; the current editor offers a separate light/dark preview choice. These images reconstruct real terminal cells. [Capture provenance](docs/images/README.md#theme-terminal-captures).
 
 ![Linux light theme native editor](docs/images/tui/native/linux/themes/main-light.png)
 

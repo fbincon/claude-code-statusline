@@ -22,7 +22,7 @@
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
 - **从预设开始：** minimal、developer、monitoring、multi-agent 四种预设可展开编辑，支持可移植 JSON 导入和导出。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
-- **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在独立深底上保留原始配色。
+- **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在单独选择的浅色／深色底色上保留生产配色。
 - **适配终端配色：**外部 TUI 文字与粗体快捷键使用终端默认色，预览在当前终端背景上显示所选配色。
 - **按需开启实时指标：** 运行状态、代理数量、工具进度、请求用时和逐任务用量需主动启用；缺失数据和部分观测分别标记。
 
@@ -34,7 +34,7 @@
 
 ### 会话内 TUI
 
-在当前 Claude Code 会话运行 `/statusline-configure-native`，先点击 Client 区域一次，再使用键盘。
+在当前 Claude Code 会话运行 `/statusline-configure-native`，先点击 Client 区域一次，再使用键盘。 界面跟随 Claude 主题，按终端深浅选择预览背景，并比较所选配色。[比较终端／主题组合](docs/development/native.zh-CN.md#终端背景预览)。
 
 **Linux：Main 与主状态栏**
 
@@ -60,7 +60,7 @@
 <details>
 <summary>Linux：浅色和深色主题</summary>
 
-编辑器跟随 Claude 实际主题，预览配色保留在独立深底上。图片根据实际终端单元格重建。[捕获来源](docs/images/README.zh-CN.md#主题终端捕获)。
+较早的主题捕获采用深色预览，当前编辑器支持单独选择浅色／深色预览背景。图片根据实际终端单元格重建。[捕获来源](docs/images/README.zh-CN.md#主题终端捕获)。
 
 ![Linux 浅色主题原生编辑器](docs/images/tui/native/linux/themes/main-light.png)
 

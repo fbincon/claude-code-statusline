@@ -29,7 +29,7 @@ CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --
 
 `ui/theme.ts` 集中维护宿主颜色职责：正文及粗体快捷键使用 `text`，标题和活动页签使用 `suggestion`，普通说明和边框使用 `inactive`，错误使用 `error`。主界面使用 `text`／`inverseText` 明确配对，选中行交换这组前景和背景。辅助色避免再叠加终端淡化。宿主按实际应用的普通、色弱、ANSI、auto 或自定义主题解析这些颜色；仅编辑主题偏好不会应用。恢复按钮使用受支持的 primary 样式，并保留在 Client 外部。
 
-预览内容每个单元格使用 `#17191e` 背景，包括空白和溢出提示行；无颜色样例使用 `#dedee7`。后端 RGB／ANSI span 保留原始颜色，预览框标题跟随宿主主题。无需新增显示设置或协议字段。
+`ui/components/preview.ts` 在仅用于界面的 `light`（`#ffffff`）或 `dark`（`#17191e`）底色上绘制生产前景 span 及按单元格宽度填充的空格，包括加载／错误、空白和溢出行。RGB 保留原值；ANSI 使用 `ansi256(0..15)`，避免命名颜色映射改变终端色槽。无色 span 使用终端默认前景。主界面背景限定在标题、正文、页脚和框线。宿主会把停靠 Pane 中 Client 的默认背景单元格重绘为侧边栏底色，因此透明／default 属性无法在该位置还原终端背景。实现保留框内预览，并提供独立于 Palette 的 **Preview background (UI only)**。宿主 hooks 读写插件范围内的 `preview-background` 存储键；选择立即记住，写入失败恢复原选择，缺失／无效值默认深色。该偏好不进入显示草稿、可移植文件或后端协议。标题显示两项选择，64 列以下使用短标题。
 
 [Linux 浅色／深色捕获来源](../images/README.zh-CN.md#主题终端捕获)。图片是实际终端单元格的裁剪重建，与系统截图及真人验收分别记录。
 
@@ -124,3 +124,16 @@ Main/Subagents 用 Ctrl+E 打开逐项格式；Layout 管理显式行边界、�
 ## v1.6.0 正式版验收
 
 2026-10-05，维护者确认 v1.6.0a1 在 Linux、Windows、macOS 验收通过；未提供具体 OS、架构、终端和宿主版本。这是新增的 Phase 5 验收记录，与历史编辑器确认及自动／headless／PTY 证据分开记录。已有 macOS Client 输入限制继续保留。正式 v1.6.0 沿用已验收运行实现、显示 schema v4、配置协议 v3 和运行协议 v1；兼容宿主的编辑器默认启用并保留明确 false，实时采集继续独立默认关闭并保留偏好。
+
+## 终端背景预览
+
+按终端深浅选择 **Preview background (UI only)**，与 Claude 实际主题独立。下列重建捕获使用明确的终端默认色和 xterm 调色板分析夹具，不代表新配置的物理终端或真人验收。
+
+| 终端／Claude 主题 | default | ANSI |
+| --- | --- | --- |
+| light / light | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) |
+| light / dark | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-ansi.png) |
+| dark / light | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) |
+| dark / dark | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) |
+
+[捕获来源](../images/README.zh-CN.md#原生预览背景捕获)。

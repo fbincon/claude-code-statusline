@@ -29,7 +29,7 @@ Source loading exposes only `/statusline-configure-native`. Dependencies, genera
 
 `ui/theme.ts` centralizes host color roles. Normal text and bold keys use `text`; titles and active tabs use `suggestion`; regular descriptions and borders use `inactive`; errors use `error`. The main surface pairs `text` with `inverseText`, and selection reverses that pair explicitly. Avoid combining inactive colors with terminal dimming. The host resolves these tokens for its applied standard, daltonized, ANSI, auto and custom themes; editing a theme preference alone does not apply it. Recovery buttons use the supported primary variant and remain outside Client.
 
-Preview content fills every cell with `#17191e`, including empty and overflow rows, with `#dedee7` for uncolored samples. Backend RGB/ANSI spans keep their original colors. Preview frame titles follow the host theme. No new display setting or protocol field is needed.
+`ui/components/preview.ts` draws production foreground spans and cell-width padding on the UI-only `light` (`#ffffff`) or `dark` (`#17191e`) background, including loading/error, empty and overflow rows. RGB spans keep their values; ANSI spans use `ansi256(0..15)` so named-color remapping cannot change terminal slots. Plain spans use terminal foreground. Chrome backgrounds are scoped to header, content, footer and frame edges. The host paints a docked Pane’s default Client cells with its own sidebar background, so transparent/default props do not reproduce the terminal background there. The supported solution keeps the preview in the pane and offers **Preview background (UI only)** separately from Palette. Host hooks read/write the plugin-scoped `preview-background` store key; changes remember immediately, failed writes restore the previous choice, and invalid/missing values default to dark. This setting is outside display drafts, portable files and backend protocols. Titles show both choices, shortened below 64 columns.
 
 [Linux light/dark capture provenance](../images/README.md#theme-terminal-captures). These are cropped reconstructions of real terminal cells, not OS screenshots or new human acceptance.
 
@@ -124,3 +124,16 @@ Stable changes package/Mod versions and release defaults; formatting, layout, po
 ## v1.6.0 stable acceptance
 
 On 2026-10-05 the maintainer confirmed v1.6.0a1 acceptance on Linux, Windows and macOS. Exact OS, architecture, terminal and host versions were not supplied. This is the new Phase 5 acceptance record, separate from historical editor confirmation and automated/headless/PTY evidence. The existing macOS Client input limitation remains documented. Stable v1.6.0 retains the accepted runtime implementation, display schema v4, configuration protocol v3 and runtime protocol v1. Editor entries default on for compatible hosts, preserving explicit false; live collection remains independently opt-in and preserves its preference.
+
+## Terminal background previews
+
+Choose **Preview background (UI only)** to match the terminal’s light/dark appearance, independently of the applied Claude theme. The following reconstructed captures use explicit terminal-default and xterm-palette analysis fixtures, not newly configured physical terminals or human acceptance.
+
+| Terminal / Claude theme | default | ANSI |
+| --- | --- | --- |
+| light / light | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) |
+| light / dark | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/light-terminal-dark-theme-ansi.png) |
+| dark / light | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) |
+| dark / dark | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) |
+
+[Capture provenance](../images/README.md#native-preview-background-captures).

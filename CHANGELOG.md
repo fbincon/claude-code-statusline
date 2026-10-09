@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 1.7.8 - 2026-10-09
+
+- Add an independent light/dark Preview background choice to the in-session editor, remembered immediately as a UI preference without changing display drafts, portable exports or the actual status line. Default to the previous dark surface; recover the previous choice on storage failure.
+- Preserve production RGB and terminal ANSI slots, plain terminal foregrounds, complete row padding and loading/empty/error/overflow backgrounds. Preview titles identify both the palette and background; interface chrome still follows the applied Claude theme.
+- Add preference persistence/cancel/failure and Unicode/color regressions, four independent terminal/theme capture fixtures with default/ANSI comparison images, and bilingual instructions. Python and both Mod manifests are 1.7.8; configuration/protocol compatibility is unchanged.
+
 ## 1.7.7 - 2026-10-09
 
 - External TUI headings, shortcuts and descriptions use terminal-default text instead of fixed white/cyan or dim attributes; selection reverses the defaults for light/dark terminal profiles.
