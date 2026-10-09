@@ -230,7 +230,6 @@ def run_case(
         if language_only:
             send(b"\t\t", "Settings / global options")
             state.page = "settings"
-            field("colors")
             send(b"\x1bOC", "Colors: off")
             state.display = state.display.with_updates(use_colors=False)
             index = next(

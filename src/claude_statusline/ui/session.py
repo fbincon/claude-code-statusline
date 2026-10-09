@@ -95,6 +95,9 @@ def _screen_loop(
                 )
                 state.language = preference.ui_language
                 state.notice = ""
+                # Language changes alter wide-character runs and field budgets.
+                # Repaint the physical screen rather than reusing its old cells.
+                screen.clearok(True)
             except (config_models.ConfigCommandError, OSError) as exc:
                 state.notice = str(exc)
             state.pending_language = None

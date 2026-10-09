@@ -213,6 +213,8 @@ def run_pty(
     if tmux_socket:
         command_argv = [
             "tmux",
+            "-T",
+            "RGB",
             "-f",
             "/dev/null",
             "-S",
@@ -477,6 +479,18 @@ def run_pty(
         read_until("sample data")
         click_client()
         if language_only:
+            # Select the explicit capture surface as in the full acceptance path.
+            os.write(master, b"3\x1b[H\x1b[B\x1b[B")
+            read_until("› Preview background (UI only):")
+            selected = next(
+                line for line in screen.display if "› Preview background (UI only):" in line
+            )
+            if not re.search(r"\b" + terminal_theme + r"\b", selected):
+                os.write(master, b"\x1b[C")
+                read_until("Preview background remembered")
+            os.write(master, b"1")
+            read_until("Main items")
+        if language_only:
             backend = env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"]
             display_path = config / "claude-statusline.json"
             before = (
@@ -539,7 +553,7 @@ def run_pty(
             command("/statusline-configure-native")
             read_until("Configure Status Line")
             click_client()
-            capture("language-reopened-en", palette="default")
+            capture("language-main-reopened-en", palette="default")
             os.write(master, b"q")
             read_until("❯")
             command("/exit")

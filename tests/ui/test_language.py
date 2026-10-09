@@ -12,6 +12,11 @@ from tests.ui.test_layout import Screen, Mapper, select
 
 
 class InputScreen(Screen):
+    repainted = False
+
+    def clearok(self, enabled):
+        self.repainted = enabled
+
     def keypad(self, enabled):
         pass
 
@@ -92,6 +97,7 @@ class LanguageUiTests(unittest.TestCase):
         ):
             self.assertEqual(session._screen_loop(screen, state), "cancel")
         self.assertEqual(state.language, "zh-CN")
+        self.assertTrue(screen.repainted)
         self.assertEqual(ui_preferences.read(self.root).ui_language, "zh-CN")
         self.assertEqual(state.display.to_dict(), before)
         self.assertEqual(forms.index(state), selected)
@@ -116,6 +122,7 @@ class LanguageUiTests(unittest.TestCase):
         ):
             session._screen_loop(screen, state)
         self.assertEqual(state.language, "en")
+        self.assertFalse(screen.repainted)
         self.assertIn("previous choice kept", state.notice)
         self.assertEqual(forms.current(state)["key"], "ui-language")
         self.assertFalse(state.modified)
