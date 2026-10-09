@@ -257,3 +257,16 @@ The implementation suite passed 680 Python tests (672 passes, eight expected pla
 A wheel built from fixed `19c7473` passed isolated language PTYs: external 64×18, 64×20, 80×24, 120×30, 80×48; persistent native 120×30/80×48, with immediate save, draft cancellation, external shared language and CLI reset/native reopen. Advanced persistent PTYs passed forms, layout, presets, portable files, host Apply/reload, saves and cancellation; acceptance-driver updates use `9625fa3`, with identical packaged interface source. Core/native/runtime installation smoke passed. Direct theme PTYs verified RGB; multiplexer language/advanced captures use the explicit light fixture and record host quantization. Agent inspection of captured cells/PNGs is separate from human acceptance.
 
 Run both `--language-only` tools from [translation validation](i18n.md#validate-a-change), full external PTYs and `native_mod_acceptance.py --persistent --advanced` against the installed release wheel. Run all 23 cross-platform jobs on the PR, merge and tag. Installation/resource tests preserve preference bytes through upgrades and ordinary uninstall. Raw evidence stays ignored; [image provenance](../images/README.md#bilingual-terminal-captures) records exact sources. This release invokes no paid model/timer suite.
+
+## Statusline localization acceptance
+
+The language checks cover display/protocol v6 migration, UI/output independence, saves/cancellation/refusals, old imports, presets, known values and raw text, item-owned labels, terminal widths and lazy resources. CLI tests isolate their configuration directory instead of inheriting the maintainer's language. `tools/generate_i18n.py --check` also checks the generated Python subset and single-line statusline messages.
+
+Installed-wheel PTYs at backend source `0786ad2` pass external 64×18, 64×20, 80×24, 120×30 and 80×48. Native harness `bc50d80` passes persistent 120×30 and 80×48 with fixed Claude Code 2.1.294. Each viewport resets output language to English before switching; saves are followed by production rendering. Images have [capture provenance](../images/README.md#statusline-language-captures).
+
+```bash
+python tools/benchmark_render.py --samples 50 --display-case formatted --language en --report dist/validation/language-en.json
+python tools/benchmark_render.py --samples 50 --display-case formatted --language zh-CN --report dist/validation/language-zh-CN.json
+```
+
+The same 50-sample warm harness measured baseline v1.8.0 P50/P95 54.261/66.363 ms, English 55.051/64.294 ms and Chinese 54.313/68.506 ms. Small fixtures and scheduling noise limit conclusions; normal rendering neither reads UI preferences nor parses UI JSON. All 444 default-English production/preview comparisons match the baseline. These checks use local commands and fixed samples, not paid model calls or new human acceptance.

@@ -200,3 +200,18 @@ Native captures use an explicit light terminal/background fixture with the Claud
 | external/settings-en | [PNG](tui/external/linux/languages/settings-en.png) | `2e12522cf59a1fd4403d07b4e0c194870f51156041fa81ba804b8169a25888c8` |
 
 The raw captures/reports remain private in ignored `dist/validation/i18n`; screenshots are reconstructed output, not new OS screenshots. The external English selector was captured after switching back from Chinese to force a complete terminal repaint. [Behavior and commands](../USER_GUIDE.md#interface-language).
+
+## Statusline language captures
+
+These eight images reconstruct actual terminal cells, using fixed data rather than live user observations. Backend UI/render source `0786ad2` was packaged as development 1.8.0; native harness `bc50d80` passed with fixed Claude Code 2.1.294 on Linux x86_64 / CPython 3.14.4. Native images crop a 120×30 light-theme terminal to the pane; the multiplexer quantizes RGB to 256 colors. External images use the full 120×30 dark terminal with colors off. Production images capture real renderer stdout on a 100×4 PTY and crop its first two rows. Interface/output language independence is visible in English chrome with Chinese output. Agent image inspection is separate from human or Windows/macOS terminal acceptance. Raw logs/cells stay ignored.
+
+| Capture | PNG SHA-256 |
+| --- | --- |
+| [Native main / English output](tui/native/linux/statusline-languages/main-en.png) | `033434791c721d6b50bf580f6ab3325898d0cb627d8f0865f13651f226e6c135` |
+| [Native main / Chinese output](tui/native/linux/statusline-languages/main-zh-CN.png) | `f349a37ddf851da1e7de0c255c9f7ce949cc783688848f9ea8ae6b5913b131a9` |
+| [Native output language / English](tui/native/linux/statusline-languages/settings-en.png) | `0d0c53b9d7158696510c668c4c1fdd5d376ec039055d087ef5e1609efa20f130` |
+| [Native output language / Chinese](tui/native/linux/statusline-languages/settings-zh-CN.png) | `3ea6894f3d820d3aba9b5339851b65d4b0077da739c900090ea0061c6f580188` |
+| [External output language / English](tui/external/linux/statusline-languages/settings-en.png) | `fe5f01fb644d33bfdcb61aa49aa932c80151364b89f08650857517607df02749` |
+| [External output language / Chinese](tui/external/linux/statusline-languages/settings-zh-CN.png) | `2dc86d94fdfadc9dc9d76f61c4fa28ab0d8721d8735d2cf8e479650c9b23e85d` |
+| [Actual CLI output / English](statusline/linux/en.png) | `760eb877e851f044590d5adc0ac1b3ff93e155041c6c96c960ad42cd86fb807f` |
+| [Actual CLI output / Chinese](statusline/linux/zh-CN.png) | `129ab6478728c3636a2e220aee2ca26c1598d62c3a9c06590bd1e6c4a2ab1692` |

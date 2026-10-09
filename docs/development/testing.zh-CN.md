@@ -258,3 +258,16 @@ python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-stat
 固定 `19c7473` 构建的 wheel 通过独立语言 PTY：外部 64×18、64×20、80×24、120×30、80×48；持久化原生 120×30／80×48，覆盖即时保存、取消草稿、外部共享语言和 CLI 重置／原生重开。高级持久化 PTY 通过表单、布局、预设、可移植文件、宿主 Apply／重新加载、保存与取消；验收驱动修正使用 `9625fa3`，包内界面源保持一致。基本／原生／运行安装检查通过。直接主题 PTY 验证 RGB，复用器语言／高级采集采用明确浅色样本并记录宿主量化；代理检查单元格／PNG 与人类验收分别记录。
 
 按[翻译校验](i18n.zh-CN.md#校验修改)针对已安装正式 wheel 运行两种 `--language-only`、完整外部 PTY 及 `native_mod_acceptance.py --persistent --advanced`。PR、合并和标签均需通过 23 项跨平台检查。安装／资源测试验证升级和普通卸载保留偏好字节。原始证据保持忽略，[图片来源](../images/README.zh-CN.md#双语终端采集)记录精确源；本版本不运行付费模型／计时套件。
+
+## 状态栏本地化验收
+
+语言检查覆盖显示／协议 v6 迁移、UI／输出独立、保存取消与拒绝、旧格式导入、预设、已知值及原始文字、内置标签边界、终端宽度和延迟资源。CLI 测试隔离配置目录，不继承维护者语言。`tools/generate_i18n.py --check` 同时检查生成的 Python 子集和单行状态栏消息。
+
+安装包后端源码 `0786ad2` 通过外部 64×18、64×20、80×24、120×30、80×48 PTY。原生工具 `bc50d80` 在固定 Claude Code 2.1.294 下通过持久化 120×30 与 80×48。每个尺寸先重置英文输出再切换，保存后验证生产渲染；图片见[采集来源](../images/README.zh-CN.md#状态栏语言采集)。
+
+```bash
+python tools/benchmark_render.py --samples 50 --display-case formatted --language en --report dist/validation/language-en.json
+python tools/benchmark_render.py --samples 50 --display-case formatted --language zh-CN --report dist/validation/language-zh-CN.json
+```
+
+同一 50 样本热字节码基准测得 v1.8.0 P50／P95 为 54.261／66.363 ms，英文 55.051／64.294 ms，中文 54.313／68.506 ms。小型数据与调度噪声限制结论；正常渲染不读取 UI 偏好或解析 UI JSON。444 个英文默认生产／预览对照均与基线一致。本轮采用本地命令和固定样例，不调用付费模型，也不代表新的人类验收。

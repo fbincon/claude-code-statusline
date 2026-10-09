@@ -17,7 +17,7 @@
 
 ## 功能概览
 
-- **选择界面语言：** 两个编辑器和 CLI 支持 English / 简体中文，即时切换并保留显示草稿。
+- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文；界面语言立即保存，状态栏语言随显示设置保存。
 - **选择显示内容：** 支持 60 个主栏条目和 14 个子 Agent 条目，可启用、隐藏、筛选和排序。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
@@ -284,7 +284,24 @@ claude-statusline config language reset
 claude-statusline --language en --help
 ```
 
-`--language en|zh-CN` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值、自定义文字及实际状态栏保持原值。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
+`--language en|zh-CN` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值和自定义文字保持原值；界面语言不改变状态栏语言。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
+
+### 状态栏语言
+
+在任一编辑器选择**状态栏语言（随显示设置保存）** → **English / 简体中文**。预览立即切换，保存后主状态栏与子代理行在下次刷新时生效，取消则放弃草稿。默认英文。
+
+```text
+claude-statusline config set statusline-language zh-CN
+claude-statusline config set statusline-language en
+```
+
+![英文状态栏输出](docs/images/statusline/linux/en.png)
+
+![简体中文状态栏输出](docs/images/statusline/linux/zh-CN.png)
+
+图片来自[固定输入的真实 CLI 终端采集](docs/images/README.zh-CN.md#状态栏语言采集)。
+
+翻译内置标签和已知状态，保留技术单位、模型名称、分支、路径和自定义文字。详见[状态栏语言](docs/USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ### 原生配置编辑器
 
@@ -362,6 +379,8 @@ claude-code-statusline/
 │       ├── i18n/                            # 中英文共享展示资源
 │       │   ├── locales/                     # en.json / zh-CN.json
 │       │   ├── translator.py                # 消息键、参数与英文回退
+│       │   ├── statusline.py                # 显式语言输出与已知值展示
+│       │   ├── _generated_statusline.py      # 自动生成的轻量运行词典
 │       │   └── presentation.py              # 翻译字段、选项与双语搜索
 │       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
 │       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配

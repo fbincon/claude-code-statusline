@@ -85,7 +85,13 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 `config language show [--json]` reads the shared preference; JSON is `{"schema_version":1,"ui_language":"en"}` or `"zh-CN"`. `set en|zh-CN` and `reset` save explicitly; reset selects English. The root `--language en|zh-CN` option goes before the command and takes precedence for that invocation without changing storage. With `configure` it controls the initial editor language.
 
-Help text/groups, argparse errors and administrative output use the selected language. Command names, argument values, exit codes, catalog JSON and actual statusline output remain stable. `/statusline-config language show|set|reset` also executes locally on supported hosts. See [language behavior and recovery](../USER_GUIDE.md#interface-language).
+Help text/groups, argparse errors and administrative output use the selected language. Command names, argument values, exit codes, catalog JSON remain stable; actual output uses the separate display language. `/statusline-config language show|set|reset` also executes locally on supported hosts. See [language behavior and recovery](../USER_GUIDE.md#interface-language).
+
+## Statusline language
+
+`config set statusline-language en|zh-CN` persists the display language. `config apply --statusline-language en|zh-CN` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
+
+Display schema v6 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
 
 ## Installation and diagnostics
 
@@ -149,6 +155,7 @@ Palette: default
 Directory style: home
 Separator style: classic
 Scope labels: when-subagents
+Statusline language: en
 Subagent items: status-elapsed, name, model-with-effort, context-remaining, task
 Custom subagent rows: on
 Subagent statusline: owned
@@ -294,6 +301,7 @@ claude-statusline config set refresh-interval 5
 claude-statusline config set hide-vim-mode-indicator on
 claude-statusline config set subagent-statusline off
 claude-statusline config set scope-labels when-subagents
+claude-statusline config set statusline-language zh-CN
 ```
 
 Display options can be configured before installing the status line. Host options `padding`, `refresh-interval`, and `hide-vim-mode-indicator` modify `settings.json/statusLine`, so they require the current status line to be managed by this `claude-statusline` executable. Otherwise, writes are rejected to protect other implementations.
@@ -314,6 +322,7 @@ claude-statusline config apply \
   --subagent-items status-elapsed name model-with-effort context-remaining task \
   --subagent-statusline on \
   --scope-labels when-subagents \
+  --statusline-language en \
   --colors on \
   --palette default \
   --directory-style home \
@@ -331,6 +340,7 @@ claude-statusline.exe config apply `
   --subagent-items status-elapsed name model-with-effort context-remaining task `
   --subagent-statusline on `
   --scope-labels when-subagents `
+  --statusline-language en `
   --colors on `
   --palette default `
   --directory-style home `
@@ -390,7 +400,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v5 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v6 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
 
 Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
 
@@ -579,7 +589,7 @@ Width uses the payload's positive integer `columns` directly, falling back to 80
 
 Keep these three scopes distinct:
 
-- The global bottom line belongs to the main agent; `scope-labels=when-subagents` prepends fixed `Main/Session` after the current prompt has launched subagents.
+- The global bottom line belongs to the main agent; `scope-labels=when-subagents` prepends `Main/Session` (Chinese output: `主会话`) after the current prompt has launched subagents.
 - Main-line `tokens` is cumulative session usage, still including discoverable main and subagent transcripts.
 - Each official subagent row describes only its own task, using only `tasks[]` fields.
 
@@ -591,11 +601,12 @@ Claude Code provides neither `focused_agent` nor `viewing_task_id`. After switch
 
 | OPTION | VALUE | Default | Description |
 | --- | --- | --- | --- |
+| `statusline-language` | `en`, `zh-CN` | `en` | Independent main/subagent output language; preview immediately, save with display settings |
 | `colors` | `on`, `off` | `on` | Whether to output ANSI color codes |
 | `palette` | `default`, `ansi` | `default` | `default` uses this project's 24-bit RGB colors; `ansi` uses standard terminal colors |
 | `directory-style` | `full`, `home`, `project-relative`, `basename` | `full` | How to abbreviate the working directory |
 | `separator-style` | `classic`, `compact` | `classic` | How to separate top-level items |
-| `scope-labels` | `off`, `when-subagents`, `always` | `when-subagents` | Whether to prepend fixed `Main/Session` to the main line |
+| `scope-labels` | `off`, `when-subagents`, `always` | `when-subagents` | Whether to prepend the localized main/session scope label to the main line |
 | `subagent-statusline` | `on`, `off` | `on` | Whether custom subagent rows should be installed and rendered |
 | `padding` | `0`–`32` | `0` | Horizontal whitespace added by Claude Code before status-line content |
 | `refresh-interval` | `event`, `1`–`3600` | `1` | Rerun the renderer every specified number of seconds in addition to event refreshes; `event` means events only |
@@ -695,7 +706,8 @@ The default configuration is equivalent to:
 
 ```json
 {
-  "schema_version": 5,
+  "schema_version": 6,
+  "statusline_language": "en",
   "items": [
     "model-with-effort",
     "current-dir",
@@ -759,7 +771,7 @@ The ten items above form the default enabled set. The other 50 main items enter 
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [configuration writes and concurrency](../development/README.md#configuration-writes-and-concurrency).
 
-The current source display schema is v5. Historical v1/v2/v3/v4 are readable and are backed up and written as v5 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
+The current source display schema is v5. Historical v1/v2/v3/v4/v5 are readable and are backed up and written as v5 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 

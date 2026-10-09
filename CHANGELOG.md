@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 1.9.0 - 2026-10-10
+
+- Add independent English/Simplified Chinese main and subagent output language, with immediate draft previews and normal display Save/Cancel semantics in both editors. Add CLI setters and an optional atomic apply flag; legacy guided configuration reads the interface preference and saves output language with other answers.
+- Advance display schema/configuration protocol to v6; read/import v1–v5 as English without rewriting, migrate only on explicit saves, preserve language in revisions/exports/presets and restore English on display reset. UI preference schema v1, runtime protocol v2 and portable envelope v1 remain independent.
+- Generate a lightweight Python subset from canonical resources; localize complete phrases and known values, preserve technical units/raw data and use owned label boundaries to protect user text. Add single-line resource validation, hermetic CLI tests, bilingual documentation/captures, package and terminal acceptance.
+
 ## 1.8.0 - 2026-10-10
 
 - Add shared English/Simplified Chinese resources for CLI help, errors, installation/configuration/diagnostics and both editors. Generate native TypeScript resources from Python JSON with key/placeholder/control-character and package synchronization checks.

@@ -32,7 +32,7 @@ def main() -> int:
         default=Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
     )
     parser.add_argument("--commit", required=True)
-    parser.add_argument("--surface", choices=("native", "external"), default="native")
+    parser.add_argument("--surface", choices=("native", "external", "statusline"), default="native")
     parser.add_argument(
         "--bounds",
         nargs=4,
@@ -117,6 +117,8 @@ def main() -> int:
         "source",
         "Decoded cells of a real Claude Code terminal session; cropped to the native pane"
         if args.surface == "native"
+        else "Decoded cells of actual statusline CLI output on a PTY with fixed input data"
+        if args.surface == "statusline"
         else "Decoded cells of a real external curses TUI terminal; fixed sample preview",
     )
     metadata.add_text("commit", args.commit)
