@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 1.8.0 - 2026-10-10
+
+- Add shared English/Simplified Chinese resources for CLI help, errors, installation/configuration/diagnostics and both editors. Generate native TypeScript resources from Python JSON with key/placeholder/control-character and package synchronization checks.
+- Store independent schema-v1 language preferences in `statusline-ui.json`; add `config language show|set|reset` and invocation-only root `--language en|zh-CN`. Default to English, protect future schemas, back up explicit repairs, preserve the prior choice on write failure and retain preferences across reinstall/ordinary uninstall.
+- Add immediate English / 简体中文 switching while retaining page, selection, input/search and unsaved display drafts. Search both languages, IDs and custom labels; repaint external wide-character cells and recalculate existing terminal budgets. Preserve canonical IDs/values, machine JSON and actual statusline output.
+- Advance configuration protocol to v5 with UI preference operations and semantic message metadata; retain display schema v5 and runtime protocol v2. Add bilingual guides, translation contribution rules, real Linux PTY image provenance and bounded complete-workflow tests. Python and both Mods use 1.8.0.
+
 ## 1.7.8 - 2026-10-09
 
 - Add an independent light/dark Preview background choice to the in-session editor, remembered immediately as a UI preference without changing display drafts, portable exports or the actual status line. Default to the previous dark surface; recover the previous choice on storage failure.
