@@ -17,6 +17,7 @@
 
 ## 功能概览
 
+- **选择界面语言：** 两个编辑器和 CLI 支持 English / 简体中文，即时切换并保留显示草稿。
 - **选择显示内容：** 支持 60 个主栏条目和 14 个子 Agent 条目，可启用、隐藏、筛选和排序。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
@@ -31,6 +32,19 @@
 ## 界面预览
 
 会话底部主状态栏显示实际数据，配置 Preview 使用固定样例。字体、颜色和宽度随终端设置变化。[图片来源与归档索引](docs/images/README.zh-CN.md)。
+
+<details>
+<summary>English / 简体中文配置界面</summary>
+
+Linux 终端采集展示共享语言选项与中文界面。图片由真实 PTY 单元格重建，预览使用固定样例；[来源与完整四页](docs/images/README.zh-CN.md#双语终端采集)。
+
+![英文原生语言选项](docs/images/tui/native/linux/languages/settings-en.png)
+
+![简体中文原生语言选项](docs/images/tui/native/linux/languages/settings-zh-CN.png)
+
+![简体中文外部语言选项](docs/images/tui/external/linux/languages/settings-zh-CN.png)
+
+</details>
 
 ### 会话内 TUI
 
@@ -259,6 +273,19 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 
 <a id="v130a2外部-tui-与会话内-client"></a>
 
+### 界面语言
+
+两个编辑器的设置页均提供**界面语言（立即保存）**，选项始终显示 **English / 简体中文**；默认英文。切换保留当前页面、选中项、搜索与未保存显示修改，取消显示修改也保留语言选择。其他已打开窗口在重开或重新加载时读取新偏好。
+
+```text
+claude-statusline config language set zh-CN
+claude-statusline config language show
+claude-statusline config language reset
+claude-statusline --language en --help
+```
+
+`--language en|zh-CN` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值、自定义文字及实际状态栏保持原值。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
+
 ### 原生配置编辑器
 
 先点击 Client 区域一次，再用 Tab 切页、Space 勾选、方向键选择或排序、Ctrl+E 打开逐项格式、`/` 搜索。`S` 保存留页，`F` 保存并退出，`Q` 丢弃未保存修改，小写字母同样有效。底部快捷键随页面或输入状态变化；Ctrl+G 取消输入。Claude 偏好使用独立 Apply 操作。
@@ -330,6 +357,12 @@ claude-code-statusline/
 │   ├── build_native.py                      # Mod 资源打包与软件包 README 链接转换
 │   └── claude_statusline/                   # Python CLI 与实现模块
 │       ├── config/                          # 配置模型、存储、迁移与命令
+│       │   ├── ui_preferences.py            # 共享语言偏好事务
+│       │   └── storage.py                   # 锁、备份及原子写入
+│       ├── i18n/                            # 中英文共享展示资源
+│       │   ├── locales/                     # en.json / zh-CN.json
+│       │   ├── translator.py                # 消息键、参数与英文回退
+│       │   └── presentation.py              # 翻译字段、选项与双语搜索
 │       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
 │       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配
 │       ├── rendering/                       # 状态栏格式、颜色、布局与预览
@@ -344,18 +377,21 @@ claude-code-statusline/
 │   ├── statusline-native/                   # 会话内配置编辑器 Mod
 │   │   ├── hooks/                           # 宿主 API、命令、保存与恢复
 │   │   ├── lib/                             # 后端、草稿、输入与独立快照
+│   │   │   └── i18n/                       # 生成语言包、语义消息与展示
 │   │   ├── ui/                              # Client 绘制、组件、主题与布局
 │   │   │   └── theme.ts                     # 宿主颜色职责与独立预览背景
 │   │   └── tests/                           # 按后端、Client、编辑器、集成与 UI 分组测试
 │   └── statusline-runtime/                  # 原生任务计时与可选高级指标采集 Mod
 ├── tests/                                   # Python 单元与集成测试
 │   ├── config/                              # 配置、格式、迁移与导入导出测试
+│   ├── i18n/                                # 翻译资源与回退测试
 │   ├── integration/                         # CLI、安装、打包与兼容性测试
 │   ├── platforms/                           # 平台适配与终端集成测试
 │   ├── rendering/                           # 状态栏格式、布局与指标显示测试
 │   ├── runtime/                             # 会话状态、任务生命周期与计时测试
 │   └── ui/                                  # 配置编辑器、布局与协议测试
 └── tools/                                   # 开发、验证与发布工具
+    ├── generate_i18n.py                     # 校验语言资源并生成 TypeScript
     ├── inspect_dist.py                      # wheel/sdist 元数据、内容与排除规则检查
     ├── publish_package.py                   # 发布资产校验与软件源安装验证
     └── check_docs.py                        # 文档链接、锚点与双语配对检查

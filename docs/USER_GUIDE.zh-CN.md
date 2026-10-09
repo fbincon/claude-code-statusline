@@ -14,6 +14,7 @@
 - [运行要求](#运行要求)
 - [安装与接入](#安装与接入)
 - [选择配置入口](#选择配置入口)
+- [界面语言](#界面语言)
 - [原生配置编辑器](#原生配置编辑器)
 - [独立交互式 TUI](#独立交互式-tui)
 - [外部终端入口 `/statusline-configure`](#外部终端入口-statusline-configure)
@@ -152,6 +153,27 @@ macOS 使用相同 wheel 和安装流程，CPython 需要提供 curses。外部�
 <a id="原生编辑器预览"></a>
 
 <a id="v130a2外部-tui-与会话内-client"></a>
+
+## 界面语言
+
+CLI、外部／独立 curses 编辑器和会话内 Client 默认英文。在设置页选择**界面语言（立即保存）** → **English / 简体中文**。两个编辑器与 CLI 共用此偏好，与 Claude 自身的主题和语言设置独立。
+
+```text
+claude-statusline config language show [--json]
+claude-statusline config language set zh-CN
+claude-statusline config language set en
+claude-statusline config language reset
+claude-statusline --language zh-CN configure
+claude-statusline --language en config --help
+```
+
+使用 `--json` 时不要输入方括号。`reset` 保存英文。可选的 `--language` 放在子命令前，仅在当前调用中覆盖已保存偏好，不写入文件；使用该参数打开的编辑器仍可在设置页保存新的语言。独立配置目录示例：`claude-statusline config --config-dir /path/to/config language set zh-CN`。
+
+切换立即保存，保留当前页面、选中字段、搜索、输入内容和显示草稿，重新计算终端布局并绘制翻译文字。保存／取消继续只控制显示修改；语言写入失败时保留上一次语言并显示错误。其他窗口在重开或执行现有重新加载操作时读取新偏好。任一语言下均可搜索稳定 ID、中英文名称与说明，以及自定义标签。
+
+偏好文件为 `<CLAUDE_CONFIG_DIR>/statusline-ui.json`，schema v1。缺失或无效偏好回退英文，读取不修复文件。显式 set/reset 会备份并修复损坏文件，但拒绝覆盖未来 schema。重装、升级、普通卸载、显示 reset、预设及可移植导入／导出均保留此独立偏好。
+
+实际状态栏样例／输出、模型名称、路径、分支、命令、ID、配置值和自定义标签保持原值。模型问答向导跟随对话语言；此设置翻译工具自身界面。机器可读目录与现有 JSON 接口保留英文基准元数据及稳定字段。
 
 ## 原生配置编辑器
 
@@ -580,7 +602,7 @@ claude-statusline config show
 
 ### 版本兼容
 
-当前显示 schema v5、配置协议 v4、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1/v2/v3/v4 文件读取时不重写，实际保存才备份原字节并迁移为 v5；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
+当前显示 schema v5、配置协议 v5、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1/v2/v3/v4 文件读取时不重写，实际保存才备份原字节并迁移为 v5；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
 
 降级前使用新版关闭或移除旧版无法管理的接入，包括适用的实时采集和原生编辑器。根据备份 `metadata.json` 恢复兼容显示文件，或在 schema 兼容时移除不支持的条目 ID。随后安装旧包、运行 `install` 和 `doctor`，并重启 Claude Code。可移植导出可另行保留当前显示选择，供以后恢复。
 
@@ -624,7 +646,7 @@ Doctor 检查平台与 Python、PATH、配置有效性、命令归属、hooks、
 [WARN] display config schema v4 is valid and will migrate to v5 on the next configuration save
 ```
 
-此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v4、运行协议 v2 分别管理版本。
+此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v5、运行协议 v2 分别管理版本。
 
 ## 故障排查
 

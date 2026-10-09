@@ -137,3 +137,9 @@ Main/Subagents 用 Ctrl+E 打开逐项格式；Layout 管理显式行边界、�
 | dark / dark | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) |
 
 [捕获来源](../images/README.zh-CN.md#原生预览背景捕获)。
+
+## 界面语言
+
+设置页增加独立的**界面语言（立即保存）**。宿主在打开／重新加载时读取 `read_ui_preferences`，通过独立效果执行 `set_ui_language`。Client 保留当前页面／选中项／搜索／输入，语义消息在切换或冻结端口复制后仍可翻译。写入失败恢复此前界面语言，关闭或旧 epoch 不覆盖新状态。Claude 偏好 Apply 与显示 Save 继续独立；搜索同时包含中英文名称／说明、ID 和自定义标签。
+
+[Linux 双语采集](../images/README.zh-CN.md#双语终端采集)展示四页及中英文语言选项。持久化 PTY 使用明确浅色预览底色，真实宿主在该复用器路径将 RGB 量化为 256 色；直接主题 PTY 另行验证 RGB。此记录不代表新的人类或其他平台焦点验收。见[语言实现](i18n.zh-CN.md)。

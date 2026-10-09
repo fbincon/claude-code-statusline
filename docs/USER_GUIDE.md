@@ -14,6 +14,7 @@ Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude
 - [Requirements](#requirements)
 - [Installation and integration](#installation-and-integration)
 - [Choose a configuration entry point](#choose-a-configuration-entry-point)
+- [Interface language](#interface-language)
 - [Native configuration editor](#native-configuration-editor)
 - [Standalone interactive TUI](#standalone-interactive-tui)
 - [External terminal `/statusline-configure`](#external-terminal-statusline-configure)
@@ -150,6 +151,27 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 <a id="native-editor-preview"></a>
 
 <a id="v130a2-external-tui-and-in-session-client"></a>
+
+## Interface language
+
+The CLI, external/standalone curses editor and in-session Client default to English. In Settings choose **Interface language (saved immediately)** → **English / 简体中文**. The language is shared across both editors and CLI, independent of Claude's own theme and language settings.
+
+```text
+claude-statusline config language show [--json]
+claude-statusline config language set zh-CN
+claude-statusline config language set en
+claude-statusline config language reset
+claude-statusline --language zh-CN configure
+claude-statusline --language en config --help
+```
+
+Omit the square brackets when using `--json`. `reset` saves English. Put the optional `--language` before the command; it overrides the saved preference for that invocation without writing it. An editor opened with that override can still save a new language through Settings. For an isolated directory use `claude-statusline config --config-dir /path/to/config language set zh-CN`.
+
+A switch saves immediately and preserves the current page, selected field, search, input and display draft. It recomputes terminal layout and redraws translated text. Save/cancel continues to govern display changes only; a failed language write keeps the previous language and reports the error. Other open windows read the new preference when reopened or through their existing reload action. Search matches IDs, English/Chinese names and descriptions, and custom labels in either language.
+
+The preference is `<CLAUDE_CONFIG_DIR>/statusline-ui.json`, schema v1. Missing or invalid preferences fall back to English; reading never repairs the file. Explicit set/reset backs up and repairs corrupt preferences, but refuses a newer schema. Reinstall, upgrades, ordinary uninstall, display reset, presets and portable import/export preserve this independent preference.
+
+Actual statusline samples/output, model names, paths, branches, commands, IDs, configuration values and custom labels remain unchanged. The model-based wizard follows the conversation; this setting translates the tool's own interfaces. Machine-readable catalogs and existing JSON interfaces retain English metadata and stable fields.
 
 ## Native configuration editor
 
@@ -594,7 +616,7 @@ Restart Claude Code. Installation synchronizes command paths, skill templates, h
 
 ### Version compatibility
 
-Current display schema v5, configuration protocol v4, and independent runtime protocol v2 require matching resources and backend. Supported display v1/v2/v3/v4 files are read without rewriting; an actual save backs up the old bytes and migrates to v5. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
+Current display schema v5, configuration protocol v5, and independent runtime protocol v2 require matching resources and backend. Supported display v1/v2/v3/v4 files are read without rewriting; an actual save backs up the old bytes and migrates to v5. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
 
 Before downgrading, use the newer package to disable/remove integrations that the older package cannot manage, including live collection and the native editor as applicable. Restore a compatible display backup using its `metadata.json`, or remove unsupported item IDs where schema compatibility permits. Then install the old package, run `install` and `doctor`, and restart Claude Code. A portable export can separately retain current display choices for later reuse.
 
@@ -638,7 +660,7 @@ For an existing display configuration file, the schema check reports the support
 [WARN] display config schema v4 is valid and will migrate to v5 on the next configuration save
 ```
 
-This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v4 and runtime protocol v2.
+This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v5 and runtime protocol v2.
 
 <a id="故障排查"></a>
 

@@ -137,3 +137,9 @@ Choose **Preview background (UI only)** to match the terminal’s light/dark app
 | dark / dark | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | [Preview](../images/tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) |
 
 [Capture provenance](../images/README.md#native-preview-background-captures).
+
+## Interface language
+
+Settings includes the independent **Interface language (saved immediately)** row. The host reads `read_ui_preferences` on opening/reload and executes `set_ui_language` as a separate effect. The Client retains current page/selection/search/input, and semantic messages remain renderable after a switch or frozen-port copy. Failed writes restore the prior view language; closed/old epochs cannot replace newer state. Host preference Apply and display Save remain separate. Search includes English/Chinese names/descriptions, IDs and custom labels.
+
+The [Linux bilingual captures](../images/README.md#bilingual-terminal-captures) show all four pages and English/Chinese selectors. Persistent PTYs use an explicit light preview surface; the real host quantizes RGB to 256 colors in this multiplexer path. Direct theme PTYs separately preserve RGB. These observations do not establish new human or other-platform focus acceptance. See [language implementation](i18n.md).
