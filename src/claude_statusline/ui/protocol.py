@@ -108,6 +108,7 @@ def configuration_options() -> contracts.ConfigurationOptions:
         "directory-style": {"choices": list(display.DIRECTORY_STYLES)},
         "separator-style": {"choices": list(display.SEPARATOR_STYLES)},
         "scope-labels": {"choices": list(display.SCOPE_LABELS)},
+        "statusline-language": {"choices": list(display.STATUSLINE_LANGUAGES)},
         "subagent-statusline": {"choices": [True, False]},
         "padding": {"minimum": models.PADDING_MIN, "maximum": models.PADDING_MAX},
         "refresh-interval": {

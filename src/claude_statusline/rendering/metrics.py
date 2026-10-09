@@ -7,6 +7,7 @@ import time
 
 from claude_statusline.rendering import formatters, preferences
 from claude_statusline.config.formatting import Formatting
+from claude_statusline.i18n import statusline
 
 
 def finite_number(value: object) -> float | None:
@@ -25,16 +26,16 @@ def token_count(value: object) -> int | None:
     return value
 
 
-def token_ratio(used: object, capacity: object, fmt=Formatting()) -> str | None:
+def token_ratio(used: object, capacity: object, fmt=Formatting(), language="en") -> str | None:
     count, window = token_count(used), token_count(capacity)
     if count is None or window is None or window == 0:
         return None
     return (
-        f"Context {preferences.number(count, fmt)} / {preferences.number(window, fmt)}"
+        statusline.text("context.tokens", language, count=preferences.number(count, fmt), window=preferences.number(window, fmt))
     )
 
 
-def context_tokens(context: object, fmt=Formatting()) -> str | None:
+def context_tokens(context: object, fmt=Formatting(), language="en") -> str | None:
     if not isinstance(context, dict):
         return None
     if "current_usage" in context:
@@ -54,7 +55,7 @@ def context_tokens(context: object, fmt=Formatting()) -> str | None:
         count = sum(parts)
     else:
         count = token_count(context.get("total_input_tokens"))
-    return token_ratio(count, context.get("context_window_size"), fmt)
+    return token_ratio(count, context.get("context_window_size"), fmt, language)
 
 
 def model_name(data: dict) -> str | None:
@@ -98,7 +99,7 @@ def countdown(expires_at: object, now: float) -> str | None:
     return f"{seconds}s"
 
 
-def session_metric(cost: object, item: str, fmt=Formatting()) -> str | None:
+def session_metric(cost: object, item: str, fmt=Formatting(), language="en") -> str | None:
     if not isinstance(cost, dict):
         return None
     if item == "lines-changed":
@@ -118,12 +119,11 @@ def session_metric(cost: object, item: str, fmt=Formatting()) -> str | None:
     if number is None:
         return None
     if item == "session-cost":
-        return f"Cost ${preferences.money(number, fmt)}"
-    label = "Session" if item == "session-duration" else "API"
-    return f"{label} {formatters.format_duration(number / 1000)}"
+        return statusline.text("cost.session", language, value=preferences.money(number, fmt))
+    return statusline.text("duration.session" if item == "session-duration" else "duration.api", language, value=formatters.format_duration(number / 1000))
 
 
-def cache_metric(cache: object, item: str, now: float, fmt=Formatting()) -> str | None:
+def cache_metric(cache: object, item: str, now: float, fmt=Formatting(), language="en") -> str | None:
     if not isinstance(cache, dict):
         return None
     if item in ("cache-misses", "api-requests"):
@@ -134,15 +134,15 @@ def cache_metric(cache: object, item: str, now: float, fmt=Formatting()) -> str 
         )
         count = token_count(cache.get(field))
         return (
-            f"{label} {preferences.number(count, fmt, str)}"
+            statusline.text("cache.misses" if item == "cache-misses" else "api.requests", language, value=preferences.number(count, fmt, str))
             if count is not None
             else None
         )
     if cache.get("caching_observed") is False:
-        return "Cache unobserved" if item == "cache-state" else None
+        return statusline.text("cache.unobserved", language) if item == "cache-state" else None
     warm = cache.get("warm")
     if warm is False:
-        return "Cache cold" if item == "cache-state" else None
+        return statusline.text("cache.cold", language) if item == "cache-state" else None
     if warm is not True:
         return None
     expires = finite_number(cache.get("expires_at"))
@@ -150,24 +150,24 @@ def cache_metric(cache: object, item: str, now: float, fmt=Formatting()) -> str 
         return None
     remaining = countdown(expires, now)
     if item == "cache-state":
-        return "Cache warm" if remaining else "Cache cold"
-    return f"Cache TTL {remaining}" if remaining else None
+        return statusline.text("cache.warm" if remaining else "cache.cold", language)
+    return statusline.text("cache.ttl", language, value=remaining) if remaining else None
 
 
-def spend_metric(window: object, item: str, fmt=Formatting()) -> str | None:
+def spend_metric(window: object, item: str, fmt=Formatting(), language="en") -> str | None:
     if not isinstance(window, dict):
         return None
     if item == "spend-period":
         period = window.get("period")
         return (
-            f"Spend {period}"
+            statusline.text("spend.period", language, value=statusline.value("period", period, language))
             if isinstance(period, str) and period in ("daily", "weekly", "monthly")
             else None
         )
     used = finite_number(window.get("used_usd"))
     limit = finite_number(window.get("limit_usd"))
     return (
-        f"Spend ${preferences.money(used, fmt)} / ${preferences.money(limit, fmt)}"
+        statusline.text("spend.amount", language, used=preferences.money(used, fmt), limit=preferences.money(limit, fmt))
         if used is not None and limit is not None
         else None
     )

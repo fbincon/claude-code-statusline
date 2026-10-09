@@ -403,7 +403,7 @@ class ConfigurePtyTests(unittest.TestCase):
         self.assertEqual(self.settings_path.read_bytes(), before)
         self.assertTrue((self.config_dir / "backups").exists())
         display = json.loads(self.display_path.read_text(encoding="utf-8"))
-        self.assertEqual(display["schema_version"], 5)
+        self.assertEqual(display["schema_version"], 6)
 
     def test_too_small_resize_recovers_and_can_cancel(self):
         before = self.settings_path.read_bytes()

@@ -60,3 +60,29 @@ class LanguageCliTests(unittest.TestCase):
         before = self.run_cli("render", content=payload).stdout
         self.run_cli("config", "language", "set", "zh-CN")
         self.assertEqual(self.run_cli("render", content=payload).stdout, before)
+
+    def test_all_interface_and_statusline_language_combinations_are_independent(self):
+        self.assertEqual(self.run_cli("config", "set", "colors", "off").returncode, 0)
+        payload = '{"context_window":{"remaining_percentage":50}}'
+        for ui_language in ("en", "zh-CN"):
+            self.run_cli("config", "language", "set", ui_language)
+            for output_language in ("en", "zh-CN"):
+                with self.subTest(ui=ui_language, output=output_language):
+                    result = self.run_cli("config", "set", "statusline-language", output_language)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    expected = "Context 50% left" if output_language == "en" else "上下文 剩余 50%"
+                    self.assertEqual(self.run_cli("render", content=payload).stdout.strip(), expected)
+                    self.assertEqual(self.run_cli("--language", "en", "render", content=payload).stdout.strip(), expected)
+                    self.assertEqual(self.run_cli("--language", "zh-CN", "render", content=payload).stdout.strip(), expected)
+                    shown = json.loads(self.run_cli("config", "show", "--json").stdout)
+                    self.assertEqual(shown["display"]["statusline_language"], output_language)
+        self.run_cli("config", "language", "reset")
+        self.assertEqual(self.run_cli("render", content=payload).stdout.strip(), "上下文 剩余 50%")
+
+    def test_invalid_statusline_language_does_not_modify_configuration(self):
+        self.run_cli("config", "set", "statusline-language", "zh-CN")
+        path = self.root / "claude-statusline.json"
+        before = path.read_bytes()
+        result = self.run_cli("config", "set", "statusline-language", "auto")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(path.read_bytes(), before)

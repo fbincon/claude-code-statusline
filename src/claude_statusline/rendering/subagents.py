@@ -14,6 +14,7 @@ from typing import Any
 from claude_statusline.config import display as config_display
 from claude_statusline.rendering import formatters as rendering_formatters
 from claude_statusline.rendering import metrics, preferences
+from claude_statusline.i18n import statusline
 
 
 DEFAULT_COLUMNS = 80
@@ -126,19 +127,19 @@ def _finite_number(value: object) -> float | None:
     return parsed if math.isfinite(parsed) else None
 
 
-def _task_name(task: dict[str, Any]) -> str:
+def _task_name(task: dict[str, Any], language="en") -> str:
     return (
         rendering_formatters.sanitize_payload_text(task.get("name"))
         or _normalized_type(task.get("type"))
-        or "Agent"
+        or statusline.text("agent.fallback", language)
     )
 
 
-def _model_with_effort(task: dict[str, Any]) -> str | None:
+def _model_with_effort(task: dict[str, Any], language="en") -> str | None:
     model = _model(task)
     if not model:
         return None
-    effort = metrics.effort_text(task.get("effort"))
+    effort = statusline.value("effort", metrics.effort_text(task.get("effort")), language)
     return f"{model}/{effort}" if effort else model
 
 
@@ -153,7 +154,7 @@ def _model(task: dict[str, Any]) -> str | None:
     return model
 
 
-def _context_used(task: dict[str, Any]) -> str | None:
+def _context_used(task: dict[str, Any], language="en") -> str | None:
     tokens = task.get("tokenCount")
     window = task.get("contextWindowSize")
     token_number = _finite_number(tokens)
@@ -168,11 +169,11 @@ def _context_used(task: dict[str, Any]) -> str | None:
         if not math.isfinite(ratio):
             return None
         percentage = int(ratio + 0.5)
-        return f"Context {percentage}% used"
+        return statusline.text("context.used", language, percentage=percentage)
     return None
 
 
-def _context_remaining(task: dict[str, Any]) -> str | None:
+def _context_remaining(task: dict[str, Any], language="en") -> str | None:
     tokens = task.get("tokenCount")
     window = task.get("contextWindowSize")
     token_number = _finite_number(tokens)
@@ -188,7 +189,7 @@ def _context_remaining(task: dict[str, Any]) -> str | None:
             return None
         used = int(ratio + 0.5)
         remaining = max(0, min(100, 100 - used))
-        return f"Context {remaining}% left"
+        return statusline.text("context.remaining", language, percentage=remaining)
     return None
 
 
@@ -209,9 +210,9 @@ def _elapsed(task: dict[str, Any], now_ms: float) -> str | None:
     return rendering_formatters.format_duration(seconds)
 
 
-def _token_text(task: dict[str, Any]) -> str | None:
+def _token_text(task: dict[str, Any], language="en") -> str | None:
     value = rendering_formatters.humanize_tokens(task.get("tokenCount"))
-    return f"{value} tokens" if value is not None else None
+    return statusline.text("tokens.count", language, value=value) if value is not None else None
 
 
 def _task_text(task: dict[str, Any], name: str) -> str | None:
@@ -249,29 +250,30 @@ def _parts_for_task(
     now_ms: float,
 ) -> list[_Part]:
     palette = _palette_for(config)
-    name = _task_name(task)
+    language = config.statusline_language
+    name = _task_name(task, language)
     values: dict[str, tuple[str | None, str]] = {
         "status": (_status_text(task), palette.status),
         "status-elapsed": (_status_elapsed(task, now_ms), palette.elapsed),
         "name": (name, palette.name),
-        "model-with-effort": (_model_with_effort(task), palette.model),
+        "model-with-effort": (_model_with_effort(task, language), palette.model),
         "model": (_model(task), palette.model),
-        "effort": (metrics.effort_text(task.get("effort")), palette.model),
+        "effort": (statusline.value("effort", metrics.effort_text(task.get("effort")), language), palette.model),
         "context-tokens": (
-            metrics.token_ratio(task.get("tokenCount"), task.get("contextWindowSize")),
+            metrics.token_ratio(task.get("tokenCount"), task.get("contextWindowSize"), language=language),
             palette.context,
         ),
         "context-window-size": (
-            f"{rendering_formatters.humanize_tokens(task['contextWindowSize'])} window"
+            statusline.text("context.window", language, value=rendering_formatters.humanize_tokens(task["contextWindowSize"]))
             if metrics.token_count(task.get("contextWindowSize")) not in (None, 0)
             else None,
             palette.context,
         ),
-        "context-remaining": (_context_remaining(task), palette.context),
-        "context-used": (_context_used(task), palette.context),
+        "context-remaining": (_context_remaining(task, language), palette.context),
+        "context-used": (_context_used(task, language), palette.context),
         "elapsed": (_elapsed(task, now_ms), palette.elapsed),
         "task": (_task_text(task, name), palette.task),
-        "tokens": (_token_text(task), palette.tokens),
+        "tokens": (_token_text(task, language), palette.tokens),
         "current-dir": (_directory_text(task, config), palette.directory),
     }
     result = []
@@ -280,7 +282,7 @@ def _parts_for_task(
         fmt, options = preferences.options_for(config, item, "subagent")
         if item in ("model", "model-with-effort"):
             model = preferences.model_name(_model(task), fmt)
-            effort = metrics.effort_text(task.get("effort"))
+            effort = statusline.value("effort", metrics.effort_text(task.get("effort")), language)
             text = (
                 f"{model}/{effort}"
                 if item == "model-with-effort" and model and effort
@@ -291,14 +293,14 @@ def _parts_for_task(
             text = preferences.number(count, fmt)
         elif item == "context-tokens":
             text = metrics.token_ratio(
-                task.get("tokenCount"), task.get("contextWindowSize"), fmt
+                task.get("tokenCount"), task.get("contextWindowSize"), fmt, language
             )
         elif item == "context-window-size" and fmt.number_format != "legacy":
             value = preferences.number(task.get("contextWindowSize"), fmt)
-            text = f"{value} window" if value else None
+            text = statusline.text("context.window", language, value=value) if value else None
         if not text:
             continue
-        text = preferences.decorate(text, item, "subagent", fmt, options)
+        text = preferences.decorate(text, item, "subagent", fmt, options, language=language)
         maximum = options.max_width
         if item == "task" and config.subagents.task_max_width is not None:
             maximum = (

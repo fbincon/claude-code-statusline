@@ -30,7 +30,7 @@ def measure(action, samples):
     }
 
 
-def benchmark(samples, bytecode_mode, display_case="legacy"):
+def benchmark(samples, bytecode_mode, display_case="legacy", language="en"):
     with tempfile.TemporaryDirectory(prefix="statusline-benchmark-") as directory:
         root = Path(directory)
         os.environ["CLAUDE_CONFIG_DIR"] = str(root / "config")
@@ -73,6 +73,10 @@ def benchmark(samples, bytecode_mode, display_case="legacy"):
                 if display_case == "explicit"
                 else formatting.Layout(),
             )
+        if hasattr(selected, "statusline_language"):
+            selected = selected.with_updates(statusline_language=language)
+        elif language != "en":
+            raise ValueError("This baseline does not support Chinese statusline output")
         (config / "claude-statusline.json").write_text(
             json.dumps(selected.to_dict()), encoding="utf-8"
         )
@@ -178,6 +182,7 @@ def benchmark(samples, bytecode_mode, display_case="legacy"):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--samples", type=int, default=30)
+    parser.add_argument("--language", choices=("en", "zh-CN"), default="en")
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--bytecode-mode", choices=("warm", "cold"), default="warm")
     parser.add_argument(
@@ -196,8 +201,9 @@ def main():
         "commit": commit,
         "python": platform.python_version(),
         "platform": platform.platform(),
-        "metrics": benchmark(args.samples, args.bytecode_mode, args.display_case),
+        "metrics": benchmark(args.samples, args.bytecode_mode, args.display_case, args.language),
         "display_case": args.display_case,
+        "statusline_language": args.language,
         "working_tree_dirty": bool(
             subprocess.check_output(["git", "status", "--porcelain"], text=True).strip()
         ),

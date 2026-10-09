@@ -18,6 +18,7 @@ from claude_statusline.rendering import timer as rendering_timer
 from claude_statusline.runtime import git as runtime_git
 from claude_statusline.runtime.turns import store as turn_store
 from claude_statusline.runtime import usage as runtime_usage
+from claude_statusline.i18n import statusline
 
 
 def _live_directory(data):
@@ -50,7 +51,7 @@ def humanize_api_tokens(v):
 
 
 def _rate_limit_item(
-    data, field, label, palette=rendering_palette.DEFAULT_PALETTE, *, now=None, fmt=None
+    data, field, label, palette=rendering_palette.DEFAULT_PALETTE, *, now=None, fmt=None, language="en"
 ):
     window = metrics.live_rate_window(data, field, now)
     if window is None:
@@ -64,7 +65,10 @@ def _rate_limit_item(
     value, suffix = (
         (round(used), "used") if fmt and fmt.allowance == "used" else (left, "left")
     )
-    return f"{palette.percentage}{label} {value}% {suffix}{palette.reset}"
+    label_key = {"5h": "five_hour", "weekly": "weekly", "spend": "spend"}.get(label)
+    label = statusline.text("limit." + label_key, language) if label_key else label
+    phrase = statusline.text("limit.used" if suffix == "used" else "limit.remaining", language, label=label, value=value)
+    return f"{palette.percentage}{phrase}{palette.reset}"
 
 
 def _rate_limit_segment(data, palette=rendering_palette.DEFAULT_PALETTE):
@@ -172,6 +176,10 @@ class _RenderState:
         self._live = _NOT_LOADED
         self._now = None
         self.fmt = config.formatting
+        self.language = config.statusline_language
+
+    def text(self, key, **params):
+        return statusline.text(key, self.language, **params)
 
     def now(self):
         if self._now is None:
@@ -201,7 +209,7 @@ class _RenderState:
         from claude_statusline.rendering import live
 
         return self.styled(
-            live.metric(self.live_data(), item, self.fmt),
+            live.metric(self.live_data(), item, self.fmt, self.language),
             self.palette.percentage,
             "activity",
         )
@@ -216,9 +224,9 @@ class _RenderState:
     def branch_diff(self):
         value = self.branch_data()["value"]
         text = (
-            "Diff —"
+            self.text("diff.empty")
             if value is None
-            else f"Diff {value['files']} files +{value['added']}/-{value['removed']}"
+            else self.text("diff", **value)
         )
         return self.styled(text, self.palette.branch, "repo")
 
@@ -258,7 +266,7 @@ class _RenderState:
             rendering_formatters.deep_get(self.data, ("effort", "level"))
         )
         if effort:
-            text += f" {effort}"
+            text += f" {statusline.value('effort', effort, self.language)}"
         return _RenderedItem(text + self.palette.reset, group="model")
 
     def model(self):
@@ -271,7 +279,7 @@ class _RenderState:
     def effort(self):
         value = rendering_formatters.deep_get(self.data, ("effort", "level"))
         return self.styled(
-            rendering_formatters.sanitize_payload_text(value),
+            statusline.value("effort", rendering_formatters.sanitize_payload_text(value), self.language),
             self.palette.model,
             "model",
         )
@@ -303,7 +311,7 @@ class _RenderState:
         if not name:
             return None
         return _RenderedItem(
-            f"{self.palette.directory}Project {name}{self.palette.reset}",
+            f"{self.palette.directory}{self.text('project', value=name)}{self.palette.reset}",
             group="location",
         )
 
@@ -316,7 +324,7 @@ class _RenderState:
         if point["value"] is None:
             return None
         value = rendering_formatters.format_duration(point["value"])
-        return self.styled(f"Active {value}", self.palette.timer)
+        return self.styled(self.text("active", value=value), self.palette.timer)
 
     def hostname(self):
         try:
@@ -327,7 +335,7 @@ class _RenderState:
         if not name:
             return None
         return _RenderedItem(
-            f"{self.palette.directory}Host {name}{self.palette.reset}",
+            f"{self.palette.directory}{self.text('host', value=name)}{self.palette.reset}",
             group="location",
         )
 
@@ -342,7 +350,7 @@ class _RenderState:
 
     def git(self):
         result = self.git_data()
-        text = runtime_git._git_segment(result, self.palette) if result else None
+        text = runtime_git._git_segment(result, self.palette, language=self.language) if result else None
         return _RenderedItem(text, group="repo") if text else None
 
     def git_component(self, item):
@@ -350,6 +358,7 @@ class _RenderState:
         text = rendering_git.component(
             result,
             item,
+            language=self.language,
             compact_staged=runtime_git.platform_environment.is_windows()
             or runtime_git.platform_environment.is_wsl(),
         )
@@ -371,7 +380,7 @@ class _RenderState:
         except (TypeError, ValueError):
             return None
         return _RenderedItem(
-            f"{self.palette.percentage}Context {percentage}% left{self.palette.reset}",
+            f"{self.palette.percentage}{self.text('context.remaining', percentage=percentage)}{self.palette.reset}",
             group="context",
         )
 
@@ -388,7 +397,7 @@ class _RenderState:
         if not math.isfinite(percentage) or not 0 <= percentage <= 100:
             return None
         return _RenderedItem(
-            f"{self.palette.percentage}Context {round(percentage)}% used"
+            f"{self.palette.percentage}{self.text('context.used', percentage=round(percentage))}"
             f"{self.palette.reset}",
             group="context",
         )
@@ -403,13 +412,13 @@ class _RenderState:
         if not value:
             return None
         return _RenderedItem(
-            f"{self.palette.size}{value} window{self.palette.reset}",
+            f"{self.palette.size}{self.text('context.window', value=value)}{self.palette.reset}",
             group="context",
         )
 
     def rate_limit(self, field, label):
         text = _rate_limit_item(
-            self.data, field, label, self.palette, now=self.now(), fmt=self.fmt
+            self.data, field, label, self.palette, now=self.now(), fmt=self.fmt, language=self.language
         )
         return _RenderedItem(text, group="limits") if text else None
 
@@ -423,20 +432,20 @@ class _RenderState:
             else None
         )
         return self.styled(
-            f"{label} reset {value}" if value else None,
+            self.text("reset", label=self.text("limit.five_hour" if label == "5h" else "limit.weekly"), value=value) if value else None,
             self.palette.percentage,
             "limits",
         )
 
     def context_tokens(self):
         text = metrics.context_tokens(
-            rendering_formatters.deep_get(self.data, ("context_window",)), self.fmt
+            rendering_formatters.deep_get(self.data, ("context_window",)), self.fmt, self.language
         )
         return self.styled(text, self.palette.percentage, "context")
 
     def session_metric(self, item):
         text = metrics.session_metric(
-            rendering_formatters.deep_get(self.data, ("cost",)), item, self.fmt
+            rendering_formatters.deep_get(self.data, ("cost",)), item, self.fmt, self.language
         )
         return self.styled(text, self.palette.percentage, "usage")
 
@@ -452,7 +461,7 @@ class _RenderState:
                 tmiss = preferences.number(counts.miss, self.fmt)
                 tout = preferences.number(counts.out, self.fmt)
         parts = [
-            f"{self.palette.tokens}{label} {value}{self.palette.reset}"
+            f"{self.palette.tokens}{self.text('tokens.' + label, value=value)}{self.palette.reset}"
             for label, value in (("hit", thit), ("miss", tmiss), ("out", tout))
             if value is not None
         ]
@@ -468,7 +477,7 @@ class _RenderState:
         if metrics.token_count(value) is None:
             return None
         return self.styled(
-            f"in {preferences.number(value, self.fmt, humanize_api_tokens)}",
+            self.text("tokens.in", value=preferences.number(value, self.fmt, humanize_api_tokens)),
             self.palette.tokens,
             "usage",
         )
@@ -479,7 +488,7 @@ class _RenderState:
         if metrics.token_count(value) is None:
             return None
         return self.styled(
-            f"out {preferences.number(value, self.fmt, humanize_api_tokens)}",
+            self.text("tokens.out", value=preferences.number(value, self.fmt, humanize_api_tokens)),
             self.palette.tokens,
             "usage",
         )
@@ -487,7 +496,7 @@ class _RenderState:
     def spend_metric(self, item):
         window = metrics.live_rate_window(self.data, "spend_limit", self.now())
         return self.styled(
-            metrics.spend_metric(window, item, self.fmt),
+            metrics.spend_metric(window, item, self.fmt, self.language),
             self.palette.percentage,
             "limits",
         )
@@ -503,6 +512,7 @@ class _RenderState:
             last_pt,
             entry,
             self.palette,
+            language=self.language,
         )
         return _RenderedItem(text) if text else None
 
@@ -525,18 +535,18 @@ class _RenderState:
             if not sid:
                 return None
             text = sid[:8]
-        return _RenderedItem(f"{self.palette.model}Session {text}{self.palette.reset}")
+        return _RenderedItem(f"{self.palette.model}{self.text('session', value=text)}{self.palette.reset}")
 
     def session_name(self):
         value = rendering_formatters.sanitize_payload_text(
             self.data.get("session_name")
         )
-        return self.styled(f"Session {value}" if value else None, self.palette.model)
+        return self.styled(self.text("session", value=value) if value else None, self.palette.model)
 
     def session_id(self, short=False):
         value = rendering_formatters.sanitize_payload_text(self.data.get("session_id"))
         return self.styled(
-            f"ID {value[:8] if short else value}" if value else None, self.palette.model
+            self.text("session.id", value=value[:8] if short else value) if value else None, self.palette.model
         )
 
     def session_id_short(self):
@@ -546,11 +556,11 @@ class _RenderState:
         value = rendering_formatters.sanitize_payload_text(
             rendering_formatters.deep_get(self.data, ("output_style", "name"))
         )
-        return self.styled(f"Style {value}" if value else None, self.palette.model)
+        return self.styled(self.text("style", value=value) if value else None, self.palette.model)
 
     def cache_metric(self, item):
         text = metrics.cache_metric(
-            self.data.get("prompt_cache"), item, self.now(), self.fmt
+            self.data.get("prompt_cache"), item, self.now(), self.fmt, self.language
         )
         return self.styled(text, self.palette.tokens, "usage")
 
@@ -565,7 +575,7 @@ class _RenderState:
         if not math.isfinite(usd):
             return None
         parts = [
-            f"{self.palette.percentage}Total ${preferences.money(usd, self.fmt)}{self.palette.reset}"
+            f"{self.palette.percentage}{self.text('cost.total', value=preferences.money(usd, self.fmt))}{self.palette.reset}"
         ]
         duration_ms = cost.get("total_duration_ms")
         if (
@@ -597,11 +607,11 @@ class _RenderState:
             and 0 <= ratio <= 1
         ):
             parts.append(
-                f"{self.palette.tokens}cache {round(ratio * 100)}%{self.palette.reset}"
+                f"{self.palette.tokens}{self.text('cache.ratio', percentage=round(ratio * 100))}{self.palette.reset}"
             )
         written = preferences.number(cache.get("cache_write_tokens"), self.fmt)
         if written and written != "0":
-            parts.append(f"{self.palette.tokens}{written} w{self.palette.reset}")
+            parts.append(f"{self.palette.tokens}{self.text('cache.write', value=written)}{self.palette.reset}")
         if not parts:
             return None
         return _RenderedItem(self.inner_separator.join(parts), group="usage")
@@ -610,14 +620,14 @@ class _RenderState:
         if not rendering_formatters.deep_get(self.data, ("fast_mode",)):
             return None
         return _RenderedItem(
-            f"{self.palette.model}fast{self.palette.reset}", group="model"
+            f"{self.palette.model}{self.text('fast')}{self.palette.reset}", group="model"
         )
 
     def agent(self):
         name = rendering_formatters.deep_get(self.data, ("agent", "name"))
         if not isinstance(name, str) or not name:
             return None
-        return _RenderedItem(f"{self.palette.timer}Agent {name}{self.palette.reset}")
+        return _RenderedItem(f"{self.palette.timer}{self.text('agent', value=name)}{self.palette.reset}")
 
     def vim_mode(self):
         mode = rendering_formatters.deep_get(self.data, ("vim", "mode"))
@@ -629,7 +639,7 @@ class _RenderState:
         if not rendering_formatters.deep_get(self.data, ("thinking", "enabled")):
             return None
         return _RenderedItem(
-            f"{self.palette.model}thinking{self.palette.reset}", group="model"
+            f"{self.palette.model}{self.text('thinking')}{self.palette.reset}", group="model"
         )
 
     def pr(self):
@@ -647,7 +657,7 @@ class _RenderState:
         text = f"{self.palette.branch}{prefix}{number}"
         state = pr.get("review_state")
         if isinstance(state, str) and state:
-            text += self.inner_separator + state
+            text += self.inner_separator + statusline.value("review", state, self.language)
         return _RenderedItem(text + self.palette.reset, group="repo")
 
     def worktree(self):
@@ -655,7 +665,7 @@ class _RenderState:
         if not isinstance(name, str) or not name:
             return None
         return _RenderedItem(
-            f"{self.palette.branch}Worktree {name}{self.palette.reset}"
+            f"{self.palette.branch}{self.text('worktree', value=name)}{self.palette.reset}"
         )
 
     def repo(self):
@@ -672,7 +682,7 @@ class _RenderState:
         ):
             return None
         return _RenderedItem(
-            f"{self.palette.branch}Repo {owner}/{name}{self.palette.reset}",
+            f"{self.palette.branch}{self.text('repo', value=owner + '/' + name)}{self.palette.reset}",
             group="repo",
         )
 
@@ -703,7 +713,7 @@ class _RenderState:
         text = preferences.threshold(
             text, used, self.fmt, self.config, self.palette.percentage
         )
-        text = preferences.decorate(text, item_id, "main", self.fmt, options)
+        text = preferences.decorate(text, item_id, "main", self.fmt, options, language=self.language)
         if options.max_width is not None:
             text = rendering_layout.truncate_styled(text, options.max_width)
         return replace(item, text=text)
@@ -775,7 +785,7 @@ def _configured_segments_with_state(data, config, state_class):
     ):
         rendered.insert(
             0,
-            _RenderedItem(f"{palette.timer}Main/Session{palette.reset}"),
+            _RenderedItem(f"{palette.timer}{statusline.text('scope.main', config.statusline_language)}{palette.reset}"),
         )
     return (
         _coalesce_items(rendered, inner_separator),
@@ -810,7 +820,7 @@ def configured_rows(data, config, width, state_class=_RenderState):
             continue
         if scope_label and not rows:
             selected.insert(
-                0, (None, _RenderedItem(f"{palette.timer}Main/Session{palette.reset}"))
+                0, (None, _RenderedItem(f"{palette.timer}{statusline.text('scope.main', config.statusline_language)}{palette.reset}"))
             )
 
         def join():

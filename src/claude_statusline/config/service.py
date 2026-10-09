@@ -448,6 +448,8 @@ def _display_with_option(
             return display.with_updates(separator_style=value)
         if option == "scope-labels":
             return display.with_updates(scope_labels=value)
+        if option == "statusline-language":
+            return display.with_updates(statusline_language=value)
         if option == "subagent-statusline":
             return display.with_updates(
                 subagents=display.subagents.with_updates(
@@ -500,6 +502,7 @@ def apply_configuration(
     subagent_items: list[str] | None = None,
     subagent_statusline: Any | None = None,
     scope_labels: str | None = None,
+    statusline_language: str | None = None,
     expected: config_models.EffectiveConfig | None = None,
     expected_revision: str | None = None,
     display_draft: config_display.DisplayConfig | None = None,
@@ -514,6 +517,10 @@ def apply_configuration(
         else None
     )
     parsed_colors = config_host._parse_toggle(colors, "colors")
+    if statusline_language is not None and statusline_language not in config_display.STATUSLINE_LANGUAGES:
+        raise config_models.ConfigCommandError(
+            msg("errors.display.must_be_one_of", field="statusline_language", allowed=", ".join(config_display.STATUSLINE_LANGUAGES))
+        )
     parsed_subagent_statusline = (
         config_host._parse_toggle(subagent_statusline, "subagent-statusline")
         if subagent_statusline is not None
@@ -578,6 +585,10 @@ def apply_configuration(
                     current_display.scope_labels
                     if scope_labels is None
                     else scope_labels
+                ),
+                statusline_language=(
+                    current_display.statusline_language
+                    if statusline_language is None else statusline_language
                 ),
                 subagents=subagents,
             )

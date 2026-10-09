@@ -47,7 +47,7 @@ def inventory(files: dict[str, bytes], version: str, name="statusline-native") -
         "schema_version": 1,
         "backend_version": version,
         "mod_version": plugin["version"],
-        "protocol_version": 2 if name == "statusline-runtime" else 5,
+        "protocol_version": 2 if name == "statusline-runtime" else 6,
         "files": {
             name: hashlib.sha256(raw).hexdigest() for name, raw in sorted(files.items())
         },

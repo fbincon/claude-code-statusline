@@ -24,6 +24,7 @@ class TranslationTests(unittest.TestCase):
                 self.assertEqual(resources["en"][key], getattr(item, part))
                 self.assertTrue(resources["zh-CN"][key])
         self.assertEqual(generator.OUTPUT.read_text(encoding="utf-8"), generator.generated())
+        self.assertEqual(generator.STATUSLINE_OUTPUT.read_text(encoding="utf-8"), generator.generated_statusline())
 
     def test_language_and_key_fallback_are_explicit(self):
         self.assertEqual(translate("cli.language", "unknown", language="zh-CN"), "UI language: zh-CN")

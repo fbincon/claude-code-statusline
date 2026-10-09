@@ -25,7 +25,7 @@ class FormattingTests(unittest.TestCase):
             raw = json.dumps(legacy).encode()
             path.write_bytes(raw)
             loaded = display.load_display_config(Path(folder))
-            self.assertEqual(loaded.schema_version, 5)
+            self.assertEqual(loaded.schema_version, 6)
             self.assertEqual(loaded.formatting, formatting.Formatting())
             self.assertFalse(loaded.subagents.enabled)
             self.assertEqual(path.read_bytes(), raw)

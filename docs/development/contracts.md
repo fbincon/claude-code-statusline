@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v5 is the internal interface for the bundled/source native frontend. Display persistence uses schema v5, including in-memory v1/v2/v3/v4 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
+Protocol v6 is the internal interface for the bundled/source native frontend. Display persistence uses schema v6, including in-memory v1/v2/v3/v4/v5 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
 
 ## Catalog
 
@@ -15,10 +15,10 @@ Minimum versions are verified only where evidence exists. The 2.1.205 subagent m
 Run `claude-statusline ui --config-dir PATH` (Windows: `claude-statusline.exe`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":5,"operation":"read","payload":{}}
+{"protocol_version":6,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":5,"result":{...}}`; failure is `{"protocol_version":5,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":6,"result":{...}}`; failure is `{"protocol_version":6,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ Success is `{"protocol_version":5,"result":{...}}`; failure is `{"protocol_versi
 | `import` | `{draft,path}` | Validated imported `{draft}` |
 | `export` | `{draft,path,overwrite}` | Export destination `{path}` |
 
-`draft` has exactly `display` (the effective schema-v5 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading a supported display v1/v2/v3/v4 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete schema-v5 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
+`draft` has exactly `display` (the effective schema-v6 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading a supported display v1/v2/v3/v4/v5 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete schema-v6 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
 
 `read` acquires the existing installation lock for a coherent snapshot and may create its runtime lock directory. `describe` does not create configuration files. `preview` never reads settings, detects the host, collects Git/transcripts or writes caches/locks; it uses production formatting/layout and fixed samples. Missing observations are not zero. Each span has `text`, `bold`, and `foreground` (`null`, `{"kind":"rgb","value":"#rrggbb"}` or `{"kind":"ansi","value":0..15}`). There are no raw ANSI escapes. Both main and subagent rows are returned; an empty selection/disabled subagent display stays empty.
 
@@ -46,7 +46,7 @@ Apply validates the full draft and a 64-character lowercase hexadecimal revision
 
 An explicitly configured absolute renderer path must match the selected backend. Canonical PATH commands remain compatible with Windows and older installations; the resolved command identity participates in the revision. JSON invocation through a bound console-script path uses that entry's identity even if PATH contains another installation. A foreign main or subagent renderer is refused, including a same-named executable in another directory or a non-command setting. An absent subagent renderer is permitted. Apply edits display selections and the owned main renderer's host options; it does not install a renderer or take over a foreign one.
 
-Unrelated settings are merged from the latest locked snapshot. A write failure restores both original files and reports any rollback failure. The first save may create a missing display file or migrate older schemas to v5; repeating the returned draft/revision makes no writes or backup when the persisted configuration is already identical. `backup_dir` is present only when the transaction changes files. No model call is needed.
+Unrelated settings are merged from the latest locked snapshot. A write failure restores both original files and reports any rollback failure. The first save may create a missing display file or migrate older schemas to v6; repeating the returned draft/revision makes no writes or backup when the persisted configuration is already identical. `backup_dir` is present only when the transaction changes files. No model call is needed.
 
 | Error code | Meaning and recovery |
 | --- | --- |
@@ -71,7 +71,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 
 ## Structured formatting
 
-Protocol v5 returns complete schema-v5 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v5 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
+Protocol v6 returns complete schema-v6 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v6 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
 
 ## Draft transfer operations
 
@@ -87,12 +87,16 @@ Native file operations are effects handled by the hooks module through Python, w
 
 ## Phase 5 metric migration
 
-Display schema v5 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v5 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+Display schema v6 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v6 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4/v5 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
 
 ## UI preference and message operations
 
 `read_ui_preferences` accepts `{}` and returns `schema_version:1`, `ui_language` (`en` or `zh-CN`) and `warning` (`null` or a localized message). Missing/invalid reads fall back to English without repairing bytes. `set_ui_language` accepts exactly `{ui_language}` with a supported code, saves under the existing lock with backup/atomic write and returns the same shape with a null warning. Future preference schemas refuse overwrite. These operations do not change display/host drafts, revisions or installation.
 
-Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v5; runtime protocol v2 and display schema v5 are unchanged.
+Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v6; UI preference schema v1 and runtime protocol v2 remain independent.
 
 See [translation architecture and contribution rules](i18n.md).
+
+## Statusline language
+
+Display schema v6 adds required `statusline_language` (`en` / `zh-CN`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v6 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v2 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.

@@ -1,6 +1,7 @@
 """Format live points without collection or persistence."""
 
 from claude_statusline.rendering import preferences
+from claude_statusline.i18n import statusline
 
 LABELS = {
     "run-state": "State",
@@ -16,7 +17,7 @@ LABELS = {
 }
 
 
-def metric(points, item, fmt):
+def metric(points, item, fmt, language="en"):
     record = points.get(item, {})
     value = record.get("value")
     suffix = "*" if record.get("partial") else ""
@@ -27,7 +28,9 @@ def metric(points, item, fmt):
     elif item == "task-progress":
         value = f"{value['completed']}/{value['total']}"
     elif item == "last-tool":
-        value = f"{value['name']} {value['status']}"
+        value = f"{value['name']} {statusline.value('tool', value['status'], language)}"
+    elif item in ("run-state", "permission-mode"):
+        value = statusline.value("run" if item == "run-state" else "permission", value, language)
     elif item == "ttft":
         value = f"{value:.3f}s"
     elif item == "output-rate":
@@ -40,4 +43,4 @@ def metric(points, item, fmt):
             if fmt.number_format == "grouped"
             else f"{value:.4f}"
         )
-    return f"{LABELS[item]} {value}{suffix}"
+    return f"{statusline.text('live.label.' + item, language)} {value}{suffix}"

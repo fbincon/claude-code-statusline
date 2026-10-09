@@ -252,12 +252,12 @@ def git_status(cwd, session_id=None):
     return result
 
 
-def _git_segment(result, palette=rendering_palette.DEFAULT_PALETTE):
+def _git_segment(result, palette=rendering_palette.DEFAULT_PALETTE, *, language="en"):
     if result["kind"] == "error":
         return f"{palette.git_error}Git!{palette.reset}"
     if result["kind"] != "ok":
         return None
-    statuses = rendering_git.divergence_markers(result)
+    statuses = rendering_git.divergence_markers(result, language=language)
     statuses.extend(
         rendering_git.change_markers(
             result,

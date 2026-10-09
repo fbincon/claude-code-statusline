@@ -31,14 +31,14 @@ test('backend errors and protocol mismatches are explicit', () => {
   for (const stdout of [
     '',
     'partial {',
-    JSON.stringify({ protocol_version: 5, result: {} }),
+    JSON.stringify({ protocol_version: 6, result: {} }),
     JSON.stringify({
-      protocol_version: 5,
+      protocol_version: 6,
       result: {},
       error: { code: 'bad', message: 'ambiguous' },
     }),
     JSON.stringify({
-      protocol_version: 5,
+      protocol_version: 6,
       result: { sample: false, main: [], subagents: [] },
     }),
   ]) {
@@ -50,7 +50,7 @@ test('backend errors and protocol mismatches are explicit', () => {
     parseResponse('read', {
       exitCode: 2,
       stdout: JSON.stringify({
-        protocol_version: 5,
+        protocol_version: 6,
         error: { code: 'configuration_conflict', message: 'Reopen the editor' },
       }),
       stderr: '',
@@ -117,7 +117,7 @@ test('failed processes, timeouts, truncation and structured errors remain distin
         'apply',
         output(
           JSON.stringify({
-            protocol_version: 5,
+            protocol_version: 6,
             error: { code, message: code },
           }),
           2,
@@ -132,9 +132,9 @@ test('failed processes, timeouts, truncation and structured errors remain distin
 
 test('unexpected envelopes and invalid drafts cannot enter the frontend', () => {
   for (const response of [
-    { protocol_version: 5, result: sample('safe'), extra: 1 },
-    { protocol_version: 5 },
-    { protocol_version: 5, error: { message: 'missing code' } },
+    { protocol_version: 6, result: sample('safe'), extra: 1 },
+    { protocol_version: 6 },
+    { protocol_version: 6, error: { message: 'missing code' } },
   ]) {
     expect(() =>
       parseResponse('preview', output(JSON.stringify(response))),
@@ -156,7 +156,7 @@ test('preview transport refuses control sequences and malformed colors', () => {
       parseResponse('preview', {
         exitCode: 0,
         stdout: JSON.stringify({
-          protocol_version: 5,
+          protocol_version: 6,
           result: { sample: true, main: [[span]], subagents: [] },
         }),
         stderr: '',
@@ -206,4 +206,19 @@ test('the editor refuses incomplete choices, duplicate catalog entries and missi
   expect(parseResponse('describe', reply(description())).catalog.length).toBe(
     description().catalog.length,
   );
+});
+
+
+test('display v6 language is required and refuses arrays, unknown codes and old schemas', () => {
+  const valid = readResult();
+  expect(parseResponse('read', reply(valid)).draft.display.statusline_language).toBe('en');
+  for (const language of [undefined, null, true, ['en'], {}, 'auto', 'zh']) {
+    const value = JSON.parse(JSON.stringify(valid));
+    if (language === undefined) delete value.draft.display.statusline_language;
+    else value.draft.display.statusline_language = language;
+    expect(() => parseResponse('read', reply(value))).toThrow();
+  }
+  const old = JSON.parse(JSON.stringify(valid));
+  old.draft.display.schema_version = 5;
+  expect(() => parseResponse('read', reply(old))).toThrow();
 });

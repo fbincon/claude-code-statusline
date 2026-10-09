@@ -833,7 +833,7 @@ class SubagentInstallTests(InstallerTestCase):
                 for item in diagnostics
             )
         )
-        self.assertEqual(json.loads(display_path.read_bytes())["schema_version"], 5)
+        self.assertEqual(json.loads(display_path.read_bytes())["schema_version"], 6)
         self.assertEqual(
             (
                 first.backup_dir / (config_display.CONFIG_FILENAME + ".before")
@@ -940,6 +940,8 @@ class DisplaySchemaDoctorTests(InstallerTestCase):
             1: config_display.V1_DISPLAY_KEYS,
             2: config_display.V2_DISPLAY_KEYS,
             3: config_display.V3_DISPLAY_KEYS,
+            4: config_display.V5_DISPLAY_KEYS,
+            5: config_display.V5_DISPLAY_KEYS,
         }.get(version, config_display.DISPLAY_KEYS)
         value = {key: item for key, item in value.items() if key in keys}
         value["schema_version"] = version

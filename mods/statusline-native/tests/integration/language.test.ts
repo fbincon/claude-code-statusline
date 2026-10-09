@@ -36,7 +36,7 @@ test('language persists immediately across cancel and reopening while display dr
 test('rejected language write restores the last display language without replacing the draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture=setup(on);
   fixture.behavior.process=(request,next)=>request.operation==='set_ui_language'
-    ? {value:output(JSON.stringify({protocol_version:5,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
+    ? {value:output(JSON.stringify({protocol_version:6,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);

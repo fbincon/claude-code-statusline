@@ -76,12 +76,12 @@ class _SampleRenderState(rendering_items._RenderState):
 
     def active_timer(self):
         return rendering_items._RenderedItem(
-            f"{self.palette.timer}Active 1m 30s{self.palette.reset}"
+            f"{self.palette.timer}{self.text('active', value='1m 30s')}{self.palette.reset}"
         )
 
     def hostname(self):
         return rendering_items._RenderedItem(
-            f"{self.palette.directory}Host devbox{self.palette.reset}",
+            f"{self.palette.directory}{self.text('host', value='devbox')}{self.palette.reset}",
             group="location",
         )
 
