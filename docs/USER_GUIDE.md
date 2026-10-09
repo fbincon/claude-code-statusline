@@ -272,6 +272,13 @@ Content and `Preview (sample data)` are separate regions: frames at 64×20 and a
 
 Settings groups appearance, refresh/behavior, Git metrics, formatting, risk colors, subagent visibility, and presets/portable files. Layout groups mode, row boundaries, and item fitting. Group titles are not selectable. The fixed-sample preview uses production rendering and does not inspect live Git or transcripts. [Current page screenshots](images/README.md#current-images).
 
+### External terminal colors
+
+The external editor uses the terminal's default foreground and background. Headings and shortcut keys are bold; descriptions use regular text. Active tabs and selected rows reverse the default colors and retain their selection markers. This follows light/dark terminal profiles independently of Claude's applied theme.
+
+Sample preview interiors have a dedicated dark background targeting `#17191e`, with neutral text targeting `#dedee7`. Curses quantizes RGB samples to the available terminal palette; 8/16-color terminals use their configured ANSI colors. Every preview row, trailing space and uncolored/empty sample uses the preview background. Monochrome terminals or a failed preview base pair use default text; insufficient sample pairs use the neutral preview pair.
+
+
 ## External terminal `/statusline-configure`
 
 Run `/statusline-configure` without arguments inside Claude Code. This entry requires 2.1.258+ and opens the same curses TUI in tmux popup, GNOME Terminal, Terminal.app, or a Windows new console according to platform.

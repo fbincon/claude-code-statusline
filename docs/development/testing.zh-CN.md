@@ -232,3 +232,19 @@ python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-stat
 在支持的宿主上依次检查 dark、light-daltonized、dark-daltonized、light-ansi、dark-ansi、auto 和 `custom:statusline-validation-light`。自定义夹具以 light 为基础，明确覆盖正文、反色、辅助色和强调色。每次在 120×30 与 80×48 捕获四页及项目格式表单，按解码后的背景检查快捷键／说明对比度，并验证主题草稿不提前生效、独立 Apply 成功且不保存工具草稿。读取主题时优先采用当前 settings，再兼容旧全局存储。保存与跨编辑器互读另运行完整 persistent／advanced 验收。
 
 `tools/terminal_colors.py` 在处理反色前分别解析默认前景和背景，验收与捕获渲染共用该逻辑。RGB 单元格精确；ANSI 名称使用已记录的捕获调色板，不代表物理终端的自定义 ANSI 颜色。重建图片属于终端证据，与系统截图、真人验收分别记录。
+
+## 外部终端配色验收
+
+`ui.theme` 使用终端默认主界面、粗体按键／标题、普通说明及反色选择。测试覆盖四页及项目格式表单的 0／8／16／256 色、颜色启动／默认色／基础色对失败、有限颜色对分配、ANSI／RGB 样例映射和预览完整填充。外部最低尺寸仍为 64×18；32×12 验证缩放／取消提示，工作尺寸检查单元格边界、中文／组合字符和状态保留。
+
+使用已安装 wheel，在两组终端默认色夹具中运行，每次使用新的忽略报告目录：
+
+```bash
+.venv/bin/python tools/external_tui_acceptance.py \
+  --backend /path/to/installed/claude-statusline --commit COMMIT_HASH \
+  --terminal-theme light --report-dir dist/validation/external-light
+```
+
+再用 `--terminal-theme dark` 和另一报告目录运行。该选项为捕获分析提供默认色，不修改物理终端配置。两组夹具均覆盖 64×18、64×20、80×24、120×30、80×48、四页、格式表单、数值输入／错误、缩放、字节一致的取消及保存互读。每次捕获检查默认主界面及反色选择至少 4.5:1 的对比度、粗体按键／普通说明、明确的预览前景与完整深底。捕获元数据记录默认前景／背景及 xterm ANSI 调色板，图片绘制读取该调色板。真实终端配置与真人验收分别记录。
+
+本补丁本地 Python 检查通过 657 项测试（649 项通过、八项预期平台跳过）；Claude Code 2.1.295 官方 Mod 测试通过 59 项 native 与十项 runtime。两个 TypeScript 项目使用准确 2.1.294 生成声明：2.1.295 无登录类型加载在生成声明前停于登录检查。固定 CI 宿主保留现有版本，以及 13 项 Python／构建和十项 Mod 门槛。

@@ -13,119 +13,17 @@ from claude_statusline.ui import forms
 from claude_statusline.ui import layout as ui_layout
 from claude_statusline.ui import shortcuts
 from claude_statusline.ui.shortcuts import Hint
+from claude_statusline.ui import theme
 
-
-_XTERM_BASE_RGB = (
-    (0, 0, 0),
-    (128, 0, 0),
-    (0, 128, 0),
-    (128, 128, 0),
-    (0, 0, 128),
-    (128, 0, 128),
-    (0, 128, 128),
-    (192, 192, 192),
-    (128, 128, 128),
-    (255, 0, 0),
-    (0, 255, 0),
-    (255, 255, 0),
-    (0, 0, 255),
-    (255, 0, 255),
-    (0, 255, 255),
-    (255, 255, 255),
+# Preserve the existing drawing/interactive_config compatibility exports.
+from claude_statusline.ui.theme import (
+    _ColorMapper as _ColorMapper,
+    _XTERM_BASE_RGB as _XTERM_BASE_RGB,
+    _XTERM_RGB as _XTERM_RGB,
+    _ansi_style as _ansi_style,
+    _xterm_palette as _xterm_palette,
+    nearest_terminal_color as nearest_terminal_color,
 )
-
-
-def _xterm_palette() -> tuple[tuple[int, int, int], ...]:
-    values = list(_XTERM_BASE_RGB)
-    levels = (0, 95, 135, 175, 215, 255)
-    values.extend((r, g, b) for r in levels for g in levels for b in levels)
-    values.extend((value, value, value) for value in range(8, 239, 10))
-    return tuple(values)
-
-
-_XTERM_RGB = _xterm_palette()
-
-
-def nearest_terminal_color(red: int, green: int, blue: int, colors: int) -> int | None:
-    """Return the nearest xterm/basic palette index for a terminal capability."""
-    if colors < 8:
-        return None
-    limit = 256 if colors >= 256 else 16 if colors >= 16 else 8
-    palette = _XTERM_RGB[:limit]
-    return min(
-        range(len(palette)),
-        key=lambda index: sum(
-            (actual - expected) ** 2
-            for actual, expected in zip(palette[index], (red, green, blue))
-        ),
-    )
-
-
-def _ansi_style(style: str, colors: int) -> tuple[bool, int | None]:
-    if not style:
-        return False, None
-    values = style[2:-1].replace(":", ";").split(";")
-    try:
-        codes = [int(value or "0") for value in values]
-    except ValueError:
-        return False, None
-    bold = 1 in codes
-    foreground = None
-    index = 0
-    while index < len(codes):
-        code = codes[index]
-        if 30 <= code <= 37:
-            foreground = code - 30 if colors >= 8 else None
-        elif 90 <= code <= 97:
-            if colors >= 16:
-                foreground = code - 90 + 8
-            elif colors >= 8:
-                foreground = code - 90
-                bold = True
-        elif code == 38 and index + 4 < len(codes) and codes[index + 1] == 2:
-            foreground = nearest_terminal_color(
-                codes[index + 2], codes[index + 3], codes[index + 4], colors
-            )
-            index += 4
-        index += 1
-    return bold, foreground
-
-
-class _ColorMapper:
-    def __init__(self):
-        self.colors = 0
-        self._pairs: dict[int, int] = {}
-        try:
-            if curses.has_colors():
-                curses.start_color()
-                try:
-                    curses.use_default_colors()
-                except curses.error:
-                    pass
-                self.colors = max(0, int(getattr(curses, "COLORS", 0)))
-        except curses.error:
-            self.colors = 0
-
-    def foreground(self, color: int | None) -> int:
-        if color is None or self.colors < 8:
-            return 0
-        if color in self._pairs:
-            return curses.color_pair(self._pairs[color])
-        next_pair = len(self._pairs) + 1
-        maximum = max(0, int(getattr(curses, "COLOR_PAIRS", 0)) - 1)
-        if next_pair > maximum:
-            return 0
-        try:
-            curses.init_pair(next_pair, color, -1)
-        except curses.error:
-            return 0
-        self._pairs[color] = next_pair
-        return curses.color_pair(next_pair)
-
-    def style(self, sgr: str) -> int:
-        bold, foreground = _ansi_style(sgr, self.colors)
-        result = curses.A_BOLD if bold else 0
-        return result | self.foreground(foreground)
 
 
 def _clip_text(text: str, maximum_width: int) -> str:
@@ -166,7 +64,7 @@ def _draw_ansi(
         if unit.width and x + unit.width > end:
             break
         try:
-            screen.addstr(y, x, unit.text, mapper.style(unit.style))
+            screen.addstr(y, x, unit.text, mapper.preview_style(unit.style))
         except curses.error:
             pass
         x += unit.width
@@ -175,11 +73,16 @@ def _draw_ansi(
 def _draw_shortcuts(screen, y, hints, width, mapper, x=0, prefix="", attr=0) -> None:
     height, columns = screen.getmaxyx()
     width = max(0, min(width, columns - x - int(y == height - 1)))
-    key_attr = curses.A_BOLD | mapper.foreground(
-        nearest_terminal_color(255, 255, 255, mapper.colors)
-    )
+    key_attr = theme.KEY
     for text, is_key in shortcuts.segments(hints, width, prefix):
-        _add_text(screen, y, x, text, width, attr | (key_attr if is_key else curses.A_DIM))
+        _add_text(
+            screen,
+            y,
+            x,
+            text,
+            width,
+            attr | (key_attr if is_key else theme.DESCRIPTION),
+        )
         size = rendering_layout._display_width(text)
         x += size
         width -= size
@@ -211,7 +114,7 @@ def _draw_panel(screen, panel: ui_layout.Panel, title: str, title_attr: int) -> 
             0,
             "┌" + "─" * (panel.width - 2) + "┐",
             panel.width,
-            curses.A_DIM,
+            theme.BORDER,
         )
         _add_text(
             screen,
@@ -219,14 +122,14 @@ def _draw_panel(screen, panel: ui_layout.Panel, title: str, title_attr: int) -> 
             0,
             "└" + "─" * (panel.width - 2) + "┘",
             panel.width,
-            curses.A_DIM,
+            theme.BORDER,
         )
         for y in range(panel.inner_y, panel.y + panel.height - 1):
-            _add_text(screen, y, 0, "│", 1, curses.A_DIM)
-            _add_text(screen, y, panel.width - 1, "│", 1, curses.A_DIM)
+            _add_text(screen, y, 0, "│", 1, theme.BORDER)
+            _add_text(screen, y, panel.width - 1, "│", 1, theme.BORDER)
         _add_text(screen, panel.y, 2, " " + title + " ", panel.width - 4, title_attr)
     else:
-        _add_text(screen, panel.y, 0, "─" * panel.width, panel.width, curses.A_DIM)
+        _add_text(screen, panel.y, 0, "─" * panel.width, panel.width, theme.BORDER)
         _add_text(screen, panel.y, 1, " " + title + " ", panel.width - 2, title_attr)
 
 
@@ -242,7 +145,7 @@ def _draw_tabs(
         0,
         items,
         width,
-        active_attr if state.page == "items" else curses.A_DIM,
+        active_attr if state.page == "items" else theme.DESCRIPTION,
     )
     offset = rendering_layout._display_width(items) + 2
     _add_text(
@@ -251,7 +154,7 @@ def _draw_tabs(
         offset,
         subagents,
         max(0, width - offset),
-        active_attr if state.page == "subagents" else curses.A_DIM,
+        active_attr if state.page == "subagents" else theme.DESCRIPTION,
     )
     offset += rendering_layout._display_width(subagents) + 2
     _add_text(
@@ -260,7 +163,7 @@ def _draw_tabs(
         offset,
         settings,
         max(0, width - offset),
-        active_attr if state.page == "settings" else curses.A_DIM,
+        active_attr if state.page == "settings" else theme.DESCRIPTION,
     )
     offset += rendering_layout._display_width(settings) + 2
     _add_text(
@@ -269,7 +172,7 @@ def _draw_tabs(
         offset,
         "[ Layout ]",
         max(0, width - offset),
-        active_attr if state.page == "layout" else curses.A_DIM,
+        active_attr if state.page == "layout" else theme.DESCRIPTION,
     )
 
 
@@ -304,7 +207,7 @@ def _draw_item_rows(screen, state, start_y, height, width, x, scope) -> None:
     visible = state.visible_subagent_items() if subagents else state.visible_items()
     state.ensure_visible(height)
     if not visible:
-        _add_text(screen, start_y, x, "No matching items", width, curses.A_DIM)
+        _add_text(screen, start_y, x, "No matching items", width, theme.DESCRIPTION)
         return
     scroll = state.subagent_scroll if subagents else state.item_scroll
     selected = state.selected_subagent_item if subagents else state.selected_item
@@ -321,7 +224,7 @@ def _draw_item_rows(screen, state, start_y, height, width, x, scope) -> None:
             + "  "
             + descriptions[item]
         )
-        attr = curses.A_REVERSE if item == selected else 0
+        attr = theme.SELECTION if item == selected else 0
         _add_text(screen, start_y + row, x, _column(line, width), width, attr)
 
 
@@ -332,7 +235,7 @@ def _draw_settings(
     height: int,
     width: int,
     x: int = 0,
-    title_attr: int = curses.A_BOLD,
+    title_attr: int = theme.TITLE,
     mapper: _ColorMapper | None = None,
 ) -> None:
     state.ensure_visible(height)
@@ -367,15 +270,24 @@ def _draw_settings(
                 width,
             ),
             width,
-            curses.A_REVERSE if line.index == forms.index(state) else 0,
+            theme.SELECTION if line.index == forms.index(state) else 0,
         )
         if row["kind"] == "action" and not editing and mapper is not None:
             prefix_width = 2 + label_width + 2
             _draw_shortcuts(
-                screen, start_y + offset,
-                [Hint("Enter", value.removeprefix("Enter").lstrip(": "), "expand" if row["key"] == "preset-apply" else "path")],
-                width - prefix_width, mapper, x + prefix_width,
-                attr=curses.A_REVERSE if line.index == forms.index(state) else 0,
+                screen,
+                start_y + offset,
+                [
+                    Hint(
+                        "Enter",
+                        value.removeprefix("Enter").lstrip(": "),
+                        "expand" if row["key"] == "preset-apply" else "path",
+                    )
+                ],
+                width - prefix_width,
+                mapper,
+                x + prefix_width,
+                attr=theme.SELECTION if line.index == forms.index(state) else 0,
             )
 
 
@@ -388,6 +300,8 @@ def _draw_preview(
     mapper: _ColorMapper,
     x: int = 0,
 ) -> None:
+    for offset in range(height):
+        _add_text(screen, start_y + offset, x, " " * width, width, mapper.preview_attr)
     if state.page == "subagents":
         rows = rendering_subagents.preview_rows(state.display, width)
     else:
@@ -395,7 +309,7 @@ def _draw_preview(
             state.display, width, state.host.padding
         )
     if not rows:
-        _add_text(screen, start_y, x, "(no enabled items)", width, curses.A_DIM)
+        _add_text(screen, start_y, x, "(no enabled items)", width, mapper.preview_attr)
         return
     if len(rows) > height:
         visible = rows[: height - 1]
@@ -408,7 +322,7 @@ def _draw_preview(
 
 
 def _draw_small_terminal(screen, height: int, width: int) -> None:
-    _add_text(screen, 0, 0, "Configure Status Line", width, curses.A_BOLD)
+    _add_text(screen, 0, 0, "Configure Status Line", width, theme.TITLE)
     message = (
         f"Terminal too small: need {ui_models.MIN_TERMINAL_WIDTH}x{ui_models.MIN_TERMINAL_HEIGHT}; "
         f"current {width}x{height}. Resize or press Esc to cancel."
@@ -434,8 +348,7 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     layout = ui_layout.dimensions(width, height)
     panel = layout.content
     state.ensure_visible(layout.list_height)
-    chrome_color = nearest_terminal_color(142, 211, 211, mapper.colors)
-    title_attr = curses.A_BOLD | mapper.foreground(chrome_color)
+    title_attr = theme.TITLE
     _add_text(
         screen,
         0,
@@ -455,8 +368,8 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         if state.page == "subagents"
         else "Adjust display and tool refresh settings"
     )
-    _add_text(screen, 1, 0, description, width, curses.A_DIM)
-    _draw_tabs(screen, state, width, curses.A_REVERSE | curses.A_BOLD)
+    _add_text(screen, 1, 0, description, width, theme.DESCRIPTION)
+    _draw_tabs(screen, state, width, theme.ACTIVE_TAB)
     error = state.notice or (state.numeric_edit.error if state.numeric_edit else "")
     notice = error or (
         "Item format (Ctrl+G back)"
@@ -469,11 +382,22 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         + (state.subagent_search if state.page == "subagents" else state.search)
     )
     if not error and state.form_item:
-        _draw_shortcuts(screen, 3, [Hint("Ctrl+G", "back")], width, mapper, prefix="Item format · ")
+        _draw_shortcuts(
+            screen, 3, [Hint("Ctrl+G", "back")], width, mapper, prefix="Item format · "
+        )
     elif not error and state.page == "settings":
-        _draw_shortcuts(screen, 3, [Hint("Enter", "edits new fields.", "edit")], width, mapper, prefix="Use arrows to change values; ")
+        _draw_shortcuts(
+            screen,
+            3,
+            [Hint("Enter", "edits new fields.", "edit")],
+            width,
+            mapper,
+            prefix="Use arrows to change values; ",
+        )
     else:
-        _add_text(screen, 3, 0, notice, width, curses.A_BOLD if error else curses.A_DIM)
+        _add_text(
+            screen, 3, 0, notice, width, theme.NOTICE if error else theme.DESCRIPTION
+        )
 
     is_form = forms.special(state) or state.page == "settings"
     title = (
@@ -502,7 +426,7 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             panel.inner_x,
             heading,
             panel.inner_width,
-            curses.A_DIM | curses.A_BOLD,
+            theme.TITLE,
         )
         _draw_settings(
             screen,
@@ -531,7 +455,7 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             panel.inner_x,
             heading,
             panel.inner_width,
-            curses.A_DIM | curses.A_BOLD,
+            theme.TITLE,
         )
         if state.page == "subagents":
             _draw_subagent_items(
@@ -563,9 +487,12 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             )
         position = f"Items {scroll + 1 if visible else 0}-{min(len(visible), scroll + layout.list_height)}/{len(visible)} · {len(enabled)} enabled"
     _draw_shortcuts(
-        screen, panel.inner_y + panel.inner_height - 1,
+        screen,
+        panel.inner_y + panel.inner_height - 1,
         [Hint("↑↓", "select")] if is_form else [],
-        panel.inner_width, mapper, panel.inner_x,
+        panel.inner_width,
+        mapper,
+        panel.inner_x,
         position + (" · " if is_form else ""),
     )
 
@@ -588,16 +515,45 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         actions = [Hint("Enter", "accept"), Hint("Esc", "restore")]
         help_text = [Hint("Digits", "edit"), Hint("Backspace", "delete")]
     else:
-        actions = [Hint("Ctrl+S", "save"), Hint("Esc", "cancel"), Hint("Ctrl+C", "interrupt")]
+        actions = [
+            Hint("Ctrl+S", "save"),
+            Hint("Esc", "cancel"),
+            Hint("Ctrl+C", "interrupt"),
+        ]
         if state.form_item:
-            help_text = [Hint("↑↓", "select"), Hint("←→", "adjust"), Hint("Enter", "edit"), Hint("Ctrl+G", "back")]
+            help_text = [
+                Hint("↑↓", "select"),
+                Hint("←→", "adjust"),
+                Hint("Enter", "edit"),
+                Hint("Ctrl+G", "back"),
+            ]
         elif state.page == "layout":
-            help_text = [Hint("Tab", "page"), Hint("↑↓", "select"), Hint("←→", "adjust"), Hint("Enter", "edit")]
+            help_text = [
+                Hint("Tab", "page"),
+                Hint("↑↓", "select"),
+                Hint("←→", "adjust"),
+                Hint("Enter", "edit"),
+            ]
         elif state.page == "settings":
-            help_text = [Hint("Tab", "page"), Hint("↑↓", "select"), Hint("←→", "adjust"), Hint("Enter", "edit/save")]
+            help_text = [
+                Hint("Tab", "page"),
+                Hint("↑↓", "select"),
+                Hint("←→", "adjust"),
+                Hint("Enter", "edit/save"),
+            ]
         else:
-            actions = [Hint("Enter/Ctrl+S", "save"), Hint("Esc", "cancel"), Hint("Ctrl+C", "interrupt")]
-            help_text = [Hint("Tab", "page"), Hint("Space", "toggle"), Hint("Ctrl+E", "format"), Hint("↑↓", "select"), Hint("←→", "order")]
+            actions = [
+                Hint("Enter/Ctrl+S", "save"),
+                Hint("Esc", "cancel"),
+                Hint("Ctrl+C", "interrupt"),
+            ]
+            help_text = [
+                Hint("Tab", "page"),
+                Hint("Space", "toggle"),
+                Hint("Ctrl+E", "format"),
+                Hint("↑↓", "select"),
+                Hint("←→", "order"),
+            ]
     _draw_shortcuts(screen, layout.actions_y, actions, width, mapper)
     _draw_shortcuts(screen, layout.help_y, help_text, width, mapper)
     screen.refresh()

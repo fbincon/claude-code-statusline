@@ -55,12 +55,15 @@ class Screen:
 class Mapper:
     def __init__(self, colors=0):
         self.colors = colors
+        self.preview_attr = 0
 
     def foreground(self, color):
         return 0
 
     def style(self, sgr):
         return curses.A_BOLD if drawing._ansi_style(sgr, self.colors)[0] else 0
+
+    preview_style = style
 
 
 class GroupWindowTests(unittest.TestCase):
@@ -182,8 +185,13 @@ class DrawingTests(unittest.TestCase):
                 key_calls = [c for c in calls if c[3] & curses.A_BOLD]
                 self.assertTrue(key_calls)
                 self.assertTrue(all(not c[3] & curses.A_REVERSE for c in calls))
+                self.assertTrue(
+                    all(not c[3] & (curses.A_COLOR | curses.A_DIM) for c in calls)
+                )
                 self.assertTrue(all(c[2].strip() == c[2] for c in key_calls))
-                self.assertTrue(any(c[2] == " save" and not c[3] & curses.A_BOLD for c in calls))
+                self.assertTrue(
+                    any(c[2] == " save" and not c[3] & curses.A_BOLD for c in calls)
+                )
                 self.assertTrue(any("Ctrl+S" in c[2] for c in key_calls))
                 self.assertTrue(any(c[2] in ("Tab", "↑↓") for c in key_calls))
 
@@ -192,9 +200,11 @@ class DrawingTests(unittest.TestCase):
 
         screen = Screen(16, 5)
         drawing._draw_shortcuts(
-            screen, 4,
+            screen,
+            4,
             [Hint("Ctrl+G", "cancel editing", "cancel"), Hint("Esc", "restore")],
-            16, Mapper(),
+            16,
+            Mapper(),
         )
         self.assertIn("Ctrl+G cancel", screen.text)
         self.assertNotIn("Esc", screen.text)
@@ -205,7 +215,9 @@ class DrawingTests(unittest.TestCase):
 
         for width in range(1, 25):
             result = segments([Hint("Enter", "保存中文 é", "保存")], width)
-            self.assertLessEqual(sum(render_layout._display_width(text) for text, _ in result), width)
+            self.assertLessEqual(
+                sum(render_layout._display_width(text) for text, _ in result), width
+            )
             self.assertTrue(not result or result[0] == ("Enter", True))
 
     def test_portable_file_action_keys_use_the_same_styles_as_footer_keys(self):
@@ -215,14 +227,18 @@ class DrawingTests(unittest.TestCase):
         screen = Screen(120, 30)
         drawing._draw_screen(screen, state, Mapper())
         geometry = layout.dimensions(120, 30)
-        self.assertTrue(any(
-            text == "Enter" and attr & curses.A_BOLD
-            and geometry.content.inner_y < y < geometry.preview.y
-            for y, _, text, attr in screen.calls
-        ))
+        self.assertTrue(
+            any(
+                text == "Enter"
+                and attr & curses.A_BOLD
+                and geometry.content.inner_y < y < geometry.preview.y
+                for y, _, text, attr in screen.calls
+            )
+        )
 
     def test_all_pages_at_boundaries_without_overlaps_or_out_of_bounds_writes(self):
         for width, height in (
+            (32, 12),
             (64, 18),
             (64, 19),
             (64, 20),
@@ -240,6 +256,19 @@ class DrawingTests(unittest.TestCase):
                             state.page = page
                         screen = Screen(width, height)
                         viewport = drawing._draw_screen(screen, state, Mapper(colors))
+                        if (
+                            width < drawing.ui_models.MIN_TERMINAL_WIDTH
+                            or height < drawing.ui_models.MIN_TERMINAL_HEIGHT
+                        ):
+                            self.assertEqual(viewport, 1)
+                            self.assertIn("Terminal too small", screen.text)
+                            self.assertTrue(
+                                all(
+                                    not call[3] & (curses.A_COLOR | curses.A_DIM)
+                                    for call in screen.calls
+                                )
+                            )
+                            continue
                         geometry = layout.dimensions(width, height)
                         self.assertEqual(viewport, geometry.list_height)
                         self.assertEqual(

@@ -23,10 +23,96 @@ import time
 import unicodedata
 
 from claude_statusline.config import display, models
-from claude_statusline.ui import editor, forms
+from claude_statusline.ui import editor, forms, layout
+
+if __package__:
+    from tools.terminal_colors import cell_colors, contrast
+else:
+    from terminal_colors import cell_colors, contrast
 
 
-def run_case(backend: Path, root: Path, columns: int, rows: int, commit: str) -> dict:
+TERMINAL_THEMES = {
+    "dark": ("#dedee7", "#17191e"),
+    "light": ("#17191e", "#ffffff"),
+}
+XTERM_PALETTE = dict(
+    zip(
+        (
+            "black",
+            "red",
+            "green",
+            "brown",
+            "blue",
+            "magenta",
+            "cyan",
+            "white",
+            "brightblack",
+            "brightred",
+            "brightgreen",
+            "brightyellow",
+            "brightblue",
+            "brightmagenta",
+            "brightcyan",
+            "brightwhite",
+        ),
+        (
+            "000000",
+            "800000",
+            "008000",
+            "808000",
+            "000080",
+            "800080",
+            "008080",
+            "c0c0c0",
+            "808080",
+            "ff0000",
+            "00ff00",
+            "ffff00",
+            "0000ff",
+            "ff00ff",
+            "00ffff",
+            "ffffff",
+        ),
+    )
+)
+
+
+def verify_colors(cells, columns, rows, foreground, background):
+    """Evaluate captured SGR using explicit terminal-default/palette fixtures."""
+    panel = layout.dimensions(columns, rows).preview
+    for y, line in enumerate(cells):
+        for x, cell in enumerate(line):
+            preview = (
+                panel.inner_y <= y < panel.inner_y + panel.inner_height
+                and panel.inner_x <= x < panel.inner_x + panel.inner_width
+            )
+            fg, bg = cell_colors(cell, foreground, background, XTERM_PALETTE)
+            if preview:
+                assert bg == "#1c1c1c", f"Unfilled preview cell: {y},{x}: {cell}"
+                assert cell["fg"] != "default", f"Preview foreground reset: {y},{x}"
+            elif cell["data"].strip():
+                assert cell["fg"] == cell["bg"] == "default", (
+                    f"Fixed chrome color: {y},{x}"
+                )
+                assert contrast(fg, bg) >= 4.5, f"Unreadable chrome: {y},{x}"
+    # Keys and descriptions have independently rendered emphasis.
+    footer = cells[-2:]
+    assert any(
+        cell["bold"] and cell["data"].strip() for line in footer for cell in line
+    ), "Missing bold shortcut"
+    assert any(
+        not cell["bold"] and cell["data"].strip() for line in footer for cell in line
+    ), "Missing regular shortcut description"
+
+
+def run_case(
+    backend: Path,
+    root: Path,
+    columns: int,
+    rows: int,
+    commit: str,
+    terminal_theme="dark",
+) -> dict:
     import fcntl
     import pty
     import termios
@@ -130,6 +216,8 @@ def run_case(backend: Path, root: Path, columns: int, rows: int, commit: str) ->
             [screen.buffer[y][x]._asdict() for x in range(screen.columns)]
             for y in range(screen.lines)
         ]
+        foreground, background = TERMINAL_THEMES[terminal_theme]
+        verify_colors(cells, screen.columns, screen.lines, foreground, background)
         payload = {
             "columns": screen.columns,
             "rows": screen.lines,
@@ -137,6 +225,11 @@ def run_case(backend: Path, root: Path, columns: int, rows: int, commit: str) ->
             "surface": "external",
             "source_commit": commit,
             "sample_data": True,
+            "terminal_theme": terminal_theme,
+            "terminal_foreground": foreground,
+            "terminal_background": background,
+            "terminal_palette": XTERM_PALETTE,
+            "terminal_defaults_source": "explicit capture-analysis fixture",
         }
         path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         captures.append(
@@ -160,12 +253,15 @@ def run_case(backend: Path, root: Path, columns: int, rows: int, commit: str) ->
         capture("settings")
         field("padding")
         send(b"3", "[3_]")
+        capture("numeric-edit")
         after = len(raw)
         resize(80 if columns == 64 else 64, 24 if rows <= 20 else 18)
         wait_for("[3_]", after=after)
         after = len(raw)
         resize(columns, rows)
         wait_for("[3_]", after=after)
+        send(b"9", "Padding must be from 0 through 32")
+        capture("numeric-error")
         send(b"\x1b", "Ctrl+S save")
         send(b"\t", "Layout / rows and fitting")
         state.page = "layout"
@@ -232,6 +328,10 @@ def run_case(backend: Path, root: Path, columns: int, rows: int, commit: str) ->
             "resize-during-edit",
             "cancel-byte-identical",
             "regrouped-numeric-save-readback",
+            "default-color-chrome-and-reversed-selection",
+            "bold-keys-and-regular-descriptions",
+            "chrome-contrast-at-least-4.5",
+            "fully-filled-dark-preview",
         ],
     }
 
@@ -241,6 +341,12 @@ def main() -> int:
     parser.add_argument("--backend", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--commit", required=True)
+    parser.add_argument(
+        "--terminal-theme",
+        choices=tuple(TERMINAL_THEMES),
+        default="dark",
+        help="Default-color fixture for capture analysis; does not change a physical terminal",
+    )
     args = parser.parse_args()
     if not (sys.platform.startswith("linux") or sys.platform == "darwin"):
         parser.error("Native Linux/macOS PTYs are required")
@@ -257,11 +363,15 @@ def main() -> int:
         "platform": platform.platform(),
         "python": platform.python_version(),
         "sample_data": True,
+        "terminal_theme": args.terminal_theme,
+        "terminal_defaults_source": "explicit capture-analysis fixture",
         "manual_visual_acceptance": False,
         "cases": [],
     }
     for columns, rows in ((64, 18), (64, 20), (80, 24), (120, 30), (80, 48)):
-        report["cases"].append(run_case(backend, root, columns, rows, args.commit))
+        report["cases"].append(
+            run_case(backend, root, columns, rows, args.commit, args.terminal_theme)
+        )
     (root / "report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
