@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 from dataclasses import asdict, dataclass, field, replace
 import unicodedata
 
@@ -19,14 +21,14 @@ FORMAT_CHOICES = {
 
 def exact(data, keys, name):
     if not isinstance(data, dict) or set(data) != set(keys):
-        raise ValueError(f"{name} must contain exactly: {', '.join(sorted(keys))}")
+        raise ValueError(msg('errors.formatting.must_contain_exactly', name=name, value1=', '.join(sorted(keys))))
 
 
 def integer(value, minimum, maximum, name, *, nullable=False):
     if nullable and value is None:
         return None
     if type(value) is not int or not minimum <= value <= maximum:
-        raise ValueError(f"{name} must be an integer from {minimum} through {maximum}")
+        raise ValueError(msg('errors.formatting.must_be_an_integer_from_through', name=name, minimum=minimum, maximum=maximum))
     return value
 
 
@@ -37,17 +39,17 @@ def safe_text(value, name):
         or any(unicodedata.category(c) in ("Cc", "Cs") for c in value)
     ):
         raise ValueError(
-            f"{name} must be null or text without control characters (up to 256 characters)"
+            msg('errors.formatting.must_be_null_or_text_without_control', name=name)
         )
     return value
 
 
 def validate_overrides(data):
     if not isinstance(data, dict) or set(data) - set(FORMAT_CHOICES):
-        raise ValueError("format overrides contain unknown fields")
+        raise ValueError(msg('errors.formatting.format_overrides_contain_unknown_fields'))
     for key, value in data.items():
         if not isinstance(value, str) or value not in FORMAT_CHOICES[key]:
-            raise ValueError(f"{key} must be one of: {', '.join(FORMAT_CHOICES[key])}")
+            raise ValueError(msg('errors.formatting.must_be_one_of', field=key, value1=', '.join(FORMAT_CHOICES[key])))
     return dict(data)
 
 
@@ -64,11 +66,11 @@ class Thresholds:
     def parse(cls, data):
         exact(data, asdict(cls()), "thresholds")
         if type(data["enabled"]) is not bool:
-            raise ValueError("thresholds.enabled must be a boolean")
+            raise ValueError(msg('errors.formatting.thresholds_enabled_must_be_a_boolean'))
         warning = integer(data["warning"], 0, 100, "thresholds.warning")
         critical = integer(data["critical"], 0, 100, "thresholds.critical")
         if warning >= critical:
-            raise ValueError("thresholds.warning must be below critical")
+            raise ValueError(msg('errors.formatting.thresholds_warning_must_be_below_critical'))
         return cls(data["enabled"], warning, critical)
 
 
@@ -123,7 +125,7 @@ class ItemOptions:
 
 def item_options(data, identifiers):
     if not isinstance(data, dict) or set(data) - set(identifiers):
-        raise ValueError("item_options must map known scoped item IDs to options")
+        raise ValueError(msg('errors.formatting.item_options_must_map_known_scoped_item'))
     return {key: ItemOptions.parse(value) for key, value in data.items()}
 
 
@@ -140,21 +142,21 @@ class Layout:
         exact(data, ("mode", "rows"), "layout")
         rows = data["rows"]
         if data["mode"] not in ("auto", "explicit") or not isinstance(rows, list):
-            raise ValueError("layout requires auto/explicit mode and an array of rows")
+            raise ValueError(msg('errors.formatting.layout_requires_auto_explicit_mode_and_an'))
         if any(
             not isinstance(row, list)
             or not row
             or any(not isinstance(i, str) for i in row)
             for row in rows
         ):
-            raise ValueError("layout rows must be nonempty arrays of item IDs")
+            raise ValueError(msg('errors.formatting.layout_rows_must_be_nonempty_arrays_of'))
         if data["mode"] == "auto" and rows:
-            raise ValueError("auto layout requires empty rows")
+            raise ValueError(msg('errors.formatting.auto_layout_requires_empty_rows'))
         if data["mode"] == "explicit" and [i for row in rows for i in row] != list(
             items
         ):
             raise ValueError(
-                "explicit rows must flatten to items in exactly the same order"
+                msg('errors.formatting.explicit_rows_must_flatten_to_items_in')
             )
         return cls(data["mode"], tuple(tuple(row) for row in rows))
 

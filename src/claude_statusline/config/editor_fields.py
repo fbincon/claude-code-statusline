@@ -1,5 +1,7 @@
 """Canonical form descriptors and pure edits for Client and curses."""
 
+from claude_statusline.i18n import message as msg
+
 from claude_statusline.config import advanced, display, formatting, presets
 import re
 
@@ -140,7 +142,7 @@ def parse_value(spec, raw):
         if type(raw) is bool:
             return raw
         if raw not in ("on", "off"):
-            raise display.DisplayConfigError("expected on/off")
+            raise display.DisplayConfigError(msg('errors.editor_fields.expected_on_off'))
         return raw == "on"
     if spec["kind"] == "integer":
         if spec["nullable"] and raw in (None, "none", "inherit"):
@@ -149,7 +151,7 @@ def parse_value(spec, raw):
             if type(raw) is not int and not (
                 isinstance(raw, str) and re.fullmatch(r"[0-9]+", raw)
             ):
-                raise ValueError("expected an integer")
+                raise ValueError(msg('errors.editor_fields.expected_an_integer'))
             raw = int(raw)
             return formatting.integer(
                 raw, spec["minimum"], spec["maximum"], spec["key"]
@@ -158,7 +160,7 @@ def parse_value(spec, raw):
             raise display.DisplayConfigError(str(exc) or "expected an integer") from exc
     if spec["kind"] == "choice" and raw not in spec["choices"]:
         raise display.DisplayConfigError(
-            "expected one of: " + ", ".join(spec["choices"])
+            msg('errors.editor_fields.expected_one_of', value0=', '.join(spec['choices']))
         )
     return None if spec["nullable"] and raw == "inherit" else raw
 
@@ -167,7 +169,7 @@ def set_value(config, key, raw, scope=None, item=None):
     fields = ITEM if scope is not None else GLOBAL
     spec = next((spec for spec in fields if spec["key"] == key), None)
     if spec is None:
-        raise display.DisplayConfigError("unknown editor field")
+        raise display.DisplayConfigError(msg('errors.editor_fields.unknown_editor_field'))
     parsed = parse_value(spec, raw)
     if scope is not None:
         return advanced.edit_item(

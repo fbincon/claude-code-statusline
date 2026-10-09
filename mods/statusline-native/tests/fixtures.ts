@@ -109,7 +109,7 @@ export function description(): DescribeResult {
     editor_fields: JSON.parse(JSON.stringify(EDITOR_FIELDS)),
     presets: JSON.parse(JSON.stringify(PRESETS)),
     formatting_options: JSON.parse(JSON.stringify(FORMAT_CHOICES)),
-    operations: ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset'],
+    operations: ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language'],
     capabilities: capabilities(),
     options: {
       colors: { choices: [true, false] },
@@ -159,7 +159,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 4, result }));
+  return output(JSON.stringify({ protocol_version: 5, result }));
 }
 
 export function sample(text: string) {

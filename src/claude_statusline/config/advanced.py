@@ -1,5 +1,7 @@
 """Pure mutations used by CLI and interactive draft editors."""
 
+from claude_statusline.i18n import message as msg, as_message
+
 from dataclasses import replace
 
 from claude_statusline.config import catalog, display, formatting
@@ -12,7 +14,7 @@ def edit_item(config, scope, item, option, value):
         display.ITEM_CATALOG if scope == "main" else display.SUBAGENT_ITEM_CATALOG
     )
     if scope not in ("main", "subagent") or item not in definitions:
-        raise display.DisplayConfigError("unknown scoped item")
+        raise display.DisplayConfigError(msg('errors.advanced.unknown_scoped_item'))
     current = config.item_options if scope == "main" else config.subagents.item_options
     options = dict(current)
     data = options.get(item, formatting.ItemOptions()).to_dict()
@@ -28,17 +30,17 @@ def edit_item(config, scope, item, option, value):
                 value = None if value in (None, "none") else int(value)
             except (ValueError, TypeError) as exc:
                 raise display.DisplayConfigError(
-                    "width/priority must be an integer or none"
+                    msg('errors.advanced.width_priority_must_be_an_integer_or')
                 ) from exc
         elif value == "inherit":
             value = None
         data[key] = value
     else:
-        raise display.DisplayConfigError("unknown item option")
+        raise display.DisplayConfigError(msg('errors.advanced.unknown_item_option'))
     try:
         options[item] = formatting.ItemOptions.parse(data)
     except ValueError as exc:
-        raise display.DisplayConfigError(str(exc)) from exc
+        raise display.DisplayConfigError(as_message(exc)) from exc
     return (
         config.with_updates(item_options=options)
         if scope == "main"
@@ -62,13 +64,13 @@ def edit_layout(config, mode, rows=None):
 def edit_subagent(config, field, value):
     if field == "hide_completed":
         if value not in ("on", "off", True, False):
-            raise display.DisplayConfigError("hide-completed must be on/off")
+            raise display.DisplayConfigError(msg('errors.advanced.hide_completed_must_be_on_off'))
         value = value in ("on", True)
     elif field in ("row_limit", "task_max_width"):
         try:
             value = None if value in ("none", None) else int(value)
         except (ValueError, TypeError) as exc:
             raise display.DisplayConfigError(
-                "limit must be an integer or none"
+                msg('errors.advanced.limit_must_be_an_integer_or_none')
             ) from exc
     return config.with_updates(subagents=replace(config.subagents, **{field: value}))

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import json
 import os
 import shlex
@@ -35,7 +37,7 @@ def resolve_cli_executable(explicit: str | os.PathLike[str] | None = None) -> Pa
             else "claude-statusline"
         )
         raise integration_models.ConfigurationError(
-            f"cannot find {command_name} in PATH; install the package first"
+            msg('errors.ownership.cannot_find_in_path_install_the_package', command_name=command_name)
         )
     path = Path(os.path.abspath(os.path.expanduser(value)))
     if platform_environment.is_windows() and path.suffix.casefold() != ".exe":
@@ -51,7 +53,7 @@ def _quoted_executable(executable: Path) -> str:
     value = str(executable)
     if any(char in value for char in ("\x00", "\n", "\r")):
         raise integration_models.ConfigurationError(
-            "the executable path contains an unsafe character"
+            msg('errors.ownership.the_executable_path_contains_an_unsafe_character')
         )
     escaped = (
         value.replace("\\", "\\\\")

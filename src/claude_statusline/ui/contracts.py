@@ -1,4 +1,4 @@
-"""Protocol v4 wire types; TypeScript is generated from these Python types."""
+"""Protocol v5 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
@@ -7,8 +7,9 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display
 
 
-PROTOCOL_VERSION = 4
-OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset")
+PROTOCOL_VERSION = 5
+OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset",
+              "read_ui_preferences", "set_ui_language")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
 Palette = Literal.__getitem__(display.PALETTES)
@@ -178,9 +179,22 @@ class PreviewResult(TypedDict):
     subagents: list[list[Span]]
 
 
+class LocalizedMessage(TypedDict):
+    key: str
+    params: dict[str, object]
+    fallback: str
+
+
+class UiPreferencesResult(TypedDict):
+    schema_version: Literal[1]
+    ui_language: Literal["en", "zh-CN"]
+    warning: LocalizedMessage | None
+
+
 class ProtocolError(TypedDict):
     code: str
     message: str
+    localization: LocalizedMessage | None
 
 
 class ReadResult(TypedDict):
@@ -263,6 +277,8 @@ WIRE_TYPES = (
     Foreground,
     Span,
     PreviewResult,
+    LocalizedMessage,
+    UiPreferencesResult,
     ProtocolError,
     ReadResult,
     EditorField,
@@ -280,4 +296,6 @@ RESULTS = {
     "import": TransferResult,
     "export": ExportResult,
     "preset": TransferResult,
+    "read_ui_preferences": UiPreferencesResult,
+    "set_ui_language": UiPreferencesResult,
 }

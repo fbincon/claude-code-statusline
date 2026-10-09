@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg, as_message, Message
+
 import json
 import re
 from pathlib import Path
@@ -18,6 +20,7 @@ from claude_statusline.config import (
     presets,
     transfer,
     editor_fields,
+    ui_preferences,
 )
 from claude_statusline.integration import capabilities, models as integration_models
 from claude_statusline.ui import contracts
@@ -33,7 +36,7 @@ def _object(value, keys, name):
     if not isinstance(value, dict) or set(value) != set(keys):
         raise RequestError(
             "invalid_request",
-            f"{name} must be an object containing exactly: {', '.join(keys)}",
+            msg('errors.protocol.must_be_an_object_containing_exactly', name=name, value1=', '.join(keys)),
         )
     return value
 
@@ -48,8 +51,7 @@ def validate_draft(value, *, require_current_schema=False):
         ):
             raise RequestError(
                 "invalid_configuration",
-                f"apply requires the complete schema v{display.SCHEMA_VERSION} "
-                "draft returned by read",
+                msg('errors.protocol.apply_requires_the_complete_schema_v_draft', SCHEMA_VERSION=display.SCHEMA_VERSION),
             )
         raw = _object(
             value["host"],
@@ -62,13 +64,13 @@ def validate_draft(value, *, require_current_schema=False):
         ):
             raise RequestError(
                 "invalid_configuration",
-                "padding must be an integer and hide_vim_mode_indicator must be a boolean",
+                msg('errors.protocol.padding_must_be_an_integer_and_hide'),
             )
         refresh = raw["refresh_interval"]
         if refresh != "event" and type(refresh) is not int:
             raise RequestError(
                 "invalid_configuration",
-                "refresh_interval must be an integer or 'event'",
+                msg('errors.protocol.refresh_interval_must_be_an_integer_or'),
             )
         parsed_host = models.HostConfig(
             host._parse_padding(raw["padding"]),
@@ -77,7 +79,7 @@ def validate_draft(value, *, require_current_schema=False):
         )
         return parsed, parsed_host
     except (display.DisplayConfigError, models.ConfigCommandError) as exc:
-        raise RequestError("invalid_configuration", str(exc)) from exc
+        raise RequestError("invalid_configuration", as_message(exc)) from exc
 
 
 def host_capabilities() -> contracts.Capabilities:
@@ -139,14 +141,19 @@ def dispatch(request: object, config_dir: Path, executable: Path):
     ):
         raise RequestError(
             "unsupported_protocol",
-            "Only protocol_version 4 is supported; reinstall matching frontend/backend resources",
+            msg('errors.protocol.unsupported_protocol'),
         )
     operation = request["operation"]
     if not isinstance(operation, str) or operation not in contracts.OPERATIONS:
         raise RequestError(
-            "unsupported_operation", "Unsupported configuration operation"
+            "unsupported_operation", msg('errors.protocol.unsupported_configuration_operation')
         )
     payload = request["payload"]
+    if operation in ("read_ui_preferences", "set_ui_language"):
+        _object(payload, () if operation == "read_ui_preferences" else ("ui_language",), "payload")
+        preference = (ui_preferences.read(config_dir) if operation == "read_ui_preferences"
+                      else ui_preferences.set_language(config_dir, payload["ui_language"]))
+        return {**preference.to_dict(), "warning": preference.warning.wire() if preference.warning else None}
     if operation in ("import", "export", "preset"):
         keys = (
             ("draft", "path", "overwrite")
@@ -162,7 +169,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
         current = {"display": parsed.to_dict(), "host": parsed_host.to_dict()}
         if operation == "preset":
             if not isinstance(payload["preset"], str):
-                raise RequestError("invalid_request", "preset must be a string")
+                raise RequestError("invalid_request", msg('errors.protocol.preset_must_be_a_string'))
             return {
                 "draft": {
                     "display": presets.apply(parsed, payload["preset"]).to_dict(),
@@ -172,12 +179,12 @@ def dispatch(request: object, config_dir: Path, executable: Path):
         path = payload["path"]
         if not isinstance(path, str) or not path.strip() or "\0" in path:
             raise RequestError(
-                "invalid_request", "path must be nonempty text without NUL"
+                "invalid_request", msg('errors.protocol.path_must_be_nonempty_text_without_nul')
             )
         if operation == "import":
             return {"draft": transfer.import_file(path, current)}
         if type(payload["overwrite"]) is not bool:
-            raise RequestError("invalid_request", "overwrite must be a boolean")
+            raise RequestError("invalid_request", msg('errors.protocol.overwrite_must_be_a_boolean'))
         return {
             "path": transfer.export_file(
                 path, current, config_dir, overwrite=payload["overwrite"]
@@ -212,7 +219,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
         ):
             raise RequestError(
                 "invalid_request",
-                "expected_revision must be the revision returned by read",
+                msg('errors.protocol.expected_revision_must_be_the_revision_returned'),
             )
         mutation = service.apply_configuration(
             config_dir,
@@ -242,7 +249,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
         width = payload["width"]
         if type(width) is not int or not 2 <= width <= 10000:
             raise RequestError(
-                "invalid_request", "width must be an integer from 2 through 10000"
+                "invalid_request", msg('errors.protocol.width_must_be_an_integer_from_2')
             )
         from claude_statusline.rendering import preview, spans, subagents
 
@@ -265,13 +272,13 @@ def _unique_object(pairs):
     result = {}
     for key, value in pairs:
         if key in result:
-            raise RequestError("invalid_json", f"Duplicate JSON key: {key}")
+            raise RequestError("invalid_json", msg('errors.protocol.duplicate_json_key', field=key))
         result[key] = value
     return result
 
 
 def _reject_constant(value):
-    raise RequestError("invalid_json", f"Non-finite JSON value: {value}")
+    raise RequestError("invalid_json", msg('errors.protocol.non_finite_json_value', value=value))
 
 
 def handle(raw: str, config_dir: Path, executable: Path):
@@ -284,7 +291,7 @@ def handle(raw: str, config_dir: Path, executable: Path):
             "result": dispatch(request, config_dir, executable),
         }, 0
     except (json.JSONDecodeError, UnicodeError) as exc:
-        error = RequestError("invalid_json", str(exc))
+        error = RequestError("invalid_json", as_message(exc))
     except RequestError as exc:
         error = exc
     except (
@@ -292,19 +299,20 @@ def handle(raw: str, config_dir: Path, executable: Path):
         display.DisplayConfigError,
         integration_models.ConfigurationError,
     ) as exc:
-        error = RequestError(getattr(exc, "code", "invalid_configuration"), str(exc))
+        error = RequestError(getattr(exc, "code", "invalid_configuration"), as_message(exc))
     except OSError as exc:
-        error = RequestError("io_error", str(exc))
+        error = RequestError("io_error", as_message(exc))
     except Exception:
         import traceback
 
         traceback.print_exc(file=sys.stderr)
         error = RequestError(
-            "internal_error", "Unexpected backend failure; see stderr diagnostics"
+            "internal_error", msg('errors.protocol.unexpected_backend_failure_see_stderr_diagnostics')
         )
     return {
         "protocol_version": contracts.PROTOCOL_VERSION,
-        "error": {"code": error.code, "message": str(error)},
+        "error": {"code": error.code, "message": str(error),
+                  "localization": as_message(error).wire() if isinstance(as_message(error), Message) else None},
     }, 2
 
 
@@ -330,7 +338,8 @@ def main(args) -> int:
         response, status = (
             {
                 "protocol_version": contracts.PROTOCOL_VERSION,
-                "error": {"code": "invalid_request", "message": str(exc)},
+                "error": {"code": "invalid_request", "message": str(exc),
+                          "localization": as_message(exc).wire() if isinstance(as_message(exc), Message) else None},
             },
             2,
         )

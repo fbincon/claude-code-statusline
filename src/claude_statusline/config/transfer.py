@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import json
 import os
 from pathlib import Path
@@ -19,13 +21,13 @@ def _unique(pairs):
     result = {}
     for key, value in pairs:
         if key in result:
-            raise display.DisplayConfigError("duplicate transfer field: " + key)
+            raise display.DisplayConfigError(msg('errors.transfer.duplicate_transfer_field', value0=key))
         result[key] = value
     return result
 
 
 def _constant(value):
-    raise display.DisplayConfigError("non-finite transfer value: " + value)
+    raise display.DisplayConfigError(msg('errors.transfer.non_finite_transfer_value', value0=value))
 
 
 def import_file(path, current):
@@ -35,19 +37,19 @@ def import_file(path, current):
     with path.open("rb") as source:
         raw = source.read(MAX_BYTES + 1)
     if len(raw) > MAX_BYTES:
-        raise display.DisplayConfigError("import is larger than 1 MiB")
+        raise display.DisplayConfigError(msg('errors.transfer.import_is_larger_than_1_mib'))
     try:
         data = json.loads(
             raw.decode("utf-8-sig"), object_pairs_hook=_unique, parse_constant=_constant
         )
     except (UnicodeError, json.JSONDecodeError) as exc:
-        raise display.DisplayConfigError(f"invalid import JSON: {exc}") from exc
+        raise display.DisplayConfigError(msg('errors.transfer.invalid_import_json', exc=exc)) from exc
     if isinstance(data, dict) and "schema_version" in data:
         data = {"display": data, "host": current["host"]}
     else:
         if not isinstance(data, dict) or set(data) != {"format", "version", "draft"}:
             raise display.DisplayConfigError(
-                "import requires a portable envelope or a display configuration"
+                msg('errors.transfer.import_requires_a_portable_envelope_or_a')
             )
         if (
             data["format"] != FORMAT
@@ -55,7 +57,7 @@ def import_file(path, current):
             or data["version"] != VERSION
         ):
             raise display.DisplayConfigError(
-                "unsupported portable configuration format/version"
+                msg('errors.transfer.unsupported_portable_configuration_format_version')
             )
         data = data["draft"]
     parsed, host = validate_draft(data)
@@ -81,12 +83,13 @@ def export_file(path, draft, config_dir, *, overwrite=False):
                 runtime.FILENAME,
             )
         }
+        or resolved == root / "statusline-ui.json"
         or (root / "statusline-native") in resolved.parents
         or (root / "statusline-runtime") in resolved.parents
         or (root / "statusline_runtime") in resolved.parents
     ):
         raise display.DisplayConfigError(
-            "export cannot replace live configuration or owned plugin resources"
+            msg('errors.transfer.export_cannot_replace_live_configuration_or_owned')
         )
     data = {
         "format": FORMAT,
@@ -97,7 +100,7 @@ def export_file(path, draft, config_dir, *, overwrite=False):
         json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
     ).encode()
     if len(raw) > MAX_BYTES:
-        raise display.DisplayConfigError("export is larger than 1 MiB")
+        raise display.DisplayConfigError(msg('errors.transfer.export_is_larger_than_1_mib'))
     fd, temporary = tempfile.mkstemp(prefix=".statusline-export-", dir=path.parent)
     try:
         with os.fdopen(fd, "wb") as target:

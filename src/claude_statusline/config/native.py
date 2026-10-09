@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import json
 from pathlib import Path
 
@@ -22,7 +24,7 @@ def parse(raw: bytes) -> bool:
         value = {}
         for key, item in pairs:
             if key in value:
-                raise ValueError("duplicate native preference field")
+                raise ValueError(msg('errors.native.duplicate_native_preference_field'))
             value[key] = item
         return value
 
@@ -35,10 +37,10 @@ def parse(raw: bytes) -> bool:
             or value["schema_version"] != 1
             or type(value["native_editor"]) is not bool
         ):
-            raise ValueError("expected schema_version 1 and a native_editor boolean")
+            raise ValueError(msg('errors.native.expected_schema_version_1_and_a_native'))
         return value["native_editor"]
     except (UnicodeError, ValueError) as exc:
-        raise ConfigurationError(f"Invalid {FILENAME}: {exc}") from exc
+        raise ConfigurationError(msg('errors.native.invalid', FILENAME=FILENAME, exc=exc)) from exc
 
 
 def preference_bytes(enabled: bool) -> bytes:

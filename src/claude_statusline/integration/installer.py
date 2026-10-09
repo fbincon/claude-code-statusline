@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg, as_message
+
 import json
 from pathlib import Path
 from dataclasses import replace
@@ -56,7 +58,7 @@ def _change_configuration(
                 )
             except config_features.FeatureConfigError as exc:
                 if experimental_slash_tui is None:
-                    raise integration_models.ConfigurationError(str(exc)) from exc
+                    raise integration_models.ConfigurationError(as_message(exc)) from exc
         if action == "install" and experimental_slash_tui is not None:
             preference_enabled = experimental_slash_tui
 
@@ -82,8 +84,7 @@ def _change_configuration(
             and (external_command.exists() or external_command.is_symlink())
         ):
             raise integration_models.ConfigurationError(
-                "Foreign /statusline-configure command; rename it before enabling "
-                "the external TUI"
+                msg('errors.installer.foreign_statusline_configure_command_rename_it_before')
             )
         if action == "install":
             updated_settings = integration_install_plan._prepare_install(
@@ -131,8 +132,7 @@ def _change_configuration(
                 and not force
             ):
                 raise integration_models.ConfigurationError(
-                    f"an unrelated /{integration_models.SLASH_COMMAND_NAME} skill already exists; "
-                    "rerun with --force only if replacing it is intentional"
+                    msg('errors.installer.an_unrelated_skill_already_exists_rerun_with', SLASH_COMMAND_NAME=integration_models.SLASH_COMMAND_NAME)
                 )
             desired_skill = integration_resources.render_skill(executable)
             desired_owner = integration_resources._skill_owner_bytes()
@@ -147,9 +147,7 @@ def _change_configuration(
                     and not force
                 ):
                     raise integration_models.ConfigurationError(
-                        f"an unrelated /{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME} skill "
-                        "already exists; rerun with --force only if replacing it "
-                        "is intentional"
+                        msg('errors.installer.an_unrelated_skill_already_exists_rerun_with_2', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME)
                     )
                 desired_experimental_skill = (
                     integration_resources.render_experimental_skill()
@@ -338,7 +336,7 @@ def _change_configuration(
                 else ""
             )
             raise integration_models.ConfigurationError(
-                f"cannot {action} statusline configuration: {exc}{suffix}"
+                msg('errors.installer.cannot_statusline_configuration', action=action, exc=exc, suffix=suffix)
             ) from exc
 
         if action == "uninstall":
@@ -388,7 +386,7 @@ def install_configuration(
             else config_features.load_experimental_slash_tui(config_dir)
         )
     except config_features.FeatureConfigError as exc:
-        raise integration_models.ConfigurationError(str(exc)) from exc
+        raise integration_models.ConfigurationError(as_message(exc)) from exc
     external_supported = integration_capabilities.supports_fast_slash_hook(
         claude_version
     )

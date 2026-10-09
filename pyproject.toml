@@ -47,6 +47,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 claude_statusline = [
+  "i18n/locales/*.json",
   "resources/statusline-config/SKILL.md",
   "resources/statusline-configure/SKILL.md",
 ]

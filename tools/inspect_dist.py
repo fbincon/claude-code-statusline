@@ -64,6 +64,8 @@ def main():
         metadata = email.message_from_bytes(archive.read(metadata_name))
         assert metadata["Name"] == project["name"] == "fbincon-claude-code-statusline"
         assert metadata["Version"] == version
+        for resource in Path("src/claude_statusline/i18n/locales").glob("*.json"):
+            assert archive.read("claude_statusline/i18n/locales/" + resource.name) == resource.read_bytes()
         assert metadata["Description-Content-Type"] == "text/markdown"
         english_readme = Path("README.md").read_text(encoding="utf-8")
         long_description = pypi_readme(english_readme, version)

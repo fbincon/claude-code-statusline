@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import json
 import os
 import re
@@ -30,16 +32,16 @@ _BRIDGE_INVOCATION_PATTERN = re.compile(r"invocation-[A-Za-z0-9_.-]+\Z")
 
 def _validated_bridge_path(config_dir: Path, raw: str) -> Path:
     if not raw or "\x00" in raw:
-        raise config_models.ConfigCommandError("invalid slash TUI result path")
+        raise config_models.ConfigCommandError(msg('errors.bridge.invalid_slash_tui_result_path'))
     path = Path(raw)
     absolute = Path(os.path.abspath(path))
     if not path.is_absolute() or path != absolute or path.name != _BRIDGE_RESULT_NAME:
-        raise config_models.ConfigCommandError("invalid slash TUI result path")
+        raise config_models.ConfigCommandError(msg('errors.bridge.invalid_slash_tui_result_path'))
     expected_base = config_dir / "statusline_runtime" / "slash_tui"
     if path.parent.parent != expected_base or not _BRIDGE_INVOCATION_PATTERN.fullmatch(
         path.parent.name
     ):
-        raise config_models.ConfigCommandError("invalid slash TUI result path")
+        raise config_models.ConfigCommandError(msg('errors.bridge.invalid_slash_tui_result_path'))
     for directory in (
         config_dir,
         expected_base.parent,
@@ -50,15 +52,15 @@ def _validated_bridge_path(config_dir: Path, raw: str) -> Path:
             metadata = directory.lstat()
         except OSError as exc:
             raise config_models.ConfigCommandError(
-                f"invalid slash TUI result directory: {exc}"
+                msg('errors.bridge.invalid_slash_tui_result_directory_2', exc=exc)
             ) from exc
         if not stat.S_ISDIR(metadata.st_mode) or platform_files.is_link_or_reparse(
             directory
         ):
-            raise config_models.ConfigCommandError("invalid slash TUI result directory")
+            raise config_models.ConfigCommandError(msg('errors.bridge.invalid_slash_tui_result_directory'))
     if platform_files.private_mode_matches(path.parent, 0o700) is False:
         raise config_models.ConfigCommandError(
-            "slash TUI result directory is not private"
+            msg('errors.bridge.slash_tui_result_directory_is_not_private')
         )
     return path
 
@@ -68,9 +70,9 @@ def _bridge_deadline(environ: dict[str, str]) -> float:
     try:
         seconds = float(raw)
     except (TypeError, ValueError) as exc:
-        raise config_models.ConfigCommandError("invalid slash TUI deadline") from exc
+        raise config_models.ConfigCommandError(msg('errors.bridge.invalid_slash_tui_deadline')) from exc
     if not 0 < seconds <= 570:
-        raise config_models.ConfigCommandError("invalid slash TUI deadline")
+        raise config_models.ConfigCommandError(msg('errors.bridge.invalid_slash_tui_deadline'))
     return time.monotonic() + seconds
 
 

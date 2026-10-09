@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg, as_message
+
 import json
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -165,23 +167,23 @@ def _require_string_choice(
     value = data.get(key)
     if not isinstance(value, str) or value not in choices:
         allowed = ", ".join(choices)
-        raise DisplayConfigError(f"{key} must be one of: {allowed}")
+        raise DisplayConfigError(msg('errors.display.must_be_one_of', field=key, allowed=allowed))
     return value
 
 
 def validate_items(value: Any) -> tuple[str, ...]:
     if not isinstance(value, list):
-        raise DisplayConfigError("items must be an array of item identifiers")
+        raise DisplayConfigError(msg('errors.display.items_must_be_an_array_of_item'))
     result: list[str] = []
     seen: set[str] = set()
     for item in value:
         if not isinstance(item, str):
-            raise DisplayConfigError("every items entry must be a string")
+            raise DisplayConfigError(msg('errors.display.every_items_entry_must_be_a_string'))
         item = catalog.canonical_item(item)
         if item not in ITEM_CATALOG:
-            raise DisplayConfigError(f"unknown status line item: {item}")
+            raise DisplayConfigError(msg('errors.display.unknown_status_line_item', item=item))
         if item in seen:
-            raise DisplayConfigError(f"duplicate status line item: {item}")
+            raise DisplayConfigError(msg('errors.display.duplicate_status_line_item', item=item))
         seen.add(item)
         result.append(item)
     return tuple(result)
@@ -189,37 +191,37 @@ def validate_items(value: Any) -> tuple[str, ...]:
 
 def validate_subagent_items(value: Any) -> tuple[str, ...]:
     if not isinstance(value, list):
-        raise DisplayConfigError("subagents.items must be an array of item identifiers")
+        raise DisplayConfigError(msg('errors.display.subagents_items_must_be_an_array_of'))
     result: list[str] = []
     seen: set[str] = set()
     for item in value:
         if not isinstance(item, str):
-            raise DisplayConfigError("every subagents.items entry must be a string")
+            raise DisplayConfigError(msg('errors.display.every_subagents_items_entry_must_be_a'))
         if item not in SUBAGENT_ITEM_CATALOG:
-            raise DisplayConfigError(f"unknown subagent status line item: {item}")
+            raise DisplayConfigError(msg('errors.display.unknown_subagent_status_line_item', item=item))
         if item in seen:
-            raise DisplayConfigError(f"duplicate subagent status line item: {item}")
+            raise DisplayConfigError(msg('errors.display.duplicate_subagent_status_line_item', item=item))
         seen.add(item)
         result.append(item)
     if catalog.conflicts("subagent", result):
         raise DisplayConfigError(
-            "subagents.items cannot combine status-elapsed with status or elapsed"
+            msg('errors.display.subagents_items_cannot_combine_status_elapsed_with')
         )
     return tuple(result)
 
 
 def validate_subagent_config(data: Any) -> SubagentDisplayConfig:
     if not isinstance(data, dict):
-        raise DisplayConfigError("subagents must contain a JSON object")
+        raise DisplayConfigError(msg('errors.display.subagents_must_contain_a_json_object'))
     unknown = sorted(set(data) - SUBAGENT_KEYS)
     if unknown:
-        raise DisplayConfigError("unknown subagents field(s): " + ", ".join(unknown))
+        raise DisplayConfigError(msg('errors.display.unknown_subagents_field_s', value0=', '.join(unknown)))
     missing = sorted(SUBAGENT_KEYS - set(data))
     if missing:
-        raise DisplayConfigError("missing subagents field(s): " + ", ".join(missing))
+        raise DisplayConfigError(msg('errors.display.missing_subagents_field_s', value0=', '.join(missing)))
     enabled = data.get("enabled")
     if not isinstance(enabled, bool):
-        raise DisplayConfigError("subagents.enabled must be true or false")
+        raise DisplayConfigError(msg('errors.display.subagents_enabled_must_be_true_or_false'))
     try:
         if (
             data["visibility"] not in ("all", "running")
@@ -244,24 +246,24 @@ def validate_subagent_config(data: Any) -> SubagentDisplayConfig:
             ),
         )
     except ValueError as exc:
-        raise DisplayConfigError(str(exc)) from exc
+        raise DisplayConfigError(as_message(exc)) from exc
 
 
 def validate_display_config(data: Any) -> DisplayConfig:
     if not isinstance(data, dict):
-        raise DisplayConfigError("display configuration must contain a JSON object")
+        raise DisplayConfigError(msg('errors.display.display_configuration_must_contain_a_json_object'))
     version = data.get("schema_version")
     if isinstance(version, bool) or not isinstance(version, int):
         raise DisplayConfigError(
-            f"schema_version must be 1, 2, 3, 4 or {SCHEMA_VERSION}; found {version!r}"
+            msg('errors.display.schema_version_must_be_1_2_3', SCHEMA_VERSION=SCHEMA_VERSION, version=f'{version!r}')
         )
     if version > SCHEMA_VERSION:
         raise DisplayConfigError(
-            f"schema_version {version} is newer than supported version {SCHEMA_VERSION}"
+            msg('errors.display.schema_version_is_newer_than_supported_version', version=version, SCHEMA_VERSION=SCHEMA_VERSION)
         )
     if version not in (1, 2, 3, 4, SCHEMA_VERSION):
         raise DisplayConfigError(
-            f"schema_version must be 1, 2, 3, 4 or {SCHEMA_VERSION}; found {version!r}"
+            msg('errors.display.schema_version_must_be_1_2_3', SCHEMA_VERSION=SCHEMA_VERSION, version=f'{version!r}')
         )
 
     expected_keys = (
@@ -276,17 +278,17 @@ def validate_display_config(data: Any) -> DisplayConfig:
     unknown = sorted(set(data) - expected_keys)
     if unknown:
         raise DisplayConfigError(
-            "unknown display configuration field(s): " + ", ".join(unknown)
+            msg('errors.display.unknown_display_configuration_field_s', value0=', '.join(unknown))
         )
     missing = sorted(expected_keys - set(data))
     if missing:
         raise DisplayConfigError(
-            "missing display configuration field(s): " + ", ".join(missing)
+            msg('errors.display.missing_display_configuration_field_s', value0=', '.join(missing))
         )
 
     use_colors = data.get("use_colors")
     if not isinstance(use_colors, bool):
-        raise DisplayConfigError("use_colors must be true or false")
+        raise DisplayConfigError(msg('errors.display.use_colors_must_be_true_or_false'))
 
     data = dict(data)
     # Normalize aliases everywhere before validating uniqueness and references.
@@ -302,7 +304,7 @@ def validate_display_config(data: Any) -> DisplayConfig:
         for key, value in options.items():
             name = catalog.canonical_item(key)
             if name in canonical:
-                raise DisplayConfigError("conflicting item aliases in item_options")
+                raise DisplayConfigError(msg('errors.display.conflicting_item_aliases_in_item_options'))
             canonical[name] = value
         data["item_options"] = canonical
     layout = data.get("layout")
@@ -338,11 +340,11 @@ def validate_display_config(data: Any) -> DisplayConfig:
         )
         metrics = Metrics.parse(data["metrics"]) if version >= 4 else Metrics()
     except ValueError as exc:
-        raise DisplayConfigError(str(exc)) from exc
+        raise DisplayConfigError(as_message(exc)) from exc
     subagents = data.get("subagents")
     if version == 2:
         if not isinstance(subagents, dict) or set(subagents) != {"enabled", "items"}:
-            raise DisplayConfigError("v2 subagents requires exactly enabled and items")
+            raise DisplayConfigError(msg('errors.display.v2_subagents_requires_exactly_enabled_and_items'))
         subagents = {**SubagentDisplayConfig().to_dict(), **subagents}
     return DisplayConfig(
         formatting=fmt,
@@ -391,7 +393,7 @@ def parse_display_config_bytes(
     try:
         data = json.loads(raw.decode("utf-8"), object_pairs_hook=_strict_object)
     except (UnicodeDecodeError, json.JSONDecodeError, _DuplicateKeyError) as exc:
-        raise DisplayConfigError(f"invalid JSON in {path}: {exc}") from exc
+        raise DisplayConfigError(msg('errors.display.invalid_json_in', path=path, exc=exc)) from exc
     config = validate_display_config(data)
     return config, int(data["schema_version"])
 
@@ -403,7 +405,7 @@ def read_display_config(config_dir: Path) -> tuple[DisplayConfig, bytes | None]:
     except FileNotFoundError:
         return DEFAULT_CONFIG, None
     except OSError as exc:
-        raise DisplayConfigError(f"cannot read {path}: {exc}") from exc
+        raise DisplayConfigError(msg('errors.display.cannot_read', path=path, exc=exc)) from exc
     config, _source_schema = parse_display_config_bytes(raw, path)
     return config, raw
 
@@ -416,7 +418,7 @@ def read_display_config_schema(config_dir: Path) -> int | None:
     except FileNotFoundError:
         return None
     except OSError as exc:
-        raise DisplayConfigError(f"cannot read {path}: {exc}") from exc
+        raise DisplayConfigError(msg('errors.display.cannot_read', path=path, exc=exc)) from exc
     _config, source_schema = parse_display_config_bytes(raw, path)
     return source_schema
 
@@ -436,7 +438,7 @@ def atomic_write_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
     try:
         platform_files.atomic_write_bytes(path, content, mode)
     except OSError as exc:
-        raise DisplayConfigError(f"cannot write {path}: {exc}") from exc
+        raise DisplayConfigError(msg('errors.display.cannot_write', path=path, exc=exc)) from exc
 
 
 def write_display_config(config_dir: Path, config: DisplayConfig) -> None:
@@ -449,7 +451,7 @@ def restore_bytes(path: Path, raw: bytes | None, mode: int = 0o600) -> None:
             platform_files.durable_unlink(path)
         except OSError as exc:
             raise DisplayConfigError(
-                f"cannot restore absence of {path}: {exc}"
+                msg('errors.display.cannot_restore_absence_of', path=path, exc=exc)
             ) from exc
         return
     atomic_write_bytes(path, raw, mode=mode)

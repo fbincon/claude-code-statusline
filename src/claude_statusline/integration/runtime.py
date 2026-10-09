@@ -1,5 +1,7 @@
 """Native task timing and advanced observations, using the shared owned-plugin installer."""
 
+from claude_statusline.i18n import message as msg, as_message
+
 from dataclasses import replace
 
 from claude_statusline.integration import native
@@ -10,6 +12,10 @@ import time
 
 
 def _message(message):
+    from claude_statusline.i18n.translator import Message, catalogue
+
+    if isinstance(message, Message) and "runtime." + message.key in catalogue("en"):
+        return msg("runtime." + message.key, **message.params)
     for before, after in (
         ("Native editor", "Runtime collection"),
         ("native editor", "runtime collection"),
@@ -44,7 +50,7 @@ def diagnostics(config_dir, executable, version):
     try:
         preferences.load(config_dir)
     except (ConfigurationError, OSError) as error:
-        return [Diagnostic("ERROR", str(error))]
+        return [Diagnostic("ERROR", as_message(error))]
     rows = [
         Diagnostic(row.level, _message(row.message))
         for row in native.diagnostics(config_dir, executable, version, spec=RUNTIME)
@@ -70,7 +76,7 @@ def diagnostics(config_dir, executable, version):
     rows.append(
         Diagnostic(
             "OK" if active or not RUNTIME.requested(config_dir) else "WARN",
-            f"runtime collector heartbeats: {active} fresh session(s); stale after {model.STALE_MS // 1000}s. Installation alone does not verify session loading.",
+            msg('doctor.runtime.runtime_collector_heartbeats_fresh_session_s_stale', active=active, value1=model.STALE_MS // 1000),
         )
     )
     if latest is not None:
@@ -102,7 +108,7 @@ def diagnostics(config_dir, executable, version):
         rows.append(
             Diagnostic(
                 "WARN" if missing or partial else "OK",
-                f"runtime sources on host {latest['host_version']}: {', '.join(sources) or 'none'}; unavailable: {', '.join(missing) or 'none'}; partial: {', '.join(partial) or 'none'}",
+                msg('doctor.runtime.runtime_sources_on_host_unavailable_partial', value0=latest['host_version'], value1=', '.join(sources) or 'none', value2=', '.join(missing) or 'none', value3=', '.join(partial) or 'none'),
             )
         )
     return rows

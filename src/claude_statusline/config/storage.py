@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import datetime as dt
 import json
 from pathlib import Path
@@ -17,17 +19,17 @@ def _read_settings(settings_path: Path) -> tuple[dict, bytes | None]:
         return {}, None
     except OSError as exc:
         raise integration_models.ConfigurationError(
-            f"cannot read {settings_path}: {exc}"
+            msg('errors.storage.cannot_read', settings_path=settings_path, exc=exc)
         ) from exc
     try:
         data = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise integration_models.ConfigurationError(
-            f"invalid JSON in {settings_path}: {exc}"
+            msg('errors.storage.invalid_json_in', settings_path=settings_path, exc=exc)
         ) from exc
     if not isinstance(data, dict):
         raise integration_models.ConfigurationError(
-            f"{settings_path} must contain a JSON object"
+            msg('errors.storage.must_contain_a_json_object', settings_path=settings_path)
         )
     return data, raw
 
@@ -106,7 +108,7 @@ def _backup_artifacts(
         return backup_dir
     except OSError as exc:
         raise integration_models.ConfigurationError(
-            f"cannot back up statusline configuration: {exc}"
+            msg('errors.storage.cannot_back_up_statusline_configuration', exc=exc)
         ) from exc
 
 
@@ -125,7 +127,7 @@ def _read_optional_bytes(path: Path) -> bytes | None:
         return None
     except OSError as exc:
         raise integration_models.ConfigurationError(
-            f"cannot read {path}: {exc}"
+            msg('errors.storage.cannot_read_2', path=path, exc=exc)
         ) from exc
 
 

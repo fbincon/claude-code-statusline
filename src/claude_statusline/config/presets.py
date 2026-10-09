@@ -1,5 +1,7 @@
 """Portable presets expand to editable display settings, never host behavior."""
 
+from claude_statusline.i18n import message as msg
+
 from dataclasses import replace
 
 from claude_statusline.config import display, formatting
@@ -45,7 +47,7 @@ def descriptions():
 
 def apply(config, name):
     if name not in ROWS:
-        raise display.DisplayConfigError("unknown preset; choose " + ", ".join(ROWS))
+        raise display.DisplayConfigError(msg('errors.presets.unknown_preset_choose', value0=', '.join(ROWS)))
     rows = ROWS[name]
     items = tuple(item for row in rows for item in row)
     subagents = display.SubagentDisplayConfig(enabled=config.subagents.enabled)

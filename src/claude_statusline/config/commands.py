@@ -2,46 +2,41 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg, as_message
+
 import argparse
 import json
 import shlex
 from pathlib import Path
 from typing import Any
 from claude_statusline.config import display as config_display
-from claude_statusline.config import catalog, advanced, presets
+from claude_statusline.config import catalog, advanced, presets, ui_preferences
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 
 
-def _format_effective(config: config_models.EffectiveConfig) -> str:
+def _format_effective(config: config_models.EffectiveConfig, language="en") -> str:
+    from claude_statusline.i18n.translator import translate as t
     host = config.host.to_dict()
-    lines = [
-        "Scope: user",
-        f"Config: {config.config_path}",
-        f"Installed: {'yes' if config.installed else 'no'}",
-        "Items: " + (", ".join(config.display.items) or "(none)"),
-        f"Colors: {'on' if config.display.use_colors else 'off'}",
-        f"Palette: {config.display.palette}",
-        f"Directory style: {config.display.directory_style}",
-        f"Separator style: {config.display.separator_style}",
-        f"Scope labels: {config.display.scope_labels}",
-        "Subagent items: " + (", ".join(config.display.subagents.items) or "(none)"),
-        "Custom subagent rows: "
-        + ("on" if config.display.subagents.enabled else "off"),
-        "Subagent statusline: " + config.subagent_statusline.state,
-        f"Padding: {host['padding']}",
-        f"Refresh interval: {host['refresh_interval']}",
-        "Hide Vim mode indicator: "
-        + ("yes" if host["hide_vim_mode_indicator"] else "no"),
-    ]
-    return "\n".join(lines)
+    values = ["user", config.config_path, "yes" if config.installed else "no",
+              ", ".join(config.display.items) or "(none)", "on" if config.display.use_colors else "off",
+              config.display.palette, config.display.directory_style, config.display.separator_style,
+              config.display.scope_labels, ", ".join(config.display.subagents.items) or "(none)",
+              "on" if config.display.subagents.enabled else "off", config.subagent_statusline.state,
+              host["padding"], host["refresh_interval"], "yes" if host["hide_vim_mode_indicator"] else "no"]
+    keys = ("scope", "config", "installed", "items", "colors", "palette", "directory_style",
+            "separator_style", "scope_labels", "subagent_items", "custom_subagent_rows",
+            "subagent_statusline", "padding", "refresh_interval", "hide_vim_indicator")
+    return "\n".join(t("config.show." + key, language, value=value)
+                      for key, value in zip(keys, values))
 
 
-def _format_mutation(result: config_models.MutationResult) -> str:
-    state = "updated" if result.changed else "already current"
-    line = f"Status line configuration {state}."
+def _format_mutation(result: config_models.MutationResult, language="en") -> str:
+    from claude_statusline.i18n.translator import translate as t
+    state = t("state.updated" if result.changed else "state.current", language)
+    line = t("config.changed", language, state=state)
     if result.backup_dir is not None:
-        line += f" Backup: {result.backup_dir}"
+        line += t("config.backup", language, path=result.backup_dir)
     return line
 
 
@@ -85,66 +80,66 @@ def subagent_item_listing(
 
 def add_config_parser(subparsers) -> argparse.ArgumentParser:
     parser = subparsers.add_parser(
-        "config", help="view or change status line display settings"
+        "config", help=msg('cli.help.view_or_change_status_line_display_settings')
     )
     parser.add_argument(
         "--config-dir",
         metavar="PATH",
-        help="Claude configuration directory (default: CLAUDE_CONFIG_DIR or ~/.claude)",
+        help=msg('cli.help.claude_configuration_directory_default_claude_config_dir_or'),
     )
     actions = parser.add_subparsers(dest="config_action", required=True)
 
-    show = actions.add_parser("show", help="show effective configuration")
+    show = actions.add_parser("show", help=msg('cli.help.show_effective_configuration'))
     show.add_argument("--json", action="store_true", dest="json_output")
 
-    listing = actions.add_parser("list-items", help="list supported display items")
+    listing = actions.add_parser("list-items", help=msg('cli.help.list_supported_display_items'))
     listing.add_argument("--json", action="store_true", dest="json_output")
 
     set_items_parser = actions.add_parser(
-        "set-items", help="replace enabled items and their order"
+        "set-items", help=msg('cli.help.replace_enabled_items_and_their_order')
     )
     set_items_parser.add_argument("items", nargs="*")
 
-    enable = actions.add_parser("enable", help="append display items")
+    enable = actions.add_parser("enable", help=msg('cli.help.append_display_items'))
     enable.add_argument("items", nargs="+")
 
-    disable = actions.add_parser("disable", help="remove display items")
+    disable = actions.add_parser("disable", help=msg('cli.help.remove_display_items'))
     disable.add_argument("items", nargs="+")
 
-    order = actions.add_parser("order", help="reorder all enabled items")
+    order = actions.add_parser("order", help=msg('cli.help.reorder_all_enabled_items'))
     order.add_argument("items", nargs="*")
 
     subagents = actions.add_parser(
-        "subagents", help="view or change subagent row items"
+        "subagents", help=msg('cli.help.view_or_change_subagent_row_items')
     )
     subagent_actions = subagents.add_subparsers(dest="subagent_action", required=True)
     subagent_listing = subagent_actions.add_parser(
-        "list-items", help="list supported subagent row items"
+        "list-items", help=msg('cli.help.list_supported_subagent_row_items')
     )
     subagent_listing.add_argument("--json", action="store_true", dest="json_output")
     subagent_set = subagent_actions.add_parser(
-        "set-items", help="replace enabled subagent items and their order"
+        "set-items", help=msg('cli.help.replace_enabled_subagent_items_and_their_order')
     )
     subagent_set.add_argument("items", nargs="*")
     subagent_enable = subagent_actions.add_parser(
-        "enable", help="append subagent row items"
+        "enable", help=msg('cli.help.append_subagent_row_items')
     )
     subagent_enable.add_argument("items", nargs="+")
     subagent_disable = subagent_actions.add_parser(
-        "disable", help="remove subagent row items"
+        "disable", help=msg('cli.help.remove_subagent_row_items')
     )
     subagent_disable.add_argument("items", nargs="+")
     subagent_order = subagent_actions.add_parser(
-        "order", help="reorder all enabled subagent row items"
+        "order", help=msg('cli.help.reorder_all_enabled_subagent_row_items')
     )
     subagent_order.add_argument("items", nargs="*")
 
-    set_parser = actions.add_parser("set", help="set one display or host option")
+    set_parser = actions.add_parser("set", help=msg('cli.help.set_one_display_or_host_option'))
     set_parser.add_argument("option", choices=sorted(config_models.OPTION_NAMES))
     set_parser.add_argument("value")
 
     apply_parser = actions.add_parser(
-        "apply", help="atomically apply a complete guided configuration"
+        "apply", help=msg('cli.help.atomically_apply_a_complete_guided_configuration')
     )
     apply_parser.add_argument("--items", nargs="*", required=True)
     apply_parser.add_argument("--colors", choices=("on", "off"), required=True)
@@ -166,35 +161,42 @@ def add_config_parser(subparsers) -> argparse.ArgumentParser:
     apply_parser.add_argument("--subagent-statusline", choices=("on", "off"))
     apply_parser.add_argument("--scope-labels", choices=config_display.SCOPE_LABELS)
 
-    preset = actions.add_parser("preset", help="apply an editable display preset")
+    preset = actions.add_parser("preset", help=msg('cli.help.apply_an_editable_display_preset'))
     preset.add_argument("preset", choices=tuple(presets.ROWS))
     preset.add_argument(
-        "--dry-run", action="store_true", help="print the draft without saving"
+        "--dry-run", action="store_true", help=msg('cli.help.print_the_draft_without_saving')
     )
     importing = actions.add_parser(
-        "import", help="validate and import portable/display JSON"
+        "import", help=msg('cli.help.validate_and_import_portable_display_json')
     )
     importing.add_argument("path")
     importing.add_argument(
         "--dry-run",
         action="store_true",
-        help="print the validated draft without saving",
+        help=msg('cli.help.print_the_validated_draft_without_saving'),
     )
-    exporting = actions.add_parser("export", help="export portable tool configuration")
+    exporting = actions.add_parser("export", help=msg('cli.help.export_portable_tool_configuration'))
     exporting.add_argument("path")
     exporting.add_argument("--overwrite", action="store_true")
-    item = actions.add_parser("item", help="set one scoped item format/priority/width")
+    item = actions.add_parser("item", help=msg('cli.help.set_one_scoped_item_format_priority_width'))
     item.add_argument("scope", choices=("main", "subagent"))
     item.add_argument("item")
     item.add_argument("option")
     item.add_argument("value")
     layout = actions.add_parser(
-        "layout", help="select auto layout or explicit comma-separated rows"
+        "layout", help=msg('cli.help.select_auto_layout_or_explicit_comma_separated_rows')
     )
     layout.add_argument("mode", choices=("auto", "explicit"))
     layout.add_argument("rows", nargs="*")
 
-    actions.add_parser("reset", help="restore display and host defaults")
+    actions.add_parser("reset", help=msg('cli.help.restore_display_and_host_defaults'))
+    language = actions.add_parser("language", help=msg("cli.help.language"))
+    language_actions = language.add_subparsers(dest="language_action", required=True)
+    show_language = language_actions.add_parser("show", help=msg("cli.help.language_show"))
+    show_language.add_argument("--json", action="store_true", dest="json_output")
+    set_language = language_actions.add_parser("set", help=msg("cli.help.language_set"))
+    set_language.add_argument("language_value", choices=("en", "zh-CN"))
+    language_actions.add_parser("reset", help=msg("cli.help.language_reset"))
     return parser
 
 
@@ -208,7 +210,7 @@ def parse_slash_arguments(command_args: str) -> argparse.Namespace:
         arguments = shlex.split(command_args, posix=True)
     except ValueError as exc:
         raise config_models.ConfigCommandError(
-            f"invalid command arguments: {exc}"
+            msg('errors.commands.invalid_command_arguments', exc=exc)
         ) from exc
     parser = _RaisingArgumentParser(prog="/statusline-config", add_help=False)
     actions = parser.add_subparsers(dest="config_action", required=True)
@@ -268,14 +270,26 @@ def execute_config_namespace(
     args: argparse.Namespace,
     config_dir: Path,
     executable: Path,
+    *,
+    language: str | None = None,
 ) -> str:
+    from claude_statusline.i18n.translator import translate as t
+    language = language or ui_preferences.read(config_dir).ui_language
     action = args.config_action
+    if action == "language":
+        if args.language_action == "show":
+            preference = ui_preferences.read(config_dir)
+            if args.json_output:
+                return json.dumps(preference.to_dict(), ensure_ascii=False, indent=2)
+            return t("cli.language", language, language=preference.ui_language)
+        preference = ui_preferences.set_language(config_dir, "en" if args.language_action == "reset" else args.language_value)
+        return t("cli.language_saved", language, language=preference.ui_language)
     if action == "show":
         effective = config_service.read_effective_config(config_dir, executable)
         return (
             json.dumps(effective.to_dict(), ensure_ascii=False, indent=2)
             if args.json_output
-            else _format_effective(effective)
+            else _format_effective(effective, language)
         )
     if action == "list-items":
         effective = config_service.read_effective_config(config_dir, executable)
@@ -283,7 +297,7 @@ def execute_config_namespace(
         if args.json_output:
             return json.dumps(listing, ensure_ascii=False, indent=2)
         return "\n".join(
-            f"{'[x]' if item['enabled'] else '[ ]'} {item['id']}: {item['description']}"
+            f"{'[x]' if item['enabled'] else '[ ]'} {item['id']}: " + t("items.main." + item["id"] + ".description", language)
             for item in listing
         )
     if action == "subagents":
@@ -295,7 +309,7 @@ def execute_config_namespace(
                 return json.dumps(listing, ensure_ascii=False, indent=2)
             return "\n".join(
                 f"{'[x]' if item['enabled'] else '[ ]'} "
-                f"{item['id']}: {item['description']}"
+                f"{item['id']}: " + t("items.subagent." + item["id"] + ".description", language)
                 for item in listing
             )
         if subaction == "set-items":
@@ -316,9 +330,9 @@ def execute_config_namespace(
             )
         else:
             raise config_models.ConfigCommandError(
-                f"unknown subagent config action: {subaction}"
+                msg('errors.commands.unknown_subagent_config_action', subaction=subaction)
             )
-        return _format_mutation(result)
+        return _format_mutation(result, language)
     if action == "set-items":
         result = config_service.set_items(config_dir, executable, args.items)
     elif action == "enable":
@@ -392,7 +406,7 @@ def execute_config_namespace(
                 + (" Backup: " + saved["backup_dir"] if saved["backup_dir"] else "")
             )
         except (protocol.RequestError, OSError) as exc:
-            raise config_models.ConfigCommandError(str(exc)) from exc
+            raise config_models.ConfigCommandError(as_message(exc)) from exc
     elif action in ("item", "layout"):
 
         def mutate(display, settings, host, installed):
@@ -413,5 +427,5 @@ def execute_config_namespace(
     elif action == "reset":
         result = config_service.reset_configuration(config_dir, executable)
     else:
-        raise config_models.ConfigCommandError(f"unknown config action: {action}")
-    return _format_mutation(result)
+        raise config_models.ConfigCommandError(msg('errors.commands.unknown_config_action', action=action))
+    return _format_mutation(result, language)

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg, as_message
+
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
@@ -50,7 +52,7 @@ def read_effective_config(
         config_display.DisplayConfigError,
         integration_models.ConfigurationError,
     ) as exc:
-        raise config_models.ConfigCommandError(str(exc)) from exc
+        raise config_models.ConfigCommandError(as_message(exc)) from exc
 
 
 def _effective_snapshot(display, settings, config_dir, executable):
@@ -81,7 +83,7 @@ def _read_display_for_mutation(
             return config_display.DEFAULT_CONFIG, None
         except OSError as exc:
             raise config_models.ConfigCommandError(
-                f"cannot read {path}: {exc}"
+                msg('errors.service.cannot_read', path=path, exc=exc)
             ) from exc
 
 
@@ -198,7 +200,7 @@ def mutate_configuration(
                     else ""
                 )
                 raise config_models.ConfigWriteError(
-                    f"configuration update failed: {exc}{suffix}"
+                    msg('errors.service.configuration_update_failed', exc=exc, suffix=suffix)
                 ) from exc
 
             effective_display = (
@@ -221,21 +223,21 @@ def mutate_configuration(
         config_display.DisplayConfigError,
         integration_models.ConfigurationError,
     ) as exc:
-        raise config_models.ConfigCommandError(str(exc)) from exc
+        raise config_models.ConfigCommandError(as_message(exc)) from exc
 
 
 def _validated_items(items: list[str]) -> tuple[str, ...]:
     try:
         return config_display.validate_items(items)
     except config_display.DisplayConfigError as exc:
-        raise config_models.ConfigCommandError(str(exc)) from exc
+        raise config_models.ConfigCommandError(as_message(exc)) from exc
 
 
 def _validated_subagent_items(items: list[str]) -> tuple[str, ...]:
     try:
         return config_display.validate_subagent_items(items)
     except config_display.DisplayConfigError as exc:
-        raise config_models.ConfigCommandError(str(exc)) from exc
+        raise config_models.ConfigCommandError(as_message(exc)) from exc
 
 
 def set_items(
@@ -299,8 +301,7 @@ def order_items(
             if extra:
                 details.append("not enabled: " + ", ".join(extra))
             raise config_models.ConfigCommandError(
-                "order must contain every enabled item exactly once"
-                + (" (" + "; ".join(details) + ")" if details else "")
+                msg('errors.service.order_must_contain_every_enabled_item_exactly', value0=' (' + '; '.join(details) + ')' if details else '')
             )
         return display.with_updates(items=validated), config_models._UNCHANGED
 
@@ -382,8 +383,7 @@ def order_subagent_items(
             if extra:
                 details.append("not enabled: " + ", ".join(extra))
             raise config_models.ConfigCommandError(
-                "subagent order must contain every enabled item exactly once"
-                + (" (" + "; ".join(details) + ")" if details else "")
+                msg('errors.service.subagent_order_must_contain_every_enabled_item', value0=' (' + '; '.join(details) + ')' if details else '')
             )
         return (
             display.with_updates(
@@ -430,7 +430,7 @@ def _display_with_option(
                     value = int(value)
                 except (ValueError, TypeError) as exc:
                     raise config_models.ConfigCommandError(
-                        "threshold must be an integer"
+                        msg('errors.service.threshold_must_be_an_integer')
                     ) from exc
             thresholds = replace(display.formatting.thresholds, **{key: value})
             return display.with_updates(
@@ -455,8 +455,8 @@ def _display_with_option(
                 )
             )
     except config_display.DisplayConfigError as exc:
-        raise config_models.ConfigCommandError(str(exc)) from exc
-    raise config_models.ConfigCommandError(f"unknown display option: {option}")
+        raise config_models.ConfigCommandError(as_message(exc)) from exc
+    raise config_models.ConfigCommandError(msg('errors.service.unknown_display_option', option=option))
 
 
 def set_option(
@@ -467,8 +467,7 @@ def set_option(
 ) -> config_models.MutationResult:
     if option not in config_models.OPTION_NAMES:
         raise config_models.ConfigCommandError(
-            "unknown option; expected one of: "
-            + ", ".join(sorted(config_models.OPTION_NAMES))
+            msg('errors.service.unknown_option_expected_one_of', value0=', '.join(sorted(config_models.OPTION_NAMES)))
         )
 
     def mutation(display, settings, host, installed):
@@ -522,7 +521,7 @@ def apply_configuration(
     )
     if scope_labels is not None and scope_labels not in config_display.SCOPE_LABELS:
         raise config_models.ConfigCommandError(
-            "scope-labels must be one of: " + ", ".join(config_display.SCOPE_LABELS)
+            msg('errors.service.scope_labels_must_be_one_of', value0=', '.join(config_display.SCOPE_LABELS))
         )
     host = config_models.HostConfig(
         config_host._parse_padding(padding),
@@ -552,8 +551,7 @@ def apply_configuration(
             )
         if conflict:
             raise config_models.ConfigConflict(
-                "status line configuration changed while the editor was open; "
-                "reopen the editor and try again"
+                msg('errors.service.status_line_configuration_changed_while_the_editor')
             )
         if (
             revisions.installation_identity(settings, executable)["subagentStatusLine"][
@@ -562,8 +560,7 @@ def apply_configuration(
             == "foreign"
         ):
             raise config_models.ConfigOwnershipError(
-                "Claude Code subagentStatusLine belongs to another renderer; "
-                "resolve its installation ownership before saving"
+                msg('errors.service.claude_code_subagentstatusline_belongs_to_another_renderer')
             )
         subagents = current_display.subagents
         if validated_subagent_items is not None:
@@ -585,7 +582,7 @@ def apply_configuration(
                 subagents=subagents,
             )
         except config_display.DisplayConfigError as exc:
-            raise config_models.ConfigCommandError(str(exc)) from exc
+            raise config_models.ConfigCommandError(as_message(exc)) from exc
         return display_draft or display, config_host._settings_with_host(
             settings, executable, host
         )

@@ -6,6 +6,8 @@ infer session loading from a successful installation or edit plugin registries.
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg, as_message
+
 import hashlib
 import json
 import os
@@ -54,14 +56,14 @@ class PluginError(ConfigurationError):
 def _path(root: Path, name: str) -> Path:
     relative = Path(name)
     if relative.is_absolute() or ".." in relative.parts or "\\" in name:
-        raise PluginError("Unsafe owned native resource path")
+        raise PluginError(msg('errors.native.unsafe_owned_native_resource_path'))
     path = root / relative
     if any(
         parent.is_symlink() for parent in (path, *path.parents) if parent != root.parent
     ):
         # Config directories may themselves resolve through a user-selected link;
         # callers resolve config_dir first. No link inside an owned root is valid.
-        raise PluginError(f"Native resource contains a symlink: {path}")
+        raise PluginError(msg('errors.native.native_resource_contains_a_symlink', path=path))
     return path
 
 
@@ -92,12 +94,12 @@ def owner(
     config_dir = config_dir.resolve()
     root = config_dir / spec.name
     if root.is_symlink():
-        raise PluginError(f"Refusing unrelated native directory: {root}")
+        raise PluginError(msg('errors.native.refusing_unrelated_native_directory', root=root))
     raw = storage._read_optional_bytes(root / OWNER_FILE)
     if raw is None:
         if root.exists():
             raise PluginError(
-                f"Unowned native directory: {root}; move it aside before retrying"
+                msg('errors.native.unowned_native_directory_move_it_aside_before', root=root)
             )
         return None
     try:
@@ -119,7 +121,7 @@ def owner(
             or value["schema_version"] != 1
             or type(value["suspended"]) is not bool
             or type(value["protocol_version"]) is not int
-            or value["protocol_version"] not in (1, 2, 3, 4)
+            or value["protocol_version"] not in (1, 2, 3, 4, 5)
             or not isinstance(value["files"], dict)
             or not value["files"]
             or any(
@@ -174,12 +176,12 @@ def owner(
                 continue
             if content is None or hashlib.sha256(content).hexdigest() != digest:
                 raise PluginError(
-                    f"Native resource changed or missing: {path}; restore the owned file or move the directory aside"
+                    msg('errors.native.native_resource_changed_or_missing_restore_the', path=path)
                 )
         return value
     except (ValueError, TypeError, KeyError, AttributeError) as exc:
         raise PluginError(
-            f"Untrusted native ownership marker: {root / OWNER_FILE}"
+            msg('errors.native.untrusted_native_ownership_marker', value0=root / OWNER_FILE)
         ) from exc
 
 
@@ -215,18 +217,18 @@ class Host:
             )
         except (OSError, subprocess.SubprocessError) as exc:
             raise PluginError(
-                f"Official plugin operation {args[0]} could not be confirmed: {type(exc).__name__}; run doctor before retrying"
+                msg('errors.native.official_plugin_operation_could_not_be_confirmed', value0=args[0], value1=type(exc).__name__)
             ) from exc
         if result.returncode:
             detail = (result.stderr or result.stdout).strip()
             detail = re.sub(r"[\x00-\x1f\x7f]", " ", detail)[:500]
-            raise PluginError(f"Official plugin operation {args[0]} refused: {detail}")
+            raise PluginError(msg('errors.native.official_plugin_operation_refused', value0=args[0], detail=detail))
         if json_result:
             try:
                 return json.loads(result.stdout)
             except ValueError as exc:
                 raise PluginError(
-                    f"Official plugin operation {args[0]} returned invalid JSON"
+                    msg('errors.native.official_plugin_operation_returned_invalid_json', value0=args[0])
                 ) from exc
         return None
 
@@ -238,7 +240,7 @@ class Host:
             or not isinstance(plugins, list)
             or any(not isinstance(row, dict) for row in [*marketplaces, *plugins])
         ):
-            raise PluginError("Unexpected official plugin inventory")
+            raise PluginError(msg('errors.native.unexpected_official_plugin_inventory'))
         return marketplaces, plugins
 
 
@@ -258,12 +260,12 @@ def _registered(
         or marker is None
     ):
         raise PluginError(
-            f"Foreign marketplace {spec.marketplace}; rename/remove its registration yourself before retrying"
+            msg('errors.native.foreign_marketplace_rename_remove_its_registration_yourself', value0=spec.marketplace)
         )
     rows = [row for row in plugins if row.get("id") == spec.plugin]
     if rows and (len(rows) != 1 or rows[0].get("scope") != "user" or marker is None):
         raise PluginError(
-            f"Foreign or ambiguous plugin {spec.plugin}; resolve its scope/ownership before retrying"
+            msg('errors.native.foreign_or_ambiguous_plugin_resolve_its_scope', value0=spec.plugin)
         )
     return matches, rows[0] if rows else None
 
@@ -280,7 +282,7 @@ def _cache_owned(
     expected = config_dir / "plugins/cache" / spec.marketplace / spec.name
     if not path.is_relative_to(expected) or path == expected:
         raise PluginError(
-            "Installed native Mod location/version differs from the owned inventory; run doctor"
+            msg('errors.native.installed_native_mod_location_version_differs_from')
         )
     snapshots = [{"mod_version": marker["mod_version"], "files": marker["files"]}]
     if not require_current:
@@ -300,7 +302,7 @@ def _cache_owned(
         if matched:
             return path
     raise PluginError(
-        f"Installed native Mod resources/version differ: {path}; restore the owned cache before updating or removing"
+        msg('errors.native.installed_native_mod_resources_version_differ_restore', path=path)
     )
 
 
@@ -310,11 +312,11 @@ def command_preflight(config_dir: Path, *, spec: ModSpec = NATIVE):
     for command in ("statusline-configure-native",):
         if (config_dir / "commands" / (command + ".md")).exists():
             raise PluginError(
-                f"Foreign /{command} command; rename it before native migration"
+                msg('errors.native.foreign_command_rename_it_before_native_migration', command=command)
             )
         if command.endswith("-native") and (config_dir / "skills" / command).exists():
             raise PluginError(
-                f"Foreign /{command} skill; rename it before native migration"
+                msg('errors.native.foreign_skill_rename_it_before_native_migration', command=command)
             )
 
 
@@ -382,7 +384,7 @@ def _stage(
     with storage._installation_lock(config_dir):
         # Recheck ownership after waiting for a concurrent file transaction.
         if owner(config_dir, allow_missing=True, spec=spec) != previous:
-            raise PluginError("Native ownership changed while staging; rerun install")
+            raise PluginError(msg('errors.native.native_ownership_changed_while_staging_rerun_install'))
         storage._backup_artifacts(
             config_dir,
             "native-stage",
@@ -399,7 +401,7 @@ def _stage(
                 except OSError as rollback:
                     failures.append(str(rollback))
             raise PluginError(
-                f"Cannot stage native resources: {exc}; rollback errors: {failures}"
+                msg('errors.native.cannot_stage_native_resources_rollback_errors', exc=exc, failures=failures)
             ) from exc
         _prune_empty_parents(root, obsolete)
     return marker, True
@@ -411,7 +413,7 @@ def _suspended(
     if marker["suspended"] != enabled:
         with storage._installation_lock(config_dir):
             if owner(config_dir, spec=spec) != marker:
-                raise PluginError("Native ownership changed before suspension update")
+                raise PluginError(msg('errors.native.native_ownership_changed_before_suspension_update'))
             marker = dict(marker, suspended=enabled)
             storage._write_optional_bytes(
                 config_dir / spec.name / OWNER_FILE, storage._json_bytes(marker)
@@ -440,7 +442,7 @@ def active_on_disk(
 def _remove_resources(config_dir: Path, marker: dict, *, spec: ModSpec = NATIVE):
     with storage._installation_lock(config_dir):
         if owner(config_dir, allow_missing=True, spec=spec) != marker:
-            raise PluginError("Native ownership changed before removal; run doctor")
+            raise PluginError(msg('errors.native.native_ownership_changed_before_removal_run_doctor'))
         root = config_dir / spec.name
         paths = [_path(root, name) for name in marker["files"]]
         historical = [
@@ -460,7 +462,7 @@ def _suspend_for_version(
     """Suspend a verified owned plugin without requiring newer host APIs."""
     with storage._installation_lock(config_dir):
         if owner(config_dir, spec=spec) != marker:
-            raise PluginError("Native ownership changed before version suspension")
+            raise PluginError(msg('errors.native.native_ownership_changed_before_version_suspension'))
         settings, original = storage._read_settings(config_dir / "settings.json")
         if settings.get("enabledPlugins", {}).get(spec.plugin) is not True:
             # A user's own disablement must not become tool-restorable suspension.
@@ -496,7 +498,7 @@ def _suspend_for_version(
                 except OSError as rollback:
                     failures.append(str(rollback))
             raise PluginError(
-                f"Cannot suspend native editor: {exc}; rollback errors: {failures}"
+                msg('errors.native.cannot_suspend_native_editor_rollback_errors', exc=exc, failures=failures)
             ) from exc
     return True
 
@@ -518,7 +520,7 @@ def integrate(
             return NativeResult(
                 "disabled",
                 messages=(
-                    "Native editor is disabled; enable with install --native-editor.",
+                    msg('native.notice.native_editor_is_disabled_enable_with_install'),
                 ),
             )
         restriction = (
@@ -534,7 +536,7 @@ def integrate(
             return NativeResult(
                 "suspended",
                 messages=(
-                    f"Native editor suspended: {restriction or 'Claude Code 2.1.287+ is required'}; preference retained.",
+                    msg('native.notice.native_editor_suspended_preference_retained', value0=restriction or 'Claude Code 2.1.287+ is required'),
                 ),
             )
         if requested and not compatible:
@@ -543,7 +545,7 @@ def integrate(
                 "suspended",
                 changed=changed,
                 messages=(
-                    "Native editor suspended: Claude Code 2.1.287+ is required; preference retained. Rerun install after upgrading.",
+                    msg('native.notice.native_editor_suspended_claude_code_2_1'),
                 ),
             )
         host = Host(config_dir)
@@ -560,7 +562,7 @@ def integrate(
                 changed = True
                 if any(value.get("id") == spec.plugin for value in host.listing()[1]):
                     raise PluginError(
-                        "Plugin removal could not be confirmed; native resources retained"
+                        msg('errors.native.plugin_removal_could_not_be_confirmed_native')
                     )
             if registration:
                 host.run("marketplace", "remove", spec.marketplace, "--scope", "user")
@@ -569,7 +571,7 @@ def integrate(
                     value.get("name") == spec.marketplace for value in host.listing()[0]
                 ):
                     raise PluginError(
-                        "Marketplace removal could not be confirmed; native resources retained"
+                        msg('errors.native.marketplace_removal_could_not_be_confirmed_native')
                     )
             if marker:
                 _remove_resources(config_dir, marker, spec=spec)
@@ -578,7 +580,7 @@ def integrate(
                 "disabled",
                 changed=changed,
                 messages=(
-                    "Owned native plugin and marketplace removed; preference retained.",
+                    msg('native.notice.owned_native_plugin_and_marketplace_removed_preference'),
                 ),
             )
         if not compatible or restriction:
@@ -589,13 +591,13 @@ def integrate(
                     value.get("id") == spec.plugin and value.get("enabled")
                     for value in host.listing()[1]
                 ):
-                    raise PluginError("Plugin suspension could not be confirmed")
+                    raise PluginError(msg('errors.native.plugin_suspension_could_not_be_confirmed'))
                 _suspended(config_dir, marker, True, spec=spec)
             return NativeResult(
                 "suspended",
                 changed=changed,
                 messages=(
-                    f"Native editor suspended: {restriction or 'unsupported host'}; preference retained. Rerun install after upgrading.",
+                    msg('native.notice.native_editor_suspended_preference_retained_rerun_install', value0=restriction or 'unsupported host'),
                 ),
             )
         user_disabled = bool(
@@ -658,7 +660,7 @@ def integrate(
             )
         if not saved or saved.get("enabled") is not (not user_disabled):
             raise PluginError(
-                "Native plugin enablement preference could not be confirmed; compatibility entry retained"
+                msg('errors.native.native_plugin_enablement_preference_could_not_be')
             )
         _cache_owned(config_dir, saved, current, require_current=True, spec=spec)
         options = host.run("configure", spec.plugin, "--json", json_result=True)
@@ -668,7 +670,7 @@ def integrate(
         }
         if not _binding_matches(options, bound):
             raise PluginError(
-                "Native backend binding could not be confirmed; compatibility entry retained"
+                msg('errors.native.native_backend_binding_could_not_be_confirmed')
             )
         _suspended(config_dir, current, False, spec=spec)
         if user_disabled:
@@ -676,8 +678,7 @@ def integrate(
                 "plugin-disabled",
                 changed=changed,
                 messages=(
-                    f"{spec.plugin} is explicitly disabled; owned resources and backend binding are current. "
-                    "Enable it through claude plugin enable when wanted. Compatibility entry retained.",
+                    msg('native.notice.is_explicitly_disabled_owned_resources_and_backend', value0=spec.plugin),
                 ),
             )
         return NativeResult(
@@ -685,7 +686,7 @@ def integrate(
             True,
             changed,
             (
-                "Native plugin installed/enabled on disk. Restart Claude Code; current session loading is unverified.",
+                msg('native.notice.native_plugin_installed_enabled_on_disk_restart'),
             ),
         )
     except (ConfigurationError, OSError, ValueError, TypeError) as exc:
@@ -693,8 +694,7 @@ def integrate(
             "blocked",
             changed=changed,
             messages=(
-                str(exc)
-                + " Compatibility configuration is retained; run doctor before retrying.",
+                msg('native.notice.compatibility_configuration_is_retained_run_doctor_before', value0=as_message(exc)),
             ),
         )
 
@@ -708,24 +708,21 @@ def diagnostics(
         result.append(
             Diagnostic(
                 "OK",
-                f"native editor preference: {'enabled' if enabled else 'disabled'}",
+                msg('doctor.native.native_editor_preference', value0='enabled' if enabled else 'disabled'),
             )
         )
         marker = owner(config_dir, spec=spec)
         result.append(
             Diagnostic(
                 "OK" if version and version >= spec.minimum_version else "WARN",
-                "native Mod host: "
-                + (".".join(map(str, version)) if version else "unknown")
-                + "; requires 2.1.287+",
+                msg('doctor.native.native_mod_host_requires_2_1_287', value0='.'.join(map(str, version)) if version else 'unknown'),
             )
         )
         if enabled and (version is None or version < spec.minimum_version):
             result.append(
                 Diagnostic(
                     "WARN",
-                    "native editor: suspended; preference retained; rerun install after upgrading. "
-                    "Use claude-statusline configure, /statusline-config, or claude-statusline config",
+                    msg('doctor.native.native_editor_suspended_preference_retained_rerun_install'),
                 )
             )
             if marker is None:
@@ -734,15 +731,14 @@ def diagnostics(
             result.append(
                 Diagnostic(
                     "WARN" if enabled else "OK",
-                    "native plugin on disk: absent"
-                    + ("; rerun install --native-editor" if enabled else ""),
+                    msg('doctor.native.native_plugin_on_disk_absent', value0='; rerun install --native-editor' if enabled else ''),
                 )
             )
             return result
         result.append(
             Diagnostic(
                 "OK",
-                f"native resources: owned and complete; Mod {marker['mod_version']}, backend {marker['backend_version']}, protocol {marker['protocol_version']}",
+                msg('doctor.native.native_resources_owned_and_complete_mod_backend', value0=marker['mod_version'], value1=marker['backend_version'], value2=marker['protocol_version']),
             )
         )
         if version is None or version < spec.minimum_version:
@@ -751,7 +747,7 @@ def diagnostics(
                 result.append(
                     Diagnostic(
                         "ERROR",
-                        "native plugin is still enabled on an unsupported host; rerun install to suspend",
+                        msg('doctor.native.native_plugin_is_still_enabled_on_an'),
                     )
                 )
             return result
@@ -763,7 +759,7 @@ def diagnostics(
             result.append(
                 Diagnostic(
                     "ERROR",
-                    "native Mod/backend version or protocol differs; reinstall the matching package",
+                    msg('doctor.native.native_mod_backend_version_or_protocol_differs'),
                 )
             )
         host = Host(config_dir.resolve())
@@ -774,8 +770,7 @@ def diagnostics(
         result.append(
             Diagnostic(
                 "OK" if registration else "ERROR",
-                "native marketplace on disk: "
-                + ("registered" if registration else "missing"),
+                msg('doctor.native.native_marketplace_on_disk', value0='registered' if registration else 'missing'),
             )
         )
         if row:
@@ -785,7 +780,7 @@ def diagnostics(
             result.append(
                 Diagnostic(
                     "OK" if row.get("enabled") else "WARN",
-                    f"native plugin on disk: installed, enabled={row.get('enabled')}, tool-suspended={marker['suspended']}",
+                    msg('doctor.native.native_plugin_on_disk_installed_enabled_tool', value0=row.get('enabled'), value1=marker['suspended']),
                 )
             )
             options = host.run("configure", spec.plugin, "--json", json_result=True)
@@ -798,17 +793,12 @@ def diagnostics(
             result.append(
                 Diagnostic(
                     "OK" if _binding_matches(options, expected) else "ERROR",
-                    "native backend binding: "
-                    + (
-                        "matches"
-                        if _binding_matches(options, expected)
-                        else "differs; rerun install"
-                    ),
+                    msg('doctor.native.native_backend_binding', value0='matches' if _binding_matches(options, expected) else 'differs; rerun install'),
                 )
             )
         else:
             result.append(
-                Diagnostic("ERROR", "native plugin on disk: missing; rerun install")
+                Diagnostic("ERROR", msg('doctor.native.native_plugin_on_disk_missing_rerun_install'))
             )
         command_preflight(config_dir, spec=spec)
         settings = storage._read_settings(config_dir / "settings.json")[0]
@@ -816,17 +806,17 @@ def diagnostics(
             result.append(
                 Diagnostic(
                     "WARN",
-                    "native loading restricted by disableAllHooks; rerun install to suspend",
+                    msg('doctor.native.native_loading_restricted_by_disableallhooks_rerun_install'),
                 )
             )
         result.append(
             Diagnostic(
                 "WARN",
-                "native session loading: unverified; restart in a trusted terminal, check /plugin and open /statusline-configure-native. Safe/bare mode and managed policy may block loading.",
+                msg('doctor.native.native_session_loading_unverified_restart_in_a'),
             )
         )
     except (ConfigurationError, OSError, ValueError, TypeError) as exc:
-        result.append(Diagnostic("ERROR", "native editor: " + str(exc)))
+        result.append(Diagnostic("ERROR", msg('doctor.native.native_editor', value0=str(exc))))
     return result
 
 

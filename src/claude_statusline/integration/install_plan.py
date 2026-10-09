@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import copy
 from pathlib import Path
 from claude_statusline.integration import models as integration_models
@@ -20,7 +22,7 @@ def _clean_hook_groups(
         return []
     if not isinstance(groups, list):
         raise integration_models.ConfigurationError(
-            "each configured hook event must contain a list"
+            msg('errors.install_plan.each_configured_hook_event_must_contain_a')
         )
 
     cleaned = []
@@ -72,8 +74,7 @@ def _prepare_install(
         )
         if not replaceable and not force:
             raise integration_models.ConfigurationError(
-                "an unrelated statusLine is already configured; rerun with --force "
-                "only if replacing it is intentional"
+                msg('errors.install_plan.an_unrelated_statusline_is_already_configured_rerun')
             )
 
     status_line = {
@@ -117,9 +118,7 @@ def _prepare_install(
     if subagent_supported and subagent_enabled:
         if current_subagent is not None and not subagent_owned and not force:
             raise integration_models.ConfigurationError(
-                "an unrelated subagentStatusLine is already configured; choose "
-                "install --force to replace it, or run 'config set "
-                "subagent-statusline off' to preserve it"
+                msg('errors.install_plan.an_unrelated_subagentstatusline_is_already_configured_choose')
             )
         updated["subagentStatusLine"] = {
             "type": "command",
@@ -135,7 +134,7 @@ def _prepare_install(
         hooks = {}
     if not isinstance(hooks, dict):
         raise integration_models.ConfigurationError(
-            "the hooks setting must contain a JSON object"
+            msg('errors.install_plan.the_hooks_setting_must_contain_a_json')
         )
     hooks = copy.deepcopy(hooks)
     action = {
