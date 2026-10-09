@@ -35,6 +35,24 @@ def colors(count=256, pairs=256, defaults=True, failure=None):
 
 
 class ThemeTests(unittest.TestCase):
+    def test_preview_caption_follows_palette_draft_and_color_disable(self):
+        state = EditorState.from_effective(effective())
+        baseline = state.baseline.display
+        with colors():
+            mapper = theme._ColorMapper()
+            for palette, use_colors, caption in (
+                ("default", True, "Palette: default"),
+                ("ansi", True, "Palette: ansi"),
+                ("ansi", False, "Colors: off"),
+            ):
+                state.display = state.display.with_updates(
+                    palette=palette, use_colors=use_colors
+                )
+                screen = Screen(120, 30)
+                drawing._draw_screen(screen, state, mapper)
+                self.assertIn("Preview (sample data) · " + caption, screen.text)
+            self.assertEqual(state.baseline.display, baseline)
+
     def test_compatibility_exports_share_the_new_implementation(self):
         for name in (
             "_ColorMapper",
@@ -45,37 +63,28 @@ class ThemeTests(unittest.TestCase):
             self.assertIs(getattr(drawing, name), getattr(theme, name))
             self.assertIs(getattr(interactive_config, name), getattr(theme, name))
 
-    def test_preview_base_pair_is_reserved_before_sample_and_default_pairs(self):
+    def test_preview_uses_terminal_defaults_without_reserved_background_pairs(self):
         with colors() as initialize:
             mapper = theme._ColorMapper()
-            self.assertEqual(initialize.call_args_list, [mock.call(1, 254, 234)])
+            initialize.assert_not_called()
             preview = mapper.preview_style("\x1b[31m")
-            outside = mapper.foreground(1)
-            self.assertNotEqual(preview, outside)
-            self.assertEqual(
-                initialize.call_args_list[-2:],
-                [mock.call(2, 1, 234), mock.call(3, 1, -1)],
-            )
-            self.assertEqual(mapper.preview_style("\x1b[31m"), preview)
-            self.assertEqual(initialize.call_count, 3)
-            self.assertEqual(mapper.preview_style(""), mapper.preview_attr)
-            self.assertEqual(mapper.preview_style("\x1b[0m"), mapper.preview_attr)
+            self.assertEqual(preview, mapper.foreground(1))
+            initialize.assert_called_once_with(1, 1, -1)
+            self.assertEqual(mapper.preview_style(""), 0)
+            self.assertEqual(mapper.preview_style("\x1b[0m"), 0)
 
     def test_basic_and_monochrome_capabilities(self):
-        for count, foreground in ((0, None), (8, 7), (16, 15), (256, 254)):
+        for count in (0, 8, 16, 256):
             with self.subTest(count=count), colors(count) as initialize:
                 mapper = theme._ColorMapper()
+                initialize.assert_not_called()
+                self.assertEqual(mapper.preview_attr, 0)
+                self.assertEqual(mapper.preview_style("\x1b[1m"), curses.A_BOLD)
+                mapper.preview_style("\x1b[31m")
                 if count:
-                    initialize.assert_called_once_with(
-                        1, foreground, 234 if count == 256 else 0
-                    )
-                    self.assertTrue(mapper.preview_attr)
+                    initialize.assert_called_once_with(1, 1, -1)
                 else:
                     initialize.assert_not_called()
-                    self.assertEqual(mapper.preview_attr, 0)
-                self.assertEqual(
-                    mapper.preview_style("\x1b[1m"), curses.A_BOLD | mapper.preview_attr
-                )
 
     def test_preview_preserves_quantized_rgb_and_ansi_sample_foregrounds(self):
         for count in (8, 16, 256):
@@ -92,28 +101,30 @@ class ThemeTests(unittest.TestCase):
                     self.assertTrue(attr & curses.A_BOLD)
                     self.assertIn(
                         mock.call(
-                            (attr & curses.A_COLOR) // (curses.A_COLOR & -curses.A_COLOR),
+                            (attr & curses.A_COLOR)
+                            // (curses.A_COLOR & -curses.A_COLOR),
                             expected,
-                            234 if count == 256 else 0,
+                            -1,
                         ),
                         initialize.call_args_list,
                     )
 
-    def test_default_color_failure_does_not_prevent_explicit_preview_colors(self):
+    def test_default_color_failure_preserves_default_text_instead_of_painting_black(
+        self,
+    ):
         with colors(defaults=False) as initialize:
             mapper = theme._ColorMapper()
             self.assertFalse(mapper.default_colors)
-            self.assertTrue(mapper.preview_attr)
-            mapper.foreground(1)
-            self.assertEqual(initialize.call_args, mock.call(2, 1, curses.COLOR_BLACK))
+            self.assertEqual(mapper.preview_style("\x1b[1;31m"), curses.A_BOLD)
+            self.assertEqual(mapper.foreground(1), 0)
+            initialize.assert_not_called()
 
-    def test_failed_preview_base_disables_all_preview_foreground_colors(self):
+    def test_failed_sample_pair_is_cached_and_falls_back_to_default_text(self):
         with colors(failure=curses.error()) as initialize:
             mapper = theme._ColorMapper()
-            self.assertEqual(mapper.preview_attr, 0)
-            self.assertEqual(mapper.preview_style("\x1b[1;31m"), curses.A_BOLD)
-            self.assertEqual(mapper.preview_style("\x1b[32m"), 0)
-            initialize.assert_called_once()
+            for _ in range(3):
+                self.assertEqual(mapper.preview_style("\x1b[1;31m"), curses.A_BOLD)
+            initialize.assert_called_once_with(1, 1, -1)
 
     def test_start_color_failure_is_monochrome(self):
         with (
@@ -125,22 +136,16 @@ class ThemeTests(unittest.TestCase):
             self.assertEqual(mapper.preview_style("\x1b[31m"), 0)
             initialize.assert_not_called()
 
-    def test_pair_exhaustion_and_sample_failure_keep_the_preview_base(self):
-        for pairs in (1, 2):
-            with self.subTest(pairs=pairs), colors(pairs=pairs) as initialize:
-                mapper = theme._ColorMapper()
-                self.assertEqual(mapper.preview_style("\x1b[31m"), mapper.preview_attr)
-                self.assertEqual(initialize.call_count, pairs - 1)
-
-        def fail_sample(pair, foreground, background):
-            if pair > 1:
-                raise curses.error()
-
-        with colors(failure=fail_sample) as initialize:
+    def test_pair_exhaustion_falls_back_to_default_text(self):
+        with colors(pairs=1) as initialize:
             mapper = theme._ColorMapper()
-            for _ in range(3):
-                self.assertEqual(mapper.preview_style("\x1b[31m"), mapper.preview_attr)
-            self.assertEqual(initialize.call_count, 2)
+            self.assertEqual(mapper.preview_style("\x1b[31m"), 0)
+            initialize.assert_not_called()
+        with colors(pairs=2) as initialize:
+            mapper = theme._ColorMapper()
+            self.assertTrue(mapper.preview_style("\x1b[31m"))
+            self.assertEqual(mapper.preview_style("\x1b[32m"), 0)
+            initialize.assert_called_once_with(1, 1, -1)
 
     def test_color_pair_attributes_never_exceed_python_pair_limit(self):
         with colors(pairs=65536) as initialize:
@@ -188,7 +193,7 @@ class ThemeTests(unittest.TestCase):
             ["\x1b[31mcolored\x1b[0m plain"],
             ["one", "two", "three", "four"],
         ):
-            with self.subTest(rows=rows), colors():
+            with self.subTest(rows=rows), colors() as initialize:
                 mapper = theme._ColorMapper()
                 state = EditorState.from_effective(effective())
                 screen = Screen(80, 24)
@@ -202,7 +207,7 @@ class ThemeTests(unittest.TestCase):
                     [(y, 2, " " * 20, mapper.preview_attr) for y in (10, 11, 12)],
                 )
                 self.assertTrue(
-                    all(attr & curses.A_COLOR for _, _, _, attr in screen.calls)
+                    all(call.args[2] == -1 for call in initialize.call_args_list)
                 )
                 if len(rows) > 3:
                     self.assertIn("… 2 more lines", screen.text)

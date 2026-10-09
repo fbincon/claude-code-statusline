@@ -80,6 +80,7 @@ XTERM_PALETTE = dict(
 def verify_colors(cells, columns, rows, foreground, background):
     """Evaluate captured SGR using explicit terminal-default/palette fixtures."""
     panel = layout.dimensions(columns, rows).preview
+    preview_contrasts = []
     for y, line in enumerate(cells):
         for x, cell in enumerate(line):
             preview = (
@@ -88,8 +89,11 @@ def verify_colors(cells, columns, rows, foreground, background):
             )
             fg, bg = cell_colors(cell, foreground, background, XTERM_PALETTE)
             if preview:
-                assert bg == "#1c1c1c", f"Unfilled preview cell: {y},{x}: {cell}"
-                assert cell["fg"] != "default", f"Preview foreground reset: {y},{x}"
+                assert cell["bg"] == "default" and not cell["reverse"], (
+                    f"Artificial preview background: {y},{x}: {cell}"
+                )
+                if cell["data"].strip():
+                    preview_contrasts.append(contrast(fg, bg))
             elif cell["data"].strip():
                 assert cell["fg"] == cell["bg"] == "default", (
                     f"Fixed chrome color: {y},{x}"
@@ -103,6 +107,7 @@ def verify_colors(cells, columns, rows, foreground, background):
     assert any(
         not cell["bold"] and cell["data"].strip() for line in footer for cell in line
     ), "Missing regular shortcut description"
+    return min(preview_contrasts) if preview_contrasts else None
 
 
 def run_case(
@@ -122,7 +127,7 @@ def run_case(
     env = dict(os.environ, CLAUDE_CONFIG_DIR=str(config), TERM="xterm-256color")
     env.pop("PYTHONPATH", None)
 
-    def cli(*arguments):
+    def cli(*arguments, payload=None):
         return subprocess.run(
             [str(backend), *arguments],
             env=env,
@@ -130,6 +135,7 @@ def run_case(
             check=True,
             capture_output=True,
             text=True,
+            input=payload,
             timeout=180,
         ).stdout
 
@@ -217,7 +223,16 @@ def run_case(
             for y in range(screen.lines)
         ]
         foreground, background = TERMINAL_THEMES[terminal_theme]
-        verify_colors(cells, screen.columns, screen.lines, foreground, background)
+        preview_contrast = verify_colors(
+            cells, screen.columns, screen.lines, foreground, background
+        )
+        if not state.display.use_colors:
+            panel = layout.dimensions(screen.columns, screen.lines).preview
+            assert all(
+                cells[y][x]["fg"] == "default"
+                for y in range(panel.inner_y, panel.inner_y + panel.inner_height)
+                for x in range(panel.inner_x, panel.inner_x + panel.inner_width)
+            )
         payload = {
             "columns": screen.columns,
             "rows": screen.lines,
@@ -230,6 +245,10 @@ def run_case(
             "terminal_background": background,
             "terminal_palette": XTERM_PALETTE,
             "terminal_defaults_source": "explicit capture-analysis fixture",
+            "palette": state.display.palette,
+            "use_colors": state.display.use_colors,
+            "preview_min_contrast": preview_contrast,
+            "preview_colors_adjusted": False,
         }
         path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         captures.append(
@@ -251,6 +270,19 @@ def run_case(
         send(b"\t", "Settings / global options")
         state.page = "settings"
         capture("settings")
+        field("palette")
+        send(b"\x1bOC", "Palette: ansi")
+        state.display = state.display.with_updates(palette="ansi")
+        capture("settings-ansi")
+        field("colors")
+        send(b"\x1bOC", "Colors: off")
+        state.display = state.display.with_updates(use_colors=False)
+        capture("settings-colors-off")
+        send(b"\x1bOC", "Palette: ansi")
+        state.display = state.display.with_updates(use_colors=True)
+        field("palette")
+        send(b"\x1bOC", "Palette: default")
+        state.display = state.display.with_updates(palette="default")
         field("padding")
         send(b"3", "[3_]")
         capture("numeric-edit")
@@ -308,10 +340,24 @@ def run_case(
         state.page = "settings"
         field("padding")
         send(b"3\r", "Ctrl+S save")
+        field("palette")
+        send(b"\x1bOC", "Palette: ansi")
         send(b"\x13", "Status line configuration updated")
         assert process.wait(timeout=5) == 0
         assert json.loads(settings_path.read_bytes())["statusLine"]["padding"] == 3
-        assert config_path.read_bytes() == initial[0]
+        expected_config = dict(json.loads(initial[0]), palette="ansi")
+        assert json.loads(config_path.read_bytes()) == expected_config
+        rendered = cli(
+            "render",
+            payload=json.dumps(
+                {
+                    "model": {"id": "claude-sample"},
+                    "workspace": {"current_dir": "/demo"},
+                    "context_window": {"used_percentage": 42},
+                }
+            ),
+        )
+        assert "\x1b[1;33m" in rendered and "38;2" not in rendered
     finally:
         if process.poll() is None:
             process.terminate()
@@ -331,7 +377,9 @@ def run_case(
             "default-color-chrome-and-reversed-selection",
             "bold-keys-and-regular-descriptions",
             "chrome-contrast-at-least-4.5",
-            "fully-filled-dark-preview",
+            "terminal-background-preview-without-color-adjustment",
+            "palette-change-preview-and-color-disable",
+            "saved-ansi-palette-used-by-production-render",
         ],
     }
 

@@ -23,7 +23,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Start from a preset:** minimal, developer, monitoring, and multi-agent presets expand into editable settings; import and export portable JSON.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
 - **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain their colors on a separate dark background.
-- **Follow terminal colors:** external TUI text and bold keys use terminal defaults; sample previews keep an independent dark background.
+- **Follow terminal colors:** external TUI text and bold keys use terminal defaults; previews show the selected palette on the current terminal background.
 - **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and per-task usage are opt-in. Missing or partial observations stay distinguishable.
 
 Rendering uses Claude Code input and local state without making network requests or using model tokens. The question-and-answer wizard uses Claude model turns. See [field definitions](docs/DISPLAY_ITEMS.md) for data sources and availability.

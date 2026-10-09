@@ -497,7 +497,14 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     )
 
     preview = layout.preview
-    _draw_panel(screen, preview, "Preview (sample data)", title_attr)
+    preview_palette = (
+        "Palette: " + state.display.palette
+        if state.display.use_colors
+        else "Colors: off"
+    )
+    _draw_panel(
+        screen, preview, "Preview (sample data) · " + preview_palette, title_attr
+    )
     _draw_preview(
         screen,
         state,

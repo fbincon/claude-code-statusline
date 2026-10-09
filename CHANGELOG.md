@@ -7,7 +7,7 @@
 ## 1.7.7 - 2026-10-09
 
 - External TUI headings, shortcuts and descriptions use terminal-default text instead of fixed white/cyan or dim attributes; selection reverses the defaults for light/dark terminal profiles.
-- Fill the complete sample preview interior with a dedicated dark background and neutral default text; retain capability-quantized RGB/ANSI samples, with monochrome and color-pair failure/exhaustion fallbacks.
+- Preview the selected default/ANSI palette on the current terminal background, show its choice in the title, and preserve default text/resets and capability-quantized samples; fall back on unsupported defaults, monochrome and color-pair failures/exhaustion.
 - Centralize external color/style roles, preserve compatibility exports and add light/dark capture analysis, recorded ANSI palettes, preview-fill checks and cross-platform color-allocation regressions.
 - Update bilingual usage, architecture and validation documentation and add terminal-capture reconstructions; Python and both Mod release manifests are 1.7.7 with existing configuration/protocol compatibility.
 

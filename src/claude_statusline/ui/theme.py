@@ -13,10 +13,6 @@ SELECTION = curses.A_REVERSE
 ACTIVE_TAB = curses.A_REVERSE | curses.A_BOLD
 NOTICE = curses.A_BOLD
 
-PREVIEW_BACKGROUND = (23, 25, 30)
-PREVIEW_FOREGROUND = (222, 222, 231)
-
-
 _XTERM_BASE_RGB = (
     (0, 0, 0),
     (128, 0, 0),
@@ -103,8 +99,6 @@ class _ColorMapper:
         self._pairs: dict[tuple[int, int], int] = {}
         self._failed_pairs: set[tuple[int, int]] = set()
         self._maximum = 0
-        self._preview_foreground = None
-        self._preview_background = None
         try:
             if curses.has_colors():
                 curses.start_color()
@@ -120,17 +114,6 @@ class _ColorMapper:
                 )
         except curses.error:
             self.colors = 0
-        if self.colors >= 8:
-            self._preview_foreground = nearest_terminal_color(
-                *PREVIEW_FOREGROUND, self.colors
-            )
-            self._preview_background = nearest_terminal_color(
-                *PREVIEW_BACKGROUND, self.colors
-            )
-            # Reserve the neutral preview pair before allocating sample colors.
-            self.preview_attr = self._pair(
-                self._preview_foreground, self._preview_background
-            )
 
     def _pair(self, foreground: int, background: int) -> int:
         key = (foreground, background)
@@ -150,10 +133,10 @@ class _ColorMapper:
         return curses.color_pair(next_pair)
 
     def foreground(self, color: int | None) -> int:
-        """Compatibility foreground mapping on the default/basic background."""
-        if color is None or self.colors < 8:
+        """Map sample text without painting a terminal background."""
+        if color is None or self.colors < 8 or not self.default_colors:
             return 0
-        return self._pair(color, -1 if self.default_colors else curses.COLOR_BLACK)
+        return self._pair(color, -1)
 
     def style(self, sgr: str) -> int:
         """Compatibility ANSI style mapping outside a preview panel."""
@@ -161,13 +144,5 @@ class _ColorMapper:
         return (curses.A_BOLD if bold else 0) | self.foreground(foreground)
 
     def preview_style(self, sgr: str) -> int:
-        """Keep resets and uncolored spans on the preview's neutral dark pair."""
-        bold, foreground = _ansi_style(sgr, self.colors)
-        result = curses.A_BOLD if bold else 0
-        if not self.preview_attr:
-            return result
-        if foreground is None:
-            return result | self.preview_attr
-        return result | (
-            self._pair(foreground, self._preview_background) or self.preview_attr
-        )
+        """Preview the selected production palette on the terminal defaults."""
+        return self.style(sgr)

@@ -276,7 +276,7 @@ Settings groups appearance, refresh/behavior, Git metrics, formatting, risk colo
 
 The external editor uses the terminal's default foreground and background. Headings and shortcut keys are bold; descriptions use regular text. Active tabs and selected rows reverse the default colors and retain their selection markers. This follows light/dark terminal profiles independently of Claude's applied theme.
 
-Sample preview interiors have a dedicated dark background targeting `#17191e`, with neutral text targeting `#dedee7`. Curses quantizes RGB samples to the available terminal palette; 8/16-color terminals use their configured ANSI colors. Every preview row, trailing space and uncolored/empty sample uses the preview background. Monochrome terminals or a failed preview base pair use default text; insufficient sample pairs use the neutral preview pair.
+Sample previews use the current terminal background and the selected `Palette`, shown in the preview title. Uncolored text, resets, empty rows and trailing spaces use terminal defaults. Curses quantizes RGB samples to the available terminal palette; ANSI samples use the terminal’s configured ANSI colors. If `Palette: default` looks faint on a light terminal, compare `Palette: ansi` in Settings; changes preview immediately and affect the actual status line after saving. Preview colors are preserved so the comparison reflects the terminal’s real appearance. Unsupported default colors, monochrome terminals and failed/exhausted sample pairs fall back to default text.
 
 
 ## External terminal `/statusline-configure`
