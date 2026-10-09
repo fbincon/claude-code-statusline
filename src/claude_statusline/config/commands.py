@@ -29,6 +29,7 @@ def _format_effective(config: config_models.EffectiveConfig, language="en") -> s
         config.display.directory_style,
         config.display.separator_style,
         config.display.scope_labels,
+        config.display.statusline_language,
         ", ".join(config.display.subagents.items) or "(none)",
         "on" if config.display.subagents.enabled else "off",
         config.subagent_statusline.state,
@@ -46,6 +47,7 @@ def _format_effective(config: config_models.EffectiveConfig, language="en") -> s
         "directory_style",
         "separator_style",
         "scope_labels",
+        "statusline_language",
         "subagent_items",
         "custom_subagent_rows",
         "subagent_statusline",
@@ -195,6 +197,7 @@ def add_config_parser(subparsers) -> argparse.ArgumentParser:
     apply_parser.add_argument("--subagent-items", nargs="*")
     apply_parser.add_argument("--subagent-statusline", choices=("on", "off"))
     apply_parser.add_argument("--scope-labels", choices=config_display.SCOPE_LABELS)
+    apply_parser.add_argument("--statusline-language", choices=config_display.STATUSLINE_LANGUAGES)
 
     preset = actions.add_parser(
         "preset", help=msg("cli.help.apply_an_editable_display_preset")
@@ -308,6 +311,7 @@ def parse_slash_arguments(command_args: str) -> argparse.Namespace:
     apply_parser.add_argument("--subagent-items", nargs="*")
     apply_parser.add_argument("--subagent-statusline", choices=("on", "off"))
     apply_parser.add_argument("--scope-labels", choices=config_display.SCOPE_LABELS)
+    apply_parser.add_argument("--statusline-language", choices=config_display.STATUSLINE_LANGUAGES)
     actions.add_parser("reset", add_help=False)
     language_parser = actions.add_parser("language", add_help=False)
     language_actions = language_parser.add_subparsers(
@@ -423,6 +427,7 @@ def execute_config_namespace(
             subagent_items=args.subagent_items,
             subagent_statusline=args.subagent_statusline,
             scope_labels=args.scope_labels,
+            statusline_language=args.statusline_language,
         )
     elif action in ("preset", "import", "export"):
         from claude_statusline.ui import protocol, contracts

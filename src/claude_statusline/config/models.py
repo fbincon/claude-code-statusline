@@ -23,6 +23,7 @@ REFRESH_INTERVAL_MAX = 3600
 
 
 DISPLAY_OPTION_NAMES = {
+    "statusline-language",
     "branch-diff-base",
     "colors",
     "palette",

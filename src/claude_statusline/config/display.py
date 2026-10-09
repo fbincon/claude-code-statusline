@@ -17,7 +17,8 @@ from claude_statusline.config import formatting as display_formatting
 LEGACY_SCHEMA_VERSION = 1
 
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
+STATUSLINE_LANGUAGES = ("en", "zh-CN")
 
 
 CONFIG_FILENAME = "claude-statusline.json"
@@ -65,7 +66,8 @@ V2_DISPLAY_KEYS = frozenset(
 
 
 V3_DISPLAY_KEYS = V2_DISPLAY_KEYS | {"formatting", "item_options", "layout"}
-DISPLAY_KEYS = V3_DISPLAY_KEYS | {"metrics"}
+V5_DISPLAY_KEYS = V3_DISPLAY_KEYS | {"metrics"}
+DISPLAY_KEYS = V5_DISPLAY_KEYS | {"statusline_language"}
 
 SUBAGENT_KEYS = frozenset(
     {
@@ -121,6 +123,7 @@ class DisplayConfig:
     directory_style: str = "full"
     separator_style: str = "classic"
     scope_labels: str = "when-subagents"
+    statusline_language: str = "en"
     subagents: SubagentDisplayConfig = field(default_factory=SubagentDisplayConfig)
 
     formatting: display_formatting.Formatting = field(
@@ -141,6 +144,7 @@ class DisplayConfig:
             "directory_style": self.directory_style,
             "separator_style": self.separator_style,
             "scope_labels": self.scope_labels,
+            "statusline_language": self.statusline_language,
             "subagents": self.subagents.to_dict(),
             "formatting": self.formatting.to_dict(),
             "item_options": {k: v.to_dict() for k, v in self.item_options.items()},
@@ -261,7 +265,7 @@ def validate_display_config(data: Any) -> DisplayConfig:
         raise DisplayConfigError(
             msg('errors.display.schema_version_is_newer_than_supported_version', version=version, SCHEMA_VERSION=SCHEMA_VERSION)
         )
-    if version not in (1, 2, 3, 4, SCHEMA_VERSION):
+    if version not in (1, 2, 3, 4, 5, SCHEMA_VERSION):
         raise DisplayConfigError(
             msg('errors.display.schema_version_must_be_1_2_3', SCHEMA_VERSION=SCHEMA_VERSION, version=f'{version!r}')
         )
@@ -273,6 +277,8 @@ def validate_display_config(data: Any) -> DisplayConfig:
         if version == 2
         else V3_DISPLAY_KEYS
         if version == 3
+        else V5_DISPLAY_KEYS
+        if version in (4, 5)
         else DISPLAY_KEYS
     )
     unknown = sorted(set(data) - expected_keys)
@@ -352,6 +358,10 @@ def validate_display_config(data: Any) -> DisplayConfig:
         layout=layout,
         metrics=metrics,
         schema_version=SCHEMA_VERSION,
+        statusline_language=(
+            _require_string_choice(data, "statusline_language", STATUSLINE_LANGUAGES)
+            if version >= 6 else "en"
+        ),
         items=validate_items(data.get("items")),
         use_colors=use_colors,
         palette=_require_string_choice(data, "palette", PALETTES),

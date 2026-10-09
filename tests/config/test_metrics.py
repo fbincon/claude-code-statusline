@@ -10,6 +10,7 @@ class MetricsConfigTests(unittest.TestCase):
     def test_v3_read_preserves_source_and_formats_until_actual_save(self):
         data = display.DEFAULT_CONFIG.to_dict()
         data.pop("metrics")
+        data.pop("statusline_language")
         data["schema_version"] = 3
         data["formatting"]["number_format"] = "grouped"
         with tempfile.TemporaryDirectory() as folder:
@@ -18,7 +19,7 @@ class MetricsConfigTests(unittest.TestCase):
             raw = json.dumps(data).encode()
             path.write_bytes(raw)
             config = display.load_display_config(root)
-            self.assertEqual(config.schema_version, 5)
+            self.assertEqual(config.schema_version, 6)
             self.assertEqual(config.metrics.branch_diff_base_ref, None)
             self.assertEqual(config.formatting.number_format, "grouped")
             self.assertEqual(path.read_bytes(), raw)

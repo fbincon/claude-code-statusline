@@ -30,6 +30,7 @@ class CliTests(unittest.TestCase):
         if os.name == "posix":
             launcher.chmod(0o755)
         self.cli_env = os.environ.copy()
+        self.cli_env["CLAUDE_CONFIG_DIR"] = str(binary_dir / "config")
         self.cli_env["PATH"] = (
             str(binary_dir) + os.pathsep + self.cli_env.get("PATH", "")
         )

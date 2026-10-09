@@ -2,7 +2,7 @@
 
 [English](contracts.md) | **简体中文**
 
-协议 v5 是随包或源码原生前端使用的内部接口。显示配置使用 schema v5，v1/v2/v3/v4 在内存中迁移读取；协议与持久化版本独立演进。前后端资源应来自同一软件包版本。
+协议 v6 是随包或源码原生前端使用的内部接口。显示配置使用 schema v6，v1/v2/v3/v4/v5 在内存中迁移读取；协议与持久化版本独立演进。前后端资源应来自同一软件包版本。
 
 ## 共享目录
 
@@ -15,10 +15,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows 使用 `claude-statusline.exe`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":5,"operation":"read","payload":{}}
+{"protocol_version":6,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":5,"result":{...}}`；失败为 `{"protocol_version":5,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":6,"result":{...}}`；失败为 `{"protocol_version":6,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 | 操作 | Payload | 结果 |
 | --- | --- | --- |
@@ -32,7 +32,7 @@
 | `import` | `{draft,path}` | 校验导入后的 `{draft}` |
 | `export` | `{draft,path,overwrite}` | 导出目标 `{path}` |
 
-`draft` 仅包含 `display`（有效 schema v5 显示配置）和 `host`（`padding`、`refresh_interval`、`hide_vim_mode_indicator`），每个字段均为必填。JSON 宿主布尔/数值严格校验：padding 为 0–32 的整数，refresh 为 1–3600 的整数或 `"event"`；拒绝 `"off"` 等字符串及小数。读取兼容显示 v1/v2/v3/v4 文件时只在内存中规范化，不迁移原文件；预览也接受完整的 v1 显示对象。apply 必须使用 read 返回的完整 schema v5 草稿，避免旧输入静默覆盖新设置。预览宽度为 2–10000 的整数。
+`draft` 仅包含 `display`（有效 schema v6 显示配置）和 `host`（`padding`、`refresh_interval`、`hide_vim_mode_indicator`），每个字段均为必填。JSON 宿主布尔/数值严格校验：padding 为 0–32 的整数，refresh 为 1–3600 的整数或 `"event"`；拒绝 `"off"` 等字符串及小数。读取兼容显示 v1/v2/v3/v4/v5 文件时只在内存中规范化，不迁移原文件；预览也接受完整的 v1 显示对象。apply 必须使用 read 返回的完整 schema v6 草稿，避免旧输入静默覆盖新设置。预览宽度为 2–10000 的整数。
 
 `read` 使用现有安装锁获取一致快照，可能创建运行锁目录；`describe` 不创建配置文件。`preview` 不读取设置、检测宿主、采集 Git/transcript 或写缓存/锁，只使用生产格式和布局及固定样例。尚未观察到的数据不是零。每个 span 包含 `text`、`bold`、`foreground`，后者为 `null`、`{"kind":"rgb","value":"#rrggbb"}` 或 `{"kind":"ansi","value":0..15}`，没有原始 ANSI 转义。返回主行和子 Agent 行；空选择和关闭子 Agent 显示仍返回空行列表。
 
@@ -46,7 +46,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 显式设置的 renderer 绝对路径必须与选定后端匹配；保留 Windows 和旧安装使用的规范 PATH 命令兼容性，解析后的命令身份参与 revision。通过绑定的 console-script 路径调用 JSON 接口时，使用该入口的身份，即使 PATH 中存在另一安装。拒绝外部主或子 Agent renderer，包括其他目录下的同名可执行文件和非 command 类型设置；允许子 Agent renderer 尚未安装。apply 只编辑显示选择和本工具主 renderer 的宿主选项，不安装 renderer、不接管外部归属。
 
-无关设置从最新锁内快照合并；写入失败恢复两个文件的原始内容，并报告回滚失败。首次保存可能创建缺失的显示文件或将 旧 schema 迁移至 v5；持久化配置已经相同时，使用返回的草稿/revision 重复保存不写文件、不创建备份。事务实际改变文件时才返回 `backup_dir`，无需调用模型。
+无关设置从最新锁内快照合并；写入失败恢复两个文件的原始内容，并报告回滚失败。首次保存可能创建缺失的显示文件或将 旧 schema 迁移至 v6；持久化配置已经相同时，使用返回的草稿/revision 重复保存不写文件、不创建备份。事务实际改变文件时才返回 `backup_dir`，无需调用模型。
 
 | 错误码 | 含义与恢复 |
 | --- | --- |
@@ -71,7 +71,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## 结构化格式
 
-协议 v5 返回完整 schema v5 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v5 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v6 返回完整 schema v6 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v6 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ## 草稿传输操作
 
@@ -87,12 +87,16 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## Phase 5 指标迁移
 
-显示 schema v5 保留可空 `metrics.branch_diff_base_ref`；配置协议 v5 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3/v4 读取不写盘，真实保存才备份迁移；独立运行观测协议为 v2，兼容接收 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+显示 schema v6 保留可空 `metrics.branch_diff_base_ref`；配置协议 v6 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3/v4/v5 读取不写盘，真实保存才备份迁移；独立运行观测协议为 v2，兼容接收 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 ## 界面偏好与消息操作
 
 `read_ui_preferences` 接受 `{}`，返回 `schema_version:1`、`ui_language`（`en` 或 `zh-CN`）及 `warning`（`null` 或语义消息）。缺失／无效读取回退英文，不修复文件字节。`set_ui_language` 仅接受包含支持代码的 `{ui_language}`，使用现有锁、备份和原子写入保存，返回相同形状及空 warning。未来偏好 schema 拒绝覆盖。这两个操作不改变显示／宿主草稿、revision 或接入。
 
-错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v5，运行协议 v2 与显示 schema v5 保持不变。
+错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v6，UI 偏好 schema v1 与运行协议 v2 保持独立。
 
 见[翻译架构与贡献规则](i18n.zh-CN.md)。
+
+## 状态栏语言
+
+显示 schema v6 新增必需的 `statusline_language`（`en` / `zh-CN`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v6 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v2 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。

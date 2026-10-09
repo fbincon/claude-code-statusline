@@ -8,6 +8,7 @@ import {
   DIRECTORYSTYLE_VALUES,
   SEPARATORSTYLE_VALUES,
   SCOPELABELS_VALUES,
+  STATUSLINELANGUAGE_VALUES,
   UNAVAILABLEREASON_VALUES,
   FORMAT_CHOICES, PRESETS, EDITOR_FIELDS,
 } from './generated-contracts.ts';
@@ -129,6 +130,7 @@ export function isDraft(value: unknown): value is Draft {
   if (
     !exact(d, [
       'schema_version',
+      'statusline_language',
       'items',
       'use_colors',
       'palette',
@@ -142,7 +144,8 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 5 ||
+    d.schema_version !== 6 ||
+    !STATUSLINELANGUAGE_VALUES.some((x) => x === d.statusline_language) ||
     !object(d.metrics) || !exact(d.metrics, ['branch_diff_base_ref']) ||
     !(d.metrics.branch_diff_base_ref === null || (text(d.metrics.branch_diff_base_ref) && [...d.metrics.branch_diff_base_ref].length <= 256 &&
       d.metrics.branch_diff_base_ref.length > 0 && !/[\s]|^-/.test(d.metrics.branch_diff_base_ref))) ||
@@ -281,6 +284,7 @@ function isOptions(value: unknown): value is ConfigurationOptions {
     'directory-style': DIRECTORYSTYLE_VALUES,
     'separator-style': SEPARATORSTYLE_VALUES,
     'scope-labels': SCOPELABELS_VALUES,
+    'statusline-language': STATUSLINELANGUAGE_VALUES,
     'subagent-statusline': [true, false],
     'hide-vim-mode-indicator': [true, false],
   };

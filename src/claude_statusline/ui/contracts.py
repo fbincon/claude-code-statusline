@@ -1,4 +1,4 @@
-"""Protocol v5 wire types; TypeScript is generated from these Python types."""
+"""Protocol v6 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display
 
 
-PROTOCOL_VERSION = 5
+PROTOCOL_VERSION = 6
 OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset",
               "read_ui_preferences", "set_ui_language")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
@@ -16,6 +16,7 @@ Palette = Literal.__getitem__(display.PALETTES)
 DirectoryStyle = Literal.__getitem__(display.DIRECTORY_STYLES)
 SeparatorStyle = Literal.__getitem__(display.SEPARATOR_STYLES)
 ScopeLabels = Literal.__getitem__(display.SCOPE_LABELS)
+StatuslineLanguage = Literal.__getitem__(display.STATUSLINE_LANGUAGES)
 Scope = Literal["main", "subagent"]
 UnavailableReason = Literal[
     "not_observed",
@@ -76,6 +77,7 @@ ConfigurationOptions = TypedDict(
         "directory-style": ChoiceOptions,
         "separator-style": ChoiceOptions,
         "scope-labels": ChoiceOptions,
+        "statusline-language": ChoiceOptions,
         "subagent-statusline": ChoiceOptions,
         "padding": RangeOptions,
         "refresh-interval": RefreshOptions,
@@ -137,7 +139,8 @@ class MetricsDraft(TypedDict):
 
 
 class DisplayDraft(TypedDict):
-    schema_version: Literal[5]
+    schema_version: Literal[6]
+    statusline_language: StatuslineLanguage
     items: list[MainItemId]
     use_colors: bool
     palette: Palette
@@ -255,6 +258,7 @@ ALIASES = {
     "DirectoryStyle": DirectoryStyle,
     "SeparatorStyle": SeparatorStyle,
     "ScopeLabels": ScopeLabels,
+    "StatuslineLanguage": StatuslineLanguage,
     "Scope": Scope,
     "UnavailableReason": UnavailableReason,
 }

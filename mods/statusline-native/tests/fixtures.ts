@@ -24,7 +24,8 @@ import { copyDraft } from '../lib/editor/draft.ts';
 
 export const BASE: Draft = {
   display: {
-    schema_version: 5,
+    schema_version: 6,
+    statusline_language: 'en',
     metrics: { branch_diff_base_ref: null },
     items: ['model-with-effort'],
     use_colors: true,
@@ -119,6 +120,7 @@ export function description(): DescribeResult {
       },
       'separator-style': { choices: ['classic', 'compact'] },
       'scope-labels': { choices: ['off', 'when-subagents', 'always'] },
+      'statusline-language': { choices: ['en', 'zh-CN'] },
       'subagent-statusline': { choices: [true, false] },
       padding: { minimum: 0, maximum: 32 },
       'refresh-interval': { minimum: 1, maximum: 3600, special: 'event' },
@@ -159,7 +161,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 5, result }));
+  return output(JSON.stringify({ protocol_version: 6, result }));
 }
 
 export function sample(text: string) {

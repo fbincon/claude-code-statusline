@@ -7,6 +7,7 @@ import re
 
 from claude_statusline.config import catalog, formatting
 from claude_statusline.rendering import formatters, layout
+from claude_statusline.i18n import statusline
 
 
 def model_name(value, fmt):
@@ -55,9 +56,6 @@ def reset_time(expires, now, fmt, countdown):
     return date.strftime(pattern) + (" UTC" if fmt.reset_timezone == "UTC" else "")
 
 
-PREFIX = re.compile(
-    r"^(?:TTFT\(host\)|Rate|Prompt in|Prompt out|Prompt cost|Diff|State|Mode|Agents|Tasks|Tool|Cache TTL|Cache miss|API requests|Context|Project|Host|Git|Session|ID|Style|Cost|Total|Cache|Spend|API|5h|weekly|spend) "
-)
 SYMBOLS = "✓⏱✗■…⏳⚡"
 ICONS = {
     "model": ("◆", "M"),
@@ -70,7 +68,7 @@ ICONS = {
 }
 
 
-def decorate(text, item_id, scope, fmt, options):
+def decorate(text, item_id, scope, fmt, options, *, language="en"):
     """Modify terminal units, never payload digits or raw ANSI sequences."""
     if (
         fmt.labels == "legacy"
@@ -81,20 +79,21 @@ def decorate(text, item_id, scope, fmt, options):
         return text
     units = layout._styled_units(text)
     plain = "".join(unit.text for unit in units)
-    if (fmt.icons != "legacy" or options.icon is not None) and plain[:1] in SYMBOLS:
+    owns_icon = item_id in ({"task-timer"} if scope == "main" else {"status", "status-elapsed"})
+    if owns_icon and (fmt.icons != "legacy" or options.icon is not None) and plain[:1] in SYMBOLS:
         removed = 1 + (plain[1:2] == " ")
         units = units[removed:]
         plain = "".join(unit.text for unit in units)
     custom = options.label is not None
     if custom or fmt.labels != "legacy":
-        match = PREFIX.match(plain)
-        if match:
-            units = units[match.end() :]
+        prefix = statusline.prefix(scope, item_id, language)
+        if prefix and plain.startswith(prefix + " "):
+            units = units[len(prefix) + 1 :]
         label = (
             options.label
             if custom
             else (
-                catalog.BY_SCOPE[scope][item_id].label if fmt.labels == "short" else ""
+                statusline.short_label(scope, item_id, language) if fmt.labels == "short" else ""
             )
         )
         if label:
