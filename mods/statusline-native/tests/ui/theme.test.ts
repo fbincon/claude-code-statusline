@@ -41,7 +41,7 @@ test('all pages explicitly pair selected colors and keep chrome on host tokens',
   }
 });
 
-test('sample rows retain raw colors and fill empty and overflow rows with the same background', () => {
+test('sample rows use the chosen preview background independently of themed ancestors', () => {
   const state = view();
   const spans = [
     { text: 'rgb 中文', bold: true, foreground: { kind: 'rgb', value: '#8ed3d3' } },
@@ -50,23 +50,33 @@ test('sample rows retain raw colors and fill empty and overflow rows with the sa
   ];
   state.preview = { sample: true, main: [spans, spans, spans, spans], subagents: [] } as View['preview'];
   const before = JSON.stringify(state.preview);
-  for (const width of [32, 80, 120]) {
+  for (const background of ['dark', 'light'] as const) for (const width of [32, 64, 80, 120]) {
+    state.previewBackground = background;
     const tree = draw(elements, state, width, 30) as unknown as Node;
     const preview = tree.children[4] as Node;
-    const filled = nodes(preview).filter((n) => n.type === 'Box' && n.props.backgroundColor === '#17191e');
-    expect(filled.length > 0).toBe(true);
-    expect(filled.every((n) => n.props.width === width - (width >= 64 ? 2 : 0) && n.props.height === 1)).toBe(true);
-    const texts = nodes(preview).filter((n) => n.type === 'Text');
+    expect(tree.props.backgroundColor).toBe(undefined);
+    expect(preview.props.backgroundColor).toBe(undefined);
+    const framed = width >= 64;
+    const rows = preview.children.slice(1, framed ? -1 : undefined) as Node[];
+    for (const row of rows) {
+      expect(row.props.backgroundColor).toBe(framed ? undefined : background === 'light' ? '#ffffff' : '#17191e');
+      if (framed) expect((row.children[1] as Node).props.backgroundColor).toBe(undefined);
+    }
+    const bodies = rows.map((row) => framed ? (row.children[1] as Node).children[0] as Node : row);
+    expect(bodies.every((n) => n.props.width === width - (framed ? 2 : 0) && n.props.height === 1 && n.props.backgroundColor === (background === 'light' ? '#ffffff' : '#17191e'))).toBe(true);
+    const texts = bodies.flatMap(nodes).filter((n) => n.type === 'Text');
+    expect(texts.every((n) => n.props.backgroundColor === undefined)).toBe(true);
     expect(texts.some((n) => n.props.color === '#8ed3d3' && text(n) === 'rgb 中文')).toBe(true);
-    expect(texts.some((n) => n.props.color === 'yellow' && text(n) === ' ansi')).toBe(true);
-    expect(texts.some((n) => n.props.color === '#dedee7')).toBe(true);
+    expect(texts.some((n) => n.props.color === 'ansi256(3)' && text(n) === ' ansi')).toBe(true);
+    expect(texts.some((n) => n.props.color === undefined && text(n) === ' plain')).toBe(true);
+    expect(texts.every((n) => !['text', 'inverseText', '#dedee7'].includes(n.props.color))).toBe(true);
   }
   expect(JSON.stringify(state.preview)).toBe(before);
   state.preview = { sample: true, main: [], subagents: [] };
   const empty = draw(elements, state, 80, 24) as unknown as Node;
   const placeholder = nodes(empty.children[4] as Node).find((n) => n.type === 'Text' && text(n) === '(empty preview)')!;
-  expect(placeholder.props.color).toBe('#dedee7');
-  expect(placeholder.props.backgroundColor).toBe('#17191e');
+  expect(placeholder.props.color).toBe(undefined);
+  expect(placeholder.props.backgroundColor).toBe(undefined);
 });
 
 test('error, search and loading styles preserve the draft and never require terminal white', () => {
@@ -75,7 +85,7 @@ test('error, search and loading styles preserve the draft and never require term
   state.input = { kind: 'search', scope: 'main', original: '', selected: e.selected.main };
   const input = state.input, before = JSON.stringify(e.draft);
   const tree = draw(elements, state, 80, 24) as unknown as Node;
-  expect((tree.children[2] as Node).props.color).toBe('error');
+  expect(((tree.children[2] as Node).children[0] as Node).props.color).toBe('error');
   expect(state.input).toBe(input);
   expect(JSON.stringify(e.draft)).toBe(before);
   for (const size of [[20, 8], [80, 24]]) {

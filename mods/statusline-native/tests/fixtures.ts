@@ -328,3 +328,14 @@ export async function keys(
     });
   }
 }
+
+/** Select a stable field identity, independent of optional UI preference rows. */
+export async function selectSetting(ui: any, key: string): Promise<void> {
+  await keys(ui, 'home');
+  for (let i = 0; i < 100; i++) {
+    const client = (await ui.find({ key: 'statusline-client' }))!.props.props;
+    if (client.view.editor?.setting === key) return;
+    await keys(ui, 'down');
+  }
+  throw new Error('Setting could not be selected: ' + key);
+}

@@ -430,28 +430,9 @@ export function parseResponse<O extends Operation>(
   return result as unknown as ResultFor<O>;
 }
 
-const ANSI = [
-  'black',
-  'red',
-  'green',
-  'yellow',
-  'blue',
-  'magenta',
-  'cyan',
-  'white',
-  'gray',
-  'redBright',
-  'greenBright',
-  'yellowBright',
-  'blueBright',
-  'magentaBright',
-  'cyanBright',
-  'whiteBright',
-];
-
 export function spanColor(span: Span): string | undefined {
   if (span.foreground?.kind === 'rgb') return String(span.foreground.value);
   if (span.foreground?.kind === 'ansi')
-    return ANSI[Number(span.foreground.value)];
+    return `ansi256(${Number(span.foreground.value)})`;
   return undefined;
 }

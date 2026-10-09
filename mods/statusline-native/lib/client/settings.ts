@@ -31,6 +31,13 @@ export function settingRows(view: View): SettingRow[] {
       editable: true,
     },
     {
+      key: 'preview-background',
+      label: 'Preview background (UI only)',
+      group: 'Appearance',
+      value: view.previewBackground ?? 'dark',
+      editable: true,
+    },
+    {
       key: 'directory-style',
       label: 'Directory',
       group: 'Appearance',
@@ -121,6 +128,9 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
     ]!;
   };
   switch (e.setting) {
+    case 'preview-background':
+      view.previewBackground = view.previewBackground === 'light' ? 'dark' : 'light';
+      break;
     case 'colors':
       d.use_colors = !d.use_colors;
       break;

@@ -108,7 +108,7 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);
     expect(groups.flat().every((hint) => hint.label === hint.label.toLowerCase())).toBe(true);
     const tree = draw(elements, state, 120, 30) as unknown as Node;
-    const heading = tree.children[0] as Node;
+    const heading = (tree.children[0] as Node).children[0] as Node;
     expect(text(heading)).toBe('Configure Status Line');
     expect(heading.props.color).toBe('suggestion');
     expect(heading.props.bold).toBe(true);

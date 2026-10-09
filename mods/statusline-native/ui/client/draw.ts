@@ -3,11 +3,11 @@ import type { View } from '../../lib/session.ts';
 import { preferenceChanged } from '../../lib/preferences.ts';
 import { settingRows } from '../../lib/client/settings.ts';
 import { formWindow, pageWindow } from '../../lib/editor/navigation.ts';
-import { spanColor } from '../../lib/backend.ts';
 import { clip, column, displayWidth } from '../layout.ts';
 import { editorLayout } from './help.ts';
-import { previewRow, rowStyle, styles } from '../theme.ts';
+import { chromeRow, rowStyle, styles } from '../theme.ts';
 import { section } from '../components/section.ts';
+import { previewLine, previewText, previewTitle } from '../components/preview.ts';
 import { shortcuts, spanLine } from '../components/shortcuts.ts';
 import type { TextSpan } from '../components/shortcuts.ts';
 
@@ -95,11 +95,11 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const sample = view.preview ? e.page === 'subagents' ? view.preview.subagents : view.preview.main : [];
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
   const shown = sample.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
-  const preview: RenderElement[] = shown.map((row) =>
-    spanLine(ui, row.map((span) => ({ text: span.text, style: { bold: span.bold, color: spanColor(span) } })), inner, styles.preview));
-  if (overflow) preview.push(line(`${sample.length - shown.length} more preview rows`, styles.preview));
-  if (!sample.length) preview.push(line(view.previewError || (view.preview ? '(empty preview)' : 'Loading sample preview…'), styles.preview));
-  while (preview.length < layout.previewRows) preview.push(line(' ', styles.preview));
+  const background = view.previewBackground ?? 'dark';
+  const preview: RenderElement[] = shown.map((row) => previewLine(ui, row, inner, background));
+  if (overflow) preview.push(previewText(ui, `${sample.length - shown.length} more preview rows`, inner, background));
+  if (!sample.length) preview.push(previewText(ui, view.previewError || (view.preview ? '(empty preview)' : 'Loading sample preview…'), inner, background));
+  while (preview.length < layout.previewRows) preview.push(previewText(ui, '', inner, background));
   const pages = ['main', 'subagents', 'settings', 'layout'];
   const labels = columns < 48 ? ['Main', 'Sub', 'Set', 'Lay'] : ['Main', 'Subagents', 'Settings', 'Layout'];
   const tabs: TextSpan[] = [];
@@ -109,17 +109,17 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     tabs.push({ text: ' ' + (pages[i] === e.page ? '[' + label + ']' : label), style: { ...(pages[i] === e.page ? styles.accent : styles.muted), bold: false } });
   });
   return ui.Box({
-    backgroundColor: styles.text.backgroundColor,
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [
-      line('Configure Status Line' + (pending ? ' *' : ''), { ...styles.accent, bold: true }),
-      spanLine(ui, tabs, columns),
-      notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
-        : line('Click region for keys.', styles.muted),
+      chromeRow(ui, line('Configure Status Line' + (pending ? ' *' : ''), { ...styles.accent, bold: true }), columns),
+      chromeRow(ui, spanLine(ui, tabs, columns), columns),
+      chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
+        : line('Click region for keys.', styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
-      section(ui, 'preview-region', 'Preview · sample data' + (view.previewBusy ? ' …' : ''), preview.map((child) => previewRow(ui, child, inner)), columns, layout.previewHeight, layout.framed),
+      section(ui, 'preview-region', previewTitle(e.draft.display, columns, view.previewBusy, background), preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({
         key: 'shortcut-region', width: columns, height: layout.footerRows,
+        backgroundColor: styles.text.backgroundColor,
         flexDirection: 'column', flexShrink: 0,
         children: layout.footer.map((hints) => shortcuts(ui, hints, columns)),
       }),
