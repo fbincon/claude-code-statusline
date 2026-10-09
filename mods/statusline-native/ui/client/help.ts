@@ -3,6 +3,7 @@ import { preferenceChanged } from '../../lib/preferences.ts';
 import { dimensions } from '../layout.ts';
 import { shortcutRows } from '../components/shortcuts.ts';
 import type { Shortcut } from '../components/shortcuts.ts';
+import { translatedShortcuts } from '../../lib/i18n/presentation.ts';
 
 const focus: Shortcut = { key: 'Esc', label: 'focus' };
 
@@ -59,7 +60,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
 
 /** Share footer and viewport budgets between drawing and keyboard paging. */
 export function editorLayout(view: View, columns: number, rows: number) {
-  let groups = editorShortcuts(view);
+  let groups = translatedShortcuts(editorShortcuts(view), view.language);
   const framed = columns >= 64 && rows >= 20;
   // Keep the header, section edges, filter/selection and one preview row.
   const limit = Math.max(1, rows - (framed ? 10 : 8));

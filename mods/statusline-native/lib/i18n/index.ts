@@ -7,6 +7,10 @@ export const LANGUAGES: readonly Language[] = ['en', 'zh-CN'];
 export const LANGUAGE_NAMES: Record<Language, string> = { en: 'English', 'zh-CN': '简体中文' };
 export interface LocalizedText { key: string; params: Record<string, unknown>; fallback: string }
 
+export class LocalizedError extends Error {
+  constructor(public readonly localization: LocalizedText) { super(localization.fallback); }
+}
+
 export function isLocalizedText(value: unknown, depth = 0): value is LocalizedText {
   if (!value || typeof value !== 'object' || Array.isArray(value) || depth > 8) return false;
   const v = value as Record<string, unknown>;

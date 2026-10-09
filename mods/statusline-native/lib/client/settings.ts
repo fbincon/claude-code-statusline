@@ -1,6 +1,9 @@
+import { setMessage, failureMessage } from '../i18n/messages.ts';
+import { text as localizedText } from '../i18n/index.ts';
 import type { View } from '../session.ts';
 import { formRows, adjustForm } from './forms.ts';
 import { PREFERENCE_SPECS, specFor, canEdit } from '../preferences.ts';
+import { LANGUAGE_NAMES } from '../i18n/index.ts';
 
 export interface SettingRow {
   key: string;
@@ -89,6 +92,7 @@ export function settingRows(view: View): SettingRow[] {
   ];
   rows.push(...formRows(view));
   rows.push(
+    { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
     { key: 'preset-select', label: 'Preset', group: 'Presets / portable files', value: e.preset, editable: true },
     { key: 'preset-apply', label: 'Expand selected preset', group: 'Presets / portable files', value: 'replace draft; save later', editable: true },
     { key: 'import-file', label: 'Import file', group: 'Presets / portable files', value: 'file path; save later', editable: true },
@@ -128,6 +132,9 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
     ]!;
   };
   switch (e.setting) {
+    case 'ui-language':
+      view.language = view.language === 'zh-CN' ? 'en' : 'zh-CN';
+      break;
     case 'preview-background':
       view.previewBackground = view.previewBackground === 'light' ? 'dark' : 'light';
       break;
@@ -188,8 +195,7 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
     default: {
       const p = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
       if (!p || !canEdit(p)) {
-        view.message =
-          'This Claude preference is unavailable, locked or unsupported.';
+        setMessage(view, "message", localizedText("native.lib.client.settings.this_claude_preference_is_unavailable_locked_or_unsupported"));
         break;
       }
       if (p.row.kind === 'boolean') p.value = !p.value;

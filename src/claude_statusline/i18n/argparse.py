@@ -17,10 +17,20 @@ def parser_message(value: str, locale: str) -> str:
         (r"the following arguments are required: (.*)", "cli.required", ("arguments",)),
         (r"unrecognized arguments: (.*)", "cli.unrecognized", ("arguments",)),
         (r"argument (.*?): (.*)", "cli.argument_error", ("argument", "detail")),
-        (r"invalid choice: (.*?) \(choose from (.*)\)", "cli.invalid_choice", ("value", "choices")),
+        (
+            r"invalid choice: (.*?) \(choose from (.*)\)",
+            "cli.invalid_choice",
+            ("value", "choices"),
+        ),
         (r"invalid (.*?) value: (.*)", "cli.invalid_type", ("type", "value")),
         (r"expected (\d+) arguments", "cli.expected_arguments", ("count",)),
         (r"not allowed with argument (.*)", "cli.not_allowed", ("argument",)),
+        (r"ignored explicit argument (.*)", "cli.ignored_explicit", ("value",)),
+        (
+            r"ambiguous option: (.*?) could match (.*)",
+            "cli.ambiguous",
+            ("option", "matches"),
+        ),
     )
     for pattern, key, names in patterns:
         matched = re.fullmatch(pattern, value)
@@ -29,8 +39,10 @@ def parser_message(value: str, locale: str) -> str:
             if "detail" in params:
                 params["detail"] = parser_message(params["detail"], locale)
             return translate(key, locale, **params)
-    for text, key in (("expected one argument", "cli.expected_one"),
-                      ("expected at least one argument", "cli.expected_at_least_one")):
+    for text, key in (
+        ("expected one argument", "cli.expected_one"),
+        ("expected at least one argument", "cli.expected_at_least_one"),
+    ):
         if value == text:
             return translate(key, locale)
     return value
@@ -42,8 +54,12 @@ class _Formatter(argparse.HelpFormatter):
         super().__init__(*args, **kwargs)
 
     def add_usage(self, usage, actions, groups, prefix=None):
-        super().add_usage(usage, actions, groups,
-                          translate("cli.usage", self.locale) if prefix is None else prefix)
+        super().add_usage(
+            usage,
+            actions,
+            groups,
+            translate("cli.usage", self.locale) if prefix is None else prefix,
+        )
 
     def _expand_help(self, action):
         translated = copy(action)
@@ -73,8 +89,13 @@ class LocalizedParser(argparse.ArgumentParser):
         self._positionals.title = translate("cli.positionals", locale)
         self._optionals.title = translate("cli.options", locale)
         if help_enabled:
-            self.add_argument("-h", "--help", action="help", default=argparse.SUPPRESS,
-                              help=translate("cli.help.help", locale))
+            self.add_argument(
+                "-h",
+                "--help",
+                action="help",
+                default=argparse.SUPPRESS,
+                help=translate("cli.help.help", locale),
+            )
 
     def add_argument(self, *args, **kwargs):
         if "help" in kwargs:
@@ -88,5 +109,12 @@ class LocalizedParser(argparse.ArgumentParser):
 
     def error(self, value):
         self.print_usage(__import__("sys").stderr)
-        self.exit(2, translate("cli.parser_error", self.locale, prog=self.prog,
-                               detail=parser_message(str(value), self.locale)))
+        self.exit(
+            2,
+            translate(
+                "cli.parser_error",
+                self.locale,
+                prog=self.prog,
+                detail=parser_message(str(value), self.locale),
+            ),
+        )

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import curses
-from claude_statusline.config import display as config_display
 from claude_statusline.rendering import layout as rendering_layout
 from claude_statusline.rendering import preview as rendering_preview
 from claude_statusline.rendering import subagents as rendering_subagents
@@ -14,6 +15,8 @@ from claude_statusline.ui import layout as ui_layout
 from claude_statusline.ui import shortcuts
 from claude_statusline.ui.shortcuts import Hint
 from claude_statusline.ui import theme
+from claude_statusline.i18n import presentation
+from claude_statusline.i18n.translator import present, translate as t
 
 # Preserve the existing drawing/interactive_config compatibility exports.
 from claude_statusline.ui.theme import (
@@ -70,11 +73,13 @@ def _draw_ansi(
         x += unit.width
 
 
-def _draw_shortcuts(screen, y, hints, width, mapper, x=0, prefix="", attr=0) -> None:
+def _draw_shortcuts(
+    screen, y, hints, width, mapper, x=0, prefix="", attr=0, *, language="en"
+) -> None:
     height, columns = screen.getmaxyx()
     width = max(0, min(width, columns - x - int(y == height - 1)))
     key_attr = theme.KEY
-    for text, is_key in shortcuts.segments(hints, width, prefix):
+    for text, is_key in shortcuts.segments(hints, width, prefix, language=language):
         _add_text(
             screen,
             y,
@@ -136,9 +141,9 @@ def _draw_panel(screen, panel: ui_layout.Panel, title: str, title_attr: int) -> 
 def _draw_tabs(
     screen, state: ui_editor.EditorState, width: int, active_attr: int
 ) -> None:
-    items = "[ Main ]"
-    subagents = "[ Subagents ]"
-    settings = "[ Settings ]"
+    items = t("ui.drawing.main", state.language)
+    subagents = t("ui.drawing.subagents", state.language)
+    settings = t("ui.drawing.settings", state.language)
     _add_text(
         screen,
         2,
@@ -170,7 +175,7 @@ def _draw_tabs(
         screen,
         2,
         offset,
-        "[ Layout ]",
+        t("ui.drawing.layout", state.language),
         max(0, width - offset),
         active_attr if state.page == "layout" else theme.DESCRIPTION,
     )
@@ -207,22 +212,26 @@ def _draw_item_rows(screen, state, start_y, height, width, x, scope) -> None:
     visible = state.visible_subagent_items() if subagents else state.visible_items()
     state.ensure_visible(height)
     if not visible:
-        _add_text(screen, start_y, x, "No matching items", width, theme.DESCRIPTION)
+        _add_text(
+            screen,
+            start_y,
+            x,
+            t("ui.drawing.no_matching_items", state.language),
+            width,
+            theme.DESCRIPTION,
+        )
         return
     scroll = state.subagent_scroll if subagents else state.item_scroll
     selected = state.selected_subagent_item if subagents else state.selected_item
     enabled = state.subagent_enabled if subagents else state.enabled
-    descriptions = (
-        config_display.SUBAGENT_ITEM_CATALOG
-        if subagents
-        else config_display.ITEM_CATALOG
-    )
     for row, item in enumerate(visible[scroll : scroll + height]):
         line = (
             f"{'›' if item == selected else ' '} [{'x' if item in enabled else ' '}] "
-            + _column(item, _item_column(width))
+            + _column(
+                t(f"items.{scope}.{item}.label", state.language), _item_column(width)
+            )
             + "  "
-            + descriptions[item]
+            + t(f"items.{scope}.{item}.description", state.language)
         )
         attr = theme.SELECTION if item == selected else 0
         _add_text(screen, start_y + row, x, _column(line, width), width, attr)
@@ -239,7 +248,7 @@ def _draw_settings(
     mapper: _ColorMapper | None = None,
 ) -> None:
     state.ensure_visible(height)
-    rows = forms.rows(state)
+    rows = presentation.rows(state)
     scroll = state.form_scroll if forms.special(state) else state.settings_scroll
     window = ui_layout.form_window(rows, forms.index(state), scroll, height)
     label_width = min(
@@ -255,9 +264,7 @@ def _draw_settings(
             continue
         row = rows[line.index]
         editing = state.form_input and state.form_input["row"]["key"] == row["key"]
-        value = (
-            state.form_input["buffer"] + " _" if editing else forms.shown(row["value"])
-        )
+        value = state.form_input["buffer"] + " _" if editing else row["display_value"]
         _add_text(
             screen,
             start_y + offset,
@@ -281,13 +288,16 @@ def _draw_settings(
                     Hint(
                         "Enter",
                         value.removeprefix("Enter").lstrip(": "),
-                        "expand" if row["key"] == "preset-apply" else "path",
+                        msg("ui.hints.expand")
+                        if row["key"] == "preset-apply"
+                        else msg("ui.hints.path"),
                     )
                 ],
                 width - prefix_width,
                 mapper,
                 x + prefix_width,
                 attr=theme.SELECTION if line.index == forms.index(state) else 0,
+                language=state.language,
             )
 
 
@@ -309,23 +319,47 @@ def _draw_preview(
             state.display, width, state.host.padding
         )
     if not rows:
-        _add_text(screen, start_y, x, "(no enabled items)", width, mapper.preview_attr)
+        _add_text(
+            screen,
+            start_y,
+            x,
+            t("ui.drawing.no_enabled_items", state.language),
+            width,
+            mapper.preview_attr,
+        )
         return
     if len(rows) > height:
         visible = rows[: height - 1]
         remaining = len(rows) - len(visible)
-        visible.append(f"… {remaining} more line{'s' if remaining != 1 else ''}")
+        visible.append(
+            t(
+                "ui.drawing.more_line" if remaining == 1 else "ui.drawing.more_lines",
+                state.language,
+                remaining=remaining,
+            )
+        )
     else:
         visible = rows
     for offset, row in enumerate(visible):
         _draw_ansi(screen, start_y + offset, row, width, mapper, x)
 
 
-def _draw_small_terminal(screen, height: int, width: int) -> None:
-    _add_text(screen, 0, 0, "Configure Status Line", width, theme.TITLE)
-    message = (
-        f"Terminal too small: need {ui_models.MIN_TERMINAL_WIDTH}x{ui_models.MIN_TERMINAL_HEIGHT}; "
-        f"current {width}x{height}. Resize or press Esc to cancel."
+def _draw_small_terminal(screen, height: int, width: int, language="en") -> None:
+    _add_text(
+        screen,
+        0,
+        0,
+        t("ui.drawing.configure_status_line", language),
+        width,
+        theme.TITLE,
+    )
+    message = t(
+        "ui.drawing.terminal_too_small_need_x_current_x",
+        language,
+        MIN_TERMINAL_WIDTH=ui_models.MIN_TERMINAL_WIDTH,
+        MIN_TERMINAL_HEIGHT=ui_models.MIN_TERMINAL_HEIGHT,
+        width=width,
+        height=height,
     )
     for row, chunk in enumerate(
         rendering_layout._split_ansi_text(
@@ -341,7 +375,7 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     screen.erase()
     height, width = screen.getmaxyx()
     if width < ui_models.MIN_TERMINAL_WIDTH or height < ui_models.MIN_TERMINAL_HEIGHT:
-        _draw_small_terminal(screen, height, width)
+        _draw_small_terminal(screen, height, width, state.language)
         screen.refresh()
         return 1
 
@@ -353,46 +387,57 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         screen,
         0,
         0,
-        "Configure Status Line" + (" *" if state.modified else ""),
+        t("ui.drawing.configure_status_line", state.language)
+        + (" *" if state.modified else ""),
         width,
         title_attr,
     )
     description = (
-        "Edit item format: " + state.form_item[1]
+        t("ui.drawing.edit_item_format", state.language) + state.form_item[1]
         if state.form_item
-        else "Set explicit rows, priorities and widths"
+        else t("ui.drawing.set_explicit_rows_priorities_and_widths", state.language)
         if state.page == "layout"
-        else "Choose main status line items and their order"
+        else t("ui.drawing.choose_main_status_line_items_and_their", state.language)
         if state.page == "items"
-        else "Choose subagent row items and their order"
+        else t("ui.drawing.choose_subagent_row_items_and_their_order", state.language)
         if state.page == "subagents"
-        else "Adjust display and tool refresh settings"
+        else t("ui.drawing.adjust_display_and_tool_refresh_settings", state.language)
     )
     _add_text(screen, 1, 0, description, width, theme.DESCRIPTION)
     _draw_tabs(screen, state, width, theme.ACTIVE_TAB)
-    error = state.notice or (state.numeric_edit.error if state.numeric_edit else "")
+    error = present(
+        state.notice or (state.numeric_edit.error if state.numeric_edit else ""),
+        state.language,
+    )
     notice = error or (
-        "Item format (Ctrl+G back)"
+        t("ui.drawing.item_format_ctrl_g_back", state.language)
         if state.form_item
-        else "Explicit rows / priority / width"
+        else t("ui.drawing.explicit_rows_priority_width", state.language)
         if state.page == "layout"
-        else "Use arrows to change values; Enter edits new fields."
+        else t("ui.drawing.use_arrows_to_change_values_enter_edits", state.language)
         if state.page == "settings"
-        else "Type to search > "
+        else t("ui.drawing.type_to_search", state.language)
         + (state.subagent_search if state.page == "subagents" else state.search)
     )
     if not error and state.form_item:
         _draw_shortcuts(
-            screen, 3, [Hint("Ctrl+G", "back")], width, mapper, prefix="Item format · "
+            screen,
+            3,
+            [Hint("Ctrl+G", msg("ui.hints.back"))],
+            width,
+            mapper,
+            prefix=t("ui.drawing.item_format", state.language),
+            language=state.language,
         )
     elif not error and state.page == "settings":
         _draw_shortcuts(
             screen,
             3,
-            [Hint("Enter", "edits new fields.", "edit")],
+            [Hint("Enter", msg("ui.hints.edits_new_fields"), msg("ui.hints.edit"))],
             width,
             mapper,
-            prefix="Use arrows to change values; ",
+            prefix=t("ui.drawing.use_arrows_to_change_values", state.language),
+            language=state.language,
         )
     else:
         _add_text(
@@ -401,25 +446,32 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
 
     is_form = forms.special(state) or state.page == "settings"
     title = (
-        "Item format / " + state.form_item[0] + ": " + state.form_item[1]
+        t("ui.drawing.item_format_2", state.language)
+        + state.form_item[0]
+        + ": "
+        + state.form_item[1]
         if state.form_item
-        else "Layout / rows and fitting"
+        else t("ui.drawing.layout_rows_and_fitting", state.language)
         if state.page == "layout"
-        else "Settings / global options"
+        else t("ui.drawing.settings_global_options", state.language)
         if state.page == "settings"
-        else "Subagent items"
+        else t("ui.drawing.subagent_items", state.language)
         if state.page == "subagents"
-        else "Main items"
+        else t("ui.drawing.main_items", state.language)
     )
     _draw_panel(screen, panel, title, title_attr)
     if is_form:
-        rows = forms.rows(state)
+        rows = presentation.rows(state)
         label_width = min(
             44,
             max(24, panel.inner_width // 2),
             max(rendering_layout._display_width(row["label"]) + 1 for row in rows),
         )
-        heading = "  " + _column("OPTION", label_width) + "  VALUE"
+        heading = (
+            "  "
+            + _column(t("ui.drawing.option", state.language), label_width)
+            + t("ui.drawing.value", state.language)
+        )
         _add_text(
             screen,
             panel.inner_y,
@@ -442,12 +494,20 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         window = ui_layout.form_window(
             rows, forms.index(state), scroll, layout.list_height
         )
-        position = f"Fields {window.start + 1}-{window.end}/{len(rows)}"
+        position = t(
+            "ui.drawing.fields",
+            state.language,
+            value0=window.start + 1,
+            end=window.end,
+            value2=len(rows),
+        )
     else:
         heading = (
-            "  ON  "
-            + _column("ITEM", _item_column(panel.inner_width))
-            + "  DESCRIPTION"
+            t("ui.drawing.on", state.language)
+            + _column(
+                t("ui.drawing.item", state.language), _item_column(panel.inner_width)
+            )
+            + t("ui.drawing.description", state.language)
         )
         _add_text(
             screen,
@@ -485,25 +545,36 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
                 state.item_scroll,
                 state.enabled,
             )
-        position = f"Items {scroll + 1 if visible else 0}-{min(len(visible), scroll + layout.list_height)}/{len(visible)} · {len(enabled)} enabled"
+        position = t(
+            "ui.drawing.items_enabled",
+            state.language,
+            value0=scroll + 1 if visible else 0,
+            value1=min(len(visible), scroll + layout.list_height),
+            value2=len(visible),
+            value3=len(enabled),
+        )
     _draw_shortcuts(
         screen,
         panel.inner_y + panel.inner_height - 1,
-        [Hint("↑↓", "select")] if is_form else [],
+        [Hint("↑↓", msg("ui.hints.select"))] if is_form else [],
         panel.inner_width,
         mapper,
         panel.inner_x,
         position + (" · " if is_form else ""),
+        language=state.language,
     )
 
     preview = layout.preview
     preview_palette = (
-        "Palette: " + state.display.palette
+        t("ui.drawing.palette", state.language) + state.display.palette
         if state.display.use_colors
-        else "Colors: off"
+        else t("ui.drawing.colors_off", state.language)
     )
     _draw_panel(
-        screen, preview, "Preview (sample data) · " + preview_palette, title_attr
+        screen,
+        preview,
+        t("ui.drawing.preview_sample_data", state.language) + preview_palette,
+        title_attr,
     )
     _draw_preview(
         screen,
@@ -516,52 +587,68 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     )
 
     if state.form_input is not None:
-        actions = [Hint("Enter", "accept"), Hint("Ctrl+G/Esc", "restore")]
-        help_text = [Hint("Ctrl+U", "clear"), Hint("Backspace", "delete")]
+        actions = [
+            Hint("Enter", msg("ui.hints.accept")),
+            Hint("Ctrl+G/Esc", msg("ui.hints.restore")),
+        ]
+        help_text = [
+            Hint("Ctrl+U", msg("ui.hints.clear")),
+            Hint("Backspace", msg("ui.hints.delete")),
+        ]
     elif state.numeric_edit is not None:
-        actions = [Hint("Enter", "accept"), Hint("Esc", "restore")]
-        help_text = [Hint("Digits", "edit"), Hint("Backspace", "delete")]
+        actions = [
+            Hint("Enter", msg("ui.hints.accept")),
+            Hint("Esc", msg("ui.hints.restore")),
+        ]
+        help_text = [
+            Hint("Digits", msg("ui.hints.edit")),
+            Hint("Backspace", msg("ui.hints.delete")),
+        ]
     else:
         actions = [
-            Hint("Ctrl+S", "save"),
-            Hint("Esc", "cancel"),
-            Hint("Ctrl+C", "interrupt"),
+            Hint("Ctrl+S", msg("ui.hints.save")),
+            Hint("Esc", msg("ui.hints.cancel")),
+            Hint("Ctrl+C", msg("ui.hints.interrupt")),
         ]
         if state.form_item:
             help_text = [
-                Hint("↑↓", "select"),
-                Hint("←→", "adjust"),
-                Hint("Enter", "edit"),
-                Hint("Ctrl+G", "back"),
+                Hint("↑↓", msg("ui.hints.select")),
+                Hint("←→", msg("ui.hints.adjust")),
+                Hint("Enter", msg("ui.hints.edit")),
+                Hint("Ctrl+G", msg("ui.hints.back")),
             ]
         elif state.page == "layout":
             help_text = [
-                Hint("Tab", "page"),
-                Hint("↑↓", "select"),
-                Hint("←→", "adjust"),
-                Hint("Enter", "edit"),
+                Hint("Tab", msg("ui.hints.page")),
+                Hint("↑↓", msg("ui.hints.select")),
+                Hint("←→", msg("ui.hints.adjust")),
+                Hint("Enter", msg("ui.hints.edit")),
             ]
         elif state.page == "settings":
             help_text = [
-                Hint("Tab", "page"),
-                Hint("↑↓", "select"),
-                Hint("←→", "adjust"),
-                Hint("Enter", "edit/save"),
+                Hint("Tab", msg("ui.hints.page")),
+                Hint("↑↓", msg("ui.hints.select")),
+                Hint("←→", msg("ui.hints.adjust")),
+                Hint("Enter", msg("ui.hints.edit_save")),
             ]
         else:
             actions = [
-                Hint("Enter/Ctrl+S", "save"),
-                Hint("Esc", "cancel"),
-                Hint("Ctrl+C", "interrupt"),
+                Hint("Enter/Ctrl+S", msg("ui.hints.save")),
+                Hint("Esc", msg("ui.hints.cancel")),
+                Hint("Ctrl+C", msg("ui.hints.interrupt")),
             ]
             help_text = [
-                Hint("Tab", "page"),
-                Hint("Space", "toggle"),
-                Hint("Ctrl+E", "format"),
-                Hint("↑↓", "select"),
-                Hint("←→", "order"),
+                Hint("Tab", msg("ui.hints.page")),
+                Hint("Space", msg("ui.hints.toggle")),
+                Hint("Ctrl+E", msg("ui.hints.format")),
+                Hint("↑↓", msg("ui.hints.select")),
+                Hint("←→", msg("ui.hints.order")),
             ]
-    _draw_shortcuts(screen, layout.actions_y, actions, width, mapper)
-    _draw_shortcuts(screen, layout.help_y, help_text, width, mapper)
+    _draw_shortcuts(
+        screen, layout.actions_y, actions, width, mapper, language=state.language
+    )
+    _draw_shortcuts(
+        screen, layout.help_y, help_text, width, mapper, language=state.language
+    )
     screen.refresh()
     return layout.list_height

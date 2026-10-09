@@ -1,9 +1,12 @@
+import { setMessage, failureMessage } from '../i18n/messages.ts';
+import { text as localizedText } from '../i18n/index.ts';
 /** Canonical Python descriptors drive advanced tool forms in the Client. */
 import { isDraft } from '../backend.ts';
 import { copyDraft } from '../editor/draft.ts';
 import type { Draft, EditorField } from '../generated-contracts.ts';
 import type { View } from '../session.ts';
 import type { SettingRow } from './settings.ts';
+import { fieldMessage } from '../i18n/presentation.ts';
 
 export interface FormRow extends SettingRow {
   spec: EditorField;
@@ -74,7 +77,7 @@ export function setFormValue(view: View, current: FormRow, raw: string | boolean
     value = spec.nullable && (raw === 'inherit' || raw === 'none') ? null :
       typeof raw === 'string' && /^\d+$/.test(raw) ? Number(raw) : NaN;
     if (value !== null && (!Number.isInteger(value) || Number(value) < spec.minimum || Number(value) > spec.maximum)) {
-      view.message = `${spec.label}: enter ${spec.minimum}–${spec.maximum}${spec.nullable ? ' or none' : ''}.`;
+      setMessage(view, "message", localizedText("native.lib.client.forms.enter", {label: fieldMessage(current, view), minimum: spec.minimum, maximum: spec.maximum, value3: (spec.nullable ? localizedText("native.lib.client.forms.or_none") : localizedText("native.lib.client.forms.detail"))}));
       return false;
     }
   } else if (spec.kind === 'text') value = spec.nullable && raw === 'inherit' ? null : raw;
@@ -103,7 +106,7 @@ export function setFormValue(view: View, current: FormRow, raw: string | boolean
     } else (option as unknown as Record<string, unknown>)[spec.key] = value;
   } else write(draft.display, spec.key, value);
   if (!isDraft(draft)) {
-    view.message = 'Invalid value: check thresholds, text and width constraints.';
+    setMessage(view, "message", localizedText("native.lib.client.forms.invalid_value_check_thresholds_text_and_width_constraints"));
     return false;
   }
   e.draft = draft;

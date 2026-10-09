@@ -25,9 +25,13 @@ import { parseBatch } from '../lib/client/messages.ts';
 import { handleKey } from '../lib/client/keys.ts';
 import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
 import type { PreviewBackground } from '../lib/preview-preferences.ts';
+import { text as localizedText, t } from '../lib/i18n/index.ts';
+import type { Language } from '../lib/i18n/index.ts';
+import { setMessage, failureMessage, setResult, viewMessage } from '../lib/i18n/messages.ts';
 
 const PANE = 'statusline-native';
 const COMMAND = 'statusline-configure-native';
+
 
 async function callBackend<O extends Operation>(
   $: EngineInterface,
@@ -60,7 +64,7 @@ async function callBackend<O extends Operation>(
     ) {
       throw new BackendError(
         'backend_version_mismatch',
-        'The installed Mod and backend versions differ. Reinstall matching resources.',
+        localizedText("native.hooks.register.the_installed_mod_and_backend_versions_differ_reinstall"),
       );
     }
     return result;
@@ -71,6 +75,7 @@ async function callBackend<O extends Operation>(
 
 function emptyView(): View {
   return {
+    language: 'en',
     previewBackground: DEFAULT_PREVIEW_BACKGROUND,
     editor: null,
     input: null,
@@ -95,6 +100,7 @@ function failureText(failure: unknown): string {
 }
 
 interface Session {
+  uiLanguage: Language;
   previewBackground: PreviewBackground;
   ownsCommand: boolean;
   view: View;
@@ -143,7 +149,7 @@ async function load(
 ) {
   discard(state);
   const opening = state.epoch;
-  state.view.busy = 'Loading configuration...';
+  setMessage(state.view, "busy", localizedText("native.hooks.register.loading_configuration"));
   $.ui.invalidate('ui.render');
   try {
     const description = await callBackend($, options, 'describe');
@@ -152,10 +158,22 @@ async function load(
     if (description.backend_version !== current.backend_version) {
       throw new BackendError(
         'backend_version_mismatch',
-        'The backend changed while opening. Reopen the editor.',
+        localizedText("native.hooks.register.the_backend_changed_while_opening_reopen_the_editor"),
       );
     }
     state.view.editor = new Editor(description, current);
+    try {
+      const preference = await callBackend($, options, 'read_ui_preferences');
+      if (state.epoch !== opening) return;
+      state.uiLanguage = preference.ui_language;
+      state.view.language = preference.ui_language;
+      if (preference.warning) setMessage(state.view, 'message', preference.warning);
+    } catch (failure) {
+      if (state.epoch === opening) {
+        state.view.language = state.uiLanguage;
+        setMessage(state.view, 'message', localizedText('native.language_read_failed', { detail: failureMessage(failure) }));
+      }
+    }
     try {
       const background = previewBackground(await $.store.get(PREVIEW_BACKGROUND_KEY));
       if (state.epoch === opening) {
@@ -165,22 +183,20 @@ async function load(
     } catch {
       if (state.epoch === opening) {
         state.view.previewBackground = state.previewBackground;
-        state.view.message = 'Preview background preference unavailable; using the last choice.';
+        setMessage(state.view, "message", localizedText("native.hooks.register.preview_background_preference_unavailable_using_the_last_choice"));
       }
     }
     if (!current.installed)
-      state.view.message =
-        'The renderer is not installed. Run claude-statusline install before saving.';
+      setMessage(state.view, "message", localizedText("native.hooks.register.the_renderer_is_not_installed_run_claude_statusline"));
     try {
       const rows = await $.config.list();
       if (state.epoch === opening) state.view.preferences = preferences(rows);
     } catch (failure) {
       if (state.epoch === opening)
-        state.view.preferencesError =
-          'Host preferences unavailable: ' + failureText(failure);
+        setMessage(state.view, "preferencesError", localizedText("native.hooks.register.host_preferences_unavailable", {value0: failureMessage(failure)}));
     }
   } catch (failure) {
-    if (state.epoch === opening) state.view.error = failureText(failure);
+    if (state.epoch === opening) setMessage(state.view, "error", failureMessage(failure));
   } finally {
     if (state.epoch === opening) {
       state.view.busy = '';
@@ -199,7 +215,7 @@ async function reconcile(
   if (!editor || !submitted || state.writing) return;
   const saving = state.epoch;
   state.writing = true;
-  state.view.busy = 'Checking saved configuration...';
+  setMessage(state.view, "busy", localizedText("native.hooks.register.checking_saved_configuration"));
   $.ui.invalidate('ui.render');
   try {
     const current = await callBackend($, options, 'read');
@@ -211,22 +227,19 @@ async function reconcile(
         JSON.stringify(editor.baseline.installation)
     ) {
       editor.committed(current);
-      state.view.message = 'The submitted tool configuration is saved.';
+      setMessage(state.view, "message", localizedText("native.hooks.register.the_submitted_tool_configuration_is_saved"));
       state.view.error = '';
     } else if (current.revision === submitted.revision) {
-      state.view.message =
-        'No tool changes were committed. Review the draft before saving again.';
+      setMessage(state.view, "message", localizedText("native.hooks.register.no_tool_changes_were_committed_review_the_draft"));
       state.view.error = '';
     } else {
-      state.view.error =
-        'configuration_conflict: Saved configuration differs. Discard the draft and reload before saving.';
+      setMessage(state.view, "error", localizedText("native.hooks.register.configuration_conflict_saved_configuration_differs_discard_the_draft"));
     }
     state.pendingSave = null;
     state.view.uncertain = false;
   } catch (failure) {
     if (state.epoch === saving)
-      state.view.error =
-        'Save outcome remains unknown. ' + failureText(failure);
+      setMessage(state.view, "error", localizedText("native.hooks.register.save_outcome_remains_unknown", {value0: failureMessage(failure)}));
   } finally {
     if (state.epoch === saving) {
       state.writing = false;
@@ -245,7 +258,7 @@ async function save(
   const editor = state.view.editor;
   if (!editor || state.writing || state.view.uncertain) return;
   if (!editor.acceptNumeric()) {
-    state.view.error = 'Correct the numeric fields before saving.';
+    setMessage(state.view, "error", localizedText("native.hooks.register.correct_the_numeric_fields_before_saving"));
     editor.page = 'settings';
     editor.setting = Object.keys(editor.fieldErrors)[0] || 'padding';
     $.ui.invalidate('ui.render');
@@ -258,7 +271,7 @@ async function save(
   };
   state.pendingSave = submitted;
   state.writing = true;
-  state.view.busy = 'Saving tool configuration...';
+  setMessage(state.view, "busy", localizedText("native.hooks.register.saving_tool_configuration"));
   state.view.error = '';
   let saved = false;
   $.ui.invalidate('ui.render');
@@ -271,13 +284,11 @@ async function save(
     editor.committed(result);
     state.pendingSave = null;
     saved = true;
-    state.view.message = result.changed
-      ? 'Tool configuration saved. Later statusline refreshes use these settings.'
-      : 'Tool configuration is already current.';
+    setMessage(state.view, "message", (result.changed ? localizedText("native.hooks.register.tool_configuration_saved_later_statusline_refreshes_use_these") : localizedText("native.hooks.register.tool_configuration_is_already_current")));
   } catch (failure) {
     if (state.epoch !== saving) return;
     const error = processFailure(failure);
-    state.view.error = failureText(error);
+    setMessage(state.view, "error", failureMessage(error));
     const refused = [
       'invalid_request',
       'invalid_configuration',
@@ -302,8 +313,7 @@ async function save(
       editor.advanced = true;
       editor.setting =
         'host-' + state.view.preferences.find(preferenceChanged)!.row.key;
-      state.view.message =
-        'Tool configuration saved. Host changes pending: a apply, f finish, q discard/close.';
+      setMessage(state.view, "message", localizedText("native.hooks.register.tool_configuration_saved_host_changes_pending_a_apply"));
       $.ui.invalidate('ui.render');
     } else await close($, state);
   }
@@ -316,24 +326,24 @@ async function transferDraft($: EngineInterface, state: Session, options: Plugin
   const epoch = state.epoch;
   e.pendingTransfer = null;
   state.writing = true;
-  state.view.busy = action === 'export' ? 'Exporting current draft (may be unsaved)...' : 'Loading draft...';
+  setMessage(state.view, "busy", (action === 'export' ? localizedText("native.hooks.register.exporting_current_draft_may_be_unsaved") : localizedText("native.hooks.register.loading_draft")));
   $.ui.invalidate('ui.render');
   try {
-    if (!e.acceptNumeric()) { state.view.message = 'Correct numeric fields first.'; return; }
+    if (!e.acceptNumeric()) { setMessage(state.view, "message", localizedText("native.hooks.register.correct_numeric_fields_first")); return; }
     const payload = action === 'preset' ? { draft: copyDraft(e.draft), preset: e.preset } : action === 'import' ? { draft: copyDraft(e.draft), path: e.path } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
     if (action === 'export') {
       const result = await callBackend($, options, action, payload);
-      if (state.epoch === epoch) state.view.message = 'Exported current draft (may be unsaved): ' + result.path;
+      if (state.epoch === epoch) setMessage(state.view, "message", localizedText("native.hooks.register.exported_current_draft_may_be_unsaved", {path: result.path}));
     } else {
       const result = await callBackend($, options, action, payload);
       if (state.epoch === epoch) {
         e.replaceDraft(result.draft);
-        state.view.message = 'Draft replaced; review preview and Save, or discard with q.';
+        setMessage(state.view, "message", localizedText("native.hooks.register.draft_replaced_review_preview_and_save_or_discard"));
         state.previewKey = '';
       }
     }
   } catch (failure) {
-    if (state.epoch === epoch) state.view.message = failureText(failure);
+    if (state.epoch === epoch) setMessage(state.view, "message", failureMessage(failure));
   } finally {
     if (state.epoch === epoch) {
       state.writing = false;
@@ -350,7 +360,7 @@ async function applyPreferences(
   if (state.writing || state.view.uncertain) return;
   const applying = state.epoch;
   state.writing = true;
-  state.view.busy = 'Applying host preferences...';
+  setMessage(state.view, "busy", localizedText("native.hooks.register.applying_host_preferences"));
   state.view.message = '';
   state.view.preferencesError = '';
   $.ui.invalidate('ui.render');
@@ -360,7 +370,7 @@ async function applyPreferences(
       if (state.epoch !== applying) return;
       const latest = rows.find((row) => row.key === preference.row.key);
       if (!latest) {
-        preference.result = 'Unavailable; not applied.';
+        setResult(preference, localizedText("native.hooks.register.unavailable_not_applied"));
         continue;
       }
       if (
@@ -369,19 +379,16 @@ async function applyPreferences(
         JSON.stringify(latest.provider) !==
           JSON.stringify(preference.row.provider)
       ) {
-        preference.result =
-          'Changed elsewhere; discard and reload before applying.';
+        setResult(preference, localizedText("native.hooks.register.changed_elsewhere_discard_and_reload_before_applying"));
         continue;
       }
       preference.row = latest;
       if (!canEdit(preference)) {
-        preference.result = latest.isLocked
-          ? 'Locked by host policy; not applied.'
-          : 'Unsupported control; not applied.';
+        setResult(preference, (latest.isLocked ? localizedText("native.hooks.register.locked_by_host_policy_not_applied") : localizedText("native.hooks.register.unsupported_control_not_applied")));
         continue;
       }
       if (!validPreferenceValue(preference)) {
-        preference.result = 'Value no longer fits this row; discard and reload.';
+        setResult(preference, localizedText("native.hooks.register.value_no_longer_fits_this_row_discard_and"));
         continue;
       }
       try {
@@ -391,24 +398,21 @@ async function applyPreferences(
         });
         if (state.epoch !== applying) return;
         if (result.deny !== undefined) {
-          preference.result = 'Refused: ' + result.deny;
+          setResult(preference, localizedText("native.hooks.register.refused", {deny: result.deny}));
         } else {
           preference.baseline = result.value;
           preference.value = result.value;
           preference.row = { ...latest, value: result.value };
-          preference.result = 'Applied.';
+          setResult(preference, localizedText("native.hooks.register.applied"));
         }
       } catch (failure) {
         if (state.epoch !== applying) return;
-        preference.result =
-          'Could not confirm application. ' +
-          failureText(failure) +
-          ' Discard and reload to check.';
+        setResult(preference, localizedText("native.hooks.register.could_not_confirm_application_discard_and_reload_to", {value0: failureMessage(failure)}));
       }
     }
   } catch (failure) {
     if (state.epoch === applying)
-      state.view.preferencesError = failureText(failure);
+      setMessage(state.view, "preferencesError", failureMessage(failure));
   } finally {
     if (state.epoch === applying) {
       state.writing = false;
@@ -421,9 +425,7 @@ async function applyPreferences(
 async function close($: EngineInterface, state: Session) {
   // A plugin's own API calls skip its hooks; guard programmatic close here too.
   if (state.writing || state.view.uncertain) {
-    state.view.error = state.writing
-      ? 'Wait for the apply result before closing.'
-      : 'Check the saved state before closing; the save outcome is unknown.';
+    setMessage(state.view, "error", (state.writing ? localizedText("native.hooks.register.wait_for_the_apply_result_before_closing") : localizedText("native.hooks.register.check_the_saved_state_before_closing_the_save")));
     $.ui.invalidate('ui.render');
     return;
   }
@@ -432,7 +434,7 @@ async function close($: EngineInterface, state: Session) {
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
   } catch (failure) {
-    state.view.error = failureText(failure);
+    setMessage(state.view, "error", failureMessage(failure));
     $.ui.invalidate('ui.render');
   }
 }
@@ -442,9 +444,11 @@ async function openEditor(
   state: Session,
   options: PluginOptions,
 ) {
+  const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.view.language ?? 'en', params);
+
   if (state.writing || state.view.uncertain)
     return {
-      text: 'Finish checking the pending save before reopening the editor.',
+      text: tr("native.hooks.register.finish_checking_the_pending_save_before_reopening_the"),
     };
   if (!state.placed) {
     const opening = state.epoch + 1;
@@ -453,7 +457,7 @@ async function openEditor(
   }
   const opened = await $.ui.open({
     id: PANE,
-    title: 'Statusline configuration',
+    title: tr("native.hooks.register.statusline_configuration"),
     focus: true,
     closeOnEscape: true,
     rows: 24,
@@ -465,7 +469,10 @@ async function openEditor(
 }
 
 export const register: Register = (on, options) => {
+  const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.view.language ?? 'en', params);
+
   const state: Session = {
+    uiLanguage: 'en',
     previewBackground: DEFAULT_PREVIEW_BACKGROUND,
     ownsCommand: false,
     view: emptyView(),
@@ -500,7 +507,7 @@ export const register: Register = (on, options) => {
     } else {
       await $.command.register({
         name: 'statusline-configure-native',
-        description: 'Open the experimental in-session Client TUI',
+        description: tr("native.hooks.register.open_the_experimental_in_session_client_tui"),
       });
       state.ownsCommand = true;
     }
@@ -518,9 +525,7 @@ export const register: Register = (on, options) => {
 
   on('ui.close', { id: 'statusline-native' }, async ($, e, next) => {
     if (e.origin.kind !== 'unload' && (state.writing || state.view.uncertain)) {
-      state.view.error = state.writing
-        ? 'Wait for the apply result before closing.'
-        : 'Check the saved state before closing; the save outcome is unknown.';
+      setMessage(state.view, "error", (state.writing ? localizedText("native.hooks.register.wait_for_the_apply_result_before_closing") : localizedText("native.hooks.register.check_the_saved_state_before_closing_the_save")));
       $.ui.invalidate('ui.render');
       return { deny: state.view.error };
     }
@@ -555,7 +560,7 @@ export const register: Register = (on, options) => {
     }
     const batch = parseBatch(e.data);
     if (!batch) {
-      state.view.error = 'Invalid Client input. Retry the Client region.';
+      setMessage(state.view, "error", localizedText("native.hooks.register.invalid_client_input_retry_the_client_region"));
       return { props: props(state) };
     }
     const run = state.inputChain.then(async () => {
@@ -564,8 +569,7 @@ export const register: Register = (on, options) => {
       for (const message of batch.events) {
         if (message.seq <= state.ack) continue;
         if (message.seq !== state.ack + 1) {
-          state.view.error =
-            'Client input sequence is incomplete. Retry the Client region.';
+          setMessage(state.view, "error", localizedText("native.hooks.register.client_input_sequence_is_incomplete_retry_the_client"));
           break;
         }
         state.ack = message.seq;
@@ -587,19 +591,36 @@ export const register: Register = (on, options) => {
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);
         else if (effect === 'retry') state.previewKey = '';
+        else if (effect === 'uiLanguage') {
+          const requested = state.view.language ?? 'en';
+          try {
+            const preference = await callBackend($, options, 'set_ui_language', {ui_language: requested});
+            if (state.epoch === currentEpoch) {
+              state.uiLanguage = preference.ui_language;
+              state.view.language = preference.ui_language;
+              if (state.view.localized?.error?.key === 'native.language_save_failed') state.view.error = '';
+              setMessage(state.view, 'message', localizedText('native.language_saved'));
+            }
+          } catch (failure) {
+            if (state.epoch === currentEpoch) {
+              state.view.language = state.uiLanguage;
+              setMessage(state.view, 'error', localizedText('native.language_save_failed', {detail: failureMessage(failure)}));
+            }
+          }
+        }
         else if (effect === 'previewBackground') {
           const background = previewBackground(state.view.previewBackground);
           try {
             await $.store.set(PREVIEW_BACKGROUND_KEY, background);
             if (state.epoch === currentEpoch) {
               state.previewBackground = background;
-              if (state.view.error.startsWith('Could not remember the preview background')) state.view.error = '';
-              state.view.message = 'Preview background remembered; status-line colors unchanged.';
+              if (state.view.localized?.error?.key === 'native.remember_preview_failed') state.view.error = '';
+              setMessage(state.view, "message", localizedText("native.hooks.register.preview_background_remembered_status_line_colors_unchanged"));
             }
           } catch {
             if (state.epoch === currentEpoch) {
               state.view.previewBackground = state.previewBackground;
-              state.view.error = 'Could not remember the preview background; previous choice kept.';
+              setMessage(state.view, 'error', localizedText('native.remember_preview_failed'));
             }
           }
         }
@@ -622,7 +643,7 @@ export const register: Register = (on, options) => {
     if (e.surface !== 'terminal')
       return ui.Text({
         ...styles.text,
-        children: ['Open this editor in the Claude Code terminal CLI.'],
+        children: [tr("native.hooks.register.open_this_editor_in_the_claude_code_terminal")],
       });
     const { Box, Text, Button, Client } = $.ui.resolve(e);
     const width = Math.max(2, Math.min(10000, e.props.bodyColumns));
@@ -656,7 +677,7 @@ export const register: Register = (on, options) => {
         } catch (failure) {
           if (state.epoch === requestedEpoch && state.previewKey === key) {
             state.view.preview = null;
-            state.view.previewError = failureText(failure);
+            setMessage(state.view, "previewError", failureMessage(failure));
           }
         } finally {
           if (state.epoch === requestedEpoch && state.previewKey === key) {
@@ -706,11 +727,11 @@ export const register: Register = (on, options) => {
             flexDirection: 'row',
             columnGap: 1,
             children: [
-              Button({ ...recoveryButton, key: 'retry-client', label: 'Retry', onPress: retry }),
+              Button({ ...recoveryButton, key: 'retry-client', label: tr("native.hooks.register.retry"), onPress: retry }),
               Button({
                 ...recoveryButton,
                 key: 'close',
-                label: 'Close',
+                label: tr("native.hooks.register.close"),
                 onPress: () => close($, state),
               }),
             ],
@@ -732,23 +753,23 @@ export const register: Register = (on, options) => {
           wrap: 'truncate',
           children: [
             width < MIN_COLUMNS || height < MIN_ROWS
-              ? 'Resize pane to 32x12. Draft kept.'
+              ? tr("native.hooks.register.resize_pane_to_32x12_draft_kept")
               : state.clientFault
-                ? 'Client failed. Received draft kept.'
-                : state.view.busy || 'Could not open the Client editor.',
+                ? tr("native.hooks.register.client_failed_received_draft_kept")
+                : viewMessage(state.view, 'busy') || tr("native.hooks.register.could_not_open_the_client_editor"),
           ],
         }),
         Text({
           ...styles.error,
           wrap: 'truncate',
-          children: [state.clientFault || state.view.error || ' '],
+          children: [state.clientFault || viewMessage(state.view, 'error') || ' '],
         }),
         ...(state.view.uncertain
           ? [
               Button({
                 ...recoveryButton,
                 key: 'reconcile',
-                label: 'Check saved state',
+                label: tr("native.hooks.register.check_saved_state"),
                 hotkey: 'k',
                 onPress: () => reconcile($, state, options),
               }),
@@ -759,7 +780,7 @@ export const register: Register = (on, options) => {
               Button({
                 ...recoveryButton,
                 key: 'retry-client',
-                label: 'Retry Client',
+                label: tr("native.hooks.register.retry_client"),
                 hotkey: 'r',
                 onPress: retry,
               }),
@@ -768,7 +789,7 @@ export const register: Register = (on, options) => {
         Button({
           ...recoveryButton,
           key: 'close',
-          label: 'Discard pending / Close',
+          label: tr("native.hooks.register.discard_pending_close"),
           hotkey: 'q',
           onPress: () => close($, state),
         }),

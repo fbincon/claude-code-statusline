@@ -57,6 +57,7 @@ class ConfigureOutcome:
     outcome: str
     exit_code: int
     message: str
+    language: str = "en"
 
 
 class ConfigureAborted(Exception):

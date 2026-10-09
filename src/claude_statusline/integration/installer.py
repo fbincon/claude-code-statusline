@@ -58,7 +58,9 @@ def _change_configuration(
                 )
             except config_features.FeatureConfigError as exc:
                 if experimental_slash_tui is None:
-                    raise integration_models.ConfigurationError(as_message(exc)) from exc
+                    raise integration_models.ConfigurationError(
+                        as_message(exc)
+                    ) from exc
         if action == "install" and experimental_slash_tui is not None:
             preference_enabled = experimental_slash_tui
 
@@ -84,7 +86,9 @@ def _change_configuration(
             and (external_command.exists() or external_command.is_symlink())
         ):
             raise integration_models.ConfigurationError(
-                msg('errors.installer.foreign_statusline_configure_command_rename_it_before')
+                msg(
+                    "errors.installer.foreign_statusline_configure_command_rename_it_before"
+                )
             )
         if action == "install":
             updated_settings = integration_install_plan._prepare_install(
@@ -132,7 +136,10 @@ def _change_configuration(
                 and not force
             ):
                 raise integration_models.ConfigurationError(
-                    msg('errors.installer.an_unrelated_skill_already_exists_rerun_with', SLASH_COMMAND_NAME=integration_models.SLASH_COMMAND_NAME)
+                    msg(
+                        "errors.installer.an_unrelated_skill_already_exists_rerun_with",
+                        SLASH_COMMAND_NAME=integration_models.SLASH_COMMAND_NAME,
+                    )
                 )
             desired_skill = integration_resources.render_skill(executable)
             desired_owner = integration_resources._skill_owner_bytes()
@@ -147,7 +154,10 @@ def _change_configuration(
                     and not force
                 ):
                     raise integration_models.ConfigurationError(
-                        msg('errors.installer.an_unrelated_skill_already_exists_rerun_with_2', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME)
+                        msg(
+                            "errors.installer.an_unrelated_skill_already_exists_rerun_with_2",
+                            EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME,
+                        )
                     )
                 desired_experimental_skill = (
                     integration_resources.render_experimental_skill()
@@ -336,7 +346,12 @@ def _change_configuration(
                 else ""
             )
             raise integration_models.ConfigurationError(
-                msg('errors.installer.cannot_statusline_configuration', action=action, exc=exc, suffix=suffix)
+                msg(
+                    "errors.installer.cannot_statusline_configuration",
+                    action=action,
+                    exc=exc,
+                    suffix=suffix,
+                )
             ) from exc
 
         if action == "uninstall":
@@ -393,14 +408,13 @@ def install_configuration(
     native_supported = (
         claude_version is not None and claude_version >= native_integration.MIN_VERSION
     )
-    fallback = "Use claude-statusline configure, /statusline-config, or claude-statusline config in the meantime."
+    fallback = msg("install.external_fallback")
     external_message = (
-        "External TUI disabled by preference."
+        msg("install.external_disabled")
         if not external_requested
-        else "External TUI enabled: /statusline-configure opens the existing platform terminal."
+        else msg("install.external_enabled")
         if external_supported
-        else "External TUI suspended: Claude Code 2.1.258+ is required; preference retained. "
-        "Rerun install after upgrading. " + fallback
+        else msg("install.external_suspended", fallback=fallback)
     )
     if (
         requested

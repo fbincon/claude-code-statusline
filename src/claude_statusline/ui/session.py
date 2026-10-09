@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import curses
 import os
 import signal
@@ -20,6 +22,7 @@ from claude_statusline.ui import keys as ui_keys
 from claude_statusline.ui import models as ui_models
 from claude_statusline.ui import forms
 from claude_statusline.ui import protocol
+from claude_statusline.config import ui_preferences
 from claude_statusline.config import presets, transfer
 from claude_statusline.config.display import DisplayConfigError
 
@@ -83,6 +86,20 @@ def _screen_loop(
                 return ui_models.CANCEL
             continue
         action = ui_keys.handle_key(state, key, viewport_height)
+        if state.pending_language is not None:
+            try:
+                if guard is not None:
+                    guard()
+                preference = ui_preferences.set_language(
+                    state.baseline.config_path.parent, state.pending_language
+                )
+                state.language = preference.ui_language
+                state.notice = ""
+            except (config_models.ConfigCommandError, OSError) as exc:
+                state.notice = str(exc)
+            state.pending_language = None
+            state.ensure_visible(viewport_height)
+            continue
         if action == "transfer":
             try:
                 draft = {
@@ -94,15 +111,21 @@ def _screen_loop(
                         state.display, state.preset
                     ).to_dict()
                     forms.replace_draft(state, draft)
-                    state.notice = "Preset expanded; Ctrl+S saves, Esc discards."
+                    state.notice = msg(
+                        "ui.session.preset_expanded_ctrl_s_saves_esc_discards"
+                    )
                 elif state.pending_action == "import":
                     forms.replace_draft(state, transfer.import_file(state.path, draft))
-                    state.notice = "Draft imported; Ctrl+S saves, Esc discards."
+                    state.notice = msg(
+                        "ui.session.draft_imported_ctrl_s_saves_esc_discards"
+                    )
                 else:
                     path = transfer.export_file(
                         state.path, draft, state.baseline.config_path.parent
                     )
-                    state.notice = "Exported current draft (may be unsaved): " + path
+                    state.notice = msg(
+                        "ui.session.exported_current_draft_may_be_unsaved", value0=path
+                    )
             except (DisplayConfigError, protocol.RequestError, OSError) as exc:
                 state.notice = str(exc)
             state.pending_action = None
@@ -155,22 +178,26 @@ def execute(
     output_stream: TextIO | None = None,
     deadline_at: float | None = None,
     guard: Callable[[], None] | None = None,
+    language: str | None = None,
 ) -> ui_models.ConfigureOutcome:
     """Run the editor and return a result without printing a final summary."""
     stdin = sys.stdin if input_stream is None else input_stream
     stdout = sys.stdout if output_stream is None else output_stream
     if not stdin.isatty() or not stdout.isatty():
         raise config_models.ConfigCommandError(
-            "configure requires both stdin and stdout to be terminals"
+            msg("ui.session.configure_requires_both_stdin_and_stdout_to")
         )
 
     baseline = config_service.read_effective_config(config_dir, executable)
     if not baseline.installed:
         raise config_models.ConfigCommandError(
-            "status line is not installed for this claude-statusline executable; "
-            "run claude-statusline install first"
+            msg("ui.session.status_line_is_not_installed_for_this")
         )
-    state = ui_editor.EditorState.from_effective(baseline)
+    preference = ui_preferences.read(config_dir)
+    state = ui_editor.EditorState.from_effective(
+        baseline, language=language or preference.ui_language
+    )
+    state.notice = preference.warning or ""
 
     previous_handlers = _install_signal_handlers()
     try:
@@ -186,17 +213,23 @@ def execute(
             return ui_models.ConfigureOutcome(
                 "interrupted",
                 128 + exc.signum,
-                "Interactive status line configuration interrupted; no changes were saved.",
+                msg(
+                    "ui.session.interactive_status_line_configuration_interrupted_no_changes"
+                ),
+                language=state.language,
             )
         except KeyboardInterrupt:
             return ui_models.ConfigureOutcome(
                 "interrupted",
                 130,
-                "Interactive status line configuration interrupted; no changes were saved.",
+                msg(
+                    "ui.session.interactive_status_line_configuration_interrupted_no_changes"
+                ),
+                language=state.language,
             )
         except curses.error as exc:
             raise config_models.ConfigCommandError(
-                f"cannot initialize terminal for configure: {exc}"
+                msg("ui.session.cannot_initialize_terminal_for_configure", exc=exc)
             ) from exc
     finally:
         _restore_signal_handlers(previous_handlers)
@@ -205,23 +238,31 @@ def execute(
         return ui_models.ConfigureOutcome(
             "interrupted",
             130,
-            "Interactive status line configuration interrupted; no changes were saved.",
+            msg(
+                "ui.session.interactive_status_line_configuration_interrupted_no_changes"
+            ),
+            language=state.language,
         )
     if action == ui_models.TIMED_OUT:
         return ui_models.ConfigureOutcome(
             "timed-out",
             0,
-            "Interactive status line configuration timed out; no changes were saved.",
+            msg("ui.session.interactive_status_line_configuration_timed_out_no"),
+            language=state.language,
         )
     if action == ui_models.CANCEL:
         return ui_models.ConfigureOutcome(
-            "cancelled", 0, "Status line configuration unchanged."
+            "cancelled",
+            0,
+            msg("ui.session.status_line_configuration_unchanged"),
+            language=state.language,
         )
     if deadline_at is not None and time.monotonic() >= deadline_at:
         return ui_models.ConfigureOutcome(
             "timed-out",
             0,
-            "Interactive status line configuration timed out; no changes were saved.",
+            msg("ui.session.interactive_status_line_configuration_timed_out_no"),
+            language=state.language,
         )
     try:
         result = ui_editor.save_configuration(
@@ -230,16 +271,17 @@ def execute(
     except ui_models.ConfigureAborted as exc:
         return exc.outcome
     message = (
-        "Status line configuration updated."
+        msg("ui.session.status_line_configuration_updated")
         if result.changed
-        else "Status line configuration already current."
+        else msg("ui.session.status_line_configuration_already_current")
     )
     if result.backup_dir is not None:
-        message += f" Backup: {result.backup_dir}"
+        message += msg("ui.session.backup", backup_dir=result.backup_dir)
     return ui_models.ConfigureOutcome(
         "updated" if result.changed else "already-current",
         0,
         message,
+        language=state.language,
     )
 
 
@@ -251,7 +293,7 @@ def _error_outcome(exc: BaseException) -> ui_models.ConfigureOutcome:
     return ui_models.ConfigureOutcome(
         "error",
         2,
-        f"Interactive status line configuration failed: {detail}",
+        msg("ui.session.interactive_status_line_configuration_failed", detail=detail),
     )
 
 
@@ -263,6 +305,7 @@ def run(
     output_stream: TextIO | None = None,
     environ: dict[str, str] | None = None,
     guard: Callable[[], None] | None = None,
+    language: str | None = None,
 ) -> int:
     """Preserve CLI output while supporting the private slash result bridge."""
     environment = os.environ if environ is None else environ
@@ -283,6 +326,7 @@ def run(
                 output_stream=output_stream,
                 deadline_at=deadline_at,
                 guard=guard,
+                language=language,
             )
         except Exception as exc:  # noqa: BLE001 - bridge errors must be reported
             outcome = _error_outcome(exc)
@@ -301,8 +345,11 @@ def run(
         executable,
         input_stream=input_stream,
         output_stream=output_stream,
+        language=language,
     )
     if outcome.outcome in {"updated", "already-current", "cancelled"}:
         stdout = sys.stdout if output_stream is None else output_stream
-        print(outcome.message, file=stdout)
+        from claude_statusline.i18n.translator import present
+
+        print(present(outcome.message, outcome.language), file=stdout)
     return outcome.exit_code

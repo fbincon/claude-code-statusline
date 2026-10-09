@@ -27,7 +27,7 @@ test('item changes preserve the baseline, exclusions and filtered ordering', () 
   editor.toggle('main', 'git');
   editor.toggle('main', 'current-dir');
   editor.filter('main', 'git');
-  expect(editor.visible('main').map((item) => item.id)).toEqual(['git', 'git-branch', 'git-changes', 'git-ahead-behind']);
+  expect(editor.visible('main').map((item) => item.id)).toEqual(['git', 'git-branch', 'git-changes', 'git-ahead-behind', 'lines-changed']);
   expect(editor.move('main', -1)).toBe(false);
   editor.filter('main', '');
   editor.selected.main = 'git';

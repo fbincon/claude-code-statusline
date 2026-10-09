@@ -221,3 +221,20 @@ test('keys follow theme text and stay bold while action labels stay regular, inc
     expect(displayWidth(clip('é中文', width)) <= width).toBe(true);
   }
 });
+
+test('both languages keep every page, form, numeric error and footer inside the cell viewport', () => {
+  for (const language of ['en','zh-CN'] as const) {
+    for (const [columns, rows] of [[32,12],[64,18],[64,20],[80,24],[120,30],[80,48]]) {
+      for (const page of ['main','subagents','settings','layout','detail']) {
+        const state=view(),e=state.editor!;
+        state.language=language;
+        if(page==='detail') {e.detail={scope:'main',id:'model-with-effort'};e.setting='item:label';}
+        else e.page=page as typeof e.page;
+        const output=render(draw(elements,state,columns!,rows!) as unknown as Node).join('\n');
+        expect(output).toContain(language==='zh-CN'?'配置状态栏':'Configure Status Line');
+        expect(output.includes('native.')).toBe(false);
+        expect(output.includes('fields.')).toBe(false);
+      }
+    }
+  }
+});

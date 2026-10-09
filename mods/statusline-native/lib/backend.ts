@@ -1,3 +1,4 @@
+import { text as localizedText } from './i18n/index.ts';
 /** Protocol parsing only. Host calls stay in the hooks entry for static analysis. */
 import {
   PROTOCOL_VERSION,
@@ -25,10 +26,10 @@ import type { LocalizedText } from './i18n/index.ts';
 export class BackendError extends Error {
   constructor(
     public readonly code: string,
-    message: string,
-    public readonly localization: LocalizedText | null = null,
+    message: string | LocalizedText,
+    public readonly localization: LocalizedText | null = typeof message === 'string' ? null : message,
   ) {
-    super(message);
+    super(typeof message === 'string' ? message : message.fallback);
   }
 }
 
@@ -54,7 +55,7 @@ function object(value: unknown): value is Record<string, unknown> {
 function fail(): never {
   throw new BackendError(
     'invalid_backend_result',
-    'The backend returned an invalid configuration result.',
+    localizedText("native.lib.backend.the_backend_returned_an_invalid_configuration_result"),
   );
 }
 
@@ -333,7 +334,7 @@ export function parseResponse<O extends Operation>(
   if (process.isStdoutTruncated) {
     throw new BackendError(
       'backend_output_truncated',
-      'The backend JSON was truncated by the host.',
+      localizedText("native.lib.backend.the_backend_json_was_truncated_by_the_host"),
     );
   }
   let response: unknown;
@@ -346,14 +347,13 @@ export function parseResponse<O extends Operation>(
         : 'The backend did not return complete JSON.';
     throw new BackendError(
       process.exitCode !== 0 ? 'backend_exit' : 'invalid_backend_json',
-      message +
-        ' Check the bound backend executable and reinstall matching resources.',
+      localizedText("native.lib.backend.check_the_bound_backend_executable_and_reinstall_matching", {message: message}),
     );
   }
   if (!object(response) || response.protocol_version !== PROTOCOL_VERSION) {
     throw new BackendError(
       'protocol_mismatch',
-      'The frontend and backend protocol versions do not match.',
+      localizedText("native.lib.backend.the_frontend_and_backend_protocol_versions_do_not"),
     );
   }
   if (
@@ -378,7 +378,7 @@ export function parseResponse<O extends Operation>(
   if (process.exitCode !== 0) {
     throw new BackendError(
       'backend_exit',
-      `The backend exited with status ${process.exitCode}.`,
+      localizedText("native.lib.backend.the_backend_exited_with_status", {exitCode: process.exitCode}),
     );
   }
   const result = response.result;
