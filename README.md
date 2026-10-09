@@ -107,13 +107,21 @@ Only Main was supplied for this batch. The existing interaction limitation and c
 Run `/statusline-configure` in Claude Code, or `claude-statusline configure` in a standalone terminal.
 
 <details>
-<summary>Linux: light and dark terminal backgrounds</summary>
+<summary>Linux: light/dark backgrounds and palette comparison</summary>
 
-Terminal-output reconstructions from dedicated GNOME Terminal profiles; [capture sources](docs/images/README.md#external-terminal-color-captures).
+Previews use the current terminal background and selected palette. Compare `ansi` in Settings when `default` looks faint. These are terminal-output reconstructions from dedicated GNOME profiles; [capture sources](docs/images/README.md#external-terminal-color-captures).
 
-![Linux external TUI on a light terminal](docs/images/tui/external/linux/themes/main-light.png)
+**Light background, Palette: default**
 
-![Linux external TUI on a dark terminal](docs/images/tui/external/linux/themes/main-dark.png)
+![Linux light terminal with default palette](docs/images/tui/external/linux/themes/main-light.png)
+
+**Light background, Palette: ansi**
+
+![Linux light terminal with ANSI palette](docs/images/tui/external/linux/themes/main-light-ansi.png)
+
+**Dark background, Palette: default**
+
+![Linux dark terminal with default palette](docs/images/tui/external/linux/themes/main-dark.png)
 
 </details>
 

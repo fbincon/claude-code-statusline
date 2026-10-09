@@ -105,13 +105,21 @@
 在 Claude Code 中运行 `/statusline-configure`，或在独立终端运行 `claude-statusline configure`。
 
 <details>
-<summary>Linux：浅色与深色终端背景</summary>
+<summary>Linux：浅色／深色背景与配色比较</summary>
 
-来自独立 GNOME Terminal 配置的终端输出重建图，见[捕获来源](docs/images/README.zh-CN.md#外部终端配色捕获)。
+预览使用当前终端背景和所选配色，`default` 显得过淡时可在 Settings 比较 `ansi`。图片为独立 GNOME 配置的终端输出重建，见[捕获来源](docs/images/README.zh-CN.md#外部终端配色捕获)。
 
-![Linux 浅色终端下的外部 TUI](docs/images/tui/external/linux/themes/main-light.png)
+**浅色背景，Palette: default**
 
-![Linux 深色终端下的外部 TUI](docs/images/tui/external/linux/themes/main-dark.png)
+![Linux 浅色终端与 default 配色](docs/images/tui/external/linux/themes/main-light.png)
+
+**浅色背景，Palette: ansi**
+
+![Linux 浅色终端与 ANSI 配色](docs/images/tui/external/linux/themes/main-light-ansi.png)
+
+**深色背景，Palette: default**
+
+![Linux 深色终端与 default 配色](docs/images/tui/external/linux/themes/main-dark.png)
 
 </details>
 
