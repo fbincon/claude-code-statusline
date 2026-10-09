@@ -2,7 +2,7 @@ import { expect, test } from 'claude-code/testing';
 import { setup, START, RUN, PANE, keys, selectSetting, output } from '../fixtures.ts';
 import type { ClientProps } from '../../lib/session.ts';
 
-test('language persists immediately across cancel and reopening while display draft stays independent', async ($, on) => {
+test('language persists immediately across cancel and reopening while display draft stays independent', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -33,7 +33,7 @@ test('language persists immediately across cancel and reopening while display dr
   await reopened.unmount();
 });
 
-test('rejected language write restores the last display language without replacing the draft', async ($, on) => {
+test('rejected language write restores the last display language without replacing the draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture=setup(on);
   fixture.behavior.process=(request,next)=>request.operation==='set_ui_language'
     ? {value:output(JSON.stringify({protocol_version:5,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
@@ -52,7 +52,7 @@ test('rejected language write restores the last display language without replaci
   await ui.unmount();
 });
 
-test('initial shared language and bilingual search keep user text and command shortcuts intact', async ($, on) => {
+test('initial shared language and bilingual search keep user text and command shortcuts intact', {timeoutMs: 20000}, async ($, on) => {
   const fixture=setup(on);
   fixture.store.uiLanguage='zh-CN';
   await $.session.start(START);

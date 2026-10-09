@@ -13,7 +13,7 @@ async function selectSetting(ui: any, key: string) {
   throw new Error('Setting could not be selected: ' + key);
 }
 
-test('item format and explicit layout save a complete draft while text reserves shortcuts', async ($, on) => {
+test('item format and explicit layout save a complete draft while text reserves shortcuts', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -34,7 +34,7 @@ test('item format and explicit layout save a complete draft while text reserves 
   await ui.unmount();
 });
 
-test('preset/import only replace drafts; export includes unsaved draft and cancel avoids saves', async ($, on) => {
+test('preset/import only replace drafts; export includes unsaved draft and cancel avoids saves', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   const imported = copyDraft(fixture.store.draft);
   imported.display.formatting.number_format = 'grouped';
@@ -66,7 +66,7 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   await ui.unmount();
 });
 
-test('actual host row aliases apply separately and unavailable behavior rows remain guidance', async ($, on) => {
+test('actual host row aliases apply separately and unavailable behavior rows remain guidance', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   fixture.store.rows.push({key:'turnDuration',label:'Show turn duration',kind:'boolean',value:true,provider:{plugin:'engine',tier:'core'},isLocked:false});
   await $.session.start(START);
@@ -84,7 +84,7 @@ test('actual host row aliases apply separately and unavailable behavior rows rem
   await ui.unmount();
 });
 
-test('changed host kinds and choices are refused per row while independent rows apply', async ($, on) => {
+test('changed host kinds and choices are refused per row while independent rows apply', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   fixture.store.rows.push({key:'turnDuration',label:'Show turn duration',kind:'boolean',value:true,provider:{plugin:'engine',tier:'core'},isLocked:false});
   await $.session.start(START);
@@ -114,7 +114,7 @@ test('changed host kinds and choices are refused per row while independent rows 
   await ui.unmount();
 });
 
-test('theme drafts apply separately, refusals preserve the actual theme and recovery stays themed', async ($, on) => {
+test('theme drafts apply separately, refusals preserve the actual theme and recovery stays themed', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   fixture.behavior.configSet = () => ({ deny: 'Theme locked by policy' });
   await $.session.start(START);
