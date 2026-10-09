@@ -5,7 +5,9 @@ import type {
   ReadResult,
   Scope,
 } from '../generated-contracts.ts';
-import { NUMERIC_FIELDS, numericValue } from './numeric.ts';
+import { NUMERIC_FIELDS, numericValue, numericDiagnostic } from './numeric.ts';
+import { t } from '../i18n/index.ts';
+import type { LocalizedText } from '../i18n/index.ts';
 import type { NumericField } from './numeric.ts';
 export type { NumericField } from './numeric.ts';
 
@@ -37,6 +39,7 @@ export class Editor {
   search: Record<Scope, string> = { main: '', subagent: '' };
   buffers: Record<NumericField, string>;
   fieldErrors: Partial<Record<NumericField, string>> = {};
+  fieldErrorMessages: Partial<Record<NumericField, LocalizedText>> = {};
 
   constructor(
     public readonly description: DescribeResult,
@@ -70,6 +73,7 @@ export class Editor {
     }
     this.buffers = { padding: String(draft.host.padding), refresh_interval: String(draft.host.refresh_interval) };
     this.fieldErrors = {};
+    this.fieldErrorMessages = {};
     this.activeNumeric = null;
     this.detail = null;
   }
@@ -100,7 +104,7 @@ export class Editor {
     return this.order[scope].flatMap((id) => {
       const item = catalog.get(id);
       return item &&
-        `${item.id} ${item.label} ${item.description}`
+        `${item.id} ${item.label} ${item.description} ${t('items.' + scope + '.' + item.id + '.label', 'zh-CN')} ${t('items.' + scope + '.' + item.id + '.description', 'zh-CN')} ${((scope === 'main' ? this.draft.display.item_options : this.draft.display.subagents.item_options) as Record<string, {label: string | null} | undefined>)[id]?.label ?? ''}`
           .toLocaleLowerCase()
           .includes(needle)
         ? [item]
@@ -151,12 +155,14 @@ export class Editor {
     this.activeNumeric = field;
     this.buffers[field] = value;
     delete this.fieldErrors[field];
+    delete this.fieldErrorMessages[field];
   }
 
   cancelNumeric(field?: NumericField): void {
     for (const key of field ? [field] : NUMERIC_FIELDS) {
       this.buffers[key] = String(this.draft.host[key]);
       delete this.fieldErrors[key];
+      delete this.fieldErrorMessages[key];
     }
     if (!field || this.activeNumeric === field) this.activeNumeric = null;
   }
@@ -166,8 +172,9 @@ export class Editor {
     const fields = field ? [field] : NUMERIC_FIELDS;
     for (const key of fields) {
       delete this.fieldErrors[key];
+      delete this.fieldErrorMessages[key];
       const parsed = numericValue(this.description, key, this.buffers[key]);
-      if (parsed.error !== undefined) this.fieldErrors[key] = parsed.error;
+      if (parsed.error !== undefined) { this.fieldErrors[key] = parsed.error; this.fieldErrorMessages[key] = numericDiagnostic(this.description, key); }
       else values[key] = parsed.value;
     }
     if (fields.some((key) => this.fieldErrors[key])) return false;

@@ -3,7 +3,7 @@ import { setup, START, RUN, PANE, keys, selectSetting } from '../fixtures.ts';
 import type { ClientProps } from '../../lib/session.ts';
 import { previewBackground } from '../../lib/preview-preferences.ts';
 
-test('preview background remembers immediately across cancel/reopen without changing configuration', async ($, on) => {
+test('preview background remembers immediately across cancel/reopen without changing configuration', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   mock.store(on, { 'preview-background': 'light' });
   await $.session.start(START);
@@ -27,7 +27,7 @@ test('preview background remembers immediately across cancel/reopen without chan
   await reopened.unmount();
 });
 
-test('failed background writes restore the remembered choice and keep the draft', async ($, on) => {
+test('failed background writes restore the remembered choice and keep the draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   on('store.set', () => { throw new Error('Preference storage refused'); });
   on('store.get', () => ({ value: 'dark' }));

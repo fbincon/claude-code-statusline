@@ -26,11 +26,14 @@ from claude_statusline.config import display, models
 from claude_statusline.ui import editor, forms, layout
 
 if __package__:
-    from tools.terminal_colors import TERMINAL_THEMES, XTERM_PALETTE, cell_colors, contrast
+    from tools.terminal_colors import (
+        TERMINAL_THEMES,
+        XTERM_PALETTE,
+        cell_colors,
+        contrast,
+    )
 else:
     from terminal_colors import TERMINAL_THEMES, XTERM_PALETTE, cell_colors, contrast
-
-
 
 
 def verify_colors(cells, columns, rows, foreground, background):
@@ -73,6 +76,7 @@ def run_case(
     rows: int,
     commit: str,
     terminal_theme="dark",
+    language_only=False,
 ) -> dict:
     import fcntl
     import pty
@@ -133,6 +137,7 @@ def run_case(
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
     raw = bytearray()
     captures = []
+    language = "en"
 
     def wait_for(text, *, after=0):
         deadline = time.monotonic() + 15
@@ -195,6 +200,7 @@ def run_case(
             "cells": cells,
             "surface": "external",
             "source_commit": commit,
+            "ui_language": language,
             "sample_data": True,
             "terminal_theme": terminal_theme,
             "terminal_foreground": foreground,
@@ -221,6 +227,53 @@ def run_case(
     try:
         wait_for("Preview (sample data)")
         capture("main")
+        if language_only:
+            send(b"\t\t", "Settings / global options")
+            state.page = "settings"
+            send(b"\x1bOC", "Colors: off")
+            state.display = state.display.with_updates(use_colors=False)
+            index = next(
+                i
+                for i, row in enumerate(forms.rows(state))
+                if row["key"] == "ui-language"
+            )
+            send(b"\x1bOH" + b"\x1bOB" * index, "Interface language")
+            capture("language-settings-en")
+            send(b"\x1bOC", "配置状态栏")
+            language = state.language = "zh-CN"
+            assert (
+                json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
+                == "zh-CN"
+            )
+            wait_for("颜色：关闭")
+            capture("language-settings-zh")
+            for data, page, label in (
+                (b"\t", "layout", "布局／分行与适配"),
+                (b"\t", "items", "主状态栏项目"),
+                (b"\t", "subagents", "子代理项目"),
+            ):
+                send(data, label)
+                state.page = page
+                capture("language-" + page + "-zh")
+            send(b"\x1b", "状态栏显示配置保持原状")
+            assert process.wait(timeout=5) == 0
+            assert (config_path.read_bytes(), settings_path.read_bytes()) == initial
+            assert (
+                json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
+                == "zh-CN"
+            )
+            return {
+                "columns": columns,
+                "rows": rows,
+                "captures": captures,
+                "checks": [
+                    "english-to-chinese-through-real-keys",
+                    "unsaved-color-draft-preserved",
+                    "language-retained-on-cancel",
+                    "display-and-host-byte-identical",
+                    "chinese-pages-and-cell-bounds",
+                ],
+            }
         send(b"\t", "Subagent items")
         capture("subagents")
         send(b"\t", "Settings / global options")
@@ -346,6 +399,11 @@ def main() -> int:
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--commit", required=True)
     parser.add_argument(
+        "--language-only",
+        action="store_true",
+        help="Exercise immediate language switching and draft cancellation",
+    )
+    parser.add_argument(
         "--terminal-theme",
         choices=tuple(TERMINAL_THEMES),
         default="dark",
@@ -374,7 +432,15 @@ def main() -> int:
     }
     for columns, rows in ((64, 18), (64, 20), (80, 24), (120, 30), (80, 48)):
         report["cases"].append(
-            run_case(backend, root, columns, rows, args.commit, args.terminal_theme)
+            run_case(
+                backend,
+                root,
+                columns,
+                rows,
+                args.commit,
+                args.terminal_theme,
+                args.language_only,
+            )
         )
     (root / "report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

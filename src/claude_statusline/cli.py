@@ -10,10 +10,13 @@ from ._version import __version__
 
 def _common_config_argument(parser) -> None:
     from claude_statusline.i18n import message as msg
+
     parser.add_argument(
         "--config-dir",
         metavar="PATH",
-        help=msg('cli.help.claude_configuration_directory_default_claude_config_dir_or'),
+        help=msg(
+            "cli.help.claude_configuration_directory_default_claude_config_dir_or"
+        ),
     )
 
 
@@ -28,8 +31,9 @@ def build_parser(language="en"):
         prog="claude-statusline",
         description=msg("cli.description"),
     )
-    parser.add_argument("--language", choices=("en", "zh-CN"),
-                        help=msg("cli.help.language_override"))
+    parser.add_argument(
+        "--language", choices=("en", "zh-CN"), help=msg("cli.help.language_override")
+    )
     parser.add_argument(
         "--version",
         action="version",
@@ -38,43 +42,52 @@ def build_parser(language="en"):
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    subparsers.add_parser("render", help=msg('cli.help.render_status_line_json_received_on_stdin'))
     subparsers.add_parser(
-        "render-subagents", help=msg('cli.help.render_subagent_status_line_tasks_as_ndjson')
+        "render", help=msg("cli.help.render_status_line_json_received_on_stdin")
     )
     subparsers.add_parser(
-        "hook", help=msg('cli.help.record_a_claude_lifecycle_hook_received_on_stdin')
+        "render-subagents",
+        help=msg("cli.help.render_subagent_status_line_tasks_as_ndjson"),
     )
     subparsers.add_parser(
-        "slash-hook", help=msg('cli.help.handle_claude_statusline_slash_command_hooks')
+        "hook", help=msg("cli.help.record_a_claude_lifecycle_hook_received_on_stdin")
+    )
+    subparsers.add_parser(
+        "slash-hook", help=msg("cli.help.handle_claude_statusline_slash_command_hooks")
     )
     config_commands.add_config_parser(subparsers)
     ui_parser = subparsers.add_parser(
-        "ui", help=msg('cli.help.serve_one_internal_json_configuration_request')
+        "ui", help=msg("cli.help.serve_one_internal_json_configuration_request")
     )
     _common_config_argument(ui_parser)
     runtime_parser = subparsers.add_parser(
-        "runtime", help=msg('cli.help.serve_one_independent_live_observation_json_request')
+        "runtime",
+        help=msg("cli.help.serve_one_independent_live_observation_json_request"),
     )
     _common_config_argument(runtime_parser)
 
     configure_parser = subparsers.add_parser(
-        "configure", help=msg('cli.help.open_the_interactive_status_line_configuration_editor')
+        "configure",
+        help=msg("cli.help.open_the_interactive_status_line_configuration_editor"),
     )
     _common_config_argument(configure_parser)
 
     install_parser = subparsers.add_parser(
-        "install", help=msg('cli.help.configure_claude_code_to_use_this_status_line')
+        "install", help=msg("cli.help.configure_claude_code_to_use_this_status_line")
     )
     _common_config_argument(install_parser)
     install_parser.add_argument(
-        "--dry-run", action="store_true", help=msg('cli.help.report_whether_settings_would_change')
+        "--dry-run",
+        action="store_true",
+        help=msg("cli.help.report_whether_settings_would_change"),
     )
     install_parser.add_argument(
         "--force",
         action="store_true",
         help=(
-            msg('cli.help.replace_conflicting_statusline_and_subagentstatusline_settings_or_unrelated')
+            msg(
+                "cli.help.replace_conflicting_statusline_and_subagentstatusline_settings_or_unrelated"
+            )
         ),
     )
     experimental_group = install_parser.add_mutually_exclusive_group()
@@ -83,13 +96,17 @@ def build_parser(language="en"):
         dest="experimental_slash_tui",
         action="store_true",
         default=None,
-        help=msg('cli.help.enable_external_statusline_configure_stable_default_suspend_on'),
+        help=msg(
+            "cli.help.enable_external_statusline_configure_stable_default_suspend_on"
+        ),
     )
     experimental_group.add_argument(
         "--no-experimental-slash-tui",
         dest="experimental_slash_tui",
         action="store_false",
-        help=msg('cli.help.persistently_disable_the_external_statusline_configure_entry'),
+        help=msg(
+            "cli.help.persistently_disable_the_external_statusline_configure_entry"
+        ),
     )
     native_group = install_parser.add_mutually_exclusive_group()
     native_group.add_argument(
@@ -97,13 +114,15 @@ def build_parser(language="en"):
         dest="native_editor",
         action="store_true",
         default=None,
-        help=msg('cli.help.enable_the_in_session_client_tui_stable_default'),
+        help=msg("cli.help.enable_the_in_session_client_tui_stable_default"),
     )
     native_group.add_argument(
         "--no-native-editor",
         dest="native_editor",
         action="store_false",
-        help=msg('cli.help.persistently_disable_and_remove_owned_native_editor_integration'),
+        help=msg(
+            "cli.help.persistently_disable_and_remove_owned_native_editor_integration"
+        ),
     )
     runtime_group = install_parser.add_mutually_exclusive_group()
     runtime_group.add_argument(
@@ -111,31 +130,44 @@ def build_parser(language="en"):
         dest="live_metrics",
         action="store_true",
         default=None,
-        help=msg('cli.help.enable_independent_runtime_collection_opt_in_claude_code'),
+        help=msg("cli.help.enable_independent_runtime_collection_opt_in_claude_code"),
     )
     runtime_group.add_argument(
         "--no-live-metrics",
         dest="live_metrics",
         action="store_false",
-        help=msg('cli.help.persistently_disable_independent_runtime_collection'),
+        help=msg("cli.help.persistently_disable_independent_runtime_collection"),
     )
 
     timing_group = install_parser.add_mutually_exclusive_group()
-    timing_group.add_argument("--native-timing", action="store_true", default=None,
-                              help=msg('cli.help.enable_native_task_timing_default_on_compatible_hosts'))
-    timing_group.add_argument("--no-native-timing", dest="native_timing", action="store_false",
-                              help=msg('cli.help.disable_native_timing_while_retaining_hook_transcript_timing'))
+    timing_group.add_argument(
+        "--native-timing",
+        action="store_true",
+        default=None,
+        help=msg("cli.help.enable_native_task_timing_default_on_compatible_hosts"),
+    )
+    timing_group.add_argument(
+        "--no-native-timing",
+        dest="native_timing",
+        action="store_false",
+        help=msg(
+            "cli.help.disable_native_timing_while_retaining_hook_transcript_timing"
+        ),
+    )
 
     uninstall_parser = subparsers.add_parser(
-        "uninstall", help=msg('cli.help.remove_only_this_tool_s_claude_code_configuration')
+        "uninstall",
+        help=msg("cli.help.remove_only_this_tool_s_claude_code_configuration"),
     )
     _common_config_argument(uninstall_parser)
     uninstall_parser.add_argument(
-        "--dry-run", action="store_true", help=msg('cli.help.report_whether_settings_would_change')
+        "--dry-run",
+        action="store_true",
+        help=msg("cli.help.report_whether_settings_would_change"),
     )
 
     doctor_parser = subparsers.add_parser(
-        "doctor", help=msg('cli.help.diagnose_the_installation_without_changing_files')
+        "doctor", help=msg("cli.help.diagnose_the_installation_without_changing_files")
     )
     _common_config_argument(doctor_parser)
     return parser
@@ -143,18 +175,37 @@ def build_parser(language="en"):
 
 def _print_change(result, dry_run: bool, language="en") -> None:
     from claude_statusline.i18n.translator import present, translate
+
     if result.native_state is not None:
         print(translate("cli.native_state", language, state=result.native_state))
     for detail in result.messages:
         print(present(detail, language))
     if dry_run:
-        state = translate("state.would_change" if result.changed else "state.correct", language)
-        print(translate("cli.change", language, action=result.action, state=state, path=result.settings_path))
+        state = translate(
+            "state.would_change" if result.changed else "state.correct", language
+        )
+        print(
+            translate(
+                "cli.change",
+                language,
+                action=result.action,
+                state=state,
+                path=result.settings_path,
+            )
+        )
         for path in result.changed_paths:
             print(translate("cli.artifact", language, path=path))
         return
     state = translate("state.updated" if result.changed else "state.correct", language)
-    print(translate("cli.change", language, action=result.action, state=state, path=result.settings_path))
+    print(
+        translate(
+            "cli.change",
+            language,
+            action=result.action,
+            state=state,
+            path=result.settings_path,
+        )
+    )
     for path in result.changed_paths:
         print(translate("cli.artifact", language, path=path))
     if result.backup_dir is not None:
@@ -179,7 +230,9 @@ def _language(arguments):
     except ValueError:
         return "en", None
     prefs = ui_preferences.read(resolve_config_dir(known.config_dir))
-    return (known.language if known.language in LANGUAGES else prefs.ui_language), prefs.warning
+    return (
+        known.language if known.language in LANGUAGES else prefs.ui_language
+    ), prefs.warning
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -245,13 +298,17 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if language_warning:
-        print(translate("cli.warning", language, detail=language_warning), file=sys.stderr)
+        print(
+            translate("cli.warning", language, detail=language_warning), file=sys.stderr
+        )
 
     if args.command == "configure" and (
         not sys.stdin.isatty() or not sys.stdout.isatty()
     ):
         print(
-            translate("cli.error", language, detail=msg("cli.configure_requires_terminal")),
+            translate(
+                "cli.error", language, detail=msg("cli.configure_requires_terminal")
+            ),
             file=sys.stderr,
         )
         return 2
@@ -277,7 +334,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "install":
             if not _platform.is_supported_platform():
                 raise installer.ConfigurationError(
-                    msg('errors.cli.supported_platforms_are_linux_wsl_windows_and')
+                    msg("errors.cli.supported_platforms_are_linux_wsl_windows_and")
                 )
             result = installer.install_configuration(
                 config_dir,
@@ -294,17 +351,20 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "configure":
             if not _platform.is_supported_platform():
                 raise installer.ConfigurationError(
-                    msg('errors.cli.supported_platforms_are_linux_wsl_windows_and')
+                    msg("errors.cli.supported_platforms_are_linux_wsl_windows_and")
                 )
             # Keep curses out of render, hook, and slash-hook startup paths.
             try:
                 from . import interactive_config
             except ImportError as exc:
                 raise installer.ConfigurationError(
-                    msg('errors.cli.configure_requires_an_available_curses_backend', exc=exc)
+                    msg(
+                        "errors.cli.configure_requires_an_available_curses_backend",
+                        exc=exc,
+                    )
                 ) from exc
 
-            return interactive_config.run(config_dir, executable)
+            return interactive_config.run(config_dir, executable, language=language)
         if args.command == "uninstall":
             result = installer.uninstall_configuration(
                 config_dir, executable, dry_run=args.dry_run
@@ -318,7 +378,9 @@ def main(argv: list[str] | None = None) -> int:
             return 1 if any(item.level == "ERROR" for item in diagnostics) else 0
         if args.command == "config":
             print(
-                config_commands.execute_config_namespace(args, config_dir, executable, language=language)
+                config_commands.execute_config_namespace(
+                    args, config_dir, executable, language=language
+                )
             )
             return 0
     except (installer.ConfigurationError, config_commands.ConfigCommandError) as exc:

@@ -209,6 +209,7 @@ export function setup(on: On) {
   const closes: unknown[] = [];
   const behavior: Behavior = {};
   const store = {
+    uiLanguage: 'en' as 'en' | 'zh-CN',
     draft: copyDraft(BASE),
     revision: '0'.repeat(64),
     rows: hostRows(),
@@ -279,6 +280,12 @@ export function setup(on: On) {
         return { value: reply(description()) };
       if (request.operation === 'read')
         return { value: reply(readResult(store.draft, store.revision)) };
+      if (request.operation === 'read_ui_preferences')
+        return { value: reply({schema_version: 1, ui_language: store.uiLanguage ?? 'en', warning: null}) };
+      if (request.operation === 'set_ui_language') {
+        store.uiLanguage = request.payload.ui_language;
+        return { value: reply({schema_version: 1, ui_language: store.uiLanguage, warning: null}) };
+      }
       if (request.operation === 'apply') {
         store.draft = copyDraft(request.payload.draft);
         store.revision = '1'.repeat(64);

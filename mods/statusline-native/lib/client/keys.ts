@@ -1,3 +1,5 @@
+import { setMessage, failureMessage } from '../i18n/messages.ts';
+import { text as localizedText } from '../i18n/index.ts';
 import type { ClientKeyEvent } from 'claude-code';
 import type { View } from '../session.ts';
 import { settingRows, adjustSetting } from './settings.ts';
@@ -6,7 +8,7 @@ import { canEdit, validPreferenceValue } from '../preferences.ts';
 import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
 
-export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | null;
+export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -31,18 +33,18 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     if (event.ctrl && key.toLowerCase() === 'u') input.buffer = '';
     else if (key === 'return') {
       if (input.kind === 'path') {
-        if (!input.buffer.trim()) { view.message = 'Enter a file path.'; return null; }
+        if (!input.buffer.trim()) { setMessage(view, "message", localizedText("native.lib.client.keys.enter_a_file_path")); return null; }
         e.path = input.buffer; e.pendingTransfer = input.action; view.input = null; return 'transfer';
       }
       const field = formRows(view).find((row) => row.key === input.key);
       if (field && !setFormValue(view, field, input.buffer)) return null;
       if (!field) {
         const p = view.preferences.find((p) => 'host-' + p.row.key === input.key);
-        if (!p || !canEdit(p)) { view.message = 'Host row is unavailable or locked.'; return null; }
+        if (!p || !canEdit(p)) { setMessage(view, "message", localizedText("native.lib.client.keys.host_row_is_unavailable_or_locked")); return null; }
         const previous = p.value;
         p.value = p.row.kind === 'number' ? Number(input.buffer) : input.buffer;
         if (!validPreferenceValue(p) || (p.row.kind === 'number' && !input.buffer.trim())) {
-          p.value = previous; view.message = 'Invalid host value.'; return null;
+          p.value = previous; setMessage(view, "message", localizedText("native.lib.client.keys.invalid_host_value")); return null;
         }
         p.result = '';
       }
@@ -103,7 +105,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   else if (key === '/' && !isSettings) { view.input = {kind:'search',scope,original:e.search[scope],selected:e.selected[scope]}; return null; }
   else if (key === 'left' || key === 'right') {
     if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1); else e.move(scope, key === 'left' ? -1 : 1);
-    return isSettings && e.setting === 'preview-background' ? 'previewBackground' : null;
+    return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) e.toggle(scope, selected);
     else if (e.setting === 'preset-apply') { e.pendingTransfer = 'preset'; return 'transfer'; }
@@ -118,7 +120,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
       else if (p && canEdit(p) && (p.row.kind === 'text' || p.row.kind === 'number')) view.input = {kind:'field',key:e.setting,buffer:String(p.value)};
       else adjustSetting(view, 1);
     }
-    return isSettings && e.setting === 'preview-background' ? 'previewBackground' : null;
+    return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else return null;
   const next = keys[Math.max(0, Math.min(keys.length - 1, index))] || '';
   if (isSettings) e.setting = next; else e.selected[scope] = next;

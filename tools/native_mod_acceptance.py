@@ -36,7 +36,12 @@ def current_theme(config: Path) -> str:
 
 
 def prepare(
-    root: Path, backend: Path, *, persistent: bool = False, claude: str = "claude", theme: str = "dark"
+    root: Path,
+    backend: Path,
+    *,
+    persistent: bool = False,
+    claude: str = "claude",
+    theme: str = "dark",
 ) -> tuple[Path, dict[str, str]]:
     root.mkdir(mode=0o700, parents=True, exist_ok=False)
     config = root / "Claude config 中文"
@@ -77,10 +82,21 @@ def prepare(
     if theme == "custom:statusline-validation-light":
         themes = config / "themes"
         themes.mkdir()
-        (themes / "statusline-validation-light.json").write_text(json.dumps({
-            "name": "Statusline validation light", "base": "light",
-            "overrides": {"text": "#213547", "inverseText": "#f6f3ec", "inactive": "#4b5563", "suggestion": "#2458a6"},
-        }), encoding="utf-8")
+        (themes / "statusline-validation-light.json").write_text(
+            json.dumps(
+                {
+                    "name": "Statusline validation light",
+                    "base": "light",
+                    "overrides": {
+                        "text": "#213547",
+                        "inverseText": "#f6f3ec",
+                        "inactive": "#4b5563",
+                        "suggestion": "#2458a6",
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
     env = dict(
         os.environ,
         CLAUDE_CONFIG_DIR=str(config),
@@ -135,6 +151,7 @@ def run_pty(
     advanced: bool = False,
     theme_only: bool = False,
     terminal_theme: str = "dark",
+    language_only: bool = False,
 ) -> dict:
     import fcntl
     import pty
@@ -169,6 +186,7 @@ def run_pty(
         timeout=30,
     )
     settings_before = (config / "settings.json").read_bytes()
+    language = "en"
     terminal_rows = 48 if columns < 110 else 30
     master, slave = pty.openpty()
     fcntl.ioctl(
@@ -195,6 +213,8 @@ def run_pty(
     if tmux_socket:
         command_argv = [
             "tmux",
+            "-T",
+            "RGB",
             "-f",
             "/dev/null",
             "-S",
@@ -277,70 +297,140 @@ def run_pty(
             for row in range(screen.lines)
         ]
         if "external" not in name:
+
             def find_cells(label):
+                from claude_statusline.rendering.formatters import display_width
+
+                size = display_width(label)
                 return next(
-                    ((index, row[col : col + len(label)])
-                     for index, row in enumerate(cells)
-                     for col in range(columns - len(label) + 1)
-                     if "".join(cell["data"] for cell in row[col : col + len(label)]) == label),
+                    (
+                        (index, row[col : col + size])
+                        for index, row in enumerate(cells)
+                        for col in range(columns - size + 1)
+                        if "".join(cell["data"] for cell in row[col : col + size])
+                        == label
+                    ),
                     None,
                 )
 
-            heading = find_cells("Configure Status Line")
-            preview = find_cells("Preview · sample data")
+            from claude_statusline.i18n import translate as t
+
+            heading = find_cells(
+                t("native.ui.client.draw.configure_status_line", language)
+            )
+            preview = find_cells(t("native.preview.heading", language))
             assert heading and preview, "Client title or preview heading is missing"
             assert heading[1][0]["bold"], "Client heading lost its bold style"
-            assert heading[1][0]["fg"] == preview[1][0]["fg"], "Client heading must match the preview heading color"
-            footer = next(
-                ((index, row[col : col + 6]) for index, row in enumerate(cells) for col in range(columns - 5)
-                 if "".join(cell["data"] for cell in row[col : col + 6]) == "S save"),
-                None,
+            assert heading[1][0]["fg"] == preview[1][0]["fg"], (
+                "Client heading must match the preview heading color"
             )
+            footer = find_cells("S " + t("ui.hints.save", language))
             assert footer is not None, "Native action row is missing from capture"
             key_cell = footer[1][0]
-            assert key_cell["bold"] and not key_cell["blink"], "Save key lost its emphasis"
+            assert key_cell["bold"] and not key_cell["blink"], (
+                "Save key lost its emphasis"
+            )
             foreground, background = TERMINAL_THEMES[terminal_theme]
-            assert contrast(*cell_colors(key_cell, foreground, background, XTERM_PALETTE)) >= 4.5, "Save key is unreadable against its actual background"
-            assert all(not cell["bold"] for cell in footer[1][2:]), "Save description inherited the key's bold style"
+            assert (
+                contrast(*cell_colors(key_cell, foreground, background, XTERM_PALETTE))
+                >= 4.5
+            ), "Save key is unreadable against its actual background"
+            assert all(not cell["bold"] for cell in footer[1][2:]), (
+                "Save description inherited the key's bold style"
+            )
             description_cell = footer[1][2]
-            description_fg, description_bg = cell_colors(description_cell, foreground, background, XTERM_PALETTE)
-            assert description_fg != description_bg, "Save description matches its background"
+            description_fg, description_bg = cell_colors(
+                description_cell, foreground, background, XTERM_PALETTE
+            )
+            assert description_fg != description_bg, (
+                "Save description matches its background"
+            )
             # ANSI slots are user-defined; the capture palette is illustrative.
             # Numeric contrast is evidence only for explicit RGB cells.
             if re.fullmatch(r"[0-9a-fA-F]{6}", description_cell["fg"]):
-                assert contrast(description_fg, description_bg) >= 4.5, "Save description is unreadable"
+                assert contrast(description_fg, description_bg) >= 4.5, (
+                    "Save description is unreadable"
+                )
             frame = cells[preview[0]]
-            left = next((i for i, cell in enumerate(frame) if cell["data"] == "╭"), None)
+            left = next(
+                (i for i, cell in enumerate(frame) if cell["data"] == "╭"), None
+            )
             if left is not None:
-                right = next(i for i in range(left + 1, columns) if frame[i]["data"] == "╮")
-                bottom = next(i for i in range(preview[0] + 1, len(cells)) if cells[i][left]["data"] == "╰")
+                right = next(
+                    i for i in range(left + 1, columns) if frame[i]["data"] == "╮"
+                )
+                bottom = next(
+                    i
+                    for i in range(preview[0] + 1, len(cells))
+                    if cells[i][left]["data"] == "╰"
+                )
                 start_column = left + 1
             else:
-                start_column = next(i for i, cell in enumerate(frame) if cell["data"] == "─")
-                right = max(i for i, cell in enumerate(frame) if cell["data"] == "─") + 1
+                start_column = next(
+                    i for i, cell in enumerate(frame) if cell["data"] == "─"
+                )
+                right = (
+                    max(i for i, cell in enumerate(frame) if cell["data"] == "─") + 1
+                )
                 bottom = footer[0]
-            sample_cells = [cell for row in cells[preview[0] + 1:bottom] for cell in row[start_column:right]]
-            assert sample_cells and all(cell["bg"] == background.removeprefix("#") and not cell["reverse"] for cell in sample_cells), "Preview background differs from the chosen terminal fixture"
+            sample_cells = [
+                cell
+                for row in cells[preview[0] + 1 : bottom]
+                for cell in row[start_column:right]
+            ]
+            assert sample_cells and all(
+                cell["bg"] == background.removeprefix("#") and not cell["reverse"]
+                for cell in sample_cells
+            ), "Preview background differs from the chosen terminal fixture"
             if palette is not None:
-                label = "Palette: " + palette if colors else "Colors: off"
-                assert label in "".join(cell["data"] for cell in frame), "Preview caption does not match the palette draft"
+                label = (
+                    t("native.preview.palette", language, palette=palette)
+                    if colors
+                    else t("ui.drawing.colors_off", language)
+                )
+                assert label in "".join(cell["data"] for cell in frame), (
+                    "Preview caption does not match the palette draft"
+                )
             if not colors:
-                assert all(cell["fg"] == "default" for cell in sample_cells), "Colors off inherited host text"
-            help_text = " ".join("".join(cell["data"] for cell in row) for row in cells[footer[0]:])
+                assert all(cell["fg"] == "default" for cell in sample_cells), (
+                    "Colors off inherited host text"
+                )
+            help_text = " ".join(
+                "".join(cell["data"] for cell in row) for row in cells[footer[0] :]
+            )
             expected = ["Tab page", "↑↓ select", "←→ adjust", "Enter edit"]
-            if name.startswith("main") or name == "subagents":
-                expected = ["Tab page", "Space toggle", "↑↓ select", "←→ order", "Ctrl+E format", "/ search"]
+            if "main" in name or "subagents" in name:
+                expected = [
+                    "Tab page",
+                    "Space toggle",
+                    "↑↓ select",
+                    "←→ order",
+                    "Ctrl+E format",
+                    "/ search",
+                ]
+            if language == "zh-CN":
+                expected = [
+                    key + " " + t("ui.hints." + action, language)
+                    for key, action in (label.split(" ", 1) for label in expected)
+                ]
             positions = [help_text.index(label) for label in expected]
-            assert positions == sorted(positions), "Client page shortcuts are out of order"
+            assert positions == sorted(positions), (
+                "Client page shortcuts are out of order"
+            )
         path.write_text(
             json.dumps(
-                {"columns": columns, "rows": screen.lines, "cells": cells,
-                 "theme": current_theme(config),
-                 "terminal_theme": terminal_theme,
-                 "terminal_foreground": TERMINAL_THEMES[terminal_theme][0],
-                 "terminal_background": TERMINAL_THEMES[terminal_theme][1],
-                 "terminal_palette": XTERM_PALETTE,
-                 "terminal_defaults_source": "explicit capture-analysis fixture"},
+                {
+                    "columns": columns,
+                    "rows": screen.lines,
+                    "cells": cells,
+                    "ui_language": language,
+                    "theme": current_theme(config),
+                    "terminal_theme": terminal_theme,
+                    "terminal_foreground": TERMINAL_THEMES[terminal_theme][0],
+                    "terminal_background": TERMINAL_THEMES[terminal_theme][1],
+                    "terminal_palette": XTERM_PALETTE,
+                    "terminal_defaults_source": "explicit capture-analysis fixture",
+                },
                 ensure_ascii=False,
             ),
             encoding="utf-8",
@@ -375,7 +465,9 @@ def run_pty(
             read_until("❯")
         offset = len(raw)
         command("/statusline-configure-native")
-        placed = read_until(("Configure Status Line", "Resize pane to 32x12"), start=offset)
+        placed = read_until(
+            ("Configure Status Line", "Resize pane to 32x12"), start=offset
+        )
         resized = placed != "Configure Status Line"
         if resized:
             fcntl.ioctl(
@@ -386,9 +478,106 @@ def run_pty(
             read_until("Configure Status Line")
         read_until("sample data")
         click_client()
+        if language_only:
+            # Select the explicit capture surface as in the full acceptance path.
+            os.write(master, b"3\x1b[H\x1b[B\x1b[B")
+            read_until("› Preview background (UI only):")
+            selected = next(
+                line for line in screen.display if "› Preview background (UI only):" in line
+            )
+            if not re.search(r"\b" + terminal_theme + r"\b", selected):
+                os.write(master, b"\x1b[C")
+                read_until("Preview background remembered")
+            os.write(master, b"1")
+            read_until("Main items")
+        if language_only:
+            backend = env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"]
+            display_path = config / "claude-statusline.json"
+            before = (
+                display_path.read_bytes(),
+                (config / "settings.json").read_bytes(),
+            )
+            capture("language-main-en", palette="default")
+            os.write(master, b"3\x1b[H\x1b[C")
+            read_until("Colors: off")
+            language_index = 10 + len(described["editor_fields"]["global"])
+            os.write(master, b"\x1b[H" + b"\x1b[B" * language_index)
+            read_until("› Interface language")
+            capture("language-settings-en", colors=False)
+            os.write(master, b"\x1b[C")
+            read_until("配置状态栏")
+            language = "zh-CN"
+            read_until("颜色：关闭")
+            assert (
+                json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
+                == "zh-CN"
+            )
+            capture("language-settings-zh", colors=False)
+            # Restore colors through the current draft before documenting samples.
+            os.write(master, b"\x1b[H\x1b[C1")
+            read_until("主状态栏项目")
+            capture("language-main-zh", palette="default")
+            for key, label, name in (
+                (b"2", "子代理项目", "language-subagents-zh"),
+                (b"4", "布局／适配", "language-layout-zh"),
+                (b"1\x05", "项目格式", "language-format-zh"),
+            ):
+                os.write(master, key)
+                read_until(label)
+                capture(name)
+            os.write(master, b"\x07q")
+            read_until("❯")
+            assert (
+                display_path.read_bytes(),
+                (config / "settings.json").read_bytes(),
+            ) == before
+            if persistent:
+                command("/statusline-configure")
+                read_until("配置状态栏", quiet=False)
+                capture("language-external-zh")
+                os.write(master, b"\x1b")
+                read_until("❯")
+                assert (
+                    display_path.read_bytes(),
+                    (config / "settings.json").read_bytes(),
+                ) == before
+            subprocess.run(
+                [backend, "config", "language", "set", "en"],
+                env=env,
+                cwd=project,
+                check=True,
+                capture_output=True,
+                timeout=30,
+            )
+            language = "en"
+            command("/statusline-configure-native")
+            read_until("Configure Status Line")
+            click_client()
+            capture("language-main-reopened-en", palette="default")
+            os.write(master, b"q")
+            read_until("❯")
+            command("/exit")
+            assert process.wait(timeout=10) == 0
+            return {
+                "columns": columns,
+                "terminal_rows": screen.lines,
+                "persistent_plugin": persistent,
+                "sample_preview": True,
+                "manual_visual_acceptance": False,
+                "checks": [
+                    "language-immediate-save",
+                    "unsaved-color-draft-preserved",
+                    "cancel-byte-identical",
+                    "external-shared-language",
+                    "cli-reset-native-reopen",
+                    "bilingual-pages-and-forms",
+                ],
+            }
         os.write(master, b"3\x1b[H\x1b[B\x1b[B")
         read_until("› Preview background (UI only):")
-        selected = next(line for line in screen.display if "› Preview background (UI only):" in line)
+        selected = next(
+            line for line in screen.display if "› Preview background (UI only):" in line
+        )
         if not re.search(r"\b" + terminal_theme + r"\b", selected):
             os.write(master, b"\x1b[C")
             read_until("Preview background remembered")
@@ -407,10 +596,12 @@ def run_pty(
             capture("main-colors-off", palette="ansi", colors=False)
             os.write(master, b"3\x1b[H\x1b[C\x1b[B\x1b[C1")
             read_until("Palette: default")
-            for key, label, name in ((b"2", "Subagent items", "subagents"),
-                                     (b"3", "Tool settings", "settings"),
-                                     (b"4", "Layout / fitting", "advanced-layout"),
-                                     (b"1\x05", "Item format:", "advanced-item-format")):
+            for key, label, name in (
+                (b"2", "Subagent items", "subagents"),
+                (b"3", "Tool settings", "settings"),
+                (b"4", "Layout / fitting", "advanced-layout"),
+                (b"1\x05", "Item format:", "advanced-item-format"),
+            ):
                 os.write(master, key)
                 read_until(label)
                 capture(name)
@@ -422,7 +613,7 @@ def run_pty(
             read_until("Theme:")
             assert current_theme(config) == theme_before
             os.write(master, b"A")
-            read_until("Theme: Applied.")
+            read_until("Theme: dark · Applied.")
             assert current_theme(config) != theme_before
             os.write(master, b"1")
             read_until("Main items")
@@ -432,10 +623,17 @@ def run_pty(
             read_until("❯")
             command("/exit")
             process.wait(timeout=10)
-            return {"columns": columns, "rows": screen.lines, "theme": theme_before,
-                    "four_pages_and_item_form": True, "theme_apply_separate": True,
-                    "sample_preview": True, "palette_and_colors_off": True,
-                    "chosen_preview_background": terminal_theme, "manual_visual_acceptance": False}
+            return {
+                "columns": columns,
+                "rows": screen.lines,
+                "theme": theme_before,
+                "four_pages_and_item_form": True,
+                "theme_apply_separate": True,
+                "sample_preview": True,
+                "palette_and_colors_off": True,
+                "chosen_preview_background": terminal_theme,
+                "manual_visual_acceptance": False,
+            }
         os.write(master, b" ")
         read_until("[ ] Model and effort")
         os.write(master, b" ")
@@ -554,14 +752,58 @@ def run_pty(
             def client_setting(key, label):
                 if key == "layout.mode" or key.startswith(("break:", "fit:")):
                     items = json.loads(display_path.read_bytes())["items"]
-                    field_keys = ["layout.mode"] + ["break:" + item for item in items[1:]]
-                    field_keys += ["fit:" + item + ":" + name for item in items for name in ("priority", "max_width")]
+                    field_keys = ["layout.mode"] + [
+                        "break:" + item for item in items[1:]
+                    ]
+                    field_keys += [
+                        "fit:" + item + ":" + name
+                        for item in items
+                        for name in ("priority", "max_width")
+                    ]
                 else:
-                    field_keys = ["colors", "palette", "preview-background", "directory-style", "separator-style", "scope-labels", "padding", "refresh_interval", "vim-indicator", "settings-subagent-statusline"]
-                    field_keys += ["field:" + field["key"] for field in described["editor_fields"]["global"]]
-                    field_keys += ["preset-select", "preset-apply", "import-file", "export-file"]
+                    field_keys = [
+                        "colors",
+                        "palette",
+                        "preview-background",
+                        "directory-style",
+                        "separator-style",
+                        "scope-labels",
+                        "padding",
+                        "refresh_interval",
+                        "vim-indicator",
+                        "settings-subagent-statusline",
+                    ]
+                    field_keys += [
+                        "field:" + field["key"]
+                        for field in described["editor_fields"]["global"]
+                    ]
+                    field_keys += [
+                        "ui-language",
+                        "preset-select",
+                        "preset-apply",
+                        "import-file",
+                        "export-file",
+                    ]
                     # Canonical identities keep the spec order even for missing host rows.
-                    field_keys += ["host-" + name for name in ("theme", "verbose", "showTurnDuration", "prefersReducedMotion", "spinnerTipsEnabled", "terminalProgressBarEnabled", "preferredNotifChannel", "timeFormat", "timeZone", "title", "model", "effort", "thinking", "fast")]
+                    field_keys += [
+                        "host-" + name
+                        for name in (
+                            "theme",
+                            "verbose",
+                            "showTurnDuration",
+                            "prefersReducedMotion",
+                            "spinnerTipsEnabled",
+                            "terminalProgressBarEnabled",
+                            "preferredNotifChannel",
+                            "timeFormat",
+                            "timeZone",
+                            "title",
+                            "model",
+                            "effort",
+                            "thinking",
+                            "fast",
+                        )
+                    ]
                 index = field_keys.index(key)
                 os.write(master, b"\x1b[H" + b"\x1b[B" * index)
                 read_until("› " + label)
@@ -616,7 +858,9 @@ def run_pty(
             )
             client_setting("fit:" + first_item + ":priority", first_label + " Priority")
             client_value("100", "Priority: 100")
-            client_setting("fit:" + first_item + ":max_width", first_label + " Maximum width")
+            client_setting(
+                "fit:" + first_item + ":max_width", first_label + " Maximum width"
+            )
             client_value("28", "Maximum width: 28")
             client_setting("break:" + json.loads(base)["items"][1], "New row before")
             os.write(master, b" ")
@@ -631,7 +875,9 @@ def run_pty(
             read_until("Tool configuration saved")
             saved_advanced = display_path.read_bytes()
             saved_config = json.loads(saved_advanced)
-            assert saved_config["item_options"][first_item]["label"] == "Engine SfQ 中文"
+            assert (
+                saved_config["item_options"][first_item]["label"] == "Engine SfQ 中文"
+            )
             assert saved_config["item_options"][first_item]["priority"] == 100
             assert saved_config["item_options"][first_item]["max_width"] == 28
             assert len(saved_config["layout"]["rows"]) == 2
@@ -680,9 +926,9 @@ def run_pty(
             read_until("Theme: light")
             client_setting("host-showTurnDuration", "Show turn duration")
             os.write(master, b" ")
-            read_until("Show turn duration: false")
+            read_until("Show turn duration: off")
             os.write(master, b"A")
-            read_until("Show turn duration: Applied.")
+            read_until("Show turn duration: off · Applied.")
             assert display_path.read_bytes() == saved_advanced
             os.write(master, b"R")
             read_until("Main items")
@@ -692,14 +938,14 @@ def run_pty(
             client_setting("host-theme", "Theme")
             read_until("Theme: light")
             client_setting("host-showTurnDuration", "Show turn duration")
-            read_until("Show turn duration: false")
+            read_until("Show turn duration: off")
             capture("advanced-host-preferences")
             # Restore through the same API; tool saves must preserve its result.
             os.write(master, b" A")
-            read_until("Show turn duration: Applied.")
+            read_until("Show turn duration: on · Applied.")
             client_setting("host-theme", "Theme")
             os.write(master, b"\x1b[DA")
-            read_until("Theme: Applied.")
+            read_until("Theme: dark · Applied.")
             settings_after_preferences = (config / "settings.json").read_bytes()
             os.write(master, b"Q")
             read_until("❯")
@@ -845,9 +1091,36 @@ def main() -> int:
         "--backend", type=Path, default=Path(".venv/bin/claude-statusline")
     )
     parser.add_argument("--claude", default="claude")
-    parser.add_argument("--theme", default="dark", choices=("dark", "light", "dark-daltonized", "light-daltonized", "dark-ansi", "light-ansi", "auto", "custom:statusline-validation-light"))
-    parser.add_argument("--theme-only", action="store_true", help="Capture all pages and verify separate theme Apply without changing tool configuration")
-    parser.add_argument("--terminal-theme", choices=("dark", "light"), default="dark", help="Independent terminal-default fixture for capture analysis; does not change a physical terminal")
+    parser.add_argument(
+        "--theme",
+        default="dark",
+        choices=(
+            "dark",
+            "light",
+            "dark-daltonized",
+            "light-daltonized",
+            "dark-ansi",
+            "light-ansi",
+            "auto",
+            "custom:statusline-validation-light",
+        ),
+    )
+    parser.add_argument(
+        "--theme-only",
+        action="store_true",
+        help="Capture all pages and verify separate theme Apply without changing tool configuration",
+    )
+    parser.add_argument(
+        "--language-only",
+        action="store_true",
+        help="Verify language switching, shared preferences, draft preservation and bilingual captures",
+    )
+    parser.add_argument(
+        "--terminal-theme",
+        choices=("dark", "light"),
+        default="dark",
+        help="Independent terminal-default fixture for capture analysis; does not change a physical terminal",
+    )
     parser.add_argument("--plugin", type=Path, default=Path("mods/statusline-native"))
     parser.add_argument("--interactive", action="store_true")
     parser.add_argument(
@@ -866,6 +1139,10 @@ def main() -> int:
     args = parser.parse_args()
     if args.advanced and not args.persistent:
         parser.error("--advanced requires --persistent to check both editor entries")
+    if args.language_only and not args.persistent:
+        parser.error(
+            "--language-only requires --persistent to check both editor entries"
+        )
     args.claude = str(Path(shutil.which(args.claude) or args.claude).resolve())
     if not sys.platform.startswith("linux"):
         parser.error("This acceptance runner currently requires native Linux")
@@ -939,6 +1216,7 @@ def main() -> int:
                     advanced=args.advanced,
                     theme_only=args.theme_only,
                     terminal_theme=args.terminal_theme,
+                    language_only=args.language_only,
                 )
             )
     finally:

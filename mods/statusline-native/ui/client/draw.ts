@@ -10,8 +10,12 @@ import { section } from '../components/section.ts';
 import { previewLine, previewText, previewTitle } from '../components/preview.ts';
 import { shortcuts, spanLine } from '../components/shortcuts.ts';
 import type { TextSpan } from '../components/shortcuts.ts';
+import { t, renderMessage } from '../../lib/i18n/index.ts';
+import { viewMessage, preferenceResult } from '../../lib/i18n/messages.ts';
+import { settingPresentation, preferenceLabel } from '../../lib/i18n/presentation.ts';
 
 export function draw(ui: ClientElements, view: View, columns: number, rows: number): RenderElement {
+  const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
   const e = view.editor;
   const layout = editorLayout(view, columns, rows);
   const inner = Math.max(1, columns - (layout.framed ? 2 : 0));
@@ -22,33 +26,33 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       backgroundColor: styles.text.backgroundColor,
       width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
       children: [
-        line(!layout.available ? 'Resize pane to 32x12. Draft kept.' : 'Loading configuration…'),
-        shortcuts(ui, [{ key: 'Q', label: 'close' }], columns, ''),
+        line(!layout.available ? tr("native.ui.client.draw.resize_pane_to_32x12_draft_kept") : tr("native.ui.client.draw.loading_configuration")),
+        shortcuts(ui, [{ key: 'Q', label: tr("native.ui.client.draw.close") }], columns, ''),
       ],
     });
   const pending = e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
   const notice =
-    Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${error}`).join(' · ') ||
-    view.busy || view.error || view.message ||
+    Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
+    viewMessage(view, 'busy') || viewMessage(view, 'error') || viewMessage(view, 'message') ||
     (e.advanced
-      ? view.preferencesError ||
-        (selectedPreference?.result ? selectedPreference.row.label + ': ' + selectedPreference.result : '') ||
-        view.preferences.map((p) => p.result ? p.row.label + ': ' + p.result : '').filter(Boolean).join(' · ')
+      ? viewMessage(view, 'preferencesError') ||
+        (selectedPreference?.result ? preferenceLabel(selectedPreference, view.language) + ': ' + preferenceResult(selectedPreference, view.language) : '') ||
+        view.preferences.map((p) => p.result ? preferenceLabel(p, view.language) + ': ' + preferenceResult(p, view.language) : '').filter(Boolean).join(' · ')
       : '');
   const content: RenderElement[] = [];
   let title = '';
   if (e.page === 'settings' || e.page === 'layout' || e.detail) {
-    title = e.detail ? 'Item format: ' + e.detail.id : e.page === 'layout' ? 'Layout / fitting' : 'Tool settings';
+    title = e.detail ? tr("native.ui.client.draw.item_format") + e.detail.id : e.page === 'layout' ? tr("native.ui.client.draw.layout_fitting") : tr("native.ui.client.draw.tool_settings");
     if (e.page === 'settings' && !e.detail) {
-      if (e.advanced) title = columns < 64 ? 'Claude preferences' : 'Tool settings + Claude preferences';
+      if (e.advanced) title = columns < 64 ? tr("native.ui.client.draw.claude_preferences") : tr("native.ui.client.draw.tool_settings_claude_preferences");
     }
-    const settings = settingRows(view);
+    const settings = settingPresentation(view, settingRows(view));
     const window = formWindow(settings, e.setting, layout.formHeight);
     const labelWidth = Math.max(10, Math.min(44, inner - 15,
       Math.max(10, ...settings.map((row) => displayWidth(row.label) + 1))));
     if (layout.tableHeading)
-      content.push(line('  ' + column('OPTION', labelWidth) + ' VALUE', { ...styles.muted, bold: true }));
+      content.push(line('  ' + column(tr("native.ui.client.draw.option"), labelWidth) + tr("native.ui.client.draw.value"), { ...styles.muted, bold: true }));
     for (const entry of window.lines) {
       if (entry.index === null) {
         const group = clip('─ ' + entry.group + ' ', inner);
@@ -72,36 +76,37 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       }));
     }
     while (content.length < layout.bodyRows - Number(layout.showSummary)) content.push(line(' '));
-    if (layout.showSummary) content.push(line(`Fields ${settings.length ? window.start + 1 : 0}-${window.end}/${settings.length} · ${window.page}/${window.pages}`, styles.muted));
+    if (layout.showSummary) content.push(line(tr("native.ui.client.draw.fields", {value0: settings.length ? window.start + 1 : 0, end: window.end, length: settings.length, page: window.page, pages: window.pages}), styles.muted));
   } else {
     const scope = e.page === 'main' ? 'main' : 'subagent';
     const visible = e.visible(scope);
     const current = visible.find((item) => item.id === e.selected[scope]);
-    title = scope === 'main' ? 'Main items' : 'Subagent items · custom rows ' + (e.draft.display.subagents.enabled ? 'on' : 'off');
-    content.push(shortcuts(ui, [{ key: '/', label: 'search' }], inner,
-      'Filter: ' + e.search[scope] + (view.input?.kind === 'search' ? ' _' : '') + '  '));
-    if (layout.tableHeading) content.push(line('    ON  ITEM', { ...styles.muted, bold: true }));
+    title = scope === 'main' ? tr("native.ui.client.draw.main_items") : tr("native.ui.client.draw.subagent_items_custom_rows") + tr('values.' + (e.draft.display.subagents.enabled ? 'on' : 'off'));
+    content.push(shortcuts(ui, [{ key: '/', label: tr("native.ui.client.draw.search") }], inner,
+      tr("native.ui.client.draw.filter") + e.search[scope] + (view.input?.kind === 'search' ? ' _' : '') + '  '));
+    if (layout.tableHeading) content.push(line(tr("native.ui.client.draw.on_item"), { ...styles.muted, bold: true }));
     const window = pageWindow(visible.map((item) => item.id), e.selected[scope], layout.itemCapacity);
     for (const item of visible.slice(window.start, window.end))
       content.push(ui.Box({
         key: 'item-' + scope + ':' + item.id, flexShrink: 0,
-        children: [line(`${e.selected[scope] === item.id ? '›' : ' '} [${e.items(scope).includes(item.id) ? 'x' : ' '}] ${item.label}`, rowStyle(e.selected[scope] === item.id))],
+        children: [line(`${e.selected[scope] === item.id ? '›' : ' '} [${e.items(scope).includes(item.id) ? 'x' : ' '}] ${tr('items.' + scope + '.' + item.id + '.label')}`, rowStyle(e.selected[scope] === item.id))],
       }));
-    if (!visible.length) content.push(line('No matching items.', styles.muted));
+    if (!visible.length) content.push(line(tr("native.ui.client.draw.no_matching_items"), styles.muted));
     while (content.length < layout.bodyRows - Number(layout.showDetails) - Number(layout.showSummary)) content.push(line(' '));
-    if (layout.showDetails) content.push(line(current ? 'Detail: ' + current.description + ' · Example: ' + current.examples.join(' · ') : 'Detail: (empty selection)', styles.muted));
-    if (layout.showSummary) content.push(line(`${window.page}/${window.pages} · ${e.items(scope).length} enabled`, styles.muted));
+    if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + current.id + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
+    if (layout.showSummary) content.push(line(tr("native.ui.client.draw.enabled", {page: window.page, pages: window.pages, length: e.items(scope).length}), styles.muted));
   }
   const sample = view.preview ? e.page === 'subagents' ? view.preview.subagents : view.preview.main : [];
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
   const shown = sample.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
   const background = view.previewBackground ?? 'dark';
   const preview: RenderElement[] = shown.map((row) => previewLine(ui, row, inner, background));
-  if (overflow) preview.push(previewText(ui, `${sample.length - shown.length} more preview rows`, inner, background));
-  if (!sample.length) preview.push(previewText(ui, view.previewError || (view.preview ? '(empty preview)' : 'Loading sample preview…'), inner, background));
+  if (overflow) preview.push(previewText(ui, tr("native.ui.client.draw.more_preview_rows", {value0: sample.length - shown.length}), inner, background));
+  if (!sample.length) preview.push(previewText(ui, viewMessage(view, 'previewError') || (view.preview ? tr("native.ui.client.draw.empty_preview") : tr("native.ui.client.draw.loading_sample_preview")), inner, background));
   while (preview.length < layout.previewRows) preview.push(previewText(ui, '', inner, background));
   const pages = ['main', 'subagents', 'settings', 'layout'];
-  const labels = columns < 48 ? ['Main', 'Sub', 'Set', 'Lay'] : ['Main', 'Subagents', 'Settings', 'Layout'];
+  const labels = columns < 48 ? ['main','subagents','settings','layout'].map(key => tr('native.tabs.short.' + key))
+    : ['main','subagents','settings','layout'].map(key => tr('native.tabs.' + key));
   const tabs: TextSpan[] = [];
   labels.forEach((label, i) => {
     if (i) tabs.push({ text: ' · ', style: styles.muted });
@@ -111,12 +116,12 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   return ui.Box({
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [
-      chromeRow(ui, line('Configure Status Line' + (pending ? ' *' : ''), { ...styles.accent, bold: true }), columns),
+      chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : ''), { ...styles.accent, bold: true }), columns),
       chromeRow(ui, spanLine(ui, tabs, columns), columns),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
-        : line('Click region for keys.', styles.muted), columns),
+        : line(tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
-      section(ui, 'preview-region', previewTitle(e.draft.display, columns, view.previewBusy, background), preview, columns, layout.previewHeight, layout.framed, true),
+      section(ui, 'preview-region', previewTitle(e.draft.display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({
         key: 'shortcut-region', width: columns, height: layout.footerRows,
         backgroundColor: styles.text.backgroundColor,

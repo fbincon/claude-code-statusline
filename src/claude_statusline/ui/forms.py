@@ -1,5 +1,7 @@
 """Advanced curses forms; file operations stay in the terminal session."""
 
+from claude_statusline.i18n import message as msg
+
 from claude_statusline.config import advanced, editor_fields, presets, catalog
 from claude_statusline.ui import models
 
@@ -12,6 +14,7 @@ SETTINGS_GROUPS = (
     "Risk colors",
     "Subagent visibility",
     "Presets / portable files",
+    "Interface",
 )
 APPEARANCE_KEYS = {
     "colors",
@@ -148,6 +151,17 @@ def rows(state):
             },
         ]
     )
+    result.append(
+        {
+            **editor_fields.field(
+                "ui-language",
+                "Interface language (saved immediately)",
+                "Interface",
+                choices=("en", "zh-CN"),
+            ),
+            "value": state.language,
+        }
+    )
     return _grouped(result, SETTINGS_GROUPS)
 
 
@@ -172,6 +186,8 @@ def set_value(state, row, raw):
     key = row["key"]
     if key == "preset-select":
         state.preset = raw
+    elif key == "ui-language":
+        state.pending_language = raw
     elif key == "layout-mode":
         state.display = advanced.edit_layout(state.display, raw)
     elif key.startswith("break:"):
@@ -230,7 +246,7 @@ def accept(state):
     row, buffer = state.form_input["row"], state.form_input["buffer"]
     if row["key"] in ("import-file", "export-file"):
         if not buffer.strip():
-            state.notice = "Enter a file path."
+            state.notice = msg("ui.forms.enter_a_file_path")
             return None
         state.path = buffer
         state.pending_action = row["key"].split("-")[0]

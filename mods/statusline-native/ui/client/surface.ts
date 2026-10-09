@@ -1,3 +1,4 @@
+import { t } from '../../lib/i18n/index.ts';
 import type { ClientSurface, RenderElement } from 'claude-code';
 import type { ClientProps } from '../../lib/session.ts';
 import { clientView } from '../../lib/session.ts';
@@ -22,6 +23,7 @@ export default function StatuslineClient(
   props: ClientProps,
   surface: ClientSurface<State>,
 ): RenderElement {
+  const tr = (key: string) => t(key, props.view.language ?? 'en');
   let state = surface.state;
   if (state && props.epoch < state.epoch) props = state.latest;
   if (!state || state.epoch !== props.epoch) {
@@ -81,7 +83,7 @@ export default function StatuslineClient(
     });
     return surface.elements.Text({
       ...styles.text,
-      children: ['Client failed. Use Retry or Close; received draft kept.'],
+      children: [tr("native.ui.client.surface.client_failed_use_retry_or_close_received_draft")],
     });
   }
 }

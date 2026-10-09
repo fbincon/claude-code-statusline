@@ -10,6 +10,9 @@ from claude_statusline.config import models as config_models
 from claude_statusline.integration import capabilities as integration_capabilities
 from claude_statusline.integration import models as integration_models
 from claude_statusline.integration import ownership as integration_ownership
+from claude_statusline.config import ui_preferences
+from claude_statusline.i18n import message as msg
+from claude_statusline.i18n.translator import present
 
 
 SLASH_COMMAND_NAME = "statusline-config"
@@ -19,6 +22,8 @@ EXPERIMENTAL_SLASH_COMMAND_NAME = "statusline-configure"
 
 
 def _decision(reason: str) -> str:
+    locale = ui_preferences.read(integration_ownership.resolve_config_dir()).ui_language
+    reason = present(reason, locale)
     return json.dumps(
         {"decision": "block", "reason": reason},
         ensure_ascii=False,
@@ -31,16 +36,11 @@ def _handle_config_command(data: dict) -> str | None:
     if command_args is None:
         command_args = ""
     if not isinstance(command_args, str):
-        return _decision(
-            "Status line configuration was not changed: invalid arguments."
-        )
+        return _decision(msg("slash.invalid_arguments"))
     if not command_args.strip():
         return None
     if command_args.strip() in {"help", "--help", "-h"}:
-        return _decision(
-            "Usage: /statusline-config "
-            "[show|list-items|set-items|enable|disable|order|subagents|set|reset]"
-        )
+        return _decision(msg("slash.config_usage"))
 
     try:
         args = config_commands.parse_slash_arguments(command_args)
@@ -51,17 +51,15 @@ def _handle_config_command(data: dict) -> str | None:
         config_models.ConfigCommandError,
         integration_models.ConfigurationError,
     ) as exc:
-        message = f"Status line configuration was not changed: {exc}"
+        message = msg("slash.config_unchanged", detail=exc)
     return _decision(message)
 
 
 def _safe_error_reason(message: object) -> str:
     if not isinstance(message, str):
         return "Interactive status line configuration failed."
-    if message.startswith(
-        "Interactive status line configuration is unavailable here.\n"
-    ):
-        return message
+    if message == integration_models.UNAVAILABLE_MESSAGE:
+        return msg("slash.unavailable")
     first_line = next(
         (line.strip() for line in message.splitlines() if line.strip()),
         "Interactive status line configuration failed.",
@@ -73,13 +71,15 @@ def _experimental_reason(result: object) -> str:
     outcome = getattr(result, "outcome", None)
     message = getattr(result, "message", None)
     fixed = {
-        "already-current": "Status line configuration already current.",
-        "cancelled": "Status line configuration unchanged.",
+        "already-current": msg("ui.session.status_line_configuration_already_current"),
+        "cancelled": msg("ui.session.status_line_configuration_unchanged"),
         "interrupted": (
-            "Interactive status line configuration interrupted; no changes were saved."
+            msg(
+                "ui.session.interactive_status_line_configuration_interrupted_no_changes"
+            )
         ),
         "timed-out": (
-            "Interactive status line configuration timed out; no changes were saved."
+            msg("ui.session.interactive_status_line_configuration_timed_out_no")
         ),
     }
     if outcome == "updated" and isinstance(message, str):
@@ -94,39 +94,24 @@ def _handle_experimental_command(data: dict) -> str:
     if command_args is None:
         command_args = ""
     if not isinstance(command_args, str):
-        return _decision(
-            "Interactive status line configuration was not started: invalid arguments."
-        )
+        return _decision(msg("slash.tui_invalid_arguments"))
     stripped = command_args.strip()
     if stripped in {"help", "--help", "-h"}:
-        return _decision("Usage: /statusline-configure")
+        return _decision(msg("slash.tui_usage"))
     if stripped:
-        return _decision(
-            f"Usage: /statusline-configure\nUnsupported arguments: {stripped[:200]}"
-        )
+        return _decision(msg("slash.tui_unsupported", arguments=stripped[:200]))
 
     try:
         config_dir = integration_ownership.resolve_config_dir()
         try:
             enabled = config_features.load_experimental_slash_tui(config_dir)
         except config_features.FeatureConfigError as exc:
-            return _decision(
-                "Interactive status line configuration was not started: "
-                f"{_safe_error_reason(str(exc))} Run `claude-statusline install` "
-                "to repair the feature preference."
-            )
+            return _decision(msg("slash.tui_preference_invalid", detail=exc))
         if not enabled:
-            return _decision(
-                "Interactive status line configuration is disabled. Enable it with "
-                "`claude-statusline install --experimental-slash-tui`."
-            )
+            return _decision(msg("slash.tui_disabled"))
         version = integration_capabilities.detect_claude_version()
         if not integration_capabilities.supports_fast_slash_hook(version):
-            return _decision(
-                "Interactive status line configuration is suspended for this "
-                "Claude Code version. Upgrade Claude Code and rerun "
-                "`claude-statusline install`."
-            )
+            return _decision(msg("slash.tui_suspended"))
         executable = integration_ownership.resolve_cli_executable()
         # Keep tmux/GNOME launcher code out of the ordinary slash fast path.
         from claude_statusline.integration import launcher as integration_launcher

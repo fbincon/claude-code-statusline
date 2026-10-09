@@ -147,7 +147,7 @@ class GroupWindowTests(unittest.TestCase):
                 forms.rows(state), forms.index(state), state.settings_scroll, 6
             )
             self.assertIn(forms.index(state), [line.index for line in window.lines])
-        self.assertEqual(forms.current(state)["key"], "export-file")
+        self.assertEqual(forms.current(state)["key"], "ui-language")
         keys.handle_key(state, curses.KEY_HOME, 6)
         keys.handle_key(state, curses.KEY_NPAGE, 6)
         self.assertEqual(forms.current(state)["key"], "padding")

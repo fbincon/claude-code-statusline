@@ -2,6 +2,8 @@ import { Editor } from './editor/draft.ts';
 import type { Scope, PreviewResult } from './generated-contracts.ts';
 import type { Preference } from './preferences.ts';
 import type { PreviewBackground } from './preview-preferences.ts';
+import type { Language, LocalizedText } from './i18n/index.ts';
+import type { MessageSlot } from './i18n/messages.ts';
 
 export type InputMode =
   | { kind: 'search'; scope: Scope; original: string; selected: string }
@@ -11,6 +13,8 @@ export type InputMode =
   | null;
 
 export interface View {
+  language?: Language;
+  localized?: Partial<Record<MessageSlot, LocalizedText>>;
   previewBackground?: PreviewBackground;
   editor: Editor | null;
   input: InputMode;
@@ -43,6 +47,7 @@ type EditorData = Pick<
   | 'search'
   | 'buffers'
   | 'fieldErrors'
+  | 'fieldErrorMessages'
 >;
 export interface ClientProps {
   epoch: number;
@@ -88,6 +93,7 @@ export function clientProps(
               search: e.search,
               buffers: e.buffers,
               fieldErrors: e.fieldErrors,
+              fieldErrorMessages: e.fieldErrorMessages,
             }
           : null,
       },

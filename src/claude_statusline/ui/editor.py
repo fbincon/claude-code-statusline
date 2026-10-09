@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -12,6 +14,7 @@ from claude_statusline.config import service as config_service
 from claude_statusline.ui import models as ui_models
 from claude_statusline.ui import forms
 from claude_statusline.ui import layout as ui_layout
+from claude_statusline.i18n.presentation import search_text
 
 
 @dataclass
@@ -43,9 +46,13 @@ class EditorState:
     preset: str = "minimal"
     path: str = "statusline.json"
     notice: str = ""
+    language: str = "en"
+    pending_language: str | None = None
 
     @classmethod
-    def from_effective(cls, effective: config_models.EffectiveConfig) -> EditorState:
+    def from_effective(
+        cls, effective: config_models.EffectiveConfig, *, language="en"
+    ) -> EditorState:
         enabled = list(effective.display.items)
         full_order = enabled + [
             item
@@ -67,6 +74,7 @@ class EditorState:
             display=effective.display,
             host=effective.host,
             selected_item=full_order[0] if full_order else None,
+            language=language,
             selected_subagent_item=(subagent_order[0] if subagent_order else None),
         )
 
@@ -112,8 +120,12 @@ class EditorState:
         return [
             item
             for item in self.item_order
-            if needle in item.casefold()
-            or needle in config_display.ITEM_CATALOG[item].casefold()
+            if needle
+            in search_text(
+                "main",
+                item,
+                getattr(self.display.item_options.get(item), "label", None),
+            )
         ]
 
     def visible_subagent_items(self) -> list[str]:
@@ -123,8 +135,12 @@ class EditorState:
         return [
             item
             for item in self.subagent_item_order
-            if needle in item.casefold()
-            or needle in config_display.SUBAGENT_ITEM_CATALOG[item].casefold()
+            if needle
+            in search_text(
+                "subagent",
+                item,
+                getattr(self.display.subagents.item_options.get(item), "label", None),
+            )
         ]
 
     def _sync_display_items(self) -> None:
@@ -486,19 +502,19 @@ class EditorState:
     def _numeric_value(self) -> tuple[int | None, str | None]:
         edit = self.numeric_edit
         if edit is None:
-            return None, "not editing a number"
+            return None, msg("ui.editor.not_editing_a_number")
         if not edit.buffer:
-            return None, "Enter a number"
+            return None, msg("ui.editor.enter_a_number")
         value = int(edit.buffer)
         if edit.field == "padding":
             if not config_models.PADDING_MIN <= value <= config_models.PADDING_MAX:
-                return None, "Padding must be from 0 through 32"
+                return None, msg("ui.editor.padding_must_be_from_0_through_32")
         elif (
             not config_models.REFRESH_INTERVAL_MIN
             <= value
             <= config_models.REFRESH_INTERVAL_MAX
         ):
-            return None, "Refresh interval must be from 1 through 3600"
+            return None, msg("ui.editor.refresh_interval_must_be_from_1_through")
         return value, None
 
     def _apply_numeric_buffer(self) -> None:

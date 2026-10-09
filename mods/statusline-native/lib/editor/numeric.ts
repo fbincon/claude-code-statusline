@@ -1,4 +1,11 @@
 import type { DescribeResult } from '../generated-contracts.ts';
+import { text as message } from '../i18n/index.ts';
+
+export function numericDiagnostic(description: DescribeResult, field: NumericField) {
+  const range = field === 'padding' ? description.options.padding : description.options['refresh-interval'];
+  return message(field === 'refresh_interval' ? 'native.numeric.event' : 'native.numeric.number',
+                 {minimum: range.minimum, maximum: range.maximum});
+}
 
 export type NumericField = 'padding' | 'refresh_interval';
 export const NUMERIC_FIELDS: readonly NumericField[] = [
@@ -29,8 +36,6 @@ export function numericValue(
     return { value: Number(text) };
   }
   return {
-    error:
-      `Enter ${range.minimum}-${range.maximum}` +
-      (field === 'refresh_interval' ? ' or event.' : '.'),
+    error: numericDiagnostic(description, field).fallback,
   };
 }

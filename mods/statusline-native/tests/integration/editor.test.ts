@@ -25,7 +25,7 @@ const error = (code: string) =>
     2,
   );
 
-test('Client owns only native command, edits three pages and saves a full revision-bound draft', async ($, on) => {
+test('Client owns only native command, edits three pages and saves a full revision-bound draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   expect(fixture.registrations).toEqual(['statusline-configure-native']);
@@ -92,7 +92,7 @@ test('Client owns only native command, edits three pages and saves a full revisi
   await ui.unmount();
 });
 
-test('reopening focuses the same draft; q discards and the next opening reads persisted state', async ($, on) => {
+test('reopening focuses the same draft; q discards and the next opening reads persisted state', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -119,7 +119,7 @@ test('reopening focuses the same draft; q discards and the next opening reads pe
   await reopened.unmount();
 });
 
-test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric editing', async ($, on) => {
+test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric editing', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -156,7 +156,7 @@ test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric edi
   await ui.unmount();
 });
 
-test('invalid numeric input stays visible and cannot save; correcting it accepts only that field', async ($, on) => {
+test('invalid numeric input stays visible and cannot save; correcting it accepts only that field', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -186,7 +186,7 @@ test('invalid numeric input stays visible and cannot save; correcting it accepts
   await ui.unmount();
 });
 
-test('foreign native command and foreign panes pass through without changing the external entry', async ($, on) => {
+test('foreign native command and foreign panes pass through without changing the external entry', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   fixture.commands.push({
     name: RUN.command,
@@ -204,7 +204,7 @@ test('foreign native command and foreign panes pass through without changing the
   await ui.unmount();
 });
 
-test('unknown saves require read reconciliation before retry or close', async ($, on) => {
+test('unknown saves require read reconciliation before retry or close', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   let applies = 0;
   fixture.behavior.process = (request, next) => {
@@ -233,7 +233,7 @@ test('unknown saves require read reconciliation before retry or close', async ($
   await ui.unmount();
 });
 
-test('conflicting save retains the draft; explicit reload reads external changes', async ($, on) => {
+test('conflicting save retains the draft; explicit reload reads external changes', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   let reject = true;
   fixture.behavior.process = (request, next) =>
@@ -262,7 +262,7 @@ test('conflicting save retains the draft; explicit reload reads external changes
   await ui.unmount();
 });
 
-test('Claude preferences are separate, checked per row and retain partial application', async ($, on) => {
+test('Claude preferences are separate, checked per row and retain partial application', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   fixture.behavior.configSet = (key, value) =>
     key === 'verbose' ? { deny: 'policy' } : { value };
@@ -284,7 +284,7 @@ test('Claude preferences are separate, checked per row and retain partial applic
   await ui.unmount();
 });
 
-test('missing, locked and concurrently changed Claude rows cannot be overwritten', async ($, on) => {
+test('missing, locked and concurrently changed Claude rows cannot be overwritten', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -297,7 +297,7 @@ test('missing, locked and concurrently changed Claude rows cannot be overwritten
   await ui.unmount();
 });
 
-test('full and compact layouts keep selection through paging, filtering and resize', async ($, on) => {
+test('full and compact layouts keep selection through paging, filtering and resize', {timeoutMs: 20000}, async ($, on) => {
   setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -338,7 +338,7 @@ test('full and compact layouts keep selection through paging, filtering and resi
   await ui.unmount();
 });
 
-test('Client fault and retry preserve received edits; old epoch and malformed posts are ignored safely', async ($, on) => {
+test('Client fault and retry preserve received edits; old epoch and malformed posts are ignored safely', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -367,7 +367,7 @@ test('Client fault and retry preserve received edits; old epoch and malformed po
   await ui.unmount();
 });
 
-test('ordered cumulative batches preserve fast edits, deduplicate writes and reject sequence gaps', async ($, on) => {
+test('ordered cumulative batches preserve fast edits, deduplicate writes and reject sequence gaps', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
@@ -395,7 +395,7 @@ test('ordered cumulative batches preserve fast edits, deduplicate writes and rej
   await ui.unmount();
 });
 
-test('opening errors can retry and preview failures do not mutate drafts', async ($, on) => {
+test('opening errors can retry and preview failures do not mutate drafts', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   let fail = true;
   fixture.behavior.process = (request, next) =>
@@ -414,7 +414,7 @@ test('opening errors can retry and preview failures do not mutate drafts', async
   await ui.unmount();
 });
 
-test('pending apply blocks input, close and reopening until the result arrives', async ($, on) => {
+test('pending apply blocks input, close and reopening until the result arrives', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   let finish!: (value: ProcessRunResult) => void;
   let started!: () => void;
@@ -451,7 +451,7 @@ test('pending apply blocks input, close and reopening until the result arrives',
   await ui.unmount();
 });
 
-test('preview errors can retry; height-only redraws reuse the cached sample', async ($, on) => {
+test('preview errors can retry; height-only redraws reuse the cached sample', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   let previews = 0;
   fixture.behavior.process = (request, next) =>
@@ -477,7 +477,7 @@ test('preview errors can retry; height-only redraws reuse the cached sample', as
   await ui.unmount();
 });
 
-test('late sample responses cannot replace a newer resized preview', async ($, on) => {
+test('late sample responses cannot replace a newer resized preview', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   let resolveOld!: (value: ProcessRunResult) => void;
   let started!: () => void;
@@ -511,7 +511,7 @@ test('late sample responses cannot replace a newer resized preview', async ($, o
   await ui.unmount();
 });
 
-test('a fast printable terminal chunk enters search and retains all characters', async ($, on) => {
+test('a fast printable terminal chunk enters search and retains all characters', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);

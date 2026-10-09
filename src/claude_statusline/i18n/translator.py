@@ -16,14 +16,18 @@ def catalogue(language: str) -> dict[str, str]:
 
     language = language if language in LANGUAGES else "en"
     return json.loads(
-        files("claude_statusline.i18n").joinpath("locales", language + ".json").read_text(encoding="utf-8")
+        files("claude_statusline.i18n")
+        .joinpath("locales", language + ".json")
+        .read_text(encoding="utf-8")
     )
 
 
 def translate(key: str, locale: str = "en", **params: Any) -> str:
     english = catalogue("en")
     template = catalogue(locale).get(key, english.get(key, key))
-    return template.format_map({name: _present(value, locale) for name, value in params.items()})
+    return template.format_map(
+        {name: _present(value, locale) for name, value in params.items()}
+    )
 
 
 def _present(value: Any, language: str) -> Any:
@@ -48,6 +52,23 @@ class Message(str):
     def __str__(self):
         return self
 
+    def __add__(self, other):
+        return (
+            message("message.concat", left=self, right=other)
+            if isinstance(other, str)
+            else NotImplemented
+        )
+
+    def __radd__(self, other):
+        return (
+            message("message.concat", left=other, right=self)
+            if isinstance(other, str)
+            else NotImplemented
+        )
+
+    def __reduce_ex__(self, protocol):
+        return _restore_message, (self.key, self.params)
+
     def render(self, language: str = "en") -> str:
         return translate(self.key, language, **self.params)
 
@@ -60,11 +81,19 @@ class Message(str):
                 return value
             return str(value)
 
-        return {"key": self.key, "params": {key: argument(value) for key, value in self.params.items()}, "fallback": str(self)}
+        return {
+            "key": self.key,
+            "params": {key: argument(value) for key, value in self.params.items()},
+            "fallback": str(self),
+        }
 
 
 def message(key: str, **params: Any) -> Message:
     return Message(key, **params)
+
+
+def _restore_message(key, params):
+    return message(key, **params)
 
 
 def as_message(value: Any) -> Any:

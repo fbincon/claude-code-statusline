@@ -1,4 +1,5 @@
 import type { ConfigRow, ConfigValue } from 'claude-code';
+import type { LocalizedText } from './i18n/index.ts';
 
 /** Actual config-menu row IDs differ from persisted settings keys. */
 export const PREFERENCE_SPECS = [
@@ -23,6 +24,7 @@ export interface Preference {
   baseline: ConfigValue;
   value: ConfigValue;
   result: string;
+  localizedResult?: LocalizedText;
 }
 
 export function specFor(preference: Preference) {
