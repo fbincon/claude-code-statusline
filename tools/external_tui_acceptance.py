@@ -201,6 +201,7 @@ def run_case(
             "surface": "external",
             "source_commit": commit,
             "ui_language": language,
+            "statusline_language": state.display.statusline_language,
             "sample_data": True,
             "terminal_theme": terminal_theme,
             "terminal_foreground": foreground,
@@ -255,6 +256,18 @@ def run_case(
             language = state.language = "zh-CN"
             wait_for("颜色：关闭")
             capture("language-settings-zh")
+            output_index = next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "field:statusline_language")
+            send(b"\x1bOH" + b"\x1bOB" * output_index, "状态栏语言")
+            send(b"\x1bOC", "简体中文")
+            state.display = state.display.with_updates(statusline_language="zh-CN")
+            wait_for("上下文")
+            capture("statusline-settings-zh")
+            send(b"\x1bOD", "English")
+            state.display = state.display.with_updates(statusline_language="en")
+            wait_for("Context")
+            capture("statusline-settings-en")
+            send(b"\x1bOC", "简体中文")
+            state.display = state.display.with_updates(statusline_language="zh-CN")
             for data, page, label in (
                 (b"\t", "layout", "布局／分行与适配"),
                 (b"\t", "items", "主状态栏项目"),
@@ -270,6 +283,31 @@ def run_case(
                 json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
                 == "zh-CN"
             )
+            # Reopen with an invocation-only English UI and save the output language.
+            os.close(master)
+            master, slave = pty.openpty()
+            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, columns, 0, 0))
+            process = subprocess.Popen([str(backend), "--language", "en", "configure", "--config-dir", str(config)], env=env, cwd=root, stdin=slave, stdout=slave, stderr=slave, preexec_fn=terminal, close_fds=True)
+            os.close(slave)
+            screen = pyte.Screen(columns, rows)
+            stream = pyte.Stream(screen)
+            decoder = codecs.getincrementaldecoder("utf-8")("replace")
+            language = "en"
+            state = editor.EditorState.from_effective(models.EffectiveConfig(display.load_display_config(config), models.HostConfig(), True, config_path))
+            wait_for("Preview (sample data)")
+            send(b"\t\t", "Settings / global options")
+            state.page = "settings"
+            index = next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "field:statusline_language")
+            send(b"\x1bOH" + b"\x1bOB" * index, "Statusline language")
+            send(b"\x1bOC", "简体中文")
+            state.display = state.display.with_updates(statusline_language="zh-CN")
+            capture("statusline-before-save-zh")
+            send(b"\x13", "Status line configuration updated")
+            assert process.wait(timeout=5) == 0
+            assert json.loads(config_path.read_bytes())["statusline_language"] == "zh-CN"
+            assert json.loads((config / "statusline-ui.json").read_bytes())["ui_language"] == "zh-CN"
+            rendered = cli("render", payload=json.dumps({"model":{"id":"claude-sample"},"context_window":{"used_percentage":42}}))
+            assert "上下文 已用 42%" in rendered
             return {
                 "columns": columns,
                 "rows": rows,
@@ -279,6 +317,9 @@ def run_case(
                     "unsaved-color-draft-preserved",
                     "language-retained-on-cancel",
                     "display-and-host-byte-identical",
+                    "statusline-preview-switches-both-directions-without-saving",
+                    "statusline-save-affects-next-production-render",
+                    "invocation-only-ui-override-preserves-preference",
                     "chinese-pages-and-cell-bounds",
                 ],
             }

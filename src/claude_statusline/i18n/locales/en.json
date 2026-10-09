@@ -1151,5 +1151,6 @@
   "statusline.short.subagent.task": "Task label",
   "statusline.short.subagent.tokens": "Agent tokens",
   "statusline.short.subagent.current-dir": "Agent directory",
-  "config.show.statusline_language": "Statusline language: {value}"
+  "config.show.statusline_language": "Statusline language: {value}",
+  "fields.global.statusline_language.label": "Statusline language (save with display settings)"
 }

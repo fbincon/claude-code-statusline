@@ -150,7 +150,7 @@ class GroupWindowTests(unittest.TestCase):
         self.assertEqual(forms.current(state)["key"], "ui-language")
         keys.handle_key(state, curses.KEY_HOME, 6)
         keys.handle_key(state, curses.KEY_NPAGE, 6)
-        self.assertEqual(forms.current(state)["key"], "padding")
+        self.assertEqual(forms.current(state)["key"], "field:statusline_language")
         keys.handle_key(state, curses.KEY_PPAGE, 6)
         self.assertEqual(forms.current(state)["key"], "colors")
         select(state, "padding")

@@ -6,8 +6,9 @@ import unittest
 from unittest import mock
 
 from claude_statusline.config import display, formatting, models, ui_preferences
-from claude_statusline.i18n import message
+from claude_statusline.i18n import message, presentation
 from claude_statusline.ui import drawing, editor, forms, session
+from claude_statusline.rendering import preview
 from tests.ui.test_layout import Screen, Mapper, select
 
 
@@ -56,6 +57,45 @@ class LanguageUiTests(unittest.TestCase):
             self.assertEqual(state.visible_items(), ["model"])
             state.subagent_search = "代理名称"
             self.assertIn("name", state.visible_subagent_items())
+
+    def test_statusline_language_is_a_draft_and_preserves_interface_and_input(self):
+        for language in ("en", "zh-CN"):
+            state = self.state(language)
+            state.page = "settings"
+            state.search = "context"
+            state.subagent_search = "用户"
+            state.display = state.display.with_updates(palette="ansi")
+            select(state, "field:statusline_language")
+            selected = forms.index(state)
+            row = forms.current(state)
+            self.assertEqual(presentation.value_label(row, language), "English")
+            forms.set_value(state, row, "zh-CN")
+            self.assertEqual(state.language, language)
+            self.assertEqual(state.display.statusline_language, "zh-CN")
+            self.assertEqual(state.display.palette, "ansi")
+            self.assertEqual((state.search, state.subagent_search), ("context", "用户"))
+            self.assertEqual(forms.index(state), selected)
+            self.assertIsNone(state.pending_language)
+            self.assertEqual(presentation.value_label(forms.current(state), language), "简体中文")
+            self.assertTrue(state.modified)
+            self.assertIn("上下文", "\n".join(preview.render_preview_rows(state.display, 120)))
+            self.assertFalse((self.root / display.CONFIG_FILENAME).exists())
+            self.assertFalse((self.root / "statusline-ui.json").exists())
+
+    def test_cancelled_screen_keeps_persisted_output_language_unchanged(self):
+        display.write_display_config(self.root, display.DEFAULT_CONFIG)
+        before = (self.root / display.CONFIG_FILENAME).read_bytes()
+        state = self.state("zh-CN")
+        state.page = "settings"
+        select(state, "field:statusline_language")
+        screen = InputScreen(64, 18)
+        events = iter((curses.KEY_RIGHT, "\x1b"))
+        screen.get_wch = lambda: next(events)
+        with mock.patch.object(drawing, "_draw_screen", return_value=12), mock.patch.object(drawing, "_ColorMapper", return_value=Mapper()):
+            self.assertEqual(session._screen_loop(screen, state), "cancel")
+        self.assertEqual(state.display.statusline_language, "zh-CN")
+        self.assertEqual(state.language, "zh-CN")
+        self.assertEqual((self.root / display.CONFIG_FILENAME).read_bytes(), before)
 
     def test_all_pages_and_forms_draw_chinese_inside_cell_bounds(self):
         for width, height in (

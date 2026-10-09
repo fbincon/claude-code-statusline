@@ -187,6 +187,7 @@ def run_pty(
     )
     settings_before = (config / "settings.json").read_bytes()
     language = "en"
+    output_language = "en"
     terminal_rows = 48 if columns < 110 else 30
     master, slave = pty.openpty()
     fcntl.ioctl(
@@ -424,6 +425,7 @@ def run_pty(
                     "rows": screen.lines,
                     "cells": cells,
                     "ui_language": language,
+                    "statusline_language": output_language,
                     "theme": current_theme(config),
                     "terminal_theme": terminal_theme,
                     "terminal_foreground": TERMINAL_THEMES[terminal_theme][0],
@@ -513,6 +515,21 @@ def run_pty(
                 == "zh-CN"
             )
             capture("language-settings-zh", colors=False)
+            appearance = [f for f in described["editor_fields"]["global"] if f["group"] == "Appearance"]
+            output_index = 6 + next(i for i, f in enumerate(appearance) if f["key"] == "statusline_language")
+            os.write(master, b"\x1b[H" + b"\x1b[B" * output_index)
+            read_until("状态栏语言")
+            os.write(master, b"\x1b[C")
+            read_until("上下文")
+            output_language = "zh-CN"
+            capture("statusline-settings-zh", colors=False)
+            os.write(master, b"\x1b[D")
+            read_until("Context")
+            output_language = "en"
+            capture("statusline-settings-en", colors=False)
+            os.write(master, b"\x1b[C")
+            read_until("上下文")
+            output_language = "zh-CN"
             # Restore colors through the current draft before documenting samples.
             os.write(master, b"\x1b[H\x1b[C1")
             read_until("主状态栏项目")
@@ -527,6 +544,7 @@ def run_pty(
                 capture(name)
             os.write(master, b"\x07q")
             read_until("❯")
+            output_language = "en"
             assert (
                 display_path.read_bytes(),
                 (config / "settings.json").read_bytes(),
@@ -550,10 +568,25 @@ def run_pty(
                 timeout=30,
             )
             language = "en"
+            output_language = "en"
             command("/statusline-configure-native")
             read_until("Configure Status Line")
             click_client()
             capture("language-main-reopened-en", palette="default")
+            os.write(master, b"3\x1b[H" + b"\x1b[B" * output_index)
+            read_until("Statusline language")
+            os.write(master, b"\x1b[C")
+            read_until("上下文")
+            output_language = "zh-CN"
+            os.write(master, b"S")
+            read_until("Tool configuration saved")
+            assert json.loads(display_path.read_bytes())["statusline_language"] == "zh-CN"
+            capture("statusline-settings-saved-zh", palette="default")
+            os.write(master, b"1")
+            read_until("Main items")
+            capture("statusline-main-saved-zh", palette="default")
+            rendered = subprocess.run([backend, "render"], input=json.dumps({"model":{"id":"claude-sample"},"context_window":{"remaining_percentage":73,"used_percentage":27}}), env=env, cwd=project, check=True, capture_output=True, text=True).stdout
+            assert "上下文" in rendered
             os.write(master, b"q")
             read_until("❯")
             command("/exit")
@@ -568,6 +601,8 @@ def run_pty(
                     "language-immediate-save",
                     "unsaved-color-draft-preserved",
                     "cancel-byte-identical",
+                    "statusline-draft-preview-switches-both-directions",
+                    "statusline-save-affects-next-production-render",
                     "external-shared-language",
                     "cli-reset-native-reopen",
                     "bilingual-pages-and-forms",
@@ -669,7 +704,7 @@ def run_pty(
         os.write(master, b"\t")
         read_until("Tool settings")
         capture("settings")
-        os.write(master, b"\x1b[H" + b"\x1b[B" * 6 + b"\r\x159")
+        os.write(master, b"\x1b[H" + b"\x1b[B" * (6 + sum(f["group"] == "Appearance" for f in described["editor_fields"]["global"])) + b"\r\x159")
         read_until("Padding: 9 _")
         os.write(master, b"\x07")
         read_until("Padding: 0")
@@ -777,6 +812,8 @@ def run_pty(
                         "field:" + field["key"]
                         for field in described["editor_fields"]["global"]
                     ]
+                    appearance_keys = ["field:" + f["key"] for f in described["editor_fields"]["global"] if f["group"] == "Appearance"]
+                    field_keys = field_keys[:6] + appearance_keys + [key for key in field_keys[6:] if key not in appearance_keys]
                     field_keys += [
                         "ui-language",
                         "preset-select",

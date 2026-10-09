@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import pprint
+import unicodedata
 from string import Formatter
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,6 +47,10 @@ def resources():
                 raise ValueError(f"Invalid translation: {language}:{key}")
             if placeholders(value) != placeholders(data["en"][key]):
                 raise ValueError(f"Placeholder mismatch: {language}:{key}")
+            if key.startswith("statusline.") and any(unicodedata.category(c) in ("Cc", "Cs") for c in value):
+                raise ValueError(f"Statusline messages must be single-line terminal-safe text: {language}:{key}")
+            if key.startswith(("statusline.prefix.", "statusline.short.", "statusline.values.", "statusline.live.label.")) and placeholders(value):
+                raise ValueError(f"Statusline labels and enum values cannot contain placeholders: {language}:{key}")
     return data
 
 
