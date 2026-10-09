@@ -23,6 +23,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Start from a preset:** minimal, developer, monitoring, and multi-agent presets expand into editable settings; import and export portable JSON.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
 - **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain their colors on a separate dark background.
+- **Follow terminal colors:** external TUI text and bold keys use terminal defaults; previews show the selected palette on the current terminal background.
 - **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and per-task usage are opt-in. Missing or partial observations stay distinguishable.
 
 Rendering uses Claude Code input and local state without making network requests or using model tokens. The question-and-answer wizard uses Claude model turns. See [field definitions](docs/DISPLAY_ITEMS.md) for data sources and availability.
@@ -104,6 +105,25 @@ Only Main was supplied for this batch. The existing interaction limitation and c
 ### External TUI
 
 Run `/statusline-configure` in Claude Code, or `claude-statusline configure` in a standalone terminal.
+
+<details>
+<summary>Linux: light/dark backgrounds and palette comparison</summary>
+
+Previews use the current terminal background and selected palette. Compare `ansi` in Settings when `default` looks faint. These are terminal-output reconstructions from dedicated GNOME profiles; [capture sources](docs/images/README.md#external-terminal-color-captures).
+
+**Light background, Palette: default**
+
+![Linux light terminal with default palette](docs/images/tui/external/linux/themes/main-light.png)
+
+**Light background, Palette: ansi**
+
+![Linux light terminal with ANSI palette](docs/images/tui/external/linux/themes/main-light-ansi.png)
+
+**Dark background, Palette: default**
+
+![Linux dark terminal with default palette](docs/images/tui/external/linux/themes/main-dark.png)
+
+</details>
 
 <details>
 <summary>Linux: Main, Subagents, Settings, Layout</summary>

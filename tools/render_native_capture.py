@@ -79,6 +79,7 @@ def main() -> int:
     width, height = 12, 24
     default_fg = data.get("terminal_foreground", "#dedee7")
     default_bg = data.get("terminal_background", "#17191e")
+    palette = data.get("terminal_palette")
     image = Image.new("RGB", (columns * width + 24, end * height + 24), default_bg)
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype(str(args.font), 20)
@@ -92,7 +93,7 @@ def main() -> int:
         for column in range(first, first + columns):
             cell = cells[row][column]
             x, y = 12 + (column - first) * width, 12 + row * height
-            _, bg = cell_colors(cell, default_fg, default_bg)
+            _, bg = cell_colors(cell, default_fg, default_bg, palette)
             draw.rectangle((x, y, x + width, y + height), fill=bg)
     for row in range(end):
         for column in range(first, first + columns):
@@ -100,7 +101,7 @@ def main() -> int:
             if not cell["data"]:
                 continue
             x, y = 12 + (column - first) * width, 12 + row * height
-            fg, bg = cell_colors(cell, default_fg, default_bg)
+            fg, bg = cell_colors(cell, default_fg, default_bg, palette)
             selected = (
                 symbols
                 if "\u23f1" in cell["data"]

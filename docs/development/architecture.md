@@ -25,6 +25,7 @@ src/claude_statusline/
     models.py                       Terminal bounds, outcomes and stable field keys
     editor.py, forms.py              Draft state, grouped fields and pure edits
     layout.py                       Panel geometry and grouped viewport budgets
+    theme.py                         Terminal-default styles and preview color pairs
     drawing.py, keys.py              Terminal drawing and keyboard dispatch
     session.py                      Terminal lifecycle, saves/cancel and file effects
     protocol.py, contracts.py        JSON backend and generated wire contracts
@@ -128,4 +129,4 @@ Runtime collection has two independent modes. Native timing defaults on for comp
 
 Client `ui/layout.ts` budgets content, Preview and two action rows from terminal dimensions. The shared section component paints its title on the frame edge, with a one-row heading in compact mode. `lib/editor/navigation.ts` packs actual fields and group headings into pages; drawing and page keys share that calculation. Stable field keys retain selection through resize and headings are nonselectable. Layout expands mode and all row boundaries before item fitting in main-line order; item details keep format and fitting groups contiguous.
 
-Each editor has a pure shortcut-segment helper that fits complete key/action groups before Client Text or curses draws white bold keys and regular dim descriptions. Narrow viewports use shorter labels and omit incomplete groups. External forms retain the existing grouped scrolling window; h still unfolds host preferences with separate Apply. Drawing performs no file or host effects.
+Each editor has a pure shortcut-segment helper that fits complete key/action groups. Keys use the primary text color and bold weight; descriptions use regular readable text. Client follows the applied Claude theme; external curses chrome uses terminal defaults and reversed selection. `ui.theme` owns capability-aware foreground pairs on the terminal-default background. Preview fills, resets and uncolored spans use terminal defaults; sample colors follow the selected production palette, with default-color/monochrome/allocation fallbacks. Narrow viewports use shorter labels and omit incomplete groups. External forms retain the existing grouped scrolling window; h still unfolds host preferences with separate Apply. Drawing performs no file or host effects.

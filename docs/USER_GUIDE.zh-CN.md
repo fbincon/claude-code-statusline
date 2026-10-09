@@ -274,6 +274,13 @@ Windows 使用 `claude-statusline.exe configure`。stdin、stdout 必须都是 T
 
 Settings 按外观、刷新与行为、Git 指标、格式、风险颜色、子 Agent 可见性、预设与文件操作分组。Layout 按模式、行边界、逐项适配分组，标题不可选中。固定样例预览复用生产渲染，不读取实时 Git 或 transcript。[当前页面截图](images/README.zh-CN.md#当前图片)。
 
+### 外部终端配色
+
+外部编辑器使用终端默认前景与背景，标题和快捷键加粗，说明保持普通字重。活动页签及选中行反转默认颜色，并保留选择标记。界面随浅色／深色终端配置显示，独立于 Claude 实际应用的主题。
+
+样例预览使用当前终端背景和所选 `Palette`，标题显示当前选择。无色文字、颜色重置、空行和行尾空格使用终端默认色。curses 按终端能力量化 RGB 样例，ANSI 样例使用终端配置的 ANSI 颜色。浅色终端中若 `Palette: default` 显得过淡，可在 Settings 比较 `Palette: ansi`；修改立即更新预览，保存后应用到实际状态栏。预览保留原有配色，使比较反映终端实际显示效果。默认色不支持、无色终端以及样例颜色对失败／不足时回退到默认文字。
+
+
 ## 外部终端入口 `/statusline-configure`
 
 在 Claude Code 中无参数运行 `/statusline-configure`。该入口需 2.1.258+，按平台在 tmux popup、GNOME Terminal、Terminal.app 或 Windows 新控制台中打开相同的 curses TUI。

@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 1.7.7 - 2026-10-09
+
+- External TUI headings, shortcuts and descriptions use terminal-default text instead of fixed white/cyan or dim attributes; selection reverses the defaults for light/dark terminal profiles.
+- Preview the selected default/ANSI palette on the current terminal background, show its choice in the title, and preserve default text/resets and capability-quantized samples; fall back on unsupported defaults, monochrome and color-pair failures/exhaustion.
+- Centralize external color/style roles, preserve compatibility exports and add light/dark capture analysis, recorded ANSI palettes, preview-fill checks and cross-platform color-allocation regressions.
+- Update bilingual usage, architecture and validation documentation and add terminal-capture reconstructions; Python and both Mod release manifests are 1.7.7 with existing configuration/protocol compatibility.
+
 ## 1.7.6 - 2026-10-09
 
 - Follow applied Claude themes in the in-session editor using explicit semantic text/background/selection colors, bold primary-text shortcut keys, readable inactive descriptions and themed recovery controls. Preserve separate host preference Apply and existing editor/protocol behavior.

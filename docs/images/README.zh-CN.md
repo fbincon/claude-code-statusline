@@ -16,12 +16,18 @@ images/
 │   │   │   ├── main.png
 │   │   │   ├── subagents.png
 │   │   │   ├── settings.png
-│   │   │   └── layout.png
+│   │   │   ├── layout.png
+│   │   │   └── themes/
+│   │   │       ├── main-light.png
+│   │   │       └── main-dark.png
 │   │   ├── windows/
 │   │   │   ├── main.png
 │   │   │   ├── subagents.png
 │   │   │   ├── settings.png
-│   │   │   └── layout.png
+│   │   │   ├── layout.png
+│   │   │   └── themes/
+│   │   │       ├── main-light.png
+│   │   │       └── main-dark.png
 │   │   └── macos/
 │   │       └── main.png
 │   └── external/
@@ -29,12 +35,22 @@ images/
 │       │   ├── main.png
 │       │   ├── subagents.png
 │       │   ├── settings.png
-│       │   └── layout.png
+│       │   ├── layout.png
+│       │   └── themes/
+│       │       ├── main-light.png
+│       │       ├── main-light-ansi.png
+│       │       ├── main-dark.png
+│       │       └── main-dark-ansi.png
 │       ├── windows/
 │       │   ├── main.png
 │       │   ├── subagents.png
 │       │   ├── settings.png
-│       │   └── layout.png
+│       │   ├── layout.png
+│       │   └── themes/
+│       │       ├── main-light.png
+│       │       ├── main-light-ansi.png
+│       │       ├── main-dark.png
+│       │       └── main-dark-ansi.png
 │       └── macos/
 │           ├── main.png
 │           ├── subagents.png
@@ -133,3 +149,18 @@ images/
 | --- | --- | --- | --- | --- |
 | light | [main-light.png](tui/native/linux/themes/main-light.png) | 888×576 | `08eee7ab45ad74814280c770c2c51c4772456382e1d80ff7c75edcb166205b11` | `0d74c602d9b8dc21e05349fcb9c1be65eba07b79c1518d85705b3a082f19686d` |
 | dark | [main-dark.png](tui/native/linux/themes/main-dark.png) | 888×576 | `ec5292f49b7adc18089d02ea94dab021c25a01e025ef5ea5177c36183da9908b` | `1bed1c71d5956fe7a4b3eab602bc2ed4b2b57d85db77523babb7038684807433` |
+
+## 外部终端配色捕获
+
+这些图片重建源码提交 `416862536f775f603a83812283ea2ea104a81699` 的实际外部 TUI 输出。2026-10-09 在独立浅色／深色 GNOME Terminal 3.58.0／VTE 0.84.0 配置中捕获，连接隔离的 tmux 3.6 服务器。已安装 1.7.7 wheel 从该固定提交构建，运行于 Linux x86_64／Python 3.14.4，每个 pane 为 120×30。
+
+浅色配置使用 `#17191e` 前景和 `#ffffff` 背景，深色使用 `#dedee7` 与 `#17191e`。两组都复制原默认配置的 GNOME ANSI 调色板，关闭 bold-is-bright，并在捕获中记录颜色值。预览沿用终端背景和所选生产配色，default 与 ANSI 图片显示实际差异，RGB 样例按能力量化。ANSI 在未保存草稿中选择，随后取消，配置字节保持不变。主界面和反色选择通过 4.5:1 对比度检查；样例保留原色，让用户看到对比度不足并比较配色。
+
+这些是终端重建图，不代表系统截图或真人验收；GNOME Shell 拒绝了此前的截图 API 尝试。原始 ANSI、解码单元格和报告留在忽略的 `dist/validation/v1.7.7-terminal-source/gnome`，由 `tools/render_native_capture.py` 读取记录的默认色及 ANSI 调色板绘制。另行运行的五尺寸浅色／深色 PTY 套件检查四页／表单、切换配色、Colors off 和保存后的 ANSI 生产输出。临时终端配置、窗口和服务器已移除，原默认配置保留。后续仅文档提交保留已测试实现。
+
+| 终端／配色 | 图片 | 捕获 JSON SHA256 | PNG SHA256 |
+| --- | --- | --- | --- |
+| light / default | [PNG](tui/external/linux/themes/main-light.png) | `1bb05a06b8bf6f2467c796b82660945cac875cee0e129787fe99a8a7a6d5920c` | `caa98e74e0a80184d56f02289e3778cd2f713604b027bca83a2ca1686fb45af9` |
+| light / ansi | [PNG](tui/external/linux/themes/main-light-ansi.png) | `6c0bddf026f8ff427f3b38a8c245c2b7b6268ddea87c04ff2e79b6b52406949e` | `ea5fb0ccfba335d9be038279a0dd4ed298b2eb7d4c38e4c3b19f682401771a0e` |
+| dark / default | [PNG](tui/external/linux/themes/main-dark.png) | `02bd6e45ae4efcf5979074866abc5b51d50ebe6a0594fe71f8972ee8a9668261` | `cedcc3feab9b0033ed72a6cc82033b4230af92523ec722fff837b257f28fe59a` |
+| dark / ansi | [PNG](tui/external/linux/themes/main-dark-ansi.png) | `80b25a3042908729de992824766213ac3fe9afe0eb5851c803553d3ae1f60c47` | `12d8ce4335261e9d06b9f3d83bb7ce709b56d6deff222563388f3866e5b5aa38` |

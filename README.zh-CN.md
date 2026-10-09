@@ -23,6 +23,7 @@
 - **从预设开始：** minimal、developer、monitoring、multi-agent 四种预设可展开编辑，支持可移植 JSON 导入和导出。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
 - **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在独立深底上保留原始配色。
+- **适配终端配色：**外部 TUI 文字与粗体快捷键使用终端默认色，预览在当前终端背景上显示所选配色。
 - **按需开启实时指标：** 运行状态、代理数量、工具进度、请求用时和逐任务用量需主动启用；缺失数据和部分观测分别标记。
 
 状态栏渲染读取 Claude Code 输入和本地状态，不自行发起网络请求或使用模型 token。问答向导使用 Claude 模型回合。数据来源与可用条件见[显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)。
@@ -102,6 +103,25 @@
 ### 外部 TUI
 
 在 Claude Code 中运行 `/statusline-configure`，或在独立终端运行 `claude-statusline configure`。
+
+<details>
+<summary>Linux：浅色／深色背景与配色比较</summary>
+
+预览使用当前终端背景和所选配色，`default` 显得过淡时可在 Settings 比较 `ansi`。图片为独立 GNOME 配置的终端输出重建，见[捕获来源](docs/images/README.zh-CN.md#外部终端配色捕获)。
+
+**浅色背景，Palette: default**
+
+![Linux 浅色终端与 default 配色](docs/images/tui/external/linux/themes/main-light.png)
+
+**浅色背景，Palette: ansi**
+
+![Linux 浅色终端与 ANSI 配色](docs/images/tui/external/linux/themes/main-light-ansi.png)
+
+**深色背景，Palette: default**
+
+![Linux 深色终端与 default 配色](docs/images/tui/external/linux/themes/main-dark.png)
+
+</details>
 
 <details>
 <summary>Linux：Main、Subagents、Settings、Layout</summary>

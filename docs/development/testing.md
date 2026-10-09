@@ -230,3 +230,19 @@ Run each supported theme in a new ignored report directory:
 Repeat for dark, light-daltonized, dark-daltonized, light-ansi, dark-ansi, auto and `custom:statusline-validation-light` on a host that supports them. The custom fixture uses a light base with explicit text/inverse/inactive/accent overrides. Each run captures four pages and an item form at 120×30 and 80×48, checks primary key/description contrast against decoded backgrounds, and verifies unsaved theme edits and separate successful Apply without saving the tool draft. Theme reads prefer current settings over legacy global storage. Run full persistent/advanced acceptance separately for saving and cross-editor readback.
 
 `tools/terminal_colors.py` resolves foreground and background defaults separately before reverse video; both acceptance and capture rendering use it. RGB cells are exact; named ANSI colors use the documented capture palette and do not establish a physical terminal’s custom ANSI definitions. Reconstructed images are terminal evidence, separate from OS screenshots or human acceptance.
+
+## External terminal color acceptance
+
+`ui.theme` uses terminal-default chrome, bold keys/headings, regular descriptions and reversed selection. Tests exercise four pages and item forms with 0/8/16/256 colors, color-start/default-color failures, bounded color-pair allocation, ANSI/RGB sample mapping and terminal-default preview backgrounds. The external minimum remains 64×18; 32×12 validates resize/cancel guidance, while all working sizes check cell bounds, CJK/combining text and state retention.
+
+Run the installed wheel in both terminal-default fixtures, each with a new ignored report directory:
+
+```bash
+.venv/bin/python tools/external_tui_acceptance.py \
+  --backend /path/to/installed/claude-statusline --commit COMMIT_HASH \
+  --terminal-theme light --report-dir dist/validation/external-light
+```
+
+Repeat with `--terminal-theme dark` and another report directory. This option supplies defaults for capture analysis and does not configure a physical terminal. Both fixtures exercise 64×18, 64×20, 80×24, 120×30 and 80×48, four pages, item forms, numeric input/errors, resize, byte-identical cancel and save/readback. Each capture checks default chrome and reversed selections at contrast ≥4.5:1, bold keys/regular descriptions, terminal-default preview backgrounds, Palette default/ansi and Colors off drafts, plus saved ANSI production output. Capture metadata records the default foreground/background and xterm ANSI palette; the image renderer consumes that palette. Real terminal profiles and human acceptance remain separate evidence.
+
+For this patch, local Python checks passed 659 tests (651 passes, eight expected platform skips); Claude Code 2.1.295 official Mod tests passed 59 native and ten runtime tests. Both TypeScript projects use exact 2.1.294 generated declarations: the 2.1.295 unauthenticated type-load path stopped at login before emitting declarations. Fixed CI hosts retain their existing versions and 13 Python/build plus ten Mod gates.

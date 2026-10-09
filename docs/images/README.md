@@ -16,12 +16,18 @@ images/
 │   │   │   ├── main.png
 │   │   │   ├── subagents.png
 │   │   │   ├── settings.png
-│   │   │   └── layout.png
+│   │   │   ├── layout.png
+│   │   │   └── themes/
+│   │   │       ├── main-light.png
+│   │   │       └── main-dark.png
 │   │   ├── windows/
 │   │   │   ├── main.png
 │   │   │   ├── subagents.png
 │   │   │   ├── settings.png
-│   │   │   └── layout.png
+│   │   │   ├── layout.png
+│   │   │   └── themes/
+│   │   │       ├── main-light.png
+│   │   │       └── main-dark.png
 │   │   └── macos/
 │   │       └── main.png
 │   └── external/
@@ -29,12 +35,22 @@ images/
 │       │   ├── main.png
 │       │   ├── subagents.png
 │       │   ├── settings.png
-│       │   └── layout.png
+│       │   ├── layout.png
+│       │   └── themes/
+│       │       ├── main-light.png
+│       │       ├── main-light-ansi.png
+│       │       ├── main-dark.png
+│       │       └── main-dark-ansi.png
 │       ├── windows/
 │       │   ├── main.png
 │       │   ├── subagents.png
 │       │   ├── settings.png
-│       │   └── layout.png
+│       │   ├── layout.png
+│       │   └── themes/
+│       │       ├── main-light.png
+│       │       ├── main-light-ansi.png
+│       │       ├── main-dark.png
+│       │       └── main-dark-ansi.png
 │       └── macos/
 │           ├── main.png
 │           ├── subagents.png
@@ -133,3 +149,18 @@ Two additional Linux images were reconstructed on 2026-10-09 from actual Claude 
 | --- | --- | --- | --- | --- |
 | light | [main-light.png](tui/native/linux/themes/main-light.png) | 888×576 | `08eee7ab45ad74814280c770c2c51c4772456382e1d80ff7c75edcb166205b11` | `0d74c602d9b8dc21e05349fcb9c1be65eba07b79c1518d85705b3a082f19686d` |
 | dark | [main-dark.png](tui/native/linux/themes/main-dark.png) | 888×576 | `ec5292f49b7adc18089d02ea94dab021c25a01e025ef5ea5177c36183da9908b` | `1bed1c71d5956fe7a4b3eab602bc2ed4b2b57d85db77523babb7038684807433` |
+
+## External terminal color captures
+
+These images reconstruct actual external TUI output from source commit `416862536f775f603a83812283ea2ea104a81699`, captured on 2026-10-09 in dedicated light/dark GNOME Terminal 3.58.0 / VTE 0.84.0 profiles attached to isolated tmux 3.6 servers. The installed 1.7.7 wheel was built from that exact commit, on Linux x86_64 / Python 3.14.4; each pane is 120×30.
+
+The light profile uses foreground `#17191e` and background `#ffffff`; the dark uses `#dedee7` and `#17191e`. Both copy the original default profile's GNOME ANSI palette with bold-is-bright disabled, recording its values in the capture. Previews inherit the terminal background and show the selected production palette; the default and ANSI screenshots show genuine palette differences, with capability-quantized RGB samples. ANSI was selected in the unsaved draft, then cancellation preserved configuration bytes. Chrome and reversed selections passed 4.5:1 contrast checks; sample colors are preserved so users can see low contrast and compare palettes.
+
+These are terminal reconstructions, not OS screenshots or human acceptance; GNOME Shell denied the earlier screenshot API attempt. Raw ANSI, decoded cells and reports remain in ignored `dist/validation/v1.7.7-terminal-source/gnome`. `tools/render_native_capture.py` reads the recorded defaults and ANSI palette. Separate five-size light/dark PTY suites check four pages/forms, palette changes, Colors off and saved ANSI production output. Temporary terminal profiles/windows/servers were removed and the original default profile was preserved. Later documentation-only commits retain the tested implementation.
+
+| Terminal / Palette | Image | Captured JSON SHA256 | PNG SHA256 |
+| --- | --- | --- | --- |
+| light / default | [PNG](tui/external/linux/themes/main-light.png) | `1bb05a06b8bf6f2467c796b82660945cac875cee0e129787fe99a8a7a6d5920c` | `caa98e74e0a80184d56f02289e3778cd2f713604b027bca83a2ca1686fb45af9` |
+| light / ansi | [PNG](tui/external/linux/themes/main-light-ansi.png) | `6c0bddf026f8ff427f3b38a8c245c2b7b6268ddea87c04ff2e79b6b52406949e` | `ea5fb0ccfba335d9be038279a0dd4ed298b2eb7d4c38e4c3b19f682401771a0e` |
+| dark / default | [PNG](tui/external/linux/themes/main-dark.png) | `02bd6e45ae4efcf5979074866abc5b51d50ebe6a0594fe71f8972ee8a9668261` | `cedcc3feab9b0033ed72a6cc82033b4230af92523ec722fff837b257f28fe59a` |
+| dark / ansi | [PNG](tui/external/linux/themes/main-dark-ansi.png) | `80b25a3042908729de992824766213ac3fe9afe0eb5851c803553d3ae1f60c47` | `12d8ce4335261e9d06b9f3d83bb7ce709b56d6deff222563388f3866e5b5aa38` |

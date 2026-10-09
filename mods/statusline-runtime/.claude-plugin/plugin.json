@@ -1,6 +1,6 @@
 {
   "name": "statusline-runtime",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "description": "Native task timing and optional advanced statusline observations",
   "author": {
     "name": "fbincon"
