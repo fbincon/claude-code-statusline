@@ -6,6 +6,7 @@ recursive-include docs *.md *.png
 exclude docs/MACOS_VALIDATION.md
 recursive-include tests *.py
 recursive-include src/claude_statusline/resources *.md
+recursive-include src/claude_statusline/i18n/locales *.json
 recursive-include tools *.py
 recursive-include mods/statusline-native *.json *.ts
 prune mods/statusline-native/node_modules

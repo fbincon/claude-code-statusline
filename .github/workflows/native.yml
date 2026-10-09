@@ -73,6 +73,7 @@ jobs:
       - name: Shared protocol contracts
         run: |
           python tools/generate_ui_contracts.py --check
+          python tools/generate_i18n.py --check
           python tools/generate_runtime_contracts.py --check
           python -m unittest tests.config.test_catalog tests.ui.test_protocol tests.ui.test_apply_protocol tests.integration.test_native_installer tests.integration.test_runtime_installer tests.runtime.live.test_protocol tests.runtime.live.test_store
       - name: Official static validation

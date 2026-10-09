@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import json
 from pathlib import Path
 from claude_statusline._version import __version__
@@ -51,16 +53,16 @@ def parse_feature_bytes(raw: bytes, path: Path | None = None) -> bool:
         value = {}
         for key, item in pairs:
             if key in value:
-                raise ValueError(f"duplicate field: {key}")
+                raise ValueError(msg('errors.features.duplicate_field', field=key))
             value[key] = item
         return value
 
     try:
         value = json.loads(raw.decode("utf-8"), object_pairs_hook=strict_object)
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
-        raise FeatureConfigError(f"invalid JSON in {label}: {exc}") from exc
+        raise FeatureConfigError(msg('errors.features.invalid_json_in', label=label, exc=exc)) from exc
     if not isinstance(value, dict):
-        raise FeatureConfigError(f"{label} must contain a JSON object")
+        raise FeatureConfigError(msg('errors.features.must_contain_a_json_object', label=label))
     keys = set(value)
     if keys != _EXPECTED_KEYS:
         missing = sorted(_EXPECTED_KEYS - keys)
@@ -71,7 +73,7 @@ def parse_feature_bytes(raw: bytes, path: Path | None = None) -> bool:
         if unknown:
             details.append("unknown fields: " + ", ".join(unknown))
         raise FeatureConfigError(
-            f"invalid feature configuration in {label}: {'; '.join(details)}"
+            msg('errors.features.invalid_feature_configuration_in', label=label, value1='; '.join(details))
         )
     schema = value["schema_version"]
     if (
@@ -80,11 +82,11 @@ def parse_feature_bytes(raw: bytes, path: Path | None = None) -> bool:
         or schema != SCHEMA_VERSION
     ):
         raise FeatureConfigError(
-            f"unsupported feature configuration schema in {label}: {schema!r}"
+            msg('errors.features.unsupported_feature_configuration_schema_in', label=label, schema=f'{schema!r}')
         )
     enabled = value["experimental_slash_tui"]
     if not isinstance(enabled, bool):
-        raise FeatureConfigError(f"experimental_slash_tui in {label} must be a boolean")
+        raise FeatureConfigError(msg('errors.features.experimental_slash_tui_in_must_be_a', label=label))
     return enabled
 
 
@@ -97,7 +99,7 @@ def load_experimental_slash_tui(
     except FileNotFoundError:
         return enabled_by_default(version)
     except OSError as exc:
-        raise FeatureConfigError(f"cannot read {path}: {exc}") from exc
+        raise FeatureConfigError(msg('errors.features.cannot_read', path=path, exc=exc)) from exc
     return parse_feature_bytes(raw, path)
 
 
@@ -107,5 +109,5 @@ def write_enabled(config_dir: Path) -> Path:
     try:
         platform_files.atomic_write_bytes(path, enabled_bytes(), 0o600)
     except OSError as exc:
-        raise FeatureConfigError(f"cannot write {path}: {exc}") from exc
+        raise FeatureConfigError(msg('errors.features.cannot_write', path=path, exc=exc)) from exc
     return path

@@ -32,7 +32,7 @@ class ProtocolTests(unittest.TestCase):
         return protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 4,
+                    "protocol_version": 5,
                     "operation": operation,
                     "payload": {} if payload is None else payload,
                     **extra,
@@ -201,7 +201,7 @@ class ProtocolTests(unittest.TestCase):
         env = dict(os.environ, CLAUDE_CONFIG_DIR=str(self.root))
         raw = json.dumps(
             {
-                "protocol_version": 4,
+                "protocol_version": 5,
                 "operation": "preview",
                 "payload": {"draft": draft(), "width": 80},
             }
@@ -222,5 +222,5 @@ class ProtocolTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, expected, result.stderr)
-            self.assertEqual(json.loads(result.stdout)["protocol_version"], 4)
+            self.assertEqual(json.loads(result.stdout)["protocol_version"], 5)
         self.assertFalse(self.root.exists())

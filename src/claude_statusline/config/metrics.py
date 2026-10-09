@@ -1,5 +1,7 @@
 """Validated advanced-metric preferences, with no runtime probes."""
 
+from claude_statusline.i18n import message as msg
+
 from dataclasses import dataclass
 import unicodedata
 
@@ -15,7 +17,7 @@ def base_ref(value):
         or any(c.isspace() or unicodedata.category(c) in ("Cc", "Cs") for c in value)
     ):
         raise ValueError(
-            "branch_diff_base_ref must be null or a safe local Git ref (up to 256 characters)"
+            msg('errors.metrics.branch_diff_base_ref_must_be_null')
         )
     return value
 
@@ -30,5 +32,5 @@ class Metrics:
     @classmethod
     def parse(cls, value):
         if not isinstance(value, dict) or set(value) != {"branch_diff_base_ref"}:
-            raise ValueError("metrics requires exactly branch_diff_base_ref")
+            raise ValueError(msg('errors.metrics.metrics_requires_exactly_branch_diff_base_ref'))
         return cls(base_ref(value["branch_diff_base_ref"]))

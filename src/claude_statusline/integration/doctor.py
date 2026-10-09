@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg, as_message
+
 import os
 import platform as stdlib_platform
 import re
@@ -27,12 +29,12 @@ from claude_statusline.platforms import processes as platform_processes
 def _check_environment(diagnostics, executable):
     if platform_environment.is_supported_platform():
         diagnostics.append(
-            integration_models.Diagnostic("OK", f"platform: {sys.platform}")
+            integration_models.Diagnostic("OK", msg('doctor.doctor.platform', platform=sys.platform))
         )
     else:
         diagnostics.append(
             integration_models.Diagnostic(
-                "ERROR", "supported platforms are Linux/WSL, Windows and macOS 14+"
+                "ERROR", msg('doctor.doctor.supported_platforms_are_linux_wsl_windows_and')
             )
         )
 
@@ -40,14 +42,13 @@ def _check_environment(diagnostics, executable):
         machine = stdlib_platform.machine().casefold()
         if machine in {"amd64", "x86_64", "x86", "i386", "i686"}:
             diagnostics.append(
-                integration_models.Diagnostic("OK", f"Windows architecture: {machine}")
+                integration_models.Diagnostic("OK", msg('doctor.doctor.windows_architecture', machine=machine))
             )
         else:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "WARN",
-                    f"Windows architecture {machine or 'unknown'} is not covered; "
-                    "use x64 Python emulation on ARM64",
+                    msg('doctor.doctor.windows_architecture_is_not_covered_use_x64', value0=machine or 'unknown'),
                 )
             )
         try:
@@ -67,25 +68,25 @@ def _check_environment(diagnostics, executable):
                 )
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "OK", f"windows-curses backend: {curses_version}"
+                    "OK", msg('doctor.doctor.windows_curses_backend', curses_version=curses_version)
                 )
             )
         except (ImportError, metadata.PackageNotFoundError) as exc:
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "ERROR", f"windows-curses backend is unavailable: {exc}"
+                    "ERROR", msg('doctor.doctor.windows_curses_backend_is_unavailable', exc=exc)
                 )
             )
         if platform_environment.new_console_creation_flags():
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "OK", "Windows system new-console launcher"
+                    "OK", msg('doctor.doctor.windows_system_new_console_launcher')
                 )
             )
         else:
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "ERROR", "Windows system new-console launcher is unavailable"
+                    "ERROR", msg('doctor.doctor.windows_system_new_console_launcher_is_unavailable')
                 )
             )
 
@@ -94,7 +95,7 @@ def _check_environment(diagnostics, executable):
         diagnostics.append(
             integration_models.Diagnostic(
                 "OK" if machine in {"x86_64", "arm64"} else "WARN",
-                f"macOS architecture: {machine or 'unknown'}",
+                msg('doctor.doctor.macos_architecture', value0=machine or 'unknown'),
             )
         )
         macos_version = stdlib_platform.mac_ver()[0]
@@ -102,8 +103,7 @@ def _check_environment(diagnostics, executable):
         diagnostics.append(
             integration_models.Diagnostic(
                 "OK" if major.isdecimal() and int(major) >= 14 else "WARN",
-                f"macOS version: {macos_version or 'unknown'}; supported range is 14+; "
-                "CI configured for 15 and 26",
+                msg('doctor.doctor.macos_version_supported_range_is_14_ci', value0=macos_version or 'unknown'),
             )
         )
         try:
@@ -112,24 +112,19 @@ def _check_environment(diagnostics, executable):
             if not hasattr(curses, "wrapper"):
                 raise ImportError("curses.wrapper is unavailable")
             diagnostics.append(
-                integration_models.Diagnostic("OK", "macOS curses backend")
+                integration_models.Diagnostic("OK", msg('doctor.doctor.macos_curses_backend'))
             )
         except ImportError as exc:
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "ERROR", f"macOS curses backend is unavailable: {exc}"
+                    "ERROR", msg('doctor.doctor.macos_curses_backend_is_unavailable', exc=exc)
                 )
             )
         process_token = platform_processes.process_start_token(os.getpid())
         diagnostics.append(
             integration_models.Diagnostic(
                 "OK" if process_token else "WARN",
-                "macOS process start verification: "
-                + (
-                    "available"
-                    if process_token
-                    else "unavailable; registry reconciliation is disabled"
-                ),
+                msg('doctor.doctor.macos_process_start_verification', value0='available' if process_token else 'unavailable; registry reconciliation is disabled'),
             )
         )
         _wall, boot_ns, boot_id = platform_clocks.now_clocks()
@@ -137,28 +132,23 @@ def _check_environment(diagnostics, executable):
         diagnostics.append(
             integration_models.Diagnostic(
                 "OK" if native_clock else "WARN",
-                "macOS suspend-aware clock: "
-                + (
-                    "available"
-                    if native_clock
-                    else "unavailable; using wall-clock fallback"
-                ),
+                msg('doctor.doctor.macos_suspend_aware_clock', value0='available' if native_clock else 'unavailable; using wall-clock fallback'),
             )
         )
 
     version = ".".join(map(str, sys.version_info[:3]))
     if sys.version_info >= (3, 10):  # noqa: UP036 - doctor reports the contract
-        diagnostics.append(integration_models.Diagnostic("OK", f"Python: {version}"))
+        diagnostics.append(integration_models.Diagnostic("OK", msg('doctor.doctor.python', version=version)))
     else:
         diagnostics.append(
             integration_models.Diagnostic(
-                "ERROR", f"Python 3.10+ required; found {version}"
+                "ERROR", msg('doctor.doctor.python_3_10_required_found', version=version)
             )
         )
 
     if executable is None:
         diagnostics.append(
-            integration_models.Diagnostic("ERROR", "claude-statusline is not in PATH")
+            integration_models.Diagnostic("ERROR", msg('doctor.doctor.claude_statusline_is_not_in_path'))
         )
     elif (
         executable.is_file()
@@ -169,22 +159,22 @@ def _check_environment(diagnostics, executable):
         )
     ):
         diagnostics.append(
-            integration_models.Diagnostic("OK", f"executable: {executable}")
+            integration_models.Diagnostic("OK", msg('doctor.doctor.executable', executable=executable))
         )
     else:
         diagnostics.append(
             integration_models.Diagnostic(
-                "ERROR", f"executable is not runnable: {executable}"
+                "ERROR", msg('doctor.doctor.executable_is_not_runnable', executable=executable)
             )
         )
 
     git_path = shutil.which("git")
     if git_path:
-        diagnostics.append(integration_models.Diagnostic("OK", f"Git: {git_path}"))
+        diagnostics.append(integration_models.Diagnostic("OK", msg('doctor.doctor.git', git_path=git_path)))
     else:
         diagnostics.append(
             integration_models.Diagnostic(
-                "WARN", "Git is missing; the Git segment will be hidden"
+                "WARN", msg('doctor.doctor.git_is_missing_the_git_segment_will')
             )
         )
 
@@ -219,12 +209,12 @@ def _check_settings(diagnostics, settings, settings_path, config_dir, executable
         and host_fields_valid
     ):
         diagnostics.append(
-            integration_models.Diagnostic("OK", "statusLine command and host options")
+            integration_models.Diagnostic("OK", msg('doctor.doctor.statusline_command_and_host_options'))
         )
     else:
         diagnostics.append(
             integration_models.Diagnostic(
-                "ERROR", "statusLine is not configured for this executable"
+                "ERROR", msg('doctor.doctor.statusline_is_not_configured_for_this_executable')
             )
         )
 
@@ -241,12 +231,12 @@ def _check_settings(diagnostics, settings, settings_path, config_dir, executable
         )
         if count == 1:
             diagnostics.append(
-                integration_models.Diagnostic("OK", f"{event} hook: exactly one")
+                integration_models.Diagnostic("OK", msg('doctor.doctor.hook_exactly_one', event=event))
             )
         else:
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "ERROR", f"{event} hook: expected one, found {count}"
+                    "ERROR", msg('doctor.doctor.hook_expected_one_found', event=event, count=count)
                 )
             )
 
@@ -262,18 +252,18 @@ def _check_settings(diagnostics, settings, settings_path, config_dir, executable
             ):
                 diagnostics.append(
                     integration_models.Diagnostic(
-                        "OK", f"/{integration_models.SLASH_COMMAND_NAME} skill"
+                        "OK", msg('doctor.doctor.skill', SLASH_COMMAND_NAME=integration_models.SLASH_COMMAND_NAME)
                     )
                 )
             else:
                 diagnostics.append(
                     integration_models.Diagnostic(
                         "ERROR",
-                        f"/{integration_models.SLASH_COMMAND_NAME} skill is missing or not owned",
+                        msg('doctor.doctor.skill_is_missing_or_not_owned', SLASH_COMMAND_NAME=integration_models.SLASH_COMMAND_NAME),
                     )
                 )
         except integration_models.ConfigurationError as exc:
-            diagnostics.append(integration_models.Diagnostic("ERROR", str(exc)))
+            diagnostics.append(integration_models.Diagnostic("ERROR", as_message(exc)))
 
 
 def _check_display(diagnostics, config_dir):
@@ -291,26 +281,25 @@ def _check_display(diagnostics, config_dir):
                 diagnostics.append(
                     integration_models.Diagnostic(
                         "OK",
-                        f"display config: {display_path} "
-                        "(POSIX mode not applicable on Windows)",
+                        msg('doctor.doctor.display_config_posix_mode_not_applicable_on', display_path=display_path),
                     )
                 )
             elif display_mode_matches:
                 diagnostics.append(
                     integration_models.Diagnostic(
-                        "OK", f"display config: {display_path}"
+                        "OK", msg('doctor.doctor.display_config', display_path=display_path)
                     )
                 )
             else:
                 display_mode = display_path.stat().st_mode & 0o7777
                 diagnostics.append(
                     integration_models.Diagnostic(
-                        "WARN", f"display config permissions: {display_mode:04o}"
+                        "WARN", msg('doctor.doctor.display_config_permissions', display_mode=f'{display_mode:04o}')
                     )
                 )
         else:
             diagnostics.append(
-                integration_models.Diagnostic("OK", "display config: built-in defaults")
+                integration_models.Diagnostic("OK", msg('doctor.doctor.display_config_built_in_defaults'))
             )
         if (
             display_source_schema is not None
@@ -319,19 +308,17 @@ def _check_display(diagnostics, config_dir):
             diagnostics.append(
                 integration_models.Diagnostic(
                     "WARN",
-                    f"display config schema v{display_source_schema} is valid and will "
-                    f"migrate to v{config_display.SCHEMA_VERSION} on "
-                    "the next configuration save",
+                    msg('doctor.doctor.display_config_schema_v_is_valid_and', display_source_schema=display_source_schema, SCHEMA_VERSION=config_display.SCHEMA_VERSION),
                 )
             )
         elif display_source_schema == config_display.SCHEMA_VERSION:
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "OK", f"display config schema: v{config_display.SCHEMA_VERSION}"
+                    "OK", msg('doctor.doctor.display_config_schema_v', SCHEMA_VERSION=config_display.SCHEMA_VERSION)
                 )
             )
     except config_display.DisplayConfigError as exc:
-        diagnostics.append(integration_models.Diagnostic("ERROR", str(exc)))
+        diagnostics.append(integration_models.Diagnostic("ERROR", as_message(exc)))
     return display, display_source_schema
 
 
@@ -355,7 +342,7 @@ def _check_subagents(
         version_text = ".".join(map(str, claude_version))
         diagnostics.append(
             integration_models.Diagnostic(
-                "OK", f"subagentStatusLine supported: Claude Code {version_text}"
+                "OK", msg('doctor.doctor.subagentstatusline_supported_claude_code', version_text=version_text)
             )
         )
         state = integration_capabilities.subagent_statusline_state(
@@ -371,30 +358,28 @@ def _check_subagents(
         if desired_enabled and exact_subagent:
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "OK", "subagentStatusLine: enabled and owned"
+                    "OK", msg('doctor.doctor.subagentstatusline_enabled_and_owned')
                 )
             )
         elif desired_enabled:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "ERROR",
-                    f"subagentStatusLine is enabled but its state is {state}",
+                    msg('doctor.doctor.subagentstatusline_is_enabled_but_its_state_is', state=state),
                 )
             )
         elif state in ("absent", "foreign"):
             diagnostics.append(
                 integration_models.Diagnostic(
                     "OK",
-                    "subagentStatusLine: disabled"
-                    + ("; foreign setting preserved" if state == "foreign" else ""),
+                    msg('doctor.doctor.subagentstatusline_disabled', value0='; foreign setting preserved' if state == 'foreign' else ''),
                 )
             )
         else:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "ERROR",
-                    "subagentStatusLine is disabled but an owned setting remains; "
-                    "rerun install",
+                    msg('doctor.doctor.subagentstatusline_is_disabled_but_an_owned_setting'),
                 )
             )
         for event in integration_models.SUBAGENT_HOOK_EVENTS:
@@ -412,12 +397,12 @@ def _check_subagents(
             )
             if count == 1:
                 diagnostics.append(
-                    integration_models.Diagnostic("OK", f"{event} hook: exactly one")
+                    integration_models.Diagnostic("OK", msg('doctor.doctor.hook_exactly_one', event=event))
                 )
             else:
                 diagnostics.append(
                     integration_models.Diagnostic(
-                        "ERROR", f"{event} hook: expected one, found {count}"
+                        "ERROR", msg('doctor.doctor.hook_expected_one_found', event=event, count=count)
                     )
                 )
     else:
@@ -429,17 +414,14 @@ def _check_subagents(
         diagnostics.append(
             integration_models.Diagnostic(
                 "WARN",
-                "subagentStatusLine and subagent lifecycle hooks require Claude Code "
-                f"{'.'.join(map(str, integration_models.MIN_SUBAGENT_STATUSLINE_VERSION))}+; found "
-                f"{version_text}",
+                msg('doctor.doctor.subagentstatusline_and_subagent_lifecycle_hooks_require_claude', value0='.'.join(map(str, integration_models.MIN_SUBAGENT_STATUSLINE_VERSION)), version_text=version_text),
             )
         )
         if subagent_owned:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "ERROR",
-                    "owned subagentStatusLine remains on an unsupported Claude Code; "
-                    "rerun install to suspend it",
+                    msg('doctor.doctor.owned_subagentstatusline_remains_on_an_unsupported_claude'),
                 )
             )
         for event in integration_models.SUBAGENT_HOOK_EVENTS:
@@ -459,12 +441,12 @@ def _check_subagents(
                 diagnostics.append(
                     integration_models.Diagnostic(
                         "ERROR",
-                        f"{event} hook is unsupported but {count} owned hook(s) remain",
+                        msg('doctor.doctor.hook_is_unsupported_but_owned_hook_s', event=event, count=count),
                     )
                 )
             else:
                 diagnostics.append(
-                    integration_models.Diagnostic("OK", f"{event} hook: suspended")
+                    integration_models.Diagnostic("OK", msg('doctor.doctor.hook_suspended', event=event))
                 )
 
 
@@ -476,14 +458,14 @@ def _check_fast_slash(diagnostics, settings, executable, claude_version):
             diagnostics.append(
                 integration_models.Diagnostic(
                     "OK",
-                    f"/{integration_models.SLASH_COMMAND_NAME} local fast path: Claude Code {version_text}",
+                    msg('doctor.doctor.local_fast_path_claude_code', SLASH_COMMAND_NAME=integration_models.SLASH_COMMAND_NAME, version_text=version_text),
                 )
             )
         else:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "ERROR",
-                    f"/{integration_models.SLASH_COMMAND_NAME} fast hook: expected one, found {slash_count}",
+                    msg('doctor.doctor.fast_hook_expected_one_found', SLASH_COMMAND_NAME=integration_models.SLASH_COMMAND_NAME, slash_count=slash_count),
                 )
             )
     else:
@@ -495,7 +477,7 @@ def _check_fast_slash(diagnostics, settings, executable, claude_version):
         diagnostics.append(
             integration_models.Diagnostic(
                 "WARN",
-                f"/{integration_models.SLASH_COMMAND_NAME} uses model fallback on Claude Code {version_text}",
+                msg('doctor.doctor.uses_model_fallback_on_claude_code', SLASH_COMMAND_NAME=integration_models.SLASH_COMMAND_NAME, version_text=version_text),
             )
         )
 
@@ -517,15 +499,14 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
                 diagnostics.append(
                     integration_models.Diagnostic(
                         "OK",
-                        f"experimental feature preferences: {preference_path} "
-                        "(POSIX mode not applicable on Windows)",
+                        msg('doctor.doctor.experimental_feature_preferences_posix_mode_not_applicable', preference_path=preference_path),
                     )
                 )
             elif preference_mode_matches:
                 diagnostics.append(
                     integration_models.Diagnostic(
                         "OK",
-                        f"experimental feature preferences: {preference_path} (0600)",
+                        msg('doctor.doctor.experimental_feature_preferences_0600', preference_path=preference_path),
                     )
                 )
             else:
@@ -533,8 +514,7 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
                 diagnostics.append(
                     integration_models.Diagnostic(
                         "ERROR",
-                        "experimental feature preferences permissions: "
-                        f"expected 0600, found {preference_mode:04o}",
+                        msg('doctor.doctor.experimental_feature_preferences_permissions_expected_0600_found', preference_mode=f'{preference_mode:04o}'),
                     )
                 )
     except (
@@ -543,7 +523,7 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
         OSError,
     ) as exc:
         preference_valid = False
-        diagnostics.append(integration_models.Diagnostic("ERROR", str(exc)))
+        diagnostics.append(integration_models.Diagnostic("ERROR", as_message(exc)))
 
     experimental_skill_path, experimental_owner_path = (
         integration_resources.experimental_skill_paths(config_dir)
@@ -558,7 +538,7 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
     except integration_models.ConfigurationError as exc:
         experimental_skill_raw = None
         experimental_owner_raw = None
-        diagnostics.append(integration_models.Diagnostic("ERROR", str(exc)))
+        diagnostics.append(integration_models.Diagnostic("ERROR", as_message(exc)))
     experimental_owned = integration_ownership._is_owned_skill_marker(
         experimental_owner_raw
     )
@@ -574,15 +554,14 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
             diagnostics.append(
                 integration_models.Diagnostic(
                     "ERROR",
-                    f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME} is disabled but owned artifacts remain; "
-                    "rerun install to repair them",
+                    msg('doctor.doctor.is_disabled_but_owned_artifacts_remain_rerun', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME),
                 )
             )
         else:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "OK",
-                    f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME}: disabled",
+                    msg('doctor.doctor.disabled', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME),
                 )
             )
     elif preference_valid and not integration_capabilities.supports_fast_slash_hook(
@@ -596,17 +575,14 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
         diagnostics.append(
             integration_models.Diagnostic(
                 "WARN",
-                f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME}: suspended on Claude Code "
-                f"{version_text}; requires 2.1.258+; preference retained; rerun install after upgrading. "
-                "Use claude-statusline configure, /statusline-config, or claude-statusline config",
+                msg('doctor.doctor.suspended_on_claude_code_requires_2_1', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME, version_text=version_text),
             )
         )
         if experimental_owned or experimental_actions:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "ERROR",
-                    f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME} is suspended but owned artifacts remain; "
-                    "rerun install to repair them",
+                    msg('doctor.doctor.is_suspended_but_owned_artifacts_remain_rerun', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME),
                 )
             )
     elif preference_valid:
@@ -615,14 +591,14 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
             diagnostics.append(
                 integration_models.Diagnostic(
                     "OK",
-                    f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME} skill and owner marker",
+                    msg('doctor.doctor.skill_and_owner_marker', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME),
                 )
             )
         else:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "ERROR",
-                    f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME} skill is missing or not owned",
+                    msg('doctor.doctor.skill_is_missing_or_not_owned_2', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME),
                 )
             )
         configured_actions = (
@@ -645,15 +621,14 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
             diagnostics.append(
                 integration_models.Diagnostic(
                     "OK",
-                    f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME} hook: exactly one (600s)",
+                    msg('doctor.doctor.hook_exactly_one_600s', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME),
                 )
             )
         else:
             diagnostics.append(
                 integration_models.Diagnostic(
                     "ERROR",
-                    f"/{integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME} hook: expected one 600s hook "
-                    "in exactly one matcher",
+                    msg('doctor.doctor.hook_expected_one_600s_hook_in_exactly', EXPERIMENTAL_SLASH_COMMAND_NAME=integration_models.EXPERIMENTAL_SLASH_COMMAND_NAME),
                 )
             )
         if (
@@ -664,8 +639,7 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
             diagnostics.append(
                 integration_models.Diagnostic(
                     "WARN",
-                    "no supported interactive launcher is installed; install tmux or "
-                    "GNOME Terminal, or run claude-statusline configure directly",
+                    msg('doctor.doctor.no_supported_interactive_launcher_is_installed_install'),
                 )
             )
         elif platform_environment.is_macos():
@@ -679,15 +653,14 @@ def _check_experimental(diagnostics, settings, config_dir, executable, claude_ve
             diagnostics.append(
                 integration_models.Diagnostic(
                     "OK" if terminal_available else "WARN",
-                    "macOS Terminal launcher: " + terminal_detail,
+                    msg('doctor.doctor.macos_terminal_launcher', value0=terminal_detail),
                 )
             )
             if not terminal_available and not shutil.which("tmux"):
                 diagnostics.append(
                     integration_models.Diagnostic(
                         "WARN",
-                        "no supported macOS interactive launcher is available; install tmux "
-                        "and run Claude inside it, or run claude-statusline configure directly",
+                        msg('doctor.doctor.no_supported_macos_interactive_launcher_is_available'),
                     )
                 )
 
@@ -697,12 +670,12 @@ def _check_runtime(diagnostics, config_dir, settings_path):
     runtime_access = os.W_OK | (0 if platform_environment.is_windows() else os.X_OK)
     if runtime_dir.is_dir() and os.access(runtime_dir, runtime_access):
         diagnostics.append(
-            integration_models.Diagnostic("OK", f"runtime directory: {runtime_dir}")
+            integration_models.Diagnostic("OK", msg('doctor.doctor.runtime_directory', runtime_dir=runtime_dir))
         )
     else:
         diagnostics.append(
             integration_models.Diagnostic(
-                "ERROR", f"runtime directory is not writable: {runtime_dir}"
+                "ERROR", msg('doctor.doctor.runtime_directory_is_not_writable', runtime_dir=runtime_dir)
             )
         )
     if platform_environment.is_macos() and config_dir.is_dir():
@@ -711,18 +684,13 @@ def _check_runtime(diagnostics, config_dir, settings_path):
             diagnostics.append(
                 integration_models.Diagnostic(
                     "OK" if synced else "WARN",
-                    "macOS parent-directory sync: "
-                    + (
-                        "available"
-                        if synced
-                        else "unsupported; file sync and atomic replace remain enabled"
-                    ),
+                    msg('doctor.doctor.macos_parent_directory_sync', value0='available' if synced else 'unsupported; file sync and atomic replace remain enabled'),
                 )
             )
         except OSError as exc:
             diagnostics.append(
                 integration_models.Diagnostic(
-                    "WARN", f"macOS parent-directory sync failed: {exc}"
+                    "WARN", msg('doctor.doctor.macos_parent_directory_sync_failed', exc=exc)
                 )
             )
 
@@ -741,36 +709,35 @@ def collect_diagnostics(
     try:
         settings, _ = config_storage._read_settings(settings_path)
     except integration_models.ConfigurationError as exc:
-        diagnostics.append(integration_models.Diagnostic("ERROR", str(exc)))
+        diagnostics.append(integration_models.Diagnostic("ERROR", as_message(exc)))
         return diagnostics
 
     if not settings_path.exists():
         diagnostics.append(
             integration_models.Diagnostic(
-                "ERROR", f"settings not found: {settings_path}"
+                "ERROR", msg('doctor.doctor.settings_not_found', settings_path=settings_path)
             )
         )
         return diagnostics
     diagnostics.append(
-        integration_models.Diagnostic("OK", f"settings: {settings_path}")
+        integration_models.Diagnostic("OK", msg('doctor.doctor.settings', settings_path=settings_path))
     )
     mode_match = platform_files.private_mode_matches(settings_path, 0o600)
     if mode_match is None:
         diagnostics.append(
             integration_models.Diagnostic(
                 "OK",
-                "settings permissions: POSIX mode not applicable on Windows; "
-                "security uses inherited ACLs",
+                msg('doctor.doctor.settings_permissions_posix_mode_not_applicable_on'),
             )
         )
     elif mode_match:
         diagnostics.append(
-            integration_models.Diagnostic("OK", "settings permissions: 0600")
+            integration_models.Diagnostic("OK", msg('doctor.doctor.settings_permissions_0600'))
         )
     else:
         mode = settings_path.stat().st_mode & 0o7777
         diagnostics.append(
-            integration_models.Diagnostic("WARN", f"settings permissions: {mode:04o}")
+            integration_models.Diagnostic("WARN", msg('doctor.doctor.settings_permissions', mode=f'{mode:04o}'))
         )
     _check_settings(diagnostics, settings, settings_path, config_dir, executable)
     display, display_source_schema = _check_display(diagnostics, config_dir)

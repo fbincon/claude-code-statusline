@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import json
 import shlex
 from importlib import resources
@@ -49,7 +51,7 @@ def _render_skill_resource(resource_name: str) -> bytes:
         )
     except (FileNotFoundError, OSError) as exc:
         raise integration_models.ConfigurationError(
-            f"cannot load bundled {resource_name} skill: {exc}"
+            msg('errors.resources.cannot_load_bundled_skill', resource_name=resource_name, exc=exc)
         ) from exc
     return template.encode("utf-8")
 
@@ -76,7 +78,7 @@ def render_skill(executable: Path) -> bytes:
     )
     if "__CLAUDE_STATUSLINE_" in rendered:
         raise integration_models.ConfigurationError(
-            "bundled statusline-config skill has unresolved placeholders"
+            msg('errors.resources.bundled_statusline_config_skill_has_unresolved_placeholders')
         )
     return rendered.encode("utf-8")
 

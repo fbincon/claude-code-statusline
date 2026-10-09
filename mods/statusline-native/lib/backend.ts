@@ -19,11 +19,14 @@ import type {
   ResultFor,
   Span,
 } from './generated-contracts.ts';
+import { isLocalizedText } from './i18n/index.ts';
+import type { LocalizedText } from './i18n/index.ts';
 
 export class BackendError extends Error {
   constructor(
     public readonly code: string,
     message: string,
+    public readonly localization: LocalizedText | null = null,
   ) {
     super(message);
   }
@@ -364,12 +367,13 @@ export function parseResponse<O extends Operation>(
   if ('error' in response) {
     if (
       !object(response.error) ||
-      !exact(response.error, ['code', 'message']) ||
+      !exact(response.error, ['code', 'message', ...('localization' in response.error ? ['localization'] : [])]) ||
       !text(response.error.code) ||
-      typeof response.error.message !== 'string'
+      typeof response.error.message !== 'string' ||
+      !(!('localization' in response.error) || response.error.localization === null || isLocalizedText(response.error.localization))
     )
       fail();
-    throw new BackendError(response.error.code, response.error.message);
+    throw new BackendError(response.error.code, response.error.message, isLocalizedText(response.error.localization) ? response.error.localization : null);
   }
   if (process.exitCode !== 0) {
     throw new BackendError(
@@ -379,7 +383,11 @@ export function parseResponse<O extends Operation>(
   }
   const result = response.result;
   if (!object(result)) fail();
-  if (operation === 'read' || operation === 'apply') {
+  if (operation === 'read_ui_preferences' || operation === 'set_ui_language') {
+    if (!exact(result, ['schema_version', 'ui_language', 'warning']) || result.schema_version !== 1 ||
+        !['en', 'zh-CN'].includes(String(result.ui_language)) ||
+        !(result.warning === null || isLocalizedText(result.warning))) fail();
+  } else if (operation === 'read' || operation === 'apply') {
     if (
       !isDraft(result.draft) ||
       typeof result.revision !== 'string' ||
@@ -417,8 +425,8 @@ export function parseResponse<O extends Operation>(
       !result.backend_version ||
       !isOptions(result.options) ||
       !isCapabilities(result.capabilities) ||
-      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset']) ||
-      result.operations.length !== 7 ||
+      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language']) ||
+      result.operations.length !== 9 ||
       JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
       JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
       !object(result.formatting_options) ||

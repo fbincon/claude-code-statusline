@@ -49,7 +49,7 @@ class ApplyProtocolTests(unittest.TestCase):
         return protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 4,
+                    "protocol_version": 5,
                     "operation": operation,
                     "payload": payload or {},
                 }
@@ -358,7 +358,7 @@ class ApplyProtocolTests(unittest.TestCase):
             mock.patch.object(
                 sys,
                 "stdin",
-                io.StringIO('{"protocol_version":4,"operation":"read","payload":{}}'),
+                io.StringIO('{"protocol_version":5,"operation":"read","payload":{}}'),
             ),
             mock.patch.object(sys, "stdout", stdout),
             mock.patch.object(
@@ -396,7 +396,7 @@ class ApplyProtocolTests(unittest.TestCase):
             process = subprocess.run(
                 [str(executable), "ui", "--config-dir", str(self.root)],
                 input=json.dumps(
-                    {"protocol_version": 4, "operation": operation, "payload": payload}
+                    {"protocol_version": 5, "operation": operation, "payload": payload}
                 ).encode("utf-8"),
                 capture_output=True,
                 check=False,
@@ -517,7 +517,7 @@ class ApplyProtocolTests(unittest.TestCase):
             settings[key]["command"] = ownership.command_for(alias, operation)
         self.settings.write_text(json.dumps(settings))
         baseline, status = protocol.handle(
-            json.dumps({"protocol_version": 4, "operation": "read", "payload": {}}),
+            json.dumps({"protocol_version": 5, "operation": "read", "payload": {}}),
             self.root,
             real,
         )
@@ -530,7 +530,7 @@ class ApplyProtocolTests(unittest.TestCase):
         response, status = protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 4,
+                    "protocol_version": 5,
                     "operation": "apply",
                     "payload": {
                         "draft": draft,

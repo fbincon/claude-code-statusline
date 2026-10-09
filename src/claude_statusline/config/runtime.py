@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -38,20 +40,20 @@ def parse_preferences(raw: bytes) -> Preferences:
         result = {}
         for key, value in pairs:
             if key in result:
-                raise ValueError("duplicate runtime preference field")
+                raise ValueError(msg('errors.runtime.duplicate_runtime_preference_field'))
             result[key] = value
         return result
 
     try:
         value = json.loads(raw.decode("utf-8"), object_pairs_hook=unique)
         if not isinstance(value, dict) or type(value.get("schema_version")) is not int:
-            raise ValueError("expected runtime preference schema 1 or 2")
+            raise ValueError(msg('errors.runtime.expected_runtime_preference_schema_1_or_2'))
         if value["schema_version"] == 1 and set(value) == {
             "schema_version",
             "live_metrics",
         }:
             if type(value["live_metrics"]) is not bool:
-                raise ValueError("live_metrics must be a boolean")
+                raise ValueError(msg('errors.runtime.live_metrics_must_be_a_boolean'))
             return Preferences(value["live_metrics"], value["live_metrics"])
         if value["schema_version"] != 2 or set(value) != {
             "schema_version",
@@ -59,15 +61,15 @@ def parse_preferences(raw: bytes) -> Preferences:
             "live_metrics",
         }:
             raise ValueError(
-                "expected schema_version 2, native_timing and live_metrics"
+                msg('errors.runtime.expected_schema_version_2_native_timing_and')
             )
         if any(
             type(value[key]) is not bool for key in ("native_timing", "live_metrics")
         ):
-            raise ValueError("runtime preferences must be booleans")
+            raise ValueError(msg('errors.runtime.runtime_preferences_must_be_booleans'))
         return Preferences(value["native_timing"], value["live_metrics"])
     except (UnicodeError, ValueError) as error:
-        raise ConfigurationError(f"Invalid {FILENAME}: {error}") from error
+        raise ConfigurationError(msg('errors.runtime.invalid', FILENAME=FILENAME, error=error)) from error
 
 
 def parse(raw: bytes) -> bool:

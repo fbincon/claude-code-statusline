@@ -31,14 +31,14 @@ test('backend errors and protocol mismatches are explicit', () => {
   for (const stdout of [
     '',
     'partial {',
-    JSON.stringify({ protocol_version: 4, result: {} }),
+    JSON.stringify({ protocol_version: 5, result: {} }),
     JSON.stringify({
-      protocol_version: 4,
+      protocol_version: 5,
       result: {},
       error: { code: 'bad', message: 'ambiguous' },
     }),
     JSON.stringify({
-      protocol_version: 4,
+      protocol_version: 5,
       result: { sample: false, main: [], subagents: [] },
     }),
   ]) {
@@ -50,7 +50,7 @@ test('backend errors and protocol mismatches are explicit', () => {
     parseResponse('read', {
       exitCode: 2,
       stdout: JSON.stringify({
-        protocol_version: 4,
+        protocol_version: 5,
         error: { code: 'configuration_conflict', message: 'Reopen the editor' },
       }),
       stderr: '',
@@ -117,7 +117,7 @@ test('failed processes, timeouts, truncation and structured errors remain distin
         'apply',
         output(
           JSON.stringify({
-            protocol_version: 4,
+            protocol_version: 5,
             error: { code, message: code },
           }),
           2,
@@ -132,9 +132,9 @@ test('failed processes, timeouts, truncation and structured errors remain distin
 
 test('unexpected envelopes and invalid drafts cannot enter the frontend', () => {
   for (const response of [
-    { protocol_version: 4, result: sample('safe'), extra: 1 },
-    { protocol_version: 4 },
-    { protocol_version: 4, error: { message: 'missing code' } },
+    { protocol_version: 5, result: sample('safe'), extra: 1 },
+    { protocol_version: 5 },
+    { protocol_version: 5, error: { message: 'missing code' } },
   ]) {
     expect(() =>
       parseResponse('preview', output(JSON.stringify(response))),
@@ -156,7 +156,7 @@ test('preview transport refuses control sequences and malformed colors', () => {
       parseResponse('preview', {
         exitCode: 0,
         stdout: JSON.stringify({
-          protocol_version: 4,
+          protocol_version: 5,
           result: { sample: true, main: [[span]], subagents: [] },
         }),
         stderr: '',

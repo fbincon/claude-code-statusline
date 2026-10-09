@@ -112,13 +112,13 @@ def main() -> int:
                 run(
                     "ui",
                     payload={
-                        "protocol_version": 4,
+                        "protocol_version": 5,
                         "operation": operation,
                         "payload": payload,
                     },
                 )
             )
-            assert response["protocol_version"] == 4 and "result" in response
+            assert response["protocol_version"] == 5 and "result" in response
             if operation == "describe":
                 rows = response["result"]["catalog"]
                 expected_items = {(item.scope, item.id) for item in catalog.ITEMS}
@@ -143,7 +143,7 @@ def main() -> int:
             run(
                 "ui",
                 payload={
-                    "protocol_version": 4,
+                    "protocol_version": 5,
                     "operation": "apply",
                     "payload": {
                         "draft": saved["draft"],
@@ -158,7 +158,7 @@ def main() -> int:
             run(
                 "ui",
                 payload={
-                    "protocol_version": 4,
+                    "protocol_version": 5,
                     "operation": "preview",
                     "payload": {"draft": applied["draft"], "width": 24},
                 },

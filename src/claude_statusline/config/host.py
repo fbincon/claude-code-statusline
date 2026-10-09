@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import copy
 from pathlib import Path
 from typing import Any
@@ -18,14 +20,14 @@ def _parse_padding(value: Any) -> int:
         parsed = int(value)
     except (TypeError, ValueError) as exc:
         raise config_models.ConfigCommandError(
-            "padding must be an integer from 0 through 32"
+            msg('errors.host.padding_must_be_an_integer_from_0')
         ) from exc
     if (
         isinstance(value, bool)
         or not config_models.PADDING_MIN <= parsed <= config_models.PADDING_MAX
     ):
         raise config_models.ConfigCommandError(
-            "padding must be an integer from 0 through 32"
+            msg('errors.host.padding_must_be_an_integer_from_0')
         )
     return parsed
 
@@ -37,7 +39,7 @@ def _parse_refresh_interval(value: Any) -> int | None:
         parsed = int(value)
     except (TypeError, ValueError) as exc:
         raise config_models.ConfigCommandError(
-            "refresh-interval must be 'event' or an integer from 1 through 3600"
+            msg('errors.host.refresh_interval_must_be_event_or_an')
         ) from exc
     if (
         isinstance(value, bool)
@@ -46,7 +48,7 @@ def _parse_refresh_interval(value: Any) -> int | None:
         <= config_models.REFRESH_INTERVAL_MAX
     ):
         raise config_models.ConfigCommandError(
-            "refresh-interval must be 'event' or an integer from 1 through 3600"
+            msg('errors.host.refresh_interval_must_be_event_or_an')
         )
     return parsed
 
@@ -60,7 +62,7 @@ def _parse_toggle(value: Any, name: str) -> bool:
             return True
         if normalized in {"off", "false"}:
             return False
-    raise config_models.ConfigCommandError(f"{name} must be on or off")
+    raise config_models.ConfigCommandError(msg('errors.host.must_be_on_or_off', name=name))
 
 
 def _host_from_settings(
@@ -82,7 +84,7 @@ def _host_from_settings(
         or not config_models.PADDING_MIN <= padding <= config_models.PADDING_MAX
     ):
         raise config_models.ConfigCommandError(
-            "installed statusLine.padding is outside 0 through 32"
+            msg('errors.host.installed_statusline_padding_is_outside_0_through')
         )
     refresh = current.get("refreshInterval")
     if refresh is not None and (
@@ -92,12 +94,12 @@ def _host_from_settings(
         <= config_models.REFRESH_INTERVAL_MAX
     ):
         raise config_models.ConfigCommandError(
-            "installed statusLine.refreshInterval is outside 1 through 3600"
+            msg('errors.host.installed_statusline_refreshinterval_is_outside_1_through')
         )
     hide_vim = current.get("hideVimModeIndicator", False)
     if not isinstance(hide_vim, bool):
         raise config_models.ConfigCommandError(
-            "installed statusLine.hideVimModeIndicator must be true or false"
+            msg('errors.host.installed_statusline_hidevimmodeindicator_must_be_true_or')
         )
     return config_models.HostConfig(padding, refresh, hide_vim), True
 
@@ -163,4 +165,4 @@ def _host_with_option(
             host.refresh_interval,
             _parse_toggle(value, option),
         )
-    raise config_models.ConfigCommandError(f"unknown host option: {option}")
+    raise config_models.ConfigCommandError(msg('errors.host.unknown_host_option', option=option))

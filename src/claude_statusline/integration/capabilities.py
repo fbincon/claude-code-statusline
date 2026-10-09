@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from claude_statusline.i18n import message as msg
+
 import re
 import json
 import shutil
@@ -15,7 +17,7 @@ from claude_statusline.platforms import environment as platform_environment
 def claude_argv(executable: str = "claude") -> list[str]:
     resolved = shutil.which(executable)
     if not resolved:
-        raise integration_models.ConfigurationError("Claude Code is not in PATH")
+        raise integration_models.ConfigurationError(msg('errors.capabilities.claude_code_is_not_in_path'))
     path = Path(resolved).resolve()
     if platform_environment.is_windows() and path.suffix.casefold() in {".cmd", ".bat"}:
         # Avoid cmd.exe interpolation of user-selected paths. Invoke the npm
@@ -45,7 +47,7 @@ def claude_argv(executable: str = "claude") -> list[str]:
             if node and target.suffix.casefold() in {".js", ".cjs", ".mjs"}:
                 return [str(Path(node).resolve()), str(target)]
         raise integration_models.ConfigurationError(
-            "Cannot safely resolve Claude batch wrapper; use a native Claude executable or its matching npm package"
+            msg('errors.capabilities.cannot_safely_resolve_claude_batch_wrapper_use')
         )
     return [str(path)]
 
