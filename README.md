@@ -17,7 +17,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 
 ## Features
 
-- **Choose a language:** English and 简体中文 in both editors and CLI; switch immediately without losing display drafts.
+- **Choose your languages:** English and 简体中文 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings.
 - **Choose what to show:** 60 main-line items and 14 subagent items; enable, hide, search, and reorder them.
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
@@ -296,7 +296,24 @@ claude-statusline config language reset
 claude-statusline --language en --help
 ```
 
-`--language en|zh-CN` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values, custom text and actual statusline output retain their values. See [language settings](docs/USER_GUIDE.md#interface-language).
+`--language en|zh-CN` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values and custom text retain their values. Interface language does not change output language. See [language settings](docs/USER_GUIDE.md#interface-language).
+
+### Statusline language
+
+Choose **Statusline language (save with display settings)** → **English / 简体中文** in either editor. Preview switches immediately; Save changes the actual main and subagent output on the next refresh, while Cancel discards the draft. English is the default.
+
+```text
+claude-statusline config set statusline-language zh-CN
+claude-statusline config set statusline-language en
+```
+
+![English statusline output](docs/images/statusline/linux/en.png)
+
+![Simplified Chinese statusline output](docs/images/statusline/linux/zh-CN.png)
+
+These are [real CLI terminal captures with fixed input](docs/images/README.md#statusline-language-captures).
+
+Built-in labels and known states are translated. Technical units, model names, branches, paths and custom text are preserved. See [output language](docs/USER_GUIDE.md#statusline-language).
 
 ### Native configuration editor
 
@@ -374,6 +391,8 @@ claude-code-statusline/
 │       ├── i18n/                            # Shared English/Chinese presentation resources
 │       │   ├── locales/                     # en.json / zh-CN.json
 │       │   ├── translator.py                # Message keys, parameters and English fallback
+│       │   ├── statusline.py                # Explicit-language output and known-value presentation
+│       │   ├── _generated_statusline.py      # Generated lightweight runtime dictionary
 │       │   └── presentation.py              # Localized fields, choices and bilingual search
 │       ├── integration/                     # Claude Code setup, install transactions, hooks and diagnostics
 │       ├── platforms/                       # Cross-platform files, processes, clocks and terminals

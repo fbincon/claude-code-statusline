@@ -4,6 +4,8 @@
 
 The current catalog contains 60 main and 14 subagent items, with 10 and five enabled by default. The tables highlight independent metrics and task timers; the [user guide](USER_GUIDE.md#configurable-display-items) lists default selections and configuration entry points. `prompt-timer` is an alias of `task-timer`, not an additional catalog item. Main-line compounds can coexist with their individual components; subagent `status-elapsed` excludes separate `status` and `elapsed`.
 
+Examples below use English output. `statusline-language=zh-CN` localizes built-in phrases and known values without changing metric definitions, IDs, raw observations, numbers or technical units. User text and unknown values remain intact. See [output language](USER_GUIDE.md#statusline-language).
+
 ## Main items
 
 | ID | Example | Definition and source |

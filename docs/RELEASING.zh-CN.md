@@ -2,13 +2,13 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.8.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.8.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.9.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.9.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-正式 v1.8.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
+正式 v1.9.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
@@ -44,7 +44,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.8.0
+RELEASE_TAG=v1.9.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -64,8 +64,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-fbincon_claude_code_statusline-1.8.0-py3-none-any.whl
-fbincon_claude_code_statusline-1.8.0.tar.gz
+fbincon_claude_code_statusline-1.9.0-py3-none-any.whl
+fbincon_claude_code_statusline-1.9.0.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -86,8 +86,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum fbincon_claude_code_statusline-1.8.0-py3-none-any.whl \
-  fbincon_claude_code_statusline-1.8.0.tar.gz > SHA256SUMS
+sha256sum fbincon_claude_code_statusline-1.9.0-py3-none-any.whl \
+  fbincon_claude_code_statusline-1.9.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -96,8 +96,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'fbincon_claude_code_statusline-1.8.0-py3-none-any.whl',
-    'fbincon_claude_code_statusline-1.8.0.tar.gz'
+    'fbincon_claude_code_statusline-1.9.0-py3-none-any.whl',
+    'fbincon_claude_code_statusline-1.9.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -115,8 +115,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.8.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.8.0.tar.gz" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.9.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.9.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -196,7 +196,7 @@ git remote add gitee git@gitee.com:fbincon/claude-code-statusline.git
 
 ```bash
 git push gitee main:refs/heads/main
-git push gitee refs/tags/v1.8.0:refs/tags/v1.8.0
+git push gitee refs/tags/v1.9.0:refs/tags/v1.9.0
 ```
 
 核对两平台 `main` 和标签对象 ID 完全一致，保留带注释标签及其目标提交。历史功能分支仅按需推送。引用出现分叉时先排查，日常同步不得强推或使用 `git push --mirror`。Gitee PR 验收使用临时目标分支和功能分支，确认合并后仅删除这些分支并保留 PR 记录。
@@ -298,3 +298,7 @@ Python 和两 Mod 晋升为 1.7.0，更新当前稳定安装／升级入口，�
 检查共享资源键／占位符、Python／TypeScript 同步、schema v1 界面偏好的恢复／未来保护／并发，以及 CLI 帮助／错误翻译。配置协议 v5，显示维持 v5，运行维持 v2。验证两端即时切换、保留草稿／搜索／输入，取消／重开／升级／卸载保留语言；目录 JSON 与实际状态栏保持英文／规范原值。
 
 运行完整本地检查、23 项 PR／合并／标签检查，安装后外部最低／常用视口及持久化原生语言／高级 PTY。检查重建图片，记录平台／宿主／源／调色板，区分代理画面检查、人类验收和复用器量化／直接 RGB。独立重建并安装 wheel／sdist，检查两种语言资源，验证 1.7.8 升级，以固定提交生成附件及 SHA256。完成 TestPyPI、稳定 Latest／PyPI 索引检查及 Gitee 同字节同步。本轮不运行付费模型／计时套件。见[翻译检查](development/i18n.zh-CN.md#校验修改)。
+
+## 状态栏本地化发布门槛
+
+验证显示 schema／配置协议 v6、无副作用的 v1–v5 迁移、独立 UI／输出语言、草稿保存取消、已知／原始值边界和单行生成资源。要求安装包语言 PTY、保存后生产渲染核验、完整跨平台 CI、固定提交的构建／重建／升级验证、TestPyPI 验收及 GitHub／PyPI／Gitee 一致字节。记录原生宿主、焦点操作及终端尺寸；CI 和代理检查的采集图片不代表新的人类或 Windows／macOS 终端验收。

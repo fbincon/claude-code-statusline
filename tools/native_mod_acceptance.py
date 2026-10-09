@@ -159,6 +159,7 @@ def run_pty(
     import pyte
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
+    initial_theme = current_theme(config)
     if language_only:
         subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set-items", "context-used"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
         subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set", "statusline-language", "en"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
@@ -985,7 +986,8 @@ def run_pty(
             read_until("Show turn duration: on · Applied.")
             client_setting("host-theme", "Theme")
             os.write(master, b"\x1b[DA")
-            read_until("Theme: dark · Applied.")
+            read_until(f"Theme: {initial_theme} · Applied.")
+            assert current_theme(config) == initial_theme
             settings_after_preferences = (config / "settings.json").read_bytes()
             os.write(master, b"Q")
             read_until("❯")

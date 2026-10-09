@@ -200,3 +200,18 @@ images/
 | external/settings-en | [PNG](tui/external/linux/languages/settings-en.png) | `2e12522cf59a1fd4403d07b4e0c194870f51156041fa81ba804b8169a25888c8` |
 
 原始采集／报告私有保存在忽略的 `dist/validation/i18n`；图片为输出重建，不是新增 OS 截图。外部英文选项在中文切回英文、强制完整重绘后采集。[行为与命令](../USER_GUIDE.zh-CN.md#界面语言)。
+
+## 状态栏语言采集
+
+八张图片重建真实终端单元格，采用固定数据，不代表用户实时观测。后端 UI／渲染源码 `0786ad2` 打包为开发版 1.8.0；原生验收工具 `bc50d80` 在 Linux x86_64／CPython 3.14.4／固定 Claude Code 2.1.294 下通过。原生图片从 120×30 浅色终端裁剪配置区域，复用器将 RGB 量化为 256 色；外部图片保留 120×30 深色终端全幅、关闭颜色。生产图片来自真实 renderer stdout 的 100×4 PTY，裁剪前两行。英文界面配中文输出体现两种语言独立。代理画面检查与人类或 Windows／macOS 终端验收分开记录；原始日志和单元格继续忽略。
+
+| 采集 | PNG SHA-256 |
+| --- | --- |
+| [原生主栏／英文输出](tui/native/linux/statusline-languages/main-en.png) | `033434791c721d6b50bf580f6ab3325898d0cb627d8f0865f13651f226e6c135` |
+| [原生主栏／中文输出](tui/native/linux/statusline-languages/main-zh-CN.png) | `f349a37ddf851da1e7de0c255c9f7ce949cc783688848f9ea8ae6b5913b131a9` |
+| [原生输出语言／英文](tui/native/linux/statusline-languages/settings-en.png) | `0d0c53b9d7158696510c668c4c1fdd5d376ec039055d087ef5e1609efa20f130` |
+| [原生输出语言／中文](tui/native/linux/statusline-languages/settings-zh-CN.png) | `3ea6894f3d820d3aba9b5339851b65d4b0077da739c900090ea0061c6f580188` |
+| [外部输出语言／英文](tui/external/linux/statusline-languages/settings-en.png) | `fe5f01fb644d33bfdcb61aa49aa932c80151364b89f08650857517607df02749` |
+| [外部输出语言／中文](tui/external/linux/statusline-languages/settings-zh-CN.png) | `2dc86d94fdfadc9dc9d76f61c4fa28ab0d8721d8735d2cf8e479650c9b23e85d` |
+| [实际 CLI 输出／英文](statusline/linux/en.png) | `760eb877e851f044590d5adc0ac1b3ff93e155041c6c96c960ad42cd86fb807f` |
+| [实际 CLI 输出／中文](statusline/linux/zh-CN.png) | `129ab6478728c3636a2e220aee2ca26c1598d62c3a9c06590bd1e6c4a2ab1692` |

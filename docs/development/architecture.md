@@ -80,7 +80,7 @@ Resources continue to load through `importlib.resources` from `claude_statusline
 
 ## Persistence
 
-Current display schema v5 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1/v2/v3/v4 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
+Current display schema v6 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1/v2/v3/v4/v5 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
 
 Keep local ROADMAP files and raw acceptance records out of distributions. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 
@@ -104,7 +104,7 @@ Usage state keeps optional input/output observation flags alongside the existing
 
 ## Phase 4 configuration boundaries
 
-Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v5 and protocol v5 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
+Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v6 and protocol v6 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
 
 Curses `ui.forms` and Client `lib/client/forms.ts` expose scoped formats, Layout fitting and global settings from the canonical descriptors. Native hooks alone perform backend/file effects; `lib/preferences.ts` owns actual-row descriptions and supported controls, with separate Claude API application. Production and sample rendering share formatting and explicit layout; lazy Git/transcript collection is retained. No Phase 5 runtime indicators are added.
 
@@ -126,7 +126,7 @@ Content and Preview use their actual inner widths; resizing preserves drafts and
 
 The canonical task implementation lives in `runtime/tasks`: model, reducer, agents, native adaptation, incremental evidence, collection and read-only views each have one responsibility. `runtime/timing` contains the pure serializable clock. The former `runtime/turns` modules alias the canonical modules, preserving Python entry points, shared function identity and the existing on-disk location.
 
-Runtime collection has two independent modes. Native timing defaults on for compatible installations; advanced metrics remain opt-in. Both consume bounded, deduplicated metadata. Only the canonical task store decides task outcomes; advanced views derive their ownership from explicit links and verified lifecycle evidence. Formatting does not mutate task state; collection/reconciliation happens before formatting. Display schema 5, configuration protocol 4, runtime protocol 2 and runtime preference schema 2 evolve separately.
+Runtime collection has two independent modes. Native timing defaults on for compatible installations; advanced metrics remain opt-in. Both consume bounded, deduplicated metadata. Only the canonical task store decides task outcomes; advanced views derive their ownership from explicit links and verified lifecycle evidence. Formatting does not mutate task state; collection/reconciliation happens before formatting. Display schema 5, configuration protocol 6, runtime protocol 2 and runtime preference schema 2 evolve separately.
 
 ## TUI layout and shortcuts
 
@@ -139,3 +139,7 @@ Each editor has a pure shortcut-segment helper that fits complete key/action gro
 `config.ui_preferences` owns the independent schema-v1 preference transaction; `i18n` owns lazy resources, semantic messages and presentation metadata. Python JSON language files generate the native `lib/i18n/generated-locales.ts` resource, checked in CI and distribution inspection. CLI parsers and both editors pass explicit languages, retaining English diagnostics and canonical machine catalogs. Render/hook startup paths do not load interface resources or preferences.
 
 External session effects and native host effects write language immediately after user selection, update the view only on success and preserve unsaved drafts. Curses repaints its physical screen; both renderers recalculate cell budgets with existing width/clip helpers. Errors carry semantic metadata through independently copied Client snapshots. Language never enters display revisions or portable payloads. See [translation contributions](i18n.md) and [preference protocol](contracts.md#ui-preference-and-message-operations).
+
+## Independent statusline language
+
+Display schema v6 and configuration protocol v6 carry `statusline_language` through complete drafts, revisions, previews and portable files. `i18n.statusline` reads a generated Python-only subset of the canonical JSON resources; normal render calls do not read UI preferences or parse UI JSON. Formatter boundaries localize complete phrases and known values while collection stores keep their original codes. Item-scoped prefix metadata separates labels from user data. Shared editor descriptors add a choice that stays in the display draft; UI language remains an immediate preference.

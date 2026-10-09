@@ -83,7 +83,13 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 `config language show [--json]` 读取共享偏好；JSON 为 `{"schema_version":1,"ui_language":"en"}` 或 `"zh-CN"`。`set en|zh-CN` 和 `reset` 显式保存，reset 选择英文。根选项 `--language en|zh-CN` 放在子命令前，优先用于本次调用，不修改文件；用于 `configure` 时控制初始界面语言。
 
-帮助正文／分组、argparse 参数错误和管理输出使用所选语言。命令名称、参数值、退出码、目录 JSON 及实际状态栏输出保持稳定。支持的宿主上 `/statusline-config language show|set|reset` 也可本地执行。详见[语言行为与恢复](../USER_GUIDE.zh-CN.md#界面语言)。
+帮助正文／分组、argparse 参数错误和管理输出使用所选语言。命令名称、参数值、退出码、目录 JSON 保持稳定；实际状态栏采用独立显示语言。支持的宿主上 `/statusline-config language show|set|reset` 也可本地执行。详见[语言行为与恢复](../USER_GUIDE.zh-CN.md#界面语言)。
+
+## 状态栏语言
+
+`config set statusline-language en|zh-CN` 保存显示语言。`config apply --statusline-language en|zh-CN` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
+
+显示 schema v6 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 安装与诊断
 
@@ -145,6 +151,7 @@ Palette: default
 Directory style: home
 Separator style: classic
 Scope labels: when-subagents
+Statusline language: en
 Subagent items: status-elapsed, name, model-with-effort, context-remaining, task
 Custom subagent rows: on
 Subagent statusline: owned
@@ -290,6 +297,7 @@ claude-statusline config set refresh-interval 5
 claude-statusline config set hide-vim-mode-indicator on
 claude-statusline config set subagent-statusline off
 claude-statusline config set scope-labels when-subagents
+claude-statusline config set statusline-language zh-CN
 ```
 
 显示选项可以在安装 statusline 之前预先配置。宿主选项 `padding`、`refresh-interval` 和 `hide-vim-mode-indicator` 会修改 `settings.json/statusLine`，因此只在当前 statusline 已由这个 `claude-statusline` 可执行文件接管时允许修改。否则命令会拒绝写入，避免误改其他 statusline。
@@ -310,6 +318,7 @@ claude-statusline config apply \
   --subagent-items status-elapsed name model-with-effort context-remaining task \
   --subagent-statusline on \
   --scope-labels when-subagents \
+  --statusline-language en \
   --colors on \
   --palette default \
   --directory-style home \
@@ -327,6 +336,7 @@ claude-statusline.exe config apply `
   --subagent-items status-elapsed name model-with-effort context-remaining task `
   --subagent-statusline on `
   --scope-labels when-subagents `
+  --statusline-language en `
   --colors on `
   --palette default `
   --directory-style home `
@@ -573,6 +583,7 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 
 | OPTION | VALUE | 默认值 | 说明 |
 | --- | --- | --- | --- |
+| `statusline-language` | `en`、`zh-CN` | `en` | 独立控制主栏／子代理输出语言；预览立即更新，随显示设置保存 |
 | `colors` | `on`、`off` | `on` | 是否输出 ANSI 颜色控制码 |
 | `palette` | `default`、`ansi` | `default` | `default` 使用项目的 24 位 RGB 色值；`ansi` 使用标准终端色 |
 | `directory-style` | `full`、`home`、`project-relative`、`basename` | `full` | 工作目录的缩写方式 |
@@ -665,7 +676,8 @@ claude-statusline config set refresh-interval event
 
 ```json
 {
-  "schema_version": 5,
+  "schema_version": 6,
+  "statusline_language": "en",
   "items": [
     "model-with-effort",
     "current-dir",
@@ -729,7 +741,7 @@ claude-statusline config set refresh-interval event
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
 
-当前源码显示配置使用 schema v5；历史 v1/v2/v3/v4 可读取，首次实际配置保存时备份并写为 v5。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前源码显示配置使用 schema v6；历史 v1/v2/v3/v4/v5 可读取，首次实际配置保存时备份并写为 v6。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 

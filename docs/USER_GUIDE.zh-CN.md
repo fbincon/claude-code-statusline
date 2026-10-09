@@ -15,6 +15,7 @@
 - [安装与接入](#安装与接入)
 - [选择配置入口](#选择配置入口)
 - [界面语言](#界面语言)
+- [状态栏语言](#状态栏语言)
 - [原生配置编辑器](#原生配置编辑器)
 - [独立交互式 TUI](#独立交互式-tui)
 - [外部终端入口 `/statusline-configure`](#外部终端入口-statusline-configure)
@@ -173,7 +174,23 @@ claude-statusline --language en config --help
 
 偏好文件为 `<CLAUDE_CONFIG_DIR>/statusline-ui.json`，schema v1。缺失或无效偏好回退英文，读取不修复文件。显式 set/reset 会备份并修复损坏文件，但拒绝覆盖未来 schema。重装、升级、普通卸载、显示 reset、预设及可移植导入／导出均保留此独立偏好。
 
-实际状态栏样例／输出、模型名称、路径、分支、命令、ID、配置值和自定义标签保持原值。模型问答向导跟随对话语言；此设置翻译工具自身界面。机器可读目录与现有 JSON 接口保留英文基准元数据及稳定字段。
+界面语言不改变实际状态栏样例／输出。模型名称、路径、分支、命令、ID、配置值和自定义标签保留原值。模型问答向导每次读取界面偏好，并使用 CLI 提供的翻译说明；机器可读目录保留英文基准元数据及稳定 ID。
+
+## 状态栏语言
+
+独立的显示选项默认 `en`。在任一编辑器选择**状态栏语言（随显示设置保存）**，选项始终为 **English / 简体中文**。预览立即采用草稿语言；保存时与其他显示设置一起持久化，取消则放弃修改。实际输出在下次刷新时生效，无需重启 Claude。
+
+```text
+claude-statusline config set statusline-language zh-CN
+claude-statusline config set statusline-language en
+claude-statusline config show --json
+```
+
+同时控制主栏和全部自定义子代理行。翻译内置短语及已知生命周期／权限／强度／缓存／审核值；未知值、用户标签／图标、模型名称、路径、分支及任务／工具名称保留原文。数字、货币、`K/M`、`d/h/m/s`、`tok/s`、Git、PR 等技术单位保持原样。null 标签继承翻译后的默认标签，空标签隐藏标签，自定义标签优先。
+
+`statusline_language` 属于显示 schema v6，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
+
+降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v6 草稿。见[备份与回滚](#备份与回滚)。
 
 ## 原生配置编辑器
 
@@ -550,7 +567,7 @@ claude-statusline doctor
 | `claude-statusline-runtime.json` | 原生计时和高级采集的独立偏好 |
 | `settings.json` | 本工具接入的 Claude 命令、hooks 和宿主状态栏选项 |
 
-通过 CLI 或编辑器修改。显示 schema v5 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
+通过 CLI 或编辑器修改。显示 schema v6 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
 
 ## 自定义配置目录与环境变量
 
@@ -602,7 +619,7 @@ claude-statusline config show
 
 ### 版本兼容
 
-当前显示 schema v5、配置协议 v5、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1/v2/v3/v4 文件读取时不重写，实际保存才备份原字节并迁移为 v5；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
+当前显示 schema v6、配置协议 v6、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1/v2/v3/v4/v5 文件读取时不重写，实际保存才备份原字节并迁移为 v6；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
 
 降级前使用新版关闭或移除旧版无法管理的接入，包括适用的实时采集和原生编辑器。根据备份 `metadata.json` 恢复兼容显示文件，或在 schema 兼容时移除不支持的条目 ID。随后安装旧包、运行 `install` 和 `doctor`，并重启 Claude Code。可移植导出可另行保留当前显示选择，供以后恢复。
 
@@ -640,13 +657,13 @@ Doctor 检查平台与 Python、PATH、配置有效性、命令归属、hooks、
 
 `[OK]` 表示通过，`[WARN]` 表示降级但仍可返回 0，存在 `[ERROR]` 时返回 1。接入过时先运行 `install`、再次 `doctor`，然后重启 Claude Code。归属冲突先检查具体目标，再决定是否使用 `--force`。
 
-已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v5`。有效旧文件改为提示，例如：
+已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v6`。有效旧文件改为提示，例如：
 
 ```text
-[WARN] display config schema v4 is valid and will migrate to v5 on the next configuration save
+[WARN] display config schema v4 is valid and will migrate to v6 on the next configuration save
 ```
 
-此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v5、运行协议 v2 分别管理版本。
+此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v6、运行协议 v2 分别管理版本。
 
 ## 故障排查
 

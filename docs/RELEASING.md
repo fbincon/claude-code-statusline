@@ -4,7 +4,7 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.8.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.8.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.9.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.9.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,7 +12,7 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-Stable v1.8.0 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
+Stable v1.9.0 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
@@ -50,7 +50,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.8.0
+RELEASE_TAG=v1.9.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -70,8 +70,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-fbincon_claude_code_statusline-1.8.0-py3-none-any.whl
-fbincon_claude_code_statusline-1.8.0.tar.gz
+fbincon_claude_code_statusline-1.9.0-py3-none-any.whl
+fbincon_claude_code_statusline-1.9.0.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -94,8 +94,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum fbincon_claude_code_statusline-1.8.0-py3-none-any.whl \
-  fbincon_claude_code_statusline-1.8.0.tar.gz > SHA256SUMS
+sha256sum fbincon_claude_code_statusline-1.9.0-py3-none-any.whl \
+  fbincon_claude_code_statusline-1.9.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -104,8 +104,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'fbincon_claude_code_statusline-1.8.0-py3-none-any.whl',
-    'fbincon_claude_code_statusline-1.8.0.tar.gz'
+    'fbincon_claude_code_statusline-1.9.0-py3-none-any.whl',
+    'fbincon_claude_code_statusline-1.9.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -125,8 +125,8 @@ Confirm all 13 Python/build and ten Mod CI jobs pass for Phase 5 for `RELEASE_CO
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.8.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.8.0.tar.gz" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.9.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.9.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -208,7 +208,7 @@ Before synchronizing, inspect `git remote -v`, the current branch, and the remot
 
 ```bash
 git push gitee main:refs/heads/main
-git push gitee refs/tags/v1.8.0:refs/tags/v1.8.0
+git push gitee refs/tags/v1.9.0:refs/tags/v1.9.0
 ```
 
 Verify both hosts expose identical `main` and tag object IDs. Preserve annotated tags and their target commits. Historical feature branches are pushed only when needed. If a ref has diverged, investigate before writing; never use force-push or `git push --mirror` for routine synchronization. Gitee PR acceptance uses temporary target and feature branches, preserving the PR record and removing only those branches after verified merging.
@@ -310,3 +310,7 @@ Verify the remembered UI-only light/dark background choice independently of Clau
 Require shared resource keys/placeholders, Python/TypeScript synchronization, schema-v1 UI preference recovery/future protection/concurrency and localized CLI help/errors. Configuration protocol is v5; display remains v5 and runtime v2. Verify both editors switch immediately, preserve drafts/search/input and keep language across cancel/reopen/upgrade/uninstall. Catalog JSON and actual statusline output retain English/canonical values.
 
 Run the complete local checks, all 23 PR/merge/tag jobs, installed-wheel external minimum/common viewports and persistent native language/advanced PTYs. Inspect reconstructed images and document platform/host/source/palette, distinguishing agent inspection from human acceptance and multiplexer quantization from direct RGB. Rebuild and independently install wheel/sdist, inspect both language resources, verify 1.7.8 upgrades and use the exact fixed commit for assets and SHA256. Complete TestPyPI, stable Latest/PyPI index checks and same-byte Gitee synchronization. No paid model/timer suite is invoked. See [translation checks](development/i18n.md#validate-a-change).
+
+## Statusline localization release gates
+
+Verify display schema/configuration protocol v6, side-effect-free v1–v5 migration, independent UI/output languages, draft save/cancel, known/raw value boundaries and single-line generated resources. Require installed-wheel language PTYs, production-render verification after saves, complete cross-platform CI, fixed-commit package/rebuild/upgrade verification, TestPyPI acceptance and identical GitHub/PyPI/Gitee bytes. Record native host, focus actions and terminal dimensions; CI and agent-inspected captures do not constitute new human or Windows/macOS terminal acceptance.
