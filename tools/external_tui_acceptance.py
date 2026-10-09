@@ -247,6 +247,14 @@ def run_case(
             )
             wait_for("颜色：关闭")
             capture("language-settings-zh")
+            send(b"\x1bOD", "Configure Status Line")
+            language = state.language = "en"
+            assert json.loads((config / "statusline-ui.json").read_bytes())["ui_language"] == "en"
+            capture("language-settings-en-restored")
+            send(b"\x1bOC", "配置状态栏")
+            language = state.language = "zh-CN"
+            wait_for("颜色：关闭")
+            capture("language-settings-zh")
             for data, page, label in (
                 (b"\t", "layout", "布局／分行与适配"),
                 (b"\t", "items", "主状态栏项目"),
