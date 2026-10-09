@@ -107,6 +107,17 @@ Only Main was supplied for this batch. The existing interaction limitation and c
 Run `/statusline-configure` in Claude Code, or `claude-statusline configure` in a standalone terminal.
 
 <details>
+<summary>Linux: light and dark terminal backgrounds</summary>
+
+Terminal-output reconstructions from dedicated GNOME Terminal profiles; [capture sources](docs/images/README.md#external-terminal-color-captures).
+
+![Linux external TUI on a light terminal](docs/images/tui/external/linux/themes/main-light.png)
+
+![Linux external TUI on a dark terminal](docs/images/tui/external/linux/themes/main-dark.png)
+
+</details>
+
+<details>
 <summary>Linux: Main, Subagents, Settings, Layout</summary>
 
 **Main: select and reorder main status line items.**

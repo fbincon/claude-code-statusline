@@ -105,6 +105,17 @@
 在 Claude Code 中运行 `/statusline-configure`，或在独立终端运行 `claude-statusline configure`。
 
 <details>
+<summary>Linux：浅色与深色终端背景</summary>
+
+来自独立 GNOME Terminal 配置的终端输出重建图，见[捕获来源](docs/images/README.zh-CN.md#外部终端配色捕获)。
+
+![Linux 浅色终端下的外部 TUI](docs/images/tui/external/linux/themes/main-light.png)
+
+![Linux 深色终端下的外部 TUI](docs/images/tui/external/linux/themes/main-dark.png)
+
+</details>
+
+<details>
 <summary>Linux：Main、Subagents、Settings、Layout</summary>
 
 **Main：选择主状态栏条目并调整顺序。**
