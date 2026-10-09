@@ -179,3 +179,24 @@ images/
 | dark / light / ansi | [dark-terminal-light-theme-ansi.png](tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) | `2b6bafc7e024791d07eb8cbc4ded4c7d725bd784c5a1ac9a5093b67f68601703` | `e6a7681d2aee8a4a58f2dc4b5f84f4ef01ad98eadc88b2aec402a37c6e05b67e` |
 | dark / dark / default | [dark-terminal-dark-theme-default.png](tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | `5b3e2d51cd720749b66e6b6360bae31d4546eff4cbce006628e3d07f9bc90a5f` | `768290a494ec034306b8175ef05a61beb47cce960375e7c316658eb994cf36b3` |
 | dark / dark / ansi | [dark-terminal-dark-theme-ansi.png](tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) | `aff6d18cf76c41674ff1d4cc8fd5703cd95595d3fe8e4ad81c8038f858fd5508` | `67c58224889ab4e2429552b4697cd0a4041d00e6eebab3aa3303c9d37339d024` |
+
+## 双语终端采集
+
+`tui/{native,external}/linux/languages/` 下十张图片重建安装包的真实 PTY 输出，采集于 2026-10-09，源为 `19c74739a5bc45ec93258a52dcc0a800228497d5`。实现候选在发行版本提升前仍报告 1.7.8，界面实现保留于 1.8.0。环境为 Linux 7.0.0-38-generic x86_64、CPython 3.14.4、Claude Code 2.1.295，使用 pyte 解码及 `tools/render_native_capture.py`；终端 120×30，原生停靠区域裁剪 72 列，外部完整裁剪。原有 21 张物理截图与历史 PNG 保留原字节。
+
+原生采集采用明确浅色终端／背景样本、Claude light 主题及 tmux 3.6；该路径宿主输出量化的 256 色样例。外部使用深色终端默认色样本及已记录 xterm 调色板。这些分析样本不读取物理终端的准确默认色。预览为不随翻译改变的固定数据。PNG 元数据记录源提交、采集 SHA256 和单元格裁剪范围，字体为 DejaVu Sans Mono、Noto Sans CJK、Noto Sans Symbols 2。原生 transcript／输入框／私有路径已裁去。代理画面检查确认选中字段、分组页面、语言自称和快捷键行对齐，完整重绘后没有旧语言残留。自动／代理检查与人类及 Windows／macOS 终端验收分别记录。
+
+| 界面／页面／语言 | 图片 | PNG SHA256 |
+| --- | --- | --- |
+| native/main-zh-CN | [PNG](tui/native/linux/languages/main-zh-CN.png) | `31f213011e040b1452966b603153393b39ce0ce9d33301a8059eea6a0daceeb2` |
+| native/subagents-zh-CN | [PNG](tui/native/linux/languages/subagents-zh-CN.png) | `994a981a60de6195fc2108b77cbd6ee3abd1fdd72c6e18a18d8d73b1e21fe868` |
+| native/settings-zh-CN | [PNG](tui/native/linux/languages/settings-zh-CN.png) | `b77825bdf985cdb484cb0b5b5c7de41bc1198ae8262409b4f8cb9cca5717be35` |
+| native/layout-zh-CN | [PNG](tui/native/linux/languages/layout-zh-CN.png) | `39c7a16f648c7c783474a837962a4b42a604a20ba948461235e619ff2de537db` |
+| native/settings-en | [PNG](tui/native/linux/languages/settings-en.png) | `933b3fc7d7951d76fb42a1220142fb50ef6e3530ce4c72f9dc2d42e2a08c2a7a` |
+| external/main-zh-CN | [PNG](tui/external/linux/languages/main-zh-CN.png) | `41e68336970c0e3ad000b9f41db00f9699fb24264fa8aa7a3626dd88f05d9384` |
+| external/subagents-zh-CN | [PNG](tui/external/linux/languages/subagents-zh-CN.png) | `8c3574a8e8bffb30eea7ffba960ff37d4885fdded4d5a640418bfdbbb5472149` |
+| external/settings-zh-CN | [PNG](tui/external/linux/languages/settings-zh-CN.png) | `113166e0bb2d6c70d52d324107c311f5d9691e8380d4e4d9af3f4779c656c53c` |
+| external/layout-zh-CN | [PNG](tui/external/linux/languages/layout-zh-CN.png) | `e8c04500d3a099ef51bbcbae34249a7561f3fe75c325122f0e555c9dc1f747eb` |
+| external/settings-en | [PNG](tui/external/linux/languages/settings-en.png) | `2e12522cf59a1fd4403d07b4e0c194870f51156041fa81ba804b8169a25888c8` |
+
+原始采集／报告私有保存在忽略的 `dist/validation/i18n`；图片为输出重建，不是新增 OS 截图。外部英文选项在中文切回英文、强制完整重绘后采集。[行为与命令](../USER_GUIDE.zh-CN.md#界面语言)。

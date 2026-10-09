@@ -21,6 +21,7 @@
 ## CLI 总览
 
 ```text
+claude-statusline [--language en|zh-CN] COMMAND ...
 claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
@@ -40,6 +41,9 @@ claude-statusline config [--config-dir PATH] import PATH [--dry-run]
 claude-statusline config [--config-dir PATH] export PATH [--overwrite]
 claude-statusline config [--config-dir PATH] item main|subagent ID OPTION VALUE
 claude-statusline config [--config-dir PATH] layout auto|explicit [ROW...]
+claude-statusline config [--config-dir PATH] language show [--json]
+claude-statusline config [--config-dir PATH] language set en|zh-CN
+claude-statusline config [--config-dir PATH] language reset
 claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force]
   [--experimental-slash-tui | --no-experimental-slash-tui]
@@ -75,6 +79,12 @@ claude-statusline configure --config-dir /path/to/claude-config
 claude-statusline doctor --config-dir /path/to/claude-config
 ```
 
+## 界面语言
+
+`config language show [--json]` 读取共享偏好；JSON 为 `{"schema_version":1,"ui_language":"en"}` 或 `"zh-CN"`。`set en|zh-CN` 和 `reset` 显式保存，reset 选择英文。根选项 `--language en|zh-CN` 放在子命令前，优先用于本次调用，不修改文件；用于 `configure` 时控制初始界面语言。
+
+帮助正文／分组、argparse 参数错误和管理输出使用所选语言。命令名称、参数值、退出码、目录 JSON 及实际状态栏输出保持稳定。支持的宿主上 `/statusline-config language show|set|reset` 也可本地执行。详见[语言行为与恢复](../USER_GUIDE.zh-CN.md#界面语言)。
+
 ## 安装与诊断
 
 | 命令 | 行为 |
@@ -97,7 +107,7 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 ## slash 命令支持范围
 
-`/statusline-config` 参数解析器支持 `show`、`list-items`、`set-items`、`enable`、`disable`、`order`、`subagents`、`set`、`apply`、`reset`，其中子 Agent 操作为 `list-items`、`set-items`、`enable`、`disable`、`order`。Claude Code 2.1.258+ 且 hooks 启用时本地执行，旧版或未知版本使用模型回合；无参数问答向导始终使用模型回合。
+`/statusline-config` 参数解析器支持 `show`、`list-items`、`set-items`、`enable`、`disable`、`order`、`subagents`、`set`、`apply`、`language`、`reset`，其中子 Agent 操作为 `list-items`、`set-items`、`enable`、`disable`、`order`。Claude Code 2.1.258+ 且 hooks 启用时本地执行，旧版或未知版本使用模型回合；无参数问答向导始终使用模型回合。
 
 `preset`、`import`、`export`、`item`、`layout` 使用终端 CLI 或编辑器，本地 slash 解析器拒绝这些操作。`/statusline-configure` 不接受配置参数，详见[入口选择](../USER_GUIDE.zh-CN.md#选择配置入口)。
 
@@ -730,6 +740,16 @@ claude-statusline config set refresh-interval event
 `items: []` 是合法配置，表示主栏不输出内容；即使范围标签为 `always`，也不会单独制造空主栏。`subagents.items: []` 同样合法，表示每个有效子任务返回空 content。
 
 <a id="实验功能偏好"></a>
+
+### 共享界面偏好
+
+`<CLAUDE_CONFIG_DIR>/statusline-ui.json` 使用独立 schema v1：
+
+```json
+{"schema_version": 1, "ui_language": "zh-CN"}
+```
+
+仅接受 `en` 与 `zh-CN`。缺失／无效读取返回英文，可能提示警告，但不修复。显式 set/reset 使用锁、备份及原子写入；未来 schema 拒绝覆盖，写入失败保留原有效选择。此文件与显示 revision、接入偏好、预设和可移植文件独立，普通卸载保留。
 
 ### 编辑器启用偏好
 

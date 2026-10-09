@@ -23,6 +23,7 @@ Complete command syntax, supported options, display fields and configuration fil
 ## CLI overview
 
 ```text
+claude-statusline [--language en|zh-CN] COMMAND ...
 claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
@@ -42,6 +43,9 @@ claude-statusline config [--config-dir PATH] import PATH [--dry-run]
 claude-statusline config [--config-dir PATH] export PATH [--overwrite]
 claude-statusline config [--config-dir PATH] item main|subagent ID OPTION VALUE
 claude-statusline config [--config-dir PATH] layout auto|explicit [ROW...]
+claude-statusline config [--config-dir PATH] language show [--json]
+claude-statusline config [--config-dir PATH] language set en|zh-CN
+claude-statusline config [--config-dir PATH] language reset
 claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force]
   [--experimental-slash-tui | --no-experimental-slash-tui]
@@ -77,6 +81,12 @@ claude-statusline configure --config-dir /path/to/claude-config
 claude-statusline doctor --config-dir /path/to/claude-config
 ```
 
+## Interface language
+
+`config language show [--json]` reads the shared preference; JSON is `{"schema_version":1,"ui_language":"en"}` or `"zh-CN"`. `set en|zh-CN` and `reset` save explicitly; reset selects English. The root `--language en|zh-CN` option goes before the command and takes precedence for that invocation without changing storage. With `configure` it controls the initial editor language.
+
+Help text/groups, argparse errors and administrative output use the selected language. Command names, argument values, exit codes, catalog JSON and actual statusline output remain stable. `/statusline-config language show|set|reset` also executes locally on supported hosts. See [language behavior and recovery](../USER_GUIDE.md#interface-language).
+
 ## Installation and diagnostics
 
 | Command | Behavior |
@@ -99,7 +109,7 @@ Each pair is mutually exclusive. Explicit flags override saved values, which ove
 
 ## Slash-command support
 
-The `/statusline-config` argument parser supports `show`, `list-items`, `set-items`, `enable`, `disable`, `order`, `subagents`, `set`, `apply`, and `reset`. Its subagent operations are `list-items`, `set-items`, `enable`, `disable`, and `order`. On Claude Code 2.1.258+ with hooks enabled, these execute locally; older/unknown hosts use a model turn. The no-argument wizard always uses a model turn.
+The `/statusline-config` argument parser supports `show`, `list-items`, `set-items`, `enable`, `disable`, `order`, `subagents`, `set`, `apply`, `language`, and `reset`. Its subagent operations are `list-items`, `set-items`, `enable`, `disable`, and `order`. On Claude Code 2.1.258+ with hooks enabled, these execute locally; older/unknown hosts use a model turn. The no-argument wizard always uses a model turn.
 
 `preset`, `import`, `export`, `item`, and `layout` are terminal CLI/editor operations; the local slash parser rejects them. `/statusline-configure` accepts no configuration arguments. [Choosing an entry point](../USER_GUIDE.md#choose-a-configuration-entry-point).
 
@@ -762,6 +772,16 @@ If display configuration is corrupted:
 <a id="实验功能偏好"></a>
 
 <a id="experimental-feature-preferences"></a>
+
+### Shared interface preference
+
+`<CLAUDE_CONFIG_DIR>/statusline-ui.json` uses its own schema v1:
+
+```json
+{"schema_version": 1, "ui_language": "zh-CN"}
+```
+
+Only `en` and `zh-CN` are accepted. Missing/invalid reads return English and may report a warning without repair. Explicit set/reset locks, backs up and atomically writes; a future schema refuses overwrite and write failures preserve the previous effective choice. This file is independent of display revisions, installation preferences, presets and portable files, and survives ordinary uninstall.
 
 ### Editor enablement preferences
 

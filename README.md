@@ -17,6 +17,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 
 ## Features
 
+- **Choose a language:** English and 简体中文 in both editors and CLI; switch immediately without losing display drafts.
 - **Choose what to show:** 60 main-line items and 14 subagent items; enable, hide, search, and reorder them.
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
@@ -33,6 +34,19 @@ Rendering uses Claude Code input and local state without making network requests
 ## Screenshots
 
 The main status line at the bottom of session screenshots shows actual data; configuration Preview regions use fixed samples. Fonts, colors and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
+
+<details>
+<summary>English / 简体中文 configuration</summary>
+
+Linux terminal captures show the shared language selector and Chinese interface. These are reconstructions of actual PTY cells with sample previews; [sources and all pages](docs/images/README.md#bilingual-terminal-captures).
+
+![English native language selector](docs/images/tui/native/linux/languages/settings-en.png)
+
+![简体中文 native language selector](docs/images/tui/native/linux/languages/settings-zh-CN.png)
+
+![简体中文 external language selector](docs/images/tui/external/linux/languages/settings-zh-CN.png)
+
+</details>
 
 ### In-session TUI
 
@@ -271,6 +285,19 @@ Download checksums and platform-specific instructions are in the [installation g
 
 <a id="v130a2-external-tui-and-in-session-client"></a>
 
+### Interface language
+
+Both editors have **Interface language (saved immediately)** in Settings, with choices **English / 简体中文**. The default is English. Switching keeps your page, selection, search and unsaved display edits; cancelling display changes keeps the language choice. Other open windows read it when reopened or reloaded.
+
+```text
+claude-statusline config language set zh-CN
+claude-statusline config language show
+claude-statusline config language reset
+claude-statusline --language en --help
+```
+
+`--language en|zh-CN` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values, custom text and actual statusline output retain their values. See [language settings](docs/USER_GUIDE.md#interface-language).
+
 ### Native configuration editor
 
 Click the Client region once. Use Tab to change pages, Space to toggle, arrows to select or reorder, Ctrl+E for item formatting, and `/` to search. `S` saves and stays, `F` saves and closes, and `Q` discards unsaved changes; lowercase letters work too. Footer controls follow the current page or input mode. Ctrl+G cancels input. Claude preferences apply separately.
@@ -342,6 +369,12 @@ claude-code-statusline/
 │   ├── build_native.py                      # Mod resource bundling and package README link rewriting
 │   └── claude_statusline/                   # Python CLI and implementation modules
 │       ├── config/                          # Configuration models, storage, migrations and commands
+│       │   ├── ui_preferences.py            # Shared language preference transactions
+│       │   └── storage.py                   # Locks, backups and atomic writes
+│       ├── i18n/                            # Shared English/Chinese presentation resources
+│       │   ├── locales/                     # en.json / zh-CN.json
+│       │   ├── translator.py                # Message keys, parameters and English fallback
+│       │   └── presentation.py              # Localized fields, choices and bilingual search
 │       ├── integration/                     # Claude Code setup, install transactions, hooks and diagnostics
 │       ├── platforms/                       # Cross-platform files, processes, clocks and terminals
 │       ├── rendering/                       # Statusline formatting, colors, layout and previews
@@ -356,18 +389,21 @@ claude-code-statusline/
 │   ├── statusline-native/                   # In-session configuration editor Mod
 │   │   ├── hooks/                           # Host APIs, commands, saves and recovery
 │   │   ├── lib/                             # Backend, drafts, input and independent snapshots
+│   │   │   └── i18n/                       # Generated locales, semantic messages and presentation
 │   │   ├── ui/                              # Client drawing, components, theme and geometry
 │   │   │   └── theme.ts                     # Host color roles and independent preview surface
 │   │   └── tests/                           # Tests grouped by backend, client, editor, integration and UI
 │   └── statusline-runtime/                  # Native task timing and optional advanced metrics Mod
 ├── tests/                                   # Python unit and integration tests
 │   ├── config/                              # Configuration, formatting, migration and transfer tests
+│   ├── i18n/                                # Translation resources and fallback tests
 │   ├── integration/                         # CLI, installation, packaging and compatibility tests
 │   ├── platforms/                           # Platform adapters and terminal integration tests
 │   ├── rendering/                           # Statusline formatting, layout and metric display tests
 │   ├── runtime/                             # Session state, task lifecycle and timing tests
 │   └── ui/                                  # Configuration editor, layout and protocol tests
 └── tools/                                   # Development, validation and release utilities
+    ├── generate_i18n.py                     # Validate resources and generate TypeScript locales
     ├── inspect_dist.py                      # Wheel/sdist metadata, contents and exclusion checks
     ├── publish_package.py                   # Release asset validation and package index install checks
     └── check_docs.py                        # Documentation links, anchors and bilingual pair checks

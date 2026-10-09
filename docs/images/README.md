@@ -179,3 +179,24 @@ Eight native-editor PNGs were reconstructed on 2026-10-09 from Claude Code 2.1.2
 | dark / light / ansi | [dark-terminal-light-theme-ansi.png](tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) | `2b6bafc7e024791d07eb8cbc4ded4c7d725bd784c5a1ac9a5093b67f68601703` | `e6a7681d2aee8a4a58f2dc4b5f84f4ef01ad98eadc88b2aec402a37c6e05b67e` |
 | dark / dark / default | [dark-terminal-dark-theme-default.png](tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | `5b3e2d51cd720749b66e6b6360bae31d4546eff4cbce006628e3d07f9bc90a5f` | `768290a494ec034306b8175ef05a61beb47cce960375e7c316658eb994cf36b3` |
 | dark / dark / ansi | [dark-terminal-dark-theme-ansi.png](tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) | `aff6d18cf76c41674ff1d4cc8fd5703cd95595d3fe8e4ad81c8038f858fd5508` | `67c58224889ab4e2429552b4697cd0a4041d00e6eebab3aa3303c9d37339d024` |
+
+## Bilingual terminal captures
+
+Ten images under `tui/{native,external}/linux/languages/` reconstruct actual installed-package PTY output captured on 2026-10-09, source `19c74739a5bc45ec93258a52dcc0a800228497d5`. The implementation candidate still reported 1.7.8 before the release version promotion; its interface implementation is retained in 1.8.0. Environment: Linux 7.0.0-38-generic x86_64, CPython 3.14.4, Claude Code 2.1.295, pyte decoder and `tools/render_native_capture.py`; 120×30 terminal, native docked crop (72 columns), full external crop. The original 21 physical screenshots and historical PNGs retain their bytes.
+
+Native captures use an explicit light terminal/background fixture with the Claude light theme and tmux 3.6; the host emits quantized 256-color samples in this path. External captures use the dark terminal-default fixture and documented xterm palette. These analysis fixtures do not read a physical terminal's exact defaults. Preview content is fixed data, unchanged by translation. PNG metadata records source commit, capture SHA256 and cell bounds; fonts are DejaVu Sans Mono, Noto Sans CJK and Noto Sans Symbols 2. Native transcript/composer/private paths are cropped away. Agent visual inspection found the selected field, grouped pages, language autonyms and shortcut rows aligned, without old-language residue after full repaint. Automated/agent inspection is separate from human and Windows/macOS terminal acceptance.
+
+| Surface / page / language | Image | PNG SHA256 |
+| --- | --- | --- |
+| native/main-zh-CN | [PNG](tui/native/linux/languages/main-zh-CN.png) | `31f213011e040b1452966b603153393b39ce0ce9d33301a8059eea6a0daceeb2` |
+| native/subagents-zh-CN | [PNG](tui/native/linux/languages/subagents-zh-CN.png) | `994a981a60de6195fc2108b77cbd6ee3abd1fdd72c6e18a18d8d73b1e21fe868` |
+| native/settings-zh-CN | [PNG](tui/native/linux/languages/settings-zh-CN.png) | `b77825bdf985cdb484cb0b5b5c7de41bc1198ae8262409b4f8cb9cca5717be35` |
+| native/layout-zh-CN | [PNG](tui/native/linux/languages/layout-zh-CN.png) | `39c7a16f648c7c783474a837962a4b42a604a20ba948461235e619ff2de537db` |
+| native/settings-en | [PNG](tui/native/linux/languages/settings-en.png) | `933b3fc7d7951d76fb42a1220142fb50ef6e3530ce4c72f9dc2d42e2a08c2a7a` |
+| external/main-zh-CN | [PNG](tui/external/linux/languages/main-zh-CN.png) | `41e68336970c0e3ad000b9f41db00f9699fb24264fa8aa7a3626dd88f05d9384` |
+| external/subagents-zh-CN | [PNG](tui/external/linux/languages/subagents-zh-CN.png) | `8c3574a8e8bffb30eea7ffba960ff37d4885fdded4d5a640418bfdbbb5472149` |
+| external/settings-zh-CN | [PNG](tui/external/linux/languages/settings-zh-CN.png) | `113166e0bb2d6c70d52d324107c311f5d9691e8380d4e4d9af3f4779c656c53c` |
+| external/layout-zh-CN | [PNG](tui/external/linux/languages/layout-zh-CN.png) | `e8c04500d3a099ef51bbcbae34249a7561f3fe75c325122f0e555c9dc1f747eb` |
+| external/settings-en | [PNG](tui/external/linux/languages/settings-en.png) | `2e12522cf59a1fd4403d07b4e0c194870f51156041fa81ba804b8169a25888c8` |
+
+The raw captures/reports remain private in ignored `dist/validation/i18n`; screenshots are reconstructed output, not new OS screenshots. The external English selector was captured after switching back from Chinese to force a complete terminal repaint. [Behavior and commands](../USER_GUIDE.md#interface-language).

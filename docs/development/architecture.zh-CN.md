@@ -9,6 +9,7 @@ src/claude_statusline/
   cli.py、__main__.py、_version.py   CLI 分发与版本
   config/                           显示/feature、宿主配置、模型、
                                     共享存储、事务与命令
+  i18n/                             翻译、展示与 en/zh-CN 语言包
   rendering/                        格式、颜色、布局、条目、计时、
                                     主栏/子 Agent 输出及预览
   runtime/                          路径、缓存、registry、transcript、
@@ -33,7 +34,7 @@ src/claude_statusline/
   resources/                        配置 skill 模板
   *.py                              原有兼容入口
 
-tests/{config,rendering,runtime,integration,ui,platforms}/
+tests/{config,i18n,rendering,runtime,integration,ui,platforms}/
 tests/support.py                    子进程测试的稳定源码定位
 tools/                              验证与显式启用的验收命令
 docs/development/                   架构、测试及计时约定
@@ -100,7 +101,7 @@ Usage 状态在既有整数统计旁记录可选的输入／输出观测标记�
 
 ## Phase 4 配置边界
 
-Python `config.formatting`、`advanced`、`presets`、`transfer`、`editor_fields` 分别负责格式规则、纯草稿编辑、预设展开、可移植文件与共享表单描述。显示 schema v5／协议 v4 与编辑器启用偏好、运行镜像及生命周期独立。两种编辑器保存完整草稿并沿用配置服务；旧命令保留新增字段，显式 reset 恢复默认。
+Python `config.formatting`、`advanced`、`presets`、`transfer`、`editor_fields` 分别负责格式规则、纯草稿编辑、预设展开、可移植文件与共享表单描述。显示 schema v5／协议 v5 与编辑器启用偏好、运行镜像及生命周期独立。两种编辑器保存完整草稿并沿用配置服务；旧命令保留新增字段，显式 reset 恢复默认。
 
 curses `ui.forms` 与 Client `lib/client/forms.ts` 从同一描述展开逐项格式、Layout 精简及全局设置。原生 hooks 执行后端／文件操作，`lib/preferences.ts` 管理实际宿主行及支持的控件，Claude API 应用保持独立。生产与样例渲染共用格式／显式布局，Git／transcript 继续按需采集；不增加 Phase 5 运行指标。
 
@@ -129,3 +130,9 @@ curses `ui.forms` 与 Client `lib/client/forms.ts` 从同一描述展开逐项�
 Client 的 `ui/layout.ts` 按终端尺寸计算内容、Preview 和两行操作提示预算；统一栏目组件在框顶绘制标题，紧凑模式保留一行标题。`lib/editor/navigation.ts` 按字段与分组标题实际行数填充页面，并让翻页与绘制使用同一分组页面计算；字段 key 在缩放后保持稳定，标题不可选择。Layout 先展开模式和所有行边界，再按主栏顺序展开逐项适配；格式详情集中格式与适配分组。
 
 两编辑器分别用纯快捷键分段模块生成完整按键／作用组。按键使用主要文字色并加粗，说明保持普通可读文字；Client 跟随已应用的 Claude 主题，外部 curses 主界面使用终端默认色和反色选择。`ui.theme` 集中管理终端默认背景上的前景颜色对与能力降级。预览填充、颜色重置及无色 span 使用终端默认色，样例保留所选生产配色；处理默认色不支持、无色和分配失败／不足。宽度不足时使用短说明并按组裁剪。外部表单仍使用既有分组滚动窗口，宿主偏好仍由 h 展开并单独 Apply；绘制不执行文件或宿主操作。
+
+## 共享界面语言
+
+`config.ui_preferences` 管理独立 schema v1 偏好事务；`i18n` 管理延迟资源、语义消息和展示元数据。Python JSON 语言包生成原生 `lib/i18n/generated-locales.ts`，由 CI 和分发包检查保证一致。CLI 解析器与两个编辑器传递显式语言，同时保留英文诊断及规范机器目录。render／hook 快速启动路径不加载界面资源或偏好。
+
+外部会话与原生宿主处理用户选择后的即时语言写入，仅成功后更新界面并保留未保存草稿。curses 重绘物理屏幕，两端复用宽度／裁剪工具重算单元格预算。错误语义元数据通过独立复制的 Client 快照传递。语言不进入显示 revision 或可移植 payload。见[翻译贡献](i18n.zh-CN.md)与[偏好协议](contracts.zh-CN.md#界面偏好与消息操作)。

@@ -9,6 +9,7 @@ src/claude_statusline/
   cli.py, __main__.py, _version.py   CLI dispatch and version
   config/                           Display/features, host settings, models,
                                     shared storage, transactions and commands
+  i18n/                             Translation, presentation and en/zh-CN locales
   rendering/                        Formatting, palette, layout, items,
                                     timer, main/subagent output and preview
   runtime/                          Paths, caches, registry, transcript,
@@ -34,7 +35,7 @@ src/claude_statusline/
   resources/                        Bundled configuration skill templates
   *.py                              Legacy compatibility entry points
 
-tests/{config,rendering,runtime,integration,ui,platforms}/
+tests/{config,i18n,rendering,runtime,integration,ui,platforms}/
 tests/support.py                    Stable source locations for subprocess tests
 tools/                              Validation and opt-in acceptance commands
 docs/development/                   Architecture, testing and timer contracts
@@ -79,7 +80,7 @@ Resources continue to load through `importlib.resources` from `claude_statusline
 
 ## Persistence
 
-Current display schema v5 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1/v2/v3/v4/v3 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
+Current display schema v5 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1/v2/v3/v4 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
 
 Keep local ROADMAP files and raw acceptance records out of distributions. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 
@@ -103,7 +104,7 @@ Usage state keeps optional input/output observation flags alongside the existing
 
 ## Phase 4 configuration boundaries
 
-Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v5 and protocol v4 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
+Python `config.formatting`, `advanced`, `presets`, `transfer` and `editor_fields` own format rules, pure draft edits, preset expansion, portable files and shared form descriptors. Display schema v5 and protocol v5 evolve independently from editor enablement, runtime mirrors and lifecycle state. Both editors save a complete draft through the existing configuration service; legacy commands retain advanced fields and explicit reset restores defaults.
 
 Curses `ui.forms` and Client `lib/client/forms.ts` expose scoped formats, Layout fitting and global settings from the canonical descriptors. Native hooks alone perform backend/file effects; `lib/preferences.ts` owns actual-row descriptions and supported controls, with separate Claude API application. Production and sample rendering share formatting and explicit layout; lazy Git/transcript collection is retained. No Phase 5 runtime indicators are added.
 
@@ -132,3 +133,9 @@ Runtime collection has two independent modes. Native timing defaults on for comp
 Client `ui/layout.ts` budgets content, Preview and two action rows from terminal dimensions. The shared section component paints its title on the frame edge, with a one-row heading in compact mode. `lib/editor/navigation.ts` packs actual fields and group headings into pages; drawing and page keys share that calculation. Stable field keys retain selection through resize and headings are nonselectable. Layout expands mode and all row boundaries before item fitting in main-line order; item details keep format and fitting groups contiguous.
 
 Each editor has a pure shortcut-segment helper that fits complete key/action groups. Keys use the primary text color and bold weight; descriptions use regular readable text. Client follows the applied Claude theme; external curses chrome uses terminal defaults and reversed selection. `ui.theme` owns capability-aware foreground pairs on the terminal-default background. Preview fills, resets and uncolored spans use terminal defaults; sample colors follow the selected production palette, with default-color/monochrome/allocation fallbacks. Narrow viewports use shorter labels and omit incomplete groups. External forms retain the existing grouped scrolling window; h still unfolds host preferences with separate Apply. Drawing performs no file or host effects.
+
+## Shared interface language
+
+`config.ui_preferences` owns the independent schema-v1 preference transaction; `i18n` owns lazy resources, semantic messages and presentation metadata. Python JSON language files generate the native `lib/i18n/generated-locales.ts` resource, checked in CI and distribution inspection. CLI parsers and both editors pass explicit languages, retaining English diagnostics and canonical machine catalogs. Render/hook startup paths do not load interface resources or preferences.
+
+External session effects and native host effects write language immediately after user selection, update the view only on success and preserve unsaved drafts. Curses repaints its physical screen; both renderers recalculate cell budgets with existing width/clip helpers. Errors carry semantic metadata through independently copied Client snapshots. Language never enters display revisions or portable payloads. See [translation contributions](i18n.md) and [preference protocol](contracts.md#ui-preference-and-message-operations).

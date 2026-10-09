@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v4 is the internal interface for the bundled/source native frontend. Display persistence uses schema v5, including in-memory v1/v2/v3/v4 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
+Protocol v5 is the internal interface for the bundled/source native frontend. Display persistence uses schema v5, including in-memory v1/v2/v3/v4 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
 
 ## Catalog
 
@@ -15,10 +15,10 @@ Minimum versions are verified only where evidence exists. The 2.1.205 subagent m
 Run `claude-statusline ui --config-dir PATH` (Windows: `claude-statusline.exe`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":4,"operation":"read","payload":{}}
+{"protocol_version":5,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":4,"result":{...}}`; failure is `{"protocol_version":4,"error":{"code":"...","message":"..."}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":5,"result":{...}}`; failure is `{"protocol_version":5,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -26,6 +26,8 @@ Success is `{"protocol_version":4,"result":{...}}`; failure is `{"protocol_versi
 | `read` | `{}` | `draft`, `revision`, `installed`, `installation`, capabilities and backend version |
 | `preview` | `{"draft": {...}, "width": 80}` | `sample: true`, `main` and `subagents` rows of drawable spans |
 | `apply` | `{"draft": {...}, "expected_revision": "<read revision>"}` | Saved read snapshot, `changed`, and `backup_dir` (a path or `null`) |
+| `read_ui_preferences` | `{}` | `{schema_version:1,ui_language,warning}` |
+| `set_ui_language` | `{ui_language}` | `{schema_version:1,ui_language,warning:null}` |
 | `preset` | `{draft,preset}` | Validated expanded `{draft}` |
 | `import` | `{draft,path}` | Validated imported `{draft}` |
 | `export` | `{draft,path,overwrite}` | Export destination `{path}` |
@@ -69,7 +71,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 
 ## Structured formatting
 
-Protocol v4 returns complete schema-v5 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v5 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
+Protocol v5 returns complete schema-v5 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v5 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
 
 ## Draft transfer operations
 
@@ -85,4 +87,12 @@ Native file operations are effects handled by the hooks module through Python, w
 
 ## Phase 5 metric migration
 
-Display schema v5 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v4 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+Display schema v5 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v5 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+
+## UI preference and message operations
+
+`read_ui_preferences` accepts `{}` and returns `schema_version:1`, `ui_language` (`en` or `zh-CN`) and `warning` (`null` or a localized message). Missing/invalid reads fall back to English without repairing bytes. `set_ui_language` accepts exactly `{ui_language}` with a supported code, saves under the existing lock with backup/atomic write and returns the same shape with a null warning. Future preference schemas refuse overwrite. These operations do not change display/host drafts, revisions or installation.
+
+Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v5; runtime protocol v2 and display schema v5 are unchanged.
+
+See [translation architecture and contribution rules](i18n.md).
