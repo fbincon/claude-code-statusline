@@ -18,7 +18,7 @@ import signal
 import shutil
 import struct
 import subprocess
-from terminal_colors import cell_colors, contrast
+from terminal_colors import TERMINAL_THEMES, XTERM_PALETTE, cell_colors, contrast
 import sys
 import tempfile
 import shlex
@@ -134,6 +134,7 @@ def run_pty(
     persistent: bool = False,
     advanced: bool = False,
     theme_only: bool = False,
+    terminal_theme: str = "dark",
 ) -> dict:
     import fcntl
     import pty
@@ -268,7 +269,7 @@ def run_pty(
             f"PTY {columns} columns: did not observe {text!r}; inspect ignored raw/debug logs"
         )
 
-    def capture(name):
+    def capture(name, *, palette=None, colors=True):
         # Exact decoded terminal cells from the real host; no synthetic UI.
         path = root / f"screen-{columns}-{name}.json"
         cells = [
@@ -298,15 +299,33 @@ def run_pty(
             assert footer is not None, "Native action row is missing from capture"
             key_cell = footer[1][0]
             assert key_cell["bold"] and not key_cell["blink"], "Save key lost its emphasis"
-            assert contrast(*cell_colors(key_cell)) >= 4.5, "Save key is unreadable against its actual background"
+            foreground, background = TERMINAL_THEMES[terminal_theme]
+            assert contrast(*cell_colors(key_cell, foreground, background, XTERM_PALETTE)) >= 4.5, "Save key is unreadable against its actual background"
             assert all(not cell["bold"] for cell in footer[1][2:]), "Save description inherited the key's bold style"
             description_cell = footer[1][2]
-            foreground, background = cell_colors(description_cell)
-            assert foreground != background, "Save description matches its background"
+            description_fg, description_bg = cell_colors(description_cell, foreground, background, XTERM_PALETTE)
+            assert description_fg != description_bg, "Save description matches its background"
             # ANSI slots are user-defined; the capture palette is illustrative.
             # Numeric contrast is evidence only for explicit RGB cells.
             if re.fullmatch(r"[0-9a-fA-F]{6}", description_cell["fg"]):
-                assert contrast(foreground, background) >= 4.5, "Save description is unreadable"
+                assert contrast(description_fg, description_bg) >= 4.5, "Save description is unreadable"
+            frame = cells[preview[0]]
+            left = next((i for i, cell in enumerate(frame) if cell["data"] == "╭"), None)
+            if left is not None:
+                right = next(i for i in range(left + 1, columns) if frame[i]["data"] == "╮")
+                bottom = next(i for i in range(preview[0] + 1, len(cells)) if cells[i][left]["data"] == "╰")
+                start_column = left + 1
+            else:
+                start_column = next(i for i, cell in enumerate(frame) if cell["data"] == "─")
+                right = max(i for i, cell in enumerate(frame) if cell["data"] == "─") + 1
+                bottom = footer[0]
+            sample_cells = [cell for row in cells[preview[0] + 1:bottom] for cell in row[start_column:right]]
+            assert sample_cells and all(cell["bg"] == background.removeprefix("#") and not cell["reverse"] for cell in sample_cells), "Preview background differs from the chosen terminal fixture"
+            if palette is not None:
+                label = "Palette: " + palette if colors else "Colors: off"
+                assert label in "".join(cell["data"] for cell in frame), "Preview caption does not match the palette draft"
+            if not colors:
+                assert all(cell["fg"] == "default" for cell in sample_cells), "Colors off inherited host text"
             help_text = " ".join("".join(cell["data"] for cell in row) for row in cells[footer[0]:])
             expected = ["Tab page", "↑↓ select", "←→ adjust", "Enter edit"]
             if name.startswith("main") or name == "subagents":
@@ -317,7 +336,11 @@ def run_pty(
             json.dumps(
                 {"columns": columns, "rows": screen.lines, "cells": cells,
                  "theme": current_theme(config),
-                 "terminal_foreground": "#dedee7", "terminal_background": "#17191e"},
+                 "terminal_theme": terminal_theme,
+                 "terminal_foreground": TERMINAL_THEMES[terminal_theme][0],
+                 "terminal_background": TERMINAL_THEMES[terminal_theme][1],
+                 "terminal_palette": XTERM_PALETTE,
+                 "terminal_defaults_source": "explicit capture-analysis fixture"},
                 ensure_ascii=False,
             ),
             encoding="utf-8",
@@ -362,10 +385,28 @@ def run_pty(
             os.killpg(process.pid, signal.SIGWINCH)
             read_until("Configure Status Line")
         read_until("sample data")
-        capture("main")
         click_client()
+        os.write(master, b"3\x1b[H\x1b[B\x1b[B")
+        read_until("› Preview background (UI only):")
+        selected = next(line for line in screen.display if "› Preview background (UI only):" in line)
+        if not re.search(r"\b" + terminal_theme + r"\b", selected):
+            os.write(master, b"\x1b[C")
+            read_until("Preview background remembered")
+        os.write(master, b"1")
+        read_until("Main items")
+        capture("main", palette="default")
         if theme_only:
             tool_before = (config / "claude-statusline.json").read_bytes()
+            os.write(master, b"3\x1b[H\x1b[B")
+            read_until("› Palette:")
+            os.write(master, b"\x1b[C1")
+            read_until("Palette: ansi")
+            capture("main-ansi", palette="ansi")
+            os.write(master, b"3\x1b[H\x1b[C1")
+            read_until("Colors: off")
+            capture("main-colors-off", palette="ansi", colors=False)
+            os.write(master, b"3\x1b[H\x1b[C\x1b[B\x1b[C1")
+            read_until("Palette: default")
             for key, label, name in ((b"2", "Subagent items", "subagents"),
                                      (b"3", "Tool settings", "settings"),
                                      (b"4", "Layout / fitting", "advanced-layout"),
@@ -393,7 +434,8 @@ def run_pty(
             process.wait(timeout=10)
             return {"columns": columns, "rows": screen.lines, "theme": theme_before,
                     "four_pages_and_item_form": True, "theme_apply_separate": True,
-                    "sample_preview": True, "manual_visual_acceptance": False}
+                    "sample_preview": True, "palette_and_colors_off": True,
+                    "chosen_preview_background": terminal_theme, "manual_visual_acceptance": False}
         os.write(master, b" ")
         read_until("[ ] Model and effort")
         os.write(master, b" ")
@@ -429,7 +471,7 @@ def run_pty(
         os.write(master, b"\t")
         read_until("Tool settings")
         capture("settings")
-        os.write(master, b"\x1b[B" * 5 + b"\r\x159")
+        os.write(master, b"\x1b[H" + b"\x1b[B" * 6 + b"\r\x159")
         read_until("Padding: 9 _")
         os.write(master, b"\x07")
         read_until("Padding: 0")
@@ -515,7 +557,7 @@ def run_pty(
                     field_keys = ["layout.mode"] + ["break:" + item for item in items[1:]]
                     field_keys += ["fit:" + item + ":" + name for item in items for name in ("priority", "max_width")]
                 else:
-                    field_keys = ["colors", "palette", "directory-style", "separator-style", "scope-labels", "padding", "refresh_interval", "vim-indicator", "settings-subagent-statusline"]
+                    field_keys = ["colors", "palette", "preview-background", "directory-style", "separator-style", "scope-labels", "padding", "refresh_interval", "vim-indicator", "settings-subagent-statusline"]
                     field_keys += ["field:" + field["key"] for field in described["editor_fields"]["global"]]
                     field_keys += ["preset-select", "preset-apply", "import-file", "export-file"]
                     # Canonical identities keep the spec order even for missing host rows.
@@ -805,6 +847,7 @@ def main() -> int:
     parser.add_argument("--claude", default="claude")
     parser.add_argument("--theme", default="dark", choices=("dark", "light", "dark-daltonized", "light-daltonized", "dark-ansi", "light-ansi", "auto", "custom:statusline-validation-light"))
     parser.add_argument("--theme-only", action="store_true", help="Capture all pages and verify separate theme Apply without changing tool configuration")
+    parser.add_argument("--terminal-theme", choices=("dark", "light"), default="dark", help="Independent terminal-default fixture for capture analysis; does not change a physical terminal")
     parser.add_argument("--plugin", type=Path, default=Path("mods/statusline-native"))
     parser.add_argument("--interactive", action="store_true")
     parser.add_argument(
@@ -837,6 +880,8 @@ def main() -> int:
         "architecture": platform.machine(),
         "persistent_plugin": args.persistent,
         "theme": args.theme,
+        "terminal_theme": args.terminal_theme,
+        "terminal_defaults_source": "explicit capture-analysis fixture",
         "terminal": args.terminal or os.environ.get("TERM_PROGRAM", "unknown")
         if args.interactive
         else "xterm-256color / truecolor PTY",
@@ -893,6 +938,7 @@ def main() -> int:
                     persistent=args.persistent,
                     advanced=args.advanced,
                     theme_only=args.theme_only,
+                    terminal_theme=args.terminal_theme,
                 )
             )
     finally:

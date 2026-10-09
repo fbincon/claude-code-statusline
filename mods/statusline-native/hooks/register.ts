@@ -23,6 +23,8 @@ import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
 import { parseBatch } from '../lib/client/messages.ts';
 import { handleKey } from '../lib/client/keys.ts';
+import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
+import type { PreviewBackground } from '../lib/preview-preferences.ts';
 
 const PANE = 'statusline-native';
 const COMMAND = 'statusline-configure-native';
@@ -69,6 +71,7 @@ async function callBackend<O extends Operation>(
 
 function emptyView(): View {
   return {
+    previewBackground: DEFAULT_PREVIEW_BACKGROUND,
     editor: null,
     input: null,
     preview: null,
@@ -92,6 +95,7 @@ function failureText(failure: unknown): string {
 }
 
 interface Session {
+  previewBackground: PreviewBackground;
   ownsCommand: boolean;
   view: View;
   ack: number;
@@ -152,6 +156,18 @@ async function load(
       );
     }
     state.view.editor = new Editor(description, current);
+    try {
+      const background = previewBackground(await $.store.get(PREVIEW_BACKGROUND_KEY));
+      if (state.epoch === opening) {
+        state.previewBackground = background;
+        state.view.previewBackground = background;
+      }
+    } catch {
+      if (state.epoch === opening) {
+        state.view.previewBackground = state.previewBackground;
+        state.view.message = 'Preview background preference unavailable; using the last choice.';
+      }
+    }
     if (!current.installed)
       state.view.message =
         'The renderer is not installed. Run claude-statusline install before saving.';
@@ -450,6 +466,7 @@ async function openEditor(
 
 export const register: Register = (on, options) => {
   const state: Session = {
+    previewBackground: DEFAULT_PREVIEW_BACKGROUND,
     ownsCommand: false,
     view: emptyView(),
     epoch: 0,
@@ -570,6 +587,22 @@ export const register: Register = (on, options) => {
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);
         else if (effect === 'retry') state.previewKey = '';
+        else if (effect === 'previewBackground') {
+          const background = previewBackground(state.view.previewBackground);
+          try {
+            await $.store.set(PREVIEW_BACKGROUND_KEY, background);
+            if (state.epoch === currentEpoch) {
+              state.previewBackground = background;
+              if (state.view.error.startsWith('Could not remember the preview background')) state.view.error = '';
+              state.view.message = 'Preview background remembered; status-line colors unchanged.';
+            }
+          } catch {
+            if (state.epoch === currentEpoch) {
+              state.view.previewBackground = state.previewBackground;
+              state.view.error = 'Could not remember the preview background; previous choice kept.';
+            }
+          }
+        }
         if (state.epoch !== currentEpoch) break;
       }
       $.ui.invalidate('ui.render');
@@ -653,7 +686,6 @@ export const register: Register = (on, options) => {
       height >= MIN_ROWS
     ) {
       return Box({
-        backgroundColor: styles.text.backgroundColor,
         width,
         height,
         flexDirection: 'column',

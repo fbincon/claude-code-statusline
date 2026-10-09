@@ -8,7 +8,6 @@ export const styles = {
   error: { color: 'error', dimColor: false },
   selected: { color: 'inverseText', backgroundColor: 'text', dimColor: false },
   key: { color: 'text', bold: true, dimColor: false },
-  preview: { color: '#dedee7', backgroundColor: '#17191e', dimColor: false },
 } satisfies Record<string, TextProps>;
 
 /** Button has no base color prop; primary uses the host's suggestion token. */
@@ -18,11 +17,11 @@ export function rowStyle(selected: boolean, editable = true): TextProps {
   return selected ? styles.selected : editable ? styles.text : styles.muted;
 }
 
-/** Fill the complete sample row, including unused cells and empty rows. */
-export function previewRow(ui: ClientElements, child: RenderElement, width: number): RenderElement {
+/** Paint chrome locally so no themed ancestor covers the sample preview. */
+export function chromeRow(ui: ClientElements, child: RenderElement, width: number): RenderElement {
   return ui.Box({
     width, height: 1, flexShrink: 0, overflow: 'hidden',
-    backgroundColor: styles.preview.backgroundColor,
+    backgroundColor: styles.text.backgroundColor,
     children: [child],
   });
 }

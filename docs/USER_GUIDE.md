@@ -155,7 +155,7 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 
 `/statusline-configure-native` opens Client inside the current Claude Code session without another terminal. It shares configuration, directory, catalog, exclusion rules and atomic saves with external `/statusline-configure`, while each editor keeps its draft. Stable defaults both entries on; restart Claude Code in a trusted terminal after installation.
 
-The editor follows Claude’s applied theme, including light/dark variants, color-blind themes and host-supported auto/custom themes. The sample preview keeps status-line colors on a separate dark background, including uncolored and empty rows. Theme edits in Claude preferences take effect through the separate Apply action.
+The editor follows Claude’s applied theme, including light/dark variants, color-blind themes and host-supported auto/custom themes. In Settings, set **Preview background (UI only)** to `light` or `dark` to match your terminal’s background type; this choice is independent of the Claude theme and is remembered immediately, even when you discard configuration edits. It defaults to the previous dark surface. The presets are `#ffffff` and `#17191e`; the editor does not query the terminal’s exact RGB background. Uncolored text uses the terminal foreground. The title shows the selected background and Palette or Colors: off. Compare `default` and `ansi` if a color is hard to read: production RGB colors and terminal ANSI slots are preserved, and saving applies only the selected display configuration to the actual status line. Theme edits in Claude preferences still use the separate Apply action.
 
 ### Page hierarchy and pagination
 

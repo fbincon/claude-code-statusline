@@ -13,8 +13,9 @@ export function section(
   width: number,
   height: number,
   framed: boolean,
+  terminalBackground = false,
 ): RenderElement {
-  const edge = styles.muted;
+  const edge = { ...styles.muted, backgroundColor: styles.text.backgroundColor };
   const label = clip(title, Math.max(1, width - 5));
   const titleSpans: TextSpan[] = [{ text: ' ' + label + ' ', style: { ...styles.accent, bold: true } }];
   const used = titleSpans.reduce((n, s) => n + displayWidth(s.text), 0);
@@ -26,6 +27,7 @@ export function section(
   const body = children.slice(0, Math.max(0, height - (framed ? 2 : 1)));
   return ui.Box({
     key,
+    ...(terminalBackground ? {} : { backgroundColor: styles.text.backgroundColor }),
     width,
     height,
     flexDirection: 'column',

@@ -157,7 +157,7 @@ macOS 使用相同 wheel 和安装流程，CPython 需要提供 curses。外部�
 
 `/statusline-configure-native` 在当前 Claude Code session 内打开 Client TUI，不另开终端。它与外部 `/statusline-configure` 共用配置、目录、catalog、互斥规则和原子保存服务，各自保留草稿。正式版默认启用两者；安装完成后在受信任终端重启 Claude Code。
 
-编辑器跟随 Claude 实际应用的主题，包括浅色／深色、色弱主题及宿主支持的 auto／自定义主题。样例预览在独立深底上保留状态栏颜色，无颜色样例和空白行也使用明确的背景。Claude 偏好中的主题草稿通过独立 Apply 操作生效。
+编辑器跟随 Claude 实际应用的主题，包括浅色／深色、色弱及宿主支持的 auto／自定义主题。在 Settings 将 **Preview background (UI only)** 设为 `light` 或 `dark`，匹配终端背景的深浅；该选择独立于 Claude 主题，立即记住，丢弃配置编辑也会保留。默认沿用原来的深色预览。两种标准底色为 `#ffffff` 与 `#17191e`，编辑器不查询终端背景的精确 RGB。无色文字使用终端默认前景。标题显示所选背景及 Palette 或 Colors: off；颜色难以辨认时，可比较 `default` 与 `ansi`。样例保留生产 RGB 和终端 ANSI 色槽，保存只把显示配置应用到实际状态栏。Claude 主题草稿仍通过独立 Apply 生效。
 
 ### 页面层级与分页
 

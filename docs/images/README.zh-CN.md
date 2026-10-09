@@ -164,3 +164,18 @@ images/
 | light / ansi | [PNG](tui/external/linux/themes/main-light-ansi.png) | `6c0bddf026f8ff427f3b38a8c245c2b7b6268ddea87c04ff2e79b6b52406949e` | `ea5fb0ccfba335d9be038279a0dd4ed298b2eb7d4c38e4c3b19f682401771a0e` |
 | dark / default | [PNG](tui/external/linux/themes/main-dark.png) | `02bd6e45ae4efcf5979074866abc5b51d50ebe6a0594fe71f8972ee8a9668261` | `cedcc3feab9b0033ed72a6cc82033b4230af92523ec722fff837b257f28fe59a` |
 | dark / ansi | [PNG](tui/external/linux/themes/main-dark-ansi.png) | `80b25a3042908729de992824766213ac3fe9afe0eb5851c803553d3ae1f60c47` | `12d8ce4335261e9d06b9f3d83bb7ce709b56d6deff222563388f3866e5b5aa38` |
+
+## 原生预览背景捕获
+
+八张原生编辑器 PNG 于 2026-10-09 从 Linux x86_64／Python 3.14.4／Claude Code 2.1.295 的实际终端单元格重建，源码提交为 `12fbbdc9054b33875179b4feb94639b1872d9e13`。每次 120×30 捕获裁剪为 888×576 编辑器图片；另以 80×48 内嵌布局检查紧凑绘制。终端默认前景／背景及 xterm ANSI 调色板为明确的分析夹具，与 Claude 主题独立。通过实际 UI 选择匹配的预览背景，检查 default／ANSI、Colors off、所有页面／表单、偏好记忆及主题单独 Apply。图片属于终端重建，不是系统截图、物理配置测量或新的真人验收。原始日志与单元格保存在忽略的 `dist/validation/v1.7.8-preview-*`；后续仅文档提交保留相同运行源码。
+
+| 终端／主题／配色 | 图片 | 单元格 JSON SHA256 | PNG SHA256 |
+| --- | --- | --- | --- |
+| light / light / default | [light-terminal-light-theme-default.png](tui/native/linux/preview-backgrounds/light-terminal-light-theme-default.png) | `e911e3f5013863220c9a2a75e0d1db2bb084d89230a6f2f5bc69b1dbe29d8a91` | `86b63f913fa2d7444f4aa59136a13b3b11554e1660af204f11994a5baf22c4b1` |
+| light / light / ansi | [light-terminal-light-theme-ansi.png](tui/native/linux/preview-backgrounds/light-terminal-light-theme-ansi.png) | `2fba1791bf0da4e140db326109e58ed6d78fb181cf2b53cdb58e0ac5f6d9ea4a` | `52af8ac4e6121de77dcd9b0c616b3dc61ae8dcff0c61bf440c9168a76531ac3d` |
+| light / dark / default | [light-terminal-dark-theme-default.png](tui/native/linux/preview-backgrounds/light-terminal-dark-theme-default.png) | `6b1cd7496a47d67dd9a447ef316e4df9bee775265ae361813e88cb623d1d56b9` | `220c0026f7fbe37c011af6cc6e0c4f29d844c98645c8aa97f8bd0d284fee0fcc` |
+| light / dark / ansi | [light-terminal-dark-theme-ansi.png](tui/native/linux/preview-backgrounds/light-terminal-dark-theme-ansi.png) | `9e7085ed93622cf54701ef09bcd4d34cb970a2439e928582880fe5152f4be628` | `3a14cd386343854cebbcd26f47dca4a696a95f15cbad37b23622bcdd7b298795` |
+| dark / light / default | [dark-terminal-light-theme-default.png](tui/native/linux/preview-backgrounds/dark-terminal-light-theme-default.png) | `7ab437cba95320c5fb6b875713ff6ab837c5713915065c9ea392d35808791da5` | `b33f7aff1f6c9cab403a1ed875ef8f9842903d01bc2d3adcfbc2caa8b4a930bd` |
+| dark / light / ansi | [dark-terminal-light-theme-ansi.png](tui/native/linux/preview-backgrounds/dark-terminal-light-theme-ansi.png) | `2b6bafc7e024791d07eb8cbc4ded4c7d725bd784c5a1ac9a5093b67f68601703` | `e6a7681d2aee8a4a58f2dc4b5f84f4ef01ad98eadc88b2aec402a37c6e05b67e` |
+| dark / dark / default | [dark-terminal-dark-theme-default.png](tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-default.png) | `5b3e2d51cd720749b66e6b6360bae31d4546eff4cbce006628e3d07f9bc90a5f` | `768290a494ec034306b8175ef05a61beb47cce960375e7c316658eb994cf36b3` |
+| dark / dark / ansi | [dark-terminal-dark-theme-ansi.png](tui/native/linux/preview-backgrounds/dark-terminal-dark-theme-ansi.png) | `aff6d18cf76c41674ff1d4cc8fd5703cd95595d3fe8e4ad81c8038f858fd5508` | `67c58224889ab4e2429552b4697cd0a4041d00e6eebab3aa3303c9d37339d024` |

@@ -4,7 +4,7 @@
 
 <a id="发布-github-release"></a>
 
-This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.7.7](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.7); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
+This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v1.7.8](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.8); commands below use it as an example. Replace the tag, package version, and filenames together for another release.
 
 <a id="准备发布提交"></a>
 
@@ -12,7 +12,7 @@ Use the commands in [testing and acceptance](development/testing.md) for local c
 
 ## Native editor release gates
 
-Stable v1.7.7 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
+Stable v1.7.8 requests both the external TUI and in-session Client by default, preserving each recorded disablement. External needs 2.1.258+ and Client 2.1.287+; older/unknown hosts suspend each entry independently, restored by reinstall after upgrading. See [installation combinations and preferences](USER_GUIDE.md#editor-installation-combinations-and-compatibility).
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
@@ -50,7 +50,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.7.7
+RELEASE_TAG=v1.7.8
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -70,8 +70,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 By default, `python -m build` builds the source distribution first, then builds the wheel from it. The current version produces two assets:
 
 ```text
-fbincon_claude_code_statusline-1.7.7-py3-none-any.whl
-fbincon_claude_code_statusline-1.7.7.tar.gz
+fbincon_claude_code_statusline-1.7.8-py3-none-any.whl
+fbincon_claude_code_statusline-1.7.8.tar.gz
 ```
 
 This pure-Python wheel works on Linux/WSL, Windows, and macOS; `windows-curses` is installed only on Windows. See [building and installing from source](USER_GUIDE.md#build-and-install-from-source) for basic Windows build commands. Release builds also require a clean checkout and separate output directory.
@@ -94,8 +94,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum fbincon_claude_code_statusline-1.7.7-py3-none-any.whl \
-  fbincon_claude_code_statusline-1.7.7.tar.gz > SHA256SUMS
+sha256sum fbincon_claude_code_statusline-1.7.8-py3-none-any.whl \
+  fbincon_claude_code_statusline-1.7.8.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -104,8 +104,8 @@ On macOS, generate with `shasum -a 256` and verify with `shasum -a 256 -c SHA256
 
 ```powershell
 $releaseFiles = @(
-    'fbincon_claude_code_statusline-1.7.7-py3-none-any.whl',
-    'fbincon_claude_code_statusline-1.7.7.tar.gz'
+    'fbincon_claude_code_statusline-1.7.8-py3-none-any.whl',
+    'fbincon_claude_code_statusline-1.7.8.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -125,8 +125,8 @@ Confirm all 13 Python/build and ten Mod CI jobs pass for Phase 5 for `RELEASE_CO
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.7-py3-none-any.whl" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.7.tar.gz" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.8-py3-none-any.whl" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.7.8.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -208,7 +208,7 @@ Before synchronizing, inspect `git remote -v`, the current branch, and the remot
 
 ```bash
 git push gitee main:refs/heads/main
-git push gitee refs/tags/v1.7.7:refs/tags/v1.7.7
+git push gitee refs/tags/v1.7.8:refs/tags/v1.7.8
 ```
 
 Verify both hosts expose identical `main` and tag object IDs. Preserve annotated tags and their target commits. Historical feature branches are pushed only when needed. If a ref has diverged, investigate before writing; never use force-push or `git push --mirror` for routine synchronization. Gitee PR acceptance uses temporary target and feature branches, preserving the PR record and removing only those branches after verified merging.
@@ -300,3 +300,7 @@ Require complete local checks and all 20 PR/merge/tag jobs, installed core/nativ
 Verify schema success/migration messages against the supported display version, supported v1–v4 files without diagnostic writes, and rejected legacy drafts before locking. Audit current bilingual catalog counts, protocol examples, collector defaults and timer explanations against source; preserve versioned acceptance records. The supplied 21 PNGs retain their original bytes and hashes, and the replaced 18-image gallery retains its provenance.
 
 Require local checks and all 20 PR/merge/tag jobs, fixed-merge inventories and independent rebuild/install, installed core/native/runtime smoke, both editor PTYs and 1.7.2 upgrades. Verify draft/public bytes and SHA256, public wheel and fixed-tag installs before delivery. Python and both Mod manifests share 1.7.3; display v5, configuration protocol v4, runtime preference v2 and runtime protocol v2 remain compatible.
+
+## v1.7.8 native preview backgrounds
+
+Verify the remembered UI-only light/dark background choice independently of Claude themes, accurate terminal ANSI slot rendering, stored-choice recovery and unchanged configuration on cancel. Require all 13 Python/build and ten fixed Mod jobs for PR, merge and tag; retain four-combination default/ANSI captures, isolated installed/upgrade checks, exact-commit distributions, independent rebuilding and draft/public/TestPyPI/PyPI/Gitee digest verification.

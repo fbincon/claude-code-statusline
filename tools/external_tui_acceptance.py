@@ -26,55 +26,11 @@ from claude_statusline.config import display, models
 from claude_statusline.ui import editor, forms, layout
 
 if __package__:
-    from tools.terminal_colors import cell_colors, contrast
+    from tools.terminal_colors import TERMINAL_THEMES, XTERM_PALETTE, cell_colors, contrast
 else:
-    from terminal_colors import cell_colors, contrast
+    from terminal_colors import TERMINAL_THEMES, XTERM_PALETTE, cell_colors, contrast
 
 
-TERMINAL_THEMES = {
-    "dark": ("#dedee7", "#17191e"),
-    "light": ("#17191e", "#ffffff"),
-}
-XTERM_PALETTE = dict(
-    zip(
-        (
-            "black",
-            "red",
-            "green",
-            "brown",
-            "blue",
-            "magenta",
-            "cyan",
-            "white",
-            "brightblack",
-            "brightred",
-            "brightgreen",
-            "brightyellow",
-            "brightblue",
-            "brightmagenta",
-            "brightcyan",
-            "brightwhite",
-        ),
-        (
-            "000000",
-            "800000",
-            "008000",
-            "808000",
-            "000080",
-            "800080",
-            "008080",
-            "c0c0c0",
-            "808080",
-            "ff0000",
-            "00ff00",
-            "ffff00",
-            "0000ff",
-            "ff00ff",
-            "00ffff",
-            "ffffff",
-        ),
-    )
-)
 
 
 def verify_colors(cells, columns, rows, foreground, background):

@@ -1,6 +1,7 @@
 export const SETTING_KEYS = [
   'colors',
   'palette',
+  'preview-background',
   'directory-style',
   'separator-style',
   'padding',

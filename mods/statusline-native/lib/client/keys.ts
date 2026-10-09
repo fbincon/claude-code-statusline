@@ -6,7 +6,7 @@ import { canEdit, validPreferenceValue } from '../preferences.ts';
 import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
 
-export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | null;
+export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -103,7 +103,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   else if (key === '/' && !isSettings) { view.input = {kind:'search',scope,original:e.search[scope],selected:e.selected[scope]}; return null; }
   else if (key === 'left' || key === 'right') {
     if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1); else e.move(scope, key === 'left' ? -1 : 1);
-    return null;
+    return isSettings && e.setting === 'preview-background' ? 'previewBackground' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) e.toggle(scope, selected);
     else if (e.setting === 'preset-apply') { e.pendingTransfer = 'preset'; return 'transfer'; }
@@ -118,7 +118,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
       else if (p && canEdit(p) && (p.row.kind === 'text' || p.row.kind === 'number')) view.input = {kind:'field',key:e.setting,buffer:String(p.value)};
       else adjustSetting(view, 1);
     }
-    return null;
+    return isSettings && e.setting === 'preview-background' ? 'previewBackground' : null;
   } else return null;
   const next = keys[Math.max(0, Math.min(keys.length - 1, index))] || '';
   if (isSettings) e.setting = next; else e.selected[scope] = next;

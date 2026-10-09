@@ -1,6 +1,7 @@
 import { Editor } from './editor/draft.ts';
 import type { Scope, PreviewResult } from './generated-contracts.ts';
 import type { Preference } from './preferences.ts';
+import type { PreviewBackground } from './preview-preferences.ts';
 
 export type InputMode =
   | { kind: 'search'; scope: Scope; original: string; selected: string }
@@ -10,6 +11,7 @@ export type InputMode =
   | null;
 
 export interface View {
+  previewBackground?: PreviewBackground;
   editor: Editor | null;
   input: InputMode;
   preview: PreviewResult | null;

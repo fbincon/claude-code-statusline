@@ -223,13 +223,16 @@ The installed persistent PTY helper checks the new title against Preview's real 
 Run each supported theme in a new ignored report directory:
 
 ```bash
-.venv/bin/python tools/native_mod_acceptance.py --theme light --theme-only \
+.venv/bin/python tools/native_mod_acceptance.py --theme light --terminal-theme light --theme-only \
   --report-dir dist/validation/theme-light
 ```
 
 Repeat for dark, light-daltonized, dark-daltonized, light-ansi, dark-ansi, auto and `custom:statusline-validation-light` on a host that supports them. The custom fixture uses a light base with explicit text/inverse/inactive/accent overrides. Each run captures four pages and an item form at 120×30 and 80×48, checks primary key/description contrast against decoded backgrounds, and verifies unsaved theme edits and separate successful Apply without saving the tool draft. Theme reads prefer current settings over legacy global storage. Run full persistent/advanced acceptance separately for saving and cross-editor readback.
 
 `tools/terminal_colors.py` resolves foreground and background defaults separately before reverse video; both acceptance and capture rendering use it. RGB cells are exact; named ANSI colors use the documented capture palette and do not establish a physical terminal’s custom ANSI definitions. Reconstructed images are terminal evidence, separate from OS screenshots or human acceptance.
+
+
+The native capture runner sets `--terminal-theme light|dark` independently of `--theme`. Run all four light/dark combinations in fresh report directories. Each captures default/ANSI palettes and Colors off, selects the matching UI-only preview background through the keyboard, verifies every preview cell uses that preset, and records terminal foreground/background, the shared xterm ANSI palette and the explicit analysis-fixture source. These fixtures do not change a physical terminal profile. UI tests cover loading/errors, overflow, CJK/combining text and host-container isolation; the live host also checks separate theme Apply and unchanged tool configuration.
 
 ## External terminal color acceptance
 

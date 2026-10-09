@@ -12,6 +12,7 @@ import {
   sample,
   setup,
   keys,
+  selectSetting,
 } from '../fixtures.ts';
 
 const REGION = 'statusline-client';
@@ -45,33 +46,17 @@ test('Client owns only native command, edits three pages and saves a full revisi
   expect(fixture.calls.length).toBe(count);
   await keys(ui, '/', 'g', 'i', 't', 'return', ' ', 'left');
   await keys(ui, '2', '/', 's', 't', 'a', 't', 'u', 's', 'return', 'down', ' ');
-  await keys(
-    ui,
-    '3',
-    ' ',
-    'down',
-    'right',
-    'down',
-    'right',
-    'down',
-    'right',
-    'down',
-    'right',
-  );
-  await keys(ui, 'down', 'return', { key: 'u', ctrl: true }, '2', 'return');
-  await keys(
-    ui,
-    'down',
-    'return',
-    { key: 'u', ctrl: true },
-    'e',
-    'v',
-    'e',
-    'n',
-    't',
-    'return',
-  );
-  await keys(ui, 'down', ' ', 's');
+  await keys(ui, '3', ' ');
+  for (const field of ['palette', 'directory-style', 'separator-style', 'scope-labels']) {
+    await selectSetting(ui, field);
+    await keys(ui, 'right');
+  }
+  await selectSetting(ui, 'padding');
+  await keys(ui, 'return', { key: 'u', ctrl: true }, '2', 'return');
+  await selectSetting(ui, 'refresh_interval');
+  await keys(ui, 'return', { key: 'u', ctrl: true }, 'e', 'v', 'e', 'n', 't', 'return');
+  await selectSetting(ui, 'vim-indicator');
+  await keys(ui, ' ', 's');
   const applied = fixture.calls.find((call) => call.operation === 'apply')!;
   expect(applied.payload.expected_revision).toBe('0'.repeat(64));
   expect(applied.payload.draft.display.items).toContain('git');
@@ -151,6 +136,7 @@ test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric edi
     'down',
     'down',
     'down',
+    'down',
     'return',
     { key: 'u', ctrl: true },
     '9',
@@ -178,6 +164,7 @@ test('invalid numeric input stays visible and cannot save; correcting it accepts
   await keys(
     ui,
     '3',
+    'down',
     'down',
     'down',
     'down',

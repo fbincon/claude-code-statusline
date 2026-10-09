@@ -225,13 +225,15 @@ python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-stat
 每个受支持主题使用独立的忽略目录：
 
 ```bash
-.venv/bin/python tools/native_mod_acceptance.py --theme light --theme-only \
+.venv/bin/python tools/native_mod_acceptance.py --theme light --terminal-theme light --theme-only \
   --report-dir dist/validation/theme-light
 ```
 
 在支持的宿主上依次检查 dark、light-daltonized、dark-daltonized、light-ansi、dark-ansi、auto 和 `custom:statusline-validation-light`。自定义夹具以 light 为基础，明确覆盖正文、反色、辅助色和强调色。每次在 120×30 与 80×48 捕获四页及项目格式表单，按解码后的背景检查快捷键／说明对比度，并验证主题草稿不提前生效、独立 Apply 成功且不保存工具草稿。读取主题时优先采用当前 settings，再兼容旧全局存储。保存与跨编辑器互读另运行完整 persistent／advanced 验收。
 
 `tools/terminal_colors.py` 在处理反色前分别解析默认前景和背景，验收与捕获渲染共用该逻辑。RGB 单元格精确；ANSI 名称使用已记录的捕获调色板，不代表物理终端的自定义 ANSI 颜色。重建图片属于终端证据，与系统截图、真人验收分别记录。
+
+原生捕获脚本将 `--terminal-theme light|dark` 与 `--theme` 独立设置。在新的报告目录中运行四种深浅组合；每次捕获 default／ANSI 和 Colors off，通过键盘选择匹配的预览底色，检查全部预览单元格使用该标准底色，并记录终端默认前景／背景、共享 xterm ANSI 调色板和明确的分析夹具来源。夹具不修改物理终端配置。UI 测试覆盖加载／错误、溢出、中文／组合字符及宿主容器隔离；实际宿主另检查主题单独 Apply 与工具配置保持不变。
 
 ## 外部终端配色验收
 
