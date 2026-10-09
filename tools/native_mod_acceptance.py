@@ -778,6 +778,7 @@ def run_pty(
                         for field in described["editor_fields"]["global"]
                     ]
                     field_keys += [
+                        "ui-language",
                         "preset-select",
                         "preset-apply",
                         "import-file",
