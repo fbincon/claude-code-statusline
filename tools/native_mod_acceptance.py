@@ -613,7 +613,7 @@ def run_pty(
             read_until("Theme:")
             assert current_theme(config) == theme_before
             os.write(master, b"A")
-            read_until("Theme: Applied.")
+            read_until("Theme: dark · Applied.")
             assert current_theme(config) != theme_before
             os.write(master, b"1")
             read_until("Main items")
@@ -926,9 +926,9 @@ def run_pty(
             read_until("Theme: light")
             client_setting("host-showTurnDuration", "Show turn duration")
             os.write(master, b" ")
-            read_until("Show turn duration: false")
+            read_until("Show turn duration: off")
             os.write(master, b"A")
-            read_until("Show turn duration: Applied.")
+            read_until("Show turn duration: off · Applied.")
             assert display_path.read_bytes() == saved_advanced
             os.write(master, b"R")
             read_until("Main items")
@@ -938,14 +938,14 @@ def run_pty(
             client_setting("host-theme", "Theme")
             read_until("Theme: light")
             client_setting("host-showTurnDuration", "Show turn duration")
-            read_until("Show turn duration: false")
+            read_until("Show turn duration: off")
             capture("advanced-host-preferences")
             # Restore through the same API; tool saves must preserve its result.
             os.write(master, b" A")
-            read_until("Show turn duration: Applied.")
+            read_until("Show turn duration: on · Applied.")
             client_setting("host-theme", "Theme")
             os.write(master, b"\x1b[DA")
-            read_until("Theme: Applied.")
+            read_until("Theme: dark · Applied.")
             settings_after_preferences = (config / "settings.json").read_bytes()
             os.write(master, b"Q")
             read_until("❯")
