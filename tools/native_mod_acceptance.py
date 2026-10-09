@@ -159,6 +159,8 @@ def run_pty(
     import pyte
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
+    if language_only:
+        subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set-items", "context-used"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
     description = subprocess.run(
         [env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "ui"],
         input=json.dumps(
@@ -447,6 +449,13 @@ def run_pty(
             )
         os.write(master, text.encode("utf-8") + b"\r")
 
+    def focus_text(label):
+        from claude_statusline.rendering.formatters import display_width
+
+        row = next(i for i, line in enumerate(screen.display) if label in line)
+        column = display_width(screen.display[row].split(label, 1)[0]) + 2
+        os.write(master, f"\x1b[<0;{column + 1};{row + 1}M\x1b[<0;{column + 1};{row + 1}m".encode())
+
     def click_client():
         row = next(
             (i for i, line in enumerate(screen.display) if "Filter:" in line), None
@@ -519,14 +528,17 @@ def run_pty(
             output_index = 6 + next(i for i, f in enumerate(appearance) if f["key"] == "statusline_language")
             os.write(master, b"\x1b[H" + b"\x1b[B" * output_index)
             read_until("状态栏语言")
+            focus_text("状态栏语言")
             os.write(master, b"\x1b[C")
             read_until("上下文")
             output_language = "zh-CN"
             capture("statusline-settings-zh", colors=False)
+            focus_text("状态栏语言")
             os.write(master, b"\x1b[D")
             read_until("Context")
             output_language = "en"
             capture("statusline-settings-en", colors=False)
+            focus_text("状态栏语言")
             os.write(master, b"\x1b[C")
             read_until("上下文")
             output_language = "zh-CN"
@@ -575,6 +587,7 @@ def run_pty(
             capture("language-main-reopened-en", palette="default")
             os.write(master, b"3\x1b[H" + b"\x1b[B" * output_index)
             read_until("Statusline language")
+            focus_text("Statusline language")
             os.write(master, b"\x1b[C")
             read_until("上下文")
             output_language = "zh-CN"

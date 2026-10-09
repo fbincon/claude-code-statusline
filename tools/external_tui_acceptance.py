@@ -105,7 +105,7 @@ def run_case(
         "--no-experimental-slash-tui",
         "--no-live-metrics",
     )
-    cli("config", "set-items", "model-with-effort", "current-dir", "context-used")
+    cli("config", "set-items", *( ("context-used",) if language_only else ("model-with-effort", "current-dir", "context-used") ))
     config_path = config / "claude-statusline.json"
     settings_path = config / "settings.json"
     initial = (config_path.read_bytes(), settings_path.read_bytes())
