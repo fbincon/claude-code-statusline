@@ -211,7 +211,8 @@ def external_case(backend, root, columns, rows, commit, language, terminal_theme
         # curses keypad mode uses application-cursor (SS3) keys, unlike Client.
         for char in b"ABCDHF":
             data=data.replace(b"\x1b["+bytes([char]),b"\x1bO"+bytes([char]))
-        after=len(raw);os.write(master,data);wait(text,after)
+        after=-1 if data==b"\x1bOF" else len(raw)
+        os.write(master,data);wait(text,after)
 
     def open_editor():
         nonlocal process,master,screen,stream,decoder
