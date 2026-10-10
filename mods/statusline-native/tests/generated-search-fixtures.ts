@@ -240,7 +240,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -271,7 +283,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -301,7 +325,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -331,7 +367,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "fast_mode"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -361,7 +410,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "thinking"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -395,7 +457,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -425,7 +499,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -455,7 +541,17 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_system"
+      ],
+      "measurement_scope": "local",
+      "requirements": [],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -485,7 +581,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_git"
+      ],
+      "measurement_scope": "repository",
+      "requirements": [
+        "git_repository"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -515,7 +623,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_git"
+      ],
+      "measurement_scope": "repository",
+      "requirements": [
+        "git_repository"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -548,7 +668,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_git"
+      ],
+      "measurement_scope": "repository",
+      "requirements": [
+        "git_repository"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -581,7 +713,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_git"
+      ],
+      "measurement_scope": "repository",
+      "requirements": [
+        "git_repository",
+        "git_upstream"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -612,7 +757,21 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_git"
+      ],
+      "measurement_scope": "repository",
+      "requirements": [
+        "git_repository",
+        "git_base"
+      ],
+      "setup": [
+        "claude-statusline config set branch-diff-base <ref>",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -643,7 +802,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "repository",
+      "requirements": [
+        "observed_field",
+        "pull_request"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -674,7 +846,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "repository",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -704,7 +888,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "repository",
+      "requirements": [
+        "observed_field",
+        "worktree_session"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -734,7 +931,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main_context",
+      "requirements": [
+        "observed_field",
+        "context_observation"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -765,7 +975,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main_context",
+      "requirements": [
+        "observed_field",
+        "context_observation"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -795,7 +1018,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main_context",
+      "requirements": [
+        "observed_field",
+        "context_observation"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -827,7 +1063,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main_context",
+      "requirements": [
+        "observed_field",
+        "context_observation"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -857,7 +1106,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "valid_window"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -887,7 +1149,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "valid_window"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -917,7 +1192,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "valid_window"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -947,7 +1235,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "valid_window"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -977,7 +1278,21 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "valid_window",
+        "gateway"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1008,7 +1323,21 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "valid_window",
+        "gateway_284"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1038,7 +1367,21 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "valid_window",
+        "gateway_284"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1068,7 +1411,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "transcript",
+        "local_state"
+      ],
+      "measurement_scope": "all_sessions",
+      "requirements": [
+        "usage_records"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1100,7 +1456,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "transcript",
+        "local_state"
+      ],
+      "measurement_scope": "all_sessions",
+      "requirements": [
+        "usage_records"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1132,7 +1501,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "transcript",
+        "local_state"
+      ],
+      "measurement_scope": "all_sessions",
+      "requirements": [
+        "usage_records"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1163,7 +1545,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1195,7 +1589,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1227,7 +1633,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "warm_cache"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1257,7 +1676,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1287,7 +1718,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1318,7 +1761,21 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "lifecycle",
+        "transcript"
+      ],
+      "measurement_scope": "task",
+      "requirements": [
+        "task_observation"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1352,7 +1809,21 @@ export const SEARCH_CATALOG = [
       "stale"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "native_timing"
+      ],
+      "measurement_scope": "task",
+      "requirements": [
+        "native_timing",
+        "complete_waits"
+      ],
+      "setup": [
+        "claude-statusline install --native-timing",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1382,7 +1853,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1413,7 +1896,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1443,7 +1938,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1473,7 +1980,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1503,7 +2022,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1533,7 +2064,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1566,7 +2109,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "session",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1596,7 +2151,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "session",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1626,7 +2193,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "session",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1656,7 +2235,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "session",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1687,7 +2278,19 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "session",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1717,7 +2320,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "agent_mode"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1747,7 +2363,20 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "unknown"
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field",
+        "vim_mode"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1782,7 +2411,22 @@ export const SEARCH_CATALOG = [
       "observed_only"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "lifecycle",
+        "live_metrics"
+      ],
+      "measurement_scope": "task",
+      "requirements": [
+        "live_metrics",
+        "task_observation"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1817,7 +2461,22 @@ export const SEARCH_CATALOG = [
       "observed_only"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "lifecycle",
+        "live_metrics"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "live_metrics",
+        "task_observation"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1852,7 +2511,22 @@ export const SEARCH_CATALOG = [
       "observed_only"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "live_metrics"
+      ],
+      "measurement_scope": "task",
+      "requirements": [
+        "live_metrics",
+        "task_observation",
+        "owned_agents"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1887,7 +2561,22 @@ export const SEARCH_CATALOG = [
       "observed_only"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "live_metrics"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "live_metrics",
+        "task_observation",
+        "checklist_events"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1922,7 +2611,22 @@ export const SEARCH_CATALOG = [
       "observed_only"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "live_metrics"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "live_metrics",
+        "task_observation",
+        "tool_events"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1960,7 +2664,22 @@ export const SEARCH_CATALOG = [
       "request_join_unavailable"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "live_metrics"
+      ],
+      "measurement_scope": "latest_request",
+      "requirements": [
+        "live_metrics",
+        "task_observation",
+        "complete_stream"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -1998,7 +2717,22 @@ export const SEARCH_CATALOG = [
       "request_join_unavailable"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "live_metrics"
+      ],
+      "measurement_scope": "latest_request",
+      "requirements": [
+        "live_metrics",
+        "task_observation",
+        "complete_stream"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -2036,7 +2770,23 @@ export const SEARCH_CATALOG = [
       "request_join_unavailable"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "live_metrics"
+      ],
+      "measurement_scope": "task",
+      "requirements": [
+        "live_metrics",
+        "task_observation",
+        "owned_agents",
+        "request_coverage"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -2074,7 +2824,23 @@ export const SEARCH_CATALOG = [
       "request_join_unavailable"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "live_metrics"
+      ],
+      "measurement_scope": "task",
+      "requirements": [
+        "live_metrics",
+        "task_observation",
+        "owned_agents",
+        "request_coverage"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "main",
@@ -2112,7 +2878,25 @@ export const SEARCH_CATALOG = [
       "request_join_unavailable"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "live_metrics",
+        "telemetry"
+      ],
+      "measurement_scope": "task",
+      "requirements": [
+        "live_metrics",
+        "task_observation",
+        "owned_agents",
+        "request_coverage",
+        "existing_telemetry"
+      ],
+      "setup": [
+        "claude-statusline install --live-metrics",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2146,7 +2930,22 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2178,7 +2977,22 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2209,7 +3023,22 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2240,7 +3069,23 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field",
+        "agent_effort_optional"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2270,7 +3115,22 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2300,7 +3160,23 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field",
+        "configured_effort"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2331,7 +3207,23 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent_context",
+      "requirements": [
+        "subagent_rows",
+        "observed_field",
+        "agent_context"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2362,7 +3254,23 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent_context",
+      "requirements": [
+        "subagent_rows",
+        "observed_field",
+        "agent_context"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2393,7 +3301,23 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent_context",
+      "requirements": [
+        "subagent_rows",
+        "observed_field",
+        "agent_context"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2423,7 +3347,23 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent_context",
+      "requirements": [
+        "subagent_rows",
+        "observed_field",
+        "agent_context"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2455,7 +3395,22 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2486,7 +3441,22 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": true,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2516,7 +3486,23 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent_context",
+      "requirements": [
+        "subagent_rows",
+        "observed_field",
+        "agent_context"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   },
   {
     "scope": "subagent",
@@ -2546,6 +3532,21 @@ export const SEARCH_CATALOG = [
       "condition_not_met"
     ],
     "default_enabled": false,
-    "minimum_version_status": "verified"
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [
+        "subagent_rows",
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline install",
+        "claude-statusline config set subagent-statusline on",
+        "claude-statusline doctor"
+      ]
+    }
   }
 ];

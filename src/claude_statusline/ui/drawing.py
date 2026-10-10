@@ -16,6 +16,7 @@ from claude_statusline.ui import shortcuts
 from claude_statusline.ui.shortcuts import Hint
 from claude_statusline.ui import theme
 from claude_statusline.ui import catalog_view
+from claude_statusline.ui import guidance
 from claude_statusline.i18n import presentation
 from claude_statusline.i18n.translator import present, translate as t
 
@@ -444,6 +445,9 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
 
     is_form = forms.special(state) or state.page == "settings"
     title = (
+        t("guidance.title", state.language)
+        if state.guidance_scroll is not None
+        else
         t("catalog.search.categories", state.language)
         if state.category_selection is not None
         else
@@ -461,7 +465,14 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         else t("ui.drawing.main_items", state.language)
     )
     _draw_panel(screen, panel, title, title_attr)
-    if state.category_selection is not None:
+    if state.guidance_scroll is not None and state.form_item:
+        lines = guidance.lines(*state.form_item, state.language, panel.inner_width)
+        capacity = max(1, panel.inner_height - 1)
+        state.guidance_scroll = min(state.guidance_scroll, max(0, len(lines) - capacity))
+        for row, text in enumerate(lines[state.guidance_scroll:state.guidance_scroll + capacity]):
+            _add_text(screen, panel.inner_y + row, panel.inner_x, text, panel.inner_width)
+        position = f"{state.guidance_scroll + 1}–{min(len(lines), state.guidance_scroll + capacity)}/{len(lines)}"
+    elif state.category_selection is not None:
         position = catalog_view.draw_categories(screen, state, panel)
     elif is_form:
         rows = presentation.rows(state)
@@ -589,7 +600,10 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         preview.inner_x,
     )
 
-    if state.category_selection is not None:
+    if state.guidance_scroll is not None:
+        actions = [Hint("Ctrl+G/Esc", msg("ui.hints.back"))]
+        help_text = [Hint("↑↓", msg("ui.hints.scroll")), Hint("PgUp/PgDn", msg("ui.hints.page")), Hint("Home/End", msg("ui.hints.scroll"))]
+    elif state.category_selection is not None:
         actions = [Hint("Enter", msg("ui.hints.accept")), Hint("Ctrl+G/Esc", msg("ui.hints.cancel"))]
         help_text = [Hint("↑↓", msg("ui.hints.select")), Hint("Home/End", msg("ui.hints.select"))]
     elif state.search_input is not None:

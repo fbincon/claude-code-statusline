@@ -289,7 +289,7 @@ class DrawingTests(unittest.TestCase):
                             if call[3] & curses.A_REVERSE
                             and geometry.content.inner_y < call[0] < geometry.preview.y
                         ]
-                        self.assertEqual(len(selected), 1)
+                        self.assertEqual(len({call[0] for call in selected}), 1)
                         if height >= 20:
                             self.assertIn("┌", screen.text)
                             self.assertIn("│", screen.text)

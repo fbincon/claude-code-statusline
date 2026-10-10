@@ -12,6 +12,15 @@ Minimum versions are verified only where evidence exists. The 2.1.205 subagent m
 
 ## Transport and operations
 
+Catalog entries also expose a `guidance` object containing source-kind codes,
+measurement scope, requirement codes and setup/diagnostic commands. These are
+static definitions from Python, with shared bilingual messages and generated
+TypeScript vocabulary. Inspecting an item's Sources and requirements page does
+not query live data, enable collectors or change its selection. Known minimum
+host versions remain separate from actual observations; unknown minima stay
+unknown. Possible unavailable reasons are explanations, not diagnoses of the
+current session. `config list-items --json` exposes the same additive metadata.
+
 Run `claude-statusline ui --config-dir PATH` (Windows: `claude-statusline.exe`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json

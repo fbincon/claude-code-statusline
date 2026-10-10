@@ -101,6 +101,7 @@ function catalogItem(scope: Scope, id: CatalogItem['id']): CatalogItem {
     unavailable_reasons: ['not_observed'],
     default_enabled: position >= 0,
     minimum_version_status: 'unknown',
+    guidance: {source_kinds: ['official_input'], measurement_scope: scope === 'main' ? 'main' : 'subagent', requirements: ['observed_field'], setup: ['claude-statusline doctor']},
   };
 }
 

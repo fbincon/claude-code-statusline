@@ -54,7 +54,7 @@ def rows(state):
     if state.form_item:
         scope, item = state.form_item
         return _grouped(
-            [
+            [{"key": "item-guidance", "label": "Sources and requirements", "value": "Enter: read guidance", "kind": "action", "group": "Item format"}] + [
                 {
                     **spec,
                     "key": "item:" + spec["key"],
@@ -230,6 +230,10 @@ def adjust(state, direction):
 
 def begin(state):
     row = current(state)
+    if row["key"] == "item-guidance":
+        state.guidance_scroll = 0
+        state.notice = ""
+        return None
     if row["key"] == "preset-apply":
         state.pending_action = "preset"
         return "transfer"
@@ -271,6 +275,7 @@ def replace_draft(state, draft):
     ]
     state.numeric_edit = None
     state.form_item = None
+    state.guidance_scroll = None
     state.form_index = state.form_scroll = state.setting_index = (
         state.settings_scroll
     ) = 0
