@@ -398,6 +398,9 @@ claude-code-statusline/
 │       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
 │       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配
 │       ├── rendering/                       # 状态栏格式、颜色、布局与预览
+│       │   ├── visibility.py                 # 原始观测条件规则
+│       │   ├── appearance.py / colors.py     # 主题角色与终端颜色映射
+│       │   └── powerline.py                  # 可见色块组合与宽度适配
 │       ├── runtime/                         # 会话数据采集、缓存与任务状态
 │       │   ├── live/                        # 独立运行观测协议、归并与存储
 │       │   ├── tasks/                       # 用户任务归属、生命周期与计时状态

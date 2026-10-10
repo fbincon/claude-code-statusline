@@ -743,7 +743,7 @@ claude-statusline config set refresh-interval event
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
 
-当前源码显示配置使用 schema v7；历史 v1/v2/v3/v4/v5 可读取，首次实际配置保存时备份并写为 v6。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前源码显示配置使用 schema v7；历史 v1/v2/v3/v4/v5/v6 可读取，首次实际配置保存时备份并写为 v6。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 

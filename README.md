@@ -410,6 +410,9 @@ claude-code-statusline/
 │       ├── integration/                     # Claude Code setup, install transactions, hooks and diagnostics
 │       ├── platforms/                       # Cross-platform files, processes, clocks and terminals
 │       ├── rendering/                       # Statusline formatting, colors, layout and previews
+│       │   ├── visibility.py                 # Raw-observation visibility rules
+│       │   ├── appearance.py / colors.py     # Theme roles and terminal color mapping
+│       │   └── powerline.py                  # Visible block composition and fitting
 │       ├── runtime/                         # Session data collection, caches and task state
 │       │   ├── live/                        # Independent observation protocol, aggregation and storage
 │       │   ├── tasks/                       # User task ownership, lifecycle and timing state

@@ -6,6 +6,8 @@ Use Settings for the statusline theme and separator; open an item's form with Ct
 
 ## Conditional visibility
 
+Item options do not enable an item. Use its checkbox or `config enable context-used` to select it for rendering.
+
 The default `always` adds no filtering: an item still follows its existing missing-data behavior. Conditions use raw observations before formatting and layout, so rounded percentages, translated labels and compact numbers cannot change a decision. Hidden items leave no separators or empty rows.
 
 | Rule | Supported items | Meaning |
