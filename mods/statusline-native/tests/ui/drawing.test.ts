@@ -71,6 +71,27 @@ test('layout and item forms have contiguous groups and stable field identities',
   }
 });
 
+test('category picker fits both languages and accepts or cancels without changing the draft', () => {
+  for (const language of ['en', 'zh-CN'] as const) for (const [columns, rows] of [[32, 12], [64, 18], [120, 30]]) {
+    const state = view(), e = state.editor!;
+    state.language = language;
+    const before = JSON.stringify(e.draft);
+    handleKey(state, {key:'f', ctrl:true}, columns!, rows!);
+    expect(state.input?.kind).toBe('category');
+    handleKey(state, {key:'end'}, columns!, rows!);
+    render(draw(elements, state, columns!, rows!) as unknown as Node);
+    handleKey(state, {key:'g', ctrl:true}, columns!, rows!);
+    expect(e.category.main).toBe('all');
+    handleKey(state, {key:'f', ctrl:true}, columns!, rows!);
+    handleKey(state, {key:'end'}, columns!, rows!);
+    handleKey(state, {key:'return'}, columns!, rows!);
+    expect(e.category.main).toBe('test');
+    expect(e.modified).toBe(false);
+    expect(JSON.stringify(e.draft)).toBe(before);
+    expect(e.move('main', 1)).toBe(false);
+  }
+});
+
 test('resizing keeps field and input state; h exposes separate host application', () => {
   const state = view(), e = state.editor!;
   handleKey(state, { key: '3' }, 80, 24);

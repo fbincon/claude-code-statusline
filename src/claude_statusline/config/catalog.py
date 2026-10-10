@@ -78,12 +78,17 @@ def _main(item, label, description, group, sources, example, position=None, **kw
 
 def _agent(item, label, description, sources, example, position=None, **kwargs):
     minimum_version = kwargs.pop("minimum_version", "2.1.205")
+    group = (
+        "model" if item in ("model-with-effort", "model", "effort")
+        else "context" if item.startswith("context-") or item == "tokens"
+        else "location" if item == "current-dir" else "task"
+    )
     return ItemDefinition(
         "subagent",
         item,
         label,
         description,
-        "task",
+        group,
         tuple(sources),
         (example,),
         position,
@@ -207,7 +212,7 @@ ITEMS = (
         "branch-diff",
         "Committed branch diff",
         "Files and added/deleted lines from merge-base(base, HEAD) to HEAD; excludes uncommitted edits",
-        "repo",
+        "repository",
         ("git.merge-base", "git.diff.numstat"),
         "Diff 3 files +42/-7",
     ),

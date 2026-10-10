@@ -17,6 +17,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     { key: 'Q', label: 'close (blocked)', short: 'blocked' },
     focus,
   ]];
+  if (view.input?.kind === 'category') return [[{key: 'Enter', label: 'accept'}, {key: 'Ctrl+G', label: 'cancel'}, focus], [{key: '↑↓', label: 'select'}]];
   if (view.input) return [[
     { key: 'Enter', label: 'accept' },
     { key: 'Ctrl+G', label: 'cancel editing', short: 'cancel' },
@@ -37,7 +38,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     contextual.push(
       { key: 'Space', label: 'toggle' },
       { key: '↑↓', label: 'select' },
-      { key: '←→', label: 'order' },
+      ...(e.filtered(e.page === 'main' ? 'main' : 'subagent') ? [] : [{ key: '←→', label: 'order' }]),
       { key: 'Ctrl+E', label: 'format' },
       { key: '/', label: 'search' },
     );

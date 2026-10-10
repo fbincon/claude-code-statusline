@@ -15,6 +15,7 @@ from claude_statusline.ui import layout as ui_layout
 from claude_statusline.ui import shortcuts
 from claude_statusline.ui.shortcuts import Hint
 from claude_statusline.ui import theme
+from claude_statusline.ui import catalog_view
 from claude_statusline.i18n import presentation
 from claude_statusline.i18n.translator import present, translate as t
 
@@ -224,17 +225,9 @@ def _draw_item_rows(screen, state, start_y, height, width, x, scope) -> None:
     scroll = state.subagent_scroll if subagents else state.item_scroll
     selected = state.selected_subagent_item if subagents else state.selected_item
     enabled = state.subagent_enabled if subagents else state.enabled
+    matches = state.matches(scope)
     for row, item in enumerate(visible[scroll : scroll + height]):
-        line = (
-            f"{'›' if item == selected else ' '} [{'x' if item in enabled else ' '}] "
-            + _column(
-                t(f"items.{scope}.{item}.label", state.language), _item_column(width)
-            )
-            + "  "
-            + t(f"items.{scope}.{item}.description", state.language)
-        )
-        attr = theme.SELECTION if item == selected else 0
-        _add_text(screen, start_y + row, x, _column(line, width), width, attr)
+        catalog_view.draw_item(screen, state, scope, item, matches[item], start_y + row, x, width, item == selected, item in enabled)
 
 
 def _draw_settings(
@@ -410,14 +403,19 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         state.language,
     )
     notice = error or (
+        t("catalog.search.choose_category", state.language)
+        if state.category_selection is not None
+        else
         t("ui.drawing.item_format_ctrl_g_back", state.language)
         if state.form_item
         else t("ui.drawing.explicit_rows_priority_width", state.language)
         if state.page == "layout"
         else t("ui.drawing.use_arrows_to_change_values_enter_edits", state.language)
         if state.page == "settings"
-        else t("ui.drawing.type_to_search", state.language)
+        else "Ctrl+F " + t("catalog.categories." + (state.subagent_category if state.page == "subagents" else state.category), state.language)
+        + " · / " + t("ui.drawing.type_to_search", state.language)
         + (state.subagent_search if state.page == "subagents" else state.search)
+        + (" _" if state.search_input is not None else "")
     )
     if not error and state.form_item:
         _draw_shortcuts(
@@ -446,6 +444,9 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
 
     is_form = forms.special(state) or state.page == "settings"
     title = (
+        t("catalog.search.categories", state.language)
+        if state.category_selection is not None
+        else
         t("ui.drawing.item_format_2", state.language)
         + state.form_item[0]
         + ": "
@@ -460,7 +461,9 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         else t("ui.drawing.main_items", state.language)
     )
     _draw_panel(screen, panel, title, title_attr)
-    if is_form:
+    if state.category_selection is not None:
+        position = catalog_view.draw_categories(screen, state, panel)
+    elif is_form:
         rows = presentation.rows(state)
         label_width = min(
             44,
@@ -586,7 +589,13 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         preview.inner_x,
     )
 
-    if state.form_input is not None:
+    if state.category_selection is not None:
+        actions = [Hint("Enter", msg("ui.hints.accept")), Hint("Ctrl+G/Esc", msg("ui.hints.cancel"))]
+        help_text = [Hint("↑↓", msg("ui.hints.select")), Hint("Home/End", msg("ui.hints.select"))]
+    elif state.search_input is not None:
+        actions = [Hint("Enter", msg("ui.hints.accept")), Hint("Ctrl+G/Esc", msg("ui.hints.cancel"))]
+        help_text = [Hint("Ctrl+U", msg("ui.hints.clear")), Hint("Backspace", msg("ui.hints.delete"))]
+    elif state.form_input is not None:
         actions = [
             Hint("Enter", msg("ui.hints.accept")),
             Hint("Ctrl+G/Esc", msg("ui.hints.restore")),
@@ -644,6 +653,8 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
                 Hint("↑↓", msg("ui.hints.select")),
                 Hint("←→", msg("ui.hints.order")),
             ]
+            if state.filtered():
+                help_text = [hint for hint in help_text if hint.key != "←→"]
     _draw_shortcuts(
         screen, layout.actions_y, actions, width, mapper, language=state.language
     )

@@ -29,6 +29,16 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   if (event.ctrl && key.toLowerCase() === 'g') { cancelInput(view); return null; }
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
   const input = view.input;
+  if (input?.kind === 'category') {
+    const categories = e.categories(input.scope);
+    const index = categories.indexOf(input.selected);
+    if (key === 'return') { e.chooseCategory(input.scope, input.selected); view.input = null; }
+    else if (key === 'up' || key === 'left') input.selected = categories[Math.max(0, index - 1)]!;
+    else if (key === 'down' || key === 'right') input.selected = categories[Math.min(categories.length - 1, index + 1)]!;
+    else if (key === 'home' || key === 'pageup') input.selected = categories[0]!;
+    else if (key === 'end' || key === 'pagedown') input.selected = categories.at(-1)!;
+    return null;
+  }
   if (input?.kind === 'field' || input?.kind === 'path') {
     if (event.ctrl && key.toLowerCase() === 'u') input.buffer = '';
     else if (key === 'return') {
@@ -72,6 +82,11 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     if (e.selected[scope]) { e.detail = { scope, id: e.selected[scope] }; e.setting = 'item:label'; }
     return null;
   }
+  if (event.ctrl && key.toLowerCase() === 'f' && !e.detail && (e.page === 'main' || e.page === 'subagents')) {
+    const scope = e.page === 'main' ? 'main' : 'subagent';
+    view.input = {kind: 'category', scope, selected: e.category[scope]};
+    return null;
+  }
   if (event.ctrl || event.meta) return null;
   if (shortcut === 'q') return 'close';
   if (shortcut === 's') return 'save';
@@ -104,6 +119,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   else if (key === 'end') index = keys.length - 1;
   else if (key === '/' && !isSettings) { view.input = {kind:'search',scope,original:e.search[scope],selected:e.selected[scope]}; return null; }
   else if (key === 'left' || key === 'right') {
+    if (!isSettings && e.filtered(scope)) { setMessage(view, 'message', localizedText('catalog.search.order_disabled')); return null; }
     if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1); else e.move(scope, key === 'left' ? -1 : 1);
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {

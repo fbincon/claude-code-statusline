@@ -5,6 +5,7 @@ from __future__ import annotations
 import curses
 from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import forms
+from claude_statusline.ui import search as item_search
 from claude_statusline.config.display import DisplayConfigError
 from claude_statusline.ui import models as ui_models
 
@@ -22,6 +23,43 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
     if key == "\x03":
         return ui_models.INTERRUPT
     if key == curses.KEY_RESIZE:
+        state.ensure_visible(viewport_height)
+        return None
+
+    if state.category_selection is not None:
+        scope = "subagent" if state.page == "subagents" else "main"
+        categories = item_search.categories(scope)
+        index = categories.index(state.category_selection)
+        if key in ("\x1b", "\x07"):
+            state.category_selection = None
+        elif _is_enter(key):
+            state.choose_category(state.category_selection)
+        elif key in (curses.KEY_UP, curses.KEY_LEFT):
+            state.category_selection = categories[max(0, index - 1)]
+        elif key in (curses.KEY_DOWN, curses.KEY_RIGHT):
+            state.category_selection = categories[min(len(categories) - 1, index + 1)]
+        elif key in (curses.KEY_HOME, curses.KEY_PPAGE):
+            state.category_selection = categories[0]
+        elif key in (curses.KEY_END, curses.KEY_NPAGE):
+            state.category_selection = categories[-1]
+        return None
+
+    if state.search_input is not None:
+        if key in ("\x1b", "\x07"):
+            query, selected = state.search_input
+            if state.page == "subagents":
+                state.subagent_search, state.selected_subagent_item = query, selected
+            else:
+                state.search, state.selected_item = query, selected
+            state.search_input = None
+        elif _is_enter(key):
+            state.search_input = None
+        elif key == "\x15":
+            state.clear_search()
+        elif _is_backspace(key):
+            state.backspace_search()
+        elif isinstance(key, str) and key.isprintable():
+            state.append_search(key)
         state.ensure_visible(viewport_height)
         return None
 
@@ -47,6 +85,12 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         return None
     if key == "\x07" and state.form_item:
         state.form_item = None
+        return None
+    if key == "\x06" and state.page in ("items", "subagents") and not state.form_item:
+        state.category_selection = state.subagent_category if state.page == "subagents" else state.category
+        return None
+    if key == "/" and state.page in ("items", "subagents") and not state.form_item:
+        state.search_input = (state.subagent_search, state.selected_subagent_item) if state.page == "subagents" else (state.search, state.selected_item)
         return None
     if key == "\x05" and state.page in ("items", "subagents"):
         scope = "subagent" if state.page == "subagents" else "main"

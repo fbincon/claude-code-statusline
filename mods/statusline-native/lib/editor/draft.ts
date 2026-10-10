@@ -6,7 +6,8 @@ import type {
   Scope,
 } from '../generated-contracts.ts';
 import { NUMERIC_FIELDS, numericValue, numericDiagnostic } from './numeric.ts';
-import { t } from '../i18n/index.ts';
+import { bestMatch, fields, normalize } from './search.ts';
+import type { Match } from './search.ts';
 import type { LocalizedText } from '../i18n/index.ts';
 import type { NumericField } from './numeric.ts';
 export type { NumericField } from './numeric.ts';
@@ -37,6 +38,7 @@ export class Editor {
   selected: Record<Scope, string>;
   order: Record<Scope, string[]>;
   search: Record<Scope, string> = { main: '', subagent: '' };
+  category: Record<Scope, string> = { main: 'all', subagent: 'all' };
   buffers: Record<NumericField, string>;
   fieldErrors: Partial<Record<NumericField, string>> = {};
   fieldErrorMessages: Partial<Record<NumericField, LocalizedText>> = {};
@@ -97,25 +99,41 @@ export class Editor {
   }
 
   visible(scope: Scope): CatalogItem[] {
-    const needle = this.search[scope].toLocaleLowerCase();
-    const catalog = new Map(
-      this.catalog(scope).map((item) => [item.id as string, item]),
-    );
-    return this.order[scope].flatMap((id) => {
+    return this.matches(scope).map(result => result.item);
+  }
+
+  matches(scope: Scope): {item: CatalogItem; match: Match}[] {
+    const catalog = new Map(this.catalog(scope).map(item => [item.id as string, item]));
+    const options = (scope === 'main' ? this.draft.display.item_options : this.draft.display.subagents.item_options) as Record<string, {label: string | null} | undefined>;
+    return this.order[scope].flatMap(id => {
       const item = catalog.get(id);
-      return item &&
-        `${item.id} ${item.label} ${item.description} ${t('items.' + scope + '.' + item.id + '.label', 'zh-CN')} ${t('items.' + scope + '.' + item.id + '.description', 'zh-CN')} ${((scope === 'main' ? this.draft.display.item_options : this.draft.display.subagents.item_options) as Record<string, {label: string | null} | undefined>)[id]?.label ?? ''}`
-          .toLocaleLowerCase()
-          .includes(needle)
-        ? [item]
-        : [];
-    });
+      if (!item || (this.category[scope] !== 'all' && item.group !== this.category[scope])) return [];
+      const match = normalize(this.search[scope]).characters.length
+        ? bestMatch(fields(item, options[id]?.label), this.search[scope])
+        : {rank: 5, positions: [], text: item.id, field: 'id'};
+      return match ? [{item, match}] : [];
+    }).sort((a, b) => a.match.rank - b.match.rank);
+  }
+
+  categories(scope: Scope): string[] {
+    return ['all', ...new Set(this.catalog(scope).map(item => item.group))];
+  }
+
+  filtered(scope: Scope): boolean {
+    return this.category[scope] !== 'all' || normalize(this.search[scope]).characters.length > 0;
+  }
+
+  chooseCategory(scope: Scope, category: string): void {
+    if (!this.categories(scope).includes(category)) return;
+    this.category[scope] = category;
+    this.filter(scope, this.search[scope]);
   }
 
   filter(scope: Scope, value: string): void {
     this.search[scope] = value;
-    if (!this.visible(scope).some((item) => item.id === this.selected[scope])) {
-      this.selected[scope] = this.visible(scope)[0]?.id || '';
+    const matches = this.matches(scope), selected = matches.find(result => result.item.id === this.selected[scope]);
+    if (!selected || selected.match.rank > matches[0]!.match.rank) {
+      this.selected[scope] = matches[0]?.item.id || '';
     }
   }
 
@@ -135,6 +153,7 @@ export class Editor {
   }
 
   move(scope: Scope, delta: -1 | 1): boolean {
+    if (this.filtered(scope)) return false;
     const visible = this.visible(scope).map((item) => item.id as string);
     const id = this.selected[scope];
     const index = visible.indexOf(id);

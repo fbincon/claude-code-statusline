@@ -7,6 +7,7 @@ import type { MessageSlot } from './i18n/messages.ts';
 
 export type InputMode =
   | { kind: 'search'; scope: Scope; original: string; selected: string }
+  | { kind: 'category'; scope: Scope; selected: string }
   | { kind: 'field'; key: string; buffer: string }
   | { kind: 'path'; action: 'import' | 'export'; buffer: string }
   | { kind: 'numeric'; field: 'padding' | 'refresh_interval' }
@@ -45,6 +46,7 @@ type EditorData = Pick<
   | 'selected'
   | 'order'
   | 'search'
+  | 'category'
   | 'buffers'
   | 'fieldErrors'
   | 'fieldErrorMessages'
@@ -91,6 +93,7 @@ export function clientProps(
               selected: e.selected,
               order: e.order,
               search: e.search,
+              category: e.category,
               buffers: e.buffers,
               fieldErrors: e.fieldErrors,
               fieldErrorMessages: e.fieldErrorMessages,
