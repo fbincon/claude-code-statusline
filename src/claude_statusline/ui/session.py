@@ -28,7 +28,7 @@ from claude_statusline.config.display import DisplayConfigError
 from claude_statusline.ui.import_review import ReviewState
 
 
-def _screen_loop(
+def _screen_loop_impl(
     screen,
     state: ui_editor.EditorState,
     deadline_at: float | None = None,
@@ -138,6 +138,13 @@ def _screen_loop(
             continue
         if action is not None:
             return action
+
+
+def _screen_loop(screen, state, deadline_at=None, guard=None):
+    from .terminal import screen_adapter
+
+    with screen_adapter(screen) as wrapped:
+        return _screen_loop_impl(wrapped, state, deadline_at, guard)
 
 
 class _SignalExit(BaseException):

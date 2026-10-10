@@ -13,15 +13,22 @@ def foreground_style(sequence: str) -> tuple[bool, dict | None]:
 
 
 def row_spans(row: str) -> list[dict]:
+    from . import styles
+
     result = []
     for unit in layout._styled_units(row):
-        bold, foreground = foreground_style(unit.style)
-        if (
-            result
-            and result[-1]["bold"] == bold
-            and result[-1]["foreground"] == foreground
+        state = styles.parse(unit.style)
+        value = {
+            "text": unit.text,
+            "bold": state.bold,
+            "foreground": styles.wire_color(state.foreground),
+            "background": styles.wire_color(state.background),
+        }
+        if result and all(
+            result[-1][key] == value[key]
+            for key in ("bold", "foreground", "background")
         ):
             result[-1]["text"] += unit.text
         else:
-            result.append({"text": unit.text, "bold": bold, "foreground": foreground})
+            result.append(value)
     return result

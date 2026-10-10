@@ -142,7 +142,7 @@ def dispatch(request: object, config_dir: Path, executable: Path):
     ):
         raise RequestError(
             "unsupported_protocol",
-            msg('errors.protocol.unsupported_protocol'),
+            msg('errors.protocol.unsupported_protocol', version=contracts.PROTOCOL_VERSION),
         )
     operation = request["operation"]
     if not isinstance(operation, str) or operation not in contracts.OPERATIONS:

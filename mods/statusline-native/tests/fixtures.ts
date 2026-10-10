@@ -162,13 +162,13 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 7, result }));
+  return output(JSON.stringify({ protocol_version: 8, result }));
 }
 
 export function sample(text: string) {
   return {
     sample: true,
-    main: [[{ text, bold: false, foreground: null }]],
+    main: [[{ text, bold: false, background: null, foreground: null }]],
     subagents: [],
   };
 }
@@ -308,7 +308,7 @@ export function setup(on: On) {
                 {
                   text: items.join(' · ') + ' width=' + request.payload.width,
                   bold: request.payload.draft.display.use_colors,
-                  foreground: null,
+                  background: null, foreground: null,
                 },
               ],
             ]

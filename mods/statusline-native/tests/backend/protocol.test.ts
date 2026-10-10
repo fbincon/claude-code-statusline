@@ -32,14 +32,14 @@ test('backend errors and protocol mismatches are explicit', () => {
     '',
     'partial {',
     JSON.stringify({ protocol_version: 6, result: sample('old protocol') }),
-    JSON.stringify({ protocol_version: 7, result: {} }),
+    JSON.stringify({ protocol_version: 8, result: {} }),
     JSON.stringify({
-      protocol_version: 7,
+      protocol_version: 8,
       result: {},
       error: { code: 'bad', message: 'ambiguous' },
     }),
     JSON.stringify({
-      protocol_version: 7,
+      protocol_version: 8,
       result: { sample: false, main: [], subagents: [] },
     }),
   ]) {
@@ -51,7 +51,7 @@ test('backend errors and protocol mismatches are explicit', () => {
     parseResponse('read', {
       exitCode: 2,
       stdout: JSON.stringify({
-        protocol_version: 7,
+        protocol_version: 8,
         error: { code: 'configuration_conflict', message: 'Reopen the editor' },
       }),
       stderr: '',
@@ -129,7 +129,7 @@ test('failed processes, timeouts, truncation and structured errors remain distin
         'apply',
         output(
           JSON.stringify({
-            protocol_version: 7,
+            protocol_version: 8,
             error: { code, message: code },
           }),
           2,
@@ -144,9 +144,9 @@ test('failed processes, timeouts, truncation and structured errors remain distin
 
 test('unexpected envelopes and invalid drafts cannot enter the frontend', () => {
   for (const response of [
-    { protocol_version: 7, result: sample('safe'), extra: 1 },
-    { protocol_version: 7 },
-    { protocol_version: 7, error: { message: 'missing code' } },
+    { protocol_version: 8, result: sample('safe'), extra: 1 },
+    { protocol_version: 8 },
+    { protocol_version: 8, error: { message: 'missing code' } },
   ]) {
     expect(() =>
       parseResponse('preview', output(JSON.stringify(response))),
@@ -161,14 +161,14 @@ test('unexpected envelopes and invalid drafts cannot enter the frontend', () => 
 
 test('preview transport refuses control sequences and malformed colors', () => {
   for (const span of [
-    { text: '\u001b[31munsafe', bold: false, foreground: null },
-    { text: 'safe', bold: true, foreground: { kind: 'rgb', value: '#xxx' } },
+    { text: '\u001b[31munsafe', bold: false, background: null, foreground: null },
+    { text: 'safe', bold: true, background: null, foreground: { kind: 'rgb', value: '#xxx' } },
   ]) {
     expect(() =>
       parseResponse('preview', {
         exitCode: 0,
         stdout: JSON.stringify({
-          protocol_version: 7,
+          protocol_version: 8,
           result: { sample: true, main: [[span]], subagents: [] },
         }),
         stderr: '',

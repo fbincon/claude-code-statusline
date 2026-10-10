@@ -7,7 +7,7 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display
 
 
-PROTOCOL_VERSION = 7
+PROTOCOL_VERSION = 8
 OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset",
               "read_ui_preferences", "set_ui_language", "review_import")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
@@ -182,6 +182,7 @@ class Span(TypedDict):
     text: str
     bold: bool
     foreground: Foreground | None
+    background: Foreground | None
 
 
 class PreviewResult(TypedDict):

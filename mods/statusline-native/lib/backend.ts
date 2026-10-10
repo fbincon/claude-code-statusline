@@ -194,19 +194,12 @@ export function isDraft(value: unknown): value is Draft {
 export function isSpan(value: unknown): value is Span {
   if (!object(value) || !text(value.text) || typeof value.bold !== 'boolean')
     return false;
-  const color = value.foreground;
-  return (
+  return [value.foreground, value.background].every(color =>
     color === null ||
     (object(color) &&
-      ((color.kind === 'rgb' &&
-        typeof color.value === 'string' &&
-        /^#[0-9a-f]{6}$/i.test(color.value)) ||
-        (color.kind === 'ansi' &&
-          typeof color.value === 'number' &&
-          Number.isInteger(color.value) &&
-          color.value >= 0 &&
-          color.value <= 15)))
-  );
+      ((color.kind === 'rgb' && typeof color.value === 'string' && /^#[0-9a-f]{6}$/i.test(color.value)) ||
+       (color.kind === 'ansi' && typeof color.value === 'number' && Number.isInteger(color.value) &&
+        color.value >= 0 && color.value <= 255))));
 }
 
 function isCapabilities(value: unknown): value is Capabilities {
@@ -472,9 +465,10 @@ export function parseResponse<O extends Operation>(
   return result as unknown as ResultFor<O>;
 }
 
-export function spanColor(span: Span): string | undefined {
-  if (span.foreground?.kind === 'rgb') return String(span.foreground.value);
-  if (span.foreground?.kind === 'ansi')
-    return `ansi256(${Number(span.foreground.value)})`;
+export function spanColor(span: Span, channel: 'foreground' | 'background' = 'foreground'): string | undefined {
+  const color = span[channel];
+  if (color?.kind === 'rgb') return String(color.value);
+  if (color?.kind === 'ansi')
+    return `ansi256(${Number(color.value)})`;
   return undefined;
 }

@@ -12,6 +12,7 @@ from claude_statusline.config import catalog
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 from claude_statusline.ui import models as ui_models
+from claude_statusline.ui import text_input
 from claude_statusline.ui import forms
 from claude_statusline.ui import layout as ui_layout
 from claude_statusline.ui import search as item_search
@@ -215,10 +216,10 @@ class EditorState:
     def backspace_search(self) -> None:
         if self.page == "subagents":
             if self.subagent_search:
-                self.subagent_search = self.subagent_search[:-1]
+                self.subagent_search = text_input.backspace(self.subagent_search)
                 self._search_changed("subagent")
         elif self.search:
-            self.search = self.search[:-1]
+            self.search = text_input.backspace(self.search)
             self._search_changed("main")
 
     def clear_search(self) -> None:

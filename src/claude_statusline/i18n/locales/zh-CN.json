@@ -297,7 +297,7 @@
   "errors.protocol.duplicate_json_key": "重复的 JSON 键：{field}",
   "errors.protocol.unexpected_backend_failure_see_stderr_diagnostics": "后端出现意外错误；请查看标准错误诊断",
   "errors.protocol.preset_must_be_a_string": "preset 必须为字符串",
-  "errors.protocol.unsupported_protocol": "仅支持 protocol_version 6；请重新安装匹配的前后端资源",
+  "errors.protocol.unsupported_protocol": "仅支持 protocol_version {version}；请重新安装匹配的前后端资源",
   "cli.description": "适用于 Linux、Windows 和 macOS 的 Claude Code 状态栏。",
   "cli.configure_requires_terminal": "configure 的标准输入和输出都必须为终端",
   "cli.native_state": "原生编辑器：{state}",

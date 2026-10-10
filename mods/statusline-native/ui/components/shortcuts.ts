@@ -1,5 +1,6 @@
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
 import { clip, displayWidth } from '../layout.ts';
+import { clipSpans } from '../styled-text.ts';
 import { styles } from '../theme.ts';
 
 export interface Shortcut {
@@ -66,10 +67,10 @@ export function shortcutSpans(hints: readonly Shortcut[], width: number, prefix 
 export function spanLine(ui: ClientElements, spans: readonly TextSpan[], width: number, style: TextProps = {}): RenderElement {
   let remaining = Math.max(0, width);
   const children: RenderElement[] = [];
-  for (const span of spans) {
+  for (const span of clipSpans(spans, width)) {
     if (remaining <= 0) break;
     if (!span.text) continue;
-    const text = clip(span.text, remaining);
+    const text = span.text;
     if (!text) continue;
     children.push(ui.Text({ ...span.style, children: [text] }));
     remaining -= displayWidth(text);

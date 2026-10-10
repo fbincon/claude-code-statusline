@@ -57,7 +57,7 @@ jobs:
           tmux -V
           python -c "import curses, platform; assert curses.wrapper; print(platform.platform()); print(platform.python_version()); print(platform.machine())"
       - name: Install from package metadata
-        run: python -m pip install . ruff
+        run: python -m pip install . ruff "wcwidth==0.9.1" pyte
       - name: Verify Windows curses backend
         if: runner.os == 'Windows'
         run: python -c "import curses, importlib.metadata as m; assert m.version('windows-curses') >= '2.4.2'; assert curses.wrapper"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from claude_statusline.ui import text_input
 import curses
 from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import forms
@@ -98,7 +99,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
             state.clear_search()
         elif _is_backspace(key):
             state.backspace_search()
-        elif isinstance(key, str) and key.isprintable():
+        elif isinstance(key, str) and text_input.printable(key):
             state.append_search(key)
         state.ensure_visible(viewport_height)
         return None
@@ -113,10 +114,10 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
             elif _is_enter(key):
                 return forms.accept(state)
             elif _is_backspace(key):
-                state.form_input["buffer"] = state.form_input["buffer"][:-1]
+                state.form_input["buffer"] = text_input.backspace(state.form_input["buffer"])
             elif (
                 isinstance(key, str)
-                and key.isprintable()
+                and text_input.printable(key)
                 and len(state.form_input["buffer"]) < 4096
             ):
                 state.form_input["buffer"] += key
@@ -214,7 +215,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
     elif (
         state.page in ("items", "subagents")
         and isinstance(key, str)
-        and key.isprintable()
+        and text_input.printable(key)
     ):
         state.append_search(key)
     elif state.page == "settings" and key == "e":
