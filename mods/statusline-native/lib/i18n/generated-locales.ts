@@ -1286,7 +1286,24 @@ export const LOCALES = {
     "review.fields.padding": "Padding",
     "review.fields.refresh_interval": "Refresh interval",
     "review.fields.hide_vim_mode_indicator": "Hide built-in Vim indicator",
-    "review.fields.subagents_enabled": "Custom subagent rows"
+    "review.fields.subagents_enabled": "Custom subagent rows",
+    "errors.appearance.color": "Color must be inherit, default, ansi:0–255, or #RRGGBB.",
+    "errors.appearance.visibility": "Unsupported visibility rule for {scope} item {item}.",
+    "fields.global.theme.label": "Statusline theme",
+    "fields.global.powerline_glyph.label": "Powerline separator",
+    "fields.item.foreground.label": "Foreground (inherit/default/ansi:N/#RRGGBB)",
+    "fields.item.background.label": "Background (inherit/default/ansi:N/#RRGGBB)",
+    "fields.item.visibility.label": "Visibility rule",
+    "fields.item.visibility_threshold.label": "Minimum used (%)",
+    "groups.item-colors": "Item colors",
+    "groups.conditional-visibility": "Conditional visibility",
+    "values.terminal": "Terminal ANSI",
+    "values.powerline": "Powerline",
+    "values.git-dirty": "Hide confirmed clean Git",
+    "values.nonzero": "Hide confirmed zero / empty",
+    "values.used-at-least": "Used at least threshold",
+    "config.show.theme": "Theme: {value}",
+    "config.show.powerline_glyph": "Powerline separator: {value}"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -2574,7 +2591,24 @@ export const LOCALES = {
     "review.fields.padding": "边距",
     "review.fields.refresh_interval": "刷新间隔",
     "review.fields.hide_vim_mode_indicator": "隐藏内置 Vim 指示",
-    "review.fields.subagents_enabled": "自定义子代理行"
+    "review.fields.subagents_enabled": "自定义子代理行",
+    "errors.appearance.color": "颜色必须为 inherit、default、ansi:0–255 或 #RRGGBB。",
+    "errors.appearance.visibility": "{scope} 显示项 {item} 不支持此条件规则。",
+    "fields.global.theme.label": "状态栏主题",
+    "fields.global.powerline_glyph.label": "Powerline 分隔字符",
+    "fields.item.foreground.label": "前景色（inherit/default/ansi:N/#RRGGBB）",
+    "fields.item.background.label": "背景色（inherit/default/ansi:N/#RRGGBB）",
+    "fields.item.visibility.label": "条件显示规则",
+    "fields.item.visibility_threshold.label": "最低已用比例（%）",
+    "groups.item-colors": "逐项颜色",
+    "groups.conditional-visibility": "条件显示",
+    "values.terminal": "终端 ANSI",
+    "values.powerline": "Powerline",
+    "values.git-dirty": "确认 Git 干净时隐藏",
+    "values.nonzero": "确认零值或空列表时隐藏",
+    "values.used-at-least": "已用比例达到阈值时显示",
+    "config.show.theme": "主题：{value}",
+    "config.show.powerline_glyph": "Powerline 分隔字符：{value}"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

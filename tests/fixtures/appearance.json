@@ -1,0 +1,283 @@
+[
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": null,
+      "background": null
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "default",
+      "background": "default"
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "ansi:0",
+      "background": "ansi:0"
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "ansi:255",
+      "background": "ansi:255"
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "ansi:001",
+      "background": "ansi:001"
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "#Ab01EF",
+      "background": "#Ab01EF"
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "inherit"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "ansi:256"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "ansi:-1"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "ansi:1.1"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "#aaa"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "#zzzzzz"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": 0
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": true
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": {}
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "\u001b[31m"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility": "used-at-least",
+      "visibility_threshold": 0
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility": "used-at-least",
+      "visibility_threshold": 70
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility": "used-at-least",
+      "visibility_threshold": 100
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility_threshold": -1
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility_threshold": 101
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility_threshold": true
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility_threshold": 70.5
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility_threshold": null
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility_threshold": "70"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "git",
+    "patch": {
+      "visibility": "git-dirty"
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "task-progress",
+    "patch": {
+      "visibility": "nonzero"
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "active-agents",
+    "patch": {
+      "visibility": "nonzero"
+    },
+    "valid": true
+  },
+  {
+    "scope": "subagent",
+    "item": "context-used",
+    "patch": {
+      "visibility": "used-at-least"
+    },
+    "valid": true
+  },
+  {
+    "scope": "main",
+    "item": "model",
+    "patch": {
+      "visibility": "nonzero"
+    },
+    "valid": false
+  },
+  {
+    "scope": "subagent",
+    "item": "task",
+    "patch": {
+      "visibility": "nonzero"
+    },
+    "valid": false
+  },
+  {
+    "scope": "subagent",
+    "item": "context-used",
+    "patch": {
+      "visibility": "git-dirty"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility": []
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "visibility": "shell"
+    },
+    "valid": false
+  }
+]

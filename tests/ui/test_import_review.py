@@ -21,7 +21,7 @@ class ReviewUiTests(unittest.TestCase):
         candidate = deepcopy(current)
         candidate["host"]["padding"] = 7
         candidate["display"]["statusline_language"] = "zh-CN"
-        candidate["display"]["item_options"]["model"] = {"label":"长标签中文 " * 30,"icon":None,"priority":50,"max_width":None,"formatting":{}}
+        candidate["display"]["item_options"]["model"] = {"label":"长标签中文 " * 30,"icon":None,"priority":50,"max_width":None,"formatting":{},"foreground":None,"background":None,"visibility":"always","visibility_threshold":70}
         state.import_review = ReviewState.from_result({"draft":candidate,"changes":differences(current,candidate)})
         return state
 

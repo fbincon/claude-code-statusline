@@ -40,6 +40,8 @@
 
 ## 功能概览
 
+[条件显示、逐项颜色、主题与 Powerline](APPEARANCE.zh-CN.md)说明共享设置、原始观测规则和迁移恢复。
+
 主栏支持 60 个条目，子 Agent 行支持 14 个条目，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、四种可编辑预设及可移植 JSON 文件。
 
 主栏显示主会话数据，各子 Agent 行显示自己的任务数据；任务计时包含子 Agent 工作和主 Agent 收尾。[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)说明数据来源、作用域、缺失观测和指标边界。

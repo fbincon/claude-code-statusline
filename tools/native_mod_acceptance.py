@@ -153,6 +153,7 @@ def run_pty(
     terminal_theme: str = "dark",
     language_only: bool = False,
     discovery: bool = False,
+    appearance: bool = False,
     rendering_only: bool = False,
 ) -> dict:
     import fcntl
@@ -165,12 +166,15 @@ def run_pty(
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
     initial_theme = current_theme(config)
-    if discovery:
+    if discovery or appearance:
         from editor_discovery_acceptance import request, backend_call
         backend=Path(env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"])
         current=request(backend,env,project,"read")
         request(backend,env,project,"apply",{"draft":{"display":display.DEFAULT_CONFIG.to_dict(),"host":models.DEFAULT_HOST_CONFIG.to_dict()},"expected_revision":current["revision"]})
         backend_call(backend,env,project,"config","language","set","en")
+        if appearance:
+            backend_call(backend,env,project,"config","set-items","model","context-used")
+            backend_call(backend,env,project,"config","set","scope-labels","off")
     if language_only:
         subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set-items", "context-used"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
         subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set", "statusline-language", "en"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
@@ -222,7 +226,7 @@ def run_pty(
     ]
     tmux_directory = (
         tempfile.TemporaryDirectory(prefix="statusline-client-tmux-")
-        if persistent and not discovery and not rendering_only
+        if persistent and not discovery and not appearance and not rendering_only
         else None
     )
     tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
@@ -318,6 +322,9 @@ def run_pty(
         if mode == "rendering":
             from native_preview_acceptance import verify_capture
             verify_capture(cells, terminal_theme, short=name.endswith("short"), clipping=name.endswith("clip"))
+        elif mode == "appearance":
+            from editor_appearance_acceptance import verify_capture
+            verify_capture(cells, native=True)
         elif mode != "editor":
             from editor_discovery_acceptance import verify_native_capture
             verify_native_capture(cells,language,mode,terminal_theme)
@@ -506,10 +513,12 @@ def run_pty(
             read_until("Configure Status Line")
         read_until("sample data")
         click_client()
-        if discovery:
+        if discovery or appearance:
             from editor_discovery_acceptance import exercise, request, backend_call
             from claude_statusline.i18n import translate as t
             backend=Path(env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"])
+            if appearance:
+                from editor_appearance_acceptance import exercise
             base=request(backend,env,project,"read")["draft"]
             cases=[]
             def send(data,text):
@@ -527,7 +536,7 @@ def run_pty(
                     backend_call(backend,env,project,"config","language","set",language)
                     reopen_pane()
                 cases.append(exercise(native=True,language=language,backend=backend,env=env,root=project,config=config,
-                                      send=send,capture=capture,reopen=reopen_pane,close=close_pane,description=described,case_id=str(columns)))
+                                      send=send,capture=capture,reopen=reopen_pane,close=close_pane,description=described,case_id=str(columns),terminal_theme=terminal_theme))
             return {"columns":columns,"rows":screen.lines,"discovery":cases,"persistent_plugin":persistent,"transport":"direct PTY","manual_visual_acceptance":False}
         if language_only or rendering_only:
             # Select the explicit capture surface as in the full acceptance path.
@@ -1198,6 +1207,7 @@ def run_pty(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report-dir", type=Path, required=True)
+    parser.add_argument("--appearance", action="store_true", help="Verify appearance controls, import review and saved colors")
     parser.add_argument("--discovery", action="store_true", help="Verify bilingual discovery and import review in the installed native editor")
     parser.add_argument("--rendering-only", action="store_true", help="Send synthetic style/grapheme spans through the installed native preview in a direct PTY")
     parser.add_argument(
@@ -1256,10 +1266,10 @@ def main() -> int:
         parser.error(
             "--language-only requires --persistent to check both editor entries"
         )
-    if args.discovery and not args.persistent:
+    if (args.discovery or args.appearance) and not args.persistent:
         parser.error("--discovery requires --persistent")
     if args.rendering_only and (
-        not args.persistent or args.discovery or args.language_only or args.advanced or args.theme_only
+        not args.persistent or args.discovery or args.appearance or args.language_only or args.advanced or args.theme_only
     ):
         parser.error("--rendering-only requires --persistent and no other scenario selector")
     args.claude = str(Path(shutil.which(args.claude) or args.claude).resolve())
@@ -1340,6 +1350,7 @@ def main() -> int:
                     terminal_theme=args.terminal_theme,
                     language_only=args.language_only,
                     discovery=args.discovery,
+                    appearance=args.appearance,
                     rendering_only=args.rendering_only,
                 )
             )

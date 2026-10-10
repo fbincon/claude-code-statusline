@@ -6,6 +6,7 @@ from claude_statusline.i18n import message as msg
 
 from dataclasses import asdict, dataclass, field, replace
 import unicodedata
+from claude_statusline.config import appearance
 
 
 FORMAT_CHOICES = {
@@ -107,6 +108,10 @@ class ItemOptions:
     priority: int = 50
     max_width: int | None = None
     formatting: dict[str, str] = field(default_factory=dict)
+    foreground: str | None = None
+    background: str | None = None
+    visibility: str = "always"
+    visibility_threshold: int = 70
 
     def to_dict(self):
         return asdict(self)
@@ -120,13 +125,28 @@ class ItemOptions:
             integer(data["priority"], 0, 100, "priority"),
             integer(data["max_width"], 2, 10000, "max_width", nullable=True),
             validate_overrides(data["formatting"]),
+            appearance.color(data["foreground"]),
+            appearance.color(data["background"]),
+            data["visibility"],
+            integer(data["visibility_threshold"], 0, 100, "visibility_threshold"),
         )
 
 
-def item_options(data, identifiers):
+LEGACY_ITEM_KEYS = {"label", "icon", "priority", "max_width", "formatting"}
+
+
+def item_options(data, identifiers, scope="main", *, legacy=False):
     if not isinstance(data, dict) or set(data) - set(identifiers):
         raise ValueError(msg('errors.formatting.item_options_must_map_known_scoped_item'))
-    return {key: ItemOptions.parse(value) for key, value in data.items()}
+    result = {}
+    for key, value in data.items():
+        if legacy:
+            exact(value, LEGACY_ITEM_KEYS, "item options")
+            value = {**ItemOptions().to_dict(), **value}
+        option = ItemOptions.parse(value)
+        appearance.validate_visibility(scope, key, option.visibility)
+        result[key] = option
+    return result
 
 
 @dataclass(frozen=True)
@@ -177,3 +197,12 @@ class Layout:
             else:
                 rows.append(tuple(remaining))
         return Layout("explicit", tuple(rows))
+
+
+def legacy_fitting(options):
+    """Appearance-only entries do not activate legacy subagent priority fitting."""
+    return any(
+        option.label is not None or option.icon is not None or option.formatting
+        or option.priority != 50 or option.max_width is not None
+        for option in options.values()
+    )

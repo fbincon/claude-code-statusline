@@ -105,6 +105,8 @@ def configuration_options() -> contracts.ConfigurationOptions:
     return {
         "colors": {"choices": [True, False]},
         "palette": {"choices": list(display.PALETTES)},
+        "theme": {"choices": list(display.appearance.THEMES)},
+        "powerline-glyph": {"choices": list(display.appearance.POWERLINE_GLYPHS)},
         "directory-style": {"choices": list(display.DIRECTORY_STYLES)},
         "separator-style": {"choices": list(display.SEPARATOR_STYLES)},
         "scope-labels": {"choices": list(display.SCOPE_LABELS)},

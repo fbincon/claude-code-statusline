@@ -40,6 +40,8 @@ Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude
 
 ## Feature overview
 
+[Conditional visibility, item colors, themes and Powerline](APPEARANCE.md) explains the shared controls, raw-observation rules and migration recovery.
+
 Choose from 60 main-line items and 14 subagent items. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, four editable presets, and portable JSON files.
 
 The main line reports main/session data; each subagent row reports its own task. Task timing includes subagent work and main-agent wrap-up. [Display definitions](DISPLAY_ITEMS.md) explain sources, scope, missing observations, and metric limits.

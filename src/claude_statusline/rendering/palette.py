@@ -88,7 +88,12 @@ NO_COLOR_PALETTE = _Palette(*("",) * 10)
 def _palette_for(config):
     if not config.use_colors:
         return NO_COLOR_PALETTE
-    return ANSI_PALETTE if config.palette == "ansi" else DEFAULT_PALETTE
+    palette = ANSI_PALETTE if config.palette == "ansi" else DEFAULT_PALETTE
+    if config.theme == "classic":
+        return palette
+    from .appearance import themed_palette
+
+    return themed_palette(palette, config)
 
 
 def _styled_separator(symbol, palette):

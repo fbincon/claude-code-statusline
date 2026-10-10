@@ -1,18 +1,21 @@
-"""Protocol v7 wire types; TypeScript is generated from these Python types."""
+"""Protocol v9 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
 from typing import Literal, TypedDict
 
-from claude_statusline.config import catalog, display
+from claude_statusline.config import catalog, display, appearance
 
 
-PROTOCOL_VERSION = 8
+PROTOCOL_VERSION = 9
 OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset",
               "read_ui_preferences", "set_ui_language", "review_import")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
 Palette = Literal.__getitem__(display.PALETTES)
+Theme = Literal.__getitem__(appearance.THEMES)
+PowerlineGlyph = Literal.__getitem__(appearance.POWERLINE_GLYPHS)
+VisibilityRule = Literal.__getitem__(appearance.VISIBILITY_RULES)
 DirectoryStyle = Literal.__getitem__(display.DIRECTORY_STYLES)
 SeparatorStyle = Literal.__getitem__(display.SEPARATOR_STYLES)
 ScopeLabels = Literal.__getitem__(display.SCOPE_LABELS)
@@ -82,6 +85,8 @@ ConfigurationOptions = TypedDict(
     {
         "colors": ChoiceOptions,
         "palette": ChoiceOptions,
+        "theme": ChoiceOptions,
+        "powerline-glyph": ChoiceOptions,
         "directory-style": ChoiceOptions,
         "separator-style": ChoiceOptions,
         "scope-labels": ChoiceOptions,
@@ -125,6 +130,10 @@ class ItemOptionsDraft(TypedDict):
     priority: int
     max_width: int | None
     formatting: dict[str, str]
+    foreground: str | None
+    background: str | None
+    visibility: VisibilityRule
+    visibility_threshold: int
 
 
 class LayoutDraft(TypedDict):
@@ -147,11 +156,13 @@ class MetricsDraft(TypedDict):
 
 
 class DisplayDraft(TypedDict):
-    schema_version: Literal[6]
+    schema_version: Literal[7]
     statusline_language: StatuslineLanguage
     items: list[MainItemId]
     use_colors: bool
     palette: Palette
+    theme: Theme
+    powerline_glyph: PowerlineGlyph
     directory_style: DirectoryStyle
     separator_style: SeparatorStyle
     scope_labels: ScopeLabels
@@ -279,6 +290,9 @@ ALIASES = {
     "MainItemId": MainItemId,
     "SubagentItemId": SubagentItemId,
     "Palette": Palette,
+    "Theme": Theme,
+    "PowerlineGlyph": PowerlineGlyph,
+    "VisibilityRule": VisibilityRule,
     "DirectoryStyle": DirectoryStyle,
     "SeparatorStyle": SeparatorStyle,
     "ScopeLabels": ScopeLabels,

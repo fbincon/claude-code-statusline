@@ -60,9 +60,9 @@ def rows(state):
                     "key": "item:" + spec["key"],
                     "value": editor_fields.value(config, spec["key"], scope, item),
                 }
-                for spec in editor_fields.ITEM
+                for spec in editor_fields.item_fields(scope, item)
             ],
-            ("Item format", "Item fitting"),
+            ("Item format", "Conditional visibility", "Item colors", "Item fitting"),
         )
     if state.page == "layout":
         result = [

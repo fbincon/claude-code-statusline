@@ -36,7 +36,7 @@ test('real bilingual catalog categories preserve actual order and dirty state', 
   for (const query of ['mwe', '推理', '仓库', 'Repository']) {
     editor.filter('main', query); expect(editor.visible('main').length > 0).toBe(true);
   }
-  editor.draft.display.item_options.model = {label:'私有🦊引擎',icon:null,priority:0,max_width:null,formatting:{}};
+  editor.draft.display.item_options.model = {label:'私有🦊引擎',icon:null,priority:0,max_width:null,formatting:{}, foreground: null, background: null, visibility: "always", visibility_threshold: 70};
   editor.filter('main', '私有🦊');
   expect(editor.visible('main').map(item => item.id)).toEqual(['model']);
   expect(editor.matches('main')[0]!.match.positions).toEqual([0, 1, 2]);

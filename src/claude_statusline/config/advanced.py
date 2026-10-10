@@ -24,8 +24,8 @@ def edit_item(config, scope, item, option, value):
             data["formatting"].pop(key, None)
         else:
             data["formatting"][key] = value
-    elif key in ("label", "icon", "priority", "max_width"):
-        if key in ("priority", "max_width"):
+    elif key in ("label", "icon", "priority", "max_width", "foreground", "background", "visibility", "visibility_threshold"):
+        if key in ("priority", "max_width", "visibility_threshold"):
             try:
                 value = None if value in (None, "none") else int(value)
             except (ValueError, TypeError) as exc:

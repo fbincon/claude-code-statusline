@@ -78,7 +78,7 @@ class ImportReviewTests(unittest.TestCase):
         self.file.write_text(json.dumps({"schema_version":1,"items":["model"],"use_colors":True,"palette":"default","directory_style":"full","separator_style":"classic"}))
         result = self.review(draft)
         self.assertEqual(result["draft"]["host"],draft["host"])
-        self.assertEqual(result["draft"]["display"]["schema_version"],6)
+        self.assertEqual(result["draft"]["display"]["schema_version"],7)
         self.assertFalse(any(c["section"] == "host" for c in result["changes"]))
 
     def test_invalid_reviews_preserve_draft_and_never_create_configuration(self):

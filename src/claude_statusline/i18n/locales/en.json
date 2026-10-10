@@ -1284,5 +1284,22 @@
   "review.fields.padding": "Padding",
   "review.fields.refresh_interval": "Refresh interval",
   "review.fields.hide_vim_mode_indicator": "Hide built-in Vim indicator",
-  "review.fields.subagents_enabled": "Custom subagent rows"
+  "review.fields.subagents_enabled": "Custom subagent rows",
+  "errors.appearance.color": "Color must be inherit, default, ansi:0–255, or #RRGGBB.",
+  "errors.appearance.visibility": "Unsupported visibility rule for {scope} item {item}.",
+  "fields.global.theme.label": "Statusline theme",
+  "fields.global.powerline_glyph.label": "Powerline separator",
+  "fields.item.foreground.label": "Foreground (inherit/default/ansi:N/#RRGGBB)",
+  "fields.item.background.label": "Background (inherit/default/ansi:N/#RRGGBB)",
+  "fields.item.visibility.label": "Visibility rule",
+  "fields.item.visibility_threshold.label": "Minimum used (%)",
+  "groups.item-colors": "Item colors",
+  "groups.conditional-visibility": "Conditional visibility",
+  "values.terminal": "Terminal ANSI",
+  "values.powerline": "Powerline",
+  "values.git-dirty": "Hide confirmed clean Git",
+  "values.nonzero": "Hide confirmed zero / empty",
+  "values.used-at-least": "Used at least threshold",
+  "config.show.theme": "Theme: {value}",
+  "config.show.powerline_glyph": "Powerline separator: {value}"
 }

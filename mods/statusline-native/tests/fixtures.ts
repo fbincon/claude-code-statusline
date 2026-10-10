@@ -24,7 +24,9 @@ import { copyDraft } from '../lib/editor/draft.ts';
 
 export const BASE: Draft = {
   display: {
-    schema_version: 6,
+    schema_version: 7,
+    theme: "classic",
+    powerline_glyph: "ascii",
     statusline_language: 'en',
     metrics: { branch_diff_base_ref: null },
     items: ['model-with-effort'],
@@ -116,10 +118,12 @@ export function description(): DescribeResult {
     options: {
       colors: { choices: [true, false] },
       palette: { choices: ['default', 'ansi'] },
+      theme: { choices: ['classic', 'dark', 'light', 'terminal'] },
+      'powerline-glyph': { choices: ['ascii', 'powerline'] },
       'directory-style': {
         choices: ['full', 'home', 'project-relative', 'basename'],
       },
-      'separator-style': { choices: ['classic', 'compact'] },
+      'separator-style': { choices: ['classic', 'compact', 'powerline'] },
       'scope-labels': { choices: ['off', 'when-subagents', 'always'] },
       'statusline-language': { choices: ['en', 'zh-CN'] },
       'subagent-statusline': { choices: [true, false] },
@@ -162,7 +166,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 8, result }));
+  return output(JSON.stringify({ protocol_version: 9, result }));
 }
 
 export function sample(text: string) {
