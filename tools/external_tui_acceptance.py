@@ -81,7 +81,10 @@ def run_case(
     import fcntl
     import pty
     import termios
-    import pyte
+    if __package__:
+        from . import terminal_capture as pyte
+    else:
+        import terminal_capture as pyte
 
     config = root / f"config-{columns}x{rows} 中文"
     env = dict(os.environ, CLAUDE_CONFIG_DIR=str(config), TERM="xterm-256color")

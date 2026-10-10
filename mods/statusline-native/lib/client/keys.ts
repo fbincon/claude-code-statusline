@@ -1,3 +1,4 @@
+import { graphemes } from '../unicode.ts';
 import { setMessage, failureMessage } from '../i18n/messages.ts';
 import { text as localizedText } from '../i18n/index.ts';
 import type { ClientKeyEvent } from 'claude-code';
@@ -90,7 +91,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
         p.result = '';
       }
       view.input = null;
-    } else if (key === 'backspace' || key === 'delete') input.buffer = [...input.buffer].slice(0, -1).join('');
+    } else if (key === 'backspace' || key === 'delete') input.buffer = graphemes(input.buffer).slice(0, -1).join('');
     else if (!event.ctrl && !event.meta && [...key].length === 1 && [...input.buffer].length < (input.kind === 'path' ? 4096 : 256)) input.buffer += key;
     return null;
   }
@@ -101,8 +102,8 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     } else if (key === 'return') {
       if (input.kind === 'search' || e.acceptNumeric(input.field)) view.input = null;
     } else if (key === 'backspace' || key === 'delete') {
-      if (input.kind === 'search') e.filter(input.scope, [...e.search[input.scope]].slice(0, -1).join(''));
-      else e.setBuffer(input.field, [...e.buffers[input.field]].slice(0, -1).join(''));
+      if (input.kind === 'search') e.filter(input.scope, graphemes(e.search[input.scope]).slice(0, -1).join(''));
+      else e.setBuffer(input.field, graphemes(e.buffers[input.field]).slice(0, -1).join(''));
     } else if (!event.ctrl && !event.meta && [...key].length === 1) {
       if (input.kind === 'search') { if ([...e.search[input.scope]].length < 256) e.filter(input.scope, e.search[input.scope] + key); }
       else if (e.buffers[input.field].length < 32) e.setBuffer(input.field, e.buffers[input.field] + key);

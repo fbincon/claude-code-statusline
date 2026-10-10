@@ -25,3 +25,17 @@ Partition the visible row into graphemes before assigning styles. When SGR occur
 Untrusted payload controls remain sanitized. ZWJ, variation selectors and emoji tag characters are preserved as part of Unicode text; they do not enable ANSI injection. Fixed sample previews continue to avoid live collectors, Git execution and persistent writes.
 
 See [testing](testing.md) for representative benchmarks and [shared contracts](contracts.md) for the editor protocol.
+
+## Editor drawing and capture
+
+The native preview applies explicit span backgrounds inside its existing light/dark surface. Default backgrounds restore that surface; padding does not inherit the final span's color. Curses maps both channels to its 0/8/16/256-color capabilities and bounds color-pair allocation. Missing defaults or exhausted pairs fall back to readable terminal-default text.
+
+Curses continues to own input, geometry and restoration. On VT-capable outputs, a blank backing frame is refreshed before complete, positioned text runs are painted; each batch restores the cursor and SGR state. This avoids curses' code-point-only emoji cells. Without VT, unsupported multi-code-point clusters are replaced as a whole with a width-preserving placeholder; saved text is unchanged. Resizing and shorter redraws clear previous content. Text editing and highlighted rows also preserve grapheme boundaries.
+
+The PTY tools use pyte for controls and pinned wcwidth for independent grapheme decoding, never the production cell kernel. Raw streams accompany decoded cells. Captures verify terminal output, not installed fonts or human acceptance. Run on Linux/macOS with `pyte` and `wcwidth==0.9.1` in the runner environment:
+
+```bash
+python tools/rendering_acceptance.py --python /absolute/installed-venv/bin/python --commit VERIFIED_SHA --report-dir dist/validation/new-rendering-pty
+```
+
+This checks color and monochrome PTYs at 32/64/120 columns, clusters across SGR boundaries, indexed/RGB backgrounds, selective resets, shorter redraws and resizing. The `--source` option is only for development probes and is recorded separately from installed-package acceptance.

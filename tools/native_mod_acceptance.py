@@ -157,7 +157,10 @@ def run_pty(
     import fcntl
     import pty
     import termios
-    import pyte
+    if __package__:
+        from . import terminal_capture as pyte
+    else:
+        import terminal_capture as pyte
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
     initial_theme = current_theme(config)

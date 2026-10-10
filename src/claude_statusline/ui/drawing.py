@@ -6,6 +6,7 @@ from claude_statusline.i18n import message as msg
 
 import curses
 from claude_statusline.rendering import layout as rendering_layout
+from claude_statusline.rendering import text as terminal_text
 from claude_statusline.rendering import preview as rendering_preview
 from claude_statusline.rendering import subagents as rendering_subagents
 from claude_statusline.ui import editor as ui_editor
@@ -59,6 +60,24 @@ def _add_text(screen, y: int, x: int, text: str, width: int, attr: int = 0) -> N
         screen.addstr(y, x, clipped, attr)
     except curses.error:
         pass
+
+
+def _add_spans(screen, y, x, spans, width):
+    """Keep search/style boundaries from splitting a grapheme in the row."""
+    visible = "".join(value for value, _attr in spans)
+    attributes = [attr for value, attr in spans for _ in value]
+    position = 0
+    for cluster in terminal_text.graphemes(visible):
+        size = terminal_text.cluster_width(cluster)
+        if size > width:
+            break
+        base = next(
+            (i for i, ch in enumerate(cluster) if terminal_text.char_width(ch)), 0
+        )
+        _add_text(screen, y, x, cluster, width, attributes[position + base])
+        x += size
+        width -= size
+        position += len(cluster)
 
 
 def _draw_ansi(
@@ -228,7 +247,18 @@ def _draw_item_rows(screen, state, start_y, height, width, x, scope) -> None:
     enabled = state.subagent_enabled if subagents else state.enabled
     matches = state.matches(scope)
     for row, item in enumerate(visible[scroll : scroll + height]):
-        catalog_view.draw_item(screen, state, scope, item, matches[item], start_y + row, x, width, item == selected, item in enabled)
+        catalog_view.draw_item(
+            screen,
+            state,
+            scope,
+            item,
+            matches[item],
+            start_y + row,
+            x,
+            width,
+            item == selected,
+            item in enabled,
+        )
 
 
 def _draw_settings(
@@ -308,13 +338,15 @@ def _draw_preview(
         _add_text(screen, start_y + offset, x, " " * width, width, mapper.preview_attr)
     config = state.import_review.display if state.import_review else state.display
     host = state.import_review.host if state.import_review else state.host
-    subagent = state.import_review.preview_scope == "subagent" if state.import_review else state.page == "subagents"
+    subagent = (
+        state.import_review.preview_scope == "subagent"
+        if state.import_review
+        else state.page == "subagents"
+    )
     if subagent:
         rows = rendering_subagents.preview_rows(config, width)
     else:
-        rows = rendering_preview.render_preview_rows(
-            config, width, host.padding
-        )
+        rows = rendering_preview.render_preview_rows(config, width, host.padding)
     if not rows:
         _add_text(
             screen,
@@ -409,18 +441,24 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     notice = error or (
         t("review.intro", state.language)
         if state.import_review is not None
-        else
-        t("catalog.search.choose_category", state.language)
+        else t("catalog.search.choose_category", state.language)
         if state.category_selection is not None
-        else
-        t("ui.drawing.item_format_ctrl_g_back", state.language)
+        else t("ui.drawing.item_format_ctrl_g_back", state.language)
         if state.form_item
         else t("ui.drawing.explicit_rows_priority_width", state.language)
         if state.page == "layout"
         else t("ui.drawing.use_arrows_to_change_values_enter_edits", state.language)
         if state.page == "settings"
-        else "Ctrl+F " + t("catalog.categories." + (state.subagent_category if state.page == "subagents" else state.category), state.language)
-        + " · / " + t("ui.drawing.type_to_search", state.language)
+        else "Ctrl+F "
+        + t(
+            "catalog.categories."
+            + (
+                state.subagent_category if state.page == "subagents" else state.category
+            ),
+            state.language,
+        )
+        + " · / "
+        + t("ui.drawing.type_to_search", state.language)
         + (state.subagent_search if state.page == "subagents" else state.search)
         + (" _" if state.search_input is not None else "")
     )
@@ -453,14 +491,11 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     title = (
         t("review.title", state.language)
         if state.import_review is not None
-        else
-        t("guidance.title", state.language)
+        else t("guidance.title", state.language)
         if state.guidance_scroll is not None
-        else
-        t("catalog.search.categories", state.language)
+        else t("catalog.search.categories", state.language)
         if state.category_selection is not None
-        else
-        t("ui.drawing.item_format_2", state.language)
+        else t("ui.drawing.item_format_2", state.language)
         + state.form_item[0]
         + ": "
         + state.form_item[1]
@@ -476,17 +511,36 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     _draw_panel(screen, panel, title, title_attr)
     if state.import_review is not None:
         review = state.import_review
-        rows, total = review.window(state.language, panel.inner_width, max(1, panel.inner_height - 1))
+        rows, total = review.window(
+            state.language, panel.inner_width, max(1, panel.inner_height - 1)
+        )
         for row, value in enumerate(rows):
-            attr = theme.SELECTION if value["heading"] and value["section"] == review.selected else 0
-            _add_text(screen, panel.inner_y + row, panel.inner_x, value["text"], panel.inner_width, attr)
+            attr = (
+                theme.SELECTION
+                if value["heading"] and value["section"] == review.selected
+                else 0
+            )
+            _add_text(
+                screen,
+                panel.inner_y + row,
+                panel.inner_x,
+                value["text"],
+                panel.inner_width,
+                attr,
+            )
         position = f"{review.scroll + 1}–{review.scroll + len(rows)}/{total}"
     elif state.guidance_scroll is not None and state.form_item:
         lines = guidance.lines(*state.form_item, state.language, panel.inner_width)
         capacity = max(1, panel.inner_height - 1)
-        state.guidance_scroll = min(state.guidance_scroll, max(0, len(lines) - capacity))
-        for row, text in enumerate(lines[state.guidance_scroll:state.guidance_scroll + capacity]):
-            _add_text(screen, panel.inner_y + row, panel.inner_x, text, panel.inner_width)
+        state.guidance_scroll = min(
+            state.guidance_scroll, max(0, len(lines) - capacity)
+        )
+        for row, text in enumerate(
+            lines[state.guidance_scroll : state.guidance_scroll + capacity]
+        ):
+            _add_text(
+                screen, panel.inner_y + row, panel.inner_x, text, panel.inner_width
+            )
         position = f"{state.guidance_scroll + 1}–{min(len(lines), state.guidance_scroll + capacity)}/{len(lines)}"
     elif state.category_selection is not None:
         position = catalog_view.draw_categories(screen, state, panel)
@@ -583,7 +637,11 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             value2=len(visible),
             value3=len(enabled),
         )
-    summary_hints = [Hint("↑↓", msg("ui.hints.select"))] if is_form and state.import_review is None and state.guidance_scroll is None else []
+    summary_hints = (
+        [Hint("↑↓", msg("ui.hints.select"))]
+        if is_form and state.import_review is None and state.guidance_scroll is None
+        else []
+    )
     _draw_shortcuts(
         screen,
         panel.inner_y + panel.inner_height - 1,
@@ -596,7 +654,9 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     )
 
     preview = layout.preview
-    preview_config = state.import_review.display if state.import_review else state.display
+    preview_config = (
+        state.import_review.display if state.import_review else state.display
+    )
     preview_palette = (
         t("ui.drawing.palette", state.language) + preview_config.palette
         if preview_config.use_colors
@@ -605,7 +665,18 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     _draw_panel(
         screen,
         preview,
-        (t("review.preview", state.language, scope=t("review.sections." + state.import_review.preview_scope, state.language)) if state.import_review else t("ui.drawing.preview_sample_data", state.language) + preview_palette),
+        (
+            t(
+                "review.preview",
+                state.language,
+                scope=t(
+                    "review.sections." + state.import_review.preview_scope,
+                    state.language,
+                ),
+            )
+            if state.import_review
+            else t("ui.drawing.preview_sample_data", state.language) + preview_palette
+        ),
         title_attr,
     )
     _draw_preview(
@@ -619,17 +690,41 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     )
 
     if state.import_review is not None:
-        actions = [Hint("A", msg("ui.hints.accept_draft")), Hint("Esc/Ctrl+G", msg("ui.hints.cancel_review"))]
-        help_text = [Hint("Enter", msg("ui.hints.details")), Hint("↑↓", msg("ui.hints.section")), Hint("PgUp/PgDn", msg("ui.hints.scroll")), Hint("Tab", msg("ui.hints.preview"))]
+        actions = [
+            Hint("A", msg("ui.hints.accept_draft")),
+            Hint("Esc/Ctrl+G", msg("ui.hints.cancel_review")),
+        ]
+        help_text = [
+            Hint("Enter", msg("ui.hints.details")),
+            Hint("↑↓", msg("ui.hints.section")),
+            Hint("PgUp/PgDn", msg("ui.hints.scroll")),
+            Hint("Tab", msg("ui.hints.preview")),
+        ]
     elif state.guidance_scroll is not None:
         actions = [Hint("Ctrl+G/Esc", msg("ui.hints.back"))]
-        help_text = [Hint("↑↓", msg("ui.hints.scroll")), Hint("PgUp/PgDn", msg("ui.hints.page")), Hint("Home/End", msg("ui.hints.scroll"))]
+        help_text = [
+            Hint("↑↓", msg("ui.hints.scroll")),
+            Hint("PgUp/PgDn", msg("ui.hints.page")),
+            Hint("Home/End", msg("ui.hints.scroll")),
+        ]
     elif state.category_selection is not None:
-        actions = [Hint("Enter", msg("ui.hints.accept")), Hint("Ctrl+G/Esc", msg("ui.hints.cancel"))]
-        help_text = [Hint("↑↓", msg("ui.hints.select")), Hint("Home/End", msg("ui.hints.select"))]
+        actions = [
+            Hint("Enter", msg("ui.hints.accept")),
+            Hint("Ctrl+G/Esc", msg("ui.hints.cancel")),
+        ]
+        help_text = [
+            Hint("↑↓", msg("ui.hints.select")),
+            Hint("Home/End", msg("ui.hints.select")),
+        ]
     elif state.search_input is not None:
-        actions = [Hint("Enter", msg("ui.hints.accept")), Hint("Ctrl+G/Esc", msg("ui.hints.cancel"))]
-        help_text = [Hint("Ctrl+U", msg("ui.hints.clear")), Hint("Backspace", msg("ui.hints.delete"))]
+        actions = [
+            Hint("Enter", msg("ui.hints.accept")),
+            Hint("Ctrl+G/Esc", msg("ui.hints.cancel")),
+        ]
+        help_text = [
+            Hint("Ctrl+U", msg("ui.hints.clear")),
+            Hint("Backspace", msg("ui.hints.delete")),
+        ]
     elif state.form_input is not None:
         actions = [
             Hint("Enter", msg("ui.hints.accept")),

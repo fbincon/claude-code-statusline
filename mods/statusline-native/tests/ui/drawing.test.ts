@@ -122,7 +122,7 @@ test('import review preserves a candidate preview and bounded expanded rows at e
     const state=view(), e=state.editor!; state.language=language; e.page='settings';
     const candidate=readResult().draft;candidate.host.padding=7;
     e.review=createReview({draft:candidate,changes:[{section:'host',kind:'change',scope:null,item_id:null,path:['host','padding'],before:0,after:7,label:{key:'review.fields.padding',params:{},fallback:'Padding'}}]});
-    state.preview={sample:true,main:[[{text:'candidate main',bold:false,foreground:null}]],subagents:[[{text:'candidate agent',bold:false,foreground:null}]]};
+    state.preview={sample:true,main:[[{text:'candidate main',bold:false,background: null, foreground:null}]],subagents:[[{text:'candidate agent',bold:false,background: null, foreground:null}]]};
     render(draw(elements,state,columns!,rows!) as unknown as Node);
     handleKey(state,{key:'return'},columns!,rows!);
     handleKey(state,{key:'end'},columns!,rows!);

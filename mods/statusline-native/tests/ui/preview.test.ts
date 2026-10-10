@@ -17,8 +17,8 @@ function text(node: Node): string {
 test('preview padding, CJK clipping and combining characters never acquire chrome colors', () => {
   for (const background of ['dark', 'light'] as const) for (const width of [1, 2, 5, 32, 64, 80, 120]) {
     const row = previewLine(elements, [
-      { text: '中文 e\u0301', bold: true, foreground: { kind: 'rgb', value: '#8ed3d3' } },
-      { text: ' tail', bold: false, foreground: null },
+      { text: '中文 e\u0301', bold: true, background: null, foreground: { kind: 'rgb', value: '#8ed3d3' } },
+      { text: ' tail', bold: false, background: null, foreground: null },
     ], width, background) as unknown as Node;
     expect(displayWidth(text(row))).toBe(width);
     expect(row.props.backgroundColor).toBe(background === 'light' ? '#ffffff' : '#17191e');
@@ -50,10 +50,34 @@ test('preview captions follow the palette draft and colors off without changing 
 
 test('all ANSI sample slots remain indexed terminal colors instead of named RGB mappings', () => {
   for (let value = 0; value < 16; value++) {
-    const row = previewLine(elements, [{ text: 'slot', bold: true, foreground: { kind: 'ansi', value } }], 10, 'light') as unknown as Node;
+    const row = previewLine(elements, [{ text: 'slot', bold: true, background: null, foreground: { kind: 'ansi', value } }], 10, 'light') as unknown as Node;
     const span = nodes(row).find((node) => node.props.color)!;
     expect(span.props.color).toBe(`ansi256(${value})`);
     expect(span.props.bold).toBe(true);
     expect(row.props.backgroundColor).toBe('#ffffff');
   }
+});
+
+test('foreground and background reset independently without painting padding', () => {
+  const row = previewLine(elements, [
+    {text:'A',bold:true,foreground:{kind:'ansi',value:200},background:{kind:'rgb',value:'#123456'}},
+    {text:'B',bold:false,foreground:null,background:null},
+  ], 5, 'light') as unknown as Node;
+  const colored = nodes(row).find(n => n.props.color === 'ansi256(200)')!;
+  expect(colored.props.backgroundColor).toBe('#123456');
+  expect(row.props.backgroundColor).toBe('#ffffff');
+  expect(nodes(row).filter(n => n !== row && n !== colored).every(n => n.props.backgroundColor === undefined)).toBe(true);
+});
+
+test('a cluster crossing spans is clipped and styled as one unit', () => {
+  const spans = [
+    {text:'👩',bold:false,foreground:{kind:'ansi' as const,value:1},background:null},
+    {text:'🏽‍💻X',bold:true,foreground:{kind:'ansi' as const,value:2},background:null},
+  ];
+  const full = previewLine(elements, spans, 3) as unknown as Node;
+  expect(text(full)).toBe('👩🏽‍💻X');
+  const emoji = nodes(full).find(n => n.children.includes('👩🏽‍💻'))!;
+  expect(emoji.props.bold).toBe(false);
+  expect(emoji.props.color).toBe('ansi256(1)');
+  expect(text(previewLine(elements, spans, 2) as unknown as Node)).toBe('… ');
 });

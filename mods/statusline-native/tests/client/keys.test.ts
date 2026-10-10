@@ -63,7 +63,7 @@ test('mixed-case shortcut characters stay literal in every editing mode', () => 
     expect(actual).toBe('sFqHaRvK 中文 é');
     if (kind === 'field' || kind === 'path') {
       handleKey(state, { key: 'backspace' }, 32, 12);
-      expect((state.input as { buffer: string }).buffer).toBe('sFqHaRvK 中文 e');
+      expect((state.input as { buffer: string }).buffer).toBe('sFqHaRvK 中文 ');
     }
     handleKey(state, { key: 'U', ctrl: true }, 32, 12);
     const cleared = state.input;

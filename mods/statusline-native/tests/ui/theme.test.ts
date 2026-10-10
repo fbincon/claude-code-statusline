@@ -44,9 +44,9 @@ test('all pages explicitly pair selected colors and keep chrome on host tokens',
 test('sample rows use the chosen preview background independently of themed ancestors', () => {
   const state = view();
   const spans = [
-    { text: 'rgb 中文', bold: true, foreground: { kind: 'rgb', value: '#8ed3d3' } },
-    { text: ' ansi', bold: false, foreground: { kind: 'ansi', value: 3 } },
-    { text: ' plain', bold: false, foreground: null },
+    { text: 'rgb 中文', bold: true, background: null, foreground: { kind: 'rgb', value: '#8ed3d3' } },
+    { text: ' ansi', bold: false, background: null, foreground: { kind: 'ansi', value: 3 } },
+    { text: ' plain', bold: false, background: null, foreground: null },
   ];
   state.preview = { sample: true, main: [spans, spans, spans, spans], subagents: [] } as View['preview'];
   const before = JSON.stringify(state.preview);
