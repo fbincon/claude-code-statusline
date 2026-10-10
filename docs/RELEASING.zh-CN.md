@@ -2,13 +2,13 @@
 
 [English](RELEASING.md) | **简体中文**
 
-本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.11.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.11.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
+本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v1.12.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.12.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。
 
 ## 原生编辑器发布门槛
 
-正式 v1.11.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
+正式 v1.12.0 默认请求启用外部 TUI 和会话内 Client，保留各自明确关闭偏好。外部入口需 2.1.258+，Client 需 2.1.287+；低版本或未知宿主分别暂挂，升级后重装恢复。四种安装组合与偏好规则见[使用指南](USER_GUIDE.zh-CN.md#编辑器安装组合与兼容性)。
 
 维护者于 2026-10-04 确认 v1.3.0a2 的 Linux、Windows、macOS 真人验收通过。正式版沿用已验收 Client 交互；架构、终端和宿主详细版本未随确认提供，记为未知。自动 CI、PTY 与真人验收分别记录，见[验收状态](development/native.zh-CN.md#v130-验收状态)。
 
@@ -44,7 +44,7 @@ git switch main
 git pull --ff-only origin main
 test -z "$(git status --porcelain)"
 
-RELEASE_TAG=v1.11.0
+RELEASE_TAG=v1.12.0
 RELEASE_COMMIT="$(git rev-parse HEAD)"
 RELEASE_ROOT="$(pwd)/dist/release-$RELEASE_TAG"
 RELEASE_SOURCE="$RELEASE_ROOT/source"
@@ -64,8 +64,8 @@ python3 -m venv "$RELEASE_ROOT/build-env"
 `python -m build` 默认先构建源码包，再从该源码包构建 wheel。当前版本生成两个附件：
 
 ```text
-fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
-fbincon_claude_code_statusline-1.11.0.tar.gz
+fbincon_claude_code_statusline-1.12.0-py3-none-any.whl
+fbincon_claude_code_statusline-1.12.0.tar.gz
 ```
 
 该纯 Python wheel 用于 Linux/WSL、Windows 和 macOS；`windows-curses` 仅在 Windows 安装。Windows 的基本构建命令见[从源码构建与安装](USER_GUIDE.zh-CN.md#从源码构建与安装)，发布时同样使用干净检出和独立输出目录。
@@ -86,8 +86,8 @@ Linux / WSL：
 
 ```bash
 cd "$RELEASE_ASSETS"
-sha256sum fbincon_claude_code_statusline-1.11.0-py3-none-any.whl \
-  fbincon_claude_code_statusline-1.11.0.tar.gz > SHA256SUMS
+sha256sum fbincon_claude_code_statusline-1.12.0-py3-none-any.whl \
+  fbincon_claude_code_statusline-1.12.0.tar.gz > SHA256SUMS
 sha256sum -c SHA256SUMS
 cd -
 ```
@@ -96,8 +96,8 @@ macOS 使用 `shasum -a 256` 生成清单，并用 `shasum -a 256 -c SHA256SUMS`
 
 ```powershell
 $releaseFiles = @(
-    'fbincon_claude_code_statusline-1.11.0-py3-none-any.whl',
-    'fbincon_claude_code_statusline-1.11.0.tar.gz'
+    'fbincon_claude_code_statusline-1.12.0-py3-none-any.whl',
+    'fbincon_claude_code_statusline-1.12.0.tar.gz'
 )
 $releaseFiles | ForEach-Object {
     $digest = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -115,8 +115,8 @@ $releaseFiles | ForEach-Object {
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
 git push origin "refs/tags/$RELEASE_TAG"
 gh release create "$RELEASE_TAG" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.11.0-py3-none-any.whl" \
-  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.11.0.tar.gz" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.12.0-py3-none-any.whl" \
+  "$RELEASE_ASSETS/fbincon_claude_code_statusline-1.12.0.tar.gz" \
   "$RELEASE_ASSETS/SHA256SUMS" \
   --repo fbincon/claude-code-statusline \
   --verify-tag --draft --title "$RELEASE_TAG" \
@@ -196,7 +196,7 @@ git remote add gitee git@gitee.com:fbincon/claude-code-statusline.git
 
 ```bash
 git push gitee main:refs/heads/main
-git push gitee refs/tags/v1.11.0:refs/tags/v1.11.0
+git push gitee refs/tags/v1.12.0:refs/tags/v1.12.0
 ```
 
 核对两平台 `main` 和标签对象 ID 完全一致，保留带注释标签及其目标提交。历史功能分支仅按需推送。引用出现分叉时先排查，日常同步不得强推或使用 `git push --mirror`。Gitee PR 验收使用临时目标分支和功能分支，确认合并后仅删除这些分支并保留 PR 记录。
@@ -307,3 +307,7 @@ Python 和两 Mod 晋升为 1.7.0，更新当前稳定安装／升级入口，�
 ## 项目查找与导入审阅发布门槛
 
 UI 协议 v7 与显示 v6、便携 v1、界面偏好 v1、运行协议 v2 保持独立。要求共享样例、全部来源说明翻译、只读审阅／差异测试、原保存 revision 保留、新模块打包、测试样例仅进源码包及原生资源标记升级匹配。两个安装后发现流程均验证中英文，并检查真实捕获单元格。保留项目／默认值／采集行为，验证显式关闭偏好的 1.9.0 升级。沿用上文 23 项 PR／合并／标签检查、TestPyPI、正式 PyPI 和 GitHub／Gitee 字节核验门槛，不把自动化视为人工验收。
+
+## 条件显示与外观发布门槛
+
+schema 7／编辑器协议 9 与 portable v1、界面偏好 v1、runtime v2 保持独立。要求共享验证、v1.11 迁移和兼容备份恢复、当前 head／合并／标签完整 CI、安装包双语外观 PTY 的两种终端／预览背景及固定源码性能结果。核验默认字节兼容、未知／部分观测、颜色覆盖、告警优先级、ASCII／箭头边界和不依赖字体的回退。通过 TestPyPI、GitHub／PyPI 与 Gitee 发布同一批已验证 wheel／sdist／SHA256SUMS，记录实际来源并保留失败或诊断运行，不推断新增付费模型调用或真人平台验收。

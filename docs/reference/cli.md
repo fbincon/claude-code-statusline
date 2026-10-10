@@ -379,9 +379,11 @@ claude-statusline config item subagent task max-width none
 
 `label`/`icon` accept text up to 256 code points without control characters; `inherit` clears an override and an empty string suppresses the label/icon. `priority` accepts 0–100 (default 50); `max-width` accepts 2–10000 or `none`. The seven formatting choices in [display options](#display-and-host-options) accept a value or `inherit` to remove the per-item override. Width counts terminal columns, including CJK and combining characters.
 
+`foreground`/`background` accept `inherit`, `default`, `ansi:0`–`ansi:255`, or quoted `#RRGGBB`. `visibility` accepts `always` plus the rule supported by that scoped item; `visibility-threshold` is an integer 0–100 (default 70) and applies only to usage rules. Conditions use raw used percentages independently of warning colors. See [supported rules and color precedence](../APPEARANCE.md).
+
 ### `config preset NAME [--dry-run]`
 
-Names are `minimal`, `developer`, `monitoring`, and `multi-agent`. A preset replaces the selected items, layout, subagent item defaults and item overrides, sets short model/compact number formats, and assigns descending item priorities. It preserves colors, palette, directory/separator styles, scope labels, refresh/host choices, and current subagent enablement. Multi-agent also hides completed rows, limits rows to six, and task width to 48.
+Names are `minimal`, `developer`, `monitoring`, and `multi-agent`. A preset replaces the selected items, layout, subagent item defaults and item overrides, sets short model/compact number formats, and assigns descending item priorities. It preserves colors, palette, theme, Powerline glyph, directory/separator styles, scope labels, refresh/host choices, and current subagent enablement. Multi-agent also hides completed rows, limits rows to six, and task width to 48.
 
 ```text
 claude-statusline config preset developer --dry-run
@@ -605,7 +607,9 @@ Claude Code provides neither `focused_agent` nor `viewing_task_id`. After switch
 | `colors` | `on`, `off` | `on` | Whether to output ANSI color codes |
 | `palette` | `default`, `ansi` | `default` | `default` uses this project's 24-bit RGB colors; `ansi` uses standard terminal colors |
 | `directory-style` | `full`, `home`, `project-relative`, `basename` | `full` | How to abbreviate the working directory |
-| `separator-style` | `classic`, `compact` | `classic` | How to separate top-level items |
+| `separator-style` | `classic`, `compact`, `powerline` | `classic` | How to separate top-level items |
+| `theme` | `classic`, `dark`, `light`, `terminal` | `classic` | Statusline color roles; preserves item overrides and Claude host appearance |
+| `powerline-glyph` | `ascii`, `powerline` | `ascii` | ASCII `>` or optional font-dependent arrow for Powerline boundaries |
 | `scope-labels` | `off`, `when-subagents`, `always` | `when-subagents` | Whether to prepend the localized main/session scope label to the main line |
 | `subagent-statusline` | `on`, `off` | `on` | Whether custom subagent rows should be installed and rendered |
 | `padding` | `0`–`32` | `0` | Horizontal whitespace added by Claude Code before status-line content |
@@ -656,9 +660,9 @@ Windows drive paths, paths with spaces or Chinese characters, UNC paths, and cas
 
 ### Separators and semantic groups
 
-`classic` separates top-level items with ` | `; `compact` uses ` · ` for all top-level items.
+`classic` separates top-level items with ` | `; `compact` uses ` · ` for all top-level items. `powerline` treats every visible item as a separate block; padding and boundaries count toward width. See [Powerline behavior](../APPEARANCE.md#basic-powerline).
 
-Adjacent items in the following semantic groups join with ` · ` and share the same color:
+With the ordinary separators, adjacent items in the following semantic groups join with ` · ` and share the same color:
 
 - `model-with-effort`, `fast-mode`, and `thinking` (model group, ivory)
 - `current-dir`, `project-name`, and `hostname` (location group, green)

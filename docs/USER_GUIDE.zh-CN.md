@@ -77,28 +77,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.11.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.11.0) 提供相同的 wheel 与源码包。
+分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.12.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.12.0) 提供相同的 wheel 与源码包。
 
 也可从该 Release 下载 wheel、源码包和 `SHA256SUMS`，将下载文件的 SHA-256 与对应条目比较：
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.12.0-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.12.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.11.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.12.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.11.0-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.11.0-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.12.0-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.12.0-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.11.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.12.0"
 pipx ensurepath
 ```
 
@@ -622,7 +622,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.11.0，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
+pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.12.0，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
 
 ### 替换 Python 包
 

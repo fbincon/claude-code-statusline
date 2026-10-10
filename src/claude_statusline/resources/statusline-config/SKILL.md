@@ -53,14 +53,14 @@ __CLAUDE_STATUSLINE_ITEM_GROUPS__
    - colors: on or off
    - palette: default or ansi (retain the current value if colors are off)
    - directory style: full, home, project-relative, or basename
-   - separator style: classic or compact
+   - separator style: classic, compact, or powerline (uses the saved glyph; ASCII by default)
    - padding: 0, 1, 2, or 4 (accept a custom integer from 0 through 32)
    - refresh interval: 1, 2, 5, or event (accept a custom integer from 1 through 3600)
    - Vim indicator: show or hide
 6. Do not write anything if the user cancels or any answer is unresolved.
 7. Apply every answer in one command with this exact argument structure:
 
-   `__CLAUDE_STATUSLINE_COMMAND__ config apply --items ITEM... --subagent-items ITEM... --subagent-statusline on|off --scope-labels off|when-subagents|always --statusline-language en|zh-CN --colors on|off --palette default|ansi --directory-style full|home|project-relative|basename --separator-style classic|compact --padding N --refresh-interval event|N --hide-vim-mode-indicator on|off`
+   `__CLAUDE_STATUSLINE_COMMAND__ config apply --items ITEM... --subagent-items ITEM... --subagent-statusline on|off --scope-labels off|when-subagents|always --statusline-language en|zh-CN --colors on|off --palette default|ansi --directory-style full|home|project-relative|basename --separator-style classic|compact|powerline --padding N --refresh-interval event|N --hide-vim-mode-indicator on|off`
 
    Map "hide" to `--hide-vim-mode-indicator on` and "show" to
    `--hide-vim-mode-indicator off`.
@@ -70,3 +70,5 @@ __CLAUDE_STATUSLINE_ITEM_GROUPS__
    arbitrary reordering is available through
    `/statusline-config order ITEM...` and
    `/statusline-config subagents order ITEM...`.
+
+The guided form preserves the saved theme, Powerline glyph, item colors and visibility rules. For appearance changes, the user can open either editor or invoke `/statusline-config set theme classic|dark|light|terminal`, `/statusline-config set powerline-glyph ascii|powerline`, or `/statusline-config item main|subagent ID OPTION VALUE`. Item appearance options are `foreground`, `background`, `visibility`, and `visibility-threshold`. Colors accept `inherit`, `default`, `ansi:0`–`ansi:255`, or a quoted six-digit hex value. Use only the visibility rule supported by the scoped item; usage thresholds are independent of warning colors.
