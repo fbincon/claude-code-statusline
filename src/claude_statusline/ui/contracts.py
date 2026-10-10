@@ -39,6 +39,13 @@ UnavailableReason = Literal[
 ]
 
 
+class ItemGuidance(TypedDict):
+    source_kinds: list[str]
+    measurement_scope: str
+    requirements: list[str]
+    setup: list[str]
+
+
 class CatalogItem(TypedDict):
     scope: Scope
     id: MainItemId | SubagentItemId
@@ -54,6 +61,7 @@ class CatalogItem(TypedDict):
     unavailable_reasons: list[UnavailableReason]
     default_enabled: bool
     minimum_version_status: Literal["verified", "unknown"]
+    guidance: ItemGuidance
 
 
 class ChoiceOptions(TypedDict):
@@ -263,6 +271,7 @@ ALIASES = {
     "UnavailableReason": UnavailableReason,
 }
 WIRE_TYPES = (
+    ItemGuidance,
     CatalogItem,
     ChoiceOptions,
     RangeOptions,

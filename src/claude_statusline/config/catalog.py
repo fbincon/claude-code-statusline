@@ -27,6 +27,8 @@ class ItemDefinition:
     )
 
     def to_dict(self) -> dict:
+        from claude_statusline.config import guidance
+
         value = asdict(self)
         for key in (
             "sources",
@@ -40,6 +42,7 @@ class ItemDefinition:
         value["minimum_version_status"] = (
             "verified" if self.minimum_version else "unknown"
         )
+        value["guidance"] = guidance.describe(self)
         return value
 
 

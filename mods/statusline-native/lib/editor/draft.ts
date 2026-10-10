@@ -30,6 +30,7 @@ export class Editor {
   page: Page = 'main';
   advanced = false;
   detail: { scope: Scope; id: string } | null = null;
+  guidanceScroll: number | null = null;
   preset = 'minimal';
   path = 'statusline.json';
   pendingTransfer: 'import' | 'export' | 'preset' | null = null;
@@ -78,6 +79,7 @@ export class Editor {
     this.fieldErrorMessages = {};
     this.activeNumeric = null;
     this.detail = null;
+    this.guidanceScroll = null;
   }
 
   get modified(): boolean {

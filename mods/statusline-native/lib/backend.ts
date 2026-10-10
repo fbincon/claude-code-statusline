@@ -10,7 +10,7 @@ import {
   SCOPELABELS_VALUES,
   STATUSLINELANGUAGE_VALUES,
   UNAVAILABLEREASON_VALUES,
-  FORMAT_CHOICES, PRESETS, EDITOR_FIELDS,
+  FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, GUIDANCE_KEYS,
 } from './generated-contracts.ts';
 import type {
   Capabilities,
@@ -224,6 +224,12 @@ function isCapabilities(value: unknown): value is Capabilities {
   );
 }
 
+function isGuidance(value: unknown): boolean {
+  return object(value) && selection(value.source_kinds, GUIDANCE_KEYS.source_kinds) && value.source_kinds.length > 0 &&
+    GUIDANCE_KEYS.scopes.some(scope => scope === value.measurement_scope) &&
+    selection(value.requirements, GUIDANCE_KEYS.requirements) && strings(value.setup);
+}
+
 function isCatalog(value: unknown): value is CatalogItem[] {
   if (
     !Array.isArray(value) ||
@@ -242,6 +248,7 @@ function isCatalog(value: unknown): value is CatalogItem[] {
       !strings(item.examples) ||
       !strings(item.format_options) ||
       !strings(item.unavailable_reasons) ||
+      !isGuidance(item.guidance) ||
       typeof item.default_enabled !== 'boolean' ||
       !(item.minimum_version === null || text(item.minimum_version)) ||
       !(

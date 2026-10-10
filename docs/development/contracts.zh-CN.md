@@ -12,6 +12,11 @@
 
 ## 传输与操作
 
+目录项目同时提供 `guidance` 对象，包含来源类型代码、统计范围、启用条件代码和设置／诊断命令。
+这些静态定义由 Python 维护，共用双语消息和生成的 TypeScript 词汇表。查看项目的“来源与启用条件”页
+不查询实时数据、不开启采集、不改变选择。已知最低宿主版本与实际数据观测分开；未知最低版本继续保持未知。
+不可用原因说明的是可能情况，不是当前会话诊断。`config list-items --json` 提供相同的增补元数据。
+
 执行 `claude-statusline ui --config-dir PATH`（Windows 使用 `claude-statusline.exe`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json

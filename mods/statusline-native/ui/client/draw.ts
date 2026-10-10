@@ -14,6 +14,7 @@ import { t, renderMessage } from '../../lib/i18n/index.ts';
 import { viewMessage, preferenceResult } from '../../lib/i18n/messages.ts';
 import { settingPresentation, preferenceLabel } from '../../lib/i18n/presentation.ts';
 import { itemSpans } from '../components/catalog.ts';
+import { guidanceLines } from '../../lib/editor/guidance.ts';
 
 export function draw(ui: ClientElements, view: View, columns: number, rows: number): RenderElement {
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
@@ -43,7 +44,14 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if (view.input?.kind === 'category') {
+  if (e.guidanceScroll !== null && e.detail) {
+    title = tr('guidance.title');
+    const item = e.catalog(e.detail.scope).find(item => item.id === e.detail!.id)!;
+    const lines = guidanceLines(item, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
+    const start = Math.min(e.guidanceScroll, Math.max(0, lines.length - capacity));
+    content.push(...lines.slice(start, start + capacity).map(text => line(text)));
+    content.push(line(`${start + 1}–${Math.min(lines.length, start + capacity)}/${lines.length}`, styles.muted));
+  } else if (view.input?.kind === 'category') {
     title = tr('catalog.search.categories');
     const input = view.input, categories = e.categories(input.scope);
     const window = pageWindow(categories, input.selected, Math.max(1, layout.bodyRows - 1));

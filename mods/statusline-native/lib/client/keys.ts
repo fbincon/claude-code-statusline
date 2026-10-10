@@ -7,12 +7,14 @@ import { formRows, setFormValue } from './forms.ts';
 import { canEdit, validPreferenceValue } from '../preferences.ts';
 import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
+import { guidanceLines } from '../editor/guidance.ts';
 
 export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
   if (!e) return;
+  if (e.guidanceScroll !== null) { e.guidanceScroll = null; return; }
   if (!input) { e.detail = null; return; }
   if (input.kind === 'search') {
     e.filter(input.scope, input.original);
@@ -28,6 +30,20 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   if (!e || view.busy) return null;
   if (event.ctrl && key.toLowerCase() === 'g') { cancelInput(view); return null; }
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
+  if (e.guidanceScroll !== null && e.detail) {
+    const layout = editorLayout(view, columns, rows);
+    const width = Math.max(2, columns - (layout.framed ? 2 : 0));
+    const item = e.catalog(e.detail.scope).find(item => item.id === e.detail!.id)!;
+    const capacity = Math.max(1, layout.bodyRows - 1), maximum = Math.max(0, guidanceLines(item, view.language ?? 'en', width).length - capacity);
+    if (key === 'up') e.guidanceScroll--;
+    else if (key === 'down') e.guidanceScroll++;
+    else if (key === 'pageup') e.guidanceScroll -= capacity;
+    else if (key === 'pagedown') e.guidanceScroll += capacity;
+    else if (key === 'home') e.guidanceScroll = 0;
+    else if (key === 'end') e.guidanceScroll = maximum;
+    e.guidanceScroll = Math.max(0, Math.min(maximum, e.guidanceScroll));
+    return null;
+  }
   const input = view.input;
   if (input?.kind === 'category') {
     const categories = e.categories(input.scope);
@@ -124,6 +140,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) e.toggle(scope, selected);
+    else if (e.setting === 'item-guidance') e.guidanceScroll = 0;
     else if (e.setting === 'preset-apply') { e.pendingTransfer = 'preset'; return 'transfer'; }
     else if (e.setting === 'import-file' || e.setting === 'export-file') {
       view.input = {kind:'path',action:e.setting === 'import-file' ? 'import' : 'export',buffer:e.path};

@@ -92,6 +92,30 @@ test('category picker fits both languages and accepts or cancels without changin
   }
 });
 
+test('static guidance scrolls and returns to the item form without applying changes', () => {
+  for (const language of ['en', 'zh-CN'] as const) for (const [columns, rows] of [[32, 12], [64, 18], [120, 30]]) {
+    const state = view(), e = state.editor!;
+    state.language = language;
+    handleKey(state, {key:'e', ctrl:true}, columns!, rows!);
+    expect(e.setting).toBe('item:label');
+    handleKey(state, {key:'home'}, columns!, rows!);
+    expect(e.setting).toBe('item-guidance');
+    handleKey(state, {key:'return'}, columns!, rows!);
+    expect(e.guidanceScroll).toBe(0);
+    render(draw(elements, state, columns!, rows!) as unknown as Node);
+    handleKey(state, {key:'end'}, columns!, rows!);
+    if (rows === 12) expect(e.guidanceScroll! > 0).toBe(true);
+    const tree = draw(elements, state, columns!, rows!) as unknown as Node;
+    render(tree);
+    expect(text(tree)).toContain('claude-statusline doctor');
+    expect(handleKey(state, {key:'s'}, columns!, rows!)).toBe(null);
+    handleKey(state, {key:'g', ctrl:true}, columns!, rows!);
+    expect(e.guidanceScroll).toBe(null);
+    expect(e.detail?.id).toBe('model-with-effort');
+    expect(e.modified).toBe(false);
+  }
+});
+
 test('resizing keeps field and input state; h exposes separate host application', () => {
   const state = view(), e = state.editor!;
   handleKey(state, { key: '3' }, 80, 24);

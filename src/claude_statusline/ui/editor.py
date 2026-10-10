@@ -52,6 +52,7 @@ class EditorState:
     subagent_category: str = "all"
     category_selection: str | None = None
     search_input: tuple[str, str | None] | None = None
+    guidance_scroll: int | None = None
 
     @classmethod
     def from_effective(

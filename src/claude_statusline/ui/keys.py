@@ -26,6 +26,19 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         state.ensure_visible(viewport_height)
         return None
 
+    if state.guidance_scroll is not None:
+        if key in ("\x1b", "\x07"):
+            state.guidance_scroll = None
+        elif key in (curses.KEY_UP, curses.KEY_PPAGE):
+            state.guidance_scroll = max(0, state.guidance_scroll - (viewport_height if key == curses.KEY_PPAGE else 1))
+        elif key in (curses.KEY_DOWN, curses.KEY_NPAGE):
+            state.guidance_scroll += viewport_height if key == curses.KEY_NPAGE else 1
+        elif key == curses.KEY_HOME:
+            state.guidance_scroll = 0
+        elif key == curses.KEY_END:
+            state.guidance_scroll = 1_000_000
+        return None
+
     if state.category_selection is not None:
         scope = "subagent" if state.page == "subagents" else "main"
         categories = item_search.categories(scope)
@@ -100,6 +113,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         if item:
             state.form_item = (scope, item)
             state.form_index = state.form_scroll = 0
+            forms.select(state, next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "item:label"))
         return None
     if forms.special(state) or (
         state.page == "settings" and forms.current(state)["kind"] != "legacy"
