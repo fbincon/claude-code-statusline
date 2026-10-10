@@ -289,3 +289,16 @@ python tools/native_mod_acceptance.py --persistent --discovery --claude /absolut
 场景涵盖分级高亮、分类／排序保护、来源说明、无效导入保留、取消审阅保留未保存调色板、删除源文件后接受内存候选、明确保存前不写盘、两种候选预览及重开读回。十六张已检查的[捕获图](../images/README.zh-CN.md#discovery-and-import-review)重建真实单元格，不代表新增人类或 Windows／macOS 终端验收。
 
 候选包通过基础／原生／运行接入检查；独立 1.9.0→1.10.0 升级逐字节保留显示／界面语言和全部显式接入／采集关闭偏好。sdist 独立重建的 185 个 wheel 文件一致，资源／排除项与严格长描述渲染检查通过。最终合并／标签／索引证据写入 Release，本地原始报告保留在忽略的 `dist/validation/v1.10`。
+
+## 代表性渲染性能基准
+
+在独立 Python 进程中运行扩大的合成样例：
+
+```bash
+PYTHONPATH=src python tools/benchmark_render.py --suite representative --samples 50 --report dist/validation/render-warm.json
+PYTHONPATH=src python tools/benchmark_render.py --suite representative --samples 50 --bytecode-mode cold --report dist/validation/render-cold.json
+```
+
+`small`、`medium`、`large` 分别包含 100／10,000／100,000 行 transcript，0／8／32 个代理（每个 100 行，包含嵌套文件），以及 32／1,000／10,000 个 Git 已跟踪文件。使用 `--profiles small` 可快速检查。分别测量启动／导入、字节码、transcript 冷／热／追加、干净／有改动 Git 的未命中／命中／过期、中英自动／显式布局的 40／120 列渲染，以及复杂 Unicode 代理行。数据准备与重置不计时，并断言未变化的 transcript／Git 缓存命中不重复收集。操作系统文件缓存不受控制。
+
+报告保留原始样本、P50/P95、源代码和样例校验值、解释器／平台及工作区状态。固定前后源码，使用相同脚本和样例交替比较三轮；发布前排查可重复的退化。旧版默认样例和扩大样例均不调用模型，也不读取个人 transcript。
