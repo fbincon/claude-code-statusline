@@ -2,7 +2,7 @@
 
 [English](contracts.md) | **简体中文**
 
-协议 v6 是随包或源码原生前端使用的内部接口。显示配置使用 schema v6，v1/v2/v3/v4/v5 在内存中迁移读取；协议与持久化版本独立演进。前后端资源应来自同一软件包版本。
+协议 v7 是随包或源码原生前端使用的内部接口。显示配置使用 schema v6，v1/v2/v3/v4/v5 在内存中迁移读取；协议与持久化版本独立演进。前后端资源应来自同一软件包版本。
 
 ## 共享目录
 
@@ -20,10 +20,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows 使用 `claude-statusline.exe`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":6,"operation":"read","payload":{}}
+{"protocol_version":7,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":6,"result":{...}}`；失败为 `{"protocol_version":6,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":7,"result":{...}}`；失败为 `{"protocol_version":7,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 | 操作 | Payload | 结果 |
 | --- | --- | --- |
@@ -76,9 +76,19 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## 结构化格式
 
-协议 v6 返回完整 schema v6 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v6 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v7 返回完整 schema v6 草稿。`formatting` 包含共享格式与阈值，`item_options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v6 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ## 草稿传输操作
+
+`review_import` 接收 `{draft,path}`，读取文件一次并复用严格的便携／旧显示格式校验，返回完整候选 `{draft,changes}`，
+不加配置锁、不备份、不采集、不写盘。每条差异包含 `section`、`kind`、`(scope,item_id)`、规范 `path`、`before`、`after`
+和可本地化 `label`。分区覆盖主栏／子代理选择、格式／逐项覆盖、布局、输出语言及三个宿主状态栏设置。
+顺序差异只比较保留 ID，单纯增删造成的位置偏移不算重排；仅显示配置的导入保留传入草稿的宿主值。
+
+两个编辑器显示可展开分区和候选样例预览。Enter 展开详情，方向键选择分区，Page Up/Down 滚动，Tab 切换预览范围。
+A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取文件，也不改变打开时的 revision；保存仍是独立的冲突检查事务。
+界面偏好、独立宿主偏好及采集开关不属于便携文件。不进行通用合并或逐字段选择应用。
+原有 `import` 操作继续供匹配协议的客户端使用。协议 v7 与显示 schema v6 独立演进；前后端资源需匹配重装。
 
 `preset` 接收 `{draft,preset}`，返回 Python 展开的 `{draft}`；`import` 接收 `{draft,path}`，返回验证后的 `{draft}`，不保存，仅显示文件从当前草稿保留刷新选项；`export` 接收 `{draft,path,overwrite}`，写入可移植文件并返回 `{path}`。导出是独立于设置 Save 的显式文件操作。三者不改变安装或打开时 revision，随后 apply 仍使用原 revision。`describe.presets` 由 Python 唯一预设定义生成。
 
@@ -92,16 +102,16 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## Phase 5 指标迁移
 
-显示 schema v6 保留可空 `metrics.branch_diff_base_ref`；配置协议 v6 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3/v4/v5 读取不写盘，真实保存才备份迁移；独立运行观测协议为 v2，兼容接收 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+显示 schema v6 保留可空 `metrics.branch_diff_base_ref`；配置协议 v7 在两个编辑器、冲突、预览和便携文件中保留它。v1/v2/v3/v4/v5 读取不写盘，真实保存才备份迁移；独立运行观测协议为 v2，兼容接收 v1。已提交分支差异和已结束代理时长冻结见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 ## 界面偏好与消息操作
 
 `read_ui_preferences` 接受 `{}`，返回 `schema_version:1`、`ui_language`（`en` 或 `zh-CN`）及 `warning`（`null` 或语义消息）。缺失／无效读取回退英文，不修复文件字节。`set_ui_language` 仅接受包含支持代码的 `{ui_language}`，使用现有锁、备份和原子写入保存，返回相同形状及空 warning。未来偏好 schema 拒绝覆盖。这两个操作不改变显示／宿主草稿、revision 或接入。
 
-错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v6，UI 偏好 schema v1 与运行协议 v2 保持独立。
+错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v7，UI 偏好 schema v1 与运行协议 v2 保持独立。
 
 见[翻译架构与贡献规则](i18n.zh-CN.md)。
 
 ## 状态栏语言
 
-显示 schema v6 新增必需的 `statusline_language`（`en` / `zh-CN`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v6 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v2 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。
+显示 schema v6 新增必需的 `statusline_language`（`en` / `zh-CN`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v7 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v2 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。

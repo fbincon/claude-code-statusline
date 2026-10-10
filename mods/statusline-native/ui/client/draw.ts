@@ -15,6 +15,7 @@ import { viewMessage, preferenceResult } from '../../lib/i18n/messages.ts';
 import { settingPresentation, preferenceLabel } from '../../lib/i18n/presentation.ts';
 import { itemSpans } from '../components/catalog.ts';
 import { guidanceLines } from '../../lib/editor/guidance.ts';
+import { reviewRows } from '../../lib/editor/import-review.ts';
 
 export function draw(ui: ClientElements, view: View, columns: number, rows: number): RenderElement {
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
@@ -34,7 +35,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     });
   const pending = e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
-  const notice =
+  const notice = e.review ? tr('review.intro') :
     Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
     viewMessage(view, 'busy') || viewMessage(view, 'error') || viewMessage(view, 'message') ||
     (e.advanced
@@ -44,7 +45,13 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if (e.guidanceScroll !== null && e.detail) {
+  if (e.review) {
+    title = tr('review.title');
+    const review = e.review, lines = reviewRows(review, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
+    const start = Math.min(review.scroll, Math.max(0, lines.length - capacity));
+    content.push(...lines.slice(start, start + capacity).map(row => line(row.text, row.heading && row.section === review.selected ? rowStyle(true) : {})));
+    content.push(line(`${start + 1}–${Math.min(lines.length, start + capacity)}/${lines.length}`, styles.muted));
+  } else if (e.guidanceScroll !== null && e.detail) {
     title = tr('guidance.title');
     const item = e.catalog(e.detail.scope).find(item => item.id === e.detail!.id)!;
     const lines = guidanceLines(item, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
@@ -114,7 +121,8 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + current.id + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.enabled", {page: window.page, pages: window.pages, length: e.items(scope).length}), styles.muted));
   }
-  const sample = view.preview ? e.page === 'subagents' ? view.preview.subagents : view.preview.main : [];
+  const subagentPreview = e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
+  const sample = view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
   const shown = sample.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
   const background = view.previewBackground ?? 'dark';
@@ -139,7 +147,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
         : line(tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
-      section(ui, 'preview-region', previewTitle(e.draft.display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
+      section(ui, 'preview-region', e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle(e.draft.display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({
         key: 'shortcut-region', width: columns, height: layout.footerRows,
         backgroundColor: styles.text.backgroundColor,

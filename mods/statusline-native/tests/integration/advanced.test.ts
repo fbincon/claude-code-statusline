@@ -40,7 +40,8 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   imported.display.formatting.number_format = 'grouped';
   imported.host.padding = 7;
   fixture.behavior.process = (request, next) => {
-    if (request.operation === 'import' || request.operation === 'preset') return {value:reply({draft:imported})};
+    if (request.operation === 'preset') return {value:reply({draft:imported})};
+    if (request.operation === 'review_import') return {value:reply({draft:imported,changes:[]})};
     if (request.operation === 'export') return {value:reply({path:request.payload.path})};
     return next();
   };
@@ -54,7 +55,8 @@ test('preset/import only replace drafts; export includes unsaved draft and cance
   expect(fixture.store.draft.host.padding).toBe(0);
   await selectSetting(ui, 'import-file');
   await keys(ui, 'return', {key:'u',ctrl:true}, '/', '中', 'space', '文', '.', 'j', 's', 'o', 'n', 'return');
-  expect(fixture.calls.find((c) => c.operation === 'import')!.payload.path).toBe('/中 文.json');
+  expect(fixture.calls.find((c) => c.operation === 'review_import')!.payload.path).toBe('/中 文.json');
+  await keys(ui, 'a');
   await selectSetting(ui, 'export-file');
   await keys(ui, 'return', 'return');
   const exported = fixture.calls.find((c) => c.operation === 'export')!;

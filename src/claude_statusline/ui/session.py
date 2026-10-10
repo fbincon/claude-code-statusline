@@ -25,6 +25,7 @@ from claude_statusline.ui import protocol
 from claude_statusline.config import ui_preferences
 from claude_statusline.config import presets, transfer
 from claude_statusline.config.display import DisplayConfigError
+from claude_statusline.ui.import_review import ReviewState
 
 
 def _screen_loop(
@@ -118,10 +119,8 @@ def _screen_loop(
                         "ui.session.preset_expanded_ctrl_s_saves_esc_discards"
                     )
                 elif state.pending_action == "import":
-                    forms.replace_draft(state, transfer.import_file(state.path, draft))
-                    state.notice = msg(
-                        "ui.session.draft_imported_ctrl_s_saves_esc_discards"
-                    )
+                    state.import_review = ReviewState.from_result(transfer.review_import(state.path, draft))
+                    state.notice = ""
                 else:
                     path = transfer.export_file(
                         state.path, draft, state.baseline.config_path.parent

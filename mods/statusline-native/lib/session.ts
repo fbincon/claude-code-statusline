@@ -39,6 +39,7 @@ type EditorData = Pick<
   | 'advanced'
   | 'detail'
   | 'guidanceScroll'
+  | 'review'
   | 'preset'
   | 'path'
   | 'pendingTransfer'
@@ -90,6 +91,7 @@ export function clientProps(
               advanced: e.advanced,
               detail: e.detail, preset: e.preset, path: e.path, pendingTransfer: e.pendingTransfer,
               guidanceScroll: e.guidanceScroll,
+              review: e.review,
               setting: e.setting,
               activeNumeric: e.activeNumeric,
               selected: e.selected,

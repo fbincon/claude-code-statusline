@@ -31,14 +31,15 @@ test('backend errors and protocol mismatches are explicit', () => {
   for (const stdout of [
     '',
     'partial {',
-    JSON.stringify({ protocol_version: 6, result: {} }),
+    JSON.stringify({ protocol_version: 6, result: sample('old protocol') }),
+    JSON.stringify({ protocol_version: 7, result: {} }),
     JSON.stringify({
-      protocol_version: 6,
+      protocol_version: 7,
       result: {},
       error: { code: 'bad', message: 'ambiguous' },
     }),
     JSON.stringify({
-      protocol_version: 6,
+      protocol_version: 7,
       result: { sample: false, main: [], subagents: [] },
     }),
   ]) {
@@ -50,7 +51,7 @@ test('backend errors and protocol mismatches are explicit', () => {
     parseResponse('read', {
       exitCode: 2,
       stdout: JSON.stringify({
-        protocol_version: 6,
+        protocol_version: 7,
         error: { code: 'configuration_conflict', message: 'Reopen the editor' },
       }),
       stderr: '',
@@ -79,6 +80,17 @@ test('apply validates the saved draft, new revision and transaction outcome', ()
   const invalid = JSON.parse(JSON.stringify(saved));
   invalid.draft.display.items = ['unknown'];
   expect(() => parseResponse('apply', reply(invalid))).toThrow();
+});
+
+test('import review validates complete candidates and structured scoped differences', () => {
+  const draft=readResult().draft;
+  const change={section:'host',kind:'change',scope:null,item_id:null,path:['host','padding'],before:0,after:7,
+    label:{key:'review.fields.padding',params:{},fallback:'Padding'}};
+  expect(parseResponse('review_import',reply({draft,changes:[change]})).changes.length).toBe(1);
+  for(const result of [{draft,changes:{}},{draft,changes:[{...change,section:'future'}]},
+    {draft,changes:[{...change,path:['settings','theme']}]},{draft,changes:[{...change,label:'raw'}]},
+    {draft,changes:[{...change,scope:'main',item_id:'unknown'}]},{draft,changes:[{...change,kind:'enable'}]}])
+    expect(()=>parseResponse('review_import',reply(result))).toThrow();
 });
 
 test('failed processes, timeouts, truncation and structured errors remain distinct', () => {
@@ -117,7 +129,7 @@ test('failed processes, timeouts, truncation and structured errors remain distin
         'apply',
         output(
           JSON.stringify({
-            protocol_version: 6,
+            protocol_version: 7,
             error: { code, message: code },
           }),
           2,
@@ -132,9 +144,9 @@ test('failed processes, timeouts, truncation and structured errors remain distin
 
 test('unexpected envelopes and invalid drafts cannot enter the frontend', () => {
   for (const response of [
-    { protocol_version: 6, result: sample('safe'), extra: 1 },
-    { protocol_version: 6 },
-    { protocol_version: 6, error: { message: 'missing code' } },
+    { protocol_version: 7, result: sample('safe'), extra: 1 },
+    { protocol_version: 7 },
+    { protocol_version: 7, error: { message: 'missing code' } },
   ]) {
     expect(() =>
       parseResponse('preview', output(JSON.stringify(response))),
@@ -156,7 +168,7 @@ test('preview transport refuses control sequences and malformed colors', () => {
       parseResponse('preview', {
         exitCode: 0,
         stdout: JSON.stringify({
-          protocol_version: 6,
+          protocol_version: 7,
           result: { sample: true, main: [[span]], subagents: [] },
         }),
         stderr: '',

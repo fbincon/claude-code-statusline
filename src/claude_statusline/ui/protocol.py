@@ -155,12 +155,12 @@ def dispatch(request: object, config_dir: Path, executable: Path):
         preference = (ui_preferences.read(config_dir) if operation == "read_ui_preferences"
                       else ui_preferences.set_language(config_dir, payload["ui_language"]))
         return {**preference.to_dict(), "warning": preference.warning.wire() if preference.warning else None}
-    if operation in ("import", "export", "preset"):
+    if operation in ("import", "review_import", "export", "preset"):
         keys = (
             ("draft", "path", "overwrite")
             if operation == "export"
             else ("draft", "path")
-            if operation == "import"
+            if operation in ("import", "review_import")
             else ("draft", "preset")
         )
         _object(payload, keys, "payload")
@@ -184,6 +184,8 @@ def dispatch(request: object, config_dir: Path, executable: Path):
             )
         if operation == "import":
             return {"draft": transfer.import_file(path, current)}
+        if operation == "review_import":
+            return transfer.review_import(path, current)
         if type(payload["overwrite"]) is not bool:
             raise RequestError("invalid_request", msg('errors.protocol.overwrite_must_be_a_boolean'))
         return {

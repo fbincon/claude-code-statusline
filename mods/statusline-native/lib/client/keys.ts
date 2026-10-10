@@ -8,12 +8,14 @@ import { canEdit, validPreferenceValue } from '../preferences.ts';
 import { editorLayout } from '../../ui/client/help.ts';
 import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
+import { navigateReview } from '../editor/import-review.ts';
 
-export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | null;
+export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
   if (!e) return;
+  if (e.review) { e.review = null; setMessage(view, 'message', localizedText('review.cancelled')); return; }
   if (e.guidanceScroll !== null) { e.guidanceScroll = null; return; }
   if (!input) { e.detail = null; return; }
   if (input.kind === 'search') {
@@ -28,8 +30,20 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   const e = view.editor, key = event.key === 'space' ? ' ' : event.key;
   const shortcut = /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
   if (!e || view.busy) return null;
-  if (event.ctrl && key.toLowerCase() === 'g') { cancelInput(view); return null; }
+  if (event.ctrl && key.toLowerCase() === 'g') { const reviewing = !!e.review; cancelInput(view); return reviewing ? 'reviewPreview' : null; }
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
+  if (e.review) {
+    if (event.ctrl || event.meta) return null;
+    if (shortcut === 'a') {
+      e.replaceDraft(e.review.result.draft);
+      setMessage(view, 'message', localizedText('review.accepted'));
+      return 'reviewPreview';
+    }
+    if (shortcut === 'q') { cancelInput(view); return 'reviewPreview'; }
+    const layout = editorLayout(view, columns, rows);
+    navigateReview(e.review, key, view.language ?? 'en', Math.max(2, columns - (layout.framed ? 2 : 0)), Math.max(1, layout.bodyRows - 1));
+    return null;
+  }
   if (e.guidanceScroll !== null && e.detail) {
     const layout = editorLayout(view, columns, rows);
     const width = Math.max(2, columns - (layout.framed ? 2 : 0));
