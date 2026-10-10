@@ -33,6 +33,9 @@ Rendering uses Claude Code input and local state without making network requests
 
 ## Screenshots
 
+[Search, categories, source guidance and import review captures](docs/images/README.md#discovery-and-import-review).
+
+
 The main status line at the bottom of session screenshots shows actual data; configuration Preview regions use fixed samples. Fonts, colors and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
 
 <details>
@@ -382,6 +385,7 @@ claude-code-statusline/
 │   │   ├── tui/                             # Current configuration editor screenshots
 │   │   │   ├── native/                      # In-session configuration editor screenshots
 │   │   │   └── external/                    # External terminal configuration editor screenshots
+│   │   ├── discovery/                       # Search, source guidance and import-review captures
 │   │   └── archive/                         # Historical screenshots and UI reconstructions
 │   ├── development/                         # Development setup, architecture and validation
 │   └── releases/                            # Historical release notes

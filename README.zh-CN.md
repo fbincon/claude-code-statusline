@@ -31,6 +31,9 @@
 
 ## 界面预览
 
+[搜索、分类、来源说明与导入审阅画面](docs/images/README.zh-CN.md#discovery-and-import-review)。
+
+
 会话底部主状态栏显示实际数据，配置 Preview 使用固定样例。字体、颜色和宽度随终端设置变化。[图片来源与归档索引](docs/images/README.zh-CN.md)。
 
 <details>
@@ -370,6 +373,7 @@ claude-code-statusline/
 │   │   ├── tui/                             # 当前配置编辑器截图
 │   │   │   ├── native/                      # 会话内配置编辑器截图
 │   │   │   └── external/                    # 外部终端配置编辑器截图
+│   │   ├── discovery/                       # 搜索、来源说明与导入审阅捕获
 │   │   └── archive/                         # 历史截图与界面重建记录
 │   ├── development/                         # 开发环境、架构与验证
 │   └── releases/                            # 历史发布说明

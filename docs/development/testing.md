@@ -270,3 +270,21 @@ python tools/benchmark_render.py --samples 50 --display-case formatted --languag
 ```
 
 The same 50-sample warm harness measured baseline v1.8.0 P50/P95 54.261/66.363 ms, English 55.051/64.294 ms and Chinese 54.313/68.506 ms. Small fixtures and scheduling noise limit conclusions; normal rendering neither reads UI preferences nor parses UI JSON. All 444 default-English production/preview comparisons match the baseline. These checks use local commands and fixed samples, not paid model calls or new human acceptance.
+
+
+## Discovery and import review acceptance
+
+The local suite passes 729 Python tests (721 passes, eight platform skips), 87 native and ten runtime official Mod tests. Shared search fixtures check tiers, Unicode code-point mappings, stable ties and generated catalog metadata. Modal tests cover category isolation, all item explanations, structured import differences, narrow geometry, candidate previews, cancellation, acceptance and concurrent-save conflicts. Normal model-only rendering was checked in a fresh process and loads none of the editor search/guidance/review modules.
+
+Installed 1.10.0 wheels at `469c08cbf10526898178d2177a6ffa4f1206ad99` passed discovery scenarios in English and Chinese: external 64×18, 64×20, 80×24, 120×30, 80×48; native 120×30 and 80×48 with fixed Claude Code 2.1.294 and an officially installed persistent Mod. Native discovery uses a direct PTY so a multiplexer cannot convert the chosen RGB preview surface. The normal advanced runner retains its existing tmux/popup path.
+
+```bash
+python tools/external_tui_acceptance.py --discovery --backend /absolute/venv/bin/claude-statusline \
+  --commit VERIFIED_SHA --report-dir dist/validation/new-external-discovery
+python tools/native_mod_acceptance.py --persistent --discovery --claude /absolute/fixed-host/claude \
+  --backend /absolute/venv/bin/claude-statusline --report-dir dist/validation/new-native-discovery
+```
+
+Scenarios check ranked highlights, category/order protection, source guidance, invalid import preservation, cancelled review retaining an unsaved palette, deletion of the source before accepting its in-memory candidate, no persistence before explicit Save, both candidate preview scopes and reopen/readback. Sixteen inspected [captures](../images/README.md#discovery-and-import-review) reconstruct actual cells. They do not establish new human or Windows/macOS terminal acceptance.
+
+Candidate core/native/runtime installation smoke passed. A fresh 1.9.0-to-1.10.0 upgrade preserved display/interface language and all explicit integration/collector opt-outs byte-for-byte. Independent sdist rebuilding matched all 185 wheel members; package/resource exclusions and strict long-description rendering passed. Final merge/tag/index evidence belongs to the Release, with raw local reports under ignored `dist/validation/v1.10`.

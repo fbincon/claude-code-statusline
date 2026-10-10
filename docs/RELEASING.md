@@ -314,3 +314,8 @@ Run the complete local checks, all 23 PR/merge/tag jobs, installed-wheel externa
 ## Statusline localization release gates
 
 Verify display schema/configuration protocol v6, side-effect-free v1–v5 migration, independent UI/output languages, draft save/cancel, known/raw value boundaries and single-line generated resources. Require installed-wheel language PTYs, production-render verification after saves, complete cross-platform CI, fixed-commit package/rebuild/upgrade verification, TestPyPI acceptance and identical GitHub/PyPI/Gitee bytes. Record native host, focus actions and terminal dimensions; CI and agent-inspected captures do not constitute new human or Windows/macOS terminal acceptance.
+
+
+## Discovery and import-review release gates
+
+Keep UI protocol v7 independent of display v6, portable v1, UI preferences v1 and runtime v2. Require shared fixtures, all catalog guidance translations, readonly review/diff tests, preserved save revisions, packaging of new runtime modules and source-only fixtures, and matching upgraded native resource markers. Verify both installed discovery runners in both languages and inspect real captured cells. Preserve existing item/default/collector behavior and verify a 1.9.0 upgrade with explicit opt-outs. Follow the same 23-job PR/merge/tag, TestPyPI, formal PyPI and GitHub/Gitee byte-verification gates above; do not infer human acceptance from automation.
