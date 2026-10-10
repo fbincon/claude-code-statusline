@@ -18,10 +18,10 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 ## Features
 
 - **Choose your languages:** English and 简体中文 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings.
-- **Choose what to show:** 60 main-line items and 14 subagent items; enable, hide, search, and reorder them.
+- **Find what to show:** 60 main-line items and 14 subagent items, with ranked English/Chinese search, category filters and source/requirement guidance.
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
-- **Start from a preset:** minimal, developer, monitoring, and multi-agent presets expand into editable settings; import and export portable JSON.
+- **Review configuration changes:** four editable presets and portable JSON, with import differences and candidate previews before accepting a draft and saving.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
 - **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain production colors on a separately chosen light/dark background.
 - **Follow terminal colors:** external TUI text and bold keys use terminal defaults; previews show the selected palette on the current terminal background.
@@ -32,6 +32,9 @@ Rendering uses Claude Code input and local state without making network requests
 <a id="界面预览"></a>
 
 ## Screenshots
+
+[Search, categories, source guidance and import review captures](docs/images/README.md#discovery-and-import-review).
+
 
 The main status line at the bottom of session screenshots shows actual data; configuration Preview regions use fixed samples. Fonts, colors and widths depend on terminal settings. [Image sources and archive](docs/images/README.md).
 
@@ -275,6 +278,9 @@ Download checksums and platform-specific instructions are in the [installation g
 
 ## Common configuration
 
+[Find items, understand their sources, and review imports](docs/USER_GUIDE.md#item-discovery-import-review).
+
+
 | Entry point | Use |
 | --- | --- |
 | `/statusline-configure-native` | Client TUI in the current session; see [native editor](docs/USER_GUIDE.md#native-configuration-editor) |
@@ -317,7 +323,7 @@ Built-in labels and known states are translated. Technical units, model names, b
 
 ### Native configuration editor
 
-Click the Client region once. Use Tab to change pages, Space to toggle, arrows to select or reorder, Ctrl+E for item formatting, and `/` to search. `S` saves and stays, `F` saves and closes, and `Q` discards unsaved changes; lowercase letters work too. Footer controls follow the current page or input mode. Ctrl+G cancels input. Claude preferences apply separately.
+Click the Client region once. Use Tab to change pages, Space to toggle, arrows to select or reorder, Ctrl+E for item formatting and source guidance, `/` to search, and Ctrl+F for categories. Clear filters before reordering. `S` saves and stays, `F` saves and closes, and `Q` discards unsaved changes; lowercase letters work too. Footer controls follow the current page or input mode. Ctrl+G cancels input. Claude preferences apply separately.
 
 ### External and standalone terminal TUI
 
@@ -379,6 +385,7 @@ claude-code-statusline/
 │   │   ├── tui/                             # Current configuration editor screenshots
 │   │   │   ├── native/                      # In-session configuration editor screenshots
 │   │   │   └── external/                    # External terminal configuration editor screenshots
+│   │   ├── discovery/                       # Search, source guidance and import-review captures
 │   │   └── archive/                         # Historical screenshots and UI reconstructions
 │   ├── development/                         # Development setup, architecture and validation
 │   └── releases/                            # Historical release notes
@@ -386,6 +393,8 @@ claude-code-statusline/
 │   ├── build_native.py                      # Mod resource bundling and package README link rewriting
 │   └── claude_statusline/                   # Python CLI and implementation modules
 │       ├── config/                          # Configuration models, storage, migrations and commands
+│       │   ├── catalog.py / guidance.py      # Scoped definitions and static source/requirement metadata
+│       │   ├── import_review.py              # Semantic differences between validated drafts
 │       │   ├── ui_preferences.py            # Shared language preference transactions
 │       │   └── storage.py                   # Locks, backups and atomic writes
 │       ├── i18n/                            # Shared English/Chinese presentation resources
@@ -393,7 +402,7 @@ claude-code-statusline/
 │       │   ├── translator.py                # Message keys, parameters and English fallback
 │       │   ├── statusline.py                # Explicit-language output and known-value presentation
 │       │   ├── _generated_statusline.py      # Generated lightweight runtime dictionary
-│       │   └── presentation.py              # Localized fields, choices and bilingual search
+│       │   └── presentation.py              # Localized fields and choices
 │       ├── integration/                     # Claude Code setup, install transactions, hooks and diagnostics
 │       ├── platforms/                       # Cross-platform files, processes, clocks and terminals
 │       ├── rendering/                       # Statusline formatting, colors, layout and previews
@@ -403,7 +412,7 @@ claude-code-statusline/
 │       │   ├── timing/                      # Pure pause/resume clock logic
 │       │   └── turns/                       # Compatibility aliases forwarding to tasks/
 │       ├── resources/                       # Bundled configuration skill templates
-│       └── ui/                              # External terminal editor and shared JSON backend
+│       └── ui/                              # Editor state, search, guidance, import review and JSON backend
 ├── mods/                                    # Claude Code TypeScript Mods
 │   ├── statusline-native/                   # In-session configuration editor Mod
 │   │   ├── hooks/                           # Host APIs, commands, saves and recovery
@@ -414,6 +423,7 @@ claude-code-statusline/
 │   │   └── tests/                           # Tests grouped by backend, client, editor, integration and UI
 │   └── statusline-runtime/                  # Native task timing and optional advanced metrics Mod
 ├── tests/                                   # Python unit and integration tests
+│   ├── fixtures/                            # Shared language-neutral editor search cases
 │   ├── config/                              # Configuration, formatting, migration and transfer tests
 │   ├── i18n/                                # Translation resources and fallback tests
 │   ├── integration/                         # CLI, installation, packaging and compatibility tests

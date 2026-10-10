@@ -152,6 +152,7 @@ def run_pty(
     theme_only: bool = False,
     terminal_theme: str = "dark",
     language_only: bool = False,
+    discovery: bool = False,
 ) -> dict:
     import fcntl
     import pty
@@ -160,6 +161,12 @@ def run_pty(
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
     initial_theme = current_theme(config)
+    if discovery:
+        from editor_discovery_acceptance import request, backend_call
+        backend=Path(env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"])
+        current=request(backend,env,project,"read")
+        request(backend,env,project,"apply",{"draft":{"display":display.DEFAULT_CONFIG.to_dict(),"host":models.DEFAULT_HOST_CONFIG.to_dict()},"expected_revision":current["revision"]})
+        backend_call(backend,env,project,"config","language","set","en")
     if language_only:
         subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set-items", "context-used"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
         subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set", "statusline-language", "en"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
@@ -211,7 +218,7 @@ def run_pty(
     ]
     tmux_directory = (
         tempfile.TemporaryDirectory(prefix="statusline-client-tmux-")
-        if persistent
+        if persistent and not discovery
         else None
     )
     tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
@@ -260,6 +267,9 @@ def run_pty(
     stream = pyte.Stream(screen)
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
 
+    def screen_lines():
+        return ["".join(screen.buffer[y][x].data for x in range(screen.columns)) for y in range(screen.lines)]
+
     def read_until(
         text: str | tuple[str, ...],
         *,
@@ -278,7 +288,7 @@ def run_pty(
                 raw.extend(data)
                 stream.feed(decoder.decode(data))
                 last_output = time.monotonic()
-            plain = "\n".join(screen.display)
+            plain = "\n".join(screen_lines())
             candidates = (text,) if isinstance(text, str) else text
             compact = re.sub(r"\s+", "", plain)
             for candidate in candidates:
@@ -294,14 +304,17 @@ def run_pty(
             f"PTY {columns} columns: did not observe {text!r}; inspect ignored raw/debug logs"
         )
 
-    def capture(name, *, palette=None, colors=True):
+    def capture(name, *, palette=None, colors=True, mode="editor", preview_language=None):
         # Exact decoded terminal cells from the real host; no synthetic UI.
         path = root / f"screen-{columns}-{name}.json"
         cells = [
             [screen.buffer[row][column]._asdict() for column in range(columns)]
             for row in range(screen.lines)
         ]
-        if "external" not in name:
+        if mode != "editor":
+            from editor_discovery_acceptance import verify_native_capture
+            verify_native_capture(cells,language,mode,terminal_theme)
+        elif "external" not in name:
 
             def find_cells(label):
                 from claude_statusline.rendering.formatters import display_width
@@ -429,7 +442,7 @@ def run_pty(
                     "rows": screen.lines,
                     "cells": cells,
                     "ui_language": language,
-                    "statusline_language": output_language,
+                    "statusline_language": preview_language or output_language,
                     "theme": current_theme(config),
                     "terminal_theme": terminal_theme,
                     "terminal_foreground": TERMINAL_THEMES[terminal_theme][0],
@@ -444,7 +457,7 @@ def run_pty(
         path.chmod(0o600)
 
     def command(text):
-        prompts = [line for line in screen.display if line.lstrip().startswith("❯")]
+        prompts = [line for line in screen_lines() if line.lstrip().startswith("❯")]
         if not prompts or prompts[-1].split("❯", 1)[1].strip():
             raise RuntimeError(
                 "Refusing to send a command while the composer is not empty"
@@ -452,12 +465,14 @@ def run_pty(
         os.write(master, text.encode("utf-8") + b"\r")
 
     def click_client():
+        from claude_statusline.i18n import translate as t
+        label=t("native.ui.client.draw.filter",language).strip()
         row = next(
-            (i for i, line in enumerate(screen.display) if "Filter:" in line), None
+            (i for i, line in enumerate(screen_lines()) if label in line), None
         )
         if row is None:
             raise RuntimeError("Client filter row is not visible for focus click")
-        col = screen.display[row].index("Filter:") + 3
+        col = screen_lines()[row].index(label) + 3
         os.write(
             master, f"\x1b[<0;{col + 1};{row + 1}M\x1b[<0;{col + 1};{row + 1}m".encode()
         )
@@ -484,6 +499,29 @@ def run_pty(
             read_until("Configure Status Line")
         read_until("sample data")
         click_client()
+        if discovery:
+            from editor_discovery_acceptance import exercise, request, backend_call
+            from claude_statusline.i18n import translate as t
+            backend=Path(env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"])
+            base=request(backend,env,project,"read")["draft"]
+            cases=[]
+            def send(data,text):
+                start=len(raw);os.write(master,data);read_until(text,start=start)
+            def close_pane():
+                send(b"Q","❯")
+            def reopen_pane():
+                command("/statusline-configure-native")
+                read_until(t("native.ui.client.draw.configure_status_line",language))
+                click_client()
+            for language in ("en","zh-CN"):
+                if language!="en":
+                    current=request(backend,env,project,"read")
+                    request(backend,env,project,"apply",{"draft":base,"expected_revision":current["revision"]})
+                    backend_call(backend,env,project,"config","language","set",language)
+                    reopen_pane()
+                cases.append(exercise(native=True,language=language,backend=backend,env=env,root=project,config=config,
+                                      send=send,capture=capture,reopen=reopen_pane,close=close_pane,description=described,case_id=str(columns)))
+            return {"columns":columns,"rows":screen.lines,"discovery":cases,"persistent_plugin":persistent,"transport":"direct PTY","manual_visual_acceptance":False}
         if language_only:
             # Select the explicit capture surface as in the full acceptance path.
             os.write(master, b"3\x1b[H\x1b[B\x1b[B")
@@ -948,7 +986,9 @@ def run_pty(
             client_setting("import-file", "Import file")
             client_value(bad.name, "import requires")
             assert display_path.read_bytes() == saved_advanced
-            client_value(portable.name, "Draft replaced")
+            client_value(portable.name, "Review import")
+            os.write(master,b"A")
+            read_until("Imported candidate accepted")
             capture("advanced-import")
             os.write(master, b"Q")
             read_until("❯")
@@ -1102,7 +1142,7 @@ def run_pty(
         }
     finally:
         (root / f"screen-{columns}.txt").write_text(
-            "\n".join(screen.display), encoding="utf-8"
+            "\n".join(screen_lines()), encoding="utf-8"
         )
         if tmux_socket:
             subprocess.run(
@@ -1129,6 +1169,7 @@ def run_pty(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report-dir", type=Path, required=True)
+    parser.add_argument("--discovery", action="store_true", help="Verify bilingual discovery and import review in the installed native editor")
     parser.add_argument(
         "--backend", type=Path, default=Path(".venv/bin/claude-statusline")
     )
@@ -1185,6 +1226,8 @@ def main() -> int:
         parser.error(
             "--language-only requires --persistent to check both editor entries"
         )
+    if args.discovery and not args.persistent:
+        parser.error("--discovery requires --persistent")
     args.claude = str(Path(shutil.which(args.claude) or args.claude).resolve())
     if not sys.platform.startswith("linux"):
         parser.error("This acceptance runner currently requires native Linux")
@@ -1259,6 +1302,7 @@ def main() -> int:
                     theme_only=args.theme_only,
                     terminal_theme=args.terminal_theme,
                     language_only=args.language_only,
+                    discovery=args.discovery,
                 )
             )
     finally:

@@ -59,6 +59,9 @@ def _screen_loop(
             guard()
         if deadline_at is not None and time.monotonic() >= deadline_at:
             return ui_models.TIMED_OUT
+        if state.repaint:
+            screen.clearok(True)
+            state.repaint = False
         viewport_height = ui_drawing._draw_screen(screen, state, mapper)
         try:
             key = screen.get_wch()
@@ -120,6 +123,7 @@ def _screen_loop(
                     )
                 elif state.pending_action == "import":
                     state.import_review = ReviewState.from_result(transfer.review_import(state.path, draft))
+                    state.repaint = True
                     state.notice = ""
                 else:
                     path = transfer.export_file(

@@ -60,6 +60,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   }
   const input = view.input;
   if (input?.kind === 'category') {
+    view.message = '';
     const categories = e.categories(input.scope);
     const index = categories.indexOf(input.selected);
     if (key === 'return') { e.chooseCategory(input.scope, input.selected); view.input = null; }
@@ -94,6 +95,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     return null;
   }
   if (input) {
+    if (input.kind === 'search') view.message = '';
     if (event.ctrl && key.toLowerCase() === 'u') {
       if (input.kind === 'search') e.filter(input.scope, ''); else e.setBuffer(input.field, '');
     } else if (key === 'return') {
@@ -102,7 +104,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
       if (input.kind === 'search') e.filter(input.scope, [...e.search[input.scope]].slice(0, -1).join(''));
       else e.setBuffer(input.field, [...e.buffers[input.field]].slice(0, -1).join(''));
     } else if (!event.ctrl && !event.meta && [...key].length === 1) {
-      if (input.kind === 'search') { if (e.search[input.scope].length < 256) e.filter(input.scope, e.search[input.scope] + key); }
+      if (input.kind === 'search') { if ([...e.search[input.scope]].length < 256) e.filter(input.scope, e.search[input.scope] + key); }
       else if (e.buffers[input.field].length < 32) e.setBuffer(input.field, e.buffers[input.field] + key);
     }
     return null;

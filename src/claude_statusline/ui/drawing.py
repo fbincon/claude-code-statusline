@@ -583,14 +583,15 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             value2=len(visible),
             value3=len(enabled),
         )
+    summary_hints = [Hint("↑↓", msg("ui.hints.select"))] if is_form and state.import_review is None and state.guidance_scroll is None else []
     _draw_shortcuts(
         screen,
         panel.inner_y + panel.inner_height - 1,
-        [Hint("↑↓", msg("ui.hints.select"))] if is_form else [],
+        summary_hints,
         panel.inner_width,
         mapper,
         panel.inner_x,
-        position + (" · " if is_form else ""),
+        position + (" · " if summary_hints else ""),
         language=state.language,
     )
 

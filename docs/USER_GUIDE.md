@@ -75,28 +75,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.7.6 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.6) provides the same wheel and source distribution.
+The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.10.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.10.0) provides the same wheel and source distribution.
 
 Alternatively download the wheel, source archive, and `SHA256SUMS` from that release. Compare the downloaded file's SHA-256 with the corresponding entry:
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.7.6-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.7.6-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.7.6-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.7.6-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.7.6-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.10.0-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.6"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.10.0"
 pipx ensurepath
 ```
 
@@ -173,6 +173,20 @@ A switch saves immediately and preserves the current page, selected field, searc
 The preference is `<CLAUDE_CONFIG_DIR>/statusline-ui.json`, schema v1. Missing or invalid preferences fall back to English; reading never repairs the file. Explicit set/reset backs up and repairs corrupt preferences, but refuses a newer schema. Reinstall, upgrades, ordinary uninstall, display reset, presets and portable import/export preserve this independent preference.
 
 Interface language does not change actual statusline samples/output. Model names, paths, branches, commands, IDs, configuration values and custom labels retain their identity. The model-based wizard reads the interface preference on each invocation and uses localized CLI descriptions; JSON catalogs retain English metadata and stable IDs.
+
+<a id="item-discovery-import-review"></a>
+
+## Find items and review imports
+
+Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it, and Ctrl+G restores the previous query. Curses also accepts direct typing and Esc cancels explicit search input. Search matches IDs, English/Chinese names and descriptions, custom labels and categories in either interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighted text identifies the actual match, including an alternate-language snippet when needed.
+
+Ctrl+F opens the category picker. Select with arrows and accept with Enter; choose All categories to remove the category filter. Query and category combine and stay local to the editor session. While filtered, items can be toggled or formatted; ordering is disabled. Clearing filters restores the full order and neither filter is exported or saved.
+
+For an item's source and conditions, press Ctrl+E, select **Sources and requirements** at the start of the form, then Enter. Scroll with arrows or Page Up/Down and return with Ctrl+G (Esc also works in curses). This page explains measurement scope, source fields, verified host requirements, optional collectors and possible unavailable reasons. It does not inspect current data or enable anything. An unobserved item remains selectable and its preview stays a fixed sample.
+
+Import from Settings opens a review against the current **unsaved draft**. Sections cover selection, retained-item order, formatting/overrides, layout, statusline language and statusline host settings. Enter expands the selected section, arrows select sections, Page Up/Down scrolls and Tab switches the candidate preview between Main/Subagents. **A accepts only into the draft; saving is a separate action.** Cancelling or invalid input retains the previous draft. Acceptance uses the already-read candidate even if the source file changes, and keeps the original save revision; a concurrent-save conflict retains the current draft. The first version replaces the complete draft rather than merging individual fields.
+
+Interface language, collector switches and independent Claude preferences stay outside portable files. The programmatic `config import` command retains its existing explicit-write and `--dry-run` behavior; the interactive review is available in both editors.
 
 ## Statusline language
 
@@ -254,7 +268,7 @@ Click the Client region once before keyboard operation. Reexecuting the command 
 | `H` / `A` | Unfold advanced Claude preferences / Apply separately |
 | `R` / `K` / `V` | Discard/reload; check saved state; retry preview |
 
-During search or field editing printable characters are input and character shortcuts pause; refresh accepts a number or `event`. Enabled and disabled items can move. Filtered movement swaps adjacent visible items, preserving hidden-item order. Page changes, resizing and preview refresh retain selection and draft; only enabled ordering is persisted.
+During search or field editing printable characters are input and character shortcuts pause; refresh accepts a number or `event`. Enabled and disabled items can move. Search/category filters disable reordering; clear the query and choose All categories to restore it. Page changes, resizing and preview refresh retain selection and draft; only enabled ordering is persisted.
 
 Settings groups appearance, refresh/display behavior, Git metrics, formatting, risk colors, subagent visibility, presets/portable files and advanced Claude preferences. Minimum body is 32×12; at 64×20 or larger grouped borders separate regions, with titled separators in compact space. Preview uses fixed samples without collecting live Git, transcripts or model information.
 
@@ -453,6 +467,16 @@ subagent-visibility accepts all/running. Row/task limits accept none to restore 
 
 ### Presets and portable configuration
 
+| Preset | Intended use |
+| --- | --- |
+| minimal | A compact everyday view with model, directory, context and task time. |
+| developer | Repository work with Git, cumulative tokens, task time and session cost. |
+| monitoring | Inspect quota/reset windows, cache state and session accounting; optional source fields may remain unavailable. |
+| multi-agent | Multi-agent work with bounded agent rows and task labels; hide completed rows while retaining failures. |
+
+Presets change display drafts, not collector enablement. They preserve output/interface language and host settings, rebuild item overrides, and remain editable before saving.
+
+
 Presets minimal/developer/monitoring/multi-agent expand to editable drafts. They use short models and compact numbers, preserve colors/palette/directory style and refresh options, and rebuild item overrides with descending priorities in preset order. `--dry-run` prints a validated draft without saving. Imports accept portable envelopes or compatible display-only files; display-only files retain current refresh options.
 
 ```bash
@@ -471,9 +495,9 @@ On Main/Subagents select an item and press Ctrl+E. Edit its label, icon, priorit
 
 Layout chooses auto/explicit and sets “New row before” boundaries for enabled main items. Larger priorities are retained first (default 50); maximum widths count terminal columns, including CJK and combining text. Editing the item order keeps the row partition valid. Scope decoration yields to real items when an explicit row is too narrow. Explicit layout removes empty rows and never adds continuation lines; auto keeps wrapping.
 
-Settings contains global format choices, risk thresholds, subagent visibility and portable operations. Choose a Preset, then activate Expand selected preset. Import accepts a path and replaces only the draft; inspect Preview, then Save or cancel. Export writes the current draft, including unsaved edits, to a new file; it does not save settings. Relative paths resolve in the host/terminal working directory and `~` expands to the home directory. Errors retain the current draft. Existing export files are refused in both editors; choose a new path or use CLI `--overwrite` for a deliberate replacement.
+Settings contains global format choices, risk thresholds, subagent visibility and portable operations. Choose a Preset, then activate Expand selected preset. Import accepts a path and opens a differences review. Enter expands a section; A accepts the complete candidate into the draft, then Save persists it. Ctrl+G or Q cancels the native review; Esc or Ctrl+G cancels the external review. Export writes the current draft, including unsaved edits, to a new file; it does not save settings. Relative paths resolve in the host/terminal working directory and `~` expands to the home directory. Errors retain the current draft. Existing export files are refused in both editors; choose a new path or use CLI `--overwrite` for a deliberate replacement.
 
-Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In curses, Ctrl+S saves from every page; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Legacy padding/refresh numeric editing keeps Backspace deletion and Esc restoration; Esc outside editing discards the curses editor. During field/path editing ordinary characters, including s/f/q, remain input.
+Client uses `S` to Save/continue, `F` to Save/finish and `Q` to discard. In curses, Ctrl+S saves the editable draft outside read-only guidance/review; legacy Enter still saves from the item pages and the original settings, while Enter on a new field edits/accepts that field. In the new forms Ctrl+U clears input and Ctrl+G cancels it. Legacy padding/refresh numeric editing keeps Backspace deletion and Esc restoration; Esc outside editing discards the curses editor. During field/path editing ordinary characters, including s/f/q, remain input.
 
 | Preset | Main layout | Subagent defaults |
 | --- | --- | --- |
@@ -610,7 +634,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.7.6 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
+The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.10.0 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
 
 ### Replace the Python package
 
@@ -1035,4 +1059,4 @@ claude-statusline config enable task-active-timer
 
 On compatible hosts, fresh installations collect timing metadata by default; advanced metrics still require `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
 
-Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 5 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
+Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 6 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).

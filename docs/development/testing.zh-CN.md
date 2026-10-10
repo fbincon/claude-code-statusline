@@ -271,3 +271,21 @@ python tools/benchmark_render.py --samples 50 --display-case formatted --languag
 ```
 
 同一 50 样本热字节码基准测得 v1.8.0 P50／P95 为 54.261／66.363 ms，英文 55.051／64.294 ms，中文 54.313／68.506 ms。小型数据与调度噪声限制结论；正常渲染不读取 UI 偏好或解析 UI JSON。444 个英文默认生产／预览对照均与基线一致。本轮采用本地命令和固定样例，不调用付费模型，也不代表新的人类验收。
+
+
+## 项目查找与导入审阅验收
+
+本地通过 729 项 Python 测试（721 通过、8 项平台跳过）、87 项原生及 10 项运行 Mod 官方测试。共享搜索样例覆盖分级、Unicode 码点映射、同分稳定性和生成目录元数据；弹层测试覆盖分类隔离、全部项目说明、结构化差异、窄窗口、候选预览、取消、接受和并发保存冲突。新进程中的普通模型渲染不加载编辑器搜索／说明／审阅模块。
+
+提交 `469c08cbf10526898178d2177a6ffa4f1206ad99` 的 1.10.0 安装包通过双语场景：外部 64×18、64×20、80×24、120×30、80×48；固定 Claude Code 2.1.294、官方持久化安装 Mod 的原生 120×30、80×48。原生发现流程使用直接 PTY，避免复用器转换选定的 RGB 预览背景；原有 advanced 工具继续保留 tmux／弹窗路径。
+
+```bash
+python tools/external_tui_acceptance.py --discovery --backend /absolute/venv/bin/claude-statusline \
+  --commit VERIFIED_SHA --report-dir dist/validation/new-external-discovery
+python tools/native_mod_acceptance.py --persistent --discovery --claude /absolute/fixed-host/claude \
+  --backend /absolute/venv/bin/claude-statusline --report-dir dist/validation/new-native-discovery
+```
+
+场景涵盖分级高亮、分类／排序保护、来源说明、无效导入保留、取消审阅保留未保存调色板、删除源文件后接受内存候选、明确保存前不写盘、两种候选预览及重开读回。十六张已检查的[捕获图](../images/README.zh-CN.md#discovery-and-import-review)重建真实单元格，不代表新增人类或 Windows／macOS 终端验收。
+
+候选包通过基础／原生／运行接入检查；独立 1.9.0→1.10.0 升级逐字节保留显示／界面语言和全部显式接入／采集关闭偏好。sdist 独立重建的 185 个 wheel 文件一致，资源／排除项与严格长描述渲染检查通过。最终合并／标签／索引证据写入 Release，本地原始报告保留在忽略的 `dist/validation/v1.10`。
