@@ -17,6 +17,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 
 ## Features
 
+- **Control visibility and appearance:** hide confirmed empty/clean states, set usage thresholds, choose per-item foreground/background colors and themes, and opt into basic [Powerline](docs/APPEARANCE.md).
 - **Choose your languages:** English and 简体中文 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings.
 - **Find what to show:** 60 main-line items and 14 subagent items, with ranked English/Chinese search, category filters and source/requirement guidance.
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
@@ -381,12 +382,14 @@ claude-code-statusline/
 ├── pyproject.toml                           # Package metadata, dependencies and build configuration
 ├── docs/                                    # User, reference and development documentation
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # Installation, configuration and troubleshooting
+│   ├── APPEARANCE.md / APPEARANCE.zh-CN.md  # Visibility, item colors, themes and Powerline
 │   ├── reference/                           # CLI and configuration reference
 │   ├── images/                              # Current TUI screenshots and historical archives
 │   │   ├── tui/                             # Current configuration editor screenshots
 │   │   │   ├── native/                      # In-session configuration editor screenshots
 │   │   │   └── external/                    # External terminal configuration editor screenshots
 │   │   ├── discovery/                       # Search, source guidance and import-review captures
+│   │   ├── appearance/                      # Color controls and Powerline captures
 │   │   └── archive/                         # Historical screenshots and UI reconstructions
 │   ├── development/                         # Development setup, architecture and validation
 │   └── releases/                            # Historical release notes
@@ -407,6 +410,9 @@ claude-code-statusline/
 │       ├── integration/                     # Claude Code setup, install transactions, hooks and diagnostics
 │       ├── platforms/                       # Cross-platform files, processes, clocks and terminals
 │       ├── rendering/                       # Statusline formatting, colors, layout and previews
+│       │   ├── visibility.py                 # Raw-observation visibility rules
+│       │   ├── appearance.py / colors.py     # Theme roles and terminal color mapping
+│       │   └── powerline.py                  # Visible block composition and fitting
 │       ├── runtime/                         # Session data collection, caches and task state
 │       │   ├── live/                        # Independent observation protocol, aggregation and storage
 │       │   ├── tasks/                       # User task ownership, lifecycle and timing state

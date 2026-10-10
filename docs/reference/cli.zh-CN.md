@@ -89,7 +89,7 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 `config set statusline-language en|zh-CN` 保存显示语言。`config apply --statusline-language en|zh-CN` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
 
-显示 schema v6 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
+显示 schema v7 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 安装与诊断
 
@@ -676,7 +676,7 @@ claude-statusline config set refresh-interval event
 
 ```json
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "statusline_language": "en",
   "items": [
     "model-with-effort",
@@ -692,6 +692,8 @@ claude-statusline config set refresh-interval event
   ],
   "use_colors": true,
   "palette": "default",
+  "theme": "classic",
+  "powerline_glyph": "ascii",
   "directory_style": "full",
   "separator_style": "classic",
   "scope_labels": "when-subagents",
@@ -741,7 +743,7 @@ claude-statusline config set refresh-interval event
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
 
-当前源码显示配置使用 schema v6；历史 v1/v2/v3/v4/v5 可读取，首次实际配置保存时备份并写为 v6。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前源码显示配置使用 schema v7；历史 v1/v2/v3/v4/v5/v6 可读取，首次实际配置保存时备份并写为 v6。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 
@@ -846,3 +848,7 @@ claude-statusline.exe config show
 - `128 + signal`：交互式 TUI 收到当前平台实际提供的终止信号，终端已恢复且配置未保存。
 
 高频内部命令 `render`、`render-subagents`、`hook` 和 `slash-hook` 对损坏或无关输入采用静默容错，避免自身错误阻塞 Claude Code。
+
+## 条件显示与外观
+
+使用 `config set theme classic|dark|light|terminal`、`config set separator-style classic|compact|powerline` 和 `config set powerline-glyph ascii|powerline`。作用域 `config item` 新增 `foreground`、`background`、`visibility`、`visibility-threshold`。详见[语法、适用项目及恢复](../APPEARANCE.zh-CN.md)。

@@ -2,7 +2,7 @@
 
 from claude_statusline.i18n import message as msg
 
-from claude_statusline.config import advanced, display, formatting, presets
+from claude_statusline.config import advanced, display, formatting, presets, appearance
 import re
 
 
@@ -30,6 +30,8 @@ def field(
 
 GLOBAL = (
     [
+        field("theme", "Statusline theme", "Appearance", choices=appearance.THEMES),
+        field("powerline_glyph", "Powerline separator", "Appearance", choices=appearance.POWERLINE_GLYPHS),
         field(
             "statusline_language",
             "Statusline language (save with display settings)",
@@ -104,6 +106,10 @@ GLOBAL = (
     ]
 )
 ITEM = [
+    field("foreground", "Foreground (inherit/default/ansi:N/#RRGGBB)", "Item colors", "text", nullable=True),
+    field("background", "Background (inherit/default/ansi:N/#RRGGBB)", "Item colors", "text", nullable=True),
+    field("visibility", "Visibility rule", "Conditional visibility", choices=appearance.VISIBILITY_RULES),
+    field("visibility_threshold", "Minimum used (%)", "Conditional visibility", "integer", maximum=100),
     field("label", "Label (inherit = default)", "Item format", "text", nullable=True),
     field("icon", "Icon (inherit = default)", "Item format", "text", nullable=True),
     field("priority", "Priority", "Item fitting", "integer", maximum=100),
@@ -121,6 +127,16 @@ ITEM = [
     )
     for key, choices in formatting.FORMAT_CHOICES.items()
 ]
+
+
+def item_fields(scope, item):
+    choices = appearance.visibility_choices(scope, item)
+    return [
+        {**spec, "choices": list(choices)} if spec["key"] == "visibility" else spec
+        for spec in ITEM
+        if (spec["key"] != "visibility" or len(choices) > 1)
+        and (spec["key"] != "visibility_threshold" or "used-at-least" in choices)
+    ]
 
 
 def descriptions():
@@ -172,7 +188,7 @@ def parse_value(spec, raw):
 
 
 def set_value(config, key, raw, scope=None, item=None):
-    fields = ITEM if scope is not None else GLOBAL
+    fields = item_fields(scope, item) if scope is not None else GLOBAL
     spec = next((spec for spec in fields if spec["key"] == key), None)
     if spec is None:
         raise display.DisplayConfigError(msg('errors.editor_fields.unknown_editor_field'))

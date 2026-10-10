@@ -43,3 +43,7 @@ python tools/rendering_acceptance.py --python /absolute/installed-venv/bin/pytho
 ```
 
 覆盖 32／64／120 列彩色与单色 PTY、跨 SGR 边界字符簇、索引／RGB 背景、独立重置、缩短重绘及调整尺寸。`--source` 仅用于开发探测，报告与安装包验收分开记录。
+
+## 条件显示与逐项外观
+
+条件复用渲染的惰性 Git／实时快照与未四舍五入的用量值，仅完整的零值／干净证据触发隐藏，不从格式化文本反推观测。主题提供语义前景，逐项颜色随后覆盖完整样式单元，包括标签／图标和内部复位；已启用的告警前景优先。Powerline 在过滤和适配后组合可见色块，计入内边距和边界并逐行复位。经典路径保留旧输出字节及惰性导入，共享量化放在 `rendering.colors`，curses 保留兼容导出。见[用户行为](../APPEARANCE.zh-CN.md)和 tests 中的共享外观／旧版样例。

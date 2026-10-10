@@ -330,3 +330,15 @@ python tools/native_mod_acceptance.py --persistent --rendering-only --theme ligh
 完整对照按每个场景的 50 次样本段交替前后源码，逐轮交换先后顺序。另一工作进程等待当前测量与下一场景的数据准备完成后才运行，测量不会并发。缩短同场景前后测量间隔以降低时序漂移影响，采样数与覆盖范围不变。
 
 Linux／Python 3.10 的 CI 曾暴露空闲 curses 读取未及时处理 SIGTERM 的超时。所有平台现以 250 ms 输入轮询处理待决信号，空闲超时不触发 VT 重绘；本地额外重复 20 轮 SIGINT／SIGHUP／SIGTERM（共 60 次）验证退出码与终端恢复。
+
+## 条件显示与外观验收
+
+共享 `tests/fixtures/appearance.json` 验证 Python／TypeScript 的颜色和规则。v1.11 固定快照采用 `/fixture/project`，不依赖账户 home。安装包键盘验收的所有操作均调用真实后端，覆盖条件草稿、前／背景色、主题、Powerline、导出、取消、导入审阅、保存及重新打开。
+
+```bash
+python tools/external_tui_acceptance.py --appearance --backend /absolute/venv/bin/claude-statusline --commit VERIFIED_SHA --terminal-theme dark --report-dir dist/validation/appearance-external-dark
+python tools/native_mod_acceptance.py --persistent --appearance --claude /absolute/fixed-host/claude --backend /absolute/venv/bin/claude-statusline --theme dark --terminal-theme dark --report-dir dist/validation/appearance-native-dark
+python tools/benchmark_render.py --suite appearance --samples 50 --report dist/validation/appearance-warm.json
+```
+
+编辑器再以浅色主题重复。外部覆盖五种窗口的双语流程，原生覆盖 120×30／80×48 双语流程。仅候选的 appearance 基准覆盖关闭新功能、条件、自定义颜色、四类主题角色及 ASCII／箭头／单色 Powerline，在 40／120 列运行主状态栏和 32 代理进程；再以 `--bytecode-mode cold` 重复。前后性能回归使用单独的三轮 representative 比较；报告保留样本，并区分模拟、终端捕获、agent 图片检查与真人平台验收。

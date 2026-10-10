@@ -833,7 +833,7 @@ class SubagentInstallTests(InstallerTestCase):
                 for item in diagnostics
             )
         )
-        self.assertEqual(json.loads(display_path.read_bytes())["schema_version"], 6)
+        self.assertEqual(json.loads(display_path.read_bytes())["schema_version"], 7)
         self.assertEqual(
             (
                 first.backup_dir / (config_display.CONFIG_FILENAME + ".before")

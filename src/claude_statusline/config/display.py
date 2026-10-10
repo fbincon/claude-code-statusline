@@ -9,7 +9,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 from claude_statusline.platforms import files as platform_files
-from claude_statusline.config import catalog
+from claude_statusline.config import catalog, appearance
 from claude_statusline.config.metrics import Metrics
 from claude_statusline.config import formatting as display_formatting
 
@@ -17,7 +17,7 @@ from claude_statusline.config import formatting as display_formatting
 LEGACY_SCHEMA_VERSION = 1
 
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 STATUSLINE_LANGUAGES = ("en", "zh-CN")
 
 
@@ -38,7 +38,7 @@ PALETTES = ("default", "ansi")
 DIRECTORY_STYLES = ("full", "home", "project-relative", "basename")
 
 
-SEPARATOR_STYLES = ("classic", "compact")
+SEPARATOR_STYLES = ("classic", "compact", "powerline")
 
 
 SCOPE_LABELS = ("off", "when-subagents", "always")
@@ -67,7 +67,8 @@ V2_DISPLAY_KEYS = frozenset(
 
 V3_DISPLAY_KEYS = V2_DISPLAY_KEYS | {"formatting", "item_options", "layout"}
 V5_DISPLAY_KEYS = V3_DISPLAY_KEYS | {"metrics"}
-DISPLAY_KEYS = V5_DISPLAY_KEYS | {"statusline_language"}
+V6_DISPLAY_KEYS = V5_DISPLAY_KEYS | {"statusline_language"}
+DISPLAY_KEYS = V6_DISPLAY_KEYS | {"theme", "powerline_glyph"}
 
 SUBAGENT_KEYS = frozenset(
     {
@@ -124,6 +125,8 @@ class DisplayConfig:
     separator_style: str = "classic"
     scope_labels: str = "when-subagents"
     statusline_language: str = "en"
+    theme: str = "classic"
+    powerline_glyph: str = "ascii"
     subagents: SubagentDisplayConfig = field(default_factory=SubagentDisplayConfig)
 
     formatting: display_formatting.Formatting = field(
@@ -145,6 +148,8 @@ class DisplayConfig:
             "separator_style": self.separator_style,
             "scope_labels": self.scope_labels,
             "statusline_language": self.statusline_language,
+            "theme": self.theme,
+            "powerline_glyph": self.powerline_glyph,
             "subagents": self.subagents.to_dict(),
             "formatting": self.formatting.to_dict(),
             "item_options": {k: v.to_dict() for k, v in self.item_options.items()},
@@ -214,7 +219,7 @@ def validate_subagent_items(value: Any) -> tuple[str, ...]:
     return tuple(result)
 
 
-def validate_subagent_config(data: Any) -> SubagentDisplayConfig:
+def validate_subagent_config(data: Any, *, legacy=False) -> SubagentDisplayConfig:
     if not isinstance(data, dict):
         raise DisplayConfigError(msg('errors.display.subagents_must_contain_a_json_object'))
     unknown = sorted(set(data) - SUBAGENT_KEYS)
@@ -238,7 +243,7 @@ def validate_subagent_config(data: Any) -> SubagentDisplayConfig:
             enabled=enabled,
             items=validate_subagent_items(data.get("items")),
             item_options=display_formatting.item_options(
-                data["item_options"], SUBAGENT_ITEM_CATALOG
+                data["item_options"], SUBAGENT_ITEM_CATALOG, "subagent", legacy=legacy
             ),
             visibility=data["visibility"],
             hide_completed=data["hide_completed"],
@@ -265,7 +270,7 @@ def validate_display_config(data: Any) -> DisplayConfig:
         raise DisplayConfigError(
             msg('errors.display.schema_version_is_newer_than_supported_version', version=version, SCHEMA_VERSION=SCHEMA_VERSION)
         )
-    if version not in (1, 2, 3, 4, 5, SCHEMA_VERSION):
+    if version not in (1, 2, 3, 4, 5, 6, SCHEMA_VERSION):
         raise DisplayConfigError(
             msg('errors.display.schema_version_must_be_1_2_3', SCHEMA_VERSION=SCHEMA_VERSION, version=f'{version!r}')
         )
@@ -279,6 +284,8 @@ def validate_display_config(data: Any) -> DisplayConfig:
         if version == 3
         else V5_DISPLAY_KEYS
         if version in (4, 5)
+        else V6_DISPLAY_KEYS
+        if version == 6
         else DISPLAY_KEYS
     )
     unknown = sorted(set(data) - expected_keys)
@@ -335,7 +342,7 @@ def validate_display_config(data: Any) -> DisplayConfig:
             else display_formatting.Formatting()
         )
         options = (
-            display_formatting.item_options(data["item_options"], ITEM_CATALOG)
+            display_formatting.item_options(data["item_options"], ITEM_CATALOG, legacy=version < 7)
             if version >= 3
             else {}
         )
@@ -358,6 +365,8 @@ def validate_display_config(data: Any) -> DisplayConfig:
         layout=layout,
         metrics=metrics,
         schema_version=SCHEMA_VERSION,
+        theme=_require_string_choice(data, "theme", appearance.THEMES) if version >= 7 else "classic",
+        powerline_glyph=_require_string_choice(data, "powerline_glyph", appearance.POWERLINE_GLYPHS) if version >= 7 else "ascii",
         statusline_language=(
             _require_string_choice(data, "statusline_language", STATUSLINE_LANGUAGES)
             if version >= 6 else "en"
@@ -379,7 +388,7 @@ def validate_display_config(data: Any) -> DisplayConfig:
         subagents=(
             SubagentDisplayConfig()
             if version == LEGACY_SCHEMA_VERSION
-            else validate_subagent_config(subagents)
+            else validate_subagent_config(subagents, legacy=version < 7)
         ),
     )
 

@@ -36,7 +36,7 @@ else:
     from terminal_colors import TERMINAL_THEMES, XTERM_PALETTE, cell_colors, contrast
 
 
-def verify_colors(cells, columns, rows, foreground, background):
+def verify_colors(cells, columns, rows, foreground, background, *, allow_backgrounds=False):
     """Evaluate captured SGR using explicit terminal-default/palette fixtures."""
     panel = layout.dimensions(columns, rows).preview
     preview_contrasts = []
@@ -48,7 +48,7 @@ def verify_colors(cells, columns, rows, foreground, background):
             )
             fg, bg = cell_colors(cell, foreground, background, XTERM_PALETTE)
             if preview:
-                assert cell["bg"] == "default" and not cell["reverse"], (
+                assert (allow_backgrounds or cell["bg"] == "default") and not cell["reverse"], (
                     f"Artificial preview background: {y},{x}: {cell}"
                 )
                 if cell["data"].strip():
@@ -450,6 +450,7 @@ def main() -> int:
     parser.add_argument("--backend", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--commit", required=True)
+    parser.add_argument("--appearance", action="store_true", help="Verify appearance controls, import review and saved colors")
     parser.add_argument("--discovery", action="store_true", help="Verify bilingual search, categories, guidance and import review")
     parser.add_argument(
         "--language-only",
@@ -484,10 +485,10 @@ def main() -> int:
         "cases": [],
     }
     for columns, rows in ((64, 18), (64, 20), (80, 24), (120, 30), (80, 48)):
-        if args.discovery:
+        if args.discovery or args.appearance:
             from editor_discovery_acceptance import external_case
             for language in ("en", "zh-CN"):
-                report["cases"].append(external_case(backend, root / f"{columns}x{rows}-{language}", columns, rows, args.commit, language, args.terminal_theme))
+                report["cases"].append(external_case(backend, root / f"{columns}x{rows}-{language}", columns, rows, args.commit, language, args.terminal_theme, appearance=args.appearance))
                 (root / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
             continue
         report["cases"].append(

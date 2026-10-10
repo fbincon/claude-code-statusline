@@ -329,3 +329,15 @@ Repeat with `dark` for both theme arguments. This direct PTY uses a recorded syn
 The full comparison alternates each scenario’s 50-sample batches between sources and reverses their order each round. The peer waits until the current measurement and following fixture setup finish; timed batches never overlap. Keeping matching scenarios closer in time reduces temporal drift while preserving sample counts and coverage.
 
 Linux/Python 3.10 CI exposed a SIGTERM timeout during an idle curses read. Every platform now polls input at 250 ms to dispatch pending signals, without repainting the VT frame on idle timeouts. Twenty extra local SIGINT/SIGHUP/SIGTERM rounds (60 signals) verified exit codes and terminal restoration.
+
+## Appearance acceptance
+
+Shared `tests/fixtures/appearance.json` validates colors/rules on Python and TypeScript. Fixed v1.11 snapshots use an explicit `/fixture/project` path, independent of the account home directory. Installed keyboard acceptance uses the real backend for every operation, including conditional drafts, channel colors, themes, Powerline, export, cancellation, import review, save and reopen.
+
+```bash
+python tools/external_tui_acceptance.py --appearance --backend /absolute/venv/bin/claude-statusline --commit VERIFIED_SHA --terminal-theme dark --report-dir dist/validation/appearance-external-dark
+python tools/native_mod_acceptance.py --persistent --appearance --claude /absolute/fixed-host/claude --backend /absolute/venv/bin/claude-statusline --theme dark --terminal-theme dark --report-dir dist/validation/appearance-native-dark
+python tools/benchmark_render.py --suite appearance --samples 50 --report dist/validation/appearance-warm.json
+```
+
+Repeat editor checks with light themes. External covers five viewports in both languages; native covers 120×30/80×48 in both languages. The candidate-only appearance suite covers disabled, conditions, custom colors, four theme roles and ASCII/arrow/monochrome Powerline with main and 32-agent processes at 40/120 columns. Repeat with `--bytecode-mode cold`; use the separate three-round representative comparison for before/after regressions. Reports retain samples and distinguish synthetic/captured/agent-inspected evidence from human platform acceptance.

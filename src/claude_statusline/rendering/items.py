@@ -712,32 +712,29 @@ class _RenderState:
 
     def render(self, item_id):
         self.fmt, options = preferences.options_for(self.config, item_id)
+        used = None
+        if options.visibility != "always" or self.fmt.thresholds.enabled:
+            from . import visibility
+
+            used = visibility.used_percentage(self.data, item_id, self.now() if item_id in _RATE_LIMIT_ITEMS else None)
+            if not visibility.visible(
+                options, item_id, used=used,
+                git=self.git_data() if options.visibility == "git-dirty" else None,
+                point=self.live_data().get(item_id) if options.visibility == "nonzero" else None,
+            ):
+                return None
         item = self._render(item_id)
         if item is None:
             return None
         text = item.text
-        used = None
-        if item_id in ("context-used", "context-remaining"):
-            context = self.data.get("context_window", {})
-            used = metrics.finite_number(context.get("used_percentage"))
-            if used is None:
-                remaining = metrics.finite_number(context.get("remaining_percentage"))
-                used = (
-                    100 - remaining
-                    if remaining is not None and remaining <= 100
-                    else None
-                )
-        elif item_id in _RATE_LIMIT_ITEMS:
-            window = metrics.live_rate_window(
-                self.data, _RATE_LIMIT_ITEMS[item_id][0], self.now()
-            )
-            used = (
-                metrics.finite_number(window.get("used_percentage")) if window else None
-            )
         text = preferences.threshold(
             text, used, self.fmt, self.config, self.palette.percentage
         )
         text = preferences.decorate(text, item_id, "main", self.fmt, options, language=self.language)
+        if self.config.theme != "classic" or self.config.separator_style == "powerline" or options.foreground is not None or options.background is not None:
+            from . import appearance
+
+            text = appearance.apply(text, self.config, item_id, options, used=used)
         if options.max_width is not None:
             text = rendering_layout.truncate_styled(text, options.max_width)
         return replace(item, text=text)
@@ -820,6 +817,8 @@ def _configured_segments_with_state(data, config, state_class):
 
 def configured_rows(data, config, width, state_class=_RenderState):
     """One production/preview pipeline; explicit rows never acquire continuations."""
+    if config.separator_style == "powerline":
+        return _powerline_rows(data, config, width, state_class)
     if config.layout.mode == "auto":
         segments, separator, reset = _configured_segments_with_state(
             data, config, state_class
@@ -869,4 +868,32 @@ def configured_rows(data, config, width, state_class=_RenderState):
                 rendering_layout.truncate_styled(text, width), palette.reset
             )
         )
+    return rows
+
+
+def _powerline_rows(data, config, width, state_class):
+    from . import powerline, appearance
+    from claude_statusline.config.formatting import ItemOptions
+
+    palette = rendering_palette._palette_for(config)
+    _, inner = rendering_palette._separators(config, palette)
+    state = state_class(data, config, palette, inner)
+    scope = config.scope_labels == "always" or (
+        config.scope_labels == "when-subagents" and state.had_subagents()
+    )
+    rows = []
+    configured = (config.items,) if config.layout.mode == "auto" else config.layout.rows
+    for identifiers in configured:
+        blocks = []
+        for item_id in identifiers:
+            rendered = state.render(item_id)
+            if rendered and rendered.text:
+                options = preferences.options_for(config, item_id)[1]
+                blocks.append(powerline.Block(rendered.text, options.priority, rendered.prefer_slash_breaks))
+        if not blocks:
+            continue
+        if scope and not rows:
+            label = appearance.apply(statusline.text("scope.main", config.statusline_language), config, None, ItemOptions())
+            blocks.insert(0, powerline.Block(label, -1))
+        rows.extend(powerline.wrap(blocks, width, config) if config.layout.mode == "auto" else [powerline.fit(blocks, max(2, width), config)])
     return rows

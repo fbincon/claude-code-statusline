@@ -440,6 +440,8 @@ def _display_with_option(
             return display.with_updates(
                 use_colors=config_host._parse_toggle(value, option)
             )
+        if option in ("theme", "powerline-glyph"):
+            return display.with_updates(**{option.replace("-", "_"): value})
         if option == "palette":
             return display.with_updates(palette=value)
         if option == "directory-style":

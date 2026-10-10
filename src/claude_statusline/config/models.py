@@ -27,6 +27,8 @@ DISPLAY_OPTION_NAMES = {
     "branch-diff-base",
     "colors",
     "palette",
+    "theme",
+    "powerline-glyph",
     "directory-style",
     "separator-style",
     "scope-labels",

@@ -33,7 +33,7 @@ export function fieldMessage(row: SettingRow, view: View) {
   return text('native.settings.' + key);
 }
 
-const VALUE_KEYS = new Set(['on','off','inherit','default','ansi','full','home','project-relative','basename','classic','compact',
+const VALUE_KEYS = new Set(['on','off','inherit','default','ansi','full','home','project-relative','basename','classic','compact','powerline','terminal','git-dirty','nonzero','used-at-least',
   'when-subagents','always','event','hide','show','auto','explicit','original','short','legacy','grouped','unicode','ascii',
   'remaining','used','countdown','time','datetime','local','UTC','all','running','light','dark','hidden','shown']);
 

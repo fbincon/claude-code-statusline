@@ -1,6 +1,8 @@
 import { setMessage, failureMessage } from '../i18n/messages.ts';
 import { text as localizedText } from '../i18n/index.ts';
 /** Canonical Python descriptors drive advanced tool forms in the Client. */
+import { ITEM_DEFAULTS } from '../generated-contracts.ts';
+import { itemFields, normalizeColor } from '../editor/appearance.ts';
 import { isDraft } from '../backend.ts';
 import { copyDraft } from '../editor/draft.ts';
 import type { Draft, EditorField } from '../generated-contracts.ts';
@@ -38,10 +40,10 @@ export function formRows(view: View): FormRow[] {
   if (e.detail) {
     const map = e.detail.scope === 'main' ? d.item_options : d.subagents.item_options;
     const options = (map as Record<string, NonNullable<Draft['display']['item_options'][keyof Draft['display']['item_options']]>>)[e.detail.id];
-    return e.description.editor_fields.item!.map((spec) => row(spec, 'item:' + spec.key,
+    return itemFields(e.description.editor_fields.item!, e.detail.scope, e.detail.id).map((spec) => row(spec, 'item:' + spec.key,
       spec.key in e.description.formatting_options ? options?.formatting[spec.key] ?? 'inherit' :
-      options?.[spec.key as keyof typeof options] ?? (spec.key === 'priority' ? 50 : null)))
-      .sort((a, b) => Number(a.group === 'Item fitting') - Number(b.group === 'Item fitting'));
+      options?.[spec.key as keyof typeof options] ?? ITEM_DEFAULTS[spec.key as keyof typeof ITEM_DEFAULTS]))
+      .sort((a, b) => ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(a.group) - ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(b.group));
   }
   if (e.page === 'layout') {
     const result = [row({ key: 'layout.mode', label: 'Layout mode', group: 'Layout', kind: 'choice', choices: ['auto', 'explicit'], minimum: 0, maximum: 0, nullable: false }, 'layout.mode', d.layout.mode)];
@@ -66,7 +68,7 @@ export function formRows(view: View): FormRow[] {
 function options(draft: Draft, scope: 'main' | 'subagent', id: string) {
   const map = scope === 'main' ? draft.display.item_options : draft.display.subagents.item_options;
   const target = map as Record<string, NonNullable<Draft['display']['item_options'][keyof Draft['display']['item_options']]>>;
-  return target[id] ??= { label: null, icon: null, priority: 50, max_width: null, formatting: {} };
+  return target[id] ??= { ...ITEM_DEFAULTS, visibility: 'always', formatting: {} };
 }
 
 export function setFormValue(view: View, current: FormRow, raw: string | boolean): boolean {
@@ -82,6 +84,7 @@ export function setFormValue(view: View, current: FormRow, raw: string | boolean
     }
   } else if (spec.kind === 'text') value = spec.nullable && raw === 'inherit' ? null : raw;
   else if (spec.kind === 'choice' && !spec.choices.includes(String(raw))) return false;
+  if (spec.key === "foreground" || spec.key === "background") value = normalizeColor(value);
   const draft = copyDraft(e.draft);
   if (current.key === 'layout.mode') {
     draft.display.layout = { mode: value as 'auto' | 'explicit', rows: value === 'explicit' && draft.display.items.length ? [[...draft.display.items]] : [] };

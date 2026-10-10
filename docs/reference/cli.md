@@ -91,7 +91,7 @@ Help text/groups, argparse errors and administrative output use the selected lan
 
 `config set statusline-language en|zh-CN` persists the display language. `config apply --statusline-language en|zh-CN` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
 
-Display schema v6 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
+Display schema v7 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
 
 ## Installation and diagnostics
 
@@ -400,7 +400,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v6 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v7 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
 
 Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
 
@@ -706,7 +706,7 @@ The default configuration is equivalent to:
 
 ```json
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "statusline_language": "en",
   "items": [
     "model-with-effort",
@@ -722,6 +722,8 @@ The default configuration is equivalent to:
   ],
   "use_colors": true,
   "palette": "default",
+  "theme": "classic",
+  "powerline_glyph": "ascii",
   "directory_style": "full",
   "separator_style": "classic",
   "scope_labels": "when-subagents",
@@ -771,7 +773,7 @@ The ten items above form the default enabled set. The other 50 main items enter 
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [configuration writes and concurrency](../development/README.md#configuration-writes-and-concurrency).
 
-The current source display schema is v6. Historical v1/v2/v3/v4/v5 are readable and are backed up and written as v6 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
+The current source display schema is v6. Historical v1/v2/v3/v4/v5/v6 are readable and are backed up and written as v7 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 
@@ -884,3 +886,7 @@ Management commands follow these conventions:
 - `128 + signal`: interactive TUI received a termination signal available on the current platform; the terminal is restored and configuration is not saved.
 
 Frequent internal commands `render`, `render-subagents`, `hook`, and `slash-hook` silently tolerate corrupted or unrelated input to avoid blocking Claude Code with their own errors.
+
+## Conditional visibility and appearance
+
+Use `config set theme classic|dark|light|terminal`, `config set separator-style classic|compact|powerline`, and `config set powerline-glyph ascii|powerline`. Scoped `config item` options include `foreground`, `background`, `visibility` and `visibility-threshold`. See [syntax, supported items and recovery](../APPEARANCE.md).

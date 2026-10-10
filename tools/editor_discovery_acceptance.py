@@ -64,7 +64,7 @@ def verify_native_capture(cells, language, mode, terminal_theme):
         assert "←→ "+t("ui.hints.order",language) not in plain, "Filtered reorder is still advertised"
 
 
-def exercise(*, native, language, backend, env, root, config, send, capture, reopen, close, description, case_id=""):
+def exercise(*, native, language, backend, env, root, config, send, capture, reopen, close, description, case_id="", terminal_theme="dark"):
     """Run the same user operations through each editor's real keyboard path."""
     original = request(backend, env, root, "read")["draft"]
     paths = [config / "claude-statusline.json", config / "settings.json"]
@@ -163,7 +163,7 @@ def exercise(*, native, language, backend, env, root, config, send, capture, reo
             "accept-does-not-save","candidate-main-and-subagent-preview","explicit-save-and-reopen","ui-preference-preserved"]}
 
 
-def external_case(backend, root, columns, rows, commit, language, terminal_theme):
+def external_case(backend, root, columns, rows, commit, language, terminal_theme, appearance=False):
     import codecs
     import fcntl
     import pty
@@ -171,7 +171,7 @@ def external_case(backend, root, columns, rows, commit, language, terminal_theme
     import signal
     import struct
     import termios
-    import pyte
+    import terminal_capture as pyte
     from external_tui_acceptance import verify_colors
     from terminal_colors import TERMINAL_THEMES, XTERM_PALETTE
 
@@ -180,7 +180,8 @@ def external_case(backend, root, columns, rows, commit, language, terminal_theme
     env=dict(os.environ,CLAUDE_CONFIG_DIR=str(config),TERM="xterm-256color")
     env.pop("PYTHONPATH",None)
     backend_call(backend,env,root,"install","--no-native-editor","--no-experimental-slash-tui","--no-live-metrics")
-    backend_call(backend,env,root,"config","set-items","model-with-effort","current-dir","context-used")
+    backend_call(backend,env,root,"config","set-items",*(("model", "context-used") if appearance else ("model-with-effort","current-dir","context-used")))
+    if appearance:backend_call(backend,env,root,"config","set","scope-labels","off")
     backend_call(backend,env,root,"config","language","set",language)
     description=request(backend,env,root,"describe")
     process=None;master=None;raw=bytearray();captures=[]
@@ -234,7 +235,10 @@ def external_case(backend, root, columns, rows, commit, language, terminal_theme
     def capture(name,mode="editor",preview_language="en"):
         cells=[[screen.buffer[y][x]._asdict() for x in range(columns)] for y in range(rows)]
         fg,bg=TERMINAL_THEMES[terminal_theme]
-        contrast=verify_colors(cells,columns,rows,fg,bg)
+        contrast=verify_colors(cells,columns,rows,fg,bg,allow_backgrounds=appearance)
+        if mode == "appearance":
+            from editor_appearance_acceptance import verify_capture
+            verify_capture(cells, native=False)
         path=root/(name+".json")
         path.write_text(json.dumps({"columns":columns,"rows":rows,"cells":cells,"surface":"external","source_commit":commit,
           "ui_language":language,"statusline_language":preview_language,"sample_data":True,"terminal_theme":terminal_theme,
@@ -243,8 +247,11 @@ def external_case(backend, root, columns, rows, commit, language, terminal_theme
 
     try:
         open_editor()
-        result=exercise(native=False,language=language,backend=backend,env=env,root=root,config=config,send=send,capture=capture,
-                        reopen=open_editor,close=close_editor,description=description)
+        scenario = exercise
+        if appearance:
+            from editor_appearance_acceptance import exercise as scenario
+        result=scenario(native=False,language=language,backend=backend,env=env,root=root,config=config,send=send,capture=capture,
+                        reopen=open_editor,close=close_editor,description=description,terminal_theme=terminal_theme)
         return {**result,"columns":columns,"rows":rows,"captures":captures}
     finally:
         close_editor();(root/"terminal.ansi").write_bytes(raw)

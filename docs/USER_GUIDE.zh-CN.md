@@ -40,6 +40,8 @@
 
 ## 功能概览
 
+[条件显示、逐项颜色、主题与 Powerline](APPEARANCE.zh-CN.md)说明共享设置、原始观测规则和迁移恢复。
+
 主栏支持 60 个条目，子 Agent 行支持 14 个条目，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、四种可编辑预设及可移植 JSON 文件。
 
 主栏显示主会话数据，各子 Agent 行显示自己的任务数据；任务计时包含子 Agent 工作和主 Agent 收尾。[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)说明数据来源、作用域、缺失观测和指标边界。
@@ -202,7 +204,7 @@ claude-statusline config show --json
 
 同时控制主栏和全部自定义子代理行。翻译内置短语及已知生命周期／权限／强度／缓存／审核值；未知值、用户标签／图标、模型名称、路径、分支及任务／工具名称保留原文。数字、货币、`K/M`、`d/h/m/s`、`tok/s`、Git、PR 等技术单位保持原样。null 标签继承翻译后的默认标签，空标签隐藏标签，自定义标签优先。
 
-`statusline_language` 属于显示 schema v6，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
+`statusline_language` 属于显示 schema v7，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
 
 降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v6 草稿。见[备份与回滚](#备份与回滚)。
 
@@ -591,7 +593,7 @@ claude-statusline doctor
 | `claude-statusline-runtime.json` | 原生计时和高级采集的独立偏好 |
 | `settings.json` | 本工具接入的 Claude 命令、hooks 和宿主状态栏选项 |
 
-通过 CLI 或编辑器修改。显示 schema v6 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
+通过 CLI 或编辑器修改。显示 schema v7 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
 
 ## 自定义配置目录与环境变量
 
@@ -643,7 +645,7 @@ claude-statusline config show
 
 ### 版本兼容
 
-当前显示 schema v6、配置协议 v6、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1/v2/v3/v4/v5 文件读取时不重写，实际保存才备份原字节并迁移为 v6；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
+当前显示 schema v7、配置协议 v9、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1/v2/v3/v4/v5/v6 文件读取时不重写，实际保存才备份原字节并迁移为 v7；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
 
 降级前使用新版关闭或移除旧版无法管理的接入，包括适用的实时采集和原生编辑器。根据备份 `metadata.json` 恢复兼容显示文件，或在 schema 兼容时移除不支持的条目 ID。随后安装旧包、运行 `install` 和 `doctor`，并重启 Claude Code。可移植导出可另行保留当前显示选择，供以后恢复。
 
@@ -687,7 +689,7 @@ Doctor 检查平台与 Python、PATH、配置有效性、命令归属、hooks、
 [WARN] display config schema v4 is valid and will migrate to v6 on the next configuration save
 ```
 
-此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v6、运行协议 v2 分别管理版本。
+此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v9、运行协议 v2 分别管理版本。
 
 ## 故障排查
 
@@ -954,7 +956,7 @@ claude-statusline config enable task-active-timer
 
 兼容宿主的新安装默认采集计时元数据，高级指标仍需 `install --live-metrics`。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
 
-降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 6 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
+降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 7 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
 
 ## Unicode 文本与终端列宽
 

@@ -24,7 +24,7 @@ class StatuslineLanguageConfigTests(ConfigCommandTestCase):
             path.write_bytes(raw)
             loaded = display.load_display_config(self.config_dir)
             self.assertEqual(loaded.statusline_language, "en")
-            self.assertEqual(loaded.schema_version, 6)
+            self.assertEqual(loaded.schema_version, 7)
             self.assertEqual(path.read_bytes(), raw)
         result = service.set_option(self.config_dir, self.executable, "statusline-language", "zh-CN")
         self.assertTrue(result.changed)
@@ -40,7 +40,7 @@ class StatuslineLanguageConfigTests(ConfigCommandTestCase):
         with self.assertRaises(display.DisplayConfigError):
             display.validate_display_config(value)
         with self.assertRaises(display.DisplayConfigError):
-            display.validate_display_config({**display.DEFAULT_CONFIG.to_dict(), "schema_version": 7})
+            display.validate_display_config({**display.DEFAULT_CONFIG.to_dict(), "schema_version": 8})
 
     def test_language_changes_revision_but_ui_language_does_not(self):
         before = service.read_effective_config(self.config_dir, self.executable).revision
@@ -72,7 +72,7 @@ class StatuslineLanguageConfigTests(ConfigCommandTestCase):
         with mock.patch.object(display, "write_display_config", side_effect=display.DisplayConfigError("refused")), self.assertRaises(models.ConfigCommandError):
             service.set_option(self.config_dir, self.executable, "statusline-language", "en")
         self.assertEqual(path.read_bytes(), before)
-        future = json.dumps({**display.DEFAULT_CONFIG.to_dict(), "schema_version": 7}).encode()
+        future = json.dumps({**display.DEFAULT_CONFIG.to_dict(), "schema_version": 8}).encode()
         path.write_bytes(future)
         with self.assertRaises(models.ConfigCommandError):
             service.set_option(self.config_dir, self.executable, "statusline-language", "en")

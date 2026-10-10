@@ -258,3 +258,14 @@ Only the editor is shown: native crops exclude the transcript, composer, live mo
 | [discovery/native/review-zh-CN.png](discovery/native/review-zh-CN.png) | `9a2537723d3f7212576eb61078b9a8cb2413dd22d4e5aeeed0121777986b9a0f` | `5697b27f6c597c1b17ad5ca489af097f04f5a916e0b696431c9ecdc75a7311ab` |
 
 </details>
+
+<a id="conditional-appearance-captures"></a>
+
+## Conditional appearance captures
+
+Captured on Linux from the installed candidate built at `bf53c807fbe1a924b5137b887a6af59bc6acebac`; native host 2.1.294. The native 120×30 capture is cropped to its Client region; external 120×30 retains the full frame. DejaVu Sans Mono and Noto Sans CJK render the original decoded cells. External colors reflect 256-color quantization; native preserves direct RGB. Raw streams, decoded cells and reports remain under ignored `dist/validation/v1.12`. Agent image inspection passed; no new human acceptance or paid model calls.
+
+| PNG | PNG SHA256 | Cell capture SHA256 |
+| --- | --- | --- |
+| [native-dark-en.png](appearance/native-dark-en.png) | `711c322f2dcca7b0949097f98763d90ca56e1afba0fc8815104b583a88c9eb5c` | `84d271985dc45130b0c0055a95a67a5ac7886f41b742adeee37fe35b935586f0` |
+| [external-light-zh-CN.png](appearance/external-light-zh-CN.png) | `43440b8a8d2fd0c5ac67dc6c0fea1ea381a7b520b82684f95b3934f45c45edf0` | `b70552ee390683e17e7ff7df83dc15979b1700cc10289af6bc806702e6d76a2f` |

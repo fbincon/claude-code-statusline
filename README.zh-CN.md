@@ -17,6 +17,7 @@
 
 ## 功能概览
 
+- **条件显示与外观：** 隐藏确认的空闲／干净状态，设置用量阈值、逐项前景／背景色和主题，按需启用基础 [Powerline](docs/APPEARANCE.zh-CN.md)。
 - **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文；界面语言立即保存，状态栏语言随显示设置保存。
 - **查找显示项目：** 60 个主栏项目和 14 个子代理项目，支持中英文分级搜索、分类筛选及来源／启用条件说明。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
@@ -369,12 +370,14 @@ claude-code-statusline/
 ├── pyproject.toml                           # 软件包元数据、依赖与构建配置
 ├── docs/                                    # 使用、参考与开发文档
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # 安装、配置与故障排查
+│   ├── APPEARANCE.md / APPEARANCE.zh-CN.md  # 条件显示、逐项颜色、主题与 Powerline
 │   ├── reference/                           # CLI 与配置参考
 │   ├── images/                              # 当前 TUI 截图与历史归档
 │   │   ├── tui/                             # 当前配置编辑器截图
 │   │   │   ├── native/                      # 会话内配置编辑器截图
 │   │   │   └── external/                    # 外部终端配置编辑器截图
 │   │   ├── discovery/                       # 搜索、来源说明与导入审阅捕获
+│   │   ├── appearance/                      # 颜色设置与 Powerline 捕获
 │   │   └── archive/                         # 历史截图与界面重建记录
 │   ├── development/                         # 开发环境、架构与验证
 │   └── releases/                            # 历史发布说明
@@ -395,6 +398,9 @@ claude-code-statusline/
 │       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
 │       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配
 │       ├── rendering/                       # 状态栏格式、颜色、布局与预览
+│       │   ├── visibility.py                 # 原始观测条件规则
+│       │   ├── appearance.py / colors.py     # 主题角色与终端颜色映射
+│       │   └── powerline.py                  # 可见色块组合与宽度适配
 │       ├── runtime/                         # 会话数据采集、缓存与任务状态
 │       │   ├── live/                        # 独立运行观测协议、归并与存储
 │       │   ├── tasks/                       # 用户任务归属、生命周期与计时状态

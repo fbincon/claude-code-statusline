@@ -14,6 +14,7 @@ from typing import Any
 from claude_statusline.config import display as config_display
 from claude_statusline.rendering import formatters as rendering_formatters
 from claude_statusline.rendering import metrics, preferences
+from claude_statusline.config.formatting import legacy_fitting
 from claude_statusline.i18n import statusline
 
 
@@ -95,12 +96,18 @@ class _Part:
     item: str
     text: str
     style: str
+    used: float | None = None
 
 
 def _palette_for(config: config_display.DisplayConfig) -> _SubagentPalette:
     if not config.use_colors:
         return NO_COLOR_PALETTE
-    return ANSI_PALETTE if config.palette == "ansi" else DEFAULT_PALETTE
+    palette = ANSI_PALETTE if config.palette == "ansi" else DEFAULT_PALETTE
+    if config.theme == "classic":
+        return palette
+    from .appearance import themed_palette
+
+    return themed_palette(palette, config, subagent=True)
 
 
 def _columns(value: object) -> int:
@@ -300,6 +307,13 @@ def _parts_for_task(
             text = statusline.text("context.window", language, value=value) if value else None
         if not text:
             continue
+        risk = None
+        if options.visibility != "always":
+            from . import visibility
+
+            risk = visibility.used_percentage(task, item, scope="subagent")
+            if not visibility.visible(options, item, used=risk):
+                continue
         text = preferences.decorate(text, item, "subagent", fmt, options, language=language)
         maximum = options.max_width
         if item == "task" and config.subagents.task_max_width is not None:
@@ -320,7 +334,7 @@ def _parts_for_task(
                 style + text, risk, fmt, config, palette.context
             )
             style = styled[: -len(text)] if text else style
-        result.append(_Part(item, text, style))
+        result.append(_Part(item, text, style, risk))
     return result
 
 
@@ -427,10 +441,14 @@ def _render_parts(parts: list[_Part], config: config_display.DisplayConfig) -> s
             rendered.append(
                 " " if previous == "status" and part.item == "name" else separator
             )
-        if part.style:
-            rendered.append(f"{part.style}{part.text}{palette.reset}")
-        else:
-            rendered.append(part.text)
+        text = f"{part.style}{part.text}{palette.reset}" if part.style else part.text
+        options = config.subagents.item_options.get(part.item)
+        if config.theme != "classic" or options and (options.foreground is not None or options.background is not None):
+            from . import appearance
+
+            options = preferences.options_for(config, part.item, "subagent")[1]
+            text = appearance.apply(text, config, part.item, options, scope="subagent", used=part.used)
+        rendered.append(text)
         previous = part.item
     return "".join(rendered)
 
@@ -446,7 +464,16 @@ def render_task(
         return ""
     current_ms = time.time() * 1000.0 if now_ms is None else float(now_ms)
     parts = _parts_for_task(task, config, current_ms)
-    if config.subagents.item_options:
+    if config.separator_style == "powerline":
+        from . import appearance, powerline
+
+        blocks = []
+        for part in parts:
+            options = preferences.options_for(config, part.item, "subagent")[1]
+            text = part.style + part.text + (_palette_for(config).reset if part.style else "")
+            blocks.append(powerline.Block(appearance.apply(text, config, part.item, options, scope="subagent", used=part.used), options.priority))
+        return powerline.fit(blocks, columns, config)
+    if legacy_fitting(config.subagents.item_options):
         while (
             len(parts) > 1
             and rendering_formatters.display_width(_plain_line(parts)) > columns

@@ -1,0 +1,865 @@
+{
+  "commit": "07263113529d86dc6feb54e1fb9c533fe69f4974",
+  "cases": [
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": true,
+      "mode": "auto",
+      "width": 20,
+      "main": [
+        "\u001b[1;38;2;142;211;211mMain/Session\u001b[0m",
+        "\u001b[1;38;2;246;226;183mclaude-opus high\u001b[0m",
+        "\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m",
+        "\u001b[1;38;2;200;169;238mGit feature/statusli\u001b[0m",
+        "\u001b[1;38;2;200;169;238mne-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;38;2;242;181;144mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m2\u001b[0m",
+        "\u001b[1;38;2;242;181;144m00K window\u001b[0m",
+        "\u001b[1;38;2;242;181;144m5h 82% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mweekly\u001b[0m",
+        "\u001b[1;38;2;242;181;144m 64% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mspend 91\u001b[0m",
+        "\u001b[1;38;2;242;181;144m% left\u001b[0m",
+        "\u001b[1;38;2;233;144;169mhit 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169mmiss 87.5\u001b[0m",
+        "\u001b[1;38;2;233;144;169mK\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169mout 22.4K\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": true,
+      "mode": "auto",
+      "width": 40,
+      "main": [
+        "\u001b[1;38;2;142;211;211mMain/Session\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;246;226;183mclaude-opus high\u001b[0m",
+        "\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m",
+        "\u001b[1;38;2;200;169;238mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;38;2;242;181;144mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m200K window\u001b[0m",
+        "\u001b[1;38;2;242;181;144m5h 82% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mweekly 64% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mspend 91\u001b[0m",
+        "\u001b[1;38;2;242;181;144m% left\u001b[0m",
+        "\u001b[1;38;2;233;144;169mhit 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169mmiss 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169mout 22.4K\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183msonnet-5/high\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mhaiku-4-5\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": true,
+      "mode": "auto",
+      "width": 120,
+      "main": [
+        "\u001b[1;38;2;142;211;211mMain/Session\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;246;226;183mclaude-opus high\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;200;169;238mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;38;2;242;181;144mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m200K window\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;242;181;144m5h 82% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mweekly 64% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mspend 91% left\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;233;144;169mhit 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169mmiss 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169mout 22.4K\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183msonnet-5/high\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mContext 58% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;171;223;167msearching auth flow\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mhaiku-4-5\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mContext 91% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;171;223;167mreviewed lifecycle tests\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": true,
+      "mode": "explicit",
+      "width": 20,
+      "main": [
+        "\u001b[1;38;2;246;226;183mclaude-opus high\u001b[0m",
+        "\u001b[1;38;2;242;181;144mContext 73% left\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": true,
+      "mode": "explicit",
+      "width": 40,
+      "main": [
+        "\u001b[1;38;2;246;226;183mclaude-opus high\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m",
+        "\u001b[1;38;2;242;181;144mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m200K window\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183msonnet-5/high\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mhaiku-4-5\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": true,
+      "mode": "explicit",
+      "width": 120,
+      "main": [
+        "\u001b[1;38;2;142;211;211mMain/Session\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;246;226;183mclaude-opus high\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;200;169;238mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;38;2;242;181;144mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m200K window\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;242;181;144m5h 82% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mweekly 64% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mspend 91% left\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;233;144;169mhit 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169mmiss 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169mout 22.4K\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183msonnet-5/high\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mContext 58% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;171;223;167msearching auth flow\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mhaiku-4-5\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144mContext 91% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;171;223;167mreviewed lifecycle tests\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": false,
+      "mode": "auto",
+      "width": 20,
+      "main": [
+        "Main/Session",
+        "claude-opus high",
+        "/fixture/project/src",
+        "Git feature/statusli",
+        "ne-tui ↑1 ~2 ?1",
+        "Context 73% left · 2",
+        "00K window",
+        "5h 82% left · weekly",
+        " 64% left · spend 91",
+        "% left",
+        "hit 1.2M · miss 87.5",
+        "K · out 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore",
+        "✓ 0m 42s · Reviewer"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": false,
+      "mode": "auto",
+      "width": 40,
+      "main": [
+        "Main/Session | claude-opus high",
+        "/fixture/project/src",
+        "Git feature/statusline-tui ↑1 ~2 ?1",
+        "Context 73% left · 200K window",
+        "5h 82% left · weekly 64% left · spend 91",
+        "% left",
+        "hit 1.2M · miss 87.5K · out 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/high",
+        "✓ 0m 42s · Reviewer · haiku-4-5"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": false,
+      "mode": "auto",
+      "width": 120,
+      "main": [
+        "Main/Session | claude-opus high | /fixture/project/src | Git feature/statusline-tui ↑1 ~2 ?1",
+        "Context 73% left · 200K window | 5h 82% left · weekly 64% left · spend 91% left | hit 1.2M · miss 87.5K · out 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow",
+        "✓ 0m 42s · Reviewer · haiku-4-5 · Context 91% left · reviewed lifecycle tests"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": false,
+      "mode": "explicit",
+      "width": 20,
+      "main": [
+        "claude-opus high",
+        "Context 73% left"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore",
+        "✓ 0m 42s · Reviewer"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": false,
+      "mode": "explicit",
+      "width": 40,
+      "main": [
+        "claude-opus high | /fixture/project/src",
+        "Context 73% left · 200K window"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/high",
+        "✓ 0m 42s · Reviewer · haiku-4-5"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "default",
+      "colors": false,
+      "mode": "explicit",
+      "width": 120,
+      "main": [
+        "Main/Session | claude-opus high | /fixture/project/src | Git feature/statusline-tui ↑1 ~2 ?1",
+        "Context 73% left · 200K window | 5h 82% left · weekly 64% left · spend 91% left | hit 1.2M · miss 87.5K · out 22.4K"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow",
+        "✓ 0m 42s · Reviewer · haiku-4-5 · Context 91% left · reviewed lifecycle tests"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "auto",
+      "width": 20,
+      "main": [
+        "\u001b[1;36mMain/Session\u001b[0m",
+        "\u001b[1;33mclaude-opus high\u001b[0m",
+        "\u001b[1;32m/fixture/project/src\u001b[0m",
+        "\u001b[1;35mGit feature/statusli\u001b[0m",
+        "\u001b[1;35mne-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;33mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m2\u001b[0m",
+        "\u001b[1;33m00K window\u001b[0m",
+        "\u001b[1;33m5h 82% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mweekly\u001b[0m",
+        "\u001b[1;33m 64% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mspend 91\u001b[0m",
+        "\u001b[1;33m% left\u001b[0m",
+        "\u001b[1;35mhit 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35mmiss 87.5\u001b[0m",
+        "\u001b[1;35mK\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35mout 22.4K\u001b[0m",
+        "\u001b[1;36m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "auto",
+      "width": 40,
+      "main": [
+        "\u001b[1;36mMain/Session\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33mclaude-opus high\u001b[0m",
+        "\u001b[1;32m/fixture/project/src\u001b[0m",
+        "\u001b[1;35mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;33mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m200K window\u001b[0m",
+        "\u001b[1;33m5h 82% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mweekly 64% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mspend 91\u001b[0m",
+        "\u001b[1;33m% left\u001b[0m",
+        "\u001b[1;35mhit 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35mmiss 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35mout 22.4K\u001b[0m",
+        "\u001b[1;36m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33msonnet-5/high\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mhaiku-4-5\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "auto",
+      "width": 120,
+      "main": [
+        "\u001b[1;36mMain/Session\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33mclaude-opus high\u001b[0m\u001b[90m | \u001b[0m\u001b[1;32m/fixture/project/src\u001b[0m\u001b[90m | \u001b[0m\u001b[1;35mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;33mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m200K window\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33m5h 82% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mweekly 64% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mspend 91% left\u001b[0m\u001b[90m | \u001b[0m\u001b[1;35mhit 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35mmiss 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35mout 22.4K\u001b[0m",
+        "\u001b[1;36m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33msonnet-5/high\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mContext 58% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;32msearching auth flow\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mhaiku-4-5\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mContext 91% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;32mreviewed lifecycle tests\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "explicit",
+      "width": 20,
+      "main": [
+        "\u001b[1;33mclaude-opus high\u001b[0m",
+        "\u001b[1;33mContext 73% left\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "explicit",
+      "width": 40,
+      "main": [
+        "\u001b[1;33mclaude-opus high\u001b[0m\u001b[90m | \u001b[0m\u001b[1;32m/fixture/project/src\u001b[0m",
+        "\u001b[1;33mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m200K window\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33msonnet-5/high\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mhaiku-4-5\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "explicit",
+      "width": 120,
+      "main": [
+        "\u001b[1;36mMain/Session\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33mclaude-opus high\u001b[0m\u001b[90m | \u001b[0m\u001b[1;32m/fixture/project/src\u001b[0m\u001b[90m | \u001b[0m\u001b[1;35mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;33mContext 73% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m200K window\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33m5h 82% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mweekly 64% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mspend 91% left\u001b[0m\u001b[90m | \u001b[0m\u001b[1;35mhit 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35mmiss 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35mout 22.4K\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33msonnet-5/high\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mContext 58% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;32msearching auth flow\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mhaiku-4-5\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mContext 91% left\u001b[0m\u001b[90m · \u001b[0m\u001b[1;32mreviewed lifecycle tests\u001b[0m"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "auto",
+      "width": 20,
+      "main": [
+        "Main/Session",
+        "claude-opus high",
+        "/fixture/project/src",
+        "Git feature/statusli",
+        "ne-tui ↑1 ~2 ?1",
+        "Context 73% left · 2",
+        "00K window",
+        "5h 82% left · weekly",
+        " 64% left · spend 91",
+        "% left",
+        "hit 1.2M · miss 87.5",
+        "K · out 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore",
+        "✓ 0m 42s · Reviewer"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "auto",
+      "width": 40,
+      "main": [
+        "Main/Session | claude-opus high",
+        "/fixture/project/src",
+        "Git feature/statusline-tui ↑1 ~2 ?1",
+        "Context 73% left · 200K window",
+        "5h 82% left · weekly 64% left · spend 91",
+        "% left",
+        "hit 1.2M · miss 87.5K · out 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/high",
+        "✓ 0m 42s · Reviewer · haiku-4-5"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "auto",
+      "width": 120,
+      "main": [
+        "Main/Session | claude-opus high | /fixture/project/src | Git feature/statusline-tui ↑1 ~2 ?1",
+        "Context 73% left · 200K window | 5h 82% left · weekly 64% left · spend 91% left | hit 1.2M · miss 87.5K · out 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow",
+        "✓ 0m 42s · Reviewer · haiku-4-5 · Context 91% left · reviewed lifecycle tests"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "explicit",
+      "width": 20,
+      "main": [
+        "claude-opus high",
+        "Context 73% left"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore",
+        "✓ 0m 42s · Reviewer"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "explicit",
+      "width": 40,
+      "main": [
+        "claude-opus high | /fixture/project/src",
+        "Context 73% left · 200K window"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/high",
+        "✓ 0m 42s · Reviewer · haiku-4-5"
+      ]
+    },
+    {
+      "language": "en",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "explicit",
+      "width": 120,
+      "main": [
+        "Main/Session | claude-opus high | /fixture/project/src | Git feature/statusline-tui ↑1 ~2 ?1",
+        "Context 73% left · 200K window | 5h 82% left · weekly 64% left · spend 91% left | hit 1.2M · miss 87.5K · out 22.4K"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/high · Context 58% left · searching auth flow",
+        "✓ 0m 42s · Reviewer · haiku-4-5 · Context 91% left · reviewed lifecycle tests"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": true,
+      "mode": "auto",
+      "width": 20,
+      "main": [
+        "\u001b[1;38;2;142;211;211m主会话\u001b[0m",
+        "\u001b[1;38;2;246;226;183mclaude-opus 高\u001b[0m",
+        "\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m",
+        "\u001b[1;38;2;200;169;238mGit feature/statusli\u001b[0m",
+        "\u001b[1;38;2;200;169;238mne-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;38;2;242;181;144m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m20\u001b[0m",
+        "\u001b[1;38;2;242;181;144m0K 窗口\u001b[0m",
+        "\u001b[1;38;2;242;181;144m5h 剩余 82%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m每周 \u001b[0m",
+        "\u001b[1;38;2;242;181;144m剩余 64%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m支出 剩余\u001b[0m",
+        "\u001b[1;38;2;242;181;144m 91%\u001b[0m",
+        "\u001b[1;38;2;233;144;169m命中 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169m未命中 8\u001b[0m",
+        "\u001b[1;38;2;233;144;169m7.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169m输出 22.4K\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": true,
+      "mode": "auto",
+      "width": 40,
+      "main": [
+        "\u001b[1;38;2;142;211;211m主会话\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;246;226;183mclaude-opus 高\u001b[0m",
+        "\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m",
+        "\u001b[1;38;2;200;169;238mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;38;2;242;181;144m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m200K 窗口\u001b[0m",
+        "\u001b[1;38;2;242;181;144m5h 剩余 82%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m每周 剩余 64%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m支出 剩余 \u001b[0m",
+        "\u001b[1;38;2;242;181;144m91%\u001b[0m",
+        "\u001b[1;38;2;233;144;169m命中 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169m未命中 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169m输出 22.4K\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183msonnet-5/高\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mhaiku-4-5\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": true,
+      "mode": "auto",
+      "width": 120,
+      "main": [
+        "\u001b[1;38;2;142;211;211m主会话\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;246;226;183mclaude-opus 高\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;200;169;238mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;242;181;144m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m200K 窗口\u001b[0m",
+        "\u001b[1;38;2;242;181;144m5h 剩余 82%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m每周 剩余 64%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m支出 剩余 91%\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;233;144;169m命中 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169m未命中 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169m输出 22.4K\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;142;211;211m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183msonnet-5/高\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m上下文 剩余 58%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;171;223;167msearching auth flow\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mhaiku-4-5\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m上下文 剩余 91%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;171;223;167mreviewed lifecycle tests\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": true,
+      "mode": "explicit",
+      "width": 20,
+      "main": [
+        "\u001b[1;38;2;246;226;183mclaude-opus 高\u001b[0m",
+        "\u001b[1;38;2;242;181;144m上下文 剩余 73%\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": true,
+      "mode": "explicit",
+      "width": 40,
+      "main": [
+        "\u001b[1;38;2;246;226;183mclaude-opus 高\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m",
+        "\u001b[1;38;2;242;181;144m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m200K 窗口\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183msonnet-5/高\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mhaiku-4-5\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": true,
+      "mode": "explicit",
+      "width": 120,
+      "main": [
+        "\u001b[1;38;2;142;211;211m主会话\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;246;226;183mclaude-opus 高\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;171;223;167m/fixture/project/src\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;200;169;238mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;38;2;242;181;144m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m200K 窗口\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;242;181;144m5h 剩余 82%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m每周 剩余 64%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m支出 剩余 91%\u001b[0m\u001b[90m | \u001b[0m\u001b[1;38;2;233;144;169m命中 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169m未命中 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;233;144;169m输出 22.4K\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;38;2;142;211;211m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183msonnet-5/高\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m上下文 剩余 58%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;171;223;167msearching auth flow\u001b[0m",
+        "\u001b[1;38;2;142;211;211m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;246;226;183mhaiku-4-5\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;242;181;144m上下文 剩余 91%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;38;2;171;223;167mreviewed lifecycle tests\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": false,
+      "mode": "auto",
+      "width": 20,
+      "main": [
+        "主会话",
+        "claude-opus 高",
+        "/fixture/project/src",
+        "Git feature/statusli",
+        "ne-tui ↑1 ~2 ?1",
+        "上下文 剩余 73% · 20",
+        "0K 窗口",
+        "5h 剩余 82% · 每周 ",
+        "剩余 64% · 支出 剩余",
+        " 91%",
+        "命中 1.2M · 未命中 8",
+        "7.5K · 输出 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore",
+        "✓ 0m 42s · Reviewer"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": false,
+      "mode": "auto",
+      "width": 40,
+      "main": [
+        "主会话 | claude-opus 高",
+        "/fixture/project/src",
+        "Git feature/statusline-tui ↑1 ~2 ?1",
+        "上下文 剩余 73% · 200K 窗口",
+        "5h 剩余 82% · 每周 剩余 64% · 支出 剩余 ",
+        "91%",
+        "命中 1.2M · 未命中 87.5K · 输出 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/高",
+        "✓ 0m 42s · Reviewer · haiku-4-5"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": false,
+      "mode": "auto",
+      "width": 120,
+      "main": [
+        "主会话 | claude-opus 高 | /fixture/project/src | Git feature/statusline-tui ↑1 ~2 ?1 | 上下文 剩余 73% · 200K 窗口",
+        "5h 剩余 82% · 每周 剩余 64% · 支出 剩余 91% | 命中 1.2M · 未命中 87.5K · 输出 22.4K | ✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/高 · 上下文 剩余 58% · searching auth flow",
+        "✓ 0m 42s · Reviewer · haiku-4-5 · 上下文 剩余 91% · reviewed lifecycle tests"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": false,
+      "mode": "explicit",
+      "width": 20,
+      "main": [
+        "claude-opus 高",
+        "上下文 剩余 73%"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore",
+        "✓ 0m 42s · Reviewer"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": false,
+      "mode": "explicit",
+      "width": 40,
+      "main": [
+        "claude-opus 高 | /fixture/project/src",
+        "上下文 剩余 73% · 200K 窗口"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/高",
+        "✓ 0m 42s · Reviewer · haiku-4-5"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "default",
+      "colors": false,
+      "mode": "explicit",
+      "width": 120,
+      "main": [
+        "主会话 | claude-opus 高 | /fixture/project/src | Git feature/statusline-tui ↑1 ~2 ?1",
+        "上下文 剩余 73% · 200K 窗口 | 5h 剩余 82% · 每周 剩余 64% · 支出 剩余 91% | 命中 1.2M · 未命中 87.5K · 输出 22.4K"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/高 · 上下文 剩余 58% · searching auth flow",
+        "✓ 0m 42s · Reviewer · haiku-4-5 · 上下文 剩余 91% · reviewed lifecycle tests"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "auto",
+      "width": 20,
+      "main": [
+        "\u001b[1;36m主会话\u001b[0m",
+        "\u001b[1;33mclaude-opus 高\u001b[0m",
+        "\u001b[1;32m/fixture/project/src\u001b[0m",
+        "\u001b[1;35mGit feature/statusli\u001b[0m",
+        "\u001b[1;35mne-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;33m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m20\u001b[0m",
+        "\u001b[1;33m0K 窗口\u001b[0m",
+        "\u001b[1;33m5h 剩余 82%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m每周 \u001b[0m",
+        "\u001b[1;33m剩余 64%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m支出 剩余\u001b[0m",
+        "\u001b[1;33m 91%\u001b[0m",
+        "\u001b[1;35m命中 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35m未命中 8\u001b[0m",
+        "\u001b[1;35m7.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35m输出 22.4K\u001b[0m",
+        "\u001b[1;36m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "auto",
+      "width": 40,
+      "main": [
+        "\u001b[1;36m主会话\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33mclaude-opus 高\u001b[0m",
+        "\u001b[1;32m/fixture/project/src\u001b[0m",
+        "\u001b[1;35mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;33m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m200K 窗口\u001b[0m",
+        "\u001b[1;33m5h 剩余 82%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m每周 剩余 64%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m支出 剩余 \u001b[0m",
+        "\u001b[1;33m91%\u001b[0m",
+        "\u001b[1;35m命中 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35m未命中 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35m输出 22.4K\u001b[0m",
+        "\u001b[1;36m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33msonnet-5/高\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mhaiku-4-5\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "auto",
+      "width": 120,
+      "main": [
+        "\u001b[1;36m主会话\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33mclaude-opus 高\u001b[0m\u001b[90m | \u001b[0m\u001b[1;32m/fixture/project/src\u001b[0m\u001b[90m | \u001b[0m\u001b[1;35mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m200K 窗口\u001b[0m",
+        "\u001b[1;33m5h 剩余 82%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m每周 剩余 64%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m支出 剩余 91%\u001b[0m\u001b[90m | \u001b[0m\u001b[1;35m命中 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35m未命中 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35m输出 22.4K\u001b[0m\u001b[90m | \u001b[0m\u001b[1;36m✓ 1m 42s\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33msonnet-5/高\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m上下文 剩余 58%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;32msearching auth flow\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mhaiku-4-5\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m上下文 剩余 91%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;32mreviewed lifecycle tests\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "explicit",
+      "width": 20,
+      "main": [
+        "\u001b[1;33mclaude-opus 高\u001b[0m",
+        "\u001b[1;33m上下文 剩余 73%\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "explicit",
+      "width": 40,
+      "main": [
+        "\u001b[1;33mclaude-opus 高\u001b[0m\u001b[90m | \u001b[0m\u001b[1;32m/fixture/project/src\u001b[0m",
+        "\u001b[1;33m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m200K 窗口\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33msonnet-5/高\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mhaiku-4-5\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": true,
+      "mode": "explicit",
+      "width": 120,
+      "main": [
+        "\u001b[1;36m主会话\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33mclaude-opus 高\u001b[0m\u001b[90m | \u001b[0m\u001b[1;32m/fixture/project/src\u001b[0m\u001b[90m | \u001b[0m\u001b[1;35mGit feature/statusline-tui ↑1 ~2 ?1\u001b[0m",
+        "\u001b[1;33m上下文 剩余 73%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m200K 窗口\u001b[0m\u001b[90m | \u001b[0m\u001b[1;33m5h 剩余 82%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m每周 剩余 64%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m支出 剩余 91%\u001b[0m\u001b[90m | \u001b[0m\u001b[1;35m命中 1.2M\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35m未命中 87.5K\u001b[0m\u001b[90m · \u001b[0m\u001b[1;35m输出 22.4K\u001b[0m"
+      ],
+      "subagents": [
+        "\u001b[1;36m⏱ 1m 18s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mExplore\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33msonnet-5/高\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m上下文 剩余 58%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;32msearching auth flow\u001b[0m",
+        "\u001b[1;36m✓ 0m 42s\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mReviewer\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33mhaiku-4-5\u001b[0m\u001b[90m · \u001b[0m\u001b[1;33m上下文 剩余 91%\u001b[0m\u001b[90m · \u001b[0m\u001b[1;32mreviewed lifecycle tests\u001b[0m"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "auto",
+      "width": 20,
+      "main": [
+        "主会话",
+        "claude-opus 高",
+        "/fixture/project/src",
+        "Git feature/statusli",
+        "ne-tui ↑1 ~2 ?1",
+        "上下文 剩余 73% · 20",
+        "0K 窗口",
+        "5h 剩余 82% · 每周 ",
+        "剩余 64% · 支出 剩余",
+        " 91%",
+        "命中 1.2M · 未命中 8",
+        "7.5K · 输出 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore",
+        "✓ 0m 42s · Reviewer"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "auto",
+      "width": 40,
+      "main": [
+        "主会话 | claude-opus 高",
+        "/fixture/project/src",
+        "Git feature/statusline-tui ↑1 ~2 ?1",
+        "上下文 剩余 73% · 200K 窗口",
+        "5h 剩余 82% · 每周 剩余 64% · 支出 剩余 ",
+        "91%",
+        "命中 1.2M · 未命中 87.5K · 输出 22.4K",
+        "✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/高",
+        "✓ 0m 42s · Reviewer · haiku-4-5"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "auto",
+      "width": 120,
+      "main": [
+        "主会话 | claude-opus 高 | /fixture/project/src | Git feature/statusline-tui ↑1 ~2 ?1 | 上下文 剩余 73% · 200K 窗口",
+        "5h 剩余 82% · 每周 剩余 64% · 支出 剩余 91% | 命中 1.2M · 未命中 87.5K · 输出 22.4K | ✓ 1m 42s"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/高 · 上下文 剩余 58% · searching auth flow",
+        "✓ 0m 42s · Reviewer · haiku-4-5 · 上下文 剩余 91% · reviewed lifecycle tests"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "explicit",
+      "width": 20,
+      "main": [
+        "claude-opus 高",
+        "上下文 剩余 73%"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore",
+        "✓ 0m 42s · Reviewer"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "explicit",
+      "width": 40,
+      "main": [
+        "claude-opus 高 | /fixture/project/src",
+        "上下文 剩余 73% · 200K 窗口"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/高",
+        "✓ 0m 42s · Reviewer · haiku-4-5"
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "palette": "ansi",
+      "colors": false,
+      "mode": "explicit",
+      "width": 120,
+      "main": [
+        "主会话 | claude-opus 高 | /fixture/project/src | Git feature/statusline-tui ↑1 ~2 ?1",
+        "上下文 剩余 73% · 200K 窗口 | 5h 剩余 82% · 每周 剩余 64% · 支出 剩余 91% | 命中 1.2M · 未命中 87.5K · 输出 22.4K"
+      ],
+      "subagents": [
+        "⏱ 1m 18s · Explore · sonnet-5/高 · 上下文 剩余 58% · searching auth flow",
+        "✓ 0m 42s · Reviewer · haiku-4-5 · 上下文 剩余 91% · reviewed lifecycle tests"
+      ]
+    }
+  ]
+}

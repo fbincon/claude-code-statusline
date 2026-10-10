@@ -13,6 +13,40 @@ async function selectSetting(ui: any, key: string) {
   throw new Error('Setting could not be selected: ' + key);
 }
 
+test('appearance edits save one complete draft without applying host settings', {timeoutMs: 20000}, async ($, on) => {
+  const fixture = setup(on);
+  fixture.store.draft.display.items = ['context-used'];
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, {key:'e',ctrl:true});
+  await selectSetting(ui, 'item:visibility');
+  await keys(ui, 'right');
+  await selectSetting(ui, 'item:visibility_threshold');
+  await keys(ui, 'return', {key:'u',ctrl:true}, '8', '5', 'return');
+  await selectSetting(ui, 'item:foreground');
+  await keys(ui, 'return', {key:'u',ctrl:true}, '#', 'A', 'B', 'C', 'D', 'E', 'F', 'return');
+  await selectSetting(ui, 'item:background');
+  await keys(ui, 'return', {key:'u',ctrl:true}, 'a', 'n', 's', 'i', ':', '1', '7', 'return');
+  expect(fixture.calls.some(c => c.operation === 'apply')).toBe(false);
+  await keys(ui, {key:'g',ctrl:true}, '3');
+  await selectSetting(ui, 'field:theme');
+  await keys(ui, 'right');
+  await selectSetting(ui, 'separator-style');
+  await keys(ui, 'right', 'right', 's');
+  const d = fixture.store.draft.display;
+  expect(d.theme).toBe('dark');
+  expect(d.separator_style).toBe('powerline');
+  expect(d.powerline_glyph).toBe('ascii');
+  expect(d.item_options['context-used']?.foreground).toBe('#abcdef');
+  expect(d.item_options['context-used']?.background).toBe('ansi:17');
+  expect(d.item_options['context-used']?.visibility).toBe('used-at-least');
+  expect(d.item_options['context-used']?.visibility_threshold).toBe(85);
+  expect(fixture.configCalls).toEqual([]);
+  expect(fixture.calls.filter(c => c.operation === 'apply').length).toBe(1);
+  await ui.unmount();
+});
+
 test('item format and explicit layout save a complete draft while text reserves shortcuts', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);

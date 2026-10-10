@@ -4,7 +4,7 @@ import {
   PROTOCOL_VERSION,
   MAIN_ITEM_IDS,
   SUBAGENT_ITEM_IDS,
-  PALETTE_VALUES,
+  PALETTE_VALUES, THEME_VALUES, POWERLINEGLYPH_VALUES,
   DIRECTORYSTYLE_VALUES,
   SEPARATORSTYLE_VALUES,
   SCOPELABELS_VALUES,
@@ -21,6 +21,7 @@ import type {
   ResultFor,
   Span,
 } from './generated-contracts.ts';
+import { validColor, visibilityChoices } from './editor/appearance.ts';
 import { isLocalizedText } from './i18n/index.ts';
 import type { LocalizedText } from './i18n/index.ts';
 
@@ -98,14 +99,16 @@ function formatOverrides(value: unknown): boolean {
     (FORMAT_CHOICES[key as keyof typeof FORMAT_CHOICES] as readonly string[]).includes(v));
 }
 
-function itemOptions(value: unknown, ids: readonly string[]): boolean {
+function itemOptions(value: unknown, ids: readonly string[], scope: "main" | "subagent"): boolean {
   if (!object(value)) return false;
   return Object.entries(value).every(([id, option]) => ids.includes(id) && object(option) &&
-    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting']) &&
+    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold']) &&
     (option.label === null || (text(option.label) && [...option.label].length <= 256)) &&
     (option.icon === null || (text(option.icon) && [...option.icon].length <= 256)) &&
     range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
-    formatOverrides(option.formatting));
+    formatOverrides(option.formatting) && validColor(option.foreground) && validColor(option.background) &&
+    typeof option.visibility === "string" && visibilityChoices(scope, id).includes(option.visibility) &&
+    range(option.visibility_threshold, 0, 100));
 }
 
 function formatting(value: unknown): boolean {
@@ -133,7 +136,7 @@ export function isDraft(value: unknown): value is Draft {
       'statusline_language',
       'items',
       'use_colors',
-      'palette',
+      'palette', 'theme', 'powerline_glyph',
       'directory_style',
       'separator_style',
       'scope_labels',
@@ -144,12 +147,13 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 6 ||
+    d.schema_version !== 7 ||
+    !THEME_VALUES.some(x => x === d.theme) || !POWERLINEGLYPH_VALUES.some(x => x === d.powerline_glyph) ||
     !STATUSLINELANGUAGE_VALUES.some((x) => x === d.statusline_language) ||
     !object(d.metrics) || !exact(d.metrics, ['branch_diff_base_ref']) ||
     !(d.metrics.branch_diff_base_ref === null || (text(d.metrics.branch_diff_base_ref) && [...d.metrics.branch_diff_base_ref].length <= 256 &&
       d.metrics.branch_diff_base_ref.length > 0 && !/[\s]|^-/.test(d.metrics.branch_diff_base_ref))) ||
-    !formatting(d.formatting) || !itemOptions(d.item_options, MAIN_ITEM_IDS) ||
+    !formatting(d.formatting) || !itemOptions(d.item_options, MAIN_ITEM_IDS, "main") ||
     typeof d.use_colors !== 'boolean' ||
     !selection(d.items, MAIN_ITEM_IDS) ||
     !PALETTE_VALUES.some((x) => x === d.palette) ||
@@ -162,7 +166,7 @@ export function isDraft(value: unknown): value is Draft {
   if (
     !object(sub) ||
     !exact(sub, ['enabled', 'items', 'item_options', 'visibility', 'hide_completed', 'row_limit', 'task_max_width']) ||
-    !itemOptions(sub.item_options, SUBAGENT_ITEM_IDS) ||
+    !itemOptions(sub.item_options, SUBAGENT_ITEM_IDS, "subagent") ||
     !['all', 'running'].includes(String(sub.visibility)) ||
     typeof sub.hide_completed !== 'boolean' || !range(sub.row_limit, 0, 10000, true) ||
     !range(sub.task_max_width, 2, 10000, true) ||
@@ -302,6 +306,8 @@ function isOptions(value: unknown): value is ConfigurationOptions {
   const choices: Record<string, readonly (string | boolean)[]> = {
     colors: [true, false],
     palette: PALETTE_VALUES,
+    theme: THEME_VALUES,
+    "powerline-glyph": POWERLINEGLYPH_VALUES,
     'directory-style': DIRECTORYSTYLE_VALUES,
     'separator-style': SEPARATORSTYLE_VALUES,
     'scope-labels': SCOPELABELS_VALUES,
