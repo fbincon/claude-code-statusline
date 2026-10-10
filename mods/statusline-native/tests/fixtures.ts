@@ -111,7 +111,7 @@ export function description(): DescribeResult {
     editor_fields: JSON.parse(JSON.stringify(EDITOR_FIELDS)),
     presets: JSON.parse(JSON.stringify(PRESETS)),
     formatting_options: JSON.parse(JSON.stringify(FORMAT_CHOICES)),
-    operations: ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language'],
+    operations: ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import'],
     capabilities: capabilities(),
     options: {
       colors: { choices: [true, false] },
@@ -162,7 +162,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 6, result }));
+  return output(JSON.stringify({ protocol_version: 7, result }));
 }
 
 export function sample(text: string) {
@@ -285,6 +285,7 @@ export function setup(on: On) {
         return { value: reply(readResult(store.draft, store.revision)) };
       if (request.operation === 'read_ui_preferences')
         return { value: reply({schema_version: 1, ui_language: store.uiLanguage ?? 'en', warning: null}) };
+      if (request.operation === 'review_import') return {value:reply({draft:copyDraft(request.payload.draft),changes:[]})};
       if (request.operation === 'set_ui_language') {
         store.uiLanguage = request.payload.ui_language;
         return { value: reply({schema_version: 1, ui_language: store.uiLanguage, warning: null}) };

@@ -88,7 +88,7 @@ class UiPreferenceTests(unittest.TestCase):
 
     def test_protocol_preferences_work_without_renderer_and_errors_keep_metadata(self):
         def request(operation, payload):
-            return protocol.handle(json.dumps({"protocol_version": 6, "operation": operation, "payload": payload}),
+            return protocol.handle(json.dumps({"protocol_version": 7, "operation": operation, "payload": payload}),
                                    self.root, Path("/missing/renderer"))
         response, status = request("read_ui_preferences", {})
         self.assertEqual(status, 0)

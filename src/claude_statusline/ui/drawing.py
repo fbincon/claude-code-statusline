@@ -306,11 +306,14 @@ def _draw_preview(
 ) -> None:
     for offset in range(height):
         _add_text(screen, start_y + offset, x, " " * width, width, mapper.preview_attr)
-    if state.page == "subagents":
-        rows = rendering_subagents.preview_rows(state.display, width)
+    config = state.import_review.display if state.import_review else state.display
+    host = state.import_review.host if state.import_review else state.host
+    subagent = state.import_review.preview_scope == "subagent" if state.import_review else state.page == "subagents"
+    if subagent:
+        rows = rendering_subagents.preview_rows(config, width)
     else:
         rows = rendering_preview.render_preview_rows(
-            state.display, width, state.host.padding
+            config, width, host.padding
         )
     if not rows:
         _add_text(
@@ -404,6 +407,9 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         state.language,
     )
     notice = error or (
+        t("review.intro", state.language)
+        if state.import_review is not None
+        else
         t("catalog.search.choose_category", state.language)
         if state.category_selection is not None
         else
@@ -418,7 +424,7 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         + (state.subagent_search if state.page == "subagents" else state.search)
         + (" _" if state.search_input is not None else "")
     )
-    if not error and state.form_item:
+    if not error and state.form_item and state.import_review is None:
         _draw_shortcuts(
             screen,
             3,
@@ -428,7 +434,7 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             prefix=t("ui.drawing.item_format", state.language),
             language=state.language,
         )
-    elif not error and state.page == "settings":
+    elif not error and state.page == "settings" and state.import_review is None:
         _draw_shortcuts(
             screen,
             3,
@@ -445,6 +451,9 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
 
     is_form = forms.special(state) or state.page == "settings"
     title = (
+        t("review.title", state.language)
+        if state.import_review is not None
+        else
         t("guidance.title", state.language)
         if state.guidance_scroll is not None
         else
@@ -465,7 +474,14 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         else t("ui.drawing.main_items", state.language)
     )
     _draw_panel(screen, panel, title, title_attr)
-    if state.guidance_scroll is not None and state.form_item:
+    if state.import_review is not None:
+        review = state.import_review
+        rows, total = review.window(state.language, panel.inner_width, max(1, panel.inner_height - 1))
+        for row, value in enumerate(rows):
+            attr = theme.SELECTION if value["heading"] and value["section"] == review.selected else 0
+            _add_text(screen, panel.inner_y + row, panel.inner_x, value["text"], panel.inner_width, attr)
+        position = f"{review.scroll + 1}–{review.scroll + len(rows)}/{total}"
+    elif state.guidance_scroll is not None and state.form_item:
         lines = guidance.lines(*state.form_item, state.language, panel.inner_width)
         capacity = max(1, panel.inner_height - 1)
         state.guidance_scroll = min(state.guidance_scroll, max(0, len(lines) - capacity))
@@ -579,15 +595,16 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
     )
 
     preview = layout.preview
+    preview_config = state.import_review.display if state.import_review else state.display
     preview_palette = (
-        t("ui.drawing.palette", state.language) + state.display.palette
-        if state.display.use_colors
+        t("ui.drawing.palette", state.language) + preview_config.palette
+        if preview_config.use_colors
         else t("ui.drawing.colors_off", state.language)
     )
     _draw_panel(
         screen,
         preview,
-        t("ui.drawing.preview_sample_data", state.language) + preview_palette,
+        (t("review.preview", state.language, scope=t("review.sections." + state.import_review.preview_scope, state.language)) if state.import_review else t("ui.drawing.preview_sample_data", state.language) + preview_palette),
         title_attr,
     )
     _draw_preview(
@@ -600,7 +617,10 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         preview.inner_x,
     )
 
-    if state.guidance_scroll is not None:
+    if state.import_review is not None:
+        actions = [Hint("A", msg("ui.hints.accept_draft")), Hint("Esc/Ctrl+G", msg("ui.hints.cancel_review"))]
+        help_text = [Hint("Enter", msg("ui.hints.details")), Hint("↑↓", msg("ui.hints.section")), Hint("PgUp/PgDn", msg("ui.hints.scroll")), Hint("Tab", msg("ui.hints.preview"))]
+    elif state.guidance_scroll is not None:
         actions = [Hint("Ctrl+G/Esc", msg("ui.hints.back"))]
         help_text = [Hint("↑↓", msg("ui.hints.scroll")), Hint("PgUp/PgDn", msg("ui.hints.page")), Hint("Home/End", msg("ui.hints.scroll"))]
     elif state.category_selection is not None:

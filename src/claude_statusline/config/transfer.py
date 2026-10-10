@@ -114,3 +114,11 @@ def export_file(path, draft, config_dir, *, overwrite=False):
     finally:
         Path(temporary).unlink(missing_ok=True)
     return str(path)
+
+
+def review_import(path, current):
+    """Read once and compare with the supplied unsaved draft; never persist."""
+    from claude_statusline.config.import_review import differences
+
+    candidate = import_file(path, current)
+    return {"draft": candidate, "changes": differences(current, candidate)}

@@ -11,6 +11,7 @@ import {
   requestText,
 } from '../lib/backend.ts';
 import { Editor, copyDraft, sameDraft } from '../lib/editor/draft.ts';
+import { createReview } from '../lib/editor/import-review.ts';
 import { canEdit, validPreferenceValue, preferences, preferenceChanged } from '../lib/preferences.ts';
 import type {
   Draft,
@@ -329,8 +330,23 @@ async function transferDraft($: EngineInterface, state: Session, options: Plugin
   setMessage(state.view, "busy", (action === 'export' ? localizedText("native.hooks.register.exporting_current_draft_may_be_unsaved") : localizedText("native.hooks.register.loading_draft")));
   $.ui.invalidate('ui.render');
   try {
+    if (action === 'import') {
+      const original = copyDraft(e.draft);
+      const candidate = new Editor(e.description, {...e.baseline, draft:copyDraft(e.draft)});
+      candidate.buffers = {...e.buffers};
+      if (!candidate.acceptNumeric()) { setMessage(state.view, 'message', localizedText('native.hooks.register.correct_numeric_fields_first')); return; }
+      const result = await callBackend($, options, 'review_import', {draft:copyDraft(candidate.draft), path:e.path});
+      if (state.epoch === epoch && state.view.editor === e) {
+        if (!sameDraft(e.draft, original)) { setMessage(state.view, 'message', localizedText('review.stale')); return; }
+        e.review = createReview(result);
+        state.view.preview = null;
+        state.previewKey = '';
+        state.view.message = '';
+      }
+      return;
+    }
     if (!e.acceptNumeric()) { setMessage(state.view, "message", localizedText("native.hooks.register.correct_numeric_fields_first")); return; }
-    const payload = action === 'preset' ? { draft: copyDraft(e.draft), preset: e.preset } : action === 'import' ? { draft: copyDraft(e.draft), path: e.path } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
+    const payload = action === 'preset' ? { draft: copyDraft(e.draft), preset: e.preset } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
     if (action === 'export') {
       const result = await callBackend($, options, action, payload);
       if (state.epoch === epoch) setMessage(state.view, "message", localizedText("native.hooks.register.exported_current_draft_may_be_unsaved", {path: result.path}));
@@ -591,6 +607,12 @@ export const register: Register = (on, options) => {
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);
         else if (effect === 'retry') state.previewKey = '';
+        else if (effect === 'reviewPreview') {
+          state.previewTimer?.cancel();
+          state.previewKey = '';
+          state.view.preview = null;
+          state.view.previewError = '';
+        }
         else if (effect === 'uiLanguage') {
           const requested = state.view.language ?? 'en';
           try {
@@ -651,7 +673,8 @@ export const register: Register = (on, options) => {
     state.columns = width;
     state.rows = height;
     const editor = state.view.editor;
-    const key = `${state.epoch}:${width}:${editor ? JSON.stringify(editor.draft) : ''}`;
+    const previewDraft = editor?.review?.result.draft ?? editor?.draft;
+    const key = `${state.epoch}:${width}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
     if (
       editor &&
       width >= MIN_COLUMNS &&
@@ -661,7 +684,7 @@ export const register: Register = (on, options) => {
     ) {
       state.previewKey = key;
       const requestedEpoch = state.epoch;
-      const draft = copyDraft(editor.draft);
+      const draft = copyDraft(previewDraft!);
       state.previewTimer?.cancel();
       state.view.previewBusy = true;
       state.previewTimer = $.clock.after(0, async () => {

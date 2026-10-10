@@ -1,4 +1,4 @@
-"""Protocol v6 wire types; TypeScript is generated from these Python types."""
+"""Protocol v7 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display
 
 
-PROTOCOL_VERSION = 6
+PROTOCOL_VERSION = 7
 OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset",
-              "read_ui_preferences", "set_ui_language")
+              "read_ui_preferences", "set_ui_language", "review_import")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
 Palette = Literal.__getitem__(display.PALETTES)
@@ -228,6 +228,21 @@ class TransferResult(TypedDict):
     draft: Draft
 
 
+class ImportChange(TypedDict):
+    section: Literal["main", "subagent", "formatting", "layout", "language", "host"]
+    kind: Literal["enable", "disable", "reorder", "change"]
+    scope: Scope | None
+    item_id: str | None
+    path: list[str]
+    before: object
+    after: object
+    label: LocalizedMessage
+
+
+class ImportReviewResult(TransferResult):
+    changes: list[ImportChange]
+
+
 class ExportResult(TypedDict):
     path: str
 
@@ -297,6 +312,8 @@ WIRE_TYPES = (
     EditorField,
     PresetDescription,
     TransferResult,
+    ImportChange,
+    ImportReviewResult,
     ExportResult,
     DescribeResult,
     ApplyResult,
@@ -307,6 +324,7 @@ RESULTS = {
     "preview": PreviewResult,
     "apply": ApplyResult,
     "import": TransferResult,
+    "review_import": ImportReviewResult,
     "export": ExportResult,
     "preset": TransferResult,
     "read_ui_preferences": UiPreferencesResult,

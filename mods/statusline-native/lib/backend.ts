@@ -230,6 +230,27 @@ function isGuidance(value: unknown): boolean {
     selection(value.requirements, GUIDANCE_KEYS.requirements) && strings(value.setup);
 }
 
+function isImportChange(value: unknown): boolean {
+  if (!object(value) || !exact(value, ['section', 'kind', 'scope', 'item_id', 'path', 'before', 'after', 'label']) ||
+      !['main','subagent','formatting','layout','language','host'].includes(String(value.section)) ||
+      !['enable','disable','reorder','change'].includes(String(value.kind)) ||
+      !(value.scope === null || value.scope === 'main' || value.scope === 'subagent') ||
+      !strings(value.path) || !value.path.length || value.path.length > 6 ||
+      !['display','host'].includes(value.path[0]!) || !isLocalizedText(value.label)) return false;
+  if (value.item_id !== null) {
+    const ids = value.scope === 'main' ? MAIN_ITEM_IDS : value.scope === 'subagent' ? SUBAGENT_ITEM_IDS : [];
+    if (!ids.some(id => id === value.item_id)) return false;
+  }
+  if (value.kind === 'enable' || value.kind === 'disable')
+    return value.item_id !== null && value.before === (value.kind === 'disable') && value.after === (value.kind === 'enable');
+  if (value.kind === 'reorder') {
+    const ids = value.scope === 'main' ? MAIN_ITEM_IDS : value.scope === 'subagent' ? SUBAGENT_ITEM_IDS : [];
+    return value.item_id === null && selection(value.before, ids) && selection(value.after, ids) &&
+      value.before.length === value.after.length && value.before.every(id => (value.after as string[]).includes(id));
+  }
+  return true;
+}
+
 function isCatalog(value: unknown): value is CatalogItem[] {
   if (
     !Array.isArray(value) ||
@@ -416,6 +437,8 @@ export function parseResponse<O extends Operation>(
         !(result.backup_dir === null || typeof result.backup_dir === 'string'))
     )
       fail();
+  } else if (operation === 'review_import') {
+    if (!exact(result, ['draft','changes']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange)) fail();
   } else if (operation === 'import' || operation === 'preset') {
     if (!isDraft(result.draft)) fail();
   } else if (operation === 'export') {
@@ -436,8 +459,8 @@ export function parseResponse<O extends Operation>(
       !result.backend_version ||
       !isOptions(result.options) ||
       !isCapabilities(result.capabilities) ||
-      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language']) ||
-      result.operations.length !== 9 ||
+      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import']) ||
+      result.operations.length !== 10 ||
       JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
       JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
       !object(result.formatting_options) ||

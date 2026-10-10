@@ -11,6 +11,7 @@ import { clip, displayWidth } from '../../ui/layout.ts';
 import { editorLayout, editorShortcuts } from '../../ui/client/help.ts';
 import { shortcutRows, shortcutSpans } from '../../ui/components/shortcuts.ts';
 import { description, readResult } from '../fixtures.ts';
+import { createReview } from '../../lib/editor/import-review.ts';
 
 interface Node { type: string; props: any; children: (Node | string)[] }
 const elements = Object.fromEntries(['Box', 'Text'].map((type) => [type, (props: any) => ({ type, props, children: props.children ?? [] })])) as unknown as ClientElements;
@@ -113,6 +114,26 @@ test('static guidance scrolls and returns to the item form without applying chan
     expect(e.guidanceScroll).toBe(null);
     expect(e.detail?.id).toBe('model-with-effort');
     expect(e.modified).toBe(false);
+  }
+});
+
+test('import review preserves a candidate preview and bounded expanded rows at every size', () => {
+  for (const language of ['en','zh-CN'] as const) for (const [columns,rows] of [[32,12],[64,18],[64,20],[80,24],[120,30],[80,48]]) {
+    const state=view(), e=state.editor!; state.language=language; e.page='settings';
+    const candidate=readResult().draft;candidate.host.padding=7;
+    e.review=createReview({draft:candidate,changes:[{section:'host',kind:'change',scope:null,item_id:null,path:['host','padding'],before:0,after:7,label:{key:'review.fields.padding',params:{},fallback:'Padding'}}]});
+    state.preview={sample:true,main:[[{text:'candidate main',bold:false,foreground:null}]],subagents:[[{text:'candidate agent',bold:false,foreground:null}]]};
+    render(draw(elements,state,columns!,rows!) as unknown as Node);
+    handleKey(state,{key:'return'},columns!,rows!);
+    handleKey(state,{key:'end'},columns!,rows!);
+    let tree=draw(elements,state,columns!,rows!) as unknown as Node;render(tree);
+    expect(text(tree)).toContain('7');
+    expect(e.draft.host.padding).toBe(0);
+    handleKey(state,{key:'tab'},columns!,rows!);
+    tree=draw(elements,state,columns!,rows!) as unknown as Node;render(tree);
+    expect(text(tree)).toContain('candidate agent');
+    expect(handleKey(state,{key:'q'},columns!,rows!)).toBe('reviewPreview');
+    expect(e.review).toBe(null);expect(e.draft.host.padding).toBe(0);
   }
 });
 

@@ -121,7 +121,7 @@ def owner(
             or value["schema_version"] != 1
             or type(value["suspended"]) is not bool
             or type(value["protocol_version"]) is not int
-            or value["protocol_version"] not in (1, 2, 3, 4, 5, 6)
+            or value["protocol_version"] not in (1, 2, 3, 4, 5, 6, 7)
             or not isinstance(value["files"], dict)
             or not value["files"]
             or any(

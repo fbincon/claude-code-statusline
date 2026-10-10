@@ -6,6 +6,7 @@ import curses
 from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import forms
 from claude_statusline.ui import search as item_search
+from claude_statusline.i18n import message as msg
 from claude_statusline.config.display import DisplayConfigError
 from claude_statusline.ui import models as ui_models
 
@@ -24,6 +25,28 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         return ui_models.INTERRUPT
     if key == curses.KEY_RESIZE:
         state.ensure_visible(viewport_height)
+        return None
+
+    if state.import_review is not None:
+        review = state.import_review
+        if key in ("\x1b", "\x07", "q", "Q"):
+            state.import_review = None
+            state.notice = msg("review.cancelled")
+        elif key in ("a", "A"):
+            forms.replace_draft(state, review.result["draft"])
+            state.notice = msg("review.accepted")
+        elif _is_enter(key):
+            review.toggle()
+        elif key in (curses.KEY_UP, curses.KEY_DOWN):
+            review.move_section(-1 if key == curses.KEY_UP else 1)
+        elif key in (curses.KEY_PPAGE, curses.KEY_NPAGE):
+            review.follow_selection = False
+            review.scroll += viewport_height * (-1 if key == curses.KEY_PPAGE else 1)
+        elif key in (curses.KEY_HOME, curses.KEY_END):
+            review.follow_selection = False
+            review.scroll = 0 if key == curses.KEY_HOME else 1_000_000
+        elif key == "\t":
+            review.preview_scope = "subagent" if review.preview_scope == "main" else "main"
         return None
 
     if state.guidance_scroll is not None:

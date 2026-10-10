@@ -276,6 +276,7 @@ def replace_draft(state, draft):
     state.numeric_edit = None
     state.form_item = None
     state.guidance_scroll = None
+    state.import_review = None
     state.form_index = state.form_scroll = state.setting_index = (
         state.settings_scroll
     ) = 0

@@ -8,6 +8,7 @@ import type {
 import { NUMERIC_FIELDS, numericValue, numericDiagnostic } from './numeric.ts';
 import { bestMatch, fields, normalize } from './search.ts';
 import type { Match } from './search.ts';
+import type { ReviewState } from './import-review.ts';
 import type { LocalizedText } from '../i18n/index.ts';
 import type { NumericField } from './numeric.ts';
 export type { NumericField } from './numeric.ts';
@@ -31,6 +32,7 @@ export class Editor {
   advanced = false;
   detail: { scope: Scope; id: string } | null = null;
   guidanceScroll: number | null = null;
+  review: ReviewState | null = null;
   preset = 'minimal';
   path = 'statusline.json';
   pendingTransfer: 'import' | 'export' | 'preset' | null = null;
@@ -80,6 +82,7 @@ export class Editor {
     this.activeNumeric = null;
     this.detail = null;
     this.guidanceScroll = null;
+    this.review = null;
   }
 
   get modified(): boolean {

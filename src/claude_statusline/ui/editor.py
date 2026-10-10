@@ -15,6 +15,7 @@ from claude_statusline.ui import models as ui_models
 from claude_statusline.ui import forms
 from claude_statusline.ui import layout as ui_layout
 from claude_statusline.ui import search as item_search
+from claude_statusline.ui.import_review import ReviewState
 
 
 @dataclass
@@ -53,6 +54,7 @@ class EditorState:
     category_selection: str | None = None
     search_input: tuple[str, str | None] | None = None
     guidance_scroll: int | None = None
+    import_review: ReviewState | None = None
 
     @classmethod
     def from_effective(
