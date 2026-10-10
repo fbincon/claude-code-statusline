@@ -13,6 +13,16 @@ function view(): View {
     message: '', busy: '', uncertain: false };
 }
 
+test('search input uses the same 256-codepoint limit as the external editor', () => {
+  const state=view(), e=state.editor!;
+  e.search.main='😀'.repeat(255);
+  state.input={kind:'search',scope:'main',original:'',selected:e.selected.main};
+  handleKey(state,{key:'界'},80,24);
+  handleKey(state,{key:'x'},80,24);
+  expect([...e.search.main].length).toBe(256);
+  expect(e.search.main.endsWith('界')).toBe(true);
+});
+
 test('ordinary controls accept both cases and Shift without consuming Ctrl or Meta combinations', () => {
   for (const [key, effect] of [['s', 'save'], ['f', 'finish'], ['q', 'close'], ['r', 'reload'], ['v', 'retry'], ['k', 'reconcile']]) {
     for (const spelling of [key!, key!.toUpperCase()]) {

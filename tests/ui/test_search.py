@@ -86,6 +86,7 @@ class SearchTests(unittest.TestCase):
             self.assertIsNone(keys.handle_key(state, key, 5))
         self.assertEqual(state.search, "Model with effort")
         self.assertFalse(state.modified)
+
         keys.handle_key(state, "\x07", 5)
         self.assertEqual((state.search, state.selected_item), original)
         for key in "/Model with effort\n":
@@ -93,6 +94,12 @@ class SearchTests(unittest.TestCase):
         self.assertEqual(state.selected_item, "model-with-effort")
         self.assertIsNone(state.search_input)
         self.assertFalse(state.modified)
+
+    def test_search_length_counts_original_unicode_codepoints(self):
+        state = EditorState.from_effective(effective())
+        state.append_search("😀" * 255 + "界x")
+        self.assertEqual(len(state.search), 256)
+        self.assertTrue(state.search.endswith("界"))
 
     def test_search_refocuses_better_matches_but_navigation_keeps_weaker_matches(self):
         state = EditorState.from_effective(effective())

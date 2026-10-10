@@ -191,6 +191,7 @@ class EditorState:
 
     def _search_changed(self, scope: str) -> None:
         self.notice = ""
+        self.repaint = True
         subagent = scope == "subagent"
         visible = self._normalize_subagent_selection() if subagent else self._normalize_item_selection()
         if not visible:
