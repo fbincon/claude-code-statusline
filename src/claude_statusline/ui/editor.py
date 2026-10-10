@@ -55,6 +55,7 @@ class EditorState:
     search_input: tuple[str, str | None] | None = None
     guidance_scroll: int | None = None
     import_review: ReviewState | None = None
+    repaint: bool = False
 
     @classmethod
     def from_effective(
@@ -148,6 +149,7 @@ class EditorState:
         return bool(item_search.normalize(self.search)[0]) or self.category != "all"
 
     def choose_category(self, category: str) -> None:
+        self.repaint = True
         if self.page == "subagents":
             self.subagent_category = category
             self._search_changed("subagent")
@@ -412,6 +414,7 @@ class EditorState:
         current = pages.index(self.page) if self.page in pages else 0
         self.page = pages[(current + direction) % len(pages)]
         self.form_item = None
+        self.repaint = True
         return True
 
     def _cycle(self, value, choices: tuple, direction: int):

@@ -24,6 +24,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
     if key == "\x03":
         return ui_models.INTERRUPT
     if key == curses.KEY_RESIZE:
+        state.repaint = True
         state.ensure_visible(viewport_height)
         return None
 
@@ -31,6 +32,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         review = state.import_review
         if key in ("\x1b", "\x07", "q", "Q"):
             state.import_review = None
+            state.repaint = True
             state.notice = msg("review.cancelled")
         elif key in ("a", "A"):
             forms.replace_draft(state, review.result["draft"])
@@ -52,6 +54,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
     if state.guidance_scroll is not None:
         if key in ("\x1b", "\x07"):
             state.guidance_scroll = None
+            state.repaint = True
         elif key in (curses.KEY_UP, curses.KEY_PPAGE):
             state.guidance_scroll = max(0, state.guidance_scroll - (viewport_height if key == curses.KEY_PPAGE else 1))
         elif key in (curses.KEY_DOWN, curses.KEY_NPAGE):
@@ -68,6 +71,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         index = categories.index(state.category_selection)
         if key in ("\x1b", "\x07"):
             state.category_selection = None
+            state.repaint = True
         elif _is_enter(key):
             state.choose_category(state.category_selection)
         elif key in (curses.KEY_UP, curses.KEY_LEFT):
@@ -121,8 +125,10 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         return None
     if key == "\x07" and state.form_item:
         state.form_item = None
+        state.repaint = True
         return None
     if key == "\x06" and state.page in ("items", "subagents") and not state.form_item:
+        state.repaint = True
         state.category_selection = state.subagent_category if state.page == "subagents" else state.category
         return None
     if key == "/" and state.page in ("items", "subagents") and not state.form_item:
@@ -135,6 +141,7 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         )
         if item:
             state.form_item = (scope, item)
+            state.repaint = True
             state.form_index = state.form_scroll = 0
             forms.select(state, next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "item:label"))
         return None

@@ -232,6 +232,7 @@ def begin(state):
     row = current(state)
     if row["key"] == "item-guidance":
         state.guidance_scroll = 0
+        state.repaint = True
         state.notice = ""
         return None
     if row["key"] == "preset-apply":
@@ -277,6 +278,7 @@ def replace_draft(state, draft):
     state.form_item = None
     state.guidance_scroll = None
     state.import_review = None
+    state.repaint = True
     state.form_index = state.form_scroll = state.setting_index = (
         state.settings_scroll
     ) = 0
