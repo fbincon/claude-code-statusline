@@ -447,6 +447,7 @@ def main() -> int:
     parser.add_argument("--backend", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--commit", required=True)
+    parser.add_argument("--discovery", action="store_true", help="Verify bilingual search, categories, guidance and import review")
     parser.add_argument(
         "--language-only",
         action="store_true",
@@ -480,6 +481,12 @@ def main() -> int:
         "cases": [],
     }
     for columns, rows in ((64, 18), (64, 20), (80, 24), (120, 30), (80, 48)):
+        if args.discovery:
+            from editor_discovery_acceptance import external_case
+            for language in ("en", "zh-CN"):
+                report["cases"].append(external_case(backend, root / f"{columns}x{rows}-{language}", columns, rows, args.commit, language, args.terminal_theme))
+                (root / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+            continue
         report["cases"].append(
             run_case(
                 backend,

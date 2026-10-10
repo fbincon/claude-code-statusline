@@ -60,6 +60,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   }
   const input = view.input;
   if (input?.kind === 'category') {
+    setMessage(view, 'message', '');
     const categories = e.categories(input.scope);
     const index = categories.indexOf(input.selected);
     if (key === 'return') { e.chooseCategory(input.scope, input.selected); view.input = null; }
@@ -94,6 +95,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     return null;
   }
   if (input) {
+    if (input.kind === 'search') setMessage(view, 'message', '');
     if (event.ctrl && key.toLowerCase() === 'u') {
       if (input.kind === 'search') e.filter(input.scope, ''); else e.setBuffer(input.field, '');
     } else if (key === 'return') {

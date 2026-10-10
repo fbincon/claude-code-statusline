@@ -46,6 +46,7 @@ class SearchTests(unittest.TestCase):
         state.toggle_selected_item()
         self.assertEqual(state.final_items(), tuple(i for i in order if i in state.enabled))
         state.clear_search()
+        self.assertEqual(state.notice, "")
         self.assertFalse(state.move_selected_item(1))
         state.choose_category("all")
         self.assertEqual(state.visible_items(), order)
