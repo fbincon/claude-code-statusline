@@ -370,12 +370,14 @@ claude-code-statusline/
 ├── pyproject.toml                           # 软件包元数据、依赖与构建配置
 ├── docs/                                    # 使用、参考与开发文档
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # 安装、配置与故障排查
+│   ├── APPEARANCE.md / APPEARANCE.zh-CN.md  # 条件显示、逐项颜色、主题与 Powerline
 │   ├── reference/                           # CLI 与配置参考
 │   ├── images/                              # 当前 TUI 截图与历史归档
 │   │   ├── tui/                             # 当前配置编辑器截图
 │   │   │   ├── native/                      # 会话内配置编辑器截图
 │   │   │   └── external/                    # 外部终端配置编辑器截图
 │   │   ├── discovery/                       # 搜索、来源说明与导入审阅捕获
+│   │   ├── appearance/                      # 颜色设置与 Powerline 捕获
 │   │   └── archive/                         # 历史截图与界面重建记录
 │   ├── development/                         # 开发环境、架构与验证
 │   └── releases/                            # 历史发布说明

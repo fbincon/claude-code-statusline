@@ -43,3 +43,7 @@ python tools/rendering_acceptance.py --python /absolute/installed-venv/bin/pytho
 ```
 
 This checks color and monochrome PTYs at 32/64/120 columns, clusters across SGR boundaries, indexed/RGB backgrounds, selective resets, shorter redraws and resizing. The `--source` option is only for development probes and is recorded separately from installed-package acceptance.
+
+## Visibility and item appearance
+
+Visibility consumes the same lazy Git/live snapshots and unrounded usage values as rendering. Only complete zero/clean evidence suppresses an item; formatting is not parsed back into observations. Theme palettes provide semantic foregrounds, then item channel overrides apply across all styled units, including label/icon prefixes and internal resets. Enabled risk foregrounds win over overrides. Powerline composes visible blocks after fitting, budgeting padding/boundaries and resetting each output row. The classic path keeps legacy bytes and lazy imports. Shared color quantization lives in `rendering.colors`; curses retains its compatibility exports. See [user behavior](../APPEARANCE.md) and the shared appearance/legacy fixtures in tests.

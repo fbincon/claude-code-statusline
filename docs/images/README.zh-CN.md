@@ -258,3 +258,14 @@ images/
 | [discovery/native/review-zh-CN.png](discovery/native/review-zh-CN.png) | `9a2537723d3f7212576eb61078b9a8cb2413dd22d4e5aeeed0121777986b9a0f` | `5697b27f6c597c1b17ad5ca489af097f04f5a916e0b696431c9ecdc75a7311ab` |
 
 </details>
+
+<a id="conditional-appearance-captures"></a>
+
+## 条件显示与外观捕获
+
+来源为 Linux 安装包候选提交 `bf53c807fbe1a924b5137b887a6af59bc6acebac`，原生宿主 2.1.294。原生 120×30 捕获裁剪到 Client 区域，外部 120×30 保留全帧。使用 DejaVu Sans Mono 与 Noto Sans CJK 重建原始解码单元格；外部颜色反映 256 色量化，原生保留直接 RGB。原始终端流、单元格和报告保存在忽略的 `dist/validation/v1.12`。已做 agent 图片检查，无新增真人验收或付费模型调用。
+
+| PNG | PNG SHA256 | Cell capture SHA256 |
+| --- | --- | --- |
+| [native-dark-en.png](appearance/native-dark-en.png) | `711c322f2dcca7b0949097f98763d90ca56e1afba0fc8815104b583a88c9eb5c` | `84d271985dc45130b0c0055a95a67a5ac7886f41b742adeee37fe35b935586f0` |
+| [external-light-zh-CN.png](appearance/external-light-zh-CN.png) | `43440b8a8d2fd0c5ac67dc6c0fea1ea381a7b520b82684f95b3934f45c45edf0` | `b70552ee390683e17e7ff7df83dc15979b1700cc10289af6bc806702e6d76a2f` |

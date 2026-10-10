@@ -144,3 +144,29 @@ class AppearanceRenderingTests(unittest.TestCase):
         self.assertTrue(subagents.render_task({**task, "tokenCount": 14000}, cfg))
         for width in (1, 2, 3, 4, 15):
             self.assertLessEqual(layout._display_width(subagents.render_task({**task, "tokenCount": 14000}, cfg, columns=width)), width)
+
+    def test_hidden_subagent_content_preserves_ids_order_and_row_quota(self):
+        cfg = display.DEFAULT_CONFIG.with_updates(separator_style="powerline", subagents=display.SubagentDisplayConfig(
+            items=("context-used",), row_limit=1, item_options={"context-used": formatting.ItemOptions(visibility="used-at-least")}))
+        task = {"status": "running", "contextWindowSize": 1000}
+        rows = subagents.render_payload({"columns": 30, "tasks": [
+            {**task, "id": "low", "tokenCount": 699}, {**task, "id": "high", "tokenCount": 700},
+            {**task, "id": "limited", "tokenCount": 900}]}, cfg)
+        self.assertEqual([r["id"] for r in rows], ["low", "high", "limited"])
+        self.assertEqual(rows[0]["content"], "")
+        self.assertTrue(rows[1]["content"])
+        self.assertEqual(rows[2]["content"], "")
+
+    def test_conditions_reuse_one_lazy_collection_per_source(self):
+        from claude_statusline.runtime.live import snapshot
+        cfg = self.config(("git", "git-changes", "active-agents", "task-progress"), item_options={
+            "git": formatting.ItemOptions(visibility="git-dirty"), "git-changes": formatting.ItemOptions(visibility="git-dirty"),
+            "active-agents": formatting.ItemOptions(visibility="nonzero"), "task-progress": formatting.ItemOptions(visibility="nonzero")})
+        git = {"kind": "ok", "branch": "main", "upstream": "origin/main", "upstream_gone": False,
+               "staged": 1, "unstaged": 0, "conflicts": 0, "untracked": 0, "ahead": 0, "behind": 0}
+        points = {"active-agents": {"value": 2, "partial": False, "reason": None},
+                  "task-progress": {"value": {"completed": 1, "total": 2}, "partial": False, "reason": None}}
+        with mock.patch.object(items.runtime_git, "git_status", return_value=git) as git_call, mock.patch.object(snapshot, "collect", return_value=points) as live_call:
+            self.assertTrue(self.render({"workspace": {"current_dir": "/fixture/project"}, "session_id": "example"}, cfg))
+        self.assertEqual(git_call.call_count, 1)
+        self.assertEqual(live_call.call_count, 1)

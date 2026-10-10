@@ -63,3 +63,11 @@ Powerline 默认关闭，开启后默认使用 `>`。选择 `powerline` 字形�
 读取版本 1–6 时不改写文件，实际保存时先备份原始字节，再写入 schema 7。旧文件缺失的设置采用经典主题、ASCII 字形、继承颜色与 `always`。导入审阅包含新增字段，接受时仅替换草稿；未来 schema、非法颜色和不适用于该作用域显示项的规则会被拒绝。
 
 降级前保存／导出当前配置，按[发布指南](RELEASING.zh-CN.md)的要求使用新版软件移除原生编辑器，安装旧版后恢复迁移前的兼容显示配置备份。不要只修改 schema 数字，也不要期望旧软件保留新字段。恢复操作见[用户指南](USER_GUIDE.zh-CN.md)。
+
+## 实际终端捕获示例
+
+下图由安装包的实际终端输出和固定样例数据重建；[图片索引](images/README.zh-CN.md#conditional-appearance-captures)记录来源。图片检查不代表真人平台验收。
+
+![Powerline](images/appearance/native-dark-en.png)
+
+![Item colors](images/appearance/external-light-zh-CN.png)

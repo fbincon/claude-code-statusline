@@ -382,12 +382,14 @@ claude-code-statusline/
 ├── pyproject.toml                           # Package metadata, dependencies and build configuration
 ├── docs/                                    # User, reference and development documentation
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # Installation, configuration and troubleshooting
+│   ├── APPEARANCE.md / APPEARANCE.zh-CN.md  # Visibility, item colors, themes and Powerline
 │   ├── reference/                           # CLI and configuration reference
 │   ├── images/                              # Current TUI screenshots and historical archives
 │   │   ├── tui/                             # Current configuration editor screenshots
 │   │   │   ├── native/                      # In-session configuration editor screenshots
 │   │   │   └── external/                    # External terminal configuration editor screenshots
 │   │   ├── discovery/                       # Search, source guidance and import-review captures
+│   │   ├── appearance/                      # Color controls and Powerline captures
 │   │   └── archive/                         # Historical screenshots and UI reconstructions
 │   ├── development/                         # Development setup, architecture and validation
 │   └── releases/                            # Historical release notes

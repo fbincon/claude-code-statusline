@@ -63,3 +63,11 @@ Display schema **7** adds global `theme` / `powerline_glyph` and per-item `foreg
 Versions 1–6 are read without rewriting files. An actual save backs up the original bytes and writes schema 7 with classic theme, ASCII glyph, inherited colors and `always` rules where older files have no settings. Import review includes the new fields and only replaces the draft on acceptance. Future schemas, malformed colors and rules unsupported by a scoped item are rejected.
 
 For downgrade, preserve/export the current configuration, remove the native editor with the newer package if required by the [release guide](RELEASING.md), install the older package and restore its compatible pre-migration display backup. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
+
+## Captured examples
+
+These are reconstructions of installed terminal output with fixed sample data; see the [image provenance](images/README.md#conditional-appearance-captures). They are not human platform acceptance.
+
+![Powerline](images/appearance/native-dark-en.png)
+
+![Item colors](images/appearance/external-light-zh-CN.png)
