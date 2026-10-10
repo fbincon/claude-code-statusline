@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import re
-import unicodedata
+from . import text as terminal_text
 from dataclasses import dataclass
 from claude_statusline.rendering import palette as rendering_palette
 
@@ -35,19 +35,11 @@ class _StyledUnit:
 
 
 def _char_width(ch):
-    """Return a dependency-free approximation of terminal cell width."""
-    if not ch or unicodedata.combining(ch):
-        return 0
-    category = unicodedata.category(ch)
-    if category in ("Cc", "Cf"):
-        return 0
-    return 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
+    return terminal_text.char_width(ch)
 
 
 def _display_width(text):
-    """Measure visible terminal cells while ignoring the SGR sequences we emit."""
-    plain = ANSI_SGR_RE.sub("", text or "")
-    return sum(_char_width(ch) for ch in plain)
+    return terminal_text.display_width(ANSI_SGR_RE.sub("", text or ""))
 
 
 def _terminal_content_width(env=None):
@@ -62,44 +54,41 @@ def _terminal_content_width(env=None):
     return max(MIN_CONTENT_WIDTH, columns - STATUSLINE_WIDTH_MARGIN)
 
 
-def _sgr_style_after(sequence):
-    """Track the simple full-style SGR sequences used by this renderer."""
-    params = sequence[2:-1]
-    values = params.replace(":", ";").split(";") if params else ["0"]
-    resets = "0" in values
-    non_reset = any(value not in ("", "0") for value in values)
-    if resets and not non_reset:
-        return ""
-    # Every non-reset SGR emitted above is a complete style, not a partial
-    # modifier, so replacing the active style is both sufficient and safer.
-    return sequence
+def _sgr_style_after(sequence, current=""):
+    """Compatibility serializer for an incremental style transition."""
+    from . import styles
+
+    return styles.advance(styles.parse(current), sequence).sgr()
 
 
 def _styled_units(text):
-    """Convert ANSI-colored text into visible units carrying their active style."""
-    units = []
-    style = ""
+    """Partition the visible row first, then attach each grapheme's base style."""
+    from . import styles
+
+    plain, states = [], []
+    state = styles.DEFAULT
     position = 0
     for match in ANSI_SGR_RE.finditer(text):
-        for ch in text[position : match.start()]:
-            width = _char_width(ch)
-            if width == 0 and units and units[-1].style == style:
-                previous = units[-1]
-                units[-1] = _StyledUnit(
-                    previous.text + ch, previous.width, previous.style
-                )
-            else:
-                units.append(_StyledUnit(ch, width, style))
-        style = _sgr_style_after(match.group(0))
+        part = text[position : match.start()]
+        plain.append(part)
+        states.extend([state] * len(part))
+        state = styles.advance(state, match.group())
         position = match.end()
-    for ch in text[position:]:
-        width = _char_width(ch)
-        if width == 0 and units and units[-1].style == style:
-            previous = units[-1]
-            units[-1] = _StyledUnit(previous.text + ch, previous.width, previous.style)
-        else:
-            units.append(_StyledUnit(ch, width, style))
-    return units
+    part = text[position:]
+    plain.append(part)
+    states.extend([state] * len(part))
+    result, position = [], 0
+    for cluster in terminal_text.graphemes("".join(plain)):
+        base = next((i for i, char in enumerate(cluster) if _char_width(char)), 0)
+        result.append(
+            _StyledUnit(
+                cluster,
+                terminal_text.cluster_width(cluster),
+                states[position + base].sgr(),
+            )
+        )
+        position += len(cluster)
+    return result
 
 
 def _render_styled_units(units):
@@ -119,30 +108,40 @@ def _render_styled_units(units):
     return "".join(output)
 
 
-def truncate_styled(text, width):
-    """Clip terminal cells while preserving combining units and color resets."""
-    if _display_width(text) <= width:
-        return text
-    units = []
-    used = 0
-    for unit in _styled_units(text):
-        if used + unit.width > max(0, width - 1):
+def truncate_styled(text, width, *, ellipsis="…"):
+    """Clip complete graphemes and emit self-contained supported SGR state."""
+    width = max(0, int(width))
+    if not width:
+        return ""
+    source = _styled_units(text)
+    if sum(unit.width for unit in source) <= width:
+        return _render_styled_units(source)
+    suffix_width = _display_width(ellipsis)
+    if suffix_width > width:
+        ellipsis, suffix_width = "", 0
+    units, used = [], 0
+    for unit in source:
+        if used + unit.width > width - suffix_width:
             break
         units.append(unit)
         used += unit.width
-    if width > 0:
-        units.append(_StyledUnit("…", 1, units[-1].style if units else ""))
+    if ellipsis:
+        units.append(
+            _StyledUnit(ellipsis, suffix_width, units[-1].style if units else "")
+        )
     return _render_styled_units(units)
 
 
 def _split_ansi_text(text, width, prefer_slashes=False):
     """Split colored text without data loss, optionally preferring path slashes."""
     width = max(MIN_CONTENT_WIDTH, int(width))
-    if _display_width(text) <= width:
-        return [text]
     units = _styled_units(text)
+    if sum(unit.width for unit in units) <= width:
+        return [_render_styled_units(units)]
     if not units:
         return [text]
+    # A grapheme wider than the entire viewport cannot be split safely.
+    units = [u if u.width <= width else _StyledUnit("…", 1, u.style) for u in units]
 
     chunks = []
     start = 0
@@ -181,6 +180,21 @@ def _split_ansi_text(text, width, prefer_slashes=False):
 def _ensure_reset(text, reset=rendering_palette.C_RESET):
     if not reset:
         return text
+    # Ordinary generated styles already sit between graphemes. Avoid parsing
+    # style state on that hot path, but normalize any boundary inside a cluster.
+    plain = ANSI_SGR_RE.sub("", text)
+    if not (plain.isascii() and plain.isprintable()):
+        boundaries = {0}
+        offset = 0
+        for cluster in terminal_text.graphemes(plain):
+            offset += len(cluster)
+            boundaries.add(offset)
+        removed = 0
+        for match in ANSI_SGR_RE.finditer(text):
+            if match.start() - removed not in boundaries:
+                text = _render_styled_units(_styled_units(text))
+                break
+            removed += len(match.group())
     return text if text.endswith(reset) else text + reset
 
 

@@ -1,0 +1,2 @@
+# Preserve canonical Unicode source bytes across Windows and POSIX checkouts.
+tools/unicode/* text eol=lf

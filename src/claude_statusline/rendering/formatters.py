@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
+from . import text as terminal_text
 
 
 def deep_get(d, path):
@@ -22,74 +23,24 @@ ANSI_RESET = "\x1b[0m"
 
 
 def char_width(character: str) -> int:
-    if not character or unicodedata.combining(character):
-        return 0
-    category = unicodedata.category(character)
-    if category in ("Cc", "Cf"):
-        return 0
-    return 2 if unicodedata.east_asian_width(character) in ("W", "F") else 1
+    return terminal_text.char_width(character)
 
 
 def display_width(text: str | None) -> int:
-    plain = ANSI_SGR_RE.sub("", text or "")
-    return sum(width for _unit, width in _plain_units(plain))
+    return terminal_text.display_width(ANSI_SGR_RE.sub("", text or ""))
 
 
 def _plain_units(text: str) -> list[tuple[str, int]]:
-    """Group combining marks and common emoji joiners for safe truncation."""
-    units: list[tuple[str, int]] = []
-    regional_pending = False
-    join_next = False
-    for character in text:
-        codepoint = ord(character)
-        combining = bool(unicodedata.combining(character))
-        variation = 0xFE00 <= codepoint <= 0xFE0F
-        emoji_modifier = 0x1F3FB <= codepoint <= 0x1F3FF
-        regional = 0x1F1E6 <= codepoint <= 0x1F1FF
-        if character == "\u200d":
-            if units:
-                value, width = units[-1]
-                units[-1] = (value + character, width)
-                join_next = True
-            continue
-        if units and (combining or variation or emoji_modifier or join_next):
-            value, width = units[-1]
-            width = max(width, char_width(character)) if join_next else width
-            units[-1] = (value + character, width)
-            join_next = False
-            continue
-        if regional and regional_pending and units:
-            value, _width = units[-1]
-            units[-1] = (value + character, 2)
-            regional_pending = False
-            continue
-        width = char_width(character)
-        units.append((character, width))
-        regional_pending = regional
-        join_next = False
-    return units
+    return terminal_text.units(text)
 
 
 def truncate_text(text: str, maximum_width: int, *, ellipsis: str = "…") -> str:
-    """Return a single-line prefix no wider than ``maximum_width``."""
-    maximum_width = max(0, int(maximum_width))
-    if display_width(text) <= maximum_width:
-        return text
-    if maximum_width == 0:
-        return ""
-    ellipsis_width = display_width(ellipsis)
-    if ellipsis_width > maximum_width:
-        ellipsis = ""
-        ellipsis_width = 0
-    budget = maximum_width - ellipsis_width
-    output: list[str] = []
-    used = 0
-    for unit, width in _plain_units(text):
-        if width and used + width > budget:
-            break
-        output.append(unit)
-        used += width
-    return "".join(output) + ellipsis
+    """Clip at a whole grapheme, preserving SGR state when present."""
+    if "\x1b[" in text:
+        from .layout import truncate_styled
+
+        return truncate_styled(text, maximum_width, ellipsis=ellipsis)
+    return terminal_text.clip(text, maximum_width, ellipsis)
 
 
 def sanitize_payload_text(value: object) -> str | None:
@@ -101,7 +52,11 @@ def sanitize_payload_text(value: object) -> str | None:
         category = unicodedata.category(character)
         if character in "\r\n\t":
             output.append(" ")
-        elif category == "Cc" or (category == "Cf" and character != "\u200d"):
+        elif category == "Cc" or (
+            category == "Cf"
+            and character != "\u200d"
+            and not 0xE0020 <= ord(character) <= 0xE007F
+        ):
             output.append(" ")
         elif category == "Cs":
             output.append(" ")

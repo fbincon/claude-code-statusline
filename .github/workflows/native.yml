@@ -72,6 +72,7 @@ jobs:
         run: python tools/prepare_mod_types.py
       - name: Shared protocol contracts
         run: |
+          python tools/generate_unicode.py --check
           python tools/generate_ui_contracts.py --check
           python tools/generate_i18n.py --check
           python tools/generate_editor_fixtures.py --check
