@@ -274,7 +274,7 @@ The same 50-sample warm harness measured baseline v1.8.0 P50/P95 54.261/66.363 m
 
 ## Discovery and import review acceptance
 
-The local suite passes 729 Python tests (721 passes, eight platform skips), 87 native and ten runtime official Mod tests. Shared search fixtures check tiers, Unicode code-point mappings, stable ties and generated catalog metadata. Modal tests cover category isolation, all item explanations, structured import differences, narrow geometry, candidate previews, cancellation, acceptance and concurrent-save conflicts. Normal model-only rendering was checked in a fresh process and loads none of the editor search/guidance/review modules.
+The local suite passes 730 Python tests (722 passes, eight platform skips), 87 native and ten runtime official Mod tests. Shared search fixtures check tiers, Unicode code-point mappings, stable ties and generated catalog metadata. Modal tests cover category isolation, all item explanations, structured import differences, narrow geometry, candidate previews, cancellation, acceptance and concurrent-save conflicts. Normal model-only rendering was checked in a fresh process and loads none of the editor search/guidance/review modules.
 
 Installed 1.10.0 wheels at `469c08cbf10526898178d2177a6ffa4f1206ad99` passed discovery scenarios in English and Chinese: external 64×18, 64×20, 80×24, 120×30, 80×48; native 120×30 and 80×48 with fixed Claude Code 2.1.294 and an officially installed persistent Mod. Native discovery uses a direct PTY so a multiplexer cannot convert the chosen RGB preview surface. The normal advanced runner retains its existing tmux/popup path.
 

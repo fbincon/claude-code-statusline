@@ -101,6 +101,42 @@ class FileLockTests(unittest.TestCase):
         with platform_files.exclusive_file_lock(lock):
             self.assertTrue(lock.is_file())
 
+    def test_windows_locks_empty_and_legacy_files_without_unlocked_writes(self):
+        lock = self.root / "state.lock"
+        actions = []
+
+        def locking(descriptor, operation, length):
+            actions.append((operation, length, os.lseek(descriptor, 0, os.SEEK_CUR)))
+
+        crt = SimpleNamespace(LK_LOCK=1, LK_UNLCK=0, locking=locking)
+        for content in (b"", b"\0"):
+            with self.subTest(content=content):
+                lock.write_bytes(content)
+                actions.clear()
+                with (
+                    mock.patch.object(
+                        platform_environment, "is_windows", return_value=True
+                    ),
+                    mock.patch.object(
+                        platform_environment, "uses_posix_files", return_value=False
+                    ),
+                    mock.patch.dict(sys.modules, {"msvcrt": crt}),
+                    # Another handle may have locked byte zero after we opened
+                    # the file. Writes before acquiring the range must not occur.
+                    mock.patch.object(
+                        platform_files.os,
+                        "write",
+                        side_effect=PermissionError(
+                            errno.EACCES, "locked by another process"
+                        ),
+                    ),
+                ):
+                    with platform_files.exclusive_file_lock(lock) as descriptor:
+                        self.assertEqual(actions, [(crt.LK_LOCK, 1, 0)])
+                        os.lseek(descriptor, 37, os.SEEK_SET)
+                    self.assertEqual(actions[-1], (crt.LK_UNLCK, 1, 0))
+                self.assertEqual(lock.read_bytes(), content)
+
     def test_independent_processes_do_not_lose_updates(self):
         counter = self.root / "counter.txt"
         counter.write_text("0", encoding="ascii")
