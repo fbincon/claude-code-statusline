@@ -201,7 +201,7 @@ def main():
         "--display-case", choices=("legacy", "formatted", "explicit"), default="legacy"
     )
     parser.add_argument(
-        "--suite", choices=("legacy", "representative"), default="legacy"
+        "--suite", choices=("legacy", "representative", "appearance"), default="legacy"
     )
     parser.add_argument(
         "--profiles",
@@ -237,7 +237,11 @@ def main():
             check=True,
         ).stdout.strip()
     )
-    if args.suite == "representative":
+    if args.suite == "appearance":
+        from benchmarking.appearance import run
+
+        results = run(args.samples, args.bytecode_mode, measure)
+    elif args.suite == "representative":
         from benchmarking.render import run
 
         results = run(args.samples, args.bytecode_mode, args.profiles, measure)
@@ -258,10 +262,10 @@ def main():
         **results,
         "suite": args.suite,
         "display_case": "matrix"
-        if args.suite == "representative"
+        if args.suite in ("representative", "appearance")
         else args.display_case,
         "statusline_language": ["en", "zh-CN"]
-        if args.suite == "representative"
+        if args.suite in ("representative", "appearance")
         else args.language,
         "working_tree_dirty": False
         if args.source_commit
@@ -272,7 +276,7 @@ def main():
         "benchmark_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "fixtures": "isolated synthetic local files; no model calls",
         "fixture_source_sha256": hashlib.sha256(
-            (Path(__file__).parent / "benchmarking/render.py").read_bytes()
+            (Path(__file__).parent / ("benchmarking/appearance.py" if args.suite == "appearance" else "benchmarking/render.py")).read_bytes()
         ).hexdigest(),
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)

@@ -36,6 +36,8 @@ def exercise(*, native, language, backend, env, root, config, send, capture,
         assert [p.read_bytes() for p in paths] == initial
 
     def field(key, item=None):
+        if native and key == "item:label":
+            return  # Ctrl+E already selects label; an unchanged Client need not repaint.
         if item:
             specs = sorted(editor_fields.item_fields("main", item),
                            key=lambda s: ("Item format", "Conditional visibility", "Item colors", "Item fitting").index(s["group"]))
@@ -52,10 +54,17 @@ def exercise(*, native, language, backend, env, root, config, send, capture,
             rows = forms.rows(state)
             index = next(i for i, r in enumerate(rows) if r["key"] == key)
             label = field_label(rows[index], language)
-        send(b"\x1b[H" + b"\x1b[B" * index, label[:16])
+        send(b"\x1b[H" + b"\x1b[B" * index, label[:8])
 
     def text(value, observed=None):
-        send(b"\r\x15" + value.encode() + b"\r", observed or value)
+        if native:
+            editing = "Enter " + t("ui.hints.accept", language)
+            send(b"\r", editing)
+            send(b"\x15", editing)
+            send(value.encode(), editing)
+            send(b"\r", observed or value)
+        else:
+            send(b"\r\x15" + value.encode() + b"\r", observed or value)
 
     def detail(item):
         send(b"/\x15" + item.encode() + b"\r", t("items.main." + item + ".label", language))

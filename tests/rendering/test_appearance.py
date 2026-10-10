@@ -21,7 +21,11 @@ class AppearanceRenderingTests(unittest.TestCase):
     def render(self, data, config, width=120, state=items._RenderState):
         return "\n".join(items.configured_rows(data, config, width, state))
 
-    def test_legacy_preview_bytes_match_fixed_v111(self):
+    @mock.patch.object(preview, "_sample_preview_data", wraps=preview._sample_preview_data)
+    def test_legacy_preview_bytes_match_fixed_v111(self, sample):
+        data = sample()
+        data["workspace"] = {"current_dir": "/fixture/project/src", "project_dir": "/fixture/project"}
+        sample.return_value = data
         fixture = json.loads((REPOSITORY_ROOT / "tests/fixtures/legacy-appearance.json").read_text())
         for case in fixture["cases"]:
             with self.subTest(case={k: v for k, v in case.items() if k not in ("main", "subagents")}):
