@@ -1152,5 +1152,21 @@
   "statusline.short.subagent.tokens": "Agent tokens",
   "statusline.short.subagent.current-dir": "Agent directory",
   "config.show.statusline_language": "Statusline language: {value}",
-  "fields.global.statusline_language.label": "Statusline language (save with display settings)"
+  "fields.global.statusline_language.label": "Statusline language (save with display settings)",
+  "catalog.categories.all": "All categories",
+  "catalog.categories.model": "Model",
+  "catalog.categories.location": "Location",
+  "catalog.categories.repository": "Repository",
+  "catalog.categories.context": "Context",
+  "catalog.categories.limits": "Limits",
+  "catalog.categories.usage": "Usage",
+  "catalog.categories.session": "Session",
+  "catalog.categories.modes": "Modes",
+  "catalog.categories.activity": "Activity",
+  "catalog.categories.requests": "Requests",
+  "catalog.categories.task": "Task",
+  "catalog.search.categories": "Categories",
+  "catalog.search.choose_category": "Choose a category; Enter accepts, Ctrl+G/Esc cancels",
+  "catalog.search.order_disabled": "Clear search and choose All categories before reordering.",
+  "catalog.search.match": "Match: "
 }

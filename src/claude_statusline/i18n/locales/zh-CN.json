@@ -1152,5 +1152,21 @@
   "statusline.short.subagent.tokens": "代理令牌",
   "statusline.short.subagent.current-dir": "目录",
   "config.show.statusline_language": "状态栏语言：{value}",
-  "fields.global.statusline_language.label": "状态栏语言（随显示设置保存）"
+  "fields.global.statusline_language.label": "状态栏语言（随显示设置保存）",
+  "catalog.categories.all": "全部分类",
+  "catalog.categories.model": "模型",
+  "catalog.categories.location": "目录",
+  "catalog.categories.repository": "仓库",
+  "catalog.categories.context": "上下文",
+  "catalog.categories.limits": "额度",
+  "catalog.categories.usage": "用量",
+  "catalog.categories.session": "会话",
+  "catalog.categories.modes": "模式",
+  "catalog.categories.activity": "活动",
+  "catalog.categories.requests": "请求",
+  "catalog.categories.task": "任务",
+  "catalog.search.categories": "分类",
+  "catalog.search.choose_category": "选择分类；Enter 确认，Ctrl+G/Esc 取消",
+  "catalog.search.order_disabled": "清空搜索并选择全部分类后才能调整顺序。",
+  "catalog.search.match": "匹配："
 }

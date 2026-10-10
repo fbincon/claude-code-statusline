@@ -13,6 +13,7 @@ import type { TextSpan } from '../components/shortcuts.ts';
 import { t, renderMessage } from '../../lib/i18n/index.ts';
 import { viewMessage, preferenceResult } from '../../lib/i18n/messages.ts';
 import { settingPresentation, preferenceLabel } from '../../lib/i18n/presentation.ts';
+import { itemSpans } from '../components/catalog.ts';
 
 export function draw(ui: ClientElements, view: View, columns: number, rows: number): RenderElement {
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
@@ -42,7 +43,14 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if (e.page === 'settings' || e.page === 'layout' || e.detail) {
+  if (view.input?.kind === 'category') {
+    title = tr('catalog.search.categories');
+    const input = view.input, categories = e.categories(input.scope);
+    const window = pageWindow(categories, input.selected, Math.max(1, layout.bodyRows - 1));
+    for (const category of categories.slice(window.start, window.end))
+      content.push(line(`${input.selected === category ? '› ' : '  '}${tr('catalog.categories.' + category)}`, rowStyle(input.selected === category)));
+    content.push(line(`${categories.indexOf(input.selected) + 1}/${categories.length}`, styles.muted));
+  } else if (e.page === 'settings' || e.page === 'layout' || e.detail) {
     title = e.detail ? tr("native.ui.client.draw.item_format") + e.detail.id : e.page === 'layout' ? tr("native.ui.client.draw.layout_fitting") : tr("native.ui.client.draw.tool_settings");
     if (e.page === 'settings' && !e.detail) {
       if (e.advanced) title = columns < 64 ? tr("native.ui.client.draw.claude_preferences") : tr("native.ui.client.draw.tool_settings_claude_preferences");
@@ -79,17 +87,19 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.fields", {value0: settings.length ? window.start + 1 : 0, end: window.end, length: settings.length, page: window.page, pages: window.pages}), styles.muted));
   } else {
     const scope = e.page === 'main' ? 'main' : 'subagent';
-    const visible = e.visible(scope);
+    const matches = e.matches(scope), visible = matches.map(result => result.item);
     const current = visible.find((item) => item.id === e.selected[scope]);
     title = scope === 'main' ? tr("native.ui.client.draw.main_items") : tr("native.ui.client.draw.subagent_items_custom_rows") + tr('values.' + (e.draft.display.subagents.enabled ? 'on' : 'off'));
-    content.push(shortcuts(ui, [{ key: '/', label: tr("native.ui.client.draw.search") }], inner,
-      tr("native.ui.client.draw.filter") + e.search[scope] + (view.input?.kind === 'search' ? ' _' : '') + '  '));
+    content.push(shortcuts(ui, [
+      {key: 'Ctrl+F', label: tr('catalog.categories.' + e.category[scope]), short: e.category[scope] === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + e.category[scope]), 8)},
+      {key: '/', label: tr('native.ui.client.draw.search')},
+    ], inner, tr('native.ui.client.draw.filter') + e.search[scope] + (view.input?.kind === 'search' ? ' _' : '') + '  '));
     if (layout.tableHeading) content.push(line(tr("native.ui.client.draw.on_item"), { ...styles.muted, bold: true }));
     const window = pageWindow(visible.map((item) => item.id), e.selected[scope], layout.itemCapacity);
-    for (const item of visible.slice(window.start, window.end))
+    for (const {item, match} of matches.slice(window.start, window.end))
       content.push(ui.Box({
         key: 'item-' + scope + ':' + item.id, flexShrink: 0,
-        children: [line(`${e.selected[scope] === item.id ? '›' : ' '} [${e.items(scope).includes(item.id) ? 'x' : ' '}] ${tr('items.' + scope + '.' + item.id + '.label')}`, rowStyle(e.selected[scope] === item.id))],
+        children: [spanLine(ui, itemSpans(item, match, e.search[scope], view.language ?? 'en', inner, e.selected[scope] === item.id, e.items(scope).includes(item.id)), inner, rowStyle(e.selected[scope] === item.id))],
       }));
     if (!visible.length) content.push(line(tr("native.ui.client.draw.no_matching_items"), styles.muted));
     while (content.length < layout.bodyRows - Number(layout.showDetails) - Number(layout.showSummary)) content.push(line(' '));

@@ -14,7 +14,7 @@ from claude_statusline.config import service as config_service
 from claude_statusline.ui import models as ui_models
 from claude_statusline.ui import forms
 from claude_statusline.ui import layout as ui_layout
-from claude_statusline.i18n.presentation import search_text
+from claude_statusline.ui import search as item_search
 
 
 @dataclass
@@ -48,6 +48,10 @@ class EditorState:
     notice: str = ""
     language: str = "en"
     pending_language: str | None = None
+    category: str = "all"
+    subagent_category: str = "all"
+    category_selection: str | None = None
+    search_input: tuple[str, str | None] | None = None
 
     @classmethod
     def from_effective(
@@ -114,34 +118,41 @@ class EditorState:
         )
 
     def visible_items(self) -> list[str]:
-        needle = self.search.casefold()
-        if not needle:
-            return list(self.item_order)
-        return [
-            item
-            for item in self.item_order
-            if needle
-            in search_text(
-                "main",
-                item,
-                getattr(self.display.item_options.get(item), "label", None),
-            )
-        ]
+        return list(self.matches("main"))
 
     def visible_subagent_items(self) -> list[str]:
-        needle = self.subagent_search.casefold()
-        if not needle:
-            return list(self.subagent_item_order)
-        return [
-            item
-            for item in self.subagent_item_order
-            if needle
-            in search_text(
-                "subagent",
-                item,
-                getattr(self.display.subagents.item_options.get(item), "label", None),
-            )
-        ]
+        return list(self.matches("subagent"))
+
+    def matches(self, scope: str) -> dict[str, item_search.Match]:
+        subagent = scope == "subagent"
+        query = self.subagent_search if subagent else self.search
+        category = self.subagent_category if subagent else self.category
+        order = self.subagent_item_order if subagent else self.item_order
+        options = self.display.subagents.item_options if subagent else self.display.item_options
+        results = []
+        for item in order:
+            if category != "all" and catalog.BY_SCOPE[scope][item].group != category:
+                continue
+            match = (item_search.best_match(item_search.fields(scope, item, getattr(options.get(item), "label", None)), query)
+                     if item_search.normalize(query)[0] else item_search.Match(5, (), item, "id"))
+            if match is not None:
+                results.append((item, match))
+        return dict(sorted(results, key=lambda result: result[1].rank))
+
+    def filtered(self) -> bool:
+        if self.page == "subagents":
+            return bool(item_search.normalize(self.subagent_search)[0]) or self.subagent_category != "all"
+        return bool(item_search.normalize(self.search)[0]) or self.category != "all"
+
+    def choose_category(self, category: str) -> None:
+        if self.page == "subagents":
+            self.subagent_category = category
+            self._search_changed("subagent")
+        else:
+            self.category = category
+            self._search_changed("main")
+        self.category_selection = None
+        self.notice = ""
 
     def _sync_display_items(self) -> None:
         self.display = self.display.with_updates(items=self.final_items())
@@ -154,44 +165,63 @@ class EditorState:
         )
 
     def _normalize_item_selection(self) -> list[str]:
-        visible = self.visible_items()
+        matches = self.matches("main")
+        visible = list(matches)
+        if not visible:
+            self.selected_item = None
         if visible and self.selected_item not in visible:
             self.selected_item = visible[0]
             self.item_scroll = 0
         return visible
 
     def _normalize_subagent_selection(self) -> list[str]:
-        visible = self.visible_subagent_items()
+        matches = self.matches("subagent")
+        visible = list(matches)
+        if not visible:
+            self.selected_subagent_item = None
         if visible and self.selected_subagent_item not in visible:
             self.selected_subagent_item = visible[0]
             self.subagent_scroll = 0
         return visible
 
+    def _search_changed(self, scope: str) -> None:
+        subagent = scope == "subagent"
+        visible = self._normalize_subagent_selection() if subagent else self._normalize_item_selection()
+        if not visible:
+            return
+        selected = self.selected_subagent_item if subagent else self.selected_item
+        matches = self.matches(scope)
+        if matches[selected].rank > matches[visible[0]].rank:
+            if subagent:
+                self.selected_subagent_item, self.subagent_scroll = visible[0], 0
+            else:
+                self.selected_item, self.item_scroll = visible[0], 0
+
     def append_search(self, text: str) -> None:
         if self.page == "subagents":
-            self.subagent_search += text
-            self._normalize_subagent_selection()
+            self.subagent_search = (self.subagent_search + text)[:256]
+            self._search_changed("subagent")
         else:
-            self.search += text
-            self._normalize_item_selection()
+            self.search = (self.search + text)[:256]
+            self._search_changed("main")
 
     def backspace_search(self) -> None:
         if self.page == "subagents":
             if self.subagent_search:
                 self.subagent_search = self.subagent_search[:-1]
-                self._normalize_subagent_selection()
+                self._search_changed("subagent")
         elif self.search:
             self.search = self.search[:-1]
-            self._normalize_item_selection()
+            self._search_changed("main")
 
     def clear_search(self) -> None:
         if self.page == "subagents":
             if self.subagent_search:
                 self.subagent_search = ""
-                self._normalize_subagent_selection()
+                self._search_changed("subagent")
         elif self.search:
             self.search = ""
-            self._normalize_item_selection()
+            self._search_changed("main")
 
     def navigate(self, delta: int) -> None:
         if forms.special(self):
@@ -342,6 +372,9 @@ class EditorState:
     def move_selected_item(self, direction: int) -> bool:
         if direction not in (-1, 1):
             raise ValueError("item direction must be -1 or 1")
+        if self.filtered():
+            self.notice = msg("catalog.search.order_disabled")
+            return False
         subagents = self.page == "subagents"
         visible = (
             self._normalize_subagent_selection()

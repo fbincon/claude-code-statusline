@@ -86,10 +86,12 @@ class ItemStateTests(unittest.TestCase):
     def test_search_matches_id_and_description_case_insensitively(self):
         state = ui_editor.EditorState.from_effective(effective())
         state.append_search("VIM")
-        self.assertEqual(state.visible_items(), ["vim-mode"])
+        self.assertEqual(state.visible_items()[0], "vim-mode")
+        self.assertTrue(all(match.rank >= state.matches("main")["vim-mode"].rank for match in state.matches("main").values()))
         state.clear_search()
         state.append_search("divergence")
-        self.assertEqual(state.visible_items(), ["git"])
+        self.assertEqual(state.visible_items()[0], "git")
+        self.assertEqual(state.matches("main")["git"].rank, 3)
         state.backspace_search()
         self.assertEqual(state.search, "divergenc")
         state.clear_search()
@@ -106,22 +108,21 @@ class ItemStateTests(unittest.TestCase):
         self.assertEqual(state.item_order, original_order)
         self.assertEqual(state.enabled, original_enabled)
 
-    def test_filtered_move_targets_visible_neighbor_and_preserves_hidden_order(self):
+    def test_filtered_move_is_blocked_and_preserves_the_full_order(self):
         state = ui_editor.EditorState.from_effective(
             effective(items=tuple(config_display.ITEM_CATALOG))
         )
         state.append_search("current")
+        order_before = list(state.item_order)
         visible_before = state.visible_items()
         self.assertEqual(visible_before[0], "model-with-effort")
         self.assertIn("current-dir", visible_before)
         hidden_before = [
             item for item in state.item_order if item not in state.visible_items()
         ]
-        self.assertTrue(state.move_selected_item(1))
-        self.assertEqual(
-            state.visible_items(),
-            [visible_before[1], visible_before[0], *visible_before[2:]],
-        )
+        self.assertFalse(state.move_selected_item(1))
+        self.assertEqual(state.visible_items(), visible_before)
+        self.assertEqual(state.item_order, order_before)
         hidden_after = [
             item for item in state.item_order if item not in state.visible_items()
         ]
@@ -150,7 +151,7 @@ class ItemStateTests(unittest.TestCase):
             state.final_subagent_items(), config_display.DEFAULT_SUBAGENT_ITEMS
         )
         state.append_search("token")
-        self.assertEqual(state.visible_subagent_items(), ["context-tokens", "tokens"])
+        self.assertEqual(state.visible_subagent_items(), ["tokens", "context-tokens"])
         state.selected_subagent_item = "tokens"
         state.toggle_selected_item()
         self.assertIn("tokens", state.final_subagent_items())

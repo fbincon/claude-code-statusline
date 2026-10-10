@@ -25,6 +25,20 @@ const error = (code: string) =>
     2,
   );
 
+test('search and categories use local state without preview processes or writes', async ($, on) => {
+  const fixture = setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  const count = fixture.calls.length;
+  await keys(ui, '/git', 'return', {key:'f', ctrl:true}, 'end', 'return', 'left');
+  expect(fixture.calls.length).toBe(count);
+  expect(fixture.configCalls).toEqual([]);
+  await keys(ui, 'q');
+  expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
+  await ui.unmount();
+});
+
 test('Client owns only native command, edits three pages and saves a full revision-bound draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);

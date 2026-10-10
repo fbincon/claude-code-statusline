@@ -1154,7 +1154,23 @@ export const LOCALES = {
     "statusline.short.subagent.tokens": "Agent tokens",
     "statusline.short.subagent.current-dir": "Agent directory",
     "config.show.statusline_language": "Statusline language: {value}",
-    "fields.global.statusline_language.label": "Statusline language (save with display settings)"
+    "fields.global.statusline_language.label": "Statusline language (save with display settings)",
+    "catalog.categories.all": "All categories",
+    "catalog.categories.model": "Model",
+    "catalog.categories.location": "Location",
+    "catalog.categories.repository": "Repository",
+    "catalog.categories.context": "Context",
+    "catalog.categories.limits": "Limits",
+    "catalog.categories.usage": "Usage",
+    "catalog.categories.session": "Session",
+    "catalog.categories.modes": "Modes",
+    "catalog.categories.activity": "Activity",
+    "catalog.categories.requests": "Requests",
+    "catalog.categories.task": "Task",
+    "catalog.search.categories": "Categories",
+    "catalog.search.choose_category": "Choose a category; Enter accepts, Ctrl+G/Esc cancels",
+    "catalog.search.order_disabled": "Clear search and choose All categories before reordering.",
+    "catalog.search.match": "Match: "
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -2310,7 +2326,23 @@ export const LOCALES = {
     "statusline.short.subagent.tokens": "代理令牌",
     "statusline.short.subagent.current-dir": "目录",
     "config.show.statusline_language": "状态栏语言：{value}",
-    "fields.global.statusline_language.label": "状态栏语言（随显示设置保存）"
+    "fields.global.statusline_language.label": "状态栏语言（随显示设置保存）",
+    "catalog.categories.all": "全部分类",
+    "catalog.categories.model": "模型",
+    "catalog.categories.location": "目录",
+    "catalog.categories.repository": "仓库",
+    "catalog.categories.context": "上下文",
+    "catalog.categories.limits": "额度",
+    "catalog.categories.usage": "用量",
+    "catalog.categories.session": "会话",
+    "catalog.categories.modes": "模式",
+    "catalog.categories.activity": "活动",
+    "catalog.categories.requests": "请求",
+    "catalog.categories.task": "任务",
+    "catalog.search.categories": "分类",
+    "catalog.search.choose_category": "选择分类；Enter 确认，Ctrl+G/Esc 取消",
+    "catalog.search.order_disabled": "清空搜索并选择全部分类后才能调整顺序。",
+    "catalog.search.match": "匹配："
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;
