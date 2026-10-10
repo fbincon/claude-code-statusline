@@ -19,3 +19,5 @@ exclude docs/ROADMAP.md
 exclude docs/ROADMAP.zh-CN.md
 global-exclude .DS_Store *.py[cod]
 include src/build_native.py
+
+recursive-include tools/unicode *.json *.txt

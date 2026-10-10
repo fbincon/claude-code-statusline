@@ -1,0 +1,20 @@
+{
+  "unicode_version": "18.0.0",
+  "reference": "wcwidth 0.9.1",
+  "data_sha256": "485f1ffb113fa52428057aefa35b97a54f409e73154d785da7bbc558ae0cf009",
+  "source_sha256": {
+    "table_zero.py": "03d61051c69f286fe77acca5583be371fa674f86cff61a6abdc57fa1a5156cc6",
+    "table_wide.py": "a167dfa17738fb939b8157193fc9d11f70b1e1ed0385e1a6faee07c8d5ad5085",
+    "table_vs16.py": "16371e2db996fd6e60ac63905f9d9e8323429b71742c765b83a4a5d7519ab0c6",
+    "table_vs15.py": "9af55c5c6801b678a4c110126f8032309ac8610640b1ca74be4ea0a3585e478b",
+    "table_mc.py": "f084236a9b43821968521672ec34c79c336f224c352c17b0eb82afbfcdb1fa61",
+    "table_grapheme.py": "3176cee3c7c78311592287cd5a44509d48199d98bdf46731058c66974df0ed6d"
+  },
+  "conformance_url": "https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt",
+  "conformance_sha256": "b0cf047ee94485bbdc846de2b902f5f8a815f6b674f9d04223cddadd91c9df31",
+  "conformance_cases": 853,
+  "licenses": [
+    "WCWIDTH-LICENSE.txt",
+    "UNICODE-LICENSE.txt"
+  ]
+}

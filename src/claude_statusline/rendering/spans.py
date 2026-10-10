@@ -6,34 +6,10 @@ from claude_statusline.rendering import layout
 
 
 def foreground_style(sequence: str) -> tuple[bool, dict | None]:
-    if not sequence:
-        return False, None
-    codes = [int(code or "0") for code in sequence[2:-1].replace(":", ";").split(";")]
-    bold = False
-    foreground = None
-    index = 0
-    while index < len(codes):
-        code = codes[index]
-        if code == 1:
-            bold = True
-        if 30 <= code <= 37 or 90 <= code <= 97:
-            foreground = {
-                "kind": "ansi",
-                "value": code - 30 if code < 90 else code - 90 + 8,
-            }
-        elif (
-            code == 38
-            and codes[index + 1 : index + 2] == [2]
-            and len(codes) >= index + 5
-        ):
-            foreground = {
-                "kind": "rgb",
-                "value": "#"
-                + "".join(f"{value:02x}" for value in codes[index + 2 : index + 5]),
-            }
-            index += 4
-        index += 1
-    return bold, foreground
+    from . import styles
+
+    state = styles.parse(sequence)
+    return state.bold, styles.wire_color(state.foreground)
 
 
 def row_spans(row: str) -> list[dict]:
