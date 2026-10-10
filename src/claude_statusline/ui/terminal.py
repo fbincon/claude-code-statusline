@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import curses
 import os
+import re
 import sys
 from contextlib import contextmanager
 
@@ -89,6 +90,8 @@ class GraphemeScreen:
         rows, columns = self.screen.getmaxyx()
         if not 0 <= y < rows or not 0 <= x < columns:
             raise curses.error("Outside terminal viewport")
+        # Text runs are plain; terminal effects travel only through attributes.
+        value = re.sub(r"[\x00-\x1f\x7f-\x9f\ud800-\udfff]", " ", value)
         budget = columns - x - int(y == rows - 1)
         value = cells.clip(value, budget)
         width = cells.display_width(value)

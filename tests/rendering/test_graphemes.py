@@ -69,6 +69,19 @@ class GraphemeTests(unittest.TestCase):
         source = "from claude_statusline.rendering.text import display_width; import sys; assert display_width('ASCII') == 5; assert not any(n.startswith('wcwidth') or n.startswith('claude_statusline.rendering._unicode_') for n in sys.modules)"
         subprocess.run([sys.executable, "-c", source], check=True)
 
+    def test_model_only_render_does_not_initialize_unselected_collectors(self):
+        source = """
+import sys
+from claude_statusline.config.display import DEFAULT_CONFIG
+from claude_statusline.rendering.items import configured_rows
+assert configured_rows({'model': {'id': 'ASCII'}}, DEFAULT_CONFIG.with_updates(items=('model',)), 120)
+assert not any(name in sys.modules for name in (
+    'claude_statusline.runtime.usage', 'claude_statusline.runtime.tasks.store',
+    'claude_statusline.rendering.timer', 'claude_statusline.rendering._unicode_width',
+    'claude_statusline.rendering._unicode_grapheme', 'wcwidth'))
+"""
+        subprocess.run([sys.executable, "-c", source], check=True)
+
     def test_long_combining_cluster_is_never_sliced(self):
         cluster = "e" + "\u0301" * 4096
         self.assertEqual(text.clip(cluster + "X", 1), cluster)

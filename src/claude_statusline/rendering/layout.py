@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import re
-from . import text as terminal_text
 from dataclasses import dataclass
 from claude_statusline.rendering import palette as rendering_palette
 
@@ -35,11 +34,18 @@ class _StyledUnit:
 
 
 def _char_width(ch):
+    from . import text as terminal_text
+
     return terminal_text.char_width(ch)
 
 
 def _display_width(text):
-    return terminal_text.display_width(ANSI_SGR_RE.sub("", text or ""))
+    plain = ANSI_SGR_RE.sub("", text or "")
+    if plain.isascii() and plain.isprintable():
+        return len(plain)
+    from . import text as terminal_text
+
+    return terminal_text.display_width(plain)
 
 
 def _terminal_content_width(env=None):
@@ -71,20 +77,27 @@ def _styled_units(text):
     for match in ANSI_SGR_RE.finditer(text):
         part = text[position : match.start()]
         plain.append(part)
-        states.extend([state] * len(part))
+        states.extend([state.sgr()] * len(part))
         state = styles.advance(state, match.group())
         position = match.end()
     part = text[position:]
     plain.append(part)
-    states.extend([state] * len(part))
+    states.extend([state.sgr()] * len(part))
+    visible = "".join(plain)
+    if visible.isascii() and visible.isprintable():
+        return [_StyledUnit(ch, 1, style) for ch, style in zip(visible, states)]
+    from . import text as terminal_text
+
     result, position = [], 0
-    for cluster in terminal_text.graphemes("".join(plain)):
-        base = next((i for i, char in enumerate(cluster) if _char_width(char)), 0)
+    for cluster in terminal_text.graphemes(visible):
+        base = next(
+            (i for i, char in enumerate(cluster) if terminal_text.char_width(char)), 0
+        )
         result.append(
             _StyledUnit(
                 cluster,
                 terminal_text.cluster_width(cluster),
-                states[position + base].sgr(),
+                states[position + base],
             )
         )
         position += len(cluster)
@@ -184,6 +197,8 @@ def _ensure_reset(text, reset=rendering_palette.C_RESET):
     # style state on that hot path, but normalize any boundary inside a cluster.
     plain = ANSI_SGR_RE.sub("", text)
     if not (plain.isascii() and plain.isprintable()):
+        from . import text as terminal_text
+
         boundaries = {0}
         offset = 0
         for cluster in terminal_text.graphemes(plain):

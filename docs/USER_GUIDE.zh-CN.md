@@ -75,28 +75,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.10.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.10.0) 提供相同的 wheel 与源码包。
+分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.11.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.11.0) 提供相同的 wheel 与源码包。
 
 也可从该 Release 下载 wheel、源码包和 `SHA256SUMS`，将下载文件的 SHA-256 与对应条目比较：
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.11.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.10.0-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.11.0-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.11.0-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.10.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.11.0"
 pipx ensurepath
 ```
 
@@ -620,7 +620,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.10.0，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
+pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.11.0，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
 
 ### 替换 Python 包
 
@@ -955,3 +955,9 @@ claude-statusline config enable task-active-timer
 兼容宿主的新安装默认采集计时元数据，高级指标仍需 `install --live-metrics`。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
 
 降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 6 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
+
+## Unicode 文本与终端列宽
+
+换行、截断和编辑器预览保留完整扩展字符簇，包括组合音标和组合 emoji。歧义字符默认一列，普通 CJK／emoji 簇为两列；不同 Python 版本和编辑器使用相同布局规则。实际字形仍取决于终端与字体。
+
+外部编辑器在支持 ANSI／VT 的终端整体绘制文本；旧后端对无法安全绘制的字符簇使用等宽占位符，保存的标签、图标和路径保持原值。退格删除一个完整文本簇。调色板继续属于显示草稿；原生浅／深预览底色仍是独立界面偏好。

@@ -301,3 +301,31 @@ PYTHONPATH=src python tools/benchmark_render.py --suite representative --samples
 Profiles `small`, `medium` and `large` contain 100/10,000/100,000 transcript rows, 0/8/32 agents (100 rows per agent, including nested files), and 32/1,000/10,000 tracked Git files. Use `--profiles small` for a smoke run. Measurements separate startup/imports, bytecode, transcript cold/warm/append, clean/dirty Git miss/hit/expired, bilingual automatic/explicit rendering at 40/120 columns, and complex-Unicode agent rows. Setup and reset work occur outside timed regions; assertions check unchanged transcript/Git cache hits. Filesystem caches remain uncontrolled.
 
 Reports retain every sample, P50/P95, source and fixture hashes, interpreter/platform and dirty state. Compare the same harness and fixtures on fixed before/after sources in three alternating rounds; investigate repeatable regressions before publication. Neither the legacy default suite nor this expanded suite makes model calls or reads personal transcripts.
+
+For a reproducible before/after comparison, use immutable exported sources and a frozen copy of the harness:
+
+```bash
+python tools/benchmark_compare.py --baseline BASELINE_SHA --candidate CANDIDATE_SHA --samples 50 --rounds 3 --report-dir dist/validation/new-comparison
+```
+
+The runner verifies runtime source blobs against each exact Git commit, alternates before/after order, separates warm/cold bytecode, retains raw samples and reports medians across rounds. Each agent has a distinct name/description; both in-process and fresh official `render-subagents` processes are measured. It flags same-direction P50/P95 changes exceeding the baseline's observed between-round range for investigation, rather than treating one noisy run as acceptance. Large histories and 10,000-file repositories make the complete suite deliberately slower than its small-profile smoke.
+
+## Grapheme and preview-style acceptance
+
+The 1.11 candidate passed 762 Python tests (754 passed, eight platform skips), 92 native and ten runtime official Mod tests on fixed Claude Code 2.1.294, both TypeScript projects, generated resources/contracts, Ruff and 1,105 documentation links. Both Unicode kernels pass all 853 pinned Unicode 18.0 grapheme conformance cases. Installed core/native/runtime smoke and the 1.10.0 upgrade preserve saved display/interface language and explicit editor/collector opt-outs.
+
+`tools/rendering_acceptance.py --python /absolute/venv/bin/python --commit VERIFIED_SHA --report-dir dist/validation/new-rendering` exercises the installed curses adapter at 32/64/120 columns under xterm-256color and vt100. Its independent wcwidth-based terminal decoder verifies complete graphemes, cross-style state, backgrounds, shorter redraw and resizing; raw bytes are retained.
+
+For explicit backgrounds in the installed native component, run:
+
+```bash
+python tools/native_mod_acceptance.py --persistent --rendering-only --theme light --terminal-theme light \
+  --claude /absolute/fixed-host/claude --backend /absolute/venv/bin/claude-statusline \
+  --report-dir dist/validation/new-native-rendering-light
+```
+
+Repeat with `dark` for both theme arguments. This direct PTY uses a recorded synthetic preview-protocol fixture while every other operation delegates to the installed backend. It checks ANSI 256/RGB backgrounds, independent resets, cross-span emoji style, whole-grapheme clipping and shorter redraw at 120×30/80×48. It does not add user color settings. Ordinary installed previews, bilingual discovery, language changes and full save/cancel/import/export workflows have separate real-backend acceptance reports. Captured cells and agent-inspected PNG reconstructions are distinct from human platform acceptance; no new human Windows/macOS terminal acceptance or paid model calls are claimed.
+
+The full comparison alternates each scenario’s 50-sample batches between sources and reverses their order each round. The peer waits until the current measurement and following fixture setup finish; timed batches never overlap. Keeping matching scenarios closer in time reduces temporal drift while preserving sample counts and coverage.
+
+Linux/Python 3.10 CI exposed a SIGTERM timeout during an idle curses read. Every platform now polls input at 250 ms to dispatch pending signals, without repainting the VT frame on idle timeouts. Twenty extra local SIGINT/SIGHUP/SIGTERM rounds (60 signals) verified exit codes and terminal restoration.

@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from functools import lru_cache
 import re
+from typing import NamedTuple
 
 SGR_RE = re.compile(r"\x1b\[[0-9;:]*m")
 RESET = "\x1b[0m"
 Color = tuple[str, int | str]
 
 
-@dataclass(frozen=True, slots=True)
-class Style:
+class Style(NamedTuple):
     bold: bool = False
     foreground: Color | None = None
     background: Color | None = None

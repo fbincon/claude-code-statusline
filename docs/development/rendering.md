@@ -8,13 +8,17 @@ Production main/subagent rows, Python previews and the native editor use fixed U
 
 `tools/unicode/data.json` retains the required tables from wcwidth 0.9.1 with original module hashes. `provenance.json` records the Unicode version, data and official conformance-file hashes. The MIT and Unicode notices accompany source distributions and wheels; generated native tables retain the notices for separately installed Mods.
 
+Distribution metadata declares `MIT AND Unicode-3.0` for the project code and bundled Unicode data, following the [package license-expression specification](https://packaging.python.org/en/latest/specifications/pyproject-toml/#license) and [Unicode-3.0 identifier](https://spdx.org/licenses/Unicode-3.0.html). The project's own code retains its MIT license.
+
 ```bash
 python tools/generate_unicode.py --check
 ```
 
 Checking and ordinary builds are offline and require no wcwidth installation. To deliberately refresh the pinned snapshot, install `wcwidth==0.9.1` in a development environment and run `python tools/generate_unicode.py --refresh`; review all resulting data, generated files and provenance. Changing Unicode or reference versions requires an explicit generator change and complete acceptance.
 
-Python loads tables only for non-ASCII text. Both implementations run the official Unicode 18.0 GraphemeBreakTest cases and shared terminal-width examples. The width policy applies the reference policy separately to each complete grapheme: for example, `a` followed by ZWJ and `b` must not swallow the unrelated `b`. Rendering neither imports wcwidth nor depends on the Python/host Unicode database.
+The printable-ASCII fast path avoids Unicode table loads. Both implementations run the official Unicode 18.0 GraphemeBreakTest cases and shared terminal-width examples. The width policy applies the reference policy separately to each complete grapheme: for example, `a` followed by ZWJ and `b` must not swallow the unrelated `b`. Width and segmentation neither import wcwidth nor depend on the Python/host Unicode database.
+
+Generated Python tables decode fixed little-endian 32-bit integers with the standard-library `struct` module. This avoids compiling thousands of tuple literals when bytecode is cold; every decoded reference interval is checked against the pinned JSON. Table values, Unicode rules and the native generated arrays remain identical. Unselected transcript/timer modules are imported only when used, with historical module aliases retained.
 
 ## Styles and boundaries
 

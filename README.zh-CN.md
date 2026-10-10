@@ -21,6 +21,7 @@
 - **查找显示项目：** 60 个主栏项目和 14 个子代理项目，支持中英文分级搜索、分类筛选及来源／启用条件说明。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
+- **保留完整字符：** 组合 emoji、组合字符和 CJK 文本在换行、裁切和预览中保持完整。
 - **审阅配置改动：** 四种预设可展开编辑，支持可移植 JSON；导入时先查看差异和候选预览，再接受草稿并单独保存。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
 - **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在单独选择的浅色／深色底色上保留生产配色。
@@ -438,3 +439,5 @@ claude-code-statusline/
 ## 许可证
 
 [MIT License](LICENSE)，Copyright (c) 2026 [fbincon](https://github.com/fbincon)。
+
+随包 Unicode 数据保留 [Unicode License v3](tools/unicode/UNICODE-LICENSE.txt) 与 [wcwidth MIT 声明](tools/unicode/WCWIDTH-LICENSE.txt)。

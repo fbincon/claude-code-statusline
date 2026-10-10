@@ -1,10 +1,31 @@
 """Incremental colors, selective resets and malformed color payload isolation."""
 
 import unittest
-from claude_statusline.rendering import styles, layout, spans
+from claude_statusline.config import formatting
+from claude_statusline.rendering import styles, layout, preferences, spans
 
 
 class StyleTests(unittest.TestCase):
+    def test_decorations_preserve_body_styles_and_isolate_prefix(self):
+        value = preferences.decorate(
+            "\x1b[1;31;48;5;200m👩🏽‍💻\x1b[22;39mB",
+            "current-dir",
+            "main",
+            formatting.Formatting(),
+            formatting.ItemOptions(label="目录", icon="D"),
+        )
+        units = layout._styled_units(value)
+        self.assertEqual("".join(unit.text for unit in units), "D 目录 👩🏽‍💻B")
+        self.assertTrue(all(not unit.style for unit in units[:-2]))
+        self.assertEqual(
+            styles.parse(units[-2].style),
+            styles.Style(True, ("ansi", 1), ("ansi", 200)),
+        )
+        self.assertEqual(
+            styles.parse(units[-1].style), styles.Style(background=("ansi", 200))
+        )
+        self.assertEqual(styles.parse(value), styles.DEFAULT)
+
     def test_partial_changes_and_selective_resets(self):
         row = "\x1b[31;44mA\x1b[1mB\x1b[22mC\x1b[39mD\x1b[49mE\x1b[1;32mF\x1b[mG"
         states = [styles.parse(u.style) for u in layout._styled_units(row)]

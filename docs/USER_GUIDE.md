@@ -75,28 +75,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.10.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.10.0) provides the same wheel and source distribution.
+The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.11.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.11.0) provides the same wheel and source distribution.
 
 Alternatively download the wheel, source archive, and `SHA256SUMS` from that release. Compare the downloaded file's SHA-256 with the corresponding entry:
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.11.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.10.0-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.11.0-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.11.0-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.10.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.11.0"
 pipx ensurepath
 ```
 
@@ -634,7 +634,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.10.0 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
+The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.11.0 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
 
 ### Replace the Python package
 
@@ -1060,3 +1060,9 @@ claude-statusline config enable task-active-timer
 On compatible hosts, fresh installations collect timing metadata by default; advanced metrics still require `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
 
 Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 6 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
+
+## Unicode text and terminal widths
+
+Wrapping, truncation and editor previews keep extended grapheme clusters together, including combining accents and joined emoji. Ambiguous characters use one column; ordinary CJK and emoji clusters use two. The layout policy is fixed across Python versions and editors. Actual glyph appearance still depends on your terminal and fonts.
+
+On ANSI/VT-capable terminals, the external editor paints complete text runs. Older backends use a width-preserving placeholder for clusters they cannot safely draw; saved labels, icons and paths remain intact. Backspace removes a complete text cluster. Palette changes still belong to the display draft; the native light/dark preview background remains an independent UI preference.

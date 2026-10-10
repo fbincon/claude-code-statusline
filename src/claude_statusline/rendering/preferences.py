@@ -77,10 +77,52 @@ def decorate(text, item_id, scope, fmt, options, *, language="en"):
         and options.icon is None
     ):
         return text
+    owns_icon = item_id in (
+        {"task-timer"} if scope == "main" else {"status", "status-elapsed"}
+    )
+    custom = options.label is not None
+    prefix = (
+        statusline.prefix(scope, item_id, language)
+        if custom or fmt.labels != "legacy"
+        else None
+    )
+    plain = layout.ANSI_SGR_RE.sub("", text)
+    removes_icon = (
+        owns_icon
+        and (fmt.icons != "legacy" or options.icon is not None)
+        and plain[:1] in SYMBOLS
+    )
+    removes_label = prefix and plain.startswith(prefix + " ")
+    if not removes_icon and not removes_label:
+        # Adding an unstyled prefix does not require decoding the styled body.
+        # The row pipeline still normalizes any cross-boundary grapheme.
+        label = (
+            options.label
+            if custom
+            else (
+                statusline.short_label(scope, item_id, language)
+                if fmt.labels == "short"
+                else ""
+            )
+        )
+        icon = options.icon
+        if icon is None and fmt.icons in ("unicode", "ascii"):
+            group = catalog.BY_SCOPE[scope][item_id].group
+            icon = ICONS.get(group, ("·", ":"))[fmt.icons == "ascii"]
+        value = (
+            ((str(icon) + " ") if icon else "")
+            + ((str(label) + " ") if label else "")
+            + text
+        )
+        if "\x1b[" in text and not text.endswith("\x1b[0m"):
+            value += "\x1b[0m"
+        return value
     units = layout._styled_units(text)
-    plain = "".join(unit.text for unit in units)
-    owns_icon = item_id in ({"task-timer"} if scope == "main" else {"status", "status-elapsed"})
-    if owns_icon and (fmt.icons != "legacy" or options.icon is not None) and plain[:1] in SYMBOLS:
+    if (
+        owns_icon
+        and (fmt.icons != "legacy" or options.icon is not None)
+        and plain[:1] in SYMBOLS
+    ):
         removed = 1 + (plain[1:2] == " ")
         units = units[removed:]
         plain = "".join(unit.text for unit in units)
@@ -93,7 +135,9 @@ def decorate(text, item_id, scope, fmt, options, *, language="en"):
             options.label
             if custom
             else (
-                statusline.short_label(scope, item_id, language) if fmt.labels == "short" else ""
+                statusline.short_label(scope, item_id, language)
+                if fmt.labels == "short"
+                else ""
             )
         )
         if label:

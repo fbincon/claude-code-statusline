@@ -8,13 +8,17 @@
 
 `tools/unicode/data.json` 保留 wcwidth 0.9.1 所需数据表及原模块校验值。`provenance.json` 记录 Unicode 版本、数据和官方一致性样例的校验值。源码包与 wheel 包含 MIT／Unicode 声明，生成的原生数据表也保留声明，供独立安装的 Mod 使用。
 
+分发元数据以 `MIT AND Unicode-3.0` 表示项目代码与随包 Unicode 数据的许可，依据[包许可证表达式规范](https://packaging.python.org/en/latest/specifications/pyproject-toml/#license)和 [Unicode-3.0 标识](https://spdx.org/licenses/Unicode-3.0.html)。项目自身代码继续使用 MIT 许可。
+
 ```bash
 python tools/generate_unicode.py --check
 ```
 
 检查和普通构建离线完成，无需安装 wcwidth。主动刷新固定快照时，在开发环境安装 `wcwidth==0.9.1` 后运行 `python tools/generate_unicode.py --refresh`，审阅数据、生成文件和来源记录。更新 Unicode 或参考库版本必须明确修改生成器，并重新完整验收。
 
-Python 只在非 ASCII 文本出现时加载数据表。两端执行官方 Unicode 18.0 GraphemeBreakTest 及共享宽度样例。宽度规则逐个完整字符簇应用参考规则：例如 `a` 后的 ZWJ 不得吞掉属于下一个簇的 `b`。渲染不导入 wcwidth，也不依赖 Python／宿主自带 Unicode 数据库的版本。
+可打印 ASCII 快速路径不加载 Unicode 数据表。两端执行官方 Unicode 18.0 GraphemeBreakTest 及共享宽度样例。宽度规则逐个完整字符簇应用参考规则：例如 `a` 后的 ZWJ 不得吞掉属于下一个簇的 `b`。宽度与分簇不导入 wcwidth，也不依赖 Python／宿主自带 Unicode 数据库的版本。
+
+生成的 Python 数据表用标准库 `struct` 解码固定小端序的 32 位整数，避免冷字节码时编译大量元组字面量；测试逐项核对解码结果与固定 JSON 参考区间。表值、Unicode 规则和原生生成数组不变。未选用的 transcript／计时模块按需导入，保留原模块别名。
 
 ## 样式与边界
 

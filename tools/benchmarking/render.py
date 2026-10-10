@@ -286,10 +286,10 @@ def _run(root, samples, bytecode_mode, profiles, measure):
         tasks = [
             {
                 "id": f"agent-{i}",
-                "name": "Review 👩🏽‍💻",
+                "name": f"Review-{i} 👩🏽‍💻",
                 "type": "local_agent",
                 "status": "running",
-                "description": "长目录 é 🇨🇳 1️⃣ " * 12,
+                "description": f"Task {i}: " + "长目录 é 🇨🇳 1️⃣ " * 12,
                 "model": "claude-sonnet-5",
                 "effort": "high",
                 "startTime": 1788400000000,
@@ -304,6 +304,33 @@ def _run(root, samples, bytecode_mode, profiles, measure):
                     {"tasks": tasks, "columns": width}, now_ms=1788400078000
                 ),
                 samples,
+            )
+            agent_payload = json.dumps({"tasks": tasks, "columns": width})
+
+            def agent_process():
+                subprocess.run(
+                    [sys.executable, "-m", "claude_statusline", "render-subagents"],
+                    input=agent_payload,
+                    text=True,
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                )
+
+            if bytecode_mode == "warm":
+                prime_env = dict(os.environ)
+                prime_env.pop("PYTHONDONTWRITEBYTECODE", None)
+                subprocess.run(
+                    [sys.executable, "-m", "claude_statusline", "render-subagents"],
+                    input=agent_payload,
+                    text=True,
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                    env=prime_env,
+                )
+            metrics[f"{profile}/agent_process/{width}"] = measure(
+                agent_process, samples
             )
     return {
         "metrics": metrics,

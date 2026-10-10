@@ -10,6 +10,8 @@ from functools import lru_cache
 
 
 def _contains(code, ranges):
+    if not ranges or code < ranges[0][0] or code > ranges[-1][1]:
+        return False
     low, high = 0, len(ranges)
     while low < high:
         middle = (low + high) // 2
@@ -60,7 +62,29 @@ def _property(code):
     return 0
 
 
+@lru_cache(maxsize=2048)
+def _consonant(code):
+    from ._unicode_grapheme import INCB_CONSONANT
+
+    return _contains(code, INCB_CONSONANT)
+
+
+@lru_cache(maxsize=256)
+def _short_graphemes(text):
+    return tuple(_graphemes_uncached(text))
+
+
 def graphemes(text: str):
+    """Reuse bounded short strings within a refresh, preserving exact text."""
+    if text.isascii() and text.isprintable():
+        yield from text
+    elif len(text) <= 512:
+        yield from _short_graphemes(text)
+    else:
+        yield from _graphemes_uncached(text)
+
+
+def _graphemes_uncached(text: str):
     """Yield UAX #29 extended graphemes, preserving original code points."""
     if not text:
         return
@@ -91,7 +115,7 @@ def graphemes(text: str):
             boundary = False
         elif current in (4, 5, 8) or previous == 7:  # GB9/9a/9b
             boundary = False
-        elif _contains(code, data.INCB_CONSONANT):  # GB9c
+        elif _consonant(code):  # GB9c
             cursor = index - 1
             while cursor >= start and _contains(ord(text[cursor]), data.INCB_EXTEND):
                 cursor -= 1
@@ -190,9 +214,16 @@ def units(text: str):
     return [(cluster, cluster_width(cluster)) for cluster in graphemes(text)]
 
 
+@lru_cache(maxsize=512)
+def _short_width(text):
+    return sum(cluster_width(cluster) for cluster in graphemes(text))
+
+
 def display_width(text: str) -> int:
     if text.isascii() and text.isprintable():
         return len(text)
+    if len(text) <= 512:
+        return _short_width(text)
     return sum(cluster_width(cluster) for cluster in graphemes(text))
 
 
