@@ -480,6 +480,21 @@ class SaveAndRunTests(unittest.TestCase):
 
 
 class TerminalColorTests(unittest.TestCase):
+    def test_idle_input_polls_for_signals_without_repainting_the_vt_frame(self):
+        state = ui_editor.EditorState.from_effective(effective())
+        screen = mock.Mock()
+        screen.get_wch.side_effect = [ui_drawing.curses.error(), ui_drawing.curses.error(), "\x1b"]
+        screen.getmaxyx.return_value = (24, 100)
+        with (
+            mock.patch.object(ui_drawing, "_draw_screen", return_value=12) as draw,
+            mock.patch.object(ui_drawing, "_ColorMapper", return_value=mock.Mock()),
+            mock.patch.object(ui_drawing.curses, "curs_set"),
+            mock.patch.object(ui_drawing.curses, "set_escdelay", create=True),
+        ):
+            self.assertEqual(ui_session._screen_loop(screen, state), ui_models.CANCEL)
+        screen.timeout.assert_called_once_with(250)
+        draw.assert_called_once()
+
     def test_rgb_quantizes_for_256_basic_and_no_color_terminals(self):
         self.assertIsNotNone(ui_drawing.nearest_terminal_color(246, 226, 183, 256))
         self.assertLess(ui_drawing.nearest_terminal_color(246, 226, 183, 256), 256)

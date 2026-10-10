@@ -15,7 +15,6 @@ from typing import TextIO
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 from claude_statusline.integration import bridge as integration_bridge
-from claude_statusline.platforms import environment as platform_environment
 from claude_statusline.ui import drawing as ui_drawing
 from claude_statusline.ui import editor as ui_editor
 from claude_statusline.ui import keys as ui_keys
@@ -41,10 +40,9 @@ def _screen_loop_impl(
         curses.raw()
     except curses.error:
         pass
-    if deadline_at is not None or guard is not None or platform_environment.is_macos():
-        # Older macOS curses can restart an interrupted blocking read. Polling
-        # lets Python dispatch pending signals without needing another keypress.
-        screen.timeout(250)
+    # Curses implementations can restart an interrupted blocking read. Poll on
+    # every platform so pending Python signals never need another keypress.
+    screen.timeout(250)
     try:
         curses.curs_set(0)
     except curses.error:
@@ -54,6 +52,7 @@ def _screen_loop_impl(
     except (AttributeError, curses.error):
         pass
     mapper = ui_drawing._ColorMapper()
+    redraw = True
     while True:
         if guard is not None:
             guard()
@@ -62,7 +61,10 @@ def _screen_loop_impl(
         if state.repaint:
             screen.clearok(True)
             state.repaint = False
-        viewport_height = ui_drawing._draw_screen(screen, state, mapper)
+            redraw = True
+        if redraw:
+            viewport_height = ui_drawing._draw_screen(screen, state, mapper)
+            redraw = False
         try:
             key = screen.get_wch()
         except KeyboardInterrupt:
@@ -71,6 +73,7 @@ def _screen_loop_impl(
             if deadline_at is not None and time.monotonic() >= deadline_at:
                 return ui_models.TIMED_OUT
             continue
+        redraw = True
         if key == curses.KEY_RESIZE:
             try:
                 # windows-curses 2.x already does this after get_wch(); the
