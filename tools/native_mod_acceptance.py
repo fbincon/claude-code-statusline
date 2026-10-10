@@ -218,7 +218,7 @@ def run_pty(
     ]
     tmux_directory = (
         tempfile.TemporaryDirectory(prefix="statusline-client-tmux-")
-        if persistent
+        if persistent and not discovery
         else None
     )
     tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
@@ -521,7 +521,7 @@ def run_pty(
                     reopen_pane()
                 cases.append(exercise(native=True,language=language,backend=backend,env=env,root=project,config=config,
                                       send=send,capture=capture,reopen=reopen_pane,close=close_pane,description=described))
-            return {"columns":columns,"rows":screen.lines,"discovery":cases,"persistent_plugin":persistent,"manual_visual_acceptance":False}
+            return {"columns":columns,"rows":screen.lines,"discovery":cases,"persistent_plugin":persistent,"transport":"direct PTY","manual_visual_acceptance":False}
         if language_only:
             # Select the explicit capture surface as in the full acceptance path.
             os.write(master, b"3\x1b[H\x1b[B\x1b[B")
