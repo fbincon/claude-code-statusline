@@ -520,7 +520,7 @@ def run_pty(
                     backend_call(backend,env,project,"config","language","set",language)
                     reopen_pane()
                 cases.append(exercise(native=True,language=language,backend=backend,env=env,root=project,config=config,
-                                      send=send,capture=capture,reopen=reopen_pane,close=close_pane,description=described))
+                                      send=send,capture=capture,reopen=reopen_pane,close=close_pane,description=described,case_id=str(columns)))
             return {"columns":columns,"rows":screen.lines,"discovery":cases,"persistent_plugin":persistent,"transport":"direct PTY","manual_visual_acceptance":False}
         if language_only:
             # Select the explicit capture surface as in the full acceptance path.

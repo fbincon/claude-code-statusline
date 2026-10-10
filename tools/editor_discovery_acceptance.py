@@ -64,7 +64,7 @@ def verify_native_capture(cells, language, mode, terminal_theme):
         assert "←→ "+t("ui.hints.order",language) not in plain, "Filtered reorder is still advertised"
 
 
-def exercise(*, native, language, backend, env, root, config, send, capture, reopen, close, description):
+def exercise(*, native, language, backend, env, root, config, send, capture, reopen, close, description, case_id=""):
     """Run the same user operations through each editor's real keyboard path."""
     original = request(backend, env, root, "read")["draft"]
     paths = [config / "claude-statusline.json", config / "settings.json"]
@@ -76,9 +76,9 @@ def exercise(*, native, language, backend, env, root, config, send, capture, reo
                                 layout={"mode":"explicit", "rows":[["model", "context-used"],["task-active-timer"]]},
                                 statusline_language="zh-CN")
     candidate["host"]["padding"] = 7
-    portable = root / f"discovery-{language}.json"
+    portable = root / f"discovery-{language}-{case_id} 中文.json"
     portable.write_text(json.dumps({"format":"claude-code-statusline","version":1,"draft":candidate},ensure_ascii=False))
-    invalid = root / f"invalid-{language}.json"
+    invalid = root / f"invalid-{language}-{case_id} 中文.json"
     invalid.write_text("[]")
 
     def unchanged():
@@ -138,7 +138,7 @@ def exercise(*, native, language, backend, env, root, config, send, capture, reo
     send(b"\t",t("review.preview",language,scope=t("review.sections.subagent",language)))
     send(b"\x07",t("review.cancelled",language))
     unchanged()
-    exported=root/f"kept-draft-{language}.json"
+    exported=root/f"kept-draft-{language}-{case_id} 中文.json"
     export_key="native.hooks.register.exported_current_draft_may_be_unsaved" if native else "ui.session.exported_current_draft_may_be_unsaved"
     file_action("export-file",exported,prefix(export_key,language))
     kept=json.loads(exported.read_bytes())["draft"]
