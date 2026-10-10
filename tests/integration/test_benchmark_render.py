@@ -2,6 +2,8 @@
 
 import tempfile
 import unittest
+import os
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -10,6 +12,34 @@ from tools.benchmarking.render import fixtures
 
 
 class BenchmarkTests(unittest.TestCase):
+    def test_comparison_runs_one_case_from_each_source_before_advancing(self):
+        from tools.benchmark_compare import run_pair
+
+        program = """
+from pathlib import Path
+import sys
+from tools.benchmark_render import measure
+for case in range(3):
+    def record():
+        with Path(sys.argv[2]).open('a', encoding='utf-8') as output:
+            output.write(sys.argv[1] + str(case) + '\\n')
+    measure(record, 1)
+"""
+        for order in (("baseline", "candidate"), ("candidate", "baseline")):
+            with self.subTest(order=order), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                audit = root / "order.txt"
+                commands = {
+                    side: [sys.executable, "-c", program, side, str(audit)]
+                    for side in order
+                }
+                logs = {side: root / (side + ".log") for side in order}
+                self.assertEqual(run_pair(commands, order, logs, os.environ), 3)
+                self.assertEqual(
+                    audit.read_text().splitlines(),
+                    [side + str(case) for case in range(3) for side in order],
+                )
+
     def test_setup_and_cleanup_are_outside_the_timed_region(self):
         events = []
 

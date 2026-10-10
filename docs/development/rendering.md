@@ -16,6 +16,8 @@ Checking and ordinary builds are offline and require no wcwidth installation. To
 
 Python loads tables only for non-ASCII text. Both implementations run the official Unicode 18.0 GraphemeBreakTest cases and shared terminal-width examples. The width policy applies the reference policy separately to each complete grapheme: for example, `a` followed by ZWJ and `b` must not swallow the unrelated `b`. Rendering neither imports wcwidth nor depends on the Python/host Unicode database.
 
+Generated Python tables decode fixed little-endian 32-bit integers with the standard-library `struct` module. This avoids compiling thousands of tuple literals when bytecode is cold; every decoded reference interval is checked against the pinned JSON. Table values, Unicode rules and the native generated arrays remain identical. Unselected transcript/timer modules are imported only when used, with historical module aliases retained.
+
 ## Styles and boundaries
 
 The supported style state consists of foreground, background and bold. SGR changes accumulate; `0` resets all supported attributes, `22` clears bold, and `39`/`49` restore default foreground/background independently. ANSI slots 0–255 and RGB colors are preserved. Semicolon and colon extended-color forms are supported; malformed color groups cannot become unrelated style commands. Other terminal effects are outside this contract.

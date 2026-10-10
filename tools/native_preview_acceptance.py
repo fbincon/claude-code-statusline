@@ -92,6 +92,16 @@ def verify_capture(cells, background, *, short=False, clipping=False):
     assert row[3]["data"] == "👩🏽‍💻" and row[4]["data"] == ""
     assert row[3]["fg"] == "ff00d7" and row[3]["bg"] == "005faf"
     assert not row[3]["bold"], "Cluster did not keep its first visible style"
-    assert row[5]["data"] == "X" and row[5]["bg"] == base and not row[5]["bold"]
+    assert (
+        row[5]["data"] == "X"
+        and row[5]["fg"] == "default"
+        and row[5]["bg"] == base
+        and not row[5]["bold"]
+    )
     assert row[7]["data"] == "R" and row[7]["bg"] == "123456" and row[7]["bold"]
-    assert row[9]["data"] == "Z" and row[9]["bg"] == base and not row[9]["bold"]
+    assert (
+        row[9]["data"] == "Z"
+        and row[9]["fg"] == "default"
+        and row[9]["bg"] == base
+        and not row[9]["bold"]
+    )

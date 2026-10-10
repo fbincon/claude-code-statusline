@@ -313,7 +313,7 @@ python tools/benchmark_compare.py --baseline BASELINE_SHA --candidate CANDIDATE_
 
 ## 字符簇与预览样式验收
 
-1.11 候选通过 758 项 Python 测试（750 通过、8 项平台跳过）、固定 Claude Code 2.1.294 的 92 项原生和 10 项运行时 Mod 官方测试、两套 TypeScript、生成资源／协议、Ruff 与 1,093 个文档链接检查。两端 Unicode 内核均通过固定 Unicode 18.0 的全部 853 条分簇标准用例。已安装包的基础／原生／运行时检查和 1.10.0 升级保留显示／界面语言及明确关闭的编辑器／采集偏好。
+1.11 候选通过 761 项 Python 测试（753 通过、8 项平台跳过）、固定 Claude Code 2.1.294 的 92 项原生和 10 项运行时 Mod 官方测试、两套 TypeScript、生成资源／协议、Ruff 与 1,095 个文档链接检查。两端 Unicode 内核均通过固定 Unicode 18.0 的全部 853 条分簇标准用例。已安装包的基础／原生／运行时检查和 1.10.0 升级保留显示／界面语言及明确关闭的编辑器／采集偏好。
 
 `tools/rendering_acceptance.py --python /absolute/venv/bin/python --commit VERIFIED_SHA --report-dir dist/validation/new-rendering` 在 xterm-256color、vt100 下以 32／64／120 列检查已安装 curses 适配器。基于独立 wcwidth 参考库的终端解码器核验完整字符簇、跨样式状态、背景、短文本重绘与缩放，并保留原始字节。
 
@@ -326,3 +326,5 @@ python tools/native_mod_acceptance.py --persistent --rendering-only --theme ligh
 ```
 
 两个主题参数均改为 `dark` 后重复。此直接 PTY 使用已记录的合成预览协议样例，其余操作仍交给已安装后端；在 120×30／80×48 核验 ANSI 256／RGB 背景、独立重置、跨 span emoji 样式、整簇裁切及短文本重绘，不新增用户配色设置。普通安装包预览、双语查找、语言切换及完整保存／取消／导入／导出另有真实后端验收报告。捕获单元格和代理检查的 PNG 重建图与人类平台验收分开记录；不声称新增 Windows／macOS 人工终端验收，也不调用付费模型。
+
+完整对照按每个场景的 50 次样本段交替前后源码，逐轮交换先后顺序。另一工作进程等待当前测量与下一场景的数据准备完成后才运行，测量不会并发。缩短同场景前后测量间隔以降低时序漂移影响，采样数与覆盖范围不变。

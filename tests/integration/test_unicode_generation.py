@@ -1,5 +1,6 @@
 """Unicode reproduction is independent of checkout line-ending conversion."""
 
+import json
 import shutil
 import tempfile
 import unittest
@@ -9,6 +10,19 @@ from tools import generate_unicode as generator
 
 
 class UnicodeGenerationTests(unittest.TestCase):
+    def test_decoded_tables_match_every_pinned_reference_interval(self):
+        from claude_statusline.rendering import _unicode_grapheme, _unicode_width
+
+        expected = json.loads(
+            (generator.DATA / "data.json").read_text(encoding="utf-8")
+        )["tables"]
+        for module in (_unicode_grapheme, _unicode_width):
+            for name in vars(module).keys() & expected.keys():
+                with self.subTest(module=module.__name__, table=name):
+                    self.assertEqual(
+                        getattr(module, name), tuple(map(tuple, expected[name]))
+                    )
+
     def test_crlf_checkout_produces_the_same_tables_fixtures_and_provenance(self):
         expected = {
             str(path.relative_to(generator.ROOT)): content

@@ -18,6 +18,10 @@ import time
 
 
 def measure(action, samples, *, prepare=None, cleanup=None):
+    if os.environ.get("CLAUDE_STATUSLINE_BENCHMARK_CASE_SYNC") == "1":
+        print("@@statusline-benchmark-ready@@", flush=True)
+        if sys.stdin.readline().strip() != "run":
+            raise RuntimeError("Benchmark comparison controller disconnected")
     values = []
     for _ in range(samples):
         if prepare is not None:

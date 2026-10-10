@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import argparse
+from contextlib import ExitStack
 import hashlib
 import json
 import os
@@ -13,6 +14,61 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def run_pair(commands, order, logs, environment):
+    """Alternate whole sample batches while the other source waits at a barrier.
+
+    Wait for each next barrier (including untimed fixture setup) before releasing
+    the other worker, so neither setup nor measurements overlap across sources.
+    """
+    workers = {}
+    with ExitStack() as stack:
+        try:
+            for side in order:
+                log = stack.enter_context(logs[side].open("w", encoding="utf-8"))
+                process = subprocess.Popen(
+                    commands[side],
+                    cwd=ROOT,
+                    env=dict(environment, CLAUDE_STATUSLINE_BENCHMARK_CASE_SYNC="1"),
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    encoding="utf-8",
+                )
+                workers[side] = process, log
+
+            def ready(side):
+                process, log = workers[side]
+                for line in process.stdout:
+                    log.write(line)
+                    if line.strip() == "@@statusline-benchmark-ready@@":
+                        log.flush()
+                        return True
+                if process.wait() != 0:
+                    raise RuntimeError(f"Benchmark worker failed; inspect {logs[side]}")
+                return False
+
+            pending = {side: ready(side) for side in order}
+            batches = 0
+            while any(pending.values()):
+                if not all(pending.values()):
+                    raise RuntimeError("Sources produced different benchmark cases")
+                for side in order:
+                    process, _ = workers[side]
+                    process.stdin.write("run\n")
+                    process.stdin.flush()
+                    pending[side] = ready(side)
+                batches += 1
+            return batches
+        finally:
+            for process, _ in workers.values():
+                if process.poll() is None:
+                    process.terminate()
+                process.wait()
+                process.stdin.close()
+                process.stdout.close()
 
 
 def summarize(reports):
@@ -86,6 +142,7 @@ def main():
     (harness / "benchmarking").mkdir(parents=True)
     harness_hashes = {}
     for relative in (
+        "benchmark_compare.py",
         "benchmark_render.py",
         "benchmarking/__init__.py",
         "benchmarking/render.py",
@@ -125,14 +182,17 @@ def main():
     )
     for round_ in range(args.rounds):
         for mode in args.modes:
-            for side in (
+            order = (
                 ("baseline", "candidate")
                 if round_ % 2 == 0
                 else ("candidate", "baseline")
-            ):
+            )
+            commands, paths, logs = {}, {}, {}
+            for side in order:
                 name = f"round-{round_ + 1}-{mode}-{side}"
-                path = root / (name + ".json")
-                command = [
+                paths[side] = root / (name + ".json")
+                logs[side] = root / (name + ".log")
+                commands[side] = [
                     sys.executable,
                     str(harness / "benchmark_render.py"),
                     "--suite",
@@ -146,20 +206,22 @@ def main():
                     "--source-commit",
                     refs[side],
                     "--report",
-                    str(path),
+                    str(paths[side]),
                     "--profiles",
                     *args.profiles,
                 ]
-                with (root / (name + ".log")).open("w", encoding="utf-8") as log:
-                    subprocess.run(
-                        command,
-                        cwd=ROOT,
-                        env=environment,
-                        stdout=log,
-                        stderr=subprocess.STDOUT,
-                        check=True,
-                    )
-                report = json.loads(path.read_text(encoding="utf-8"))
+            batches = run_pair(commands, order, logs, environment)
+            pair = {
+                side: json.loads(paths[side].read_text(encoding="utf-8"))
+                for side in order
+            }
+            expected_keys = list(pair[order[0]]["metrics"])
+            if batches != len(expected_keys) or any(
+                list(report["metrics"]) != expected_keys for report in pair.values()
+            ):
+                raise RuntimeError("Measured case order differs across sources")
+            for side in order:
+                report = pair[side]
                 reports.append(
                     {"round": round_ + 1, "side": side, "mode": mode, "report": report}
                 )
@@ -169,13 +231,14 @@ def main():
                     "completed_runs": len(reports),
                     "expected_runs": args.rounds * len(args.modes) * 2,
                     "samples_per_case": args.samples,
+                    "sampling_order": "case-interleaved; one timed batch at a time; peer waits through following setup",
                     "summary": summarize(reports),
                 }
                 (root / "comparison.json").write_text(
                     json.dumps(result, indent=2) + "\n", encoding="utf-8"
                 )
                 print(
-                    f"Completed {name} ({len(reports)}/{result['expected_runs']})",
+                    f"Completed round-{round_ + 1}-{mode}-{side} ({len(reports)}/{result['expected_runs']})",
                     flush=True,
                 )
     print(f"Comparison saved to {root / 'comparison.json'}", flush=True)

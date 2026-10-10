@@ -14,11 +14,24 @@ from claude_statusline.rendering import layout as rendering_layout
 from claude_statusline.rendering import metrics, preferences
 from claude_statusline.rendering import git as rendering_git
 from claude_statusline.rendering import palette as rendering_palette
-from claude_statusline.rendering import timer as rendering_timer
 from claude_statusline.runtime import git as runtime_git
-from claude_statusline.runtime.turns import store as turn_store
-from claude_statusline.runtime import usage as runtime_usage
 from claude_statusline.i18n import statusline
+
+
+def __getattr__(name):
+    """Keep historical module aliases without loading unselected collectors."""
+    modules = {
+        "rendering_timer": "claude_statusline.rendering.timer",
+        "turn_store": "claude_statusline.runtime.turns.store",
+        "runtime_usage": "claude_statusline.runtime.usage",
+    }
+    if name not in modules:
+        raise AttributeError(name)
+    from importlib import import_module
+
+    value = import_module(modules[name])
+    globals()[name] = value
+    return value
 
 
 def _live_directory(data):
@@ -232,11 +245,15 @@ class _RenderState:
 
     def totals(self):
         if self._totals is _NOT_LOADED:
+            from claude_statusline.runtime import usage as runtime_usage
+
             self._totals = runtime_usage.session_token_totals(self.data)
         return self._totals
 
     def raw_totals(self):
         if self._counts is _NOT_LOADED:
+            from claude_statusline.runtime import usage as runtime_usage
+
             totals = self.totals()
             self._counts = (
                 runtime_usage.session_token_counts(totals[4]) if totals else None
@@ -247,6 +264,8 @@ class _RenderState:
         session_id = rendering_formatters.deep_get(self.data, ("session_id",))
         if not session_id:
             return False
+        from claude_statusline.runtime.turns import store as turn_store
+
         prompt_id = rendering_formatters.deep_get(self.data, ("prompt_id",))
         record = (
             turn_store.load_turn_state(str(session_id), str(prompt_id))
@@ -505,6 +524,8 @@ class _RenderState:
         totals = self.totals()
         if not totals:
             return None
+        from claude_statusline.rendering import timer as rendering_timer
+
         _thit, _tmiss, _tout, last_pt, entry = totals
         text = rendering_timer._timer_segment(
             rendering_formatters.deep_get(self.data, ("session_id",)),
@@ -565,6 +586,9 @@ class _RenderState:
         return self.styled(text, self.palette.tokens, "usage")
 
     def cost(self):
+        from claude_statusline.rendering import timer as rendering_timer
+        from claude_statusline.runtime import usage as runtime_usage
+
         cost = rendering_formatters.deep_get(self.data, ("cost",))
         if not isinstance(cost, dict):
             return None
