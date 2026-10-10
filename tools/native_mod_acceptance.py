@@ -267,6 +267,9 @@ def run_pty(
     stream = pyte.Stream(screen)
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
 
+    def screen_lines():
+        return ["".join(screen.buffer[y][x].data for x in range(screen.columns)) for y in range(screen.lines)]
+
     def read_until(
         text: str | tuple[str, ...],
         *,
@@ -285,7 +288,7 @@ def run_pty(
                 raw.extend(data)
                 stream.feed(decoder.decode(data))
                 last_output = time.monotonic()
-            plain = "\n".join(screen.display)
+            plain = "\n".join(screen_lines())
             candidates = (text,) if isinstance(text, str) else text
             compact = re.sub(r"\s+", "", plain)
             for candidate in candidates:
@@ -454,7 +457,7 @@ def run_pty(
         path.chmod(0o600)
 
     def command(text):
-        prompts = [line for line in screen.display if line.lstrip().startswith("❯")]
+        prompts = [line for line in screen_lines() if line.lstrip().startswith("❯")]
         if not prompts or prompts[-1].split("❯", 1)[1].strip():
             raise RuntimeError(
                 "Refusing to send a command while the composer is not empty"
@@ -465,11 +468,11 @@ def run_pty(
         from claude_statusline.i18n import translate as t
         label=t("native.ui.client.draw.filter",language).strip()
         row = next(
-            (i for i, line in enumerate(screen.display) if label in line), None
+            (i for i, line in enumerate(screen_lines()) if label in line), None
         )
         if row is None:
             raise RuntimeError("Client filter row is not visible for focus click")
-        col = screen.display[row].index(label) + 3
+        col = screen_lines()[row].index(label) + 3
         os.write(
             master, f"\x1b[<0;{col + 1};{row + 1}M\x1b[<0;{col + 1};{row + 1}m".encode()
         )
@@ -1139,7 +1142,7 @@ def run_pty(
         }
     finally:
         (root / f"screen-{columns}.txt").write_text(
-            "\n".join(screen.display), encoding="utf-8"
+            "\n".join(screen_lines()), encoding="utf-8"
         )
         if tmux_socket:
             subprocess.run(

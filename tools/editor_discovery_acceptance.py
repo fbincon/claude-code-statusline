@@ -17,7 +17,8 @@ from claude_statusline.ui.contracts import PROTOCOL_VERSION
 
 
 def prefix(key, language):
-    return catalogue(language)[key].split("{", 1)[0].split(".", 1)[0].strip()
+    # Notices are single-row and may be clipped inside a narrow Client pane.
+    return catalogue(language)[key].split("{", 1)[0].split(".", 1)[0].strip()[:16]
 
 
 def backend_call(backend, env, cwd, *arguments, payload=None):
@@ -185,6 +186,11 @@ def external_case(backend, root, columns, rows, commit, language, terminal_theme
     process=None;master=None;raw=bytearray();captures=[]
     screen=pyte.Screen(columns,rows);stream=pyte.Stream(screen);decoder=codecs.getincrementaldecoder("utf-8")("replace")
 
+    def screen_lines():
+        # Keep original cells; pyte.display can fail on a wide-character stub
+        # left by terminal insert/delete operations during bilingual repaint.
+        return ["".join(screen.buffer[y][x].data for x in range(screen.columns)) for y in range(screen.lines)]
+
     def wait(text,after=-1):
         import re,unicodedata
         compact=lambda value:re.sub(r"\s+","",unicodedata.normalize("NFC",value))
@@ -196,9 +202,9 @@ def external_case(backend, root, columns, rows, commit, language, terminal_theme
                 except OSError:chunk=b""
                 if chunk:raw.extend(chunk);stream.feed(decoder.decode(chunk));last=time.monotonic()
                 elif process.poll() is not None:ended=True
-            if len(raw)>after and compact(text) in compact("\n".join(screen.display)) and (ended or time.monotonic()-last>.15):return
+            if len(raw)>after and compact(text) in compact("\n".join(screen_lines())) and (ended or time.monotonic()-last>.15):return
             if ended:break
-        (root/"last-screen.txt").write_text("\n".join(screen.display))
+        (root/"last-screen.txt").write_text("\n".join(screen_lines()))
         raise RuntimeError(f"External {language} {columns}x{rows}: did not observe {text!r}")
 
     def send(data,text):
