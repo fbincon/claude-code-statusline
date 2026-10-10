@@ -375,9 +375,11 @@ claude-statusline config item subagent task max-width none
 
 `label`、`icon` 接受不含控制字符的最多 256 码点文本，`inherit` 清除覆盖，空字符串隐藏标签或图标。`priority` 为 0–100，默认 50；`max-width` 为 2–10000 或 `none`。[显示选项](#显示与宿主选项)中的七种格式选项可设值，或用 `inherit` 清除逐项覆盖。宽度按终端列计算，包括 CJK 与组合字符。
 
+`foreground`／`background` 接受 `inherit`、`default`、`ansi:0`–`ansi:255` 或加引号的 `#RRGGBB`。`visibility` 接受 `always` 及该作用域项目支持的规则；`visibility-threshold` 为 0–100 整数，默认 70，仅对用量规则生效。条件按原始已用比例判定，独立于告警颜色。详见[适用规则与颜色优先级](../APPEARANCE.zh-CN.md)。
+
 ### `config preset NAME [--dry-run]`
 
-预设名为 `minimal`、`developer`、`monitoring`、`multi-agent`。预设替换显示选择、布局、子 Agent 默认条目和逐项覆盖，使用模型简称、紧凑数字及递减的逐项优先级；保留颜色、调色板、目录及分隔符、作用域标签、刷新与宿主设置，以及当前子 Agent 启用状态。Multi-agent 另隐藏 completed，限制六行，任务宽度 48。
+预设名为 `minimal`、`developer`、`monitoring`、`multi-agent`。预设替换显示选择、布局、子 Agent 默认条目和逐项覆盖，使用模型简称、紧凑数字及递减的逐项优先级；保留颜色、调色板、主题、Powerline 字形、目录及分隔符、作用域标签、刷新与宿主设置，以及当前子 Agent 启用状态。Multi-agent 另隐藏 completed，限制六行，任务宽度 48。
 
 ```text
 claude-statusline config preset developer --dry-run
@@ -587,7 +589,9 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 | `colors` | `on`、`off` | `on` | 是否输出 ANSI 颜色控制码 |
 | `palette` | `default`、`ansi` | `default` | `default` 使用项目的 24 位 RGB 色值；`ansi` 使用标准终端色 |
 | `directory-style` | `full`、`home`、`project-relative`、`basename` | `full` | 工作目录的缩写方式 |
-| `separator-style` | `classic`、`compact` | `classic` | 顶层条目的分隔方式 |
+| `separator-style` | `classic`、`compact`、`powerline` | `classic` | 顶层条目的分隔方式 |
+| `theme` | `classic`、`dark`、`light`、`terminal` | `classic` | 状态栏颜色角色；保留逐项覆盖与 Claude 宿主外观 |
+| `powerline-glyph` | `ascii`、`powerline` | `ascii` | Powerline 边界使用 ASCII `>` 或可选的字体相关箭头 |
 | `scope-labels` | `off`、`when-subagents`、`always` | `when-subagents` | 主栏是否前置固定的 `Main/Session` |
 | `subagent-statusline` | `on`、`off` | `on` | 是否希望安装并渲染自定义子 Agent 行 |
 | `padding` | `0`–`32` | `0` | Claude Code 在状态栏内容前增加的水平空白字符数 |
@@ -632,7 +636,7 @@ Windows drive path、含空格或中文的路径、UNC path 与大小写归一�
 
 ### 分隔符和语义分组
 
-`classic` 使用 ` | ` 分隔顶层条目；`compact` 对所有顶层条目使用 ` · `。
+`classic` 使用 ` | ` 分隔顶层条目；`compact` 对所有顶层条目使用 ` · `。`powerline` 将每个可见项目作为独立色块，内边距和边界计入宽度；详见[基础 Powerline](../APPEARANCE.zh-CN.md#基础-powerline)。普通分隔符继续遵循下面的语义分组。
 
 以下条目在相邻时属于同一语义组，并用 ` · ` 连接；同组条目使用相同颜色：
 

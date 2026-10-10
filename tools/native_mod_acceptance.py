@@ -513,6 +513,17 @@ def run_pty(
             read_until("Configure Status Line")
         read_until("sample data")
         click_client()
+        if appearance:
+            # Preview preference is independent of the host theme and persists
+            # between viewport cases. Inspect its actual selected value.
+            os.write(master, b"3\x1b[H\x1b[B\x1b[B")
+            read_until("› Preview background (UI only):")
+            selected = next(line for line in screen_lines() if "› Preview background (UI only):" in line)
+            if not re.search(r"\b" + terminal_theme + r"\b", selected):
+                os.write(master, b"\x1b[C")
+                read_until("Preview background remembered")
+            os.write(master, b"1")
+            read_until("Main items")
         if discovery or appearance:
             from editor_discovery_acceptance import exercise, request, backend_call
             from claude_statusline.i18n import translate as t

@@ -4,6 +4,14 @@
 
 ## Unreleased
 
+## 1.12.0 - 2026-10-10
+
+- Add scoped visibility rules for confirmed clean Git, zero active agents, empty task lists and raw used-percentage thresholds. Preserve unknown/stale/partial observations and existing missing-data behavior; reuse shared lazy collectors.
+- Add per-item foreground/background colors, classic/dark/light/terminal themes, terminal-default overrides and ANSI fallback. Enabled warning/critical foregrounds take precedence without changing explicit backgrounds.
+- Add opt-in Powerline blocks to main and subagent rows with ASCII defaults, optional font-dependent arrows, complete resets and grapheme-safe width fitting. Appearance-only subagent overrides preserve ordinary fitting.
+- Advance display configuration to schema 7 and the editor protocol to 9. Both editors and the CLI share scoped controls, complete drafts, import review and portable exports; read v1–v6 without writes and back up migration only on save.
+- Add bilingual guidance, original installed-terminal captures, cross-language validation fixtures, fixed legacy snapshots and appearance performance scenarios. Runtime protocol v2 and portable format v1 remain independent.
+
 ## 1.11.0 - 2026-10-10
 
 - Unify Python and native-editor cell widths with fixed Unicode 18.0 extended graphemes. Preserve combining characters, emoji, skin tones, flags, keycaps and ZWJ sequences across wrapping, clipping, highlighting and editing.
