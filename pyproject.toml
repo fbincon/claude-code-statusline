@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fbincon-claude-code-statusline"
-version = "1.10.0"
+version = "1.11.0"
 description = "A configurable, stateful Claude Code status line for Linux, Windows and macOS"
 readme = "README.md"
 license = "MIT"

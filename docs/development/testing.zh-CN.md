@@ -302,3 +302,11 @@ PYTHONPATH=src python tools/benchmark_render.py --suite representative --samples
 `small`、`medium`、`large` 分别包含 100／10,000／100,000 行 transcript，0／8／32 个代理（每个 100 行，包含嵌套文件），以及 32／1,000／10,000 个 Git 已跟踪文件。使用 `--profiles small` 可快速检查。分别测量启动／导入、字节码、transcript 冷／热／追加、干净／有改动 Git 的未命中／命中／过期、中英自动／显式布局的 40／120 列渲染，以及复杂 Unicode 代理行。数据准备与重置不计时，并断言未变化的 transcript／Git 缓存命中不重复收集。操作系统文件缓存不受控制。
 
 报告保留原始样本、P50/P95、源代码和样例校验值、解释器／平台及工作区状态。固定前后源码，使用相同脚本和样例交替比较三轮；发布前排查可重复的退化。旧版默认样例和扩大样例均不调用模型，也不读取个人 transcript。
+
+使用固定导出源码与冻结的同一份脚本进行前后对照：
+
+```bash
+python tools/benchmark_compare.py --baseline BASELINE_SHA --candidate CANDIDATE_SHA --samples 50 --rounds 3 --report-dir dist/validation/new-comparison
+```
+
+执行器逐一核对运行源码与指定 Git 提交的 blob，交替前后顺序，区分冷／热字节码，保存原始样本并比较各轮中位数。每个代理使用不同名称／说明，同时测量进程内与全新官方 `render-subagents` 进程。若各轮 P50／P95 同向变化且超出基线轮间波动范围，标记为需要排查；单轮噪声不构成验收结论。大历史和一万个 Git 文件使完整样例比小规模快速检查耗时更长。

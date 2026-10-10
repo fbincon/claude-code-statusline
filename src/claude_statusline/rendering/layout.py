@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import re
-from . import text as terminal_text
 from dataclasses import dataclass
 from claude_statusline.rendering import palette as rendering_palette
 
@@ -35,11 +34,18 @@ class _StyledUnit:
 
 
 def _char_width(ch):
+    from . import text as terminal_text
+
     return terminal_text.char_width(ch)
 
 
 def _display_width(text):
-    return terminal_text.display_width(ANSI_SGR_RE.sub("", text or ""))
+    plain = ANSI_SGR_RE.sub("", text or "")
+    if plain.isascii() and plain.isprintable():
+        return len(plain)
+    from . import text as terminal_text
+
+    return terminal_text.display_width(plain)
 
 
 def _terminal_content_width(env=None):
@@ -63,7 +69,7 @@ def _sgr_style_after(sequence, current=""):
 
 def _styled_units(text):
     """Partition the visible row first, then attach each grapheme's base style."""
-    from . import styles
+    from . import styles, text as terminal_text
 
     plain, states = [], []
     state = styles.DEFAULT
@@ -184,6 +190,8 @@ def _ensure_reset(text, reset=rendering_palette.C_RESET):
     # style state on that hot path, but normalize any boundary inside a cluster.
     plain = ANSI_SGR_RE.sub("", text)
     if not (plain.isascii() and plain.isprintable()):
+        from . import text as terminal_text
+
         boundaries = {0}
         offset = 0
         for cluster in terminal_text.graphemes(plain):

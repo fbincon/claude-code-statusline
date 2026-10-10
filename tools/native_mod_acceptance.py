@@ -721,7 +721,7 @@ def run_pty(
         os.write(master, b"/git")
         read_until("Filter: git")
         os.write(master, b"\x07")
-        read_until("Filter: / search")
+        read_until("Ctrl+F All categories")
         os.write(master, b"\x1b[B\x1b[B")
         read_until("Detail: Git")
         offset = len(raw)
@@ -1066,7 +1066,11 @@ def run_pty(
             os.write(master, b"\t\t")
             read_until("Use arrows to change values", quiet=False)
             external_setting("import-file", "Import file")
-            external_value(external_portable.name, "Draft imported")
+            external_value(external_portable.name, "Review import")
+            assert display_path.read_bytes() == saved_advanced
+            os.write(master, b"A")
+            read_until("Imported candidate accepted", quiet=False)
+            assert display_path.read_bytes() == saved_advanced
             os.write(master, b"\t")
             read_until("Set explicit rows", quiet=False)
             imported_display = json.loads(external_portable.read_bytes())["draft"][

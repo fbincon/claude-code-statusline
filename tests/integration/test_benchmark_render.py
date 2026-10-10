@@ -36,3 +36,44 @@ class BenchmarkTests(unittest.TestCase):
             self.assertEqual(len(list((root / "history").rglob("agent-*.jsonl"))), 2)
             self.assertTrue((root / "history/subagents/nested/agent-1.jsonl").exists())
             self.assertTrue((project / ".git/HEAD").is_file())
+
+    def test_immutable_source_verification_rejects_modified_runtime(self):
+        from tools.benchmarking.source import identity
+        import hashlib
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            package = root / "src/claude_statusline"
+            package.mkdir(parents=True)
+            code = b"value = 1\n"
+            file = package / "__init__.py"
+            file.write_bytes(code)
+            blob = hashlib.sha1(b"blob 10\0" + code).hexdigest()
+            tree = f"100644 blob {blob}\tsrc/claude_statusline/__init__.py\0".encode()
+            with patch(
+                "tools.benchmarking.source.subprocess.check_output", return_value=tree
+            ):
+                self.assertEqual(len(identity(root, "a" * 40)), 64)
+                file.write_bytes(b"value = 2\n")
+                with self.assertRaisesRegex(ValueError, "does not match"):
+                    identity(root, "a" * 40)
+
+    def test_comparison_flags_consistent_changes_beyond_baseline_round_noise(self):
+        from tools.benchmark_compare import summarize
+
+        reports = []
+        for round_, (before, after) in enumerate(((10, 15), (12, 16), (11, 17))):
+            for side, value in (("baseline", before), ("candidate", after)):
+                reports.append(
+                    {
+                        "round": round_,
+                        "mode": "warm",
+                        "side": side,
+                        "report": {
+                            "metrics": {"case": {"p50_ms": value, "p95_ms": value + 5}}
+                        },
+                    }
+                )
+        self.assertTrue(summarize(reports)["warm"]["case"]["review_regression"])
+        reports[-1]["report"]["metrics"]["case"] = {"p50_ms": 9, "p95_ms": 14}
+        self.assertFalse(summarize(reports)["warm"]["case"]["review_regression"])

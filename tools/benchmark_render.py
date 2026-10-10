@@ -9,6 +9,7 @@ import math
 import os
 from pathlib import Path
 import platform
+import re
 import statistics
 import subprocess
 import sys
@@ -204,15 +205,34 @@ def main():
         choices=("small", "medium", "large"),
         default=["small", "medium", "large"],
     )
+    parser.add_argument(
+        "--source-root", type=Path, help="Immutable exported source tree"
+    )
+    parser.add_argument("--source-commit", help="Exact commit of the exported source")
     args = parser.parse_args()
+    if bool(args.source_root) != bool(args.source_commit):
+        parser.error("--source-root and --source-commit must be supplied together")
+    if args.source_commit and not re.fullmatch(r"[0-9a-f]{40}", args.source_commit):
+        parser.error("--source-commit must be an exact lowercase Git SHA")
+    if args.source_root:
+        args.source_root = args.source_root.resolve()
+        sys.path.insert(0, str(args.source_root / "src"))
+        os.environ["PYTHONPATH"] = str(args.source_root / "src")
+    from benchmarking.source import identity
+
+    source_root = args.source_root or Path.cwd()
+    source_digest = identity(source_root, args.source_commit)
     if not 5 <= args.samples <= 1000:
         parser.error("samples must be between 5 and 1000")
-    commit = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
+    commit = (
+        args.source_commit
+        or subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    )
     if args.suite == "representative":
         from benchmarking.render import run
 
@@ -223,15 +243,25 @@ def main():
                 args.samples, args.bytecode_mode, args.display_case, args.language
             )
         }
+    if identity(source_root) != source_digest:
+        raise RuntimeError("Benchmark source changed during measurement")
     report = {
         "commit": commit,
+        "source_tree_sha256": source_digest,
+        "immutable_source_verified": bool(args.source_commit),
         "python": platform.python_version(),
         "platform": platform.platform(),
         **results,
         "suite": args.suite,
-        "display_case": args.display_case,
-        "statusline_language": args.language,
-        "working_tree_dirty": bool(
+        "display_case": "matrix"
+        if args.suite == "representative"
+        else args.display_case,
+        "statusline_language": ["en", "zh-CN"]
+        if args.suite == "representative"
+        else args.language,
+        "working_tree_dirty": False
+        if args.source_commit
+        else bool(
             subprocess.check_output(["git", "status", "--porcelain"], text=True).strip()
         ),
         "bytecode_mode": args.bytecode_mode,

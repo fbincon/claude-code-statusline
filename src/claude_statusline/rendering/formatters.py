@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
-from . import text as terminal_text
 
 
 def deep_get(d, path):
@@ -23,14 +22,23 @@ ANSI_RESET = "\x1b[0m"
 
 
 def char_width(character: str) -> int:
+    from . import text as terminal_text
+
     return terminal_text.char_width(character)
 
 
 def display_width(text: str | None) -> int:
-    return terminal_text.display_width(ANSI_SGR_RE.sub("", text or ""))
+    plain = ANSI_SGR_RE.sub("", text or "")
+    if plain.isascii() and plain.isprintable():
+        return len(plain)
+    from . import text as terminal_text
+
+    return terminal_text.display_width(plain)
 
 
 def _plain_units(text: str) -> list[tuple[str, int]]:
+    from . import text as terminal_text
+
     return terminal_text.units(text)
 
 
@@ -40,6 +48,19 @@ def truncate_text(text: str, maximum_width: int, *, ellipsis: str = "…") -> st
         from .layout import truncate_styled
 
         return truncate_styled(text, maximum_width, ellipsis=ellipsis)
+    maximum_width = max(0, int(maximum_width))
+    if not maximum_width:
+        return ""
+    if text.isascii() and text.isprintable():
+        if len(text) <= maximum_width:
+            return text
+        if ellipsis == "…" or (
+            ellipsis.isascii() and (not ellipsis or ellipsis.isprintable())
+        ):
+            suffix = ellipsis if len(ellipsis) <= maximum_width else ""
+            return text[: maximum_width - len(suffix)] + suffix
+    from . import text as terminal_text
+
     return terminal_text.clip(text, maximum_width, ellipsis)
 
 

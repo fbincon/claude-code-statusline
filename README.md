@@ -21,6 +21,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Find what to show:** 60 main-line items and 14 subagent items, with ranked English/Chinese search, category filters and source/requirement guidance.
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
+- **Keep Unicode intact:** joined emoji, combining marks and CJK text stay together when rows wrap, clip or appear in previews.
 - **Review configuration changes:** four editable presets and portable JSON, with import differences and candidate previews before accepting a draft and saving.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
 - **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain production colors on a separately chosen light/dark background.

@@ -75,28 +75,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.10.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.10.0) provides the same wheel and source distribution.
+The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.11.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.11.0) provides the same wheel and source distribution.
 
 Alternatively download the wheel, source archive, and `SHA256SUMS` from that release. Compare the downloaded file's SHA-256 with the corresponding entry:
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.11.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.11.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.10.0-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.11.0-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.11.0-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.10.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.11.0"
 pipx ensurepath
 ```
 
@@ -634,7 +634,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.10.0 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
+The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.11.0 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
 
 ### Replace the Python package
 

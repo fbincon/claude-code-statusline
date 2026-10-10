@@ -4,6 +4,14 @@
 
 ## Unreleased
 
+## 1.11.0 - 2026-10-10
+
+- Unify Python and native-editor cell widths with fixed Unicode 18.0 extended graphemes. Preserve combining characters, emoji, skin tones, flags, keycaps and ZWJ sequences across wrapping, clipping, highlighting and editing.
+- Track foreground/background/bold state cumulatively, including ANSI 16/256 colors, RGB and independent default resets. UI protocol v8 adds background spans; persisted display v6, portable v1, interface preferences v1 and runtime v2 remain compatible.
+- Paint whole text runs on VT-capable curses terminals, clear stale frames and preserve safe whole-cluster fallback on unsupported backends. Keep the existing native light/dark preview choice separate from display configuration.
+- Generate compact, reproducible Unicode tables offline, retain licenses and source hashes, and validate both implementations against official conformance cases. Keep the full reference library out of runtime imports.
+- Expand isolated startup, transcript, agent and Git benchmarks, including immutable-source alternating comparisons and raw samples. Bound repeated short-text work with grapheme/width caches.
+
 ## 1.10.0 - 2026-10-10
 
 - Add local ranked bilingual search across IDs, names/descriptions, custom labels and categories, with actual-match highlighting, Ctrl+F category selection, stable ties and filtered reorder protection. Normalize catalog categories without changing IDs or default selections.
