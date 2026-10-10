@@ -153,6 +153,7 @@ def run_pty(
     terminal_theme: str = "dark",
     language_only: bool = False,
     discovery: bool = False,
+    rendering_only: bool = False,
 ) -> dict:
     import fcntl
     import pty
@@ -221,7 +222,7 @@ def run_pty(
     ]
     tmux_directory = (
         tempfile.TemporaryDirectory(prefix="statusline-client-tmux-")
-        if persistent and not discovery
+        if persistent and not discovery and not rendering_only
         else None
     )
     tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
@@ -314,7 +315,10 @@ def run_pty(
             [screen.buffer[row][column]._asdict() for column in range(columns)]
             for row in range(screen.lines)
         ]
-        if mode != "editor":
+        if mode == "rendering":
+            from native_preview_acceptance import verify_capture
+            verify_capture(cells, terminal_theme, short=name.endswith("short"), clipping=name.endswith("clip"))
+        elif mode != "editor":
             from editor_discovery_acceptance import verify_native_capture
             verify_native_capture(cells,language,mode,terminal_theme)
         elif "external" not in name:
@@ -525,7 +529,7 @@ def run_pty(
                 cases.append(exercise(native=True,language=language,backend=backend,env=env,root=project,config=config,
                                       send=send,capture=capture,reopen=reopen_pane,close=close_pane,description=described,case_id=str(columns)))
             return {"columns":columns,"rows":screen.lines,"discovery":cases,"persistent_plugin":persistent,"transport":"direct PTY","manual_visual_acceptance":False}
-        if language_only:
+        if language_only or rendering_only:
             # Select the explicit capture surface as in the full acceptance path.
             os.write(master, b"3\x1b[H\x1b[B\x1b[B")
             read_until("› Preview background (UI only):")
@@ -537,6 +541,24 @@ def run_pty(
                 read_until("Preview background remembered")
             os.write(master, b"1")
             read_until("Main items")
+        if rendering_only:
+            read_until("BG 👩🏽‍💻X")
+            capture("rendering-full", mode="rendering")
+            os.write(master, b"2")
+            read_until("CLIP ")
+            capture("rendering-clip", mode="rendering")
+            os.write(master, b"3\x1b[H\x1b[C1")
+            read_until("OK")
+            capture("rendering-short", mode="rendering")
+            os.write(master, b"q")
+            read_until("❯")
+            command("/exit")
+            assert process.wait(timeout=10) == 0
+            return {"columns": columns, "rows": screen.lines, "transport": "direct PTY",
+                    "synthetic_protocol_preview": True, "installed_native_component": True,
+                    "explicit_ansi_rgb_backgrounds": True, "cross_span_grapheme": True,
+                    "background_reset": True, "whole_cluster_clipping": True,
+                    "short_redraw": True, "manual_visual_acceptance": False}
         if language_only:
             backend = env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"]
             display_path = config / "claude-statusline.json"
@@ -1177,6 +1199,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--discovery", action="store_true", help="Verify bilingual discovery and import review in the installed native editor")
+    parser.add_argument("--rendering-only", action="store_true", help="Send synthetic style/grapheme spans through the installed native preview in a direct PTY")
     parser.add_argument(
         "--backend", type=Path, default=Path(".venv/bin/claude-statusline")
     )
@@ -1235,6 +1258,10 @@ def main() -> int:
         )
     if args.discovery and not args.persistent:
         parser.error("--discovery requires --persistent")
+    if args.rendering_only and (
+        not args.persistent or args.discovery or args.language_only or args.advanced or args.theme_only
+    ):
+        parser.error("--rendering-only requires --persistent and no other scenario selector")
     args.claude = str(Path(shutil.which(args.claude) or args.claude).resolve())
     if not sys.platform.startswith("linux"):
         parser.error("This acceptance runner currently requires native Linux")
@@ -1244,6 +1271,9 @@ def main() -> int:
     project, environment = prepare(
         root, backend, persistent=args.persistent, claude=args.claude, theme=args.theme
     )
+    if args.rendering_only:
+        from native_preview_acceptance import install_fixture
+        environment["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"] = str(install_fixture(root, backend))
     report = {
         "os": platform.platform(),
         "architecture": platform.machine(),
@@ -1310,6 +1340,7 @@ def main() -> int:
                     terminal_theme=args.terminal_theme,
                     language_only=args.language_only,
                     discovery=args.discovery,
+                    rendering_only=args.rendering_only,
                 )
             )
     finally:

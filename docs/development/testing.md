@@ -309,3 +309,19 @@ python tools/benchmark_compare.py --baseline BASELINE_SHA --candidate CANDIDATE_
 ```
 
 The runner verifies runtime source blobs against each exact Git commit, alternates before/after order, separates warm/cold bytecode, retains raw samples and reports medians across rounds. Each agent has a distinct name/description; both in-process and fresh official `render-subagents` processes are measured. It flags same-direction P50/P95 changes exceeding the baseline's observed between-round range for investigation, rather than treating one noisy run as acceptance. Large histories and 10,000-file repositories make the complete suite deliberately slower than its small-profile smoke.
+
+## Grapheme and preview-style acceptance
+
+The 1.11 candidate passed 758 Python tests (750 passed, eight platform skips), 92 native and ten runtime official Mod tests on fixed Claude Code 2.1.294, both TypeScript projects, generated resources/contracts, Ruff and 1,093 documentation links. Both Unicode kernels pass all 853 pinned Unicode 18.0 grapheme conformance cases. Installed core/native/runtime smoke and the 1.10.0 upgrade preserve saved display/interface language and explicit editor/collector opt-outs.
+
+`tools/rendering_acceptance.py --python /absolute/venv/bin/python --commit VERIFIED_SHA --report-dir dist/validation/new-rendering` exercises the installed curses adapter at 32/64/120 columns under xterm-256color and vt100. Its independent wcwidth-based terminal decoder verifies complete graphemes, cross-style state, backgrounds, shorter redraw and resizing; raw bytes are retained.
+
+For explicit backgrounds in the installed native component, run:
+
+```bash
+python tools/native_mod_acceptance.py --persistent --rendering-only --theme light --terminal-theme light \
+  --claude /absolute/fixed-host/claude --backend /absolute/venv/bin/claude-statusline \
+  --report-dir dist/validation/new-native-rendering-light
+```
+
+Repeat with `dark` for both theme arguments. This direct PTY uses a recorded synthetic preview-protocol fixture while every other operation delegates to the installed backend. It checks ANSI 256/RGB backgrounds, independent resets, cross-span emoji style, whole-grapheme clipping and shorter redraw at 120×30/80×48. It does not add user color settings. Ordinary installed previews, bilingual discovery, language changes and full save/cancel/import/export workflows have separate real-backend acceptance reports. Captured cells and agent-inspected PNG reconstructions are distinct from human platform acceptance; no new human Windows/macOS terminal acceptance or paid model calls are claimed.
