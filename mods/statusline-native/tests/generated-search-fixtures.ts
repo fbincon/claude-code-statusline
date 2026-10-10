@@ -280,6 +280,30 @@ export const APPEARANCE_CASES = [
       "visibility": "shell"
     },
     "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "#abcdef\n"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "ansi:2\r"
+    },
+    "valid": false
+  },
+  {
+    "scope": "main",
+    "item": "context-used",
+    "patch": {
+      "foreground": "#abcdef "
+    },
+    "valid": false
   }
 ];
 export const SEARCH_CASES = {

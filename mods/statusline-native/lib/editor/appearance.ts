@@ -15,7 +15,7 @@ export function itemFields(fields: EditorField[], scope: Scope, id: string): Edi
 }
 
 export function validColor(value: unknown): boolean {
-  return value === null || value === 'default' || typeof value === 'string' &&
+  return value === null || value === 'default' || typeof value === 'string' && !/\s/u.test(value) &&
     (/^#[0-9a-f]{6}$/i.test(value) || /^ansi:[0-9]{1,3}$/.test(value) && Number(value.slice(5)) <= 255);
 }
 
