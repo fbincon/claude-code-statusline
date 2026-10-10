@@ -102,7 +102,14 @@ def exercise(*, native, language, backend, env, root, config, send, capture, reo
 
     def file_action(key, path, observed):
         setting(key)
-        send(b"\r\x15" + str(path).encode() + b"\r",observed)
+        if native:
+            editing="Enter "+t("ui.hints.accept",language)
+            send(b"\r",editing)
+            send(b"\x15",editing)
+            send(str(path).encode(),"› "+t("native.settings."+key,language)+": "+str(path)[:12])
+            send(b"\r",observed)
+        else:
+            send(b"\r\x15" + str(path).encode() + b"\r",observed)
 
     search("mwe")
     capture("discovery-search-"+language, mode="filtered", preview_language="en")
@@ -195,6 +202,9 @@ def external_case(backend, root, columns, rows, commit, language, terminal_theme
         raise RuntimeError(f"External {language} {columns}x{rows}: did not observe {text!r}")
 
     def send(data,text):
+        # curses keypad mode uses application-cursor (SS3) keys, unlike Client.
+        for char in b"ABCDHF":
+            data=data.replace(b"\x1b["+bytes([char]),b"\x1bO"+bytes([char]))
         after=len(raw);os.write(master,data);wait(text,after)
 
     def open_editor():
