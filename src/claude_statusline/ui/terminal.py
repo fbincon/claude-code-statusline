@@ -40,7 +40,10 @@ def _enable_vt(output):
             return False, lambda: None
         return True, lambda: kernel.SetConsoleMode(handle, mode.value)
     try:
-        return bool(curses.tigetstr("cup") and curses.tigetstr("sgr0")), lambda: None
+        cursor = curses.tigetstr("cup")
+        return bool(
+            cursor and cursor.startswith(b"\x1b[") and curses.tigetstr("sgr0")
+        ), lambda: None
     except curses.error:
         return False, lambda: None
 

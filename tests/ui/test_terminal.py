@@ -127,3 +127,23 @@ class TerminalTests(unittest.TestCase):
                         1, 1 if count == 8 else 9, 4 if count == 8 else 12
                     )
                     self.assertEqual(bool(attr & curses.A_BOLD), count == 8)
+
+    @unittest.skipIf(__import__("os").name == "nt", "POSIX terminfo capability probe")
+    def test_non_ansi_cursor_capabilities_do_not_enable_vt_painting(self):
+        from claude_statusline.ui.terminal import _enable_vt
+
+        output = mock.Mock()
+        output.isatty.return_value = True
+        for cursor, expected in (
+            (b"\x1b[%i%p1%d;%p2%dH", True),
+            (b"\x1bY%p1%c%p2%c", False),
+            (None, False),
+        ):
+            with mock.patch.object(
+                curses,
+                "tigetstr",
+                side_effect=lambda name: cursor if name == "cup" else b"\x1b[m",
+            ):
+                supported, restore = _enable_vt(output)
+                self.assertEqual(supported, expected)
+                restore()
