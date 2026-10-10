@@ -62,7 +62,7 @@ Each visible item is a block; compound item content stays together. One cell of 
 
 Display schema **7** adds global `theme` / `powerline_glyph` and per-item `foreground`, `background`, `visibility`, `visibility_threshold`. Editor protocol **9** carries the complete draft; portable envelope version **1**, interface preferences **1**, and runtime protocol **2** are independent.
 
-Versions 1–6 are read without rewriting files. An actual save backs up the original bytes and writes schema 7 with classic theme, ASCII glyph, inherited colors and `always` rules where older files have no settings. Import review includes the new fields and only replaces the draft on acceptance. Future schemas, malformed colors and rules unsupported by a scoped item are rejected.
+Versions 1–6 are read without rewriting files. Reading, previewing and `install --dry-run` preserve the original bytes. An actual configuration save or `install` backs up those bytes and writes schema 7 with classic theme, ASCII glyph, inherited colors and `always` rules where older files have no settings. Import review includes the new fields and only replaces the draft on acceptance. Future schemas, malformed colors and rules unsupported by a scoped item are rejected, including during installation with `--force`. Uninstall remains available for recovery when the display file cannot be read.
 
 For downgrade, preserve/export the current configuration, remove the native editor with the newer package if required by the [release guide](RELEASING.md), install the older package and restore its compatible pre-migration display backup. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
 

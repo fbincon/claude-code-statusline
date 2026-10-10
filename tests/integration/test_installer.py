@@ -71,6 +71,58 @@ class InstallerTestCase(unittest.TestCase):
 
 class InstallTests(InstallerTestCase):
     # This scenario exercises stable defaults independently of the candidate version.
+    def test_install_rejects_invalid_display_before_any_mutation(self):
+        invalid_color = config_display.DEFAULT_CONFIG.to_dict()
+        invalid_color["item_options"] = {
+            "model": {
+                "label": None,
+                "icon": None,
+                "priority": 50,
+                "max_width": None,
+                "formatting": {},
+                "foreground": "#bad",
+                "background": None,
+                "visibility": "always",
+                "visibility_threshold": 70,
+            }
+        }
+        invalid_rule = json.loads(json.dumps(invalid_color))
+        invalid_rule["item_options"]["model"]["foreground"] = None
+        invalid_rule["item_options"]["model"]["visibility"] = "git-dirty"
+        cases = (
+            b'{"schema_version":999,"future_option":"keep"}\n',
+            b"{broken\n",
+            json.dumps(invalid_color).encode(),
+            json.dumps(invalid_rule).encode(),
+        )
+        for index, raw in enumerate(cases):
+            for dry_run in (True, False):
+                for force in (False, True):
+                    with self.subTest(index=index, dry_run=dry_run, force=force):
+                        config = self.root / f"invalid-{index}-{dry_run}-{force}"
+                        config.mkdir()
+                        display_path = config_display.config_path(config)
+                        display_path.write_bytes(raw)
+                        settings_path = config / "settings.json"
+                        settings_raw = b'{"env":{"KEEP":"unchanged"}}\n'
+                        settings_path.write_bytes(settings_raw)
+                        with self.assertRaises(integration_models.ConfigurationError):
+                            integration_installer.install_configuration(
+                                config, self.executable,
+                                dry_run=dry_run, force=force,
+                                experimental_slash_tui=False,
+                                native_editor=False,
+                                live_metrics=False,
+                                native_timing=False,
+                                claude_version=(2, 1, 205),
+                            )
+                        self.assertEqual(display_path.read_bytes(), raw)
+                        self.assertEqual(settings_path.read_bytes(), settings_raw)
+                        self.assertEqual(
+                            {path.name for path in config.iterdir()},
+                            {config_display.CONFIG_FILENAME, "settings.json"},
+                        )
+
     @mock.patch.object(
         config_features, "enabled_by_default", new=lambda version="1.5.0": True
     )
@@ -850,6 +902,29 @@ class SubagentInstallTests(InstallerTestCase):
 
 
 class UninstallTests(InstallerTestCase):
+    def test_uninstall_still_preserves_unreadable_display_for_recovery(self):
+        for index, raw in enumerate((b"{broken\n", b'{"schema_version":999}\n')):
+            with self.subTest(raw=raw):
+                config = self.root / f"recovery-{index}"
+                integration_installer.install_configuration(
+                    config, self.executable,
+                    experimental_slash_tui=False,
+                    native_editor=False,
+                    live_metrics=False,
+                    native_timing=False,
+                    claude_version=(2, 1, 205),
+                )
+                path = config_display.config_path(config)
+                path.write_bytes(raw)
+                result = integration_installer.uninstall_configuration(
+                    config, self.executable
+                )
+                self.assertTrue(result.changed)
+                self.assertEqual(path.read_bytes(), raw)
+                settings = json.loads((config / "settings.json").read_bytes())
+                self.assertNotIn("statusLine", settings)
+                self.assertFalse((config / "skills/statusline-config/SKILL.md").exists())
+
     def test_uninstall_removes_experimental_artifacts_but_keeps_preference(self):
         integration_installer.install_configuration(
             self.config,

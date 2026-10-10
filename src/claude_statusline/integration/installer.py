@@ -72,7 +72,9 @@ def _change_configuration(
         )
         try:
             display = config_display.load_display_config(config_dir)
-        except config_display.DisplayConfigError:
+        except config_display.DisplayConfigError as exc:
+            if action == "install":
+                raise integration_models.ConfigurationError(as_message(exc)) from exc
             display = config_display.DEFAULT_CONFIG
         experimental_active = preference_enabled and fast_slash_hook
         external_command = (

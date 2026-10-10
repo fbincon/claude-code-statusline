@@ -6,6 +6,7 @@
 
 ## 1.12.0 - 2026-10-10
 
+- Reject future or invalid display configuration before installation mutates files, including with `--force`; retain uninstall recovery and transactional backups when migrating through configuration saves or installation.
 - Add scoped visibility rules for confirmed clean Git, zero active agents, empty task lists and raw used-percentage thresholds. Preserve unknown/stale/partial observations and existing missing-data behavior; reuse shared lazy collectors.
 - Add per-item foreground/background colors, classic/dark/light/terminal themes, terminal-default overrides and ANSI fallback. Enabled warning/critical foregrounds take precedence without changing explicit backgrounds.
 - Add opt-in Powerline blocks to main and subagent rows with ASCII defaults, optional font-dependent arrows, complete resets and grapheme-safe width fitting. Appearance-only subagent overrides preserve ordinary fitting.

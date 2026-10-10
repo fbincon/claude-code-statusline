@@ -8,7 +8,7 @@ The same Linux x86_64 host, CPython 3.14.4, frozen harness and synthetic fixture
 
 Baseline: `07263113529d86dc6feb54e1fb9c533fe69f4974`. Candidate: `f1dea4740f72416a20621deff1b7422cc8eb9248`.
 
-After the measured runtime was frozen, later changes were limited to documentation, tests, acceptance tools and release version metadata. Raw samples and round reports are retained under ignored `dist/validation/v1.12/comparison-final`.
+After the measured render code was frozen, later changes covered documentation, tests, acceptance tools, release version metadata and an installation preflight guard for invalid/future display files. A subprocess import probe confirms that normal `render` and `render-subagents` do not load the installer; their loaded Python source files are byte-identical to the measured candidate except for version metadata. Raw samples and round reports are retained under ignored `dist/validation/v1.12/comparison-final`; the import probe is recorded in `render-import-provenance.json`.
 
 ## Results and investigation
 

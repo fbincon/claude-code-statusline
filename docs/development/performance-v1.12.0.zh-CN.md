@@ -8,7 +8,7 @@
 
 基线: `07263113529d86dc6feb54e1fb9c533fe69f4974`. 候选: `f1dea4740f72416a20621deff1b7422cc8eb9248`.
 
-候选代码固定后仅修改文档、测试、验收工具和发布版本元数据。原始样本与逐轮报告保留在忽略的 `dist/validation/v1.12/comparison-final`。
+测量的渲染代码固定后，后续修改涉及文档、测试、验收工具、发布版本元数据，以及拒绝未来／非法显示文件的安装预检。子进程导入检查确认普通 `render` 与 `render-subagents` 不加载安装器，其加载的 Python 源文件除版本元数据外与测量候选字节相同。原始样本与逐轮报告保留在忽略的 `dist/validation/v1.12/comparison-final`，导入证据记录在 `render-import-provenance.json`。
 
 ## 结果与排查
 
