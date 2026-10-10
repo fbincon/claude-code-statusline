@@ -771,7 +771,7 @@ The ten items above form the default enabled set. The other 50 main items enter 
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [configuration writes and concurrency](../development/README.md#configuration-writes-and-concurrency).
 
-The current source display schema is v5. Historical v1/v2/v3/v4/v5 are readable and are backed up and written as v5 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
+The current source display schema is v6. Historical v1/v2/v3/v4/v5 are readable and are backed up and written as v6 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 

@@ -18,10 +18,10 @@
 ## 功能概览
 
 - **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文；界面语言立即保存，状态栏语言随显示设置保存。
-- **选择显示内容：** 支持 60 个主栏条目和 14 个子 Agent 条目，可启用、隐藏、筛选和排序。
+- **查找显示项目：** 60 个主栏项目和 14 个子代理项目，支持中英文分级搜索、分类筛选及来源／启用条件说明。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
-- **从预设开始：** minimal、developer、monitoring、multi-agent 四种预设可展开编辑，支持可移植 JSON 导入和导出。
+- **审阅配置改动：** 四种预设可展开编辑，支持可移植 JSON；导入时先查看差异和候选预览，再接受草稿并单独保存。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
 - **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在单独选择的浅色／深色底色上保留生产配色。
 - **适配终端配色：**外部 TUI 文字与粗体快捷键使用终端默认色，预览在当前终端背景上显示所选配色。
@@ -263,6 +263,9 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 
 ## 常用配置
 
+[查找项目、了解来源条件与审阅导入](docs/USER_GUIDE.zh-CN.md#item-discovery-import-review)。
+
+
 | 入口 | 用途 |
 | --- | --- |
 | `/statusline-configure-native` | 当前会话内的 Client TUI，见[原生配置编辑器](docs/USER_GUIDE.zh-CN.md#原生配置编辑器) |
@@ -305,7 +308,7 @@ claude-statusline config set statusline-language en
 
 ### 原生配置编辑器
 
-先点击 Client 区域一次，再用 Tab 切页、Space 勾选、方向键选择或排序、Ctrl+E 打开逐项格式、`/` 搜索。`S` 保存留页，`F` 保存并退出，`Q` 丢弃未保存修改，小写字母同样有效。底部快捷键随页面或输入状态变化；Ctrl+G 取消输入。Claude 偏好使用独立 Apply 操作。
+先点击 Client 区域一次，再用 Tab 切页、Space 勾选、方向键选择或排序、Ctrl+E 打开逐项格式、`/` 搜索、Ctrl+F 分类筛选；筛选时暂不排序。`S` 保存留页，`F` 保存并退出，`Q` 丢弃未保存修改，小写字母同样有效。底部快捷键随页面或输入状态变化；Ctrl+G 取消输入。Claude 偏好使用独立 Apply 操作。
 
 ### 外部与独立终端 TUI
 
@@ -374,6 +377,8 @@ claude-code-statusline/
 │   ├── build_native.py                      # Mod 资源打包与软件包 README 链接转换
 │   └── claude_statusline/                   # Python CLI 与实现模块
 │       ├── config/                          # 配置模型、存储、迁移与命令
+│       │   ├── catalog.py / guidance.py      # 项目定义、来源与条件元数据
+│       │   ├── import_review.py              # 校验后草稿的语义差异
 │       │   ├── ui_preferences.py            # 共享语言偏好事务
 │       │   └── storage.py                   # 锁、备份及原子写入
 │       ├── i18n/                            # 中英文共享展示资源
@@ -381,7 +386,7 @@ claude-code-statusline/
 │       │   ├── translator.py                # 消息键、参数与英文回退
 │       │   ├── statusline.py                # 显式语言输出与已知值展示
 │       │   ├── _generated_statusline.py      # 自动生成的轻量运行词典
-│       │   └── presentation.py              # 翻译字段、选项与双语搜索
+│       │   └── presentation.py              # 翻译字段与选项
 │       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
 │       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配
 │       ├── rendering/                       # 状态栏格式、颜色、布局与预览
@@ -402,6 +407,7 @@ claude-code-statusline/
 │   │   └── tests/                           # 按后端、Client、编辑器、集成与 UI 分组测试
 │   └── statusline-runtime/                  # 原生任务计时与可选高级指标采集 Mod
 ├── tests/                                   # Python 单元与集成测试
+│   ├── fixtures/                            # 两端共享的搜索样例
 │   ├── config/                              # 配置、格式、迁移与导入导出测试
 │   ├── i18n/                                # 翻译资源与回退测试
 │   ├── integration/                         # CLI、安装、打包与兼容性测试

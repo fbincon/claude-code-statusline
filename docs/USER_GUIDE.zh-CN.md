@@ -75,28 +75,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.7.6 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.6) 提供相同的 wheel 与源码包。
+分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.10.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.10.0) 提供相同的 wheel 与源码包。
 
 也可从该 Release 下载 wheel、源码包和 `SHA256SUMS`，将下载文件的 SHA-256 与对应条目比较：
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.7.6-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.7.6-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.10.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.7.6-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.7.6-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.7.6-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.10.0-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.10.0-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.7.6"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.10.0"
 pipx ensurepath
 ```
 
@@ -175,6 +175,20 @@ claude-statusline --language en config --help
 偏好文件为 `<CLAUDE_CONFIG_DIR>/statusline-ui.json`，schema v1。缺失或无效偏好回退英文，读取不修复文件。显式 set/reset 会备份并修复损坏文件，但拒绝覆盖未来 schema。重装、升级、普通卸载、显示 reset、预设及可移植导入／导出均保留此独立偏好。
 
 界面语言不改变实际状态栏样例／输出。模型名称、路径、分支、命令、ID、配置值和自定义标签保留原值。模型问答向导每次读取界面偏好，并使用 CLI 提供的翻译说明；机器可读目录保留英文基准元数据及稳定 ID。
+
+<a id="item-discovery-import-review"></a>
+
+## 查找项目与审阅导入
+
+在 Main／Subagents 按 `/` 输入查询，Enter 确认，Ctrl+U 清空，Ctrl+G 恢复原查询。curses 也保留直接输入搜索，显式搜索时 Esc 可以取消。任一界面语言都可检索 ID、中英文名称和说明、自定义标签及分类；优先级为精确、前缀、英文单词首字母缩写（如 `mwe`）、连续子串、有序子序列，同等级保留现有顺序。高亮对应实际匹配文字，命中另一语言时显示相应片段。
+
+Ctrl+F 打开分类选择器，方向键选择、Enter 确认；选择“全部分类”去掉分类筛选。查询与分类组合生效，仅保存在当前编辑会话中。筛选时可勾选和设置格式，暂时禁止排序；清除筛选后恢复完整顺序。筛选不写入配置或导出文件。
+
+查看来源和条件：Ctrl+E 打开项目格式页，选择顶部“来源与启用条件”，按 Enter。方向键或 Page Up/Down 滚动，Ctrl+G 返回（curses 也支持 Esc）。说明包括统计范围、来源字段、已核实宿主要求、可选采集及可能不可用原因，不探测当前数据，也不开启任何采集。未观测项目仍可选择，预览继续使用固定样例。
+
+从 Settings 导入时，与**当前未保存草稿**比较。分区展示项目选择、保留项目相对顺序、格式／逐项覆盖、布局、状态栏语言和宿主状态栏设置。Enter 展开选中分区，方向键选择分区，Page Up/Down 滚动，Tab 切换主栏／子代理候选预览。**A 仅将候选接受到草稿，保存是独立操作。** 取消或无效输入保留原草稿；接受使用已读取的候选，源文件随后变化不会改变接受内容。保留原保存 revision，并发保存冲突时保留当前草稿。首版完整替换草稿，不逐字段合并。
+
+界面语言、采集开关及独立 Claude 偏好不在便携文件中。程序化 `config import` 命令保留既有明确写入和 `--dry-run` 行为；交互审阅由两个编辑器提供。
 
 ## 状态栏语言
 
@@ -256,7 +270,7 @@ Windows 使用 `claude-statusline.exe`。两组参数相互独立，`--experimen
 | `H` / `A` | 展开 Claude 高级偏好／独立 Apply |
 | `R` / `K` / `V` | 丢弃重载／核对保存状态／重试预览 |
 
-搜索或字段编辑期间普通字符作为输入，暂停字符快捷键；刷新设置接受数字或 `event`。启用和未启用条目都能排序，筛选后移动相邻可见条目，保留隐藏项的相对顺序。切页、缩放和预览刷新保留草稿与选择。仅启用项顺序写入配置。
+搜索或字段编辑期间普通字符作为输入，暂停字符快捷键；刷新设置接受数字或 `event`。启用和未启用条目都能排序；搜索／分类筛选时禁用排序，清空查询并选择全部分类后恢复。切页、缩放和预览刷新保留草稿与选择。仅启用项顺序写入配置。
 
 Settings 区分外观、刷新与显示行为、Git 指标、格式、风险颜色、子 Agent 可见性、预设／可移植文件和 Claude 偏好〔高级〕。面板正文最小 32×12；≥64×20 使用完整分组边框，紧凑空间使用标题分隔线。样例预览使用固定数据，不采集实时 Git、transcript 或模型信息。
 
@@ -303,7 +317,7 @@ Windows 使用 `claude-statusline.exe configure`。stdin、stdout 必须都是 T
 | Esc | 先取消当前输入；否则丢弃草稿并关闭 |
 | Ctrl+C | 恢复终端、以 130 退出、不保存 |
 
-切页和缩放保留各页草稿、选择、搜索和滚动位置。筛选排序保留隐藏项目的相对顺序；保存前检查当前 revision，无改动不创建备份。
+切页和缩放保留各页草稿、选择、搜索和滚动位置。搜索／分类筛选时禁用排序；保存前检查当前 revision，无改动不创建备份。
 
 <a id="external-tui-sections"></a>
 
@@ -439,6 +453,16 @@ subagent-visibility 接受 all/running。行数／任务宽度接受 none 恢复
 
 ### 预设与可移植配置
 
+| 预设 | 适用场景 |
+| --- | --- |
+| minimal | 精简日常视图：模型、目录、上下文与任务时间。 |
+| developer | 仓库开发：Git、累计 token、任务时间和会话费用。 |
+| monitoring | 检查额度／重置窗口、缓存和会话统计；可选来源字段可能仍不可用。 |
+| multi-agent | 多代理协作：限制代理行与任务标签宽度，隐藏已完成行并保留失败。 |
+
+预设改变显示草稿，不开启采集；保留输出／界面语言和宿主设置，重建逐项覆盖，保存前可继续编辑。
+
+
 minimal/developer/monitoring/multi-agent 预设展开为可编辑草稿，使用模型简称与紧凑数字，保留颜色／调色板／目录样式和刷新选项，重建逐项覆盖，并按预设顺序分配递减的保留优先级。`--dry-run` 输出已验证草稿，不保存。导入接受可移植文件或兼容的仅显示配置文件；仅显示文件保留当前刷新选项。
 
 ```bash
@@ -457,7 +481,7 @@ claude-statusline config import ./statusline.json
 
 Layout 选择 auto/explicit，通过“New row before”设置启用主项目的行边界。较高优先级优先保留，默认 50；最大宽度按终端列计算，包括 CJK 与组合字符。项目排序会同步维护分行。显式行过窄时，范围装饰优先让位给实际项目。 显式布局移除空行且不增加续行，自动布局继续折行。
 
-Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操作。先选择 Preset，再激活 Expand selected preset。Import 输入路径后只替换草稿，检查 Preview 后保存或取消。Export 将当前草稿（含未保存改动）写入新文件，不保存设置。相对路径以宿主／终端工作目录为基准，`~` 展开为用户主目录。出错保留现有草稿；两种编辑器均拒绝覆盖已有导出文件，可换路径，或使用 CLI `--overwrite` 明确替换。
+Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操作。先选择 Preset，再激活 Expand selected preset。Import 输入路径后打开差异审阅；Enter 展开分区，A 接受完整候选到草稿，再单独保存。原生审阅用 Ctrl+G 或 Q 取消，外部审阅用 Esc 或 Ctrl+G 取消。Export 将当前草稿（含未保存改动）写入新文件，不保存设置。相对路径以宿主／终端工作目录为基准，`~` 展开为用户主目录。出错保留现有草稿；两种编辑器均拒绝覆盖已有导出文件，可换路径，或使用 CLI `--overwrite` 明确替换。
 
 Client 用 `S` 保存并继续、`F` 保存并关闭、`Q` 放弃草稿。curses 用 Ctrl+S 从任意页保存；项目页及原有设置仍用 Enter 保存，新字段的 Enter 用于编辑／接受字段。新表单用 Ctrl+U 清空、Ctrl+G 取消输入；原有 padding／refresh 数字编辑保留 Backspace 删除与 Esc 恢复，编辑以外的 Esc 放弃 curses 编辑器。字段／路径输入期间 s/f/q 等普通字符只作为文本。
 
@@ -596,7 +620,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.7.6，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
+pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.10.0，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
 
 ### 替换 Python 包
 
@@ -930,4 +954,4 @@ claude-statusline config enable task-active-timer
 
 兼容宿主的新安装默认采集计时元数据，高级指标仍需 `install --live-metrics`。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
 
-降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 5 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
+降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 6 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。

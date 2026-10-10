@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 1.10.0 - 2026-10-10
+
+- Add local ranked bilingual search across IDs, names/descriptions, custom labels and categories, with actual-match highlighting, Ctrl+F category selection, stable ties and filtered reorder protection. Normalize catalog categories without changing IDs or default selections.
+- Add bilingual read-only source/requirement guidance for every main/subagent item, including measurement scope, verified host gates, independent collector requirements and setup entry points. Static guidance never claims live availability or enables collection.
+- Add expandable import differences and candidate previews to both editors. Accept replaces only the unsaved draft; cancellation/errors retain it, and explicit saves keep revision/backup/transaction checks. Keep the original import API and advance the UI protocol to v7 independently of display v6, portable v1, UI preferences v1 and runtime v2.
+- Add shared cross-language fixtures, strict protocol and modal regressions, installed terminal discovery/import acceptance, bilingual help and preset purposes. Python and both Mod manifests use 1.10.0.
+
 ## 1.9.0 - 2026-10-10
 
 - Add independent English/Simplified Chinese main and subagent output language, with immediate draft previews and normal display Save/Cancel semantics in both editors. Add CLI setters and an optional atomic apply flag; legacy guided configuration reads the interface preference and saves output language with other answers.
