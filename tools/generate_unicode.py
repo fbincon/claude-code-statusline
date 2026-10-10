@@ -53,7 +53,7 @@ def refresh():
     }.items():
         source = importlib.import_module("wcwidth." + module)
         sources[module + ".py"] = hashlib.sha256(
-            Path(source.__file__).read_bytes()
+            Path(source.__file__).read_text(encoding="utf-8").encode("utf-8")
         ).hexdigest()
         for name in names:
             value = getattr(source, name)
@@ -93,7 +93,7 @@ def conformance():
 
 
 def outputs():
-    raw = (DATA / "data.json").read_bytes()
+    raw = (DATA / "data.json").read_text(encoding="utf-8").encode("utf-8")
     source = json.loads(raw)
     assert (
         source["unicode_version"] == VERSION
@@ -202,7 +202,9 @@ def outputs():
                 "source_sha256": source["source_sha256"],
                 "conformance_url": "https://www.unicode.org/Public/18.0.0/ucd/auxiliary/GraphemeBreakTest.txt",
                 "conformance_sha256": hashlib.sha256(
-                    (DATA / "GraphemeBreakTest.txt").read_bytes()
+                    (DATA / "GraphemeBreakTest.txt")
+                    .read_text(encoding="utf-8")
+                    .encode("utf-8")
                 ).hexdigest(),
                 "conformance_cases": len(conformance()),
                 "licenses": ["WCWIDTH-LICENSE.txt", "UNICODE-LICENSE.txt"],
@@ -227,7 +229,7 @@ def main():
             if not path.exists() or path.read_text(encoding="utf-8") != content:
                 raise SystemExit(f"Stale Unicode resource: {path.relative_to(ROOT)}")
         else:
-            path.write_text(content, encoding="utf-8")
+            path.write_text(content, encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":
