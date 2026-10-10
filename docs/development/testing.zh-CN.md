@@ -313,7 +313,7 @@ python tools/benchmark_compare.py --baseline BASELINE_SHA --candidate CANDIDATE_
 
 ## 字符簇与预览样式验收
 
-1.11 候选通过 762 项 Python 测试（754 通过、8 项平台跳过）、固定 Claude Code 2.1.294 的 92 项原生和 10 项运行时 Mod 官方测试、两套 TypeScript、生成资源／协议、Ruff 与 1,095 个文档链接检查。两端 Unicode 内核均通过固定 Unicode 18.0 的全部 853 条分簇标准用例。已安装包的基础／原生／运行时检查和 1.10.0 升级保留显示／界面语言及明确关闭的编辑器／采集偏好。
+1.11 候选通过 762 项 Python 测试（754 通过、8 项平台跳过）、固定 Claude Code 2.1.294 的 92 项原生和 10 项运行时 Mod 官方测试、两套 TypeScript、生成资源／协议、Ruff 与 1,105 个文档链接检查。两端 Unicode 内核均通过固定 Unicode 18.0 的全部 853 条分簇标准用例。已安装包的基础／原生／运行时检查和 1.10.0 升级保留显示／界面语言及明确关闭的编辑器／采集偏好。
 
 `tools/rendering_acceptance.py --python /absolute/venv/bin/python --commit VERIFIED_SHA --report-dir dist/validation/new-rendering` 在 xterm-256color、vt100 下以 32／64／120 列检查已安装 curses 适配器。基于独立 wcwidth 参考库的终端解码器核验完整字符簇、跨样式状态、背景、短文本重绘与缩放，并保留原始字节。
 

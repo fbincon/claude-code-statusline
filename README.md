@@ -451,3 +451,5 @@ claude-code-statusline/
 ## License
 
 [MIT License](LICENSE). Copyright (c) 2026 [fbincon](https://github.com/fbincon).
+
+Bundled Unicode data retains the [Unicode License v3](tools/unicode/UNICODE-LICENSE.txt) and the [wcwidth MIT notice](tools/unicode/WCWIDTH-LICENSE.txt).

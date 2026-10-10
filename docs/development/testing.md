@@ -312,7 +312,7 @@ The runner verifies runtime source blobs against each exact Git commit, alternat
 
 ## Grapheme and preview-style acceptance
 
-The 1.11 candidate passed 762 Python tests (754 passed, eight platform skips), 92 native and ten runtime official Mod tests on fixed Claude Code 2.1.294, both TypeScript projects, generated resources/contracts, Ruff and 1,095 documentation links. Both Unicode kernels pass all 853 pinned Unicode 18.0 grapheme conformance cases. Installed core/native/runtime smoke and the 1.10.0 upgrade preserve saved display/interface language and explicit editor/collector opt-outs.
+The 1.11 candidate passed 762 Python tests (754 passed, eight platform skips), 92 native and ten runtime official Mod tests on fixed Claude Code 2.1.294, both TypeScript projects, generated resources/contracts, Ruff and 1,105 documentation links. Both Unicode kernels pass all 853 pinned Unicode 18.0 grapheme conformance cases. Installed core/native/runtime smoke and the 1.10.0 upgrade preserve saved display/interface language and explicit editor/collector opt-outs.
 
 `tools/rendering_acceptance.py --python /absolute/venv/bin/python --commit VERIFIED_SHA --report-dir dist/validation/new-rendering` exercises the installed curses adapter at 32/64/120 columns under xterm-256color and vt100. Its independent wcwidth-based terminal decoder verifies complete graphemes, cross-style state, backgrounds, shorter redraw and resizing; raw bytes are retained.
 

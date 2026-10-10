@@ -439,3 +439,5 @@ claude-code-statusline/
 ## 许可证
 
 [MIT License](LICENSE)，Copyright (c) 2026 [fbincon](https://github.com/fbincon)。
+
+随包 Unicode 数据保留 [Unicode License v3](tools/unicode/UNICODE-LICENSE.txt) 与 [wcwidth MIT 声明](tools/unicode/WCWIDTH-LICENSE.txt)。

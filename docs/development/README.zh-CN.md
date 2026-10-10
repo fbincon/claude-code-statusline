@@ -9,6 +9,7 @@
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [翻译贡献指南](i18n.zh-CN.md)。
 - [测试与验收](testing.zh-CN.md)。
+- [v1.11.0 性能对照](performance-v1.11.0.zh-CN.md)：完整场景、原始数据来源与补充复查。
 - [原生编辑器接入](native.zh-CN.md)。
 - [任务计时](timer.zh-CN.md)与[实时指标](live.zh-CN.md)。
 - [发布流程](../RELEASING.zh-CN.md)。

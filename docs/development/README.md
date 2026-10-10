@@ -9,6 +9,7 @@ Start here to set up a development environment, run checks and build the package
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
+- [v1.11.0 performance comparison](performance-v1.11.0.md): complete scenarios, raw-data provenance and follow-up controls.
 - [Native editor integration](native.md).
 - [Task timing](timer.md) and [live metrics](live.md).
 - [Release process](../RELEASING.md).
