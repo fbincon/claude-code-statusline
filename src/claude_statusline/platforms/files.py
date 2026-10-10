@@ -129,10 +129,8 @@ def exclusive_file_lock(
         if platform_environment.is_windows():
             import msvcrt
 
-            if os.fstat(descriptor).st_size < 1:
-                os.lseek(descriptor, 0, os.SEEK_SET)
-                os.write(descriptor, b"\0")
-                os.fsync(descriptor)
+            # CRT locks may extend beyond EOF. Initializing an empty file here
+            # races with a competing process that already locked the first byte.
             os.lseek(descriptor, 0, os.SEEK_SET)
             msvcrt.locking(descriptor, msvcrt.LK_LOCK, 1)
             windows_lock = True
