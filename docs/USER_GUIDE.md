@@ -1060,3 +1060,9 @@ claude-statusline config enable task-active-timer
 On compatible hosts, fresh installations collect timing metadata by default; advanced metrics still require `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
 
 Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 6 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
+
+## Unicode text and terminal widths
+
+Wrapping, truncation and editor previews keep extended grapheme clusters together, including combining accents and joined emoji. Ambiguous characters use one column; ordinary CJK and emoji clusters use two. The layout policy is fixed across Python versions and editors. Actual glyph appearance still depends on your terminal and fonts.
+
+On ANSI/VT-capable terminals, the external editor paints complete text runs. Older backends use a width-preserving placeholder for clusters they cannot safely draw; saved labels, icons and paths remain intact. Backspace removes a complete text cluster. Palette changes still belong to the display draft; the native light/dark preview background remains an independent UI preference.

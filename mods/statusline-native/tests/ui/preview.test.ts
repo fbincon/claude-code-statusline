@@ -81,3 +81,8 @@ test('a cluster crossing spans is clipped and styled as one unit', () => {
   expect(emoji.props.color).toBe('ansi256(1)');
   expect(text(previewLine(elements, spans, 2) as unknown as Node)).toBe('… ');
 });
+
+test('plain styled text neutralizes controls before measuring the row', () => {
+  const row = previewLine(elements, [{text:'A\x1b[2J\x9bZ',bold:false,foreground:null,background:null}], 10) as unknown as Node;
+  expect(text(row)).toBe('A [2J Z   ');
+});

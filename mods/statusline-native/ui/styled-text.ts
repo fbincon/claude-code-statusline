@@ -2,6 +2,7 @@
 import { graphemes, clusterWidth, cellWidth } from '../lib/unicode.ts';
 
 export function clusterSpans<T extends {text: string}>(spans: readonly T[]): T[] {
+  spans = spans.map(span => ({...span, text: span.text.replace(/[\p{Cc}\p{Cs}]/gu, ' ')}));
   const states: T[] = [];
   for (const span of spans) for (const _ of span.text) states.push(span);
   const result: T[] = [];

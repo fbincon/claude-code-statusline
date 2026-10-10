@@ -955,3 +955,9 @@ claude-statusline config enable task-active-timer
 兼容宿主的新安装默认采集计时元数据，高级指标仍需 `install --live-metrics`。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
 
 降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 6 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
+
+## Unicode 文本与终端列宽
+
+换行、截断和编辑器预览保留完整扩展字符簇，包括组合音标和组合 emoji。歧义字符默认一列，普通 CJK／emoji 簇为两列；不同 Python 版本和编辑器使用相同布局规则。实际字形仍取决于终端与字体。
+
+外部编辑器在支持 ANSI／VT 的终端整体绘制文本；旧后端对无法安全绘制的字符簇使用等宽占位符，保存的标签、图标和路径保持原值。退格删除一个完整文本簇。调色板继续属于显示草稿；原生浅／深预览底色仍是独立界面偏好。

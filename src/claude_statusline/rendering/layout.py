@@ -69,7 +69,7 @@ def _sgr_style_after(sequence, current=""):
 
 def _styled_units(text):
     """Partition the visible row first, then attach each grapheme's base style."""
-    from . import styles, text as terminal_text
+    from . import styles
 
     plain, states = [], []
     state = styles.DEFAULT
@@ -77,20 +77,27 @@ def _styled_units(text):
     for match in ANSI_SGR_RE.finditer(text):
         part = text[position : match.start()]
         plain.append(part)
-        states.extend([state] * len(part))
+        states.extend([state.sgr()] * len(part))
         state = styles.advance(state, match.group())
         position = match.end()
     part = text[position:]
     plain.append(part)
-    states.extend([state] * len(part))
+    states.extend([state.sgr()] * len(part))
+    visible = "".join(plain)
+    if visible.isascii() and visible.isprintable():
+        return [_StyledUnit(ch, 1, style) for ch, style in zip(visible, states)]
+    from . import text as terminal_text
+
     result, position = [], 0
-    for cluster in terminal_text.graphemes("".join(plain)):
-        base = next((i for i, char in enumerate(cluster) if _char_width(char)), 0)
+    for cluster in terminal_text.graphemes(visible):
+        base = next(
+            (i for i, char in enumerate(cluster) if terminal_text.char_width(char)), 0
+        )
         result.append(
             _StyledUnit(
                 cluster,
                 terminal_text.cluster_width(cluster),
-                states[position + base].sgr(),
+                states[position + base],
             )
         )
         position += len(cluster)

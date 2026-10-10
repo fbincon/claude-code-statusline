@@ -147,3 +147,12 @@ class TerminalTests(unittest.TestCase):
                 supported, restore = _enable_vt(output)
                 self.assertEqual(supported, expected)
                 restore()
+
+    def test_plain_text_never_becomes_terminal_control_instructions(self):
+        raw, output = Backing(), io.StringIO()
+        screen = GraphemeScreen(raw, output, vt=True)
+        screen.addstr(0, 0, "A\x1b[2J\x9bZ")
+        screen.refresh()
+        self.assertIn("A [2J Z", output.getvalue())
+        self.assertNotIn("\x1b[2J", output.getvalue())
+        self.assertNotIn("\x9b", output.getvalue())
