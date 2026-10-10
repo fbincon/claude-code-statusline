@@ -1,0 +1,179 @@
+{
+  "unicode_version": "18.0.0",
+  "reference": "wcwidth 0.9.1",
+  "cases": [
+    {
+      "text": "",
+      "clusters": [],
+      "width": 0
+    },
+    {
+      "text": "ASCII",
+      "clusters": [
+        "A",
+        "S",
+        "C",
+        "I",
+        "I"
+      ],
+      "width": 5
+    },
+    {
+      "text": "A中文é",
+      "clusters": [
+        "A",
+        "中",
+        "文",
+        "é"
+      ],
+      "width": 6
+    },
+    {
+      "text": "👨‍👩‍👧‍👦",
+      "clusters": [
+        "👨‍👩‍👧‍👦"
+      ],
+      "width": 2
+    },
+    {
+      "text": "👩🏽‍💻",
+      "clusters": [
+        "👩🏽‍💻"
+      ],
+      "width": 2
+    },
+    {
+      "text": "🇨🇳🇺🇸🇯",
+      "clusters": [
+        "🇨🇳",
+        "🇺🇸",
+        "🇯"
+      ],
+      "width": 6
+    },
+    {
+      "text": "1️⃣",
+      "clusters": [
+        "1️⃣"
+      ],
+      "width": 2
+    },
+    {
+      "text": "❤️",
+      "clusters": [
+        "❤️"
+      ],
+      "width": 2
+    },
+    {
+      "text": "❤︎",
+      "clusters": [
+        "❤︎"
+      ],
+      "width": 1
+    },
+    {
+      "text": "👍🏽",
+      "clusters": [
+        "👍🏽"
+      ],
+      "width": 2
+    },
+    {
+      "text": "🏳️‍🌈",
+      "clusters": [
+        "🏳️‍🌈"
+      ],
+      "width": 2
+    },
+    {
+      "text": "👩‍❤️‍💋‍👩",
+      "clusters": [
+        "👩‍❤️‍💋‍👩"
+      ],
+      "width": 2
+    },
+    {
+      "text": "각",
+      "clusters": [
+        "각"
+      ],
+      "width": 2
+    },
+    {
+      "text": "क्ष",
+      "clusters": [
+        "क्ष"
+      ],
+      "width": 2
+    },
+    {
+      "text": "क्‍ष",
+      "clusters": [
+        "क्‍ष"
+      ],
+      "width": 2
+    },
+    {
+      "text": "؀A",
+      "clusters": [
+        "؀A"
+      ],
+      "width": 2
+    },
+    {
+      "text": "á̈",
+      "clusters": [
+        "á̈"
+      ],
+      "width": 1
+    },
+    {
+      "text": "́",
+      "clusters": [
+        "́"
+      ],
+      "width": 0
+    },
+    {
+      "text": "a‍b",
+      "clusters": [
+        "a‍",
+        "b"
+      ],
+      "width": 2
+    },
+    {
+      "text": "·Ω…",
+      "clusters": [
+        "·",
+        "Ω",
+        "…"
+      ],
+      "width": 3
+    },
+    {
+      "text": "🫩",
+      "clusters": [
+        "🫩"
+      ],
+      "width": 2
+    },
+    {
+      "text": "汉󠄀",
+      "clusters": [
+        "汉󠄀"
+      ],
+      "width": 2
+    },
+    {
+      "text": "x👩🏽‍💻y",
+      "clusters": [
+        "x",
+        "👩🏽‍💻",
+        "y"
+      ],
+      "width": 4
+    }
+  ]
+}

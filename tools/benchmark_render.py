@@ -16,15 +16,22 @@ import tempfile
 import time
 
 
-def measure(action, samples):
+def measure(action, samples, *, prepare=None, cleanup=None):
     values = []
     for _ in range(samples):
+        if prepare is not None:
+            prepare()
         started = time.perf_counter_ns()
-        action()
-        values.append((time.perf_counter_ns() - started) / 1_000_000)
+        try:
+            action()
+            values.append((time.perf_counter_ns() - started) / 1_000_000)
+        finally:
+            if cleanup is not None:
+                cleanup()
     ordered = sorted(values)
     return {
         "samples": samples,
+        "raw_ms": values,
         "p50_ms": round(statistics.median(values), 4),
         "p95_ms": round(ordered[math.ceil(samples * 0.95) - 1], 4),
     }
@@ -188,6 +195,15 @@ def main():
     parser.add_argument(
         "--display-case", choices=("legacy", "formatted", "explicit"), default="legacy"
     )
+    parser.add_argument(
+        "--suite", choices=("legacy", "representative"), default="legacy"
+    )
+    parser.add_argument(
+        "--profiles",
+        nargs="+",
+        choices=("small", "medium", "large"),
+        default=["small", "medium", "large"],
+    )
     args = parser.parse_args()
     if not 5 <= args.samples <= 1000:
         parser.error("samples must be between 5 and 1000")
@@ -197,11 +213,22 @@ def main():
         text=True,
         check=True,
     ).stdout.strip()
+    if args.suite == "representative":
+        from benchmarking.render import run
+
+        results = run(args.samples, args.bytecode_mode, args.profiles, measure)
+    else:
+        results = {
+            "metrics": benchmark(
+                args.samples, args.bytecode_mode, args.display_case, args.language
+            )
+        }
     report = {
         "commit": commit,
         "python": platform.python_version(),
         "platform": platform.platform(),
-        "metrics": benchmark(args.samples, args.bytecode_mode, args.display_case, args.language),
+        **results,
+        "suite": args.suite,
         "display_case": args.display_case,
         "statusline_language": args.language,
         "working_tree_dirty": bool(
@@ -209,7 +236,10 @@ def main():
         ),
         "bytecode_mode": args.bytecode_mode,
         "benchmark_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "fixtures": "isolated local Git repository and one assistant response; no model calls",
+        "fixtures": "isolated synthetic local files; no model calls",
+        "fixture_source_sha256": hashlib.sha256(
+            (Path(__file__).parent / "benchmarking/render.py").read_bytes()
+        ).hexdigest(),
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

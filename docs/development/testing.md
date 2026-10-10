@@ -288,3 +288,16 @@ python tools/native_mod_acceptance.py --persistent --discovery --claude /absolut
 Scenarios check ranked highlights, category/order protection, source guidance, invalid import preservation, cancelled review retaining an unsaved palette, deletion of the source before accepting its in-memory candidate, no persistence before explicit Save, both candidate preview scopes and reopen/readback. Sixteen inspected [captures](../images/README.md#discovery-and-import-review) reconstruct actual cells. They do not establish new human or Windows/macOS terminal acceptance.
 
 Candidate core/native/runtime installation smoke passed. A fresh 1.9.0-to-1.10.0 upgrade preserved display/interface language and all explicit integration/collector opt-outs byte-for-byte. Independent sdist rebuilding matched all 185 wheel members; package/resource exclusions and strict long-description rendering passed. Final merge/tag/index evidence belongs to the Release, with raw local reports under ignored `dist/validation/v1.10`.
+
+## Representative rendering benchmarks
+
+Run the expanded synthetic suite in a fresh Python process:
+
+```bash
+PYTHONPATH=src python tools/benchmark_render.py --suite representative --samples 50 --report dist/validation/render-warm.json
+PYTHONPATH=src python tools/benchmark_render.py --suite representative --samples 50 --bytecode-mode cold --report dist/validation/render-cold.json
+```
+
+Profiles `small`, `medium` and `large` contain 100/10,000/100,000 transcript rows, 0/8/32 agents (100 rows per agent, including nested files), and 32/1,000/10,000 tracked Git files. Use `--profiles small` for a smoke run. Measurements separate startup/imports, bytecode, transcript cold/warm/append, clean/dirty Git miss/hit/expired, bilingual automatic/explicit rendering at 40/120 columns, and complex-Unicode agent rows. Setup and reset work occur outside timed regions; assertions check unchanged transcript/Git cache hits. Filesystem caches remain uncontrolled.
+
+Reports retain every sample, P50/P95, source and fixture hashes, interpreter/platform and dirty state. Compare the same harness and fixtures on fixed before/after sources in three alternating rounds; investigate repeatable regressions before publication. Neither the legacy default suite nor this expanded suite makes model calls or reads personal transcripts.
