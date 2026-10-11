@@ -191,10 +191,23 @@ def main():
         )
     for directory in ("tests", "tools", "docs/development"):
         for source in Path(directory).rglob("*"):
-            if source.is_file() and source.suffix in {".py", ".md"}:
+            if (
+                source.is_file()
+                and source.suffix in {".py", ".md"}
+                and "node_modules" not in source.parts
+            ):
                 assert any(
                     name.endswith(source.as_posix()) for name in distributions[1]
                 ), source
+    for source in Path("tools/migration/ts-02").rglob("*"):
+        if (
+            source.is_file()
+            and source.suffix in {".ts", ".json", ".mjs"}
+            and not {"node_modules", "dist", "generated"}.intersection(source.parts)
+        ):
+            assert any(name.endswith(source.as_posix()) for name in distributions[1]), source
+    for source in Path("docs/development/typescript-migration/ts-02").glob("*.json"):
+        assert any(name.endswith(source.as_posix()) for name in distributions[1]), source
     for source in (
         path for spec in SPECS for path in (Path("mods") / spec.name).rglob("*")
     ):

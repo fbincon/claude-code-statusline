@@ -19,7 +19,14 @@ const temporary = fs.mkdtempSync(join(tmpdir(), 'ts02-中文 space-'));
 let oracleRoot: string;
 let env: NodeJS.ProcessEnv;
 const oracleScript = join(packageRoot, 'scripts/oracle.py');
-before(() => { oracleRoot = exportReference(); env = { ...process.env, TS02_REFERENCE_ROOT: oracleRoot, PYTHONDONTWRITEBYTECODE: '1' }; });
+before(() => {
+  oracleRoot = exportReference();
+  env = Object.fromEntries(['PATH', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', 'TMP', 'TEMP', 'TMPDIR', 'LD_LIBRARY_PATH']
+    .filter(key => process.env[key] !== undefined).map(key => [key, process.env[key]]));
+  Object.assign(env, { TS02_REFERENCE_ROOT: oracleRoot, PYTHONDONTWRITEBYTECODE: '1', PYTHONUTF8: '1',
+    CLAUDE_CONFIG_DIR: join(temporary, 'config'), CLAUDE_STATUSLINE_RUNTIME_DIR: join(temporary, 'runtime'),
+    HOME: join(temporary, 'home'), USERPROFILE: join(temporary, 'home') });
+});
 after(() => { fs.rmSync(temporary, { recursive: true, force: true }); if (oracleRoot) fs.rmSync(oracleRoot, { recursive: true, force: true }); });
 function oracle(args: string[], input = '') {
   return execFileSync(python, [oracleScript, ...args], { input, env, encoding: 'utf8' });

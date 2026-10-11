@@ -10,6 +10,8 @@ function percentile(values: number[], p: number): number { return [...values].so
 function median(values: number[]): number { const v = [...values].sort((a,b) => a-b); return (v[Math.floor((v.length-1)/2)]! + v[Math.floor(v.length/2)]!) / 2; }
 const output = resolve(process.argv[2] ?? '');
 if (!process.argv[2]) throw new Error('Pass a new report directory');
+const pythonVersion = execFileSync(python, ['--version'], { encoding: 'utf8' }).trim();
+if (process.version !== 'v24.21.0' || pythonVersion !== 'Python 3.14.4') throw new Error('Use locked Node 24.21.0 and reference Python 3.14.4');
 mkdirSync(output, { recursive: false });
 const policyBytes = readFileSync(join(packageRoot, 'policy.json'));
 const policy = JSON.parse(policyBytes.toString());
@@ -38,6 +40,7 @@ if (repeatPath) {
   const bytes = readFileSync(repeatPath); const previous = JSON.parse(bytes.toString());
   if (previous.repeat_sets_used !== 0 || previous.reference !== reference || previous.policy_sha256 !== sha(policyBytes) ||
     JSON.stringify(previous.source_hashes) !== JSON.stringify(measuredSources) ||
+    previous.summaries.some((s: { metrics: { state: string }[] }) => s.metrics.some(m => m.state === 'fail')) ||
     !previous.summaries.some((s: { metrics: { state: string }[] }) => s.metrics.some(m => m.state === 'inconclusive'))) throw new Error('Repeat is not authorized by the frozen noise rule');
   repeat = { parent_sha256: sha(bytes), repeat_sets_used: 1 };
 }

@@ -10,3 +10,4 @@ for (const name of ['unicode.ts', 'generated-unicode.ts']) {
 }
 copyFileSync(resolve(root, 'LICENSE'), resolve(target, '../../LICENSE'));
 copyFileSync(resolve(root, 'tools/unicode/UNICODE-LICENSE.txt'), resolve(target, '../../LICENSE-Unicode.txt'));
+copyFileSync(resolve(root, 'tools/unicode/WCWIDTH-LICENSE.txt'), resolve(target, '../../LICENSE-Wcwidth.txt'));
