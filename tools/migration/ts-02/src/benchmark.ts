@@ -1,5 +1,5 @@
 import { spawnSync, execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, appendFileSync, mkdirSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, rmSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { platform, machine, release } from 'node:os';
@@ -43,6 +43,9 @@ if (repeatPath) {
     previous.summaries.some((s: { metrics: { state: string }[] }) => s.metrics.some(m => m.state === 'fail')) ||
     !previous.summaries.some((s: { metrics: { state: string }[] }) => s.metrics.some(m => m.state === 'inconclusive'))) throw new Error('Repeat is not authorized by the frozen noise rule');
   repeat = { parent_sha256: sha(bytes), repeat_sets_used: 1 };
+  writeFileSync(realpathSync(repeatPath) + '.repeat-reservation.json', JSON.stringify({
+    parent_sha256: repeat.parent_sha256, output, policy_sha256: sha(policyBytes),
+  }) + '\n', { flag: 'wx', mode: 0o600 });
 }
 try {
   execFileSync(python, ['-m', 'compileall', '-q', join(oracle, 'src')], { env: { ...baseEnv, PYTHONDONTWRITEBYTECODE: '' } });
