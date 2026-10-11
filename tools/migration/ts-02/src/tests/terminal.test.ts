@@ -19,7 +19,11 @@ for (const [columns, rows] of sizes) test(`native PTY keys/resize/restore ${colu
   const m = master[0]!, s = slave[0]!;
   const attrs = lib.func('int tcgetattr(int fd, _Out_ void *termios)');
   const before = Buffer.alloc(256), after = Buffer.alloc(256); assert.equal(attrs(s, before), 0);
-  lib.func('int fcntl(int fd, int cmd, int value)')(m, 4, process.platform === 'darwin' ? 4 : 2048);
+  // Darwin arm64 passes variadic arguments on the stack, unlike fixed args.
+  const fcntl = lib.func('int fcntl(int fd, int cmd, ...)');
+  const nonblock = process.platform === 'darwin' ? 4 : 2048;
+  assert.equal(fcntl(m, 4, 'int', nonblock), 0);
+  assert.ok(fcntl(m, 3) & nonblock, 'PTY reads must never block the test runner');
   const child = spawn(process.execPath, [cli, 'terminal', log], { stdio: [s, s, s], detached: true, env: { ...process.env, TERM: 'xterm-256color' } });
   let closed = false; const closedPromise = new Promise<void>(resolve => child.once('exit', () => { closed = true; resolve(); }));
   const waitEvent = async (event: string) => {
@@ -37,7 +41,7 @@ for (const [columns, rows] of sizes) test(`native PTY keys/resize/restore ${colu
     await waitEvent('ready');
     fs.writeSync(m, '\x1b[A中文 é 👩🏽‍💻'); await waitEvent('key');
     size.writeUInt16LE(24, 0); size.writeUInt16LE(90, 2);
-    assert.equal(lib.func('int ioctl(int fd, unsigned long request, void *arg)')(m, process.platform === 'darwin' ? 0x80087467 : 0x5414, size), 0);
+    assert.equal(lib.func('int ioctl(int fd, unsigned long request, ...)')(m, process.platform === 'darwin' ? 0x80087467 : 0x5414, 'void *', size), 0);
     child.kill('SIGWINCH'); await new Promise(r => setTimeout(r, 100));
     if (columns === 120) child.kill('SIGTERM');
     else if (columns === 32) fs.writeSync(m, '\x03');
