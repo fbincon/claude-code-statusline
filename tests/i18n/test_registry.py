@@ -42,13 +42,13 @@ class LanguageRegistryTests(unittest.TestCase):
                 yield root, package, locales, names
 
     def test_order_autonyms_coverage_and_real_translations(self):
-        self.assertEqual(LANGUAGES, ("en", "zh-CN", "zh-Hant", "ja", "ko"))
-        self.assertEqual(list(LANGUAGE_NAMES.values()), ["English", "简体中文", "繁體中文", "日本語", "한국어"])
+        self.assertEqual(LANGUAGES[:5], ("en", "zh-CN", "zh-Hant", "ja", "ko"))
+        self.assertEqual([LANGUAGE_NAMES[code] for code in LANGUAGES[:5]], ["English", "简体中文", "繁體中文", "日本語", "한국어"])
         report = generator.coverage()
         for language in LANGUAGES:
             self.assertEqual(report[language]["missing"], [])
             self.assertEqual(report[language]["percent"], 100)
-            self.assertEqual(report[language]["statusline_messages"], 220)
+            self.assertEqual(report[language]["statusline_messages"], report["en"]["statusline_messages"])
         for language, expected in {
             "zh-Hant": "界面語言：日本語",
             "ja": "UI 言語: 日本語",

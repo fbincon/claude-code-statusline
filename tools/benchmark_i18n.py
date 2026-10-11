@@ -59,15 +59,17 @@ elif operation == 'lookup':
 else:
     from claude_statusline.cli import main
     sys.argv = ['claude-statusline', '--language', language, '--help'] if operation == 'help' else ['claude-statusline', 'render-subagents' if operation == 'subagents' else 'render']
-    sink = io.StringIO()
+    captured = io.BytesIO()
+    sink = io.TextIOWrapper(captured, encoding='utf-8', newline='\n')
     with contextlib.redirect_stdout(sink):
         try:
             code = main()
         except SystemExit as error:
             code = error.code
         assert code in (None, 0), code
-    assert sink.getvalue()
-    result['output_sha256'] = hashlib.sha256(sink.getvalue().encode()).hexdigest()
+    sink.flush()
+    assert captured.getvalue()
+    result['output_sha256'] = hashlib.sha256(captured.getvalue()).hexdigest()
 try:
     import resource
     result['peak_rss_kib'] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (1024 if sys.platform == 'darwin' else 1)
@@ -102,6 +104,13 @@ console.log(JSON.stringify({import_ms,prepare_ms,query_ms:(performance.now()-que
 def summary(values):
     ordered = sorted(values)
     return {"p50": statistics.median(values), "p95": ordered[math.ceil(len(values) * .95) - 1]}
+
+
+def checked(command, **kwargs):
+    result = subprocess.run(command, **kwargs)
+    if result.returncode:
+        raise RuntimeError(f"Benchmark probe failed ({result.returncode}): {result.stderr[-4000:]}")
+    return result
 
 
 def export(ref, destination):
@@ -209,11 +218,11 @@ def run(args):
                         command = (["node", "--no-warnings", "--experimental-transform-types", "--input-type=module", "-e", NODE_PROBE, str(source)]
                                    if operation == "node-search" else [sys.executable, "-c", PYTHON_PROBE, str(source), operation, language])
                         # Prime outside the measured batch, also for the bytecode-disabled worker.
-                        subprocess.run(command, input=payload, cwd=temporary, env=env, capture_output=True, text=True, check=True)
+                        checked(command, input=payload, cwd=temporary, env=env, capture_output=True, text=True)
                         samples = []
                         for _ in range(args.samples):
                             started = time.perf_counter_ns()
-                            result = subprocess.run(command, input=payload, cwd=temporary, env=env, capture_output=True, text=True, encoding="utf-8", check=True)
+                            result = checked(command, input=payload, cwd=temporary, env=env, capture_output=True, text=True, encoding="utf-8")
                             elapsed = (time.perf_counter_ns() - started) / 1e6
                             value = json.loads(result.stdout)
                             value["process_ms"] = elapsed

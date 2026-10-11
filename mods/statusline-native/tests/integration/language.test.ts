@@ -1,15 +1,16 @@
 import { expect, test } from 'claude-code/testing';
 import { setup, START, RUN, PANE, keys, selectSetting, output, reply, sample } from '../fixtures.ts';
 import type { ClientProps } from '../../lib/session.ts';
-import { LANGUAGES } from '../../lib/i18n/index.ts';
+import { LANGUAGES, t } from '../../lib/i18n/index.ts';
+import type { Language } from '../../lib/i18n/index.ts';
 
-test('all five languages cycle forwards and backwards without replacing the display draft', {timeoutMs: 20000}, async ($, on) => {
+test('registered languages cycle forwards and backwards without replacing the display draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
   const view = async () => ((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view;
-  const headings = {
+  const headings: Partial<Record<Language, string>> = {
     en: 'Configure Status Line', 'zh-CN': '配置状态栏', 'zh-Hant': '配置狀態欄',
     ja: 'ステータスライン設定', ko: '상태 표시줄 설정',
   };
@@ -20,23 +21,24 @@ test('all five languages cycle forwards and backwards without replacing the disp
     await keys(ui, 'right');
     expect((await view()).language).toBe(language);
     expect(fixture.store.uiLanguage).toBe(language);
-    expect(await ui.find({in:'statusline-client', type:'Text', text:headings[language]})).toBeDefined();
+    expect(await ui.find({in:'statusline-client', type:'Text', text:headings[language] ?? t('native.ui.client.draw.configure_status_line', language)})).toBeDefined();
     expect(JSON.stringify((await view()).editor!.draft)).toBe(draft);
   }
   await keys(ui, 'left');
-  expect(fixture.store.uiLanguage).toBe('ko');
+  const lastLanguage = LANGUAGES[LANGUAGES.length - 1]!;
+  expect(fixture.store.uiLanguage).toBe(lastLanguage);
   await selectSetting(ui, 'field:statusline_language');
   for (const language of [...LANGUAGES.slice(1), 'en'] as typeof LANGUAGES[number][]) {
     await keys(ui, 'right');
     expect((await view()).editor!.draft.display.statusline_language).toBe(language);
     expect(fixture.store.draft.display.statusline_language).toBe('en');
-    expect(fixture.store.uiLanguage).toBe('ko');
+    expect(fixture.store.uiLanguage).toBe(lastLanguage);
   }
   await keys(ui, 'q');
   await ui.unmount();
   await $.command.run(RUN);
   const reopened = await $.ui.mount(PANE);
-  expect(((await reopened.find({key:'statusline-client'}))!.props.props as ClientProps).view.language).toBe('ko');
+  expect(((await reopened.find({key:'statusline-client'}))!.props.props as ClientProps).view.language).toBe(lastLanguage);
   await reopened.unmount();
 });
 

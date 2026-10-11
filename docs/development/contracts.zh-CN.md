@@ -106,7 +106,7 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 ## 界面偏好与消息操作
 
-`read_ui_preferences` 接受 `{}`，返回 `schema_version:1`、`ui_language`（`en` 或 `zh-CN`）及 `warning`（`null` 或语义消息）。缺失／无效读取回退英文，不修复文件字节。`set_ui_language` 仅接受包含支持代码的 `{ui_language}`，使用现有锁、备份和原子写入保存，返回相同形状及空 warning。未来偏好 schema 拒绝覆盖。这两个操作不改变显示／宿主草稿、revision 或接入。
+`read_ui_preferences` 接受 `{}`，返回 `schema_version:1`、`ui_language`（注册表中的受支持代码）及 `warning`（`null` 或语义消息）。缺失／无效读取回退英文，不修复文件字节。`set_ui_language` 仅接受包含支持代码的 `{ui_language}`，使用现有锁、备份和原子写入保存，返回相同形状及空 warning。未来偏好 schema 拒绝覆盖。这两个操作不改变显示／宿主草稿、revision 或接入。
 
 错误保留稳定 `code` 与英文 `message`，`localization` 为 null 或 `{key,params,fallback}`；参数可以包含嵌套消息及标量值。前端校验该形状，再按当前语言渲染，外部程序详情保持原值。判断使用错误码／消息键，不使用翻译文字。`describe` 与现有机器可读目录保留英文基准元数据。生成契约、严格 TypeScript 校验及包内资源清单均使用配置协议 v10，UI 偏好 schema v1 与运行协议 v2 保持独立。
 
@@ -114,9 +114,9 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 ## 状态栏语言
 
-显示 schema v7 新增必需的 `statusline_language`（`en` / `zh-CN` / `zh-Hant` / `ja` / `ko`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v10 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v2 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。
+显示 schema v7 包含必需的 `statusline_language`（`en` / `zh-CN` / `zh-Hant` / `ja` / `ko`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v10 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v2 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。
 
-协议 v10 新增独立背景通道。空前景／背景分别恢复终端或预览底色的默认值。完整字符簇的样式和裁切遵循[渲染契约](rendering.zh-CN.md)。显示 v7、便携格式 v1、界面偏好 v1、运行协议 v2 独立保持，不需要显示配置迁移。
+协议 v10 保留独立背景通道。空前景／背景分别恢复终端或预览底色的默认值。完整字符簇的样式和裁切遵循[渲染契约](rendering.zh-CN.md)。显示 v7、便携格式 v1、界面偏好 v1、运行协议 v2 独立保持，不需要显示配置迁移。
 
 ## 外观契约
 

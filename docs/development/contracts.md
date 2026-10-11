@@ -127,7 +127,7 @@ See [translation architecture and contribution rules](i18n.md).
 
 ## Statusline language
 
-Display schema v7 adds required `statusline_language` (`en` / `zh-CN` / `zh-Hant` / `ja` / `ko`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v10 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v2 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
+Display schema v7 includes required `statusline_language` (`en` / `zh-CN` / `zh-Hant` / `ja` / `ko`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v10 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v2 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
 
 Protocol v10 adds an independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display v7, portable v1, interface preferences v1 and runtime v2 remain independent; no persisted display migration is needed.
 
