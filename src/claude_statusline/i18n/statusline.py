@@ -1,20 +1,27 @@
 """Explicit-language statusline presentation, without UI resource or preference I/O."""
 
 from functools import lru_cache
+from importlib import import_module
+
+from .registry import LANGUAGES, STATUSLINE_MODULES, normalize_language
 
 
-@lru_cache(maxsize=1)
-def _locales():
-    from ._generated_statusline import LOCALES
+@lru_cache(maxsize=len(LANGUAGES))
+def _catalogue(language: str):
+    return import_module(
+        "._generated_statusline." + STATUSLINE_MODULES[language], __package__
+    ).MESSAGES
 
-    return LOCALES
+
+def _template(key: str, language: str, default: str) -> str:
+    current = _catalogue(normalize_language(language))
+    value = current.get(key)
+    return value if value is not None else _catalogue("en").get(key, default)
 
 
 def text(key: str, language: str = "en", **params) -> str:
     key = "statusline." + key
-    locales = _locales()
-    english = locales["en"]
-    template = locales.get(language, english).get(key, english.get(key, key))
+    template = _template(key, language, key)
     return template.format_map(params)
 
 
@@ -41,9 +48,8 @@ def value(domain: str, raw, language: str = "en"):
 
 def prefix(scope: str, item: str, language: str = "en") -> str:
     """A prefix exists only for an item-owned label, never arbitrary payload text."""
-    locales = _locales()
     key = f"statusline.prefix.{scope}.{item}"
-    return locales.get(language, locales["en"]).get(key, locales["en"].get(key, ""))
+    return _template(key, language, "")
 
 
 def short_label(scope: str, item: str, language: str = "en") -> str:

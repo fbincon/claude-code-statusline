@@ -1,3 +1,4 @@
+import { LANGUAGES, t } from '../../lib/i18n/index.ts';
 import { expect, test } from 'claude-code/testing';
 import type { ClientElements } from 'claude-code';
 import { Editor } from '../../lib/editor/draft.ts';
@@ -72,8 +73,8 @@ test('layout and item forms have contiguous groups and stable field identities',
   }
 });
 
-test('category picker fits both languages and accepts or cancels without changing the draft', () => {
-  for (const language of ['en', 'zh-CN'] as const) for (const [columns, rows] of [[32, 12], [64, 18], [120, 30]]) {
+test('category picker fits all registered languages and accepts or cancels without changing the draft', () => {
+  for (const language of LANGUAGES) for (const [columns, rows] of [[32, 12], [64, 18], [120, 30]]) {
     const state = view(), e = state.editor!;
     state.language = language;
     const before = JSON.stringify(e.draft);
@@ -94,7 +95,7 @@ test('category picker fits both languages and accepts or cancels without changin
 });
 
 test('static guidance scrolls and returns to the item form without applying changes', () => {
-  for (const language of ['en', 'zh-CN'] as const) for (const [columns, rows] of [[32, 12], [64, 18], [120, 30]]) {
+  for (const language of LANGUAGES) for (const [columns, rows] of [[32, 12], [64, 18], [120, 30]]) {
     const state = view(), e = state.editor!;
     state.language = language;
     handleKey(state, {key:'e', ctrl:true}, columns!, rows!);
@@ -118,7 +119,7 @@ test('static guidance scrolls and returns to the item form without applying chan
 });
 
 test('import review preserves a candidate preview and bounded expanded rows at every size', () => {
-  for (const language of ['en','zh-CN'] as const) for (const [columns,rows] of [[32,12],[64,18],[64,20],[80,24],[120,30],[80,48]]) {
+  for (const language of LANGUAGES) for (const [columns,rows] of [[32,12],[64,18],[64,20],[80,24],[120,30],[80,48]]) {
     const state=view(), e=state.editor!; state.language=language; e.page='settings';
     const candidate=readResult().draft;candidate.host.padding=7;
     e.review=createReview({draft:candidate,changes:[{section:'host',kind:'change',scope:null,item_id:null,path:['host','padding'],before:0,after:7,label:{key:'review.fields.padding',params:{},fallback:'Padding'}}]});
@@ -288,8 +289,9 @@ test('keys follow theme text and stay bold while action labels stay regular, inc
   }
 });
 
-test('both languages keep every page, form, numeric error and footer inside the cell viewport', () => {
-  for (const language of ['en','zh-CN'] as const) {
+// This full language/viewport matrix exceeds the default 5 s on Windows runners.
+test('all registered languages keep every page, form, numeric error and footer inside the cell viewport', {timeoutMs: 20000}, () => {
+  for (const language of LANGUAGES) {
     for (const [columns, rows] of [[32,12],[64,18],[64,20],[80,24],[120,30],[80,48]]) {
       for (const page of ['main','subagents','settings','layout','detail']) {
         const state=view(),e=state.editor!;
@@ -297,7 +299,7 @@ test('both languages keep every page, form, numeric error and footer inside the 
         if(page==='detail') {e.detail={scope:'main',id:'model-with-effort'};e.setting='item:label';}
         else e.page=page as typeof e.page;
         const output=render(draw(elements,state,columns!,rows!) as unknown as Node).join('\n');
-        expect(output).toContain(language==='zh-CN'?'配置状态栏':'Configure Status Line');
+        expect(output).toContain(t('native.ui.client.draw.configure_status_line', language));
         expect(output.includes('native.')).toBe(false);
         expect(output.includes('fields.')).toBe(false);
       }

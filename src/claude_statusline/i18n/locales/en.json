@@ -1,7 +1,7 @@
 {
   "preferences.read_failed": "Cannot read UI preferences at {path}; using English: {detail}",
   "preferences.invalid": "Invalid UI preferences at {path}; using English. Set or reset the language to repair them.",
-  "preferences.unsupported_language": "Unsupported UI language: {language}; choose en or zh-CN",
+  "preferences.unsupported_language": "Unsupported UI language: {language}",
   "preferences.future_schema": "UI preference schema {version} is newer than supported version 1; upgrade before changing it",
   "preferences.write_failed": "Cannot save UI preferences at {path}; previous choice kept: {detail}",
   "cli.language": "UI language: {language}",
@@ -22,7 +22,7 @@
   "cli.expected_at_least_one": "expected at least one argument",
   "cli.expected_arguments": "expected {count} arguments",
   "cli.not_allowed": "not allowed with argument {argument}",
-  "cli.help.language_override": "language for this invocation only (en or zh-CN)",
+  "cli.help.language_override": "interface language for this invocation only",
   "cli.help.language": "view or change the shared interface language",
   "cli.help.language_show": "show the saved interface language",
   "cli.help.language_set": "save the interface language immediately",
@@ -90,7 +90,7 @@
   "errors.display.missing_subagents_field_s": "missing subagents field(s): {value0}",
   "errors.display.subagents_enabled_must_be_true_or_false": "subagents.enabled must be true or false",
   "errors.display.display_configuration_must_contain_a_json_object": "display configuration must contain a JSON object",
-  "errors.display.schema_version_must_be_1_2_3": "schema_version must be 1, 2, 3, 4, 5, or {SCHEMA_VERSION}; got {version}",
+  "errors.display.schema_version_must_be_1_2_3": "schema_version must be 1 through {SCHEMA_VERSION}; got {version}",
   "errors.display.schema_version_is_newer_than_supported_version": "schema_version {version} is newer than supported version {SCHEMA_VERSION}",
   "errors.display.unknown_display_configuration_field_s": "unknown display configuration field(s): {value0}",
   "errors.display.missing_display_configuration_field_s": "missing display configuration field(s): {value0}",
@@ -1301,5 +1301,6 @@
   "values.nonzero": "Hide confirmed zero / empty",
   "values.used-at-least": "Used at least threshold",
   "config.show.theme": "Theme: {value}",
-  "config.show.powerline_glyph": "Powerline separator: {value}"
+  "config.show.powerline_glyph": "Powerline separator: {value}",
+  "errors.host.renderer_not_installed": "Claude Code statusLine is not installed for this claude-statusline executable"
 }

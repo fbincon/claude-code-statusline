@@ -12,7 +12,7 @@ import re
 import unicodedata
 
 from claude_statusline.config import catalog
-from claude_statusline.i18n import translate
+from claude_statusline.i18n import LANGUAGES, translate
 
 
 SPACES = " \t\n\r\v\f\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000"
@@ -44,8 +44,8 @@ def normalize(text: str) -> tuple[str, tuple[int, ...]]:
     return "".join(characters), tuple(positions)
 
 
-def match_text(text: str, query: str, field: str = "") -> Match | None:
-    value, mapping = normalize(text)
+def match_text(text: str, query: str, field: str = "", prepared=None) -> Match | None:
+    value, mapping = normalize(text) if prepared is None else prepared
     needle, _ = normalize(query)
     if not needle:
         return Match(5, (), text, field)
@@ -75,24 +75,40 @@ def match_text(text: str, query: str, field: str = "") -> Match | None:
     return Match(rank, tuple(dict.fromkeys(mapping[i] for i in indices)), text, field)
 
 
-def fields(scope: str, item: str, custom_label: str | None = None):
+def _field(name, value):
+    return name, value, normalize(value)
+
+
+@lru_cache(maxsize=len(catalog.ITEMS))
+def _base_fields(scope: str, item: str):
     definition = catalog.BY_SCOPE[scope][item]
     prefix = f"items.{scope}.{item}."
-    return (
+    return tuple(_field(name, value) for name, value in [
         ("id", item),
-        ("label.en", definition.label),
-        ("label.zh-CN", translate(prefix + "label", "zh-CN")),
-        ("custom_label", custom_label or ""),
-        ("description.en", definition.description),
-        ("description.zh-CN", translate(prefix + "description", "zh-CN")),
+        *((f"label.{code}", definition.label if code == "en" else translate(prefix + "label", code)) for code in LANGUAGES),
+        ("custom_label", ""),
+        *((f"description.{code}", definition.description if code == "en" else translate(prefix + "description", code)) for code in LANGUAGES),
         ("category.id", definition.group),
-        ("category.en", translate("catalog.categories." + definition.group, "en")),
-        ("category.zh-CN", translate("catalog.categories." + definition.group, "zh-CN")),
-    )
+        *((f"category.{code}", translate("catalog.categories." + definition.group, code)) for code in LANGUAGES),
+    ])
+
+
+def prepare_index():
+    for definition in catalog.ITEMS:
+        _base_fields(definition.scope, definition.id)
+
+
+@lru_cache(maxsize=len(catalog.ITEMS) * 4)
+def fields(scope: str, item: str, custom_label: str | None = None):
+    base = _base_fields(scope, item)
+    if not custom_label:
+        return base
+    custom = 1 + len(LANGUAGES)
+    return base[:custom] + (_field("custom_label", custom_label),) + base[custom + 1:]
 
 
 def best_match(values, query: str) -> Match | None:
-    matches = (match_text(value, query, field) for field, value in values)
+    matches = (match_text(entry[1], query, entry[0], entry[2] if len(entry) > 2 else None) for entry in values)
     return min((match for match in matches if match is not None), key=lambda match: match.rank, default=None)
 
 

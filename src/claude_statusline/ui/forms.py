@@ -2,7 +2,7 @@
 
 from claude_statusline.i18n import message as msg
 
-from claude_statusline.config import advanced, editor_fields, presets, catalog
+from claude_statusline.config import advanced, editor_fields, presets, catalog, display as config_display
 from claude_statusline.ui import models
 
 
@@ -157,7 +157,7 @@ def rows(state):
                 "ui-language",
                 "Interface language (saved immediately)",
                 "Interface",
-                choices=("en", "zh-CN"),
+                choices=config_display.STATUSLINE_LANGUAGES,
             ),
             "value": state.language,
         }

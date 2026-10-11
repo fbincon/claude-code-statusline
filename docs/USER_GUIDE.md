@@ -77,28 +77,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.12.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.12.0) provides the same wheel and source distribution.
+The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v1.13.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.13.0) provides the same wheel and source distribution.
 
 Alternatively download the wheel, source archive, and `SHA256SUMS` from that release. Compare the downloaded file's SHA-256 with the corresponding entry:
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.12.0-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.13.0-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.12.0-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.13.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.12.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.13.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.12.0-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.12.0-py3-none-any.whl`).
+With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-1.13.0-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-1.13.0-py3-none-any.whl`).
 
 Fixed-tag source installation requires Git:
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.12.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.13.0"
 pipx ensurepath
 ```
 
@@ -157,7 +157,9 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 
 ## Interface language
 
-The CLI, external/standalone curses editor and in-session Client default to English. In Settings choose **Interface language (saved immediately)** → **English / 简体中文**. The language is shared across both editors and CLI, independent of Claude's own theme and language settings.
+Supported codes are `en` (English), `zh-CN` (Simplified Chinese), `zh-Hant` (general Traditional Chinese), `ja` (Japanese), and `ko` (Korean). Selection is explicit; system locale settings do not change it. Use Left/Right to cycle through this order.
+
+The CLI, external/standalone curses editor and in-session Client default to English. In Settings choose **Interface language (saved immediately)** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어**. The language is shared across both editors and CLI, independent of Claude's own theme and language settings.
 
 ```text
 claude-statusline config language show [--json]
@@ -170,7 +172,7 @@ claude-statusline --language en config --help
 
 Omit the square brackets when using `--json`. `reset` saves English. Put the optional `--language` before the command; it overrides the saved preference for that invocation without writing it. An editor opened with that override can still save a new language through Settings. For an isolated directory use `claude-statusline config --config-dir /path/to/config language set zh-CN`.
 
-A switch saves immediately and preserves the current page, selected field, search, input and display draft. It recomputes terminal layout and redraws translated text. Save/cancel continues to govern display changes only; a failed language write keeps the previous language and reports the error. Other open windows read the new preference when reopened or through their existing reload action. Search matches IDs, English/Chinese names and descriptions, and custom labels in either language.
+A switch saves immediately and preserves the current page, selected field, search, input and display draft. It recomputes terminal layout and redraws translated text. Save/cancel continues to govern display changes only; a failed language write keeps the previous language and reports the error. Other open windows read the new preference when reopened or through their existing reload action. Search matches IDs, names and descriptions in all five languages, and custom labels in any interface language.
 
 The preference is `<CLAUDE_CONFIG_DIR>/statusline-ui.json`, schema v1. Missing or invalid preferences fall back to English; reading never repairs the file. Explicit set/reset backs up and repairs corrupt preferences, but refuses a newer schema. Reinstall, upgrades, ordinary uninstall, display reset, presets and portable import/export preserve this independent preference.
 
@@ -180,7 +182,7 @@ Interface language does not change actual statusline samples/output. Model names
 
 ## Find items and review imports
 
-Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it, and Ctrl+G restores the previous query. Curses also accepts direct typing and Esc cancels explicit search input. Search matches IDs, English/Chinese names and descriptions, custom labels and categories in either interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighted text identifies the actual match, including an alternate-language snippet when needed.
+Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it, and Ctrl+G restores the previous query. Curses also accepts direct typing and Esc cancels explicit search input. Search matches IDs, names and descriptions in all five languages, custom labels and categories in any interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighted text identifies the actual match, including an alternate-language snippet when needed.
 
 Ctrl+F opens the category picker. Select with arrows and accept with Enter; choose All categories to remove the category filter. Query and category combine and stay local to the editor session. While filtered, items can be toggled or formatted; ordering is disabled. Clearing filters restores the full order and neither filter is exported or saved.
 
@@ -192,7 +194,7 @@ Interface language, collector switches and independent Claude preferences stay o
 
 ## Statusline language
 
-The independent display option defaults to `en`. Choose **Statusline language (save with display settings)** in either editor; options always use **English / 简体中文**. Preview uses the draft language immediately. Save persists it with other display settings; Cancel discards it. Actual output changes on the next refresh, without restarting Claude.
+The independent display option defaults to `en`. Choose **Statusline language (save with display settings)** in either editor; options always use **English / 简体中文 / 繁體中文 / 日本語 / 한국어**. Preview uses the draft language immediately. Save persists it with other display settings; Cancel discards it. Actual output changes on the next refresh, without restarting Claude.
 
 ```text
 claude-statusline config set statusline-language zh-CN
@@ -202,7 +204,9 @@ claude-statusline config show --json
 
 This applies to the main line and all custom subagent rows. Translate built-in phrases and known lifecycle/permission/effort/cache/review values; preserve unknown values, user labels/icons, model names, paths, branches and task/tool names. Keep numbers, currency, `K/M`, `d/h/m/s`, `tok/s`, Git, PR and other technical units. A null label inherits a localized default; an empty label suppresses it; custom labels take precedence.
 
-`statusline_language` lives in display schema v7 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language, new imports use the file's language, and display reset restores English. `config apply --statusline-language en|zh-CN` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
+`statusline_language` lives in display schema v7 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language, new imports use the file's language, and display reset restores English. `config apply --statusline-language en|zh-CN|zh-Hant|ja|ko` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
+
+Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 7 and interface preferences schema 1 remain unchanged; editor protocol 10 rejects older frontend/backend pairs.
 
 Before downgrading to a package that supports only schema v5, use the newer package to remove its native integration, preserve a portable export, and restore a compatible `.before` display backup according to `metadata.json`. If the previous file was absent, restore absence. Then install the older package and refresh integration; do not pass a v6 draft to an older backend. See [backups](#backups-and-rollback).
 
@@ -636,7 +640,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.12.0 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
+The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 1.13.0 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
 
 ### Replace the Python package
 

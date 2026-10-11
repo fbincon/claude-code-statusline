@@ -1,7 +1,6 @@
 """Localized editor metadata; identifiers and editable values stay canonical."""
 
 from claude_statusline.i18n import LANGUAGE_NAMES, translate
-from claude_statusline.config import catalog
 
 SETTING_LABELS = {
     "colors": "Use colors",
@@ -110,14 +109,6 @@ def rows(state):
 
 
 def search_text(scope, item, custom_label=None):
-    definition = catalog.BY_SCOPE[scope][item]
-    return " ".join(
-        [
-            item,
-            definition.label,
-            definition.description,
-            custom_label or "",
-            translate(f"items.{scope}.{item}.label", "zh-CN"),
-            translate(f"items.{scope}.{item}.description", "zh-CN"),
-        ]
-    ).casefold()
+    from claude_statusline.ui.search import fields
+
+    return " ".join(entry[1] for entry in fields(scope, item, custom_label)).casefold()

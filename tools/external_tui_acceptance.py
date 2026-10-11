@@ -23,6 +23,7 @@ import time
 import unicodedata
 
 from claude_statusline.config import display, models
+from claude_statusline.i18n import LANGUAGES, LANGUAGE_NAMES, translate
 from claude_statusline.ui import editor, forms, layout
 
 if __package__:
@@ -77,6 +78,7 @@ def run_case(
     commit: str,
     terminal_theme="dark",
     language_only=False,
+    target_language="zh-CN",
 ) -> dict:
     import fcntl
     import pty
@@ -232,6 +234,22 @@ def run_case(
         wait_for("Preview (sample data)")
         capture("main")
         if language_only:
+            if __package__:
+                from .language_acceptance import language_steps
+            else:
+                from language_acceptance import language_steps
+
+            def change_language(target, *, interface=False):
+                nonlocal language
+                current = language if interface else state.display.statusline_language
+                for code, delta in language_steps(current, target):
+                    expected = translate("ui.drawing.configure_status_line", code) if interface else LANGUAGE_NAMES[code]
+                    send(b"\x1bOC" if delta > 0 else b"\x1bOD", expected)
+                    if interface:
+                        language = state.language = code
+                    else:
+                        state.display = state.display.with_updates(statusline_language=code)
+
             send(b"\t\t", "Settings / global options")
             state.page = "settings"
             send(b"\x1bOC", "Colors: off")
@@ -243,48 +261,42 @@ def run_case(
             )
             send(b"\x1bOH" + b"\x1bOB" * index, "Interface language")
             capture("language-settings-en")
-            send(b"\x1bOC", "配置状态栏")
-            language = state.language = "zh-CN"
+            change_language(target_language, interface=True)
             assert (
                 json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
-                == "zh-CN"
+                == target_language
             )
-            wait_for("颜色：关闭")
-            capture("language-settings-zh")
-            send(b"\x1bOD", "Configure Status Line")
-            language = state.language = "en"
+            wait_for(translate("ui.drawing.colors_off", language))
+            capture(f"language-settings-initial-{target_language}")
+            change_language("en", interface=True)
             assert json.loads((config / "statusline-ui.json").read_bytes())["ui_language"] == "en"
             capture("language-settings-en-restored")
-            send(b"\x1bOC", "配置状态栏")
-            language = state.language = "zh-CN"
-            wait_for("颜色：关闭")
-            capture("language-settings-zh")
+            change_language(target_language, interface=True)
+            wait_for(translate("ui.drawing.colors_off", language))
+            capture(f"language-settings-{target_language}")
             output_index = next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "field:statusline_language")
-            send(b"\x1bOH" + b"\x1bOB" * output_index, "状态栏语言")
-            send(b"\x1bOC", "简体中文")
-            state.display = state.display.with_updates(statusline_language="zh-CN")
-            wait_for("上下文")
-            capture("statusline-settings-zh")
-            send(b"\x1bOD", "English")
-            state.display = state.display.with_updates(statusline_language="en")
+            send(b"\x1bOH" + b"\x1bOB" * output_index, translate("review.sections.language", language))
+            change_language(target_language)
+            wait_for(translate("statusline.prefix.main.context-used", target_language))
+            capture(f"statusline-settings-{target_language}")
+            change_language("en")
             wait_for("Context")
             capture("statusline-settings-en")
-            send(b"\x1bOC", "简体中文")
-            state.display = state.display.with_updates(statusline_language="zh-CN")
+            change_language(target_language)
             for data, page, label in (
-                (b"\t", "layout", "布局／分行与适配"),
-                (b"\t", "items", "主状态栏项目"),
-                (b"\t", "subagents", "子代理项目"),
+                (b"\t", "layout", translate("ui.drawing.layout_rows_and_fitting", language)),
+                (b"\t", "items", translate("ui.drawing.main_items", language)),
+                (b"\t", "subagents", translate("ui.drawing.subagent_items", language)),
             ):
                 send(data, label)
                 state.page = page
-                capture("language-" + page + "-zh")
-            send(b"\x1b", "状态栏显示配置保持原状")
+                capture("language-" + page + "-" + target_language)
+            send(b"\x1b", translate("ui.session.status_line_configuration_unchanged", language))
             assert process.wait(timeout=5) == 0
             assert (config_path.read_bytes(), settings_path.read_bytes()) == initial
             assert (
                 json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
-                == "zh-CN"
+                == target_language
             )
             # Reopen with an invocation-only English UI and save the output language.
             os.close(master)
@@ -302,28 +314,27 @@ def run_case(
             state.page = "settings"
             index = next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "field:statusline_language")
             send(b"\x1bOH" + b"\x1bOB" * index, "Statusline language")
-            send(b"\x1bOC", "简体中文")
-            state.display = state.display.with_updates(statusline_language="zh-CN")
-            capture("statusline-before-save-zh")
+            change_language(target_language)
+            capture(f"statusline-before-save-{target_language}")
             send(b"\x13", "Status line configuration updated")
             assert process.wait(timeout=5) == 0
-            assert json.loads(config_path.read_bytes())["statusline_language"] == "zh-CN"
-            assert json.loads((config / "statusline-ui.json").read_bytes())["ui_language"] == "zh-CN"
+            assert json.loads(config_path.read_bytes())["statusline_language"] == target_language
+            assert json.loads((config / "statusline-ui.json").read_bytes())["ui_language"] == target_language
             rendered = cli("render", payload=json.dumps({"model":{"id":"claude-sample"},"context_window":{"used_percentage":42}}))
-            assert "上下文 已用 42%" in rendered
+            assert translate("statusline.context.used", target_language, percentage=42) in rendered
             return {
                 "columns": columns,
                 "rows": rows,
                 "captures": captures,
                 "checks": [
-                    "english-to-chinese-through-real-keys",
+                    "registered-language-switch-through-real-keys",
                     "unsaved-color-draft-preserved",
                     "language-retained-on-cancel",
                     "display-and-host-byte-identical",
                     "statusline-preview-switches-both-directions-without-saving",
                     "statusline-save-affects-next-production-render",
                     "invocation-only-ui-override-preserves-preference",
-                    "chinese-pages-and-cell-bounds",
+                    "localized-pages-and-cell-bounds",
                 ],
             }
         send(b"\t", "Subagent items")
@@ -463,6 +474,7 @@ def main() -> int:
         default="dark",
         help="Default-color fixture for capture analysis; does not change a physical terminal",
     )
+    parser.add_argument("--language", choices=LANGUAGES[1:], default="zh-CN", help="Target for --language-only")
     args = parser.parse_args()
     if not (sys.platform.startswith("linux") or sys.platform == "darwin"):
         parser.error("Native Linux/macOS PTYs are required")
@@ -500,6 +512,7 @@ def main() -> int:
                 args.commit,
                 args.terminal_theme,
                 args.language_only,
+                args.language,
             )
         )
     (root / "report.json").write_text(

@@ -10,6 +10,9 @@ import subprocess
 def identity(root: Path, commit: str | None = None):
     paths = sorted((root / "src/claude_statusline").rglob("*.py"))
     paths += sorted((root / "src/claude_statusline/i18n/locales").glob("*.json"))
+    registry = root / "src/claude_statusline/i18n/languages.json"
+    if registry.is_file():
+        paths.append(registry)
     digest = hashlib.sha256()
     actual = {}
     for path in paths:
@@ -35,7 +38,7 @@ def identity(root: Path, commit: str | None = None):
                 continue
             header, name = entry.split(b"\t", 1)
             relative = name.decode("utf-8")
-            if relative.endswith(".py") or relative.startswith(
+            if relative.endswith(".py") or relative == "src/claude_statusline/i18n/languages.json" or relative.startswith(
                 "src/claude_statusline/i18n/locales/"
             ):
                 expected[relative] = header.decode("ascii").split()[2]

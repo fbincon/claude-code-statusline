@@ -124,7 +124,7 @@ def _settings_with_host(
             else config_models.ConfigOwnershipError
         )
         raise error(
-            "Claude Code statusLine is not installed for this claude-statusline executable"
+            msg("errors.host.renderer_not_installed")
         )
     updated = copy.deepcopy(settings)
     status_line = copy.deepcopy(current)

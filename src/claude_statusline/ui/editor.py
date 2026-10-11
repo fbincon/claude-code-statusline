@@ -62,6 +62,7 @@ class EditorState:
     def from_effective(
         cls, effective: config_models.EffectiveConfig, *, language="en"
     ) -> EditorState:
+        item_search.prepare_index()
         enabled = list(effective.display.items)
         full_order = enabled + [
             item

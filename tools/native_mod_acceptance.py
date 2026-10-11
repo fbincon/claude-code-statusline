@@ -6,6 +6,8 @@ Authentication settings are copied privately; raw terminal output stays ignored.
 
 from __future__ import annotations
 
+from claude_statusline.i18n import LANGUAGES, LANGUAGE_NAMES, translate
+
 import argparse
 import codecs
 import json
@@ -152,6 +154,7 @@ def run_pty(
     theme_only: bool = False,
     terminal_theme: str = "dark",
     language_only: bool = False,
+    target_language: str = "zh-CN",
     discovery: bool = False,
     appearance: bool = False,
     rendering_only: bool = False,
@@ -314,6 +317,7 @@ def run_pty(
 
     def capture(name, *, palette=None, colors=True, mode="editor", preview_language=None):
         # Exact decoded terminal cells from the real host; no synthetic UI.
+        observed_preview_backgrounds = []
         path = root / f"screen-{columns}-{name}.json"
         cells = [
             [screen.buffer[row][column]._asdict() for column in range(columns)]
@@ -410,8 +414,15 @@ def run_pty(
                 for row in cells[preview[0] + 1 : bottom]
                 for cell in row[start_column:right]
             ]
-            assert sample_cells and all(
-                cell["bg"] == background.removeprefix("#") and not cell["reverse"]
+            # The persistent tmux path can make the host emit ANSI-256. Its
+            # RGB-cube conversion maps #17191e to index 17 (#00005f); white is
+            # index 231. Record this separately from direct RGB acceptance.
+            expected_backgrounds = {background.removeprefix("#")}
+            if tmux_socket:
+                expected_backgrounds.add("00005f" if terminal_theme == "dark" else "ffffff")
+            observed_preview_backgrounds = sorted({cell["bg"] for cell in sample_cells})
+            assert sample_cells and len(observed_preview_backgrounds) == 1 and all(
+                cell["bg"] in expected_backgrounds and not cell["reverse"]
                 for cell in sample_cells
             ), "Preview background differs from the chosen terminal fixture"
             if palette is not None:
@@ -440,7 +451,7 @@ def run_pty(
                     "Ctrl+E format",
                     "/ search",
                 ]
-            if language == "zh-CN":
+            if language != "en":
                 expected = [
                     key + " " + t("ui.hints." + action, language)
                     for key, action in (label.split(" ", 1) for label in expected)
@@ -463,6 +474,8 @@ def run_pty(
                     "terminal_background": TERMINAL_THEMES[terminal_theme][1],
                     "terminal_palette": XTERM_PALETTE,
                     "terminal_defaults_source": "explicit capture-analysis fixture",
+                    "color_transport": "tmux; ANSI-256 quantization possible" if tmux_socket else "direct PTY",
+                    "observed_preview_backgrounds": observed_preview_backgrounds,
                 },
                 ensure_ascii=False,
             ),
@@ -580,6 +593,23 @@ def run_pty(
                     "background_reset": True, "whole_cluster_clipping": True,
                     "short_redraw": True, "manual_visual_acceptance": False}
         if language_only:
+            if __package__:
+                from .language_acceptance import language_steps
+            else:
+                from language_acceptance import language_steps
+
+            def change_language(target, *, interface=False):
+                nonlocal language, output_language
+                current = language if interface else output_language
+                for code, delta in language_steps(current, target):
+                    after = len(raw)
+                    os.write(master, b"\x1b[C" if delta > 0 else b"\x1b[D")
+                    read_until(translate("native.ui.client.draw.configure_status_line", code) if interface else LANGUAGE_NAMES[code], start=after)
+                    if interface:
+                        language = code
+                    else:
+                        output_language = code
+
             backend = env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"]
             display_path = config / "claude-statusline.json"
             before = (
@@ -593,38 +623,30 @@ def run_pty(
             os.write(master, b"\x1b[H" + b"\x1b[B" * language_index)
             read_until("› Interface language")
             capture("language-settings-en", colors=False)
-            os.write(master, b"\x1b[C")
-            read_until("配置状态栏")
-            language = "zh-CN"
-            read_until("颜色：关闭")
+            change_language(target_language, interface=True)
+            read_until(translate("ui.drawing.colors_off", language))
             assert (
                 json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
-                == "zh-CN"
+                == target_language
             )
-            capture("language-settings-zh", colors=False)
+            capture(f"language-settings-{target_language}", colors=False)
             appearance = [f for f in described["editor_fields"]["global"] if f["group"] == "Appearance"]
             output_index = 6 + next(i for i, f in enumerate(appearance) if f["key"] == "statusline_language")
             os.write(master, b"\x1b[H" + b"\x1b[B" * output_index)
-            read_until("状态栏语言")
-            os.write(master, b"\x1b[C")
-            read_until("上下文")
-            output_language = "zh-CN"
-            capture("statusline-settings-zh", colors=False)
-            os.write(master, b"\x1b[D")
-            read_until("Context")
-            output_language = "en"
+            read_until(translate("review.sections.language", language))
+            change_language(target_language)
+            capture(f"statusline-settings-{target_language}", colors=False)
+            change_language("en")
             capture("statusline-settings-en", colors=False)
-            os.write(master, b"\x1b[C")
-            read_until("上下文")
-            output_language = "zh-CN"
+            change_language(target_language)
             # Restore colors through the current draft before documenting samples.
             os.write(master, b"\x1b[H\x1b[C1")
-            read_until("主状态栏项目")
-            capture("language-main-zh", palette="default")
+            read_until(translate("native.ui.client.draw.main_items", language))
+            capture(f"language-main-{target_language}", palette="default")
             for key, label, name in (
-                (b"2", "子代理项目", "language-subagents-zh"),
-                (b"4", "布局／适配", "language-layout-zh"),
-                (b"1\x05", "项目格式", "language-format-zh"),
+                (b"2", translate("ui.drawing.subagent_items", language), f"language-subagents-{target_language}"),
+                (b"4", translate("native.ui.client.draw.layout_fitting", language), f"language-layout-{target_language}"),
+                (b"1\x05", translate("native.ui.client.draw.item_format", language).strip().rstrip(":"), f"language-format-{target_language}"),
             ):
                 os.write(master, key)
                 read_until(label)
@@ -638,8 +660,8 @@ def run_pty(
             ) == before
             if persistent:
                 command("/statusline-configure")
-                read_until("配置状态栏", quiet=False)
-                capture("language-external-zh")
+                read_until(translate("ui.drawing.configure_status_line", language), quiet=False)
+                capture(f"language-external-{target_language}")
                 os.write(master, b"\x1b")
                 read_until("❯")
                 assert (
@@ -662,18 +684,16 @@ def run_pty(
             capture("language-main-reopened-en", palette="default")
             os.write(master, b"3\x1b[H" + b"\x1b[B" * output_index)
             read_until("Statusline language")
-            os.write(master, b"\x1b[C")
-            read_until("上下文")
-            output_language = "zh-CN"
+            change_language(target_language)
             os.write(master, b"S")
             read_until("Tool configuration saved")
-            assert json.loads(display_path.read_bytes())["statusline_language"] == "zh-CN"
-            capture("statusline-settings-saved-zh", palette="default")
+            assert json.loads(display_path.read_bytes())["statusline_language"] == target_language
+            capture(f"statusline-settings-saved-{target_language}", palette="default")
             os.write(master, b"1")
             read_until("Main items")
-            capture("statusline-main-saved-zh", palette="default")
+            capture(f"statusline-main-saved-{target_language}", palette="default")
             rendered = subprocess.run([backend, "render"], input=json.dumps({"model":{"id":"claude-sample"},"context_window":{"remaining_percentage":73,"used_percentage":27}}), env=env, cwd=project, check=True, capture_output=True, text=True).stdout
-            assert "上下文" in rendered
+            assert translate("statusline.prefix.main.context-remaining", target_language) in rendered
             os.write(master, b"q")
             read_until("❯")
             command("/exit")
@@ -692,7 +712,7 @@ def run_pty(
                     "statusline-save-affects-next-production-render",
                     "external-shared-language",
                     "cli-reset-native-reopen",
-                    "bilingual-pages-and-forms",
+                    "localized-pages-and-forms",
                 ],
             }
         os.write(master, b"3\x1b[H\x1b[B\x1b[B")
@@ -1270,6 +1290,7 @@ def main() -> int:
     parser.add_argument(
         "--terminal", help="Terminal name/version to record for manual acceptance"
     )
+    parser.add_argument("--language", choices=LANGUAGES[1:], default="zh-CN", help="Target for --language-only")
     args = parser.parse_args()
     if args.advanced and not args.persistent:
         parser.error("--advanced requires --persistent to check both editor entries")
@@ -1360,6 +1381,7 @@ def main() -> int:
                     theme_only=args.theme_only,
                     terminal_theme=args.terminal_theme,
                     language_only=args.language_only,
+                    target_language=args.language,
                     discovery=args.discovery,
                     appearance=args.appearance,
                     rendering_only=args.rendering_only,

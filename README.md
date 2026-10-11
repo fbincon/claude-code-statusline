@@ -18,8 +18,8 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 ## Features
 
 - **Control visibility and appearance:** hide confirmed empty/clean states, set usage thresholds, choose per-item foreground/background colors and themes, and opt into basic [Powerline](docs/APPEARANCE.md).
-- **Choose your languages:** English and 简体中文 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings.
-- **Find what to show:** 60 main-line items and 14 subagent items, with ranked English/Chinese search, category filters and source/requirement guidance.
+- **Choose your languages:** English, 简体中文, 繁體中文, 日本語 and 한국어 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings. See [language examples](docs/images/languages/README.md).
+- **Find what to show:** 60 main-line items and 14 subagent items, with ranked multilingual search, category filters and source/requirement guidance.
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
 - **Keep Unicode intact:** joined emoji, combining marks and CJK text stay together when rows wrap, clip or appear in previews.
@@ -295,23 +295,23 @@ Download checksums and platform-specific instructions are in the [installation g
 
 ### Interface language
 
-Both editors have **Interface language (saved immediately)** in Settings, with choices **English / 简体中文**. The default is English. Switching keeps your page, selection, search and unsaved display edits; cancelling display changes keeps the language choice. Other open windows read it when reopened or reloaded.
+Both editors have **Interface language (saved immediately)** in Settings, with choices **English / 简体中文 / 繁體中文 / 日本語 / 한국어**. The default is English. Switching keeps your page, selection, search and unsaved display edits; cancelling display changes keeps the language choice. Other open windows read it when reopened or reloaded.
 
 ```text
-claude-statusline config language set zh-CN
+claude-statusline config language set ja
 claude-statusline config language show
 claude-statusline config language reset
 claude-statusline --language en --help
 ```
 
-`--language en|zh-CN` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values and custom text retain their values. Interface language does not change output language. See [language settings](docs/USER_GUIDE.md#interface-language).
+`--language en|zh-CN|zh-Hant|ja|ko` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values and custom text retain their values. Interface language does not change output language. See [language settings](docs/USER_GUIDE.md#interface-language).
 
 ### Statusline language
 
-Choose **Statusline language (save with display settings)** → **English / 简体中文** in either editor. Preview switches immediately; Save changes the actual main and subagent output on the next refresh, while Cancel discards the draft. English is the default.
+Choose **Statusline language (save with display settings)** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어** in either editor. Preview switches immediately; Save changes the actual main and subagent output on the next refresh, while Cancel discards the draft. English is the default.
 
 ```text
-claude-statusline config set statusline-language zh-CN
+claude-statusline config set statusline-language zh-Hant
 claude-statusline config set statusline-language en
 ```
 

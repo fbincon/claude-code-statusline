@@ -112,4 +112,4 @@ class StatuslineLanguageConfigTests(ConfigCommandTestCase):
         commands.execute_config_namespace(args, self.config_dir, self.executable, language="en")
         shown = commands.execute_config_namespace(commands.parse_slash_arguments("show --json"), self.config_dir, self.executable)
         self.assertEqual(json.loads(shown)["display"]["statusline_language"], "zh-CN")
-        self.assertEqual(protocol.configuration_options()["statusline-language"]["choices"], ["en", "zh-CN"])
+        self.assertEqual(protocol.configuration_options()["statusline-language"]["choices"], list(display.STATUSLINE_LANGUAGES))

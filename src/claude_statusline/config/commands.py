@@ -248,7 +248,7 @@ def add_config_parser(subparsers) -> argparse.ArgumentParser:
     )
     show_language.add_argument("--json", action="store_true", dest="json_output")
     set_language = language_actions.add_parser("set", help=msg("cli.help.language_set"))
-    set_language.add_argument("language_value", choices=("en", "zh-CN"))
+    set_language.add_argument("language_value", choices=config_display.STATUSLINE_LANGUAGES)
     language_actions.add_parser("reset", help=msg("cli.help.language_reset"))
     return parser
 
@@ -324,7 +324,7 @@ def parse_slash_arguments(command_args: str) -> argparse.Namespace:
     showing = language_actions.add_parser("show", add_help=False)
     showing.add_argument("--json", action="store_true", dest="json_output")
     setting = language_actions.add_parser("set", add_help=False)
-    setting.add_argument("language_value", choices=("en", "zh-CN"))
+    setting.add_argument("language_value", choices=config_display.STATUSLINE_LANGUAGES)
     language_actions.add_parser("reset", add_help=False)
     return parser.parse_args(arguments)
 

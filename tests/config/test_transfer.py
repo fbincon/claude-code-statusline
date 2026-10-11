@@ -22,7 +22,7 @@ class TransferTests(unittest.TestCase):
 
     def request(self, op, payload):
         return protocol.handle(
-            json.dumps({"protocol_version": 9, "operation": op, "payload": payload}),
+            json.dumps({"protocol_version": 10, "operation": op, "payload": payload}),
             self.config,
             Path("/tool"),
         )

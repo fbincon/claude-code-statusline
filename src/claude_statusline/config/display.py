@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from claude_statusline.i18n import message as msg, as_message
+from claude_statusline.i18n.registry import LANGUAGES as STATUSLINE_LANGUAGES
 
 import json
 from dataclasses import dataclass, field, replace
@@ -18,7 +19,6 @@ LEGACY_SCHEMA_VERSION = 1
 
 
 SCHEMA_VERSION = 7
-STATUSLINE_LANGUAGES = ("en", "zh-CN")
 
 
 CONFIG_FILENAME = "claude-statusline.json"

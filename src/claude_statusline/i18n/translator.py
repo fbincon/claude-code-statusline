@@ -5,16 +5,18 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
-LANGUAGES = ("en", "zh-CN")
-LANGUAGE_NAMES = {"en": "English", "zh-CN": "简体中文"}
+from .registry import LANGUAGES, LANGUAGE_NAMES as LANGUAGE_NAMES, normalize_language
 
 
-@lru_cache(maxsize=2)
 def catalogue(language: str) -> dict[str, str]:
+    return _catalogue(normalize_language(language))
+
+
+@lru_cache(maxsize=len(LANGUAGES))
+def _catalogue(language: str) -> dict[str, str]:
     import json
     from importlib.resources import files
 
-    language = language if language in LANGUAGES else "en"
     return json.loads(
         files("claude_statusline.i18n")
         .joinpath("locales", language + ".json")

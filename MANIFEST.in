@@ -8,6 +8,7 @@ recursive-include tests *.py
 recursive-include tests/fixtures *.json
 recursive-include src/claude_statusline/resources *.md
 recursive-include src/claude_statusline/i18n/locales *.json
+include src/claude_statusline/i18n/languages.json
 recursive-include tools *.py
 recursive-include mods/statusline-native *.json *.ts
 prune mods/statusline-native/node_modules

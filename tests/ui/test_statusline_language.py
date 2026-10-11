@@ -3,6 +3,7 @@
 from io import StringIO
 from unittest import mock
 
+from claude_statusline.i18n import LANGUAGES
 from claude_statusline.config import display, models, ui_preferences
 from claude_statusline.ui import forms, session
 from tests.config.test_config_commands import ConfigCommandTestCase
@@ -15,31 +16,32 @@ class StatuslineLanguageSessionTests(ConfigCommandTestCase):
         stream.isatty = lambda: True
         return stream
 
-    def edit(self, action, states):
+    def edit(self, action, states, output_language="zh-CN"):
         def run(state, *unused):
             states.append(state)
             state.page = "settings"
             select(state, "field:statusline_language")
-            forms.set_value(state, forms.current(state), "zh-CN")
+            forms.set_value(state, forms.current(state), output_language)
             self.assertEqual(display.load_display_config(self.config_dir).statusline_language, "en")
             return action
         return run
 
-    def test_save_and_cancel_share_draft_semantics_in_both_interface_languages(self):
+    def test_save_and_cancel_share_draft_semantics_in_all_25_language_combinations(self):
         self.install_minimal_settings()
-        for language in ("en", "zh-CN"):
-            for action, expected in (("cancel", "en"), ("save", "zh-CN")):
-                with self.subTest(language=language, action=action):
-                    display.write_display_config(self.config_dir, display.DEFAULT_CONFIG)
-                    ui_preferences.set_language(self.config_dir, language)
-                    preferences_before = (self.config_dir / "statusline-ui.json").read_bytes()
-                    states = []
-                    with mock.patch.object(session, "_run_curses", side_effect=self.edit(action, states)):
-                        result = session.execute(self.config_dir, self.executable, input_stream=self.tty(), output_stream=self.tty())
-                    self.assertEqual(result.language, language)
-                    self.assertEqual(states[0].language, language)
-                    self.assertEqual(display.load_display_config(self.config_dir).statusline_language, expected)
-                    self.assertEqual((self.config_dir / "statusline-ui.json").read_bytes(), preferences_before)
+        for language in LANGUAGES:
+            for output_language in LANGUAGES:
+                for action, expected in (("cancel", "en"), ("save", output_language)):
+                    with self.subTest(language=language, output=output_language, action=action):
+                        display.write_display_config(self.config_dir, display.DEFAULT_CONFIG)
+                        ui_preferences.set_language(self.config_dir, language)
+                        preferences_before = (self.config_dir / "statusline-ui.json").read_bytes()
+                        states = []
+                        with mock.patch.object(session, "_run_curses", side_effect=self.edit(action, states, output_language)):
+                            result = session.execute(self.config_dir, self.executable, input_stream=self.tty(), output_stream=self.tty())
+                        self.assertEqual(result.language, language)
+                        self.assertEqual(states[0].language, language)
+                        self.assertEqual(display.load_display_config(self.config_dir).statusline_language, expected)
+                        self.assertEqual((self.config_dir / "statusline-ui.json").read_bytes(), preferences_before)
 
     def test_save_failure_preserves_file_and_draft(self):
         self.install_minimal_settings()

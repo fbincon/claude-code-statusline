@@ -50,6 +50,7 @@ export class Editor {
     public readonly description: DescribeResult,
     current: ReadResult,
   ) {
+    description.catalog.forEach(item => fields(item));
     this.baseline = { ...current, draft: copyDraft(current.draft) };
     this.draft = copyDraft(current.draft);
     this.order = { main: [], subagent: [] };

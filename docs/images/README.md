@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+See the [multilingual installed-terminal captures](languages/README.md) for Traditional Chinese, Japanese and Korean.
+
 The original cross-platform gallery contains 21 original screenshots supplied on 2026-10-07: nine in-session TUI pages and twelve external TUI pages. The former 18-image README gallery and older records remain in the [archive](archive/README.md).
 
 PNG bytes, dimensions, colors and metadata are preserved. Main status lines at the bottom of session screenshots show session data; configuration Preview regions use fixed samples and do not establish actual token usage or parallel-agent acceptance.
@@ -56,6 +58,9 @@ images/
 │           ├── subagents.png
 │           ├── settings.png
 │           └── layout.png
+├── languages/
+│   ├── native/
+│   └── external/
 ├── discovery/
 │   ├── native/
 │   └── external/

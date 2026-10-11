@@ -21,7 +21,7 @@ def _common_config_argument(parser) -> None:
 
 
 def build_parser(language="en"):
-    from claude_statusline.i18n import message as msg
+    from claude_statusline.i18n import LANGUAGES, message as msg
     from claude_statusline.i18n.argparse import LocalizedParser
 
     from . import config_commands
@@ -32,7 +32,7 @@ def build_parser(language="en"):
         description=msg("cli.description"),
     )
     parser.add_argument(
-        "--language", choices=("en", "zh-CN"), help=msg("cli.help.language_override")
+        "--language", choices=LANGUAGES, help=msg("cli.help.language_override")
     )
     parser.add_argument(
         "--version",

@@ -16,6 +16,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from claude_statusline.ui.contracts import PROTOCOL_VERSION
 from claude_statusline._version import __version__
 from claude_statusline.config import catalog
 from claude_statusline.config.editor_defaults import enabled_by_default
@@ -112,13 +113,13 @@ def main() -> int:
                 run(
                     "ui",
                     payload={
-                        "protocol_version": 9,
+                        "protocol_version": PROTOCOL_VERSION,
                         "operation": operation,
                         "payload": payload,
                     },
                 )
             )
-            assert response["protocol_version"] == 9 and "result" in response
+            assert response["protocol_version"] == PROTOCOL_VERSION and "result" in response
             if operation == "describe":
                 rows = response["result"]["catalog"]
                 expected_items = {(item.scope, item.id) for item in catalog.ITEMS}
@@ -143,7 +144,7 @@ def main() -> int:
             run(
                 "ui",
                 payload={
-                    "protocol_version": 9,
+                    "protocol_version": PROTOCOL_VERSION,
                     "operation": "apply",
                     "payload": {
                         "draft": saved["draft"],
@@ -158,7 +159,7 @@ def main() -> int:
             run(
                 "ui",
                 payload={
-                    "protocol_version": 9,
+                    "protocol_version": PROTOCOL_VERSION,
                     "operation": "preview",
                     "payload": {"draft": applied["draft"], "width": 24},
                 },

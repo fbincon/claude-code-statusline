@@ -21,7 +21,7 @@
 ## CLI 总览
 
 ```text
-claude-statusline [--language en|zh-CN] COMMAND ...
+claude-statusline [--language en|zh-CN|zh-Hant|ja|ko] COMMAND ...
 claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
@@ -42,7 +42,7 @@ claude-statusline config [--config-dir PATH] export PATH [--overwrite]
 claude-statusline config [--config-dir PATH] item main|subagent ID OPTION VALUE
 claude-statusline config [--config-dir PATH] layout auto|explicit [ROW...]
 claude-statusline config [--config-dir PATH] language show [--json]
-claude-statusline config [--config-dir PATH] language set en|zh-CN
+claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-Hant|ja|ko
 claude-statusline config [--config-dir PATH] language reset
 claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force]
@@ -81,13 +81,13 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 ## 界面语言
 
-`config language show [--json]` 读取共享偏好；JSON 为 `{"schema_version":1,"ui_language":"en"}` 或 `"zh-CN"`。`set en|zh-CN` 和 `reset` 显式保存，reset 选择英文。根选项 `--language en|zh-CN` 放在子命令前，优先用于本次调用，不修改文件；用于 `configure` 时控制初始界面语言。
+`config language show [--json]` 读取共享偏好；JSON 为 `{"schema_version":1,"ui_language":"en"}`，其中 `ui_language` 为所选受支持代码。`set en|zh-CN|zh-Hant|ja|ko` 和 `reset` 显式保存，reset 选择英文。根选项 `--language en|zh-CN|zh-Hant|ja|ko` 放在子命令前，优先用于本次调用，不修改文件；用于 `configure` 时控制初始界面语言。
 
 帮助正文／分组、argparse 参数错误和管理输出使用所选语言。命令名称、参数值、退出码、目录 JSON 保持稳定；实际状态栏采用独立显示语言。支持的宿主上 `/statusline-config language show|set|reset` 也可本地执行。详见[语言行为与恢复](../USER_GUIDE.zh-CN.md#界面语言)。
 
 ## 状态栏语言
 
-`config set statusline-language en|zh-CN` 保存显示语言。`config apply --statusline-language en|zh-CN` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
+`config set statusline-language en|zh-CN|zh-Hant|ja|ko` 保存显示语言。`config apply --statusline-language en|zh-CN|zh-Hant|ja|ko` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
 
 显示 schema v7 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
 
@@ -767,7 +767,7 @@ claude-statusline config set refresh-interval event
 {"schema_version": 1, "ui_language": "zh-CN"}
 ```
 
-仅接受 `en` 与 `zh-CN`。缺失／无效读取返回英文，可能提示警告，但不修复。显式 set/reset 使用锁、备份及原子写入；未来 schema 拒绝覆盖，写入失败保留原有效选择。此文件与显示 revision、接入偏好、预设和可移植文件独立，普通卸载保留。
+接受 `en`、`zh-CN`、`zh-Hant`、`ja` 和 `ko`。缺失／无效读取返回英文，可能提示警告，但不修复。显式 set/reset 使用锁、备份及原子写入；未来 schema 拒绝覆盖，写入失败保留原有效选择。此文件与显示 revision、接入偏好、预设和可移植文件独立，普通卸载保留。
 
 ### 编辑器启用偏好
 

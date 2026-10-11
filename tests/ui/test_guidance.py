@@ -4,6 +4,7 @@ import curses
 import unittest
 from unittest import mock
 
+from claude_statusline.i18n import LANGUAGES
 from claude_statusline.config import catalog, guidance as metadata
 from claude_statusline.i18n import translate
 from claude_statusline.rendering.layout import _display_width
@@ -21,7 +22,7 @@ class GuidanceTests(unittest.TestCase):
                 self.assertTrue(set(guide["source_kinds"]) <= set(metadata.SOURCE_KINDS))
                 self.assertIn(guide["measurement_scope"], metadata.SCOPES)
                 self.assertTrue(set(guide["requirements"]) <= set(metadata.REQUIREMENTS))
-                for language in ("en", "zh-CN"):
+                for language in LANGUAGES:
                     text = "\n".join(guidance.paragraphs(item.scope, item.id, language))
                     self.assertNotIn("guidance.", text)
                     self.assertIn(item.id, text)
@@ -45,7 +46,7 @@ class GuidanceTests(unittest.TestCase):
         self.assertIn("agent_effort_optional", guide("subagent", "model-with-effort")["requirements"])
 
     def test_guidance_scroll_cancel_and_resize_preserve_draft_and_selection(self):
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             state = EditorState.from_effective(effective(), language=language)
             state.selected_item = "prompt-cost"
             keys.handle_key(state, "\x05", 8)
@@ -69,7 +70,7 @@ class GuidanceTests(unittest.TestCase):
             self.assertFalse(state.modified)
 
     def test_all_explanations_wrap_inside_terminal_cells(self):
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             for item in catalog.ITEMS:
                 for width in (30, 60, 118):
                     lines = guidance.lines(item.scope, item.id, language, width)

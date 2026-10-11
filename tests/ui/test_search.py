@@ -4,6 +4,7 @@ import curses
 import json
 from pathlib import Path
 import unittest
+from unittest import mock
 
 from claude_statusline.config import catalog, formatting
 from claude_statusline.ui import catalog_view, drawing, keys, search
@@ -16,6 +17,24 @@ CASES = json.loads((Path(__file__).resolve().parents[1] / "fixtures/editor-searc
 
 
 class SearchTests(unittest.TestCase):
+    def test_new_languages_share_prepared_index_and_custom_labels_invalidate_locally(self):
+        state = EditorState.from_effective(effective())
+        with mock.patch.object(search, "translate", side_effect=AssertionError("search retranslated the index")):
+            for query, field in (
+                ("剩餘上下文", "label.zh-Hant"),
+                ("残りコンテキスト", "label.ja"),
+                ("남은 컨텍스트", "label.ko"),
+            ):
+                state.search = query
+                matches = state.matches("main")
+                self.assertEqual(next(iter(matches)), "context-remaining")
+                self.assertEqual(matches["context-remaining"].field, field)
+            for label in ("自訂標籤", "사용자 표시", "新しいラベル"):
+                state.display = state.display.with_updates(item_options={"model": formatting.ItemOptions(label=label)})
+                state.search = label
+                self.assertEqual(state.visible_items()[0], "model")
+                self.assertEqual(state.matches("main")["model"].field, "custom_label")
+
     def test_shared_codepoint_matches_and_stable_tiers(self):
         for case in CASES["text_matches"]:
             with self.subTest(case=case):

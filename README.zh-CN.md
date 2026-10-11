@@ -18,8 +18,8 @@
 ## 功能概览
 
 - **条件显示与外观：** 隐藏确认的空闲／干净状态，设置用量阈值、逐项前景／背景色和主题，按需启用基础 [Powerline](docs/APPEARANCE.zh-CN.md)。
-- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文；界面语言立即保存，状态栏语言随显示设置保存。
-- **查找显示项目：** 60 个主栏项目和 14 个子代理项目，支持中英文分级搜索、分类筛选及来源／启用条件说明。
+- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文 / 日本語 / 한국어；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/languages/README.zh-CN.md)。
+- **查找显示项目：** 60 个主栏项目和 14 个子代理项目，支持五种语言的分级搜索、分类筛选及来源／启用条件说明。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
 - **保留完整字符：** 组合 emoji、组合字符和 CJK 文本在换行、裁切和预览中保持完整。
@@ -283,23 +283,23 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
 
 ### 界面语言
 
-两个编辑器的设置页均提供**界面语言（立即保存）**，选项始终显示 **English / 简体中文**；默认英文。切换保留当前页面、选中项、搜索与未保存显示修改，取消显示修改也保留语言选择。其他已打开窗口在重开或重新加载时读取新偏好。
+两个编辑器的设置页均提供**界面语言（立即保存）**，选项始终显示 **English / 简体中文 / 繁體中文 / 日本語 / 한국어**；默认英文。切换保留当前页面、选中项、搜索与未保存显示修改，取消显示修改也保留语言选择。其他已打开窗口在重开或重新加载时读取新偏好。
 
 ```text
-claude-statusline config language set zh-CN
+claude-statusline config language set ja
 claude-statusline config language show
 claude-statusline config language reset
 claude-statusline --language en --help
 ```
 
-`--language en|zh-CN` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值和自定义文字保持原值；界面语言不改变状态栏语言。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
+`--language en|zh-CN|zh-Hant|ja|ko` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值和自定义文字保持原值；界面语言不改变状态栏语言。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
 
 ### 状态栏语言
 
-在任一编辑器选择**状态栏语言（随显示设置保存）** → **English / 简体中文**。预览立即切换，保存后主状态栏与子代理行在下次刷新时生效，取消则放弃草稿。默认英文。
+在任一编辑器选择**状态栏语言（随显示设置保存）** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어**。预览立即切换，保存后主状态栏与子代理行在下次刷新时生效，取消则放弃草稿。默认英文。
 
 ```text
-claude-statusline config set statusline-language zh-CN
+claude-statusline config set statusline-language zh-Hant
 claude-statusline config set statusline-language en
 ```
 

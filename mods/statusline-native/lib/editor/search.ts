@@ -1,6 +1,6 @@
 /** Local deterministic search. Original code-point positions survive NFKD. */
 import type { CatalogItem } from '../generated-contracts.ts';
-import { t } from '../i18n/index.ts';
+import { LANGUAGES, t } from '../i18n/index.ts';
 
 const SPACES = new Set([..." \t\n\r\v\f\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000"]);
 export interface Match { rank: number; positions: number[]; text: string; field: string }
@@ -28,8 +28,8 @@ export function normalize(text: string): { characters: string[]; positions: numb
   return value;
 }
 
-export function matchText(text: string, query: string, field = ''): Match | null {
-  const { characters: value, positions: mapping } = normalize(text);
+export function matchText(text: string, query: string, field = '', prepared?: ReturnType<typeof normalize>): Match | null {
+  const { characters: value, positions: mapping } = prepared ?? normalize(text);
   const { characters: needle } = normalize(query);
   if (!needle.length) return { rank: 5, positions: [], text, field };
   if (!value.length) return null;
@@ -59,21 +59,39 @@ export function matchText(text: string, query: string, field = ''): Match | null
   return { rank, positions: [...new Set(indices.map(i => mapping[i]!))], text, field };
 }
 
-export function fields(item: CatalogItem, customLabel: string | null = null): [string, string][] {
-  const prefix = `items.${item.scope}.${item.id}.`;
-  return [
-    ['id', item.id], ['label.en', item.label], ['label.zh-CN', t(prefix + 'label', 'zh-CN')],
-    ['custom_label', customLabel ?? ''], ['description.en', item.description],
-    ['description.zh-CN', t(prefix + 'description', 'zh-CN')], ['category.id', item.group],
-    ['category.en', t('catalog.categories.' + item.group, 'en', {}, item.group)],
-    ['category.zh-CN', t('catalog.categories.' + item.group, 'zh-CN', {}, item.group)],
-  ];
+type SearchField = readonly [string, string, ReturnType<typeof normalize>?];
+const fieldCache = new WeakMap<CatalogItem, {customLabel: string | null; fields: SearchField[]}>();
+
+function preparedField(name: string, value: string): SearchField {
+  return [name, value, normalize(value)];
 }
 
-export function bestMatch(values: [string, string][], query: string): Match | null {
+export function fields(item: CatalogItem, customLabel: string | null = null): readonly SearchField[] {
+  const cached = fieldCache.get(item);
+  if (cached) {
+    if (cached.customLabel !== customLabel) {
+      cached.fields[1 + LANGUAGES.length] = preparedField('custom_label', customLabel ?? '');
+      cached.customLabel = customLabel;
+    }
+    return cached.fields;
+  }
+  const prefix = `items.${item.scope}.${item.id}.`;
+  const result = [
+    preparedField('id', item.id),
+    ...LANGUAGES.map(code => preparedField('label.' + code, code === 'en' ? item.label : t(prefix + 'label', code))),
+    preparedField('custom_label', customLabel ?? ''),
+    ...LANGUAGES.map(code => preparedField('description.' + code, code === 'en' ? item.description : t(prefix + 'description', code))),
+    preparedField('category.id', item.group),
+    ...LANGUAGES.map(code => preparedField('category.' + code, t('catalog.categories.' + item.group, code, {}, item.group))),
+  ];
+  fieldCache.set(item, {customLabel, fields: result});
+  return result;
+}
+
+export function bestMatch(values: readonly SearchField[], query: string): Match | null {
   let best: Match | null = null;
-  for (const [field, value] of values) {
-    const match = matchText(value, query, field);
+  for (const [field, value, prepared] of values) {
+    const match = matchText(value, query, field, prepared);
     if (match && (!best || match.rank < best.rank)) best = match;
   }
   return best;

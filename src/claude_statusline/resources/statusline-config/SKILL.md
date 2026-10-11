@@ -24,8 +24,8 @@ changes.
 If the invocation arguments are empty:
 
 1. Run `__CLAUDE_STATUSLINE_COMMAND__ config language show --json` first. Use its
-   `ui_language` for every question, explanation and completion message: `en`
-   means English and `zh-CN` means Simplified Chinese. Do not infer the interface
+   `ui_language` for every question, explanation and completion message.
+   Supported languages: __CLAUDE_STATUSLINE_LANGUAGES__. Do not infer the interface
    language from the conversation or from `statusline_language`.
    Run `__CLAUDE_STATUSLINE_COMMAND__ config show --json` and
    `__CLAUDE_STATUSLINE_COMMAND__ config list-items --json`, then run
@@ -40,7 +40,7 @@ __CLAUDE_STATUSLINE_ITEM_GROUPS__
 4. Preserve the relative order of currently enabled selected items. Append
    newly enabled items in the catalog order returned by `list-items`.
 5. Ask for:
-   - statusline language: `en` or `zh-CN`; always display **English / 简体中文**.
+   - statusline language: __CLAUDE_STATUSLINE_LANGUAGES__; preserve each native language name.
      Start from `display.statusline_language` in the current configuration.
      This changes main and subagent output independently of interface language.
      Preview is available in the editors; this guided choice is saved with all
@@ -60,7 +60,7 @@ __CLAUDE_STATUSLINE_ITEM_GROUPS__
 6. Do not write anything if the user cancels or any answer is unresolved.
 7. Apply every answer in one command with this exact argument structure:
 
-   `__CLAUDE_STATUSLINE_COMMAND__ config apply --items ITEM... --subagent-items ITEM... --subagent-statusline on|off --scope-labels off|when-subagents|always --statusline-language en|zh-CN --colors on|off --palette default|ansi --directory-style full|home|project-relative|basename --separator-style classic|compact|powerline --padding N --refresh-interval event|N --hide-vim-mode-indicator on|off`
+   `__CLAUDE_STATUSLINE_COMMAND__ config apply --items ITEM... --subagent-items ITEM... --subagent-statusline on|off --scope-labels off|when-subagents|always --statusline-language __CLAUDE_STATUSLINE_LANGUAGE_CHOICES__ --colors on|off --palette default|ansi --directory-style full|home|project-relative|basename --separator-style classic|compact|powerline --padding N --refresh-interval event|N --hide-vim-mode-indicator on|off`
 
    Map "hide" to `--hide-vim-mode-indicator on` and "show" to
    `--hide-vim-mode-indicator off`.

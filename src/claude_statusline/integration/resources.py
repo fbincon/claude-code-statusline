@@ -57,6 +57,8 @@ def _render_skill_resource(resource_name: str) -> bytes:
 
 
 def render_skill(executable: Path) -> bytes:
+    from claude_statusline.i18n.registry import LANGUAGES, LANGUAGE_NAMES
+
     template = _render_skill_resource(integration_models.SLASH_COMMAND_NAME).decode(
         "utf-8"
     )
@@ -75,6 +77,11 @@ def render_skill(executable: Path) -> bytes:
         "__CLAUDE_STATUSLINE_ALLOWED_RULES__", allowed_rules
     ).replace("__CLAUDE_STATUSLINE_COMMAND__", shell_command).replace(
         "__CLAUDE_STATUSLINE_ITEM_GROUPS__", catalog.wizard_groups()
+    ).replace(
+        "__CLAUDE_STATUSLINE_LANGUAGES__",
+        ", ".join(f"{code} ({LANGUAGE_NAMES[code]})" for code in LANGUAGES),
+    ).replace(
+        "__CLAUDE_STATUSLINE_LANGUAGE_CHOICES__", "|".join(LANGUAGES)
     )
     if "__CLAUDE_STATUSLINE_" in rendered:
         raise integration_models.ConfigurationError(
