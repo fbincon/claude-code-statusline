@@ -88,7 +88,7 @@ class CliTests(unittest.TestCase):
     def test_version(self):
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "claude-statusline 2.0.0a1")
+        self.assertEqual(result.stdout.strip(), "claude-statusline 2.0.0")
         self.assertEqual(result.stderr, "")
 
     def test_help_lists_public_commands(self):
