@@ -13723,12 +13723,21 @@
     {
       "name": "CLAUDE_CONFIG_DIR",
       "source": [
+        "mods/statusline-native/hooks/register.ts",
+        "mods/statusline-runtime/hooks/observe.ts",
         "src/claude_statusline/integration/ownership.py",
         "src/claude_statusline/rendering/subagents.py",
         "src/claude_statusline/runtime/paths.py",
         "src/claude_statusline/runtime/tasks/store.py"
       ],
       "role": "public_override"
+    },
+    {
+      "name": "CLAUDE_STATUSLINE_NATIVE_EXECUTABLE",
+      "source": [
+        "mods/statusline-native/hooks/register.ts"
+      ],
+      "role": "mod_backend_override"
     },
     {
       "name": "CLAUDE_STATUSLINE_RUNTIME_DIR",
@@ -13738,6 +13747,13 @@
         "src/claude_statusline/runtime/tasks/store.py"
       ],
       "role": "public_override"
+    },
+    {
+      "name": "CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE",
+      "source": [
+        "mods/statusline-runtime/hooks/observe.ts"
+      ],
+      "role": "mod_backend_override"
     },
     {
       "name": "CLAUDE_STATUSLINE_SESSIONS_DIR",
@@ -16490,6 +16506,40 @@
       "slash-hook": "block JSON for recognized direct commands; otherwise silent"
     }
   },
+  "mod_backend_bindings": [
+    {
+      "source": "mods/statusline-native/hooks/register.ts",
+      "behavior": "PROTOCOL",
+      "executable_precedence": [
+        "CLAUDE_STATUSLINE_NATIVE_EXECUTABLE",
+        "PluginOptions.backendExecutable",
+        "claude-statusline"
+      ],
+      "config_precedence": [
+        "CLAUDE_CONFIG_DIR",
+        "PluginOptions.configDir",
+        "backend default"
+      ],
+      "invocation": "argv array through $.process.run; append --config-dir only when explicitly bound",
+      "stage": "TS-04"
+    },
+    {
+      "source": "mods/statusline-runtime/hooks/observe.ts",
+      "behavior": "LIVE",
+      "executable_precedence": [
+        "CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE",
+        "PluginOptions.backendExecutable",
+        "claude-statusline"
+      ],
+      "config_precedence": [
+        "CLAUDE_CONFIG_DIR",
+        "PluginOptions.configDir",
+        "backend default"
+      ],
+      "invocation": "argv array through $.process.run; append --config-dir only when explicitly bound",
+      "stage": "TS-04"
+    }
+  ],
   "benchmark": {
     "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
     "parameters": {

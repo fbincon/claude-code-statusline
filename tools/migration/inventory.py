@@ -56,6 +56,9 @@ def runtime_inventory(source, python):
 def build(files, source, python=sys.executable):
     modules, tests, tools, environments = [], [], [], {}
     for name, raw in sorted(files.items()):
+        if name.startswith("mods/") and name.endswith(".ts") and "/tests/" not in name:
+            for match in re.findall(rb"\$\.env\.get\(['\"]([A-Z_]+)['\"]\)", raw):
+                environments.setdefault(match.decode(), set()).add(name)
         if not name.endswith(".py") or not name.startswith(
             ("src/", "tests/", "tools/")
         ):
@@ -229,7 +232,9 @@ def build(files, source, python=sys.executable):
             {
                 "name": key,
                 "source": sorted(value),
-                "role": "public_override"
+                "role": "mod_backend_override"
+                if key.endswith("_EXECUTABLE")
+                else "public_override"
                 if key
                 in (
                     "CLAUDE_CONFIG_DIR",
@@ -241,6 +246,36 @@ def build(files, source, python=sys.executable):
             for key, value in sorted(environments.items())
         ],
         "public_surface": runtime,
+        "mod_backend_bindings": [
+            {
+                "source": path,
+                "behavior": behavior,
+                "executable_precedence": [
+                    environment,
+                    "PluginOptions.backendExecutable",
+                    "claude-statusline",
+                ],
+                "config_precedence": [
+                    "CLAUDE_CONFIG_DIR",
+                    "PluginOptions.configDir",
+                    "backend default",
+                ],
+                "invocation": "argv array through $.process.run; append --config-dir only when explicitly bound",
+                "stage": "TS-04",
+            }
+            for path, behavior, environment in (
+                (
+                    "mods/statusline-native/hooks/register.ts",
+                    "PROTOCOL",
+                    "CLAUDE_STATUSLINE_NATIVE_EXECUTABLE",
+                ),
+                (
+                    "mods/statusline-runtime/hooks/observe.ts",
+                    "LIVE",
+                    "CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE",
+                ),
+            )
+        ],
         "benchmark": {
             "reference": REFERENCE,
             "parameters": {

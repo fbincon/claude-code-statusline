@@ -195,6 +195,14 @@ class CorpusTests(unittest.TestCase):
         commands = {tuple(row["argv"]) for row in baseline["public_surface"]["cli"]}
         for row in baseline["public_surface"]["cli"]:
             self.assertIn(row["behavior"], known)
+        environment = {row["name"] for row in baseline["environment_reads"]}
+        self.assertTrue(
+            {
+                "CLAUDE_STATUSLINE_NATIVE_EXECUTABLE",
+                "CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE",
+            }
+            <= environment
+        )
         self.assertTrue(
             {("render",), ("config", "instance", "copy"), ("ui",), ("runtime",)}
             <= commands

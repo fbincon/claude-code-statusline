@@ -66,6 +66,8 @@ retain text/ANSI bytes, structured responses, file contents and lifecycle state.
 Comparison ignores object-key ordering only for parsed objects; lists, string
 contents, types, missing fields, booleans, integers and null remain exact.
 JSON contained inside a wire string or persisted-file snapshot is byte-sensitive.
+TypeScript consumers must preserve integer lexemes before constructing `bigint`;
+`JSON.parse` followed by `BigInt` would already have rounded large values.
 
 Each case runs in a new child process with independent temporary configuration,
 runtime and session directories. The child receives no model credentials and no

@@ -406,7 +406,13 @@
         "result": "two CLI stderr byte differences under Python 3.14.8; the other 159 cases matched",
         "disposition": "Pin canonical replay to exact reference Python 3.14.4 and retain synthetic capture artifacts; support matrix unchanged."
       }
-    ]
+    ],
+    "canonical_replay_pass": {
+      "head": "9a7f56fee079ec424296abcb9a15eaeef4a16124",
+      "job": "https://github.com/fbincon/claude-code-statusline/actions/runs/38151674287/job/114506238702",
+      "python": "3.14.4",
+      "cases": 161
+    }
   },
   "merged_commit": null,
   "gitee_main": null,
@@ -421,12 +427,12 @@
     "canonical_output_sha256": "f9f1d5891671275b2e0a5ef8c1f37b2b0c1aefbfec9e9675c7243ea2c5a6f74f",
     "receipts": [
       {
-        "file": "capture-09/receipt.json",
-        "sha256": "7b9e77737ea31c667d50d9be16dea50afca7f2e26d1c647ef91838e39fe9c26b"
+        "file": "capture-11/receipt.json",
+        "sha256": "891a33262b6a4787d4c2148d001a7dea84ea05ec3462e0801d36d3432c045311"
       },
       {
-        "file": "capture-10/receipt.json",
-        "sha256": "7b9e77737ea31c667d50d9be16dea50afca7f2e26d1c647ef91838e39fe9c26b"
+        "file": "capture-12/receipt.json",
+        "sha256": "891a33262b6a4787d4c2148d001a7dea84ea05ec3462e0801d36d3432c045311"
       }
     ]
   },
@@ -476,6 +482,12 @@
     "artifacts": {
       "fbincon_claude_code_statusline-2.0.0-py3-none-any.whl": "bc70c48e7bf32ad2c497ad5563936be95c9eef5f015826a49d2c8caea28048d1",
       "fbincon_claude_code_statusline-2.0.0.tar.gz": "dd1fb88e340c8b3f9a0e6918b2f9736f10e22e05a301b023aaa2214613b285fe"
+    },
+    "inventory_refinement": {
+      "description": "Added both Mod backend executable environment overrides and binding precedence; all 161 expected results unchanged.",
+      "tests": 12,
+      "result": "passed",
+      "log_sha256": "13746d9b29ff23fd839eb53a4fab7f14f4440575509ae52fa5a634d153712611"
     }
   }
 }
