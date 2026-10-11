@@ -82,3 +82,11 @@ test('native letter actions work outside inputs without depending on reserved co
   handleKey(v,{key:'X'},80,24); expect(e.draft.display.instances.length).toBe(1);
   handleKey(v,{key:'A'},80,24); expect(e.adding).toBe(true);
 });
+
+
+test('literal instances are searchable by the text displayed in the list', () => {
+  const e = editor(); e.instanceAction('main','add','text');
+  const id = e.selected.main;
+  e.instance('main',id)!.text='项目 Alpha';
+  e.filter('main','项目 Alpha'); expect(e.visible('main').map(i=>i.id)).toEqual([id]);
+});

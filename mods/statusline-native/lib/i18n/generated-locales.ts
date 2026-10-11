@@ -1361,7 +1361,8 @@ export const LOCALES = {
     "composition.errors.row_spacer": "Each explicit row accepts at most one spacer",
     "composition.errors.legacy": "This composition requires config instance {scope}; type commands cannot represent it losslessly",
     "presets.left-right": "Left and right",
-    "presets.repeated-metrics": "Repeated metrics"
+    "presets.repeated-metrics": "Repeated metrics",
+    "ui.hints.category": "category"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -2721,7 +2722,8 @@ export const LOCALES = {
     "composition.errors.row_spacer": "每个显式行最多包含一个留白",
     "composition.errors.legacy": "此配置需要使用 config instance {scope}，类型命令无法完整表达当前布局",
     "presets.left-right": "左右布局",
-    "presets.repeated-metrics": "重复指标"
+    "presets.repeated-metrics": "重复指标",
+    "ui.hints.category": "分类"
   },
   "zh-Hant": {
     "preferences.read_failed": "無法讀取 {path} 的界面偏好，使用英文：{detail}",
@@ -4081,7 +4083,8 @@ export const LOCALES = {
     "composition.errors.row_spacer": "每個明確分行最多包含一個留白",
     "composition.errors.legacy": "此設定需要使用 config instance {scope}，類型命令無法完整表達目前版面",
     "presets.left-right": "左右配置",
-    "presets.repeated-metrics": "重複指標"
+    "presets.repeated-metrics": "重複指標",
+    "ui.hints.category": "分類"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -5441,7 +5444,8 @@ export const LOCALES = {
     "composition.errors.row_spacer": "明示的に設定した各行にスペースを一つまで配置できます",
     "composition.errors.legacy": "この構成には config instance {scope} が必要です。種類を指定するコマンドでは構成を完全に表現できません",
     "presets.left-right": "左右配置",
-    "presets.repeated-metrics": "指標を複数表示"
+    "presets.repeated-metrics": "指標を複数表示",
+    "ui.hints.category": "カテゴリ"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -6801,7 +6805,8 @@ export const LOCALES = {
     "composition.errors.row_spacer": "명시적으로 구성한 각 행에는 공백을 하나만 둘 수 있습니다",
     "composition.errors.legacy": "이 구성에는 config instance {scope}가 필요합니다. 유형 명령으로는 현재 구성을 완전히 표현할 수 없습니다",
     "presets.left-right": "좌우 배치",
-    "presets.repeated-metrics": "지표 반복 표시"
+    "presets.repeated-metrics": "지표 반복 표시",
+    "ui.hints.category": "분류"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

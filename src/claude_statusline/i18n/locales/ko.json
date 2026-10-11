@@ -1356,5 +1356,6 @@
   "composition.errors.row_spacer": "명시적으로 구성한 각 행에는 공백을 하나만 둘 수 있습니다",
   "composition.errors.legacy": "이 구성에는 config instance {scope}가 필요합니다. 유형 명령으로는 현재 구성을 완전히 표현할 수 없습니다",
   "presets.left-right": "좌우 배치",
-  "presets.repeated-metrics": "지표 반복 표시"
+  "presets.repeated-metrics": "지표 반복 표시",
+  "ui.hints.category": "분류"
 }

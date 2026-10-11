@@ -83,3 +83,13 @@ class InstanceEditorTests(unittest.TestCase):
             instances.edit(cfg, "main", "move", "s1", after="s2")
         self.assertEqual(cfg.to_dict(), original)
         self.assertEqual(order, ["model", "s1", "git", "s2"])
+
+    def test_literal_instance_can_be_found_by_its_displayed_text(self):
+        state = EditorState.from_effective(effective())
+        state.instance_action("add", "text")
+        identifier = state.selected_item
+        state.display, _ = instances.edit(
+            state.display, "main", "set", identifier, option="text", value="项目 Alpha"
+        )
+        state.search = "项目 Alpha"
+        self.assertEqual(state.visible_items(), [identifier])

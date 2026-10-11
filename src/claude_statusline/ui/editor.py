@@ -138,7 +138,9 @@ class EditorState:
             match = (
                 item_search.best_match(
                     item_search.fields(
-                        scope, type_id, node.options.label if node else None
+                        scope,
+                        type_id,
+                        (node.options.label or node.text) if node else None,
                     ),
                     query,
                 )

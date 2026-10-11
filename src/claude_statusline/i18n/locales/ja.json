@@ -1356,5 +1356,6 @@
   "composition.errors.row_spacer": "明示的に設定した各行にスペースを一つまで配置できます",
   "composition.errors.legacy": "この構成には config instance {scope} が必要です。種類を指定するコマンドでは構成を完全に表現できません",
   "presets.left-right": "左右配置",
-  "presets.repeated-metrics": "指標を複数表示"
+  "presets.repeated-metrics": "指標を複数表示",
+  "ui.hints.category": "カテゴリ"
 }

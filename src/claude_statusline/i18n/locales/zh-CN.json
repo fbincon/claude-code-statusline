@@ -1356,5 +1356,6 @@
   "composition.errors.row_spacer": "每个显式行最多包含一个留白",
   "composition.errors.legacy": "此配置需要使用 config instance {scope}，类型命令无法完整表达当前布局",
   "presets.left-right": "左右布局",
-  "presets.repeated-metrics": "重复指标"
+  "presets.repeated-metrics": "重复指标",
+  "ui.hints.category": "分类"
 }

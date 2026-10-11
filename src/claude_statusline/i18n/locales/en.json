@@ -1356,5 +1356,6 @@
   "composition.errors.row_spacer": "Each explicit row accepts at most one spacer",
   "composition.errors.legacy": "This composition requires config instance {scope}; type commands cannot represent it losslessly",
   "presets.left-right": "Left and right",
-  "presets.repeated-metrics": "Repeated metrics"
+  "presets.repeated-metrics": "Repeated metrics",
+  "ui.hints.category": "category"
 }

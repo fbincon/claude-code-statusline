@@ -123,9 +123,9 @@ export class Editor {
       const definition = catalog.get(node?.type_id ?? id);
       if (!definition || (this.category[scope] !== 'all' && definition.group !== this.category[scope])) return [];
       const peers = node ? nodes(this.draft,scope).filter(i=>i.type_id===node.type_id) : [];
-      const item = {...definition,id,type_id:definition.id,custom_label:node?.options.label ?? (node?.type_id==='text'?node.text:null),ordinal:peers.length>1?peers.indexOf(node!)+1:undefined};
+      const item = {...definition,id,type_id:definition.id,custom_label:node?.options.label || (node?.type_id==='text'?node.text:null),ordinal:peers.length>1?peers.indexOf(node!)+1:undefined};
       const match = normalize(this.search[scope]).characters.length
-        ? bestMatch(fields(definition,node?.options.label),this.search[scope])
+        ? bestMatch(fields(definition,item.custom_label),this.search[scope])
         : {rank:5,positions:[],text:id,field:'id'};
       return match ? [{item,match}] : [];
     }).sort((a,b)=>a.match.rank-b.match.rank);

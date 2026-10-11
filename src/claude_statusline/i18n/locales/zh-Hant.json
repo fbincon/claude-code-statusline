@@ -1356,5 +1356,6 @@
   "composition.errors.row_spacer": "每個明確分行最多包含一個留白",
   "composition.errors.legacy": "此設定需要使用 config instance {scope}，類型命令無法完整表達目前版面",
   "presets.left-right": "左右配置",
-  "presets.repeated-metrics": "重複指標"
+  "presets.repeated-metrics": "重複指標",
+  "ui.hints.category": "分類"
 }
