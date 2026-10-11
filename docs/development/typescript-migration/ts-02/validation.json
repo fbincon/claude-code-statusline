@@ -8,208 +8,220 @@
   "node": "24.21.0",
   "python_reference": "3.14.4",
   "ci": {
-    "implementation_head": "f89106590a53eed9c7ee1d7a360e0742d11fedc3",
-    "platform_run": "https://github.com/fbincon/claude-code-statusline/actions/runs/38158663718",
+    "implementation_head": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+    "platform_run": "https://github.com/fbincon/claude-code-statusline/actions/runs/38161869092",
     "platform_jobs": 8,
     "platform_result": "success",
     "artifacts": [
       {
-        "id": 11710070538,
-        "name": "ts02-macos-15-intel-x64",
-        "digest": "sha256:6c8ad24bcbc774b3af00f8cb1ad54fd65adc6112a72e86462e20389ee636acbd",
-        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
-        "os": "24.6.0",
+        "id": 11711061322,
+        "name": "ts02-windows-11-arm-x64",
+        "digest": "sha256:17577f418dfdfdcb6a95ef4fc72789d8e1aabcff44ca6a8b56668ec08613fd86",
+        "tested_checkout": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+        "os": "10.0.26200",
+        "platform": "win32",
+        "host_arch": "arm64",
+        "process_arch": "x64",
+        "runner_arch": "ARM64",
+        "node_os_machine": "x86_64",
+        "architecture_source": "IsWow64Process2",
+        "tests": {
+          "tests": 33,
+          "pass": 25,
+          "fail": 0,
+          "skipped": 8
+        },
+        "installed_shells": [
+          "PowerShell npm .ps1",
+          "Git Bash npm shell shim"
+        ],
+        "tarball_sha256": "7de3c6554186fce28ff3a00e859b78466cdbe83df4db1af4518c670d32389d94",
+        "npm_cmd_special_path": {
+          "exit_code": 1,
+          "supported": false,
+          "disposition": "npm-generated .cmd is not the bound backend; use PowerShell .ps1 or absolute node + JS argv. Do not change global execution policy."
+        },
+        "receipt_sha256": "bf2f0d95b6e3853441f3e2864e410aba1b84989f4e912f0124d725f36bd203c0"
+      },
+      {
+        "id": 11710632321,
+        "name": "ts02-macos-26-intel-x64",
+        "digest": "sha256:c759f3474be2db88a85d5c2a5e9bb8fac0eb60c3251b353b4960b8b47c4636ab",
+        "tested_checkout": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+        "os": "25.6.0",
         "platform": "darwin",
-        "host_arch": "x86_64",
+        "host_arch": "x64",
         "process_arch": "x64",
         "runner_arch": "X64",
+        "node_os_machine": "x86_64",
+        "architecture_source": "os.machine",
         "tests": {
-          "tests": 31,
-          "pass": 29,
+          "tests": 33,
+          "pass": 31,
           "fail": 0,
           "skipped": 2
         },
         "installed_shells": [
           "POSIX npm bin"
         ],
-        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "tarball_sha256": "5c9b36d36f7286ccac169fc7abc2df620f1074bbb17d7a10b35c19aa257fd9d2",
         "npm_cmd_special_path": null,
-        "receipt_sha256": "b1b4717bc4aa12a27a28af1e18e0cba7c41a3334b8a57e0640ba2dca2dbaa2ec"
+        "receipt_sha256": "4537614cb210dcd08d6af657f2b24fb60ace458f007f77b56bfe9aa033801f57"
       },
       {
-        "id": 11709920322,
+        "id": 11710463315,
+        "name": "ts02-macos-15-arm64",
+        "digest": "sha256:4107d94ff883c8d8d0598ca93c10f3592021129d3ffb8ee0b4aca260e91666cb",
+        "tested_checkout": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+        "os": "24.6.0",
+        "platform": "darwin",
+        "host_arch": "arm64",
+        "process_arch": "arm64",
+        "runner_arch": "ARM64",
+        "node_os_machine": "arm64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 33,
+          "pass": 31,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "5c9b36d36f7286ccac169fc7abc2df620f1074bbb17d7a10b35c19aa257fd9d2",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "1face8c96908f461d008015866f0a0da55bfc1345df0277bf7e99d3a58dd940b"
+      },
+      {
+        "id": 11710452086,
+        "name": "ts02-ubuntu-24.04-x64",
+        "digest": "sha256:729acfa88cb4551422e0526be614a1a95ea4e164e1690c05c6e4028c572feaf2",
+        "tested_checkout": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+        "os": "6.17.0-1022-azure",
+        "platform": "linux",
+        "host_arch": "x64",
+        "process_arch": "x64",
+        "runner_arch": "X64",
+        "node_os_machine": "x86_64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 33,
+          "pass": 31,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "5c9b36d36f7286ccac169fc7abc2df620f1074bbb17d7a10b35c19aa257fd9d2",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "447362226f6b959c06d0f609e611b5e96324c1c13ade25f2b615a168185e2ee7"
+      },
+      {
+        "id": 11710397083,
+        "name": "ts02-macos-26-arm64",
+        "digest": "sha256:db9666b610de283e15b3d731c93ee5b0a4400088afcf6efaf58094844a06a22a",
+        "tested_checkout": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+        "os": "25.6.0",
+        "platform": "darwin",
+        "host_arch": "arm64",
+        "process_arch": "arm64",
+        "runner_arch": "ARM64",
+        "node_os_machine": "arm64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 33,
+          "pass": 31,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "5c9b36d36f7286ccac169fc7abc2df620f1074bbb17d7a10b35c19aa257fd9d2",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "8d12efee29ec27826aa40fb20c9f532ed3f9cf49fcb3de95c04e9e8b413896dc"
+      },
+      {
+        "id": 11710232324,
         "name": "ts02-macos-14-arm64",
-        "digest": "sha256:7c2f400140fae90bd7644cad6220bd8ebc26bfa486a5d7da7547288115e19687",
-        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "digest": "sha256:e1cb4204820dac05ec43e1bfbf0bf8fa7685922ffaa26e9ff66e49ff9493969b",
+        "tested_checkout": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
         "os": "23.6.0",
         "platform": "darwin",
         "host_arch": "arm64",
         "process_arch": "arm64",
         "runner_arch": "ARM64",
+        "node_os_machine": "arm64",
+        "architecture_source": "os.machine",
         "tests": {
-          "tests": 31,
-          "pass": 29,
+          "tests": 33,
+          "pass": 31,
           "fail": 0,
           "skipped": 2
         },
         "installed_shells": [
           "POSIX npm bin"
         ],
-        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "tarball_sha256": "5c9b36d36f7286ccac169fc7abc2df620f1074bbb17d7a10b35c19aa257fd9d2",
         "npm_cmd_special_path": null,
-        "receipt_sha256": "0b5bff12b865acea0917998ed66b8bf318fe0439d6310ce04205ed14a8389ff4"
+        "receipt_sha256": "3f17ad672e6397427b3454151041f05ce034801a40debd3fa593be03a3fde583"
       },
       {
-        "id": 11709758888,
-        "name": "ts02-macos-26-intel-x64",
-        "digest": "sha256:c41d899fbf39d43f7c799c59fdde9621843de327c32f25e06d96d33137049294",
-        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
-        "os": "25.6.0",
-        "platform": "darwin",
-        "host_arch": "x86_64",
-        "process_arch": "x64",
-        "runner_arch": "X64",
-        "tests": {
-          "tests": 31,
-          "pass": 29,
-          "fail": 0,
-          "skipped": 2
-        },
-        "installed_shells": [
-          "POSIX npm bin"
-        ],
-        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
-        "npm_cmd_special_path": null,
-        "receipt_sha256": "0ef038b21a1e967b1974b649ad408ac4722b05bc771fa9956e004e0b361ddf66"
-      },
-      {
-        "id": 11709578504,
-        "name": "ts02-windows-11-arm-x64",
-        "digest": "sha256:bf2a2d8279e994cf11a4e88076782c6db5ed7ffa977e887212b7411e2fe9fb8d",
-        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
-        "os": "10.0.26200",
-        "platform": "win32",
-        "process_arch": "x64",
-        "runner_arch": "ARM64",
-        "tests": {
-          "tests": 31,
-          "pass": 24,
-          "fail": 0,
-          "skipped": 7
-        },
-        "installed_shells": [
-          "PowerShell npm .ps1",
-          "Git Bash npm shell shim"
-        ],
-        "tarball_sha256": "f75368ceb366914399c217965ac58f646eb2dc3c028ecc9c249b7a6b183504dd",
-        "npm_cmd_special_path": {
-          "exit_code": 1,
-          "supported": false,
-          "disposition": "npm-generated .cmd is not the bound backend; use PowerShell .ps1 or absolute node + JS argv. Do not change global execution policy."
-        },
-        "receipt_sha256": "ca50995ca2ad2fbe02cb5f92f2a6e317cb6ef440718c70ee2674dc032d884e56",
-        "node_os_machine": "x86_64",
-        "host_arch": null,
-        "architecture_disposition": "Original os.machine field is a process view; IsWow64Process2 revalidation is recorded by the later implementation."
-      },
-      {
-        "id": 11709573328,
-        "name": "ts02-ubuntu-24.04-x64",
-        "digest": "sha256:e27a104cfae7194301613bce9cf9b03afe21d518e1c5cbf2e47da2a9f389b807",
-        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
-        "os": "6.17.0-1022-azure",
-        "platform": "linux",
-        "host_arch": "x86_64",
-        "process_arch": "x64",
-        "runner_arch": "X64",
-        "tests": {
-          "tests": 31,
-          "pass": 29,
-          "fail": 0,
-          "skipped": 2
-        },
-        "installed_shells": [
-          "POSIX npm bin"
-        ],
-        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
-        "npm_cmd_special_path": null,
-        "receipt_sha256": "629c6fb25e42325e05cba590539d24617aebd92f8bd29377bd2fd06cfab0c8ec"
-      },
-      {
-        "id": 11709364182,
+        "id": 11710083824,
         "name": "ts02-windows-2025-x64",
-        "digest": "sha256:c0bae5768b022d37b921cbe4f94d19f5c7de18011cc2101fe375e8f0e98ac783",
-        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "digest": "sha256:318091d4a75f53a31688b539e9d595c1544c5f9521aaa3721b70cc113f10446f",
+        "tested_checkout": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
         "os": "10.0.26100",
         "platform": "win32",
+        "host_arch": "x64",
         "process_arch": "x64",
         "runner_arch": "X64",
+        "node_os_machine": "x86_64",
+        "architecture_source": "IsWow64Process2",
         "tests": {
-          "tests": 31,
-          "pass": 24,
+          "tests": 33,
+          "pass": 25,
           "fail": 0,
-          "skipped": 7
+          "skipped": 8
         },
         "installed_shells": [
           "PowerShell npm .ps1",
           "Git Bash npm shell shim"
         ],
-        "tarball_sha256": "f75368ceb366914399c217965ac58f646eb2dc3c028ecc9c249b7a6b183504dd",
+        "tarball_sha256": "7de3c6554186fce28ff3a00e859b78466cdbe83df4db1af4518c670d32389d94",
         "npm_cmd_special_path": {
           "exit_code": 1,
           "supported": false,
           "disposition": "npm-generated .cmd is not the bound backend; use PowerShell .ps1 or absolute node + JS argv. Do not change global execution policy."
         },
-        "receipt_sha256": "5b7d4622c22db8b89f291bf487f834e9c6517adc143c8c3451c568531a90f119",
-        "node_os_machine": "x86_64",
-        "host_arch": null,
-        "architecture_disposition": "Original os.machine field is a process view; IsWow64Process2 revalidation is recorded by the later implementation."
+        "receipt_sha256": "b64ccd32463515dc31f4a35437a9ba7868e09216cf0c4cee02fd19b25d08452b"
       },
       {
-        "id": 11709284066,
-        "name": "ts02-macos-15-arm64",
-        "digest": "sha256:5a9ee0400fe27e902a2c6d5e8fee0ddeeffdcc184d1ce5ab0ccf66a0d4963db5",
-        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "id": 11709979289,
+        "name": "ts02-macos-15-intel-x64",
+        "digest": "sha256:3adb052473f75e532ed42356af40d4fd4dacb5dd13df490aaf4fd6d62b95b690",
+        "tested_checkout": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
         "os": "24.6.0",
         "platform": "darwin",
-        "host_arch": "arm64",
-        "process_arch": "arm64",
-        "runner_arch": "ARM64",
+        "host_arch": "x64",
+        "process_arch": "x64",
+        "runner_arch": "X64",
+        "node_os_machine": "x86_64",
+        "architecture_source": "os.machine",
         "tests": {
-          "tests": 31,
-          "pass": 29,
+          "tests": 33,
+          "pass": 31,
           "fail": 0,
           "skipped": 2
         },
         "installed_shells": [
           "POSIX npm bin"
         ],
-        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "tarball_sha256": "5c9b36d36f7286ccac169fc7abc2df620f1074bbb17d7a10b35c19aa257fd9d2",
         "npm_cmd_special_path": null,
-        "receipt_sha256": "0417b6bd3f85bac0f0e2b7b4dad1cf8b77cb5adee3e665fef0aa56b5ca7aa8ae"
-      },
-      {
-        "id": 11709074109,
-        "name": "ts02-macos-26-arm64",
-        "digest": "sha256:9db83103cdfe9d46a4e0abaf2f51d72f8a48798a02a037256f1e6e43e8ece352",
-        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
-        "os": "25.6.0",
-        "platform": "darwin",
-        "host_arch": "arm64",
-        "process_arch": "arm64",
-        "runner_arch": "ARM64",
-        "tests": {
-          "tests": 31,
-          "pass": 29,
-          "fail": 0,
-          "skipped": 2
-        },
-        "installed_shells": [
-          "POSIX npm bin"
-        ],
-        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
-        "npm_cmd_special_path": null,
-        "receipt_sha256": "c7df1d95e213072b48bbd0b23df131eb71ad4df3101e6cea34316ad956dff320"
+        "receipt_sha256": "e97890c3e0fec68294788189af3c856a0116ae022dfc0704676c9d6e16ac73e1"
       }
     ],
     "final_head_checks": "Exact final reviewed head, merge result and Gitee synchronization are recorded in PR #76 after checks pass.",
@@ -232,6 +244,12 @@
         "fail": 0,
         "skipped": 8
       }
+    },
+    "earlier_complete_matrix": {
+      "implementation_head": "f89106590a53eed9c7ee1d7a360e0742d11fedc3",
+      "platform_run": "https://github.com/fbincon/claude-code-statusline/actions/runs/38158663718",
+      "platform_jobs": 8,
+      "result": "success; 31 cases per target before two hardening cases were added"
     }
   },
   "physical_suspend_reboot": "not_run",

@@ -152,8 +152,10 @@ explicit narrow configuration is TS-01 `main-model`, also passed to the Python
 configured-rows adapter. This is deliberately not the full default CLI profile.
 
 The current Linux suite has 33 cases: 31 pass and two Windows-only cases skip.
-The first complete eight-target CI matrix passed at `f891065`; later hardening
-adds explicit native Windows architecture evidence and logging-failure cleanup.
+The final probe implementation `1e9b16c` passes the [eight-target CI matrix](https://github.com/fbincon/claude-code-statusline/actions/runs/38161869092):
+each POSIX target has 31 passes / 2 skips, each Windows target 25 passes / 8 skips,
+with no failures. This includes native Windows architecture evidence and cleanup
+after logging failure; the earlier failed attempts remain recorded separately.
 The final reviewed head, CI checks, merge commit and Gitee synchronization are
 recorded in the PR; earlier receipts are not relabeled as final-head runs.
 The existing Python suite passes 819 cases with eight platform skips (827 total).

@@ -119,7 +119,9 @@ macOS 14 Intel 及 GUI／popup 证据。基础门槛满足或维护者明确解�
 `main-model`，同样传给 Python configured-rows 适配器；它明确不代表完整默认 CLI 配置。
 
 当前 Linux 测试共 33 项：31 通过，2 项仅 Windows 的案例跳过。
-首个完整八目标 CI 矩阵在 `f891065` 全部通过；后续加固增加明确的 Windows 原生架构证据和日志失败时的终端恢复。
+最终探针实现 `1e9b16c` 的[八目标 CI 矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/38161869092)全部通过：
+每个 POSIX 目标 31 通过／2 跳过，每个 Windows 目标 25 通过／8 跳过，无失败。
+此轮包含 Windows 原生架构证据及日志失败时的终端恢复，早期失败另行保留。
 最终审查 head、CI 检查、合并提交及 Gitee 同步结果在 PR 中登记，不把早期证据伪装成最终 head 的执行结果。
 既有 Python 测试共 827 项，819 通过、8 项平台跳过。两个真实宿主 argv 探针在 2.1.294、2.1.296 均通过。
 重建 Python wheel 的 217 个条目与 TS-01 逐字节一致；扩展源码包包含探针和证据，排除依赖／构建目录。
