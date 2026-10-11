@@ -1,5 +1,5 @@
 import { spawnSync, execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { platform, machine, release } from 'node:os';
@@ -19,7 +19,24 @@ const fixture = JSON.parse(readFileSync(join(packageRoot, 'fixtures/render.json'
 const raw = fixture.source_case.input.stdin;
 const baseEnv = { ...process.env, TS02_REFERENCE_ROOT: oracle, TS02_MEASURE: '1', CLAUDE_CONFIG_DIR: join(output, 'config'), CLAUDE_STATUSLINE_RUNTIME_DIR: join(output, 'runtime'), PYTHONUTF8: '1', PYTHONPYCACHEPREFIX: join(output, 'warm-bytecode') };
 const records: { mode: string; round: number; baseline: Batch; candidate: Batch }[] = [];
-const measuredSources = sourceHashes();
+// Bind the actual executed graph; unrelated test edits are not benchmark input.
+function measuredHashes(): Record<string, string> {
+  const all = sourceHashes();
+  return Object.fromEntries(Object.entries(all).filter(([name]) =>
+    ['policy.json', 'package.json', 'package-lock.json', 'runtime-lock.json', 'scripts/oracle.py'].includes(name) ||
+    name.startsWith('fixtures/') || /^src\/(benchmark|context|cli|render|json|clocks|native)\.ts$/.test(name)));
+}
+const measuredSources = measuredHashes();
+const repeatPath = process.argv[3] === '--repeat-of' ? process.argv[4] : undefined;
+let repeat: { parent_sha256: string; repeat_sets_used: number } | null = null;
+if (process.argv.length > 3 && !repeatPath) throw new Error('Use --repeat-of REPORT for one noisy-result repeat');
+if (repeatPath) {
+  const bytes = readFileSync(repeatPath); const previous = JSON.parse(bytes.toString());
+  if (previous.repeat_sets_used !== 0 || previous.reference !== reference || previous.policy_sha256 !== sha(policyBytes) ||
+    JSON.stringify(previous.source_hashes) !== JSON.stringify(measuredSources) ||
+    !previous.summaries.some((s: { metrics: { state: string }[] }) => s.metrics.some(m => m.state === 'inconclusive'))) throw new Error('Repeat is not authorized by the frozen noise rule');
+  repeat = { parent_sha256: sha(bytes), repeat_sets_used: 1 };
+}
 try {
   execFileSync(python, ['-m', 'compileall', '-q', join(oracle, 'src')], { env: { ...baseEnv, PYTHONDONTWRITEBYTECODE: '' } });
   function batch(side: string, mode: string): Batch {
@@ -42,6 +59,7 @@ try {
     const pair: Record<string, Batch> = {};
     for (const side of round % 2 ? ['candidate', 'baseline'] : ['baseline', 'candidate']) pair[side] = batch(side, mode);
     records.push({ mode, round, baseline: pair.baseline!, candidate: pair.candidate! });
+    appendFileSync(join(output, 'rounds.jsonl'), JSON.stringify(records.at(-1)) + '\n');
     process.stdout.write(`${mode} round ${round + 1} complete\n`);
   }
   const summaries = policy.modes.map((mode: string) => {
@@ -72,9 +90,12 @@ try {
     }
     controls[name] = { ms, p50_ms: median(ms), p95_ms: percentile(ms, .95) };
   }
-  if (JSON.stringify(measuredSources) !== JSON.stringify(sourceHashes())) throw new Error('Probe sources changed during measurement');
+  if (JSON.stringify(measuredSources) !== JSON.stringify(measuredHashes())) throw new Error('Measured sources changed during measurement');
   const report = { format_version: 1, scope: 'minimal-model-render-only', reference, policy_sha256: sha(policyBytes), source_hashes: measuredSources, node: process.version, python: execFileSync(python, ['--version'], { encoding: 'utf8' }).trim(), platform: platform(), host_arch: machine(), process_arch: process.arch, os: release(), records, summaries, controls,
-    unmeasured: ['full production render/hook', 'small/medium/large collectors and Agents', 'in-process workloads'], repeat_sets_used: 0 };
+    unmeasured: ['full production render/hook', 'small/medium/large collectors and Agents', 'in-process workloads'], repeat_sets_used: repeat?.repeat_sets_used ?? 0, repeat_of_sha256: repeat?.parent_sha256 ?? null };
   writeFileSync(join(output, 'benchmark.json'), JSON.stringify(report, null, 2) + '\n');
   if (summaries.some((s: { metrics: { state: string }[] }) => s.metrics.some(m => m.state !== 'pass'))) process.exitCode = 1;
+} catch (error) {
+  writeFileSync(join(output, 'failure.json'), JSON.stringify({ error: String(error), source_hashes: measuredSources, records }, null, 2) + '\n');
+  throw error;
 } finally { rmSync(oracle, { recursive: true, force: true }); }

@@ -54,13 +54,18 @@ try {
   if (process.platform === 'win32') {
     const ps = join(process.env.SystemRoot || 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
     const quote = (s: string) => "'" + s.replace(/'/g, "''") + "'";
-    const psResult = spawnSync(ps, ['-NoProfile', '-Command', `& ${quote(bin + '.cmd')} echo '中文 path' 'a&b'; exit $LASTEXITCODE`], { env: { ...process.env, PATH: dirname(process.execPath) }, encoding: 'utf8' });
+    const shellEnv = { ...process.env, PATH: dirname(process.execPath) };
+    const psResult = spawnSync(ps, ['-NoProfile', '-Command', `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); & ${quote(bin + '.ps1')} echo '中文 path' 'a&b'; exit $LASTEXITCODE`], { env: shellEnv, encoding: 'utf8' });
     if (psResult.status !== 0 || JSON.parse(psResult.stdout).args.join('|') !== '中文 path|a&b') throw new Error(`Installed PowerShell shim failed: ${psResult.stderr}`);
+    const cmdResult = spawnSync(ps, ['-NoProfile', '-Command', `& ${quote(bin + '.cmd')} echo '中文 path' 'a&b'; exit $LASTEXITCODE`], { env: shellEnv, encoding: 'utf8' });
+    checks.npm_cmd_special_path = { exit_code: cmdResult.status, supported: cmdResult.status === 0,
+      disposition: 'npm-generated .cmd is not the bound backend; use PowerShell .ps1 or absolute node + JS argv. Do not change global execution policy.' };
+    fs.writeFileSync(join(root, 'npm-cmd.log'), cmdResult.stdout + cmdResult.stderr);
     const bash = process.env.TS02_GIT_BASH || join(process.env.ProgramFiles || 'C:\\Program Files', 'Git/bin/bash.exe');
     const bashResult = spawnSync(bash, ['--noprofile', '--norc', '-c', '"$(cygpath -u "$TS02_INSTALLED_BIN")" echo "中文 path" "a&b"'], {
       env: { ...process.env, TS02_INSTALLED_BIN: bin }, encoding: 'utf8' });
     if (bashResult.status !== 0 || JSON.parse(bashResult.stdout).args.join('|') !== '中文 path|a&b') throw new Error(`Installed Git Bash shim failed: ${bashResult.stderr}`);
-    checks.installed_shells = ['PowerShell npm .cmd', 'Git Bash npm shell shim'];
+    checks.installed_shells = ['PowerShell npm .ps1', 'Git Bash npm shell shim'];
   } else {
     const shell = spawnSync(bin, ['echo', '中文 path', 'a&b'], { env: { ...process.env, PATH: dirname(process.execPath) }, encoding: 'utf8' });
     if (shell.status !== 0 || JSON.parse(shell.stdout).args.join('|') !== '中文 path|a&b') throw new Error(`Installed npm bin failed: ${shell.stderr}`);
