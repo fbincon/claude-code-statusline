@@ -77,28 +77,28 @@ pipx install fbincon-claude-code-statusline
 pipx ensurepath
 ```
 
-分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.12.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.12.0) 提供相同的 wheel 与源码包。
+分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v1.13.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.13.0) 提供相同的 wheel 与源码包。
 
 也可从该 Release 下载 wheel、源码包和 `SHA256SUMS`，将下载文件的 SHA-256 与对应条目比较：
 
 ```bash
 # Linux / WSL
-sha256sum fbincon_claude_code_statusline-1.12.0-py3-none-any.whl
+sha256sum fbincon_claude_code_statusline-1.13.0-py3-none-any.whl
 # macOS
-shasum -a 256 fbincon_claude_code_statusline-1.12.0-py3-none-any.whl
+shasum -a 256 fbincon_claude_code_statusline-1.13.0-py3-none-any.whl
 ```
 
 ```powershell
-Get-FileHash .\fbincon_claude_code_statusline-1.12.0-py3-none-any.whl -Algorithm SHA256
+Get-FileHash .\fbincon_claude_code_statusline-1.13.0-py3-none-any.whl -Algorithm SHA256
 Get-Content .\SHA256SUMS
 ```
 
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.12.0-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.12.0-py3-none-any.whl`。
+已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-1.13.0-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-1.13.0-py3-none-any.whl`。
 
 固定标签源码安装需要 Git：
 
 ```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.12.0"
+pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v1.13.0"
 pipx ensurepath
 ```
 
@@ -159,7 +159,9 @@ macOS 使用相同 wheel 和安装流程，CPython 需要提供 curses。外部�
 
 ## 界面语言
 
-CLI、外部／独立 curses 编辑器和会话内 Client 默认英文。在设置页选择**界面语言（立即保存）** → **English / 简体中文**。两个编辑器与 CLI 共用此偏好，与 Claude 自身的主题和语言设置独立。
+语言代码为 `en`（英文）、`zh-CN`（简体中文）、`zh-Hant`（通用繁体中文）、`ja`（日语）、`ko`（韩语）。语言由用户明确选择，不跟随系统区域设置；左右方向键按此顺序循环切换。
+
+CLI、外部／独立 curses 编辑器和会话内 Client 默认英文。在设置页选择**界面语言（立即保存）** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어**。两个编辑器与 CLI 共用此偏好，与 Claude 自身的主题和语言设置独立。
 
 ```text
 claude-statusline config language show [--json]
@@ -172,7 +174,7 @@ claude-statusline --language en config --help
 
 使用 `--json` 时不要输入方括号。`reset` 保存英文。可选的 `--language` 放在子命令前，仅在当前调用中覆盖已保存偏好，不写入文件；使用该参数打开的编辑器仍可在设置页保存新的语言。独立配置目录示例：`claude-statusline config --config-dir /path/to/config language set zh-CN`。
 
-切换立即保存，保留当前页面、选中字段、搜索、输入内容和显示草稿，重新计算终端布局并绘制翻译文字。保存／取消继续只控制显示修改；语言写入失败时保留上一次语言并显示错误。其他窗口在重开或执行现有重新加载操作时读取新偏好。任一语言下均可搜索稳定 ID、中英文名称与说明，以及自定义标签。
+切换立即保存，保留当前页面、选中字段、搜索、输入内容和显示草稿，重新计算终端布局并绘制翻译文字。保存／取消继续只控制显示修改；语言写入失败时保留上一次语言并显示错误。其他窗口在重开或执行现有重新加载操作时读取新偏好。任一语言下均可搜索稳定 ID、全部五种语言的名称与说明，以及自定义标签。
 
 偏好文件为 `<CLAUDE_CONFIG_DIR>/statusline-ui.json`，schema v1。缺失或无效偏好回退英文，读取不修复文件。显式 set/reset 会备份并修复损坏文件，但拒绝覆盖未来 schema。重装、升级、普通卸载、显示 reset、预设及可移植导入／导出均保留此独立偏好。
 
@@ -182,7 +184,7 @@ claude-statusline --language en config --help
 
 ## 查找项目与审阅导入
 
-在 Main／Subagents 按 `/` 输入查询，Enter 确认，Ctrl+U 清空，Ctrl+G 恢复原查询。curses 也保留直接输入搜索，显式搜索时 Esc 可以取消。任一界面语言都可检索 ID、中英文名称和说明、自定义标签及分类；优先级为精确、前缀、英文单词首字母缩写（如 `mwe`）、连续子串、有序子序列，同等级保留现有顺序。高亮对应实际匹配文字，命中另一语言时显示相应片段。
+在 Main／Subagents 按 `/` 输入查询，Enter 确认，Ctrl+U 清空，Ctrl+G 恢复原查询。curses 也保留直接输入搜索，显式搜索时 Esc 可以取消。任一界面语言都可检索 ID、全部五种语言的名称和说明、自定义标签及分类；优先级为精确、前缀、英文单词首字母缩写（如 `mwe`）、连续子串、有序子序列，同等级保留现有顺序。高亮对应实际匹配文字，命中另一语言时显示相应片段。
 
 Ctrl+F 打开分类选择器，方向键选择、Enter 确认；选择“全部分类”去掉分类筛选。查询与分类组合生效，仅保存在当前编辑会话中。筛选时可勾选和设置格式，暂时禁止排序；清除筛选后恢复完整顺序。筛选不写入配置或导出文件。
 
@@ -194,7 +196,7 @@ Ctrl+F 打开分类选择器，方向键选择、Enter 确认；选择“全部�
 
 ## 状态栏语言
 
-独立的显示选项默认 `en`。在任一编辑器选择**状态栏语言（随显示设置保存）**，选项始终为 **English / 简体中文**。预览立即采用草稿语言；保存时与其他显示设置一起持久化，取消则放弃修改。实际输出在下次刷新时生效，无需重启 Claude。
+独立的显示选项默认 `en`。在任一编辑器选择**状态栏语言（随显示设置保存）**，选项始终为 **English / 简体中文 / 繁體中文 / 日本語 / 한국어**。预览立即采用草稿语言；保存时与其他显示设置一起持久化，取消则放弃修改。实际输出在下次刷新时生效，无需重启 Claude。
 
 ```text
 claude-statusline config set statusline-language zh-CN
@@ -204,9 +206,11 @@ claude-statusline config show --json
 
 同时控制主栏和全部自定义子代理行。翻译内置短语及已知生命周期／权限／强度／缓存／审核值；未知值、用户标签／图标、模型名称、路径、分支及任务／工具名称保留原文。数字、货币、`K/M`、`d/h/m/s`、`tok/s`、Git、PR 等技术单位保持原样。null 标签继承翻译后的默认标签，空标签隐藏标签，自定义标签优先。
 
-`statusline_language` 属于显示 schema v7，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
+`statusline_language` 属于显示 schema v7，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-Hant|ja|ko` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
 
 降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v6 草稿。见[备份与回滚](#备份与回滚)。
+
+降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 7 与界面偏好 schema 1 保持不变；编辑器协议 10 会拒绝新旧前后端混用。
 
 ## 原生配置编辑器
 
@@ -622,7 +626,7 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.12.0，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
+pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 1.13.0，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
 
 ### 替换 Python 包
 

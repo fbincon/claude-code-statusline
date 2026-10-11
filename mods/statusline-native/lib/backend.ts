@@ -416,7 +416,7 @@ export function parseResponse<O extends Operation>(
   if (!object(result)) fail();
   if (operation === 'read_ui_preferences' || operation === 'set_ui_language') {
     if (!exact(result, ['schema_version', 'ui_language', 'warning']) || result.schema_version !== 1 ||
-        !['en', 'zh-CN'].includes(String(result.ui_language)) ||
+        !STATUSLINELANGUAGE_VALUES.some(language => language === result.ui_language) ||
         !(result.warning === null || isLocalizedText(result.warning))) fail();
   } else if (operation === 'read' || operation === 'apply') {
     if (

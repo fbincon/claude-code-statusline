@@ -1,4 +1,4 @@
-"""Protocol v9 wire types; TypeScript is generated from these Python types."""
+"""Protocol v10 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display, appearance
 
 
-PROTOCOL_VERSION = 9
+PROTOCOL_VERSION = 10
 OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset",
               "read_ui_preferences", "set_ui_language", "review_import")
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
@@ -210,7 +210,7 @@ class LocalizedMessage(TypedDict):
 
 class UiPreferencesResult(TypedDict):
     schema_version: Literal[1]
-    ui_language: Literal["en", "zh-CN"]
+    ui_language: StatuslineLanguage
     warning: LocalizedMessage | None
 
 

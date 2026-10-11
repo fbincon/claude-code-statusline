@@ -66,8 +66,13 @@ def main():
         assert metadata["Version"] == version
         for resource in Path("src/claude_statusline/i18n/locales").glob("*.json"):
             assert archive.read("claude_statusline/i18n/locales/" + resource.name) == resource.read_bytes()
-        generated_statusline = Path("src/claude_statusline/i18n/_generated_statusline.py")
-        assert archive.read("claude_statusline/i18n/_generated_statusline.py") == generated_statusline.read_bytes()
+        for resource in [
+            Path("src/claude_statusline/i18n/languages.json"),
+            Path("src/claude_statusline/i18n/_generated_languages.py"),
+            *Path("src/claude_statusline/i18n/_generated_statusline").glob("*.py"),
+        ]:
+            assert archive.read(resource.relative_to("src").as_posix()) == resource.read_bytes()
+        assert "claude_statusline/i18n/_generated_statusline.py" not in names
         assert metadata["Description-Content-Type"] == "text/markdown"
         english_readme = Path("README.md").read_text(encoding="utf-8")
         long_description = pypi_readme(english_readme, version)

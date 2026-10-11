@@ -6,6 +6,7 @@ from pathlib import Path
 from claude_statusline.config import catalog, commands, display
 from claude_statusline.integration import resources
 from claude_statusline.ui import contracts
+from claude_statusline.i18n import LANGUAGES, LANGUAGE_NAMES
 from tools.generate_ui_contracts import generated
 
 
@@ -94,7 +95,9 @@ class LanguageWizardContractTests(unittest.TestCase):
         self.assertIn('config language show --json', rendered)
         self.assertIn('config list-items`', rendered)
         self.assertIn('ui_language', rendered)
-        self.assertIn('English / 简体中文', rendered)
-        self.assertIn('--statusline-language en|zh-CN', rendered)
+        for language in LANGUAGES:
+            self.assertIn(f"{language} ({LANGUAGE_NAMES[language]})", rendered)
+        self.assertIn('--statusline-language ' + '|'.join(LANGUAGES), rendered)
+        self.assertNotIn('__CLAUDE_STATUSLINE_', rendered)
         self.assertIn('Do not write anything if the user cancels', rendered)
         self.assertEqual(rendered.count(' config apply '), 1)

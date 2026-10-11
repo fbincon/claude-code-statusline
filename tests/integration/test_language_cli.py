@@ -6,6 +6,15 @@ import sys
 import tempfile
 import unittest
 
+from claude_statusline.i18n import LANGUAGES
+
+REMAINING = {
+    "en": "Context 50% left",
+    "zh-CN": "上下文 剩余 50%",
+    "zh-Hant": "上下文 剩餘 50%",
+    "ja": "コンテキスト 残り 50%",
+    "ko": "컨텍스트 50% 남음",
+}
 
 class LanguageCliTests(unittest.TestCase):
     def setUp(self):
@@ -64,20 +73,32 @@ class LanguageCliTests(unittest.TestCase):
     def test_all_interface_and_statusline_language_combinations_are_independent(self):
         self.assertEqual(self.run_cli("config", "set", "colors", "off").returncode, 0)
         payload = '{"context_window":{"remaining_percentage":50}}'
-        for ui_language in ("en", "zh-CN"):
+        for ui_language in LANGUAGES:
             self.run_cli("config", "language", "set", ui_language)
-            for output_language in ("en", "zh-CN"):
+            for output_language in LANGUAGES:
                 with self.subTest(ui=ui_language, output=output_language):
                     result = self.run_cli("config", "set", "statusline-language", output_language)
                     self.assertEqual(result.returncode, 0, result.stderr)
-                    expected = "Context 50% left" if output_language == "en" else "上下文 剩余 50%"
+                    expected = REMAINING[output_language]
                     self.assertEqual(self.run_cli("render", content=payload).stdout.strip(), expected)
                     self.assertEqual(self.run_cli("--language", "en", "render", content=payload).stdout.strip(), expected)
                     self.assertEqual(self.run_cli("--language", "zh-CN", "render", content=payload).stdout.strip(), expected)
                     shown = json.loads(self.run_cli("config", "show", "--json").stdout)
                     self.assertEqual(shown["display"]["statusline_language"], output_language)
         self.run_cli("config", "language", "reset")
-        self.assertEqual(self.run_cli("render", content=payload).stdout.strip(), "上下文 剩余 50%")
+        self.assertEqual(self.run_cli("render", content=payload).stdout.strip(), REMAINING[LANGUAGES[-1]])
+
+    def test_new_language_help_errors_and_machine_catalogue(self):
+        catalogue = self.run_cli("--language", "en", "config", "list-items", "--json").stdout
+        for language, heading, required in (
+            ("zh-Hant", "選項", "缺少必填參數"),
+            ("ja", "オプション", "次の引数が必要です"),
+            ("ko", "옵션", "다음 인수가 필요합니다"),
+        ):
+            with self.subTest(language=language):
+                self.assertIn(heading, self.run_cli("--language", language, "--help").stdout)
+                self.assertIn(required, self.run_cli("--language", language, "config", "language", "set").stderr)
+                self.assertEqual(catalogue, self.run_cli("--language", language, "config", "list-items", "--json").stdout)
 
     def test_invalid_statusline_language_does_not_modify_configuration(self):
         self.run_cli("config", "set", "statusline-language", "zh-CN")

@@ -112,7 +112,7 @@ def main() -> int:
                 run(
                     "ui",
                     payload={
-                        "protocol_version": 9,
+                        "protocol_version": 10,
                         "operation": operation,
                         "payload": payload,
                     },
@@ -143,7 +143,7 @@ def main() -> int:
             run(
                 "ui",
                 payload={
-                    "protocol_version": 9,
+                    "protocol_version": 10,
                     "operation": "apply",
                     "payload": {
                         "draft": saved["draft"],
@@ -158,7 +158,7 @@ def main() -> int:
             run(
                 "ui",
                 payload={
-                    "protocol_version": 9,
+                    "protocol_version": 10,
                     "operation": "preview",
                     "payload": {"draft": applied["draft"], "width": 24},
                 },

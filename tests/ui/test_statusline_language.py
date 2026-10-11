@@ -3,6 +3,7 @@
 from io import StringIO
 from unittest import mock
 
+from claude_statusline.i18n import LANGUAGES
 from claude_statusline.config import display, models, ui_preferences
 from claude_statusline.ui import forms, session
 from tests.config.test_config_commands import ConfigCommandTestCase
@@ -27,7 +28,7 @@ class StatuslineLanguageSessionTests(ConfigCommandTestCase):
 
     def test_save_and_cancel_share_draft_semantics_in_both_interface_languages(self):
         self.install_minimal_settings()
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             for action, expected in (("cancel", "en"), ("save", "zh-CN")):
                 with self.subTest(language=language, action=action):
                     display.write_display_config(self.config_dir, display.DEFAULT_CONFIG)

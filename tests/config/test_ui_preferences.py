@@ -37,7 +37,7 @@ class UiPreferenceTests(unittest.TestCase):
     def test_invalid_preferences_are_read_only_and_explicitly_repaired(self):
         self.root.mkdir()
         for raw in (b"broken", b"\xff", b"[]", b'{"schema_version":true,"ui_language":"zh-CN"}',
-                    b'{"schema_version":1,"ui_language":"ja"}', b'{"schema_version":1,"schema_version":1,"ui_language":"en"}'):
+                    b'{"schema_version":1,"ui_language":"xx"}', b'{"schema_version":1,"schema_version":1,"ui_language":"en"}'):
             with self.subTest(raw=raw):
                 self.path.write_bytes(raw)
                 read = preferences.read(self.root)
@@ -50,7 +50,7 @@ class UiPreferenceTests(unittest.TestCase):
 
     def test_future_schema_and_unknown_languages_are_never_written(self):
         with self.assertRaises(models.ConfigCommandError):
-            preferences.set_language(self.root, "ja")
+            preferences.set_language(self.root, "xx")
         self.assertFalse(self.root.exists())
         self.root.mkdir()
         raw = b'{"schema_version":2,"ui_language":"zh-CN","future":true}'
@@ -88,7 +88,7 @@ class UiPreferenceTests(unittest.TestCase):
 
     def test_protocol_preferences_work_without_renderer_and_errors_keep_metadata(self):
         def request(operation, payload):
-            return protocol.handle(json.dumps({"protocol_version": 9, "operation": operation, "payload": payload}),
+            return protocol.handle(json.dumps({"protocol_version": 10, "operation": operation, "payload": payload}),
                                    self.root, Path("/missing/renderer"))
         response, status = request("read_ui_preferences", {})
         self.assertEqual(status, 0)

@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from unittest import mock
 
+from claude_statusline.i18n import LANGUAGES
 from claude_statusline.config import display, formatting, models, ui_preferences
 from claude_statusline.i18n import message, presentation
 from claude_statusline.ui import drawing, editor, forms, session
@@ -26,6 +27,25 @@ class InputScreen(Screen):
 
 
 class LanguageUiTests(unittest.TestCase):
+    def test_all_languages_cycle_both_directions_and_persist_outside_draft(self):
+        for index, language in enumerate(LANGUAGES):
+            for key, delta in ((curses.KEY_RIGHT, 1), (curses.KEY_LEFT, -1)):
+                with self.subTest(language=language, delta=delta):
+                    state = self.state(language)
+                    state.page = "settings"
+                    select(state, "ui-language")
+                    before = state.display.to_dict()
+                    screen = InputScreen(80, 24)
+                    events = iter((key, "\x1b"))
+                    screen.get_wch = lambda: next(events)
+                    with mock.patch.object(drawing, "_draw_screen", return_value=12), mock.patch.object(drawing, "_ColorMapper", return_value=Mapper()):
+                        self.assertEqual(session._screen_loop(screen, state), "cancel")
+                    expected = LANGUAGES[(index + delta) % len(LANGUAGES)]
+                    self.assertEqual(state.language, expected)
+                    self.assertEqual(ui_preferences.read(self.root).ui_language, expected)
+                    self.assertEqual(state.display.to_dict(), before)
+                    self.assertEqual(forms.current(state)["key"], "ui-language")
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="language UI 中文 ")
         self.addCleanup(self.temp.cleanup)
@@ -41,7 +61,7 @@ class LanguageUiTests(unittest.TestCase):
         return editor.EditorState.from_effective(self.baseline, language=language)
 
     def test_search_matches_both_languages_ids_and_custom_labels(self):
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             state = self.state(language)
             for query in (
                 "context-remaining",
@@ -59,7 +79,7 @@ class LanguageUiTests(unittest.TestCase):
             self.assertIn("name", state.visible_subagent_items())
 
     def test_statusline_language_is_a_draft_and_preserves_interface_and_input(self):
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             state = self.state(language)
             state.page = "settings"
             state.search = "context"

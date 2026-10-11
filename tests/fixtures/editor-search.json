@@ -1,27 +1,250 @@
 {
   "text_matches": [
-    {"text":"Model", "query":" MODEL ", "rank":0, "positions":[0,1,2,3,4]},
-    {"text":"model-with-effort", "query":"model", "rank":1, "positions":[0,1,2,3,4]},
-    {"text":"Model with effort", "query":"mwe", "rank":2, "positions":[0,6,11]},
-    {"text":"Task active timer", "query":"tat", "rank":2, "positions":[0,5,12]},
-    {"text":"My context", "query":"context", "rank":3, "positions":[3,4,5,6,7,8,9]},
-    {"text":"abcdef", "query":"acf", "rank":4, "positions":[0,2,5]},
-    {"text":"上下文剩余", "query":"下余", "rank":4, "positions":[1,4]},
-    {"text":"剩余上下文", "query":"剩余", "rank":1, "positions":[0,1]},
-    {"text":"Ｃａｆé", "query":"café", "rank":0, "positions":[0,1,2,3]},
-    {"text":"é", "query":"é", "rank":0, "positions":[0,1]},
-    {"text":" A　 B ", "query":"a b", "rank":0, "positions":[1,2,4]},
-    {"text":"🦊engine", "query":"engine", "rank":3, "positions":[1,2,3,4,5,6]},
-    {"text":"é", "query":"e", "rank":1, "positions":[0]},
-    {"text":"foo-bar", "query":"fb", "rank":2, "positions":[0,4]},
-    {"text":"foo-bar", "query":"fbx", "rank":null, "positions":[]},
-    {"text":"abc", "query":"cba", "rank":null, "positions":[]},
-    {"text":"", "query":"a", "rank":null, "positions":[]},
-    {"text":"unchanged", "query":"　 ", "rank":5, "positions":[]}
+    {
+      "text": "Model",
+      "query": " MODEL ",
+      "rank": 0,
+      "positions": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "text": "model-with-effort",
+      "query": "model",
+      "rank": 1,
+      "positions": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "text": "Model with effort",
+      "query": "mwe",
+      "rank": 2,
+      "positions": [
+        0,
+        6,
+        11
+      ]
+    },
+    {
+      "text": "Task active timer",
+      "query": "tat",
+      "rank": 2,
+      "positions": [
+        0,
+        5,
+        12
+      ]
+    },
+    {
+      "text": "My context",
+      "query": "context",
+      "rank": 3,
+      "positions": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "text": "abcdef",
+      "query": "acf",
+      "rank": 4,
+      "positions": [
+        0,
+        2,
+        5
+      ]
+    },
+    {
+      "text": "上下文剩余",
+      "query": "下余",
+      "rank": 4,
+      "positions": [
+        1,
+        4
+      ]
+    },
+    {
+      "text": "剩余上下文",
+      "query": "剩余",
+      "rank": 1,
+      "positions": [
+        0,
+        1
+      ]
+    },
+    {
+      "text": "Ｃａｆé",
+      "query": "café",
+      "rank": 0,
+      "positions": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "text": "é",
+      "query": "é",
+      "rank": 0,
+      "positions": [
+        0,
+        1
+      ]
+    },
+    {
+      "text": " A　 B ",
+      "query": "a b",
+      "rank": 0,
+      "positions": [
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "text": "🦊engine",
+      "query": "engine",
+      "rank": 3,
+      "positions": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "text": "é",
+      "query": "e",
+      "rank": 1,
+      "positions": [
+        0
+      ]
+    },
+    {
+      "text": "foo-bar",
+      "query": "fb",
+      "rank": 2,
+      "positions": [
+        0,
+        4
+      ]
+    },
+    {
+      "text": "foo-bar",
+      "query": "fbx",
+      "rank": null,
+      "positions": []
+    },
+    {
+      "text": "abc",
+      "query": "cba",
+      "rank": null,
+      "positions": []
+    },
+    {
+      "text": "",
+      "query": "a",
+      "rank": null,
+      "positions": []
+    },
+    {
+      "text": "unchanged",
+      "query": "　 ",
+      "rank": 5,
+      "positions": []
+    },
+    {
+      "text": "한국어 상태",
+      "query": "상태",
+      "rank": 3,
+      "positions": [
+        4,
+        5
+      ]
+    },
+    {
+      "text": "が",
+      "query": "が",
+      "rank": 0,
+      "positions": [
+        0,
+        1
+      ]
+    },
+    {
+      "text": "ｶﾀｶﾅ",
+      "query": "カタカナ",
+      "rank": 0,
+      "positions": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "text": "剩餘上下文",
+      "query": "上下文",
+      "rank": 3,
+      "positions": [
+        2,
+        3,
+        4
+      ]
+    }
   ],
   "ranking": {
-    "query":"ab",
-    "items":[["subsequence","a one b"],["substring","xxabxx"],["initials","Alpha Beta"],["prefix","abacus"],["exact","AB"],["prefix-tie","about"]],
-    "expected":["exact","prefix","prefix-tie","initials","substring","subsequence"]
+    "query": "ab",
+    "items": [
+      [
+        "subsequence",
+        "a one b"
+      ],
+      [
+        "substring",
+        "xxabxx"
+      ],
+      [
+        "initials",
+        "Alpha Beta"
+      ],
+      [
+        "prefix",
+        "abacus"
+      ],
+      [
+        "exact",
+        "AB"
+      ],
+      [
+        "prefix-tie",
+        "about"
+      ]
+    ],
+    "expected": [
+      "exact",
+      "prefix",
+      "prefix-tie",
+      "initials",
+      "substring",
+      "subsequence"
+    ]
   }
 }

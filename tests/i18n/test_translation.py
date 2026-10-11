@@ -6,7 +6,7 @@ import unittest
 from unittest import mock
 
 from claude_statusline.config import catalog
-from claude_statusline.i18n import message, translate
+from claude_statusline.i18n import LANGUAGES, message, translate
 from claude_statusline.i18n.translator import catalogue, present
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -22,9 +22,11 @@ class TranslationTests(unittest.TestCase):
             for part in ("label", "description"):
                 key = f"items.{item.scope}.{item.id}.{part}"
                 self.assertEqual(resources["en"][key], getattr(item, part))
-                self.assertTrue(resources["zh-CN"][key])
+                for language in LANGUAGES:
+                    self.assertTrue(resources[language][key])
         self.assertEqual(generator.OUTPUT.read_text(encoding="utf-8"), generator.generated())
-        self.assertEqual(generator.STATUSLINE_OUTPUT.read_text(encoding="utf-8"), generator.generated_statusline())
+        for path, value in generator.generated_files().items():
+            self.assertEqual(path.read_text(encoding="utf-8"), value)
 
     def test_language_and_key_fallback_are_explicit(self):
         self.assertEqual(translate("cli.language", "unknown", language="zh-CN"), "UI language: zh-CN")
@@ -55,10 +57,12 @@ class TranslationTests(unittest.TestCase):
                 with self.subTest(english=english, chinese=chinese):
                     (root / "en.json").write_text(english, encoding="utf-8")
                     (root / "zh-CN.json").write_text(chinese, encoding="utf-8")
-                    with mock.patch.object(generator, "LOCALES", root), self.assertRaises(ValueError):
+                    registry = root / "languages.registry"
+                    registry.write_text(json.dumps([{"code":"en","name":"English"},{"code":"zh-CN","name":"简体中文"}]))
+                    with mock.patch.object(generator, "LOCALES", root), mock.patch.object(generator, "LANGUAGES_FILE", registry), self.assertRaises(ValueError):
                         generator.resources()
 
     def test_resources_are_json_strings_only(self):
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             self.assertTrue(all(isinstance(k, str) and isinstance(v, str) for k, v in catalogue(language).items()))
         self.assertEqual(json.loads(json.dumps(message("cli.language", language="en"))), "UI language: en")

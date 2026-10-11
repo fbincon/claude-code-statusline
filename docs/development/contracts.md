@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v9 is the internal interface for the bundled/source native frontend. Display persistence uses schema v7, including in-memory v1/v2/v3/v4/v5/v6 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
+Protocol v10 is the internal interface for the bundled/source native frontend. Display persistence uses schema v7, including in-memory v1/v2/v3/v4/v5/v6 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
 
 ## Catalog
 
@@ -14,7 +14,7 @@ Minimum versions are verified only where evidence exists. The 2.1.205 subagent m
 
 Catalog entries also expose a `guidance` object containing source-kind codes,
 measurement scope, requirement codes and setup/diagnostic commands. These are
-static definitions from Python, with shared bilingual messages and generated
+static definitions from Python, with shared multilingual messages and generated
 TypeScript vocabulary. Inspecting an item's Sources and requirements page does
 not query live data, enable collectors or change its selection. Known minimum
 host versions remain separate from actual observations; unknown minima stay
@@ -24,10 +24,10 @@ current session. `config list-items --json` exposes the same additive metadata.
 Run `claude-statusline ui --config-dir PATH` (Windows: `claude-statusline.exe`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":9,"operation":"read","payload":{}}
+{"protocol_version":10,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":9,"result":{...}}`; failure is `{"protocol_version":9,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":10,"result":{...}}`; failure is `{"protocol_version":10,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -81,7 +81,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 
 ## Structured formatting
 
-Protocol v9 returns complete schema-v7 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v7 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
+Protocol v10 returns complete schema-v7 drafts. `formatting` contains shared choices and thresholds, `item_options` contains scoped overrides, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v7 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
 
 ## Draft transfer operations
 
@@ -100,7 +100,7 @@ previous draft. Acceptance does not reread the file or change the opening revisi
 Saving remains a separate revision-checked transaction. Interface preferences,
 independent host preferences and collection switches are outside portable files.
 No generic merge or selective field application is performed. The original `import`
-operation remains available to matching protocol clients. Protocol v9 and display
+operation remains available to matching protocol clients. Protocol v10 and display
 schema v7 evolve independently; reinstall matching frontend/backend resources.
 
 `preset`: payload `{draft,preset}` returns `{draft}` expanded by Python. `import`: payload `{draft,path}` returns a validated `{draft}` without saving; current host options supply defaults for display-only files. `export`: payload `{draft,path,overwrite}` writes a portable file and returns `{path}`. Export is an explicit file action independent of settings Save. These operations do not change installation or the opening revision; subsequent apply uses the original revision. `describe.presets` is generated from the canonical Python presets.
@@ -115,21 +115,21 @@ Native file operations are effects handled by the hooks module through Python, w
 
 ## Phase 5 metric migration
 
-Display schema v7 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v9 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4/v5 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+Display schema v7 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v10 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4/v5 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
 
 ## UI preference and message operations
 
-`read_ui_preferences` accepts `{}` and returns `schema_version:1`, `ui_language` (`en` or `zh-CN`) and `warning` (`null` or a localized message). Missing/invalid reads fall back to English without repairing bytes. `set_ui_language` accepts exactly `{ui_language}` with a supported code, saves under the existing lock with backup/atomic write and returns the same shape with a null warning. Future preference schemas refuse overwrite. These operations do not change display/host drafts, revisions or installation.
+`read_ui_preferences` accepts `{}` and returns `schema_version:1`, `ui_language` (a registered language code) and `warning` (`null` or a localized message). Missing/invalid reads fall back to English without repairing bytes. `set_ui_language` accepts exactly `{ui_language}` with a supported code, saves under the existing lock with backup/atomic write and returns the same shape with a null warning. Future preference schemas refuse overwrite. These operations do not change display/host drafts, revisions or installation.
 
-Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v9; UI preference schema v1 and runtime protocol v2 remain independent.
+Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v10; UI preference schema v1 and runtime protocol v2 remain independent.
 
 See [translation architecture and contribution rules](i18n.md).
 
 ## Statusline language
 
-Display schema v7 adds required `statusline_language` (`en` / `zh-CN`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v9 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v2 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
+Display schema v7 adds required `statusline_language` (`en` / `zh-CN` / `zh-Hant` / `ja` / `ko`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v10 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v2 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
 
-Protocol v9 adds an independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display v7, portable v1, interface preferences v1 and runtime v2 remain independent; no persisted display migration is needed.
+Protocol v10 adds an independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display v7, portable v1, interface preferences v1 and runtime v2 remain independent; no persisted display migration is needed.
 
 ## Appearance contract
 

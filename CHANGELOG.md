@@ -4,6 +4,15 @@
 
 ## Unreleased
 
+## 1.13.0 - 2026-10-11
+
+- Add general Traditional Chinese (`zh-Hant`), Japanese (`ja`) and Korean (`ko`) across CLI, both editors, previews and main/subagent output; retain explicit independent language choices and English defaults.
+- Generate shared language registration, types and resources from one ordered registry. Ship complete five-language packs with coverage, placeholder and terminal-safety validation.
+- Load only the requested generated statusline language module and cache interface packs. Prepare multilingual search fields and Unicode positions before editing; custom-label changes refresh their own entry.
+- Advance the editor protocol to 10 while retaining display schema 7, interface preferences v1 and runtime protocol v2. Document language reset before downgrades and retain matching Mod/backend checks.
+- Extend resource-addition, five-language persistence, all 25 UI/output combinations, Unicode, packaging and installed-terminal validation. Keep English and Simplified Chinese documentation as the maintained documentation languages.
+
+
 ## 1.12.0 - 2026-10-10
 
 - Reject future or invalid display configuration before installation mutates files, including with `--force`; retain uninstall recovery and transactional backups when migrating through configuration saves or installation.

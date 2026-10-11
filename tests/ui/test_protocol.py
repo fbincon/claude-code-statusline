@@ -11,7 +11,7 @@ from unittest import mock
 from claude_statusline.config import display, models, service
 from claude_statusline.rendering import layout, preview, spans
 from claude_statusline.runtime import git, usage
-from claude_statusline.ui import protocol
+from claude_statusline.ui import contracts, protocol
 
 
 def draft():
@@ -32,7 +32,7 @@ class ProtocolTests(unittest.TestCase):
         return protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 9,
+                    "protocol_version": 10,
                     "operation": operation,
                     "payload": {} if payload is None else payload,
                     **extra,
@@ -202,7 +202,7 @@ class ProtocolTests(unittest.TestCase):
         env = dict(os.environ, CLAUDE_CONFIG_DIR=str(self.root))
         raw = json.dumps(
             {
-                "protocol_version": 9,
+                "protocol_version": 10,
                 "operation": "preview",
                 "payload": {"draft": draft(), "width": 80},
             }
@@ -223,5 +223,5 @@ class ProtocolTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, expected, result.stderr)
-            self.assertEqual(json.loads(result.stdout)["protocol_version"], 9)
+            self.assertEqual(json.loads(result.stdout)["protocol_version"], contracts.PROTOCOL_VERSION)
         self.assertFalse(self.root.exists())

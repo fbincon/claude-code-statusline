@@ -3,7 +3,7 @@ import { text as localizedText } from '../i18n/index.ts';
 import type { View } from '../session.ts';
 import { formRows, adjustForm } from './forms.ts';
 import { PREFERENCE_SPECS, specFor, canEdit } from '../preferences.ts';
-import { LANGUAGE_NAMES } from '../i18n/index.ts';
+import { LANGUAGES, LANGUAGE_NAMES } from '../i18n/index.ts';
 
 export interface SettingRow {
   key: string;
@@ -137,7 +137,7 @@ export function adjustSetting(view: View, delta: -1 | 1): void {
   };
   switch (e.setting) {
     case 'ui-language':
-      view.language = view.language === 'zh-CN' ? 'en' : 'zh-CN';
+      view.language = LANGUAGES[(LANGUAGES.indexOf(view.language ?? 'en') + delta + LANGUAGES.length) % LANGUAGES.length]!;
       break;
     case 'preview-background':
       view.previewBackground = view.previewBackground === 'light' ? 'dark' : 'light';

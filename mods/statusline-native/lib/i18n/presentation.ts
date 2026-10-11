@@ -60,7 +60,7 @@ export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[
           (p.result ? ' · ' + preferenceResult(p, language) : '') : t('native.host_unavailable', language, {entry});
       }
     } else if (row.key === 'ui-language') {
-      // Both autonyms remain recognizable in either interface language.
+      // All autonyms remain recognizable in either interface language.
     } else if (row.key === 'field:statusline_language') {
       value = LANGUAGE_NAMES[view.editor!.draft.display.statusline_language];
     } else if (row.key === 'preset-select') value = t('presets.' + value, language);

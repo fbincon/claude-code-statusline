@@ -3,6 +3,7 @@
 import unittest
 from unittest import mock
 
+from claude_statusline.i18n import LANGUAGES
 from claude_statusline.config import catalog, display, formatting
 from claude_statusline.i18n import statusline
 from claude_statusline.rendering import formatters, items, metrics, preview, subagents, timer
@@ -48,7 +49,7 @@ class StatuslineLanguageTests(unittest.TestCase):
         task = {"id": "agent", "name": "自定义 Name", "model": "claude-opus", "effort": "high",
                 "status": "running", "startTime": 1000, "tokenCount": 10000,
                 "contextWindowSize": 200000, "description": "用户描述", "cwd": "/自定义/project"}
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             for item in catalog.ITEMS:
                 with self.subTest(language=language, scope=item.scope, item=item.id):
                     if item.scope == "main":
@@ -91,7 +92,7 @@ class StatuslineLanguageTests(unittest.TestCase):
         self.assertEqual(self.sample("context-remaining", formatting=formatting.Formatting(labels="off")), "剩余 73%")
 
     def test_units_and_raw_arithmetic_do_not_change_with_language(self):
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             self.assertIn("1m 30s", self.sample("task-active-timer", language=language))
             self.assertIn("36.5 tok/s", self.sample("output-rate", language=language))
             self.assertIn("0.420s", self.sample("ttft", language=language))
@@ -108,7 +109,7 @@ class StatuslineLanguageTests(unittest.TestCase):
             self.assertEqual(state["status"], "running")
 
     def test_wide_text_fitting_colors_and_explicit_rows(self):
-        for language in ("en", "zh-CN"):
+        for language in LANGUAGES:
             for colors in (False, True):
                 for labels in ("legacy", "short", "off"):
                     config = self.config("model", "context-used", "weekly-limit", language=language,

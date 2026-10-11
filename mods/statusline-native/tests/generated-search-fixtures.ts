@@ -477,6 +477,45 @@ export const SEARCH_CASES = {
       "query": "　 ",
       "rank": 5,
       "positions": []
+    },
+    {
+      "text": "한국어 상태",
+      "query": "상태",
+      "rank": 3,
+      "positions": [
+        4,
+        5
+      ]
+    },
+    {
+      "text": "が",
+      "query": "が",
+      "rank": 0,
+      "positions": [
+        0,
+        1
+      ]
+    },
+    {
+      "text": "ｶﾀｶﾅ",
+      "query": "カタカナ",
+      "rank": 0,
+      "positions": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "text": "剩餘上下文",
+      "query": "上下文",
+      "rank": 3,
+      "positions": [
+        2,
+        3,
+        4
+      ]
     }
   ],
   "ranking": {

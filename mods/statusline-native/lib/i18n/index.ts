@@ -1,10 +1,8 @@
 /** Explicit-language messages; canonical backend metadata remains English. */
 import { LOCALES } from './generated-locales.ts';
-export type { MessageKey } from './generated-locales.ts';
-
-export type Language = 'en' | 'zh-CN';
-export const LANGUAGES: readonly Language[] = ['en', 'zh-CN'];
-export const LANGUAGE_NAMES: Record<Language, string> = { en: 'English', 'zh-CN': '简体中文' };
+import type { Language } from './generated-locales.ts';
+export type { MessageKey, Language } from './generated-locales.ts';
+export { LANGUAGES, LANGUAGE_NAMES } from './generated-locales.ts';
 export interface LocalizedText { key: string; params: Record<string, unknown>; fallback: string }
 
 export class LocalizedError extends Error {

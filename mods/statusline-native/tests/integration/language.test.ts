@@ -1,6 +1,44 @@
 import { expect, test } from 'claude-code/testing';
 import { setup, START, RUN, PANE, keys, selectSetting, output, reply, sample } from '../fixtures.ts';
 import type { ClientProps } from '../../lib/session.ts';
+import { LANGUAGES } from '../../lib/i18n/index.ts';
+
+test('all five languages cycle forwards and backwards without replacing the display draft', {timeoutMs: 20000}, async ($, on) => {
+  const fixture = setup(on);
+  await $.session.start(START);
+  await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  const view = async () => ((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view;
+  const headings = {
+    en: 'Configure Status Line', 'zh-CN': '配置状态栏', 'zh-Hant': '配置狀態欄',
+    ja: 'ステータスライン設定', ko: '상태 표시줄 설정',
+  };
+  await keys(ui, '3');
+  await selectSetting(ui, 'ui-language');
+  const draft = JSON.stringify((await view()).editor!.draft);
+  for (const language of [...LANGUAGES.slice(1), 'en'] as typeof LANGUAGES[number][]) {
+    await keys(ui, 'right');
+    expect((await view()).language).toBe(language);
+    expect(fixture.store.uiLanguage).toBe(language);
+    expect(await ui.find({in:'statusline-client', type:'Text', text:headings[language]})).toBeDefined();
+    expect(JSON.stringify((await view()).editor!.draft)).toBe(draft);
+  }
+  await keys(ui, 'left');
+  expect(fixture.store.uiLanguage).toBe('ko');
+  await selectSetting(ui, 'field:statusline_language');
+  for (const language of [...LANGUAGES.slice(1), 'en'] as typeof LANGUAGES[number][]) {
+    await keys(ui, 'right');
+    expect((await view()).editor!.draft.display.statusline_language).toBe(language);
+    expect(fixture.store.draft.display.statusline_language).toBe('en');
+    expect(fixture.store.uiLanguage).toBe('ko');
+  }
+  await keys(ui, 'q');
+  await ui.unmount();
+  await $.command.run(RUN);
+  const reopened = await $.ui.mount(PANE);
+  expect(((await reopened.find({key:'statusline-client'}))!.props.props as ClientProps).view.language).toBe('ko');
+  await reopened.unmount();
+});
 
 test('language persists immediately across cancel and reopening while display draft stays independent', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
@@ -36,7 +74,7 @@ test('language persists immediately across cancel and reopening while display dr
 test('rejected language write restores the last display language without replacing the draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture=setup(on);
   fixture.behavior.process=(request,next)=>request.operation==='set_ui_language'
-    ? {value:output(JSON.stringify({protocol_version:9,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
+    ? {value:output(JSON.stringify({protocol_version:10,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);
@@ -104,7 +142,7 @@ test('saving statusline language persists the complete draft while a refusal ret
   const fixture = setup(on);
   let refused = true;
   fixture.behavior.process = (request, next) => request.operation === 'apply' && refused
-    ? {value: output(JSON.stringify({protocol_version:9,error:{code:'io_error',message:'Write refused.',localization:null}}),2)} : next();
+    ? {value: output(JSON.stringify({protocol_version:10,error:{code:'io_error',message:'Write refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);

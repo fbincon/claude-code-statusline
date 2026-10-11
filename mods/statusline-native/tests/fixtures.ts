@@ -1,3 +1,4 @@
+import { LANGUAGES } from '../lib/i18n/index.ts';
 import type {
   CommandInfo,
   ConfigRow,
@@ -125,7 +126,7 @@ export function description(): DescribeResult {
       },
       'separator-style': { choices: ['classic', 'compact', 'powerline'] },
       'scope-labels': { choices: ['off', 'when-subagents', 'always'] },
-      'statusline-language': { choices: ['en', 'zh-CN'] },
+      'statusline-language': { choices: [...LANGUAGES] },
       'subagent-statusline': { choices: [true, false] },
       padding: { minimum: 0, maximum: 32 },
       'refresh-interval': { minimum: 1, maximum: 3600, special: 'event' },
@@ -166,7 +167,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 9, result }));
+  return output(JSON.stringify({ protocol_version: 10, result }));
 }
 
 export function sample(text: string) {
@@ -216,7 +217,7 @@ export function setup(on: On) {
   const closes: unknown[] = [];
   const behavior: Behavior = {};
   const store = {
-    uiLanguage: 'en' as 'en' | 'zh-CN',
+    uiLanguage: 'en' as import('../lib/i18n/index.ts').Language,
     draft: copyDraft(BASE),
     revision: '0'.repeat(64),
     rows: hostRows(),
