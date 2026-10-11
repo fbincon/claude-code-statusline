@@ -289,7 +289,8 @@ test('keys follow theme text and stay bold while action labels stay regular, inc
   }
 });
 
-test('all registered languages keep every page, form, numeric error and footer inside the cell viewport', () => {
+// This full language/viewport matrix exceeds the default 5 s on Windows runners.
+test('all registered languages keep every page, form, numeric error and footer inside the cell viewport', {timeoutMs: 20000}, () => {
   for (const language of LANGUAGES) {
     for (const [columns, rows] of [[32,12],[64,18],[64,20],[80,24],[120,30],[80,48]]) {
       for (const page of ['main','subagents','settings','layout','detail']) {
