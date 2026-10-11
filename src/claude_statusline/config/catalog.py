@@ -82,9 +82,13 @@ def _main(item, label, description, group, sources, example, position=None, **kw
 def _agent(item, label, description, sources, example, position=None, **kwargs):
     minimum_version = kwargs.pop("minimum_version", "2.1.205")
     group = (
-        "model" if item in ("model-with-effort", "model", "effort")
-        else "context" if item.startswith("context-") or item == "tokens"
-        else "location" if item == "current-dir" else "task"
+        "model"
+        if item in ("model-with-effort", "model", "effort")
+        else "context"
+        if item.startswith("context-") or item == "tokens"
+        else "location"
+        if item == "current-dir"
+        else "task"
     )
     return ItemDefinition(
         "subagent",
@@ -431,12 +435,24 @@ ITEMS = (
         9,
     ),
     _main(
-        "task-active-timer", "Task execution time",
+        "task-active-timer",
+        "Task execution time",
         "Execution elapsed time, excluding verified user waits; requires complete native coverage",
-        "usage", ("native_task_timing",), "✓ Active 1m 30s",
+        "usage",
+        ("native_task_timing",),
+        "✓ Active 1m 30s",
         minimum_version="2.1.289",
-        unavailable_reasons=("unsupported_host", "unknown_host_version", "source_unavailable", "native_timing_disabled", "not_observed", "incomplete",
-                             "wait_coverage_missing", "abnormal_clock", "stale"),
+        unavailable_reasons=(
+            "unsupported_host",
+            "unknown_host_version",
+            "source_unavailable",
+            "native_timing_disabled",
+            "not_observed",
+            "incomplete",
+            "wait_coverage_missing",
+            "abnormal_clock",
+            "stale",
+        ),
     ),
     _main(
         "version",
@@ -802,6 +818,33 @@ ITEMS = (
     ),
 )
 
+# Built-in composition types share discovery metadata but never legacy selections.
+ITEMS += tuple(
+    ItemDefinition(
+        scope,
+        kind,
+        label,
+        description,
+        "layout",
+        ("configuration",),
+        ("Project ◆" if kind == "text" else "left … right",),
+        format_options=("foreground", "background", "max_width")
+        if kind == "text"
+        else (),
+        unavailable_reasons=(),
+    )
+    for scope in ("main", "subagent")
+    for kind, label, description in (
+        ("text", "Static text", "Literal text or symbols with independent styling"),
+        (
+            "spacer",
+            "Flexible spacer",
+            "Fill unused row cells between left and right content",
+        ),
+    )
+)
+
+
 BY_SCOPE = {
     scope: {item.id: item for item in ITEMS if item.scope == scope}
     for scope in ("main", "subagent")
@@ -835,13 +878,14 @@ def wizard_groups() -> str:
     """Build the installed skill's group list and constraints from definitions."""
     lines = []
     for scope, label in (("main", "Main"), ("subagent", "Subagents")):
-        groups = dict.fromkeys(item.group for item in BY_SCOPE[scope].values())
+        definitions = [
+            item
+            for item in BY_SCOPE[scope].values()
+            if item.id not in {"text", "spacer"}
+        ]
+        groups = dict.fromkeys(item.group for item in definitions)
         for group in groups:
-            ids = [
-                f"`{item.id}`"
-                for item in BY_SCOPE[scope].values()
-                if item.group == group
-            ]
+            ids = [f"`{item.id}`" for item in definitions if item.group == group]
             lines.append(f"   - {label} / {group}: " + ", ".join(ids))
     lines.append(
         "   Use default_enabled, format_options and excludes from the live listings; do not infer defaults from this grouping."

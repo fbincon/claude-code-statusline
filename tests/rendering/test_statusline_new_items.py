@@ -563,7 +563,9 @@ class NewItemConfigCommandTests(unittest.TestCase):
             )
         )
         by_id = {item["id"]: item for item in listed}
-        self.assertEqual(set(by_id), set(config_display.ITEM_CATALOG))
+        self.assertEqual(
+            set(by_id), set(config_display.ITEM_CATALOG) | {"text", "spacer"}
+        )
         for item_id in NEW_ITEM_IDS:
             self.assertFalse(by_id[item_id]["default_enabled"], item_id)
             self.assertFalse(by_id[item_id]["enabled"], item_id)

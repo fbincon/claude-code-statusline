@@ -22,7 +22,7 @@ class AdvancedFormsTests(unittest.TestCase):
                 editor_fields.parse_value(integer, value)
 
     def state(self):
-        config = display.DEFAULT_CONFIG.with_updates(items=("model", "context-used"))
+        config = display.DisplayConfig(items=("model", "context-used"))
         return editor.EditorState.from_effective(
             models.EffectiveConfig(
                 config,
@@ -80,7 +80,8 @@ class AdvancedFormsTests(unittest.TestCase):
         state = self.state()
         state.page = "layout"
         state.form_index = len(forms.rows(state)) - 1
-        state.display = state.display.with_updates(items=())
+        state.display = state.display.with_updates(instances=())
+        state.refresh_instances()
         state.enabled.clear()
         state.ensure_visible(2)
         self.assertEqual(state.form_index, 0)

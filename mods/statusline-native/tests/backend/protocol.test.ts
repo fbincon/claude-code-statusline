@@ -1,3 +1,4 @@
+import { component } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
 import {
   BackendError,
@@ -19,10 +20,10 @@ test('all generated unavailable reasons are accepted and future unknown reasons 
 
 test('scoped text validation matches Python Unicode limits and rejects unsafe characters', () => {
   const draft = readResult().draft;
-  draft.display.item_options['model-with-effort'] = { label: '😀'.repeat(256), icon: null, priority: 50, max_width: null, formatting: {}, foreground: null, background: null, visibility: "always", visibility_threshold: 70 };
+  draft.display.instances.find(i=>i.id==='model-with-effort')!.options = { label: '😀'.repeat(256), icon: null, priority: 50, max_width: null, formatting: {}, foreground: null, background: null, visibility: "always", visibility_threshold: 70 };
   expect(isDraft(draft)).toBe(true);
   for (const value of ['😀'.repeat(257), 'bad\u0085text', 'bad\ud800text']) {
-    draft.display.item_options['model-with-effort']!.label = value;
+    draft.display.instances.find(i=>i.id==='model-with-effort')!.options.label = value;
     expect(isDraft(draft)).toBe(false);
   }
 });
@@ -32,14 +33,14 @@ test('backend errors and protocol mismatches are explicit', () => {
     '',
     'partial {',
     JSON.stringify({ protocol_version: 6, result: sample('old protocol') }),
-    JSON.stringify({ protocol_version: 10, result: {} }),
+    JSON.stringify({ protocol_version: 11, result: {} }),
     JSON.stringify({
-      protocol_version: 10,
+      protocol_version: 11,
       result: {},
       error: { code: 'bad', message: 'ambiguous' },
     }),
     JSON.stringify({
-      protocol_version: 10,
+      protocol_version: 11,
       result: { sample: false, main: [], subagents: [] },
     }),
   ]) {
@@ -51,7 +52,7 @@ test('backend errors and protocol mismatches are explicit', () => {
     parseResponse('read', {
       exitCode: 2,
       stdout: JSON.stringify({
-        protocol_version: 10,
+        protocol_version: 11,
         error: { code: 'configuration_conflict', message: 'Reopen the editor' },
       }),
       stderr: '',
@@ -78,7 +79,7 @@ test('apply validates the saved draft, new revision and transaction outcome', ()
     expect(() => parseResponse('apply', reply(result))).toThrow();
   }
   const invalid = JSON.parse(JSON.stringify(saved));
-  invalid.draft.display.items = ['unknown'];
+  invalid.draft.display.instances = ['unknown'].map(id=>component(id));
   expect(() => parseResponse('apply', reply(invalid))).toThrow();
 });
 
@@ -89,7 +90,7 @@ test('import review validates complete candidates and structured scoped differen
   expect(parseResponse('review_import',reply({draft,changes:[change]})).changes.length).toBe(1);
   for(const result of [{draft,changes:{}},{draft,changes:[{...change,section:'future'}]},
     {draft,changes:[{...change,path:['settings','theme']}]},{draft,changes:[{...change,label:'raw'}]},
-    {draft,changes:[{...change,scope:'main',item_id:'unknown'}]},{draft,changes:[{...change,kind:'enable'}]}])
+    {draft,changes:[{...change,scope:'main',item_id:'invalid id'}]},{draft,changes:[{...change,kind:'enable'}]}])
     expect(()=>parseResponse('review_import',reply(result))).toThrow();
 });
 
@@ -129,7 +130,7 @@ test('failed processes, timeouts, truncation and structured errors remain distin
         'apply',
         output(
           JSON.stringify({
-            protocol_version: 10,
+            protocol_version: 11,
             error: { code, message: code },
           }),
           2,
@@ -144,9 +145,9 @@ test('failed processes, timeouts, truncation and structured errors remain distin
 
 test('unexpected envelopes and invalid drafts cannot enter the frontend', () => {
   for (const response of [
-    { protocol_version: 10, result: sample('safe'), extra: 1 },
-    { protocol_version: 10 },
-    { protocol_version: 10, error: { message: 'missing code' } },
+    { protocol_version: 11, result: sample('safe'), extra: 1 },
+    { protocol_version: 11 },
+    { protocol_version: 11, error: { message: 'missing code' } },
   ]) {
     expect(() =>
       parseResponse('preview', output(JSON.stringify(response))),
@@ -168,7 +169,7 @@ test('preview transport refuses control sequences and malformed colors', () => {
       parseResponse('preview', {
         exitCode: 0,
         stdout: JSON.stringify({
-          protocol_version: 10,
+          protocol_version: 11,
           result: { sample: true, main: [[span]], subagents: [] },
         }),
         stderr: '',

@@ -53,7 +53,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     content.push(line(`${start + 1}–${Math.min(lines.length, start + capacity)}/${lines.length}`, styles.muted));
   } else if (e.guidanceScroll !== null && e.detail) {
     title = tr('guidance.title');
-    const item = e.catalog(e.detail.scope).find(item => item.id === e.detail!.id)!;
+    const item = e.definition(e.detail.scope,e.detail.id)!;
     const lines = guidanceLines(item, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
     const start = Math.min(e.guidanceScroll, Math.max(0, lines.length - capacity));
     content.push(...lines.slice(start, start + capacity).map(text => line(text)));
@@ -66,7 +66,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       content.push(line(`${input.selected === category ? '› ' : '  '}${tr('catalog.categories.' + category)}`, rowStyle(input.selected === category)));
     content.push(line(`${categories.indexOf(input.selected) + 1}/${categories.length}`, styles.muted));
   } else if (e.page === 'settings' || e.page === 'layout' || e.detail) {
-    title = e.detail ? tr("native.ui.client.draw.item_format") + e.detail.id : e.page === 'layout' ? tr("native.ui.client.draw.layout_fitting") : tr("native.ui.client.draw.tool_settings");
+    title = e.detail ? tr("native.ui.client.draw.item_format") + e.instanceLabel(e.detail.scope,e.detail.id,view.language) : e.page === 'layout' ? tr("native.ui.client.draw.layout_fitting") : tr("native.ui.client.draw.tool_settings");
     if (e.page === 'settings' && !e.detail) {
       if (e.advanced) title = columns < 64 ? tr("native.ui.client.draw.claude_preferences") : tr("native.ui.client.draw.tool_settings_claude_preferences");
     }
@@ -104,7 +104,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     const scope = e.page === 'main' ? 'main' : 'subagent';
     const matches = e.matches(scope), visible = matches.map(result => result.item);
     const current = visible.find((item) => item.id === e.selected[scope]);
-    title = scope === 'main' ? tr("native.ui.client.draw.main_items") : tr("native.ui.client.draw.subagent_items_custom_rows") + tr('values.' + (e.draft.display.subagents.enabled ? 'on' : 'off'));
+    title = e.adding ? tr('composition.picker') : scope === 'main' ? tr("native.ui.client.draw.main_items") : tr("native.ui.client.draw.subagent_items_custom_rows") + tr('values.' + (e.draft.display.subagents.enabled ? 'on' : 'off'));
     content.push(shortcuts(ui, [
       {key: 'Ctrl+F', label: tr('catalog.categories.' + e.category[scope]), short: e.category[scope] === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + e.category[scope]), 8)},
       {key: '/', label: tr('native.ui.client.draw.search')},

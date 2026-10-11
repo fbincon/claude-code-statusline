@@ -15,7 +15,7 @@ class FormattingTests(unittest.TestCase):
     def test_v2_normalizes_without_touching_file(self):
         legacy = {
             k: v
-            for k, v in display.DEFAULT_CONFIG.to_dict().items()
+            for k, v in display.DEFAULT_CONFIG.legacy_dict().items()
             if k in display.V2_DISPLAY_KEYS
         }
         legacy["schema_version"] = 2
@@ -25,7 +25,7 @@ class FormattingTests(unittest.TestCase):
             raw = json.dumps(legacy).encode()
             path.write_bytes(raw)
             loaded = display.load_display_config(Path(folder))
-            self.assertEqual(loaded.schema_version, 7)
+            self.assertEqual(loaded.schema_version, 8)
             self.assertEqual(loaded.formatting, formatting.Formatting())
             self.assertFalse(loaded.subagents.enabled)
             self.assertEqual(path.read_bytes(), raw)

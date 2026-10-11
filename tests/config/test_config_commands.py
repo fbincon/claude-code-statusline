@@ -1,5 +1,7 @@
 """Tests for deterministic display and Claude host configuration commands."""
 
+from tests.config_support import selected_ids
+
 from claude_statusline.config import commands as config_commands
 from claude_statusline.config import display as config_display
 from claude_statusline.config import models as config_models
@@ -392,8 +394,8 @@ class HostAndTransactionTests(ConfigCommandTestCase):
             raw,
         )
         stored = json.loads(path.read_text(encoding="utf-8"))
-        self.assertEqual(stored["schema_version"], 7)
-        self.assertEqual(stored["items"], ["git"])
+        self.assertEqual(stored["schema_version"], 8)
+        self.assertEqual(selected_ids(stored), ["git"])
         self.assertEqual(stored["scope_labels"], "always")
 
     def test_old_apply_shape_preserves_v2_subagent_values(self):
@@ -439,7 +441,9 @@ class ParserAndFormattingTests(ConfigCommandTestCase):
                 show, self.config_dir, self.executable
             )
         )
-        self.assertEqual(shown["display"]["items"], list(config_display.DEFAULT_ITEMS))
+        self.assertEqual(
+            selected_ids(shown["display"]), list(config_display.DEFAULT_ITEMS)
+        )
         listing = config_commands.parse_slash_arguments("list-items --json")
         listed = json.loads(
             config_commands.execute_config_namespace(
@@ -447,7 +451,8 @@ class ParserAndFormattingTests(ConfigCommandTestCase):
             )
         )
         self.assertEqual(
-            [item["id"] for item in listed], list(config_display.ITEM_CATALOG)
+            [item["id"] for item in listed],
+            [*config_display.ITEM_CATALOG, "text", "spacer"],
         )
         subagents = config_commands.parse_slash_arguments("subagents list-items --json")
         subagent_list = json.loads(
@@ -457,7 +462,7 @@ class ParserAndFormattingTests(ConfigCommandTestCase):
         )
         self.assertEqual(
             [item["id"] for item in subagent_list],
-            list(config_display.SUBAGENT_ITEM_CATALOG),
+            [*config_display.SUBAGENT_ITEM_CATALOG, "text", "spacer"],
         )
         self.assertIn("subagent_statusline", shown)
         self.assertEqual(

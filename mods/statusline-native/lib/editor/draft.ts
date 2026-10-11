@@ -1,3 +1,6 @@
+import { t, type Language } from '../i18n/index.ts';
+import { nodes, newInstance, reconcileRows } from './instances.ts';
+import { isDraft } from '../backend.ts';
 import type {
   CatalogItem,
   DescribeResult,
@@ -30,6 +33,8 @@ export class Editor {
   baseline: ReadResult;
   page: Page = 'main';
   advanced = false;
+  adding = false;
+  pickerSaved: {search:string;category:string;selected:string} | null = null;
   detail: { scope: Scope; id: string } | null = null;
   guidanceScroll: number | null = null;
   review: ReviewState | null = null;
@@ -56,13 +61,7 @@ export class Editor {
     this.order = { main: [], subagent: [] };
     this.selected = { main: '', subagent: '' };
     for (const scope of ['main', 'subagent'] as const) {
-      const enabled = this.items(scope);
-      this.order[scope] = [
-        ...enabled,
-        ...this.catalog(scope)
-          .map((item) => item.id)
-          .filter((id) => !enabled.includes(id)),
-      ];
+      this.order[scope] = nodes(this.draft,scope).map(i=>i.id);
       this.selected[scope] = this.order[scope][0] || '';
     }
     this.buffers = {
@@ -74,7 +73,7 @@ export class Editor {
   replaceDraft(draft: Draft): void {
     this.draft = copyDraft(draft);
     for (const scope of ['main', 'subagent'] as const) {
-      this.order[scope] = [...this.items(scope), ...this.catalog(scope).map((i) => i.id).filter((id) => !this.items(scope).includes(id))];
+      this.order[scope] = nodes(this.draft,scope).map(i=>i.id);
       if (!this.order[scope].includes(this.selected[scope])) this.selected[scope] = this.order[scope][0] || '';
     }
     this.buffers = { padding: String(draft.host.padding), refresh_interval: String(draft.host.refresh_interval) };
@@ -99,26 +98,65 @@ export class Editor {
   }
 
   items(scope: Scope): string[] {
-    return scope === 'main'
-      ? this.draft.display.items
-      : this.draft.display.subagents.items;
+    return nodes(this.draft,scope).filter(i=>i.enabled).map(i=>i.id);
   }
 
-  visible(scope: Scope): CatalogItem[] {
-    return this.matches(scope).map(result => result.item);
+  instance(scope: Scope, id: string) { return nodes(this.draft,scope).find(i=>i.id===id); }
+  definition(scope: Scope, id: string): CatalogItem | undefined {
+    return this.catalog(scope).find(i=>i.id===(this.instance(scope,id)?.type_id ?? id));
   }
 
-  matches(scope: Scope): {item: CatalogItem; match: Match}[] {
-    const catalog = new Map(this.catalog(scope).map(item => [item.id as string, item]));
-    const options = (scope === 'main' ? this.draft.display.item_options : this.draft.display.subagents.item_options) as Record<string, {label: string | null} | undefined>;
-    return this.order[scope].flatMap(id => {
-      const item = catalog.get(id);
-      if (!item || (this.category[scope] !== 'all' && item.group !== this.category[scope])) return [];
+  instanceLabel(scope:Scope,id:string,language:Language='en'):string {
+    const node=this.instance(scope,id),type=node?.type_id??id;
+    const peers=nodes(this.draft,scope).filter(i=>i.type_id===type);
+    return (node?.options.label || (type==='text'?node?.text:null) || t(`items.${scope}.${type}.label`,language))+
+      (node&&peers.length>1?` (${peers.indexOf(node)+1})`:'');
+  }
+
+  visible(scope: Scope): CatalogItem[] { return this.matches(scope).map(result => result.item); }
+
+  matches(scope: Scope): {item: CatalogItem & {type_id?:string;custom_label?:string|null;ordinal?:number}; match: Match}[] {
+    const catalog = new Map(this.catalog(scope).map(item=>[item.id as string,item]));
+    const order = this.adding ? [...catalog.keys()] : this.order[scope];
+    return order.flatMap(id=> {
+      const node = this.adding ? undefined : this.instance(scope,id);
+      const definition = catalog.get(node?.type_id ?? id);
+      if (!definition || (this.category[scope] !== 'all' && definition.group !== this.category[scope])) return [];
+      const peers = node ? nodes(this.draft,scope).filter(i=>i.type_id===node.type_id) : [];
+      const item = {...definition,id,type_id:definition.id,custom_label:node?.options.label ?? (node?.type_id==='text'?node.text:null),ordinal:peers.length>1?peers.indexOf(node!)+1:undefined};
       const match = normalize(this.search[scope]).characters.length
-        ? bestMatch(fields(item, options[id]?.label), this.search[scope])
-        : {rank: 5, positions: [], text: item.id, field: 'id'};
-      return match ? [{item, match}] : [];
-    }).sort((a, b) => a.match.rank - b.match.rank);
+        ? bestMatch(fields(definition,node?.options.label),this.search[scope])
+        : {rank:5,positions:[],text:id,field:'id'};
+      return match ? [{item,match}] : [];
+    }).sort((a,b)=>a.match.rank-b.match.rank);
+  }
+
+  openPicker(scope: Scope): void {
+    this.pickerSaved={search:this.search[scope],category:this.category[scope],selected:this.selected[scope]};
+    this.adding=true; this.search[scope]='';this.category[scope]='all';this.selected[scope]=this.catalog(scope)[0]?.id ?? '';
+  }
+  closePicker(scope: Scope): void {
+    if(this.pickerSaved){this.search[scope]=this.pickerSaved.search;this.category[scope]=this.pickerSaved.category;this.selected[scope]=this.pickerSaved.selected;}
+    this.adding=false;this.pickerSaved=null;
+  }
+  instanceAction(scope: Scope, action:'add'|'copy'|'remove', typeId?:string): boolean {
+    const draft=copyDraft(this.draft), list=nodes(draft,scope);
+    const selected=this.adding ? this.pickerSaved?.selected : this.selected[scope];
+    const index=list.findIndex(i=>i.id===selected);
+    let next=selected ?? '';
+    if(action==='remove'){
+      if(index<0)return false;
+      list.splice(index,1);next=list[Math.min(index,list.length-1)]?.id??'';
+    }else{
+      if(action==='copy'&&index<0)return false;
+      const node=newInstance(typeId??list[index]!.type_id,list,action==='copy'?list[index]:undefined);
+      list.splice(index<0?list.length:index+1,0,node);next=node.id;
+    }
+    if(scope==='main')reconcileRows(draft);
+    if(!isDraft(draft))return false;
+    if(this.adding){this.closePicker(scope);this.search[scope]='';this.category[scope]='all';}
+    this.draft=draft;this.order[scope]=list.map(i=>i.id);this.selected[scope]=next;
+    return true;
   }
 
   categories(scope: Scope): string[] {
@@ -144,22 +182,16 @@ export class Editor {
   }
 
   toggle(scope: Scope, id: string): boolean {
-    const item = this.catalog(scope).find((candidate) => candidate.id === id);
-    if (!item) return false;
-    const enabled = new Set(this.items(scope));
-    if (!enabled.delete(id)) {
-      item.excludes.forEach((excluded) => enabled.delete(excluded));
-      enabled.add(id);
-    }
-    this.setItems(
-      scope,
-      this.order[scope].filter((candidate) => enabled.has(candidate)),
-    );
-    return true;
+    if(this.adding)return this.instanceAction(scope,'add',id);
+    const draft=copyDraft(this.draft),node=nodes(draft,scope).find(i=>i.id===id);
+    if(!node)return false;
+    node.enabled=!node.enabled;
+    if(!isDraft(draft))return false;
+    this.draft=draft;return true;
   }
 
   move(scope: Scope, delta: -1 | 1): boolean {
-    if (this.filtered(scope)) return false;
+    if (this.adding || this.filtered(scope)) return false;
     const visible = this.visible(scope).map((item) => item.id as string);
     const id = this.selected[scope];
     const index = visible.indexOf(id);
@@ -218,26 +250,12 @@ export class Editor {
   }
 
   private setItems(scope: Scope, items: string[]): void {
-    if (scope === 'main') {
-      const layout = this.draft.display.layout;
-      if (layout.mode === 'explicit') {
-        const remaining = [...items] as Draft['display']['items'];
-        const selected = new Set(items);
-        const rows: typeof layout.rows = [];
-        for (const row of layout.rows) {
-          const size = row.filter((id) => selected.has(id)).length;
-          if (size) rows.push(remaining.splice(0, size));
-        }
-        if (remaining.length) {
-          if (rows.length) rows[rows.length - 1]!.push(...remaining);
-          else rows.push(remaining);
-        }
-        layout.rows = rows;
-      }
-      this.draft.display.items = items as Draft['display']['items'];
-    } else {
-      this.draft.display.subagents.items =
-        items as Draft['display']['subagents']['items'];
-    }
+    const byId=new Map(nodes(this.draft,scope).map(i=>[i.id,i]));
+    const ordered=this.order[scope].map(id=>({...byId.get(id)!,enabled:items.includes(id)}));
+    const draft=copyDraft(this.draft);
+    if(scope==='main'){draft.display.instances=ordered;reconcileRows(draft);}
+    else draft.display.subagents.instances=ordered;
+    if(isDraft(draft))this.draft=draft;
+    else this.order[scope]=nodes(this.draft,scope).map(i=>i.id);
   }
 }

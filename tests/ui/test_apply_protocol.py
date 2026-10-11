@@ -1,5 +1,7 @@
 """Full-draft atomic saves share CLI/curses transactions and ownership checks."""
 
+from tests.config_support import selected_ids, set_selection
+
 from contextlib import contextmanager
 from dataclasses import replace
 import copy
@@ -49,7 +51,7 @@ class ApplyProtocolTests(unittest.TestCase):
         return protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 10,
+                    "protocol_version": 11,
                     "operation": operation,
                     "payload": payload or {},
                 }
@@ -70,33 +72,63 @@ class ApplyProtocolTests(unittest.TestCase):
                 external = editor.EditorState.from_effective(
                     service.read_effective_config(self.root, self.exe)
                 )
-                external.host = replace(external.host, padding=2 if current["draft"]["host"]["padding"] != 2 else 3)
+                external.host = replace(
+                    external.host,
+                    padding=2 if current["draft"]["host"]["padding"] != 2 else 3,
+                )
                 client_draft = copy.deepcopy(current["draft"])
-                client_draft["display"]["use_colors"] = not client_draft["display"]["use_colors"]
+                client_draft["display"]["use_colors"] = not client_draft["display"][
+                    "use_colors"
+                ]
                 settings = json.loads(self.settings.read_text())
                 settings["permissions"]["allow"].append("Glob")
                 self.settings.write_text(json.dumps(settings))
                 if client_first:
-                    _, status = self.request("apply", {
-                        "draft": client_draft, "expected_revision": current["revision"],
-                    })
+                    _, status = self.request(
+                        "apply",
+                        {
+                            "draft": client_draft,
+                            "expected_revision": current["revision"],
+                        },
+                    )
                     self.assertEqual(status, 0)
-                    before = self.settings.read_bytes(), display.config_path(self.root).read_bytes()
+                    before = (
+                        self.settings.read_bytes(),
+                        display.config_path(self.root).read_bytes(),
+                    )
                     with mock.patch.object(service, "_backup_transaction") as backup:
                         with self.assertRaises(models.ConfigCommandError):
                             editor.save_configuration(self.root, self.exe, external)
                 else:
                     editor.save_configuration(self.root, self.exe, external)
-                    before = self.settings.read_bytes(), display.config_path(self.root).read_bytes()
+                    before = (
+                        self.settings.read_bytes(),
+                        display.config_path(self.root).read_bytes(),
+                    )
                     with mock.patch.object(service, "_backup_transaction") as backup:
-                        response, status = self.request("apply", {
-                            "draft": client_draft, "expected_revision": current["revision"],
-                        })
+                        response, status = self.request(
+                            "apply",
+                            {
+                                "draft": client_draft,
+                                "expected_revision": current["revision"],
+                            },
+                        )
                         self.assertEqual(status, 2)
-                        self.assertEqual(response["error"]["code"], "configuration_conflict")
+                        self.assertEqual(
+                            response["error"]["code"], "configuration_conflict"
+                        )
                 backup.assert_not_called()
-                self.assertEqual(before, (self.settings.read_bytes(), display.config_path(self.root).read_bytes()))
-                self.assertIn("Glob", json.loads(self.settings.read_text())["permissions"]["allow"])
+                self.assertEqual(
+                    before,
+                    (
+                        self.settings.read_bytes(),
+                        display.config_path(self.root).read_bytes(),
+                    ),
+                )
+                self.assertIn(
+                    "Glob",
+                    json.loads(self.settings.read_text())["permissions"]["allow"],
+                )
 
     def test_two_editors_noop_and_unrelated_settings_preserved(self):
         first = self.read()
@@ -229,7 +261,7 @@ class ApplyProtocolTests(unittest.TestCase):
             lock.assert_not_called()
             backup.assert_not_called()
         invalid = baseline["draft"]
-        invalid["display"]["items"] = ["git", "git"]
+        set_selection(invalid["display"], ["git", "git"])
         with mock.patch.object(storage, "_installation_lock") as lock:
             result, status = self.request(
                 "apply", {"draft": invalid, "expected_revision": baseline["revision"]}
@@ -245,12 +277,16 @@ class ApplyProtocolTests(unittest.TestCase):
                 draft = copy.deepcopy(baseline["draft"])
                 del draft[section][field]
                 drafts.append(draft)
-        for field in ("enabled", "items"):
+        for field in ("enabled", "instances"):
             draft = copy.deepcopy(baseline["draft"])
             del draft["display"]["subagents"][field]
             drafts.append(draft)
         legacy = copy.deepcopy(baseline["draft"])
-        legacy["display"] = {k: v for k, v in legacy["display"].items() if k in display.V1_DISPLAY_KEYS}
+        legacy["display"] = {
+            k: v
+            for k, v in display.DEFAULT_CONFIG.legacy_dict().items()
+            if k in display.V1_DISPLAY_KEYS
+        }
         legacy["display"]["schema_version"] = 1
         legacy["display"].pop("scope_labels", None)
         legacy["display"].pop("subagents", None)
@@ -271,7 +307,7 @@ class ApplyProtocolTests(unittest.TestCase):
         legacy = copy.deepcopy(baseline["draft"])
         legacy["display"] = {
             key: value
-            for key, value in legacy["display"].items()
+            for key, value in display.DEFAULT_CONFIG.legacy_dict().items()
             if key in display.V1_DISPLAY_KEYS
         }
         legacy["display"]["schema_version"] = 1
@@ -283,7 +319,8 @@ class ApplyProtocolTests(unittest.TestCase):
                 mock.patch.object(storage, "_installation_lock") as lock,
             ):
                 response, status = self.request(
-                    "apply", {"draft": legacy, "expected_revision": baseline["revision"]}
+                    "apply",
+                    {"draft": legacy, "expected_revision": baseline["revision"]},
                 )
                 self.assertEqual(status, 2)
                 self.assertEqual(response["error"]["code"], "invalid_configuration")
@@ -296,7 +333,7 @@ class ApplyProtocolTests(unittest.TestCase):
         self.assertFalse(display.config_path(self.root).exists())
 
     def test_legacy_file_is_read_without_writes_and_migrated_on_apply(self):
-        legacy = display.DEFAULT_CONFIG.to_dict()
+        legacy = display.DEFAULT_CONFIG.legacy_dict()
         legacy = {k: v for k, v in legacy.items() if k in display.V1_DISPLAY_KEYS}
         legacy["schema_version"] = 1
         legacy.pop("scope_labels", None)
@@ -306,13 +343,13 @@ class ApplyProtocolTests(unittest.TestCase):
         path.write_bytes(original)
         baseline = self.read()
         self.assertEqual(path.read_bytes(), original)
-        self.assertEqual(baseline["draft"]["display"]["schema_version"], 7)
+        self.assertEqual(baseline["draft"]["display"]["schema_version"], 8)
         saved, status = self.request(
             "apply",
             {"draft": baseline["draft"], "expected_revision": baseline["revision"]},
         )
         self.assertEqual(status, 0, saved)
-        self.assertEqual(json.loads(path.read_bytes())["schema_version"], 7)
+        self.assertEqual(json.loads(path.read_bytes())["schema_version"], 8)
         backup = Path(saved["result"]["backup_dir"]) / "claude-statusline.json.before"
         self.assertEqual(backup.read_bytes(), original)
 
@@ -358,7 +395,7 @@ class ApplyProtocolTests(unittest.TestCase):
             mock.patch.object(
                 sys,
                 "stdin",
-                io.StringIO('{"protocol_version":10,"operation":"read","payload":{}}'),
+                io.StringIO('{"protocol_version":11,"operation":"read","payload":{}}'),
             ),
             mock.patch.object(sys, "stdout", stdout),
             mock.patch.object(
@@ -396,7 +433,7 @@ class ApplyProtocolTests(unittest.TestCase):
             process = subprocess.run(
                 [str(executable), "ui", "--config-dir", str(self.root)],
                 input=json.dumps(
-                    {"protocol_version": 10, "operation": operation, "payload": payload}
+                    {"protocol_version": 11, "operation": operation, "payload": payload}
                 ).encode("utf-8"),
                 capture_output=True,
                 check=False,
@@ -408,14 +445,14 @@ class ApplyProtocolTests(unittest.TestCase):
         baseline, status = invoke("read", {})
         self.assertEqual(status, 0, baseline)
         original = copy.deepcopy(baseline["result"]["draft"])
-        baseline["result"]["draft"]["display"]["items"] = ["git"]
+        set_selection(baseline["result"]["draft"]["display"], ["git"])
         payload = {
             "draft": baseline["result"]["draft"],
             "expected_revision": baseline["result"]["revision"],
         }
         saved, status = invoke("apply", payload)
         self.assertEqual(status, 0, saved)
-        self.assertEqual(saved["result"]["draft"]["display"]["items"], ["git"])
+        self.assertEqual(selected_ids(saved["result"]["draft"]["display"]), ["git"])
         stale, status = invoke("apply", {**payload, "draft": original})
         self.assertEqual(status, 2, stale)
         self.assertEqual(stale["error"]["code"], "configuration_conflict")
@@ -517,7 +554,7 @@ class ApplyProtocolTests(unittest.TestCase):
             settings[key]["command"] = ownership.command_for(alias, operation)
         self.settings.write_text(json.dumps(settings))
         baseline, status = protocol.handle(
-            json.dumps({"protocol_version": 10, "operation": "read", "payload": {}}),
+            json.dumps({"protocol_version": 11, "operation": "read", "payload": {}}),
             self.root,
             real,
         )
@@ -530,7 +567,7 @@ class ApplyProtocolTests(unittest.TestCase):
         response, status = protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 10,
+                    "protocol_version": 11,
                     "operation": "apply",
                     "payload": {
                         "draft": draft,

@@ -1,5 +1,7 @@
 """Linux/macOS PTY smoke tests for the interactive configure command."""
 
+from tests.config_support import selected_ids
+
 from claude_statusline.integration import bridge as integration_bridge
 from claude_statusline.platforms import files as platform_files
 from claude_statusline.platforms import macos_terminal as platform_macos_terminal
@@ -197,7 +199,8 @@ class ConfigurePtyTests(unittest.TestCase):
         self.assertEqual(self._wait_exit(), 0)
         self.assertEqual(json.loads(result_path.read_bytes())["outcome"], "updated")
         self.assertNotIn(
-            "model-with-effort", json.loads(self.display_path.read_bytes())["items"]
+            "model-with-effort",
+            selected_ids(json.loads(self.display_path.read_bytes())),
         )
 
     @unittest.skipUnless(
@@ -357,10 +360,10 @@ class ConfigurePtyTests(unittest.TestCase):
 
         display = json.loads(self.display_path.read_text(encoding="utf-8"))
         settings = json.loads(self.settings_path.read_text(encoding="utf-8"))
-        self.assertNotIn("current-dir", display["items"])
+        self.assertNotIn("current-dir", selected_ids(display))
         self.assertLess(
-            display["items"].index("context-remaining"),
-            display["items"].index("git"),
+            selected_ids(display).index("context-remaining"),
+            selected_ids(display).index("git"),
         )
         self.assertFalse(display["use_colors"])
         self.assertEqual(settings["statusLine"]["padding"], 3)
@@ -403,7 +406,7 @@ class ConfigurePtyTests(unittest.TestCase):
         self.assertEqual(self.settings_path.read_bytes(), before)
         self.assertTrue((self.config_dir / "backups").exists())
         display = json.loads(self.display_path.read_text(encoding="utf-8"))
-        self.assertEqual(display["schema_version"], 7)
+        self.assertEqual(display["schema_version"], 8)
 
     def test_too_small_resize_recovers_and_can_cancel(self):
         before = self.settings_path.read_bytes()

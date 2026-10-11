@@ -1,3 +1,4 @@
+import { component } from '../fixtures.ts';
 import { LANGUAGES, t } from '../../lib/i18n/index.ts';
 import { expect, test } from 'claude-code/testing';
 import type { ClientElements } from 'claude-code';
@@ -60,11 +61,11 @@ test('all editor pages fit the viewport and frame titles stay on its top edge', 
 
 test('layout and item forms have contiguous groups and stable field identities', () => {
   const state = view(), e = state.editor!;
-  e.draft.display.items = ['model-with-effort', 'git', 'context-used'];
+  e.draft.display.instances = ['model-with-effort', 'git', 'context-used'].map(id=>component(id));
   e.page = 'layout';
   const rows = formRows(state);
   expect(rows.slice(0, 3).map((r) => r.key)).toEqual(['layout.mode', 'break:git', 'break:context-used']);
-  expect(rows.slice(3).map((r) => r.key)).toEqual(e.draft.display.items.flatMap((id) => ['fit:' + id + ':priority', 'fit:' + id + ':max_width']));
+  expect(rows.slice(3).map((r) => r.key)).toEqual(e.draft.display.instances.filter(i=>i.enabled).map(i=>i.id).flatMap((id) => ['fit:' + id + ':priority', 'fit:' + id + ':max_width']));
   e.detail = { scope: 'main', id: 'git' };
   expect(formRows(state).slice(-2).map((r) => r.key)).toEqual(['item:priority', 'item:max_width']);
   for (const group of new Set(formRows(state).map((r) => r.group))) {
@@ -169,7 +170,7 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     else e.page = page as typeof e.page;
     const groups = editorShortcuts(state);
     const expected = page === 'main' || page === 'subagents'
-      ? ['Tab', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
+      ? ['Tab', 'Ctrl+A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
       : page === 'settings' ? ['Tab', '↑↓', '←→', 'Enter', 'H', 'R']
       : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', '↑↓', '←→', 'Enter'];
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);

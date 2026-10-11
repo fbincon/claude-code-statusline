@@ -5,15 +5,54 @@ from claude_statusline.rendering.layout import _display_width
 from claude_statusline.ui import search, theme
 
 
+def instance_metadata(config, scope, identifier):
+    from claude_statusline.config import instances
+
+    node = instances.find(config, scope, identifier)
+    if node is None:
+        return {
+            "instance_type": identifier,
+            "instance_name": None,
+            "instance_ordinal": None,
+        }
+    peers = [
+        i
+        for i in instances.scoped(config, scope).instances
+        if i.type_id == node.type_id
+    ]
+    return {
+        "instance_type": node.type_id,
+        "instance_name": node.options.label
+        or (node.text if node.type_id == "text" else None),
+        "instance_ordinal": peers.index(node) + 1 if len(peers) > 1 else None,
+    }
+
+
+def instance_label(state, scope, identifier):
+    from claude_statusline.i18n.presentation import component_label
+
+    return component_label(
+        instance_metadata(state.display, scope, identifier), state.language, scope
+    )
+
+
 def draw_item(screen, state, scope, item, match, y, x, width, selected, enabled):
     from claude_statusline.ui.drawing import _add_spans, _column, _item_column
 
     query = state.subagent_search if scope == "subagent" else state.search
     prefix = f"{'›' if selected else ' '} [{'x' if enabled else ' '}] "
-    label = t(f"items.{scope}.{item}.label", state.language)
+    from claude_statusline.config import instances
+
+    node = None if state.adding else instances.find(state.display, scope, item)
+    type_id = node.type_id if node else item
+    label = (
+        t(f"items.{scope}.{type_id}.label", state.language)
+        if state.adding
+        else instance_label(state, scope, item)
+    )
     label_match = search.match_text(label, query)
     label_column = _column(label, _item_column(width))
-    description = t(f"items.{scope}.{item}.description", state.language)
+    description = t(f"items.{scope}.{type_id}.description", state.language)
     hint = bool(search.normalize(query)[0]) and (
         label_match is None or label_match.rank > match.rank
     )

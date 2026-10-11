@@ -6,8 +6,8 @@ import type { Match } from '../../lib/editor/search.ts';
 import { clip } from '../layout.ts';
 import type { TextSpan } from './shortcuts.ts';
 
-export function itemSpans(item: CatalogItem, match: Match, query: string, language: Language, width: number, selected: boolean, enabled: boolean): TextSpan[] {
-  const label = t(`items.${item.scope}.${item.id}.label`, language);
+export function itemSpans(item: CatalogItem & {type_id?:string;custom_label?:string|null;ordinal?:number}, match: Match, query: string, language: Language, width: number, selected: boolean, enabled: boolean): TextSpan[] {
+  const label = (item.custom_label || t(`items.${item.scope}.${item.type_id ?? item.id}.label`, language)) + (item.ordinal ? ` (${item.ordinal})` : "");
   const labelMatch = matchText(label, query);
   const hint = normalize(query).characters.length > 0 && (!labelMatch || labelMatch.rank > match.rank);
   if (hint) match = snippet(match);

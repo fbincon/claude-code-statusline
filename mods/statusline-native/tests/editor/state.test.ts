@@ -1,55 +1,39 @@
+import { component } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
 import { Editor } from '../../lib/editor/draft.ts';
 import { description, readResult } from '../fixtures.ts';
 
-test('independent metrics coexist with compounds in both scopes and preserve order', () => {
-  const editor = new Editor(description(), readResult());
-  for (const id of ['model', 'effort', 'context-tokens', 'api-duration']) {
-    editor.toggle('main', id);
-  }
-  expect(editor.draft.display.items).toEqual([
-    'model-with-effort', 'model', 'effort', 'context-tokens', 'api-duration',
-  ]);
-  for (const id of ['model-with-effort', 'model', 'effort', 'context-tokens', 'context-window-size']) {
-    editor.toggle('subagent', id);
-  }
-  expect(editor.draft.display.subagents.items).toEqual([
-    'status-elapsed', 'name', 'model-with-effort', 'model', 'effort', 'context-tokens', 'context-window-size',
-  ]);
-  editor.filter('main', 'api-duration');
-  expect(editor.visible('main').map((item) => item.id)).toEqual(['api-duration']);
-  expect(editor.baseline.draft.display.items).toEqual(['model-with-effort']);
+test('adding and copying keeps type definitions separate from stable instances', () => {
+  const editor = new Editor(description(),readResult());
+  editor.selected.main='';
+  expect(editor.instanceAction('main','add','model')).toBe(true);
+  const first=editor.selected.main;
+  expect(editor.instanceAction('main','copy')).toBe(true);
+  const second=editor.selected.main;
+  expect(first===second).toBe(false);
+  editor.instance('main',second)!.options.label='Second';
+  expect(editor.instance('main',first)!.options.label).toBe(null);
+  expect(editor.draft.display.instances.map(i=>i.type_id)).toEqual(['model-with-effort','model','model']);
+  expect(editor.baseline.draft.display.instances.map(i=>i.id)).toEqual(['model-with-effort']);
+  editor.filter('main','model');
+  expect(editor.move('main',-1)).toBe(false);
+  editor.filter('main','');
+  expect(editor.move('main',-1)).toBe(true);
+  expect(editor.items('main')).toEqual(['model-with-effort',second,first]);
+  expect(editor.toggle('main',second)).toBe(true);
+  expect(editor.instance('main',second)!.enabled).toBe(false);
+  expect(editor.instanceAction('main','remove')).toBe(true);
+  expect(editor.instance('main',second)).toBe(undefined);
 });
 
-test('item changes preserve the baseline, exclusions and filtered ordering', () => {
-  const current = readResult();
-  const editor = new Editor(description(), current);
-  editor.toggle('main', 'git');
-  editor.toggle('main', 'current-dir');
-  editor.filter('main', 'git');
-  expect(editor.visible('main').slice(0, 5).map((item) => item.id)).toEqual(['git', 'git-branch', 'git-changes', 'git-ahead-behind', 'lines-changed']);
-  expect(editor.move('main', -1)).toBe(false);
-  editor.filter('main', '');
-  editor.selected.main = 'git';
-  expect(editor.move('main', -1)).toBe(true);
-  // Disabled hostname/project rows remain valid neighbours, just as in curses.
-  expect(editor.move('main', -1)).toBe(true);
-  expect(editor.move('main', -1)).toBe(true);
-  expect(editor.draft.display.items).toEqual([
-    'model-with-effort',
-    'git',
-    'current-dir',
-  ]);
-  expect(current.draft.display.items).toEqual(['model-with-effort']);
-  editor.toggle('subagent', 'status');
-  expect(editor.draft.display.subagents.items).toEqual(['name', 'status']);
-  editor.toggle('subagent', 'elapsed');
-  editor.toggle('subagent', 'status-elapsed');
-  expect(editor.draft.display.subagents.items).toEqual([
-    'status-elapsed',
-    'name',
-  ]);
-  expect(editor.modified).toBe(true);
+test('cross-type exclusions refuse additions without losing the current draft', () => {
+  const editor=new Editor(description(),readResult());
+  expect(editor.instanceAction('subagent','add','status')).toBe(false);
+  expect(editor.items('subagent')).toEqual(['status-elapsed','name']);
+  editor.toggle('subagent','status-elapsed');
+  expect(editor.instanceAction('subagent','add','status')).toBe(true);
+  expect(editor.toggle('subagent','status-elapsed')).toBe(false);
+  expect(editor.instance('subagent','status-elapsed')!.enabled).toBe(false);
 });
 
 test('numeric edits validate together, keep invalid buffers and commit explicit boundaries', () => {
@@ -76,20 +60,13 @@ test('numeric edits validate together, keep invalid buffers and commit explicit 
   expect(editor.modified).toBe(false);
 });
 
-test('disabled rows move in the filtered full order without changing the saved enabled set', () => {
-  const editor = new Editor(description(), readResult());
-  editor.selected.main = 'git';
-  const before = [...editor.draft.display.items];
-  expect(editor.move('main', -1)).toBe(true);
-  expect(editor.draft.display.items).toEqual(before);
-  editor.toggle('main', 'git');
-  expect(editor.items('main')).toEqual(['model-with-effort', 'git']);
-  editor.filter('main', 'model-with-effort');
-  expect(editor.selected.main).toBe('model-with-effort');
-  expect(editor.move('main', 1)).toBe(false);
-  editor.filter('main', 'no matches');
-  expect(editor.selected.main).toBe('');
-  expect(editor.toggle('main', '')).toBe(false);
+test('disabled configured rows retain identity and order across moves', () => {
+  const current=readResult();current.draft.display.instances.push({...component('git'),enabled:false});
+  const editor=new Editor(description(),current);editor.selected.main='git';
+  const before=[...editor.items('main')];
+  expect(editor.move('main',-1)).toBe(true);expect(editor.items('main')).toEqual(before);
+  editor.toggle('main','git');expect(editor.items('main')).toEqual(['git','model-with-effort']);
+  editor.filter('main','no matches');expect(editor.selected.main).toBe('');expect(editor.toggle('main','')).toBe(false);
 });
 
 test('accepting one numeric field neither validates nor discards another pending field', () => {
@@ -111,8 +88,8 @@ test('empty selections remain explicit after save and cancel restores numeric bu
   editor.toggle('main', 'model-with-effort');
   editor.toggle('subagent', 'status-elapsed');
   editor.toggle('subagent', 'name');
-  expect(editor.draft.display.items).toEqual([]);
-  expect(editor.draft.display.subagents.items).toEqual([]);
+  expect(editor.draft.display.instances.filter(i=>i.enabled).map(i=>i.id)).toEqual([]);
+  expect(editor.draft.display.subagents.instances.filter(i=>i.enabled).map(i=>i.id)).toEqual([]);
   editor.setBuffer('padding', '12');
   editor.setBuffer('refresh_interval', '3601');
   editor.cancelNumeric();
@@ -121,5 +98,5 @@ test('empty selections remain explicit after save and cancel restores numeric bu
   expect(editor.acceptNumeric()).toBe(true);
   editor.committed(readResult(editor.draft, '3'.repeat(64)));
   expect(editor.modified).toBe(false);
-  expect(editor.draft.display.items).toEqual([]);
+  expect(editor.draft.display.instances.filter(i=>i.enabled).map(i=>i.id)).toEqual([]);
 });

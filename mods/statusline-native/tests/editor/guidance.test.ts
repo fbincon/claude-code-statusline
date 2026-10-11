@@ -11,13 +11,13 @@ test('all canonical item explanations are translated and fit terminal cells', ()
     const lines = guidanceLines(item, language, width);
     expect(lines.every(line => displayWidth(line) <= width)).toBe(true);
     expect(lines.join('\n').includes('guidance.')).toBe(false);
-    expect(lines.some(line => line.includes('claude-statusline doctor'))).toBe(true);
+    if(!['text','spacer'].includes(item.id))expect(lines.some(line => line.includes('claude-statusline doctor'))).toBe(true);
   }
 });
 
 test('catalog guidance rejects missing and unknown source/scope/condition metadata', () => {
   const valid = {...description(), catalog: SEARCH_CATALOG as CatalogItem[]};
-  expect(parseResponse('describe', reply(valid)).catalog.length).toBe(74);
+  expect(parseResponse('describe', reply(valid)).catalog.length).toBe(78);
   for (const guide of [null, {}, {source_kinds:['future'],measurement_scope:'main',requirements:[],setup:[]},
     {source_kinds:['official_input'],measurement_scope:'future',requirements:[],setup:[]},
     {source_kinds:['official_input'],measurement_scope:'main',requirements:['future'],setup:[]}]) {

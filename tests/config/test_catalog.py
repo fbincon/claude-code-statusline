@@ -12,8 +12,8 @@ from tools.generate_ui_contracts import generated
 
 class CatalogTests(unittest.TestCase):
     def test_scopes_defaults_and_legacy_descriptions(self):
-        self.assertEqual(len(catalog.BY_SCOPE["main"]), 60)
-        self.assertEqual(len(catalog.BY_SCOPE["subagent"]), 14)
+        self.assertEqual(len(catalog.BY_SCOPE["main"]), 62)
+        self.assertEqual(len(catalog.BY_SCOPE["subagent"]), 16)
         self.assertEqual(
             display.DEFAULT_ITEMS,
             (
@@ -50,8 +50,9 @@ class CatalogTests(unittest.TestCase):
                     row["default_enabled"], item.default_position is not None
                 )
                 self.assertTrue(row["label"] and row["sources"] and row["examples"])
-                self.assertIn("not_observed", row["unavailable_reasons"])
-                self.assertIn("unsupported_host", row["unavailable_reasons"])
+                if not row["instance_only"]:
+                    self.assertIn("not_observed", row["unavailable_reasons"])
+                    self.assertIn("unsupported_host", row["unavailable_reasons"])
 
     def test_wizard_uses_generated_groups_and_constraints(self):
         skill = resources.render_skill(
@@ -60,7 +61,10 @@ class CatalogTests(unittest.TestCase):
         self.assertIn(catalog.wizard_groups(), skill)
         self.assertNotIn("__CLAUDE_STATUSLINE_", skill)
         for item in catalog.ITEMS:
-            self.assertIn(item.id, skill)
+            if item.id not in {"text", "spacer"}:
+                self.assertIn(item.id, catalog.wizard_groups())
+        self.assertNotIn("`spacer`", catalog.wizard_groups())
+        self.assertIn("Do not collapse copies", skill)
         self.assertTrue(catalog.conflicts("subagent", ["status-elapsed", "elapsed"]))
         self.assertFalse(catalog.conflicts("subagent", ["status", "elapsed"]))
 
@@ -90,14 +94,16 @@ class CatalogTests(unittest.TestCase):
 
 
 class LanguageWizardContractTests(unittest.TestCase):
-    def test_legacy_wizard_reads_interface_language_and_saves_output_language_atomically(self):
-        rendered = resources.render_skill(Path('/tmp/renderer')).decode('utf-8')
-        self.assertIn('config language show --json', rendered)
-        self.assertIn('config list-items`', rendered)
-        self.assertIn('ui_language', rendered)
+    def test_legacy_wizard_reads_interface_language_and_saves_output_language_atomically(
+        self,
+    ):
+        rendered = resources.render_skill(Path("/tmp/renderer")).decode("utf-8")
+        self.assertIn("config language show --json", rendered)
+        self.assertIn("config list-items`", rendered)
+        self.assertIn("ui_language", rendered)
         for language in LANGUAGES:
             self.assertIn(f"{language} ({LANGUAGE_NAMES[language]})", rendered)
-        self.assertIn('--statusline-language ' + '|'.join(LANGUAGES), rendered)
-        self.assertNotIn('__CLAUDE_STATUSLINE_', rendered)
-        self.assertIn('Do not write anything if the user cancels', rendered)
-        self.assertEqual(rendered.count(' config apply '), 1)
+        self.assertIn("--statusline-language " + "|".join(LANGUAGES), rendered)
+        self.assertNotIn("__CLAUDE_STATUSLINE_", rendered)
+        self.assertIn("Do not write anything if the user cancels", rendered)
+        self.assertEqual(rendered.count(" config apply "), 1)

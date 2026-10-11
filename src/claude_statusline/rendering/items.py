@@ -64,7 +64,14 @@ def humanize_api_tokens(v):
 
 
 def _rate_limit_item(
-    data, field, label, palette=rendering_palette.DEFAULT_PALETTE, *, now=None, fmt=None, language="en"
+    data,
+    field,
+    label,
+    palette=rendering_palette.DEFAULT_PALETTE,
+    *,
+    now=None,
+    fmt=None,
+    language="en",
 ):
     window = metrics.live_rate_window(data, field, now)
     if window is None:
@@ -80,7 +87,12 @@ def _rate_limit_item(
     )
     label_key = {"5h": "five_hour", "weekly": "weekly", "spend": "spend"}.get(label)
     label = statusline.text("limit." + label_key, language) if label_key else label
-    phrase = statusline.text("limit.used" if suffix == "used" else "limit.remaining", language, label=label, value=value)
+    phrase = statusline.text(
+        "limit.used" if suffix == "used" else "limit.remaining",
+        language,
+        label=label,
+        value=value,
+    )
     return f"{palette.percentage}{phrase}{palette.reset}"
 
 
@@ -188,6 +200,10 @@ class _RenderState:
         self._counts = _NOT_LOADED
         self._live = _NOT_LOADED
         self._now = None
+        self._branch = _NOT_LOADED
+        self._active_point = _NOT_LOADED
+        self._timer_observation = {}
+        self._instance_by_id = {i.id: i for i in config.instances}
         self.fmt = config.formatting
         self.language = config.statusline_language
 
@@ -230,17 +246,15 @@ class _RenderState:
     def branch_data(self):
         from claude_statusline.runtime import branch_diff
 
-        return branch_diff.collect(
-            _live_directory(self.data), self.config.metrics.branch_diff_base_ref
-        )
+        if self._branch is _NOT_LOADED:
+            self._branch = branch_diff.collect(
+                _live_directory(self.data), self.config.metrics.branch_diff_base_ref
+            )
+        return self._branch
 
     def branch_diff(self):
         value = self.branch_data()["value"]
-        text = (
-            self.text("diff.empty")
-            if value is None
-            else self.text("diff", **value)
-        )
+        text = self.text("diff.empty") if value is None else self.text("diff", **value)
         return self.styled(text, self.palette.branch, "repo")
 
     def totals(self):
@@ -298,7 +312,11 @@ class _RenderState:
     def effort(self):
         value = rendering_formatters.deep_get(self.data, ("effort", "level"))
         return self.styled(
-            statusline.value("effort", rendering_formatters.sanitize_payload_text(value), self.language),
+            statusline.value(
+                "effort",
+                rendering_formatters.sanitize_payload_text(value),
+                self.language,
+            ),
             self.palette.model,
             "model",
         )
@@ -338,8 +356,13 @@ class _RenderState:
         from claude_statusline.runtime.tasks.view import active_point
 
         self.totals()  # Shared collection stage; native task state stays authoritative.
-        point = active_point(Path(runtime_paths.CONFIG_DIR), self.data.get("session_id"),
-                             self.data.get("prompt_id"))
+        if self._active_point is _NOT_LOADED:
+            self._active_point = active_point(
+                Path(runtime_paths.CONFIG_DIR),
+                self.data.get("session_id"),
+                self.data.get("prompt_id"),
+            )
+        point = self._active_point
         if point["value"] is None:
             return None
         value = rendering_formatters.format_duration(point["value"])
@@ -369,7 +392,11 @@ class _RenderState:
 
     def git(self):
         result = self.git_data()
-        text = runtime_git._git_segment(result, self.palette, language=self.language) if result else None
+        text = (
+            runtime_git._git_segment(result, self.palette, language=self.language)
+            if result
+            else None
+        )
         return _RenderedItem(text, group="repo") if text else None
 
     def git_component(self, item):
@@ -437,7 +464,13 @@ class _RenderState:
 
     def rate_limit(self, field, label):
         text = _rate_limit_item(
-            self.data, field, label, self.palette, now=self.now(), fmt=self.fmt, language=self.language
+            self.data,
+            field,
+            label,
+            self.palette,
+            now=self.now(),
+            fmt=self.fmt,
+            language=self.language,
         )
         return _RenderedItem(text, group="limits") if text else None
 
@@ -451,20 +484,31 @@ class _RenderState:
             else None
         )
         return self.styled(
-            self.text("reset", label=self.text("limit.five_hour" if label == "5h" else "limit.weekly"), value=value) if value else None,
+            self.text(
+                "reset",
+                label=self.text("limit.five_hour" if label == "5h" else "limit.weekly"),
+                value=value,
+            )
+            if value
+            else None,
             self.palette.percentage,
             "limits",
         )
 
     def context_tokens(self):
         text = metrics.context_tokens(
-            rendering_formatters.deep_get(self.data, ("context_window",)), self.fmt, self.language
+            rendering_formatters.deep_get(self.data, ("context_window",)),
+            self.fmt,
+            self.language,
         )
         return self.styled(text, self.palette.percentage, "context")
 
     def session_metric(self, item):
         text = metrics.session_metric(
-            rendering_formatters.deep_get(self.data, ("cost",)), item, self.fmt, self.language
+            rendering_formatters.deep_get(self.data, ("cost",)),
+            item,
+            self.fmt,
+            self.language,
         )
         return self.styled(text, self.palette.percentage, "usage")
 
@@ -496,7 +540,10 @@ class _RenderState:
         if metrics.token_count(value) is None:
             return None
         return self.styled(
-            self.text("tokens.in", value=preferences.number(value, self.fmt, humanize_api_tokens)),
+            self.text(
+                "tokens.in",
+                value=preferences.number(value, self.fmt, humanize_api_tokens),
+            ),
             self.palette.tokens,
             "usage",
         )
@@ -507,7 +554,10 @@ class _RenderState:
         if metrics.token_count(value) is None:
             return None
         return self.styled(
-            self.text("tokens.out", value=preferences.number(value, self.fmt, humanize_api_tokens)),
+            self.text(
+                "tokens.out",
+                value=preferences.number(value, self.fmt, humanize_api_tokens),
+            ),
             self.palette.tokens,
             "usage",
         )
@@ -534,6 +584,7 @@ class _RenderState:
             entry,
             self.palette,
             language=self.language,
+            observation=self._timer_observation,
         )
         return _RenderedItem(text) if text else None
 
@@ -556,18 +607,25 @@ class _RenderState:
             if not sid:
                 return None
             text = sid[:8]
-        return _RenderedItem(f"{self.palette.model}{self.text('session', value=text)}{self.palette.reset}")
+        return _RenderedItem(
+            f"{self.palette.model}{self.text('session', value=text)}{self.palette.reset}"
+        )
 
     def session_name(self):
         value = rendering_formatters.sanitize_payload_text(
             self.data.get("session_name")
         )
-        return self.styled(self.text("session", value=value) if value else None, self.palette.model)
+        return self.styled(
+            self.text("session", value=value) if value else None, self.palette.model
+        )
 
     def session_id(self, short=False):
         value = rendering_formatters.sanitize_payload_text(self.data.get("session_id"))
         return self.styled(
-            self.text("session.id", value=value[:8] if short else value) if value else None, self.palette.model
+            self.text("session.id", value=value[:8] if short else value)
+            if value
+            else None,
+            self.palette.model,
         )
 
     def session_id_short(self):
@@ -577,7 +635,9 @@ class _RenderState:
         value = rendering_formatters.sanitize_payload_text(
             rendering_formatters.deep_get(self.data, ("output_style", "name"))
         )
-        return self.styled(self.text("style", value=value) if value else None, self.palette.model)
+        return self.styled(
+            self.text("style", value=value) if value else None, self.palette.model
+        )
 
     def cache_metric(self, item):
         text = metrics.cache_metric(
@@ -635,7 +695,9 @@ class _RenderState:
             )
         written = preferences.number(cache.get("cache_write_tokens"), self.fmt)
         if written and written != "0":
-            parts.append(f"{self.palette.tokens}{self.text('cache.write', value=written)}{self.palette.reset}")
+            parts.append(
+                f"{self.palette.tokens}{self.text('cache.write', value=written)}{self.palette.reset}"
+            )
         if not parts:
             return None
         return _RenderedItem(self.inner_separator.join(parts), group="usage")
@@ -644,14 +706,17 @@ class _RenderState:
         if not rendering_formatters.deep_get(self.data, ("fast_mode",)):
             return None
         return _RenderedItem(
-            f"{self.palette.model}{self.text('fast')}{self.palette.reset}", group="model"
+            f"{self.palette.model}{self.text('fast')}{self.palette.reset}",
+            group="model",
         )
 
     def agent(self):
         name = rendering_formatters.deep_get(self.data, ("agent", "name"))
         if not isinstance(name, str) or not name:
             return None
-        return _RenderedItem(f"{self.palette.timer}{self.text('agent', value=name)}{self.palette.reset}")
+        return _RenderedItem(
+            f"{self.palette.timer}{self.text('agent', value=name)}{self.palette.reset}"
+        )
 
     def vim_mode(self):
         mode = rendering_formatters.deep_get(self.data, ("vim", "mode"))
@@ -663,7 +728,8 @@ class _RenderState:
         if not rendering_formatters.deep_get(self.data, ("thinking", "enabled")):
             return None
         return _RenderedItem(
-            f"{self.palette.model}{self.text('thinking')}{self.palette.reset}", group="model"
+            f"{self.palette.model}{self.text('thinking')}{self.palette.reset}",
+            group="model",
         )
 
     def pr(self):
@@ -681,7 +747,9 @@ class _RenderState:
         text = f"{self.palette.branch}{prefix}{number}"
         state = pr.get("review_state")
         if isinstance(state, str) and state:
-            text += self.inner_separator + statusline.value("review", state, self.language)
+            text += self.inner_separator + statusline.value(
+                "review", state, self.language
+            )
         return _RenderedItem(text + self.palette.reset, group="repo")
 
     def worktree(self):
@@ -712,15 +780,31 @@ class _RenderState:
 
     def render(self, item_id):
         self.fmt, options = preferences.options_for(self.config, item_id)
+        node = self._instance_by_id.get(item_id)
+        if node is not None:
+            if not node.enabled or node.type_id == "spacer":
+                return None
+            item_id = node.type_id
+        if item_id == "text":
+            from .components import literal
+
+            text = literal(node, self.config)
+            return _RenderedItem(text) if text else None
         used = None
         if options.visibility != "always" or self.fmt.thresholds.enabled:
             from . import visibility
 
-            used = visibility.used_percentage(self.data, item_id, self.now() if item_id in _RATE_LIMIT_ITEMS else None)
+            used = visibility.used_percentage(
+                self.data, item_id, self.now() if item_id in _RATE_LIMIT_ITEMS else None
+            )
             if not visibility.visible(
-                options, item_id, used=used,
+                options,
+                item_id,
+                used=used,
                 git=self.git_data() if options.visibility == "git-dirty" else None,
-                point=self.live_data().get(item_id) if options.visibility == "nonzero" else None,
+                point=self.live_data().get(item_id)
+                if options.visibility == "nonzero"
+                else None,
             ):
                 return None
         item = self._render(item_id)
@@ -730,8 +814,15 @@ class _RenderState:
         text = preferences.threshold(
             text, used, self.fmt, self.config, self.palette.percentage
         )
-        text = preferences.decorate(text, item_id, "main", self.fmt, options, language=self.language)
-        if self.config.theme != "classic" or self.config.separator_style == "powerline" or options.foreground is not None or options.background is not None:
+        text = preferences.decorate(
+            text, item_id, "main", self.fmt, options, language=self.language
+        )
+        if (
+            self.config.theme != "classic"
+            or self.config.separator_style == "powerline"
+            or options.foreground is not None
+            or options.background is not None
+        ):
             from . import appearance
 
             text = appearance.apply(text, self.config, item_id, options, used=used)
@@ -806,7 +897,9 @@ def _configured_segments_with_state(data, config, state_class):
     ):
         rendered.insert(
             0,
-            _RenderedItem(f"{palette.timer}{statusline.text('scope.main', config.statusline_language)}{palette.reset}"),
+            _RenderedItem(
+                f"{palette.timer}{statusline.text('scope.main', config.statusline_language)}{palette.reset}"
+            ),
         )
     return (
         _coalesce_items(rendered, inner_separator),
@@ -817,6 +910,8 @@ def _configured_segments_with_state(data, config, state_class):
 
 def configured_rows(data, config, width, state_class=_RenderState):
     """One production/preview pipeline; explicit rows never acquire continuations."""
+    if any(i.enabled and i.type_id == "spacer" for i in config.instances):
+        return _spaced_rows(data, config, width, state_class)
     if config.separator_style == "powerline":
         return _powerline_rows(data, config, width, state_class)
     if config.layout.mode == "auto":
@@ -843,7 +938,13 @@ def configured_rows(data, config, width, state_class=_RenderState):
             continue
         if scope_label and not rows:
             selected.insert(
-                0, (None, _RenderedItem(f"{palette.timer}{statusline.text('scope.main', config.statusline_language)}{palette.reset}"))
+                0,
+                (
+                    None,
+                    _RenderedItem(
+                        f"{palette.timer}{statusline.text('scope.main', config.statusline_language)}{palette.reset}"
+                    ),
+                ),
             )
 
         def join():
@@ -889,11 +990,74 @@ def _powerline_rows(data, config, width, state_class):
             rendered = state.render(item_id)
             if rendered and rendered.text:
                 options = preferences.options_for(config, item_id)[1]
-                blocks.append(powerline.Block(rendered.text, options.priority, rendered.prefer_slash_breaks))
+                blocks.append(
+                    powerline.Block(
+                        rendered.text, options.priority, rendered.prefer_slash_breaks
+                    )
+                )
         if not blocks:
             continue
         if scope and not rows:
-            label = appearance.apply(statusline.text("scope.main", config.statusline_language), config, None, ItemOptions())
+            label = appearance.apply(
+                statusline.text("scope.main", config.statusline_language),
+                config,
+                None,
+                ItemOptions(),
+            )
             blocks.insert(0, powerline.Block(label, -1))
-        rows.extend(powerline.wrap(blocks, width, config) if config.layout.mode == "auto" else [powerline.fit(blocks, max(2, width), config)])
+        rows.extend(
+            powerline.wrap(blocks, width, config)
+            if config.layout.mode == "auto"
+            else [powerline.fit(blocks, max(2, width), config)]
+        )
+    return rows
+
+
+def _spaced_rows(data, config, width, state_class):
+    from .components import Cell, fit_row
+
+    palette = rendering_palette._palette_for(config)
+    outer, inner = rendering_palette._separators(config, palette)
+    state = state_class(data, config, palette, inner)
+    by_id = {i.id: i for i in config.instances}
+    scope = config.scope_labels == "always" or (
+        config.scope_labels == "when-subagents" and state.had_subagents()
+    )
+    rows = []
+    for row in config.layout.rows:
+        cells = []
+        for identifier in row:
+            node = by_id[identifier]
+            if not node.enabled:
+                continue
+            if node.type_id == "spacer":
+                cells.append(Cell(identifier, "", spacer=True))
+            else:
+                rendered = state.render(identifier)
+                if rendered and rendered.text:
+                    cells.append(
+                        Cell(
+                            identifier,
+                            rendered.text,
+                            node.options.priority,
+                            payload=rendered,
+                        )
+                    )
+        if not any(c.text for c in cells):
+            continue
+        if scope and not rows:
+            text = f"{palette.timer}{statusline.text('scope.main', config.statusline_language)}{palette.reset}"
+            cells.insert(0, Cell("scope", text, -1, payload=_RenderedItem(text)))
+
+        def join(side):
+            return outer.join(
+                i.text
+                for i in _coalesce_items(
+                    [replace(c.payload, text=c.text) for c in side], inner
+                )
+            )
+
+        value = fit_row(cells, max(2, width), config, join)
+        if value:
+            rows.append(value)
     return rows

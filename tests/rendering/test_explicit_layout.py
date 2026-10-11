@@ -9,7 +9,7 @@ from claude_statusline.rendering import items, layout, preview, subagents
 
 class ExplicitLayoutTests(unittest.TestCase):
     def config(self):
-        config = display.DEFAULT_CONFIG.with_updates(
+        config = display.DisplayConfig(
             items=("model", "session-name", "context-used"),
             use_colors=False,
             scope_labels="off",
@@ -77,10 +77,19 @@ class ExplicitLayoutTests(unittest.TestCase):
             config.layout.rows, (("context-used", "model"), ("session-name",))
         )
         config = config.with_updates(items=("context-used", "model"))
-        self.assertEqual(tuple(i for r in config.layout.rows for i in r), config.items)
+        self.assertEqual(
+            tuple(i for r in config.layout.rows for i in r),
+            tuple(i.id for i in config.instances),
+        )
         config = config.with_updates(items=(*config.items, "tokens"))
-        self.assertEqual(tuple(i for r in config.layout.rows for i in r), config.items)
-        self.assertEqual(config.with_updates(items=()).layout.rows, ())
+        self.assertEqual(
+            tuple(i for r in config.layout.rows for i in r),
+            tuple(i.id for i in config.instances),
+        )
+        self.assertEqual(config.with_updates(items=()).layout.rows, config.layout.rows)
+        self.assertEqual(
+            items.configured_rows({}, config.with_updates(items=()), 80), []
+        )
 
     def test_bad_partitions_are_refused(self):
         for rows in (
@@ -92,7 +101,7 @@ class ExplicitLayoutTests(unittest.TestCase):
                 advanced.edit_layout(self.config(), "explicit", rows)
 
     def test_subagent_hidden_ids_are_emitted_and_host_order_is_retained(self):
-        config = display.DEFAULT_CONFIG.with_updates(
+        config = display.DisplayConfig(
             subagents=replace(
                 display.DEFAULT_CONFIG.subagents, hide_completed=True, row_limit=1
             )
@@ -116,7 +125,7 @@ class ExplicitLayoutTests(unittest.TestCase):
         self.assertTrue(rows[2]["content"])
 
     def test_task_text_and_zero_row_limit(self):
-        config = display.DEFAULT_CONFIG.with_updates(
+        config = display.DisplayConfig(
             use_colors=False,
             subagents=display.SubagentDisplayConfig(items=("task",), task_max_width=6),
         )

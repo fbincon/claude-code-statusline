@@ -52,10 +52,10 @@ test('port snapshots can be deeply frozen without freezing the live draft', () =
     Object.freeze(value);
   };
   freeze(snapshot);
-  live.editor!.toggle('main', 'git');
+  live.editor!.instanceAction('main','add','git');
   live.editor!.filter('main', 'git');
-  expect(live.editor!.draft.display.items).toContain('git');
-  expect(snapshot.view.editor!.draft.display.items).not.toContain('git');
+  expect(live.editor!.draft.display.instances.filter(i=>i.enabled).map(i=>i.type_id)).toContain('git');
+  expect(snapshot.view.editor!.draft.display.instances.filter(i=>i.enabled).map(i=>i.type_id)).not.toContain('git');
   expect(snapshot.view.editor!.search.main).toBe('');
 });
 

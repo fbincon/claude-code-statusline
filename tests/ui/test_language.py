@@ -38,11 +38,18 @@ class LanguageUiTests(unittest.TestCase):
                     screen = InputScreen(80, 24)
                     events = iter((key, "\x1b"))
                     screen.get_wch = lambda: next(events)
-                    with mock.patch.object(drawing, "_draw_screen", return_value=12), mock.patch.object(drawing, "_ColorMapper", return_value=Mapper()):
+                    with (
+                        mock.patch.object(drawing, "_draw_screen", return_value=12),
+                        mock.patch.object(
+                            drawing, "_ColorMapper", return_value=Mapper()
+                        ),
+                    ):
                         self.assertEqual(session._screen_loop(screen, state), "cancel")
                     expected = LANGUAGES[(index + delta) % len(LANGUAGES)]
                     self.assertEqual(state.language, expected)
-                    self.assertEqual(ui_preferences.read(self.root).ui_language, expected)
+                    self.assertEqual(
+                        ui_preferences.read(self.root).ui_language, expected
+                    )
                     self.assertEqual(state.display.to_dict(), before)
                     self.assertEqual(forms.current(state)["key"], "ui-language")
 
@@ -73,6 +80,7 @@ class LanguageUiTests(unittest.TestCase):
             state.display = state.display.with_updates(
                 item_options={"model": formatting.ItemOptions(label="Engine 中文 é")}
             )
+            state.refresh_instances()
             state.search = "engine 中文"
             self.assertEqual(state.visible_items(), ["model"])
             state.subagent_search = "代理名称"
@@ -96,9 +104,13 @@ class LanguageUiTests(unittest.TestCase):
             self.assertEqual((state.search, state.subagent_search), ("context", "用户"))
             self.assertEqual(forms.index(state), selected)
             self.assertIsNone(state.pending_language)
-            self.assertEqual(presentation.value_label(forms.current(state), language), "简体中文")
+            self.assertEqual(
+                presentation.value_label(forms.current(state), language), "简体中文"
+            )
             self.assertTrue(state.modified)
-            self.assertIn("上下文", "\n".join(preview.render_preview_rows(state.display, 120)))
+            self.assertIn(
+                "上下文", "\n".join(preview.render_preview_rows(state.display, 120))
+            )
             self.assertFalse((self.root / display.CONFIG_FILENAME).exists())
             self.assertFalse((self.root / "statusline-ui.json").exists())
 
@@ -111,7 +123,10 @@ class LanguageUiTests(unittest.TestCase):
         screen = InputScreen(64, 18)
         events = iter((curses.KEY_RIGHT, "\x1b"))
         screen.get_wch = lambda: next(events)
-        with mock.patch.object(drawing, "_draw_screen", return_value=12), mock.patch.object(drawing, "_ColorMapper", return_value=Mapper()):
+        with (
+            mock.patch.object(drawing, "_draw_screen", return_value=12),
+            mock.patch.object(drawing, "_ColorMapper", return_value=Mapper()),
+        ):
             self.assertEqual(session._screen_loop(screen, state), "cancel")
         self.assertEqual(state.display.statusline_language, "zh-CN")
         self.assertEqual(state.language, "zh-CN")

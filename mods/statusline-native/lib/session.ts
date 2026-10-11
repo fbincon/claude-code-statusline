@@ -37,6 +37,8 @@ type EditorData = Pick<
   | 'draft'
   | 'page'
   | 'advanced'
+  | 'adding'
+  | 'pickerSaved'
   | 'detail'
   | 'guidanceScroll'
   | 'review'
@@ -89,6 +91,8 @@ export function clientProps(
               draft: e.draft,
               page: e.page,
               advanced: e.advanced,
+              adding: e.adding,
+              pickerSaved: e.pickerSaved,
               detail: e.detail, preset: e.preset, path: e.path, pendingTransfer: e.pendingTransfer,
               guidanceScroll: e.guidanceScroll,
               review: e.review,

@@ -316,7 +316,7 @@ class AcceptanceTests(unittest.TestCase):
         self.assertEqual(check.call_count, 5)
         self.assertEqual(
             [call.args[-1] for call in check.call_args_list],
-            [13, 13, 10, 10, 9],
+            [13, 13, 13, 13, 9],
         )
         self.assertEqual(
             check.call_args.args[1:],

@@ -31,13 +31,21 @@ class UiPreferenceTests(unittest.TestCase):
             backups = list((self.root / "backups").rglob("metadata.json"))
             preferences.set_language(self.root, language)
             self.assertEqual(raw, self.path.read_bytes())
-            self.assertEqual(backups, list((self.root / "backups").rglob("metadata.json")))
+            self.assertEqual(
+                backups, list((self.root / "backups").rglob("metadata.json"))
+            )
         self.assertEqual(settings.read_bytes(), b'{"unrelated":true}')
 
     def test_invalid_preferences_are_read_only_and_explicitly_repaired(self):
         self.root.mkdir()
-        for raw in (b"broken", b"\xff", b"[]", b'{"schema_version":true,"ui_language":"zh-CN"}',
-                    b'{"schema_version":1,"ui_language":"xx"}', b'{"schema_version":1,"schema_version":1,"ui_language":"en"}'):
+        for raw in (
+            b"broken",
+            b"\xff",
+            b"[]",
+            b'{"schema_version":true,"ui_language":"zh-CN"}',
+            b'{"schema_version":1,"ui_language":"xx"}',
+            b'{"schema_version":1,"schema_version":1,"ui_language":"en"}',
+        ):
             with self.subTest(raw=raw):
                 self.path.write_bytes(raw)
                 read = preferences.read(self.root)
@@ -46,7 +54,12 @@ class UiPreferenceTests(unittest.TestCase):
                 self.assertEqual(self.path.read_bytes(), raw)
                 preferences.set_language(self.root, "zh-CN")
                 self.assertEqual(preferences.read(self.root).ui_language, "zh-CN")
-                self.assertTrue(any(p.read_bytes() == raw for p in (self.root / "backups").rglob("*.before")))
+                self.assertTrue(
+                    any(
+                        p.read_bytes() == raw
+                        for p in (self.root / "backups").rglob("*.before")
+                    )
+                )
 
     def test_future_schema_and_unknown_languages_are_never_written(self):
         with self.assertRaises(models.ConfigCommandError):
@@ -80,19 +93,36 @@ class UiPreferenceTests(unittest.TestCase):
 
     def test_concurrent_writers_publish_valid_complete_preferences(self):
         with ThreadPoolExecutor(max_workers=4) as pool:
-            results = list(pool.map(lambda locale: preferences.set_language(self.root, locale).ui_language,
-                                    ["en", "zh-CN"] * 8))
+            results = list(
+                pool.map(
+                    lambda locale: (
+                        preferences.set_language(self.root, locale).ui_language
+                    ),
+                    ["en", "zh-CN"] * 8,
+                )
+            )
         self.assertEqual(results, ["en", "zh-CN"] * 8)
         self.assertIn(preferences.read(self.root).ui_language, ("en", "zh-CN"))
-        self.assertEqual(set(json.loads(self.path.read_bytes())), {"schema_version", "ui_language"})
+        self.assertEqual(
+            set(json.loads(self.path.read_bytes())), {"schema_version", "ui_language"}
+        )
 
     def test_protocol_preferences_work_without_renderer_and_errors_keep_metadata(self):
         def request(operation, payload):
-            return protocol.handle(json.dumps({"protocol_version": 10, "operation": operation, "payload": payload}),
-                                   self.root, Path("/missing/renderer"))
+            return protocol.handle(
+                json.dumps(
+                    {"protocol_version": 11, "operation": operation, "payload": payload}
+                ),
+                self.root,
+                Path("/missing/renderer"),
+            )
+
         response, status = request("read_ui_preferences", {})
         self.assertEqual(status, 0)
-        self.assertEqual(response["result"], {"schema_version": 1, "ui_language": "en", "warning": None})
+        self.assertEqual(
+            response["result"],
+            {"schema_version": 1, "ui_language": "en", "warning": None},
+        )
         self.assertFalse(self.root.exists())
         response, status = request("set_ui_language", {"ui_language": "zh-CN"})
         self.assertEqual(status, 0)
@@ -100,4 +130,6 @@ class UiPreferenceTests(unittest.TestCase):
         response, status = request("set_ui_language", {"ui_language": "unknown"})
         self.assertEqual(status, 2)
         self.assertIn("Unsupported UI language", response["error"]["message"])
-        self.assertEqual(response["error"]["localization"]["key"], "preferences.unsupported_language")
+        self.assertEqual(
+            response["error"]["localization"]["key"], "preferences.unsupported_language"
+        )

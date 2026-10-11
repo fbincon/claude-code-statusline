@@ -10,7 +10,7 @@ import {
   SCOPELABELS_VALUES,
   STATUSLINELANGUAGE_VALUES,
   UNAVAILABLEREASON_VALUES,
-  FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, GUIDANCE_KEYS,
+  FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, GUIDANCE_KEYS, ITEM_DEFAULTS,
 } from './generated-contracts.ts';
 import type {
   Capabilities,
@@ -120,6 +120,26 @@ function formatting(value: unknown): boolean {
     range(thresholds.critical, 0, 100) && Number(thresholds.warning) < Number(thresholds.critical);
 }
 
+function instanceList(value: unknown, ids: readonly string[], scope: "main" | "subagent"): value is import('./generated-contracts.ts').InstanceDraft[] {
+  if (!Array.isArray(value)) return false;
+  const seen = new Set<string>();
+  return value.every(node => {
+    if (!object(node) || !exact(node,['id','type_id','enabled','options','text']) ||
+        typeof node.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(node.id) || seen.has(node.id) ||
+        typeof node.type_id !== 'string' || !ids.includes(node.type_id) || typeof node.enabled !== 'boolean' ||
+        !itemOptions({[node.type_id]: node.options},ids,scope)) return false;
+    seen.add(node.id);
+    const option = node.options as Record<string,unknown>;
+    if (node.type_id === 'spacer') {
+      if (JSON.stringify(option) !== JSON.stringify(ITEM_DEFAULTS)) {
+        if (Object.entries(ITEM_DEFAULTS).some(([key,v]) => JSON.stringify(option[key]) !== JSON.stringify(v))) return false;
+      }
+    }
+    if (['text','spacer'].includes(node.type_id) && (option.visibility !== 'always' || Object.keys(option.formatting as object).length)) return false;
+    return node.type_id === 'text' ? text(node.text) && [...node.text].length <= 256 : node.text === null;
+  });
+}
+
 export function isDraft(value: unknown): value is Draft {
   if (
     !object(value) ||
@@ -134,28 +154,28 @@ export function isDraft(value: unknown): value is Draft {
     !exact(d, [
       'schema_version',
       'statusline_language',
-      'items',
+      'instances',
       'use_colors',
       'palette', 'theme', 'powerline_glyph',
       'directory_style',
       'separator_style',
       'scope_labels',
       'subagents',
-      'formatting', 'item_options', 'layout', 'metrics',
+      'formatting', 'layout', 'metrics',
     ]) ||
     !exact(h, ['padding', 'refresh_interval', 'hide_vim_mode_indicator'])
   )
     return false;
   if (
-    d.schema_version !== 7 ||
+    d.schema_version !== 8 ||
     !THEME_VALUES.some(x => x === d.theme) || !POWERLINEGLYPH_VALUES.some(x => x === d.powerline_glyph) ||
     !STATUSLINELANGUAGE_VALUES.some((x) => x === d.statusline_language) ||
     !object(d.metrics) || !exact(d.metrics, ['branch_diff_base_ref']) ||
     !(d.metrics.branch_diff_base_ref === null || (text(d.metrics.branch_diff_base_ref) && [...d.metrics.branch_diff_base_ref].length <= 256 &&
       d.metrics.branch_diff_base_ref.length > 0 && !/[\s]|^-/.test(d.metrics.branch_diff_base_ref))) ||
-    !formatting(d.formatting) || !itemOptions(d.item_options, MAIN_ITEM_IDS, "main") ||
+    !formatting(d.formatting) ||
     typeof d.use_colors !== 'boolean' ||
-    !selection(d.items, MAIN_ITEM_IDS) ||
+    !instanceList(d.instances, MAIN_ITEM_IDS, "main") ||
     !PALETTE_VALUES.some((x) => x === d.palette) ||
     !DIRECTORYSTYLE_VALUES.some((x) => x === d.directory_style) ||
     !SEPARATORSTYLE_VALUES.some((x) => x === d.separator_style) ||
@@ -165,21 +185,25 @@ export function isDraft(value: unknown): value is Draft {
   const sub = d.subagents;
   if (
     !object(sub) ||
-    !exact(sub, ['enabled', 'items', 'item_options', 'visibility', 'hide_completed', 'row_limit', 'task_max_width']) ||
-    !itemOptions(sub.item_options, SUBAGENT_ITEM_IDS, "subagent") ||
+    !exact(sub, ['enabled', 'instances', 'visibility', 'hide_completed', 'row_limit', 'task_max_width']) ||
     !['all', 'running'].includes(String(sub.visibility)) ||
     typeof sub.hide_completed !== 'boolean' || !range(sub.row_limit, 0, 10000, true) ||
     !range(sub.task_max_width, 2, 10000, true) ||
     typeof sub.enabled !== 'boolean' ||
-    !selection(sub.items, SUBAGENT_ITEM_IDS)
+    !instanceList(sub.instances, SUBAGENT_ITEM_IDS, "subagent")
   )
     return false;
+  if (sub.instances.filter(i => i.type_id === 'spacer').length > 1) return false;
+  const types = new Set(sub.instances.filter(i=>i.enabled).map(i=>i.type_id));
+  if (types.has('status-elapsed') && (types.has('status') || types.has('elapsed'))) return false;
+  const ids = d.instances.map(i=>i.id);
+  const spacers = new Set(d.instances.filter(i=>i.type_id==='spacer').map(i=>i.id));
   const layout = d.layout;
   if (!object(layout) || !exact(layout, ['mode', 'rows']) ||
       !['auto', 'explicit'].includes(String(layout.mode)) || !Array.isArray(layout.rows) ||
-      !layout.rows.every((r) => selection(r, MAIN_ITEM_IDS) && r.length > 0) ||
-      (layout.mode === 'auto' ? layout.rows.length !== 0 :
-        JSON.stringify(layout.rows.flat()) !== JSON.stringify(d.items))) return false;
+      !layout.rows.every((r) => selection(r, ids) && r.length > 0 && r.filter(id => spacers.has(id)).length <= 1) ||
+      (layout.mode === 'auto' ? layout.rows.length !== 0 || spacers.size > 0 :
+        JSON.stringify(layout.rows.flat()) !== JSON.stringify(ids))) return false;
   // Exclusions come from describe; Python remains the final draft validator.
   return (
     typeof h.padding === 'number' &&
@@ -230,21 +254,19 @@ function isGuidance(value: unknown): boolean {
 function isImportChange(value: unknown): boolean {
   if (!object(value) || !exact(value, ['section', 'kind', 'scope', 'item_id', 'path', 'before', 'after', 'label']) ||
       !['main','subagent','formatting','layout','language','host'].includes(String(value.section)) ||
-      !['enable','disable','reorder','change'].includes(String(value.kind)) ||
+      !['add','remove','enable','disable','reorder','change'].includes(String(value.kind)) ||
       !(value.scope === null || value.scope === 'main' || value.scope === 'subagent') ||
-      !strings(value.path) || !value.path.length || value.path.length > 6 ||
+      !strings(value.path) || !value.path.length || value.path.length > 8 ||
       !['display','host'].includes(value.path[0]!) || !isLocalizedText(value.label)) return false;
-  if (value.item_id !== null) {
-    const ids = value.scope === 'main' ? MAIN_ITEM_IDS : value.scope === 'subagent' ? SUBAGENT_ITEM_IDS : [];
-    if (!ids.some(id => id === value.item_id)) return false;
-  }
+  if (value.item_id !== null && (typeof value.item_id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(value.item_id))) return false;
   if (value.kind === 'enable' || value.kind === 'disable')
     return value.item_id !== null && value.before === (value.kind === 'disable') && value.after === (value.kind === 'enable');
-  if (value.kind === 'reorder') {
-    const ids = value.scope === 'main' ? MAIN_ITEM_IDS : value.scope === 'subagent' ? SUBAGENT_ITEM_IDS : [];
-    return value.item_id === null && selection(value.before, ids) && selection(value.after, ids) &&
+  if (value.kind === 'add' || value.kind === 'remove')
+    return value.item_id !== null && (value.kind === 'add' ? value.before === null && object(value.after) : object(value.before) && value.after === null);
+  if (value.kind === 'reorder')
+    return value.item_id === null && strings(value.before) && strings(value.after) &&
+      new Set(value.before).size === value.before.length && new Set(value.after).size === value.after.length &&
       value.before.length === value.after.length && value.before.every(id => (value.after as string[]).includes(id));
-  }
   return true;
 }
 

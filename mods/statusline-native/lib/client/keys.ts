@@ -17,8 +17,8 @@ export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
   if (!e) return;
   if (e.review) { e.review = null; setMessage(view, 'message', localizedText('review.cancelled')); return; }
-  if (e.guidanceScroll !== null) { e.guidanceScroll = null; return; }
-  if (!input) { e.detail = null; return; }
+  if (e.guidanceScroll !== null) { e.guidanceScroll = null; if(e.adding)e.detail=null; return; }
+  if (!input) { if(e.adding)e.closePicker(e.page==='main'?'main':'subagent'); else e.detail = null; return; }
   if (input.kind === 'search') {
     e.filter(input.scope, input.original);
     e.selected[input.scope] = input.selected;
@@ -48,7 +48,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   if (e.guidanceScroll !== null && e.detail) {
     const layout = editorLayout(view, columns, rows);
     const width = Math.max(2, columns - (layout.framed ? 2 : 0));
-    const item = e.catalog(e.detail.scope).find(item => item.id === e.detail!.id)!;
+    const item = e.definition(e.detail.scope,e.detail.id)!;
     const capacity = Math.max(1, layout.bodyRows - 1), maximum = Math.max(0, guidanceLines(item, view.language ?? 'en', width).length - capacity);
     if (key === 'up') e.guidanceScroll--;
     else if (key === 'down') e.guidanceScroll++;
@@ -110,6 +110,22 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     }
     return null;
   }
+  if(!e.detail&&(e.page==='main'||e.page==='subagents')){
+    const scope=e.page==='main'?'main':'subagent';
+    if(event.ctrl&&key.toLowerCase()==='a'&&!e.adding){e.openPicker(scope);return null;}
+    if(event.ctrl&&['d','x'].includes(key.toLowerCase())&&!e.adding){
+      if(!e.instanceAction(scope,key.toLowerCase()==='d'?'copy':'remove'))
+        setMessage(view,'message',localizedText('composition.invalid'));
+      return null;
+    }
+    if(e.adding&&!event.ctrl&&!event.meta&&(key==='return'||key===' ')){
+      if(!e.instanceAction(scope,'add',e.selected[scope]))setMessage(view,'message',localizedText('composition.invalid'));
+      return null;
+    }
+    if(e.adding&&!event.ctrl&&!event.meta&&shortcut==='q'){e.closePicker(scope);return null;}
+    if(e.adding&&event.ctrl&&key.toLowerCase()==='e'){e.detail={scope,id:e.selected[scope]};e.guidanceScroll=0;return null;}
+    if(e.adding&&['tab','1','2','3','4'].includes(key))return null;
+  }
   if (event.ctrl && key.toLowerCase() === 'e' && (e.page === 'main' || e.page === 'subagents')) {
     const scope = e.page === 'main' ? 'main' : 'subagent';
     if (e.selected[scope]) { e.detail = { scope, id: e.selected[scope] }; e.setting = 'item:label'; }
@@ -156,7 +172,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1); else e.move(scope, key === 'left' ? -1 : 1);
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
-    if (!isSettings) e.toggle(scope, selected);
+    if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",localizedText("composition.invalid")); }
     else if (e.setting === 'item-guidance') e.guidanceScroll = 0;
     else if (e.setting === 'preset-apply') { e.pendingTransfer = 'preset'; return 'transfer'; }
     else if (e.setting === 'import-file' || e.setting === 'export-file') {

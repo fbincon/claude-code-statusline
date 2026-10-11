@@ -1,5 +1,7 @@
 """Strict JSON input, locked snapshots and side-effect-free sample previews."""
 
+from tests.config_support import set_selection
+
 import json
 from pathlib import Path
 import subprocess
@@ -32,7 +34,7 @@ class ProtocolTests(unittest.TestCase):
         return protocol.handle(
             json.dumps(
                 {
-                    "protocol_version": 10,
+                    "protocol_version": 11,
                     "operation": operation,
                     "payload": {} if payload is None else payload,
                     **extra,
@@ -63,7 +65,7 @@ class ProtocolTests(unittest.TestCase):
         ):
             result, status = self.request("describe")
         self.assertEqual(status, 0)
-        self.assertEqual(len(result["result"]["catalog"]), 74)
+        self.assertEqual(len(result["result"]["catalog"]), 78)
         caps = result["result"]["capabilities"]
         self.assertEqual(caps["native_mod"], "unknown")
         self.assertEqual(caps["data_observation"], "not_observed")
@@ -94,12 +96,15 @@ class ProtocolTests(unittest.TestCase):
 
     def test_preview_reuses_production_formatting_without_live_sources(self):
         value = draft()
-        value["display"]["items"] = list(display.ITEM_CATALOG)
-        value["display"]["subagents"]["items"] = [
-            item
-            for item in display.SUBAGENT_ITEM_CATALOG
-            if item not in ("status", "elapsed")
-        ]
+        set_selection(value["display"], list(display.ITEM_CATALOG))
+        set_selection(
+            value["display"]["subagents"],
+            [
+                item
+                for item in display.SUBAGENT_ITEM_CATALOG
+                if item not in ("status", "elapsed")
+            ],
+        )
         for colors in (True, False):
             value["display"]["use_colors"] = colors
             for width in (2, 24, 80, 120):
@@ -155,7 +160,7 @@ class ProtocolTests(unittest.TestCase):
             cases.append({"draft": draft(), "width": width})
         for ids in (["unknown"], ["git", "git"]):
             value = draft()
-            value["display"]["items"] = ids
+            set_selection(value["display"], ids)
             cases.append({"draft": value, "width": 80})
         for payload in cases:
             result, status = self.request("preview", payload)
@@ -177,20 +182,24 @@ class ProtocolTests(unittest.TestCase):
 
     def test_legacy_draft_empty_rows_and_mutual_exclusions(self):
         value = draft()
-        value["display"] = {k: v for k, v in value["display"].items() if k in display.V1_DISPLAY_KEYS}
+        value["display"] = {
+            k: v
+            for k, v in display.DEFAULT_CONFIG.legacy_dict().items()
+            if k in display.V1_DISPLAY_KEYS
+        }
         value["display"]["schema_version"] = 1
         value["display"].pop("subagents", None)
         value["display"].pop("scope_labels", None)
         result, status = self.request("preview", {"draft": value, "width": 80})
         self.assertEqual(status, 0, result)
         empty = draft()
-        empty["display"]["items"] = []
+        set_selection(empty["display"], [])
         empty["display"]["subagents"]["enabled"] = False
         result, status = self.request("preview", {"draft": empty, "width": 24})
         self.assertEqual(status, 0)
         self.assertEqual(result["result"]["main"], [])
         self.assertEqual(result["result"]["subagents"], [])
-        empty["display"]["subagents"]["items"] = ["status-elapsed", "elapsed"]
+        set_selection(empty["display"]["subagents"], ["status-elapsed", "elapsed"])
         result, status = self.request("preview", {"draft": empty, "width": 80})
         self.assertEqual(status, 2)
         self.assertEqual(result["error"]["code"], "invalid_configuration")
@@ -202,7 +211,7 @@ class ProtocolTests(unittest.TestCase):
         env = dict(os.environ, CLAUDE_CONFIG_DIR=str(self.root))
         raw = json.dumps(
             {
-                "protocol_version": 10,
+                "protocol_version": 11,
                 "operation": "preview",
                 "payload": {"draft": draft(), "width": 80},
             }
@@ -223,5 +232,8 @@ class ProtocolTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, expected, result.stderr)
-            self.assertEqual(json.loads(result.stdout)["protocol_version"], contracts.PROTOCOL_VERSION)
+            self.assertEqual(
+                json.loads(result.stdout)["protocol_version"],
+                contracts.PROTOCOL_VERSION,
+            )
         self.assertFalse(self.root.exists())

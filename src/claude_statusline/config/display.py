@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from . import instances as composition
+
 from claude_statusline.i18n import message as msg, as_message
 from claude_statusline.i18n.registry import LANGUAGES as STATUSLINE_LANGUAGES
 
@@ -18,17 +20,25 @@ from claude_statusline.config import formatting as display_formatting
 LEGACY_SCHEMA_VERSION = 1
 
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 
 
 CONFIG_FILENAME = "claude-statusline.json"
 
 
 # Legacy dictionaries are derived compatibility views of the single catalog.
-ITEM_CATALOG = catalog.descriptions("main")
+ITEM_CATALOG = {
+    k: v
+    for k, v in catalog.descriptions("main").items()
+    if k not in composition.NODE_TYPES
+}
 LEGACY_DEFAULT_ITEMS = catalog.default_items("main")
 DEFAULT_ITEMS = LEGACY_DEFAULT_ITEMS
-SUBAGENT_ITEM_CATALOG = catalog.descriptions("subagent")
+SUBAGENT_ITEM_CATALOG = {
+    k: v
+    for k, v in catalog.descriptions("subagent").items()
+    if k not in composition.NODE_TYPES
+}
 DEFAULT_SUBAGENT_ITEMS = catalog.default_items("subagent")
 
 
@@ -68,7 +78,8 @@ V2_DISPLAY_KEYS = frozenset(
 V3_DISPLAY_KEYS = V2_DISPLAY_KEYS | {"formatting", "item_options", "layout"}
 V5_DISPLAY_KEYS = V3_DISPLAY_KEYS | {"metrics"}
 V6_DISPLAY_KEYS = V5_DISPLAY_KEYS | {"statusline_language"}
-DISPLAY_KEYS = V6_DISPLAY_KEYS | {"theme", "powerline_glyph"}
+V7_DISPLAY_KEYS = V6_DISPLAY_KEYS | {"theme", "powerline_glyph"}
+DISPLAY_KEYS = (V7_DISPLAY_KEYS - {"items", "item_options"}) | {"instances"}
 
 SUBAGENT_KEYS = frozenset(
     {
@@ -90,17 +101,26 @@ class DisplayConfigError(RuntimeError):
 @dataclass(frozen=True)
 class SubagentDisplayConfig:
     enabled: bool = True
-    items: tuple[str, ...] = DEFAULT_SUBAGENT_ITEMS
+    items: tuple[str, ...] | None = None
+    instances: tuple[composition.DisplayInstance, ...] | None = None
 
-    item_options: dict[str, display_formatting.ItemOptions] = field(
-        default_factory=dict
-    )
+    item_options: dict[str, display_formatting.ItemOptions] | None = None
     visibility: str = "all"
     hide_completed: bool = False
     row_limit: int | None = None
     task_max_width: int | None = None
 
+    def __post_init__(self):
+        _initialize_instances(self, "subagent", DEFAULT_SUBAGENT_ITEMS)
+
     def to_dict(self) -> dict[str, Any]:
+        value = self.legacy_dict()
+        value.pop("items")
+        value.pop("item_options")
+        value["instances"] = [i.to_dict() for i in self.instances]
+        return value
+
+    def legacy_dict(self) -> dict[str, Any]:
         return {
             "enabled": self.enabled,
             "items": list(self.items),
@@ -112,13 +132,14 @@ class SubagentDisplayConfig:
         }
 
     def with_updates(self, **updates: Any) -> SubagentDisplayConfig:
-        return validate_subagent_config(replace(self, **updates).to_dict())
+        return _with_updates(self, "subagent", updates)
 
 
 @dataclass(frozen=True)
 class DisplayConfig:
     schema_version: int = SCHEMA_VERSION
-    items: tuple[str, ...] = DEFAULT_ITEMS
+    items: tuple[str, ...] | None = None
+    instances: tuple[composition.DisplayInstance, ...] | None = None
     use_colors: bool = True
     palette: str = "default"
     directory_style: str = "full"
@@ -132,13 +153,29 @@ class DisplayConfig:
     formatting: display_formatting.Formatting = field(
         default_factory=display_formatting.Formatting
     )
-    item_options: dict[str, display_formatting.ItemOptions] = field(
-        default_factory=dict
-    )
+    item_options: dict[str, display_formatting.ItemOptions] | None = None
     layout: display_formatting.Layout = field(default_factory=display_formatting.Layout)
     metrics: Metrics = field(default_factory=Metrics)
 
+    def __post_init__(self):
+        legacy = self.instances is None
+        _initialize_instances(self, "main", DEFAULT_ITEMS)
+        if legacy and self.layout.mode == "explicit":
+            object.__setattr__(
+                self,
+                "layout",
+                self.layout.reordered(tuple(i.id for i in self.instances)),
+            )
+
     def to_dict(self) -> dict[str, Any]:
+        value = self.legacy_dict()
+        value.pop("items")
+        value.pop("item_options")
+        value["instances"] = [i.to_dict() for i in self.instances]
+        value["subagents"] = self.subagents.to_dict()
+        return value
+
+    def legacy_dict(self) -> dict[str, Any]:
         return {
             "schema_version": self.schema_version,
             "items": list(self.items),
@@ -150,7 +187,7 @@ class DisplayConfig:
             "statusline_language": self.statusline_language,
             "theme": self.theme,
             "powerline_glyph": self.powerline_glyph,
-            "subagents": self.subagents.to_dict(),
+            "subagents": self.subagents.legacy_dict(),
             "formatting": self.formatting.to_dict(),
             "item_options": {k: v.to_dict() for k, v in self.item_options.items()},
             "layout": self.layout.to_dict(),
@@ -158,9 +195,56 @@ class DisplayConfig:
         }
 
     def with_updates(self, **updates: Any) -> DisplayConfig:
-        if "items" in updates and "layout" not in updates:
-            updates["layout"] = self.layout.reordered(updates["items"])
-        return validate_display_config(replace(self, **updates).to_dict())
+        return _with_updates(self, "main", updates)
+
+
+def _initialize_instances(config, scope, defaults):
+    if config.instances is None:
+        nodes = composition.legacy_instances(
+            scope,
+            defaults if config.items is None else config.items,
+            config.item_options or {},
+        )
+    else:
+        nodes = config.instances
+        items, options = composition.projections(nodes)
+        if config.items is not None and config.items != items:
+            nodes = composition.update_projection(nodes, scope, items=config.items)
+        if config.item_options is not None and config.item_options != options:
+            nodes = composition.update_projection(
+                nodes, scope, options=config.item_options
+            )
+    object.__setattr__(config, "instances", tuple(nodes))
+    items, options = composition.projections(nodes)
+    object.__setattr__(config, "items", items)
+    object.__setattr__(config, "item_options", options)
+
+
+def _with_updates(config, scope, updates):
+    updates = dict(updates)
+    nodes = updates.pop("instances", config.instances)
+    try:
+        nodes = composition.update_projection(
+            nodes, scope, updates.pop("items", None), updates.pop("item_options", None)
+        )
+    except ValueError as exc:
+        raise DisplayConfigError(as_message(exc)) from exc
+    if scope == "main" and "layout" not in updates:
+        updates["layout"] = composition.reconcile_rows(config.layout, nodes)
+    if scope == "main" and "layout" in updates:
+        requested = updates["layout"]
+        enabled = tuple(i.id for i in nodes if i.enabled)
+        flat = tuple(i for row in requested.rows for i in row)
+        if requested.mode == "explicit" and flat == enabled:
+            updates["layout"] = requested.reordered(tuple(i.id for i in nodes))
+    candidate = replace(
+        config, instances=nodes, items=None, item_options=None, **updates
+    )
+    return (
+        validate_display_config(candidate.to_dict())
+        if scope == "main"
+        else _validate_subagent_v8(candidate.to_dict())
+    )
 
 
 DEFAULT_CONFIG = DisplayConfig()
@@ -176,23 +260,31 @@ def _require_string_choice(
     value = data.get(key)
     if not isinstance(value, str) or value not in choices:
         allowed = ", ".join(choices)
-        raise DisplayConfigError(msg('errors.display.must_be_one_of', field=key, allowed=allowed))
+        raise DisplayConfigError(
+            msg("errors.display.must_be_one_of", field=key, allowed=allowed)
+        )
     return value
 
 
 def validate_items(value: Any) -> tuple[str, ...]:
     if not isinstance(value, list):
-        raise DisplayConfigError(msg('errors.display.items_must_be_an_array_of_item'))
+        raise DisplayConfigError(msg("errors.display.items_must_be_an_array_of_item"))
     result: list[str] = []
     seen: set[str] = set()
     for item in value:
         if not isinstance(item, str):
-            raise DisplayConfigError(msg('errors.display.every_items_entry_must_be_a_string'))
+            raise DisplayConfigError(
+                msg("errors.display.every_items_entry_must_be_a_string")
+            )
         item = catalog.canonical_item(item)
         if item not in ITEM_CATALOG:
-            raise DisplayConfigError(msg('errors.display.unknown_status_line_item', item=item))
+            raise DisplayConfigError(
+                msg("errors.display.unknown_status_line_item", item=item)
+            )
         if item in seen:
-            raise DisplayConfigError(msg('errors.display.duplicate_status_line_item', item=item))
+            raise DisplayConfigError(
+                msg("errors.display.duplicate_status_line_item", item=item)
+            )
         seen.add(item)
         result.append(item)
     return tuple(result)
@@ -200,37 +292,53 @@ def validate_items(value: Any) -> tuple[str, ...]:
 
 def validate_subagent_items(value: Any) -> tuple[str, ...]:
     if not isinstance(value, list):
-        raise DisplayConfigError(msg('errors.display.subagents_items_must_be_an_array_of'))
+        raise DisplayConfigError(
+            msg("errors.display.subagents_items_must_be_an_array_of")
+        )
     result: list[str] = []
     seen: set[str] = set()
     for item in value:
         if not isinstance(item, str):
-            raise DisplayConfigError(msg('errors.display.every_subagents_items_entry_must_be_a'))
+            raise DisplayConfigError(
+                msg("errors.display.every_subagents_items_entry_must_be_a")
+            )
         if item not in SUBAGENT_ITEM_CATALOG:
-            raise DisplayConfigError(msg('errors.display.unknown_subagent_status_line_item', item=item))
+            raise DisplayConfigError(
+                msg("errors.display.unknown_subagent_status_line_item", item=item)
+            )
         if item in seen:
-            raise DisplayConfigError(msg('errors.display.duplicate_subagent_status_line_item', item=item))
+            raise DisplayConfigError(
+                msg("errors.display.duplicate_subagent_status_line_item", item=item)
+            )
         seen.add(item)
         result.append(item)
     if catalog.conflicts("subagent", result):
         raise DisplayConfigError(
-            msg('errors.display.subagents_items_cannot_combine_status_elapsed_with')
+            msg("errors.display.subagents_items_cannot_combine_status_elapsed_with")
         )
     return tuple(result)
 
 
 def validate_subagent_config(data: Any, *, legacy=False) -> SubagentDisplayConfig:
     if not isinstance(data, dict):
-        raise DisplayConfigError(msg('errors.display.subagents_must_contain_a_json_object'))
+        raise DisplayConfigError(
+            msg("errors.display.subagents_must_contain_a_json_object")
+        )
     unknown = sorted(set(data) - SUBAGENT_KEYS)
     if unknown:
-        raise DisplayConfigError(msg('errors.display.unknown_subagents_field_s', value0=', '.join(unknown)))
+        raise DisplayConfigError(
+            msg("errors.display.unknown_subagents_field_s", value0=", ".join(unknown))
+        )
     missing = sorted(SUBAGENT_KEYS - set(data))
     if missing:
-        raise DisplayConfigError(msg('errors.display.missing_subagents_field_s', value0=', '.join(missing)))
+        raise DisplayConfigError(
+            msg("errors.display.missing_subagents_field_s", value0=", ".join(missing))
+        )
     enabled = data.get("enabled")
     if not isinstance(enabled, bool):
-        raise DisplayConfigError(msg('errors.display.subagents_enabled_must_be_true_or_false'))
+        raise DisplayConfigError(
+            msg("errors.display.subagents_enabled_must_be_true_or_false")
+        )
     try:
         if (
             data["visibility"] not in ("all", "running")
@@ -258,21 +366,35 @@ def validate_subagent_config(data: Any, *, legacy=False) -> SubagentDisplayConfi
         raise DisplayConfigError(as_message(exc)) from exc
 
 
-def validate_display_config(data: Any) -> DisplayConfig:
+def _validate_legacy_display(data: Any) -> DisplayConfig:
     if not isinstance(data, dict):
-        raise DisplayConfigError(msg('errors.display.display_configuration_must_contain_a_json_object'))
+        raise DisplayConfigError(
+            msg("errors.display.display_configuration_must_contain_a_json_object")
+        )
     version = data.get("schema_version")
     if isinstance(version, bool) or not isinstance(version, int):
         raise DisplayConfigError(
-            msg('errors.display.schema_version_must_be_1_2_3', SCHEMA_VERSION=SCHEMA_VERSION, version=f'{version!r}')
+            msg(
+                "errors.display.schema_version_must_be_1_2_3",
+                SCHEMA_VERSION=SCHEMA_VERSION,
+                version=f"{version!r}",
+            )
         )
-    if version > SCHEMA_VERSION:
+    if version > 7:
         raise DisplayConfigError(
-            msg('errors.display.schema_version_is_newer_than_supported_version', version=version, SCHEMA_VERSION=SCHEMA_VERSION)
+            msg(
+                "errors.display.schema_version_is_newer_than_supported_version",
+                version=version,
+                SCHEMA_VERSION=SCHEMA_VERSION,
+            )
         )
-    if version not in (1, 2, 3, 4, 5, 6, SCHEMA_VERSION):
+    if version not in (1, 2, 3, 4, 5, 6, 7):
         raise DisplayConfigError(
-            msg('errors.display.schema_version_must_be_1_2_3', SCHEMA_VERSION=SCHEMA_VERSION, version=f'{version!r}')
+            msg(
+                "errors.display.schema_version_must_be_1_2_3",
+                SCHEMA_VERSION=SCHEMA_VERSION,
+                version=f"{version!r}",
+            )
         )
 
     expected_keys = (
@@ -286,22 +408,28 @@ def validate_display_config(data: Any) -> DisplayConfig:
         if version in (4, 5)
         else V6_DISPLAY_KEYS
         if version == 6
-        else DISPLAY_KEYS
+        else V7_DISPLAY_KEYS
     )
     unknown = sorted(set(data) - expected_keys)
     if unknown:
         raise DisplayConfigError(
-            msg('errors.display.unknown_display_configuration_field_s', value0=', '.join(unknown))
+            msg(
+                "errors.display.unknown_display_configuration_field_s",
+                value0=", ".join(unknown),
+            )
         )
     missing = sorted(expected_keys - set(data))
     if missing:
         raise DisplayConfigError(
-            msg('errors.display.missing_display_configuration_field_s', value0=', '.join(missing))
+            msg(
+                "errors.display.missing_display_configuration_field_s",
+                value0=", ".join(missing),
+            )
         )
 
     use_colors = data.get("use_colors")
     if not isinstance(use_colors, bool):
-        raise DisplayConfigError(msg('errors.display.use_colors_must_be_true_or_false'))
+        raise DisplayConfigError(msg("errors.display.use_colors_must_be_true_or_false"))
 
     data = dict(data)
     # Normalize aliases everywhere before validating uniqueness and references.
@@ -317,7 +445,9 @@ def validate_display_config(data: Any) -> DisplayConfig:
         for key, value in options.items():
             name = catalog.canonical_item(key)
             if name in canonical:
-                raise DisplayConfigError(msg('errors.display.conflicting_item_aliases_in_item_options'))
+                raise DisplayConfigError(
+                    msg("errors.display.conflicting_item_aliases_in_item_options")
+                )
             canonical[name] = value
         data["item_options"] = canonical
     layout = data.get("layout")
@@ -342,7 +472,9 @@ def validate_display_config(data: Any) -> DisplayConfig:
             else display_formatting.Formatting()
         )
         options = (
-            display_formatting.item_options(data["item_options"], ITEM_CATALOG, legacy=version < 7)
+            display_formatting.item_options(
+                data["item_options"], ITEM_CATALOG, legacy=version < 7
+            )
             if version >= 3
             else {}
         )
@@ -357,19 +489,28 @@ def validate_display_config(data: Any) -> DisplayConfig:
     subagents = data.get("subagents")
     if version == 2:
         if not isinstance(subagents, dict) or set(subagents) != {"enabled", "items"}:
-            raise DisplayConfigError(msg('errors.display.v2_subagents_requires_exactly_enabled_and_items'))
-        subagents = {**SubagentDisplayConfig().to_dict(), **subagents}
+            raise DisplayConfigError(
+                msg("errors.display.v2_subagents_requires_exactly_enabled_and_items")
+            )
+        subagents = {**SubagentDisplayConfig().legacy_dict(), **subagents}
     return DisplayConfig(
         formatting=fmt,
         item_options=options,
         layout=layout,
         metrics=metrics,
         schema_version=SCHEMA_VERSION,
-        theme=_require_string_choice(data, "theme", appearance.THEMES) if version >= 7 else "classic",
-        powerline_glyph=_require_string_choice(data, "powerline_glyph", appearance.POWERLINE_GLYPHS) if version >= 7 else "ascii",
+        theme=_require_string_choice(data, "theme", appearance.THEMES)
+        if version >= 7
+        else "classic",
+        powerline_glyph=_require_string_choice(
+            data, "powerline_glyph", appearance.POWERLINE_GLYPHS
+        )
+        if version >= 7
+        else "ascii",
         statusline_language=(
             _require_string_choice(data, "statusline_language", STATUSLINE_LANGUAGES)
-            if version >= 6 else "en"
+            if version >= 6
+            else "en"
         ),
         items=validate_items(data.get("items")),
         use_colors=use_colors,
@@ -393,6 +534,66 @@ def validate_display_config(data: Any) -> DisplayConfig:
     )
 
 
+def _validate_subagent_v8(data):
+    try:
+        display_formatting.exact(
+            data,
+            (SUBAGENT_KEYS - {"items", "item_options"}) | {"instances"},
+            "subagents",
+        )
+        nodes = composition.parse_instances(data["instances"], "subagent")
+        # Reuse scalar validation without projecting instances into type selections.
+        scalars = {**data, "items": [], "item_options": {}}
+        scalars.pop("instances")
+        parsed = validate_subagent_config(scalars)
+        return replace(parsed, instances=nodes, items=None, item_options=None)
+    except ValueError as exc:
+        raise DisplayConfigError(as_message(exc)) from exc
+
+
+def validate_display_config(data: Any) -> DisplayConfig:
+    if (
+        not isinstance(data, dict)
+        or type(data.get("schema_version")) is not int
+        or data.get("schema_version") != SCHEMA_VERSION
+    ):
+        return _validate_legacy_display(data)
+    try:
+        display_formatting.exact(data, DISPLAY_KEYS, "display")
+        nodes = composition.parse_instances(data["instances"], "main")
+        layout = display_formatting.Layout.parse(
+            data["layout"], tuple(i.id for i in nodes)
+        )
+        by_id = {i.id: i for i in nodes}
+        if layout.mode == "auto" and any(i.type_id == "spacer" for i in nodes):
+            raise ValueError(msg("composition.errors.main_spacer"))
+        if any(
+            sum(by_id[i].type_id == "spacer" for i in row) > 1 for row in layout.rows
+        ):
+            raise ValueError(msg("composition.errors.row_spacer"))
+        subagents = _validate_subagent_v8(data["subagents"])
+        scalar_data = {
+            **data,
+            "schema_version": 7,
+            "items": [],
+            "item_options": {},
+            "layout": {"mode": "auto", "rows": []},
+            "subagents": SubagentDisplayConfig().legacy_dict(),
+        }
+        scalar_data.pop("instances")
+        parsed = _validate_legacy_display(scalar_data)
+        return replace(
+            parsed,
+            instances=nodes,
+            items=None,
+            item_options=None,
+            layout=layout,
+            subagents=subagents,
+        )
+    except ValueError as exc:
+        raise DisplayConfigError(as_message(exc)) from exc
+
+
 class _DuplicateKeyError(ValueError):
     pass
 
@@ -412,7 +613,9 @@ def parse_display_config_bytes(
     try:
         data = json.loads(raw.decode("utf-8"), object_pairs_hook=_strict_object)
     except (UnicodeDecodeError, json.JSONDecodeError, _DuplicateKeyError) as exc:
-        raise DisplayConfigError(msg('errors.display.invalid_json_in', path=path, exc=exc)) from exc
+        raise DisplayConfigError(
+            msg("errors.display.invalid_json_in", path=path, exc=exc)
+        ) from exc
     config = validate_display_config(data)
     return config, int(data["schema_version"])
 
@@ -424,7 +627,9 @@ def read_display_config(config_dir: Path) -> tuple[DisplayConfig, bytes | None]:
     except FileNotFoundError:
         return DEFAULT_CONFIG, None
     except OSError as exc:
-        raise DisplayConfigError(msg('errors.display.cannot_read', path=path, exc=exc)) from exc
+        raise DisplayConfigError(
+            msg("errors.display.cannot_read", path=path, exc=exc)
+        ) from exc
     config, _source_schema = parse_display_config_bytes(raw, path)
     return config, raw
 
@@ -437,7 +642,9 @@ def read_display_config_schema(config_dir: Path) -> int | None:
     except FileNotFoundError:
         return None
     except OSError as exc:
-        raise DisplayConfigError(msg('errors.display.cannot_read', path=path, exc=exc)) from exc
+        raise DisplayConfigError(
+            msg("errors.display.cannot_read", path=path, exc=exc)
+        ) from exc
     _config, source_schema = parse_display_config_bytes(raw, path)
     return source_schema
 
@@ -457,7 +664,9 @@ def atomic_write_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
     try:
         platform_files.atomic_write_bytes(path, content, mode)
     except OSError as exc:
-        raise DisplayConfigError(msg('errors.display.cannot_write', path=path, exc=exc)) from exc
+        raise DisplayConfigError(
+            msg("errors.display.cannot_write", path=path, exc=exc)
+        ) from exc
 
 
 def write_display_config(config_dir: Path, config: DisplayConfig) -> None:
@@ -470,7 +679,7 @@ def restore_bytes(path: Path, raw: bytes | None, mode: int = 0o600) -> None:
             platform_files.durable_unlink(path)
         except OSError as exc:
             raise DisplayConfigError(
-                msg('errors.display.cannot_restore_absence_of', path=path, exc=exc)
+                msg("errors.display.cannot_restore_absence_of", path=path, exc=exc)
             ) from exc
         return
     atomic_write_bytes(path, raw, mode=mode)

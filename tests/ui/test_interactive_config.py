@@ -1,6 +1,7 @@
 """Tests for the curses-independent interactive configuration state."""
 
 from claude_statusline.config import display as config_display
+from claude_statusline.config.formatting import ItemOptions
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 from claude_statusline.integration import bridge as integration_bridge
@@ -32,7 +33,7 @@ def effective(
     installed=True,
     **display_updates,
 ):
-    display = config_display.DEFAULT_CONFIG.with_updates(items=items, **display_updates)
+    display = config_display.DisplayConfig(items=items, **display_updates)
     return config_models.EffectiveConfig(
         display=display,
         host=host,
@@ -44,25 +45,37 @@ def effective(
 class ItemStateTests(unittest.TestCase):
     def test_initial_order_keeps_enabled_order_then_catalog_order(self):
         state = ui_editor.EditorState.from_effective(effective())
-        self.assertEqual(state.item_order[:2], ["git", "model-with-effort"])
-        self.assertEqual(
-            state.item_order[2:],
-            [item for item in config_display.ITEM_CATALOG if item not in state.enabled],
-        )
+        self.assertEqual(state.item_order, ["git", "model-with-effort"])
+        state.open_picker()
+        self.assertIn("model", state.visible_items())
+        self.assertFalse(state.modified)
+        state.close_picker()
+        self.assertEqual(state.item_order, ["git", "model-with-effort"])
 
     def test_new_main_items_are_discoverable_and_toggleable(self):
         state = ui_editor.EditorState.from_effective(effective())
         for item in ("project-name", "hostname", "context-used"):
-            self.assertIn(item, state.item_order)
-            self.assertNotIn(item, state.enabled)
+            state.open_picker()
+            self.assertIn(item, state.visible_items())
             state.selected_item = item
             self.assertTrue(state.toggle_selected_item())
+            self.assertFalse(state.adding)
         self.assertTrue(
-            {"project-name", "hostname", "context-used"}.issubset(state.final_items())
+            {"project-name", "hostname", "context-used"}.issubset(
+                i.type_id for i in state.display.instances if i.enabled
+            )
         )
 
     def test_toggle_empty_set_and_repeated_moves(self):
-        state = ui_editor.EditorState.from_effective(effective(items=("git",)))
+        state = ui_editor.EditorState.from_effective(
+            effective(
+                items=("git",),
+                item_options={
+                    "model-with-effort": ItemOptions(),
+                    "tokens": ItemOptions(),
+                },
+            )
+        )
         self.assertTrue(state.toggle_selected_item())
         self.assertEqual(state.final_items(), ())
         self.assertEqual(state.display.items, ())
@@ -75,7 +88,15 @@ class ItemStateTests(unittest.TestCase):
         self.assertFalse(state.move_selected_item(1))
 
     def test_moving_disabled_item_marks_draft_but_does_not_enable_it(self):
-        state = ui_editor.EditorState.from_effective(effective(items=("git",)))
+        state = ui_editor.EditorState.from_effective(
+            effective(
+                items=("git",),
+                item_options={
+                    "model-with-effort": ItemOptions(),
+                    "tokens": ItemOptions(),
+                },
+            )
+        )
         state.selected_item = "model-with-effort"
         self.assertNotIn(state.selected_item, state.enabled)
         self.assertFalse(state.modified)
@@ -85,9 +106,15 @@ class ItemStateTests(unittest.TestCase):
 
     def test_search_matches_id_and_description_case_insensitively(self):
         state = ui_editor.EditorState.from_effective(effective())
+        state.open_picker()
         state.append_search("VIM")
         self.assertEqual(state.visible_items()[0], "vim-mode")
-        self.assertTrue(all(match.rank >= state.matches("main")["vim-mode"].rank for match in state.matches("main").values()))
+        self.assertTrue(
+            all(
+                match.rank >= state.matches("main")["vim-mode"].rank
+                for match in state.matches("main").values()
+            )
+        )
         state.clear_search()
         state.append_search("divergence")
         self.assertEqual(state.visible_items()[0], "git")
@@ -95,6 +122,7 @@ class ItemStateTests(unittest.TestCase):
         state.backspace_search()
         self.assertEqual(state.search, "divergenc")
         state.clear_search()
+        state.close_picker()
         self.assertEqual(state.visible_items(), state.item_order)
 
     def test_no_matches_make_toggle_and_move_noops(self):
@@ -130,7 +158,9 @@ class ItemStateTests(unittest.TestCase):
         self.assertEqual(state.selected_item, "model-with-effort")
 
     def test_navigation_and_scroll_stay_valid_across_viewport_changes(self):
-        state = ui_editor.EditorState.from_effective(effective())
+        state = ui_editor.EditorState.from_effective(
+            effective(items=tuple(config_display.ITEM_CATALOG))
+        )
         for _ in range(12):
             state.navigate(1)
         state.ensure_visible(4)
@@ -147,47 +177,39 @@ class ItemStateTests(unittest.TestCase):
     def test_subagent_items_have_independent_search_order_and_selection(self):
         state = ui_editor.EditorState.from_effective(effective())
         state.page = "subagents"
-        self.assertEqual(
-            state.final_subagent_items(), config_display.DEFAULT_SUBAGENT_ITEMS
-        )
+        state.open_picker()
         state.append_search("token")
         self.assertEqual(state.visible_subagent_items(), ["tokens", "context-tokens"])
         state.selected_subagent_item = "tokens"
-        state.toggle_selected_item()
-        self.assertIn("tokens", state.final_subagent_items())
-        state.clear_search()
-        state.selected_subagent_item = "tokens"
+        self.assertTrue(state.toggle_selected_item())
+        identifier = state.selected_subagent_item
+        self.assertIn(identifier, state.final_subagent_items())
         self.assertTrue(state.move_selected_item(-1))
-        self.assertNotEqual(state.item_order, state.subagent_item_order)
+        self.assertEqual(state.item_order, ["git", "model-with-effort"])
 
     def test_subagent_enabling_status_or_elapsed_disables_status_elapsed(self):
         state = ui_editor.EditorState.from_effective(effective())
         state.page = "subagents"
-        state.selected_subagent_item = "status"
+        before = state.display.to_dict()
+        self.assertFalse(state.instance_action("add", "status"))
+        self.assertEqual(state.display.to_dict(), before)
+        state.selected_subagent_item = "status-elapsed"
         self.assertTrue(state.toggle_selected_item())
-        self.assertIn("status", state.subagent_enabled)
+        self.assertTrue(state.instance_action("add", "status"))
+        self.assertTrue(state.instance_action("add", "elapsed"))
         self.assertNotIn("status-elapsed", state.subagent_enabled)
-        state.selected_subagent_item = "elapsed"
-        self.assertTrue(state.toggle_selected_item())
-        self.assertIn("elapsed", state.subagent_enabled)
-        self.assertNotIn("status-elapsed", state.subagent_enabled)
-        # status 与 elapsed 共存合法
-        self.assertIn("status", state.final_subagent_items())
 
     def test_subagent_enabling_status_elapsed_disables_status_and_elapsed(self):
         state = ui_editor.EditorState.from_effective(effective())
         state.page = "subagents"
-        # 默认已开启 status-elapsed;先开启 status(自动关 status-elapsed),再切回
-        state.selected_subagent_item = "status"
-        self.assertTrue(state.toggle_selected_item())
-        self.assertNotIn("status-elapsed", state.subagent_enabled)
         state.selected_subagent_item = "status-elapsed"
         self.assertTrue(state.toggle_selected_item())
-        self.assertIn("status-elapsed", state.subagent_enabled)
-        self.assertNotIn("status", state.subagent_enabled)
-        self.assertNotIn("elapsed", state.subagent_enabled)
-        self.assertIn("status-elapsed", state.final_subagent_items())
-        self.assertIn("status-elapsed", state.display.subagents.items)
+        self.assertTrue(state.instance_action("add", "status"))
+        state.selected_subagent_item = "status-elapsed"
+        before = state.display.to_dict()
+        self.assertFalse(state.toggle_selected_item())
+        self.assertEqual(state.display.to_dict(), before)
+        self.assertTrue(state.notice)
 
     def test_tabs_cycle_four_pages_in_both_directions(self):
         state = ui_editor.EditorState.from_effective(effective())
@@ -317,8 +339,8 @@ class SaveAndRunTests(unittest.TestCase):
                 items=("git", "tokens"), host=config_models.HostConfig(2, None, True)
             )
         )
-        state.selected_item = "model-with-effort"
-        state.toggle_selected_item()
+        state.selected_item = "tokens"
+        self.assertTrue(state.instance_action("add", "model-with-effort"))
         state.display = state.display.with_updates(
             use_colors=False,
             palette="ansi",
@@ -336,7 +358,7 @@ class SaveAndRunTests(unittest.TestCase):
         apply.assert_called_once_with(
             Path("/config"),
             Path("/bin/tool"),
-            items=["git", "tokens", "model-with-effort"],
+            items=list(state.display.items),
             colors="off",
             palette="ansi",
             directory_style="home",
@@ -347,12 +369,7 @@ class SaveAndRunTests(unittest.TestCase):
             subagent_items=list(config_display.DEFAULT_SUBAGENT_ITEMS),
             subagent_statusline="on",
             scope_labels="when-subagents",
-            display_draft=state.display.with_updates(
-                items=state.final_items(),
-                subagents=state.display.subagents.with_updates(
-                    items=state.final_subagent_items()
-                ),
-            ),
+            display_draft=state.display,
             expected=state.baseline,
             before_commit=None,
         )
@@ -483,7 +500,11 @@ class TerminalColorTests(unittest.TestCase):
     def test_idle_input_polls_for_signals_without_repainting_the_vt_frame(self):
         state = ui_editor.EditorState.from_effective(effective())
         screen = mock.Mock()
-        screen.get_wch.side_effect = [ui_drawing.curses.error(), ui_drawing.curses.error(), "\x1b"]
+        screen.get_wch.side_effect = [
+            ui_drawing.curses.error(),
+            ui_drawing.curses.error(),
+            "\x1b",
+        ]
         screen.getmaxyx.return_value = (24, 100)
         with (
             mock.patch.object(ui_drawing, "_draw_screen", return_value=12) as draw,

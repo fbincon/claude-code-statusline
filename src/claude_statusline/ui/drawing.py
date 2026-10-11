@@ -422,7 +422,8 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         title_attr,
     )
     description = (
-        t("ui.drawing.edit_item_format", state.language) + state.form_item[1]
+        t("ui.drawing.edit_item_format", state.language)
+        + catalog_view.instance_label(state, *state.form_item)
         if state.form_item
         else t("ui.drawing.set_explicit_rows_priorities_and_widths", state.language)
         if state.page == "layout"
@@ -498,7 +499,7 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         else t("ui.drawing.item_format_2", state.language)
         + state.form_item[0]
         + ": "
-        + state.form_item[1]
+        + catalog_view.instance_label(state, *state.form_item)
         if state.form_item
         else t("ui.drawing.layout_rows_and_fitting", state.language)
         if state.page == "layout"
@@ -508,6 +509,12 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
         if state.page == "subagents"
         else t("ui.drawing.main_items", state.language)
     )
+    if (
+        state.adding
+        and state.guidance_scroll is None
+        and state.category_selection is None
+    ):
+        title = t("composition.picker", state.language)
     _draw_panel(screen, panel, title, title_attr)
     if state.import_review is not None:
         review = state.import_review
@@ -530,7 +537,16 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             )
         position = f"{review.scroll + 1}–{review.scroll + len(rows)}/{total}"
     elif state.guidance_scroll is not None and state.form_item:
-        lines = guidance.lines(*state.form_item, state.language, panel.inner_width)
+        from claude_statusline.config import instances
+
+        scope, identifier = state.form_item
+        node = instances.find(state.display, scope, identifier)
+        lines = guidance.lines(
+            scope,
+            node.type_id if node else identifier,
+            state.language,
+            panel.inner_width,
+        )
         capacity = max(1, panel.inner_height - 1)
         state.guidance_scroll = min(
             state.guidance_scroll, max(0, len(lines) - capacity)
@@ -777,6 +793,7 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
                 Hint("Ctrl+C", msg("ui.hints.interrupt")),
             ]
             help_text = [
+                Hint("Ctrl+A/D/X", msg("ui.hints.add_copy_remove")),
                 Hint("Tab", msg("ui.hints.page")),
                 Hint("Space", msg("ui.hints.toggle")),
                 Hint("Ctrl+E", msg("ui.hints.format")),
@@ -785,6 +802,21 @@ def _draw_screen(screen, state: ui_editor.EditorState, mapper: _ColorMapper) -> 
             ]
             if state.filtered():
                 help_text = [hint for hint in help_text if hint.key != "←→"]
+    if (
+        state.adding
+        and state.search_input is None
+        and state.category_selection is None
+        and state.guidance_scroll is None
+    ):
+        actions = [
+            Hint("Enter", msg("composition.add")),
+            Hint("Ctrl+G/Esc", msg("ui.hints.back")),
+        ]
+        help_text = [
+            Hint("↑↓", msg("ui.hints.select")),
+            Hint("/", msg("ui.hints.search")),
+            Hint("Ctrl+F", msg("ui.hints.category")),
+        ]
     _draw_shortcuts(
         screen, layout.actions_y, actions, width, mapper, language=state.language
     )

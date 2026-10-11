@@ -49,15 +49,23 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
             review.follow_selection = False
             review.scroll = 0 if key == curses.KEY_HOME else 1_000_000
         elif key == "\t":
-            review.preview_scope = "subagent" if review.preview_scope == "main" else "main"
+            review.preview_scope = (
+                "subagent" if review.preview_scope == "main" else "main"
+            )
         return None
 
     if state.guidance_scroll is not None:
         if key in ("\x1b", "\x07"):
             state.guidance_scroll = None
+            if state.adding:
+                state.form_item = None
             state.repaint = True
         elif key in (curses.KEY_UP, curses.KEY_PPAGE):
-            state.guidance_scroll = max(0, state.guidance_scroll - (viewport_height if key == curses.KEY_PPAGE else 1))
+            state.guidance_scroll = max(
+                0,
+                state.guidance_scroll
+                - (viewport_height if key == curses.KEY_PPAGE else 1),
+            )
         elif key in (curses.KEY_DOWN, curses.KEY_NPAGE):
             state.guidance_scroll += viewport_height if key == curses.KEY_NPAGE else 1
         elif key == curses.KEY_HOME:
@@ -114,7 +122,9 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
             elif _is_enter(key):
                 return forms.accept(state)
             elif _is_backspace(key):
-                state.form_input["buffer"] = text_input.backspace(state.form_input["buffer"])
+                state.form_input["buffer"] = text_input.backspace(
+                    state.form_input["buffer"]
+                )
             elif (
                 isinstance(key, str)
                 and text_input.printable(key)
@@ -124,16 +134,40 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         except DisplayConfigError as exc:
             state.notice = str(exc)
         return None
+    if state.adding and state.search_input is None and state.category_selection is None:
+        if key in ("\x1b", "\x07"):
+            state.close_picker()
+            return None
+        if _is_enter(key) or key == " ":
+            state.toggle_selected_item()
+            return None
+    if (
+        state.page in ("items", "subagents")
+        and not state.form_item
+        and not state.adding
+    ):
+        if key == "\x01":
+            state.open_picker()
+            return None
+        if key in ("\x04", "\x18"):
+            state.instance_action("copy" if key == "\x04" else "remove")
+            return None
     if key == "\x07" and state.form_item:
         state.form_item = None
         state.repaint = True
         return None
     if key == "\x06" and state.page in ("items", "subagents") and not state.form_item:
         state.repaint = True
-        state.category_selection = state.subagent_category if state.page == "subagents" else state.category
+        state.category_selection = (
+            state.subagent_category if state.page == "subagents" else state.category
+        )
         return None
     if key == "/" and state.page in ("items", "subagents") and not state.form_item:
-        state.search_input = (state.subagent_search, state.selected_subagent_item) if state.page == "subagents" else (state.search, state.selected_item)
+        state.search_input = (
+            (state.subagent_search, state.selected_subagent_item)
+            if state.page == "subagents"
+            else (state.search, state.selected_item)
+        )
         return None
     if key == "\x05" and state.page in ("items", "subagents"):
         scope = "subagent" if state.page == "subagents" else "main"
@@ -142,9 +176,23 @@ def handle_key(state: ui_editor.EditorState, key, viewport_height: int) -> str |
         )
         if item:
             state.form_item = (scope, item)
+            if state.adding:
+                state.guidance_scroll = 0
+                state.repaint = True
+                return None
             state.repaint = True
             state.form_index = state.form_scroll = 0
-            forms.select(state, next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "item:label"))
+            forms.select(
+                state,
+                next(
+                    (
+                        i
+                        for i, row in enumerate(forms.rows(state))
+                        if row["key"] in ("item:label", "item:text")
+                    ),
+                    0,
+                ),
+            )
         return None
     if forms.special(state) or (
         state.page == "settings" and forms.current(state)["kind"] != "legacy"

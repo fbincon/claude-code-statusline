@@ -108,8 +108,10 @@ class InstallTests(InstallerTestCase):
                         settings_path.write_bytes(settings_raw)
                         with self.assertRaises(integration_models.ConfigurationError):
                             integration_installer.install_configuration(
-                                config, self.executable,
-                                dry_run=dry_run, force=force,
+                                config,
+                                self.executable,
+                                dry_run=dry_run,
+                                force=force,
                                 experimental_slash_tui=False,
                                 native_editor=False,
                                 live_metrics=False,
@@ -885,7 +887,7 @@ class SubagentInstallTests(InstallerTestCase):
                 for item in diagnostics
             )
         )
-        self.assertEqual(json.loads(display_path.read_bytes())["schema_version"], 7)
+        self.assertEqual(json.loads(display_path.read_bytes())["schema_version"], 8)
         self.assertEqual(
             (
                 first.backup_dir / (config_display.CONFIG_FILENAME + ".before")
@@ -907,7 +909,8 @@ class UninstallTests(InstallerTestCase):
             with self.subTest(raw=raw):
                 config = self.root / f"recovery-{index}"
                 integration_installer.install_configuration(
-                    config, self.executable,
+                    config,
+                    self.executable,
                     experimental_slash_tui=False,
                     native_editor=False,
                     live_metrics=False,
@@ -923,7 +926,9 @@ class UninstallTests(InstallerTestCase):
                 self.assertEqual(path.read_bytes(), raw)
                 settings = json.loads((config / "settings.json").read_bytes())
                 self.assertNotIn("statusLine", settings)
-                self.assertFalse((config / "skills/statusline-config/SKILL.md").exists())
+                self.assertFalse(
+                    (config / "skills/statusline-config/SKILL.md").exists()
+                )
 
     def test_uninstall_removes_experimental_artifacts_but_keeps_preference(self):
         integration_installer.install_configuration(
@@ -1010,14 +1015,23 @@ class UninstallTests(InstallerTestCase):
 
 class DisplaySchemaDoctorTests(InstallerTestCase):
     def write_display(self, version):
-        value = config_display.DEFAULT_CONFIG.to_dict()
+        value = (
+            config_display.DEFAULT_CONFIG.to_dict()
+            if version >= 8
+            else config_display.DEFAULT_CONFIG.legacy_dict()
+        )
         keys = {
             1: config_display.V1_DISPLAY_KEYS,
             2: config_display.V2_DISPLAY_KEYS,
             3: config_display.V3_DISPLAY_KEYS,
             4: config_display.V5_DISPLAY_KEYS,
             5: config_display.V5_DISPLAY_KEYS,
-        }.get(version, config_display.DISPLAY_KEYS)
+        }.get(
+            version,
+            config_display.DISPLAY_KEYS
+            if version >= 8
+            else config_display.V7_DISPLAY_KEYS,
+        )
         value = {key: item for key, item in value.items() if key in keys}
         value["schema_version"] = version
         if version == 2:
@@ -1103,7 +1117,9 @@ class DisplaySchemaDoctorTests(InstallerTestCase):
             (b"{broken\n", "invalid JSON"),
             (b'{"schema_version":0}\n', "schema_version must be"),
             (
-                json.dumps({"schema_version": config_display.SCHEMA_VERSION + 1}).encode(),
+                json.dumps(
+                    {"schema_version": config_display.SCHEMA_VERSION + 1}
+                ).encode(),
                 "newer than supported version",
             ),
         )
@@ -1116,7 +1132,9 @@ class DisplaySchemaDoctorTests(InstallerTestCase):
                 self.assertIsNone(parsed)
                 self.assertIsNone(source)
                 self.assertTrue(
-                    any(d.level == "ERROR" and message in d.message for d in diagnostics)
+                    any(
+                        d.level == "ERROR" and message in d.message for d in diagnostics
+                    )
                 )
 
 

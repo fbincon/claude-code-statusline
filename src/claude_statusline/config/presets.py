@@ -8,6 +8,8 @@ from claude_statusline.config import display, formatting
 
 
 ROWS = {
+    "left-right": (("model-with-effort", "git", "spacer", "context-remaining"),),
+    "repeated-metrics": (("input-tokens", "input-tokens"),),
     "minimal": (
         ("model-with-effort", "current-dir", "context-remaining", "task-timer"),
     ),
@@ -47,28 +49,56 @@ def descriptions():
 
 def apply(config, name):
     if name not in ROWS:
-        raise display.DisplayConfigError(msg('errors.presets.unknown_preset_choose', value0=', '.join(ROWS)))
+        raise display.DisplayConfigError(
+            msg("errors.presets.unknown_preset_choose", value0=", ".join(ROWS))
+        )
     rows = ROWS[name]
-    items = tuple(item for row in rows for item in row)
+    from .instances import DisplayInstance
+
+    nodes, mapped_rows = [], []
+    import uuid
+
+    for row in rows:
+        mapped = []
+        for kind in row:
+            identifier = (
+                kind if all(i.id != kind for i in nodes) else "i-" + uuid.uuid4().hex
+            )
+            option = (
+                formatting.ItemOptions()
+                if kind == "spacer"
+                else formatting.ItemOptions(priority=100 - len(nodes))
+            )
+            if name == "repeated-metrics":
+                option = replace(
+                    option,
+                    formatting={"number_format": "full" if not nodes else "compact"},
+                )
+            nodes.append(DisplayInstance(identifier, kind, options=option))
+            mapped.append(identifier)
+        mapped_rows.append(tuple(mapped))
     subagents = display.SubagentDisplayConfig(enabled=config.subagents.enabled)
     if name == "multi-agent":
         subagents = replace(
             subagents, hide_completed=True, row_limit=6, task_max_width=48
         )
+    if name == "left-right":
+        subagents = display.SubagentDisplayConfig(
+            enabled=config.subagents.enabled,
+            instances=tuple(
+                DisplayInstance(i, i) for i in ("status", "name", "spacer", "elapsed")
+            ),
+        )
     layout = (
         formatting.Layout()
         if name == "minimal"
-        else formatting.Layout("explicit", rows)
+        else formatting.Layout("explicit", tuple(mapped_rows))
     )
     return config.with_updates(
-        items=items,
+        instances=tuple(nodes),
         layout=layout,
         subagents=subagents,
         formatting=replace(
             config.formatting, model_name="short", number_format="compact"
         ),
-        item_options={
-            item: formatting.ItemOptions(priority=100 - index)
-            for index, item in enumerate(items)
-        },
     )
