@@ -23,7 +23,7 @@ import time
 import unicodedata
 
 from claude_statusline.config import display, models
-from claude_statusline.i18n import LANGUAGES, LANGUAGE_NAMES, translate
+from claude_statusline.i18n import LANGUAGES, LANGUAGE_NAMES, presentation, translate
 from claude_statusline.ui import editor, forms, layout
 
 if __package__:
@@ -191,7 +191,7 @@ def run_case(
 
     def field(key):
         index = next(i for i, row in enumerate(forms.rows(state)) if row["key"] == key)
-        send(b"\x1bOH" + b"\x1bOB" * index, forms.rows(state)[index]["label"])
+        send(b"\x1bOH" + b"\x1bOB" * index, presentation.rows(state)[index]["label"])
 
     def capture(name):
         path = root / f"screen-{columns}x{rows}-{name}.json"

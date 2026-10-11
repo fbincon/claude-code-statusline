@@ -12,11 +12,11 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 | --- | --- |
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
-| Implementation | **Not started**; no migration implementation branch or PR exists |
-| Current task scope | Documentation only; implementation starts with a subsequent implementation task |
+| Implementation | TS-01 tooling and inventory implemented; validation in progress on `fbincon/ts-01-baseline` |
+| Current task scope | Fixed Python baseline, behavioral inventory and reproducible verification; production unchanged |
 | Runtime and distribution | Proposed options only; decisions D01–D06 remain open |
 | Target release and schedule | Unassigned; estimate after the TS-02 platform probes |
-| Next implementation work | TS-01 baseline and behavioral inventory, followed by TS-02 platform probes |
+| Next implementation work | Complete TS-01 CI, then TS-02 platform probes and D01–D06 |
 
 The planning request does not mark any implementation gate complete. Existing repository authorization still governs work within subsequently assigned tasks; this plan adds no routine approval step to each stage.
 
@@ -94,7 +94,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 | Stage | Deliverable | Depends on | State | Owner and evidence |
 | --- | --- | --- | --- | --- |
-| TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | NOT_STARTED | Unassigned |
+| TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | VALIDATING | Codex; `fbincon/ts-01-baseline`; [inventory and evidence](typescript-migration/ts-01/README.md) |
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | NOT_STARTED | Unassigned |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | NOT_STARTED | Unassigned |
 | TS-04 | Both editors, installation and recovery | TS-03 | NOT_STARTED | Unassigned |
@@ -109,6 +109,8 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 - Inventory every Python tool and its intended TypeScript replacement, retained historical purpose or retirement reason. Inventory supported targets separately from targets actually covered by CI.
 
 **Exit:** a traceable case/tool inventory and reproducible Python baseline exist; any baseline failure or coverage gap has an explicit disposition. Historical release success alone does not close this stage.
+
+**TS-01 handoff:** The reference remains `9b6d2fa`. [161 fixed cases, the complete inventory and validation dispositions](typescript-migration/ts-01/README.md) are implemented; local reference checks passed with the documented harness-label correction. Cross-platform CI and PR evidence are pending. D01–D06 remain OPEN.
 
 ### TS-02 Platform probes and runtime choice
 
@@ -214,5 +216,6 @@ The documentation checker is still Python at this planning stage; replace this i
 | Date | Work | Result and next action |
 | --- | --- | --- |
 | 2026-10-11 | Source feasibility review and initial bilingual plan | Baseline, scope, risks, six implementation/delivery stages and handoff rules recorded. `python3 -B tools/check_docs.py` passed with 1,313 relative links and bilingual-pair checks; `git diff --check` and bilingual stage/decision consistency checks passed. No application tests or implementation work ran. TS-01–TS-06 remain NOT_STARTED. Next implementation task starts with TS-01. |
+| 2026-10-11 | TS-01 implementation and isolated reference validation | Complete source/test/tool inventories, 161 deterministic cases, guarded capture/verify commands and a dedicated CI gate added. Reference suite: 807 passed / 8 native-platform skips. Both fixed-host Mod suites and installed PTYs passed; original external label mismatch corrected in the harness only. State VALIDATING pending CI/PR. [Evidence](typescript-migration/ts-01/README.md). |
 
 This log records milestones and decisions only. Detailed execution evidence belongs in linked results/PRs. The local-only roadmap may point here but must not maintain a separate migration status ledger.
