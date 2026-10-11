@@ -9,6 +9,7 @@ Start here to set up a development environment, run checks and build the package
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
+- [v1.13.0 language performance](performance-v1.13.0.md): isolated language loading, prepared search and 2/5/10-language resource controls.
 - [v1.12.0 performance comparison](performance-v1.12.0.md): default-path controls, retained small costs and opt-in appearance measurements.
 - [v1.11.0 performance comparison](performance-v1.11.0.md): complete scenarios, raw-data provenance and follow-up controls.
 - [Native editor integration](native.md).

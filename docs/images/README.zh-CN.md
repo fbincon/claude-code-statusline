@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+繁体中文、日语和韩语展示见[多语言安装包终端图像](languages/README.zh-CN.md)。
+
 当前图库包含 21 张 2026-10-07 提供的原始截图：会话内 TUI 9 张、外部 TUI 12 张。原 README 的 18 张图片与更早记录保留在[归档](archive/README.zh-CN.md)。
 
 PNG 字节、尺寸、颜色及元数据保持不变。会话底部主状态栏显示会话数据；配置 Preview 使用固定样例，不能作为真实 token 用量或并行代理验收证据。
@@ -56,6 +58,9 @@ images/
 │           ├── subagents.png
 │           ├── settings.png
 │           └── layout.png
+├── languages/
+│   ├── native/
+│   └── external/
 ├── discovery/
 │   ├── native/
 │   └── external/

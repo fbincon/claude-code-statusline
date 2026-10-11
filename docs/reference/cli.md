@@ -799,7 +799,7 @@ If display configuration is corrupted:
 {"schema_version": 1, "ui_language": "zh-CN"}
 ```
 
-Only `en` and `zh-CN` are accepted. Missing/invalid reads return English and may report a warning without repair. Explicit set/reset locks, backs up and atomically writes; a future schema refuses overwrite and write failures preserve the previous effective choice. This file is independent of display revisions, installation preferences, presets and portable files, and survives ordinary uninstall.
+Accepted codes are `en`, `zh-CN`, `zh-Hant`, `ja` and `ko`. Missing/invalid reads return English and may report a warning without repair. Explicit set/reset locks, backs up and atomically writes; a future schema refuses overwrite and write failures preserve the previous effective choice. This file is independent of display revisions, installation preferences, presets and portable files, and survives ordinary uninstall.
 
 ### Editor enablement preferences
 

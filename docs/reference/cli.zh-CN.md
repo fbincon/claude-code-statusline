@@ -767,7 +767,7 @@ claude-statusline config set refresh-interval event
 {"schema_version": 1, "ui_language": "zh-CN"}
 ```
 
-仅接受 `en` 与 `zh-CN`。缺失／无效读取返回英文，可能提示警告，但不修复。显式 set/reset 使用锁、备份及原子写入；未来 schema 拒绝覆盖，写入失败保留原有效选择。此文件与显示 revision、接入偏好、预设和可移植文件独立，普通卸载保留。
+接受 `en`、`zh-CN`、`zh-Hant`、`ja` 和 `ko`。缺失／无效读取返回英文，可能提示警告，但不修复。显式 set/reset 使用锁、备份及原子写入；未来 schema 拒绝覆盖，写入失败保留原有效选择。此文件与显示 revision、接入偏好、预设和可移植文件独立，普通卸载保留。
 
 ### 编辑器启用偏好
 
