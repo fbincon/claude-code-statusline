@@ -1,0 +1,652 @@
+{
+  "format_version": 1,
+  "date": "2026-10-11",
+  "timezone": "Asia/Shanghai",
+  "reference_commit": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "status": "complete",
+  "raw_directory": "dist/validation/typescript-migration/ts-01/run-01",
+  "environment": {
+    "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+    "architecture": "x86_64",
+    "python": "3.14.4",
+    "node": "v22.23.2",
+    "npm": "10.9.8",
+    "tmux": "tmux 3.6",
+    "claude_hosts": [
+      "2.1.294",
+      "2.1.296"
+    ],
+    "python_packages": [
+      "build==1.6.1",
+      "certifi==2026.7.22",
+      "cffi==2.1.1",
+      "charset-normalizer==3.5.2",
+      "comrak==0.0.16",
+      "cryptography==50.0.2",
+      "docutils==0.23",
+      "fbincon-claude-code-statusline==2.0.0",
+      "id==1.6.1",
+      "idna==3.20",
+      "jaraco.classes==3.4.0",
+      "jaraco.context==6.1.2",
+      "jaraco.functools==4.6.0",
+      "jeepney==0.9.0",
+      "keyring==25.7.0",
+      "markdown-it-py==4.2.0",
+      "mdurl==0.1.2",
+      "more-itertools==11.1.0",
+      "nh3==0.3.7",
+      "packaging==26.3",
+      "pycparser==3.11",
+      "Pygments==2.21.0",
+      "pyproject_hooks==1.3.3",
+      "pyte==0.8.2",
+      "readme_renderer==46.0",
+      "requests==2.34.2",
+      "requests-toolbelt==1.0.0",
+      "rfc3986==2.0.0",
+      "rich==15.0.0",
+      "ruff==0.17.0",
+      "SecretStorage==3.5.0",
+      "twine==7.0.0",
+      "urllib3==2.8.0",
+      "wcwidth==0.9.1"
+    ],
+    "package_source": "Exact reference source, subsequently reinstalled from the inspected wheel; hashes recorded in reference_artifacts."
+  },
+  "reference_artifacts": {
+    "fbincon_claude_code_statusline-2.0.0-py3-none-any.whl": "f616b9fc8a28f894ea91d4ded0173f285331973fa98b1c1e1f930879a997cada",
+    "fbincon_claude_code_statusline-2.0.0.tar.gz": "163f01e610dc284eb99fb7396067d74fbed2d560beea2db76faca7ef4c42363f"
+  },
+  "reference_archive_sha256": "80c535da380d3cc85f44d8a4a0dc1532bf6069a9142ddb70148da0855c03a2ac",
+  "checks": [
+    {
+      "id": "reference-unit",
+      "command": "python -m unittest discover -s tests -t . -v",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-tests.log",
+          "sha256": "09be8b2fc4b7536f65131f33ed4037b782d3aa36d9c0e14ed13a672bc80eed4a"
+        }
+      ],
+      "run": 815,
+      "passed": 807,
+      "skipped": 8,
+      "failed": 0
+    },
+    {
+      "id": "reference-ruff",
+      "command": "python -m ruff check --no-respect-gitignore --select F,E9 src tests tools",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-ruff.log",
+          "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+        }
+      ],
+      "note": "The initial scan followed the parent dist ignore and found no files; rerun explicitly disabled ignore handling."
+    },
+    {
+      "id": "generate_i18n",
+      "command": "python tools/generate_i18n.py --check",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-generate_i18n.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "generate_unicode",
+      "command": "python tools/generate_unicode.py --check",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-generate_unicode.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "generate_ui_contracts",
+      "command": "python tools/generate_ui_contracts.py --check",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-generate_ui_contracts.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "generate_editor_fixtures",
+      "command": "python tools/generate_editor_fixtures.py --check",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-generate_editor_fixtures.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "generate_runtime_contracts",
+      "command": "python tools/generate_runtime_contracts.py --check",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-generate_runtime_contracts.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "reference-docs",
+      "command": "python tools/check_docs.py",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-docs.log",
+          "sha256": "194f599324e3919dc96cd9c0c3ee315e675697c10930a8eeef27af380e8baaa4"
+        }
+      ]
+    },
+    {
+      "id": "reference-build",
+      "command": "python -m build; inspect_dist.py --check-long-description; twine check --strict",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "reference-build.log",
+          "sha256": "7d2f5974e9da3febc856e9f506f0bb2f583df559757e252c3dc5843904fd6239"
+        },
+        {
+          "file": "reference-dist.log",
+          "sha256": "7a397489eaa50ea814e163fe53cca87cd8d3649d665ccc2c048531875ba637a5"
+        },
+        {
+          "file": "reference-twine.log",
+          "sha256": "e709b0f69bfd6e965c49b56f9f9e9a522d11a1abad5a6eb3dbdb44adeba39bee"
+        }
+      ],
+      "wheel_entries": 217,
+      "sdist_entries": 741
+    },
+    {
+      "id": "installed-cli",
+      "command": "python tools/ci_smoke.py --report REPORT",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "installed-cli.json",
+          "sha256": "ec33f1353ef03693c5d90d7f79ad1af52d2102bfac31d0dfef9d5e350a2b746c"
+        }
+      ]
+    },
+    {
+      "id": "statusline-native-2.1.294",
+      "command": "claude plugin validate --strict; claude plugin test; exact-host typecheck where available",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "statusline-native-validate-2.1.294.log",
+          "sha256": "3c47efc048bc35625e8cac574bd711112e8f3104c5aef925e8d618d15395ab5d"
+        },
+        {
+          "file": "statusline-native-test-2.1.294.log",
+          "sha256": "9059cbd71251bf3d44dbdf4f01c7b9716a41b17539fd2a4f1c15c8b81cf68a47"
+        },
+        {
+          "file": "statusline-native-types-2.1.294.log",
+          "sha256": "62e1e44a6b289bff129a523f5b012de483a79f890bbc7a6f8c76900726e04960"
+        },
+        {
+          "file": "statusline-native-typecheck-2.1.294.log",
+          "sha256": "f7290d232641a010f20cc6dbe0fecc7c9ca0c0b9b73dc9235caccb8d538d7cef"
+        }
+      ],
+      "tests_passed": 112,
+      "tests_failed": 0,
+      "typecheck": "passed"
+    },
+    {
+      "id": "statusline-runtime-2.1.294",
+      "command": "claude plugin validate --strict; claude plugin test; exact-host typecheck where available",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "statusline-runtime-validate-2.1.294.log",
+          "sha256": "5dd47a0939352930e78e7046976d5b2a5fc09adc8369c545b2c3146898f503f7"
+        },
+        {
+          "file": "statusline-runtime-test-2.1.294.log",
+          "sha256": "c4c121b65f15886b40867de6da6cdc520d4c98fcec3be07502948fe5f67e6369"
+        },
+        {
+          "file": "statusline-runtime-types-2.1.294.log",
+          "sha256": "62e1e44a6b289bff129a523f5b012de483a79f890bbc7a6f8c76900726e04960"
+        },
+        {
+          "file": "statusline-runtime-typecheck-2.1.294.log",
+          "sha256": "61b073b18c91c652d73fa3de43c5dcfc19fde3d32379c380c6284effd5ff4a89"
+        }
+      ],
+      "tests_passed": 10,
+      "tests_failed": 0,
+      "typecheck": "passed"
+    },
+    {
+      "id": "native-installation-2.1.294",
+      "command": "python tools/native_install_smoke.py --report REPORT",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "native-install-2.1.294.json",
+          "sha256": "bae1cd84c535be17cf86409580c1be69fd96db41f3614979a4db79bac6e7bfd9"
+        }
+      ],
+      "model_calls": 0
+    },
+    {
+      "id": "runtime-installation-2.1.294",
+      "command": "python tools/runtime_install_smoke.py --report REPORT",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "runtime-install-2.1.294.json",
+          "sha256": "5eb2c76bdb4025657e7a71da4b3f717a001250d09db09c7429a994e8e2981182"
+        }
+      ],
+      "model_calls": 0
+    },
+    {
+      "id": "statusline-native-2.1.296",
+      "command": "claude plugin validate --strict; claude plugin test; exact-host typecheck where available",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "statusline-native-validate-2.1.296.log",
+          "sha256": "3c47efc048bc35625e8cac574bd711112e8f3104c5aef925e8d618d15395ab5d"
+        },
+        {
+          "file": "statusline-native-test-2.1.296.log",
+          "sha256": "2c6770904b8211c4c83202da28cda65b1b319a80ee3ec50b518ee3c60ff342e9"
+        }
+      ],
+      "tests_passed": 112,
+      "tests_failed": 0,
+      "typecheck": "not_available"
+    },
+    {
+      "id": "statusline-runtime-2.1.296",
+      "command": "claude plugin validate --strict; claude plugin test; exact-host typecheck where available",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "statusline-runtime-validate-2.1.296.log",
+          "sha256": "5dd47a0939352930e78e7046976d5b2a5fc09adc8369c545b2c3146898f503f7"
+        },
+        {
+          "file": "statusline-runtime-test-2.1.296.log",
+          "sha256": "08b2bc119624b16ad44f6c998f0507f76978fa7d928331782b98cc50db7ca9d9"
+        }
+      ],
+      "tests_passed": 10,
+      "tests_failed": 0,
+      "typecheck": "not_available"
+    },
+    {
+      "id": "native-installation-2.1.296",
+      "command": "python tools/native_install_smoke.py --report REPORT",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "native-install-2.1.296.json",
+          "sha256": "c71d8fdc811925059379807b83b1eb061f7d938a05d7a20182e0195c37611c49"
+        }
+      ],
+      "model_calls": 0
+    },
+    {
+      "id": "runtime-installation-2.1.296",
+      "command": "python tools/runtime_install_smoke.py --report REPORT",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "runtime-install-2.1.296.json",
+          "sha256": "06f5b9cf7701e821096eca4e76554a4aca48b2394d47275b9638ecc77740e4fc"
+        }
+      ],
+      "model_calls": 0
+    },
+    {
+      "id": "external-tui-original",
+      "command": "python tools/external_tui_acceptance.py --backend WHEEL_CLI --commit REFERENCE --report-dir NEW",
+      "result": "failed_with_disposition",
+      "evidence": [
+        {
+          "file": "external-tui.log",
+          "sha256": "6778557aa65468f30c209ccb2cf1998b31aca7e547dc43afaa019b9f0968878c"
+        }
+      ],
+      "disposition": "Stale internal label assertion; corrected presentation-row labels in TS-01 development tool. Original production reference unchanged."
+    },
+    {
+      "id": "external-tui-corrected",
+      "command": "python tools/external_tui_acceptance.py --backend WHEEL_CLI --commit REFERENCE --report-dir NEW",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "external-tui-corrected/report.json",
+          "sha256": "54f09c9e3f1af0d5861725bce1b3f92844fd71d6a8e6e9f16906c2265f0c4f97"
+        }
+      ],
+      "sizes": [
+        "64x18",
+        "64x20",
+        "80x24",
+        "120x30",
+        "80x48"
+      ],
+      "harness_sha256": "2ddd3a636bb77fb01843f1106859b144ad54905a8cb7c454fc28642486c68413"
+    },
+    {
+      "id": "rendering-pty",
+      "command": "python tools/rendering_acceptance.py --python WHEEL_PYTHON --commit REFERENCE --report-dir NEW",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "rendering-pty/report.json",
+          "sha256": "2013947bc5f1ca79558fd460b4260d840427ca5eac1b30ae52c61fd69900a289"
+        }
+      ],
+      "cases": 6,
+      "human_acceptance": false
+    },
+    {
+      "id": "native-composition-pty",
+      "command": "python tools/native_mod_acceptance.py --persistent --composition --backend WHEEL_CLI --claude FIXED_HOST --report-dir NEW",
+      "result": "passed",
+      "evidence": [
+        {
+          "file": "native-composition-pty/report.json",
+          "sha256": "7b70918ed8c00b3c3c12f674f574641fa699dc4f4fccc1111c27667f1aa7bdc1"
+        }
+      ],
+      "sizes": [
+        "120x30",
+        "80x48"
+      ],
+      "languages": [
+        "en",
+        "zh-CN"
+      ],
+      "human_acceptance": false,
+      "provenance_note": "Legacy raw commit 832cc10a13e7eec05bb706d06bac5ad3e5607fab and dirty=true identify the enclosing caller checkout. Tested reference source was byte-checked and installed wheel hashes are recorded separately here."
+    }
+  ],
+  "not_run": [
+    "New paid model calls",
+    "Cross-platform human desktop acceptance",
+    "Physical suspend/reboot/power loss",
+    "Performance measurement and D06 budget"
+  ],
+  "ci": {
+    "status": "passed",
+    "pr": "https://github.com/fbincon/claude-code-statusline/pull/75",
+    "tested_commit": "ddc9dde4c0d0836fef583087a9252fee2bd6bf66",
+    "runs": [
+      {
+        "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591",
+        "event": "pull_request",
+        "head_sha": "ddc9dde4c0d0836fef583087a9252fee2bd6bf66",
+        "status": "completed",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "name": "Build and inspect distributions",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507679786"
+          },
+          {
+            "name": "Frozen Python migration baseline",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680001"
+          },
+          {
+            "name": "macos-15-intel / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680013"
+          },
+          {
+            "name": "macos-26-intel / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680055"
+          },
+          {
+            "name": "macos-26-intel / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680058"
+          },
+          {
+            "name": "macos-15 / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680089"
+          },
+          {
+            "name": "macos-15 / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680103"
+          },
+          {
+            "name": "macos-26 / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680107"
+          },
+          {
+            "name": "macos-26 / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680132"
+          },
+          {
+            "name": "macos-15-intel / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680134"
+          },
+          {
+            "name": "windows-latest / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680182"
+          },
+          {
+            "name": "windows-latest / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680207"
+          },
+          {
+            "name": "ubuntu-latest / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680228"
+          },
+          {
+            "name": "ubuntu-latest / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680255"
+          }
+        ],
+        "raw_summary_sha256": "dedf18b39d8d305eba3770798a73a29a07369cff74d0cdcea438c344f6f059ea"
+      },
+      {
+        "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593",
+        "event": "pull_request",
+        "head_sha": "ddc9dde4c0d0836fef583087a9252fee2bd6bf66",
+        "status": "completed",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "name": "macOS / Claude Code 2.1.288",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679734"
+          },
+          {
+            "name": "Windows / Claude Code 2.1.289",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679867"
+          },
+          {
+            "name": "Windows / Claude Code 2.1.294",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679897"
+          },
+          {
+            "name": "macOS / Claude Code 2.1.294",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679899"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.287",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679946"
+          },
+          {
+            "name": "Windows / Claude Code 2.1.288",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679967"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.296",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679970"
+          },
+          {
+            "name": "macOS / Claude Code 2.1.296",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679981"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.288",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679986"
+          },
+          {
+            "name": "Windows / Claude Code 2.1.296",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507680037"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.289",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507680044"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.294",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507680057"
+          },
+          {
+            "name": "macOS / Claude Code 2.1.289",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507680060"
+          }
+        ],
+        "raw_summary_sha256": "f5f02253cd1d60413b04900886ab7af940a2f64da376b42bfc1d3ee701c1a590"
+      }
+    ],
+    "attempts": [
+      {
+        "head": "d6e1ea074f4bacf1a13b339502a5948afa2707e8",
+        "run": "https://github.com/fbincon/claude-code-statusline/actions/runs/38151304916",
+        "baseline_job": "https://github.com/fbincon/claude-code-statusline/actions/runs/38151304916/job/114505160558",
+        "result": "two CLI stderr byte differences under Python 3.14.8; the other 159 cases matched",
+        "disposition": "Pin canonical replay to exact reference Python 3.14.4 and retain synthetic capture artifacts; support matrix unchanged."
+      }
+    ],
+    "canonical_replay_pass": {
+      "head": "9a7f56fee079ec424296abcb9a15eaeef4a16124",
+      "job": "https://github.com/fbincon/claude-code-statusline/actions/runs/38151674287/job/114506238702",
+      "python": "3.14.4",
+      "cases": 161
+    }
+  },
+  "installed_wheel_verification": {
+    "all_runtime_entries_match": true,
+    "entries": 209,
+    "wheel_sha256": "f616b9fc8a28f894ea91d4ded0173f285331973fa98b1c1e1f930879a997cada"
+  },
+  "replay": {
+    "cases": 161,
+    "independent_captures_identical": true,
+    "canonical_output_sha256": "f9f1d5891671275b2e0a5ef8c1f37b2b0c1aefbfec9e9675c7243ea2c5a6f74f",
+    "receipts": [
+      {
+        "file": "capture-11/receipt.json",
+        "sha256": "891a33262b6a4787d4c2148d001a7dea84ea05ec3462e0801d36d3432c045311"
+      },
+      {
+        "file": "capture-12/receipt.json",
+        "sha256": "891a33262b6a4787d4c2148d001a7dea84ea05ec3462e0801d36d3432c045311"
+      }
+    ]
+  },
+  "candidate_validation": {
+    "tests_run": 827,
+    "passed": 819,
+    "skipped": 8,
+    "failed": 0,
+    "harness_tests": 12,
+    "ruff": "passed",
+    "docs_relative_links": 1337,
+    "replay_cases": 161,
+    "production_and_root_readmes_unchanged": true,
+    "evidence": [
+      {
+        "file": "candidate-tests.log",
+        "sha256": "9bdf7964965586e5d83e8eaf803adf860f1fca3c0b3b52e6b99687322fa2f338"
+      },
+      {
+        "file": "candidate-ruff.log",
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+      },
+      {
+        "file": "candidate-docs.log",
+        "sha256": "d1037518beb9f62783f65d33212c7e1b7fb8e36bc99bd85f74807171fa511015"
+      },
+      {
+        "file": "candidate-replay.log",
+        "sha256": "f403c190f78864647fdccef8a57ac532b8ec024c71434d6a3205e14d51ccfffd"
+      },
+      {
+        "file": "candidate-build.log",
+        "sha256": "9c29e3c64a4118b7e6f201e53aa28189b1b9feefb7d799bd25855f8e0f9cc38e"
+      },
+      {
+        "file": "candidate-dist.log",
+        "sha256": "414c56f8d6016c3a3e210f3427f81946f7723f07e38c15376db977edb0e99fca"
+      },
+      {
+        "file": "candidate-twine.log",
+        "sha256": "e709b0f69bfd6e965c49b56f9f9e9a522d11a1abad5a6eb3dbdb44adeba39bee"
+      }
+    ],
+    "built_commit": "d6e1ea074f4bacf1a13b339502a5948afa2707e8",
+    "distribution_inspection": "passed",
+    "wheel_contents_identical_to_reference": true,
+    "artifacts": {
+      "fbincon_claude_code_statusline-2.0.0-py3-none-any.whl": "bc70c48e7bf32ad2c497ad5563936be95c9eef5f015826a49d2c8caea28048d1",
+      "fbincon_claude_code_statusline-2.0.0.tar.gz": "dd1fb88e340c8b3f9a0e6918b2f9736f10e22e05a301b023aaa2214613b285fe"
+    },
+    "inventory_refinement": {
+      "description": "Added both Mod backend executable environment overrides and binding precedence; all 161 expected results unchanged.",
+      "tests": 12,
+      "result": "passed",
+      "log_sha256": "13746d9b29ff23fd839eb53a4fab7f14f4440575509ae52fa5a634d153712611"
+    }
+  },
+  "delivery": {
+    "record": "https://github.com/fbincon/claude-code-statusline/pull/75",
+    "merge_commit_source": "GitHub PR merge record; the final reviewed head, merge SHA and verified Gitee main are recorded in the PR description after delivery.",
+    "final_documentation_checks": "Final PR revision must pass checks before merge; no release or new tag."
+  }
+}
