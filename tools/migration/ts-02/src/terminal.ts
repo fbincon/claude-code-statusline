@@ -17,11 +17,19 @@ export function terminal(log: string): void {
     stopped = true;
     process.stdin.setRawMode(false); process.stdin.pause();
     process.stdout.write('\x1b[0m\x1b[?25h\x1b[?1049l');
-    record('restored', reason); process.exitCode = code;
+    try { record('restored', reason); } catch { /* Logging cannot prevent terminal cleanup. */ }
+    process.exitCode = code;
     process.stdin.removeAllListeners('data'); process.stdout.off('resize', draw);
   };
-  process.stdin.setRawMode(true); process.stdin.setEncoding('utf8'); process.stdin.resume();
-  process.stdout.write('\x1b[?1049h\x1b[?25l'); draw(); record('ready');
+  const failed = (error: unknown) => {
+    try { record('error', String(error)); } catch { /* The log itself may have failed. */ }
+    finish('exception', 1);
+  };
+  process.once('uncaughtException', failed);
+  try {
+    process.stdin.setRawMode(true); process.stdin.setEncoding('utf8'); process.stdin.resume();
+    process.stdout.write('\x1b[?1049h\x1b[?25l'); draw(); record('ready');
+  } catch (error) { failed(error); return; }
   process.stdin.on('data', (data: string) => {
     record('key', data);
     if (data.includes('\x13')) finish('save', 0);
@@ -29,5 +37,4 @@ export function terminal(log: string): void {
   });
   process.stdout.on('resize', draw);
   for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]] as const) process.once(signal, () => finish(signal, code));
-  process.once('uncaughtException', error => { record('error', String(error)); finish('exception', 1); });
 }

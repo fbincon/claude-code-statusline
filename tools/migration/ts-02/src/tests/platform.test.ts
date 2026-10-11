@@ -13,6 +13,7 @@ import { frame } from '../terminal.js';
 import { render } from '../render.js';
 import { displayWidth, clip } from '../generated/unicode.js';
 import { library, koffi } from '../native.js';
+import { architecture } from '../architecture.js';
 import { exportReference, python, packageRoot, cli } from '../context.js';
 
 const temporary = fs.mkdtempSync(join(tmpdir(), 'ts02-中文 space-'));
@@ -36,6 +37,12 @@ test('integer lexemes survive above 2^53, signed/unsigned 64-bit, and arbitrary 
     assert.equal(integer(decode(raw)), BigInt(raw)); assert.equal(encode(decode(raw)), raw);
   }
   for (const raw of ['1.0', '1e0', 'true', 'null', '"1"']) assert.throws(() => integer(decode(raw)));
+});
+test('architecture evidence distinguishes native machine from process ABI', () => {
+  const result = architecture(); assert.equal(result.process_arch, process.arch);
+  assert.ok(['x64', 'arm64'].includes(result.host_arch));
+  if (process.platform === 'win32') assert.equal(result.architecture_source, 'IsWow64Process2');
+  if (process.env.TS02_EXPECT_HOST_ARCH) assert.equal(result.host_arch, process.env.TS02_EXPECT_HOST_ARCH);
 });
 test('strict JSON rejects duplicates and nonfinite inputs without collapsing null/zero/missing', () => {
   for (const raw of ['{"x":1,"x":2}', '{"a":{"x":1,"x":1}}', 'NaN', 'Infinity', '{']) assert.throws(() => decode(raw));

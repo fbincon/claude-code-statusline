@@ -1,16 +1,17 @@
 import { spawnSync, execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
-import { machine, platform, release, tmpdir } from 'node:os';
+import { platform, release, tmpdir } from 'node:os';
 import { packageRoot, repoRoot, cli, sha, sourceHashes, reference } from './context.js';
 import { decode, integer } from './json.js';
 import { sample } from './clocks.js';
+import { architecture } from './architecture.js';
 
 const root = resolve(process.argv[2] ?? '');
 if (!process.argv[2]) throw new Error('Pass a new output directory');
 fs.mkdirSync(root, { recursive: false });
 const report: Record<string, unknown> = {
-  format_version: 1, reference, node: process.version, platform: platform(), os: release(), host_arch: machine(),
+  format_version: 1, reference, node: process.version, platform: platform(), os: release(), ...architecture(),
   runner_arch: process.env.RUNNER_ARCH ?? null, process_arch: process.arch, source_hashes: sourceHashes(),
   commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).trim(),
   dirty: Boolean(execFileSync('git', ['status', '--porcelain'], { cwd: repoRoot, encoding: 'utf8' }).trim()),
@@ -25,6 +26,7 @@ const installed = fs.mkdtempSync(join(tmpdir(), 'ts02 installed 中文 $` & '));
 try {
   if (process.version !== 'v24.21.0' || process.arch !== 'x64' && process.arch !== 'arm64') throw new Error('Unpinned runtime');
   if (process.env.TS02_EXPECT_PROCESS_ARCH && process.arch !== process.env.TS02_EXPECT_PROCESS_ARCH) throw new Error('Unexpected process architecture');
+  if (process.env.TS02_EXPECT_HOST_ARCH && report.host_arch !== process.env.TS02_EXPECT_HOST_ARCH) throw new Error('Native host architecture does not match the target');
   const tests = fs.readdirSync(join(packageRoot, 'dist/tests')).filter(f => f.endsWith('.test.js')).map(f => join(packageRoot, 'dist/tests', f));
   const test = spawnSync(process.execPath, ['--test', '--test-reporter=tap', '--test-concurrency=1', '--test-timeout=30000', ...tests], { encoding: 'utf8', timeout: 180000 });
   fs.writeFileSync(join(root, 'tests.tap'), test.stdout + test.stderr);

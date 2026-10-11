@@ -17,7 +17,7 @@ jobs:
         include:
           - { os: ubuntu-24.04, arch: x64 }
           - { os: windows-2025, arch: x64 }
-          - { os: windows-11-arm, arch: x64 }
+          - { os: windows-11-arm, arch: x64, host_arch: arm64 }
           - { os: macos-14, arch: arm64 }
           - { os: macos-15, arch: arm64 }
           - { os: macos-15-intel, arch: x64 }
@@ -27,6 +27,7 @@ jobs:
       PYTHONUTF8: '1'
       PYTHONDONTWRITEBYTECODE: '1'
       TS02_EXPECT_PROCESS_ARCH: ${{ matrix.arch }}
+      TS02_EXPECT_HOST_ARCH: ${{ matrix.host_arch || matrix.arch }}
     steps:
       - uses: actions/checkout@v4
         with:

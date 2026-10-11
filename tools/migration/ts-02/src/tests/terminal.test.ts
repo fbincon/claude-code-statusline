@@ -7,10 +7,10 @@ import { join } from 'node:path';
 import { library } from '../native.js';
 import { cli } from '../context.js';
 
-const sizes = [[64, 18], [64, 20], [80, 24], [120, 30], [80, 48], [32, 12]];
-for (const [columns, rows] of sizes) test(`native PTY keys/resize/restore ${columns}x${rows}`, { skip: process.platform === 'win32' ? 'Requires a Windows console/ConPTY harness; D04 remains OPEN' : false, timeout: 10000 }, async () => {
+const sizes = [[64, 18, false], [64, 20, false], [80, 24, false], [120, 30, false], [80, 48, false], [32, 12, false], [80, 24, true]] as const;
+for (const [columns, rows, logFailure] of sizes) test(`native PTY keys/resize/restore ${columns}x${rows}${logFailure ? ' with log failure' : ''}`, { skip: process.platform === 'win32' ? 'Requires a Windows console/ConPTY harness; D04 remains OPEN' : false, timeout: 10000 }, async () => {
   const temp = fs.mkdtempSync(join(tmpdir(), 'ts02-pty-'));
-  const log = join(temp, 'events.jsonl');
+  const log = logFailure ? join(temp, 'missing/events.jsonl') : join(temp, 'events.jsonl');
   const lib = library(process.platform === 'darwin' ? '/usr/lib/libSystem.B.dylib' : 'libc.so.6');
   const pty = process.platform === 'darwin' ? lib : library('libutil.so.1');
   const size = Buffer.alloc(8); size.writeUInt16LE(rows!, 0); size.writeUInt16LE(columns!, 2);
@@ -38,6 +38,10 @@ for (const [columns, rows] of sizes) test(`native PTY keys/resize/restore ${colu
     throw new Error(`Missing terminal event ${event}`);
   };
   try {
+    if (logFailure) {
+      await closedPromise; assert.equal(child.exitCode, 1);
+      assert.equal(attrs(s, after), 0); assert.deepEqual(after, before); return;
+    }
     await waitEvent('ready');
     fs.writeSync(m, '\x1b[A中文 é 👩🏽‍💻'); await waitEvent('key');
     size.writeUInt16LE(24, 0); size.writeUInt16LE(90, 2);
