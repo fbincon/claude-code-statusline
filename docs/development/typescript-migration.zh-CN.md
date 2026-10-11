@@ -14,7 +14,7 @@
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01 DONE；TS-02 VALIDATING**；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)交付隔离探针与决策证据 |
 | 当前任务范围 | TS-02 原生／安装探针、性能策略及 D01–D06 记录；生产迁移尚未开始 |
-| 运行时与分发 | 候选为 Node 24.21.0／npm／64 位；D06 DECIDED，剩余证据门槛见 [TS-02](typescript-migration/ts-02/README.zh-CN.md) |
+| 运行时与分发 | 候选为 Node 24.21.0／npm／64 位；D03／D05／D06 DECIDED，剩余证据门槛见 [TS-02](typescript-migration/ts-02/README.zh-CN.md) |
 | 目标版本与工期 | 尚未指定；TS-02 平台验证后估算 |
 | 下一项实施工作 | 关闭 TS-02 剩余基础门槛后再开始 TS-03 |
 
@@ -79,9 +79,9 @@
 | --- | --- | --- | --- | --- |
 | D01 | OPEN | 运行时、最低版本、包／工具布局及可选独立构建 | 系统／架构矩阵、完整小样例渲染启动和 RSS、依赖与资源加载、两个 Mod 验证路径 | TS-02 |
 | D02 | OPEN | 时钟 API、启动／进程身份及整数无损编码 | 睡眠／恢复、墙钟调整、重启、进程复用、API 不可用；旧 JSON 与冻结值；必要时原生依赖打包 | TS-02 |
-| D03 | OPEN | 跨进程锁与持久写入 | 并发更新、进程异常退出、Windows 共享冲突、临时文件清理、符号链接／reparse 处理及新旧切换 | TS-02 |
+| [D03](typescript-migration/ts-02/D03.zh-CN.md) | DECIDED | 跨进程锁与持久写入 | 并发更新、进程异常退出、Windows 共享冲突、临时文件清理、符号链接／reparse 处理及新旧切换 | TS-02 |
 | D04 | OPEN | 外部 TUI 输入输出及终端启动 | Ctrl+S 等原始按键、缩放、终端恢复、Unicode 单元格、tmux、Windows 控制台及 macOS Terminal 辅助程序验证 | TS-02 |
-| D05 | OPEN | 安装、旧入口退役、升级与回滚 | pipx／PATH 识别、Windows 可执行文件或 argv 方案、归属、插件／后端绑定、关闭偏好保留及兼容备份恢复 | TS-02 定策略；TS-04 完成 |
+| [D05](typescript-migration/ts-02/D05.zh-CN.md) | DECIDED | 安装、旧入口退役、升级与回滚 | pipx／PATH 识别、Windows 可执行文件或 argv 方案、归属、插件／后端绑定、关闭偏好保留及兼容备份恢复 | TS-02 定策略；TS-04 完成 |
 | [D06](typescript-migration/ts-02/D06.zh-CN.md) | DECIDED | 可测量的性能验收预算 | 测量前由 `3c448b8` 固定各案例延迟／RSS 预算、三轮交替及有界噪声复查规则 | TS-02 |
 
 重点代码边界是[平台时钟](../../src/claude_statusline/platforms/clocks.py)、[文件锁与发布](../../src/claude_statusline/platforms/files.py)、[序列化计时器](../../src/claude_statusline/runtime/timing/clock.py)、[提交索引字节游标](../../src/claude_statusline/runtime/tasks/evidence.py)、[语义 revision](../../src/claude_statusline/config/revisions.py)、[CLI 归属](../../src/claude_statusline/integration/ownership.py)和[外部终端](../../src/claude_statusline/ui/terminal.py)。
@@ -110,7 +110,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **退出标准：**具备可追溯的案例／工具清单及可复现的 Python 基线；基线失败和覆盖缺口均有明确处理结论。仅凭历史发布成功不能完成此阶段。
 
-**TS-01 交接：** DONE。参考仍为 `9b6d2fa`。[161 个固定案例、完整清单及验证处置](typescript-migration/ts-01/README.zh-CN.md)通过本机回放；实现提交 `ddc9dde4c0d0836fef583087a9252fee2bd6bf66` 通过 14 项 CI 和 13 项 Mod 矩阵。最终审查提交、合并提交及 Gitee 同步结果记于 [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)。D01–D06 保持 OPEN；下一步进入 TS-02，先处理已登记的时钟、锁、启动器及平台覆盖缺口。尚未选定 TypeScript 运行时或发布版本。
+**TS-01 交接：** DONE。参考仍为 `9b6d2fa`。[161 个固定案例、完整清单及验证处置](typescript-migration/ts-01/README.zh-CN.md)通过本机回放；实现提交 `ddc9dde4c0d0836fef583087a9252fee2bd6bf66` 通过 14 项 CI 和 13 项 Mod 矩阵。最终审查提交、合并提交及 Gitee 同步结果记于 [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)。TS-01 交接时 D01–D06 均为 OPEN；当前决策及证据见下方 TS-02 交接，尚未指定生产 TS 发布版本。
 
 ### TS-02 平台验证与运行时选择
 

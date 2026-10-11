@@ -14,7 +14,7 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01 DONE; TS-02 VALIDATING**; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) delivers isolated probes and decision evidence |
 | Current task scope | TS-02 native/installation probes, performance policy and D01–D06 records; production migration has not started |
-| Runtime and distribution | Node 24.21.0/npm/64-bit candidate; D06 DECIDED, remaining evidence gates are recorded in [TS-02](typescript-migration/ts-02/README.md) |
+| Runtime and distribution | Node 24.21.0/npm/64-bit candidate; D03/D05/D06 DECIDED, remaining evidence gates are recorded in [TS-02](typescript-migration/ts-02/README.md) |
 | Target release and schedule | Unassigned; estimate after the TS-02 platform probes |
 | Next implementation work | Close TS-02's remaining foundational gates before TS-03 |
 
@@ -79,9 +79,9 @@ Decision states are `OPEN`, `DECIDED` or `SUPERSEDED`. A decided row must link a
 | --- | --- | --- | --- | --- |
 | D01 | OPEN | Runtime, minimum version, package/tooling layout and optional standalone builds | Supported OS/architecture matrix, small render startup/RSS measurements, dependency and asset loading, both Mod validation paths | TS-02 |
 | D02 | OPEN | Clock APIs, boot/process identities and lossless integer encoding | Sleep/resume, wall-clock adjustment, reboot, process reuse and unavailable API cases; old JSON reads and frozen values; native dependency packaging if required | TS-02 |
-| D03 | OPEN | Cross-process locks and durable writes | Concurrent updates, process death, Windows sharing violations, temporary-file cleanup, symlink/reparse handling and mixed-version cutover | TS-02 |
+| [D03](typescript-migration/ts-02/D03.md) | DECIDED | Cross-process locks and durable writes | Concurrent updates, process death, Windows sharing violations, temporary-file cleanup, symlink/reparse handling and mixed-version cutover | TS-02 |
 | D04 | OPEN | External TUI input/output and terminal launching | Raw keys including Ctrl+S, resize, terminal restoration, Unicode cells, tmux, Windows console and macOS Terminal helper probes | TS-02 |
-| D05 | OPEN | Installation, old-entry retirement, upgrade and rollback | Existing pipx/PATH detection, Windows executable or argv strategy, ownership, plugin/backend binding, opt-out preservation and compatible-backup recovery | Strategy in TS-02; complete in TS-04 |
+| [D05](typescript-migration/ts-02/D05.md) | DECIDED | Installation, old-entry retirement, upgrade and rollback | Existing pipx/PATH detection, Windows executable or argv strategy, ownership, plugin/backend binding, opt-out preservation and compatible-backup recovery | Strategy in TS-02; complete in TS-04 |
 | [D06](typescript-migration/ts-02/D06.md) | DECIDED | Measurable performance acceptance budget | Policy committed at `3c448b8` before measurements; fixed per-case latency/RSS budgets, three alternating rounds and bounded noise review | TS-02 |
 
 The highest-risk source boundaries are [platform clocks](../../src/claude_statusline/platforms/clocks.py), [file locking/publication](../../src/claude_statusline/platforms/files.py), [serialized timers](../../src/claude_statusline/runtime/timing/clock.py), [submission byte cursors](../../src/claude_statusline/runtime/tasks/evidence.py), [semantic revisions](../../src/claude_statusline/config/revisions.py), [CLI ownership](../../src/claude_statusline/integration/ownership.py) and [external terminal handling](../../src/claude_statusline/ui/terminal.py).
@@ -110,7 +110,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 **Exit:** a traceable case/tool inventory and reproducible Python baseline exist; any baseline failure or coverage gap has an explicit disposition. Historical release success alone does not close this stage.
 
-**TS-01 handoff:** DONE. The reference remains `9b6d2fa`. [161 fixed cases, the complete inventory and validation dispositions](typescript-migration/ts-01/README.md) passed local replay and the 14-job CI / 13-job Mod matrices at `ddc9dde4c0d0836fef583087a9252fee2bd6bf66`. Final reviewed/merged commits and Gitee synchronization are recorded in [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75). D01–D06 remain OPEN; next work is TS-02, beginning with the recorded clock, lock, launcher and platform coverage gaps. No TypeScript runtime or release version has been selected.
+**TS-01 handoff:** DONE. The reference remains `9b6d2fa`. [161 fixed cases, the complete inventory and validation dispositions](typescript-migration/ts-01/README.md) passed local replay and the 14-job CI / 13-job Mod matrices at `ddc9dde4c0d0836fef583087a9252fee2bd6bf66`. Final reviewed/merged commits and Gitee synchronization are recorded in [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75). At the TS-01 handoff, D01–D06 remained OPEN. Current decisions and evidence are recorded in the TS-02 handoff below; no production TS release version is assigned.
 
 ### TS-02 Platform probes and runtime choice
 

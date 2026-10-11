@@ -14,16 +14,21 @@ Node **24.21.0**, npm (local **11.19.0**), TypeScript **5.9.3**, Koffi **3.3.3**
 and lossless-json **4.3.1**. Runtime archives are pinned by official SHA-256;
 npm dependencies by exact versions and lockfile integrity. Both new dependencies
 are MIT. Copied Unicode sources and licenses are build artifacts; their original
-owners remain unchanged. No production Python, Mod entry point, package version,
+owners remain unchanged. Actual npm archives, MIT licenses and lockfile SHA-512
+were reviewed for both libraries and four target prebuilt packages. Koffi places
+its binaries in the corresponding optional `@koromix/koffi-*` package; Windows
+ARM uses the x64 package. See [Koffi support](https://koffi.dev/) and the
+[lossless JSON interface](https://github.com/josdejong/lossless-json).
+No production Python, Mod entry point, package version,
 public configuration schema or frozen TS-01 expectation is changed.
 
 | Decision | State | Direction and outstanding evidence |
 | --- | --- | --- |
-| [D01](D01.md) | OPEN | Node 24/npm/ESM; 64-bit future TS release. Close native installation matrix and explicitly resolve WSL/older desktop coverage. |
+| [D01](D01.md) | OPEN | Node 24/npm/ESM; 64-bit future TS release. Native installation matrix passes; WSL/older desktop coverage remains unresolved. |
 | [D02](D02.md) | OPEN | Native OS clocks/identities and lossless integer literals. Physical suspend/reboot evidence remains missing. |
-| [D03](D03.md) | OPEN | Compatible kernel locks and durable replacement; native Windows matrix is required before closing. |
+| [D03](D03.md) | DECIDED | Compatible kernel locks and durable replacement validated on all eight native targets; full store transactions remain TS-03. |
 | [D04](D04.md) | OPEN | Raw TTY/VT/shared Unicode. Real Windows keys, GUI launch/focus and tmux popup evidence remain missing. |
-| [D05](D05.md) | OPEN | npm entry retirement, argv-prefix binding and transactional upgrade strategy; finish installed-shell/host evidence. |
+| [D05](D05.md) | DECIDED | npm entry retirement, argv-prefix binding and transactional upgrade strategy fixed; complete implementation remains TS-04. |
 | [D06](D06.md) | DECIDED | Budget frozen before measurement; minimal render is measured separately from full migration acceptance. |
 
 The maintainer approved a future major-release transition away from Windows x86,
@@ -78,7 +83,7 @@ changed budgets, changed sources, tampered captures and inconsistent counts.
 
 The matrix retains the existing Python and both-Mod checks and adds Linux x64,
 Windows x64, **x64 Node/Python on Windows ARM**, macOS 14 ARM, and macOS 15/26
-Intel/ARM. A process architecture alone is not the physical host architecture;
+Intel/ARM, using the [GitHub runner labels](https://docs.github.com/en/actions/reference/runners/github-hosted-runners). A process architecture alone is not the physical host architecture;
 both are recorded. POSIX PTYs on Windows are explicit skips. PowerShell and Git
 Bash installation shims are separate checks; `.cmd` is not used as the Mod's
 shell-free executable.
@@ -102,6 +107,12 @@ Important findings retained rather than normalized away:
   launch/focus. A new Windows console/raw-mode probe is distinct from keyboard,
   resize and visual acceptance. tmux session launch is distinct from popup focus.
 
+The existing declaration boundary is preserved: 2.1.294 generates exact-build
+official declarations and typechecks both Mods. Version 2.1.296 loads, tests and
+installs Mods, but the current generation flow does not emit its declarations;
+no exact-build typecheck pass is claimed. Real argv receipts do not fill that gap.
+See [Native Mod CI](../../../../.github/workflows/native.yml).
+
 ## Performance interpretation and next gate
 
 The policy was committed at `3c448b8` before the first implementation measurement.
@@ -110,15 +121,42 @@ the actual stdin, clips through the fixed Unicode kernel and emits ANSI. Mutated
 input changes output; unsupported profiles fail instead of silently dropping
 production behavior. Both sides start a fresh process and assert matching bytes.
 
-The first 600-sample comparison passed its fixed latency/RSS budgets, but Node's
+The 600-sample comparison at `f891065` (plus 200 startup control samples)
+passed its fixed latency/RSS budgets, but Node's
 peak RSS was close to the allowed Python-plus-32-MiB limit. It is a feasibility
 result for **one minimal profile**, not a whole-backend speedup or memory claim.
 The complete collector/Agent/hook/in-process matrix remains unmeasured. New
 measurements preserve prior raw results and the frozen budget.
 
-Required follow-up: finish all automated native/install checks, then supply
-physical suspend/reboot, WSL, Windows desktop keyboard/resize, macOS 14 Intel and
+The values below are medians of the three round statistics; latency is in ms
+and RSS in MiB. The machine-readable summary retains the per-metric dispositions.
+
+| Python bytecode | Python / TS P50 | Python / TS P95 | Python / TS peak RSS | TS RSS limit |
+| --- | --- | --- | --- | --- |
+| Warm | 106.59 / 40.75 | 115.31 / 47.54 | 26.52 / 58.19 | 58.52 |
+| Cold | 233.46 / 41.33 | 245.48 / 47.67 | 27.68 / 58.23 | 59.68 |
+
+Required follow-up: supply physical suspend/reboot, WSL, Windows desktop keyboard/resize, macOS 14 Intel and
 GUI terminal/popup evidence. Keep affected decisions OPEN and TS-03 NOT_STARTED
 until the foundational gates are satisfied or the maintainer explicitly resolves
 a support change. Full installation/recovery remains TS-04 and full performance
 acceptance remains TS-05; this probe delivery is not a release.
+
+## Test-tool handoff
+
+The new Python `scripts/oracle.py` is a comparison-only adapter and retires with
+the oracle in TS-05. Port `scripts/mod-smoke.py` to the selected Node PTY tooling
+in TS-05 while retaining real host process-API coverage. Neither is a production
+call-through. The selected render input/output comes from `cli-render-bom`; its
+explicit narrow configuration is TS-01 `main-model`, also passed to the Python
+configured-rows adapter. This is deliberately not the full default CLI profile.
+
+The current Linux suite has 33 cases: 31 pass and two Windows-only cases skip.
+The first complete eight-target CI matrix passed at `f891065`; later hardening
+adds explicit native Windows architecture evidence and logging-failure cleanup.
+The final reviewed head, CI checks, merge commit and Gitee synchronization are
+recorded in the PR; earlier receipts are not relabeled as final-head runs.
+The existing Python suite passes 819 cases with eight platform skips (827 total).
+Both real-host argv probes pass on 2.1.294 and 2.1.296. The rebuilt Python wheel
+has 217 byte-identical entries relative to TS-01; the expanded source archive
+contains the probe and evidence, with dependency/build directories excluded.

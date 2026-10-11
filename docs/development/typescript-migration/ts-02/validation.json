@@ -7,8 +7,620 @@
   "pull_request": "https://github.com/fbincon/claude-code-statusline/pull/76",
   "node": "24.21.0",
   "python_reference": "3.14.4",
-  "ci": "pending final tested commit",
+  "ci": {
+    "implementation_head": "f89106590a53eed9c7ee1d7a360e0742d11fedc3",
+    "platform_run": "https://github.com/fbincon/claude-code-statusline/actions/runs/38158663718",
+    "platform_jobs": 8,
+    "platform_result": "success",
+    "artifacts": [
+      {
+        "id": 11710070538,
+        "name": "ts02-macos-15-intel-x64",
+        "digest": "sha256:6c8ad24bcbc774b3af00f8cb1ad54fd65adc6112a72e86462e20389ee636acbd",
+        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "os": "24.6.0",
+        "platform": "darwin",
+        "host_arch": "x86_64",
+        "process_arch": "x64",
+        "runner_arch": "X64",
+        "tests": {
+          "tests": 31,
+          "pass": 29,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "b1b4717bc4aa12a27a28af1e18e0cba7c41a3334b8a57e0640ba2dca2dbaa2ec"
+      },
+      {
+        "id": 11709920322,
+        "name": "ts02-macos-14-arm64",
+        "digest": "sha256:7c2f400140fae90bd7644cad6220bd8ebc26bfa486a5d7da7547288115e19687",
+        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "os": "23.6.0",
+        "platform": "darwin",
+        "host_arch": "arm64",
+        "process_arch": "arm64",
+        "runner_arch": "ARM64",
+        "tests": {
+          "tests": 31,
+          "pass": 29,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "0b5bff12b865acea0917998ed66b8bf318fe0439d6310ce04205ed14a8389ff4"
+      },
+      {
+        "id": 11709758888,
+        "name": "ts02-macos-26-intel-x64",
+        "digest": "sha256:c41d899fbf39d43f7c799c59fdde9621843de327c32f25e06d96d33137049294",
+        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "os": "25.6.0",
+        "platform": "darwin",
+        "host_arch": "x86_64",
+        "process_arch": "x64",
+        "runner_arch": "X64",
+        "tests": {
+          "tests": 31,
+          "pass": 29,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "0ef038b21a1e967b1974b649ad408ac4722b05bc771fa9956e004e0b361ddf66"
+      },
+      {
+        "id": 11709578504,
+        "name": "ts02-windows-11-arm-x64",
+        "digest": "sha256:bf2a2d8279e994cf11a4e88076782c6db5ed7ffa977e887212b7411e2fe9fb8d",
+        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "os": "10.0.26200",
+        "platform": "win32",
+        "process_arch": "x64",
+        "runner_arch": "ARM64",
+        "tests": {
+          "tests": 31,
+          "pass": 24,
+          "fail": 0,
+          "skipped": 7
+        },
+        "installed_shells": [
+          "PowerShell npm .ps1",
+          "Git Bash npm shell shim"
+        ],
+        "tarball_sha256": "f75368ceb366914399c217965ac58f646eb2dc3c028ecc9c249b7a6b183504dd",
+        "npm_cmd_special_path": {
+          "exit_code": 1,
+          "supported": false,
+          "disposition": "npm-generated .cmd is not the bound backend; use PowerShell .ps1 or absolute node + JS argv. Do not change global execution policy."
+        },
+        "receipt_sha256": "ca50995ca2ad2fbe02cb5f92f2a6e317cb6ef440718c70ee2674dc032d884e56",
+        "node_os_machine": "x86_64",
+        "host_arch": null,
+        "architecture_disposition": "Original os.machine field is a process view; IsWow64Process2 revalidation is recorded by the later implementation."
+      },
+      {
+        "id": 11709573328,
+        "name": "ts02-ubuntu-24.04-x64",
+        "digest": "sha256:e27a104cfae7194301613bce9cf9b03afe21d518e1c5cbf2e47da2a9f389b807",
+        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "os": "6.17.0-1022-azure",
+        "platform": "linux",
+        "host_arch": "x86_64",
+        "process_arch": "x64",
+        "runner_arch": "X64",
+        "tests": {
+          "tests": 31,
+          "pass": 29,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "629c6fb25e42325e05cba590539d24617aebd92f8bd29377bd2fd06cfab0c8ec"
+      },
+      {
+        "id": 11709364182,
+        "name": "ts02-windows-2025-x64",
+        "digest": "sha256:c0bae5768b022d37b921cbe4f94d19f5c7de18011cc2101fe375e8f0e98ac783",
+        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "os": "10.0.26100",
+        "platform": "win32",
+        "process_arch": "x64",
+        "runner_arch": "X64",
+        "tests": {
+          "tests": 31,
+          "pass": 24,
+          "fail": 0,
+          "skipped": 7
+        },
+        "installed_shells": [
+          "PowerShell npm .ps1",
+          "Git Bash npm shell shim"
+        ],
+        "tarball_sha256": "f75368ceb366914399c217965ac58f646eb2dc3c028ecc9c249b7a6b183504dd",
+        "npm_cmd_special_path": {
+          "exit_code": 1,
+          "supported": false,
+          "disposition": "npm-generated .cmd is not the bound backend; use PowerShell .ps1 or absolute node + JS argv. Do not change global execution policy."
+        },
+        "receipt_sha256": "5b7d4622c22db8b89f291bf487f834e9c6517adc143c8c3451c568531a90f119",
+        "node_os_machine": "x86_64",
+        "host_arch": null,
+        "architecture_disposition": "Original os.machine field is a process view; IsWow64Process2 revalidation is recorded by the later implementation."
+      },
+      {
+        "id": 11709284066,
+        "name": "ts02-macos-15-arm64",
+        "digest": "sha256:5a9ee0400fe27e902a2c6d5e8fee0ddeeffdcc184d1ce5ab0ccf66a0d4963db5",
+        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "os": "24.6.0",
+        "platform": "darwin",
+        "host_arch": "arm64",
+        "process_arch": "arm64",
+        "runner_arch": "ARM64",
+        "tests": {
+          "tests": 31,
+          "pass": 29,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "0417b6bd3f85bac0f0e2b7b4dad1cf8b77cb5adee3e665fef0aa56b5ca7aa8ae"
+      },
+      {
+        "id": 11709074109,
+        "name": "ts02-macos-26-arm64",
+        "digest": "sha256:9db83103cdfe9d46a4e0abaf2f51d72f8a48798a02a037256f1e6e43e8ece352",
+        "tested_checkout": "e2b539c9f8eed68f3549f1c411459b0aee2ea309",
+        "os": "25.6.0",
+        "platform": "darwin",
+        "host_arch": "arm64",
+        "process_arch": "arm64",
+        "runner_arch": "ARM64",
+        "tests": {
+          "tests": 31,
+          "pass": 29,
+          "fail": 0,
+          "skipped": 2
+        },
+        "installed_shells": [
+          "POSIX npm bin"
+        ],
+        "tarball_sha256": "2066dd77ee9c4d25ab8e2db3765973d25cf762ef0ef4d1d4e22da8f2d2986069",
+        "npm_cmd_special_path": null,
+        "receipt_sha256": "c7df1d95e213072b48bbd0b23df131eb71ad4df3101e6cea34316ad956dff320"
+      }
+    ],
+    "final_head_checks": "Exact final reviewed head, merge result and Gitee synchronization are recorded in PR #76 after checks pass.",
+    "windows_native_architecture_recheck": {
+      "run": "https://github.com/fbincon/claude-code-statusline/actions/runs/38160596587",
+      "artifact_id": 11709917676,
+      "artifact_sha256": "184941d4abbbccb02fc6f10206196adc8dc36e330d660faa17214dc2d71aeac2",
+      "receipt_sha256": "1d396b9f6eb4408dbbca198df1b9a342b3594bb705a6d5f74f22b6ed2be3a15b",
+      "commit": "2ef60f05048ba145013499ffa339b5d7ba349be8",
+      "host_arch": "arm64",
+      "process_arch": "x64",
+      "node_os_machine": "x86_64",
+      "architecture_source": "IsWow64Process2",
+      "native_machine": 43620,
+      "emulated_machine": 0,
+      "runner_arch": "ARM64",
+      "tests": {
+        "tests": 33,
+        "pass": 25,
+        "fail": 0,
+        "skipped": 8
+      }
+    }
+  },
   "physical_suspend_reboot": "not_run",
   "human_desktop_acceptance": "not_run",
-  "next_stage": "TS-03 NOT_STARTED"
+  "next_stage": "TS-03 NOT_STARTED",
+  "tested_commit": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+  "local": {
+    "platform": "linux",
+    "os": "7.0.0-38-generic",
+    "host_arch": "x64",
+    "process_arch": "x64",
+    "tested_commit": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+    "repository_dirty": true,
+    "dirty_scope": "documentation only; probe source matches this commit",
+    "tests": {
+      "tests": 33,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 2
+    },
+    "installed_shells": [
+      "POSIX npm bin"
+    ],
+    "installation": {
+      "prebuilt_native_loaded": true,
+      "lifecycle_scripts_disabled": true,
+      "path_excludes_python_and_compilers": true,
+      "outside_checkout": true,
+      "unicode_special_paths": true,
+      "resource_and_render_parity": true,
+      "tarball_sha256": "07b593b5d92b9c4fd4f807ad2cdfd60a0c1dfc4872d73e44673b451d1bacda5c",
+      "npm_version": "11.19.0",
+      "entries": [
+        "LICENSE",
+        "LICENSE-Unicode.txt",
+        "LICENSE-Wcwidth.txt",
+        "dist/architecture.js",
+        "dist/benchmark.js",
+        "dist/cli.js",
+        "dist/clocks.js",
+        "dist/context.js",
+        "dist/evidence.js",
+        "dist/files.js",
+        "dist/generated/generated-unicode.js",
+        "dist/generated/unicode.js",
+        "dist/json.js",
+        "dist/launch.js",
+        "dist/launchers.js",
+        "dist/native.js",
+        "dist/probe.js",
+        "dist/render.js",
+        "dist/terminal.js",
+        "dist/tests/evidence.test.js",
+        "dist/tests/launchers.test.js",
+        "dist/tests/platform.test.js",
+        "dist/tests/terminal.test.js",
+        "fixtures/model.json",
+        "fixtures/render.json",
+        "package.json",
+        "policy.json",
+        "runtime-lock.json"
+      ]
+    },
+    "native_clock": {
+      "boot_available": true,
+      "wall_encoding": "JSON integer, bigint in memory"
+    },
+    "receipt_sha256": "fcfdc8b78ffc84781744398f91462c23312167f64e5c4e478b26a14743bf9837"
+  },
+  "python_tests": {
+    "run": 827,
+    "passed": 819,
+    "skipped": 8
+  },
+  "mod_hosts": [
+    {
+      "host": "2.1.294 (Claude Code)",
+      "manifest_validation": [
+        "statusline-native",
+        "statusline-runtime"
+      ],
+      "real_process_api_commands": [
+        "runtime",
+        "ui"
+      ],
+      "model_calls": 0,
+      "credentials": "synthetic key; unreachable loopback API",
+      "temporary_mod_copies": true,
+      "state": "pass"
+    },
+    {
+      "host": "2.1.296 (Claude Code)",
+      "manifest_validation": [
+        "statusline-native",
+        "statusline-runtime"
+      ],
+      "real_process_api_commands": [
+        "runtime",
+        "ui"
+      ],
+      "model_calls": 0,
+      "credentials": "synthetic key; unreachable loopback API",
+      "temporary_mod_copies": true,
+      "state": "pass"
+    }
+  ],
+  "performance": {
+    "scope": "minimal-model-render-only",
+    "report_sha256": "07f628e3ef643d1b66ebb21db51e80de3cc1b99374670b19d39693e99316c440",
+    "policy_sha256": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+    "source_hashes": {
+      "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+      "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+      "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+      "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+      "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+      "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+      "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+      "src/benchmark.ts": "b090c19ca4a495d0d2581e6e4a347836205226686295de0639048f17b688264c",
+      "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+      "src/clocks.ts": "e796757812678705986318133b20ae152c42b11519e17651b06cb19455a78849",
+      "src/context.ts": "965572cd417568e6828a35e1589e8cf4e5c0410c192562ab567e13634aeb54ce",
+      "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+      "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+      "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+      "dist/benchmark.js": "810960467a12bdf1db000b4d61568c503fb780c876baa819d4e8e2465c3e1a78",
+      "dist/context.js": "e094df2983a0fb0697fd643ef11b3e07acb3d4a6e6acac091e853b3c0a2f04e0",
+      "dist/cli.js": "57ba54fa16c902020985e7356a22704ca9d2295f7ff8bbc72099f6519a42df73",
+      "dist/render.js": "c5a29415ce968a17e2bdc6394479929794abbb84bcdde8be400855d054fdeb8f",
+      "dist/json.js": "6dd3a01e4efc6a2ed3008f00c5d4199dd676dc00c7556e3aa5940b33f45afd61",
+      "dist/clocks.js": "1cde61b96decdd72d42e4b8233acd63426000824ae4df35b03dadf0e7e61560a",
+      "dist/native.js": "6b473d6e3f825ffe719f37fdf336b6b92d6ddf13f23083b958d00a98a1bd7363",
+      "dist/generated/unicode.js": "c1bb258e3e196709426f75a7c2b603e94e86e0c988dec8d15f05b1a5b4bcf669",
+      "dist/generated/generated-unicode.js": "93fa1f50b4343c482793748a987385d2ed48846f1d9fb39853452601c095f61c"
+    },
+    "samples_per_round": 50,
+    "rounds": 3,
+    "paired_render_samples": 600,
+    "control_samples": 200,
+    "summaries": [
+      {
+        "mode": "warm",
+        "metrics": [
+          {
+            "metric": "p50",
+            "baseline": 106.5926500000005,
+            "candidate": 40.749569999999494,
+            "budget": 117.25191500000055,
+            "baseline_range": 0.34557049999943956,
+            "state": "pass"
+          },
+          {
+            "metric": "p95",
+            "baseline": 115.31255799999963,
+            "candidate": 47.54106700000011,
+            "budget": 132.60944169999956,
+            "baseline_range": 3.000177000001713,
+            "state": "pass"
+          },
+          {
+            "metric": "peak_rss",
+            "baseline": 27811840,
+            "candidate": 61014016,
+            "budget": 61366272,
+            "baseline_range": 45056,
+            "state": "pass"
+          }
+        ]
+      },
+      {
+        "mode": "cold",
+        "metrics": [
+          {
+            "metric": "p50",
+            "baseline": 233.45502000000124,
+            "candidate": 41.32515550000244,
+            "budget": 256.80052200000137,
+            "baseline_range": 2.9591365000014775,
+            "state": "pass"
+          },
+          {
+            "metric": "p95",
+            "baseline": 245.4808869999979,
+            "candidate": 47.66525499999989,
+            "budget": 282.3030200499976,
+            "baseline_range": 8.48759699999573,
+            "state": "pass"
+          },
+          {
+            "metric": "peak_rss",
+            "baseline": 29024256,
+            "candidate": 61063168,
+            "budget": 62578688,
+            "baseline_range": 61440,
+            "state": "pass"
+          }
+        ]
+      }
+    ],
+    "controls": {
+      "node-startup": {
+        "p50_ms": 28.91583950000131,
+        "p95_ms": 36.8869429999977
+      },
+      "python-startup": {
+        "p50_ms": 21.229494500003057,
+        "p95_ms": 29.35506400000304
+      },
+      "node-native-clock-load": {
+        "p50_ms": 43.546817499998724,
+        "p95_ms": 51.47350999999617
+      },
+      "python-native-clock-load": {
+        "p50_ms": 35.56017150000116,
+        "p95_ms": 40.15109700000903
+      }
+    },
+    "repeat_sets_used": 0,
+    "tested_commit": "f89106590a53eed9c7ee1d7a360e0742d11fedc3",
+    "environment": {
+      "node": "v24.21.0",
+      "python": "Python 3.14.4",
+      "platform": "linux",
+      "os": "7.0.0-38-generic",
+      "host_arch": "x86_64",
+      "process_arch": "x64"
+    },
+    "command": "npm run --prefix tools/migration/ts-02 benchmark -- dist/validation/typescript-migration/ts-02/benchmark-03",
+    "later_changes": "The stored measurement is at f891065, not the final PR head. Later changes harden guards, evidence, architecture detection and terminal tests without changing the timed renderer."
+  },
+  "previous_attempts": [
+    {
+      "run": "benchmark-01",
+      "state": "passed",
+      "scope": "earlier minimal renderer and harness; retained raw evidence"
+    },
+    {
+      "run": "benchmark-02",
+      "state": "invalidated",
+      "reason": "Overbroad source guard rejected an unrelated PTY test edit; no result accepted. The revised harness scopes the executed graph and persists each round."
+    },
+    {
+      "run": "https://github.com/fbincon/claude-code-statusline/actions/runs/38160596587",
+      "state": "failed before correction",
+      "reason": "The added startup log-failure test exposed a Darwin terminal input handle keeping the child alive. 1e9b16c closes the handle and bounds harness waiting; final native revalidation is recorded separately."
+    }
+  ],
+  "new_python_tools": [
+    {
+      "path": "tools/migration/ts-02/scripts/oracle.py",
+      "disposition": "Retire with frozen Python comparison in TS-05; never production call-through"
+    },
+    {
+      "path": "tools/migration/ts-02/scripts/mod-smoke.py",
+      "disposition": "Port real-host PTY driver to Node in TS-05, preserve its actual process-API checks"
+    }
+  ],
+  "distribution": {
+    "wheel_entries": 217,
+    "sdist_entries": 816,
+    "wheel_contents_identical_to_ts01": true,
+    "inspection": "passed with dependency/build directories excluded",
+    "twine": "strict passed",
+    "build_environment_disposition": "Two no-isolation attempts lacked build dependencies; normal isolated build succeeded.",
+    "artifact_sha256": {
+      "fbincon_claude_code_statusline-2.0.0-py3-none-any.whl": "fdd739cbbb6a214b60c4f5cca76695a4ce9e68acead4b3ea8b9627f9382e5405",
+      "fbincon_claude_code_statusline-2.0.0.tar.gz": "bb7a4ebeacb7e414e58dc3166bf58aaf5cad21dce3d5a2701dc16161f5bdb9d3"
+    },
+    "command": "python -m build --outdir <isolated directory>; tools/inspect_dist.py --check-long-description; twine check --strict",
+    "tested_commit": "1e9b16cc483a58a28e4db4286d6fd183d0e34c73",
+    "documentation_disposition": "Local build precedes the final evidence-summary edits; final PR distribution CI validates the reviewed tree."
+  },
+  "decisions": {
+    "D01": "OPEN",
+    "D02": "OPEN",
+    "D03": "DECIDED",
+    "D04": "OPEN",
+    "D05": "DECIDED",
+    "D06": "DECIDED"
+  },
+  "declaration_coverage": {
+    "2.1.294": "Exact-build official declaration generation and both Mod typechecks retained in existing CI",
+    "2.1.296": "Existing generation flow does not emit exact-build declarations; runtime/installation and actual argv probes do not establish typecheck coverage"
+  },
+  "dependency_package_review": {
+    "command": "npm pack --ignore-scripts --json <exact packages from package-lock.json>",
+    "integrity": "Downloaded archive SHA-512 checked against committed npm lockfile; MIT license texts inspected in koffi/lossless-json; native target archives contain prebuilt .node files.",
+    "packages": [
+      {
+        "name": "koffi",
+        "version": "3.3.3",
+        "license": "MIT",
+        "integrity": "sha512-XWNI4eyxJJzR2MakPZzR3QeZ06JOklLbxglin0dHhx/qIQCby8lqHs9Acq4Q7CpCKnOrBSj+6b9J5y69wfr2ZA==",
+        "tarball_sha256": "c53f8da8e3c916ae8d666256650916768c7c4e8a579f188d794e8371b5773308",
+        "packed_files": 87,
+        "native_binaries": [],
+        "license_files": [
+          "package/LICENSE.txt"
+        ],
+        "os": null,
+        "cpu": null
+      },
+      {
+        "name": "lossless-json",
+        "version": "4.3.1",
+        "license": "MIT",
+        "integrity": "sha512-SqD/Bg3ZfltBJ2Z14hJ/BihnvtV553WO4g9/ePtlp4lrnl9jF3AdIJt53A/Wkg/0Li+LMfxaBqgx1MiFZdQlpQ==",
+        "tarball_sha256": "f71665240257ee183b98fd1b4e0a7cb81156ddff3f01070ea9331258902c1e5c",
+        "packed_files": 68,
+        "native_binaries": [],
+        "license_files": [
+          "package/LICENSE.md"
+        ],
+        "os": null,
+        "cpu": null
+      },
+      {
+        "name": "@koromix/koffi-linux-x64",
+        "version": "3.3.3",
+        "license": "MIT",
+        "integrity": "sha512-AI4kcNNWeGmzQzsNb0S+ZL/ht4HMtDcQl5nYFkkuVUO2g1/2KdvNekkwNWhpp805mDbLSDoRZtlioHyH/v8poQ==",
+        "tarball_sha256": "ea8e7d52314cd19711af798c35016d5e40f30bd68c7289b22b849b9575d099af",
+        "packed_files": 5,
+        "native_binaries": [
+          "package/linux_x64/koffi.node",
+          "package/musl_x64/koffi.node"
+        ],
+        "license_files": [],
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      },
+      {
+        "name": "@koromix/koffi-darwin-x64",
+        "version": "3.3.3",
+        "license": "MIT",
+        "integrity": "sha512-6Q8/DDhVADPMm3lFnZFJRETJtf485jZKzn1KogXeA9Gfztv/XMFiCOK4aEouFc256h9uWzC69mGimtcVcwK+Ww==",
+        "tarball_sha256": "67e0ff5067d46429227dd9c70b107519c864d24cd5cc701884d3bda4a08dc1a5",
+        "packed_files": 4,
+        "native_binaries": [
+          "package/darwin_x64/koffi.node"
+        ],
+        "license_files": [],
+        "os": [
+          "darwin"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      },
+      {
+        "name": "@koromix/koffi-darwin-arm64",
+        "version": "3.3.3",
+        "license": "MIT",
+        "integrity": "sha512-aFYI3YMdQWOAmHlVA+GfBlJZTpvfbUv/NoeBBkqblWN7BxuY02bkWMyoksUEl+mnx7ScoMonnjzXKJkNQXmR3w==",
+        "tarball_sha256": "6195d71398107c38a74c39c416905d5ae61625709f2ac2da09d06bdac40b84fd",
+        "packed_files": 4,
+        "native_binaries": [
+          "package/darwin_arm64/koffi.node"
+        ],
+        "license_files": [],
+        "os": [
+          "darwin"
+        ],
+        "cpu": [
+          "arm64"
+        ]
+      },
+      {
+        "name": "@koromix/koffi-win32-x64",
+        "version": "3.3.3",
+        "license": "MIT",
+        "integrity": "sha512-tLTF17wl4CCwOlo1Tt0NbduwUduDvM6c8JSyearcLu6hpNHQo44RF3rKN2i7UkxwCqXyiudZK0lS421CC/TPZA==",
+        "tarball_sha256": "6f3601e24e865ede500dad7fefdc545bf305862185430ecd078ffca4c2962da4",
+        "packed_files": 5,
+        "native_binaries": [
+          "package/win32_x64/koffi.node"
+        ],
+        "license_files": [],
+        "os": [
+          "win32"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      }
+    ]
+  }
 }
