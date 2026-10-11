@@ -283,9 +283,9 @@ claude-statusline config subagents disable task
 claude-statusline config subagents order status-elapsed name model-with-effort context-remaining tokens current-dir
 ```
 
-With `subagents.items=[]`, `render-subagents` still emits valid NDJSON for every valid task ID, but with empty `content`, causing Claude Code to hide the custom row.
+With no enabled subagent instances, `render-subagents` still emits valid NDJSON for every valid task ID, but with empty `content`, causing Claude Code to hide the custom row.
 
-`status-elapsed` is mutually exclusive with `status` and `elapsed`. Invalid combinations in `set-items`/`enable`/`apply` fail directly: for example, `enable status-elapsed` fails on an old configuration with `status` enabled; run `disable status elapsed` first. The interactive wizard automatically deselects conflicting items when one is selected.
+`status-elapsed` is mutually exclusive with `status` and `elapsed`. Invalid combinations in `set-items`/`enable`/`apply` fail directly: for example, `enable status-elapsed` fails on an old configuration with `status` enabled; run `disable status elapsed` first. The type-based wizard resolves mutually exclusive choices; the instance editors reject conflicting edits and preserve the draft.
 
 ### `config set OPTION VALUE`
 
@@ -356,7 +356,7 @@ Because `apply` includes host settings, run `claude-statusline install` first.
 
 ### `config layout auto|explicit [ROW...]`
 
-Automatic mode wraps as before. Explicit mode accepts comma-separated rows whose flattened items must exactly equal the enabled main-item order; omitted rows put all enabled items into one explicit row.
+Automatic mode wraps as before. Explicit mode accepts comma-separated rows whose flattened IDs must exactly equal configured instance order, including disabled instances; omitted rows put all instances into one explicit row.
 
 ```text
 claude-statusline config set-items model current-dir context-used
@@ -383,7 +383,7 @@ claude-statusline config item subagent task max-width none
 
 ### `config preset NAME [--dry-run]`
 
-Names are `minimal`, `developer`, `monitoring`, and `multi-agent`. A preset replaces the selected items, layout, subagent item defaults and item overrides, sets short model/compact number formats, and assigns descending item priorities. It preserves colors, palette, theme, Powerline glyph, directory/separator styles, scope labels, refresh/host choices, and current subagent enablement. Multi-agent also hides completed rows, limits rows to six, and task width to 48.
+Names are `minimal`, `developer`, `monitoring`, `multi-agent`, `left-right`, and `repeated-metrics`. A preset replaces the selected items, layout, subagent item defaults and item overrides, sets short model/compact number formats, and assigns descending item priorities. It preserves colors, palette, theme, Powerline glyph, directory/separator styles, scope labels, refresh/host choices, and current subagent enablement. Multi-agent also hides completed rows, limits rows to six, and task width to 48.
 
 ```text
 claude-statusline config preset developer --dry-run
@@ -402,7 +402,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v7 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
+Portable version 1 contains exactly `format: "claude-code-statusline"`, `version: 1`, and `draft` with `display`/`host`. It excludes installation, paths, revisions, runtime state, editor/live preferences and Claude appearance/behavior preferences. Imports also accept compatible display-only schema v1–v8 files, preserving current host settings in that case. Actual import requires installation ownership and atomically saves the validated draft.
 
 Files are UTF-8 (a BOM is accepted on import), limited to 1 MiB, and reject duplicate keys, non-finite numbers, invalid fields/types, and unsupported versions. Relative paths use the current working directory; `~` expands. Export validates and writes configuration without changing settings. Existing destinations are refused unless `--overwrite` is set; live configuration and owned plugin/runtime resources remain protected even with that flag. In editors, import replaces only the unsaved draft and export includes current unsaved edits.
 
@@ -428,7 +428,7 @@ This command:
 
 ## Configurable display items
 
-The main catalog has 60 items. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
+The main catalog has 60 metrics plus `text` and `spacer`. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
 
 All the following items are enabled by default; table order is also the initial display order:
 
@@ -706,45 +706,44 @@ Display items and styles are saved in:
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-The default configuration is equivalent to:
+This complete schema-8 example keeps one main model instance and one subagent name instance. Use `config export PATH` for your complete configuration. Defaults still enable ten main metrics and five subagent metrics.
 
 ```json
 {
-  "schema_version": 7,
-  "statusline_language": "en",
-  "items": [
-    "model-with-effort",
-    "current-dir",
-    "git",
-    "context-remaining",
-    "context-window-size",
-    "five-hour-limit",
-    "weekly-limit",
-    "spend-limit",
-    "tokens",
-    "task-timer"
-  ],
+  "schema_version": 8,
   "use_colors": true,
   "palette": "default",
-  "theme": "classic",
-  "powerline_glyph": "ascii",
   "directory_style": "full",
   "separator_style": "classic",
   "scope_labels": "when-subagents",
+  "statusline_language": "en",
+  "theme": "classic",
+  "powerline_glyph": "ascii",
   "subagents": {
     "enabled": true,
-    "items": [
-      "status-elapsed",
-      "name",
-      "model-with-effort",
-      "context-remaining",
-      "task"
-    ],
-    "item_options": {},
     "visibility": "all",
     "hide_completed": false,
     "row_limit": null,
-    "task_max_width": null
+    "task_max_width": null,
+    "instances": [
+      {
+        "id": "name",
+        "type_id": "name",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 50,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      }
+    ]
   },
   "formatting": {
     "model_name": "original",
@@ -760,24 +759,42 @@ The default configuration is equivalent to:
       "critical": 90
     }
   },
-  "item_options": {},
   "layout": {
     "mode": "auto",
     "rows": []
   },
   "metrics": {
     "branch_diff_base_ref": null
-  }
+  },
+  "instances": [
+    {
+      "id": "model-with-effort",
+      "type_id": "model-with-effort",
+      "enabled": true,
+      "options": {
+        "label": null,
+        "icon": null,
+        "priority": 50,
+        "max_width": null,
+        "formatting": {},
+        "foreground": null,
+        "background": null,
+        "visibility": "always",
+        "visibility_threshold": 70
+      },
+      "text": null
+    }
+  ]
 }
 ```
 
 This is strict JSON: comments, trailing commas, unknown or missing fields, unknown items, and duplicates are rejected. Use configuration commands rather than editing it manually.
 
-The ten items above form the default enabled set. The other 50 main items enter `items` only after explicit selection in CLI, wizard, or an editor.
+The catalog is a list of types; `instances` stores configured placements. Disabled instances and their options remain configured until removed. Each scope has its own identity namespace.
 
 Updates back up the previous contents and protect writes with atomic replacement and file locks. See [backups and rollback](../USER_GUIDE.md#backups-and-rollback) and [configuration writes and concurrency](../development/README.md#configuration-writes-and-concurrency).
 
-The current source display schema is v6. Historical v1/v2/v3/v4/v5/v6 are readable and are backed up and written as v7 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
+The current display schema is v8. Historical v1–v7 are readable and are backed up and written as v8 on the first actual configuration save. See [version compatibility](../USER_GUIDE.md#version-compatibility) for conversion and downgrade recovery.
 
 If display configuration is corrupted:
 
@@ -785,7 +802,7 @@ If display configuration is corrupted:
 - `config show`, normal configuration writes, and `doctor` report an explicit error.
 - `config reset` removes the corrupted configuration and restores defaults.
 
-`items: []` is valid and suppresses main-line content; even scope labels set to `always` do not create an otherwise empty main line. `subagents.items: []` is also valid and returns empty content for each valid subtask.
+`instances: []` is valid and suppresses main-line content; even scope labels set to `always` do not create an otherwise empty main line. `subagents.instances: []` is also valid and returns empty content for each valid subtask.
 
 <a id="实验功能偏好"></a>
 
@@ -894,3 +911,9 @@ Frequent internal commands `render`, `render-subagents`, `hook`, and `slash-hook
 ## Conditional visibility and appearance
 
 Use `config set theme classic|dark|light|terminal`, `config set separator-style classic|compact|powerline`, and `config set powerline-glyph ascii|powerline`. Scoped `config item` options include `foreground`, `background`, `visibility` and `visibility-threshold`. See [syntax, supported items and recovery](../APPEARANCE.md).
+
+## Instance management
+
+`config instance main|subagent` supports `list [--json]`, `add TYPE_ID [--after ID] [--text TEXT]`, `copy ID`, `remove ID`, `enable ID`, `disable ID`, `move ID --before|--after ANCHOR`, and `set ID OPTION VALUE`. Add/copy return the new ID. `config layout --by-instance explicit ROW...` uses comma-separated instance IDs, including all configured disabled instances, in exactly the configured order.
+
+Legacy item/enable/disable commands resolve a type only when unique. Legacy bulk selection/order/layout operations reject repeated types, text and spacers without choosing the first match or deleting instances. Type-catalog JSON adds `instance_ids`, `enabled_instance_ids`, and `instance_only`. See [composition](../COMPOSITION.md) for complete examples.

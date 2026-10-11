@@ -47,3 +47,7 @@ This checks color and monochrome PTYs at 32/64/120 columns, clusters across SGR 
 ## Visibility and item appearance
 
 Visibility consumes the same lazy Git/live snapshots and unrounded usage values as rendering. Only complete zero/clean evidence suppresses an item; formatting is not parsed back into observations. Theme palettes provide semantic foregrounds, then item channel overrides apply across all styled units, including label/icon prefixes and internal resets. Enabled risk foregrounds win over overrides. Powerline composes visible blocks after fitting, budgeting padding/boundaries and resetting each output row. The classic path keeps legacy bytes and lazy imports. Shared color quantization lives in `rendering.colors`; curses retains its compatibility exports. See [user behavior](../APPEARANCE.md) and the shared appearance/legacy fixtures in tests.
+
+## Component instances and layout
+
+`config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; Python generates the protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).

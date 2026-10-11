@@ -5,6 +5,8 @@ from claude_statusline.platforms import environment as platform_environment
 from claude_statusline.platforms import files as platform_files
 from claude_statusline.platforms import processes as platform_processes
 
+from validation.configuration import selected_ids
+
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -150,7 +152,7 @@ def main():
         )
         cli("config", "set", "colors", "off")
         value = json.loads(cli("config", "show", "--json"))
-        assert value["display"]["items"][-2:] == ["tokens", "task-timer"]
+        assert selected_ids(value["display"])[-2:] == ["tokens", "task-timer"]
         report["checks"].append("config-round-trip")
 
         run(["git", "init", "-q"])

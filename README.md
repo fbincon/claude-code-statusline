@@ -17,13 +17,14 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 
 ## Features
 
+- **Compose your statusline:** add, copy and arrange independent components, literal text and left/right alignment in either editor. [Composition guide](docs/COMPOSITION.md).
 - **Control visibility and appearance:** hide confirmed empty/clean states, set usage thresholds, choose per-item foreground/background colors and themes, and opt into basic [Powerline](docs/APPEARANCE.md).
 - **Choose your languages:** English, 简体中文, 繁體中文, 日本語 and 한국어 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings. See [language examples](docs/images/languages/README.md).
-- **Find what to show:** 60 main-line items and 14 subagent items, with ranked multilingual search, category filters and source/requirement guidance.
+- **Find what to show:** 60 main metrics and 14 subagent metrics, plus text and flexible spacers, with ranked multilingual search, category filters and source/requirement guidance.
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
 - **Keep Unicode intact:** joined emoji, combining marks and CJK text stay together when rows wrap, clip or appear in previews.
-- **Review configuration changes:** four editable presets and portable JSON, with import differences and candidate previews before accepting a draft and saving.
+- **Review configuration changes:** six editable presets and portable JSON, with import differences and candidate previews before accepting a draft and saving.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
 - **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain production colors on a separately chosen light/dark background.
 - **Follow terminal colors:** external TUI text and bold keys use terminal defaults; previews show the selected palette on the current terminal background.
@@ -383,6 +384,7 @@ claude-code-statusline/
 ├── docs/                                    # User, reference and development documentation
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # Installation, configuration and troubleshooting
 │   ├── APPEARANCE.md / APPEARANCE.zh-CN.md  # Visibility, item colors, themes and Powerline
+│   ├── COMPOSITION.md / COMPOSITION.zh-CN.md # Instances, text and flexible layouts
 │   ├── reference/                           # CLI and configuration reference
 │   ├── images/                              # Current TUI screenshots and historical archives
 │   │   ├── tui/                             # Current configuration editor screenshots

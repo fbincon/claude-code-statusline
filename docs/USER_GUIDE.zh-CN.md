@@ -42,7 +42,7 @@
 
 [条件显示、逐项颜色、主题与 Powerline](APPEARANCE.zh-CN.md)说明共享设置、原始观测规则和迁移恢复。
 
-主栏支持 60 个条目，子 Agent 行支持 14 个条目，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、四种可编辑预设及可移植 JSON 文件。
+主栏支持 60 个指标，子 Agent 行支持 14 个指标，两个作用域均支持文本和弹性留白，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、六种可编辑预设及可移植 JSON 文件。
 
 主栏显示主会话数据，各子 Agent 行显示自己的任务数据；任务计时包含子 Agent 工作和主 Agent 收尾。[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)说明数据来源、作用域、缺失观测和指标边界。
 
@@ -194,6 +194,10 @@ Ctrl+F 打开分类选择器，方向键选择、Enter 确认；选择“全部�
 
 界面语言、采集开关及独立 Claude 偏好不在便携文件中。程序化 `config import` 命令保留既有明确写入和 `--dry-run` 行为；交互审阅由两个编辑器提供。
 
+## 组件组合
+
+Main 和 Subagents 显示已配置实例；Ctrl+A 打开组件目录，Ctrl+D 复制，Ctrl+X 移除。每个副本独立设置格式、颜色和显示条件。文本与弹性留白用于符号及左右布局，默认显示不变。详见[组件与布局](COMPOSITION.zh-CN.md)，包含完整快捷键、实例 CLI、迁移与降级恢复。
+
 ## 状态栏语言
 
 独立的显示选项默认 `en`。在任一编辑器选择**状态栏语言（随显示设置保存）**，选项始终为 **English / 简体中文 / 繁體中文 / 日本語 / 한국어**。预览立即采用草稿语言；保存时与其他显示设置一起持久化，取消则放弃修改。实际输出在下次刷新时生效，无需重启 Claude。
@@ -206,11 +210,11 @@ claude-statusline config show --json
 
 同时控制主栏和全部自定义子代理行。翻译内置短语及已知生命周期／权限／强度／缓存／审核值；未知值、用户标签／图标、模型名称、路径、分支及任务／工具名称保留原文。数字、货币、`K/M`、`d/h/m/s`、`tok/s`、Git、PR 等技术单位保持原样。null 标签继承翻译后的默认标签，空标签隐藏标签，自定义标签优先。
 
-`statusline_language` 属于显示 schema v7，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-Hant|ja|ko` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
+`statusline_language` 属于显示 schema v8，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-Hant|ja|ko` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
 
 降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v6 草稿。见[备份与回滚](#备份与回滚)。
 
-降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 7 与界面偏好 schema 1 保持不变；编辑器协议 10 会拒绝新旧前后端混用。
+降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 8 与界面偏好 schema 1 独立演进；编辑器协议 11 会拒绝新旧前后端混用。
 
 ## 原生配置编辑器
 
@@ -226,7 +230,7 @@ claude-statusline config show --json
 
 | 页面 | 底部展示顺序 |
 | --- | --- |
-| Main / Subagents | `Tab page · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Main / Subagents | `Tab page · Ctrl+A add · Ctrl+D copy · Ctrl+X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
 | Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
 | Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
 | 逐项格式 | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
@@ -465,6 +469,8 @@ subagent-visibility 接受 all/running。行数／任务宽度接受 none 恢复
 | developer | 仓库开发：Git、累计 token、任务时间和会话费用。 |
 | monitoring | 检查额度／重置窗口、缓存和会话统计；可选来源字段可能仍不可用。 |
 | multi-agent | 多代理协作：限制代理行与任务标签宽度，隐藏已完成行并保留失败。 |
+| left-right | 一行：模型／effort、Git、留白、剩余上下文 | status、name、留白、elapsed |
+| repeated-metrics | 同一输入 token 指标的完整／紧凑两份实例 | 默认五项 |
 
 预设改变显示草稿，不开启采集；保留输出／界面语言和宿主设置，重建逐项覆盖，保存前可继续编辑。
 
@@ -485,7 +491,7 @@ claude-statusline config import ./statusline.json
 
 在 Main/Subagents 选择项目后按 Ctrl+E，编辑标签、图标、保留优先级、最大宽度和继承的格式选项；Ctrl+G 返回项目列表。Enter 打开或接受文本／整数输入。`inherit` 清除覆盖，空标签／图标将其隐藏，`none` 清除可选宽度／限制。Unicode/ASCII 图标使用内置字符，无需额外字体。
 
-Layout 选择 auto/explicit，通过“New row before”设置启用主项目的行边界。较高优先级优先保留，默认 50；最大宽度按终端列计算，包括 CJK 与组合字符。项目排序会同步维护分行。显式行过窄时，范围装饰优先让位给实际项目。 显式布局移除空行且不增加续行，自动布局继续折行。
+Layout 选择 auto/explicit，通过“New row before”设置全部已配置主实例（含禁用项）的行边界。较高优先级优先保留，默认 50；最大宽度按终端列计算，包括 CJK 与组合字符。项目排序会同步维护分行。显式行过窄时，范围装饰优先让位给实际项目。 显式布局移除空行且不增加续行，自动布局继续折行。
 
 Settings 提供全局格式、风险阈值、子 Agent 显示条件与文件操作。先选择 Preset，再激活 Expand selected preset。Import 输入路径后打开差异审阅；Enter 展开分区，A 接受完整候选到草稿，再单独保存。原生审阅用 Ctrl+G 或 Q 取消，外部审阅用 Esc 或 Ctrl+G 取消。Export 将当前草稿（含未保存改动）写入新文件，不保存设置。相对路径以宿主／终端工作目录为基准，`~` 展开为用户主目录。出错保留现有草稿；两种编辑器均拒绝覆盖已有导出文件，可换路径，或使用 CLI `--overwrite` 明确替换。
 
@@ -534,7 +540,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-主栏目录共 60 项，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
+主栏目录含 60 个指标及两个布局组件，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
 
 常用可选项按下表分组，通过 ID 启用或在编辑器中选择。
 
@@ -545,7 +551,7 @@ claude-statusline config subagents list-items
 | 仓库 | `pr`、`repo`、`worktree` |
 | 上下文与用量 | `context-used`、`cost`、`prompt-cache` |
 
-子 Agent 目录共 14 项，默认启用五项：`status-elapsed`、`name`、`model-with-effort`、`context-remaining`、`task`。组合项 `status-elapsed` 与独立 `status`、`elapsed` 互斥。完整目录和缺失数据行为见[字段参考](reference/cli.zh-CN.md#可配置显示项)及[指标定义](DISPLAY_ITEMS.zh-CN.md)。
+子 Agent 目录含 14 个指标及两个布局组件，默认启用五项：`status-elapsed`、`name`、`model-with-effort`、`context-remaining`、`task`。组合项 `status-elapsed` 与独立 `status`、`elapsed` 互斥。完整目录和缺失数据行为见[字段参考](reference/cli.zh-CN.md#可配置显示项)及[指标定义](DISPLAY_ITEMS.zh-CN.md)。
 
 ## 主状态栏显示含义
 
@@ -597,7 +603,7 @@ claude-statusline doctor
 | `claude-statusline-runtime.json` | 原生计时和高级采集的独立偏好 |
 | `settings.json` | 本工具接入的 Claude 命令、hooks 和宿主状态栏选项 |
 
-通过 CLI 或编辑器修改。显示 schema v7 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
+通过 CLI 或编辑器修改。显示 schema v8 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
 
 ## 自定义配置目录与环境变量
 
@@ -649,7 +655,9 @@ claude-statusline config show
 
 ### 版本兼容
 
-当前显示 schema v7、配置协议 v9、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1/v2/v3/v4/v5/v6 文件读取时不重写，实际保存才备份原字节并迁移为 v7；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
+显示 schema 8 以实例 ID 保存顺序与行边界。旧配置 v1–v7 只在内存转换；真实保存／安装先备份再迁移。降级须恢复旧版兼容备份，不能仅修改 schema 数字；重复实例与弹性布局无法无损回退。详见[迁移与恢复](COMPOSITION.zh-CN.md#迁移导入导出与恢复)。
+
+当前显示 schema v8、配置协议 v11、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1–v7 文件读取时不重写，实际保存才备份原字节并迁移为 v8；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
 
 降级前使用新版关闭或移除旧版无法管理的接入，包括适用的实时采集和原生编辑器。根据备份 `metadata.json` 恢复兼容显示文件，或在 schema 兼容时移除不支持的条目 ID。随后安装旧包、运行 `install` 和 `doctor`，并重启 Claude Code。可移植导出可另行保留当前显示选择，供以后恢复。
 
@@ -693,7 +701,7 @@ Doctor 检查平台与 Python、PATH、配置有效性、命令归属、hooks、
 [WARN] display config schema v4 is valid and will migrate to v6 on the next configuration save
 ```
 
-此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v9、运行协议 v2 分别管理版本。
+此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v11、运行协议 v2 分别管理版本。
 
 ## 故障排查
 
@@ -960,7 +968,7 @@ claude-statusline config enable task-active-timer
 
 兼容宿主的新安装默认采集计时元数据，高级指标仍需 `install --live-metrics`。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
 
-降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 7 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
+降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 8 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
 
 ## Unicode 文本与终端列宽
 

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from claude_statusline.i18n import LANGUAGES, LANGUAGE_NAMES, translate
 
+from validation.configuration import selected_ids, all_ids, options
+
 import argparse
 import codecs
 import json
@@ -156,12 +158,14 @@ def run_pty(
     language_only: bool = False,
     target_language: str = "zh-CN",
     discovery: bool = False,
+    composition: bool = False,
     appearance: bool = False,
     rendering_only: bool = False,
 ) -> dict:
     import fcntl
     import pty
     import termios
+
     if __package__:
         from . import terminal_capture as pyte
     else:
@@ -169,18 +173,60 @@ def run_pty(
 
     config = Path(env["CLAUDE_CONFIG_DIR"])
     initial_theme = current_theme(config)
-    if discovery or appearance:
+    if discovery or appearance or composition:
         from editor_discovery_acceptance import request, backend_call
-        backend=Path(env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"])
-        current=request(backend,env,project,"read")
-        request(backend,env,project,"apply",{"draft":{"display":display.DEFAULT_CONFIG.to_dict(),"host":models.DEFAULT_HOST_CONFIG.to_dict()},"expected_revision":current["revision"]})
-        backend_call(backend,env,project,"config","language","set","en")
+
+        backend = Path(env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"])
+        current = request(backend, env, project, "read")
+        request(
+            backend,
+            env,
+            project,
+            "apply",
+            {
+                "draft": {
+                    "display": display.DEFAULT_CONFIG.to_dict(),
+                    "host": models.DEFAULT_HOST_CONFIG.to_dict(),
+                },
+                "expected_revision": current["revision"],
+            },
+        )
+        backend_call(backend, env, project, "config", "language", "set", "en")
         if appearance:
-            backend_call(backend,env,project,"config","set-items","model","context-used")
-            backend_call(backend,env,project,"config","set","scope-labels","off")
+            backend_call(
+                backend, env, project, "config", "set-items", "model", "context-used"
+            )
+            backend_call(backend, env, project, "config", "set", "scope-labels", "off")
+    if composition:
+        backend_call(backend, env, project, "config", "preset", "left-right")
     if language_only:
-        subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set-items", "context-used"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
-        subprocess.run([env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "config", "set", "statusline-language", "en"], env=env, cwd=project, check=True, capture_output=True, timeout=30)
+        subprocess.run(
+            [
+                env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"],
+                "config",
+                "set-items",
+                "context-used",
+            ],
+            env=env,
+            cwd=project,
+            check=True,
+            capture_output=True,
+            timeout=30,
+        )
+        subprocess.run(
+            [
+                env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"],
+                "config",
+                "set",
+                "statusline-language",
+                "en",
+            ],
+            env=env,
+            cwd=project,
+            check=True,
+            capture_output=True,
+            timeout=30,
+        )
     description = subprocess.run(
         [env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"], "ui"],
         input=json.dumps(
@@ -229,7 +275,11 @@ def run_pty(
     ]
     tmux_directory = (
         tempfile.TemporaryDirectory(prefix="statusline-client-tmux-")
-        if persistent and not discovery and not appearance and not rendering_only
+        if persistent
+        and not discovery
+        and not appearance
+        and not composition
+        and not rendering_only
         else None
     )
     tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
@@ -279,7 +329,10 @@ def run_pty(
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
 
     def screen_lines():
-        return ["".join(screen.buffer[y][x].data for x in range(screen.columns)) for y in range(screen.lines)]
+        return [
+            "".join(screen.buffer[y][x].data for x in range(screen.columns))
+            for y in range(screen.lines)
+        ]
 
     def read_until(
         text: str | tuple[str, ...],
@@ -315,7 +368,9 @@ def run_pty(
             f"PTY {columns} columns: did not observe {text!r}; inspect ignored raw/debug logs"
         )
 
-    def capture(name, *, palette=None, colors=True, mode="editor", preview_language=None):
+    def capture(
+        name, *, palette=None, colors=True, mode="editor", preview_language=None
+    ):
         # Exact decoded terminal cells from the real host; no synthetic UI.
         observed_preview_backgrounds = []
         path = root / f"screen-{columns}-{name}.json"
@@ -325,13 +380,21 @@ def run_pty(
         ]
         if mode == "rendering":
             from native_preview_acceptance import verify_capture
-            verify_capture(cells, terminal_theme, short=name.endswith("short"), clipping=name.endswith("clip"))
+
+            verify_capture(
+                cells,
+                terminal_theme,
+                short=name.endswith("short"),
+                clipping=name.endswith("clip"),
+            )
         elif mode == "appearance":
             from editor_appearance_acceptance import verify_capture
+
             verify_capture(cells, native=True)
         elif mode != "editor":
             from editor_discovery_acceptance import verify_native_capture
-            verify_native_capture(cells,language,mode,terminal_theme)
+
+            verify_native_capture(cells, language, mode, terminal_theme)
         elif "external" not in name:
 
             def find_cells(label):
@@ -419,11 +482,17 @@ def run_pty(
             # index 231. Record this separately from direct RGB acceptance.
             expected_backgrounds = {background.removeprefix("#")}
             if tmux_socket:
-                expected_backgrounds.add("00005f" if terminal_theme == "dark" else "ffffff")
+                expected_backgrounds.add(
+                    "00005f" if terminal_theme == "dark" else "ffffff"
+                )
             observed_preview_backgrounds = sorted({cell["bg"] for cell in sample_cells})
-            assert sample_cells and len(observed_preview_backgrounds) == 1 and all(
-                cell["bg"] in expected_backgrounds and not cell["reverse"]
-                for cell in sample_cells
+            assert (
+                sample_cells
+                and len(observed_preview_backgrounds) == 1
+                and all(
+                    cell["bg"] in expected_backgrounds and not cell["reverse"]
+                    for cell in sample_cells
+                )
             ), "Preview background differs from the chosen terminal fixture"
             if palette is not None:
                 label = (
@@ -474,7 +543,9 @@ def run_pty(
                     "terminal_background": TERMINAL_THEMES[terminal_theme][1],
                     "terminal_palette": XTERM_PALETTE,
                     "terminal_defaults_source": "explicit capture-analysis fixture",
-                    "color_transport": "tmux; ANSI-256 quantization possible" if tmux_socket else "direct PTY",
+                    "color_transport": "tmux; ANSI-256 quantization possible"
+                    if tmux_socket
+                    else "direct PTY",
                     "observed_preview_backgrounds": observed_preview_backgrounds,
                 },
                 ensure_ascii=False,
@@ -493,16 +564,17 @@ def run_pty(
 
     def click_client():
         from claude_statusline.i18n import translate as t
-        label=t("native.ui.client.draw.filter",language).strip()
-        row = next(
-            (i for i, line in enumerate(screen_lines()) if label in line), None
-        )
+
+        label = t("native.ui.client.draw.filter", language).strip()
+        row = next((i for i, line in enumerate(screen_lines()) if label in line), None)
         if row is None:
             raise RuntimeError("Client filter row is not visible for focus click")
-        col = screen_lines()[row].index(label) + 3
-        os.write(
-            master, f"\x1b[<0;{col + 1};{row + 1}M\x1b[<0;{col + 1};{row + 1}m".encode()
-        )
+        # Mouse coordinates are cells, not code points (CJK/emoji may be to the left).
+        col = next(x for x in range(screen.columns)
+                   if "".join(screen.buffer[row][c].data for c in range(x, screen.columns)).startswith(label)) + 3
+        os.write(master, f"\x1b[<0;{col + 1};{row + 1}M".encode())
+        time.sleep(0.05)
+        os.write(master, f"\x1b[<0;{col + 1};{row + 1}m".encode())
         time.sleep(0.3)
 
     try:
@@ -531,43 +603,88 @@ def run_pty(
             # between viewport cases. Inspect its actual selected value.
             os.write(master, b"3\x1b[H\x1b[B\x1b[B")
             read_until("› Preview background (UI only):")
-            selected = next(line for line in screen_lines() if "› Preview background (UI only):" in line)
+            selected = next(
+                line
+                for line in screen_lines()
+                if "› Preview background (UI only):" in line
+            )
             if not re.search(r"\b" + terminal_theme + r"\b", selected):
                 os.write(master, b"\x1b[C")
                 read_until("Preview background remembered")
             os.write(master, b"1")
             read_until("Main items")
-        if discovery or appearance:
+        if discovery or appearance or composition:
             from editor_discovery_acceptance import exercise, request, backend_call
             from claude_statusline.i18n import translate as t
-            backend=Path(env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"])
+
+            backend = Path(env["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"])
             if appearance:
                 from editor_appearance_acceptance import exercise
-            base=request(backend,env,project,"read")["draft"]
-            cases=[]
-            def send(data,text):
-                start=len(raw);os.write(master,data);read_until(text,start=start)
+            if composition:
+                from editor_composition_acceptance import exercise
+            base = request(backend, env, project, "read")["draft"]
+            cases = []
+
+            def send(data, text):
+                start = len(raw)
+                os.write(master, data)
+                read_until(text, start=start)
+
             def close_pane():
-                send(b"Q","❯")
+                send(b"Q", "❯")
+
             def reopen_pane():
                 command("/statusline-configure-native")
-                read_until(t("native.ui.client.draw.configure_status_line",language))
+                read_until(t("native.ui.client.draw.configure_status_line", language))
                 click_client()
-            for language in ("en","zh-CN"):
-                if language!="en":
-                    current=request(backend,env,project,"read")
-                    request(backend,env,project,"apply",{"draft":base,"expected_revision":current["revision"]})
-                    backend_call(backend,env,project,"config","language","set",language)
+
+            for language in ("en", "zh-CN"):
+                if language != "en":
+                    current = request(backend, env, project, "read")
+                    request(
+                        backend,
+                        env,
+                        project,
+                        "apply",
+                        {"draft": base, "expected_revision": current["revision"]},
+                    )
+                    backend_call(
+                        backend, env, project, "config", "language", "set", language
+                    )
                     reopen_pane()
-                cases.append(exercise(native=True,language=language,backend=backend,env=env,root=project,config=config,
-                                      send=send,capture=capture,reopen=reopen_pane,close=close_pane,description=described,case_id=str(columns),terminal_theme=terminal_theme))
-            return {"columns":columns,"rows":screen.lines,"discovery":cases,"persistent_plugin":persistent,"transport":"direct PTY","manual_visual_acceptance":False}
+                cases.append(
+                    exercise(
+                        native=True,
+                        language=language,
+                        backend=backend,
+                        env=env,
+                        root=project,
+                        config=config,
+                        send=send,
+                        capture=capture,
+                        reopen=reopen_pane,
+                        close=close_pane,
+                        description=described,
+                        case_id=str(columns),
+                        terminal_theme=terminal_theme,
+                    )
+                )
+            return {
+                "columns": columns,
+                "rows": screen.lines,
+                "discovery": cases,
+                "persistent_plugin": persistent,
+                "transport": "direct PTY",
+                "manual_visual_acceptance": False,
+            }
         if language_only or rendering_only:
             # Select the explicit capture surface as in the full acceptance path.
             os.write(master, b"3\x1b[H\x1b[B\x1b[B")
             read_until("› Preview background (UI only):")
             selected = next(
-                line for line in screen.display if "› Preview background (UI only):" in line
+                line
+                for line in screen.display
+                if "› Preview background (UI only):" in line
             )
             if not re.search(r"\b" + terminal_theme + r"\b", selected):
                 os.write(master, b"\x1b[C")
@@ -587,11 +704,19 @@ def run_pty(
             read_until("❯")
             command("/exit")
             assert process.wait(timeout=10) == 0
-            return {"columns": columns, "rows": screen.lines, "transport": "direct PTY",
-                    "synthetic_protocol_preview": True, "installed_native_component": True,
-                    "explicit_ansi_rgb_backgrounds": True, "cross_span_grapheme": True,
-                    "background_reset": True, "whole_cluster_clipping": True,
-                    "short_redraw": True, "manual_visual_acceptance": False}
+            return {
+                "columns": columns,
+                "rows": screen.lines,
+                "transport": "direct PTY",
+                "synthetic_protocol_preview": True,
+                "installed_native_component": True,
+                "explicit_ansi_rgb_backgrounds": True,
+                "cross_span_grapheme": True,
+                "background_reset": True,
+                "whole_cluster_clipping": True,
+                "short_redraw": True,
+                "manual_visual_acceptance": False,
+            }
         if language_only:
             if __package__:
                 from .language_acceptance import language_steps
@@ -604,7 +729,12 @@ def run_pty(
                 for code, delta in language_steps(current, target):
                     after = len(raw)
                     os.write(master, b"\x1b[C" if delta > 0 else b"\x1b[D")
-                    read_until(translate("native.ui.client.draw.configure_status_line", code) if interface else LANGUAGE_NAMES[code], start=after)
+                    read_until(
+                        translate("native.ui.client.draw.configure_status_line", code)
+                        if interface
+                        else LANGUAGE_NAMES[code],
+                        start=after,
+                    )
                     if interface:
                         language = code
                     else:
@@ -630,8 +760,14 @@ def run_pty(
                 == target_language
             )
             capture(f"language-settings-{target_language}", colors=False)
-            appearance = [f for f in described["editor_fields"]["global"] if f["group"] == "Appearance"]
-            output_index = 6 + next(i for i, f in enumerate(appearance) if f["key"] == "statusline_language")
+            appearance = [
+                f
+                for f in described["editor_fields"]["global"]
+                if f["group"] == "Appearance"
+            ]
+            output_index = 6 + next(
+                i for i, f in enumerate(appearance) if f["key"] == "statusline_language"
+            )
             os.write(master, b"\x1b[H" + b"\x1b[B" * output_index)
             read_until(translate("review.sections.language", language))
             change_language(target_language)
@@ -644,9 +780,23 @@ def run_pty(
             read_until(translate("native.ui.client.draw.main_items", language))
             capture(f"language-main-{target_language}", palette="default")
             for key, label, name in (
-                (b"2", translate("ui.drawing.subagent_items", language), f"language-subagents-{target_language}"),
-                (b"4", translate("native.ui.client.draw.layout_fitting", language), f"language-layout-{target_language}"),
-                (b"1\x05", translate("native.ui.client.draw.item_format", language).strip().rstrip(":"), f"language-format-{target_language}"),
+                (
+                    b"2",
+                    translate("ui.drawing.subagent_items", language),
+                    f"language-subagents-{target_language}",
+                ),
+                (
+                    b"4",
+                    translate("native.ui.client.draw.layout_fitting", language),
+                    f"language-layout-{target_language}",
+                ),
+                (
+                    b"1\x05",
+                    translate("native.ui.client.draw.item_format", language)
+                    .strip()
+                    .rstrip(":"),
+                    f"language-format-{target_language}",
+                ),
             ):
                 os.write(master, key)
                 read_until(label)
@@ -660,7 +810,9 @@ def run_pty(
             ) == before
             if persistent:
                 command("/statusline-configure")
-                read_until(translate("ui.drawing.configure_status_line", language), quiet=False)
+                read_until(
+                    translate("ui.drawing.configure_status_line", language), quiet=False
+                )
                 capture(f"language-external-{target_language}")
                 os.write(master, b"\x1b")
                 read_until("❯")
@@ -687,13 +839,35 @@ def run_pty(
             change_language(target_language)
             os.write(master, b"S")
             read_until("Tool configuration saved")
-            assert json.loads(display_path.read_bytes())["statusline_language"] == target_language
+            assert (
+                json.loads(display_path.read_bytes())["statusline_language"]
+                == target_language
+            )
             capture(f"statusline-settings-saved-{target_language}", palette="default")
             os.write(master, b"1")
             read_until("Main items")
             capture(f"statusline-main-saved-{target_language}", palette="default")
-            rendered = subprocess.run([backend, "render"], input=json.dumps({"model":{"id":"claude-sample"},"context_window":{"remaining_percentage":73,"used_percentage":27}}), env=env, cwd=project, check=True, capture_output=True, text=True).stdout
-            assert translate("statusline.prefix.main.context-remaining", target_language) in rendered
+            rendered = subprocess.run(
+                [backend, "render"],
+                input=json.dumps(
+                    {
+                        "model": {"id": "claude-sample"},
+                        "context_window": {
+                            "remaining_percentage": 73,
+                            "used_percentage": 27,
+                        },
+                    }
+                ),
+                env=env,
+                cwd=project,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout
+            assert (
+                translate("statusline.prefix.main.context-remaining", target_language)
+                in rendered
+            )
             os.write(master, b"q")
             read_until("❯")
             command("/exit")
@@ -791,7 +965,9 @@ def run_pty(
         read_until("Main items", start=offset)
         os.write(master, b"S")
         read_until("Tool configuration saved")
-        ordered = json.loads((config / "claude-statusline.json").read_bytes())["items"]
+        ordered = selected_ids(
+            json.loads((config / "claude-statusline.json").read_bytes())
+        )
         assert ordered.index("git") < ordered.index("current-dir"), (
             "Left arrow did not move Git before Directory"
         )
@@ -811,7 +987,19 @@ def run_pty(
         os.write(master, b"\t")
         read_until("Tool settings")
         capture("settings")
-        os.write(master, b"\x1b[H" + b"\x1b[B" * (6 + sum(f["group"] == "Appearance" for f in described["editor_fields"]["global"])) + b"\r\x159")
+        os.write(
+            master,
+            b"\x1b[H"
+            + b"\x1b[B"
+            * (
+                6
+                + sum(
+                    f["group"] == "Appearance"
+                    for f in described["editor_fields"]["global"]
+                )
+            )
+            + b"\r\x159",
+        )
         read_until("Padding: 9 _")
         os.write(master, b"\x07")
         read_until("Padding: 0")
@@ -893,7 +1081,7 @@ def run_pty(
 
             def client_setting(key, label):
                 if key == "layout.mode" or key.startswith(("break:", "fit:")):
-                    items = json.loads(display_path.read_bytes())["items"]
+                    items = all_ids(json.loads(display_path.read_bytes()))
                     field_keys = ["layout.mode"] + [
                         "break:" + item for item in items[1:]
                     ]
@@ -919,8 +1107,16 @@ def run_pty(
                         "field:" + field["key"]
                         for field in described["editor_fields"]["global"]
                     ]
-                    appearance_keys = ["field:" + f["key"] for f in described["editor_fields"]["global"] if f["group"] == "Appearance"]
-                    field_keys = field_keys[:6] + appearance_keys + [key for key in field_keys[6:] if key not in appearance_keys]
+                    appearance_keys = [
+                        "field:" + f["key"]
+                        for f in described["editor_fields"]["global"]
+                        if f["group"] == "Appearance"
+                    ]
+                    field_keys = (
+                        field_keys[:6]
+                        + appearance_keys
+                        + [key for key in field_keys[6:] if key not in appearance_keys]
+                    )
                     field_keys += [
                         "ui-language",
                         "preset-select",
@@ -994,7 +1190,7 @@ def run_pty(
             client_setting("layout.mode", "Layout mode")
             os.write(master, b"\r")
             read_until("Layout mode: explicit")
-            first_item = json.loads(base)["items"][0]
+            first_item = all_ids(json.loads(base))[0]
             first_label = next(
                 i["label"]
                 for i in described["catalog"]
@@ -1006,7 +1202,7 @@ def run_pty(
                 "fit:" + first_item + ":max_width", first_label + " Maximum width"
             )
             client_value("28", "Maximum width: 28")
-            client_setting("break:" + json.loads(base)["items"][1], "New row before")
+            client_setting("break:" + all_ids(json.loads(base))[1], "New row before")
             os.write(master, b" ")
             read_until("New row before")
             capture("advanced-layout")
@@ -1019,11 +1215,9 @@ def run_pty(
             read_until("Tool configuration saved")
             saved_advanced = display_path.read_bytes()
             saved_config = json.loads(saved_advanced)
-            assert (
-                saved_config["item_options"][first_item]["label"] == "Engine SfQ 中文"
-            )
-            assert saved_config["item_options"][first_item]["priority"] == 100
-            assert saved_config["item_options"][first_item]["max_width"] == 28
+            assert options(saved_config, first_item)["label"] == "Engine SfQ 中文"
+            assert options(saved_config, first_item)["priority"] == 100
+            assert options(saved_config, first_item)["max_width"] == 28
             assert len(saved_config["layout"]["rows"]) == 2
             assert saved_config["palette"] == "ansi"
 
@@ -1038,7 +1232,9 @@ def run_pty(
             client_setting("export-file", "Export current draft")
             client_value(portable.name, "Exported current draft")
             exported = json.loads(portable.read_bytes())
-            assert exported["draft"]["display"]["items"] != saved_config["items"]
+            assert selected_ids(exported["draft"]["display"]) != selected_ids(
+                saved_config
+            )
             assert (
                 exported["draft"]["display"]["formatting"]["number_format"] == "compact"
             )
@@ -1052,7 +1248,7 @@ def run_pty(
             client_value(bad.name, "import requires")
             assert display_path.read_bytes() == saved_advanced
             client_value(portable.name, "Review import")
-            os.write(master,b"A")
+            os.write(master, b"A")
             read_until("Imported candidate accepted")
             capture("advanced-import")
             os.write(master, b"Q")
@@ -1153,9 +1349,9 @@ def run_pty(
             read_until("Status line configuration updated")
             external_saved = display_path.read_bytes()
             external_config = json.loads(external_saved)
-            assert external_config["items"][0] == "context-used"
-            assert external_config["item_options"]["context-used"]["priority"] == 100
-            assert external_config["item_options"]["context-used"]["max_width"] == 12
+            assert selected_ids(external_config)[0] == "context-used"
+            assert options(external_config, "context-used")["priority"] == 100
+            assert options(external_config, "context-used")["max_width"] == 12
             assert len(external_config["layout"]["rows"]) == 3
             assert external_config["palette"] == "ansi"
             command("/statusline-configure-native")
@@ -1238,9 +1434,21 @@ def run_pty(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report-dir", type=Path, required=True)
-    parser.add_argument("--appearance", action="store_true", help="Verify appearance controls, import review and saved colors")
-    parser.add_argument("--discovery", action="store_true", help="Verify bilingual discovery and import review in the installed native editor")
-    parser.add_argument("--rendering-only", action="store_true", help="Send synthetic style/grapheme spans through the installed native preview in a direct PTY")
+    parser.add_argument(
+        "--appearance",
+        action="store_true",
+        help="Verify appearance controls, import review and saved colors",
+    )
+    parser.add_argument(
+        "--discovery",
+        action="store_true",
+        help="Verify bilingual discovery and import review in the installed native editor",
+    )
+    parser.add_argument(
+        "--rendering-only",
+        action="store_true",
+        help="Send synthetic style/grapheme spans through the installed native preview in a direct PTY",
+    )
     parser.add_argument(
         "--backend", type=Path, default=Path(".venv/bin/claude-statusline")
     )
@@ -1290,7 +1498,17 @@ def main() -> int:
     parser.add_argument(
         "--terminal", help="Terminal name/version to record for manual acceptance"
     )
-    parser.add_argument("--language", choices=LANGUAGES[1:], default="zh-CN", help="Target for --language-only")
+    parser.add_argument(
+        "--language",
+        choices=LANGUAGES[1:],
+        default="zh-CN",
+        help="Target for --language-only",
+    )
+    parser.add_argument(
+        "--composition",
+        action="store_true",
+        help="Verify repeated instances, text and spacers",
+    )
     args = parser.parse_args()
     if args.advanced and not args.persistent:
         parser.error("--advanced requires --persistent to check both editor entries")
@@ -1298,12 +1516,19 @@ def main() -> int:
         parser.error(
             "--language-only requires --persistent to check both editor entries"
         )
-    if (args.discovery or args.appearance) and not args.persistent:
+    if (args.discovery or args.appearance or args.composition) and not args.persistent:
         parser.error("--discovery requires --persistent")
     if args.rendering_only and (
-        not args.persistent or args.discovery or args.appearance or args.language_only or args.advanced or args.theme_only
+        not args.persistent
+        or args.discovery
+        or args.appearance
+        or args.language_only
+        or args.advanced
+        or args.theme_only
     ):
-        parser.error("--rendering-only requires --persistent and no other scenario selector")
+        parser.error(
+            "--rendering-only requires --persistent and no other scenario selector"
+        )
     args.claude = str(Path(shutil.which(args.claude) or args.claude).resolve())
     if not sys.platform.startswith("linux"):
         parser.error("This acceptance runner currently requires native Linux")
@@ -1315,7 +1540,10 @@ def main() -> int:
     )
     if args.rendering_only:
         from native_preview_acceptance import install_fixture
-        environment["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"] = str(install_fixture(root, backend))
+
+        environment["CLAUDE_STATUSLINE_NATIVE_EXECUTABLE"] = str(
+            install_fixture(root, backend)
+        )
     report = {
         "os": platform.platform(),
         "architecture": platform.machine(),
@@ -1383,6 +1611,7 @@ def main() -> int:
                     language_only=args.language_only,
                     target_language=args.language,
                     discovery=args.discovery,
+                    composition=args.composition,
                     appearance=args.appearance,
                     rendering_only=args.rendering_only,
                 )

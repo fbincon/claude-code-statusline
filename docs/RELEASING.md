@@ -16,7 +16,7 @@ Stable v1.13.0 requests both the external TUI and in-session Client by default, 
 
 On 2026-10-04 the maintainer confirmed v1.3.0a2 human acceptance on Linux, Windows and macOS. Stable retains the accepted Client interaction. Architecture, terminal and exact host versions were not supplied with that confirmation and remain unknown. Record CI, PTY and human acceptance separately; see [acceptance status](development/native.md#v130-acceptance-status).
 
-Phase 5 candidates require all 13 Python/build and ten fixed Mod jobs (Linux 2.1.287/2.1.288/2.1.289/2.1.294, Windows/macOS 2.1.288/2.1.289/2.1.294) on the PR, merge commit and tag. Check stable defaults, persistent disablement, version thresholds, upgrade/downgrade, all four combinations and independent disablement. Core smoke explicitly selects basic integration; native smoke checks actual marketplaces, backend binding, saves and uninstall. An installed wheel must also pass real Linux PTYs with both entries.
+Current candidates require all 13 Python/build and 13 fixed Mod jobs (Linux 2.1.287/2.1.288/2.1.289/2.1.294/2.1.296, Windows/macOS 2.1.288/2.1.289/2.1.294/2.1.296) on the PR, merge commit and tag. Check stable defaults, persistent disablement, version thresholds, upgrade/downgrade, all four combinations and independent disablement. Core smoke explicitly selects basic integration; native smoke checks actual marketplaces, backend binding, saves and uninstall. An installed wheel must also pass real Linux PTYs with both entries.
 
 Build from the verified merge commit, inspect wheel/sdist/resource inventories and independent rebuilds, verify fixed-tag installation, draft assets and SHA256, require tag CI, then publish stable as Latest and check public downloads/isolated installs. The sole Mod source supplies runtime assets; exclude dependencies, host declarations and raw reports. Raw evidence stays in ignored dist/validation. Before a Python package downgrade, remove native with the newer package's `install --no-native-editor`.
 
@@ -119,7 +119,7 @@ Use SHA-256, lowercase hexadecimal digests, two spaces, and filenames without di
 
 ## Create a tag and draft Release
 
-Confirm all 13 Python/build and ten Mod CI jobs pass for Phase 5 for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
+Confirm all 13 Python/build and 13 Mod CI jobs pass for `RELEASE_COMMIT`, and that the remote tag and Release do not already exist. Create an annotated tag and a draft with all three assets; never overwrite historical tags or assets.
 
 ```bash
 git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "Release $RELEASE_TAG"
@@ -329,3 +329,9 @@ Keep schema 7 / editor protocol 9 separate from portable v1, interface preferenc
 For v1.13.0, ship complete `en`, `zh-CN`, `zh-Hant`, `ja` and `ko` packs. Keep display schema 7, UI preferences 1, portable format 1 and runtime protocol 2; editor protocol 10 requires matching resources. Require registry/resource/placeholder consistency, temporary new-language generation, all 25 UI/output combinations, both selector directions, failure/cancel preservation and multilingual search/Unicode viewports.
 
 Run installed-wheel external and persistent native language acceptance with `--language zh-Hant`, `--language ja` and `--language ko`, across light/dark fixtures. Inspect decoded cells and reconstructed images; preserve failed diagnostic runs. Persistent tmux may quantize RGB, including the dark preview background to ANSI index 17; record actual captured colors separately from direct RGB behavior. Benchmark immutable v1.12.0 and candidate sources plus temporary 2/5/10-language variants; distinguish the five shipped languages from synthetic capacity fixtures and Node module measurements from actual Claude Client startup. Complete the same fixed-merge, CI, independent rebuild, TestPyPI, PyPI, GitHub and same-byte Gitee gates above.
+
+## Component-instance release gates
+
+Composition uses display schema 8 and editor protocol 11. Check read-only v1–v7 mapping, backups before real saves, copy identities, disabled placements, ambiguity rejection, both editors' add/text/save/cancel paths, and repeated-metric observation reuse. Record installed bilingual PTYs, 40/80/120-cell output and fixed-source cold/warm benchmarks separately. Display defaults remain unchanged; previews retain the existing explicit editor opt-in policy.
+
+Claude Code 2.1.296 loads, strictly validates and tests Mods but does not emit declarations through the current preparation flow. Retain exact-build type checks on the ten earlier fixed hosts and add three-platform Mod tests, marketplace installation and backend verification on 2.1.296. Do not describe these as exact-build 2.1.296 type checks. Real Windows/macOS human interaction, font behavior and the historical macOS Client focus limitation remain separate evidence.
