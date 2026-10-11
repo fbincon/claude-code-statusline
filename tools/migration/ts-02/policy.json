@@ -1,0 +1,16 @@
+{
+  "format_version": 1,
+  "reference_commit": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "frozen_before_candidate_measurement": true,
+  "samples": 50,
+  "rounds": 3,
+  "maximum_additional_round_sets": 1,
+  "modes": ["warm", "cold"],
+  "profiles": { "small": [100, 0, 32], "medium": [10000, 8, 1000], "large": [100000, 32, 10000] },
+  "command": { "p50_ratio": 0.1, "p50_floor_ms": 5, "p95_ratio": 0.15, "p95_floor_ms": 10 },
+  "in_process": { "p50_ratio": 0.1, "p50_floor_ms": 0.1, "p95_ratio": 0.15, "p95_floor_ms": 0.2 },
+  "peak_rss_increment_bytes": 33554432,
+  "failure_rule": "All three rounds exceed the per-case budget and the median delta exceeds the baseline between-round range. Mixed or noisy excess is inconclusive, never a pass.",
+  "controls": "Runtime startup and native dependency loading are controls, not full-render parity.",
+  "full_candidate": "Unimplemented representative cases retain budgets and remain unmeasured; no full-migration performance claim."
+}

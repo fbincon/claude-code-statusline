@@ -1,0 +1,21 @@
+{
+  "name": "@fbincon/statusline-ts02-probes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Isolated platform feasibility probes, not a production statusline",
+  "license": "MIT AND Unicode-3.0",
+  "type": "module",
+  "engines": { "node": ">=24.21.0 <25" },
+  "bin": { "statusline-ts02": "dist/cli.js" },
+  "files": ["dist", "fixtures", "policy.json", "runtime-lock.json", "LICENSE*"],
+  "scripts": {
+    "build": "node scripts/prepare.mjs && tsc",
+    "typecheck": "node scripts/prepare.mjs && tsc --noEmit",
+    "test": "npm run build && node --test --test-concurrency=1 dist/tests/*.test.js",
+    "probe": "node dist/probe.js",
+    "benchmark": "node dist/benchmark.js",
+    "verify-evidence": "node dist/evidence.js"
+  },
+  "dependencies": { "koffi": "3.3.3", "lossless-json": "4.3.1" },
+  "devDependencies": { "@types/node": "24.19.2", "typescript": "5.9.3" }
+}

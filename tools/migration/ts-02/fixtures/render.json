@@ -1,0 +1,25 @@
+{
+  "source_case": {
+    "id": "cli-render-bom",
+    "kind": "cli",
+    "behaviors": [
+      "CLI",
+      "RENDER"
+    ],
+    "input": {
+      "argv": [
+        "render"
+      ],
+      "stdin": "﻿{\"model\": {\"id\": \"ts01\"}}"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "\u001b[1;38;2;246;226;183mts01\u001b[0m\n",
+    "stderr": ""
+  },
+  "source_sha256": {
+    "cases.json": "6da3d965f5c1c8de998af4c450eec3477b52ff5524f55e5a4e3fdc64abf85284",
+    "expected.json": "f9f1d5891671275b2e0a5ef8c1f37b2b0c1aefbfec9e9675c7243ea2c5a6f74f"
+  }
+}
