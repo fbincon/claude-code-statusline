@@ -43,6 +43,15 @@ jobs:
           architecture: ${{ matrix.arch }}
       - name: Install pinned prebuilt probe dependencies without lifecycle scripts
         run: npm ci --prefix tools/migration/ts-02 --ignore-scripts --no-audit --no-fund
+      - name: Prepare terminal harness
+        if: runner.os != 'Windows'
+        shell: bash
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: |
+          if ! command -v tmux >/dev/null 2>&1; then
+            if [ "$RUNNER_OS" = macOS ]; then brew install tmux; else sudo -n apt-get update && sudo -n apt-get install -y tmux; fi
+          fi
       - name: Compile probes
         run: npm run --prefix tools/migration/ts-02 build
       - name: Native APIs, mixed locks, terminal and installed artifact evidence

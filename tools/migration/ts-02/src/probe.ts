@@ -50,6 +50,22 @@ try {
   const config = join(installed, 'node_modules/@fbincon/statusline-ts02-probes/fixtures/model.json');
   const rendered = spawnSync(node, [entry, 'render', config, '80'], { cwd: installed, env: installEnv, input: fixture.source_case.input.stdin, encoding: 'utf8' });
   if (rendered.status !== 0 || rendered.stdout !== fixture.expected.stdout || rendered.stderr) throw new Error('Installed render mismatch');
+  const bin = join(installed, 'node_modules/.bin/statusline-ts02');
+  if (process.platform === 'win32') {
+    const ps = join(process.env.SystemRoot || 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
+    const quote = (s: string) => "'" + s.replace(/'/g, "''") + "'";
+    const psResult = spawnSync(ps, ['-NoProfile', '-Command', `& ${quote(bin + '.cmd')} echo '中文 path' 'a&b'; exit $LASTEXITCODE`], { env: { ...process.env, PATH: dirname(process.execPath) }, encoding: 'utf8' });
+    if (psResult.status !== 0 || JSON.parse(psResult.stdout).args.join('|') !== '中文 path|a&b') throw new Error(`Installed PowerShell shim failed: ${psResult.stderr}`);
+    const bash = process.env.TS02_GIT_BASH || join(process.env.ProgramFiles || 'C:\\Program Files', 'Git/bin/bash.exe');
+    const bashResult = spawnSync(bash, ['--noprofile', '--norc', '-c', '"$(cygpath -u "$TS02_INSTALLED_BIN")" echo "中文 path" "a&b"'], {
+      env: { ...process.env, TS02_INSTALLED_BIN: bin }, encoding: 'utf8' });
+    if (bashResult.status !== 0 || JSON.parse(bashResult.stdout).args.join('|') !== '中文 path|a&b') throw new Error(`Installed Git Bash shim failed: ${bashResult.stderr}`);
+    checks.installed_shells = ['PowerShell npm .cmd', 'Git Bash npm shell shim'];
+  } else {
+    const shell = spawnSync(bin, ['echo', '中文 path', 'a&b'], { env: { ...process.env, PATH: dirname(process.execPath) }, encoding: 'utf8' });
+    if (shell.status !== 0 || JSON.parse(shell.stdout).args.join('|') !== '中文 path|a&b') throw new Error(`Installed npm bin failed: ${shell.stderr}`);
+    checks.installed_shells = ['POSIX npm bin'];
+  }
   checks.installation = { prebuilt_native_loaded: true, lifecycle_scripts_disabled: true, path_excludes_python_and_compilers: true,
     outside_checkout: true, unicode_special_paths: true, resource_and_render_parity: true, tarball_sha256: sha(fs.readFileSync(tarball)),
     npm_version: execFileSync(process.execPath, [npm, '--version'], { encoding: 'utf8' }).trim(), entries: pack.files.map((f: { path: string }) => f.path) };

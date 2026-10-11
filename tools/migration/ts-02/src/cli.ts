@@ -30,6 +30,16 @@ try {
     });
   } else if (command === 'terminal') {
     const { terminal } = await import('./terminal.js'); terminal(args[0]!);
+  } else if (command === 'launch-helper') {
+    const { helper } = await import('./launchers.js'); helper(args[0]!, args[1]!);
+  } else if (command === 'console-probe') {
+    const { openSync, closeSync } = await import('node:fs');
+    const { ReadStream, WriteStream } = await import('node:tty');
+    const input = openSync('\\\\.\\CONIN$', 'r+'), output = openSync('\\\\.\\CONOUT$', 'w');
+    const reader = new ReadStream(input), writer = new WriteStream(output);
+    reader.setRawMode(true); const raw = reader.isRaw; reader.setRawMode(false);
+    writeFileSync(args[0]!, JSON.stringify({ input: reader.isTTY, output: writer.isTTY, raw, restored: !reader.isRaw }));
+    reader.destroy(); writer.destroy();
   } else if (command === 'echo') {
     process.stdout.write(JSON.stringify({ args, stdin: readFileSync(0, 'utf8') }) + '\n');
   } else if (command === 'bridge') {

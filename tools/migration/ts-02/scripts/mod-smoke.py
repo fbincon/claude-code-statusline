@@ -88,7 +88,7 @@ def main():
                 raw.extend(chunk)
                 if b"\x1b[6n" in chunk:
                     os.write(master, b"\x1b[1;1R")
-                if not key_confirmed and b"APIkey" in raw.replace(b" ", b""):
+                if not key_confirmed and b"ANTHROPIC_API_KEY" in raw:
                     # Select the synthetic key. The unreachable loopback URL
                     # still prevents model requests; never select a real key.
                     os.write(master, b"\x1b[A\r")

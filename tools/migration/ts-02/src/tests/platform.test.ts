@@ -12,6 +12,7 @@ import { run, binding, nodeBinding, rebindFixture } from '../launch.js';
 import { frame } from '../terminal.js';
 import { render } from '../render.js';
 import { displayWidth, clip } from '../generated/unicode.js';
+import { library, koffi } from '../native.js';
 import { exportReference, python, packageRoot, cli } from '../context.js';
 
 const temporary = fs.mkdtempSync(join(tmpdir(), 'ts02-中文 space-'));
@@ -108,6 +109,16 @@ test('Windows transient retry is bounded and permanent errors are not retried', 
   retryWindows(() => { if (++count < 4) throw Object.assign(new Error('sharing'), { winerror: 32 }); }, true, ms => { delays.push(ms); return 'ok'; });
   assert.deepEqual(delays, [10, 20, 40]);
   assert.throws(() => retryWindows(() => { throw Object.assign(new Error('disk full'), { code: 'ENOSPC' }); }, true));
+});
+test('real Windows sharing denial preserves old bytes then replacement recovers', { skip: process.platform !== 'win32' }, () => {
+  const path = join(temporary, 'sharing'); fs.writeFileSync(path, 'old');
+  const k = library('kernel32.dll');
+  const h = k.func('void *CreateFileW(const char16_t *path, uint32_t access, uint32_t share, void *security, uint32_t disposition, uint32_t flags, void *template)')(path, 0x80000000, 1, null, 3, 0x80, null);
+  assert.ok(h && koffi.address(h) !== 0xffffffffffffffffn);
+  try { assert.throws(() => atomicWrite(path, 'new')); }
+  finally { k.func('bool CloseHandle(void *handle)')(h); }
+  assert.equal(fs.readFileSync(path, 'utf8'), 'old');
+  atomicWrite(path, 'new'); assert.equal(fs.readFileSync(path, 'utf8'), 'new');
 });
 test('symlink/reparse publication and locks cannot overwrite another file', () => {
   const target = join(temporary, 'target'); const link = join(temporary, 'link'); fs.writeFileSync(target, 'safe');

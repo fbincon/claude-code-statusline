@@ -19,6 +19,7 @@ const fixture = JSON.parse(readFileSync(join(packageRoot, 'fixtures/render.json'
 const raw = fixture.source_case.input.stdin;
 const baseEnv = { ...process.env, TS02_REFERENCE_ROOT: oracle, TS02_MEASURE: '1', CLAUDE_CONFIG_DIR: join(output, 'config'), CLAUDE_STATUSLINE_RUNTIME_DIR: join(output, 'runtime'), PYTHONUTF8: '1', PYTHONPYCACHEPREFIX: join(output, 'warm-bytecode') };
 const records: { mode: string; round: number; baseline: Batch; candidate: Batch }[] = [];
+const measuredSources = sourceHashes();
 try {
   execFileSync(python, ['-m', 'compileall', '-q', join(oracle, 'src')], { env: { ...baseEnv, PYTHONDONTWRITEBYTECODE: '' } });
   function batch(side: string, mode: string): Batch {
@@ -56,7 +57,23 @@ try {
     });
     return { mode, metrics };
   });
-  const report = { format_version: 1, scope: 'minimal-model-render-only', reference, policy_sha256: sha(policyBytes), source_hashes: sourceHashes(), node: process.version, python: execFileSync(python, ['--version'], { encoding: 'utf8' }).trim(), platform: platform(), host_arch: machine(), process_arch: process.arch, os: release(), records, summaries,
+  const controls: Record<string, { ms: number[]; p50_ms: number; p95_ms: number }> = {};
+  for (const [name, executable, args] of [
+    ['node-startup', process.execPath, ['-e', '']],
+    ['python-startup', python, ['-c', '']],
+    ['node-native-clock-load', process.execPath, [cli, 'clock', String(process.pid)]],
+    ['python-native-clock-load', python, [join(packageRoot, 'scripts/oracle.py'), 'clock', String(process.pid)]],
+  ] as [string, string, string[]][]) {
+    const ms: number[] = [];
+    for (let i = 0; i < policy.samples; i++) {
+      const start = performance.now(); const result = spawnSync(executable, args, { env: baseEnv, encoding: 'utf8', timeout: 15000 });
+      if (result.status !== 0) throw new Error(`Control failed: ${result.stderr}`);
+      ms.push(performance.now() - start);
+    }
+    controls[name] = { ms, p50_ms: median(ms), p95_ms: percentile(ms, .95) };
+  }
+  if (JSON.stringify(measuredSources) !== JSON.stringify(sourceHashes())) throw new Error('Probe sources changed during measurement');
+  const report = { format_version: 1, scope: 'minimal-model-render-only', reference, policy_sha256: sha(policyBytes), source_hashes: measuredSources, node: process.version, python: execFileSync(python, ['--version'], { encoding: 'utf8' }).trim(), platform: platform(), host_arch: machine(), process_arch: process.arch, os: release(), records, summaries, controls,
     unmeasured: ['full production render/hook', 'small/medium/large collectors and Agents', 'in-process workloads'], repeat_sets_used: 0 };
   writeFileSync(join(output, 'benchmark.json'), JSON.stringify(report, null, 2) + '\n');
   if (summaries.some((s: { metrics: { state: string }[] }) => s.metrics.some(m => m.state !== 'pass'))) process.exitCode = 1;
