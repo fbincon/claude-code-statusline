@@ -79,7 +79,7 @@ Configuration snapshots expose existing lock-file creation where it occurs;
 the lock artifact. Cursor identity and modification time are injected before
 calling production code; their persisted fields are retained in results.
 
-The canonical replay environment is Linux/Python 3.14. Other platform behavior is
+The canonical replay environment is Linux/Python 3.14.4. Other platform behavior is
 covered by the existing native CI matrix, not a claim that every POSIX fixture
 has identical Windows bytes. Python adapters call the frozen production boundaries;
 the future TypeScript adapter must consume the same inputs and return the same
@@ -103,7 +103,10 @@ refuses an existing directory. Without `--source-root`, tools export the exact G
 commit into temporary storage. `--source-root PATH` accepts an existing reference
 export only after byte checks; changed, missing or extra Python modules are
 rejected. `--python PATH` selects an interpreter while retaining virtual-environment
-identity. The fixed commit must be available locally; the dedicated CI job fetches
+identity. Python 3.14.4 is required for the canonical byte-level replay. The first CI run on
+3.14.8 differed in two argparse diagnostic strings; the dedicated job now pins
+the reference interpreter and uploads synthetic captures for inspection. Other
+supported Python versions remain in the ordinary CI matrix. The fixed commit must be available locally; the dedicated CI job fetches
 history explicitly.
 
 The [lock](../../../../tests/fixtures/migration/ts-01/lock.json) fixes fixture and

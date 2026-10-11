@@ -20,11 +20,21 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          # argparse diagnostic text is part of the byte-level oracle.
+          python-version: "3.14.4"
       - name: Install reference test discovery dependencies
         run: python -m pip install "wcwidth==0.9.1" pyte
+      - name: Capture frozen behavioral cases
+        run: python -m tools.migration capture --output-dir "$RUNNER_TEMP/ts01-capture"
       - name: Verify frozen source, inventories and behavioral cases
-        run: python -m tools.migration verify
+        run: python -m tools.migration verify --capture-dir "$RUNNER_TEMP/ts01-capture"
+      - name: Preserve synthetic replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ts01-python-reference
+          path: ${{ runner.temp }}/ts01-capture
+          if-no-files-found: warn
 
   test:
     name: ${{ matrix.os }} / Python ${{ matrix.python }}

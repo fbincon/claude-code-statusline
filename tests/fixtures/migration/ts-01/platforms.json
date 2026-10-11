@@ -3,8 +3,9 @@
   "canonical_corpus": {
     "os": "Linux",
     "architecture": "x86_64",
-    "python": "3.14",
-    "purpose": "Deterministic reference replay; does not replace native platform testing."
+    "python": "3.14.4",
+    "purpose": "Deterministic reference replay; does not replace native platform testing.",
+    "reason": "Byte-level CLI diagnostics require the exact reference interpreter; the existing support matrix independently tests Python 3.10 and 3.14."
   },
   "supported_targets": [
     {

@@ -395,9 +395,18 @@
   ],
   "ci": {
     "status": "pending",
-    "pr": null,
+    "pr": "https://github.com/fbincon/claude-code-statusline/pull/75",
     "tested_commit": null,
-    "runs": []
+    "runs": [],
+    "attempts": [
+      {
+        "head": "d6e1ea074f4bacf1a13b339502a5948afa2707e8",
+        "run": "https://github.com/fbincon/claude-code-statusline/actions/runs/38151304916",
+        "baseline_job": "https://github.com/fbincon/claude-code-statusline/actions/runs/38151304916/job/114505160558",
+        "result": "two CLI stderr byte differences under Python 3.14.8; the other 159 cases matched",
+        "disposition": "Pin canonical replay to exact reference Python 3.14.4 and retain synthetic capture artifacts; support matrix unchanged."
+      }
+    ]
   },
   "merged_commit": null,
   "gitee_main": null,
@@ -446,8 +455,27 @@
       },
       {
         "file": "candidate-replay.log",
-        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        "sha256": "f403c190f78864647fdccef8a57ac532b8ec024c71434d6a3205e14d51ccfffd"
+      },
+      {
+        "file": "candidate-build.log",
+        "sha256": "9c29e3c64a4118b7e6f201e53aa28189b1b9feefb7d799bd25855f8e0f9cc38e"
+      },
+      {
+        "file": "candidate-dist.log",
+        "sha256": "414c56f8d6016c3a3e210f3427f81946f7723f07e38c15376db977edb0e99fca"
+      },
+      {
+        "file": "candidate-twine.log",
+        "sha256": "e709b0f69bfd6e965c49b56f9f9e9a522d11a1abad5a6eb3dbdb44adeba39bee"
       }
-    ]
+    ],
+    "built_commit": "d6e1ea074f4bacf1a13b339502a5948afa2707e8",
+    "distribution_inspection": "passed",
+    "wheel_contents_identical_to_reference": true,
+    "artifacts": {
+      "fbincon_claude_code_statusline-2.0.0-py3-none-any.whl": "bc70c48e7bf32ad2c497ad5563936be95c9eef5f015826a49d2c8caea28048d1",
+      "fbincon_claude_code_statusline-2.0.0.tar.gz": "dd1fb88e340c8b3f9a0e6918b2f9736f10e22e05a301b023aaa2214613b285fe"
+    }
   }
 }
