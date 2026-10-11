@@ -88,3 +88,22 @@ export function processToken(pid: number): string | null {
   } catch { /* identity must be unverifiable, never guessed */ }
   return null;
 }
+
+// A Windows process object can outlive process exit while another handle is
+// open. Creation identity is not a liveness predicate (same in the oracle).
+export function processMatches(pid: number, token: string): boolean {
+  if (processToken(pid) !== token) return false;
+  try {
+    if (process.platform === 'win32') {
+      const k = library('kernel32.dll');
+      const h = k.func('void *OpenProcess(uint32_t access, bool inherit, uint32_t pid)')(0x100000, false, pid);
+      if (!h) return false;
+      try { return k.func('uint32_t WaitForSingleObject(void *handle, uint32_t ms)')(h, 0) === 258; }
+      finally { k.func('bool CloseHandle(void *handle)')(h); }
+    }
+    if (process.platform === 'linux') {
+      const raw = readFileSync(`/proc/${pid}/stat`, 'utf8'); return !['Z', 'X'].includes(raw.slice(raw.lastIndexOf(')') + 2)[0]!);
+    }
+    return !execFileSync('/bin/ps', ['-o', 'stat=', '-p', String(pid)], { encoding: 'utf8', timeout: 1000 }).trim().startsWith('Z');
+  } catch { return false; }
+}

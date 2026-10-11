@@ -33,9 +33,9 @@ try {
   } else if (command === 'launch-helper') {
     const { helper } = await import('./launchers.js'); helper(args[0]!, args[1]!);
   } else if (command === 'console-probe') {
-    const { openSync, closeSync } = await import('node:fs');
+    const { openSync } = await import('node:fs');
     const { ReadStream, WriteStream } = await import('node:tty');
-    const input = openSync('\\\\.\\CONIN$', 'r+'), output = openSync('\\\\.\\CONOUT$', 'w');
+    const input = openSync('\\\\.\\CONIN$', 'r+'), output = openSync('\\\\.\\CONOUT$', 'r+');
     const reader = new ReadStream(input), writer = new WriteStream(output);
     reader.setRawMode(true); const raw = reader.isRaw; reader.setRawMode(false);
     writeFileSync(args[0]!, JSON.stringify({ input: reader.isTTY, output: writer.isTTY, raw, restored: !reader.isRaw }));
@@ -51,4 +51,7 @@ try {
   else if (command === 'rss') process.stdout.write(String(process.resourceUsage().maxRSS * 1024));
   else if (command === 'write') writeFileSync(args[0]!, args[1]!);
   else throw new Error('Unknown TS-02 probe command');
-} catch (error) { process.stderr.write(String(error) + '\n'); process.exitCode = 1; }
+} catch (error) {
+  if (command === 'console-probe' && args[0]) writeFileSync(args[0], JSON.stringify({ error: String(error) }));
+  process.stderr.write(String(error) + '\n'); process.exitCode = 1;
+}

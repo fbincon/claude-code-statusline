@@ -37,7 +37,9 @@ elif command == "render":
     from claude_statusline.config.display import validate_display_config
     config = validate_display_config(json.loads(Path(args[0]).read_text(encoding="utf-8")))
     payload = json.loads(sys.stdin.read().lstrip("\ufeff"))
-    print("\n".join(configured_rows(payload, config, int(args[1]))))
+    # This is a configured_rows adapter, not the platform's console newline
+    # translator. Both language adapters serialize the returned rows as UTF-8 LF.
+    sys.stdout.buffer.write(("\n".join(configured_rows(payload, config, int(args[1]))) + "\n").encode("utf-8"))
 else:
     raise ValueError(command)
 

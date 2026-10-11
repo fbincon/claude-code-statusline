@@ -5,7 +5,7 @@ import { once } from 'node:events';
 import * as fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { sample, processToken, delta, trusted } from '../clocks.js';
+import { sample, processToken, processMatches, delta, trusted } from '../clocks.js';
 import { decode, encode, integer, revision } from '../json.js';
 import { atomicWrite, lock, isLinkOrReparse, retryWindows } from '../files.js';
 import { run, binding, nodeBinding, rebindFixture } from '../launch.js';
@@ -61,11 +61,12 @@ test('unavailable clocks, wall adjustment, reboot and frozen integer semantics',
   assert.equal(sample(() => { throw new Error('unavailable'); }).boot_id, null);
   assert.equal(integer((decode('{"frozen_ns":9007199254740993}') as Record<string, unknown>).frozen_ns), 9007199254740993n);
 });
-test('dead process identity becomes unavailable; old PID token is not accepted', async () => {
+test('exited process is not live even when Windows retains its creation identity', async () => {
   const child = spawn(process.execPath, [cli, 'wait']);
   const close = once(child, 'close');
-  assert.ok(processToken(child.pid!)); child.kill('SIGKILL'); await close;
-  assert.equal(processToken(child.pid!), null);
+  const token = processToken(child.pid!); assert.ok(token); child.kill('SIGKILL'); await close;
+  assert.equal(processMatches(child.pid!, token), false);
+  const retained = processToken(child.pid!); assert.ok(retained === null || retained === token);
 });
 test('TS and Python independent writers serialize updates using the same lock file', async () => {
   const path = join(temporary, 'counter'); fs.writeFileSync(path, '0');

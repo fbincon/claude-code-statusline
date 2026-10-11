@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { processToken } from './clocks.js';
+import { processToken, processMatches } from './clocks.js';
 import { library, koffi, winError } from './native.js';
 import type { LaunchSpec } from './launch.js';
 
@@ -18,7 +18,7 @@ export function prepare(directory: string, executable: LaunchSpec): { path: stri
 }
 export function helper(path: string, nonce: string): void {
   const request = JSON.parse(readFileSync(path, 'utf8')) as Request;
-  if (request.nonce !== nonce || request.expires < Date.now() || processToken(request.parent) !== request.token) throw new Error('Expired, revoked or reused launcher identity');
+  if (request.nonce !== nonce || request.expires < Date.now() || !processMatches(request.parent, request.token)) throw new Error('Expired, revoked or reused launcher identity');
   writeFileSync(request.result, JSON.stringify({ nonce, input_tty: Boolean(process.stdin.isTTY), output_tty: Boolean(process.stdout.isTTY) }), { flag: 'wx', mode: 0o600 });
 }
 export function launcherArgv(kind: 'tmux' | 'gnome' | 'macos', command: string[], directory: string, socket = ''): string[] {
@@ -43,6 +43,9 @@ export function windowsConsole(command: string[]): void {
     const result = k.func('uint32_t WaitForSingleObject(void *handle, uint32_t ms)')(processHandle, 10000);
     if (result !== 0) { k.func('bool TerminateProcess(void *handle, uint32_t exit)')(processHandle, 1); throw new Error('New console timeout'); }
     const code = [0];
-    if (!k.func('bool GetExitCodeProcess(void *handle, _Out_ uint32_t *code)')(processHandle, code) || code[0] !== 0) throw new Error(`New console exited ${code[0]}`);
+    if (!k.func('bool GetExitCodeProcess(void *handle, _Out_ uint32_t *code)')(processHandle, code) || code[0] !== 0) {
+      let detail = ''; try { detail = readFileSync(command.at(-1)!, 'utf8'); } catch { /* child could not write its receipt */ }
+      throw new Error(`New console exited ${code[0]} ${detail}`);
+    }
   } finally { k.func('bool CloseHandle(void *handle)')(threadHandle); k.func('bool CloseHandle(void *handle)')(processHandle); }
 }
