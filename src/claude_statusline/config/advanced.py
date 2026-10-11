@@ -8,11 +8,12 @@ from claude_statusline.config import catalog, display, formatting
 
 
 def edit_item(config, scope, item, option, value):
-    if scope == "main":
-        item = catalog.canonical_item(item)
     from . import instances
 
     node = instances.find(config, scope, item)
+    if node is None and scope == "main":
+        item = catalog.canonical_item(item)
+        node = instances.find(config, scope, item)
     if node is None:
         if item not in catalog.BY_SCOPE.get(scope, {}):
             raise display.DisplayConfigError(msg("errors.advanced.unknown_scoped_item"))

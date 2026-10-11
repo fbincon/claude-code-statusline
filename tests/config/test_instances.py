@@ -103,3 +103,18 @@ class InstanceTests(unittest.TestCase):
                 display.validate_display_config(
                     {**cfg.to_dict(), "schema_version": version}
                 )
+
+    def test_type_resolution_cannot_confuse_imported_ids_with_type_names(self):
+        cfg = display.DisplayConfig(
+            instances=(instances.DisplayInstance("hostname", "model"),)
+        )
+        with self.assertRaisesRegex(ValueError, "instance"):
+            instances.legacy_id(cfg, "main", "hostname", allow_absent=True)
+        cfg = display.DisplayConfig(
+            instances=(instances.DisplayInstance("prompt-timer", "model"),)
+        )
+        cfg = advanced.edit_item(cfg, "main", "prompt-timer", "label", "Model copy")
+        self.assertEqual(cfg.instances[0].options.label, "Model copy")
+        self.assertEqual(len(cfg.instances), 1)
+        with self.assertRaisesRegex(ValueError, "Only text"):
+            instances.edit(cfg, "main", "add", type_id="model", text="ignored")

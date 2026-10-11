@@ -60,3 +60,16 @@ test('picker cancellation and instance shortcuts retain the unsaved draft',()=>{
   handleKey(v,{key:'x',ctrl:true},80,24);expect(e.instance('main',duplicate)).toBe(undefined);
   expect(e.baseline.draft.display.instances.length).toBe(1);
 });
+
+
+test('a rejected move preserves both the configured order and the row boundaries', () => {
+  const current = readResult();
+  const first = component('spacer'), second = component('spacer');
+  first.id = 's1'; second.id = 's2';
+  current.draft.display.instances = [component('model'), first, component('git'), second];
+  current.draft.display.layout = {mode:'explicit', rows:[['model','s1'],['git','s2']]};
+  const e = new Editor(description(), current), before = copyDraft(e.draft);
+  const order = [...e.order.main]; e.selected.main = 's1';
+  expect(e.move('main', 1)).toBe(false);
+  expect(e.draft).toEqual(before); expect(e.order.main).toEqual(order);
+});

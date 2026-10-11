@@ -169,7 +169,11 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   else if (key === '/' && !isSettings) { view.input = {kind:'search',scope,original:e.search[scope],selected:e.selected[scope]}; return null; }
   else if (key === 'left' || key === 'right') {
     if (!isSettings && e.filtered(scope)) { setMessage(view, 'message', localizedText('catalog.search.order_disabled')); return null; }
-    if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1); else e.move(scope, key === 'left' ? -1 : 1);
+    if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1);
+    else {
+      const delta = key === 'left' ? -1 : 1;
+      if (keys[index + delta] && !e.move(scope, delta)) setMessage(view, 'message', localizedText('composition.invalid'));
+    }
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",localizedText("composition.invalid")); }

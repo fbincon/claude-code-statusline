@@ -152,6 +152,8 @@ def legacy_id(config, scope, type_id, *, allow_absent=False):
     if matches:
         return matches[0]
     if allow_absent and type_id in catalog.BY_SCOPE[scope]:
+        if find(config, scope, type_id) is not None:
+            raise ValueError(msg("composition.errors.legacy", scope=scope))
         return type_id
     raise ValueError(msg("composition.errors.absent", type_id=type_id, scope=scope))
 
@@ -175,6 +177,8 @@ def edit(
     text=None,
 ):
     """Apply a pure edit, returning a validated configuration and selection ID."""
+    if action == "add" and text is not None and type_id != "text":
+        raise ValueError(msg("composition.errors.only_text"))
     nodes = list(scoped(config, scope).instances)
     node = next((i for i in nodes if i.id == identifier), None)
     if action not in ("add", "copy") and node is None:

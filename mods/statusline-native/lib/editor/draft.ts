@@ -197,14 +197,15 @@ export class Editor {
     const index = visible.indexOf(id);
     const target = visible[index + delta];
     if (index < 0 || !target) return false;
-    const order = this.order[scope];
-    order.splice(order.indexOf(id), 1);
-    order.splice(order.indexOf(target) + (delta > 0 ? 1 : 0), 0, id);
-    const enabled = new Set(this.items(scope));
-    this.setItems(
-      scope,
-      order.filter((candidate) => enabled.has(candidate)),
-    );
+    const draft = copyDraft(this.draft);
+    const ordered = nodes(draft, scope);
+    const sourceIndex = ordered.findIndex(node => node.id === id);
+    const [moving] = ordered.splice(sourceIndex, 1);
+    ordered.splice(ordered.findIndex(node => node.id === target) + (delta > 0 ? 1 : 0), 0, moving!);
+    if (scope === 'main') reconcileRows(draft);
+    if (!isDraft(draft)) return false;
+    this.draft = draft;
+    this.order[scope] = ordered.map(node => node.id);
     return true;
   }
 
@@ -249,13 +250,4 @@ export class Editor {
     this.cancelNumeric();
   }
 
-  private setItems(scope: Scope, items: string[]): void {
-    const byId=new Map(nodes(this.draft,scope).map(i=>[i.id,i]));
-    const ordered=this.order[scope].map(id=>({...byId.get(id)!,enabled:items.includes(id)}));
-    const draft=copyDraft(this.draft);
-    if(scope==='main'){draft.display.instances=ordered;reconcileRows(draft);}
-    else draft.display.subagents.instances=ordered;
-    if(isDraft(draft))this.draft=draft;
-    else this.order[scope]=nodes(this.draft,scope).map(i=>i.id);
-  }
 }
