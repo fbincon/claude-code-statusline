@@ -307,3 +307,14 @@ test('all registered languages keep every page, form, numeric error and footer i
     }
   }
 });
+
+
+test('copied instance detail uses the type description in every interface language', () => {
+  for (const language of LANGUAGES) {
+    const state = view(); state.language = language;
+    state.editor!.instanceAction('main', 'copy');
+    const body = text(draw(elements, state, 120, 30) as unknown as Node);
+    expect(body).toContain(t('items.main.model-with-effort.description', language));
+    expect(body).not.toContain('items.main.i-');
+  }
+});

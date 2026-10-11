@@ -275,7 +275,11 @@ def run_pty(
     ]
     tmux_directory = (
         tempfile.TemporaryDirectory(prefix="statusline-client-tmux-")
-        if persistent and not discovery and not appearance and not rendering_only
+        if persistent
+        and not discovery
+        and not appearance
+        and not composition
+        and not rendering_only
         else None
     )
     tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
