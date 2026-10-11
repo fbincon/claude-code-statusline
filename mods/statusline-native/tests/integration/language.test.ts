@@ -117,7 +117,7 @@ test('language persists immediately across cancel and reopening while display dr
 test('rejected language write restores the last display language without replacing the draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture=setup(on);
   fixture.behavior.process=(request,next)=>request.operation==='set_ui_language'
-    ? {value:output(JSON.stringify({protocol_version:10,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
+    ? {value:output(JSON.stringify({protocol_version:11,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);
@@ -140,7 +140,7 @@ test('initial shared language and bilingual search keep user text and command sh
   await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);
   expect(await ui.find({in:'statusline-client',type:'Text',text:'配置状态栏'})).toBeDefined();
-  await keys(ui,'/','剩','余','上','下','文','return');
+  await keys(ui,{key:'a',ctrl:true},'/','剩','余','上','下','文','return');
   const data=((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view.editor!;
   expect(data.search.main).toBe('剩余上下文');
   expect(data.selected.main).toBe('context-remaining');
@@ -185,7 +185,7 @@ test('saving statusline language persists the complete draft while a refusal ret
   const fixture = setup(on);
   let refused = true;
   fixture.behavior.process = (request, next) => request.operation === 'apply' && refused
-    ? {value: output(JSON.stringify({protocol_version:10,error:{code:'io_error',message:'Write refused.',localization:null}}),2)} : next();
+    ? {value: output(JSON.stringify({protocol_version:11,error:{code:'io_error',message:'Write refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);

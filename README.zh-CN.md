@@ -17,13 +17,15 @@
 
 ## 功能概览
 
+- **自由组合状态栏：** 在两种编辑器中新增、复制和排列独立组件，插入纯文本及左右对齐留白。详见[组件组合指南](docs/COMPOSITION.zh-CN.md)。
+
 - **条件显示与外观：** 隐藏确认的空闲／干净状态，设置用量阈值、逐项前景／背景色和主题，按需启用基础 [Powerline](docs/APPEARANCE.zh-CN.md)。
 - **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文 / 日本語 / 한국어；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/languages/README.zh-CN.md)。
-- **查找显示项目：** 60 个主栏项目和 14 个子代理项目，支持五种语言的分级搜索、分类筛选及来源／启用条件说明。
+- **查找显示项目：** 60 个主栏指标和 14 个子代理指标，以及文本与弹性留白组件，支持五种语言的分级搜索、分类筛选及来源／启用条件说明。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
 - **保留完整字符：** 组合 emoji、组合字符和 CJK 文本在换行、裁切和预览中保持完整。
-- **审阅配置改动：** 四种预设可展开编辑，支持可移植 JSON；导入时先查看差异和候选预览，再接受草稿并单独保存。
+- **审阅配置改动：** 六种预设可展开编辑，支持可移植 JSON；导入时先查看差异和候选预览，再接受草稿并单独保存。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
 - **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在单独选择的浅色／深色底色上保留生产配色。
 - **适配终端配色：**外部 TUI 文字与粗体快捷键使用终端默认色，预览在当前终端背景上显示所选配色。
@@ -32,6 +34,8 @@
 状态栏渲染读取 Claude Code 输入和本地状态，不自行发起网络请求或使用模型 token。问答向导使用 Claude 模型回合。数据来源与可用条件见[显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)。
 
 ## 界面预览
+
+[组件实例、复制与左右布局图像](docs/images/composition/README.zh-CN.md)。
 
 [搜索、分类、来源说明与导入审阅画面](docs/images/README.zh-CN.md#discovery-and-import-review)。
 
@@ -371,8 +375,10 @@ claude-code-statusline/
 ├── docs/                                    # 使用、参考与开发文档
 │   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # 安装、配置与故障排查
 │   ├── APPEARANCE.md / APPEARANCE.zh-CN.md  # 条件显示、逐项颜色、主题与 Powerline
+│   ├── COMPOSITION.md / COMPOSITION.zh-CN.md # 组件实例、文本与弹性布局
 │   ├── reference/                           # CLI 与配置参考
 │   ├── images/                              # 当前 TUI 截图与历史归档
+│   │   ├── composition/                     # 组件实例编辑器捕获
 │   │   ├── tui/                             # 当前配置编辑器截图
 │   │   │   ├── native/                      # 会话内配置编辑器截图
 │   │   │   └── external/                    # 外部终端配置编辑器截图
@@ -388,16 +394,18 @@ claude-code-statusline/
 │       │   ├── catalog.py / guidance.py      # 项目定义、来源与条件元数据
 │       │   ├── import_review.py              # 校验后草稿的语义差异
 │       │   ├── ui_preferences.py            # 共享语言偏好事务
-│       │   └── storage.py                   # 锁、备份及原子写入
-│       ├── i18n/                            # 中英文共享展示资源
-│       │   ├── locales/                     # en.json / zh-CN.json
+│       │   ├── storage.py                   # 锁、备份及原子写入
+│       │   └── instances.py / instance_commands.py # 实例模型及显式 CLI
+│       ├── i18n/                            # 界面与输出语言资源
+│       │   ├── locales/                     # en / zh-CN / zh-Hant / ja / ko
 │       │   ├── translator.py                # 消息键、参数与英文回退
 │       │   ├── statusline.py                # 显式语言输出与已知值展示
-│       │   ├── _generated_statusline.py      # 自动生成的轻量运行词典
+│       │   ├── _generated_statusline/        # 按输出语言加载的生成模块
 │       │   └── presentation.py              # 翻译字段与选项
 │       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
 │       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配
 │       ├── rendering/                       # 状态栏格式、颜色、布局与预览
+│       │   ├── components.py                 # 文字与弹性留白拟合
 │       │   ├── visibility.py                 # 原始观测条件规则
 │       │   ├── appearance.py / colors.py     # 主题角色与终端颜色映射
 │       │   └── powerline.py                  # 可见色块组合与宽度适配

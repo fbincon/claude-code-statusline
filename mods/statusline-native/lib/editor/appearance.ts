@@ -8,6 +8,9 @@ export function visibilityChoices(scope: Scope, id: string): string[] {
 }
 
 export function itemFields(fields: EditorField[], scope: Scope, id: string): EditorField[] {
+  if(id==='spacer')return [];
+  if(id==='text')return [{key:'text',label:'Literal text',group:'Item format',kind:'text',choices:[],minimum:0,maximum:256,nullable:false},
+    ...fields.filter(f=>['label','icon','foreground','background','priority','max_width'].includes(f.key))];
   const choices = visibilityChoices(scope, id);
   return fields.filter(spec => (spec.key !== 'visibility' || choices.length > 1) &&
     (spec.key !== 'visibility_threshold' || choices.includes('used-at-least')))

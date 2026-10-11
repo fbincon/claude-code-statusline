@@ -16,12 +16,19 @@ from tests.ui.test_layout import Screen, Mapper, select
 
 class GuidanceTests(unittest.TestCase):
     def test_all_items_have_scoped_translated_guidance_without_process_calls(self):
-        with mock.patch("subprocess.run", side_effect=AssertionError("guidance cannot probe sources")):
+        with mock.patch(
+            "subprocess.run",
+            side_effect=AssertionError("guidance cannot probe sources"),
+        ):
             for item in catalog.ITEMS:
                 guide = item.to_dict()["guidance"]
-                self.assertTrue(set(guide["source_kinds"]) <= set(metadata.SOURCE_KINDS))
+                self.assertTrue(
+                    set(guide["source_kinds"]) <= set(metadata.SOURCE_KINDS)
+                )
                 self.assertIn(guide["measurement_scope"], metadata.SCOPES)
-                self.assertTrue(set(guide["requirements"]) <= set(metadata.REQUIREMENTS))
+                self.assertTrue(
+                    set(guide["requirements"]) <= set(metadata.REQUIREMENTS)
+                )
                 for language in LANGUAGES:
                     text = "\n".join(guidance.paragraphs(item.scope, item.id, language))
                     self.assertNotIn("guidance.", text)
@@ -30,24 +37,40 @@ class GuidanceTests(unittest.TestCase):
                     if item.minimum_version:
                         self.assertIn(item.minimum_version, text)
                     else:
-                        self.assertIn(translate("guidance.version_unknown", language), text)
+                        self.assertIn(
+                            translate("guidance.version_unknown", language), text
+                        )
 
     def test_requirements_distinguish_collectors_and_metric_scopes(self):
         def guide(scope, item):
             return catalog.BY_SCOPE[scope][item].to_dict()["guidance"]
-        self.assertIn("native_timing", guide("main", "task-active-timer")["requirements"])
-        self.assertNotIn("live_metrics", guide("main", "task-active-timer")["requirements"])
+
+        self.assertIn(
+            "native_timing", guide("main", "task-active-timer")["requirements"]
+        )
+        self.assertNotIn(
+            "live_metrics", guide("main", "task-active-timer")["requirements"]
+        )
         self.assertIn("live_metrics", guide("main", "ttft")["requirements"])
-        self.assertIn("existing_telemetry", guide("main", "prompt-cost")["requirements"])
+        self.assertIn(
+            "existing_telemetry", guide("main", "prompt-cost")["requirements"]
+        )
         self.assertIn("gateway_284", guide("main", "spend-amount")["requirements"])
         self.assertIn("git_base", guide("main", "branch-diff")["requirements"])
         self.assertEqual(guide("main", "tokens")["measurement_scope"], "all_sessions")
-        self.assertEqual(guide("subagent", "tokens")["measurement_scope"], "subagent_context")
-        self.assertIn("agent_effort_optional", guide("subagent", "model-with-effort")["requirements"])
+        self.assertEqual(
+            guide("subagent", "tokens")["measurement_scope"], "subagent_context"
+        )
+        self.assertIn(
+            "agent_effort_optional",
+            guide("subagent", "model-with-effort")["requirements"],
+        )
 
     def test_guidance_scroll_cancel_and_resize_preserve_draft_and_selection(self):
         for language in LANGUAGES:
-            state = EditorState.from_effective(effective(), language=language)
+            state = EditorState.from_effective(
+                effective(items=("prompt-cost",)), language=language
+            )
             state.selected_item = "prompt-cost"
             keys.handle_key(state, "\x05", 8)
             self.assertEqual(forms.current(state)["key"], "item:label")
@@ -74,4 +97,6 @@ class GuidanceTests(unittest.TestCase):
             for item in catalog.ITEMS:
                 for width in (30, 60, 118):
                     lines = guidance.lines(item.scope, item.id, language, width)
-                    self.assertTrue(all(_display_width(line) <= width for line in lines))
+                    self.assertTrue(
+                        all(_display_width(line) <= width for line in lines)
+                    )

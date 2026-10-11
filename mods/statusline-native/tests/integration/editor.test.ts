@@ -19,7 +19,7 @@ const REGION = 'statusline-client';
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 10,
+      protocol_version: 11,
       error: { code, message: 'Test save refused.' },
     }),
     2,
@@ -58,7 +58,7 @@ test('Client owns only native command, edits three pages and saves a full revisi
   const count = fixture.calls.length;
   await ui.redraw(PANE.props);
   expect(fixture.calls.length).toBe(count);
-  await keys(ui, '/', 'g', 'i', 't', 'return', ' ', 'left');
+  await keys(ui, {key:'a',ctrl:true}, '/', 'g', 'i', 't', 'return', 'return', 'left');
   await keys(ui, '2', '/', 's', 't', 'a', 't', 'u', 's', 'return', 'down', ' ');
   await keys(ui, '3', ' ');
   for (const field of ['palette', 'directory-style', 'separator-style', 'scope-labels']) {
@@ -73,8 +73,8 @@ test('Client owns only native command, edits three pages and saves a full revisi
   await keys(ui, ' ', 's');
   const applied = fixture.calls.find((call) => call.operation === 'apply')!;
   expect(applied.payload.expected_revision).toBe('0'.repeat(64));
-  expect(applied.payload.draft.display.items).toContain('git');
-  expect(applied.payload.draft.display.subagents.items).not.toContain(
+  expect(applied.payload.draft.display.instances.filter((i: {enabled:boolean})=>i.enabled).map((i: {type_id:string})=>i.type_id)).toContain('git');
+  expect(applied.payload.draft.display.subagents.instances.filter((i: {enabled:boolean})=>i.enabled).map((i: {id:string})=>i.id)).not.toContain(
     'status-elapsed',
   );
   expect(applied.payload.draft.display).toMatchObject({
@@ -299,7 +299,7 @@ test('full and compact layouts keep selection through paging, filtering and resi
   expect(
     await ui.find({ in: REGION, type: 'Text', text: /╭─ Main items/ }),
   ).toBeDefined();
-  await keys(ui, 'end');
+  await keys(ui, {key:'a',ctrl:true}, 'end');
   await ui.redraw({
     ...PANE.props,
     bodyColumns: 32,
@@ -310,8 +310,8 @@ test('full and compact layouts keep selection through paging, filtering and resi
     await ui.find({ in: REGION, type: 'Text', text: /╭─ Main items/ }),
   ).toBeUndefined();
   expect(
-    await ui.find({ in: REGION, key: 'item-main:' + MAIN_ITEM_IDS[MAIN_ITEM_IDS.length - 1] }),
-  ).toBeDefined();
+    {step:'picker-end',found:!!await ui.find({ in: REGION, key: 'item-main:' + MAIN_ITEM_IDS[MAIN_ITEM_IDS.length - 1] })},
+  ).toEqual({step:'picker-end',found:true});
   await keys(ui, 'pageup', 'pagedown', 'home', 'down');
   await ui.redraw({
     ...PANE.props,
@@ -324,8 +324,8 @@ test('full and compact layouts keep selection through paging, filtering and resi
   await ui.redraw({ ...PANE.props, bodyColumns: 72 });
   await ui.resize({ columns: 72, rows: 24 });
   expect(
-    await ui.find({ in: REGION, key: 'item-main:fast-mode' }),
-  ).toBeDefined();
+    {step:'picker-return',found:!!await ui.find({ in: REGION, key: 'item-main:model' })},
+  ).toEqual({step:'picker-return',found:true});
   await ui.unmount();
 });
 
@@ -516,5 +516,22 @@ test('a fast printable terminal chunk enters search and retains all characters',
   expect(
     await ui.find({ in: REGION, key: 'item-main:model-with-effort' }),
   ).toBeDefined();
+  await ui.unmount();
+});
+
+
+test('preview fitting reserves the visible frame and refreshes when height changes its width', {timeoutMs: 20000}, async ($, on) => {
+  const fixture = setup(on);
+  fixture.behavior.process = async (request, next) => request.operation === 'preview'
+    ? {value: reply(sample(`${request.payload.width} cells`))} : next();
+  await $.session.start(START); await $.command.run(RUN);
+  const props = {...PANE.props, bodyColumns:72, scroll:{offset:0,bodyRows:24}};
+  const ui = await $.ui.mount({...PANE,props});
+  expect(await ui.find({in:REGION,type:'Text',text:'70 cells'})).toBeDefined();
+  await ui.redraw({...props,scroll:{offset:0,bodyRows:16}});
+  expect(await ui.find({in:REGION,type:'Text',text:'72 cells'})).toBeDefined();
+  const count = fixture.calls.filter(call => call.operation === 'preview').length;
+  await ui.redraw({...props,scroll:{offset:0,bodyRows:15}});
+  expect(fixture.calls.filter(call => call.operation === 'preview').length).toBe(count);
   await ui.unmount();
 });

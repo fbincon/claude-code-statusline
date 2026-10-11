@@ -18,7 +18,7 @@ import type {
   Operation,
   ResultFor,
 } from '../lib/generated-contracts.ts';
-import { MIN_COLUMNS, MIN_ROWS } from '../ui/layout.ts';
+import { MIN_COLUMNS, MIN_ROWS, contentColumns } from '../ui/layout.ts';
 import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
@@ -674,7 +674,8 @@ export const register: Register = (on, options) => {
     state.rows = height;
     const editor = state.view.editor;
     const previewDraft = editor?.review?.result.draft ?? editor?.draft;
-    const key = `${state.epoch}:${width}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
+    const previewColumns = contentColumns(width, height);
+    const key = `${state.epoch}:${previewColumns}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
     if (
       editor &&
       width >= MIN_COLUMNS &&
@@ -691,7 +692,7 @@ export const register: Register = (on, options) => {
         try {
           const preview = await callBackend($, options, 'preview', {
             draft,
-            width,
+            width: previewColumns,
           });
           if (state.epoch === requestedEpoch && state.previewKey === key) {
             state.view.preview = preview;

@@ -152,7 +152,7 @@ class DisplayConfigTests(unittest.TestCase):
         raw = (json.dumps(legacy, separators=(",", ":")) + "\n").encode()
         path.write_bytes(raw)
         config = config_display.load_display_config(self.config_dir)
-        self.assertEqual(config.schema_version, 7)
+        self.assertEqual(config.schema_version, 8)
         self.assertEqual(config.items, ("git", "model-with-effort"))
         self.assertFalse(config.use_colors)
         self.assertEqual(config.scope_labels, "when-subagents")

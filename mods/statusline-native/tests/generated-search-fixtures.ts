@@ -3894,5 +3894,125 @@ export const SEARCH_CATALOG = [
         "claude-statusline doctor"
       ]
     }
+  },
+  {
+    "scope": "main",
+    "id": "text",
+    "label": "Static text",
+    "description": "Literal text or symbols with independent styling",
+    "group": "layout",
+    "sources": [
+      "configuration"
+    ],
+    "examples": [
+      "Project ◆"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [
+      "foreground",
+      "background",
+      "max_width"
+    ],
+    "excludes": [],
+    "unavailable_reasons": [],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "configuration"
+      ],
+      "measurement_scope": "local",
+      "requirements": [],
+      "setup": []
+    }
+  },
+  {
+    "scope": "main",
+    "id": "spacer",
+    "label": "Flexible spacer",
+    "description": "Fill unused row cells between left and right content",
+    "group": "layout",
+    "sources": [
+      "configuration"
+    ],
+    "examples": [
+      "left … right"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [],
+    "excludes": [],
+    "unavailable_reasons": [],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "configuration"
+      ],
+      "measurement_scope": "local",
+      "requirements": [],
+      "setup": []
+    }
+  },
+  {
+    "scope": "subagent",
+    "id": "text",
+    "label": "Static text",
+    "description": "Literal text or symbols with independent styling",
+    "group": "layout",
+    "sources": [
+      "configuration"
+    ],
+    "examples": [
+      "Project ◆"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [
+      "foreground",
+      "background",
+      "max_width"
+    ],
+    "excludes": [],
+    "unavailable_reasons": [],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "configuration"
+      ],
+      "measurement_scope": "local",
+      "requirements": [],
+      "setup": []
+    }
+  },
+  {
+    "scope": "subagent",
+    "id": "spacer",
+    "label": "Flexible spacer",
+    "description": "Fill unused row cells between left and right content",
+    "group": "layout",
+    "sources": [
+      "configuration"
+    ],
+    "examples": [
+      "left … right"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [],
+    "excludes": [],
+    "unavailable_reasons": [],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "configuration"
+      ],
+      "measurement_scope": "local",
+      "requirements": [],
+      "setup": []
+    }
   }
 ];

@@ -20,6 +20,14 @@ def group_key(group):
     return "groups." + group.lower().replace(" / ", ".").replace(" ", "-")
 
 
+def component_label(row, language, scope="main"):
+    label = row.get("instance_name") or translate(
+        f"items.{scope}.{row['instance_type']}.label", language
+    )
+    ordinal = row.get("instance_ordinal")
+    return label + (f" ({ordinal})" if ordinal else "")
+
+
 def field_label(row, language):
     key = row["key"]
     if key in SETTING_LABELS:
@@ -30,9 +38,17 @@ def field_label(row, language):
         return translate("fields.item." + key[5:] + ".label", language)
     if key.startswith("fit:"):
         _, item, field = key.split(":")
-        return item + " " + translate("fields.item." + field + ".label", language)
+        return (
+            (component_label(row, language) if "instance_type" in row else item)
+            + " "
+            + translate("fields.item." + field + ".label", language)
+        )
     if key.startswith("break:"):
-        return translate("layout.break_before", language, item=key[6:])
+        return translate(
+            "layout.break_before",
+            language,
+            item=component_label(row, language) if "instance_type" in row else key[6:],
+        )
     return translate("settings." + key, language)
 
 
@@ -65,8 +81,14 @@ def value_label(row, language):
             "project-relative",
             "basename",
             "classic",
-            "compact", "powerline", "dark", "light", "terminal",
-            "git-dirty", "nonzero", "used-at-least",
+            "compact",
+            "powerline",
+            "dark",
+            "light",
+            "terminal",
+            "git-dirty",
+            "nonzero",
+            "used-at-least",
             "when-subagents",
             "always",
             "event",

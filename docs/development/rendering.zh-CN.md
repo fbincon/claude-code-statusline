@@ -47,3 +47,7 @@ python tools/rendering_acceptance.py --python /absolute/installed-venv/bin/pytho
 ## 条件显示与逐项外观
 
 条件复用渲染的惰性 Git／实时快照与未四舍五入的用量值，仅完整的零值／干净证据触发隐藏，不从格式化文本反推观测。主题提供语义前景，逐项颜色随后覆盖完整样式单元，包括标签／图标和内部复位；已启用的告警前景优先。Powerline 在过滤和适配后组合可见色块，计入内边距和边界并逐行复位。经典路径保留旧输出字节及惰性导入，共享量化放在 `rendering.colors`，curses 保留兼容导出。见[用户行为](../APPEARANCE.zh-CN.md)和 tests 中的共享外观／旧版样例。
+
+## 组件实例与布局
+
+`config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，协议由 Python 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。

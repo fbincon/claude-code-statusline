@@ -34,12 +34,24 @@ def output_color(value, config):
 def theme_styles(theme, ansi):
     values = _LIGHT if theme == "light" else _DARK
     roles = {
-        role: styles.Style(True, ("ansi", index) if ansi or theme == "terminal" else ("rgb", rgb)).sgr()
+        role: styles.Style(
+            True, ("ansi", index) if ansi or theme == "terminal" else ("rgb", rgb)
+        ).sgr()
         for role, rgb, index in zip(_ROLES, values, _ANSI)
     }
     roles["size"] = roles["percentage"]
-    roles["git_error"] = styles.Style(True, ("ansi", 1) if ansi or theme == "terminal" else ("rgb", "#a02020" if theme == "light" else "#f28686")).sgr()
-    roles["separator"] = styles.Style(False, ("ansi", 8) if ansi or theme == "terminal" else ("rgb", "#58616b" if theme == "light" else "#aab2bd")).sgr()
+    roles["git_error"] = styles.Style(
+        True,
+        ("ansi", 1)
+        if ansi or theme == "terminal"
+        else ("rgb", "#a02020" if theme == "light" else "#f28686"),
+    ).sgr()
+    roles["separator"] = styles.Style(
+        False,
+        ("ansi", 8)
+        if ansi or theme == "terminal"
+        else ("rgb", "#58616b" if theme == "light" else "#aab2bd"),
+    ).sgr()
     return roles
 
 
@@ -50,9 +62,15 @@ def themed_palette(palette, config, *, subagent=False):
     if not subagent:
         return replace(palette, **roles)
     mapping = {
-        "status": "timer", "name": "model", "model": "model", "context": "percentage",
-        "elapsed": "timer", "task": "directory", "tokens": "tokens",
-        "directory": "directory", "separator": "separator",
+        "status": "timer",
+        "name": "model",
+        "model": "model",
+        "context": "percentage",
+        "elapsed": "timer",
+        "task": "directory",
+        "tokens": "tokens",
+        "directory": "directory",
+        "separator": "separator",
     }
     return replace(palette, **{key: roles[role] for key, role in mapping.items()})
 
@@ -60,11 +78,20 @@ def themed_palette(palette, config, *, subagent=False):
 def item_role(item, scope):
     from claude_statusline.config import catalog
 
-    group = catalog.BY_SCOPE[scope][item].group if item else "task"
+    group = (
+        catalog.BY_SCOPE[scope][item].group
+        if item in catalog.BY_SCOPE[scope]
+        else "task"
+    )
     return {
-        "model": "model", "location": "directory", "repo": "branch",
-        "context": "percentage", "limits": "percentage", "usage": "tokens",
-        "cache": "tokens", "requests": "tokens",
+        "model": "model",
+        "location": "directory",
+        "repo": "branch",
+        "context": "percentage",
+        "limits": "percentage",
+        "usage": "tokens",
+        "cache": "tokens",
+        "requests": "tokens",
     }.get(group, "timer")
 
 
@@ -90,8 +117,12 @@ def risk_color(used, config):
     critical = used >= limits.critical
     if config.palette == "ansi" or config.theme == "terminal":
         return ("ansi", 1 if critical else 3)
-    return ("rgb", ("#a02020" if critical else "#805000") if config.theme == "light"
-            else ("#f28686" if critical else "#f2b550"))
+    return (
+        "rgb",
+        ("#a02020" if critical else "#805000")
+        if config.theme == "light"
+        else ("#f28686" if critical else "#f2b550"),
+    )
 
 
 def apply(text, config, item, options, *, scope="main", used=None):
@@ -99,7 +130,13 @@ def apply(text, config, item, options, *, scope="main", used=None):
         return layout.ANSI_SGR_RE.sub("", text)
     block = config.separator_style == "powerline"
     risk = risk_color(used, config)
-    if config.theme == "classic" and not block and options.foreground is None and options.background is None and risk is None:
+    if (
+        config.theme == "classic"
+        and not block
+        and options.foreground is None
+        and options.background is None
+        and risk is None
+    ):
         return text
     base = base_style(config, item, scope)
     foreground = output_color(color(options.foreground), config)
@@ -107,9 +144,16 @@ def apply(text, config, item, options, *, scope="main", used=None):
     units = []
     for unit in layout._styled_units(text):
         state = styles.parse(unit.style)
-        fg = foreground if options.foreground is not None else (base.foreground if block else state.foreground or base.foreground)
-        bg = background if options.background is not None else (base.background if block else state.background)
+        fg = (
+            foreground
+            if options.foreground is not None
+            else (base.foreground if block else state.foreground or base.foreground)
+        )
+        bg = (
+            background
+            if options.background is not None
+            else (base.background if block else state.background)
+        )
         state = styles.Style(state.bold or (block or risk is not None), risk or fg, bg)
         units.append(replace(unit, style=state.sgr()))
     return layout._render_styled_units(units)
-

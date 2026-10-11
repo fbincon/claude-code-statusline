@@ -69,7 +69,8 @@ class TaskTimingTests(unittest.TestCase):
         self.assertEqual(record["native_duration_ms"], 1500)
 
     def test_aliases_normalize_layout_and_options_without_dropping_settings(self):
-        draft = display.DEFAULT_CONFIG.to_dict()
+        draft = display.DEFAULT_CONFIG.legacy_dict()
+        draft["schema_version"] = 7
         draft.update(
             items=["prompt-timer"],
             item_options={
@@ -119,7 +120,7 @@ class TaskTimingTests(unittest.TestCase):
     def test_aliases_work_in_item_mutations_and_explicit_layouts(self):
         from claude_statusline.config import advanced
 
-        config = display.DEFAULT_CONFIG.with_updates(items=("task-timer",))
+        config = display.DisplayConfig(items=("task-timer",))
         config = advanced.edit_item(config, "main", "prompt-timer", "label", "Task")
         config = advanced.edit_layout(config, "explicit", [["prompt-timer"]])
         self.assertEqual(config.layout.rows, (("task-timer",),))

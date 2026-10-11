@@ -2,6 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 2.0.0a1 - 2026-10-11
+
+- Add scoped component instances with stable identities and independent formatting, appearance, conditions and width; repeated metrics reuse raw observations within a frame.
+- Add literal text, one flexible spacer per row, and left/right and repeated-metric presets. Preserve display defaults and priority/grapheme fitting under width pressure.
+- Both editors list configured instances with a type picker, add/copy/disable/move/remove actions and identity-based import review. Add `config instance`; legacy type commands reject ambiguity and compositions they cannot preserve.
+- Advance display schema to 8 and editor protocol to 11. Read v1–v7 without rewriting; back up before actual saves/install migration. Downgrades require compatible backups. Portable v1, UI preferences v1 and runtime v2 remain independent.
+- Document composition, CLI and architecture in both languages; add installed-package PTY acceptance and Claude Code 2.1.296 runtime checks on three platforms.
+
 ## Unreleased
 
 ## 1.13.0 - 2026-10-11

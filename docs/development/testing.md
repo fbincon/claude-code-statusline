@@ -341,3 +341,15 @@ python tools/benchmark_render.py --suite appearance --samples 50 --report dist/v
 ```
 
 Repeat editor checks with light themes. External covers five viewports in both languages; native covers 120×30/80×48 in both languages. The candidate-only appearance suite covers disabled, conditions, custom colors, four theme roles and ASCII/arrow/monochrome Powerline with main and 32-agent processes at 40/120 columns. Repeat with `--bytecode-mode cold`; use the separate three-round representative comparison for before/after regressions. Reports retain samples and distinguish synthetic/captured/agent-inspected evidence from human platform acceptance.
+
+## Component composition acceptance
+
+Use the [composition guide](../COMPOSITION.md), [fixed-source performance report](performance-v2.0.0.md) and [capture provenance](../images/composition/README.md). Test both type/instance identity boundaries, legacy read-only migration, copies/options, row-preserving disablement, literal text, spacers and no repeated collection. The installed runners use isolated configuration and local keyboard/slash commands:
+
+```sh
+python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-statusline --commit VERIFIED_SHA --composition --report-dir dist/validation/new-external-composition
+python tools/native_mod_acceptance.py --backend /absolute/venv/bin/claude-statusline --persistent --composition --report-dir dist/validation/new-native-composition
+python tools/upgrade_composition_acceptance.py --baseline RELEASED_WHEEL --candidate CANDIDATE_WHEEL --report-dir dist/validation/new-upgrade
+```
+
+Native uses A/D/X because control chords can be intercepted by the host; external uses Ctrl+A/D/X. The native preview fits its drawable content width, including changes caused by adding/removing a frame on resize. Both snapshot transports preserve picker state and copy identities.

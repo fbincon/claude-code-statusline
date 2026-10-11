@@ -17,29 +17,21 @@ test('shared Unicode codepoint matches and stable search tiers', () => {
   expect(ranked.map(item => item[0])).toEqual(value.expected);
 });
 
-test('real bilingual catalog categories preserve actual order and dirty state', () => {
-  const editor = new Editor({...description(), catalog: SEARCH_CATALOG as CatalogItem[]}, readResult());
-  const order = [...editor.order.main];
-  expect(editor.categories('main').length).toBe(11);
-  expect(editor.categories('subagent')).toEqual(['all', 'task', 'model', 'context', 'location']);
-  editor.chooseCategory('main', 'model');
-  editor.filter('main', 'model');
-  expect(editor.visible('main')[0]!.id).toBe('model-with-effort');
-  expect(editor.modified).toBe(false);
-  expect(editor.move('main', 1)).toBe(false);
-  editor.toggle('main', 'model');
-  expect(editor.draft.display.items).toEqual(order.filter(id => ['model-with-effort', 'model'].includes(id)));
-  editor.filter('main', '');
-  expect(editor.move('main', 1)).toBe(false);
-  editor.chooseCategory('main', 'all');
-  expect(editor.visible('main').map(item => item.id)).toEqual(order);
-  for (const query of ['mwe', '推理', '仓库', 'Repository']) {
-    editor.filter('main', query); expect(editor.visible('main').length > 0).toBe(true);
+test('add discovery searches all languages without changing configured instances', () => {
+  const editor=new Editor({...description(),catalog:SEARCH_CATALOG as CatalogItem[]},readResult());
+  const order=[...editor.order.main];
+  expect(editor.categories('main').length).toBe(12);
+  expect(editor.categories('subagent')).toEqual(['all','task','model','context','location','layout']);
+  editor.openPicker('main');
+  for(const query of ['mwe','推理','仓库','Repository']){
+    editor.filter('main',query);expect(editor.visible('main').length>0).toBe(true);
   }
-  editor.draft.display.item_options.model = {label:'私有🦊引擎',icon:null,priority:0,max_width:null,formatting:{}, foreground: null, background: null, visibility: "always", visibility_threshold: 70};
-  editor.filter('main', '私有🦊');
-  expect(editor.visible('main').map(item => item.id)).toEqual(['model']);
-  expect(editor.matches('main')[0]!.match.positions).toEqual([0, 1, 2]);
+  expect(editor.modified).toBe(false);expect(editor.move('main',1)).toBe(false);
+  editor.closePicker('main');expect(editor.order.main).toEqual(order);
+  editor.instanceAction('main','add','model');const id=editor.selected.main;
+  editor.instance('main',id)!.options.label='私有🦊引擎';
+  editor.filter('main','私有🦊');expect(editor.visible('main').map(i=>i.id)).toEqual([id]);
+  expect(editor.matches('main')[0]!.match.positions).toEqual([0,1,2]);
 });
 
 test('alternate-language highlight shows source evidence and never unrelated Chinese text', () => {

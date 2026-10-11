@@ -122,3 +122,11 @@ Running subagent elapsed values grow. Completed/failed/killed rows freeze at rel
 All request items default unselected. Missing observations render `—`; exact zero remains visible and incomplete task coverage adds `*`. A native ref-bearing content block supplies TTFT. Successful requests require official stop usage; synthesized chunks without engine references cannot supply counters. Running totals are partial until completion, sequence coverage and each turn reconciliation agree.
 
 Claude Code 2.1.289 headless paths may omit prompt identity events. Only one completed existing lifecycle interval containing a main turn start can bind it; overlapping or unfinished windows remain unowned. Spawn identities then resolve nested loops, without writing timer state or matching prompt text. SDK live state may stay unavailable until this evidence arrives. Without existing collector telemetry, prompt-cost remains unavailable; no model-price or session-cost delta fallback is used.
+
+## Composition components
+
+Both scopes also offer `text` (literal user text) and `spacer` (remaining row width).
+These two composition types bring the catalog to 62 main and 16 subagent types;
+the 60 main and 14 subagent observation types and existing defaults are retained.
+Add them with the instance controls or `config instance main add text --text "Project"`.
+Main spacers require explicit rows; each main row and subagent template accepts one spacer.

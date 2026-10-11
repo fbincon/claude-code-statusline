@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from claude_statusline.i18n import message as msg
+from claude_statusline.i18n import message as msg, as_message
 
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
 from claude_statusline.config import display as config_display
-from claude_statusline.config import catalog
+from claude_statusline.config import catalog, instances
 from claude_statusline.config import models as config_models
 from claude_statusline.config import service as config_service
 from claude_statusline.ui import models as ui_models
@@ -57,6 +57,8 @@ class EditorState:
     guidance_scroll: int | None = None
     import_review: ReviewState | None = None
     repaint: bool = False
+    adding: bool = False
+    picker_saved: tuple | None = None
 
     @classmethod
     def from_effective(
@@ -64,17 +66,9 @@ class EditorState:
     ) -> EditorState:
         item_search.prepare_index()
         enabled = list(effective.display.items)
-        full_order = enabled + [
-            item
-            for item in config_display.ITEM_CATALOG
-            if item not in effective.display.items
-        ]
+        full_order = [i.id for i in effective.display.instances]
         subagent_enabled = list(effective.display.subagents.items)
-        subagent_order = subagent_enabled + [
-            item
-            for item in config_display.SUBAGENT_ITEM_CATALOG
-            if item not in effective.display.subagents.items
-        ]
+        subagent_order = [i.id for i in effective.display.subagents.instances]
         return cls(
             baseline=effective,
             item_order=full_order,
@@ -90,15 +84,9 @@ class EditorState:
 
     @property
     def modified(self) -> bool:
-        initial_order = list(self.baseline.display.items) + [
-            item
-            for item in config_display.ITEM_CATALOG
-            if item not in self.baseline.display.items
-        ]
-        initial_subagent_order = list(self.baseline.display.subagents.items) + [
-            item
-            for item in config_display.SUBAGENT_ITEM_CATALOG
-            if item not in self.baseline.display.subagents.items
+        initial_order = [i.id for i in self.baseline.display.instances]
+        initial_subagent_order = [
+            i.id for i in self.baseline.display.subagents.instances
         ]
         draft_changed = (
             self.display != self.baseline.display
@@ -133,21 +121,42 @@ class EditorState:
         subagent = scope == "subagent"
         query = self.subagent_search if subagent else self.search
         category = self.subagent_category if subagent else self.category
-        order = self.subagent_item_order if subagent else self.item_order
-        options = self.display.subagents.item_options if subagent else self.display.item_options
+        order = (
+            list(catalog.BY_SCOPE[scope])
+            if self.adding
+            else self.subagent_item_order
+            if subagent
+            else self.item_order
+        )
+        by_id = {i.id: i for i in instances.scoped(self.display, scope).instances}
         results = []
         for item in order:
-            if category != "all" and catalog.BY_SCOPE[scope][item].group != category:
+            node = None if self.adding else by_id[item]
+            type_id = node.type_id if node else item
+            if category != "all" and catalog.BY_SCOPE[scope][type_id].group != category:
                 continue
-            match = (item_search.best_match(item_search.fields(scope, item, getattr(options.get(item), "label", None)), query)
-                     if item_search.normalize(query)[0] else item_search.Match(5, (), item, "id"))
+            match = (
+                item_search.best_match(
+                    item_search.fields(
+                        scope,
+                        type_id,
+                        (node.options.label or node.text) if node else None,
+                    ),
+                    query,
+                )
+                if item_search.normalize(query)[0]
+                else item_search.Match(5, (), item, "id")
+            )
             if match is not None:
                 results.append((item, match))
         return dict(sorted(results, key=lambda result: result[1].rank))
 
     def filtered(self) -> bool:
         if self.page == "subagents":
-            return bool(item_search.normalize(self.subagent_search)[0]) or self.subagent_category != "all"
+            return (
+                bool(item_search.normalize(self.subagent_search)[0])
+                or self.subagent_category != "all"
+            )
         return bool(item_search.normalize(self.search)[0]) or self.category != "all"
 
     def choose_category(self, category: str) -> None:
@@ -162,14 +171,93 @@ class EditorState:
         self.notice = ""
 
     def _sync_display_items(self) -> None:
-        self.display = self.display.with_updates(items=self.final_items())
-
-    def _sync_subagent_items(self) -> None:
+        by_id = {i.id: i for i in self.display.instances}
         self.display = self.display.with_updates(
-            subagents=self.display.subagents.with_updates(
-                items=self.final_subagent_items()
+            instances=tuple(
+                replace(by_id[i], enabled=i in self.enabled) for i in self.item_order
             )
         )
+
+    def _sync_subagent_items(self) -> None:
+        by_id = {i.id: i for i in self.display.subagents.instances}
+        self.display = self.display.with_updates(
+            subagents=self.display.subagents.with_updates(
+                instances=tuple(
+                    replace(by_id[i], enabled=i in self.subagent_enabled)
+                    for i in self.subagent_item_order
+                )
+            )
+        )
+
+    def refresh_instances(self):
+        self.item_order = [i.id for i in self.display.instances]
+        self.subagent_item_order = [i.id for i in self.display.subagents.instances]
+        self.enabled = set(self.display.items)
+        self.subagent_enabled = set(self.display.subagents.items)
+        self.repaint = True
+
+    def instance_action(self, action, type_id=None):
+        scope = "subagent" if self.page == "subagents" else "main"
+        selected = (
+            self.selected_subagent_item if scope == "subagent" else self.selected_item
+        )
+        anchor = self.picker_saved[2] if self.adding and self.picker_saved else selected
+        try:
+            changed, selected = instances.edit(
+                self.display,
+                scope,
+                action,
+                None if action == "add" else selected,
+                type_id=type_id,
+                after=anchor if action == "add" else None,
+            )
+        except (ValueError, config_display.DisplayConfigError) as exc:
+            self.notice = as_message(exc)
+            return False
+        if self.adding:
+            self.close_picker()
+            if scope == "subagent":
+                self.subagent_search, self.subagent_category = "", "all"
+            else:
+                self.search, self.category = "", "all"
+        self.display = changed
+        self.refresh_instances()
+        if scope == "subagent":
+            self.selected_subagent_item = selected
+        else:
+            self.selected_item = selected
+        self.notice = ""
+        return True
+
+    def open_picker(self):
+        sub = self.page == "subagents"
+        self.picker_saved = (
+            (self.subagent_search, self.subagent_category, self.selected_subagent_item)
+            if sub
+            else (self.search, self.category, self.selected_item)
+        )
+        self.adding = True
+        if sub:
+            (
+                self.subagent_search,
+                self.subagent_category,
+                self.selected_subagent_item,
+            ) = "", "all", None
+        else:
+            self.search, self.category, self.selected_item = "", "all", None
+        self.repaint = True
+
+    def close_picker(self):
+        if self.picker_saved:
+            if self.page == "subagents":
+                (
+                    self.subagent_search,
+                    self.subagent_category,
+                    self.selected_subagent_item,
+                ) = self.picker_saved
+            else:
+                self.search, self.category, self.selected_item = self.picker_saved
+        self.adding, self.picker_saved, self.repaint = False, None, True
 
     def _normalize_item_selection(self) -> list[str]:
         matches = self.matches("main")
@@ -195,7 +283,11 @@ class EditorState:
         self.notice = ""
         self.repaint = True
         subagent = scope == "subagent"
-        visible = self._normalize_subagent_selection() if subagent else self._normalize_item_selection()
+        visible = (
+            self._normalize_subagent_selection()
+            if subagent
+            else self._normalize_item_selection()
+        )
         if not visible:
             return
         selected = self.selected_subagent_item if subagent else self.selected_item
@@ -352,36 +444,23 @@ class EditorState:
             self.item_scroll = index - height + 1
 
     def toggle_selected_item(self) -> bool:
-        if self.page == "subagents":
-            visible = self._normalize_subagent_selection()
-            if not visible or self.selected_subagent_item is None:
-                return False
-            if self.selected_subagent_item in self.subagent_enabled:
-                self.subagent_enabled.remove(self.selected_subagent_item)
-            else:
-                self.subagent_enabled.add(self.selected_subagent_item)
-                # Keep the enabled set valid: status-elapsed is mutually
-                # exclusive with status/elapsed, so enabling one side drops
-                # the other before _sync_subagent_items validates the list.
-                self.subagent_enabled.difference_update(
-                    catalog.BY_SCOPE["subagent"][self.selected_subagent_item].excludes
-                )
-            self._sync_subagent_items()
-            return True
-        visible = self._normalize_item_selection()
-        if not visible or self.selected_item is None:
-            return False
-        if self.selected_item in self.enabled:
-            self.enabled.remove(self.selected_item)
-        else:
-            self.enabled.add(self.selected_item)
-        self._sync_display_items()
-        return True
+        scope = "subagent" if self.page == "subagents" else "main"
+        identifier = (
+            self.selected_subagent_item if scope == "subagent" else self.selected_item
+        )
+        if self.adding:
+            return self.instance_action("add", identifier)
+        node = instances.find(self.display, scope, identifier)
+        return (
+            self.instance_action("disable" if node.enabled else "enable")
+            if node
+            else False
+        )
 
     def move_selected_item(self, direction: int) -> bool:
         if direction not in (-1, 1):
             raise ValueError("item direction must be -1 or 1")
-        if self.filtered():
+        if self.adding or self.filtered():
             self.notice = msg("catalog.search.order_disabled")
             return False
         subagents = self.page == "subagents"
@@ -397,21 +476,25 @@ class EditorState:
         target_index = visible_index + direction
         if target_index < 0 or target_index >= len(visible):
             return False
-        moving = selected
         target = visible[target_index]
-        order = self.subagent_item_order if subagents else self.item_order
-        order.remove(moving)
-        full_target_index = order.index(target)
-        insertion = full_target_index if direction < 0 else full_target_index + 1
-        order.insert(insertion, moving)
-        if subagents:
-            self._sync_subagent_items()
-        else:
-            self._sync_display_items()
+        scope = "subagent" if subagents else "main"
+        try:
+            self.display, _ = instances.edit(
+                self.display,
+                scope,
+                "move",
+                selected,
+                before=target if direction < 0 else None,
+                after=target if direction > 0 else None,
+            )
+        except (ValueError, config_display.DisplayConfigError) as exc:
+            self.notice = as_message(exc)
+            return False
+        self.refresh_instances()
         return True
 
     def switch_page(self, direction: int = 1) -> bool:
-        if self.numeric_edit is not None:
+        if self.numeric_edit is not None or self.adding:
             return False
         pages = ("items", "subagents", "settings", "layout")
         current = pages.index(self.page) if self.page in pages else 0
@@ -648,12 +731,7 @@ def save_configuration(
         subagent_items=list(state.final_subagent_items()),
         subagent_statusline=("on" if state.display.subagents.enabled else "off"),
         scope_labels=state.display.scope_labels,
-        display_draft=state.display.with_updates(
-            items=state.final_items(),
-            subagents=state.display.subagents.with_updates(
-                items=state.final_subagent_items()
-            ),
-        ),
+        display_draft=state.display,
         expected=state.baseline,
         before_commit=before_commit,
     )

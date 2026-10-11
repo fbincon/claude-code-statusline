@@ -2,8 +2,15 @@
 
 from claude_statusline.i18n import message as msg
 
-from claude_statusline.config import advanced, editor_fields, presets, catalog, display as config_display
+from claude_statusline.config import (
+    advanced,
+    editor_fields,
+    presets,
+    instances,
+    display as config_display,
+)
 from claude_statusline.ui import models
+from claude_statusline.ui.catalog_view import instance_metadata
 
 
 SETTINGS_GROUPS = (
@@ -53,14 +60,35 @@ def rows(state):
     config = state.display
     if state.form_item:
         scope, item = state.form_item
+        if state.adding:
+            return [
+                {
+                    "key": "item-guidance",
+                    "label": "Sources and requirements",
+                    "value": "",
+                    "kind": "action",
+                    "group": "Item format",
+                }
+            ]
         return _grouped(
-            [{"key": "item-guidance", "label": "Sources and requirements", "value": "Enter: read guidance", "kind": "action", "group": "Item format"}] + [
+            [
+                {
+                    "key": "item-guidance",
+                    "label": "Sources and requirements",
+                    "value": "Enter: read guidance",
+                    "kind": "action",
+                    "group": "Item format",
+                }
+            ]
+            + [
                 {
                     **spec,
                     "key": "item:" + spec["key"],
                     "value": editor_fields.value(config, spec["key"], scope, item),
                 }
-                for spec in editor_fields.item_fields(scope, item)
+                for spec in editor_fields.item_fields(
+                    scope, instances.find(config, scope, item).type_id
+                )
             ],
             ("Item format", "Conditional visibility", "Item colors", "Item fitting"),
         )
@@ -74,7 +102,7 @@ def rows(state):
             }
         ]
         starts = {row[0] for row in config.layout.rows[1:]}
-        for item in config.items[1:]:
+        for item in [i.id for i in config.instances][1:]:
             result.append(
                 {
                     **editor_fields.field(
@@ -84,15 +112,17 @@ def rows(state):
                         "boolean",
                     ),
                     "value": item in starts,
+                    **instance_metadata(config, "main", item),
                 }
             )
-        for item in config.items:
+        for item in (i.id for i in config.instances if i.type_id != "spacer"):
             for spec in FITTING_FIELDS:
                 result.append(
                     {
                         **spec,
                         "key": "fit:" + item + ":" + spec["key"],
                         "label": item + " " + spec["label"],
+                        **instance_metadata(config, "main", item),
                         "value": editor_fields.value(config, spec["key"], "main", item),
                     }
                 )
@@ -268,12 +298,7 @@ def replace_draft(state, draft):
     state.display, state.host = validate_draft(draft, require_current_schema=True)
     state.enabled = set(state.display.items)
     state.subagent_enabled = set(state.display.subagents.items)
-    state.item_order = list(state.display.items) + [
-        i for i in catalog.BY_SCOPE["main"] if i not in state.enabled
-    ]
-    state.subagent_item_order = list(state.display.subagents.items) + [
-        i for i in catalog.BY_SCOPE["subagent"] if i not in state.subagent_enabled
-    ]
+    state.refresh_instances()
     state.numeric_edit = None
     state.form_item = None
     state.guidance_scroll = None

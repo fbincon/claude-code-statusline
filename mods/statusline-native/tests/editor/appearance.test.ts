@@ -1,8 +1,9 @@
+import { component } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
 import { BASE } from '../fixtures.ts';
 import { copyDraft } from '../../lib/editor/draft.ts';
 import { isDraft } from '../../lib/backend.ts';
-import { ITEM_DEFAULTS, EDITOR_FIELDS } from '../../lib/generated-contracts.ts';
+import { EDITOR_FIELDS } from '../../lib/generated-contracts.ts';
 import { itemFields, normalizeColor } from '../../lib/editor/appearance.ts';
 import { APPEARANCE_CASES } from '../generated-search-fixtures.ts';
 
@@ -10,7 +11,9 @@ test('shared scoped appearance cases have the same acceptance as Python', () => 
   for (const c of APPEARANCE_CASES) {
     const draft = copyDraft(BASE);
     const target = c.scope === 'main' ? draft.display : draft.display.subagents;
-    (target.item_options as Record<string, unknown>)[c.item] = {...ITEM_DEFAULTS, ...c.patch};
+    const node = component(c.item,false);
+    Object.assign(node.options,c.patch);
+    target.instances = [...target.instances.filter(i=>i.id!==c.item),node];
     expect(isDraft(draft)).toBe(c.valid);
   }
 });
@@ -26,7 +29,7 @@ test('scoped forms expose only meaningful conditions and canonicalize colors', (
 });
 
 test('future, partial, invalid global appearances are rejected', () => {
-  for (const patch of [{schema_version: 8}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
+  for (const patch of [{schema_version: 9}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
     const draft = copyDraft(BASE);
     Object.assign(draft.display, patch);
     expect(isDraft(draft)).toBe(false);

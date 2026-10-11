@@ -42,7 +42,7 @@ Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude
 
 [Conditional visibility, item colors, themes and Powerline](APPEARANCE.md) explains the shared controls, raw-observation rules and migration recovery.
 
-Choose from 60 main-line items and 14 subagent items. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, four editable presets, and portable JSON files.
+Choose from 60 main metrics and 14 subagent metrics, plus text and flexible spacers in both scopes. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, six editable presets, and portable JSON files.
 
 The main line reports main/session data; each subagent row reports its own task. Task timing includes subagent work and main-agent wrap-up. [Display definitions](DISPLAY_ITEMS.md) explain sources, scope, missing observations, and metric limits.
 
@@ -192,6 +192,10 @@ Import from Settings opens a review against the current **unsaved draft**. Secti
 
 Interface language, collector switches and independent Claude preferences stay outside portable files. The programmatic `config import` command retains its existing explicit-write and `--dry-run` behavior; the interactive review is available in both editors.
 
+## Component composition
+
+Main and Subagents show configured instances. Native A (external Ctrl+A) opens the type picker, native D (external Ctrl+D) copies, and native X (external Ctrl+X) removes. Each copy has independent formatting, colors and conditions. Text and flexible spacers support symbols and left/right layouts; defaults remain unchanged. See [components and layout](COMPOSITION.md) for keys, instance CLI, migration and downgrade recovery.
+
 ## Statusline language
 
 The independent display option defaults to `en`. Choose **Statusline language (save with display settings)** in either editor; options always use **English / 简体中文 / 繁體中文 / 日本語 / 한국어**. Preview uses the draft language immediately. Save persists it with other display settings; Cancel discards it. Actual output changes on the next refresh, without restarting Claude.
@@ -204,9 +208,9 @@ claude-statusline config show --json
 
 This applies to the main line and all custom subagent rows. Translate built-in phrases and known lifecycle/permission/effort/cache/review values; preserve unknown values, user labels/icons, model names, paths, branches and task/tool names. Keep numbers, currency, `K/M`, `d/h/m/s`, `tok/s`, Git, PR and other technical units. A null label inherits a localized default; an empty label suppresses it; custom labels take precedence.
 
-`statusline_language` lives in display schema v7 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language, new imports use the file's language, and display reset restores English. `config apply --statusline-language en|zh-CN|zh-Hant|ja|ko` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
+`statusline_language` lives in display schema v8 and participates in revisions, previews and portable exports. Historical v1–v5 reads/imports default to English without rewriting files; explicit saves back up and migrate. Presets preserve the language, new imports use the file's language, and display reset restores English. `config apply --statusline-language en|zh-CN|zh-Hant|ja|ko` is optional; omission preserves the current value. Interface preferences and runtime observations remain independent.
 
-Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 7 and interface preferences schema 1 remain unchanged; editor protocol 10 rejects older frontend/backend pairs.
+Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 8 and interface preferences schema 1 evolve independently; editor protocol 11 rejects older frontend/backend pairs.
 
 Before downgrading to a package that supports only schema v5, use the newer package to remove its native integration, preserve a portable export, and restore a compatible `.before` display backup according to `metadata.json`. If the previous file was absent, restore absence. Then install the older package and refresh integration; do not pass a v6 draft to an older backend. See [backups](#backups-and-rollback).
 
@@ -224,7 +228,7 @@ Page shortcuts appear in the footer, following the separate save/finish/close/pr
 
 | Page | Footer order |
 | --- | --- |
-| Main / Subagents | `Tab page · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Main / Subagents | `Tab page · A add · D copy · X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
 | Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
 | Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
 | Item format | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
@@ -479,6 +483,8 @@ subagent-visibility accepts all/running. Row/task limits accept none to restore 
 | developer | Repository work with Git, cumulative tokens, task time and session cost. |
 | monitoring | Inspect quota/reset windows, cache state and session accounting; optional source fields may remain unavailable. |
 | multi-agent | Multi-agent work with bounded agent rows and task labels; hide completed rows while retaining failures. |
+| left-right | One row: model/effort, Git, spacer, context remaining | status, name, spacer, elapsed |
+| repeated-metrics | Two instances of input tokens, full and compact | Existing five items |
 
 Presets change display drafts, not collector enablement. They preserve output/interface language and host settings, rebuild item overrides, and remain editable before saving.
 
@@ -499,7 +505,7 @@ Portable files share display settings and tool-managed padding/refresh/Vim optio
 
 On Main/Subagents select an item and press Ctrl+E. Edit its label, icon, priority, maximum width and inherited format choices; Ctrl+G returns to the item list. Enter opens or accepts text/integer input. `inherit` clears an override, an empty label/icon suppresses it, and `none` clears an optional width/limit. Unicode/ASCII icon modes use built-in characters and need no special font.
 
-Layout chooses auto/explicit and sets “New row before” boundaries for enabled main items. Larger priorities are retained first (default 50); maximum widths count terminal columns, including CJK and combining text. Editing the item order keeps the row partition valid. Scope decoration yields to real items when an explicit row is too narrow. Explicit layout removes empty rows and never adds continuation lines; auto keeps wrapping.
+Layout chooses auto/explicit and sets “New row before” boundaries for all configured main instances, including disabled instances. Larger priorities are retained first (default 50); maximum widths count terminal columns, including CJK and combining text. Editing the item order keeps the row partition valid. Scope decoration yields to real items when an explicit row is too narrow. Explicit layout removes empty rows and never adds continuation lines; auto keeps wrapping.
 
 Settings contains global format choices, risk thresholds, subagent visibility and portable operations. Choose a Preset, then activate Expand selected preset. Import accepts a path and opens a differences review. Enter expands a section; A accepts the complete candidate into the draft, then Save persists it. Ctrl+G or Q cancels the native review; Esc or Ctrl+G cancels the external review. Export writes the current draft, including unsaved edits, to a new file; it does not save settings. Relative paths resolve in the host/terminal working directory and `~` expands to the home directory. Errors retain the current draft. Existing export files are refused in both editors; choose a new path or use CLI `--overwrite` for a deliberate replacement.
 
@@ -611,7 +617,7 @@ Use Settings or `config set OPTION VALUE` for appearance, directory styles, sepa
 | `claude-statusline-runtime.json` | Independent native timing and advanced collection preferences |
 | `settings.json` | Owned Claude commands, hooks, and host status-line settings |
 
-Use the CLI or editors to update these files. Display schema v7 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
+Use the CLI or editors to update these files. Display schema v8 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
 
 ## Custom configuration directory and environment variables
 
@@ -663,7 +669,9 @@ Restart Claude Code. Installation synchronizes command paths, skill templates, h
 
 ### Version compatibility
 
-Current display schema v7, configuration protocol v9, and independent runtime protocol v2 require matching resources and backend. Supported display v1/v2/v3/v4/v5/v6 files are read without rewriting; an actual save backs up the old bytes and migrates to v7. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
+Display schema 8 stores instance IDs in ordering and rows. Reading v1–v7 converts only in memory; saving/installing backs up before migration. Downgrade requires a compatible backup: editing the schema number cannot losslessly reverse repeated instances or flexible layouts. See [migration and recovery](COMPOSITION.md#migration-transfer-and-recovery).
+
+Current display schema v8, configuration protocol v11, and independent runtime protocol v2 require matching resources and backend. Supported display v1–v7 files are read without rewriting; an actual save backs up the old bytes and migrates to v8. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
 
 Before downgrading, use the newer package to disable/remove integrations that the older package cannot manage, including live collection and the native editor as applicable. Restore a compatible display backup using its `metadata.json`, or remove unsupported item IDs where schema compatibility permits. Then install the old package, run `install` and `doctor`, and restart Claude Code. A portable export can separately retain current display choices for later reuse.
 
@@ -707,7 +715,7 @@ For an existing display configuration file, the schema check reports the support
 [WARN] display config schema v4 is valid and will migrate to v6 on the next configuration save
 ```
 
-This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v9 and runtime protocol v2.
+This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v11 and runtime protocol v2.
 
 <a id="故障排查"></a>
 
@@ -1065,7 +1073,7 @@ claude-statusline config enable task-active-timer
 
 On compatible hosts, fresh installations collect timing metadata by default; advanced metrics still require `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
 
-Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 7 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
+Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 8 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
 
 ## Unicode text and terminal widths
 

@@ -1,3 +1,4 @@
+import { component } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
 import { setup, START, RUN, PANE, keys, reply } from '../fixtures.ts';
 import { copyDraft } from '../../lib/editor/draft.ts';
@@ -15,7 +16,7 @@ async function selectSetting(ui: any, key: string) {
 
 test('appearance edits save one complete draft without applying host settings', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
-  fixture.store.draft.display.items = ['context-used'];
+  fixture.store.draft.display.instances = ['context-used'].map(id=>component(id));
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
@@ -38,10 +39,10 @@ test('appearance edits save one complete draft without applying host settings', 
   expect(d.theme).toBe('dark');
   expect(d.separator_style).toBe('powerline');
   expect(d.powerline_glyph).toBe('ascii');
-  expect(d.item_options['context-used']?.foreground).toBe('#abcdef');
-  expect(d.item_options['context-used']?.background).toBe('ansi:17');
-  expect(d.item_options['context-used']?.visibility).toBe('used-at-least');
-  expect(d.item_options['context-used']?.visibility_threshold).toBe(85);
+  expect(d.instances.find(i=>i.id==='context-used')!.options?.foreground).toBe('#abcdef');
+  expect(d.instances.find(i=>i.id==='context-used')!.options?.background).toBe('ansi:17');
+  expect(d.instances.find(i=>i.id==='context-used')!.options?.visibility).toBe('used-at-least');
+  expect(d.instances.find(i=>i.id==='context-used')!.options?.visibility_threshold).toBe(85);
   expect(fixture.configCalls).toEqual([]);
   expect(fixture.calls.filter(c => c.operation === 'apply').length).toBe(1);
   await ui.unmount();
@@ -59,9 +60,9 @@ test('item format and explicit layout save a complete draft while text reserves 
   await selectSetting(ui, 'item:max_width');
   await keys(ui, 'return', {key:'u',ctrl:true}, '5', 'return', {key:'g',ctrl:true}, '4', 'home', 'return', 's');
   const d = fixture.store.draft.display;
-  expect(d.item_options['model-with-effort']?.label).toBe('sFQ中文');
-  expect(d.item_options['model-with-effort']?.priority).toBe(100);
-  expect(d.item_options['model-with-effort']?.max_width).toBe(5);
+  expect(d.instances.find(i=>i.id==='model-with-effort')!.options?.label).toBe('sFQ中文');
+  expect(d.instances.find(i=>i.id==='model-with-effort')!.options?.priority).toBe(100);
+  expect(d.instances.find(i=>i.id==='model-with-effort')!.options?.max_width).toBe(5);
   expect(d.layout).toEqual({mode:'explicit',rows:[['model-with-effort']]});
   expect(fixture.calls.filter((c) => c.operation === 'apply').length).toBe(1);
   expect(fixture.calls.find((c) => c.operation === 'apply')!.payload.expected_revision).toBe('0'.repeat(64));

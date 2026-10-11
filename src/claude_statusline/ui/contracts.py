@@ -1,4 +1,4 @@
-"""Protocol v10 wire types; TypeScript is generated from these Python types."""
+"""Protocol v11 wire types; TypeScript is generated from these Python types."""
 
 from __future__ import annotations
 
@@ -7,9 +7,19 @@ from typing import Literal, TypedDict
 from claude_statusline.config import catalog, display, appearance
 
 
-PROTOCOL_VERSION = 10
-OPERATIONS = ("describe", "read", "preview", "apply", "import", "export", "preset",
-              "read_ui_preferences", "set_ui_language", "review_import")
+PROTOCOL_VERSION = 11
+OPERATIONS = (
+    "describe",
+    "read",
+    "preview",
+    "apply",
+    "import",
+    "export",
+    "preset",
+    "read_ui_preferences",
+    "set_ui_language",
+    "review_import",
+)
 MainItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["main"]))
 SubagentItemId = Literal.__getitem__(tuple(catalog.BY_SCOPE["subagent"]))
 Palette = Literal.__getitem__(display.PALETTES)
@@ -51,7 +61,7 @@ class ItemGuidance(TypedDict):
 
 class CatalogItem(TypedDict):
     scope: Scope
-    id: MainItemId | SubagentItemId
+    id: str
     label: str
     description: str
     group: str
@@ -136,15 +146,22 @@ class ItemOptionsDraft(TypedDict):
     visibility_threshold: int
 
 
+class InstanceDraft(TypedDict):
+    id: str
+    type_id: str
+    enabled: bool
+    options: ItemOptionsDraft
+    text: str | None
+
+
 class LayoutDraft(TypedDict):
     mode: Literal["auto", "explicit"]
-    rows: list[list[MainItemId]]
+    rows: list[list[str]]
 
 
 class SubagentDraft(TypedDict):
     enabled: bool
-    items: list[SubagentItemId]
-    item_options: dict[SubagentItemId, ItemOptionsDraft]
+    instances: list[InstanceDraft]
     visibility: Literal["all", "running"]
     hide_completed: bool
     row_limit: int | None
@@ -156,9 +173,9 @@ class MetricsDraft(TypedDict):
 
 
 class DisplayDraft(TypedDict):
-    schema_version: Literal[7]
+    schema_version: Literal[8]
     statusline_language: StatuslineLanguage
-    items: list[MainItemId]
+    instances: list[InstanceDraft]
     use_colors: bool
     palette: Palette
     theme: Theme
@@ -168,7 +185,6 @@ class DisplayDraft(TypedDict):
     scope_labels: ScopeLabels
     subagents: SubagentDraft
     formatting: FormattingDraft
-    item_options: dict[MainItemId, ItemOptionsDraft]
     layout: LayoutDraft
     metrics: MetricsDraft
 
@@ -232,7 +248,7 @@ class ReadResult(TypedDict):
 class PresetDescription(TypedDict):
     id: str
     label: str
-    rows: list[list[MainItemId]]
+    rows: list[list[str]]
     layout_mode: Literal["auto", "explicit"]
 
 
@@ -242,7 +258,7 @@ class TransferResult(TypedDict):
 
 class ImportChange(TypedDict):
     section: Literal["main", "subagent", "formatting", "layout", "language", "host"]
-    kind: Literal["enable", "disable", "reorder", "change"]
+    kind: Literal["add", "remove", "enable", "disable", "reorder", "change"]
     scope: Scope | None
     item_id: str | None
     path: list[str]
@@ -311,6 +327,7 @@ WIRE_TYPES = (
     ThresholdDraft,
     FormattingDraft,
     ItemOptionsDraft,
+    InstanceDraft,
     LayoutDraft,
     SubagentDraft,
     MetricsDraft,

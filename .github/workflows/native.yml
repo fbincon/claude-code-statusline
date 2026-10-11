@@ -42,6 +42,15 @@ jobs:
           - os: macos-15
             platform: macOS
             claude: "2.1.294"
+          - os: ubuntu-latest
+            platform: Linux
+            claude: "2.1.296"
+          - os: windows-latest
+            platform: Windows
+            claude: "2.1.296"
+          - os: macos-15
+            platform: macOS
+            claude: "2.1.296"
     defaults:
       run:
         shell: bash
@@ -68,7 +77,10 @@ jobs:
           npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
           npm ci --prefix mods/statusline-runtime --ignore-scripts --no-audit --no-fund
           python -m pip install .
+      # 2.1.296 loads/tests Mods but no longer emits the declaration file here.
+      # Retain exact-build type coverage on every earlier fixed host.
       - name: Generate exact-build official declarations
+        if: matrix.claude != '2.1.296'
         run: python tools/prepare_mod_types.py
       - name: Shared protocol contracts
         run: |
@@ -83,16 +95,21 @@ jobs:
       - name: Official Mod tests
         run: claude plugin test mods/statusline-native
       - name: TypeScript checks
+        if: matrix.claude != '2.1.296'
         run: npm run --prefix mods/statusline-native typecheck
       - name: Official installation and backend bridge
         run: python tools/native_install_smoke.py --report "$RUNNER_TEMP/native-installation.json"
       - name: Independent runtime Mod and installation
-        if: matrix.claude == '2.1.289' || matrix.claude == '2.1.294'
+        if: matrix.claude == '2.1.289' || matrix.claude == '2.1.294' || matrix.claude == '2.1.296'
         run: |
-          python tools/prepare_mod_types.py --plugin mods/statusline-runtime
+          if [[ "${{ matrix.claude }}" != "2.1.296" ]]; then
+            python tools/prepare_mod_types.py --plugin mods/statusline-runtime
+          fi
           claude plugin validate --strict mods/statusline-runtime
           claude plugin test mods/statusline-runtime
-          npm run --prefix mods/statusline-runtime typecheck
+          if [[ "${{ matrix.claude }}" != "2.1.296" ]]; then
+            npm run --prefix mods/statusline-runtime typecheck
+          fi
           python tools/runtime_install_smoke.py --report "$RUNNER_TEMP/runtime-installation.json"
       - name: Upload native installation evidence
         uses: actions/upload-artifact@v4

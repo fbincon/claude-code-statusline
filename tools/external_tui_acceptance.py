@@ -37,7 +37,9 @@ else:
     from terminal_colors import TERMINAL_THEMES, XTERM_PALETTE, cell_colors, contrast
 
 
-def verify_colors(cells, columns, rows, foreground, background, *, allow_backgrounds=False):
+def verify_colors(
+    cells, columns, rows, foreground, background, *, allow_backgrounds=False
+):
     """Evaluate captured SGR using explicit terminal-default/palette fixtures."""
     panel = layout.dimensions(columns, rows).preview
     preview_contrasts = []
@@ -49,9 +51,9 @@ def verify_colors(cells, columns, rows, foreground, background, *, allow_backgro
             )
             fg, bg = cell_colors(cell, foreground, background, XTERM_PALETTE)
             if preview:
-                assert (allow_backgrounds or cell["bg"] == "default") and not cell["reverse"], (
-                    f"Artificial preview background: {y},{x}: {cell}"
-                )
+                assert (allow_backgrounds or cell["bg"] == "default") and not cell[
+                    "reverse"
+                ], f"Artificial preview background: {y},{x}: {cell}"
                 if cell["data"].strip():
                     preview_contrasts.append(contrast(fg, bg))
             elif cell["data"].strip():
@@ -83,6 +85,7 @@ def run_case(
     import fcntl
     import pty
     import termios
+
     if __package__:
         from . import terminal_capture as pyte
     else:
@@ -110,7 +113,15 @@ def run_case(
         "--no-experimental-slash-tui",
         "--no-live-metrics",
     )
-    cli("config", "set-items", *( ("context-used",) if language_only else ("model-with-effort", "current-dir", "context-used") ))
+    cli(
+        "config",
+        "set-items",
+        *(
+            ("context-used",)
+            if language_only
+            else ("model-with-effort", "current-dir", "context-used")
+        ),
+    )
     config_path = config / "claude-statusline.json"
     settings_path = config / "settings.json"
     initial = (config_path.read_bytes(), settings_path.read_bytes())
@@ -243,12 +254,18 @@ def run_case(
                 nonlocal language
                 current = language if interface else state.display.statusline_language
                 for code, delta in language_steps(current, target):
-                    expected = translate("ui.drawing.configure_status_line", code) if interface else LANGUAGE_NAMES[code]
+                    expected = (
+                        translate("ui.drawing.configure_status_line", code)
+                        if interface
+                        else LANGUAGE_NAMES[code]
+                    )
                     send(b"\x1bOC" if delta > 0 else b"\x1bOD", expected)
                     if interface:
                         language = state.language = code
                     else:
-                        state.display = state.display.with_updates(statusline_language=code)
+                        state.display = state.display.with_updates(
+                            statusline_language=code
+                        )
 
             send(b"\t\t", "Settings / global options")
             state.page = "settings"
@@ -269,13 +286,23 @@ def run_case(
             wait_for(translate("ui.drawing.colors_off", language))
             capture(f"language-settings-initial-{target_language}")
             change_language("en", interface=True)
-            assert json.loads((config / "statusline-ui.json").read_bytes())["ui_language"] == "en"
+            assert (
+                json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
+                == "en"
+            )
             capture("language-settings-en-restored")
             change_language(target_language, interface=True)
             wait_for(translate("ui.drawing.colors_off", language))
             capture(f"language-settings-{target_language}")
-            output_index = next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "field:statusline_language")
-            send(b"\x1bOH" + b"\x1bOB" * output_index, translate("review.sections.language", language))
+            output_index = next(
+                i
+                for i, row in enumerate(forms.rows(state))
+                if row["key"] == "field:statusline_language"
+            )
+            send(
+                b"\x1bOH" + b"\x1bOB" * output_index,
+                translate("review.sections.language", language),
+            )
             change_language(target_language)
             wait_for(translate("statusline.prefix.main.context-used", target_language))
             capture(f"statusline-settings-{target_language}")
@@ -284,14 +311,21 @@ def run_case(
             capture("statusline-settings-en")
             change_language(target_language)
             for data, page, label in (
-                (b"\t", "layout", translate("ui.drawing.layout_rows_and_fitting", language)),
+                (
+                    b"\t",
+                    "layout",
+                    translate("ui.drawing.layout_rows_and_fitting", language),
+                ),
                 (b"\t", "items", translate("ui.drawing.main_items", language)),
                 (b"\t", "subagents", translate("ui.drawing.subagent_items", language)),
             ):
                 send(data, label)
                 state.page = page
                 capture("language-" + page + "-" + target_language)
-            send(b"\x1b", translate("ui.session.status_line_configuration_unchanged", language))
+            send(
+                b"\x1b",
+                translate("ui.session.status_line_configuration_unchanged", language),
+            )
             assert process.wait(timeout=5) == 0
             assert (config_path.read_bytes(), settings_path.read_bytes()) == initial
             assert (
@@ -301,27 +335,73 @@ def run_case(
             # Reopen with an invocation-only English UI and save the output language.
             os.close(master)
             master, slave = pty.openpty()
-            fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, columns, 0, 0))
-            process = subprocess.Popen([str(backend), "--language", "en", "configure", "--config-dir", str(config)], env=env, cwd=root, stdin=slave, stdout=slave, stderr=slave, preexec_fn=terminal, close_fds=True)
+            fcntl.ioctl(
+                slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, columns, 0, 0)
+            )
+            process = subprocess.Popen(
+                [
+                    str(backend),
+                    "--language",
+                    "en",
+                    "configure",
+                    "--config-dir",
+                    str(config),
+                ],
+                env=env,
+                cwd=root,
+                stdin=slave,
+                stdout=slave,
+                stderr=slave,
+                preexec_fn=terminal,
+                close_fds=True,
+            )
             os.close(slave)
             screen = pyte.Screen(columns, rows)
             stream = pyte.Stream(screen)
             decoder = codecs.getincrementaldecoder("utf-8")("replace")
             language = "en"
-            state = editor.EditorState.from_effective(models.EffectiveConfig(display.load_display_config(config), models.HostConfig(), True, config_path))
+            state = editor.EditorState.from_effective(
+                models.EffectiveConfig(
+                    display.load_display_config(config),
+                    models.HostConfig(),
+                    True,
+                    config_path,
+                )
+            )
             wait_for("Preview (sample data)")
             send(b"\t\t", "Settings / global options")
             state.page = "settings"
-            index = next(i for i, row in enumerate(forms.rows(state)) if row["key"] == "field:statusline_language")
+            index = next(
+                i
+                for i, row in enumerate(forms.rows(state))
+                if row["key"] == "field:statusline_language"
+            )
             send(b"\x1bOH" + b"\x1bOB" * index, "Statusline language")
             change_language(target_language)
             capture(f"statusline-before-save-{target_language}")
             send(b"\x13", "Status line configuration updated")
             assert process.wait(timeout=5) == 0
-            assert json.loads(config_path.read_bytes())["statusline_language"] == target_language
-            assert json.loads((config / "statusline-ui.json").read_bytes())["ui_language"] == target_language
-            rendered = cli("render", payload=json.dumps({"model":{"id":"claude-sample"},"context_window":{"used_percentage":42}}))
-            assert translate("statusline.context.used", target_language, percentage=42) in rendered
+            assert (
+                json.loads(config_path.read_bytes())["statusline_language"]
+                == target_language
+            )
+            assert (
+                json.loads((config / "statusline-ui.json").read_bytes())["ui_language"]
+                == target_language
+            )
+            rendered = cli(
+                "render",
+                payload=json.dumps(
+                    {
+                        "model": {"id": "claude-sample"},
+                        "context_window": {"used_percentage": 42},
+                    }
+                ),
+            )
+            assert (
+                translate("statusline.context.used", target_language, percentage=42)
+                in rendered
+            )
             return {
                 "columns": columns,
                 "rows": rows,
@@ -461,8 +541,16 @@ def main() -> int:
     parser.add_argument("--backend", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--commit", required=True)
-    parser.add_argument("--appearance", action="store_true", help="Verify appearance controls, import review and saved colors")
-    parser.add_argument("--discovery", action="store_true", help="Verify bilingual search, categories, guidance and import review")
+    parser.add_argument(
+        "--appearance",
+        action="store_true",
+        help="Verify appearance controls, import review and saved colors",
+    )
+    parser.add_argument(
+        "--discovery",
+        action="store_true",
+        help="Verify bilingual search, categories, guidance and import review",
+    )
     parser.add_argument(
         "--language-only",
         action="store_true",
@@ -474,7 +562,17 @@ def main() -> int:
         default="dark",
         help="Default-color fixture for capture analysis; does not change a physical terminal",
     )
-    parser.add_argument("--language", choices=LANGUAGES[1:], default="zh-CN", help="Target for --language-only")
+    parser.add_argument(
+        "--language",
+        choices=LANGUAGES[1:],
+        default="zh-CN",
+        help="Target for --language-only",
+    )
+    parser.add_argument(
+        "--composition",
+        action="store_true",
+        help="Verify repeated instances, text and spacers",
+    )
     args = parser.parse_args()
     if not (sys.platform.startswith("linux") or sys.platform == "darwin"):
         parser.error("Native Linux/macOS PTYs are required")
@@ -497,11 +595,26 @@ def main() -> int:
         "cases": [],
     }
     for columns, rows in ((64, 18), (64, 20), (80, 24), (120, 30), (80, 48)):
-        if args.discovery or args.appearance:
+        if args.discovery or args.appearance or args.composition:
             from editor_discovery_acceptance import external_case
+
             for language in ("en", "zh-CN"):
-                report["cases"].append(external_case(backend, root / f"{columns}x{rows}-{language}", columns, rows, args.commit, language, args.terminal_theme, appearance=args.appearance))
-                (root / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+                report["cases"].append(
+                    external_case(
+                        backend,
+                        root / f"{columns}x{rows}-{language}",
+                        columns,
+                        rows,
+                        args.commit,
+                        language,
+                        args.terminal_theme,
+                        appearance=args.appearance,
+                        composition=args.composition,
+                    )
+                )
+                (root / "report.json").write_text(
+                    json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+                )
             continue
         report["cases"].append(
             run_case(

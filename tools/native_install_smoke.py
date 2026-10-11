@@ -6,6 +6,8 @@ No credentials or model requests. UI focus/visual acceptance is a separate gate.
 
 from __future__ import annotations
 
+from validation.configuration import configure_types
+
 import argparse
 import hashlib
 import json
@@ -119,7 +121,10 @@ def main() -> int:
                     },
                 )
             )
-            assert response["protocol_version"] == PROTOCOL_VERSION and "result" in response
+            assert (
+                response["protocol_version"] == PROTOCOL_VERSION
+                and "result" in response
+            )
             if operation == "describe":
                 rows = response["result"]["catalog"]
                 expected_items = {(item.scope, item.id) for item in catalog.ITEMS}
@@ -134,12 +139,18 @@ def main() -> int:
         saved["draft"]["display"]["use_colors"] = not saved["draft"]["display"][
             "use_colors"
         ]
-        saved["draft"]["display"]["items"] = list(catalog.BY_SCOPE["main"])
-        saved["draft"]["display"]["subagents"]["items"] = [
-            item
-            for item in catalog.BY_SCOPE["subagent"]
-            if item not in ("status", "elapsed")
-        ]
+        configure_types(
+            saved["draft"]["display"],
+            [i for i in catalog.BY_SCOPE["main"] if i not in ("text", "spacer")],
+        )
+        configure_types(
+            saved["draft"]["display"]["subagents"],
+            [
+                item
+                for item in catalog.BY_SCOPE["subagent"]
+                if item not in ("status", "elapsed", "text", "spacer")
+            ],
+        )
         applied = json.loads(
             run(
                 "ui",

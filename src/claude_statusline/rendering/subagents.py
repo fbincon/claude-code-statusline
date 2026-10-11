@@ -97,6 +97,7 @@ class _Part:
     text: str
     style: str
     used: float | None = None
+    type_id: str | None = None
 
 
 def _palette_for(config: config_display.DisplayConfig) -> _SubagentPalette:
@@ -146,7 +147,9 @@ def _model_with_effort(task: dict[str, Any], language="en") -> str | None:
     model = _model(task)
     if not model:
         return None
-    effort = statusline.value("effort", metrics.effort_text(task.get("effort")), language)
+    effort = statusline.value(
+        "effort", metrics.effort_text(task.get("effort")), language
+    )
     return f"{model}/{effort}" if effort else model
 
 
@@ -219,7 +222,11 @@ def _elapsed(task: dict[str, Any], now_ms: float) -> str | None:
 
 def _token_text(task: dict[str, Any], language="en") -> str | None:
     value = rendering_formatters.humanize_tokens(task.get("tokenCount"))
-    return statusline.text("tokens.count", language, value=value) if value is not None else None
+    return (
+        statusline.text("tokens.count", language, value=value)
+        if value is not None
+        else None
+    )
 
 
 def _task_text(task: dict[str, Any], name: str) -> str | None:
@@ -265,13 +272,24 @@ def _parts_for_task(
         "name": (name, palette.name),
         "model-with-effort": (_model_with_effort(task, language), palette.model),
         "model": (_model(task), palette.model),
-        "effort": (statusline.value("effort", metrics.effort_text(task.get("effort")), language), palette.model),
+        "effort": (
+            statusline.value(
+                "effort", metrics.effort_text(task.get("effort")), language
+            ),
+            palette.model,
+        ),
         "context-tokens": (
-            metrics.token_ratio(task.get("tokenCount"), task.get("contextWindowSize"), language=language),
+            metrics.token_ratio(
+                task.get("tokenCount"), task.get("contextWindowSize"), language=language
+            ),
             palette.context,
         ),
         "context-window-size": (
-            statusline.text("context.window", language, value=rendering_formatters.humanize_tokens(task["contextWindowSize"]))
+            statusline.text(
+                "context.window",
+                language,
+                value=rendering_formatters.humanize_tokens(task["contextWindowSize"]),
+            )
             if metrics.token_count(task.get("contextWindowSize")) not in (None, 0)
             else None,
             palette.context,
@@ -284,12 +302,27 @@ def _parts_for_task(
         "current-dir": (_directory_text(task, config), palette.directory),
     }
     result = []
-    for item in config.subagents.items:
+    for node in config.subagents.instances:
+        if not node.enabled:
+            continue
+        item = node.type_id
+        if item == "spacer":
+            result.append(_Part(node.id, "", "", type_id=item))
+            continue
+        if item == "text":
+            from .components import literal
+
+            text = literal(node, config, "subagent")
+            if text:
+                result.append(_Part(node.id, text, "", type_id=item))
+            continue
         text, style = values[item]
-        fmt, options = preferences.options_for(config, item, "subagent")
+        fmt, options = preferences.options_for(config, node.id, "subagent")
         if item in ("model", "model-with-effort"):
             model = preferences.model_name(_model(task), fmt)
-            effort = statusline.value("effort", metrics.effort_text(task.get("effort")), language)
+            effort = statusline.value(
+                "effort", metrics.effort_text(task.get("effort")), language
+            )
             text = (
                 f"{model}/{effort}"
                 if item == "model-with-effort" and model and effort
@@ -304,7 +337,11 @@ def _parts_for_task(
             )
         elif item == "context-window-size" and fmt.number_format != "legacy":
             value = preferences.number(task.get("contextWindowSize"), fmt)
-            text = statusline.text("context.window", language, value=value) if value else None
+            text = (
+                statusline.text("context.window", language, value=value)
+                if value
+                else None
+            )
         if not text:
             continue
         risk = None
@@ -314,7 +351,9 @@ def _parts_for_task(
             risk = visibility.used_percentage(task, item, scope="subagent")
             if not visibility.visible(options, item, used=risk):
                 continue
-        text = preferences.decorate(text, item, "subagent", fmt, options, language=language)
+        text = preferences.decorate(
+            text, item, "subagent", fmt, options, language=language
+        )
         maximum = options.max_width
         if item == "task" and config.subagents.task_max_width is not None:
             maximum = (
@@ -334,7 +373,7 @@ def _parts_for_task(
                 style + text, risk, fmt, config, palette.context
             )
             style = styled[: -len(text)] if text else style
-        result.append(_Part(item, text, style, risk))
+        result.append(_Part(node.id, text, style, risk, item))
     return result
 
 
@@ -443,11 +482,22 @@ def _render_parts(parts: list[_Part], config: config_display.DisplayConfig) -> s
             )
         text = f"{part.style}{part.text}{palette.reset}" if part.style else part.text
         options = config.subagents.item_options.get(part.item)
-        if config.theme != "classic" or options and (options.foreground is not None or options.background is not None):
+        if (
+            config.theme != "classic"
+            or options
+            and (options.foreground is not None or options.background is not None)
+        ):
             from . import appearance
 
             options = preferences.options_for(config, part.item, "subagent")[1]
-            text = appearance.apply(text, config, part.item, options, scope="subagent", used=part.used)
+            text = appearance.apply(
+                text,
+                config,
+                part.type_id or part.item,
+                options,
+                scope="subagent",
+                used=part.used,
+            )
         rendered.append(text)
         previous = part.item
     return "".join(rendered)
@@ -464,14 +514,76 @@ def render_task(
         return ""
     current_ms = time.time() * 1000.0 if now_ms is None else float(now_ms)
     parts = _parts_for_task(task, config, current_ms)
+    if any(p.item != p.type_id or p.type_id in ("text", "spacer") for p in parts):
+        from .components import Cell, fit_row
+        from . import appearance
+
+        nodes = {i.id: i for i in config.subagents.instances}
+        cells = []
+        for part in parts:
+            node = nodes[part.item]
+            text = (
+                part.style
+                + part.text
+                + (_palette_for(config).reset if part.style else "")
+            )
+            if node.type_id not in ("text", "spacer"):
+                text = appearance.apply(
+                    text,
+                    config,
+                    node.type_id,
+                    node.options,
+                    scope="subagent",
+                    used=part.used,
+                )
+            cells.append(
+                Cell(
+                    node.id, text, node.options.priority, node.type_id == "spacer", part
+                )
+            )
+
+        def join(side):
+            result = ""
+            previous = None
+            palette = _palette_for(config)
+            separator = (
+                f"{palette.separator} · {palette.reset}" if palette.separator else " · "
+            )
+            for cell in side:
+                kind = cell.payload.type_id
+                if result:
+                    result += (
+                        " " if previous == "status" and kind == "name" else separator
+                    )
+                result += cell.text
+                previous = kind
+            return result
+
+        return fit_row(cells, columns, config, join)
     if config.separator_style == "powerline":
         from . import appearance, powerline
 
         blocks = []
         for part in parts:
             options = preferences.options_for(config, part.item, "subagent")[1]
-            text = part.style + part.text + (_palette_for(config).reset if part.style else "")
-            blocks.append(powerline.Block(appearance.apply(text, config, part.item, options, scope="subagent", used=part.used), options.priority))
+            text = (
+                part.style
+                + part.text
+                + (_palette_for(config).reset if part.style else "")
+            )
+            blocks.append(
+                powerline.Block(
+                    appearance.apply(
+                        text,
+                        config,
+                        part.type_id or part.item,
+                        options,
+                        scope="subagent",
+                        used=part.used,
+                    ),
+                    options.priority,
+                )
+            )
         return powerline.fit(blocks, columns, config)
     if legacy_fitting(config.subagents.item_options):
         while (

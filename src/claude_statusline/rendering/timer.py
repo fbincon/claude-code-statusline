@@ -12,19 +12,32 @@ def _fmt_duration(seconds, nearest=False):
     return rendering_formatters.format_duration(seconds, nearest=nearest)
 
 
-def _state_elapsed_seconds(state, last_pt):
+def _state_elapsed_seconds(state, last_pt, *, sample=None):
     if not isinstance(state, dict):
         return None
     from claude_statusline.runtime.timing.clock import Sample, task_elapsed
 
-    elapsed = task_elapsed(state, Sample(*turn_store.now_clocks()))
+    elapsed = task_elapsed(
+        state, sample if sample is not None else Sample(*turn_store.now_clocks())
+    )
     return None if elapsed is None else elapsed / 1_000_000_000
 
 
-def _render_state_timer(state, last_pt, palette=rendering_palette.DEFAULT_PALETTE, *, language="en"):
+def _render_state_timer(
+    state,
+    last_pt,
+    palette=rendering_palette.DEFAULT_PALETTE,
+    *,
+    language="en",
+    sample=None,
+):
     if not isinstance(state, dict) or state.get("status") in ("ignored", "withdrawn"):
         return None
-    elapsed = _state_elapsed_seconds(state, last_pt)
+    elapsed = (
+        _state_elapsed_seconds(state, last_pt)
+        if sample is None
+        else _state_elapsed_seconds(state, last_pt, sample=sample)
+    )
     status = state.get("status")
     formatted = _fmt_duration(elapsed, nearest=status != "running")
     if not formatted:
@@ -36,7 +49,11 @@ def _render_state_timer(state, last_pt, palette=rendering_palette.DEFAULT_PALETT
         if phase == "waiting_subagents":
             active = state.get("active_agents")
             count = len(active) if isinstance(active, dict) else 0
-            agents = statusline.text("timer.waiting.one" if count == 1 else "timer.waiting.many", language, count=count)
+            agents = statusline.text(
+                "timer.waiting.one" if count == 1 else "timer.waiting.many",
+                language,
+                count=count,
+            )
             return f"{palette.timer}⏳ {agents} · {formatted}{palette.reset}"
         if phase == "resuming_main":
             return f"{palette.timer}⏳ {statusline.text('timer.wrap_up', language)} · {formatted}{palette.reset}"
@@ -52,11 +69,31 @@ def _render_state_timer(state, last_pt, palette=rendering_palette.DEFAULT_PALETT
 
 
 def _timer_segment(
-    sid, prompt_id, last_pt, entry, palette=rendering_palette.DEFAULT_PALETTE, *, language="en"
+    sid,
+    prompt_id,
+    last_pt,
+    entry,
+    palette=rendering_palette.DEFAULT_PALETTE,
+    *,
+    language="en",
+    observation=None,
 ):
     """Compatibility entry: collect once, then format a lifecycle snapshot."""
     from claude_statusline.runtime.tasks.collect import collect
 
+    if observation is None:
+        return _render_state_timer(
+            collect(sid, prompt_id, last_pt, entry), last_pt, palette, language=language
+        )
+    if "state" not in observation:
+        from claude_statusline.runtime.timing.clock import Sample
+
+        observation["state"] = collect(sid, prompt_id, last_pt, entry)
+        observation["sample"] = Sample(*turn_store.now_clocks())
     return _render_state_timer(
-        collect(sid, prompt_id, last_pt, entry), last_pt, palette, language=language
+        observation["state"],
+        last_pt,
+        palette,
+        language=language,
+        sample=observation["sample"],
     )

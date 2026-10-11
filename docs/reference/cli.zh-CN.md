@@ -279,7 +279,7 @@ claude-statusline config subagents disable task
 claude-statusline config subagents order status-elapsed name model-with-effort context-remaining tokens current-dir
 ```
 
-`subagents.items=[]` 时，`render-subagents` 仍为每个有效 task ID 输出合法 NDJSON，但 `content` 为空，Claude Code 因而隐藏相应自定义行。
+子代理无启用实例时，`render-subagents` 仍为每个有效 task ID 输出合法 NDJSON，但 `content` 为空，Claude Code 因而隐藏相应自定义行。
 
 `status-elapsed` 与 `status`、`elapsed` 互斥：`set-items`/`enable`/`apply` 组合非法时直接报错（例如已启用 `status` 的旧配置执行 `enable status-elapsed` 会失败，需先 `disable status elapsed`）；交互向导勾选其一时自动取消冲突项。
 
@@ -379,7 +379,7 @@ claude-statusline config item subagent task max-width none
 
 ### `config preset NAME [--dry-run]`
 
-预设名为 `minimal`、`developer`、`monitoring`、`multi-agent`。预设替换显示选择、布局、子 Agent 默认条目和逐项覆盖，使用模型简称、紧凑数字及递减的逐项优先级；保留颜色、调色板、主题、Powerline 字形、目录及分隔符、作用域标签、刷新与宿主设置，以及当前子 Agent 启用状态。Multi-agent 另隐藏 completed，限制六行，任务宽度 48。
+预设名为 `minimal`、`developer`、`monitoring`、`multi-agent`、`left-right`、`repeated-metrics`。预设替换显示选择、布局、子 Agent 默认条目和逐项覆盖，使用模型简称、紧凑数字及递减的逐项优先级；保留颜色、调色板、主题、Powerline 字形、目录及分隔符、作用域标签、刷新与宿主设置，以及当前子 Agent 启用状态。Multi-agent 另隐藏 completed，限制六行，任务宽度 48。
 
 ```text
 claude-statusline config preset developer --dry-run
@@ -676,45 +676,44 @@ claude-statusline config set refresh-interval event
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-默认配置等价于：
+以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 8 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
 
 ```json
 {
-  "schema_version": 7,
-  "statusline_language": "en",
-  "items": [
-    "model-with-effort",
-    "current-dir",
-    "git",
-    "context-remaining",
-    "context-window-size",
-    "five-hour-limit",
-    "weekly-limit",
-    "spend-limit",
-    "tokens",
-    "task-timer"
-  ],
+  "schema_version": 8,
   "use_colors": true,
   "palette": "default",
-  "theme": "classic",
-  "powerline_glyph": "ascii",
   "directory_style": "full",
   "separator_style": "classic",
   "scope_labels": "when-subagents",
+  "statusline_language": "en",
+  "theme": "classic",
+  "powerline_glyph": "ascii",
   "subagents": {
     "enabled": true,
-    "items": [
-      "status-elapsed",
-      "name",
-      "model-with-effort",
-      "context-remaining",
-      "task"
-    ],
-    "item_options": {},
     "visibility": "all",
     "hide_completed": false,
     "row_limit": null,
-    "task_max_width": null
+    "task_max_width": null,
+    "instances": [
+      {
+        "id": "name",
+        "type_id": "name",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 50,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      }
+    ]
   },
   "formatting": {
     "model_name": "original",
@@ -730,24 +729,42 @@ claude-statusline config set refresh-interval event
       "critical": 90
     }
   },
-  "item_options": {},
   "layout": {
     "mode": "auto",
     "rows": []
   },
   "metrics": {
     "branch_diff_base_ref": null
-  }
+  },
+  "instances": [
+    {
+      "id": "model-with-effort",
+      "type_id": "model-with-effort",
+      "enabled": true,
+      "options": {
+        "label": null,
+        "icon": null,
+        "priority": 50,
+        "max_width": null,
+        "formatting": {},
+        "foreground": null,
+        "background": null,
+        "visibility": "always",
+        "visibility_threshold": 70
+      },
+      "text": null
+    }
+  ]
 }
 ```
 
 这是严格 JSON：不接受注释、尾随逗号、未知字段、缺失字段、未知条目或重复条目。建议使用配置命令修改，而不是手工编辑。
 
-上例中的十个条目是默认启用集合，其余 50 个主栏项通过 CLI、向导或编辑器明确选择后才会写入 `items`。
+目录提供类型定义；`instances` 保存已配置位置。禁用实例及其选项继续保留，直到明确移除。两个作用域分别管理实例身份。
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
 
-当前源码显示配置使用 schema v7；历史 v1/v2/v3/v4/v5/v6 可读取，首次实际配置保存时备份并写为 v6。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前显示 schema 为 v8；历史 v1–v7 可读取，首次实际配置保存时备份并写为 v8。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 
@@ -755,7 +772,7 @@ claude-statusline config set refresh-interval event
 - `config show`、普通配置写命令和 `doctor` 会明确报告错误。
 - `config reset` 可以删除损坏配置并恢复默认值。
 
-`items: []` 是合法配置，表示主栏不输出内容；即使范围标签为 `always`，也不会单独制造空主栏。`subagents.items: []` 同样合法，表示每个有效子任务返回空 content。
+`instances: []` 是合法配置，表示主栏不输出内容；即使范围标签为 `always`，也不会单独制造空主栏。`subagents.instances: []` 同样合法，表示每个有效子任务返回空 content。
 
 <a id="实验功能偏好"></a>
 
@@ -856,3 +873,11 @@ claude-statusline.exe config show
 ## 条件显示与外观
 
 使用 `config set theme classic|dark|light|terminal`、`config set separator-style classic|compact|powerline` 和 `config set powerline-glyph ascii|powerline`。作用域 `config item` 新增 `foreground`、`background`、`visibility`、`visibility-threshold`。详见[语法、适用项目及恢复](../APPEARANCE.zh-CN.md)。
+
+## 实例管理
+
+`config instance main|subagent` 提供 `list [--json]`、`add TYPE_ID [--after ID] [--text TEXT]`、`copy ID`、`remove ID`、`enable ID`、`disable ID`、`move ID --before|--after ANCHOR` 和 `set ID OPTION VALUE`。新增与复制返回新 ID。`config layout --by-instance explicit ROW...` 以逗号分隔的实例 ID 指定行，包含全部已配置实例（含禁用项），顺序必须一致。
+
+旧 `item`／启禁用命令仅在类型唯一时解析；旧批量选择、排序及布局操作遇到重复类型、文本或留白时拒绝，不选择首个匹配项，不删除实例。类型目录 JSON 增加 `instance_ids`、`enabled_instance_ids`、`instance_only`。完整示例见[组件与布局](../COMPOSITION.zh-CN.md)。
+
+在显式布局或组件组合中切换唯一指标时，保留其位置及留白左右关系。简单自动布局的旧类型选择仍保留启用时追加到末尾的行为；使用 `config instance ... enable|disable` 可始终保留位置。

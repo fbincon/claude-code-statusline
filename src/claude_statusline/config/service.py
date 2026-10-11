@@ -83,7 +83,7 @@ def _read_display_for_mutation(
             return config_display.DEFAULT_CONFIG, None
         except OSError as exc:
             raise config_models.ConfigCommandError(
-                msg('errors.service.cannot_read', path=path, exc=exc)
+                msg("errors.service.cannot_read", path=path, exc=exc)
             ) from exc
 
 
@@ -200,7 +200,11 @@ def mutate_configuration(
                     else ""
                 )
                 raise config_models.ConfigWriteError(
-                    msg('errors.service.configuration_update_failed', exc=exc, suffix=suffix)
+                    msg(
+                        "errors.service.configuration_update_failed",
+                        exc=exc,
+                        suffix=suffix,
+                    )
                 ) from exc
 
             effective_display = (
@@ -240,161 +244,118 @@ def _validated_subagent_items(items: list[str]) -> tuple[str, ...]:
         raise config_models.ConfigCommandError(as_message(exc)) from exc
 
 
-def set_items(
-    config_dir: Path, executable: Path, items: list[str]
-) -> config_models.MutationResult:
-    validated = _validated_items(items)
-    return mutate_configuration(
-        config_dir,
-        executable,
-        "config-set-items",
-        lambda display, settings, host, installed: (
-            display.with_updates(items=validated),
-            config_models._UNCHANGED,
-        ),
-    )
+def _legacy_ids(config, scope, types, *, bulk=False):
+    from . import instances
 
-
-def enable_items(
-    config_dir: Path, executable: Path, items: list[str]
-) -> config_models.MutationResult:
-    validated = _validated_items(items)
-
-    def mutation(display, settings, host, installed):
-        enabled = list(display.items)
-        enabled.extend(item for item in validated if item not in enabled)
-        return display.with_updates(items=tuple(enabled)), config_models._UNCHANGED
-
-    return mutate_configuration(config_dir, executable, "config-enable", mutation)
-
-
-def disable_items(
-    config_dir: Path, executable: Path, items: list[str]
-) -> config_models.MutationResult:
-    validated = _validated_items(items)
-    disabled = set(validated)
-    return mutate_configuration(
-        config_dir,
-        executable,
-        "config-disable",
-        lambda display, settings, host, installed: (
-            display.with_updates(
-                items=tuple(item for item in display.items if item not in disabled)
-            ),
-            config_models._UNCHANGED,
-        ),
-    )
-
-
-def order_items(
-    config_dir: Path, executable: Path, items: list[str]
-) -> config_models.MutationResult:
-    validated = _validated_items(items)
-
-    def mutation(display, settings, host, installed):
-        if set(validated) != set(display.items) or len(validated) != len(display.items):
-            missing = [item for item in display.items if item not in validated]
-            extra = [item for item in validated if item not in display.items]
-            details = []
-            if missing:
-                details.append("missing: " + ", ".join(missing))
-            if extra:
-                details.append("not enabled: " + ", ".join(extra))
-            raise config_models.ConfigCommandError(
-                msg('errors.service.order_must_contain_every_enabled_item_exactly', value0=' (' + '; '.join(details) + ')' if details else '')
-            )
-        return display.with_updates(items=validated), config_models._UNCHANGED
-
-    return mutate_configuration(config_dir, executable, "config-order", mutation)
-
-
-def set_subagent_items(
-    config_dir: Path, executable: Path, items: list[str]
-) -> config_models.MutationResult:
-    validated = _validated_subagent_items(items)
-    return mutate_configuration(
-        config_dir,
-        executable,
-        "config-subagents-set-items",
-        lambda display, settings, host, installed: (
-            display.with_updates(
-                subagents=display.subagents.with_updates(items=validated)
-            ),
-            config_models._UNCHANGED,
-        ),
-    )
-
-
-def enable_subagent_items(
-    config_dir: Path, executable: Path, items: list[str]
-) -> config_models.MutationResult:
-    validated = _validated_subagent_items(items)
-
-    def mutation(display, settings, host, installed):
-        enabled = list(display.subagents.items)
-        enabled.extend(item for item in validated if item not in enabled)
-        return (
-            display.with_updates(
-                subagents=display.subagents.with_updates(items=tuple(enabled))
-            ),
-            config_models._UNCHANGED,
+    try:
+        nodes = instances.scoped(config, scope).instances
+        if bulk and (
+            any(i.type_id in instances.NODE_TYPES for i in nodes)
+            or len({i.type_id for i in nodes}) != len(nodes)
+        ):
+            raise ValueError(msg("composition.errors.legacy", scope=scope))
+        return tuple(
+            instances.legacy_id(config, scope, i, allow_absent=True) for i in types
         )
+    except ValueError as exc:
+        raise config_models.ConfigCommandError(as_message(exc)) from exc
 
-    return mutate_configuration(
-        config_dir, executable, "config-subagents-enable", mutation
+
+def _legacy_selection(config_dir, executable, scope, action, types):
+    from . import instances
+
+    validated = (
+        _validated_items(types) if scope == "main" else _validated_subagent_items(types)
     )
 
-
-def disable_subagent_items(
-    config_dir: Path, executable: Path, items: list[str]
-) -> config_models.MutationResult:
-    validated = _validated_subagent_items(items)
-    disabled = set(validated)
-    return mutate_configuration(
-        config_dir,
-        executable,
-        "config-subagents-disable",
-        lambda display, settings, host, installed: (
-            display.with_updates(
-                subagents=display.subagents.with_updates(
-                    items=tuple(
-                        item for item in display.subagents.items if item not in disabled
-                    )
+    def mutation(config, settings, host, installed):
+        selected = _legacy_ids(
+            config, scope, validated, bulk=action in ("set-items", "order")
+        )
+        target = instances.scoped(config, scope)
+        current = list(target.items)
+        if action == "order" and (
+            set(selected) != set(current) or len(selected) != len(current)
+        ):
+            raise config_models.ConfigCommandError(
+                msg(
+                    "errors.service.order_must_contain_every_enabled_item_exactly",
+                    value0="",
                 )
-            ),
-            config_models._UNCHANGED,
-        ),
-    )
-
-
-def order_subagent_items(
-    config_dir: Path, executable: Path, items: list[str]
-) -> config_models.MutationResult:
-    validated = _validated_subagent_items(items)
-
-    def mutation(display, settings, host, installed):
-        current = display.subagents.items
-        if set(validated) != set(current) or len(validated) != len(current):
-            missing = [item for item in current if item not in validated]
-            extra = [item for item in validated if item not in current]
-            details = []
-            if missing:
-                details.append("missing: " + ", ".join(missing))
-            if extra:
-                details.append("not enabled: " + ", ".join(extra))
-            raise config_models.ConfigCommandError(
-                msg('errors.service.subagent_order_must_contain_every_enabled_item', value0=' (' + '; '.join(details) + ')' if details else '')
             )
+        if action in ("enable", "disable"):
+            nodes = list(target.instances)
+            structural = (
+                scope == "main"
+                and config.layout.mode == "explicit"
+                or any(node.type_id in instances.NODE_TYPES for node in nodes)
+                or len({node.type_id for node in nodes}) != len(nodes)
+            )
+            for identifier in selected:
+                index = next(
+                    (n for n, node in enumerate(nodes) if node.id == identifier), None
+                )
+                if index is None:
+                    if action == "enable":
+                        nodes.append(instances.DisplayInstance(identifier, identifier))
+                    continue
+                node = nodes[index]
+                if node.enabled == (action == "enable"):
+                    continue
+                updated = replace(node, enabled=action == "enable")
+                if action == "enable" and not structural:
+                    # Preserve historical append order for a simple type selection.
+                    nodes.pop(index)
+                    nodes.append(updated)
+                else:
+                    # Toggling a unique type must never move text, spacers or rows.
+                    nodes[index] = updated
+            return instances.replace_scope(
+                config, scope, nodes
+            ), config_models._UNCHANGED
+        target = target.with_updates(items=selected)
         return (
-            display.with_updates(
-                subagents=display.subagents.with_updates(items=validated)
-            ),
-            config_models._UNCHANGED,
-        )
+            target if scope == "main" else config.with_updates(subagents=target)
+        ), config_models._UNCHANGED
 
     return mutate_configuration(
-        config_dir, executable, "config-subagents-order", mutation
+        config_dir,
+        executable,
+        "config-" + ("subagents-" if scope == "subagent" else "") + action,
+        mutation,
     )
+
+
+def set_items(config_dir, executable, items):
+    return _legacy_selection(config_dir, executable, "main", "set-items", items)
+
+
+def enable_items(config_dir, executable, items):
+    return _legacy_selection(config_dir, executable, "main", "enable", items)
+
+
+def disable_items(config_dir, executable, items):
+    return _legacy_selection(config_dir, executable, "main", "disable", items)
+
+
+def order_items(config_dir, executable, items):
+    return _legacy_selection(config_dir, executable, "main", "order", items)
+
+
+def set_subagent_items(config_dir, executable, items):
+    return _legacy_selection(config_dir, executable, "subagent", "set-items", items)
+
+
+def enable_subagent_items(config_dir, executable, items):
+    return _legacy_selection(config_dir, executable, "subagent", "enable", items)
+
+
+def disable_subagent_items(config_dir, executable, items):
+    return _legacy_selection(config_dir, executable, "subagent", "disable", items)
+
+
+def order_subagent_items(config_dir, executable, items):
+    return _legacy_selection(config_dir, executable, "subagent", "order", items)
 
 
 def _display_with_option(
@@ -430,7 +391,7 @@ def _display_with_option(
                     value = int(value)
                 except (ValueError, TypeError) as exc:
                     raise config_models.ConfigCommandError(
-                        msg('errors.service.threshold_must_be_an_integer')
+                        msg("errors.service.threshold_must_be_an_integer")
                     ) from exc
             thresholds = replace(display.formatting.thresholds, **{key: value})
             return display.with_updates(
@@ -460,7 +421,9 @@ def _display_with_option(
             )
     except config_display.DisplayConfigError as exc:
         raise config_models.ConfigCommandError(as_message(exc)) from exc
-    raise config_models.ConfigCommandError(msg('errors.service.unknown_display_option', option=option))
+    raise config_models.ConfigCommandError(
+        msg("errors.service.unknown_display_option", option=option)
+    )
 
 
 def set_option(
@@ -471,7 +434,10 @@ def set_option(
 ) -> config_models.MutationResult:
     if option not in config_models.OPTION_NAMES:
         raise config_models.ConfigCommandError(
-            msg('errors.service.unknown_option_expected_one_of', value0=', '.join(sorted(config_models.OPTION_NAMES)))
+            msg(
+                "errors.service.unknown_option_expected_one_of",
+                value0=", ".join(sorted(config_models.OPTION_NAMES)),
+            )
         )
 
     def mutation(display, settings, host, installed):
@@ -512,16 +478,23 @@ def apply_configuration(
 ) -> config_models.MutationResult:
     if display_draft is not None:
         display_draft = config_display.validate_display_config(display_draft.to_dict())
-    validated_items = _validated_items(items)
+    validated_items = _validated_items(items) if display_draft is None else ()
     validated_subagent_items = (
         _validated_subagent_items(subagent_items)
-        if subagent_items is not None
+        if subagent_items is not None and display_draft is None
         else None
     )
     parsed_colors = config_host._parse_toggle(colors, "colors")
-    if statusline_language is not None and statusline_language not in config_display.STATUSLINE_LANGUAGES:
+    if (
+        statusline_language is not None
+        and statusline_language not in config_display.STATUSLINE_LANGUAGES
+    ):
         raise config_models.ConfigCommandError(
-            msg("errors.display.must_be_one_of", field="statusline_language", allowed=", ".join(config_display.STATUSLINE_LANGUAGES))
+            msg(
+                "errors.display.must_be_one_of",
+                field="statusline_language",
+                allowed=", ".join(config_display.STATUSLINE_LANGUAGES),
+            )
         )
     parsed_subagent_statusline = (
         config_host._parse_toggle(subagent_statusline, "subagent-statusline")
@@ -530,7 +503,10 @@ def apply_configuration(
     )
     if scope_labels is not None and scope_labels not in config_display.SCOPE_LABELS:
         raise config_models.ConfigCommandError(
-            msg('errors.service.scope_labels_must_be_one_of', value0=', '.join(config_display.SCOPE_LABELS))
+            msg(
+                "errors.service.scope_labels_must_be_one_of",
+                value0=", ".join(config_display.SCOPE_LABELS),
+            )
         )
     host = config_models.HostConfig(
         config_host._parse_padding(padding),
@@ -560,7 +536,7 @@ def apply_configuration(
             )
         if conflict:
             raise config_models.ConfigConflict(
-                msg('errors.service.status_line_configuration_changed_while_the_editor')
+                msg("errors.service.status_line_configuration_changed_while_the_editor")
             )
         if (
             revisions.installation_identity(settings, executable)["subagentStatusLine"][
@@ -569,16 +545,27 @@ def apply_configuration(
             == "foreign"
         ):
             raise config_models.ConfigOwnershipError(
-                msg('errors.service.claude_code_subagentstatusline_belongs_to_another_renderer')
+                msg(
+                    "errors.service.claude_code_subagentstatusline_belongs_to_another_renderer"
+                )
             )
+        if display_draft is not None:
+            return display_draft, config_host._settings_with_host(
+                settings, executable, host
+            )
+        validated_ids = _legacy_ids(current_display, "main", validated_items, bulk=True)
         subagents = current_display.subagents
         if validated_subagent_items is not None:
-            subagents = subagents.with_updates(items=validated_subagent_items)
+            subagents = subagents.with_updates(
+                items=_legacy_ids(
+                    current_display, "subagent", validated_subagent_items, bulk=True
+                )
+            )
         if parsed_subagent_statusline is not None:
             subagents = subagents.with_updates(enabled=parsed_subagent_statusline)
         try:
             display = current_display.with_updates(
-                items=validated_items,
+                items=validated_ids,
                 use_colors=parsed_colors,
                 palette=palette,
                 directory_style=directory_style,
@@ -590,7 +577,8 @@ def apply_configuration(
                 ),
                 statusline_language=(
                     current_display.statusline_language
-                    if statusline_language is None else statusline_language
+                    if statusline_language is None
+                    else statusline_language
                 ),
                 subagents=subagents,
             )

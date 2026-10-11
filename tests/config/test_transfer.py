@@ -22,7 +22,7 @@ class TransferTests(unittest.TestCase):
 
     def request(self, op, payload):
         return protocol.handle(
-            json.dumps({"protocol_version": 10, "operation": op, "payload": payload}),
+            json.dumps({"protocol_version": 11, "operation": op, "payload": payload}),
             self.config,
             Path("/tool"),
         )
@@ -103,7 +103,11 @@ class TransferTests(unittest.TestCase):
             (1, display.V1_DISPLAY_KEYS),
             (2, display.V2_DISPLAY_KEYS),
         ):
-            legacy = {k: v for k, v in self.draft["display"].items() if k in keys}
+            legacy = {
+                k: v
+                for k, v in display.DEFAULT_CONFIG.legacy_dict().items()
+                if k in keys
+            }
             legacy["schema_version"] = version
             if version == 2:
                 legacy["subagents"] = {"enabled": False, "items": ["name"]}
@@ -111,7 +115,7 @@ class TransferTests(unittest.TestCase):
             raw = json.dumps(legacy).encode()
             file.write_bytes(raw)
             imported = transfer.import_file(file, self.draft)
-            self.assertEqual(imported["display"]["schema_version"], 7)
+            self.assertEqual(imported["display"]["schema_version"], 8)
             self.assertEqual(imported["host"], self.draft["host"])
             self.assertEqual(file.read_bytes(), raw)
 

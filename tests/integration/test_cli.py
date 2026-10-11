@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Subprocess tests for the public command-line interface."""
 
+from tests.config_support import selected_ids
+
 from claude_statusline.integration import ownership as integration_ownership
 
 import json
@@ -86,7 +88,7 @@ class CliTests(unittest.TestCase):
     def test_version(self):
         result = self.run_cli("--version")
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "claude-statusline 1.13.0")
+        self.assertEqual(result.stdout.strip(), "claude-statusline 2.0.0a1")
         self.assertEqual(result.stderr, "")
 
     def test_help_lists_public_commands(self):
@@ -307,7 +309,7 @@ class CliTests(unittest.TestCase):
             shown = self.run_cli("config", "--config-dir", root, "show", "--json")
             self.assertEqual(shown.returncode, 0, shown.stderr)
             value = json.loads(shown.stdout)
-            self.assertEqual(value["display"]["items"], ["git", "tokens"])
+            self.assertEqual(selected_ids(value["display"]), ["git", "tokens"])
 
     def test_new_items_support_every_cli_item_mutation(self):
         with tempfile.TemporaryDirectory(prefix="statusline-cli-new-items-") as root:
@@ -335,7 +337,7 @@ class CliTests(unittest.TestCase):
             shown = self.run_cli("config", "--config-dir", root, "show", "--json")
             self.assertEqual(shown.returncode, 0, shown.stderr)
             self.assertEqual(
-                json.loads(shown.stdout)["display"]["items"],
+                selected_ids(json.loads(shown.stdout)["display"]),
                 ["context-used", "hostname", "project-name"],
             )
 
@@ -444,8 +446,8 @@ class CliTests(unittest.TestCase):
             settings = json.loads(
                 (config_dir / "settings.json").read_text(encoding="utf-8")
             )
-            self.assertEqual(display["items"], ["git", "tokens"])
-            self.assertEqual(display["subagents"]["items"], ["status", "tokens"])
+            self.assertEqual(selected_ids(display), ["git", "tokens"])
+            self.assertEqual(selected_ids(display["subagents"]), ["status", "tokens"])
             self.assertFalse(display["subagents"]["enabled"])
             self.assertEqual(display["scope_labels"], "always")
             self.assertFalse(display["use_colors"])

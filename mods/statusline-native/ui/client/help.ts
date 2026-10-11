@@ -31,6 +31,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     { key: 'Backspace', label: 'delete', short: 'del' },
     focus,
   ]];
+  if(e.adding)return [[{key:'Enter',label:'add'},{key:'Ctrl+G',label:'back'},focus],[{key:'↑↓',label:'select'},{key:'/',label:'search'},{key:'Ctrl+F',label:'category'},{key:'Ctrl+E',label:'details'}]];
   const pending = e.modified || view.preferences.some(preferenceChanged);
   const actions: Shortcut[] = [
     { key: 'S', label: 'save' },
@@ -42,6 +43,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
   const contextual: Shortcut[] = [{ key: 'Tab', label: 'page' }];
   if (!e.detail && (e.page === 'main' || e.page === 'subagents')) {
     contextual.push(
+      { key: 'A/D/X', label: 'add/copy/remove', short:'add/copy/remove' },
       { key: 'Space', label: 'toggle' },
       { key: '↑↓', label: 'select' },
       ...(e.filtered(e.page === 'main' ? 'main' : 'subagent') ? [] : [{ key: '←→', label: 'order' }]),
@@ -73,7 +75,7 @@ export function editorLayout(view: View, columns: number, rows: number) {
   const limit = Math.max(1, rows - (framed ? 10 : 8));
   let footer = shortcutRows(groups, columns);
   if (footer.length > limit) footer = shortcutRows(groups, columns, true);
-  for (const key of ['V', 'R', 'Esc']) {
+  for (const key of ['V', 'R', 'Esc', '↑↓', '←→', '/']) {
     if (footer.length <= limit) break;
     groups = groups.map((group) => group.filter((hint) => hint.key !== key));
     footer = shortcutRows(groups, columns, true);

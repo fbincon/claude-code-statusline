@@ -9,7 +9,7 @@ import type {
   ProcessRunResult,
 } from 'claude-code';
 import {
-  MAIN_ITEM_IDS,
+  MAIN_ITEM_IDS, ITEM_DEFAULTS,
   FORMAT_DEFAULTS, FORMAT_CHOICES, PRESETS, EDITOR_FIELDS,
   SUBAGENT_ITEM_IDS,
 } from '../lib/generated-contracts.ts';
@@ -23,22 +23,26 @@ import type {
 } from '../lib/generated-contracts.ts';
 import { copyDraft } from '../lib/editor/draft.ts';
 
+export function component(type_id: string, enabled = true): import('../lib/generated-contracts.ts').InstanceDraft {
+  return {id:type_id,type_id,enabled,text:type_id==='text'?'':null,options:{...ITEM_DEFAULTS,visibility:'always',formatting:{}}};
+}
+
 export const BASE: Draft = {
   display: {
-    schema_version: 7,
+    schema_version: 8,
     theme: "classic",
     powerline_glyph: "ascii",
     statusline_language: 'en',
     metrics: { branch_diff_base_ref: null },
-    items: ['model-with-effort'],
+    instances: [component('model-with-effort')],
     use_colors: true,
     palette: 'default',
     directory_style: 'full',
     separator_style: 'classic',
     scope_labels: 'when-subagents',
-    subagents: { enabled: true, items: ['status-elapsed', 'name'], item_options: {}, visibility: 'all', hide_completed: false, row_limit: null, task_max_width: null },
+    subagents: { enabled: true, instances: [component('status-elapsed'),component('name')], visibility: 'all', hide_completed: false, row_limit: null, task_max_width: null },
     formatting: JSON.parse(JSON.stringify(FORMAT_DEFAULTS)),
-    item_options: {}, layout: { mode: 'auto', rows: [] },
+    layout: { mode: 'auto', rows: [] },
   },
   host: { padding: 0, refresh_interval: 1, hide_vim_mode_indicator: false },
 };
@@ -82,7 +86,7 @@ export function capabilities(): Capabilities {
 
 function catalogItem(scope: Scope, id: CatalogItem['id']): CatalogItem {
   const defaults =
-    scope === 'main' ? BASE.display.items : BASE.display.subagents.items;
+    scope === 'main' ? BASE.display.instances.map(i=>i.id) : BASE.display.subagents.instances.map(i=>i.id);
   const position = (defaults as readonly string[]).indexOf(id);
   return {
     id,
@@ -167,7 +171,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 10, result }));
+  return output(JSON.stringify({ protocol_version: 11, result }));
 }
 
 export function sample(text: string) {
@@ -321,9 +325,9 @@ export function setup(on: On) {
       return {
         value: reply({
           sample: true,
-          main: row(request.payload.draft.display.items),
+          main: row(request.payload.draft.display.instances.filter((i: {enabled:boolean})=>i.enabled).map((i: {type_id:string})=>i.type_id)),
           subagents: request.payload.draft.display.subagents.enabled
-            ? row(request.payload.draft.display.subagents.items)
+            ? row(request.payload.draft.display.subagents.instances.filter((i: {enabled:boolean})=>i.enabled).map((i: {type_id:string})=>i.type_id))
             : [],
         }),
       };

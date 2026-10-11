@@ -1,7 +1,7 @@
 ---
 name: statusline-config
 description: Configure the installed claude-statusline display and Claude Code host settings.
-argument-hint: "[show|list-items|set-items|enable|disable|order|subagents|set|item|layout|preset|import|export|language|reset]"
+argument-hint: "[show|list-items|set-items|enable|disable|order|subagents|set|item|instance|layout|preset|import|export|language|reset]"
 disable-model-invocation: true
 allowed-tools:
   - AskUserQuestion
@@ -34,6 +34,12 @@ If the invocation arguments are empty:
    `__CLAUDE_STATUSLINE_COMMAND__ config subagents list-items` for the tool's
    localized descriptions. Translate question/group labels into the interface
    language, retaining the IDs, choices, defaults and exclusions from JSON.
+   Check both scopes' `instances` before starting the type-based questions.
+   If either scope contains duplicate `type_id` values, `text`, or `spacer`,
+   explain that this composition needs the instance editor or `config instance`
+   commands, show those entry points, and stop without changing configuration.
+   Do not collapse copies or discard nodes to make the legacy form fit.
+   Otherwise use only metric catalog rows (`instance_only: false`) below.
 2. Tell the user that the configuration applies to every Claude Code project.
 3. Use AskUserQuestion with multi-select questions for these groups:
 __CLAUDE_STATUSLINE_ITEM_GROUPS__

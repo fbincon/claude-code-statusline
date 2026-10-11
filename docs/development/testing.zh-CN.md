@@ -342,3 +342,15 @@ python tools/benchmark_render.py --suite appearance --samples 50 --report dist/v
 ```
 
 编辑器再以浅色主题重复。外部覆盖五种窗口的双语流程，原生覆盖 120×30／80×48 双语流程。仅候选的 appearance 基准覆盖关闭新功能、条件、自定义颜色、四类主题角色及 ASCII／箭头／单色 Powerline，在 40／120 列运行主状态栏和 32 代理进程；再以 `--bytecode-mode cold` 重复。前后性能回归使用单独的三轮 representative 比较；报告保留样本，并区分模拟、终端捕获、agent 图片检查与真人平台验收。
+
+## 组件组合验收
+
+参见[组件指南](../COMPOSITION.zh-CN.md)、[固定源码性能报告](performance-v2.0.0.zh-CN.md)及[捕获来源](../images/composition/README.zh-CN.md)。覆盖类型／实例边界、旧版只读迁移、复制与选项、禁用位置、文字、留白及原始采集不重复。下列安装包验证使用隔离配置与本地按键／斜杠命令：
+
+```sh
+python tools/external_tui_acceptance.py --backend /absolute/venv/bin/claude-statusline --commit VERIFIED_SHA --composition --report-dir dist/validation/new-external-composition
+python tools/native_mod_acceptance.py --backend /absolute/venv/bin/claude-statusline --persistent --composition --report-dir dist/validation/new-native-composition
+python tools/upgrade_composition_acceptance.py --baseline RELEASED_WHEEL --candidate CANDIDATE_WHEEL --report-dir dist/validation/new-upgrade
+```
+
+原生采用 A／D／X 以避免宿主截获控制键，外部采用 Ctrl+A／D／X。原生预览按实际可绘制宽度适配，缩放导致边框出现／消失时重新计算；两边状态快照保留组件选择器及复制身份。
