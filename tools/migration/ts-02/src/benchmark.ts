@@ -22,9 +22,13 @@ const records: { mode: string; round: number; baseline: Batch; candidate: Batch 
 // Bind the actual executed graph; unrelated test edits are not benchmark input.
 function measuredHashes(): Record<string, string> {
   const all = sourceHashes();
-  return Object.fromEntries(Object.entries(all).filter(([name]) =>
+  const hashes = Object.fromEntries(Object.entries(all).filter(([name]) =>
     ['policy.json', 'package.json', 'package-lock.json', 'runtime-lock.json', 'scripts/oracle.py'].includes(name) ||
     name.startsWith('fixtures/') || /^src\/(benchmark|context|cli|render|json|clocks|native)\.ts$/.test(name)));
+  for (const name of ['benchmark', 'context', 'cli', 'render', 'json', 'clocks', 'native', 'generated/unicode', 'generated/generated-unicode']) {
+    const path = `dist/${name}.js`; hashes[path] = sha(readFileSync(join(packageRoot, path)));
+  }
+  return hashes;
 }
 const measuredSources = measuredHashes();
 const repeatPath = process.argv[3] === '--repeat-of' ? process.argv[4] : undefined;
