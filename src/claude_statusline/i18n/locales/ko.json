@@ -1301,5 +1301,6 @@
   "values.nonzero": "0/비어 있음이 확인되면 숨김",
   "values.used-at-least": "사용 비율이 임계값 이상",
   "config.show.theme": "테마: {value}",
-  "config.show.powerline_glyph": "Powerline 구분자: {value}"
+  "config.show.powerline_glyph": "Powerline 구분자: {value}",
+  "errors.host.renderer_not_installed": "이 claude-statusline 실행 파일용 Claude Code statusLine이 설치되지 않았습니다"
 }

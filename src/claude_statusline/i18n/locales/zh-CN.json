@@ -1301,5 +1301,6 @@
   "values.nonzero": "确认零值或空列表时隐藏",
   "values.used-at-least": "已用比例达到阈值时显示",
   "config.show.theme": "主题：{value}",
-  "config.show.powerline_glyph": "Powerline 分隔字符：{value}"
+  "config.show.powerline_glyph": "Powerline 分隔字符：{value}",
+  "errors.host.renderer_not_installed": "此 claude-statusline 可执行文件尚未配置 Claude Code statusLine"
 }

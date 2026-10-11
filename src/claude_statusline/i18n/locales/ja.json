@@ -1301,5 +1301,6 @@
   "values.nonzero": "ゼロ／空を確認したら隠す",
   "values.used-at-least": "使用率がしきい値以上",
   "config.show.theme": "テーマ: {value}",
-  "config.show.powerline_glyph": "Powerline 区切り: {value}"
+  "config.show.powerline_glyph": "Powerline 区切り: {value}",
+  "errors.host.renderer_not_installed": "この claude-statusline 実行ファイル用の Claude Code statusLine はインストールされていません"
 }

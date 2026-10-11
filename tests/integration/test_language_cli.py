@@ -123,6 +123,20 @@ class LanguageCliTests(unittest.TestCase):
                 self.assertEqual(shown["item_options"]["model"]["label"], label)
                 self.assertEqual((self.root / "statusline-ui.json").read_bytes(), preference)
 
+    def test_import_requires_installation_with_localized_owned_error(self):
+        exported = Path(self.temp.name) / "before-install.json"
+        self.assertEqual(self.run_cli("config", "export", str(exported)).returncode, 0)
+        for language, expected in (
+            ("zh-CN", "此 claude-statusline 可执行文件尚未配置"),
+            ("zh-Hant", "此 claude-statusline 可執行文件尚未配置"),
+            ("ja", "インストールされていません"),
+            ("ko", "설치되지 않았습니다"),
+        ):
+            result = self.run_cli("--language", language, "config", "import", str(exported))
+            self.assertEqual(result.returncode, 2)
+            self.assertIn(expected, result.stderr)
+            self.assertFalse((self.root / "settings.json").exists())
+
     def test_invalid_statusline_language_does_not_modify_configuration(self):
         self.run_cli("config", "set", "statusline-language", "zh-CN")
         path = self.root / "claude-statusline.json"

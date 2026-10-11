@@ -1301,5 +1301,6 @@
   "values.nonzero": "Hide confirmed zero / empty",
   "values.used-at-least": "Used at least threshold",
   "config.show.theme": "Theme: {value}",
-  "config.show.powerline_glyph": "Powerline separator: {value}"
+  "config.show.powerline_glyph": "Powerline separator: {value}",
+  "errors.host.renderer_not_installed": "Claude Code statusLine is not installed for this claude-statusline executable"
 }

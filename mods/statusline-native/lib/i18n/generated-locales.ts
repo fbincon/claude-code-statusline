@@ -1306,7 +1306,8 @@ export const LOCALES = {
     "values.nonzero": "Hide confirmed zero / empty",
     "values.used-at-least": "Used at least threshold",
     "config.show.theme": "Theme: {value}",
-    "config.show.powerline_glyph": "Powerline separator: {value}"
+    "config.show.powerline_glyph": "Powerline separator: {value}",
+    "errors.host.renderer_not_installed": "Claude Code statusLine is not installed for this claude-statusline executable"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -2611,7 +2612,8 @@ export const LOCALES = {
     "values.nonzero": "确认零值或空列表时隐藏",
     "values.used-at-least": "已用比例达到阈值时显示",
     "config.show.theme": "主题：{value}",
-    "config.show.powerline_glyph": "Powerline 分隔字符：{value}"
+    "config.show.powerline_glyph": "Powerline 分隔字符：{value}",
+    "errors.host.renderer_not_installed": "此 claude-statusline 可执行文件尚未配置 Claude Code statusLine"
   },
   "zh-Hant": {
     "preferences.read_failed": "無法讀取 {path} 的界面偏好，使用英文：{detail}",
@@ -3916,7 +3918,8 @@ export const LOCALES = {
     "values.nonzero": "確認零值或空列表時隱藏",
     "values.used-at-least": "已用比例達到閾值時顯示",
     "config.show.theme": "主題：{value}",
-    "config.show.powerline_glyph": "Powerline 分隔字符：{value}"
+    "config.show.powerline_glyph": "Powerline 分隔字符：{value}",
+    "errors.host.renderer_not_installed": "此 claude-statusline 可執行文件尚未配置 Claude Code statusLine"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -5221,7 +5224,8 @@ export const LOCALES = {
     "values.nonzero": "ゼロ／空を確認したら隠す",
     "values.used-at-least": "使用率がしきい値以上",
     "config.show.theme": "テーマ: {value}",
-    "config.show.powerline_glyph": "Powerline 区切り: {value}"
+    "config.show.powerline_glyph": "Powerline 区切り: {value}",
+    "errors.host.renderer_not_installed": "この claude-statusline 実行ファイル用の Claude Code statusLine はインストールされていません"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -6526,7 +6530,8 @@ export const LOCALES = {
     "values.nonzero": "0/비어 있음이 확인되면 숨김",
     "values.used-at-least": "사용 비율이 임계값 이상",
     "config.show.theme": "테마: {value}",
-    "config.show.powerline_glyph": "Powerline 구분자: {value}"
+    "config.show.powerline_glyph": "Powerline 구분자: {value}",
+    "errors.host.renderer_not_installed": "이 claude-statusline 실행 파일용 Claude Code statusLine이 설치되지 않았습니다"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;
