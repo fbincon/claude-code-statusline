@@ -99,7 +99,7 @@ python -m unittest tests.migration.test_baseline -v
 审查差异并完成相关重验，再显式替换已审查的 JSON 和锁定文件。不提供自动接受全部差异
 的开关。
 
-性能脚本源码及参数已经固定：50 样本、三轮交替、small/medium/large 场景、cold/warm
+性能脚本源码及代表性对比参数已经固定：50 样本、三轮交替、small/medium/large 场景、cold/warm
 字节码条件。本阶段不新增性能结论或验收预算；测量、RSS 缺口和 D06 决策属于 TS-02。
 
 ## 验证与限制
@@ -138,3 +138,5 @@ python -m unittest tests.migration.test_baseline -v
 Claude Code 2.1.296 有运行及安装检查，但现有流程不能生成其精确宿主声明。按已确认范围，
 TS-01 不新增付费模型调用，也不等待跨平台人工桌面验收。真实休眠、重启、断电持久性及
 未覆盖的架构/终端组合继续作为 TS-02/TS-06 的明确工作。D01–D06 保持 OPEN。
+
+实现提交 `ddc9dde4c0d0836fef583087a9252fee2bd6bf66` 已通过全部 14 项 [CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) 和 13 项 [Mod](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593) 检查。收尾文档版本通过检查后，最终审查提交、合并提交及 Gitee 同步核对结果记录于 [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)。下一项实施阶段为 TS-02。

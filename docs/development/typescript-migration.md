@@ -12,11 +12,11 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 | --- | --- |
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
-| Implementation | TS-01 tooling and inventory implemented; validation in progress on `fbincon/ts-01-baseline` |
-| Current task scope | Fixed Python baseline, behavioral inventory and reproducible verification; production unchanged |
+| Implementation | **TS-01 DONE**; implementation `ddc9dde` passed 14 CI and 13 Mod jobs; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75) records delivery |
+| Current task scope | TS-01 baseline delivered; production migration remains a subsequent stage |
 | Runtime and distribution | Proposed options only; decisions D01–D06 remain open |
 | Target release and schedule | Unassigned; estimate after the TS-02 platform probes |
-| Next implementation work | Complete TS-01 CI, then TS-02 platform probes and D01–D06 |
+| Next implementation work | TS-02 platform probes and decisions D01–D06 |
 
 The planning request does not mark any implementation gate complete. Existing repository authorization still governs work within subsequently assigned tasks; this plan adds no routine approval step to each stage.
 
@@ -94,7 +94,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 | Stage | Deliverable | Depends on | State | Owner and evidence |
 | --- | --- | --- | --- | --- |
-| TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | VALIDATING | Codex; `fbincon/ts-01-baseline`; [inventory and evidence](typescript-migration/ts-01/README.md) |
+| TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | DONE | Codex; `fbincon/ts-01-baseline`; tested `ddc9dde`; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75); [inventory and evidence](typescript-migration/ts-01/README.md) |
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | NOT_STARTED | Unassigned |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | NOT_STARTED | Unassigned |
 | TS-04 | Both editors, installation and recovery | TS-03 | NOT_STARTED | Unassigned |
@@ -110,7 +110,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 **Exit:** a traceable case/tool inventory and reproducible Python baseline exist; any baseline failure or coverage gap has an explicit disposition. Historical release success alone does not close this stage.
 
-**TS-01 handoff:** The reference remains `9b6d2fa`. [161 fixed cases, the complete inventory and validation dispositions](typescript-migration/ts-01/README.md) are implemented; local reference checks passed with the documented harness-label correction. Cross-platform CI and PR evidence are pending. D01–D06 remain OPEN.
+**TS-01 handoff:** DONE. The reference remains `9b6d2fa`. [161 fixed cases, the complete inventory and validation dispositions](typescript-migration/ts-01/README.md) passed local replay and the 14-job CI / 13-job Mod matrices at `ddc9dde4c0d0836fef583087a9252fee2bd6bf66`. Final reviewed/merged commits and Gitee synchronization are recorded in [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75). D01–D06 remain OPEN; next work is TS-02, beginning with the recorded clock, lock, launcher and platform coverage gaps. No TypeScript runtime or release version has been selected.
 
 ### TS-02 Platform probes and runtime choice
 
@@ -217,5 +217,6 @@ The documentation checker is still Python at this planning stage; replace this i
 | --- | --- | --- |
 | 2026-10-11 | Source feasibility review and initial bilingual plan | Baseline, scope, risks, six implementation/delivery stages and handoff rules recorded. `python3 -B tools/check_docs.py` passed with 1,313 relative links and bilingual-pair checks; `git diff --check` and bilingual stage/decision consistency checks passed. No application tests or implementation work ran. TS-01–TS-06 remain NOT_STARTED. Next implementation task starts with TS-01. |
 | 2026-10-11 | TS-01 implementation and isolated reference validation | Complete source/test/tool inventories, 161 deterministic cases, guarded capture/verify commands and a dedicated CI gate added. Reference suite: 807 passed / 8 native-platform skips. Both fixed-host Mod suites and installed PTYs passed; original external label mismatch corrected in the harness only. State VALIDATING pending CI/PR. [Evidence](typescript-migration/ts-01/README.md). |
+| 2026-10-11 | TS-01 exit gate completed | Two independent 161-case captures match; 12 verifier regressions pass. Implementation `ddc9dde` passed all 14 [CI jobs](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) and 13 [Mod jobs](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593). Exact Python 3.14.4 fixes canonical diagnostic provenance; support matrix retained. Stage DONE; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75) records final merge/sync. Next: TS-02; D01–D06 OPEN. |
 
 This log records milestones and decisions only. Detailed execution evidence belongs in linked results/PRs. The local-only roadmap may point here but must not maintain a separate migration status ledger.

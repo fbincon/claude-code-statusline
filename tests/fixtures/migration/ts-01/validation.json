@@ -3,7 +3,7 @@
   "date": "2026-10-11",
   "timezone": "Asia/Shanghai",
   "reference_commit": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
-  "status": "VALIDATING",
+  "status": "complete",
   "raw_directory": "dist/validation/typescript-migration/ts-01/run-01",
   "environment": {
     "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
@@ -394,10 +394,166 @@
     "Performance measurement and D06 budget"
   ],
   "ci": {
-    "status": "pending",
+    "status": "passed",
     "pr": "https://github.com/fbincon/claude-code-statusline/pull/75",
-    "tested_commit": null,
-    "runs": [],
+    "tested_commit": "ddc9dde4c0d0836fef583087a9252fee2bd6bf66",
+    "runs": [
+      {
+        "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591",
+        "event": "pull_request",
+        "head_sha": "ddc9dde4c0d0836fef583087a9252fee2bd6bf66",
+        "status": "completed",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "name": "Build and inspect distributions",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507679786"
+          },
+          {
+            "name": "Frozen Python migration baseline",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680001"
+          },
+          {
+            "name": "macos-15-intel / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680013"
+          },
+          {
+            "name": "macos-26-intel / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680055"
+          },
+          {
+            "name": "macos-26-intel / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680058"
+          },
+          {
+            "name": "macos-15 / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680089"
+          },
+          {
+            "name": "macos-15 / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680103"
+          },
+          {
+            "name": "macos-26 / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680107"
+          },
+          {
+            "name": "macos-26 / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680132"
+          },
+          {
+            "name": "macos-15-intel / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680134"
+          },
+          {
+            "name": "windows-latest / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680182"
+          },
+          {
+            "name": "windows-latest / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680207"
+          },
+          {
+            "name": "ubuntu-latest / Python 3.14",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680228"
+          },
+          {
+            "name": "ubuntu-latest / Python 3.10",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591/job/114507680255"
+          }
+        ],
+        "raw_summary_sha256": "dedf18b39d8d305eba3770798a73a29a07369cff74d0cdcea438c344f6f059ea"
+      },
+      {
+        "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593",
+        "event": "pull_request",
+        "head_sha": "ddc9dde4c0d0836fef583087a9252fee2bd6bf66",
+        "status": "completed",
+        "conclusion": "success",
+        "jobs": [
+          {
+            "name": "macOS / Claude Code 2.1.288",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679734"
+          },
+          {
+            "name": "Windows / Claude Code 2.1.289",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679867"
+          },
+          {
+            "name": "Windows / Claude Code 2.1.294",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679897"
+          },
+          {
+            "name": "macOS / Claude Code 2.1.294",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679899"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.287",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679946"
+          },
+          {
+            "name": "Windows / Claude Code 2.1.288",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679967"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.296",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679970"
+          },
+          {
+            "name": "macOS / Claude Code 2.1.296",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679981"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.288",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507679986"
+          },
+          {
+            "name": "Windows / Claude Code 2.1.296",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507680037"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.289",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507680044"
+          },
+          {
+            "name": "Linux / Claude Code 2.1.294",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507680057"
+          },
+          {
+            "name": "macOS / Claude Code 2.1.289",
+            "conclusion": "success",
+            "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593/job/114507680060"
+          }
+        ],
+        "raw_summary_sha256": "f5f02253cd1d60413b04900886ab7af940a2f64da376b42bfc1d3ee701c1a590"
+      }
+    ],
     "attempts": [
       {
         "head": "d6e1ea074f4bacf1a13b339502a5948afa2707e8",
@@ -414,8 +570,6 @@
       "cases": 161
     }
   },
-  "merged_commit": null,
-  "gitee_main": null,
   "installed_wheel_verification": {
     "all_runtime_entries_match": true,
     "entries": 209,
@@ -489,5 +643,10 @@
       "result": "passed",
       "log_sha256": "13746d9b29ff23fd839eb53a4fab7f14f4440575509ae52fa5a634d153712611"
     }
+  },
+  "delivery": {
+    "record": "https://github.com/fbincon/claude-code-statusline/pull/75",
+    "merge_commit_source": "GitHub PR merge record; the final reviewed head, merge SHA and verified Gitee main are recorded in the PR description after delivery.",
+    "final_documentation_checks": "Final PR revision must pass checks before merge; no release or new tag."
   }
 }

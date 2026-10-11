@@ -123,7 +123,7 @@ contracts in the migration plan, retain the old revision in history, capture int
 new directories, inspect differences and rerun affected validation before explicitly
 replacing reviewed JSON/lock files. There is no automatic “accept all” switch.
 
-Performance source files and parameters are frozen in the inventory: 50 samples,
+Performance source files and representative-comparison parameters are frozen in the inventory: 50 samples,
 three alternating rounds, small/medium/large profiles and cold/warm bytecode. No
 new performance claim or acceptance budget is made here; measurement, RSS gaps
 and D06 decisions belong to TS-02.
@@ -171,3 +171,5 @@ coverage through the current preparation flow. The agreed TS-01 scope excludes
 new paid model calls and cross-platform human desktop acceptance. Physical sleep,
 reboot, power-loss durability and uncovered architecture/terminal combinations
 remain explicit TS-02/TS-06 work. D01–D06 remain OPEN.
+
+Implementation `ddc9dde4c0d0836fef583087a9252fee2bd6bf66` passed all 14 [CI jobs](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) and 13 [Mod jobs](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593). [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75) records the final reviewed head, merge commit and verified Gitee synchronization after the documentation revision passes its checks. The next implementation stage is TS-02.

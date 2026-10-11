@@ -12,11 +12,11 @@
 | --- | --- |
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
-| 实现进度 | TS-01 工具及清单已实现；在 `fbincon/ts-01-baseline` 分支验收中 |
-| 当前任务范围 | 固定 Python 基线、行为清单及可复现核验；生产实现保持不变 |
+| 实现进度 | **TS-01 DONE**；实现提交 `ddc9dde` 通过 14 项 CI 及 13 项 Mod 检查；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)记录交付 |
+| 当前任务范围 | TS-01 基线已交付；生产迁移属于后续阶段 |
 | 运行时与分发 | 目前只有候选方案；D01–D06 均待决策 |
 | 目标版本与工期 | 尚未指定；TS-02 平台验证后估算 |
-| 下一项实施工作 | 完成 TS-01 CI，随后进行 TS-02 平台验证及 D01–D06 决策 |
+| 下一项实施工作 | TS-02 平台验证及 D01–D06 决策 |
 
 编写计划不代表任何实现阶段已通过。后续任务范围内仍适用仓库既有授权，本计划不为每个阶段新增例行审批步骤。
 
@@ -94,7 +94,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 | 阶段 | 交付物 | 依赖 | 状态 | 执行者与证据 |
 | --- | --- | --- | --- | --- |
-| TS-01 | 固定基线与行为清单 | 明确开始实施任务 | VALIDATING | Codex；`fbincon/ts-01-baseline`；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
+| TS-01 | 固定基线与行为清单 | 明确开始实施任务 | DONE | Codex；`fbincon/ts-01-baseline`；测试提交 `ddc9dde`；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
 | TS-02 | 平台验证及 D01–D06 决策 | TS-01 | NOT_STARTED | 未分配 |
 | TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | NOT_STARTED | 未分配 |
 | TS-04 | 双编辑器、安装与恢复 | TS-03 | NOT_STARTED | 未分配 |
@@ -110,7 +110,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **退出标准：**具备可追溯的案例／工具清单及可复现的 Python 基线；基线失败和覆盖缺口均有明确处理结论。仅凭历史发布成功不能完成此阶段。
 
-**TS-01 交接：** 参考仍为 `9b6d2fa`。[161 个固定案例、完整清单及验证处置](typescript-migration/ts-01/README.zh-CN.md)已实现；本机参考检查通过，旧验收脚本标签修正单独记录。跨平台 CI 和 PR 证据待补齐，D01–D06 保持 OPEN。
+**TS-01 交接：** DONE。参考仍为 `9b6d2fa`。[161 个固定案例、完整清单及验证处置](typescript-migration/ts-01/README.zh-CN.md)通过本机回放；实现提交 `ddc9dde4c0d0836fef583087a9252fee2bd6bf66` 通过 14 项 CI 和 13 项 Mod 矩阵。最终审查提交、合并提交及 Gitee 同步结果记于 [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)。D01–D06 保持 OPEN；下一步进入 TS-02，先处理已登记的时钟、锁、启动器及平台覆盖缺口。尚未选定 TypeScript 运行时或发布版本。
 
 ### TS-02 平台验证与运行时选择
 
@@ -217,5 +217,6 @@ git diff --check
 | --- | --- | --- |
 | 2026-10-11 | 源码可行性分析及双语初始计划 | 已记录基线、范围、风险、六个实施／交付阶段和交接规则。`python3 -B tools/check_docs.py` 通过，检查 1313 个相对链接及双语配对；`git diff --check`、双语阶段／决策一致性检查通过。未运行应用测试或开展实现。TS-01–TS-06 均为 NOT_STARTED；下一次实施任务从 TS-01 开始。 |
 | 2026-10-11 | TS-01 实施与隔离参考验证 | 完成源码/测试/工具清单、161 个固定案例、受保护的采集/核验命令及专用 CI 门槛。参考测试 807 通过、8 项原生平台跳过；两种固定宿主 Mod 及安装产物 PTY 通过。仅修正旧验收脚本的展示标签断言。状态 VALIDATING，等待 CI/PR。[证据](typescript-migration/ts-01/README.zh-CN.md)。 |
+| 2026-10-11 | TS-01 退出门槛完成 | 两次独立的 161 案例采集一致，12 项核验回归通过。实现提交 `ddc9dde` 通过全部 14 项 [CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) 和 13 项 [Mod](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593) 检查。标准诊断文本回放固定 Python 3.14.4，支持矩阵保留。阶段 DONE；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)记录最终合并/同步。下一步 TS-02，D01–D06 保持 OPEN。 |
 
 此处仅记录里程碑和决策，详细执行证据通过结果文档／PR 链接查看。本地路线图可以指向本计划，不另建一套重构进度台账。
