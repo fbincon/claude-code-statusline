@@ -7,6 +7,7 @@
 ## 技术文档导航
 
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
+- [TypeScript 重构计划与进度](typescript-migration.zh-CN.md)：当前状态、范围、阶段、决策、验收及会话交接。
 - [翻译贡献指南](i18n.zh-CN.md)。
 - [测试与验收](testing.zh-CN.md)。
 - [v1.13.0 多语言性能](performance-v1.13.0.zh-CN.md)：按需语言加载、预建搜索与 2/5/10 语言资源对照。

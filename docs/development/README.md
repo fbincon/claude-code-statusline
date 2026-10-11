@@ -7,6 +7,7 @@ Start here to set up a development environment, run checks and build the package
 ## Technical documentation
 
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
+- [TypeScript migration plan and progress](typescript-migration.md): current state, scope, stages, decisions, acceptance and session handoffs.
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
 - [v1.13.0 language performance](performance-v1.13.0.md): isolated language loading, prepared search and 2/5/10-language resource controls.
