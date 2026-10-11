@@ -80,13 +80,17 @@ def resources(*, complete=True):
         if not isinstance(entries, dict) or set(entries) - set(english) or (complete and set(entries) != set(english)):
             raise ValueError(f"Translation keys differ: {language}")
         for key, value in entries.items():
-            if not isinstance(value, str) or re.search(r"[\x00-\x08\x0b-\x1f\x7f]", value):
+            if not isinstance(value, str) or any(
+                unicodedata.category(c) == "Cs"
+                or (unicodedata.category(c) == "Cc" and c not in "\n\t")
+                for c in value
+            ):
                 raise ValueError(f"Invalid translation: {language}:{key}")
             if not value.strip() and english[key].strip():
                 raise ValueError(f"Empty translation: {language}:{key}")
             if placeholders(value) != placeholders(english[key]):
                 raise ValueError(f"Placeholder mismatch: {language}:{key}")
-            if key.startswith("statusline.") and any(unicodedata.category(c) in ("Cc", "Cs") for c in value):
+            if key.startswith("statusline.") and any(unicodedata.category(c) in ("Cc", "Cs", "Zl", "Zp") for c in value):
                 raise ValueError(f"Statusline messages must be single-line terminal-safe text: {language}:{key}")
             if key.startswith(("statusline.prefix.", "statusline.short.", "statusline.values.", "statusline.live.label.")) and placeholders(value):
                 raise ValueError(f"Statusline labels and enum values cannot contain placeholders: {language}:{key}")

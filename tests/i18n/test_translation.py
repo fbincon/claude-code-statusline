@@ -47,9 +47,12 @@ class TranslationTests(unittest.TestCase):
                  ('{"k":"ok"}', '{"different":"好"}'),
                  ('{"k":"ok"}', '{"k":"好","k":"重复"}'),
                  ('{"k":"ok"}', '{"k":"\\u001b"}'),
+                 ('{"k":"ok"}', '{"k":"\\u0085"}'),
+                 ('{"k":"ok"}', '{"k":"\\ud800"}'),
                  ('{"k":"{value.foo}"}', '{"k":"{value.foo}"}'),
                  ('{"statusline.k":"ok"}', '{"statusline.k":"bad\\nrow"}'),
                  ('{"statusline.k":"ok"}', '{"statusline.k":"\\u0085"}'),
+                 ('{"statusline.k":"ok"}', '{"statusline.k":"bad\\u2028row"}'),
                  ('{"statusline.prefix.main.model":"{value}"}', '{"statusline.prefix.main.model":"{value}"}')]
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

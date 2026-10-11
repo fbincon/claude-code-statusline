@@ -162,7 +162,7 @@ def source_digest(source):
 def run(args):
     report = {"baseline": args.baseline, "candidate": args.candidate,
               "python": sys.version, "node": subprocess.check_output(["node", "--version"], text=True).strip(),
-              "platform": platform.platform(), "samples": args.samples, "rounds": args.rounds,
+              "platform": platform.platform(), "samples": args.samples, "rounds": args.rounds, "modes": args.modes,
               "harness_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               "notes": "Synthetic variants change only registration and generated language resources; qaa–qae are copied English fixtures. Cold/warm means Python bytecode only. Node probes exclude the Claude Client host.",
               "variants": {}, "runs": []}
@@ -205,7 +205,7 @@ def run(args):
                 )
                 subprocess.run([sys.executable, "-c", prepare, lang, str(config / "claude-statusline.json")],
                                cwd=temporary, env=environment(source,config,temporary/"setup-cache",False), check=True, capture_output=True)
-        for mode in ("warm", "cold"):
+        for mode in args.modes:
             for round_number in range(args.rounds):
                 order = list(roots) if round_number % 2 == 0 else list(reversed(roots))
                 for name in order:
@@ -214,7 +214,10 @@ def run(args):
                     metrics, diagnostics = {}, {}
                     for operation, language in cases + ([("node-search", "en")] if mode == "warm" else []):
                         config = temporary / (name + "-" + language)
-                        env = environment(source, config, temporary / ("bytecode-" + name), mode == "warm")
+                        # Disabling writes does not disable reads of existing pyc.
+                        # Give cold workers a distinct, permanently empty tree.
+                        cache = temporary / ("bytecode-" + mode + "-" + name)
+                        env = environment(source, config, cache, mode == "warm")
                         command = (["node", "--no-warnings", "--experimental-transform-types", "--input-type=module", "-e", NODE_PROBE, str(source)]
                                    if operation == "node-search" else [sys.executable, "-c", PYTHON_PROBE, str(source), operation, language])
                         # Prime outside the measured batch, also for the bytecode-disabled worker.
@@ -231,6 +234,8 @@ def run(args):
                         metrics[key] = {field: {**summary([value[field] for value in samples]), "raw": [value[field] for value in samples]}
                                         for field in samples[0] if field.endswith(("_ms", "_kib")) and samples[0][field] is not None}
                         diagnostics[key] = {field: samples[0][field] for field in samples[0] if field not in metrics[key]}
+                        if mode == "cold":
+                            assert not cache.exists(), "Cold worker created bytecode"
                     assert source_digest(source) == digest, "Benchmark source changed during measurement"
                     report["runs"].append({"variant":name, "mode":mode, "round":round_number+1, "metrics":metrics, "diagnostics":diagnostics})
                     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -244,6 +249,7 @@ def main():
     parser.add_argument("--candidate", required=True)
     parser.add_argument("--samples", type=int, default=30)
     parser.add_argument("--rounds", type=int, default=3)
+    parser.add_argument("--modes", choices=("warm", "cold"), nargs="+", default=["warm", "cold"])
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.samples < 1 or args.rounds < 1:
