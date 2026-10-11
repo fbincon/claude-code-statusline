@@ -2,7 +2,7 @@
 
 **English** | [简体中文](typescript-migration.zh-CN.md)
 
-Updated: **2026-10-11** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
+Updated: **2026-10-12** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
@@ -12,11 +12,11 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 | --- | --- |
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
-| Implementation | **TS-01 DONE**; implementation `ddc9dde` passed 14 CI and 13 Mod jobs; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75) records delivery |
-| Current task scope | TS-01 baseline delivered; production migration remains a subsequent stage |
-| Runtime and distribution | Proposed options only; decisions D01–D06 remain open |
+| Implementation | **TS-01 DONE; TS-02 VALIDATING**; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) delivers isolated probes and decision evidence |
+| Current task scope | TS-02 native/installation probes, performance policy and D01–D06 records; production migration has not started |
+| Runtime and distribution | Node 24.21.0/npm/64-bit candidate; D06 DECIDED, remaining evidence gates are recorded in [TS-02](typescript-migration/ts-02/README.md) |
 | Target release and schedule | Unassigned; estimate after the TS-02 platform probes |
-| Next implementation work | TS-02 platform probes and decisions D01–D06 |
+| Next implementation work | Close TS-02's remaining foundational gates before TS-03 |
 
 The planning request does not mark any implementation gate complete. Existing repository authorization still governs work within subsequently assigned tasks; this plan adds no routine approval step to each stage.
 
@@ -82,7 +82,7 @@ Decision states are `OPEN`, `DECIDED` or `SUPERSEDED`. A decided row must link a
 | D03 | OPEN | Cross-process locks and durable writes | Concurrent updates, process death, Windows sharing violations, temporary-file cleanup, symlink/reparse handling and mixed-version cutover | TS-02 |
 | D04 | OPEN | External TUI input/output and terminal launching | Raw keys including Ctrl+S, resize, terminal restoration, Unicode cells, tmux, Windows console and macOS Terminal helper probes | TS-02 |
 | D05 | OPEN | Installation, old-entry retirement, upgrade and rollback | Existing pipx/PATH detection, Windows executable or argv strategy, ownership, plugin/backend binding, opt-out preservation and compatible-backup recovery | Strategy in TS-02; complete in TS-04 |
-| D06 | OPEN | Measurable performance acceptance budget | Same-machine baseline with a frozen harness; explicit per-case latency/RSS budgets and a repeat/noise rule fixed before evaluating the candidate | TS-02 |
+| [D06](typescript-migration/ts-02/D06.md) | DECIDED | Measurable performance acceptance budget | Policy committed at `3c448b8` before measurements; fixed per-case latency/RSS budgets, three alternating rounds and bounded noise review | TS-02 |
 
 The highest-risk source boundaries are [platform clocks](../../src/claude_statusline/platforms/clocks.py), [file locking/publication](../../src/claude_statusline/platforms/files.py), [serialized timers](../../src/claude_statusline/runtime/timing/clock.py), [submission byte cursors](../../src/claude_statusline/runtime/tasks/evidence.py), [semantic revisions](../../src/claude_statusline/config/revisions.py), [CLI ownership](../../src/claude_statusline/integration/ownership.py) and [external terminal handling](../../src/claude_statusline/ui/terminal.py).
 
@@ -95,7 +95,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | Stage | Deliverable | Depends on | State | Owner and evidence |
 | --- | --- | --- | --- | --- |
 | TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | DONE | Codex; `fbincon/ts-01-baseline`; tested `ddc9dde`; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75); [inventory and evidence](typescript-migration/ts-01/README.md) |
-| TS-02 | Platform probes and decisions D01–D06 | TS-01 | NOT_STARTED | Unassigned |
+| TS-02 | Platform probes and decisions D01–D06 | TS-01 | VALIDATING | Codex; `fbincon/ts-02-platform-decisions`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76); [decisions and evidence](typescript-migration/ts-02/README.md) |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | NOT_STARTED | Unassigned |
 | TS-04 | Both editors, installation and recovery | TS-03 | NOT_STARTED | Unassigned |
 | TS-05 | Complete tooling, CI and release candidate | TS-04 | NOT_STARTED | Unassigned |
@@ -120,6 +120,8 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 - Measure a minimal complete render path and startup controls. Decide D01–D06 with evidence; define benchmark conditions and budgets before comparing the full migrated candidate.
 
 **Exit:** each required platform has probe evidence or an explicitly resolved support decision. Native dependencies, launcher strategy, state encoding and terminal approach have concrete designs. Broad migration waits for unresolved foundational decisions.
+
+**TS-02 handoff:** [D01–D06 records and reproducible probes](typescript-migration/ts-02/README.md) retain the immutable Python reference. The maintainer approved npm-first, 64-bit TS delivery in a future major release and retirement of Python import/module/pipx and old Windows `.exe` entry points, with historical Python packages retained for compatibility and rollback. These are future-product decisions, not changes to the released installation. Automated native, installed-package, real-host argv and performance evidence is distinct from physical suspend/reboot and desktop input/focus acceptance. Missing foundational evidence keeps the affected decisions OPEN and TS-03 NOT_STARTED.
 
 ### TS-03 Shared core and backend
 
@@ -215,6 +217,7 @@ The documentation checker is still Python at this planning stage; replace this i
 
 | Date | Work | Result and next action |
 | --- | --- | --- |
+| 2026-10-12 | TS-02 probes and decisions, [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) | Locked Node 24.21.0 and pre-measurement D06 policy; native clock/identity, mixed locks, terminal, installation and real-host argv probes added. [Evidence and open gates](typescript-migration/ts-02/README.md). TS-02 VALIDATING; TS-03 has not started. |
 | 2026-10-11 | Source feasibility review and initial bilingual plan | Baseline, scope, risks, six implementation/delivery stages and handoff rules recorded. `python3 -B tools/check_docs.py` passed with 1,313 relative links and bilingual-pair checks; `git diff --check` and bilingual stage/decision consistency checks passed. No application tests or implementation work ran. TS-01–TS-06 remain NOT_STARTED. Next implementation task starts with TS-01. |
 | 2026-10-11 | TS-01 implementation and isolated reference validation | Complete source/test/tool inventories, 161 deterministic cases, guarded capture/verify commands and a dedicated CI gate added. Reference suite: 807 passed / 8 native-platform skips. Both fixed-host Mod suites and installed PTYs passed; original external label mismatch corrected in the harness only. State VALIDATING pending CI/PR. [Evidence](typescript-migration/ts-01/README.md). |
 | 2026-10-11 | TS-01 exit gate completed | Two independent 161-case captures match; 12 verifier regressions pass. Implementation `ddc9dde` passed all 14 [CI jobs](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) and 13 [Mod jobs](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593). Exact Python 3.14.4 fixes canonical diagnostic provenance; support matrix retained. Stage DONE; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75) records final merge/sync. Next: TS-02; D01–D06 OPEN. |

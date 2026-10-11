@@ -22,3 +22,9 @@ global-exclude .DS_Store *.py[cod]
 include src/build_native.py
 
 recursive-include tools/unicode *.json *.txt
+
+recursive-include tools/migration/ts-02 *.ts *.json *.mjs
+prune tools/migration/ts-02/node_modules
+prune tools/migration/ts-02/dist
+prune tools/migration/ts-02/src/generated
+recursive-include docs/development/typescript-migration/ts-02 *.json

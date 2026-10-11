@@ -2,7 +2,7 @@
 
 [English](typescript-migration.md) | **简体中文**
 
-更新日期：**2026-10-11**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
+更新日期：**2026-10-12**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
 
 将 Python 实现迁移到 TypeScript，保留状态栏行为、既有用户配置及受支持的使用流程。本计划记录范围、依赖、技术决策、验收门槛和交接方式，供后续会话与维护者持续更新。中英文版本随仓库维护；机器私有记录和原始验收数据不写入受版本管理的文档。
 
@@ -12,11 +12,11 @@
 | --- | --- |
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
-| 实现进度 | **TS-01 DONE**；实现提交 `ddc9dde` 通过 14 项 CI 及 13 项 Mod 检查；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)记录交付 |
-| 当前任务范围 | TS-01 基线已交付；生产迁移属于后续阶段 |
-| 运行时与分发 | 目前只有候选方案；D01–D06 均待决策 |
+| 实现进度 | **TS-01 DONE；TS-02 VALIDATING**；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)交付隔离探针与决策证据 |
+| 当前任务范围 | TS-02 原生／安装探针、性能策略及 D01–D06 记录；生产迁移尚未开始 |
+| 运行时与分发 | 候选为 Node 24.21.0／npm／64 位；D06 DECIDED，剩余证据门槛见 [TS-02](typescript-migration/ts-02/README.zh-CN.md) |
 | 目标版本与工期 | 尚未指定；TS-02 平台验证后估算 |
-| 下一项实施工作 | TS-02 平台验证及 D01–D06 决策 |
+| 下一项实施工作 | 关闭 TS-02 剩余基础门槛后再开始 TS-03 |
 
 编写计划不代表任何实现阶段已通过。后续任务范围内仍适用仓库既有授权，本计划不为每个阶段新增例行审批步骤。
 
@@ -82,7 +82,7 @@
 | D03 | OPEN | 跨进程锁与持久写入 | 并发更新、进程异常退出、Windows 共享冲突、临时文件清理、符号链接／reparse 处理及新旧切换 | TS-02 |
 | D04 | OPEN | 外部 TUI 输入输出及终端启动 | Ctrl+S 等原始按键、缩放、终端恢复、Unicode 单元格、tmux、Windows 控制台及 macOS Terminal 辅助程序验证 | TS-02 |
 | D05 | OPEN | 安装、旧入口退役、升级与回滚 | pipx／PATH 识别、Windows 可执行文件或 argv 方案、归属、插件／后端绑定、关闭偏好保留及兼容备份恢复 | TS-02 定策略；TS-04 完成 |
-| D06 | OPEN | 可测量的性能验收预算 | 同机固定脚本基线；在评价候选前确定各场景延迟／RSS 预算及重复测量／噪声规则 | TS-02 |
+| [D06](typescript-migration/ts-02/D06.zh-CN.md) | DECIDED | 可测量的性能验收预算 | 测量前由 `3c448b8` 固定各案例延迟／RSS 预算、三轮交替及有界噪声复查规则 | TS-02 |
 
 重点代码边界是[平台时钟](../../src/claude_statusline/platforms/clocks.py)、[文件锁与发布](../../src/claude_statusline/platforms/files.py)、[序列化计时器](../../src/claude_statusline/runtime/timing/clock.py)、[提交索引字节游标](../../src/claude_statusline/runtime/tasks/evidence.py)、[语义 revision](../../src/claude_statusline/config/revisions.py)、[CLI 归属](../../src/claude_statusline/integration/ownership.py)和[外部终端](../../src/claude_statusline/ui/terminal.py)。
 
@@ -95,7 +95,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | 阶段 | 交付物 | 依赖 | 状态 | 执行者与证据 |
 | --- | --- | --- | --- | --- |
 | TS-01 | 固定基线与行为清单 | 明确开始实施任务 | DONE | Codex；`fbincon/ts-01-baseline`；测试提交 `ddc9dde`；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
-| TS-02 | 平台验证及 D01–D06 决策 | TS-01 | NOT_STARTED | 未分配 |
+| TS-02 | 平台验证及 D01–D06 决策 | TS-01 | VALIDATING | Codex；`fbincon/ts-02-platform-decisions`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)；[决策与证据](typescript-migration/ts-02/README.zh-CN.md) |
 | TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | NOT_STARTED | 未分配 |
 | TS-04 | 双编辑器、安装与恢复 | TS-03 | NOT_STARTED | 未分配 |
 | TS-05 | 完整工具链、CI 与发布候选 | TS-04 | NOT_STARTED | 未分配 |
@@ -120,6 +120,8 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 - 测量最小完整渲染路径及运行时启动对照；依据证据决定 D01–D06，在比较完整候选前固定基准条件和预算。
 
 **退出标准：**每个必要平台都有验证证据，或已有明确解决的支持范围决策。原生依赖、启动器、状态编码和终端方案具备具体设计。基础决策尚未解决时不展开大规模迁移。
+
+**TS-02 交接：**[D01–D06 记录与可复现探针](typescript-migration/ts-02/README.zh-CN.md)保留不可变 Python 参考。维护者已批准未来主版本采用 npm 优先、64 位 TS 分发，退役 Python import／模块／pipx 及旧 Windows `.exe` 入口，并保留历史 Python 包用于兼容和回滚。这是未来产品决策，不修改当前已发布安装。原生、安装包、真实宿主 argv 与性能自动证据同物理休眠／重启及桌面输入／焦点验收分开记录。基础证据缺失时，相关决策保持 OPEN，TS-03 保持 NOT_STARTED。
 
 ### TS-03 共享核心与后端
 
@@ -215,6 +217,7 @@ git diff --check
 
 | 日期 | 工作 | 结果与下一步 |
 | --- | --- | --- |
+| 2026-10-12 | TS-02 探针与决策，[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) | 固定 Node 24.21.0 和测量前 D06 策略；新增原生时钟／身份、混合锁、终端、安装和真实宿主 argv 探针。[证据及剩余门槛](typescript-migration/ts-02/README.zh-CN.md)。TS-02 VALIDATING；TS-03 尚未开始。 |
 | 2026-10-11 | 源码可行性分析及双语初始计划 | 已记录基线、范围、风险、六个实施／交付阶段和交接规则。`python3 -B tools/check_docs.py` 通过，检查 1313 个相对链接及双语配对；`git diff --check`、双语阶段／决策一致性检查通过。未运行应用测试或开展实现。TS-01–TS-06 均为 NOT_STARTED；下一次实施任务从 TS-01 开始。 |
 | 2026-10-11 | TS-01 实施与隔离参考验证 | 完成源码/测试/工具清单、161 个固定案例、受保护的采集/核验命令及专用 CI 门槛。参考测试 807 通过、8 项原生平台跳过；两种固定宿主 Mod 及安装产物 PTY 通过。仅修正旧验收脚本的展示标签断言。状态 VALIDATING，等待 CI/PR。[证据](typescript-migration/ts-01/README.zh-CN.md)。 |
 | 2026-10-11 | TS-01 退出门槛完成 | 两次独立的 161 案例采集一致，12 项核验回归通过。实现提交 `ddc9dde` 通过全部 14 项 [CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) 和 13 项 [Mod](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593) 检查。标准诊断文本回放固定 Python 3.14.4，支持矩阵保留。阶段 DONE；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)记录最终合并/同步。下一步 TS-02，D01–D06 保持 OPEN。 |

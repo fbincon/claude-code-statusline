@@ -1,0 +1,14 @@
+{
+  "format_version": 1,
+  "stage": "TS-02",
+  "state": "VALIDATING",
+  "reference_commit": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "policy_commit": "3c448b8",
+  "pull_request": "https://github.com/fbincon/claude-code-statusline/pull/76",
+  "node": "24.21.0",
+  "python_reference": "3.14.4",
+  "ci": "pending final tested commit",
+  "physical_suspend_reboot": "not_run",
+  "human_desktop_acceptance": "not_run",
+  "next_stage": "TS-03 NOT_STARTED"
+}
