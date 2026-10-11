@@ -28,20 +28,20 @@ def exercise(
         language,
     )
     sub_title = t(
-        "native.ui.client.draw.subagent_items"
+        "native.ui.client.draw.subagent_items_custom_rows"
         if native
         else "ui.drawing.subagent_items",
         language,
     )
     # Copy/edit operations stay in the draft; removing the copy restores the source.
-    send(b"\x04", "(2)")
+    send(b"D" if native else b"\x04", "(2)")
     send(b" ", "[ ]")
     send(b" ", "[x]")
     send(b"\x1b[C", "(2)")
-    capture("composition-repeat-" + language)
-    send(b"\x18", main_title)
+    capture("composition-main-repeat-" + language, mode="composition")
+    send(b"X" if native else b"\x18", main_title)
     # The type picker is read-only until Enter; the new text starts empty.
-    send(b"\x01", t("composition.picker", language))
+    send(b"A" if native else b"\x01", t("composition.picker", language))
     send(b"/text\r", t("items.main.text.label", language))
     capture("composition-picker-" + language, mode="picker")
     send(b"\r", main_title)
@@ -50,12 +50,12 @@ def exercise(
     literal = "◆ ${model} 中文 👩🏽‍💻"
     send(b"\x15" + literal.encode() + b"\r", "${model}")
     send(b"\x07", main_title)
-    capture("composition-text-" + language)
+    capture("composition-main-text-" + language, mode="composition")
     send(b"2" if native else b"\t", sub_title)
-    send(b"\x1b[H\x1b[B\x04", "(2)")
+    send(b"\x1b[H\x1b[B" + (b"D" if native else b"\x04"), "(2)")
     send(b"\x05\r", t("ui.hints.accept", language))
     send(b"\x15Worker\r\x07", "Worker")
-    capture("composition-subagent-" + language)
+    capture("composition-subagent-" + language, mode="composition")
     assert [p.read_bytes() for p in paths] == original, (
         "Draft editing wrote configuration"
     )
@@ -81,8 +81,8 @@ def exercise(
     )
     close()
     reopen()
-    capture("composition-reopened-" + language)
-    send(b"\x04", "(2)")
+    capture("composition-main-reopened-" + language, mode="composition")
+    send(b"D" if native else b"\x04", "(2)")
     close()
     assert request(backend, env, root, "read")["draft"] == saved, (
         "Cancel changed identities or saved options"

@@ -99,6 +99,7 @@ def verify_native_capture(cells, language, mode, terminal_theme):
     key, action = {
         "filtered": ("Enter", "add"),
         "picker": ("Enter", "add"),
+        "composition": ("S", "save"),
         "guidance": ("Ctrl+G", "back"),
         "review": ("A", "accept_draft"),
     }[mode]
@@ -222,7 +223,7 @@ def exercise(
         else:
             send(b"\r\x15" + str(path).encode() + b"\r", observed)
 
-    send(b"\x01", t("composition.picker", language))
+    send(b"A" if native else b"\x01", t("composition.picker", language))
     search("mwe")
     capture("discovery-search-" + language, mode="filtered", preview_language="en")
     send(b"\x1b[D", t("catalog.search.order_disabled", language).split(".")[0])

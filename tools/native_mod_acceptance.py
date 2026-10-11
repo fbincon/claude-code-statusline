@@ -275,11 +275,7 @@ def run_pty(
     ]
     tmux_directory = (
         tempfile.TemporaryDirectory(prefix="statusline-client-tmux-")
-        if persistent
-        and not discovery
-        and not appearance
-        and not composition
-        and not rendering_only
+        if persistent and not discovery and not appearance and not rendering_only
         else None
     )
     tmux_socket = Path(tmux_directory.name) / "server.sock" if tmux_directory else None
@@ -566,12 +562,22 @@ def run_pty(
         from claude_statusline.i18n import translate as t
 
         label = t("native.ui.client.draw.filter", language).strip()
+        time.sleep(1)
+        read_until(label)
         row = next((i for i, line in enumerate(screen_lines()) if label in line), None)
         if row is None:
             raise RuntimeError("Client filter row is not visible for focus click")
         # Mouse coordinates are cells, not code points (CJK/emoji may be to the left).
-        col = next(x for x in range(screen.columns)
-                   if "".join(screen.buffer[row][c].data for c in range(x, screen.columns)).startswith(label)) + 3
+        col = (
+            next(
+                x
+                for x in range(screen.columns)
+                if "".join(
+                    screen.buffer[row][c].data for c in range(x, screen.columns)
+                ).startswith(label)
+            )
+            + 3
+        )
         os.write(master, f"\x1b[<0;{col + 1};{row + 1}M".encode())
         time.sleep(0.05)
         os.write(master, f"\x1b[<0;{col + 1};{row + 1}m".encode())
@@ -674,7 +680,7 @@ def run_pty(
                 "rows": screen.lines,
                 "discovery": cases,
                 "persistent_plugin": persistent,
-                "transport": "direct PTY",
+                "transport": "private tmux in PTY" if tmux_socket else "direct PTY",
                 "manual_visual_acceptance": False,
             }
         if language_only or rendering_only:

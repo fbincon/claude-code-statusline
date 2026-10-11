@@ -201,7 +201,9 @@ def main():
         "--display-case", choices=("legacy", "formatted", "explicit"), default="legacy"
     )
     parser.add_argument(
-        "--suite", choices=("legacy", "representative", "appearance"), default="legacy"
+        "--suite",
+        choices=("legacy", "representative", "appearance", "composition"),
+        default="legacy",
     )
     parser.add_argument(
         "--profiles",
@@ -237,7 +239,11 @@ def main():
             check=True,
         ).stdout.strip()
     )
-    if args.suite == "appearance":
+    if args.suite == "composition":
+        from benchmarking.composition import run
+
+        results = run(args.samples, args.bytecode_mode, measure)
+    elif args.suite == "appearance":
         from benchmarking.appearance import run
 
         results = run(args.samples, args.bytecode_mode, measure)
@@ -262,10 +268,10 @@ def main():
         **results,
         "suite": args.suite,
         "display_case": "matrix"
-        if args.suite in ("representative", "appearance")
+        if args.suite in ("representative", "appearance", "composition")
         else args.display_case,
         "statusline_language": ["en", "zh-CN"]
-        if args.suite in ("representative", "appearance")
+        if args.suite in ("representative", "appearance", "composition")
         else args.language,
         "working_tree_dirty": False
         if args.source_commit
@@ -276,7 +282,16 @@ def main():
         "benchmark_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "fixtures": "isolated synthetic local files; no model calls",
         "fixture_source_sha256": hashlib.sha256(
-            (Path(__file__).parent / ("benchmarking/appearance.py" if args.suite == "appearance" else "benchmarking/render.py")).read_bytes()
+            (
+                Path(__file__).parent
+                / (
+                    "benchmarking/composition.py"
+                    if args.suite == "composition"
+                    else "benchmarking/appearance.py"
+                    if args.suite == "appearance"
+                    else "benchmarking/render.py"
+                )
+            ).read_bytes()
         ).hexdigest(),
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
