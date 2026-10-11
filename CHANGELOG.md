@@ -2,6 +2,16 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## Unreleased
+
+## 2.0.0 - 2026-10-11
+
+- Promote component composition to stable: repeated metrics, literal text, flexible spacers, independent instance options, and opt-in left/right and repeated-metric presets. Existing default display content remains unchanged.
+- Both editors and the CLI support scoped instance creation, copying, ordering, disabling and removal; import review preserves instance identity. Native shortcuts are A/D/X, and external shortcuts are Ctrl+A/Ctrl+D/Ctrl+X.
+- Stable installation requests both supported editor entries by default while preserving explicit disablement. Run `claude-statusline install` after updating the package, then restart Claude Code.
+- Migrate display v1–v7 to schema 8 with backups on writes; editor protocol 11 requires matching bundled resources. Restore a compatible backup before downgrading; portable v1, UI preferences v1 and runtime v2 remain independent.
+- Include bilingual composition and recovery documentation, installed terminal captures, and measured cold/warm performance costs. Keep the v2.0.0a1 preview and its artifacts intact.
+
 ## 2.0.0a1 - 2026-10-11
 
 - Add scoped component instances with stable identities and independent formatting, appearance, conditions and width; repeated metrics reuse raw observations within a frame.
@@ -9,8 +19,6 @@
 - Both editors list configured instances with a type picker, add/copy/disable/move/remove actions and identity-based import review. Add `config instance`; legacy type commands reject ambiguity and compositions they cannot preserve.
 - Advance display schema to 8 and editor protocol to 11. Read v1–v7 without rewriting; back up before actual saves/install migration. Downgrades require compatible backups. Portable v1, UI preferences v1 and runtime v2 remain independent.
 - Document composition, CLI and architecture in both languages; add installed-package PTY acceptance and Claude Code 2.1.296 runtime checks on three platforms.
-
-## Unreleased
 
 ## 1.13.0 - 2026-10-11
 
