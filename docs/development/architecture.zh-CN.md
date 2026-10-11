@@ -9,9 +9,11 @@ src/claude_statusline/
   cli.py、__main__.py、_version.py   CLI 分发与版本
   config/                           显示/feature、宿主配置、模型、
                                     共享存储、事务与命令
+    instances.py, instance_commands.py 实例身份、迁移及 CLI
   i18n/                             翻译、展示与 en/zh-CN 语言包
   rendering/                        格式、颜色、布局、条目、计时、
                                     主栏/子 Agent 输出及预览
+    components.py                    文字／留白共享适配
   runtime/                          路径、缓存、registry、transcript、
                                     usage、Git 与任务生命周期
     live/                           独立计时／指标观测

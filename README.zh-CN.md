@@ -35,6 +35,8 @@
 
 ## 界面预览
 
+[组件实例、复制与左右布局图像](docs/images/composition/README.zh-CN.md)。
+
 [搜索、分类、来源说明与导入审阅画面](docs/images/README.zh-CN.md#discovery-and-import-review)。
 
 
@@ -376,6 +378,7 @@ claude-code-statusline/
 │   ├── COMPOSITION.md / COMPOSITION.zh-CN.md # 组件实例、文本与弹性布局
 │   ├── reference/                           # CLI 与配置参考
 │   ├── images/                              # 当前 TUI 截图与历史归档
+│   │   ├── composition/                     # 组件实例编辑器捕获
 │   │   ├── tui/                             # 当前配置编辑器截图
 │   │   │   ├── native/                      # 会话内配置编辑器截图
 │   │   │   └── external/                    # 外部终端配置编辑器截图
@@ -391,16 +394,18 @@ claude-code-statusline/
 │       │   ├── catalog.py / guidance.py      # 项目定义、来源与条件元数据
 │       │   ├── import_review.py              # 校验后草稿的语义差异
 │       │   ├── ui_preferences.py            # 共享语言偏好事务
-│       │   └── storage.py                   # 锁、备份及原子写入
-│       ├── i18n/                            # 中英文共享展示资源
-│       │   ├── locales/                     # en.json / zh-CN.json
+│       │   ├── storage.py                   # 锁、备份及原子写入
+│       │   └── instances.py / instance_commands.py # 实例模型及显式 CLI
+│       ├── i18n/                            # 界面与输出语言资源
+│       │   ├── locales/                     # en / zh-CN / zh-Hant / ja / ko
 │       │   ├── translator.py                # 消息键、参数与英文回退
 │       │   ├── statusline.py                # 显式语言输出与已知值展示
-│       │   ├── _generated_statusline.py      # 自动生成的轻量运行词典
+│       │   ├── _generated_statusline/        # 按输出语言加载的生成模块
 │       │   └── presentation.py              # 翻译字段与选项
 │       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
 │       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配
 │       ├── rendering/                       # 状态栏格式、颜色、布局与预览
+│       │   ├── components.py                 # 文字与弹性留白拟合
 │       │   ├── visibility.py                 # 原始观测条件规则
 │       │   ├── appearance.py / colors.py     # 主题角色与终端颜色映射
 │       │   └── powerline.py                  # 可见色块组合与宽度适配

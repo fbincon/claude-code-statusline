@@ -36,6 +36,8 @@ Rendering uses Claude Code input and local state without making network requests
 
 ## Screenshots
 
+[Component instances, copies and left/right layout captures](docs/images/composition/README.md).
+
 [Search, categories, source guidance and import review captures](docs/images/README.md#discovery-and-import-review).
 
 
@@ -387,6 +389,7 @@ claude-code-statusline/
 │   ├── COMPOSITION.md / COMPOSITION.zh-CN.md # Instances, text and flexible layouts
 │   ├── reference/                           # CLI and configuration reference
 │   ├── images/                              # Current TUI screenshots and historical archives
+│   │   ├── composition/                     # Component editor captures
 │   │   ├── tui/                             # Current configuration editor screenshots
 │   │   │   ├── native/                      # In-session configuration editor screenshots
 │   │   │   └── external/                    # External terminal configuration editor screenshots
@@ -402,16 +405,18 @@ claude-code-statusline/
 │       │   ├── catalog.py / guidance.py      # Scoped definitions and static source/requirement metadata
 │       │   ├── import_review.py              # Semantic differences between validated drafts
 │       │   ├── ui_preferences.py            # Shared language preference transactions
-│       │   └── storage.py                   # Locks, backups and atomic writes
-│       ├── i18n/                            # Shared English/Chinese presentation resources
-│       │   ├── locales/                     # en.json / zh-CN.json
+│       │   ├── storage.py                   # Locks, backups and atomic writes
+│       │   └── instances.py / instance_commands.py # Instance model and explicit CLI
+│       ├── i18n/                            # Registered interface/output languages
+│       │   ├── locales/                     # en / zh-CN / zh-Hant / ja / ko
 │       │   ├── translator.py                # Message keys, parameters and English fallback
 │       │   ├── statusline.py                # Explicit-language output and known-value presentation
-│       │   ├── _generated_statusline.py      # Generated lightweight runtime dictionary
+│       │   ├── _generated_statusline/        # Generated modules loaded per output language
 │       │   └── presentation.py              # Localized fields and choices
 │       ├── integration/                     # Claude Code setup, install transactions, hooks and diagnostics
 │       ├── platforms/                       # Cross-platform files, processes, clocks and terminals
 │       ├── rendering/                       # Statusline formatting, colors, layout and previews
+│       │   ├── components.py                 # Text and flexible-space fitting
 │       │   ├── visibility.py                 # Raw-observation visibility rules
 │       │   ├── appearance.py / colors.py     # Theme roles and terminal color mapping
 │       │   └── powerline.py                  # Visible block composition and fitting

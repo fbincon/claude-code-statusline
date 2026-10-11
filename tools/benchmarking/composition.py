@@ -1,5 +1,6 @@
 """Opt-in instance costs using fixed observations and isolated CLI processes."""
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -58,7 +59,9 @@ def run(samples, bytecode_mode, measure):
         root = Path(temporary)
         config_dir = root / "config"
         config_dir.mkdir()
-        transcript = root / "history.jsonl"
+        from benchmarking.render import fixtures
+
+        transcript, project = fixtures(root, 1, 0, 1)
         transcript.write_text(
             json.dumps(
                 {
@@ -87,6 +90,7 @@ def run(samples, bytecode_mode, measure):
                 for width in (40, 120):
                     env["COLUMNS"] = str(width)
                     main = {
+                        "workspace": {"current_dir": str(project)},
                         "transcript_path": str(transcript),
                         "session_id": "composition-benchmark",
                         "model": {"id": "claude-sonnet-5"},
@@ -124,6 +128,7 @@ def run(samples, bytecode_mode, measure):
                                 [sys.executable, "-m", "claude_statusline", command],
                                 input=raw,
                                 env=environment,
+                                cwd=project,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 check=True,
@@ -145,5 +150,8 @@ def run(samples, bytecode_mode, measure):
                             )
     return {
         "metrics": metrics,
+        "shared_fixture_sha256": hashlib.sha256(
+            Path(__file__).with_name("render.py").read_bytes()
+        ).hexdigest(),
         "comparison": "candidate-only defaults/single instances versus repeated instances and flexible layout; no live I/O fixtures",
     }

@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+See the [component editor captures](composition/README.md) for the current instance interface. Original cross-platform galleries remain documented below.
+
 See the [multilingual installed-terminal captures](languages/README.md) for Traditional Chinese, Japanese and Korean.
 
 The original cross-platform gallery contains 21 original screenshots supplied on 2026-10-07: nine in-session TUI pages and twelve external TUI pages. The former 18-image README gallery and older records remain in the [archive](archive/README.md).

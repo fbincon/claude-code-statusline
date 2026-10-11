@@ -9,9 +9,11 @@ src/claude_statusline/
   cli.py, __main__.py, _version.py   CLI dispatch and version
   config/                           Display/features, host settings, models,
                                     shared storage, transactions and commands
+    instances.py, instance_commands.py Instance identity, migration and CLI
   i18n/                             Translation, presentation and registered locales and generated language modules
   rendering/                        Formatting, palette, layout, items,
                                     timer, main/subagent output and preview
+    components.py                    Shared text/spacer fitting
   runtime/                          Paths, caches, registry, transcript,
                                     usage, Git and task lifecycle
     live/                           Independent timing/metrics observations
