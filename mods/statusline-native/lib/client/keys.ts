@@ -112,8 +112,8 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
   }
   if(!e.detail&&(e.page==='main'||e.page==='subagents')){
     const scope=e.page==='main'?'main':'subagent';
-    if(event.ctrl&&key.toLowerCase()==='a'&&!e.adding){e.openPicker(scope);return null;}
-    if(event.ctrl&&['d','x'].includes(key.toLowerCase())&&!e.adding){
+    if(!event.meta && key.toLowerCase()==='a'&&!e.adding){e.openPicker(scope);return null;}
+    if(!event.meta && ['d','x'].includes(key.toLowerCase())&&!e.adding){
       if(!e.instanceAction(scope,key.toLowerCase()==='d'?'copy':'remove'))
         setMessage(view,'message',localizedText('composition.invalid'));
       return null;

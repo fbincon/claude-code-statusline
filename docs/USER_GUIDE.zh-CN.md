@@ -196,7 +196,7 @@ Ctrl+F 打开分类选择器，方向键选择、Enter 确认；选择“全部�
 
 ## 组件组合
 
-Main 和 Subagents 显示已配置实例；Ctrl+A 打开组件目录，Ctrl+D 复制，Ctrl+X 移除。每个副本独立设置格式、颜色和显示条件。文本与弹性留白用于符号及左右布局，默认显示不变。详见[组件与布局](COMPOSITION.zh-CN.md)，包含完整快捷键、实例 CLI、迁移与降级恢复。
+Main 和 Subagents 显示已配置实例；原生 A／外部 Ctrl+A 打开组件目录，原生 D／外部 Ctrl+D 复制，原生 X／外部 Ctrl+X 移除。每个副本独立设置格式、颜色和显示条件。文本与弹性留白用于符号及左右布局，默认显示不变。详见[组件与布局](COMPOSITION.zh-CN.md)，包含完整快捷键、实例 CLI、迁移与降级恢复。
 
 ## 状态栏语言
 
@@ -230,7 +230,7 @@ claude-statusline config show --json
 
 | 页面 | 底部展示顺序 |
 | --- | --- |
-| Main / Subagents | `Tab page · Ctrl+A add · Ctrl+D copy · Ctrl+X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Main / Subagents | `Tab page · A add · D copy · X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
 | Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
 | Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
 | 逐项格式 | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |

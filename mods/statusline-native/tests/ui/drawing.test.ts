@@ -170,7 +170,7 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     else e.page = page as typeof e.page;
     const groups = editorShortcuts(state);
     const expected = page === 'main' || page === 'subagents'
-      ? ['Tab', 'Ctrl+A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
+      ? ['Tab', 'A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
       : page === 'settings' ? ['Tab', '↑↓', '←→', 'Enter', 'H', 'R']
       : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', '↑↓', '←→', 'Enter'];
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);

@@ -73,3 +73,12 @@ test('a rejected move preserves both the configured order and the row boundaries
   expect(e.move('main', 1)).toBe(false);
   expect(e.draft).toEqual(before); expect(e.order.main).toEqual(order);
 });
+
+
+test('native letter actions work outside inputs without depending on reserved control chords', () => {
+  const e = editor();
+  const v = {editor:e,input:null,preferences:[],busy:'',uncertain:false,message:'',error:'',preview:null} as unknown as View;
+  handleKey(v,{key:'D'},80,24); expect(e.draft.display.instances.length).toBe(2);
+  handleKey(v,{key:'X'},80,24); expect(e.draft.display.instances.length).toBe(1);
+  handleKey(v,{key:'A'},80,24); expect(e.adding).toBe(true);
+});

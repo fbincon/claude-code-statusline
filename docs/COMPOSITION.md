@@ -18,11 +18,11 @@ Open `/statusline-configure-native` inside Claude Code, or run
 you have configured, including disabled ones. A suffix such as `(2)` distinguishes
 instances of the same type; it follows their current order.
 
-| Action in Main or Subagents | Key |
+| Action in Main or Subagents | Native / external |
 | --- | --- |
-| Open the component picker | Ctrl+A |
-| Copy the selected instance | Ctrl+D |
-| Remove the selected instance from the draft | Ctrl+X |
+| Open the component picker | A / Ctrl+A |
+| Copy the selected instance | D / Ctrl+D |
+| Remove the selected instance from the draft | X / Ctrl+X |
 | Enable or disable | Space |
 | Edit the selected instance | Ctrl+E |
 | Move the selected instance | Left / Right |
@@ -40,6 +40,8 @@ All these operations edit the draft. Native S / F or external Ctrl+S saves; the
 existing close/cancel controls discard unsaved edits. Claude host preferences
 still have their own Apply action. Resize, language changes and save conflicts
 preserve the draft.
+
+Native uses letter keys A/D/X because the host can intercept control chords such as Ctrl+D. Letters remain literal while searching or editing text.
 
 Types with exclusions remain exclusive: for example, disable `status-elapsed`
 before enabling a separate `status` or `elapsed`. A conflicting addition or copy

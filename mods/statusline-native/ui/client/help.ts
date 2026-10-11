@@ -43,7 +43,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
   const contextual: Shortcut[] = [{ key: 'Tab', label: 'page' }];
   if (!e.detail && (e.page === 'main' || e.page === 'subagents')) {
     contextual.push(
-      { key: 'Ctrl+A/D/X', label: 'add/copy/remove', short:'add/copy/remove' },
+      { key: 'A/D/X', label: 'add/copy/remove', short:'add/copy/remove' },
       { key: 'Space', label: 'toggle' },
       { key: '↑↓', label: 'select' },
       ...(e.filtered(e.page === 'main' ? 'main' : 'subagent') ? [] : [{ key: '←→', label: 'order' }]),

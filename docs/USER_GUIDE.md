@@ -194,7 +194,7 @@ Interface language, collector switches and independent Claude preferences stay o
 
 ## Component composition
 
-Main and Subagents show configured instances. Ctrl+A opens the type picker, Ctrl+D copies, and Ctrl+X removes. Each copy has independent formatting, colors and conditions. Text and flexible spacers support symbols and left/right layouts; defaults remain unchanged. See [components and layout](COMPOSITION.md) for keys, instance CLI, migration and downgrade recovery.
+Main and Subagents show configured instances. Native A (external Ctrl+A) opens the type picker, native D (external Ctrl+D) copies, and native X (external Ctrl+X) removes. Each copy has independent formatting, colors and conditions. Text and flexible spacers support symbols and left/right layouts; defaults remain unchanged. See [components and layout](COMPOSITION.md) for keys, instance CLI, migration and downgrade recovery.
 
 ## Statusline language
 
@@ -228,7 +228,7 @@ Page shortcuts appear in the footer, following the separate save/finish/close/pr
 
 | Page | Footer order |
 | --- | --- |
-| Main / Subagents | `Tab page · Ctrl+A add · Ctrl+D copy · Ctrl+X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
+| Main / Subagents | `Tab page · A add · D copy · X remove · Space toggle · ↑↓ select · ←→ order · Ctrl+E format · / search` |
 | Settings | `Tab page · ↑↓ select · ←→ adjust · Enter edit · H show/hide preferences · A apply separately · R reload` |
 | Layout | `Tab page · ↑↓ select · ←→ adjust · Enter edit` |
 | Item format | `Tab page · ↑↓ select · ←→ adjust · Enter edit · Ctrl+G back` |
