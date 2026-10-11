@@ -1,0 +1,20 @@
+{
+  "format_version": 1,
+  "reference_commit": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "harness": {
+    "tools/migration/__init__.py": "7985021219e58ac99405bf795e6c944708529ccfc19c6a41fb933c56ca088206",
+    "tools/migration/__main__.py": "affcc6dffd47e23f34ab22c5a68e2a6d6f5565b301fc238813e2ce2b172476f6",
+    "tools/migration/capture.py": "7c733870b374146371b9d4a7408a2976c5b15ea53612d7627a90d847a566a71c",
+    "tools/migration/common.py": "5ec354ff336a6a3edb2e17e376225bca962d5d2d8ff8848dac6ee1240d405e2e",
+    "tools/migration/inventory.py": "ae8c3a8f1f89802a0fdab633bd7a40aaae8d3742fcb9bf2b31985e460c184d89",
+    "tools/migration/policy.py": "6c557b6515f9af4a25b2608ce222318830167765026cb093c521bac11334c98d",
+    "tools/migration/scenarios.py": "edd9e8c265996d4b70b2dbe6c1bc0762d693ead7fe87e0a433c61c0ab201fe6a",
+    "tools/migration/worker.py": "eb9c70fa8b7a65837157606557bd81483bf7821ce2494018f27f94d35777876b"
+  },
+  "fixtures": {
+    "baseline.json": "b046ddf48518866fe03e375e23c94842575fcaa901c5cca2feb6d43e188adca2",
+    "cases.json": "6da3d965f5c1c8de998af4c450eec3477b52ff5524f55e5a4e3fdc64abf85284",
+    "expected.json": "f9f1d5891671275b2e0a5ef8c1f37b2b0c1aefbfec9e9675c7243ea2c5a6f74f",
+    "platforms.json": "31d5fcd5db18d5ef4f19a6f8c35fe6a30971ba11c0f8d2fc951ce305a37b4956"
+  }
+}

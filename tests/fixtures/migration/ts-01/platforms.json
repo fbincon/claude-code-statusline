@@ -1,0 +1,110 @@
+{
+  "format_version": 1,
+  "canonical_corpus": {
+    "os": "Linux",
+    "architecture": "x86_64",
+    "python": "3.14",
+    "purpose": "Deterministic reference replay; does not replace native platform testing."
+  },
+  "supported_targets": [
+    {
+      "target": "Linux x86_64",
+      "support": "supported",
+      "ci": [
+        "ubuntu-latest / Python 3.10",
+        "ubuntu-latest / Python 3.14"
+      ],
+      "local": "Linux x86_64 / Python 3.14.4; automated tests, installed CLI, external and native PTYs",
+      "gap": null
+    },
+    {
+      "target": "WSL",
+      "support": "supported",
+      "ci": [],
+      "local": "not_run",
+      "gap": "Linux runner does not establish Windows/WSL terminal integration; TS-02 probes."
+    },
+    {
+      "target": "Windows 10/11 x64",
+      "support": "supported",
+      "ci": [
+        "windows-latest / Python 3.10",
+        "windows-latest / Python 3.14"
+      ],
+      "local": "not_run",
+      "gap": "No human desktop or real suspend/resume evidence in TS-01; TS-02/TS-06."
+    },
+    {
+      "target": "Windows 10/11 x86",
+      "support": "supported",
+      "ci": [],
+      "local": "not_run",
+      "gap": "No native x86 CI; verify selected runtime/distribution before D01 support decision."
+    },
+    {
+      "target": "Windows ARM device with x64 emulation",
+      "support": "supported_via_x64_python_emulation",
+      "ci": [],
+      "local": "not_run",
+      "gap": "Emulation unverified; native ARM64 Python remains outside current support contract."
+    },
+    {
+      "target": "macOS 14+ Intel",
+      "support": "supported",
+      "ci": [
+        "macos-15-intel / Python 3.10,3.14",
+        "macos-26-intel / Python 3.10,3.14"
+      ],
+      "local": "not_run",
+      "gap": "macOS 14 and human Terminal.app interaction not newly validated; TS-02/TS-06."
+    },
+    {
+      "target": "macOS 14+ Apple Silicon",
+      "support": "supported",
+      "ci": [
+        "macos-15 / arm64 Python 3.10.11,3.14",
+        "macos-26 / arm64 Python 3.10.11,3.14"
+      ],
+      "local": "not_run",
+      "gap": "Existing in-session Client input limitation remains; TS-02 terminal probes and TS-06 acceptance."
+    }
+  ],
+  "fixed_mod_hosts": {
+    "Linux": [
+      "2.1.287",
+      "2.1.288",
+      "2.1.289",
+      "2.1.294",
+      "2.1.296"
+    ],
+    "Windows": [
+      "2.1.288",
+      "2.1.289",
+      "2.1.294",
+      "2.1.296"
+    ],
+    "macOS": [
+      "2.1.288",
+      "2.1.289",
+      "2.1.294",
+      "2.1.296"
+    ]
+  },
+  "limitations": [
+    {
+      "id": "G01",
+      "scope": "Claude Code 2.1.296",
+      "disposition": "Runtime tests and installation only; current host does not emit declarations through prepare_mod_types. Exact-build type checks retain earlier fixed hosts; TS-02/TS-04."
+    },
+    {
+      "id": "G02",
+      "scope": "Physical clocks and failure recovery",
+      "disposition": "Mocked reboot/suspend/process identity and OS CI do not prove physical sleep, power loss or every filesystem. D02/D03 require TS-02 probes."
+    },
+    {
+      "id": "G03",
+      "scope": "Human visuals and paid calls",
+      "disposition": "Not run in TS-01 as agreed. Synthetic lifecycle replay and PTYs are separate evidence; TS-06 handles human acceptance; paid calls retain explicit budget/ledger policy."
+    }
+  ]
+}
