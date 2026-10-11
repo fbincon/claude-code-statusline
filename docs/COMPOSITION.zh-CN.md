@@ -100,6 +100,8 @@ claude-statusline config layout --by-instance explicit model-with-effort,git,spa
 以完整保留布局。类型目录 JSON 新增 `instance_ids`、`enabled_instance_ids`、`instance_only`；
 没有唯一启用位置时，`position` 为 null。
 
+在显式行或组件组合中，按唯一类型启禁用会保留已有位置。简单自动布局的旧类型选择仍沿用启用时追加到末尾的行为；实例启禁用命令始终保留位置。
+
 ## 迁移、导入导出与恢复
 
 显示 schema 8 保存有序实例；编辑器协议 11 要求 Python 和原生资源版本匹配。

@@ -283,10 +283,36 @@ def _legacy_selection(config_dir, executable, scope, action, types):
                     value0="",
                 )
             )
-        if action == "enable":
-            selected = tuple(current + [i for i in selected if i not in current])
-        elif action == "disable":
-            selected = tuple(i for i in current if i not in selected)
+        if action in ("enable", "disable"):
+            nodes = list(target.instances)
+            structural = (
+                scope == "main"
+                and config.layout.mode == "explicit"
+                or any(node.type_id in instances.NODE_TYPES for node in nodes)
+                or len({node.type_id for node in nodes}) != len(nodes)
+            )
+            for identifier in selected:
+                index = next(
+                    (n for n, node in enumerate(nodes) if node.id == identifier), None
+                )
+                if index is None:
+                    if action == "enable":
+                        nodes.append(instances.DisplayInstance(identifier, identifier))
+                    continue
+                node = nodes[index]
+                if node.enabled == (action == "enable"):
+                    continue
+                updated = replace(node, enabled=action == "enable")
+                if action == "enable" and not structural:
+                    # Preserve historical append order for a simple type selection.
+                    nodes.pop(index)
+                    nodes.append(updated)
+                else:
+                    # Toggling a unique type must never move text, spacers or rows.
+                    nodes[index] = updated
+            return instances.replace_scope(
+                config, scope, nodes
+            ), config_models._UNCHANGED
         target = target.with_updates(items=selected)
         return (
             target if scope == "main" else config.with_updates(subagents=target)

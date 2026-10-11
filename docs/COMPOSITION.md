@@ -126,6 +126,8 @@ editor to preserve the complete composition. Type catalog JSON adds
 `instance_ids`, `enabled_instance_ids` and `instance_only`; `position` is null
 when there is no unique enabled placement.
 
+Unique type-based enable/disable commands preserve existing positions in explicit rows or compositions. A simple automatic type selection retains the historical append order when enabling a disabled metric. Instance enable/disable always preserves placement.
+
 ## Migration, transfer and recovery
 
 Display schema 8 stores ordered instances; editor protocol 11 requires matching

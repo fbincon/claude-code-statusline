@@ -92,3 +92,31 @@ class InstanceCommandTests(ConfigCommandTestCase):
         self.assertNotIn(
             identifier, display.load_display_config(self.config_dir).layout.rows[0]
         )
+
+    def test_legacy_unique_toggle_preserves_composition_positions(self):
+        self.install_minimal_settings()
+        self.command("preset", "left-right")
+        self.command("instance", "main", "copy", "context-remaining")
+        initial = display.load_display_config(self.config_dir)
+        for action in ("disable", "enable"):
+            self.command(action, "git")
+            current = display.load_display_config(self.config_dir)
+            self.assertEqual(
+                [i.id for i in current.instances], [i.id for i in initial.instances]
+            )
+            self.assertEqual(current.layout, initial.layout)
+            self.assertEqual(
+                next(i.enabled for i in current.instances if i.id == "git"),
+                action == "enable",
+            )
+        self.assertEqual(display.load_display_config(self.config_dir), initial)
+
+    def test_legacy_subagent_toggle_retains_the_spacer_side(self):
+        self.install_minimal_settings()
+        self.command("preset", "left-right")
+        initial = display.load_display_config(self.config_dir).subagents
+        self.command("subagents", "disable", "name")
+        self.command("subagents", "enable", "name")
+        self.assertEqual(
+            display.load_display_config(self.config_dir).subagents, initial
+        )

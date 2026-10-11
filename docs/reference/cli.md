@@ -917,3 +917,5 @@ Use `config set theme classic|dark|light|terminal`, `config set separator-style 
 `config instance main|subagent` supports `list [--json]`, `add TYPE_ID [--after ID] [--text TEXT]`, `copy ID`, `remove ID`, `enable ID`, `disable ID`, `move ID --before|--after ANCHOR`, and `set ID OPTION VALUE`. Add/copy return the new ID. `config layout --by-instance explicit ROW...` uses comma-separated instance IDs, including all configured disabled instances, in exactly the configured order.
 
 Legacy item/enable/disable commands resolve a type only when unique. Legacy bulk selection/order/layout operations reject repeated types, text and spacers without choosing the first match or deleting instances. Type-catalog JSON adds `instance_ids`, `enabled_instance_ids`, and `instance_only`. See [composition](../COMPOSITION.md) for complete examples.
+
+When a unique metric is toggled in an explicit layout or a composition, its position and spacer side are retained. Historical append-on-enable order applies to simple automatic type selections. Use `config instance ... enable|disable` to preserve positions consistently.
