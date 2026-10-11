@@ -19,7 +19,7 @@ let oracleRoot: string;
 let env: NodeJS.ProcessEnv;
 const oracleScript = join(packageRoot, 'scripts/oracle.py');
 before(() => { oracleRoot = exportReference(); env = { ...process.env, TS02_REFERENCE_ROOT: oracleRoot, PYTHONDONTWRITEBYTECODE: '1' }; });
-after(() => { fs.rmSync(temporary, { recursive: true, force: true }); fs.rmSync(oracleRoot, { recursive: true, force: true }); });
+after(() => { fs.rmSync(temporary, { recursive: true, force: true }); if (oracleRoot) fs.rmSync(oracleRoot, { recursive: true, force: true }); });
 function oracle(args: string[], input = '') {
   return execFileSync(python, [oracleScript, ...args], { input, env, encoding: 'utf8' });
 }

@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
@@ -13,12 +13,12 @@ export const python = process.env.TS02_PYTHON || (process.platform === 'win32' ?
 export function sha(value: string | Buffer): string { return createHash('sha256').update(value).digest('hex'); }
 export function exportReference(): string {
   const directory = mkdtempSync(join(tmpdir(), 'ts02-reference-'));
-  const archive = execFileSync('git', ['archive', reference, 'src'], { cwd: repoRoot, maxBuffer: 64 * 1024 * 1024 });
-  execFileSync('tar', ['-xf', '-', '-C', directory], { input: archive });
-  // tar output is checked against the actual immutable Git blobs.
+  // Export raw blobs rather than archive/checkout filters (CRLF differs on Windows).
   const tracked = execFileSync('git', ['ls-tree', '-r', '--name-only', reference, '--', 'src'], { cwd: repoRoot, encoding: 'utf8' }).trim().split('\n');
   for (const path of tracked) {
-    const expected = execFileSync('git', ['show', `${reference}:${path}`], { cwd: repoRoot, maxBuffer: 8 * 1024 * 1024 });
+    const expected = execFileSync('git', ['cat-file', 'blob', `${reference}:${path}`], { cwd: repoRoot, maxBuffer: 8 * 1024 * 1024 });
+    mkdirSync(dirname(join(directory, path)), { recursive: true });
+    writeFileSync(join(directory, path), expected);
     if (sha(readFileSync(join(directory, path))) !== sha(expected)) throw new Error(`Oracle export mismatch: ${path}`);
   }
   writeFileSync(join(directory, '.reference'), reference);

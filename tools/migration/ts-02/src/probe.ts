@@ -29,7 +29,7 @@ try {
   const test = spawnSync(process.execPath, ['--test', '--test-reporter=tap', '--test-concurrency=1', '--test-timeout=30000', ...tests], { encoding: 'utf8', timeout: 180000 });
   fs.writeFileSync(join(root, 'tests.tap'), test.stdout + test.stderr);
   checks.tests = Object.fromEntries(['tests', 'pass', 'fail', 'skipped'].map(key => [key, Number(test.stdout.match(new RegExp(`# ${key} (\\d+)`))?.[1] ?? -1)]));
-  if (test.status !== 0) throw new Error('Platform tests failed; inspect tests.tap');
+  if (test.status !== 0) { process.stderr.write(test.stdout + test.stderr); throw new Error('Platform tests failed; inspect tests.tap'); }
   const npm = process.env.npm_execpath;
   if (!npm || !fs.existsSync(npm)) throw new Error('Run via npm run probe so the exact npm entry is known');
   const pack = JSON.parse(execFileSync(process.execPath, [npm, 'pack', '--ignore-scripts', '--json', '--pack-destination', installed], { cwd: packageRoot, encoding: 'utf8' }))[0];
