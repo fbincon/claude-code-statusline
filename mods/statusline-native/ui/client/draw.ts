@@ -3,7 +3,7 @@ import type { View } from '../../lib/session.ts';
 import { preferenceChanged } from '../../lib/preferences.ts';
 import { settingRows } from '../../lib/client/settings.ts';
 import { formWindow, pageWindow } from '../../lib/editor/navigation.ts';
-import { clip, column, displayWidth } from '../layout.ts';
+import { clip, column, displayWidth, contentColumns } from '../layout.ts';
 import { editorLayout } from './help.ts';
 import { chromeRow, rowStyle, styles } from '../theme.ts';
 import { section } from '../components/section.ts';
@@ -21,7 +21,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
   const e = view.editor;
   const layout = editorLayout(view, columns, rows);
-  const inner = Math.max(1, columns - (layout.framed ? 2 : 0));
+  const inner = contentColumns(columns, rows);
   const line = (label: string, style: TextProps = {}) =>
     ui.Text({ wrap: 'truncate', ...styles.text, ...style, children: [clip(label, inner)] });
   if (!layout.available || !e)

@@ -518,3 +518,20 @@ test('a fast printable terminal chunk enters search and retains all characters',
   ).toBeDefined();
   await ui.unmount();
 });
+
+
+test('preview fitting reserves the visible frame and refreshes when height changes its width', {timeoutMs: 20000}, async ($, on) => {
+  const fixture = setup(on);
+  fixture.behavior.process = async (request, next) => request.operation === 'preview'
+    ? {value: reply(sample(`${request.payload.width} cells`))} : next();
+  await $.session.start(START); await $.command.run(RUN);
+  const props = {...PANE.props, bodyColumns:72, scroll:{offset:0,bodyRows:24}};
+  const ui = await $.ui.mount({...PANE,props});
+  expect(await ui.find({in:REGION,type:'Text',text:'70 cells'})).toBeDefined();
+  await ui.redraw({...props,scroll:{offset:0,bodyRows:16}});
+  expect(await ui.find({in:REGION,type:'Text',text:'72 cells'})).toBeDefined();
+  const count = fixture.calls.filter(call => call.operation === 'preview').length;
+  await ui.redraw({...props,scroll:{offset:0,bodyRows:15}});
+  expect(fixture.calls.filter(call => call.operation === 'preview').length).toBe(count);
+  await ui.unmount();
+});

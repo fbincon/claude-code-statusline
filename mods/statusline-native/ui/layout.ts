@@ -1,6 +1,11 @@
 export const MIN_COLUMNS = 32;
 export const MIN_ROWS = 12;
 
+/** Columns available inside the same frame used by editor drawing. */
+export function contentColumns(columns: number, rows: number): number {
+  return Math.max(1, columns - (columns >= 64 && rows >= 20 ? 2 : 0));
+}
+
 /** Budget a paged body between the header, preview and action rows. */
 export function dimensions(columns: number, rows: number, footerRows = 2) {
   const framed = columns >= 64 && rows >= 20;
