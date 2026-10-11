@@ -16,6 +16,9 @@ export function terminal(log: string): void {
     if (stopped) return;
     stopped = true;
     process.stdin.setRawMode(false); process.stdin.pause();
+    // A startup failure can precede resume()'s queued read. Close the CLI's
+    // input handle so that read cannot keep a restored Darwin terminal alive.
+    process.stdin.destroy();
     process.stdout.write('\x1b[0m\x1b[?25h\x1b[?1049l');
     try { record('restored', reason); } catch { /* Logging cannot prevent terminal cleanup. */ }
     process.exitCode = code;

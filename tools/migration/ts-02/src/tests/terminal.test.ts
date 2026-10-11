@@ -26,11 +26,14 @@ for (const [columns, rows, logFailure] of sizes) test(`native PTY keys/resize/re
   assert.ok(fcntl(m, 3) & nonblock, 'PTY reads must never block the test runner');
   const child = spawn(process.execPath, [cli, 'terminal', log], { stdio: [s, s, s], detached: true, env: { ...process.env, TERM: 'xterm-256color' } });
   let closed = false; const closedPromise = new Promise<void>(resolve => child.once('exit', () => { closed = true; resolve(); }));
+  const drain = () => {
+    try { while (fs.readSync(m, Buffer.alloc(8192), 0, 8192, null)) { /* drain */ } } catch { /* EAGAIN/EIO */ }
+  };
   const waitEvent = async (event: string) => {
     const deadline = Date.now() + 4000;
     while (Date.now() < deadline) {
       // Drain output so a blocked terminal cannot fabricate successful input.
-      try { while (fs.readSync(m, Buffer.alloc(8192), 0, 8192, null)) { /* drain */ } } catch { /* EAGAIN/EIO */ }
+      drain();
       if (fs.existsSync(log) && fs.readFileSync(log, 'utf8').includes(`"event":"${event}"`)) return;
       if (closed) break;
       await new Promise(r => setTimeout(r, 20));
@@ -39,7 +42,10 @@ for (const [columns, rows, logFailure] of sizes) test(`native PTY keys/resize/re
   };
   try {
     if (logFailure) {
-      await closedPromise; assert.equal(child.exitCode, 1);
+      const deadline = Date.now() + 4000;
+      while (!closed && Date.now() < deadline) { drain(); await new Promise(r => setTimeout(r, 20)); }
+      assert.ok(closed, 'logging failure must restore the terminal and exit');
+      assert.equal(child.exitCode, 1);
       assert.equal(attrs(s, after), 0); assert.deepEqual(after, before); return;
     }
     await waitEvent('ready');
