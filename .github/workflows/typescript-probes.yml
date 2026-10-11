@@ -1,0 +1,70 @@
+name: TypeScript platform probes
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  platform:
+    name: TS-02 / ${{ matrix.os }} / ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, arch: x64 }
+          - { os: windows-2025, arch: x64 }
+          - { os: windows-11-arm, arch: x64 }
+          - { os: macos-14, arch: arm64 }
+          - { os: macos-15, arch: arm64 }
+          - { os: macos-15-intel, arch: x64 }
+          - { os: macos-26, arch: arm64 }
+          - { os: macos-26-intel, arch: x64 }
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      TS02_EXPECT_PROCESS_ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          architecture: ${{ matrix.arch }}
+          cache: npm
+          cache-dependency-path: tools/migration/ts-02/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14.4'
+          architecture: ${{ matrix.arch }}
+      - name: Install pinned prebuilt probe dependencies without lifecycle scripts
+        run: npm ci --prefix tools/migration/ts-02 --ignore-scripts --no-audit --no-fund
+      - name: Compile probes
+        run: npm run --prefix tools/migration/ts-02 build
+      - name: Native APIs, mixed locks, terminal and installed artifact evidence
+        run: npm run --prefix tools/migration/ts-02 probe -- "${{ runner.temp }}/ts02-evidence"
+      - name: Verify evidence receipt
+        run: npm run --prefix tools/migration/ts-02 verify-evidence -- "${{ runner.temp }}/ts02-evidence/evidence.json"
+      - name: PowerShell argv smoke
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $result = '中文 input' | node tools/migration/ts-02/dist/cli.js echo '中文 path' 'a&b'
+          $parsed = $result | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $parsed.args[0] -ne '中文 path' -or $parsed.args[1] -ne 'a&b') { throw 'PowerShell argv mismatch' }
+      - name: Git Bash argv smoke
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          printf '%s' '中文 input' | node tools/migration/ts-02/dist/cli.js echo '中文 path' 'a&b' > "$RUNNER_TEMP/git-bash.json"
+          node -e 'const x=JSON.parse(require("fs").readFileSync(process.argv[1])); if(x.args[0]!=="中文 path"||x.args[1]!=="a&b"||x.stdin!=="中文 input")process.exit(1)' "$RUNNER_TEMP/git-bash.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ts02-${{ matrix.os }}-${{ matrix.arch }}
+          path: ${{ runner.temp }}/ts02-evidence
+          if-no-files-found: warn
