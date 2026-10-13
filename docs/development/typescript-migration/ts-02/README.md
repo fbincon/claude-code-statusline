@@ -234,3 +234,34 @@ probe has 27 passes / 8 skips; WSL has 33 passes / 2 skips. Installation and
 receipt checks pass. Another 600 render and 200 control samples satisfy the
 unchanged budgets. The original failure and the initial test failure involving
 an outdated mock remain preserved, without relabeling them as passing runs.
+
+## Windows to macOS to Linux handoff
+
+The [2026-10-13 handoff manifest](handoff.windows-20261013.json) pins the local
+implementation commit and Windows evidence archive hash. The two committed Windows
+JSON files are public summaries (schema 2). Full records, historical failures and
+tested source bytes are in the separate, untracked
+`dist/handoff/ts02-windows-20261013/windows-evidence.zip`. Its adjacent
+`verify_handoff.py` verifies the ZIP and its files with Python on any platform;
+it never executes archived code. Original receipts still identify their tested
+`7f2a418` base plus dirty worktree and source hashes; they are not relabeled as
+new runs of the subsequent local commits.
+
+Copy `.git`, every committed file and the entire
+`dist/handoff/ts02-windows-20261013/` directory. That directory also contains an
+offline Git bundle, final revision/checksum metadata and a macOS task handoff.
+Windows dependencies, environments, runtimes and generated directories remain
+platform-specific. Install the pinned native dependencies and rebuild on macOS.
+For a clean native checkout, clone the bundle into a new directory while retaining
+the original copied directory and evidence archive.
+
+Use a new macOS branch/output directory to validate this revision, recording host
+and process architecture, native APIs, real sleep/reboot, Terminal.app launch/focus,
+keys/resize/recovery and supported tmux popup behavior. The Windows power-check tool
+does not apply to macOS. Commit additional fixes and summaries separately; retain
+raw macOS evidence without overwriting Windows records or moving the TS-01 oracle.
+
+Linux then integrates the commits through Git, preserves both platforms' evidence,
+assesses any macOS changes against the Windows results, runs the updated full matrix,
+and finishes Linux GUI/popup and support-scope dispositions. Update TS-02/TS-03
+state only after the remaining foundational gates are closed.

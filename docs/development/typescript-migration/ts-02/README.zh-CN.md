@@ -174,3 +174,23 @@ sleep-aware elapsed 与可信域检查通过。随后真实重启后，Python／
 修复后的 Python 全套 834 项中 806 通过／28 跳过；Windows 探针 27 通过／8 跳过，
 WSL 探针 33 通过／2 跳过，安装及收据核验通过。600 个渲染样本和 200 个控制样本再次满足
 固定预算。原始失败及一次旧 mock 修正前的测试失败均保留，不覆盖或重命名为通过记录。
+
+## Windows → macOS → Linux 交接
+
+2026-10-13 的[交接清单](handoff.windows-20261013.json)固定本地修复提交和 Windows 证据包哈希。
+提交中的两个 Windows JSON 文件为公共摘要（schema 2）；完整原始记录、历史失败及受测源码字节
+保存在独立的 `dist/handoff/ts02-windows-20261013/windows-evidence.zip`，不纳入 Git。
+相邻的 `verify_handoff.py` 可在任意平台用 Python 校验压缩包和内部文件；它不执行归档代码。
+原始记录仍保留受测 `7f2a418`＋脏工作树及源码哈希，不伪装成后续本地提交上的重跑。
+
+拷贝时保留 `.git`、全部已提交文件以及整个 `dist/handoff/ts02-windows-20261013/` 目录。
+该目录还包含离线 Git bundle、最终提交／文件校验清单及可直接交给 macOS 执行者的说明。
+Windows 的依赖、虚拟环境、运行时和生成目录仅供原平台使用；macOS 按本文固定版本安装原生依赖并重新构建。
+如需干净的 macOS 检出，可从离线 bundle 克隆到新目录，并保留原复制目录和证据包。
+
+macOS 使用新分支／新输出目录验证该版本，记录宿主与进程架构、原生 API、真实睡眠／重启、
+Terminal.app 启动／焦点、键盘／resize／恢复及实际支持的 tmux popup。Windows 专用电源工具不适用于 macOS。
+新增改动与验收摘要单独提交，原始 macOS 证据另行保存；不覆盖 Windows 记录或移动 TS-01 参考。
+
+Linux 最后通过 Git 合入提交、保留两端原始证据，评估 macOS 新改动对既有 Windows 结果的影响，
+运行修复后的完整矩阵并补齐 Linux GUI／popup 和支持范围处置。各基础门槛关闭后再更新 TS-02／TS-03 状态。
