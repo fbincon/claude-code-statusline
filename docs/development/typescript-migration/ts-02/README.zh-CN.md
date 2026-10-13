@@ -194,3 +194,7 @@ Terminal.app 启动／焦点、键盘／resize／恢复及实际支持的 tmux p
 
 Linux 最后通过 Git 合入提交、保留两端原始证据，评估 macOS 新改动对既有 Windows 结果的影响，
 运行修复后的完整矩阵并补齐 Linux GUI／popup 和支持范围处置。各基础门槛关闭后再更新 TS-02／TS-03 状态。
+
+2026-10-14 的 [macOS 本机验收](MACOS-20261014.zh-CN.md)覆盖 macOS 14.5 x86_64 VMware 来宾：
+自动检查、固定预算、真人 Terminal／popup 与真实来宾重启已取得证据；睡眠按维护者要求跳过。
+POSIX 宿主探针清理修复、原不完整操作和补测分别保留。此结果不关闭实体硬件或全平台门槛，最终交由 Linux 汇总。

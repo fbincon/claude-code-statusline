@@ -265,3 +265,8 @@ Linux then integrates the commits through Git, preserves both platforms' evidenc
 assesses any macOS changes against the Windows results, runs the updated full matrix,
 and finishes Linux GUI/popup and support-scope dispositions. Update TS-02/TS-03
 state only after the remaining foundational gates are closed.
+
+The [2026-10-14 macOS acceptance](MACOS-20261014.md) covers a macOS 14.5 x86_64 VMware guest:
+automatic checks, fixed budgets, human Terminal/popup and a real guest reboot have evidence;
+sleep was explicitly skipped by the maintainer. The POSIX host-probe cleanup fix, original incomplete
+attempts and supplements remain distinct. Physical-hardware and global gates stay open for Linux aggregation.

@@ -1,0 +1,33 @@
+{
+  "format_version": 1,
+  "date": "2026-10-14",
+  "timezone": "Asia/Shanghai",
+  "branch": "fbincon/ts02-macos-acceptance",
+  "acceptance_code_head": "72017a92bda379354abd0727c4ff1e8e77954a80",
+  "incoming_head": "a27a90364d3a98f85ad4379d8c16d9f67ee05e9c",
+  "immutable_reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "local_status": "completed-with-explicit-sleep-skip",
+  "scope": "VMware macOS 14.5 x86_64 guest; no physical-host or Rosetta claim",
+  "archive": {
+    "format_version": 1,
+    "archive": "macos-evidence.zip",
+    "sha256": "e6f37cfea90896c0d5299bbbd62757aa4deb5c030542a7e33cd0eee3ed236aff",
+    "bytes": 8438346,
+    "files": 1459,
+    "path": "dist/handoff/ts02-macos-20261014/macos-evidence.zip"
+  },
+  "verifier_sha256": "1ad5386f38506c3012b0a855fe206b52e495fa0b517172bb0c49843175d2fe97",
+  "windows_archive_sha256": "36032cf6bdac3b69e308f6c8338562eca77819e34c78bd94ff8dbb3050224baa",
+  "summary": "validation.macos-local-20261014.json",
+  "bilingual_summary": [
+    "MACOS-20261014.md",
+    "MACOS-20261014.zh-CN.md"
+  ],
+  "final_transfer": "dist/handoff/ts02-macos-20261014/TRANSFER.json",
+  "notes": [
+    "Final documentation HEAD and Git bundle hashes are written to the external transfer manifest after the documentation commit.",
+    "Original failed/incomplete Windows and macOS records are preserved unchanged. Human acceptance is explicitly aggregated across genuine runs.",
+    "External generated host-binary symlinks are recorded as metadata in the archive; no binaries or scripts are executed during verification.",
+    "All global closure and support-scope decisions belong to the Linux integrator."
+  ]
+}
