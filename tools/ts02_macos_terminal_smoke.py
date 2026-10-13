@@ -38,6 +38,14 @@ def events(path):
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
 
+def recovery_echo():
+    while True:
+        answer = input("请输入 TS02-RESTORED 再按 Enter（无法完成请输入 SKIP）: ").strip()
+        if answer in ("TS02-RESTORED", "SKIP"):
+            return answer
+        print("尚未收到指定文本；空白不会跳过此项。")
+
+
 def assess(folder, mode):
     record = json.loads((folder / "interaction.json").read_text())
     saved, cancelled = events(folder / "save.jsonl"), events(folder / "cancel.jsonl")
@@ -100,7 +108,7 @@ def exercise(config, request, nonce):
         if not restored:
             termios.tcsetattr(0, termios.TCSANOW, original)
             print("恢复检查失败；采集器已恢复属性以便退出，该项仍记为失败。")
-    echo = input("现在应可正常回显。请输入 TS02-RESTORED 后 Enter: ")
+    echo = recovery_echo()
     human = {}
     for name, question in (("automatic_focus", "Terminal/popup 是否自动打开且取得输入焦点？"),
                            ("unicode_display", "中文、组合字符 é、emoji 👩🏽‍💻 的显示及宽度是否正常？"),
@@ -190,6 +198,9 @@ for(let i=0;i<7200 && !existsSync(config.output+'/done.json');i++){{
   }}
 }}
 if(!existsSync(config.output+'/done.json')){{save('timeout.json',{{human_completed:false}});process.exit(1)}}
+const report=JSON.parse(readFileSync(config.output+'/manual-evidence.json','utf8'));
+console.log(JSON.stringify(report));
+if(report.status!=='pass')process.exitCode=1;
 """
     script = folder / "launcher.mjs"
     script.write_text(module)
