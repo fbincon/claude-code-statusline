@@ -130,7 +130,8 @@ def child(config, tail):
 
 def popup_host(config, tail):
     argv = [sys.executable, str(Path(__file__).resolve()), "popup-child", "--config", config["config"], *tail]
-    result = subprocess.run([config["tmux"], "display-popup", "-E", "-w", "90%", "-h", "80%", shlex.join(argv)])
+    # Keep at least 18 interior rows in a default 80x24 Terminal window.
+    result = subprocess.run([config["tmux"], "display-popup", "-E", "-w", "90%", "-h", "95%", shlex.join(argv)])
     print("\n已返回 popup 外层 tmux session。")
     echo = input("请输入 TS02-PARENT 验证父终端输入恢复: ")
     visual = input("popup 边框、焦点、关闭后父屏幕是否正常？yes/no/skip: ").strip().lower()
