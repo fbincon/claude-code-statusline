@@ -19,15 +19,17 @@ were reviewed for both libraries and four target prebuilt packages. Koffi places
 its binaries in the corresponding optional `@koromix/koffi-*` package; Windows
 ARM uses the x64 package. See [Koffi support](https://koffi.dev/) and the
 [lossless JSON interface](https://github.com/josdejong/lossless-json).
-No production Python, Mod entry point, package version,
-public configuration schema or frozen TS-01 expectation is changed.
+The initial probe delivery changed no production Python, Mod entry point, package
+version, public configuration schema or frozen TS-01 expectation. The Windows
+clock correction following the local failure below was explicitly requested by
+the maintainer; the immutable oracle and fixed expectations remain preserved.
 
 | Decision | State | Direction and outstanding evidence |
 | --- | --- | --- |
-| [D01](D01.md) | OPEN | Node 24/npm/ESM; 64-bit future TS release. Native installation matrix passes; WSL/older desktop coverage remains unresolved. |
-| [D02](D02.md) | OPEN | Native OS clocks/identities and lossless integer literals. Physical suspend/reboot evidence remains missing. |
+| [D01](D01.md) | OPEN | Node 24/npm/ESM; 64-bit future TS release. Native installation matrix and local WSL automation pass; older desktop coverage still needs disposition. |
+| [D02](D02.md) | OPEN | Original Windows GUID failure is fixed; local v2 sleep/reboot revalidation passes, with other platform and updated-matrix gates retained. |
 | [D03](D03.md) | DECIDED | Compatible kernel locks and durable replacement validated on all eight native targets; full store transactions remain TS-03. |
-| [D04](D04.md) | OPEN | Raw TTY/VT/shared Unicode. Real Windows keys, GUI launch/focus and tmux popup evidence remain missing. |
+| [D04](D04.md) | OPEN | Raw TTY/VT/shared Unicode. Local Windows keys/resize/recovery pass; other GUI launch/focus and tmux popup gates remain. |
 | [D05](D05.md) | DECIDED | npm entry retirement, argv-prefix binding and transactional upgrade strategy fixed; complete implementation remains TS-04. |
 | [D06](D06.md) | DECIDED | Budget frozen before measurement; minimal render is measured separately from full migration acceptance. |
 
@@ -136,7 +138,7 @@ and RSS in MiB. The machine-readable summary retains the per-metric dispositions
 | Warm | 106.59 / 40.75 | 115.31 / 47.54 | 26.52 / 58.19 | 58.52 |
 | Cold | 233.46 / 41.33 | 245.48 / 47.67 | 27.68 / 58.23 | 59.68 |
 
-Required follow-up: supply physical suspend/reboot, WSL, Windows desktop keyboard/resize, macOS 14 Intel and
+Required follow-up: validate the complete updated platform matrix, and supply physical suspend/reboot evidence for other targets, Windows 10 / macOS 14 Intel and
 GUI terminal/popup evidence. Keep affected decisions OPEN and TS-03 NOT_STARTED
 until the foundational gates are satisfied or the maintainer explicitly resolves
 a support change. Full installation/recovery remains TS-04 and full performance
@@ -162,3 +164,73 @@ The existing Python suite passes 819 cases with eight platform skips (827 total)
 Both real-host argv probes pass on 2.1.294 and 2.1.296. The rebuilt Python wheel
 has 217 byte-identical entries relative to TS-01; the expanded source archive
 contains the probe and evidence, with dependency/build directories excluded.
+
+## Local Windows follow-up, 2026-10-12
+
+The merged commit `7f2a418` was checked on a physical Windows 11 Home build 26300,
+Intel x64 machine with Node 24.21.0, npm 11.19.0 and Python 3.14.4. The
+[local machine summary](validation.windows-local-20261012.json) binds results to
+raw logs and hashes. Production sources, the TS-01 oracle and performance budgets are unchanged.
+
+- Elevated Windows run: 25 passes and 8 platform skips out of 33; the complete
+  installation probe and receipt verifier pass. The initial unprivileged result
+  remains 24 passes / 1 failure / 8 skips: creating the file-symlink fixture raised
+  `EPERM`. That failure was neither skipped nor resolved by changing system policy.
+  PowerShell / Git Bash installation entry points and a separate directory-junction
+  check pass; the existing `.cmd` special-path failure remains recorded.
+- Local WSL2 Ubuntu 24.04.4 x64: 31 passes / 2 platform skips, with installation
+  and receipt verification passing. This covers native APIs, PTYs and tmux sessions,
+  without claiming GUI or popup human acceptance.
+- Python: 799 passes / 28 platform or permission skips out of 827; all five shared
+  resource checks, Ruff and Windows curses checks pass. Both Mods pass official
+  validation, 112 + 10 tests and installation smoke on 2.1.294 and 2.1.296.
+  Exact declarations and typechecking pass only on 2.1.294; the 2.1.296 gap is unchanged.
+- Human-operated Windows console: all arrow keys, CJK / combining characters /
+  emoji, small and normal window sizes, Ctrl+S / Ctrl+C, recovery after a logging
+  failure and visual confirmation are complete. Two incomplete attempts remain;
+  cumulative acceptance is checked against their original events and the follow-up.
+- Fixed minimal-render performance: 600 render samples and 200 control samples;
+  all six warm/cold latency and RSS metrics pass without budget changes or repeats.
+  Warm Python / TS P50 is 275.46 / 119.60 ms; cold P50 is 425.74 / 112.98 ms.
+- Physical S0 Modern Standby / resume passes: OS events establish about 60.48 seconds
+  in standby, the boot identity stays unchanged, and both Node and the fixed Python
+  oracle include sleep in their boot clocks. This host does not cover S3 or
+  hibernation.
+- **Physical reboot acceptance fails:** shutdown/startup events at 04:01 on
+  2026-10-12 (Asia/Shanghai), together with uptime falling from 2059.515 to
+  160.312 seconds, establish a real restart. However, Node and the frozen Python
+  reference retain exactly the same `boot_id`. An independent ctypes query also
+  returns that GUID. Replaying the captured pair through both unchanged clock
+  implementations yields an unavailable elapsed delta. Candidate/reference parity
+  does not establish reboot identity. The public summary retains results and
+  evidence hashes; the separate evidence archive retains the full diagnosis and
+  raw snapshots. That validation run changed neither production code nor TS-01 expectations.
+
+Applicable local verification has finished with the explicit failure above;
+this is not an all-pass acceptance. This record is limited to this Windows x64 host and its WSL environment. Other
+targets and GUI / popup gates remain outstanding. TS-02 stays VALIDATING,
+D01 / D02 / D04 stay OPEN, and TS-03 stays NOT_STARTED.
+
+## Windows reboot identity correction
+
+The maintainer subsequently requested a fix for the failure above. Working Python
+clock sources and the TS probe implement [D02's v2 boot identity and legacy
+degradation rules](D02.md#windows-boot-identity-v2-correction). The [new fix record](validation.windows-boot-fix-20261012.json)
+is separate from the historical validation: failed receipts and the frozen TS-01
+oracle are retained, and the real reboot sample is a regression fixture. This
+correction neither releases a product nor starts TS-03. Physical revalidation
+and outstanding evidence for other platforms are recorded separately.
+
+The corrected S0 standby/resume check passes, with an OS event interval of about
+112.70 seconds. Both implementations retain boot sequence 1301 and pass
+suspend-aware elapsed/trusted-domain checks. A subsequent real reboot changes
+both Python and Node sequences from **1301 to 1302**. Cross-boot elapsed falls
+back to wall-clock difference with execution coverage degraded. Source/runtime
+hashes and OS startup events verify successfully; the Windows blocker is fixed
+and physically verified on this host.
+
+The corrected Python suite has 806 passes / 28 skips out of 834. The Windows
+probe has 27 passes / 8 skips; WSL has 33 passes / 2 skips. Installation and
+receipt checks pass. Another 600 render and 200 control samples satisfy the
+unchanged budgets. The original failure and the initial test failure involving
+an outdated mock remain preserved, without relabeling them as passing runs.

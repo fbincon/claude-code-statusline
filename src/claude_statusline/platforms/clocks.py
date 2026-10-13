@@ -29,8 +29,8 @@ def _windows_uptime_ns() -> int:
     return int(get_tick_count()) * 1_000_000
 
 
-def _windows_boot_id() -> str | None:
-    """Query the boot GUID; never derive boot identity from adjustable wall time."""
+def _windows_boot_guid() -> str | None:
+    """Read the boot environment GUID, which alone can survive a real restart."""
     import ctypes
     import uuid
 
@@ -55,12 +55,51 @@ def _windows_boot_id() -> str | None:
         status = query(
             90, ctypes.byref(result), ctypes.sizeof(result), ctypes.byref(length)
         )
-        if status < 0:
+        if status < 0 or length.value != ctypes.sizeof(result):
             return None
         identity = uuid.UUID(bytes_le=bytes(result.identifier))
-        return f"windows:{identity}" if identity.int else None
+        return str(identity) if identity.int else None
     except (AttributeError, OSError, TypeError, ValueError):
         return None
+
+
+def _windows_boot_sequence() -> int | None:
+    """Read KUSER_SHARED_DATA.BootId without dereferencing foreign pointers.
+
+    The WDK layout places BootId at 0x2c4 in the user shared page at
+    0x7ffe0000 on supported Windows architectures. The OS loader increments
+    it on each boot attempt; neither wall-clock changes nor sleep alter it.
+    ReadProcessMemory on our own process fails safely if the page is absent.
+    """
+    import ctypes
+
+    try:
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        current = kernel.GetCurrentProcess
+        current.argtypes = ()
+        current.restype = ctypes.c_void_p
+        read = kernel.ReadProcessMemory
+        read.argtypes = (
+            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+            ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t),
+        )
+        read.restype = ctypes.c_int
+        value = ctypes.c_uint32()
+        count = ctypes.c_size_t()
+        if not read(current(), 0x7FFE02C4, ctypes.byref(value), 4, ctypes.byref(count)):
+            return None
+        return value.value if count.value == 4 and value.value != 0 else None
+    except (AttributeError, OSError, TypeError, ValueError):
+        return None
+
+
+def _windows_boot_id() -> str | None:
+    """A versioned boot domain; never fall back to the ambiguous legacy GUID."""
+    identity = _windows_boot_guid()
+    sequence = _windows_boot_sequence() if identity else None
+    if identity is None or sequence is None:
+        return None
+    return f"windows:v2:{identity}:{sequence}"
 
 
 @lru_cache(maxsize=1)

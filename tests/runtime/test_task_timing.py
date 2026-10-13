@@ -177,7 +177,10 @@ class TaskTimingTests(unittest.TestCase):
             mock.patch.object(
                 clocks.platform_environment, "is_windows", return_value=True
             ),
-            mock.patch.object(clocks, "_windows_boot_id", return_value="windows:guid"),
+            mock.patch.object(
+                clocks, "_windows_boot_id",
+                return_value="windows:v2:a37ac4ce-5dc5-11ee-ba22-d380a9a2ae53:41",
+            ),
         ):
             with (
                 mock.patch.object(

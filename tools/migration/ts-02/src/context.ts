@@ -33,5 +33,14 @@ export function sourceHashes(): Record<string, string> {
       if (entry.isDirectory()) walk(name); else result[name] = sha(readFileSync(join(packageRoot, name)));
     }
   }
-  walk(''); return result;
+  walk('');
+  // The approved Windows clock fix is compared separately from the immutable
+  // oracle. Bind the actual working Python clock implementation in receipts.
+  for (const name of [
+    'src/claude_statusline/platforms/clocks.py', 'src/claude_statusline/platforms/environment.py',
+    'src/claude_statusline/platforms/processes.py', 'src/claude_statusline/runtime/timing/clock.py',
+  ]) {
+    result['@repository/' + name] = sha(readFileSync(join(repoRoot, name)));
+  }
+  return result;
 }

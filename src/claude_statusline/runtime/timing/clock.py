@@ -28,9 +28,20 @@ class Sample:
         )
 
 
+def _same_boot_domain(start: Sample, end: Sample) -> bool:
+    # Older Windows GUID-only identities were observed surviving a reboot.
+    # Keep those snapshots readable, but do not trust their uptime domain.
+    identity = start.boot_id
+    return bool(
+        identity
+        and identity == end.boot_id
+        and (not identity.startswith("windows:") or identity.startswith("windows:v2:"))
+    )
+
+
 def delta(start: Sample, end: Sample) -> int | None:
     """Prefer suspend-aware uptime; reject backwards or incompatible samples."""
-    if start.boot_id and start.boot_id == end.boot_id:
+    if _same_boot_domain(start, end):
         if start.boot_ns is not None and end.boot_ns is not None:
             value = end.boot_ns - start.boot_ns
             return value if value >= 0 else None
@@ -118,8 +129,7 @@ class StatusTimer:
         """Execution time requires uninterrupted evidence in one boot domain."""
         start = self.last_resume
         return bool(
-            start.boot_id
-            and start.boot_id == now.boot_id
+            _same_boot_domain(start, now)
             and start.boot_ns is not None
             and now.boot_ns is not None
             and now.boot_ns >= start.boot_ns

@@ -1,0 +1,17 @@
+{
+  "description": "Captured full Windows restart retaining the legacy GUID; no synthetic boot sequences are attached to this evidence.",
+  "source_commit": "7f2a41855f711c8ad6dfca31739462b75531af2b",
+  "reference_commit": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "before_capture_sha256": "f1d34505cf32e656c9e51bf597f5f5351d35cc20f2edc6e17c3e5b8388284bd2",
+  "after_capture_sha256": "eae8a9a2aa39996262fa9ec8dee3cac7ca456ed9e9775c27f1287c3e8d9dcba0",
+  "before": {
+    "wall_ns": 1791748768728366100,
+    "boot_ns": 2059515000000,
+    "boot_id": "windows:a37ac4ce-5dc5-11ee-ba22-d380a9a2ae53"
+  },
+  "after": {
+    "wall_ns": 1791749020556532300,
+    "boot_ns": 160312000000,
+    "boot_id": "windows:a37ac4ce-5dc5-11ee-ba22-d380a9a2ae53"
+  }
+}
