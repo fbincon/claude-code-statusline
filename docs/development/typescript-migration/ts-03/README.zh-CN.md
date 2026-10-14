@@ -12,12 +12,12 @@
 | --- | --- | --- |
 | 03-A | 私有 workspace、正式平台原语、无损 JSON、规范修订及对照框架 | DONE；[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78) |
 | 03-B | 配置核心、实例、目录、语言、Unicode 与生成归属 | DONE；[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79) |
-| 03-C | 加锁配置服务、偏好及管理命令 | VALIDATING |
-| 03-D | 采集、缓存、计时、任务、观察及 hooks | NOT_STARTED |
+| 03-C | 加锁配置服务、偏好及管理命令 | DONE；[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80) |
+| 03-D | 采集、缓存、计时、任务、观察及 hooks | VALIDATING |
 | 03-E | 渲染、预览及完整后端协议 | NOT_STARTED |
 | 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | NOT_STARTED |
 
-当前分支：`fbincon/ts-03-configuration-service`。03-A／03-B 分别合并为 `21fb21d`／`f1363e3`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
+当前分支：`fbincon/ts-03-runtime`。03-A／03-B／03-C 分别合并为 `21fb21d`／`f1363e3`／`0faa639`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
 workspace 包为 0.0.0 私有开发包；现有 Python 应用仍为 2.0.0。
 
 ## 边界与复现
@@ -85,4 +85,14 @@ stdout／stderr 分工和退出码仍兼容。准确的文字变化通过案例�
 
 事务在既有安装锁内重读、比较语义修订、合并无关设置，只备份变化的文件，写入失败时回滚，并在锁内返回提交后快照。重复保存不新增备份。读取、dry-run 和导入审阅保持配置字节，便携导出保护实时配置与受管理支持目录。UI 偏好和运行／编辑器开关彼此独立。JSON 保留数值类型与精度，数字形式的对象键保留输入顺序，公开的非法 JSON／UTF-8 诊断与固定 Python 3.14 对照一致。
 
-当前台账已映射 516 项基线测试中的 78 项。Linux 重放覆盖 161 个固定案例中的 26 个，仅有三处获准文字差异；135 个渲染／运行案例待完成。CI 同时运行 Python／TS 混合配置及语言偏好写入者。源码记录与本地结果见 [validation.03-c.json](validation.03-c.json)。03-B 的八个 ZIP 摘要及源码哈希全部精确核对，无需换行归一化例外；重复 push 工作流的一次 Mod 超时及同提交 PR 成功结果均见 [validation.03-b.json](validation.03-b.json)。
+03-C 交接时台账映射 516 项基线测试中的 78 项，Linux 重放覆盖 161 个固定案例中的 26 个，仅有三处获准文字差异。43 项 PR 检查全部通过；八目标产物的 106 个源码哈希均精确一致。CI 同时运行 Python／TS 混合配置及语言偏好写入者。源码、CI、合并与同步记录见 [validation.03-c.json](validation.03-c.json)。03-B 的八个 ZIP 摘要及源码哈希全部精确核对，无需换行归一化例外；重复 push 工作流的一次 Mod 超时及同提交 PR 成功结果均见 [validation.03-b.json](validation.03-b.json)。
+
+## 03-D 采集与运行逻辑
+
+TS 入口已接入 `runtime [--config-dir PATH]` 和 `hook`。运行协议 v2 与 v1 使用原有偏好和磁盘 schema；整批观察先完整校验再发布。读取、关闭采集和损坏状态检查不修复文件。Hook 保持静默，即使无法记录证据也成功退出；已安装后端继续使用 Python。
+
+`core/runtime`、`core/timing` 的纯模块负责任务转换、身份关联、原生／等待覆盖、用量规则与 Git 解析；`cli/runtime` 的应用服务负责共享缓存、会话注册表、transcript／提交游标、任务／实时账本和传统 Agent 时长证据。`RuntimeContext`、`RuntimeIO`、`CommandRunner` 注入时钟、进程身份、文件系统和 Git 执行。文件操作沿用平台锁与原子发布：实时观察先取 live 锁，再取 task 锁；用量可以先取 cache 锁，再取 task 锁；任务写入者不反向获取 live 或 cache 锁。最终证据需要时，在任务转换内部取得有界提交索引锁。
+
+用量保留逐消息最大值、缺失与明确零的区分、各计数器独立快照增量、5,000 个 ID 折叠及 100 个会话上限。UTF-8 游标仅越过完整字节行。Git 状态保留 500 ms 缓存，分支差异使用不可变提交键及共享超时。计时保留 Stop／续接、通知别名、重叠等待、重启降级和冻结结果。运行协议最多读取 1 MiB 加一个字节；另独立验证 Python 兼容浮点除法、补偿求和、ISO 时间与字节文件编码识别。
+
+本地 TS 验证：276 项测试，275 通过，1 项 Windows 共享冲突测试在 Linux 跳过。台账核销 **206/516** 项，**310** 项待完成；10 项混合 token 测试已具备 TS 采集断言，但渲染输出断言明确留在 03-E，尚不记为完整迁移。固定重放通过 **45/161** 个案例，仅保留原三处 CLI 文字差异；**116** 个渲染／预览／slash 案例待完成。另以 24 个会话的动作序列逐步对照原始 TS-01 Python 导出，比较结果、最终 JSON 状态及数值类型。实际多进程测试覆盖 20 个 live 写入者、8 个 Agent 启动、4 个有界账本写入者及 6 个用量缓存写入者；Git 集成覆盖 worktree、submodule、浅克隆和分支分歧。最终渲染、两个 Mod 绑定 TS、性能验收及完整台账核销继续归 03-E/F。源码绑定的本地证据见 [validation.03-d.json](validation.03-d.json)，CI 完成后补记。

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
+import type { RuntimeContext } from './runtime/context.js';
 export interface CliEnvironment {
     configDir?: string;
     launch?: LaunchSpec;
@@ -13,6 +14,7 @@ export interface CliEnvironment {
     stdin?: () => string;
     stdout?: (text: string) => void;
     stderr?: (text: string) => void;
+    runtime?: RuntimeContext;
 }
 export async function main(argv: readonly string[] = process.argv.slice(2), environment: CliEnvironment = {}): Promise<number> {
     const stdout = environment.stdout ?? (text => { process.stdout.write(text); });
@@ -21,6 +23,11 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     const args = [...argv];
     if (args.length === 1 && args[0] === '--version') {
         stdout('claude-statusline 2.0.0\n');
+        return 0;
+    }
+    if (args.length === 1 && args[0] === 'hook') {
+        const [{ hook }, { runtimeContext }] = await Promise.all([import('./runtime/hook.js'), import('./runtime/context.js')]);
+        hook(environment.stdin ?? (() => readFileSync(0)), environment.runtime ?? runtimeContext(environment.configDir));
         return 0;
     }
     // Render and hook adapters are bound here as their migrations land; management
@@ -47,7 +54,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return 0;
         }
         const command = args.shift();
-        if (!['config', 'ui'].includes(command ?? ''))
+        if (!['config', 'ui', 'runtime', 'hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
         let explicit: string | undefined;
         if (args[0] === '--config-dir' || args[0]?.startsWith('--config-dir=')) {
@@ -58,6 +65,20 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         }
         const rawDirectory = explicit ?? environment.configDir ?? process.env.CLAUDE_CONFIG_DIR;
         const configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
+        if (command === 'runtime' || command === 'hook') {
+            if (command === 'hook' && explicit !== undefined) throw new ArgumentError('hook does not accept --config-dir');
+            if (args.length) throw new ArgumentError(`${command} takes no positional arguments`);
+            const { runtimeContext } = await import('./runtime/context.js');
+            const context = environment.runtime ?? runtimeContext(configDir);
+            if (command === 'hook') {
+                const { hook } = await import('./runtime/hook.js');
+                hook(environment.stdin ?? (() => readFileSync(0)), context); return 0;
+            }
+            const { RuntimeProtocol } = await import('./runtime/live/protocol.js');
+            const { readLimitedInput } = await import('@fbincon/statusline-platform/input');
+            const result = await new RuntimeProtocol(context).handle(environment.stdin ?? (() => readLimitedInput(1_048_576)));
+            stdout(result.stdout); return result.status;
+        }
         const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
         const service = new ConfigurationService({ configDir, launch, hostVersion: environment.hostVersion ?? detectClaudeVersion }, createStorage(environment.now));
         if (command === 'ui') {

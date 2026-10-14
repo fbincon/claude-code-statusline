@@ -8,6 +8,16 @@ import { ConfigurationProtocol } from '@fbincon/statusline-cli/ui/protocol';
 import { createStorage } from '@fbincon/statusline-cli/config/storage';
 import { main } from '@fbincon/statusline-cli/main';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
+import { StatusTimer, loadSample } from '@fbincon/statusline-core/timing/timer';
+import type { Sample } from '@fbincon/statusline-core/timing/sample';
+import { int, type Data } from '@fbincon/statusline-core/runtime/values';
+import { renderTaskTimer } from '@fbincon/statusline-core/rendering/timer';
+import { MESSAGES } from '@fbincon/statusline-core/i18n/statusline/en';
+import { runtimeContext } from '@fbincon/statusline-cli/runtime/context';
+import { runtimeIO } from '@fbincon/statusline-cli/runtime/io';
+import { TaskService } from '@fbincon/statusline-cli/runtime/tasks/service';
+import { SubmissionIndex } from '@fbincon/statusline-cli/runtime/tasks/submissions';
+import { RuntimeProtocol } from '@fbincon/statusline-cli/runtime/live/protocol';
 
 export interface Case { id: string; kind: string; input: Record<string, unknown>; config?: unknown; config_id?: string; files?: Record<string, string> }
 export type Handler = (fixture: Case) => unknown;
@@ -24,7 +34,7 @@ export function supported(fixture: Case): boolean {
   if (!Object.hasOwn(handlers, fixture.kind)) return false;
   // Successful preview rendering and runtime entry points land in 03-D/E.
   if (fixture.kind === 'ui' && fixture.id === 'ui-preview') return false;
-  if (fixture.kind === 'cli' && ['render', 'render-subagents', 'hook', 'slash-hook', 'runtime'].includes((fixture.input.argv as string[])[0]!)) return false;
+  if (fixture.kind === 'cli' && ['render', 'render-subagents', 'slash-hook'].includes((fixture.input.argv as string[])[0]!)) return false;
   return true;
 }
 
@@ -63,6 +73,61 @@ export const handlers: Readonly<Record<string, Handler>> = {
       responses.push({ operation, ...call(p, pythonJson({ protocol_version: 11, operation, payload })) });
     }
     return { responses, portable: fs.readFileSync(target, 'utf8') };
+  },
+  clock: fixture => {
+    let timer = StatusTimer.load(fixture.input.initial)!;
+    return (fixture.input.events as Data[]).map(event => {
+      const sample = loadSample(event.sample)!;
+      if (event.action === 'restore') timer = StatusTimer.load(decode(pythonJson(timer.toDict())))!;
+      else if (event.action === 'pause') timer = timer.pause(event.token as string, sample);
+      else if (event.action === 'resume') timer = timer.resume(event.token as string, sample);
+      else if (event.action === 'finish') timer = timer.finish(sample);
+      else if (event.action === 'reset') timer = timer.reset(sample);
+      else throw new Error('Unknown clock action');
+      return { state: timer.toDict(), elapsed_ns: timer.elapsed(sample) };
+    });
+  },
+  lifecycle: fixture => {
+    let sample: Sample;
+    const context = { ...runtimeContext(join(process.cwd(), 'config')), sample: () => sample, nowMs: () => 2_000_000_000_000 };
+    const service = new TaskService(context);
+    const translate = (key: string, params: Record<string, unknown> = {}) => ((MESSAGES as Record<string, string>)[key] ?? key).replace(/\{([A-Za-z_][A-Za-z_0-9]*)\}/gu, (_match, name: string) => String(params[name]));
+    return (fixture.input.events as Data[]).map(step => {
+      sample = { wall_ns: int(step.wall_ns)!, boot_ns: int(step.boot_ns), boot_id: step.boot_id as string | null };
+      if (step.action === 'hook') service.handle(step.payload);
+      else if (step.action === 'confirm') service.confirm(fixture.input.session_id, fixture.input.prompt_id, sample.wall_ns);
+      else if (step.action === 'transcript') service.transcript(fixture.input.session_id, step.observations);
+      else throw new Error('Unknown lifecycle action');
+      const state = service.store.state(fixture.input.session_id, fixture.input.prompt_id);
+      return { state, rendered: state ? renderTaskTimer(state, sample, translate) : null };
+    });
+  },
+  cursor: fixture => {
+    const context = runtimeContext(join(process.cwd(), 'config')), path = join(context.runtimeRoot, 'synthetic.jsonl');
+    fs.mkdirSync(dirname(path), { recursive: true });
+    let identity = 100n, mtime = 1n, offsets: bigint[] = [];
+    const base = runtimeIO();
+    const io = { ...base, stat(target: string, follow = true) { const stat = base.stat(target, follow); return target === path ? { ...stat, dev: 7n, ino: identity, mtimeNs: mtime } : stat; },
+      resolve(target: string) { return target === path ? '/ts01/synthetic.jsonl' : base.resolve(target); },
+      lines(target: string, start: bigint, visit: (line: Buffer) => void) { offsets.push(start); return base.lines(target, start, visit); } };
+    const index = new SubmissionIndex(context, io);
+    return (fixture.input.steps as Data[]).map(step => {
+      mtime++; const raw = Buffer.from(step.text as string);
+      if (step.action === 'append') fs.appendFileSync(path, raw);
+      else if (step.action === 'replace') { identity++; const replacement = path.replace(/\.jsonl$/u, '.new'); fs.writeFileSync(replacement, raw); fs.renameSync(replacement, path); }
+      else fs.writeFileSync(path, raw);
+      offsets = [];
+      const value = index.time(path, step.prompt_id as string);
+      return { submission_ns: value, file_bytes: fs.statSync(path).size, read_offsets: offsets };
+    });
+  },
+  runtime: async fixture => {
+    const context = { ...runtimeContext(join(process.cwd(), 'config')), nowMs: () => 2_000_000_000_000 };
+    const protocol = new RuntimeProtocol(context), records = [];
+    for (const raw of fixture.input.requests as string[]) {
+      const result = await protocol.handle(raw); records.push({ exit_code: result.status, stdout: result.stdout });
+    }
+    return records;
   },
 };
 

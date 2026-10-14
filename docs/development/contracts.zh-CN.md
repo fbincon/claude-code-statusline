@@ -65,6 +65,8 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 TS-03 将规范协议类型、目录与资源生成迁入 `packages/core` 和 `tools/generation/resources.ts`。运行 `npm run generate` 重新生成，以 `npm run generate:check` 检查漂移。迁移期保留 Python 声明和只读的 `tools/generate_ui_contracts.py --check` 作为对照证据；不维护另一份目录，不手改生成的 Mod 类型。Mod 使用 `$.process.run` 参数数组与 JSON stdin；PATH 不合适时通过 `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` 指定后端绝对路径，存在 `CLAUDE_CONFIG_DIR` 时显式传递。不会进行 shell 插值。
 
+开发用 TS 后端现通过 `node packages/cli/dist/src/entry.js runtime --config-dir PATH` 提供运行协议 2，并兼容 v1。整批观察在写入前完整校验，stdout 只输出一个 JSON 响应，非法观察或状态不可用时返回 2。1 MiB 输入上限、重复字段／非有限数值拒绝及偏好语义与 Python 边界一致；`hook` 保持静默成功。运行读取不持久化身份修复，任务／live schema 和已安装 Mod 绑定保持现状；安装及编辑器启动集成仍归 TS-04。
+
 桥接拒绝非法或截断响应、协议版本不匹配及非零退出，保留冲突等结构化后端错误。进程启动/拒绝错误使用 `backend_process`，超时错误使用 `backend_timeout`；宿主进程调用的超时为 30 秒。验证入口显示故障并提供预览重试；打开失败后重新打开会重读配置。
 
 Client 编辑器首次打开时读取目录和配置，保留完整草稿及数值缓冲，仅在草稿或宽度变化时更新预览。保存使用基线 revision，成功后更新快照并保持面板打开。冲突保留草稿供显式丢弃/重载；结果不明确时先读取核对再重试。关闭使旧响应失效并丢弃待保存修改。宿主偏好使用独立实际行 API 并逐项报告。生成描述覆盖目录、选项、边界和能力；桥接拒绝不完整或重复目录、未知选项和不安全显示文本。
