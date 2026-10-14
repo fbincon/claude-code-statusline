@@ -2,7 +2,7 @@
 
 **English** | [简体中文](TS04-HANDOFF.zh-CN.md)
 
-TS-03 remains **IN_PROGRESS** until its performance and final CI gates close. This document records the interfaces TS-04 will consume; it does not switch the installed Python product or claim external-editor acceptance.
+TS-03 remains **IN_PROGRESS**: [D06 failed](PERFORMANCE.md) with 69 failed and 32 inconclusive metrics. The initial 03-F head passed 43 CI jobs; final head verification is recorded in [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83). Performance remediation remains owned by TS-03. This document records the interfaces TS-04 will consume; it does not switch the installed Python product or claim external-editor acceptance.
 
 ## Backend entry and ownership
 

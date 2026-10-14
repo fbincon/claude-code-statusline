@@ -2,7 +2,7 @@
 
 [English](TS04-HANDOFF.md) | **简体中文**
 
-TS-03 在性能和最终 CI 门槛闭合前保持 **IN_PROGRESS**。本文记录 TS-04 将使用的接口，不切换已安装的 Python 产品，也不代表外部编辑器已验收。
+TS-03 保持 **IN_PROGRESS**：[D06 失败](PERFORMANCE.zh-CN.md)，69 项失败、32 项不确定。03-F 首个提交的 43 项 CI 通过，最终 head 核验记录于 [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83)；性能整改继续归 TS-03。本文记录 TS-04 将使用的接口，不切换已安装的 Python 产品，也不代表外部编辑器已验收。
 
 ## 后端入口与所有权
 

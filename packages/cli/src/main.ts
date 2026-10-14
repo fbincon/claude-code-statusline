@@ -50,7 +50,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     if (args.length === 1 && ['render', 'render-subagents', 'slash-hook'].includes(args[0]!))
         return renderer(args[0]!);
     // Management translations and storage stay outside the rendering hot path.
-    const { ArgumentError, parseConfig } = await import('./config/arguments.js');
+    const { ArgumentError, parseConfig, validateConfigHelp } = await import('./config/arguments.js');
     const { expandUser, detectClaudeVersion } = await import('@fbincon/statusline-platform/commands');
     const { ConfigurationService } = await import('./config/service.js');
     const { createStorage } = await import('./config/storage.js');
@@ -77,8 +77,15 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         const configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
         const preferences = readPreferences(configDir, createStorage(environment.now));
         language = (selectedLanguage ?? preferences.ui_language) as Language;
+        if (['config', 'ui', 'runtime'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || requestedDirectory.startsWith('--') || requestedDirectory === '-h')) throw new ArgumentError('--config-dir requires a path');
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
+            const command = args[0];
+            if (command && !command.startsWith('-') && !['config', 'ui', 'runtime', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command === 'config') {
+                const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
+                validateConfigHelp(args.slice(offset));
+            }
             const { helpText } = await import('./help.js');
             stdout(helpText(args[0], language));
             return 0;

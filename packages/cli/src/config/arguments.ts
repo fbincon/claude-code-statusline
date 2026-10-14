@@ -3,10 +3,49 @@ import { OPTIONS } from './operations.js';
 import { PALETTE_VALUES, DIRECTORYSTYLE_VALUES, SEPARATORSTYLE_VALUES, SCOPELABELS_VALUES, STATUSLINELANGUAGE_VALUES } from '@fbincon/statusline-core/contracts/ui';
 import { ROWS } from '@fbincon/statusline-core/config/presets';
 export class ArgumentError extends Error {
-    constructor(message: string, public readonly key = 'cli.unrecognized', public readonly params: Record<string, unknown> = { arguments: message }) {
+    constructor(message: string, public readonly key = 'cli.unrecognized', public readonly params: Record<string, unknown> = { arguments: message }, public readonly help?: { unrecognizedOption?: string; pending?: boolean }) {
         super(message);
     }
 }
+/** Help still rejects an invalid command path or an option missing its value.
+ * Required final arguments and unrecognized extras are checked after argparse's
+ * help action, so they do not prevent help from exiting successfully.
+ */
+export function validateConfigHelp(argv: readonly string[]): void {
+    const end = argv.findIndex(value => value === '--help' || value === '-h');
+    let prefix = argv.slice(0, end < 0 ? argv.length : end);
+    for (;;) {
+        if (!prefix.length || ['language', 'subagents'].includes(prefix[0]!) && prefix.length === 1 || prefix[0] === 'instance' && (prefix.length === 1 || prefix.length === 2 && ['main', 'subagent'].includes(prefix[1]!))) return;
+        try { parseConfig(prefix); return; }
+        catch (error) {
+            if (!(error instanceof ArgumentError)) throw error;
+            if (error.help?.unrecognizedOption) {
+                const option = error.help.unrecognizedOption;
+                prefix = prefix.filter(value => value !== option && !value.startsWith(option + '='));
+                continue;
+            }
+            if (error.key === 'cli.required' || error.help?.pending) return;
+            throw error;
+        }
+    }
+}
+function positionalChoices(action: string, selected: string | undefined, values: string[]): void {
+    const first = values[0];
+    if (first === undefined) return;
+    if (action === 'set' && !OPTIONS.includes(first)) throw new ArgumentError(`invalid option: ${first}`, 'cli.invalid_choice', { value: first, choices: OPTIONS.join(', ') });
+    if (action === 'item' && !['main', 'subagent'].includes(first)) throw new ArgumentError('scope must be main or subagent');
+    if (action === 'layout' && !['auto', 'explicit'].includes(first)) throw new ArgumentError('layout must be auto or explicit');
+    if (action === 'language' && selected === 'set' && !(STATUSLINELANGUAGE_VALUES as readonly string[]).includes(first)) throw new ArgumentError('unsupported language');
+    if (action === 'preset' && !Object.hasOwn(ROWS, first)) throw new ArgumentError('unknown preset');
+}
+function applyChoices(flags: ConfigArguments['flags']): void {
+    const choices: Record<string, readonly string[]> = { colors: ['on', 'off'], palette: PALETTE_VALUES, 'directory-style': DIRECTORYSTYLE_VALUES, 'separator-style': SEPARATORSTYLE_VALUES, 'scope-labels': SCOPELABELS_VALUES, 'statusline-language': STATUSLINELANGUAGE_VALUES, 'subagent-statusline': ['on', 'off'], 'hide-vim-mode-indicator': ['on', 'off'] };
+    for (const [key, values] of Object.entries(choices)) if (flags[key] !== undefined && !values.includes(flags[key] as string)) throw new ArgumentError(`invalid value for --${key}`);
+}
+function commandToken(value: string | undefined): void {
+    if (value?.startsWith('-') && !/^-\d/u.test(value)) throw new ArgumentError(`unrecognized option: ${value}`, 'cli.unrecognized', { arguments: value }, { unrecognizedOption: value });
+}
+const optionToken = (value: string) => value.length > 1 && value.startsWith('-') && !/^-\d/u.test(value);
 export interface ConfigArguments {
     action: string;
     subaction?: string;
@@ -26,6 +65,7 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
     const args = [...argv], action = args.shift();
     if (!action)
         throw new ArgumentError('config requires a subcommand');
+    commandToken(action);
     const result: ConfigArguments = { action, items: [], flags: {} };
     let allowed: Record<string, 'boolean' | 'one' | 'many'> = {}, minimum = 0, maximum = 0;
     let positional: string[] = [];
@@ -33,12 +73,14 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
         result.subaction = args.shift();
     if (action === 'instance') {
         const scope = args.shift();
+        commandToken(scope);
         if (!['main', 'subagent'].includes(scope ?? ''))
             throw new ArgumentError('scope must be main or subagent');
         result.scope = scope as Scope;
         result.subaction = args.shift();
     }
     const selected = action === 'subagents' || action === 'instance' || action === 'language' ? result.subaction : action;
+    commandToken(selected);
     if (action === 'language') {
         if (selected === 'show')
             allowed = { '--json': 'boolean' };
@@ -100,7 +142,7 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
             const equals = token.indexOf('='), flag = equals < 0 ? token : token.slice(0, equals), inline = equals < 0 ? undefined : token.slice(equals + 1);
             const kind = Object.hasOwn(allowed, flag) ? allowed[flag] : undefined;
             if (!kind)
-                throw new ArgumentError(`unrecognized option: ${flag}`);
+                throw new ArgumentError(`unrecognized option: ${flag}`, 'cli.unrecognized', { arguments: flag }, { unrecognizedOption: flag });
             const name = flag.slice(2);
             if (kind === 'boolean') {
                 if (inline !== undefined)
@@ -109,27 +151,30 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
             }
             else if (kind === 'one') {
                 const value = inline ?? args[++i];
-                if (value === undefined || inline === undefined && value.startsWith('--'))
+                if (value === undefined || inline === undefined && optionToken(value))
                     throw new ArgumentError(`${flag} requires a value`);
                 result.flags[name] = value;
             }
             else {
                 const values = inline === undefined ? [] : [inline];
                 if (inline === undefined)
-                    while (i + 1 < args.length && !args[i + 1]!.startsWith('--'))
+                    while (i + 1 < args.length && !optionToken(args[i + 1]!))
                         values.push(args[++i]!);
                 result.flags[name] = values;
             }
         }
         else if (!literal && token.startsWith('-') && !/^-\d/u.test(token))
-            throw new ArgumentError(`unrecognized option: ${token}`);
+            throw new ArgumentError(`unrecognized option: ${token}`, 'cli.unrecognized', { arguments: token }, { unrecognizedOption: token });
         else
             positional.push(token);
     }
+    positionalChoices(action, selected, positional);
+    if (action === 'apply') applyChoices(result.flags);
+    if (action === 'instance' && selected === 'move' && Object.hasOwn(result.flags, 'before') && Object.hasOwn(result.flags, 'after')) throw new ArgumentError('move requires exactly one of --before and --after');
     if (positional.length < minimum)
         throw new ArgumentError(`invalid arguments for config ${selected}`, 'cli.required', { arguments: `config ${selected}` });
     if (positional.length > maximum)
-        throw new ArgumentError(`invalid arguments for config ${selected}`, 'cli.unrecognized', { arguments: positional.slice(maximum).join(' ') });
+        throw new ArgumentError(`invalid arguments for config ${selected}`, 'cli.unrecognized', { arguments: positional.slice(maximum).join(' ') }, { pending: true });
     if (action === 'language')
         result.value = positional[0];
     else if (action === 'instance') {
@@ -141,18 +186,14 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
             result.option = positional[1];
             result.value = positional[2];
         }
-        if (selected === 'move' && Boolean(result.flags.before) === Boolean(result.flags.after))
-            throw new ArgumentError('move requires exactly one of --before and --after');
+        if (selected === 'move' && Object.hasOwn(result.flags, 'before') === Object.hasOwn(result.flags, 'after'))
+            throw new ArgumentError('move requires exactly one of --before and --after', 'cli.unrecognized', { arguments: 'move requires exactly one of --before and --after' }, { pending: !Object.hasOwn(result.flags, 'before') });
     }
     else if (action === 'set') {
         result.option = positional[0];
         result.value = positional[1];
-        if (!OPTIONS.includes(result.option!))
-            throw new ArgumentError(`invalid option: ${result.option}`, 'cli.invalid_choice', { value: result.option, choices: OPTIONS.join(', ') });
     }
     else if (action === 'item') {
-        if (!['main', 'subagent'].includes(positional[0]!))
-            throw new ArgumentError('scope must be main or subagent');
         result.scope = positional[0] as Scope;
         result.id = positional[1];
         result.option = positional[2];
@@ -161,8 +202,6 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
     else if (action === 'layout') {
         result.mode = positional[0];
         result.rows = positional.slice(1);
-        if (!['auto', 'explicit'].includes(result.mode!))
-            throw new ArgumentError('layout must be auto or explicit');
     }
     else if (action === 'preset')
         result.preset = positional[0];
@@ -173,16 +212,6 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
     if (action === 'apply')
         for (const name of ['items', 'colors', 'palette', 'directory-style', 'separator-style', 'padding', 'refresh-interval', 'hide-vim-mode-indicator'])
             if (!Object.hasOwn(result.flags, name))
-                throw new ArgumentError(`required option: --${name}`);
-    if (action === 'apply') {
-        const choices: Record<string, readonly string[]> = { colors: ['on', 'off'], palette: PALETTE_VALUES, 'directory-style': DIRECTORYSTYLE_VALUES, 'separator-style': SEPARATORSTYLE_VALUES, 'scope-labels': SCOPELABELS_VALUES, 'statusline-language': STATUSLINELANGUAGE_VALUES, 'subagent-statusline': ['on', 'off'], 'hide-vim-mode-indicator': ['on', 'off'] };
-        for (const [key, values] of Object.entries(choices))
-            if (result.flags[key] !== undefined && !values.includes(result.flags[key] as string))
-                throw new ArgumentError(`invalid value for --${key}`);
-    }
-    if (action === 'language' && selected === 'set' && !(STATUSLINELANGUAGE_VALUES as readonly string[]).includes(result.value!))
-        throw new ArgumentError('unsupported language');
-    if (action === 'preset' && !Object.hasOwn(ROWS, result.preset!))
-        throw new ArgumentError('unknown preset');
+                throw new ArgumentError(`required option: --${name}`, 'cli.required', { arguments: '--' + name });
     return result;
 }

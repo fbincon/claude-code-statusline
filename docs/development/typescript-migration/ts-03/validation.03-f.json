@@ -1,7 +1,7 @@
 {
   "format_version": 1,
   "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
-  "commit": "10c6348aef1fcd1d2a1681aa808a842e0d883b56",
+  "commit": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08",
   "dirty": true,
   "node": "v24.21.0",
   "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
@@ -95,7 +95,7 @@
     "package-lock.json": "1bd7fe62ca59dd085068c916aa99002e8ee5997b188dcda098d5b57e96e106b8",
     "package.json": "def164bb120bff71b6c0fa470a9b5ac1ce291ee9e9e3f837de681ef2b3c590ea",
     "packages/cli/package.json": "8aaf2d9cd52c90cec1ea9ea9bf44635ccc10f530e6ed78e62c4d484ce01700cc",
-    "packages/cli/src/config/arguments.ts": "3d94134cf207ce3e7c98d05bdf80ca0c1f4bd7bee8435a40d51a4487100fdae4",
+    "packages/cli/src/config/arguments.ts": "6441e2983a46aebb251b6a7aac477c777c740a2fca55572bbd3bfbbf0a1b4c5d",
     "packages/cli/src/config/backend-preferences.ts": "8cd193d01c3cf8f2b41d17840be78d7454b7189cae1b45ac299e276e03d0eb4a",
     "packages/cli/src/config/commands.ts": "fecca3bcb99ed6ea1481ed903e35d793164185308b649ad46806a88df97893a3",
     "packages/cli/src/config/host.ts": "a7d80094d52868d24a53a7eb3a02d5aef6f5f88451aaecb56a6bf3835d4c12b2",
@@ -110,7 +110,7 @@
     "packages/cli/src/help.ts": "18e42df94ff291062a9450b15cc8e7a34c1f6fb57211280629fe8f9d1ab9301e",
     "packages/cli/src/integration/editor.ts": "c52fa6c85d258e2888472c3e0fd136d4ee88716cc945df76bbb3ded8eb0d54d5",
     "packages/cli/src/integration/slash-hook.ts": "2ed93e6e688ab00c246f2b73eaadcfc6daa79d17ea989b8a27d37823224e11d3",
-    "packages/cli/src/main.ts": "f2853619ea8fbc9f4a110ca23256252bd15f2fe2476c233045f6ace77b177c3d",
+    "packages/cli/src/main.ts": "e725062348cc1668acd6a7de48a8a52edbf4eadb5cdfa8f18eea94710e40f66a",
     "packages/cli/src/rendering/environment.ts": "8e744cf0a694354b8e1668a9a4f88519b31708e4f41ad068153f2fdc1fd258a5",
     "packages/cli/src/rendering/main.ts": "29e45748866285e654dd08ba7526d0f8f9c1340ba8dca1e10755b40249e6a38d",
     "packages/cli/src/rendering/preview.ts": "1bcd01485138c174d1cd44edb4e3a9925e4b9a3dfba9c4529e38b6055d998297",
@@ -295,6 +295,7 @@
     "tools/migration/ts-03/scenarios.ts": "5dd085eb9c01cc6f870582508c16a0f9acda2a945e8d3a9fb50de704ea9e8125",
     "tools/migration/ts-03/scripts/mod-smoke.py": "cb16d0714eed5727c804bfc130cd7bf916198c34da28996e961317297dd92647",
     "tools/migration/ts-03/test/child.ts": "8b176defe26cd1fed1ae51c70cf5f0083288e397b2847e52c29813a3cc81cca8",
+    "tools/migration/ts-03/test/cli-help.test.ts": "9439cbf6227c8b4d1b555910d8f7db7d3aa65f1f36bc7199e23f5e3811eed0a6",
     "tools/migration/ts-03/test/compare.test.ts": "adefc6dc01ebaa5f9fc8ae0c127620bf7f2733f23e44ccc8c56b1e4167a39669",
     "tools/migration/ts-03/test/json-boundaries.test.ts": "fbbc0e13bd99db4a454bf7ca3158fd68414a81c9874ccb668c11da274b66dbea",
     "tools/migration/ts-03/test/mod-backend.test.ts": "6a8e950e3eec646e5d87eedc6603dc1a51de731aca847079c9c39945040a52e6",
@@ -316,11 +317,11 @@
   },
   "baseline_lock_sha256": "a701f70744de7fbc9ffe7c8122fcf4383e690ab052bf7b421008b3c523227bfc",
   "limitation": "Source/provenance receipt; CI/test results and functional parity are separate evidence.",
-  "scope": "03-F integrated acceptance; performance and final PR CI remain open",
+  "scope": "03-F integrated implementation and acceptance evidence; D06 failed, stage remains IN_PROGRESS",
   "local_tests": {
     "typescript": {
-      "total": 549,
-      "passed": 548,
+      "total": 550,
+      "passed": 549,
       "skipped": 1,
       "skip_reason": "Windows sharing conflict test is platform-only"
     },
@@ -335,7 +336,7 @@
     "strict_mod_validations": 2,
     "generated_resources": 34,
     "legacy_readonly_generators": 5,
-    "docs_links": 1526,
+    "docs_links": 1540,
     "ruff": "F,E9 passed",
     "fixed_cases": 161,
     "exact_cli_wording_exceptions": 3,
@@ -358,7 +359,9 @@
     "runtime-validate.log": "1010ac898bfa28a8fec98f6a4ac54aac86688d6aadf8700b82822b71114581a4",
     "typescript-final.log": "9343b79526049154d2eca25ac049d4a4387a20c0d9fb3646539bb86736ebc3db",
     "typescript-optimization-01.log": "ae73d7548520cd0e6790597d2657f77017ed9df93344364f0e3c5c53f791e688",
-    "typescript-reviewed.log": "cb272104226c26d2ca484bbac2349c27c46051f0e44d567a1486036cce90dcf4"
+    "typescript-reviewed.log": "cb272104226c26d2ca484bbac2349c27c46051f0e44d567a1486036cce90dcf4",
+    "typescript-help-final.log": "c0349910e468fe50e26e175836a004e0156efd88eab87757949bc53794f78d25",
+    "typescript-help-final-02.log": "4ea1aadbe0d6d875610b8323925944cbd0024b99f375b49774cf2a8fae585c19"
   },
   "raw_evidence": "dist/validation/typescript-migration/ts-03/03-f-local-01",
   "host_probe": {
@@ -386,19 +389,21 @@
     "cleanup_complete": true
   },
   "host_probe_sha256": "3381fbd04000497cad6b1dd73d9d3456704c91f41bac89561f6c16c5b5f3c9ee",
-  "performance_state": "pending_fixed_budget_measurement",
-  "ci_state": "pending",
+  "performance_state": "fail",
+  "ci_state": "initial_head_passed; final_head_and_artifacts_recorded_in_PR_83",
   "review": {
     "language_boundary": "Help and parser errors resolve the selected UI locale; literal option-looking labels remain data and cannot redirect writes.",
     "cache_optimization": "Ordered dictionary deletion is constant-time; native parsing/serialization retains exact numeric kinds, member order and Python bytes, with guarded fallbacks.",
     "test_assertion_corrections": [
       "Explicit rows retain disabled schema-8 instances; enabled rows are checked separately.",
       "Read snapshots may create a lock directory; rejected legacy apply is verified not to acquire the write lock."
-    ]
+    ],
+    "help_exit_codes": "Frozen Python parser comparison verifies invalid paths, missing values, positional choices, mutual exclusion and help ordering. Exit codes and stdout/stderr channels match; no configuration files are written."
   },
   "limitations": [
-    "No D06 performance pass yet. Single-sample preflight reports are functional checks only.",
-    "Eight-target source-bound CI for 03-F has not run.",
+    "D06 failed: 69 failed and 32 inconclusive metrics. Further performance remediation remains TS-03 work; do not mark DONE.",
+    "The help exit-code correction follows the measured commit and has no separate performance pass.",
+    "Final PR head CI and exact source artifacts must pass before merge; PR #83 records those post-commit checks.",
     "TS-04 retains the 45 named terminal/install tests and eight mixed integration assertions.",
     "Physical/desktop and exact Claude Code 2.1.296 host declaration gates retain the approved release-before status.",
     "No installation cutover, version tag or Release."
@@ -452,5 +457,563 @@
       "samples": 1,
       "performance_acceptance": false
     }
-  ]
+  ],
+  "stage": "IN_PROGRESS",
+  "reviewed_source_note": "The 297 source hashes bind the final local implementation on parent 1fddaa6 with dirty=true. Final clean head, tested merge, jobs and exact artifact hashes are recorded in PR #83 after this evidence commit.",
+  "initial_ci": {
+    "pr": 83,
+    "head": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08",
+    "tested_merge": "334acd9cc53bbcbe7d08dcb9633e77ce9fcfdc13",
+    "runs": {
+      "ci": 38568473996,
+      "mods": 38568473975,
+      "platform": 38568474037,
+      "backend": 38568473938
+    },
+    "artifacts": [
+      {
+        "id": 11896935651,
+        "name": "ts03-macos-26-intel-x64",
+        "digest": "sha256:69014bc8753d0b4b67491e1e4e94e0eeb171f761e8b8c392460d0830fdeb2397",
+        "workflow_run": {
+          "id": 38568473938,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-acceptance",
+          "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+        }
+      },
+      {
+        "id": 11896920948,
+        "name": "ts03-macos-15-intel-x64",
+        "digest": "sha256:ae342cf8367b7e11329cbcff54ccc4aa3a4017b6b651140a5f4a21d4089d995f",
+        "workflow_run": {
+          "id": 38568473938,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-acceptance",
+          "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+        }
+      },
+      {
+        "id": 11896835639,
+        "name": "ts03-macos-15-arm64",
+        "digest": "sha256:5106dc288e5c3adb5d0a53d8ee1bb5914c47313a7b688ab14bd9a03c6a5e0aff",
+        "workflow_run": {
+          "id": 38568473938,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-acceptance",
+          "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+        }
+      },
+      {
+        "id": 11896479137,
+        "name": "ts03-windows-2025-x64",
+        "digest": "sha256:6ce6f4f36460e840756feb0b91b0bc41d4d0de6e4fc4691661ea41e26af0f3c0",
+        "workflow_run": {
+          "id": 38568473938,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-acceptance",
+          "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+        }
+      },
+      {
+        "id": 11896339013,
+        "name": "ts03-macos-26-arm64",
+        "digest": "sha256:cd68f23804d2bffcc87b6ec9e1c2e0f1f703a491397d5cae5677636a867ae6a1",
+        "workflow_run": {
+          "id": 38568473938,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-acceptance",
+          "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+        }
+      },
+      {
+        "id": 11896259718,
+        "name": "ts03-macos-14-arm64",
+        "digest": "sha256:fb2fce17624a1f44eea1461c5b943cc612ad00d4617fcf2611a4343de46d3a3d",
+        "workflow_run": {
+          "id": 38568473938,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-acceptance",
+          "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+        }
+      },
+      {
+        "id": 11895889798,
+        "name": "ts03-windows-11-arm-x64",
+        "digest": "sha256:0e91b9dcabea0f6db9d2b6974aa5f0b8c2ce686399fcb817af868b72b6db5ee1",
+        "workflow_run": {
+          "id": 38568473938,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-acceptance",
+          "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+        }
+      },
+      {
+        "id": 11895539849,
+        "name": "ts03-ubuntu-24.04-x64",
+        "digest": "sha256:b4c32ea2bbc12f49b8461d03e4a16558753e2ff39d1286affa6cc58312060dd8",
+        "workflow_run": {
+          "id": 38568473938,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-acceptance",
+          "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+        }
+      }
+    ],
+    "cancelled_duplicate_push_runs": [
+      38568287666,
+      38568287792,
+      38568287788
+    ],
+    "completed_duplicate_backend_push": {
+      "run": 38568287675,
+      "conclusion": "success"
+    },
+    "required_jobs_passed": 43,
+    "jobs": [
+      {
+        "run_id": 38568473996,
+        "jobs": [
+          {
+            "id": 115867120767,
+            "name": "Build and inspect distributions",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121268,
+            "name": "macos-15-intel / Python 3.14",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121341,
+            "name": "macos-26-intel / Python 3.14",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121386,
+            "name": "Frozen Python migration baseline",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121394,
+            "name": "macos-26 / Python 3.10",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121404,
+            "name": "macos-26-intel / Python 3.10",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121438,
+            "name": "macos-26 / Python 3.14",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121465,
+            "name": "windows-latest / Python 3.14",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121541,
+            "name": "ubuntu-latest / Python 3.14",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121575,
+            "name": "windows-latest / Python 3.10",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121587,
+            "name": "macos-15 / Python 3.14",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121605,
+            "name": "macos-15 / Python 3.10",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121759,
+            "name": "ubuntu-latest / Python 3.10",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121775,
+            "name": "macos-15-intel / Python 3.10",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          }
+        ],
+        "total_count": 14
+      },
+      {
+        "run_id": 38568473975,
+        "jobs": [
+          {
+            "id": 115867121492,
+            "name": "Windows / Claude Code 2.1.288",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121741,
+            "name": "Windows / Claude Code 2.1.289",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121746,
+            "name": "macOS / Claude Code 2.1.294",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121798,
+            "name": "Linux / Claude Code 2.1.287",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121815,
+            "name": "Linux / Claude Code 2.1.296",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121850,
+            "name": "macOS / Claude Code 2.1.288",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121853,
+            "name": "macOS / Claude Code 2.1.289",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121946,
+            "name": "Windows / Claude Code 2.1.294",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121954,
+            "name": "Linux / Claude Code 2.1.288",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867122098,
+            "name": "macOS / Claude Code 2.1.296",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867122122,
+            "name": "Windows / Claude Code 2.1.296",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867122286,
+            "name": "Linux / Claude Code 2.1.289",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867122358,
+            "name": "Linux / Claude Code 2.1.294",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run_id": 38568474037,
+        "jobs": [
+          {
+            "id": 115867121197,
+            "name": "TS-02 / macos-15 / arm64",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121597,
+            "name": "TS-02 / ubuntu-24.04 / x64",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121655,
+            "name": "TS-02 / macos-26 / arm64",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121773,
+            "name": "TS-02 / macos-15-intel / x64",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121807,
+            "name": "TS-02 / windows-11-arm / x64",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121823,
+            "name": "TS-02 / windows-2025 / x64",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121863,
+            "name": "TS-02 / macos-26-intel / x64",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "id": 115867121922,
+            "name": "TS-02 / macos-14 / arm64",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "run_id": 38568473938,
+        "jobs": [
+          {
+            "id": 115867120610,
+            "name": "TS-03 / macos-26-intel / x64",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867120861,
+            "name": "TS-03 / macos-15 / arm64",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867120923,
+            "name": "TS-03 / macos-14 / arm64",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867120947,
+            "name": "TS-03 / macos-15-intel / x64",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121009,
+            "name": "TS-03 / windows-2025 / x64",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121097,
+            "name": "TS-03 / ubuntu-24.04 / x64",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121167,
+            "name": "TS-03 / macos-26 / arm64",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          },
+          {
+            "id": 115867121169,
+            "name": "TS-03 / windows-11-arm / x64",
+            "status": "completed",
+            "conclusion": "success",
+            "head_sha": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08"
+          }
+        ],
+        "total_count": 8
+      }
+    ],
+    "source_verification": {
+      "head": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08",
+      "tested_merge": "334acd9cc53bbcbe7d08dcb9633e77ce9fcfdc13",
+      "same_tree": true,
+      "receipts": [
+        {
+          "artifact": "ts03-macos-26-intel-x64",
+          "source_files": 296,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "host_arch": "x64",
+          "process_arch": "x64"
+        },
+        {
+          "artifact": "ts03-macos-15-intel-x64",
+          "source_files": 296,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "host_arch": "x64",
+          "process_arch": "x64"
+        },
+        {
+          "artifact": "ts03-macos-15-arm64",
+          "source_files": 296,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "host_arch": "arm64",
+          "process_arch": "arm64"
+        },
+        {
+          "artifact": "ts03-windows-2025-x64",
+          "source_files": 296,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "host_arch": "x64",
+          "process_arch": "x64"
+        },
+        {
+          "artifact": "ts03-macos-26-arm64",
+          "source_files": 296,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "host_arch": "arm64",
+          "process_arch": "arm64"
+        },
+        {
+          "artifact": "ts03-macos-14-arm64",
+          "source_files": 296,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "host_arch": "arm64",
+          "process_arch": "arm64"
+        },
+        {
+          "artifact": "ts03-windows-11-arm-x64",
+          "source_files": 296,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "host_arch": "arm64",
+          "process_arch": "x64"
+        },
+        {
+          "artifact": "ts03-ubuntu-24.04-x64",
+          "source_files": 296,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "host_arch": "x64",
+          "process_arch": "x64"
+        }
+      ],
+      "complete": true
+    },
+    "pr_url": "https://github.com/fbincon/claude-code-statusline/pull/83"
+  },
+  "capture": {
+    "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+    "commit": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08",
+    "node": "v24.21.0",
+    "status": "captured",
+    "completed": 161,
+    "pending": [],
+    "dirty": false,
+    "result_sha256": "b7f0fd448e5dc505105cb5375072cf9f9c8124271cb6d1bb144df602ce860a59",
+    "lock_sha256": "a701f70744de7fbc9ffe7c8122fcf4383e690ab052bf7b421008b3c523227bfc",
+    "note": "Committed initial F head; final local 550-test suite independently replays all 161 cases after the help correction."
+  },
+  "performance": {
+    "state": "fail",
+    "commit": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08",
+    "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+    "dirty": false,
+    "runtime": {
+      "node": "v24.21.0",
+      "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+      "python": "Python 3.14.4",
+      "python_sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+      "platform": "linux",
+      "host_arch": "x86_64",
+      "process_arch": "x64",
+      "os": "7.0.0-38-generic",
+      "cpu": "13th Gen Intel(R) Core(TM) i5-13500H"
+    },
+    "policy_sha256": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+    "raw_evidence": "dist/validation/typescript-migration/ts-03/03-f-perf-01/benchmark.json",
+    "raw_evidence_sha256": "61525a2604ad709b4f2b8b953851f3b668ebf4053d5b291afe53b69538b7c985",
+    "source_graph": {
+      "entries": 424,
+      "canonical_manifest_sha256": "e79dacf15d7fed69bac02aecb2f2188188a9203dae6721a64d5a3ff41efb5520",
+      "repository_commit": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08",
+      "compiled_artifacts_included": true
+    },
+    "dispositions": {
+      "inconclusive": 32,
+      "pass": 91,
+      "fail": 69
+    },
+    "dispositions_by_bytecode_mode": {
+      "warm": {
+        "inconclusive": 15,
+        "pass": 38,
+        "fail": 43
+      },
+      "cold": {
+        "pass": 53,
+        "inconclusive": 17,
+        "fail": 26
+      }
+    },
+    "measured_samples": 19200,
+    "all_sample_outputs_and_collector_counts_match": true,
+    "followup_source_note": "A subsequent CLI help-validation fix is not part of this measured commit. This failure cannot establish a performance pass for the later head.",
+    "summary": "performance.03-f.json",
+    "summary_sha256": "42f6b2f22580aae255b6d4977616a96bf7019fa6278daeaecbb6bcde41dc6018"
+  }
 }
