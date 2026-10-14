@@ -355,3 +355,5 @@ python tools/upgrade_composition_acceptance.py --baseline RELEASED_WHEEL --candi
 ```
 
 Native uses A/D/X because control chords can be intercepted by the host; external uses Ctrl+A/D/X. The native preview fits its drawable content width, including changes caused by adding/removing a frame on resize. Both snapshot transports preserve picker state and copy identities.
+
+TS-03 C adds fresh-process Linux replay for the 26 implemented frozen cases, exact hashes for three approved CLI text differences, full configuration transactions, actual Node CLI JSON exchange, and mixed Python/TS configuration/preference writers. The ledger currently maps 78/516 baseline tests. The remaining 135 fixed cases and 438 test IDs are explicitly pending; `--complete` must still fail.

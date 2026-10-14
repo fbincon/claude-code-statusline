@@ -1,0 +1,105 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
+import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
+import { errorDescription } from '@fbincon/statusline-platform/errors';
+export interface CliEnvironment {
+    configDir?: string;
+    launch?: LaunchSpec;
+    hostVersion?: () => readonly number[] | null;
+    now?: () => Date;
+    nextId?: () => string;
+    stdin?: () => string;
+    stdout?: (text: string) => void;
+    stderr?: (text: string) => void;
+}
+export async function main(argv: readonly string[] = process.argv.slice(2), environment: CliEnvironment = {}): Promise<number> {
+    const stdout = environment.stdout ?? (text => { process.stdout.write(text); });
+    const stderr = environment.stderr ?? (text => { process.stderr.write(text); });
+    const stdin = environment.stdin ?? (() => decodeUtf8(readFileSync(0)));
+    const args = [...argv];
+    if (args.length === 1 && args[0] === '--version') {
+        stdout('claude-statusline 2.0.0\n');
+        return 0;
+    }
+    // Render and hook adapters are bound here as their migrations land; management
+    // resources stay below this dispatch boundary for the final renderer hot path.
+    const { ArgumentError, parseConfig } = await import('./config/arguments.js');
+    const { expandUser, detectClaudeVersion } = await import('@fbincon/statusline-platform/commands');
+    const { ConfigurationService } = await import('./config/service.js');
+    const { createStorage } = await import('./config/storage.js');
+    const { readPreferences } = await import('./config/preferences.js');
+    const { ConfigError } = await import('@fbincon/statusline-core/config/validation');
+    const { t, text } = await import('@fbincon/statusline-core/i18n/messages');
+    const { LANGUAGES } = await import('@fbincon/statusline-core/i18n/registry');
+    const { localizedError } = await import('./errors.js');
+    let selectedLanguage: string | undefined;
+    try {
+        if (args[0] === '--language' || args[0]?.startsWith('--language=')) {
+            const flag = args.shift()!;
+            selectedLanguage = flag.includes('=') ? flag.slice(11) : args.shift();
+            if (!(LANGUAGES as readonly unknown[]).includes(selectedLanguage))
+                throw new ArgumentError('unsupported --language');
+        }
+        if (args.includes('--help') || args.includes('-h')) {
+            stdout('usage: claude-statusline [--language LANGUAGE] COMMAND\n\nCommands: config, ui, runtime, render, render-subagents, hook, slash-hook\n\nconfig: show, list-items, set-items, enable, disable, order, subagents, set, apply, preset, import, export, item, layout, instance, reset, language\n');
+            return 0;
+        }
+        const command = args.shift();
+        if (!['config', 'ui'].includes(command ?? ''))
+            throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
+        let explicit: string | undefined;
+        if (args[0] === '--config-dir' || args[0]?.startsWith('--config-dir=')) {
+            const flag = args.shift()!;
+            explicit = flag.includes('=') ? flag.slice(13) : args.shift();
+            if (explicit === undefined)
+                throw new ArgumentError('--config-dir requires a path');
+        }
+        const rawDirectory = explicit ?? environment.configDir ?? process.env.CLAUDE_CONFIG_DIR;
+        const configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
+        const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
+        const service = new ConfigurationService({ configDir, launch, hostVersion: environment.hostVersion ?? detectClaudeVersion }, createStorage(environment.now));
+        if (command === 'ui') {
+            if (args.length)
+                throw new ArgumentError('ui takes no positional arguments');
+            const { ConfigurationProtocol } = await import('./ui/protocol.js');
+            const { pythonJson } = await import('@fbincon/statusline-core/json-text');
+            const protocol = new ConfigurationProtocol(service, undefined, environment.nextId);
+            let raw: string;
+            try {
+                raw = stdin();
+            }
+            catch (error) {
+                stdout(pythonJson({ protocol_version: 11, error: { code: 'invalid_request', message: error instanceof Error ? error.message : String(error), localization: null } }, { ensureAscii: false }) + '\n');
+                return 2;
+            }
+            const { response, status } = protocol.handle(raw, error => stderr(String(error) + '\n'));
+            stdout(pythonJson(response, { ensureAscii: false }) + '\n');
+            return status;
+        }
+        const parsed = parseConfig(args);
+        const preferences = readPreferences(configDir, service.io);
+        const language = (selectedLanguage ?? preferences.ui_language) as typeof preferences.ui_language;
+        if (preferences.warning)
+            stderr(t('cli.warning', language, { detail: preferences.warning }) + '\n');
+        try {
+            const { executeConfig } = await import('./config/commands.js');
+            stdout(executeConfig(parsed, service, language, environment.nextId) + '\n');
+            return 0;
+        }
+        catch (error) {
+            const detail = error instanceof ConfigError ? localizedError(error) : errorDescription(error);
+            stderr(t('cli.error', language, { detail }) + '\n');
+            return 2;
+        }
+    }
+    catch (error) {
+        if (error instanceof ArgumentError) {
+            stderr(`claude-statusline: error: ${error.message}\n`);
+            return 2;
+        }
+        stderr(t('cli.error', 'en', { detail: error instanceof ConfigError ? localizedError(error) : String(error) }) + '\n');
+        return 2;
+    }
+}

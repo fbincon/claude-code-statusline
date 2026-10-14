@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "case": "cli-help",
+    "path": "/value/stdout",
+    "before_sha256": "0b0a5acd2ab97f4f7bb0a8a59de0ed0311edbda3e281b33a755667cce6fff1ea",
+    "after_sha256": "a00885c740ea2494793a89a924522606f1cf5f7f66f891c2a025d39f39d98223",
+    "reason": "User-approved human CLI help/argument diagnostic wording change; command semantics, other streams and exit status remain exact."
+  },
+  {
+    "case": "cli-config-refused",
+    "path": "/value/stderr",
+    "before_sha256": "7f83068e747222694e916ce0fd3af59560a9ca5a89e74d92d900c4c839b90a58",
+    "after_sha256": "f46a7b8acb6d246e0167d65343a1fef5a0be169ee19d79e5838c97f5b2cb8a82",
+    "reason": "User-approved human CLI help/argument diagnostic wording change; command semantics, other streams and exit status remain exact."
+  },
+  {
+    "case": "cli-unknown-command",
+    "path": "/value/stderr",
+    "before_sha256": "21d33ee72221ebfed564efcd93a8eb598879946ab63d2eb7aad64f6cf0fdf97a",
+    "after_sha256": "388049b0e779ca81ee9af003395a0b1471c3ae06e761aa161ca3e9eb05a7870d",
+    "reason": "User-approved human CLI help/argument diagnostic wording change; command semantics, other streams and exit status remain exact."
+  }
+]

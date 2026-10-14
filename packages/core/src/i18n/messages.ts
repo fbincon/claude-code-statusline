@@ -15,7 +15,7 @@ export function isLocalizedText(value: unknown, depth = 0): value is LocalizedTe
   return Object.keys(v).sort().join(',') === 'fallback,key,params' &&
     typeof v.key === 'string' && typeof v.fallback === 'string' &&
     !!v.params && typeof v.params === 'object' && !Array.isArray(v.params) &&
-    Object.values(v.params).every(p => p === null || ['string', 'number', 'boolean'].includes(typeof p) || isLocalizedText(p, depth + 1));
+    Object.values(v.params).every(p => p === null || ['string', 'number', 'bigint', 'boolean'].includes(typeof p) || isLocalizedText(p, depth + 1));
 }
 
 export function t(key: string, language: Language = 'en', params: Record<string, unknown> = {}, fallback?: string): string {

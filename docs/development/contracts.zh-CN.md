@@ -127,3 +127,5 @@ schema 8 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。Python 的 `
 显示 schema 8 用有序 `instances` 替代 wire 中的 `items`／实例的 `options`。每项严格包含 `id`、`type_id`、`enabled`、`options`、`text`；ID 在作用域内唯一，新增／复制生成新 ID。布局引用所有实例（含禁用项），每行至多一个 spacer。配置目录保留类型定义；编辑器实例行从类型取得元数据。可移植外层仍为 v1，运行协议仍为 v2。完整规则见[组件组合](../COMPOSITION.zh-CN.md)。
 
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 8 草稿时不经过旧类型选择投影。
+
+TS 配置服务沿用安装锁、显示 schema 8、UI protocol 11、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；UI 预览渲染在 03-E 接入前通过接口注入，已安装启动命令保持现状。

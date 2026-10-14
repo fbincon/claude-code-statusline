@@ -1,4 +1,5 @@
 import { safeInteger, isLosslessNumber, scalarCompare } from '../json.js';
+import { isOrderedRecord, orderedRecord } from '../ordered-record.js';
 
 /** Keep error construction independent of interface-language resources. */
 export class ConfigError extends Error {
@@ -30,7 +31,10 @@ export function safeText(value: unknown, name: string): string | null {
 }
 export function clone<T>(value: T): T {
   if (Array.isArray(value)) return value.map(clone) as T;
-  if (object(value)) return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, clone(item)])) as T;
+  if (object(value)) {
+    const entries = Object.entries(value).map(([key, item]) => [key, clone(item)] as const);
+    return (isOrderedRecord(value) ? orderedRecord(entries) : Object.fromEntries(entries)) as T;
+  }
   return value;
 }
 export function choice<T extends string>(value: unknown, choices: readonly T[], field: string): T {

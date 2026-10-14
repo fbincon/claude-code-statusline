@@ -155,3 +155,5 @@ Display schema v8 and configuration protocol v11 carry `statusline_language` thr
 ## Component instances and layout
 
 `config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; Python generates the protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).
+
+The development CLI now binds filesystem transactions and host identity through `ConfigurationService`/`Storage`. Its private ESM entry is `packages/cli/src/entry.ts`; configuration and protocol code reside under `config/` and `ui/`. The rendering dispatch remains a lazy boundary for 03-D/E. Explicit `LaunchSpec` prefixes distinguish the TypeScript development backend from installed renderers.

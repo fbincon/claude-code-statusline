@@ -11,13 +11,13 @@
 | 批次 | 交付 | 状态 |
 | --- | --- | --- |
 | 03-A | 私有 workspace、正式平台原语、无损 JSON、规范修订及对照框架 | DONE；[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78) |
-| 03-B | 配置核心、实例、目录、语言、Unicode 与生成归属 | VALIDATING |
-| 03-C | 加锁配置服务、偏好及管理命令 | NOT_STARTED |
+| 03-B | 配置核心、实例、目录、语言、Unicode 与生成归属 | DONE；[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79) |
+| 03-C | 加锁配置服务、偏好及管理命令 | VALIDATING |
 | 03-D | 采集、缓存、计时、任务、观察及 hooks | NOT_STARTED |
 | 03-E | 渲染、预览及完整后端协议 | NOT_STARTED |
 | 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | NOT_STARTED |
 
-当前分支：`fbincon/ts-03-configuration-core`。03-A 合并为 `21fb21d`，已验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
+当前分支：`fbincon/ts-03-configuration-service`。03-A／03-B 分别合并为 `21fb21d`／`f1363e3`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
 workspace 包为 0.0.0 私有开发包；现有 Python 应用仍为 2.0.0。
 
 ## 边界与复现
@@ -56,7 +56,7 @@ capture 拒绝已存在的输出目录。每个已实现案例在新 Node 进程
 维护者允许调整人类可读的 CLI 帮助和参数诊断。正常命令输出、协议消息／代码、
 stdout／stderr 分工和退出码仍兼容。准确的文字变化通过案例、字段及新旧内容哈希记录在
 [differences.json](../../../../tools/migration/ts-03/differences.json)；过期、重复或扩大范围
-的例外均验证失败。目前尚未记录文字差异。
+的例外均验证失败。当前准确记录三处帮助／参数诊断文字，不豁免协议、数值、文件或退出码差异。
 
 [覆盖台账](../../../../tools/migration/ts-03/coverage.json)包含基线中归属 TS-03 的全部
 516 个测试 ID。迁移项须关联替代测试路径；推迟到 TS-04 的项目须注明具体原因。
@@ -78,3 +78,11 @@ stdout／stderr 分工和退出码仍兼容。准确的文字变化通过案例�
 `tools/generation/resources.ts` 统一生成 34 个资源。项目 ID 和预设来自 TS 定义，语言来自规范 JSON，Unicode 表和夹具来自固定源数据及许可证；两个 Mod 和 Python 兼容资源一并生成。旧 Python 生成命令保留只读检查，历史 Python 基准须使用固定参考导出。移除语言会识别过期的生成模块和兼容资源，不删除无归属文件。`npm run languages:coverage` 只报告缺译，不写入。
 
 03-A 产物审计最初因 Windows 将 10 个根配置／工具文件转为 CRLF 而拒绝其哈希。已逐项验证差异恰为该换行转换，记录在[验收记录](validation.03-a.json)，未发现其他差异。03-B 为这些文件固定 LF。失败检查已明确记录，平台原始记录继续保留在忽略目录；03-A 的 43 项 PR 检查均在受 head SHA 保护的合并前通过。
+
+## 03-C 配置服务与命令
+
+开发入口为 `node packages/cli/dist/src/entry.js`，提供全部 `config` 子命令与配置 UI 服务；成功的正式预览渲染在 03-E 接入。已安装的 Python 命令保持现状。评估 TS 入口时使用隔离的 `--config-dir`。后端绑定完整 `LaunchSpec` 并拒绝另一渲染器，保留规范旧单可执行文件命令兼容。
+
+事务在既有安装锁内重读、比较语义修订、合并无关设置，只备份变化的文件，写入失败时回滚，并在锁内返回提交后快照。重复保存不新增备份。读取、dry-run 和导入审阅保持配置字节，便携导出保护实时配置与受管理支持目录。UI 偏好和运行／编辑器开关彼此独立。JSON 保留数值类型与精度，数字形式的对象键保留输入顺序，公开的非法 JSON／UTF-8 诊断与固定 Python 3.14 对照一致。
+
+当前台账已映射 516 项基线测试中的 78 项。Linux 重放覆盖 161 个固定案例中的 26 个，仅有三处获准文字差异；135 个渲染／运行案例待完成。CI 同时运行 Python／TS 混合配置及语言偏好写入者。源码记录与本地结果见 [validation.03-c.json](validation.03-c.json)。03-B 的八个 ZIP 摘要及源码哈希全部精确核对，无需换行归一化例外；重复 push 工作流的一次 Mod 超时及同提交 PR 成功结果均见 [validation.03-b.json](validation.03-b.json)。
