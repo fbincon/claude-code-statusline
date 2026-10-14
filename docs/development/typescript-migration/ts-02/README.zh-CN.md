@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+2026-10-14: [Linux 整合、实体机验收及已批准的发布前补验](LINUX-20261014.zh-CN.md).
+
 更新日期：**2026-10-12**（Asia/Shanghai）。阶段状态由[迁移总计划](../../typescript-migration.zh-CN.md)
 统一维护。TS-02 当前为 **VALIDATING**，不是 DONE；TS-03 尚未开始。
 已批准先做自动验证，并明确保留未完成的物理／桌面门槛；不能用推荐方案代替缺失证据。

@@ -123,6 +123,8 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **TS-02 交接：**[D01–D06 记录与可复现探针](typescript-migration/ts-02/README.zh-CN.md)保留不可变 Python 参考。维护者已批准未来主版本采用 npm 优先、64 位 TS 分发，退役 Python import／模块／pipx 及旧 Windows `.exe` 入口，并保留历史 Python 包用于兼容和回滚。这是未来产品决策，不修改当前已发布安装。原生、安装包、真实宿主 argv 与性能自动证据同物理休眠／重启及桌面输入／焦点验收分开记录。基础证据缺失时，相关决策保持 OPEN，TS-03 保持 NOT_STARTED。
 
+**2026-10-14 阶段门槛调整：** 维护者明确同意将本机无法补齐的 macOS 实体机睡眠、Windows 10、实体 macOS 14 Intel、WSL 桌面及其余目标特定人工／电源验收延后至发布前，不改变平台支持承诺，不记为通过。整合 CI 和本 Linux 实体机睡眠／重启／GNOME／popup 通过后可关闭 TS-02；此前 D01／D02／D04 仍 OPEN、TS-03 未开始。[整合结果及补验清单](typescript-migration/ts-02/LINUX-20261014.zh-CN.md)。当前分支：`fbincon/ts-02-linux-acceptance`。
+
 ### TS-03 共享核心与后端
 
 - 迁移配置模型、严格校验、目录、实例编辑、格式、多语言、确定性 Unicode 资源、预览和生产渲染。

@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+2026-10-14: [Linux integration, physical acceptance and approved release deferrals](LINUX-20261014.md).
+
 Updated: **2026-10-12** (Asia/Shanghai). The [migration plan](../../typescript-migration.md)
 owns stage status. TS-02 is **VALIDATING**, not DONE; TS-03 has not started.
 The approved scope allows automated validation first and explicitly retains

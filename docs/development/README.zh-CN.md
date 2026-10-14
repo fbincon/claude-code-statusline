@@ -10,6 +10,7 @@
 - [TypeScript 重构计划与进度](typescript-migration.zh-CN.md)：当前状态、范围、阶段、决策、验收及会话交接。
 - [TS-01 固定参考与清单](typescript-migration/ts-01/README.zh-CN.md)：可复现样例、核验工具及验证证据。
 - [TS-02 平台探针与决策](typescript-migration/ts-02/README.zh-CN.md)：原生适配、安装实验、性能策略及剩余门槛。
+- [Linux 整合、实体机验收及已批准的发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md).
 - [翻译贡献指南](i18n.zh-CN.md)。
 - [测试与验收](testing.zh-CN.md)。
 - [v1.13.0 多语言性能](performance-v1.13.0.zh-CN.md)：按需语言加载、预建搜索与 2/5/10 语言资源对照。

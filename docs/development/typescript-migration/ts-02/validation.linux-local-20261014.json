@@ -1,0 +1,390 @@
+{
+  "format_version": 1,
+  "date": "2026-10-14",
+  "timezone": "Asia/Shanghai",
+  "stage": "VALIDATING",
+  "next_stage": "TS-03 NOT_STARTED",
+  "branch": "fbincon/ts-02-linux-acceptance",
+  "incoming_head": "31c0d8b9b25686eefde52b986d526ec0efd4429f",
+  "tested_implementation": "8a7369ecc78a1ed7086ada825216407b69969dd1",
+  "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "reference_fixtures_and_budget_unchanged": true,
+  "transfer_verification": {
+    "macos_files": 1459,
+    "windows_files": 895,
+    "status": "pass",
+    "historical_failures_preserved": true
+  },
+  "platform": {
+    "os": "Ubuntu 26.04.1 LTS",
+    "kernel": "7.0.0-38-generic",
+    "host_arch": "x86_64",
+    "node_process_arch": "x64",
+    "environment": "physical",
+    "virtualization_result": "none (exit 1)",
+    "desktop": "GNOME Wayland",
+    "mem_sleep": "[s2idle]"
+  },
+  "runtime": {
+    "python": "3.14.4",
+    "python_sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+    "node": "v24.21.0",
+    "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+    "npm": "11.19.0"
+  },
+  "source_hashes": {
+    ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+    "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+    "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+    "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+    "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+    "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+    "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+    "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+    "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+    "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+    "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+    "scripts/__pycache__/mod-smoke.cpython-314.pyc": "e5a7a9c30b829d160f5642bfbceec15183fdc46156952144b6755f54dd52e62e",
+    "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+    "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+    "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+    "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+    "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+    "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+    "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+    "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+    "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+    "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+    "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+    "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+    "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+    "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+    "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+    "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+    "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+    "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+    "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+    "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+    "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+    "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+    "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+    "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+    "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+    "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+    "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+  },
+  "policy_sha256": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+  "tests": {
+    "python": {
+      "total": 856,
+      "pass": 847,
+      "skip": 9,
+      "fail": 0,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/python-tests.log",
+        "sha256": "cb85099fe4f642b7d2678609629db243e2584ef6b4f0ad4aa203e37cdecad072"
+      }
+    },
+    "native": {
+      "total": 35,
+      "pass": 33,
+      "skip": 2,
+      "fail": 0,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/native-01/evidence.json",
+        "sha256": "c11f34ba286bff554992573f50650b31eb485f8a74da984db0a93afd67bf1aa4"
+      },
+      "verified": true
+    },
+    "baseline": {
+      "cases": 161,
+      "status": "pass",
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/ts01-capture/receipt.json",
+        "sha256": "891a33262b6a4787d4c2148d001a7dea84ea05ec3462e0801d36d3432c045311"
+      },
+      "verification": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/ts01-verify.log",
+        "sha256": "f403c190f78864647fdccef8a57ac532b8ec024c71434d6a3205e14d51ccfffd"
+      }
+    },
+    "python_distribution": {
+      "status": "pass",
+      "wheel_entries": 217,
+      "sdist_entries": 836,
+      "build_receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/python-build.log",
+        "sha256": "42254ba38628ddf8adc236362476297e1cf1b9c524d402a4a18276af45a59811"
+      },
+      "artifacts": [
+        {
+          "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/python-dist/fbincon_claude_code_statusline-2.0.0-py3-none-any.whl",
+          "sha256": "c9a812f6d9a912d7e3d490a82255026ab11a831aa8874b1fce011f5bcfa8e132"
+        },
+        {
+          "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/python-dist/fbincon_claude_code_statusline-2.0.0.tar.gz",
+          "sha256": "82371837c5bdda8a43a4efe7ca14ee9c261d3c283ac48dc2be76dd37c99bedaa"
+        }
+      ]
+    }
+  },
+  "npm_installation": {
+    "prebuilt_native_loaded": true,
+    "lifecycle_scripts_disabled": true,
+    "path_excludes_python_and_compilers": true,
+    "outside_checkout": true,
+    "unicode_special_paths": true,
+    "resource_and_render_parity": true,
+    "tarball_sha256": "ce1370bd7f10239353d115b7c542c6edab5e9fe60a5b9995ef8e44446a12a462",
+    "npm_version": "11.19.0"
+  },
+  "mods": [
+    {
+      "host": "2.1.294 (Claude Code)",
+      "manifest_validation": [
+        "statusline-native",
+        "statusline-runtime"
+      ],
+      "real_process_api_commands": [
+        "runtime",
+        "ui"
+      ],
+      "model_calls": 0,
+      "credentials": "synthetic key; unreachable loopback API",
+      "temporary_mod_copies": true,
+      "state": "pass",
+      "cleanup_complete": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/mod-294/report.json",
+        "sha256": "5f635279d420e9c6277a53672b20400a2bf4eb83bbba99edef7436d67b6a5e03"
+      }
+    },
+    {
+      "host": "2.1.296 (Claude Code)",
+      "manifest_validation": [
+        "statusline-native",
+        "statusline-runtime"
+      ],
+      "real_process_api_commands": [
+        "runtime",
+        "ui"
+      ],
+      "model_calls": 0,
+      "credentials": "synthetic key; unreachable loopback API",
+      "temporary_mod_copies": true,
+      "state": "pass",
+      "cleanup_complete": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/mod-296/report.json",
+        "sha256": "5a2fa90390809f42314a2367fd0789aa0a3c59756c7937cbfebc6dc961587ea0"
+      }
+    }
+  ],
+  "human_terminal": {
+    "gnome-direct-01": {
+      "status": "pass",
+      "checks": {
+        "human_focus_and_visuals": true,
+        "restored_echo": true,
+        "arrows": true,
+        "unicode_input": true,
+        "ctrl_s": true,
+        "ctrl_c": true,
+        "exit_codes": true,
+        "termios_restored": true,
+        "nonce_tty_handshake": true,
+        "source_unchanged": true,
+        "small_and_large_resize": true
+      },
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-direct-01/manual-evidence.json",
+        "sha256": "dcbc09077b3eaaa0971de84bcad651c6cf54c1efa78bc8c54ed7c631683e33e0"
+      },
+      "source_receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-direct-01/source.json",
+        "sha256": "00d9eb8b47827eedb696b6ab2f8b0e254b6b13ecaa5704f17fd2f5cdac16d177"
+      },
+      "tested_commit": "8a7369ecc78a1ed7086ada825216407b69969dd1",
+      "source_hashes": {
+        "tools/ts02_linux_terminal_smoke.py": "fb50d7c60643151cbb057ffa4f143e6b0de4268cf7f26cdb60488ec4c7c56718",
+        "tools/ts02_macos_terminal_smoke.py": "79b42260e98d53962ef58f9c954433773191eb411b72384260af067ff364a59d",
+        "tools/migration/ts-02/dist/cli.js": "57ba54fa16c902020985e7356a22704ca9d2295f7ff8bbc72099f6519a42df73",
+        "tools/migration/ts-02/dist/launchers.js": "64e79cd5a8c32306dcd3707f0925c53e5731cddc1df6418fd6b64d639b183a9e",
+        "tools/migration/ts-02/dist/launch.js": "c3789516a3586f3955528383daf1b7e14ff76054a4fac69ed42cc0ea220f9aec",
+        "tools/migration/ts-02/dist/clocks.js": "4e618c9f6f2171d0dfacf9ed6cf90506450969fac9e5394de5dde88e2272ecc7",
+        "tools/migration/ts-02/dist/native.js": "6b473d6e3f825ffe719f37fdf336b6b92d6ddf13f23083b958d00a98a1bd7363",
+        "tools/migration/ts-02/dist/terminal.js": "4f119b54cece1857559bace7d880b2edc334cc5f4e5a81fe2ec0c8039ba6f9f7",
+        "tools/migration/ts-02/dist/generated/unicode.js": "c1bb258e3e196709426f75a7c2b603e94e86e0c988dec8d15f05b1a5b4bcf669",
+        "tools/migration/ts-02/dist/generated/generated-unicode.js": "93fa1f50b4343c482793748a987385d2ed48846f1d9fb39853452601c095f61c"
+      }
+    },
+    "gnome-popup-01": {
+      "status": "fail",
+      "checks": {
+        "human_focus_and_visuals": true,
+        "restored_echo": true,
+        "arrows": true,
+        "unicode_input": true,
+        "ctrl_s": true,
+        "ctrl_c": true,
+        "exit_codes": true,
+        "termios_restored": true,
+        "nonce_tty_handshake": true,
+        "source_unchanged": true,
+        "popup_closed_to_parent": false,
+        "popup_visual": true
+      },
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-popup-01/manual-evidence.json",
+        "sha256": "aaa0a3792306084257b734203b44dd7370dbfc3d2ca720fcd37a1f3050b8b655"
+      },
+      "source_receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-popup-01/source.json",
+        "sha256": "00d9eb8b47827eedb696b6ab2f8b0e254b6b13ecaa5704f17fd2f5cdac16d177"
+      },
+      "tested_commit": "8a7369ecc78a1ed7086ada825216407b69969dd1",
+      "source_hashes": {
+        "tools/ts02_linux_terminal_smoke.py": "fb50d7c60643151cbb057ffa4f143e6b0de4268cf7f26cdb60488ec4c7c56718",
+        "tools/ts02_macos_terminal_smoke.py": "79b42260e98d53962ef58f9c954433773191eb411b72384260af067ff364a59d",
+        "tools/migration/ts-02/dist/cli.js": "57ba54fa16c902020985e7356a22704ca9d2295f7ff8bbc72099f6519a42df73",
+        "tools/migration/ts-02/dist/launchers.js": "64e79cd5a8c32306dcd3707f0925c53e5731cddc1df6418fd6b64d639b183a9e",
+        "tools/migration/ts-02/dist/launch.js": "c3789516a3586f3955528383daf1b7e14ff76054a4fac69ed42cc0ea220f9aec",
+        "tools/migration/ts-02/dist/clocks.js": "4e618c9f6f2171d0dfacf9ed6cf90506450969fac9e5394de5dde88e2272ecc7",
+        "tools/migration/ts-02/dist/native.js": "6b473d6e3f825ffe719f37fdf336b6b92d6ddf13f23083b958d00a98a1bd7363",
+        "tools/migration/ts-02/dist/terminal.js": "4f119b54cece1857559bace7d880b2edc334cc5f4e5a81fe2ec0c8039ba6f9f7",
+        "tools/migration/ts-02/dist/generated/unicode.js": "c1bb258e3e196709426f75a7c2b603e94e86e0c988dec8d15f05b1a5b4bcf669",
+        "tools/migration/ts-02/dist/generated/generated-unicode.js": "93fa1f50b4343c482793748a987385d2ed48846f1d9fb39853452601c095f61c"
+      }
+    },
+    "gnome-popup-02": {
+      "status": "pass",
+      "checks": {
+        "human_focus_and_visuals": true,
+        "restored_echo": true,
+        "arrows": true,
+        "unicode_input": true,
+        "ctrl_s": true,
+        "ctrl_c": true,
+        "exit_codes": true,
+        "termios_restored": true,
+        "nonce_tty_handshake": true,
+        "source_unchanged": true,
+        "popup_closed_to_parent": true,
+        "popup_visual": true
+      },
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-popup-02/manual-evidence.json",
+        "sha256": "96d8b2e50a0e0b0dd6ee439eacab5c2343e0e46dc79ea0addcd719ca3f2bb8ef"
+      },
+      "source_receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-popup-02/source.json",
+        "sha256": "00d9eb8b47827eedb696b6ab2f8b0e254b6b13ecaa5704f17fd2f5cdac16d177"
+      },
+      "tested_commit": "8a7369ecc78a1ed7086ada825216407b69969dd1",
+      "source_hashes": {
+        "tools/ts02_linux_terminal_smoke.py": "fb50d7c60643151cbb057ffa4f143e6b0de4268cf7f26cdb60488ec4c7c56718",
+        "tools/ts02_macos_terminal_smoke.py": "79b42260e98d53962ef58f9c954433773191eb411b72384260af067ff364a59d",
+        "tools/migration/ts-02/dist/cli.js": "57ba54fa16c902020985e7356a22704ca9d2295f7ff8bbc72099f6519a42df73",
+        "tools/migration/ts-02/dist/launchers.js": "64e79cd5a8c32306dcd3707f0925c53e5731cddc1df6418fd6b64d639b183a9e",
+        "tools/migration/ts-02/dist/launch.js": "c3789516a3586f3955528383daf1b7e14ff76054a4fac69ed42cc0ea220f9aec",
+        "tools/migration/ts-02/dist/clocks.js": "4e618c9f6f2171d0dfacf9ed6cf90506450969fac9e5394de5dde88e2272ecc7",
+        "tools/migration/ts-02/dist/native.js": "6b473d6e3f825ffe719f37fdf336b6b92d6ddf13f23083b958d00a98a1bd7363",
+        "tools/migration/ts-02/dist/terminal.js": "4f119b54cece1857559bace7d880b2edc334cc5f4e5a81fe2ec0c8039ba6f9f7",
+        "tools/migration/ts-02/dist/generated/unicode.js": "c1bb258e3e196709426f75a7c2b603e94e86e0c988dec8d15f05b1a5b4bcf669",
+        "tools/migration/ts-02/dist/generated/generated-unicode.js": "93fa1f50b4343c482793748a987385d2ed48846f1d9fb39853452601c095f61c"
+      }
+    }
+  },
+  "power": {
+    "no-power-control": {
+      "status": "fail",
+      "kind": "suspend",
+      "checks": {
+        "action_confirmed": true,
+        "source_unchanged": true,
+        "runtime_unchanged": true,
+        "event_collection_ok": true,
+        "python_stable_boot": true,
+        "python_includes_sleep": true,
+        "python_elapsed": true,
+        "node_stable_boot": true,
+        "node_includes_sleep": true,
+        "node_elapsed": true,
+        "reference_stable_boot": true,
+        "reference_includes_sleep": true,
+        "kernel_suspend_resume_pair": false,
+        "monotonic_excluded_sleep": false
+      },
+      "sleep_intervals_seconds": [],
+      "monotonic_excluded_seconds": -1.298e-06,
+      "scope": "this physical Linux host",
+      "physical_host_coverage": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/no-power-control/evidence.json",
+        "sha256": "1dbc1145319d212895f7db6415bdd46868f42fa87eb2cbf473bc486eb3f53242"
+      },
+      "negative_control": true
+    },
+    "physical-suspend-01": {
+      "status": "pass",
+      "kind": "suspend",
+      "checks": {
+        "action_confirmed": true,
+        "source_unchanged": true,
+        "runtime_unchanged": true,
+        "event_collection_ok": true,
+        "python_stable_boot": true,
+        "python_includes_sleep": true,
+        "python_elapsed": true,
+        "node_stable_boot": true,
+        "node_includes_sleep": true,
+        "node_elapsed": true,
+        "reference_stable_boot": true,
+        "reference_includes_sleep": true,
+        "kernel_suspend_resume_pair": true,
+        "monotonic_excluded_sleep": true
+      },
+      "sleep_intervals_seconds": [
+        36.123504
+      ],
+      "monotonic_excluded_seconds": 35.283545738,
+      "scope": "this physical Linux host",
+      "physical_host_coverage": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/physical-suspend-01/evidence.json",
+        "sha256": "b3f030c92a3190ad261defd616577ed75b000dcdee6af620e56d46ee097ae4f2"
+      },
+      "negative_control": false
+    },
+    "physical-reboot-01": {
+      "status": "pending"
+    }
+  },
+  "approval": {
+    "date": "2026-10-14",
+    "source": "explicit maintainer reply in Linux integration chat",
+    "choice": "同意，缺项延后到发布前（推荐）",
+    "stage_gate": "integrated CI and this physical Linux power/desktop evidence",
+    "support_promises_unchanged": true
+  },
+  "deferred_until_before_release": [
+    "physical macOS sleep/resume",
+    "physical macOS 14 Intel desktop/power",
+    "Windows 10 desktop",
+    "WSL desktop focus/launch/popup",
+    "remaining target-specific physical power and human visual checks",
+    "selected host exact declarations; existing 2.1.296 declaration generation gap retained"
+  ],
+  "ci": {
+    "status": "pending",
+    "pull_request": null,
+    "runs": []
+  },
+  "limitations": [
+    "No macOS sleep pass inferred from the VMware guest.",
+    "s2idle does not establish S3/hibernation.",
+    "Wayland focus is human confirmation.",
+    "Full migration performance remains unmeasured.",
+    "Windows legacy boot identity correction is intentional and does not rewrite TS-01."
+  ]
+}

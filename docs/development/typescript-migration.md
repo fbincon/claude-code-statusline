@@ -123,6 +123,8 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 **TS-02 handoff:** [D01–D06 records and reproducible probes](typescript-migration/ts-02/README.md) retain the immutable Python reference. The maintainer approved npm-first, 64-bit TS delivery in a future major release and retirement of Python import/module/pipx and old Windows `.exe` entry points, with historical Python packages retained for compatibility and rollback. These are future-product decisions, not changes to the released installation. Automated native, installed-package, real-host argv and performance evidence is distinct from physical suspend/reboot and desktop input/focus acceptance. Missing foundational evidence keeps the affected decisions OPEN and TS-03 NOT_STARTED.
 
+**2026-10-14 stage-gate amendment:** The maintainer explicitly approved deferring unavailable physical macOS sleep, Windows 10, physical macOS 14 Intel, WSL desktop and remaining target-specific human/power acceptance until before release. Support promises are unchanged and missing checks are not passed. Integrated CI and this physical Linux sleep/reboot/GNOME/popup must pass before closing TS-02; until then D01/D02/D04 stay OPEN and TS-03 has not started. [Integration and deferred checklist](typescript-migration/ts-02/LINUX-20261014.md). Active branch: `fbincon/ts-02-linux-acceptance`.
+
 ### TS-03 Shared core and backend
 
 - Move configuration models, strict validation, catalog, instance editing, formatting, localization, deterministic Unicode resources, previews and production rendering into the shared core.
