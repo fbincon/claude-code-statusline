@@ -4,6 +4,12 @@
 
 The Python package keeps the existing CLI, configuration formats and storage locations. Implementation is grouped by responsibility and retains lazy compatibility modules at the original Python paths.
 
+## TypeScript migration workspace
+
+TS-03 adds `packages/core` (pure configuration, protocol, localization, Unicode and runtime rules), `packages/platform` (Node/native I/O) and `packages/cli` (application services). The workspace is private and independently compiled; installation/editor cutover remains TS-04. The Python layout below remains the active released implementation and an isolated comparison reference.
+
+The canonical catalog is TypeScript data. Item IDs and preset descriptions are derived rather than separately edited in frontend contracts. Canonical languages live under `packages/core/resources/i18n`; the TypeScript generator emits Node, Mod and Python compatibility resources. Mod copies contain only supported pure modules, with host effects in their existing entries. See [TS-03 implementation and acceptance](typescript-migration/ts-03/README.md).
+
 ```text
 src/claude_statusline/
   cli.py, __main__.py, _version.py   CLI dispatch and version

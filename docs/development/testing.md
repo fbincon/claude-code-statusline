@@ -4,6 +4,8 @@
 
 Run all ordinary validation with temporary Claude configuration. The tests do not install into a user's real settings or call models.
 
+TS-03 adds `npm test` for the shared core/production adapters and `npm run generate:check` for TypeScript-owned resources. The Python generation checks below are read-only parity checks retained during migration; their ordinary write entry points are retired. The new eight-target backend workflow complements the existing matrices.
+
 ## Local checks
 
 Shared catalog/protocol tests include strict input, Unicode paths and no-live-I/O sample previews. Run `python tools/generate_ui_contracts.py --check` to verify generated TypeScript agrees with Python; the native workflow also runs these contract tests. See [protocol details](contracts.md).

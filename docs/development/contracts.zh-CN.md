@@ -63,7 +63,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 | `io_error` | 文件操作失败，检查消息及回滚诊断 |
 | `internal_error` | 意外后端故障，检查 stderr |
 
-`claude_statusline.ui.contracts` 的 Python 类型生成 `lib/generated-contracts.ts`。运行 `tools/generate_ui_contracts.py` 重新生成，`--check` 检查漂移；不维护第二份目录，不手改生成类型。Mod 使用 `$.process.run` 参数数组与 JSON stdin；PATH 不合适时通过 `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` 指定后端绝对路径，存在 `CLAUDE_CONFIG_DIR` 时显式传递。不会进行 shell 插值。
+TS-03 将规范协议类型、目录与资源生成迁入 `packages/core` 和 `tools/generation/resources.ts`。运行 `npm run generate` 重新生成，以 `npm run generate:check` 检查漂移。迁移期保留 Python 声明和只读的 `tools/generate_ui_contracts.py --check` 作为对照证据；不维护另一份目录，不手改生成的 Mod 类型。Mod 使用 `$.process.run` 参数数组与 JSON stdin；PATH 不合适时通过 `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` 指定后端绝对路径，存在 `CLAUDE_CONFIG_DIR` 时显式传递。不会进行 shell 插值。
 
 桥接拒绝非法或截断响应、协议版本不匹配及非零退出，保留冲突等结构化后端错误。进程启动/拒绝错误使用 `backend_process`，超时错误使用 `backend_timeout`；宿主进程调用的超时为 30 秒。验证入口显示故障并提供预览重试；打开失败后重新打开会重读配置。
 

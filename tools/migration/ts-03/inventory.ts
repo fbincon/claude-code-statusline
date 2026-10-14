@@ -20,8 +20,9 @@ export function inventory(complete = false) {
     if (row.status === 'ported' && (!row.tests.length || row.stage !== 'TS-03')) throw new Error(`Missing TS test: ${row.id}`);
     if (row.status === 'deferred' && (!row.reason || row.stage !== 'TS-04')) throw new Error(`Unjustified deferral: ${row.id}`);
     for (const test of row.tests) {
-      if (!test.startsWith('packages/') || test.includes('..') || !test.endsWith('.test.ts')) throw new Error(`Invalid test path: ${test}`);
-      readFileSync(join(repoRoot, test));
+      if ((!test.startsWith('packages/') && !test.startsWith('tools/generation/test/')) || test.includes('..') || !test.endsWith('.test.ts')) throw new Error(`Invalid test path: ${test}`);
+      const source = readFileSync(join(repoRoot, test), 'utf8');
+      if (row.status === 'ported' && !source.includes("test('" + row.id + "'")) throw new Error(`Replacement does not name the baseline assertion: ${row.id}`);
     }
   }
   if (seen.size !== ids.size) throw new Error('Missing baseline test mappings');
