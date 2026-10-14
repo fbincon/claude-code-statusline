@@ -12,3 +12,6 @@ tsconfig*.json text eol=lf
 .github/workflows/typescript.yml text eol=lf
 tools/typescript/*.mjs text eol=lf
 tools/generation/** text eol=lf
+# Shared Mod code and retained generator checks are part of TS-03 source receipts.
+mods/**/*.ts text eol=lf
+tools/generate*.py text eol=lf

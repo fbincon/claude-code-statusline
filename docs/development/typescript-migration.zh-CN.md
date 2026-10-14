@@ -13,12 +13,14 @@
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01 DONE；TS-02 DONE**；[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)整合平台证据并闭合决策 |
-| 当前任务范围 | TS-03 IN_PROGRESS；[03-D 采集与运行逻辑](typescript-migration/ts-03/README.zh-CN.md)正在验收 |
+| 当前任务范围 | TS-03 IN_PROGRESS；[03-E 渲染与完整后端接口](typescript-migration/ts-03/README.zh-CN.md)实施中 |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
 | 目标版本与工期 | 尚未指定；TS-02 平台验证后估算 |
-| 下一项实施工作 | 验收并合并 03-D，随后推进 03-E 渲染与完整后端接口 |
+| 下一项实施工作 | 完成 03-E 审查／CI，随后在 03-F 审计全部 516 项并开展整体验收 |
 
 编写计划不代表任何实现阶段已通过。后续任务范围内仍适用仓库既有授权，本计划不为每个阶段新增例行审批步骤。
+
+03-E 本地验证现已覆盖全部 161 个固定案例，仅保留三项获准 CLI 文案差异；台账已迁移 389/516 项。审查及 CI 尚待完成，TS-03 在 03-F 验收前继续保持 IN_PROGRESS。
 
 ## 基线与范围
 
@@ -96,7 +98,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | --- | --- | --- | --- | --- |
 | TS-01 | 固定基线与行为清单 | 明确开始实施任务 | DONE | Codex；`fbincon/ts-01-baseline`；测试提交 `ddc9dde`；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
 | TS-02 | 平台验证及 D01–D06 决策 | TS-01 | DONE | Codex；`fbincon/ts-02-linux-acceptance`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)及[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)；[整合与证据](typescript-migration/ts-02/LINUX-20261014.zh-CN.md) |
-| TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | IN_PROGRESS | Codex；`fbincon/ts-03-runtime`；[六批实施记录](typescript-migration/ts-03/README.zh-CN.md) |
+| TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | IN_PROGRESS | Codex；`fbincon/ts-03-rendering`；[六批实施记录](typescript-migration/ts-03/README.zh-CN.md) |
 | TS-04 | 双编辑器、安装与恢复 | TS-03 | NOT_STARTED | 未分配 |
 | TS-05 | 完整工具链、CI 与发布候选 | TS-04 | NOT_STARTED | 未分配 |
 | TS-06 | 预览验收与正式交付 | TS-05 | NOT_STARTED | 未分配 |
@@ -135,7 +137,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **退出标准：**适用功能案例结果一致，状态／并发边界有回归测试，已迁移核心在生产中不再转调 Python。改变模块名称或通过类型检查不代表行为等价。
 
-**TS-03 当前交接：**维护者于 2026-10-14 批准完整六批 PR 实施，允许调整人类可读的 CLI 帮助／参数诊断文字，保留机器契约。03-A 至 03-C 已合并（[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78)、[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79)、[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80)）并同步 Gitee；03-D 正在验收，完成 45 个固定案例与 206 项具名基线替代测试。阶段尚未完成。[实施与验收](typescript-migration/ts-03/README.zh-CN.md)。不切换安装，不发布。
+**TS-03 当前交接：**维护者于 2026-10-14 批准完整六批 PR 实施，允许调整人类可读的 CLI 帮助／参数诊断文字，保留机器契约。03-A 至 03-D 已合并（[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78)、[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79)、[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80)、[PR #81](https://github.com/fbincon/claude-code-statusline/pull/81)）并同步 Gitee；03-D 全部 43 项 PR 检查通过，完成 45 个固定案例与 206 项具名基线替代测试；03-E 实施中。阶段尚未完成。[实施与验收](typescript-migration/ts-03/README.zh-CN.md)。不切换安装，不发布。
 
 ### TS-04 编辑器与安装
 

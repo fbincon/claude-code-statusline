@@ -6,7 +6,7 @@ Python 包保留现有 CLI、配置格式和存储位置。实现按职责组织
 
 ## TypeScript 迁移 workspace
 
-TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode 与运行规则）、`packages/platform`（Node／原生 I/O）和 `packages/cli`（应用服务）。workspace 为独立编译的私有开发包，安装／编辑器切换仍属 TS-04。下方 Python 布局继续用于当前已发布实现及隔离对照参考。
+TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode、渲染与运行规则）、`packages/platform`（Node／原生 I/O）和 `packages/cli`（应用服务）。workspace 为独立编译的私有开发包，安装／编辑器切换仍属 TS-04。下方 Python 布局继续用于当前已发布实现及隔离对照参考。
 
 规范目录为 TypeScript 数据，项目 ID 和预设说明由其派生，不在前端契约中重复手改。规范语言资源位于 `packages/core/resources/i18n`，TypeScript 统一生成 Node、Mod 和 Python 兼容资源。Mod 副本只包含受支持的纯模块，宿主操作保留在原有入口。参见 [TS-03 实施与验收](typescript-migration/ts-03/README.zh-CN.md)。
 
@@ -153,6 +153,8 @@ Client 的 `ui/layout.ts` 按终端尺寸计算内容、Preview 和两行操作�
 
 ## 组件实例与布局
 
-`config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，协议由 Python 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
+`config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，共享协议由 TypeScript 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
 
-开发 CLI 通过 `ConfigurationService`／`Storage` 绑定文件事务与宿主身份；私有 ESM 入口为 `packages/cli/src/entry.ts`，配置与协议代码位于 `config/`、`ui/`。渲染调度为 03-D／E 保留延迟加载边界，完整 `LaunchSpec` 前缀区分 TS 开发后端与已安装渲染器。
+开发 CLI 通过 `ConfigurationService`／`Storage` 绑定文件事务与宿主身份；私有 ESM 入口为 `packages/cli/src/entry.ts`，配置与协议代码位于 `config/`、`ui/`。`render`、`render-subagents`、`hook`、`slash-hook` 的快速分发位于管理资源导入之前，完整 `LaunchSpec` 前缀区分 TS 开发后端与已安装渲染器。
+
+`core/rendering` 负责主／子行组合、格式、样式、Powerline 和确定性预览。`RenderEnvironment` 提供选定语言与同步观测接口；`cli/rendering/environment.ts` 按组件需要导入采集器并连接运行服务。每帧缓存各来源和原始任务快照，重复实例分别格式化；`platform/presentation.ts` 提供词法路径、本地／UTC 日期和主机名。预览替换所有观测，不采集或写入运行证据。`cli/integration` 中的编辑器启动器仅定义可注入的请求／结果边界，真实终端适配继续归 TS-04。

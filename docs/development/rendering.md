@@ -50,4 +50,10 @@ Visibility consumes the same lazy Git/live snapshots and unrounded usage values 
 
 ## Component instances and layout
 
-`config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; Python generates the protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).
+`config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; TypeScript generates the shared protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).
+
+## TypeScript development renderer
+
+The TS-03 entry supports `render` (UTF-8 JSON stdin, main rows on stdout) and `render-subagents` (one compact NDJSON record per accepted ID). Both accept a UTF-8 BOM, quietly ignore invalid input, and fall back to defaults for an invalid display file. `CLAUDE_CONFIG_DIR` selects an isolated configuration directory; these render commands do not take `--config-dir`. Main output budgets `COLUMNS - 2`, with a 118-cell fallback. The UI v11 preview returns semantic spans for main and agent rows, with host padding applied only to the main preview.
+
+`RenderEnvironment` connects clocks, paths and selected observations. Repeated components share Git, usage, live, branch-diff and task snapshots; output formatting never becomes accounting input. Ended subagents require recorded end evidence for elapsed time and retain frozen durations across refreshes. The five small statusline language packs remain separate from UI catalogues. Generated Unicode table arrays initialize only when non-ASCII processing needs them; ASCII frames do not allocate them. Unicode 18 layout data and licenses remain pinned, while payload case conversion and legacy decimal parsing preserve Python 3.14's UCD 16 semantics.

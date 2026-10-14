@@ -1028,78 +1028,100 @@
     },
     {
       "id": "tests.integration.test_slash_hook.SlashHookTests.test_empty_arguments_pass_through_to_guided_skill",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.SlashHookTests.test_unrelated_events_and_commands_are_ignored",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.SlashHookTests.test_direct_arguments_update_locally_and_block_model_expansion",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.SlashHookTests.test_show_returns_configuration_in_block_reason",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.SlashHookTests.test_help_and_invalid_arguments_block_without_changes",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.SlashHookTests.test_non_string_arguments_are_rejected",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.ExperimentalSlashHookTests.test_empty_arguments_launch_and_every_outcome_blocks_model",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.ExperimentalSlashHookTests.test_stable_default_launches_without_a_preference_file",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.ExperimentalSlashHookTests.test_help_and_unsupported_arguments_never_launch",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.ExperimentalSlashHookTests.test_disabled_corrupt_and_suspended_preferences_do_not_launch",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_slash_hook.ExperimentalSlashHookTests.test_unavailable_launcher_returns_documented_fallback",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/slash-hook.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -1182,309 +1204,397 @@
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_legacy_preview_bytes_match_fixed_v111",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_git_hides_only_confirmed_clean_relevant_state",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_live_zero_and_empty_require_complete_observations",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_visibility_uses_raw_used_percentage_in_both_languages",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_background_survives_inner_resets_and_colors_off_has_no_sgr",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_risk_wins_foreground_and_preserves_background",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_terminal_default_differs_from_inherit",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_hidden_middle_has_no_separator_or_background",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_powerline_widths_styles_graphemes_and_empty_rows",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_subagent_color_only_keeps_existing_fitting_and_threshold_uses_ratio",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_hidden_subagent_content_preserves_ids_order_and_row_quota",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_appearance.AppearanceRenderingTests.test_conditions_reuse_one_lazy_collection_per_source",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_components.ComponentTests.test_repeated_formats_share_one_git_snapshot",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_components.ComponentTests.test_same_metric_has_independent_number_formats",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_components.ComponentTests.test_spacer_fits_both_scopes_styles_and_widths",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_components.ComponentTests.test_text_only_and_empty_spacer_rows",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_components.ComponentTests.test_repeated_timers_collect_one_raw_task_snapshot",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_components.ComponentTests.test_repeated_branch_diff_collects_once_and_agents_stay_separate",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.DisplayMetricsTests.test_additions_are_opt_in_and_accept_compounds",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.DisplayMetricsTests.test_model_fallback_and_effort_independence",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.DisplayMetricsTests.test_context_uses_only_live_input_and_cache_components",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.DisplayMetricsTests.test_reset_windows_expire_together_and_do_not_require_percentage",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.DisplayMetricsTests.test_cost_components_are_independent_and_zero_is_observed",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.DisplayMetricsTests.test_agent_fields_do_not_inherit_main_values",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.DisplayMetricsTests.test_preview_is_complete_and_uses_no_live_sources_or_clock",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.CacheSessionGitTests.test_missing_fields_are_hidden_and_new_items_are_opt_in",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.CacheSessionGitTests.test_cache_warmth_cools_at_expiry_and_unknown_is_distinct",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.CacheSessionGitTests.test_cache_counts_are_official_main_counts_not_transcript_estimates",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.CacheSessionGitTests.test_named_short_full_session_and_style_are_independent",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.CacheSessionGitTests.test_git_components_and_compound_share_one_collection",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.CacheSessionGitTests.test_all_new_preview_values_are_fixed_without_collection",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.GatewayMetricTests.test_gateway_optional_amount_and_period_are_independent",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.GatewayMetricTests.test_gateway_invalid_values_are_not_derived_from_percentage",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_display_metrics.GatewayMetricTests.test_preview_includes_gateway_and_raw_cumulative_counts",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_priority_overrides_order_without_moving_rows",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_equal_priority_drops_rightmost_and_clips_final_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_width_clipping_preserves_styles_and_combining_characters",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_scope_decoration_does_not_hide_the_only_real_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_per_item_width_is_applied_before_fitting",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_missing_rows_do_not_create_blank_lines_and_preview_is_bounded",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_order_and_enable_disable_keep_explicit_partition_valid",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_bad_partitions_are_refused",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_subagent_hidden_ids_are_emitted_and_host_order_is_retained",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_explicit_layout.ExplicitLayoutTests.test_task_text_and_zero_row_limit",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-composition.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -1508,29 +1618,37 @@
     },
     {
       "id": "tests.rendering.test_graphemes.GraphemeTests.test_sgr_inside_a_cluster_uses_base_style_and_advances_later_state",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_graphemes.GraphemeTests.test_combining_mark_style_does_not_detach_it",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_graphemes.GraphemeTests.test_ascii_path_does_not_load_unicode_tables_or_reference_package",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_graphemes.GraphemeTests.test_model_only_render_does_not_initialize_unselected_collectors",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -1545,92 +1663,118 @@
     },
     {
       "id": "tests.rendering.test_graphemes.GraphemeTests.test_complete_layout_normalizes_cross_style_clusters_and_oversized_units",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_live.LiveRenderingTests.test_unavailable_zero_and_partial_are_distinct",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_live.LiveRenderingTests.test_live_collection_is_lazy_and_shared_and_preview_does_not_collect",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredRenderingTests.test_renderer_registry_covers_every_configurable_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredRenderingTests.test_default_order_and_adjacent_groups_preserve_legacy_layout",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredRenderingTests.test_items_can_be_selected_and_reordered",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredRenderingTests.test_compact_no_color_has_no_ansi_and_uses_dots",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredRenderingTests.test_ansi_palette_uses_standard_codes",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredRenderingTests.test_unselected_expensive_sources_are_not_loaded",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredRenderingTests.test_timer_loads_totals_even_when_tokens_are_hidden",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredRenderingTests.test_project_relative_directory",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredSubprocessTests.test_empty_items_emit_no_blank_line",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_configurable.ConfiguredSubprocessTests.test_invalid_config_silently_falls_back_to_defaults",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -1672,29 +1816,37 @@
     },
     {
       "id": "tests.rendering.test_statusline_git.GitDisplayTests.test_directory_precedence",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_git.GitDisplayTests.test_compact_segment_contract_uses_platform_specific_staged_spacing",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_git.GitDisplayTests.test_zero_staged_count_does_not_add_a_marker",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_git.GitDisplayTests.test_gone_suppresses_divergence_numbers",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -1770,358 +1922,460 @@
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_builtin_phrases_and_known_values_share_the_production_preview",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_english_phrases_retain_existing_bytes",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_every_catalog_item_renders_without_translation_key_leaks",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_unknown_values_names_and_numbers_are_preserved",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_decoration_uses_owned_label_boundaries_in_both_languages",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_inherited_empty_and_short_labels_are_distinct",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_units_and_raw_arithmetic_do_not_change_with_language",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_timer_language_does_not_change_lifecycle_or_symbols",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_wide_text_fitting_colors_and_explicit_rows",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_normal_render_translation_does_not_load_ui_catalogues",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_language.StatuslineLanguageTests.test_subagent_known_effort_and_custom_task_survive_language_and_width",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.DisplayWidthTests.test_ansi_unicode_and_combining_width",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.DisplayWidthTests.test_terminal_columns_and_fallbacks",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.SegmentSplittingTests.test_colored_split_preserves_text_and_restarts_style",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.SegmentSplittingTests.test_long_absolute_path_prefers_slashes_without_data_loss",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.SegmentSplittingTests.test_windows_drive_and_unc_paths_prefer_both_separator_styles",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.SegmentSplittingTests.test_single_long_component_and_unicode_are_hard_split",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.SegmentSplittingTests.test_other_oversized_fields_are_split_without_truncation",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.AdaptiveLayoutTests.test_wide_layout_preserves_single_line_contract",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.AdaptiveLayoutTests.test_exact_fit_and_one_cell_over_wrap_at_segment_boundary",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.AdaptiveLayoutTests.test_narrow_layout_preserves_order_and_clean_separators",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.AdaptiveLayoutTests.test_no_hard_row_limit_or_field_loss",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_layout.AdaptiveLayoutTests.test_tiny_width_makes_progress_and_keeps_all_content",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemCatalogTests.test_default_items_are_exactly_the_legacy_ten",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemCatalogTests.test_catalog_order_keeps_same_group_items_adjacent",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemCatalogTests.test_subagent_catalog_and_defaults",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_all_new_items_hidden_without_payload_fields",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_context_used_rounding",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_context_used_rejects_invalid_values",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_context_items_coexist_in_configured_order",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_project_name_uses_posix_basename",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_project_name_rejects_invalid_values_without_fallback",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_project_name_sanitizes_payload_without_filesystem_access",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_hostname_renders_sanitizes_and_handles_failures",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_hostname_is_not_loaded_when_unselected",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_location_items_coalesce_when_adjacent",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_version_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_session_prefers_name_then_id_prefix",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_cost_item_full",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_cost_item_omits_zero_parts",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_prompt_cache_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_fast_mode_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_agent_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_vim_mode_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_thinking_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_pr_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_worktree_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_repo_item",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_new_groups_coalesce_adjacent_items",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_new_groups_do_not_cross_ungrouped_items",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemRenderingTests.test_new_items_do_not_load_expensive_sources",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -2155,302 +2409,388 @@
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemSubprocessTests.test_new_items_render_end_to_end",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-items.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_preview.PreviewContentTests.test_all_catalog_items_have_fixed_sample_values_in_draft_order",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_preview.PreviewContentTests.test_toggle_order_separator_directory_padding_and_width_change_preview",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_preview.PreviewContentTests.test_colors_palette_and_empty_items",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_preview.PreviewContentTests.test_preview_never_calls_live_or_persistent_sources",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_rate_limits.RateLimitSegmentTests.test_all_windows_render_in_fixed_order_as_remaining_percentages",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_rate_limits.RateLimitSegmentTests.test_windows_are_independently_optional",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_rate_limits.RateLimitSegmentTests.test_absent_or_malformed_containers_hide_the_segment",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_rate_limits.RateLimitSegmentTests.test_invalid_values_are_skipped",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_rate_limits.RateLimitSegmentTests.test_rounding_and_remaining_bounds",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-metrics.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_rate_limits.RateLimitIntegrationTests.test_wide_output_places_limits_between_context_and_tokens",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-observations.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_rate_limits.RateLimitIntegrationTests.test_narrow_output_wraps_without_orphan_separators",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-observations.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_scope.ScopeLabelTests.test_off_always_and_conditional_modes",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_scope.ScopeLabelTests.test_no_subagent_output_remains_byte_compatible",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_scope.ScopeLabelTests.test_completed_agent_history_keeps_label_and_empty_main_stays_empty",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_scope.ScopeLabelTests.test_preview_simulates_a_prompt_with_subagents",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_styles.StyleTests.test_decorations_preserve_body_styles_and_isolate_prefix",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_styles.StyleTests.test_partial_changes_and_selective_resets",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_styles.StyleTests.test_rgb_indexed_and_colon_notation",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_styles.StyleTests.test_bad_color_groups_never_become_bold_reset_or_other_colors",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_styles.StyleTests.test_row_wrap_restores_all_supported_state_and_resets_end",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_default_exact_output_and_task_order",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_all_statuses_and_unknown",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_status_elapsed_combined_and_icon_only_fallback",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_status_elapsed_icons_for_each_status",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_status_elapsed_colors_match_status_and_elapsed",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_model_effort_context_elapsed_tokens_and_directory",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_context_remaining_rounding_and_format",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_context_remaining_clamps_at_zero_over_window",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_context_remaining_missing_fields_omitted",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_context_remaining_invalid_values_omitted",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_context_used_renders_full_label",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_context_remaining_default_and_preview",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_invalid_optional_fields_are_omitted",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_name_type_and_task_fallbacks",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_duplicate_and_invalid_ids_are_skipped",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_empty_items_or_disabled_rows_emit_empty_content_per_id",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.RendererTests.test_preview_is_deterministic_running_and_completed_data",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.WidthAndSanitizationTests.test_every_path_is_single_line_and_within_columns",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.WidthAndSanitizationTests.test_optional_drop_priority_and_core_fallback",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.WidthAndSanitizationTests.test_status_elapsed_core_item_survives_narrow_widths",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.SubprocessTests.test_ndjson_utf8_corrupt_config_fallback_and_invalid_input",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-subagents.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_subagent_statusline.SubprocessTests.test_hot_path_does_not_import_heavy_or_stateful_modules",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-layout.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -2474,15 +2814,19 @@
     },
     {
       "id": "tests.runtime.live.test_durations.FrozenAgentTests.test_repeated_refreshes_freeze_ended_agent_without_live_metrics",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-observations.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.live.test_durations.FrozenAgentTests.test_terminal_agent_without_end_evidence_keeps_status_only",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/render-observations.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -3391,8 +3735,10 @@
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_input_is_summed_before_formatting_and_one_collection_is_shared",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/usage.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -3416,11 +3762,11 @@
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_missing_empty_and_invalid_transcripts_are_unavailable_but_zero_is_observed",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
@@ -3443,83 +3789,83 @@
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_usage_does_not_fabricate_the_missing_counter_as_zero",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_input_only_zero_does_not_imply_output_was_observed",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_cost_snapshot_keeps_counter_availability_separate",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_invalid_input_does_not_become_an_observed_zero",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_later_zero_observation_fills_only_the_missing_counter",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_legacy_zero_observations_are_recovered_once_without_changing_totals",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_observed_zero_survives_collapsing_ids_and_missing_transcripts",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_cost_snapshot_preserves_the_other_visible_counter",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_cost_snapshot_preserves_the_other_authoritative_counter",
-      "status": "pending",
+      "status": "ported",
       "tests": [
         "packages/cli/test/usage.test.ts"
       ],
-      "reason": "03-D collector/counter assertions pass; the original rendered availability and output assertions remain assigned to 03-E.",
+      "reason": null,
       "stage": "TS-03"
     },
     {

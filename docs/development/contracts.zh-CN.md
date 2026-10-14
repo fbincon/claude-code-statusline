@@ -131,3 +131,9 @@ schema 8 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。Python 的 `
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 8 草稿时不经过旧类型选择投影。
 
 TS 配置服务沿用安装锁、显示 schema 8、UI protocol 11、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；UI 预览渲染在 03-E 接入前通过接口注入，已安装启动命令保持现状。
+
+## 迁移期间的 TypeScript 后端绑定
+
+私有编译 ESM 后端已实现全部 UI v11 操作（含预览 span）、runtime v2／v1，以及 `config`、`render`、`render-subagents`、`hook`、`slash-hook`。schema 与 stdout／stderr 分工保持兼容，UI 预览和 dry-run 不重写活动配置。直接 slash 修改调用同一加锁配置服务，并按已保存的界面语言呈现最终 block 决策。
+
+`/statusline-configure` 将 `{configDir, backend: LaunchSpec, cwd}` 传入可注入的编辑器启动器。结果涵盖 updated、already-current、cancelled、interrupted、timed-out、error；识别出的命令始终阻止模型扩展，结果文字按 Unicode 字符数限长。开发后端默认返回既有的编辑器不可用提示；终端选择、真实编辑器执行和已安装 Mod 绑定切换归 TS-04。测试注入启动器并核验准确的请求和结果，不打开用户终端。

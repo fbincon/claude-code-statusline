@@ -363,5 +363,131 @@
     "Five retained Python generator --check commands",
     "ruff check --select F,E9 src tests tools",
     "Both Mods: typecheck, claude plugin validate --strict, claude plugin test"
-  ]
+  ],
+  "ci": {
+    "head": "3bd4699d1c7e5105c701933937f1b0a15df0a256",
+    "tested_merge": "faabf4b1284f77660ca98b6de793199b6409c8c6",
+    "merge_commit": "dc2e2187860386161092b403ccc8fd8a171c2c90",
+    "pr": "https://github.com/fbincon/claude-code-statusline/pull/81",
+    "required_jobs_passed": 43,
+    "runs": {
+      "python_build_baseline": 38549288560,
+      "mods": 38549288562,
+      "platform_ts02": 38549288524,
+      "backend_ts03": 38549288594
+    },
+    "sync": {
+      "remote": "gitee",
+      "refspec": "refs/heads/main:refs/heads/main",
+      "github_and_gitee_commit": "dc2e2187860386161092b403ccc8fd8a171c2c90"
+    },
+    "artifacts": [
+      {
+        "id": 11886585408,
+        "name": "ts03-windows-11-arm-x64",
+        "digest": "sha256:f726f5abab7aa86915923280fec69b9a6941cf0ebebfe8b3a8ba345c492faee7"
+      },
+      {
+        "id": 11886426790,
+        "name": "ts03-macos-26-arm64",
+        "digest": "sha256:660612f8663cc361f73de49b54df6788a3c549da7f9685e728d248c3ae3b79a3"
+      },
+      {
+        "id": 11886018865,
+        "name": "ts03-macos-26-intel-x64",
+        "digest": "sha256:d25f916b036d4c07fc670251b8522aed428c00e5ddeb97282957175938c6af7e"
+      },
+      {
+        "id": 11885743590,
+        "name": "ts03-windows-2025-x64",
+        "digest": "sha256:96a8a2a8e5d17e6eb90dead8167b58520f39d8be4ddc819bfaf1bddfe9b45966"
+      },
+      {
+        "id": 11885739983,
+        "name": "ts03-macos-15-arm64",
+        "digest": "sha256:50618d4f0fb58241f782314dff0c78c6e23c1b4b867978f27571d3f8d644ff1d"
+      },
+      {
+        "id": 11885524319,
+        "name": "ts03-macos-14-arm64",
+        "digest": "sha256:309f6ff15508ba696fc68bb7ea649910fccdbb03123223a5ddff649bb6858b40"
+      },
+      {
+        "id": 11885424712,
+        "name": "ts03-macos-15-intel-x64",
+        "digest": "sha256:53209c234887f4766237cdbd7bc21b87f84cf5ebecf9ddc902a6b6cea3306658"
+      },
+      {
+        "id": 11885259554,
+        "name": "ts03-ubuntu-24.04-x64",
+        "digest": "sha256:1727a246d843be7da5afbcbe37e3f105b95992c07d84ecbaab7245d9a4eda4f8"
+      }
+    ],
+    "cancelled_duplicate_push_runs": [
+      38549255855,
+      38549255881,
+      38549255933,
+      38549255966
+    ],
+    "artifact_transfer_retry": {
+      "artifact": "ts03-ubuntu-24.04-x64",
+      "first_curl_exit_code": 35,
+      "retry_verified_original_digest": true
+    },
+    "source_verification": {
+      "head": "3bd4699d1c7e5105c701933937f1b0a15df0a256",
+      "tested_merge": "faabf4b1284f77660ca98b6de793199b6409c8c6",
+      "same_tree": true,
+      "receipts": [
+        {
+          "artifact": "ts03-macos-14-arm64",
+          "source_files": 161,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-15-arm64",
+          "source_files": 161,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-15-intel-x64",
+          "source_files": 161,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-26-arm64",
+          "source_files": 161,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-26-intel-x64",
+          "source_files": 161,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-ubuntu-24.04-x64",
+          "source_files": 161,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-windows-11-arm-x64",
+          "source_files": 161,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-windows-2025-x64",
+          "source_files": 161,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        }
+      ]
+    }
+  }
 }

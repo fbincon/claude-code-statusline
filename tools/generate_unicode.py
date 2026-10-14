@@ -174,16 +174,17 @@ def outputs():
             + license_text.replace("*/", "* /")
             + "*/\n"
             + "\n".join(
-                "export const "
-                + name
-                + ": readonly (readonly ["
-                + ", ".join(["number"] * len(rows[0]))
-                + "])[] = "
-                + json.dumps(rows, separators=(",", ":"))
-                + ";"
+                "let cached_" + name + ": readonly (readonly ["
+                + ", ".join(["number"] * len(rows[0])) + "])[] | undefined;\n"
+                + "export function " + name + "(): readonly (readonly ["
+                + ", ".join(["number"] * len(rows[0])) + "])[] { return cached_"
+                + name + " ??= JSON.parse("
+                + json.dumps(json.dumps(rows, separators=(",", ":"))) + "); }"
                 for name, rows in {**width, **grapheme}.items()
             )
-            + "\n"
+            + "\nexport function initializedTables(): number { return ["
+            + ", ".join("cached_" + name for name in {**width, **grapheme})
+            + "].filter(Boolean).length; }\n"
         ),
     )
     cases = json.loads(

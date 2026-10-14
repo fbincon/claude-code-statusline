@@ -50,4 +50,10 @@ python tools/rendering_acceptance.py --python /absolute/installed-venv/bin/pytho
 
 ## 组件实例与布局
 
-`config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，协议由 Python 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
+`config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，共享协议由 TypeScript 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
+
+## TypeScript 开发渲染器
+
+TS-03 入口支持 `render`（UTF-8 JSON 标准输入，主行写入 stdout）和 `render-subagents`（每个有效 ID 输出一条紧凑 NDJSON）。两者接受 UTF-8 BOM、静默忽略无效输入，并在显示配置无效时使用默认值。`CLAUDE_CONFIG_DIR` 可指定隔离配置目录；渲染命令不接受 `--config-dir`。主行宽度预算为 `COLUMNS - 2`，缺省为 118 格。UI v11 预览返回主／子行的语义 span，宿主 padding 仅应用于主行预览。
+
+`RenderEnvironment` 连接时钟、路径和按需观测。重复组件共享 Git、用量、实时、分支差异及任务快照，格式化结果不参与反向计数。已结束子代理只有获得结束证据才显示时长，并在刷新间保持冻结值。五种状态栏小语言包与 UI 词库分离；生成的 Unicode 数组仅在非 ASCII 处理需要时初始化，ASCII 帧不分配这些数组。Unicode 18 排版数据和许可证保持固定，载荷大小写转换及旧十进制解析保留 Python 3.14 的 UCD 16 语义。
