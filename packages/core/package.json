@@ -1,0 +1,8 @@
+{
+  "name": "@fbincon/statusline-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { "./*": { "types": "./dist/src/*.d.ts", "import": "./dist/src/*.js" } },
+  "dependencies": { "lossless-json": "4.3.1" }
+}

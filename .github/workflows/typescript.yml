@@ -1,0 +1,59 @@
+name: TypeScript backend
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: TS-03 / ${{ matrix.os }} / ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, arch: x64 }
+          - { os: windows-2025, arch: x64 }
+          - { os: windows-11-arm, arch: x64, host_arch: arm64 }
+          - { os: macos-14, arch: arm64 }
+          - { os: macos-15, arch: arm64 }
+          - { os: macos-15-intel, arch: x64 }
+          - { os: macos-26, arch: arm64 }
+          - { os: macos-26-intel, arch: x64 }
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      TS03_PYTHON: python
+      TS03_EXPECT_HOST_ARCH: ${{ matrix.host_arch || matrix.arch }}
+      TS03_EXPECT_PROCESS_ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          architecture: ${{ matrix.arch }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14.4'
+          architecture: ${{ matrix.arch }}
+      - name: Install pinned development and prebuilt native dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compile and test the production adapters and core
+        run: npm test
+      - name: Check immutable baseline and test migration inventory
+        run: npm run migration:inventory
+      - name: Bind evidence to compiled sources and runtime
+        run: npm run migration:receipt -- "${{ runner.temp }}/ts03-evidence.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ts03-${{ matrix.os }}-${{ matrix.arch }}
+          path: ${{ runner.temp }}/ts03-evidence.json
+          if-no-files-found: warn

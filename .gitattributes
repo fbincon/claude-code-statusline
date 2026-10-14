@@ -1,2 +1,7 @@
 # Preserve canonical Unicode source bytes across Windows and POSIX checkouts.
 tools/unicode/* text eol=lf
+# The frozen replay lock hashes these exact UTF-8 bytes on every native target.
+tools/migration/*.py text eol=lf
+tests/fixtures/migration/ts-01/*.json text eol=lf
+packages/** text eol=lf
+tools/migration/ts-03/** text eol=lf

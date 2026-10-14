@@ -1,0 +1,98 @@
+{
+  "format_version": 1,
+  "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "commit": "9b121e0ae168a8440eea4c09dc2e5aad537504f5",
+  "dirty": true,
+  "node": "v24.21.0",
+  "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+  "platform": "linux",
+  "host_arch": "x64",
+  "process_arch": "x64",
+  "node_os_machine": "x86_64",
+  "architecture_source": "os.machine",
+  "coverage": {
+    "total": 516,
+    "pending": 516,
+    "ported": 0,
+    "deferred": 0
+  },
+  "source_hashes": {
+    ".gitattributes": "0e7e34d3937f39db98ce2d27c702f660be1415a10c5a12d39d773eac7e0f3eec",
+    ".github/workflows/typescript.yml": "d1be8c86e265dc3752d446b13cc4c05ea80049e40f7f35293508d90e069c681e",
+    ".node-version": "73fb1b615e2043a933be1c0895cde4358036acc28d785692509b822aa53c761f",
+    "package-lock.json": "1bd7fe62ca59dd085068c916aa99002e8ee5997b188dcda098d5b57e96e106b8",
+    "package.json": "5b9324caaf253892765d312e0cd9b4cbdbf8320d2d3b9a712b9211baa906abdf",
+    "packages/cli/package.json": "8aaf2d9cd52c90cec1ea9ea9bf44635ccc10f530e6ed78e62c4d484ce01700cc",
+    "packages/cli/src/context.ts": "a1750f84e78bd5095ad71b3244496157fe2595edc302400e12467b52213bb403",
+    "packages/cli/tsconfig.json": "e416ec1224f1ce4d457b063ef8ed68082406b3b93b8e85fa3811499c723fa2a1",
+    "packages/core/package.json": "9e03212188805859b2d11ce9a8dcae57993b4bd8234b6a84a9b1d81450d3deed",
+    "packages/core/src/json.ts": "02edca2af5ef918ece75d8970f55ae3cf4206d1ae95491fbb55f11fce7ea16ba",
+    "packages/core/src/timing/sample.ts": "ad76903d89f96db1622c82877ad4a13968e87fb97c96b6b68c7fb9c9c6fa1c08",
+    "packages/core/test/json.test.ts": "7ec9e927fbaedc8a392aabc34e90318c866acebc66cd3d6b1de99e9eef7cd31d",
+    "packages/core/test/sample.test.ts": "9adcff6f1076e880c12fe12219c8739f18573c5261035daa143eeca80b1113b9",
+    "packages/core/tsconfig.json": "9cd7fac2b8823673bd371d534ef442ebafdb1811dc88f0e9ec2bff6063982969",
+    "packages/core/tsconfig.test.json": "cefc434a1e0b33311627891d260ae4ecbfd7973c8a648128782a89181dd94143",
+    "packages/platform/package.json": "51d83bede0c426d1e619c58a61200d08391be471ae0f6f672bc73b3c8b4352ee",
+    "packages/platform/src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+    "packages/platform/src/clocks.ts": "84d929f4cf24b20d7fc51e6dd79fb027b0fe11685499cc08fd6c0067479e81da",
+    "packages/platform/src/files.ts": "707eb99618c546e38807b1d1f92077a771ca06b4656bb23ecd3ebaa46073d93a",
+    "packages/platform/src/hash.ts": "5a2c4cc9df59bd0ae2bbe08237788a40335b71112e911b86857c213135b69974",
+    "packages/platform/src/launch.ts": "111f8ed48b8f55867eedfc45bae5391235aca387390a7b0fcf579a65dc93f47c",
+    "packages/platform/src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+    "packages/platform/src/processes.ts": "eeb92d7f5cda7b7b75c84ed37b70d498f9d5ceae48b455d51e57c4735aacf5da",
+    "packages/platform/tsconfig.json": "1095db9e8677576550acc383c24f24d151dda7583022ce443db0d72ff9fae25d",
+    "tools/migration/ts-03/capture.ts": "b2dfa385ee61326bf690b62e5d321a7ead2e631c8ecba7c91d70917995f09980",
+    "tools/migration/ts-03/common.ts": "5fe263288a9dca8258d3fa00120cf2608743757892ce743c490192fc68712bc6",
+    "tools/migration/ts-03/compare.ts": "a79730e71c83fbe64a81d3fce6015697c3157b908c3cb67d6de82d72490e04bb",
+    "tools/migration/ts-03/coverage.json": "a03b551b596df9a044005428e979db11f8a754c7a212bb6951207368169df767",
+    "tools/migration/ts-03/differences.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "tools/migration/ts-03/inventory.ts": "6203fefd62be9117ed007136e36eeda679435217d413d13a095bb303876b9a3a",
+    "tools/migration/ts-03/receipt.ts": "a2ff8cb96d8c6ef8db08ec3eb74c15da300412b6086fae56dcd63d1b7ff19f58",
+    "tools/migration/ts-03/scenarios.ts": "6a476f9842d05ce5d69eeccbe05c3296024bffb741005327c907edc1fa89f768",
+    "tools/migration/ts-03/test/child.ts": "8b176defe26cd1fed1ae51c70cf5f0083288e397b2847e52c29813a3cc81cca8",
+    "tools/migration/ts-03/test/compare.test.ts": "adefc6dc01ebaa5f9fc8ae0c127620bf7f2733f23e44ccc8c56b1e4167a39669",
+    "tools/migration/ts-03/test/platform.test.ts": "7f7aa8df4539d099a70e02995a7ab0e03d1a48862673f7cfde1ab10c6be55289",
+    "tools/migration/ts-03/worker.ts": "b985912b35606130d896bd957a7cd73e6736ead4147dff1e22fb14f5de33c071",
+    "tools/typescript/check-runtime.mjs": "3edfce93d19bfc6b4f513617fd4aa17baf51ce19462214ec720f0fd45b659047",
+    "tools/typescript/test.mjs": "3e2e58fee7fbf71a60281c3b97257711e9e64c464a3bddcd33797094dd337659",
+    "tsconfig.base.json": "3ad2d89fc6861d08d632a815211bf0538994c7fc1c3e4becd08422cb9f933fa2",
+    "tsconfig.json": "0d2803372982443c270acecd46fdde31246576a31e86d2f96f70b1a14799e7cf",
+    "tsconfig.tools.json": "aaf92afb4c7531c968a9c2bda61279e1282edf8dd68fa28936a0041b514e65da"
+  },
+  "baseline_lock_sha256": "a701f70744de7fbc9ffe7c8122fcf4383e690ab052bf7b421008b3c523227bfc",
+  "limitation": "Source/provenance receipt; CI/test results and functional parity are separate evidence.",
+  "scope": "03-A foundation only; TS-03 remains IN_PROGRESS",
+  "local_tests": {
+    "node": {
+      "total": 28,
+      "passed": 27,
+      "skipped": 1,
+      "reason": "Real Windows sharing denial requires Windows"
+    },
+    "python": {
+      "total": 856,
+      "passed": 847,
+      "skipped": 9
+    },
+    "frozen_reference_cases": 161,
+    "candidate_cases_completed": 0,
+    "candidate_cases_pending": 161,
+    "baseline_tests_pending": 516,
+    "documentation_links": 1490,
+    "python_distributions": {
+      "wheel_entries": 217,
+      "sdist_entries": 892
+    }
+  },
+  "logs": {
+    "typescript-final.log": "05af2a3ed77166e0256265f86506658f84bf34af3b97e8ad50febe9f9fc90f83",
+    "python-tests.log": "a80417028e760f0e5804173fe716b10b71fbad39ec9be102e1c0f14a23ec130d",
+    "python-build.log": "55d94a127c7a1d10a1089029d5f9b6213dd2dd3e3195190ef5ae5c6495870574"
+  },
+  "raw_evidence": "dist/validation/typescript-migration/ts-03/03-a-local-20261014-01/",
+  "limitations": [
+    "Local source hashes describe precommit implementation; the later CI receipt binds a Git commit.",
+    "No application behavior is claimed ported in this foundation batch.",
+    "Physical power/desktop release-before checks remain pending."
+  ]
+}

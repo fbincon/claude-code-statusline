@@ -1,0 +1,8 @@
+{
+  "name": "@fbincon/statusline-cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { "./*": { "types": "./dist/src/*.d.ts", "import": "./dist/src/*.js" } },
+  "dependencies": { "@fbincon/statusline-core": "0.0.0", "@fbincon/statusline-platform": "0.0.0" }
+}

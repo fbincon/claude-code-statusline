@@ -11,6 +11,7 @@ docs/ROADMAP.zh-CN.md
 .venv/
 .venv-*/
 node_modules/
+*.tsbuildinfo
 mods/*/.claude-plugin/types/
 build/
 dist/
