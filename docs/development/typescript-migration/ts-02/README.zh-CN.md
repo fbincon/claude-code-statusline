@@ -4,9 +4,10 @@
 
 2026-10-14: [Linux 整合、实体机验收及已批准的发布前补验](LINUX-20261014.zh-CN.md).
 
-更新日期：**2026-10-12**（Asia/Shanghai）。阶段状态由[迁移总计划](../../typescript-migration.zh-CN.md)
-统一维护。TS-02 当前为 **VALIDATING**，不是 DONE；TS-03 尚未开始。
-已批准先做自动验证，并明确保留未完成的物理／桌面门槛；不能用推荐方案代替缺失证据。
+更新：**2026-10-14**（Asia/Shanghai）。阶段状态由[迁移总计划](../../typescript-migration.zh-CN.md)统一维护。
+TS-02 为 **DONE**，D01–D06 均为 **DECIDED**；TS-03 已可开始，但尚未实施。
+整合 CI 和本 Linux 实体机电源／桌面验收已通过。维护者明确将无法补齐的外部实体机／桌面检查
+延后到[发布前补验](LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛)，仍记为未验证，平台支持承诺不变。
 
 ## 交付物与决策
 
@@ -22,10 +23,10 @@ Koffi 的原生二进制位于对应 `@koromix/koffi-*` 可选包中，Windows A
 
 | 决策 | 状态 | 方向与剩余证据 |
 | --- | --- | --- |
-| [D01](D01.zh-CN.md) | OPEN | Node 24／npm／ESM，未来 TS 版本仅 64 位；原生安装矩阵及本机 WSL 自动检查通过，旧桌面等覆盖仍需处置。 |
-| [D02](D02.zh-CN.md) | OPEN | 原 Windows GUID 问题已修复；本机 v2 睡眠／重启复验通过，其余平台与修复后矩阵门槛保留。 |
+| [D01](D01.zh-CN.md) | DECIDED | Node 24.21.0／npm／ESM，64 位 TS；八目标原生／安装矩阵通过，未覆盖目标明确保留到发布前。 |
+| [D02](D02.zh-CN.md) | DECIDED | Koffi 时钟／身份及严格无损 bigint 边界；修复后的 Windows、本 Linux 真实电源及 macOS 虚拟机重启有证据，实体 macOS 睡眠延后补验。 |
 | [D03](D03.zh-CN.md) | DECIDED | 八个原生目标已验证兼容内核锁与持久化替换；完整存储事务留给 TS-03。 |
-| [D04](D04.zh-CN.md) | OPEN | raw TTY／VT／共享 Unicode；本机 Windows 按键／resize／恢复通过，其他 GUI 启动／焦点及 tmux popup 门槛仍保留。 |
+| [D04](D04.zh-CN.md) | DECIDED | raw TTY／VT／共享 Unicode；真实 Windows 控制台、macOS Terminal.app／popup、Linux GNOME／popup 已有证据，其余外部覆盖延后补验。 |
 | [D05](D05.zh-CN.md) | DECIDED | npm 入口退役、argv 前缀绑定及事务升级策略已固定；完整实现留给 TS-04。 |
 | [D06](D06.zh-CN.md) | DECIDED | 测量前固定预算；最小渲染测量与完整迁移验收分开。 |
 
@@ -109,10 +110,9 @@ Mod 无 shell 调用不把 `.cmd` 当作原生可执行文件。
 | 热 | 106.59／40.75 | 115.31／47.54 | 26.52／58.19 | 58.52 |
 | 冷 | 233.46／41.33 | 245.48／47.67 | 27.68／58.23 | 59.68 |
 
-下一步：验证修复后的完整平台矩阵，并补齐其他目标的物理休眠／重启、
-Windows 10／macOS 14 Intel 及 GUI／popup 证据。基础门槛满足或维护者明确解决支持范围调整前，
-相关决策保持 OPEN，TS-03 保持 NOT_STARTED。完整安装／恢复属于 TS-04，完整性能验收属于 TS-05；
-本轮探针交付不是产品发布。
+[2026-10-14 整合](LINUX-20261014.zh-CN.md)已满足调整后的 TS-02 门槛：修复后的矩阵及本 Linux 实体机
+睡眠／重启／GNOME／popup 通过。其余外部覆盖仍须在 TS 发布前补验，不记为通过。
+完整安装／恢复属于 TS-04，完整性能验收属于 TS-05。TS-03 已可开始，本轮探针交付不是产品发布。
 
 ## 测试工具交接
 
@@ -121,13 +121,15 @@ Windows 10／macOS 14 Intel 及 GUI／popup 证据。基础门槛满足或维护
 两者都不属于生产调用链。最小渲染输入／输出取自 `cli-render-bom`，显式窄配置取自 TS-01
 `main-model`，同样传给 Python configured-rows 适配器；它明确不代表完整默认 CLI 配置。
 
-当前 Linux 测试共 33 项：31 通过，2 项仅 Windows 的案例跳过。
+初始 PR #76 的 Linux 测试共 33 项：31 通过，2 项仅 Windows 的案例跳过。
 最终探针实现 `1e9b16c` 的[八目标 CI 矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/38161869092)全部通过：
 每个 POSIX 目标 31 通过／2 跳过，每个 Windows 目标 25 通过／8 跳过，无失败。
 此轮包含 Windows 原生架构证据及日志失败时的终端恢复，早期失败另行保留。
 最终审查 head、CI 检查、合并提交及 Gitee 同步结果在 PR 中登记，不把早期证据伪装成最终 head 的执行结果。
-既有 Python 测试共 827 项，819 通过、8 项平台跳过。两个真实宿主 argv 探针在 2.1.294、2.1.296 均通过。
-重建 Python wheel 的 217 个条目与 TS-01 逐字节一致；扩展源码包包含探针和证据，排除依赖／构建目录。
+初始交付时 Python 测试共 827 项，819 通过、8 项平台跳过。两个真实宿主 argv 探针在 2.1.294、2.1.296 均通过。
+初始交付时重建 Python wheel 的 217 个条目与 TS-01 逐字节一致；扩展源码包包含探针和证据，排除依赖／构建目录。
+
+以下按日期保留的补验记录描述各检查点当时的范围和阶段状态；当前决策与已批准的发布前补验见上文。
 
 ## 2026-10-12 本机 Windows 补验
 
@@ -158,7 +160,7 @@ Node 24.21.0／npm 11.19.0／Python 3.14.4 完成本机自动检查；原始日�
 
 本机适用的验证已执行完毕，结论含上述明确失败，并非全部验收通过。
 本记录只补充这台 Windows x64 主机及其 WSL 环境，其他目标和 GUI／popup 门槛继续保留。
-TS-02 仍为 VALIDATING，D01／D02／D04 保持 OPEN，TS-03 仍为 NOT_STARTED。
+该历史检查点的 TS-02 为 VALIDATING，D01／D02／D04 为 OPEN，TS-03 为 NOT_STARTED；当前处置见上方 2026-10-14 Linux 整合。
 
 ## Windows 重启身份修复
 
@@ -200,3 +202,5 @@ Linux 最后通过 Git 合入提交、保留两端原始证据，评估 macOS �
 2026-10-14 的 [macOS 本机验收](MACOS-20261014.zh-CN.md)覆盖 macOS 14.5 x86_64 VMware 来宾：
 自动检查、固定预算、真人 Terminal／popup 与真实来宾重启已取得证据；睡眠按维护者要求跳过。
 POSIX 宿主探针清理修复、原不完整操作和补测分别保留。此结果不关闭实体硬件或全平台门槛，最终交由 Linux 汇总。
+
+当前整合、最终 head 检查、合并及同步由 [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) 记录；PR #76 与上述历史数据保留各自的被测提交。

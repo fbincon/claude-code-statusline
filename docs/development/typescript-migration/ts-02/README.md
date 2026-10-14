@@ -4,10 +4,12 @@
 
 2026-10-14: [Linux integration, physical acceptance and approved release deferrals](LINUX-20261014.md).
 
-Updated: **2026-10-12** (Asia/Shanghai). The [migration plan](../../typescript-migration.md)
-owns stage status. TS-02 is **VALIDATING**, not DONE; TS-03 has not started.
-The approved scope allows automated validation first and explicitly retains
-unverified physical/desktop gates. Preferred designs do not close missing evidence.
+Updated: **2026-10-14** (Asia/Shanghai). The [migration plan](../../typescript-migration.md)
+owns stage status. TS-02 is **DONE**, D01–D06 are **DECIDED**, and TS-03 is ready
+to begin but has not started. Integrated CI and this physical Linux power/desktop
+acceptance passed. The maintainer explicitly moved unavailable external physical/
+desktop checks to the [release-before checklist](LINUX-20261014.md#approved-stage-and-release-gates);
+they remain unverified and platform support promises are unchanged.
 
 ## Deliverables and decisions
 
@@ -28,10 +30,10 @@ the maintainer; the immutable oracle and fixed expectations remain preserved.
 
 | Decision | State | Direction and outstanding evidence |
 | --- | --- | --- |
-| [D01](D01.md) | OPEN | Node 24/npm/ESM; 64-bit future TS release. Native installation matrix and local WSL automation pass; older desktop coverage still needs disposition. |
-| [D02](D02.md) | OPEN | Original Windows GUID failure is fixed; local v2 sleep/reboot revalidation passes, with other platform and updated-matrix gates retained. |
+| [D01](D01.md) | DECIDED | Node 24.21.0/npm/ESM; 64-bit TS, eight-target native/install matrix and explicit release-before coverage disposition. |
+| [D02](D02.md) | DECIDED | Koffi clocks/identities and strict lossless bigint boundary; corrected Windows and real Linux power evidence, macOS guest reboot; physical macOS sleep deferred. |
 | [D03](D03.md) | DECIDED | Compatible kernel locks and durable replacement validated on all eight native targets; full store transactions remain TS-03. |
-| [D04](D04.md) | OPEN | Raw TTY/VT/shared Unicode. Local Windows keys/resize/recovery pass; other GUI launch/focus and tmux popup gates remain. |
+| [D04](D04.md) | DECIDED | Raw TTY/VT/shared Unicode; actual Windows console, macOS Terminal.app/popup and Linux GNOME/popup evidence; remaining external coverage deferred. |
 | [D05](D05.md) | DECIDED | npm entry retirement, argv-prefix binding and transactional upgrade strategy fixed; complete implementation remains TS-04. |
 | [D06](D06.md) | DECIDED | Budget frozen before measurement; minimal render is measured separately from full migration acceptance. |
 
@@ -77,8 +79,9 @@ not complete backend responses, editor parity or human visual acceptance.
 
 ## Evidence and limitations
 
-Delivery is tracked in [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76).
-The [machine-readable summary](validation.json) records tested commits, hashes,
+Initial probes are tracked in [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76);
+[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) integrates local platform evidence, closes decisions and records final checks/merge/synchronization.
+The [initial machine-readable summary](validation.json) records tested commits, hashes,
 counts and CI links. Raw logs remain in ignored
 `dist/validation/typescript-migration/ts-02/`; native CI uploads per-target receipts.
 Each receipt binds source and policy hashes, test counts, installed tarball hash,
@@ -140,11 +143,11 @@ and RSS in MiB. The machine-readable summary retains the per-metric dispositions
 | Warm | 106.59 / 40.75 | 115.31 / 47.54 | 26.52 / 58.19 | 58.52 |
 | Cold | 233.46 / 41.33 | 245.48 / 47.67 | 27.68 / 58.23 | 59.68 |
 
-Required follow-up: validate the complete updated platform matrix, and supply physical suspend/reboot evidence for other targets, Windows 10 / macOS 14 Intel and
-GUI terminal/popup evidence. Keep affected decisions OPEN and TS-03 NOT_STARTED
-until the foundational gates are satisfied or the maintainer explicitly resolves
-a support change. Full installation/recovery remains TS-04 and full performance
-acceptance remains TS-05; this probe delivery is not a release.
+The [2026-10-14 integration](LINUX-20261014.md) closes the amended TS-02 gate:
+the repaired matrix and physical Linux sleep/reboot/GNOME/popup pass. Remaining
+external coverage is required before a TS release; it is not counted as passed.
+Full installation/recovery remains TS-04 and full performance acceptance TS-05.
+TS-03 can begin; this probe delivery is not a release.
 
 ## Test-tool handoff
 
@@ -155,17 +158,20 @@ call-through. The selected render input/output comes from `cli-render-bom`; its
 explicit narrow configuration is TS-01 `main-model`, also passed to the Python
 configured-rows adapter. This is deliberately not the full default CLI profile.
 
-The current Linux suite has 33 cases: 31 pass and two Windows-only cases skip.
+The initial PR #76 Linux suite had 33 cases: 31 pass and two Windows-only cases skip.
 The final probe implementation `1e9b16c` passes the [eight-target CI matrix](https://github.com/fbincon/claude-code-statusline/actions/runs/38161869092):
 each POSIX target has 31 passes / 2 skips, each Windows target 25 passes / 8 skips,
 with no failures. This includes native Windows architecture evidence and cleanup
 after logging failure; the earlier failed attempts remain recorded separately.
 The final reviewed head, CI checks, merge commit and Gitee synchronization are
 recorded in the PR; earlier receipts are not relabeled as final-head runs.
-The existing Python suite passes 819 cases with eight platform skips (827 total).
-Both real-host argv probes pass on 2.1.294 and 2.1.296. The rebuilt Python wheel
-has 217 byte-identical entries relative to TS-01; the expanded source archive
+At that initial delivery, the Python suite passed 819 cases with eight platform skips (827 total).
+Both real-host argv probes pass on 2.1.294 and 2.1.296. At that initial delivery, the rebuilt Python wheel
+had 217 byte-identical entries relative to TS-01; the expanded source archive
 contains the probe and evidence, with dependency/build directories excluded.
+
+The following dated follow-ups preserve their original scope and stage state.
+Current decisions and approved release deferrals are recorded above.
 
 ## Local Windows follow-up, 2026-10-12
 
@@ -210,8 +216,9 @@ raw logs and hashes. Production sources, the TS-01 oracle and performance budget
 
 Applicable local verification has finished with the explicit failure above;
 this is not an all-pass acceptance. This record is limited to this Windows x64 host and its WSL environment. Other
-targets and GUI / popup gates remain outstanding. TS-02 stays VALIDATING,
-D01 / D02 / D04 stay OPEN, and TS-03 stays NOT_STARTED.
+targets and GUI / popup gates remained outstanding at this historical checkpoint.
+TS-02 was VALIDATING, D01/D02/D04 were OPEN and TS-03 was NOT_STARTED; the current
+disposition is the 2026-10-14 Linux integration above.
 
 ## Windows reboot identity correction
 

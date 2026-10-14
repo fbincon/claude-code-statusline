@@ -2,7 +2,7 @@
 
 [English](typescript-migration.md) | **简体中文**
 
-更新日期：**2026-10-12**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
+更新日期：**2026-10-14**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
 
 将 Python 实现迁移到 TypeScript，保留状态栏行为、既有用户配置及受支持的使用流程。本计划记录范围、依赖、技术决策、验收门槛和交接方式，供后续会话与维护者持续更新。中英文版本随仓库维护；机器私有记录和原始验收数据不写入受版本管理的文档。
 
@@ -12,11 +12,11 @@
 | --- | --- |
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
-| 实现进度 | **TS-01 DONE；TS-02 VALIDATING**；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)交付隔离探针与决策证据 |
-| 当前任务范围 | TS-02 原生／安装探针、性能策略及 D01–D06 记录；生产迁移尚未开始 |
-| 运行时与分发 | 候选为 Node 24.21.0／npm／64 位；D03／D05／D06 DECIDED，剩余证据门槛见 [TS-02](typescript-migration/ts-02/README.zh-CN.md) |
+| 实现进度 | **TS-01 DONE；TS-02 DONE**；[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)整合平台证据并闭合决策 |
+| 当前任务范围 | TS-02 整合与验收完成；生产后端迁移尚未开始 |
+| 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
 | 目标版本与工期 | 尚未指定；TS-02 平台验证后估算 |
-| 下一项实施工作 | 关闭 TS-02 剩余基础门槛后再开始 TS-03 |
+| 下一项实施工作 | 从已合并的 TS-02 决策开始 TS-03 共享核心／后端迁移；TS-03 为 NOT_STARTED |
 
 编写计划不代表任何实现阶段已通过。后续任务范围内仍适用仓库既有授权，本计划不为每个阶段新增例行审批步骤。
 
@@ -67,7 +67,7 @@
 
 使用统一 TypeScript 业务核心承载配置校验、目录／表单定义、渲染和生命周期规则。文件系统、时钟、进程身份、终端输入输出及宿主 API 使用明确的适配层。CLI 与两个已有 Mod 保持独立入口，仅共享兼容的纯逻辑模块。
 
-首选运行时候选为 Node LTS，并发布编译后的 JavaScript。独立可执行文件属于分发候选，尚未成为既定要求，也不能代替平台验证。具体运行时版本、包管理器、测试框架、终端库、原生依赖和目录布局在 TS-02 后确定；本计划不代表已创建生产工程骨架。
+D01–D06 已选定 Node 24.21.0／npm、编译 ESM、node:test、Koffi／严格无损 JSON 及 raw TTY／VT。未来 workspace 分离核心、平台、CLI 与 TUI 包。独立可执行文件为可选项，TS-02 未创建生产工程骨架。
 
 渲染／hook 入口保持轻量，避免提前加载编辑器资源。随子系统迁移，将规范规则转入 TypeScript／共享数据，保留可确定生成的资源与漂移检查。Python 参考实现独立保留用于对照，避免长期维护两套持续演进的规范定义。
 
@@ -77,10 +77,10 @@
 
 | 编号 | 状态 | 决策 | 所需证据 | 最迟阶段 |
 | --- | --- | --- | --- | --- |
-| D01 | OPEN | 运行时、最低版本、包／工具布局及可选独立构建 | 系统／架构矩阵、完整小样例渲染启动和 RSS、依赖与资源加载、两个 Mod 验证路径 | TS-02 |
-| D02 | OPEN | 时钟 API、启动／进程身份及整数无损编码 | 睡眠／恢复、墙钟调整、重启、进程复用、API 不可用；旧 JSON 与冻结值；必要时原生依赖打包 | TS-02 |
+| [D01](typescript-migration/ts-02/D01.zh-CN.md) | DECIDED | 运行时、最低版本、包／工具布局及可选独立构建 | 系统／架构矩阵、完整小样例渲染启动和 RSS、依赖与资源加载、两个 Mod 验证路径 | TS-02 |
+| [D02](typescript-migration/ts-02/D02.zh-CN.md) | DECIDED | 时钟 API、启动／进程身份及整数无损编码 | 睡眠／恢复、墙钟调整、重启、进程复用、API 不可用；旧 JSON 与冻结值；必要时原生依赖打包 | TS-02 |
 | [D03](typescript-migration/ts-02/D03.zh-CN.md) | DECIDED | 跨进程锁与持久写入 | 并发更新、进程异常退出、Windows 共享冲突、临时文件清理、符号链接／reparse 处理及新旧切换 | TS-02 |
-| D04 | OPEN | 外部 TUI 输入输出及终端启动 | Ctrl+S 等原始按键、缩放、终端恢复、Unicode 单元格、tmux、Windows 控制台及 macOS Terminal 辅助程序验证 | TS-02 |
+| [D04](typescript-migration/ts-02/D04.zh-CN.md) | DECIDED | 外部 TUI 输入输出及终端启动 | Ctrl+S 等原始按键、缩放、终端恢复、Unicode 单元格、tmux、Windows 控制台及 macOS Terminal 辅助程序验证 | TS-02 |
 | [D05](typescript-migration/ts-02/D05.zh-CN.md) | DECIDED | 安装、旧入口退役、升级与回滚 | pipx／PATH 识别、Windows 可执行文件或 argv 方案、归属、插件／后端绑定、关闭偏好保留及兼容备份恢复 | TS-02 定策略；TS-04 完成 |
 | [D06](typescript-migration/ts-02/D06.zh-CN.md) | DECIDED | 可测量的性能验收预算 | 测量前由 `3c448b8` 固定各案例延迟／RSS 预算、三轮交替及有界噪声复查规则 | TS-02 |
 
@@ -95,7 +95,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | 阶段 | 交付物 | 依赖 | 状态 | 执行者与证据 |
 | --- | --- | --- | --- | --- |
 | TS-01 | 固定基线与行为清单 | 明确开始实施任务 | DONE | Codex；`fbincon/ts-01-baseline`；测试提交 `ddc9dde`；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
-| TS-02 | 平台验证及 D01–D06 决策 | TS-01 | VALIDATING | Codex；`fbincon/ts-02-platform-decisions`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)；[决策与证据](typescript-migration/ts-02/README.zh-CN.md) |
+| TS-02 | 平台验证及 D01–D06 决策 | TS-01 | DONE | Codex；`fbincon/ts-02-linux-acceptance`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)及[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)；[整合与证据](typescript-migration/ts-02/LINUX-20261014.zh-CN.md) |
 | TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | NOT_STARTED | 未分配 |
 | TS-04 | 双编辑器、安装与恢复 | TS-03 | NOT_STARTED | 未分配 |
 | TS-05 | 完整工具链、CI 与发布候选 | TS-04 | NOT_STARTED | 未分配 |
@@ -121,9 +121,9 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **退出标准：**每个必要平台都有验证证据，或已有明确解决的支持范围决策。原生依赖、启动器、状态编码和终端方案具备具体设计。基础决策尚未解决时不展开大规模迁移。
 
-**TS-02 交接：**[D01–D06 记录与可复现探针](typescript-migration/ts-02/README.zh-CN.md)保留不可变 Python 参考。维护者已批准未来主版本采用 npm 优先、64 位 TS 分发，退役 Python import／模块／pipx 及旧 Windows `.exe` 入口，并保留历史 Python 包用于兼容和回滚。这是未来产品决策，不修改当前已发布安装。原生、安装包、真实宿主 argv 与性能自动证据同物理休眠／重启及桌面输入／焦点验收分开记录。基础证据缺失时，相关决策保持 OPEN，TS-03 保持 NOT_STARTED。
+**TS-02 交接：**[D01–D06 记录与可复现探针](typescript-migration/ts-02/README.zh-CN.md)保留不可变 Python 参考。维护者已批准未来主版本采用 npm 优先、64 位 TS 分发，退役 Python import／模块／pipx 及旧 Windows `.exe` 入口，并保留历史 Python 包用于兼容和回滚。这是未来产品决策，不修改当前已发布安装。原生、安装包、真实宿主 argv 与性能自动证据同物理休眠／重启及桌面输入／焦点验收分开记录。整合矩阵及本 Linux 实体机电源／桌面证据已满足下述调整后的阶段门槛，D01–D06 均为 DECIDED，TS-02 为 DONE，TS-03 已可开始（NOT_STARTED）。
 
-**2026-10-14 阶段门槛调整：** 维护者明确同意将本机无法补齐的 macOS 实体机睡眠、Windows 10、实体 macOS 14 Intel、WSL 桌面及其余目标特定人工／电源验收延后至发布前，不改变平台支持承诺，不记为通过。整合 CI 和本 Linux 实体机睡眠／重启／GNOME／popup 通过后可关闭 TS-02；此前 D01／D02／D04 仍 OPEN、TS-03 未开始。[整合结果及补验清单](typescript-migration/ts-02/LINUX-20261014.zh-CN.md)。当前分支：`fbincon/ts-02-linux-acceptance`。
+**2026-10-14 阶段门槛调整：** 维护者明确同意将本机无法补齐的 macOS 实体机睡眠、Windows 10、实体 macOS 14 Intel、WSL 桌面及其余目标特定人工／电源验收延后至发布前，不改变平台支持承诺，不记为通过。整合 CI 和本 Linux 实体机睡眠／重启／GNOME／popup 已通过，调整后的 TS-02 门槛已闭合；TS-03 尚未实施。[整合结果及补验清单](typescript-migration/ts-02/LINUX-20261014.zh-CN.md)。当前分支：`fbincon/ts-02-linux-acceptance`。
 
 ### TS-03 共享核心与后端
 
@@ -155,6 +155,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 ### TS-06 预览与正式交付
 
+- 在任何 TypeScript 发布前完成[延后的实体机／桌面验收](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛)，不得将未验证观测改记为通过。
 - 兼容决策后再确定版本号及预览／正式计划；过渡期间保留 Python 版本和可恢复发行物。
 - 验证实际预览资产、目标终端及升级／恢复路径，按具体提交记录反馈和修复；自动化、PTY、图像及真人证据分别记录。
 - 按已适配新分发方式的[发布流程](../RELEASING.zh-CN.md)交付；核验必要检查和公开资产后，按任务同步已验证的 GitHub 提交／标签／资产到 Gitee。
@@ -219,6 +220,7 @@ git diff --check
 
 | 日期 | 工作 | 结果与下一步 |
 | --- | --- | --- |
+| 2026-10-14 | TS-02 闭合，[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) | 验证 Windows／macOS 交接、修复 Windows 重启身份，本 Linux 实体机 s2idle／重启和人工 GNOME／popup 通过，整合 8／14／13 项 CI 作业通过。维护者批准外部缺项作为发布前必需补验。D01–D06 DECIDED，TS-02 DONE；下一步 TS-03，尚未开始。 |
 | 2026-10-12 | TS-02 探针与决策，[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) | 固定 Node 24.21.0 和测量前 D06 策略；新增原生时钟／身份、混合锁、终端、安装和真实宿主 argv 探针。[证据及剩余门槛](typescript-migration/ts-02/README.zh-CN.md)。TS-02 VALIDATING；TS-03 尚未开始。 |
 | 2026-10-11 | 源码可行性分析及双语初始计划 | 已记录基线、范围、风险、六个实施／交付阶段和交接规则。`python3 -B tools/check_docs.py` 通过，检查 1313 个相对链接及双语配对；`git diff --check`、双语阶段／决策一致性检查通过。未运行应用测试或开展实现。TS-01–TS-06 均为 NOT_STARTED；下一次实施任务从 TS-01 开始。 |
 | 2026-10-11 | TS-01 实施与隔离参考验证 | 完成源码/测试/工具清单、161 个固定案例、受保护的采集/核验命令及专用 CI 门槛。参考测试 807 通过、8 项原生平台跳过；两种固定宿主 Mod 及安装产物 PTY 通过。仅修正旧验收脚本的展示标签断言。状态 VALIDATING，等待 CI/PR。[证据](typescript-migration/ts-01/README.zh-CN.md)。 |
