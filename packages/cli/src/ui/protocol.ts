@@ -1,0 +1,140 @@
+import { randomUUID } from 'node:crypto';
+import * as contracts from '@fbincon/statusline-core/contracts/ui';
+import type { Draft } from '@fbincon/statusline-core/contracts/ui';
+import { requestObject, validateDraft } from '@fbincon/statusline-core/config/draft';
+import { isSchema } from '@fbincon/statusline-core/config/display';
+import { ConfigError, object } from '@fbincon/statusline-core/config/validation';
+import { ITEMS } from '@fbincon/statusline-core/config/catalog';
+import { applyPreset } from '@fbincon/statusline-core/config/presets';
+import { differences } from '@fbincon/statusline-core/config/import-review';
+import { text } from '@fbincon/statusline-core/i18n/messages';
+import { readJson, JsonSyntaxError } from '@fbincon/statusline-core/json-read';
+import { safeInteger } from '@fbincon/statusline-core/json';
+import { ConfigurationService, atLeast, draft, type EffectiveConfig } from '../config/service.js';
+import { readPreferences, setLanguage } from '../config/preferences.js';
+import { importFile, exportFile } from '../config/transfer.js';
+import { localizedError } from '../errors.js';
+import { errorDescription } from '@fbincon/statusline-platform/errors';
+export const BACKEND_VERSION = '2.0.0';
+export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import'] as const;
+export type Preview = (draft: Draft, width: number) => unknown;
+export function capabilities(version: readonly number[] | null): contracts.Capabilities {
+    return {
+        host_version: version?.join('.') ?? null,
+        subagent_rows: version === null ? 'unknown' : atLeast(version, [2, 1, 205]) ? 'supported' : 'unsupported',
+        native_mod: version === null ? 'unknown' : atLeast(version, [2, 1, 287]) ? 'unverified' : 'unsupported',
+        native_mod_loaded: null, data_observation: 'not_observed',
+    };
+}
+export function configurationOptions(): contracts.ConfigurationOptions {
+    return {
+        colors: { choices: [true, false] }, palette: { choices: [...contracts.PALETTE_VALUES] }, theme: { choices: [...contracts.THEME_VALUES] },
+        'powerline-glyph': { choices: [...contracts.POWERLINEGLYPH_VALUES] }, 'directory-style': { choices: [...contracts.DIRECTORYSTYLE_VALUES] },
+        'separator-style': { choices: [...contracts.SEPARATORSTYLE_VALUES] }, 'scope-labels': { choices: [...contracts.SCOPELABELS_VALUES] },
+        'statusline-language': { choices: [...contracts.STATUSLINELANGUAGE_VALUES] }, 'subagent-statusline': { choices: [true, false] },
+        padding: { minimum: 0, maximum: 32 }, 'refresh-interval': { minimum: 1, maximum: 3600, special: 'event' }, 'hide-vim-mode-indicator': { choices: [true, false] },
+    };
+}
+export class ConfigurationProtocol {
+    constructor(public readonly service: ConfigurationService, public readonly preview?: Preview, public readonly nextId: () => string = () => randomUUID().replaceAll('-', '')) { }
+    readResult(effective: EffectiveConfig): Record<string, unknown> {
+        return { draft: draft(effective), revision: effective.revision, installed: effective.installed, installation: effective.installation, capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION };
+    }
+    dispatch(request: unknown): unknown {
+        requestObject(request, ['protocol_version', 'operation', 'payload'], 'request');
+        if (!isSchema(request.protocol_version, contracts.PROTOCOL_VERSION))
+            throw new ConfigError('errors.protocol.unsupported_protocol', { version: contracts.PROTOCOL_VERSION }, 'unsupported_protocol');
+        const operation = request.operation;
+        if (typeof operation !== 'string' || !(OPERATIONS as readonly string[]).includes(operation))
+            throw new ConfigError('errors.protocol.unsupported_configuration_operation', {}, 'unsupported_operation');
+        const payload = request.payload;
+        if (operation === 'read_ui_preferences' || operation === 'set_ui_language') {
+            requestObject(payload, operation === 'read_ui_preferences' ? [] : ['ui_language'], 'payload');
+            return operation === 'read_ui_preferences' ? readPreferences(this.service.context.configDir, this.service.io) : setLanguage(this.service.context.configDir, payload.ui_language, this.service.io);
+        }
+        if (['import', 'review_import', 'export', 'preset'].includes(operation)) {
+            requestObject(payload, operation === 'export' ? ['draft', 'path', 'overwrite'] : operation === 'preset' ? ['draft', 'preset'] : ['draft', 'path'], 'payload');
+            const current = validateDraft(payload.draft, true);
+            if (operation === 'preset') {
+                if (typeof payload.preset !== 'string')
+                    throw new ConfigError('errors.protocol.preset_must_be_a_string', {}, 'invalid_request');
+                return { draft: { display: applyPreset(current.display, payload.preset, this.nextId), host: current.host } };
+            }
+            const path = payload.path;
+            if (typeof path !== 'string' || !path.trim() || path.includes('\0'))
+                throw new ConfigError('errors.protocol.path_must_be_nonempty_text_without_nul', {}, 'invalid_request');
+            if (operation === 'import')
+                return { draft: importFile(path, current) };
+            if (operation === 'review_import') {
+                const candidate = importFile(path, current);
+                return { draft: candidate, changes: differences(current, candidate) };
+            }
+            if (typeof payload.overwrite !== 'boolean')
+                throw new ConfigError('errors.protocol.overwrite_must_be_a_boolean', {}, 'invalid_request');
+            return { path: exportFile(path, current, this.service.context.configDir, payload.overwrite) };
+        }
+        if (operation === 'describe' || operation === 'read')
+            requestObject(payload, [], 'payload');
+        if (operation === 'describe')
+            return { presets: contracts.PRESETS, editor_fields: contracts.EDITOR_FIELDS, catalog: ITEMS, options: configurationOptions(), capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION, operations: [...OPERATIONS], formatting_options: contracts.FORMAT_CHOICES };
+        if (operation === 'read')
+            return this.readResult(this.service.read());
+        if (operation === 'apply') {
+            requestObject(payload, ['draft', 'expected_revision'], 'payload');
+            const parsed = validateDraft(payload.draft, true), revision = payload.expected_revision;
+            if (typeof revision !== 'string' || !/^[0-9a-f]{64}$/u.test(revision))
+                throw new ConfigError('errors.protocol.expected_revision_must_be_the_revision_returned', {}, 'invalid_request');
+            const result = this.service.apply(parsed, revision);
+            return { ...this.readResult(result.effective), changed: result.changed, backup_dir: result.backup_dir };
+        }
+        requestObject(payload, ['draft', 'width'], 'payload');
+        const parsed = validateDraft(payload.draft);
+        let width: number;
+        try {
+            width = safeInteger(payload.width, 2, 10000);
+        }
+        catch {
+            throw new ConfigError('errors.protocol.width_must_be_an_integer_from_2', {}, 'invalid_request');
+        }
+        if (!this.preview)
+            throw new Error('Preview adapter has not been bound');
+        return this.preview(parsed, width);
+    }
+    handle(raw: string, diagnostics: (error: unknown) => void = error => console.error(error)): {
+        response: unknown;
+        status: number;
+    } {
+        try {
+            const request = readJson(raw, {
+                duplicate(field) { throw new ConfigError('errors.protocol.duplicate_json_key', { field }, 'invalid_json'); },
+                constant(value) { throw new ConfigError('errors.protocol.non_finite_json_value', { value }, 'invalid_json'); },
+            });
+            return { response: { protocol_version: contracts.PROTOCOL_VERSION, result: this.dispatch(request) }, status: 0 };
+        }
+        catch (error) {
+            let code: string, message: string, localization: ReturnType<typeof text> | null = null;
+            if (error instanceof ConfigError) {
+                code = error.code;
+                const localized = localizedError(error);
+                message = localized.fallback;
+                if (message !== error.key)
+                    localization = localized;
+            }
+            else if (error instanceof JsonSyntaxError) {
+                code = 'invalid_json';
+                message = error.message;
+            }
+            else if (error instanceof Error && 'code' in error && typeof error.code === 'string') {
+                code = 'io_error';
+                message = errorDescription(error);
+            }
+            else {
+                diagnostics(error);
+                code = 'internal_error';
+                localization = text('errors.protocol.unexpected_backend_failure_see_stderr_diagnostics');
+                message = localization.fallback;
+            }
+            return { response: { protocol_version: contracts.PROTOCOL_VERSION, error: { code, message, localization } }, status: 2 };
+        }
+    }
+}

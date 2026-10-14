@@ -142,5 +142,120 @@
     "The capture covers only schema-read cases; remaining protocol/runtime/render cases are incomplete.",
     "Python import/string subclass mechanics are retired by D05; TS retains explicit fallback and wire messages.",
     "Physical release-before checks and exact 2.1.296 declarations remain unverified."
-  ]
+  ],
+  "ci": {
+    "head": "05707c017dffb55140e54df883e4c6431333a7f8",
+    "tested_merge": "2345a520a22f9a733f77cd16ea0904276eabeb9c",
+    "merge_commit": "f1363e388d81f341bf8cf2affd0706a0214220a7",
+    "pr": "https://github.com/fbincon/claude-code-statusline/pull/79",
+    "required_jobs_passed": 43,
+    "runs": {
+      "python_build_baseline": 38534743895,
+      "mods": 38534744074,
+      "platform_ts02": 38534743785,
+      "backend_ts03": 38534743942
+    },
+    "source_verification": {
+      "head": "05707c017dffb55140e54df883e4c6431333a7f8",
+      "tested_merge": "2345a520a22f9a733f77cd16ea0904276eabeb9c",
+      "same_tree": true,
+      "receipts": [
+        {
+          "artifact": "ts03-macos-14-arm64",
+          "source_files": 80,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-macos-15-arm64",
+          "source_files": 80,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-macos-15-intel-x64",
+          "source_files": 80,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-macos-26-arm64",
+          "source_files": 80,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-macos-26-intel-x64",
+          "source_files": 80,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-ubuntu-24.04-x64",
+          "source_files": 80,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-windows-11-arm-x64",
+          "source_files": 80,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-windows-2025-x64",
+          "source_files": 80,
+          "exact_git_blob_hashes": true
+        }
+      ]
+    },
+    "sync": {
+      "remote": "gitee",
+      "refspec": "refs/heads/main:refs/heads/main",
+      "github_and_gitee_commit": "f1363e388d81f341bf8cf2affd0706a0214220a7"
+    },
+    "duplicate_push_failure": {
+      "run": 38534675068,
+      "job": 115754558712,
+      "test": "search and categories use local state without preview processes or writes",
+      "failure": "5-second timeout",
+      "same_head_pr_job": 115754780967,
+      "same_head_pr_conclusion": "success"
+    },
+    "artifacts": [
+      {
+        "id": 11880296537,
+        "name": "ts03-macos-26-intel-x64",
+        "digest": "sha256:0d5752a1bcce06cf5839f3b53b032e98ffefd0f101ae1b8077c8dbab04b5b1b5"
+      },
+      {
+        "id": 11879942825,
+        "name": "ts03-macos-15-arm64",
+        "digest": "sha256:592dd628869c7443bd6454e9b9a68400ad778389c005cf3882f6738228c058ec"
+      },
+      {
+        "id": 11879653555,
+        "name": "ts03-macos-15-intel-x64",
+        "digest": "sha256:a3c42e80777a6ed456ef55e590b9524fd1cbd6e95d9b0ca7df7a5269249e6a1f"
+      },
+      {
+        "id": 11879574873,
+        "name": "ts03-macos-14-arm64",
+        "digest": "sha256:33150c9156ce97a117409f08a4a471ff8f49f4e76b3a799ac885586478cbf7af"
+      },
+      {
+        "id": 11879143291,
+        "name": "ts03-windows-11-arm-x64",
+        "digest": "sha256:2bc7209a820598a3e543b1d7ecbaa2740367057e4c63edfc2fdc6994372702dd"
+      },
+      {
+        "id": 11878978797,
+        "name": "ts03-macos-26-arm64",
+        "digest": "sha256:e22258f305ee38658308a76d243f79396ca268d5dc2cdb7bb1a8157daa73da1e"
+      },
+      {
+        "id": 11878864447,
+        "name": "ts03-windows-2025-x64",
+        "digest": "sha256:dabedb71a2a87817dfedea5bc6d3fe4e0fe5936a1becd97a585c69fed42446bb"
+      },
+      {
+        "id": 11878844332,
+        "name": "ts03-ubuntu-24.04-x64",
+        "digest": "sha256:702a9f9ad168001855952452c5f507a0d792192d21b6c36bc458afd4b1588739"
+      }
+    ]
+  }
 }

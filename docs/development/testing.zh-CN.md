@@ -356,3 +356,5 @@ python tools/upgrade_composition_acceptance.py --baseline RELEASED_WHEEL --candi
 ```
 
 原生采用 A／D／X 以避免宿主截获控制键，外部采用 Ctrl+A／D／X。原生预览按实际可绘制宽度适配，缩放导致边框出现／消失时重新计算；两边状态快照保留组件选择器及复制身份。
+
+TS-03 C 增加 Linux 独立进程的 26 个已实现固定案例重放、三处获准 CLI 文字差异的准确哈希、配置事务、真实 Node CLI JSON 交互和 Python／TS 混合配置／偏好写入者。台账当前映射 78／516 项基线测试；其余 135 个固定案例和 438 个测试 ID 明确待完成，`--complete` 仍须失败。

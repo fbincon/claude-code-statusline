@@ -152,3 +152,5 @@ Client 的 `ui/layout.ts` 按终端尺寸计算内容、Preview 和两行操作�
 ## 组件实例与布局
 
 `config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，协议由 Python 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
+
+开发 CLI 通过 `ConfigurationService`／`Storage` 绑定文件事务与宿主身份；私有 ESM 入口为 `packages/cli/src/entry.ts`，配置与协议代码位于 `config/`、`ui/`。渲染调度为 03-D／E 保留延迟加载边界，完整 `LaunchSpec` 前缀区分 TS 开发后端与已安装渲染器。

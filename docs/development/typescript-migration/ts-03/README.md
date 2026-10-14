@@ -12,13 +12,13 @@ no new version, release, installed backend switch or external editor in this sta
 | Batch | Deliverable | State |
 | --- | --- | --- |
 | 03-A | Private workspace, production platform primitives, lossless JSON, canonical revisions and comparison harness | DONE; [PR #78](https://github.com/fbincon/claude-code-statusline/pull/78) |
-| 03-B | Configuration core, instances, catalog, languages, Unicode and generation ownership | VALIDATING |
-| 03-C | Locked configuration services, preferences and management commands | NOT_STARTED |
+| 03-B | Configuration core, instances, catalog, languages, Unicode and generation ownership | DONE; [PR #79](https://github.com/fbincon/claude-code-statusline/pull/79) |
+| 03-C | Locked configuration services, preferences and management commands | VALIDATING |
 | 03-D | Collectors, caches, timing, tasks, observations and hooks | NOT_STARTED |
 | 03-E | Rendering, preview and complete backend protocols | NOT_STARTED |
 | 03-F | Integrated parity, Mod checks, CI, performance and TS-04 handoff | NOT_STARTED |
 
-Active branch: `fbincon/ts-03-configuration-core`. 03-A merged as `21fb21d` and GitHub/Gitee main were verified equal. Tested/merged commits and PRs are recorded after
+Active branch: `fbincon/ts-03-configuration-service`. 03-A/03-B merged as `21fb21d`/`f1363e3`; GitHub/Gitee main were verified equal after each merge. Tested/merged commits and PRs are recorded after
 verification. The package workspaces are private development packages at 0.0.0;
 the existing Python application remains at 2.0.0.
 
@@ -66,7 +66,7 @@ The maintainer permits changes to human CLI help and parameter diagnostics.
 Normal command output, protocol messages/codes, stderr/stdout roles and exit codes
 remain compatible. Exact changed strings are tracked by case, field and both
 content hashes in [differences.json](../../../../tools/migration/ts-03/differences.json).
-An unused, duplicate or broader exemption fails validation. None are recorded yet.
+An unused, duplicate or broader exemption fails validation. Three precise help/argument diagnostic strings are recorded; no protocol, numeric, file or exit-status differences are exempted.
 
 The [coverage ledger](../../../../tools/migration/ts-03/coverage.json) accounts for
 all 516 baseline test IDs assigned to TS-03. Each port needs replacement test paths;
@@ -92,3 +92,11 @@ The core now validates and migrates display schemas 1–8, keeps disabled instan
 `tools/generation/resources.ts` is the active writer for 34 resources. It derives catalog IDs and presets from their TS definitions, languages from canonical JSON, and Unicode tables/fixtures from the pinned source and licenses. Both Mod copies and Python compatibility outputs are generated. The old Python generation commands retain read-only checks; historical Python benchmarks must use frozen reference exports. Removal detects obsolete generated language modules and compatibility packs without deleting unowned files. `npm run languages:coverage` reports missing translations without writing.
 
 The 03-A artifact audit initially rejected ten Windows root/tool file hashes because checkout converted them to CRLF. Every difference was verified against that exact conversion and recorded in [the receipt](validation.03-a.json); there were no other differences. 03-B enforces LF for those files. The failed comparison is recorded explicitly; original platform receipts remain available in the ignored evidence directory. All 43 03-A PR checks passed before its guarded merge.
+
+## 03-C configuration services and commands
+
+The development entry is `node packages/cli/dist/src/entry.js`. It provides every `config` subcommand and the configuration UI service; successful production preview rendering is bound in 03-E. Installed Python commands remain unchanged. Use an isolated `--config-dir` when evaluating the TS entry. The backend binds its complete `LaunchSpec` and refuses another renderer; canonical legacy single-executable commands remain supported.
+
+Transactions re-read under the existing installation lock, compare semantic revisions, merge unrelated settings, back up only changed artifacts, roll back failed writes and return the committed snapshot while still locked. Repeated saves create no new backups. Reads, dry-runs and import review preserve configuration bytes; portable export protects live files and owned support directories. UI preferences and runtime/editor opt-outs remain independent. JSON numbers retain their kind and precision, numeric-looking object keys keep input order, and public malformed JSON/UTF-8 diagnostics follow the pinned Python 3.14 oracle.
+
+The current ledger maps 78 of 516 baseline tests. The Linux replay covers 26 of 161 fixed cases with the three approved text differences; 135 rendering/runtime cases remain pending. CI also runs mixed Python/TS configuration and preference writers. Source receipts and local results are in [validation.03-c.json](validation.03-c.json). The 03-B audit verified all eight ZIP digests and exact source hashes, with no checkout-normalization exception. A duplicate push-only Mod timeout and the successful same-head PR result are recorded in [validation.03-b.json](validation.03-b.json).
