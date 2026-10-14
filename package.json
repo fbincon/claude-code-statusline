@@ -9,6 +9,9 @@
   "scripts": {
     "build": "node tools/typescript/check-runtime.mjs && tsc -b",
     "typecheck": "npm run build",
+    "generate": "npm run build && node dist/typescript/tools/generation/resources.js",
+    "generate:check": "npm run build && node dist/typescript/tools/generation/resources.js --check",
+    "languages:coverage": "npm run build && node dist/typescript/tools/generation/resources.js --coverage",
     "test": "npm run build && node tools/typescript/test.mjs",
     "migration:inventory": "node dist/typescript/tools/migration/ts-03/inventory.js",
     "migration:receipt": "node dist/typescript/tools/migration/ts-03/receipt.js",

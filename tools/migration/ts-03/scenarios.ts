@@ -1,13 +1,23 @@
 import * as fs from 'node:fs';
 import { join, relative, isAbsolute, dirname } from 'node:path';
 import { isLosslessNumber } from '@fbincon/statusline-core/json';
+import { decode } from '@fbincon/statusline-core/json';
+import { validateDisplay, defaultDisplay, CONFIG_FILENAME } from '@fbincon/statusline-core/config/display';
 
 export interface Case { id: string; kind: string; input: Record<string, unknown>; config?: unknown; config_id?: string; files?: Record<string, string> }
 export type Handler = (fixture: Case) => unknown;
 
 // Subsystems register actual production adapters as their migration lands.
 // An absent handler is an incomplete stage, never a successful fixture replay.
-export const handlers: Readonly<Record<string, Handler>> = {};
+export const handlers: Readonly<Record<string, Handler>> = {
+  display: () => {
+    const path = join(process.cwd(), 'config', CONFIG_FILENAME);
+    let raw: string;
+    try { raw = fs.readFileSync(path, 'utf8'); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { effective: defaultDisplay(), raw: null }; throw error; }
+    return { effective: validateDisplay(decode(raw)), raw };
+  },
+};
 
 function snapshot(root: string): Record<string, string> {
   const files: Record<string, string> = {};

@@ -94,5 +94,96 @@
     "Local source hashes describe precommit implementation; the later CI receipt binds a Git commit.",
     "No application behavior is claimed ported in this foundation batch.",
     "Physical power/desktop release-before checks remain pending."
-  ]
+  ],
+  "ci": {
+    "head": "b5168db7123fc7d7866cf4fb0f73ecee1ac49d35",
+    "tested_merge": "f0198aa07a01862648afb05bfc887019a49a703a",
+    "merged_commit": "21fb21d21e5a19591d81f54dce80a0b1fcc192d8",
+    "pr": "https://github.com/fbincon/claude-code-statusline/pull/78",
+    "passed_jobs": 43,
+    "runs": {
+      "typescript": 38528208289,
+      "platform_probes": 38528208325,
+      "python_build_baseline": 38528208265,
+      "mods": 38528208340
+    },
+    "gitee_main_verified": "21fb21d21e5a19591d81f54dce80a0b1fcc192d8"
+  },
+  "source_verification": {
+    "initial_strict_git_blob_match": false,
+    "verified_checkout_conversion": true,
+    "receipts": [
+      {
+        "name": "ts03-macos-14-arm64",
+        "commit": "f0198aa07a01862648afb05bfc887019a49a703a",
+        "source_files": 41,
+        "crlf_checkout_files": []
+      },
+      {
+        "name": "ts03-macos-15-arm64",
+        "commit": "f0198aa07a01862648afb05bfc887019a49a703a",
+        "source_files": 41,
+        "crlf_checkout_files": []
+      },
+      {
+        "name": "ts03-macos-15-intel-x64",
+        "commit": "f0198aa07a01862648afb05bfc887019a49a703a",
+        "source_files": 41,
+        "crlf_checkout_files": []
+      },
+      {
+        "name": "ts03-macos-26-arm64",
+        "commit": "f0198aa07a01862648afb05bfc887019a49a703a",
+        "source_files": 41,
+        "crlf_checkout_files": []
+      },
+      {
+        "name": "ts03-macos-26-intel-x64",
+        "commit": "f0198aa07a01862648afb05bfc887019a49a703a",
+        "source_files": 41,
+        "crlf_checkout_files": []
+      },
+      {
+        "name": "ts03-ubuntu-24.04-x64",
+        "commit": "f0198aa07a01862648afb05bfc887019a49a703a",
+        "source_files": 41,
+        "crlf_checkout_files": []
+      },
+      {
+        "name": "ts03-windows-11-arm-x64",
+        "commit": "f0198aa07a01862648afb05bfc887019a49a703a",
+        "source_files": 41,
+        "crlf_checkout_files": [
+          ".gitattributes",
+          ".github/workflows/typescript.yml",
+          ".node-version",
+          "package-lock.json",
+          "package.json",
+          "tools/typescript/check-runtime.mjs",
+          "tools/typescript/test.mjs",
+          "tsconfig.base.json",
+          "tsconfig.json",
+          "tsconfig.tools.json"
+        ]
+      },
+      {
+        "name": "ts03-windows-2025-x64",
+        "commit": "f0198aa07a01862648afb05bfc887019a49a703a",
+        "source_files": 41,
+        "crlf_checkout_files": [
+          ".gitattributes",
+          ".github/workflows/typescript.yml",
+          ".node-version",
+          "package-lock.json",
+          "package.json",
+          "tools/typescript/check-runtime.mjs",
+          "tools/typescript/test.mjs",
+          "tsconfig.base.json",
+          "tsconfig.json",
+          "tsconfig.tools.json"
+        ]
+      }
+    ],
+    "correction": "All eight ZIP digests passed. Ten root/tool files on Windows used verified LF-to-CRLF checkout conversion; other source hashes match Git blobs. 03-B enforces LF for these files."
+  }
 }

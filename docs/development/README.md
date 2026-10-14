@@ -22,6 +22,8 @@ Start here to set up a development environment, run checks and build the package
 - [Release process](../RELEASING.md).
 
 
+For the private TS-03 workspace, use pinned Node 24.21.0/npm 11.19.0 and run `npm ci --ignore-scripts`, `npm test`, and `npm run generate:check` from the root. Python 3.14.4 remains the isolated comparison interpreter; see the [TS-03 record](typescript-migration/ts-03/README.md).
+
 ## Contents
 
 - [Development and testing](#development-and-testing)

@@ -4,6 +4,12 @@
 
 Python 包保留现有 CLI、配置格式和存储位置。实现按职责组织，并在原 Python 路径保留延迟加载的兼容模块。
 
+## TypeScript 迁移 workspace
+
+TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode 与运行规则）、`packages/platform`（Node／原生 I/O）和 `packages/cli`（应用服务）。workspace 为独立编译的私有开发包，安装／编辑器切换仍属 TS-04。下方 Python 布局继续用于当前已发布实现及隔离对照参考。
+
+规范目录为 TypeScript 数据，项目 ID 和预设说明由其派生，不在前端契约中重复手改。规范语言资源位于 `packages/core/resources/i18n`，TypeScript 统一生成 Node、Mod 和 Python 兼容资源。Mod 副本只包含受支持的纯模块，宿主操作保留在原有入口。参见 [TS-03 实施与验收](typescript-migration/ts-03/README.zh-CN.md)。
+
 ```text
 src/claude_statusline/
   cli.py、__main__.py、_version.py   CLI 分发与版本

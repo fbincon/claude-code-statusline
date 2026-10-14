@@ -4,6 +4,8 @@
 
 本页说明开发环境、检查、构建和内部实现。日常使用见[使用指南](../USER_GUIDE.zh-CN.md)，公开命令见[CLI 参考](../reference/cli.zh-CN.md)。
 
+私有 TS-03 workspace 使用固定 Node 24.21.0／npm 11.19.0，在仓库根目录运行 `npm ci --ignore-scripts`、`npm test` 和 `npm run generate:check`。Python 3.14.4 继续作为隔离对照解释器，参见 [TS-03 记录](typescript-migration/ts-03/README.zh-CN.md)。
+
 ## 技术文档导航
 
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。

@@ -48,7 +48,7 @@ export function sourceHashes(): Record<string, string> {
       else if (entry.isFile()) hashes[name] = sha256(readFileSync(join(repoRoot, name)));
     }
   }
-  for (const path of ['packages', 'tools/typescript', 'tools/migration/ts-03']) walk(path);
+  for (const path of ['packages', 'tools/typescript', 'tools/migration/ts-03', 'tools/generation']) walk(path);
   for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.base.json', 'tsconfig.tools.json', '.node-version', '.gitattributes', '.github/workflows/typescript.yml']) hashes[path] = sha256(readFileSync(join(repoRoot, path)));
   return Object.fromEntries(Object.entries(hashes).sort());
 }

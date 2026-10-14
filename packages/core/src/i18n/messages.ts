@@ -1,0 +1,39 @@
+/** Explicit-language messages; canonical backend metadata remains English. */
+import { LOCALES } from './generated-locales.js';
+import type { Language } from './generated-locales.js';
+export type { MessageKey, Language } from './generated-locales.js';
+export { LANGUAGES, LANGUAGE_NAMES } from './generated-locales.js';
+export interface LocalizedText { key: string; params: Record<string, unknown>; fallback: string }
+
+export class LocalizedError extends Error {
+  constructor(public readonly localization: LocalizedText) { super(localization.fallback); }
+}
+
+export function isLocalizedText(value: unknown, depth = 0): value is LocalizedText {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || depth > 8) return false;
+  const v = value as Record<string, unknown>;
+  return Object.keys(v).sort().join(',') === 'fallback,key,params' &&
+    typeof v.key === 'string' && typeof v.fallback === 'string' &&
+    !!v.params && typeof v.params === 'object' && !Array.isArray(v.params) &&
+    Object.values(v.params).every(p => p === null || ['string', 'number', 'boolean'].includes(typeof p) || isLocalizedText(p, depth + 1));
+}
+
+export function t(key: string, language: Language = 'en', params: Record<string, unknown> = {}, fallback?: string): string {
+  const base: Record<string, string> = LOCALES.en;
+  const current: Record<string, string> = Object.hasOwn(LOCALES, language) ? LOCALES[language] : base;
+  const template = (Object.hasOwn(current, key) ? current[key] : undefined) ??
+    (Object.hasOwn(base, key) ? base[key] : undefined) ?? fallback ?? key;
+  return template.replace(/\{\{|\}\}|\{([A-Za-z_][A-Za-z_0-9]*)\}/g, (matched, name: string | undefined) => {
+    if (!name) return matched === '{{' ? '{' : '}';
+    const value = params[name];
+    return isLocalizedText(value) ? renderMessage(value, language) : value === undefined ? matched : String(value);
+  });
+}
+
+export function text(key: string, params: Record<string, unknown> = {}): LocalizedText {
+  return { key, params, fallback: t(key, 'en', params) };
+}
+
+export function renderMessage(value: LocalizedText | string, language: Language = 'en'): string {
+  return typeof value === 'string' ? value : t(value.key, language, value.params, value.fallback);
+}

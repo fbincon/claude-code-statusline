@@ -38,5 +38,6 @@ prune packages/core/node_modules
 prune packages/platform/node_modules
 prune packages/cli/node_modules
 recursive-include tools/typescript *.mjs
+recursive-include tools/generation *.ts
 recursive-include tools/migration/ts-03 *.ts *.json
 recursive-include docs/development/typescript-migration/ts-03 *.json

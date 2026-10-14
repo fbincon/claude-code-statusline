@@ -47,6 +47,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Compile and test the production adapters and core
         run: npm test
+      - name: Verify TypeScript-owned shared resources
+        run: npm run generate:check
       - name: Check immutable baseline and test migration inventory
         run: npm run migration:inventory
       - name: Bind evidence to compiled sources and runtime

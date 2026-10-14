@@ -4,6 +4,8 @@
 
 普通验证全部使用临时 Claude 配置。测试不会安装到用户真实设置，也不会调用模型。
 
+TS-03 新增 `npm test` 验证共享核心／正式适配器，以 `npm run generate:check` 检查 TypeScript 生成资源。下方 Python 生成检查仅作为迁移期只读对照，普通写入入口已退役。新的八目标后端工作流补充既有矩阵。
+
 ## 本地检查
 
 共享目录/协议测试覆盖严格输入、Unicode 路径和不访问实时来源的样例预览。运行 `python tools/generate_ui_contracts.py --check` 检查 TypeScript 与 Python 定义一致；原生工作流也执行契约测试。参见[协议说明](contracts.zh-CN.md)。

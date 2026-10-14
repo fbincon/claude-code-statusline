@@ -10,14 +10,14 @@
 
 | 批次 | 交付 | 状态 |
 | --- | --- | --- |
-| 03-A | 私有 workspace、正式平台原语、无损 JSON、规范修订及对照框架 | VALIDATING |
-| 03-B | 配置核心、实例、目录、语言、Unicode 与生成归属 | NOT_STARTED |
+| 03-A | 私有 workspace、正式平台原语、无损 JSON、规范修订及对照框架 | DONE；[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78) |
+| 03-B | 配置核心、实例、目录、语言、Unicode 与生成归属 | VALIDATING |
 | 03-C | 加锁配置服务、偏好及管理命令 | NOT_STARTED |
 | 03-D | 采集、缓存、计时、任务、观察及 hooks | NOT_STARTED |
 | 03-E | 渲染、预览及完整后端协议 | NOT_STARTED |
 | 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | NOT_STARTED |
 
-分支：`fbincon/ts-03-foundation`。测试／合并提交和 PR 在验证后记录。
+当前分支：`fbincon/ts-03-configuration-core`。03-A 合并为 `21fb21d`，已验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
 workspace 包为 0.0.0 私有开发包；现有 Python 应用仍为 2.0.0。
 
 ## 边界与复现
@@ -41,7 +41,7 @@ npm run migration:compare -- /absolute/new-output-directory/results.json
 
 capture 拒绝已存在的输出目录。每个已实现案例在新 Node 进程中执行，配置、运行态和
 会话目录独立，不继承模型凭据，PATH 隔离；仅归一化案例根路径。缺少适配器记为待完成，
-退出码为 2，不计入等价通过。03-A 时全部 161 个功能适配器及 516 项 TS-03 测试仍待迁移；
+退出码为 2，不计入等价通过。03-A 交接时全部 161 个功能适配器及 516 项 TS-03 测试待迁移；03-B 实现了 8 个 schema 读取案例和 24 项具名替代测试，尚有 153 个案例和 492 个测试 ID 等待后续批次；
 基础测试是新增证据，不能替代这些案例。`npm run migration:inventory -- --complete`
 必须拒绝未完成状态。
 
@@ -70,3 +70,11 @@ stdout／stderr 分工和退出码仍兼容。准确的文字变化通过案例�
 原始证据存放在被忽略的 `dist/validation/typescript-migration/ts-03/` 下。
 提交脱敏结果，记录源码／运行时哈希、命令、计数、失败／跳过及准确 CI／PR 链接。
 只有 TS-03 全部验收完成才闭合阶段。
+
+## 03-B 配置与资源归属
+
+核心现已校验并迁移显示 schema 1–8，保留禁用实例选项，协调显式行布局，编辑作用域表单／实例，展开预设，校验可移植草稿并生成语义导入审阅。配置服务与文件操作归 03-C，渲染归 03-E。全部 84 份固定渲染配置通过校验；8 个 schema 案例在独立 Node 进程回放，原始语义状态及文件字节完全一致，无例外。
+
+`tools/generation/resources.ts` 统一生成 34 个资源。项目 ID 和预设来自 TS 定义，语言来自规范 JSON，Unicode 表和夹具来自固定源数据及许可证；两个 Mod 和 Python 兼容资源一并生成。旧 Python 生成命令保留只读检查，历史 Python 基准须使用固定参考导出。移除语言会识别过期的生成模块和兼容资源，不删除无归属文件。`npm run languages:coverage` 只报告缺译，不写入。
+
+03-A 产物审计最初因 Windows 将 10 个根配置／工具文件转为 CRLF 而拒绝其哈希。已逐项验证差异恰为该换行转换，记录在[验收记录](validation.03-a.json)，未发现其他差异。03-B 为这些文件固定 LF。失败检查已明确记录，平台原始记录继续保留在忽略目录；03-A 的 43 项 PR 检查均在受 head SHA 保护的合并前通过。
