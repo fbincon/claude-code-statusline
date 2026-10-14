@@ -1,7 +1,7 @@
 {
   "format_version": 1,
   "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
-  "commit": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08",
+  "commit": "9839a1557911d83b7cb32443c95e1b40f98545e4",
   "dirty": true,
   "node": "v24.21.0",
   "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
@@ -95,7 +95,7 @@
     "package-lock.json": "1bd7fe62ca59dd085068c916aa99002e8ee5997b188dcda098d5b57e96e106b8",
     "package.json": "def164bb120bff71b6c0fa470a9b5ac1ce291ee9e9e3f837de681ef2b3c590ea",
     "packages/cli/package.json": "8aaf2d9cd52c90cec1ea9ea9bf44635ccc10f530e6ed78e62c4d484ce01700cc",
-    "packages/cli/src/config/arguments.ts": "6441e2983a46aebb251b6a7aac477c777c740a2fca55572bbd3bfbbf0a1b4c5d",
+    "packages/cli/src/config/arguments.ts": "11306dae616ff8e6c5490d46b7d42ef47769516c764a1a62b578bc68d9b8e8b8",
     "packages/cli/src/config/backend-preferences.ts": "8cd193d01c3cf8f2b41d17840be78d7454b7189cae1b45ac299e276e03d0eb4a",
     "packages/cli/src/config/commands.ts": "fecca3bcb99ed6ea1481ed903e35d793164185308b649ad46806a88df97893a3",
     "packages/cli/src/config/host.ts": "a7d80094d52868d24a53a7eb3a02d5aef6f5f88451aaecb56a6bf3835d4c12b2",
@@ -110,7 +110,7 @@
     "packages/cli/src/help.ts": "18e42df94ff291062a9450b15cc8e7a34c1f6fb57211280629fe8f9d1ab9301e",
     "packages/cli/src/integration/editor.ts": "c52fa6c85d258e2888472c3e0fd136d4ee88716cc945df76bbb3ded8eb0d54d5",
     "packages/cli/src/integration/slash-hook.ts": "2ed93e6e688ab00c246f2b73eaadcfc6daa79d17ea989b8a27d37823224e11d3",
-    "packages/cli/src/main.ts": "e725062348cc1668acd6a7de48a8a52edbf4eadb5cdfa8f18eea94710e40f66a",
+    "packages/cli/src/main.ts": "c9e32f712468169f2791103f1fa5d435cf9333329e53795babf9bdf326f1b72a",
     "packages/cli/src/rendering/environment.ts": "8e744cf0a694354b8e1668a9a4f88519b31708e4f41ad068153f2fdc1fd258a5",
     "packages/cli/src/rendering/main.ts": "29e45748866285e654dd08ba7526d0f8f9c1340ba8dca1e10755b40249e6a38d",
     "packages/cli/src/rendering/preview.ts": "1bcd01485138c174d1cd44edb4e3a9925e4b9a3dfba9c4529e38b6055d998297",
@@ -295,7 +295,7 @@
     "tools/migration/ts-03/scenarios.ts": "5dd085eb9c01cc6f870582508c16a0f9acda2a945e8d3a9fb50de704ea9e8125",
     "tools/migration/ts-03/scripts/mod-smoke.py": "cb16d0714eed5727c804bfc130cd7bf916198c34da28996e961317297dd92647",
     "tools/migration/ts-03/test/child.ts": "8b176defe26cd1fed1ae51c70cf5f0083288e397b2847e52c29813a3cc81cca8",
-    "tools/migration/ts-03/test/cli-help.test.ts": "9439cbf6227c8b4d1b555910d8f7db7d3aa65f1f36bc7199e23f5e3811eed0a6",
+    "tools/migration/ts-03/test/cli-help.test.ts": "2cef60217a42853c4edec46dc5ae0efd704a812c6c18d24e005e3da0d962dd3a",
     "tools/migration/ts-03/test/compare.test.ts": "adefc6dc01ebaa5f9fc8ae0c127620bf7f2733f23e44ccc8c56b1e4167a39669",
     "tools/migration/ts-03/test/json-boundaries.test.ts": "fbbc0e13bd99db4a454bf7ca3158fd68414a81c9874ccb668c11da274b66dbea",
     "tools/migration/ts-03/test/mod-backend.test.ts": "6a8e950e3eec646e5d87eedc6603dc1a51de731aca847079c9c39945040a52e6",
@@ -361,7 +361,9 @@
     "typescript-optimization-01.log": "ae73d7548520cd0e6790597d2657f77017ed9df93344364f0e3c5c53f791e688",
     "typescript-reviewed.log": "cb272104226c26d2ca484bbac2349c27c46051f0e44d567a1486036cce90dcf4",
     "typescript-help-final.log": "c0349910e468fe50e26e175836a004e0156efd88eab87757949bc53794f78d25",
-    "typescript-help-final-02.log": "4ea1aadbe0d6d875610b8323925944cbd0024b99f375b49774cf2a8fae585c19"
+    "typescript-help-final-02.log": "4ea1aadbe0d6d875610b8323925944cbd0024b99f375b49774cf2a8fae585c19",
+    "typescript-help-final-03.log": "cb26ff4e3bcce5b597a1f7adcbf5f0e61eacb191f9cc7d03edb724159635a46c",
+    "typescript-help-final-04.log": "b98c55ec79b13d07eea187ad7037d159257b00b8b399a6e4f905a992448ad699"
   },
   "raw_evidence": "dist/validation/typescript-migration/ts-03/03-f-local-01",
   "host_probe": {
@@ -398,7 +400,9 @@
       "Explicit rows retain disabled schema-8 instances; enabled rows are checked separately.",
       "Read snapshots may create a lock directory; rejected legacy apply is verified not to acquire the write lock."
     ],
-    "help_exit_codes": "Frozen Python parser comparison verifies invalid paths, missing values, positional choices, mutual exclusion and help ordering. Exit codes and stdout/stderr channels match; no configuration files are written."
+    "help_exit_codes": "Frozen Python parser comparison verifies invalid paths, missing values, positional choices, mutual exclusion and help ordering. Exit codes and stdout/stderr channels match; no configuration files are written.",
+    "negative_argument_boundary": "The fixed Python 3.14.4 parser recognizes a negative-looking prefix, including -.1, -1e3 and Unicode decimal digits, and treats unknown option-like strings containing spaces as positional. The differential matrix checks these before help; full business validation remains later.",
+    "intermediate_help_check": "A stricter numeric regex failed four help-channel/status comparisons; inspecting the actual Python 3.14.4 parser corrected the assumption. Final 550-test suite passes with the new vectors retained."
   },
   "limitations": [
     "D06 failed: 69 failed and 32 inconclusive metrics. Further performance remediation remains TS-03 work; do not mark DONE.",
@@ -459,7 +463,7 @@
     }
   ],
   "stage": "IN_PROGRESS",
-  "reviewed_source_note": "The 297 source hashes bind the final local implementation on parent 1fddaa6 with dirty=true. Final clean head, tested merge, jobs and exact artifact hashes are recorded in PR #83 after this evidence commit.",
+  "reviewed_source_note": "The 297 source hashes bind the final local implementation on parent 9839a15 with dirty=true. Final clean head, tested merge, jobs and exact artifact hashes are recorded in PR #83 after this evidence commit.",
   "initial_ci": {
     "pr": 83,
     "head": "1fddaa6ea1fef7f631e51641f15214cbddd7ec08",

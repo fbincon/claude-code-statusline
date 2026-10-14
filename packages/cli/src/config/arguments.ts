@@ -43,9 +43,12 @@ function applyChoices(flags: ConfigArguments['flags']): void {
     for (const [key, values] of Object.entries(choices)) if (flags[key] !== undefined && !values.includes(flags[key] as string)) throw new ArgumentError(`invalid value for --${key}`);
 }
 function commandToken(value: string | undefined): void {
-    if (value?.startsWith('-') && !/^-\d/u.test(value)) throw new ArgumentError(`unrecognized option: ${value}`, 'cli.unrecognized', { arguments: value }, { unrecognizedOption: value });
+    if (value !== undefined && optionToken(value)) throw new ArgumentError(`unrecognized option: ${value}`, 'cli.unrecognized', { arguments: value }, { unrecognizedOption: value });
 }
-const optionToken = (value: string) => value.length > 1 && value.startsWith('-') && !/^-\d/u.test(value);
+// Python 3.14 argparse uses a negative-looking prefix, not numeric validation.
+// Business rules validate the entire value after parsing. Spaces also make an
+// otherwise unknown option-looking token positional in the reference parser.
+export const optionToken = (value: string) => value.length > 1 && value.startsWith('-') && !/^-\.?\p{Decimal_Number}/u.test(value) && !value.includes(' ');
 export interface ConfigArguments {
     action: string;
     subaction?: string;
@@ -163,7 +166,7 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
                 result.flags[name] = values;
             }
         }
-        else if (!literal && token.startsWith('-') && !/^-\d/u.test(token))
+        else if (!literal && optionToken(token))
             throw new ArgumentError(`unrecognized option: ${token}`, 'cli.unrecognized', { arguments: token }, { unrecognizedOption: token });
         else
             positional.push(token);

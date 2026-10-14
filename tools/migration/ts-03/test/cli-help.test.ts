@@ -27,6 +27,8 @@ test('help preserves Python command validation, exit codes and output channels w
         ['config', 'preset', 'bad'], ['config', 'item', 'bad'], ['config', 'layout', 'bad'],
         ['config', 'apply'], ['config', 'apply', '--colors'], ['config', 'apply', '--colors', 'bad'],
         ['config', 'apply', '--items'], ['config', '--config-dir'],
+        ...['-', '-1', '-.1', '-1e3', '-1abc', '-١', '-literal space'].map(value => ['config', 'apply', '--padding', value]),
+        ['config', '--config-dir', '-x'],
         ['ui'], ['runtime'], ['render', 'extra'], ['render-subagents', 'extra'], ['hook', 'extra'], ['slash-hook', 'extra'],
         ...['ui', 'runtime', 'render', 'hook', 'slash-hook'].map(command => [command, '--config-dir'])];
     const vectors = [...prefixes.flatMap(args => ['--help', '-h'].map(help => [...args, help])), ['--help', 'unknown'], ['config', '--help', 'unknown']];
