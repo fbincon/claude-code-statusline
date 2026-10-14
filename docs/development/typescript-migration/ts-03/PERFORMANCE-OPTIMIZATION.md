@@ -20,8 +20,24 @@ New regressions cover exact integers around 2^53, malformed JSON diagnostics, la
 
 ## Acceptance and next action
 
-Round 1 full D06 measurement is pending. Local validation: **553/554 TS tests passed** (one Windows-only skip), all **161 fixed cases** matched with the same three CLI text exceptions, the **516-ID audit** passed, Python **847/856** passed (nine platform skips), and official Claude Code 2.1.294 Mod suites passed **112 native / 10 runtime**. Both Mod typechecks and strict validators, 34 generated resources, five retained read-only generators and documentation validation passed. The initial system-Python suite lacked its installed CLI entry (one failure, eleven skips); the existing Python 3.14.4 repository virtual environment passed the full suite. No source correction or test waiver was used for that environment issue. No diagnostic result is a performance pass. After Round 1, remaining failures select Round 2's startup/native-binding, Git-cache, rendering or residual cache work. At most two changed-source rounds are authorized. The existing same-graph noise repeat is permitted only when there are inconclusive metrics and no failures.
+Round 1 complete D06 **failed: 97 pass, 64 fail, 31 inconclusive**. All 19,200 samples matched output and collector counts. Measured commit: `821915520b47e0f7a9dfa99c764c1d379a23a4da`; [complete summary](performance.optimization-01.json), [functional/CI evidence](validation.optimization-01.json), [PR #84](https://github.com/fbincon/claude-code-statusline/pull/84). All 43 PR jobs passed; eight receipts each matched 298 source hashes, the pinned runtime and a tested merge tree equal to the PR head. Four duplicate push runs were cancelled and recorded separately, never counted as passes. Local validation: **553/554 TS tests passed** (one Windows-only skip), all **161 fixed cases** matched with the same three CLI text exceptions, the **516-ID audit** passed, Python **847/856** passed (nine platform skips), and official Claude Code 2.1.294 Mod suites passed **112 native / 10 runtime**. Both Mod typechecks and strict validators, 34 generated resources, five retained read-only generators and documentation validation passed. The initial system-Python suite lacked its installed CLI entry (one failure, eleven skips); the existing Python 3.14.4 repository virtual environment passed the full suite. No source correction or test waiver was used for that environment issue. No diagnostic result is a performance pass. After Round 1, remaining failures select Round 2's startup/native-binding, Git-cache, rendering or residual cache work. At most two changed-source rounds are authorized. The existing same-graph noise repeat is permitted only when there are inconclusive metrics and no failures.
 
 TS-03 stays IN_PROGRESS until all applicable functional checks and D06 pass. If Round 2 still fails or remains inconclusive, retain the stage state and deliver a focused review; budget changes, a third implementation round, runtime replacement and architectural expansion are not automatic.
 
 Private evidence root: `dist/validation/typescript-migration/ts-03/perf-opt-*`. Sanitized results will identify measured and merged commits separately.
+
+## Round 1 outcomes and round 2 priorities
+
+Values are warm-bytecode three-round medians; budgets use this run's Python baseline.
+
+| Metric | Original TS | Round 1 TS | Current budget | State |
+| --- | ---: | ---: | ---: | --- |
+| `in-process/large/transcript/cold` peak_rss (MiB) | 848.98 | 445.04 | 519.81 | pass |
+| `in-process/large/transcript/cold` p50 (ms) | 1361.33 | 900.68 | 1843.23 | pass |
+| `in-process/medium/transcript/cold` peak_rss (MiB) | 326.38 | 265.99 | 100.96 | fail |
+| `in-process/large/transcript/warm` p50 (ms) | 139.13 | 124.29 | 59.54 | fail |
+| `command/large/render-composite` p50 (ms) | 275.06 | 288.16 | 148.83 | fail |
+| `command/large/render-composite` p95 (ms) | 294.13 | 346.67 | 170.16 | fail |
+| `command/hook` p50 (ms) | 77.72 | 77.22 | 54.93 | fail |
+
+No previously passing metric became a failure, but formerly inconclusive metrics include new failures; the total pass count does not hide them. The large complete-command latency regression is also retained explicitly. Round 2 prioritizes native parsing of ordinary large cache dictionaries, medium cold-read allocation, hook dependencies/native bindings and repeated agent layout work. Budgets are unchanged; this failed graph is not eligible for a noise repeat.
