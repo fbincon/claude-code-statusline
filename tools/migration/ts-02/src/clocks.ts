@@ -15,6 +15,12 @@ function guid(raw: Buffer): string {
   return [raw.readUInt32LE(0).toString(16).padStart(8, '0'), raw.readUInt16LE(4).toString(16).padStart(4, '0'),
     raw.readUInt16LE(6).toString(16).padStart(4, '0'), raw.subarray(8, 10).toString('hex'), raw.subarray(10, 16).toString('hex')].join('-');
 }
+export function windowsBootId(environment: Buffer, sequence: Buffer): string {
+  if (environment.length !== 32 || environment.subarray(0, 16).every(x => x === 0) || sequence.length !== 4 || sequence.readUInt32LE() === 0) {
+    throw new Error('Windows boot identity unavailable');
+  }
+  return `windows:v2:${guid(environment)}:${sequence.readUInt32LE()}`;
+}
 export function nativeSample(): Sample {
   if (process.platform === 'win32') {
     const kernel = library('kernel32.dll');
@@ -25,8 +31,15 @@ export function nativeSample(): Sample {
       const boot_ns = int64(kernel.func('uint64_t GetTickCount64()')()) * 1_000_000n;
       const env = Buffer.alloc(32), size = [0];
       const status = library('ntdll.dll').func('int32_t NtQuerySystemInformation(uint32_t cls, _Out_ void *data, uint32_t size, _Out_ uint32_t *length)')(90, env, env.length, size);
-      if (status < 0 || env.subarray(0, 16).every(x => x === 0) || boot_ns > wall_ns) throw new Error('boot identity');
-      return { wall_ns, boot_ns, boot_id: 'windows:' + guid(env) };
+      if (status < 0 || size[0] !== env.length || boot_ns > wall_ns) throw new Error('boot identity');
+      // WDK KUSER_SHARED_DATA.BootId: OS-loader boot sequence at user-page
+      // offset 0x2c4 (x64 / ARM64, including x64 emulation). Read only our own
+      // process via the checked API; an inaccessible page degrades safely.
+      const sequence = Buffer.alloc(4), count = [0];
+      const current = kernel.func('void *GetCurrentProcess()')();
+      if (!kernel.func('int32_t ReadProcessMemory(void *process, uintptr_t base, _Out_ void *buffer, size_t size, _Out_ size_t *count)')(
+        current, 0x7ffe02c4, sequence, sequence.length, count) || count[0] !== sequence.length) throw new Error('boot sequence');
+      return { wall_ns, boot_ns, boot_id: windowsBootId(env, sequence) };
     } catch { return { wall_ns, boot_ns: null, boot_id: null }; }
   }
   const wall_ns = posixTime(0);
@@ -53,13 +66,18 @@ export function nativeSample(): Sample {
 export function sample(read: () => Sample = nativeSample): Sample {
   try { return read(); } catch { return { wall_ns: BigInt(Date.now()) * 1_000_000n, boot_ns: null, boot_id: null }; }
 }
+function sameBootDomain(start: Sample, end: Sample): boolean {
+  // Preserve legacy Windows snapshots while refusing their ambiguous domain.
+  return Boolean(start.boot_id && start.boot_id === end.boot_id &&
+    (!start.boot_id.startsWith('windows:') || start.boot_id.startsWith('windows:v2:')));
+}
 export function delta(start: Sample, end: Sample): bigint | null {
-  const elapsed = start.boot_id && start.boot_id === end.boot_id && start.boot_ns !== null && end.boot_ns !== null
+  const elapsed = sameBootDomain(start, end) && start.boot_ns !== null && end.boot_ns !== null
     ? end.boot_ns - start.boot_ns : end.wall_ns - start.wall_ns;
   return elapsed >= 0n ? elapsed : null;
 }
 export function trusted(start: Sample, end: Sample): boolean {
-  return Boolean(start.boot_id && start.boot_id === end.boot_id && start.boot_ns !== null && end.boot_ns !== null && end.boot_ns >= start.boot_ns);
+  return Boolean(sameBootDomain(start, end) && start.boot_ns !== null && end.boot_ns !== null && end.boot_ns >= start.boot_ns);
 }
 export function processToken(pid: number): string | null {
   if (!Number.isSafeInteger(pid) || pid <= 0) return null;

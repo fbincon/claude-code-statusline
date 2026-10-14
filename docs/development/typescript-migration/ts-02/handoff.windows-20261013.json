@@ -1,0 +1,29 @@
+{
+  "format_version": 1,
+  "date": "2026-10-13",
+  "timezone": "Asia/Shanghai",
+  "source_branch": "codex/windows-boot-identity",
+  "implementation_commit": "f78b428d161a081ad1819b9efef517746b9093d7",
+  "implementation_tree": "77ffb5b4ca5fa35a5fe3b531d568ac9a6262fd55",
+  "original_test_base": "7f2a41855f711c8ad6dfca31739462b75531af2b",
+  "immutable_reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "windows_result": "verified-on-this-host",
+  "stage_state": "VALIDATING",
+  "next_stage": "TS-03 NOT_STARTED",
+  "archive": {
+    "path": "dist/handoff/ts02-windows-20261013/windows-evidence.zip",
+    "sha256": "36032cf6bdac3b69e308f6c8338562eca77819e34c78bd94ff8dbb3050224baa",
+    "files": 895,
+    "bytes": 2730264
+  },
+  "archive_verifier": "dist/handoff/ts02-windows-20261013/verify_handoff.py",
+  "verifier_sha256": "22ff9aac60538658438c5be10f453dc9562d2d3c234cc90ba5e5b15ce3f1a579",
+  "archive_record_sha256": "09998b01f3a1bde7204baed1c9b043be829def2729293b8dc9475ca30149d0a2",
+  "transfer_directory": "dist/handoff/ts02-windows-20261013",
+  "notes": [
+    "The Git bundle and final HEAD/checksum manifest are generated after the handoff documentation commit and remain in the transfer directory.",
+    "Full schema-1 Windows summaries and raw logs are private archive contents; tracked schema-2 summaries expose results, references and hashes.",
+    "The archive snapshot retains Windows working-tree bytes before commit, including generated JS. Git normalization or a macOS rebuild may produce different bytes; do not rewrite historical hashes.",
+    "No remote push, merge, product release or TS-03 start was performed."
+  ]
+}

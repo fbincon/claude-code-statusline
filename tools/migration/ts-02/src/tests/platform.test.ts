@@ -5,7 +5,7 @@ import { once } from 'node:events';
 import * as fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { sample, processToken, processMatches, delta, trusted } from '../clocks.js';
+import { sample, processToken, processMatches, delta, trusted, windowsBootId } from '../clocks.js';
 import { decode, encode, integer, revision } from '../json.js';
 import { atomicWrite, lock, isLinkOrReparse, retryWindows } from '../files.js';
 import { run, binding, nodeBinding, rebindFixture } from '../launch.js';
@@ -56,16 +56,49 @@ test('canonical hash matches Python Unicode codepoint sorting and exact integers
   assert.equal(revision(decode(raw)), oracle(['revision'], raw).trim());
   assert.throws(() => revision(decode('{"a":1.0}')), /Float canonicalization/);
 });
-test('native boot clock and process identity match frozen Python on this platform', () => {
+test('native clock matches frozen Python except the explicit Windows boot-domain fix', () => {
   const a = sample();
   const expected = decode(oracle(['clock', String(process.pid)])) as Record<string, unknown>;
   const b = sample();
   assert.ok(a.boot_id); assert.ok(a.boot_ns !== null);
-  assert.equal(b.boot_id, a.boot_id); assert.equal(expected.boot_id, a.boot_id);
+  assert.equal(b.boot_id, a.boot_id);
+  if (process.platform === 'win32') {
+    // Retain the frozen GUID-only result as evidence of the intentional change.
+    assert.match(String(expected.boot_id), /^windows:[0-9a-f-]{36}$/);
+    assert.ok(a.boot_id!.startsWith('windows:v2:' + String(expected.boot_id).slice(8) + ':'));
+    const fixed = decode(execFileSync(python, [join(packageRoot, 'scripts/current-clock.py'), String(process.pid)], { env, encoding: 'utf8' })) as Record<string, unknown>;
+    assert.equal(a.boot_id, fixed.boot_id);
+    assert.equal(fixed.token, expected.token);
+    const independent = decode(execFileSync(process.execPath, [cli, 'clock'], { env, encoding: 'utf8' })) as Record<string, unknown>;
+    assert.equal(a.boot_id, independent.boot_id);
+  } else assert.equal(expected.boot_id, a.boot_id);
   assert.ok(integer(expected.boot_ns) >= a.boot_ns! && integer(expected.boot_ns) <= b.boot_ns!);
   assert.ok(integer(expected.wall_ns) >= a.wall_ns && integer(expected.wall_ns) <= b.wall_ns);
   assert.equal(processToken(process.pid), expected.token);
   assert.equal(processToken(-1), null); assert.equal(processToken(1.2), null);
+});
+test('Windows boot sequence distinguishes a repeated GUID and rejects unavailable identity', () => {
+  const environment = Buffer.alloc(32, 1), sequence = Buffer.alloc(4);
+  sequence.writeUInt32LE(41); const first = windowsBootId(environment, sequence);
+  sequence.writeUInt32LE(42); const second = windowsBootId(environment, sequence);
+  assert.notEqual(first, second);
+  const start = { wall_ns: 1000n, boot_ns: 100n, boot_id: first };
+  assert.equal(delta(start, { wall_ns: 2000n, boot_ns: 5n, boot_id: second }), 1000n);
+  assert.equal(trusted(start, { wall_ns: 2000n, boot_ns: 500n, boot_id: second }), false);
+  assert.equal(delta(start, { wall_ns: 1n, boot_ns: 120n, boot_id: first }), 20n);
+  for (const [envBytes, seqBytes] of [[Buffer.alloc(32), sequence], [environment, Buffer.alloc(4)], [environment.subarray(1), sequence], [environment, sequence.subarray(1)]]) {
+    assert.throws(() => windowsBootId(envBytes!, seqBytes!), /unavailable/);
+  }
+});
+test('captured reboot with legacy Windows GUID falls back without claiming a trusted boot', () => {
+  const fixture = decode(fs.readFileSync(join(packageRoot, 'fixtures/windows-reboot.json'), 'utf8')) as { before: Record<string, unknown>; after: Record<string, unknown> };
+  const convert = (s: Record<string, unknown>) => ({ wall_ns: integer(s.wall_ns), boot_ns: integer(s.boot_ns), boot_id: String(s.boot_id) });
+  const start = convert(fixture.before), end = convert(fixture.after);
+  assert.equal(start.boot_id, end.boot_id); assert.ok(end.boot_ns < start.boot_ns);
+  assert.equal(delta(start, end), end.wall_ns - start.wall_ns);
+  assert.equal(trusted(start, end), false);
+  assert.equal(trusted(start, { ...end, boot_ns: start.boot_ns + 1n }), false);
+  assert.equal(delta(start, { ...end, wall_ns: start.wall_ns - 1n }), null);
 });
 test('unavailable clocks, wall adjustment, reboot and frozen integer semantics', () => {
   const a = { wall_ns: 2000000000000000001n, boot_ns: 10n, boot_id: 'one' };

@@ -2,7 +2,7 @@
 
 **English** | [简体中文](typescript-migration.zh-CN.md)
 
-Updated: **2026-10-12** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
+Updated: **2026-10-14** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
@@ -12,11 +12,11 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 | --- | --- |
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
-| Implementation | **TS-01 DONE; TS-02 VALIDATING**; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) delivers isolated probes and decision evidence |
-| Current task scope | TS-02 native/installation probes, performance policy and D01–D06 records; production migration has not started |
-| Runtime and distribution | Node 24.21.0/npm/64-bit candidate; D03/D05/D06 DECIDED, remaining evidence gates are recorded in [TS-02](typescript-migration/ts-02/README.md) |
+| Implementation | **TS-01 DONE; TS-02 DONE**; [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) integrates platform evidence and closes decisions |
+| Current task scope | TS-02 integration and acceptance complete; production backend migration has not started |
+| Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; estimate after the TS-02 platform probes |
-| Next implementation work | Close TS-02's remaining foundational gates before TS-03 |
+| Next implementation work | Begin TS-03 shared core/backend migration from the merged TS-02 decisions; TS-03 is NOT_STARTED |
 
 The planning request does not mark any implementation gate complete. Existing repository authorization still governs work within subsequently assigned tasks; this plan adds no routine approval step to each stage.
 
@@ -67,7 +67,7 @@ A language change alone does not require a schema bump. If semantics or represen
 
 Use one TypeScript business core for configuration validation, catalog/form definitions, rendering and lifecycle rules. Keep filesystem, clocks, process identity, terminal I/O and host APIs behind explicit adapters. The CLI and the two existing Mods remain separate entry points with only compatible pure modules shared between them.
 
-Node LTS with compiled JavaScript is the initial runtime candidate. An independently packaged executable is a distribution option, not an established requirement or a substitute for platform verification. Runtime version, package manager, test runner, terminal library, native dependencies and final directory layout are decided after TS-02; no production scaffold is implied by this plan.
+D01–D06 select Node 24.21.0/npm, compiled ESM, node:test, Koffi/strict lossless JSON and raw TTY/VT. The future workspace separates core, platform, CLI and TUI packages. Independent executables are optional; TS-02 created no production scaffold.
 
 Keep render/hook entry points small and exclude editor resources from their eager imports. Move canonical rules to TypeScript/shared data as each subsystem migrates, with deterministic generated resources and drift checks. Retain the Python reference separately for comparisons instead of maintaining two evolving sources of truth.
 
@@ -77,10 +77,10 @@ Decision states are `OPEN`, `DECIDED` or `SUPERSEDED`. A decided row must link a
 
 | ID | State | Decision | Required evidence | Needed by |
 | --- | --- | --- | --- | --- |
-| D01 | OPEN | Runtime, minimum version, package/tooling layout and optional standalone builds | Supported OS/architecture matrix, small render startup/RSS measurements, dependency and asset loading, both Mod validation paths | TS-02 |
-| D02 | OPEN | Clock APIs, boot/process identities and lossless integer encoding | Sleep/resume, wall-clock adjustment, reboot, process reuse and unavailable API cases; old JSON reads and frozen values; native dependency packaging if required | TS-02 |
+| [D01](typescript-migration/ts-02/D01.md) | DECIDED | Runtime, minimum version, package/tooling layout and optional standalone builds | Supported OS/architecture matrix, small render startup/RSS measurements, dependency and asset loading, both Mod validation paths | TS-02 |
+| [D02](typescript-migration/ts-02/D02.md) | DECIDED | Clock APIs, boot/process identities and lossless integer encoding | Sleep/resume, wall-clock adjustment, reboot, process reuse and unavailable API cases; old JSON reads and frozen values; native dependency packaging if required | TS-02 |
 | [D03](typescript-migration/ts-02/D03.md) | DECIDED | Cross-process locks and durable writes | Concurrent updates, process death, Windows sharing violations, temporary-file cleanup, symlink/reparse handling and mixed-version cutover | TS-02 |
-| D04 | OPEN | External TUI input/output and terminal launching | Raw keys including Ctrl+S, resize, terminal restoration, Unicode cells, tmux, Windows console and macOS Terminal helper probes | TS-02 |
+| [D04](typescript-migration/ts-02/D04.md) | DECIDED | External TUI input/output and terminal launching | Raw keys including Ctrl+S, resize, terminal restoration, Unicode cells, tmux, Windows console and macOS Terminal helper probes | TS-02 |
 | [D05](typescript-migration/ts-02/D05.md) | DECIDED | Installation, old-entry retirement, upgrade and rollback | Existing pipx/PATH detection, Windows executable or argv strategy, ownership, plugin/backend binding, opt-out preservation and compatible-backup recovery | Strategy in TS-02; complete in TS-04 |
 | [D06](typescript-migration/ts-02/D06.md) | DECIDED | Measurable performance acceptance budget | Policy committed at `3c448b8` before measurements; fixed per-case latency/RSS budgets, three alternating rounds and bounded noise review | TS-02 |
 
@@ -95,7 +95,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | Stage | Deliverable | Depends on | State | Owner and evidence |
 | --- | --- | --- | --- | --- |
 | TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | DONE | Codex; `fbincon/ts-01-baseline`; tested `ddc9dde`; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75); [inventory and evidence](typescript-migration/ts-01/README.md) |
-| TS-02 | Platform probes and decisions D01–D06 | TS-01 | VALIDATING | Codex; `fbincon/ts-02-platform-decisions`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76); [decisions and evidence](typescript-migration/ts-02/README.md) |
+| TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | NOT_STARTED | Unassigned |
 | TS-04 | Both editors, installation and recovery | TS-03 | NOT_STARTED | Unassigned |
 | TS-05 | Complete tooling, CI and release candidate | TS-04 | NOT_STARTED | Unassigned |
@@ -121,7 +121,9 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 **Exit:** each required platform has probe evidence or an explicitly resolved support decision. Native dependencies, launcher strategy, state encoding and terminal approach have concrete designs. Broad migration waits for unresolved foundational decisions.
 
-**TS-02 handoff:** [D01–D06 records and reproducible probes](typescript-migration/ts-02/README.md) retain the immutable Python reference. The maintainer approved npm-first, 64-bit TS delivery in a future major release and retirement of Python import/module/pipx and old Windows `.exe` entry points, with historical Python packages retained for compatibility and rollback. These are future-product decisions, not changes to the released installation. Automated native, installed-package, real-host argv and performance evidence is distinct from physical suspend/reboot and desktop input/focus acceptance. Missing foundational evidence keeps the affected decisions OPEN and TS-03 NOT_STARTED.
+**TS-02 handoff:** [D01–D06 records and reproducible probes](typescript-migration/ts-02/README.md) retain the immutable Python reference. The maintainer approved npm-first, 64-bit TS delivery in a future major release and retirement of Python import/module/pipx and old Windows `.exe` entry points, with historical Python packages retained for compatibility and rollback. These are future-product decisions, not changes to the released installation. Automated native, installed-package, real-host argv and performance evidence is distinct from physical suspend/reboot and desktop input/focus acceptance. The integrated matrix and physical Linux power/desktop evidence satisfy the amended stage gate below. D01–D06 are DECIDED; TS-02 is DONE and TS-03 is ready to begin (NOT_STARTED).
+
+**2026-10-14 stage-gate amendment:** The maintainer explicitly approved deferring unavailable physical macOS sleep, Windows 10, physical macOS 14 Intel, WSL desktop and remaining target-specific human/power acceptance until before release. Support promises are unchanged and missing checks are not passed. Integrated CI and this physical Linux sleep/reboot/GNOME/popup passed, closing the amended TS-02 gate. TS-03 has not started. [Integration and deferred checklist](typescript-migration/ts-02/LINUX-20261014.md). Active branch: `fbincon/ts-02-linux-acceptance`.
 
 ### TS-03 Shared core and backend
 
@@ -153,6 +155,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 ### TS-06 Preview and stable delivery
 
+- Complete the [deferred physical/desktop acceptance](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) before any TypeScript release; unsupported observations must not be converted into passes.
 - Assign version identifiers and a preview/stable plan after the compatibility decisions. Keep the Python release and recoverable artifacts available during the transition.
 - Validate the actual preview artifacts, target terminals and upgrade/recovery paths; record feedback and fixes against exact commits. Separate automated, PTY, visual and human evidence.
 - Follow the [release process](../RELEASING.md), updated for the selected distribution. Verify required checks and released artifacts before task-driven synchronization of the validated GitHub commit/tags/assets to Gitee.
@@ -217,6 +220,7 @@ The documentation checker is still Python at this planning stage; replace this i
 
 | Date | Work | Result and next action |
 | --- | --- | --- |
+| 2026-10-14 | TS-02 closure, [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) | Windows/macOS handoffs verified; Windows reboot identity corrected; real Linux s2idle/reboot and human GNOME/popup passed; integrated 8/14/13 CI jobs passed. Maintainer approved external gaps as mandatory before release. D01–D06 DECIDED, TS-02 DONE; next TS-03, not started. |
 | 2026-10-12 | TS-02 probes and decisions, [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) | Locked Node 24.21.0 and pre-measurement D06 policy; native clock/identity, mixed locks, terminal, installation and real-host argv probes added. [Evidence and open gates](typescript-migration/ts-02/README.md). TS-02 VALIDATING; TS-03 has not started. |
 | 2026-10-11 | Source feasibility review and initial bilingual plan | Baseline, scope, risks, six implementation/delivery stages and handoff rules recorded. `python3 -B tools/check_docs.py` passed with 1,313 relative links and bilingual-pair checks; `git diff --check` and bilingual stage/decision consistency checks passed. No application tests or implementation work ran. TS-01–TS-06 remain NOT_STARTED. Next implementation task starts with TS-01. |
 | 2026-10-11 | TS-01 implementation and isolated reference validation | Complete source/test/tool inventories, 161 deterministic cases, guarded capture/verify commands and a dedicated CI gate added. Reference suite: 807 passed / 8 native-platform skips. Both fixed-host Mod suites and installed PTYs passed; original external label mismatch corrected in the harness only. State VALIDATING pending CI/PR. [Evidence](typescript-migration/ts-01/README.md). |

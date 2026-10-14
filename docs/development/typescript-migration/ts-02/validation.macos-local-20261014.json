@@ -1,0 +1,306 @@
+{
+  "format_version": 2,
+  "date": "2026-10-14",
+  "timezone": "Asia/Shanghai",
+  "local_status": "completed-with-explicit-sleep-skip",
+  "implementation_head": "72017a92bda379354abd0727c4ff1e8e77954a80",
+  "base_commit": "a27a90364d3a98f85ad4379d8c16d9f67ee05e9c",
+  "branch": "fbincon/ts02-macos-acceptance",
+  "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "reference_fixtures_and_budget_unchanged": true,
+  "platform": {
+    "os": "macOS 14.5",
+    "build": "23F79",
+    "environment": "VMware guest",
+    "guest_native_arch": "x86_64",
+    "node_process_arch": "x64",
+    "python_process_arch": "x86_64",
+    "rosetta": false,
+    "physical_host_independently_verified": false
+  },
+  "runtime": {
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "python": "3.14.4",
+    "tmux": "tmux 3.7c",
+    "node_sha256": "7abcf39bd37ab251015337ff75304d7555f0d8e88c6e0fbf04bce8ce34636f49",
+    "python_sha256": "0d7e68ba777d7a9308d5b4c787956791d264fec00b0252cb636017e7300df026",
+    "node_official_archive_sha256": "0ae5a24c24bb7d015cd816c5036b3f90f2945aa872fcf54e58da054753b3a299"
+  },
+  "tests": {
+    "initial_python": {
+      "total": 834,
+      "pass": 831,
+      "skip": 3,
+      "fail": 0,
+      "receipt": {
+        "path": "logs/python-tests.json",
+        "sha256": "a5f9c6644868a0639042320c43be0e802c80f6e84ebb7775c1690f14bbc6fcce"
+      }
+    },
+    "python_with_regressions": {
+      "total": 848,
+      "pass": 845,
+      "skip": 3,
+      "fail": 0,
+      "tested_commit": "06b1303150d830ad7fe29edaf1c00c067ee01fa0",
+      "receipt": {
+        "path": "logs/final-python-tests.json",
+        "sha256": "ddf1e19c700865df162a10d30bedfbe51073e8c9c0ce42c4c8ef4b172eaac2ad"
+      }
+    },
+    "final_harness_gates": {
+      "total": 14,
+      "pass": 14,
+      "fail": 0,
+      "tested_commit": "72017a92bda379354abd0727c4ff1e8e77954a80",
+      "receipt": {
+        "path": "logs/final-harness-gates.json",
+        "sha256": "2d59d1ceb44940102e26e0d494e03530442d0efc6b87c937d84029d64b64a6ab"
+      }
+    },
+    "native_installation": {
+      "total": 35,
+      "pass": 33,
+      "skip": 2,
+      "fail": 0,
+      "tested_commit": "06b1303150d830ad7fe29edaf1c00c067ee01fa0",
+      "receipt": {
+        "path": "native-probe-final/evidence.json",
+        "sha256": "c40b96ad9416a1211dbaaa479dbb147eeba00e60d6ca69e6377a463ddea56d8f"
+      },
+      "verification": {
+        "path": "logs/final-ts-verify.json",
+        "sha256": "6a7ae21194b58609b41b79ec6c1520a85fb4623e159ec2411b7c4821a1d3b725"
+      }
+    },
+    "shared_generators": {
+      "count": 5,
+      "state": "pass",
+      "receipt": {
+        "path": "logs/shared-resources.json",
+        "sha256": "03d71b9b1e6de1d43f018cf3396178cdc274294fe2b41380f08f80bf2c7bf8f7"
+      }
+    }
+  },
+  "mods": {
+    "versions": [
+      "2.1.294",
+      "2.1.296"
+    ],
+    "tests_each": {
+      "native": 112,
+      "runtime": 10
+    },
+    "official_validation_tests_install": "pass",
+    "network": "sandbox-exec denied networking during host checks; isolated configs and synthetic argv-probe credentials",
+    "exact_types": {
+      "2.1.294": "both Mods pass",
+      "2.1.296": "declarations missing; typecheck NOT_RUN"
+    },
+    "final_argv": [
+      {
+        "path": "final-argv-2.1.294/report.json",
+        "sha256": "5f635279d420e9c6277a53672b20400a2bf4eb83bbba99edef7436d67b6a5e03"
+      },
+      {
+        "path": "final-argv-2.1.296/report.json",
+        "sha256": "5a2fa90390809f42314a2367fd0789aa0a3c59756c7937cbfebc6dc961587ea0"
+      }
+    ]
+  },
+  "performance": {
+    "render_samples": 600,
+    "control_samples": 200,
+    "metrics_pass": 6,
+    "repeat_sets_used": 0,
+    "scope": "minimal-model-render-only",
+    "summaries": [
+      {
+        "mode": "warm",
+        "metrics": [
+          {
+            "metric": "p50",
+            "baseline": 150.1266030000006,
+            "candidate": 70.97055550000096,
+            "budget": 165.13926330000066,
+            "baseline_range": 12.582697999998345,
+            "state": "pass"
+          },
+          {
+            "metric": "p95",
+            "baseline": 184.84985000000052,
+            "candidate": 96.24646099999882,
+            "budget": 212.5773275000006,
+            "baseline_range": 66.41371600000639,
+            "state": "pass"
+          },
+          {
+            "metric": "peak_rss",
+            "baseline": 32264192,
+            "candidate": 41631744,
+            "budget": 65818624,
+            "baseline_range": 716800,
+            "state": "pass"
+          }
+        ]
+      },
+      {
+        "mode": "cold",
+        "metrics": [
+          {
+            "metric": "p50",
+            "baseline": 311.5377894999983,
+            "candidate": 69.04552100000001,
+            "budget": 342.69156844999816,
+            "baseline_range": 3.2894035000026633,
+            "state": "pass"
+          },
+          {
+            "metric": "p95",
+            "baseline": 339.3153949999978,
+            "candidate": 84.27807300000131,
+            "budget": 390.2127042499975,
+            "baseline_range": 3.7575420000066515,
+            "state": "pass"
+          },
+          {
+            "metric": "peak_rss",
+            "baseline": 36438016,
+            "candidate": 41648128,
+            "budget": 69992448,
+            "baseline_range": 1142784,
+            "state": "pass"
+          }
+        ]
+      }
+    ],
+    "receipt": {
+      "path": "benchmark-fixed-budget/benchmark.json",
+      "sha256": "3e0a5565f223ea6319bdc4aee25e3229d1085b99ba474766fb00ec24319b52b4"
+    },
+    "invocation": {
+      "path": "logs/fixed-budget-benchmark.json",
+      "sha256": "21e8e6766f1bf3bbc3b10bd7d8512d93be4533f5bf1ee5620d76ed80d3e568a8"
+    }
+  },
+  "manual": {
+    "status": "verified-by-combined-actual-runs",
+    "receipt": {
+      "path": "manual-aggregate.json",
+      "sha256": "f988c41ac972a3694dd3a5fcf42ba4687186f061b786ad1d9d57a6a9ae8aa067"
+    },
+    "original_incomplete_runs_retained": 3,
+    "direct_recovery_supplement": "pass",
+    "popup_recovery_supplement": "pass"
+  },
+  "power": {
+    "reboot": {
+      "status": "pass",
+      "receipt": {
+        "path": "reboot-guest-01/evidence.json",
+        "sha256": "c448f1bb76ca0e92a9d9d1c94e38d5f2fee5bbe522c2714d8a415b3787c7beac"
+      },
+      "system_boot_time_local": "2026-10-14 03:56:37 Asia/Shanghai",
+      "scope": "guest OS reboot only",
+      "cross_boot_trusted": false
+    },
+    "sleep": {
+      "status": "skipped-by-user",
+      "completed": false,
+      "reason": "Apple menu sleep had no effect; user explicitly stopped sleep validation",
+      "receipt": {
+        "path": "sleep-disposition.json",
+        "sha256": "f5837d726ece2424c72c8c65efa59546507eba02d4bcfaacfb70b79a060969d5"
+      }
+    }
+  },
+  "retained_failures": [
+    "Original Windows histories and exact archive bytes unchanged",
+    "First Node archive download ended with curl exit 56; system curl retry matches locked SHA256",
+    "Original 2.1.294 argv probe got both receipts but hung during teardown; SIGTERM intervention and wait4 sample retained; no complete pass claim",
+    "First new teardown test used an excessive fixed output-volume assumption; failed log retained, assertion corrected to require additional drained bytes",
+    "Three incomplete manual acceptance reports remain fail; successful scope is derived from actual events plus separately captured recovery supplements",
+    "No-action power negative control correctly failed; unavailable sleep attempt and explicit skip retained",
+    "2.1.296 exact declarations remain unavailable"
+  ],
+  "shared_change": {
+    "path": "tools/migration/ts-02/scripts/mod-smoke.py",
+    "scope": "POSIX test-only PTY cleanup; drain output, close master before bounded wait, persist terminal bytes",
+    "production_src_mods_clocks_unchanged": true,
+    "windows_effect": "No change to Windows production or v2 clock path. Added POSIX teardown tests skip on Windows. Historical Windows results remain bound to their old bytes.",
+    "rerun_required": "Linux/WSL POSIX host teardown regression and full integrated native/install/Python/Mod CI matrix"
+  },
+  "global_state": {
+    "D01": "OPEN",
+    "D02": "OPEN",
+    "D04": "OPEN",
+    "TS-02": "VALIDATING",
+    "TS-03": "NOT_STARTED",
+    "owner": "Linux integrator"
+  },
+  "uncovered": [
+    "macOS sleep/resume (explicit local skip)",
+    "physical macOS 14 Intel hardware",
+    "Windows 10",
+    "other platform physical/GUI evidence including Linux GNOME/popup",
+    "complete CI matrix on integrated fixed sources",
+    "full TS-03/TS-04/TS-05 implementation/performance"
+  ],
+  "private_archive": {
+    "format_version": 1,
+    "archive": "macos-evidence.zip",
+    "sha256": "e6f37cfea90896c0d5299bbbd62757aa4deb5c030542a7e33cd0eee3ed236aff",
+    "bytes": 8438346,
+    "files": 1459,
+    "path": "dist/handoff/ts02-macos-20261014/macos-evidence.zip"
+  },
+  "candidate_source_hashes": {
+    ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+    "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+    "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+    "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+    "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+    "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+    "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+    "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+    "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+    "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+    "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+    "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+    "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+    "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+    "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+    "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+    "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+    "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+    "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+    "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+    "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+    "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+    "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+    "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+    "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+    "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+    "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+    "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+    "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+    "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+    "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+    "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+    "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+    "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+    "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+    "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+    "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+    "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+  },
+  "code_changes": {
+    "tools/migration/ts-02/scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+    "tools/macos_clock_smoke.py": "411974d194cbea77982fec54c2fa2cb63573fb92e93b14540334f3a5dfaa4c63",
+    "tools/ts02_macos_terminal_smoke.py": "79b42260e98d53962ef58f9c954433773191eb411b72384260af067ff364a59d",
+    "tests/integration/test_ts02_mod_smoke.py": "0c623891ffdbbae9ef88701c545284763ad10405d66bc9d54a4da176c26a0ed3",
+    "tests/integration/test_macos_clock_smoke.py": "519d1280da8f21f12aab5a88b822214c3513f0bf0a2d8fa8c7950e3c5e29245a",
+    "tests/integration/test_ts02_macos_terminal_smoke.py": "21a2003edeaf0e497aca8270243baef3d66225e96dcaee7effdcb87065b167eb"
+  }
+}

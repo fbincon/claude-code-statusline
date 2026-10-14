@@ -10,6 +10,7 @@ Start here to set up a development environment, run checks and build the package
 - [TypeScript migration plan and progress](typescript-migration.md): current state, scope, stages, decisions, acceptance and session handoffs.
 - [TS-01 frozen reference and inventory](typescript-migration/ts-01/README.md): reproducible cases, tooling and validation evidence.
 - [TS-02 platform probes and decisions](typescript-migration/ts-02/README.md): native adapters, installation experiments, performance policy and remaining gates.
+- [Linux integration, physical acceptance and approved release deferrals](typescript-migration/ts-02/LINUX-20261014.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
 - [v1.13.0 language performance](performance-v1.13.0.md): isolated language loading, prepared search and 2/5/10-language resource controls.

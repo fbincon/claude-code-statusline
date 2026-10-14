@@ -12,6 +12,53 @@ import subprocess
 import time
 
 
+def stop_host(child, master, raw, grace=3):
+    """Drain the PTY during shutdown; Darwin exit can wait for terminal output.
+
+    Close the master before the final bounded reap. Even after SIGKILL a
+    process can remain in kernel exit with an undrained terminal attached.
+    """
+    import select
+    import signal
+
+    os.set_blocking(master, False)
+
+    def drain():
+        # Bound each drain so a producer cannot starve the shutdown deadline.
+        for _ in range(16):
+            if not select.select([master], [], [], 0)[0]:
+                break
+            try:
+                chunk = os.read(master, 65536)
+            except (BlockingIOError, OSError):
+                break
+            if not chunk:
+                break
+            raw.extend(chunk)
+
+    def signal_group(sig):
+        try:
+            os.killpg(child.pid, sig)
+        except ProcessLookupError:
+            pass
+
+    try:
+        if child.poll() is None:
+            signal_group(signal.SIGTERM)
+            deadline = time.monotonic() + grace
+            while child.poll() is None and time.monotonic() < deadline:
+                drain()
+                time.sleep(.02)
+            if child.poll() is None:
+                signal_group(signal.SIGKILL)
+        drain()
+    finally:
+        os.close(master)
+    # Never wait indefinitely after kill: preserve the private evidence even
+    # when the OS cannot reap the process within the second deadline.
+    child.wait(timeout=grace)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--claude", required=True, type=Path)
@@ -21,7 +68,6 @@ def main():
     import fcntl
     import pty
     import select
-    import signal
     import struct
     import termios
 
@@ -107,18 +153,27 @@ def main():
             "manifest_validation": validations, "real_process_api_commands": commands, "model_calls": 0,
             "credentials": "synthetic key; unreachable loopback API", "temporary_mod_copies": True,
             "state": "pass" if commands == ["runtime", "ui"] else "unverified"}
+        report["cleanup_complete"] = False
         (root / "report.json").write_text(json.dumps(report, indent=2) + "\n")
-        print(json.dumps(report))
-        return 0 if report["state"] == "pass" else 1
     finally:
-        if child.poll() is None:
-            os.killpg(child.pid, signal.SIGTERM)
-            try:
-                child.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                os.killpg(child.pid, signal.SIGKILL); child.wait()
-        os.close(master)
+        # Save received bytes before cleanup, so even abnormal termination
+        # cannot erase the input/output evidence already observed.
         (root / "terminal.bin").write_bytes(raw)
+        try:
+            stop_host(child, master, raw)
+        except Exception:
+            if (root / "report.json").exists():
+                report.update(state="fail", cleanup_complete=False)
+                (root / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+            raise
+        else:
+            if (root / "report.json").exists():
+                report["cleanup_complete"] = True
+                (root / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+        finally:
+            (root / "terminal.bin").write_bytes(raw)
+    print(json.dumps(report))
+    return 0 if report["state"] == "pass" else 1
 
 
 if __name__ == "__main__":

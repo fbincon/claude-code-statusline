@@ -1,0 +1,391 @@
+{
+  "format_version": 2,
+  "fix_id": "windows-boot-domain-v2",
+  "date": "2026-10-12",
+  "timezone": "Asia/Shanghai",
+  "base_commit": "7f2a41855f711c8ad6dfca31739462b75531af2b",
+  "branch": "codex/windows-boot-identity",
+  "working_tree": true,
+  "scope": [
+    "Correct Python and TS Windows boot identity using GUID plus KUSER_SHARED_DATA.BootId.",
+    "Degrade legacy GUID-only Windows samples to wall-clock elapsed without trusting execution coverage.",
+    "Preserve frozen durations, process tokens, schemas, product version and immutable TS-01 oracle."
+  ],
+  "reference": {
+    "commit": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+    "unchanged": true,
+    "intentional_deviations": [
+      "Windows boot_id now uses windows:v2:<GUID>:<BootId>.",
+      "Legacy windows:<GUID> no longer certifies a trusted uptime domain."
+    ],
+    "corrected_python_comparator": "tools/migration/ts-02/scripts/current-clock.py"
+  },
+  "source_hashes": {
+    ".gitignore": "9048336df01ba9defb5daea7b35cfc33eaddb0ff7defc6315dce60b8bec80876",
+    "fixtures/model.json": "0b7536bf8e1eae674d95d3426af620360167c497b24d981a7322f25c87641b86",
+    "fixtures/render.json": "b61e9dfc0aa788fa3e119efa0902c5f84efb053bfe4d98713a9fd6e98e6ac261",
+    "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+    "LICENSE": "7dd6de24c51ba22433b812216f253040de8da05992ac00afd8a0985b7f74d851",
+    "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+    "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+    "package-lock.json": "a73f5d83b6a9d85760d711683431fef682c6bd6e83a22dfe0b66639b0be13405",
+    "package.json": "1b5f54621e8c47feb5e428c88ed3cd6ddcc1376358e850633341f350ef81b0bf",
+    "policy.json": "4039fb5f5c0f999607c47d737a032cd169bebfd1ea61f1aba79a8b41b23cdcb8",
+    "runtime-lock.json": "b0c29b821601dbcfdf3735b7642232942fc5ecfd79cccb5b810763cb9901003b",
+    "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+    "scripts/mod-smoke.py": "2f6dc5a73dc71731029ae06ae008592f5a5be29be8be982f117f4e0bc20d9373",
+    "scripts/oracle.py": "d72dd2c6587e7ddb0af0d95f760404910c435e0e2047af3d255f1fc24ce987d3",
+    "scripts/prepare.mjs": "06a61f6247074eced42c354a35080cc8d2d083cc8af5fe5accb9c1495bf68a46",
+    "src/architecture.ts": "f98fdc902748d4cc06354b93450c82d96be9b7cd65f47a4fcf0d9a50a9f431ad",
+    "src/benchmark.ts": "643d49655a4c4349a49bb4c3ddb6b255809e1efb988c7d86aa2919ab8747a1a6",
+    "src/cli.ts": "bd3bdceb5fb434b1301f61b6a1ffaf1267b317e5031a5dae284c80da76b99a41",
+    "src/clocks.ts": "beb81964ff5031283ae7d0f4a309838e089d0e0bd98ddc6bd712d61fb6322572",
+    "src/context.ts": "df4159754a911f5f273da261ec2ea4a1f0325923ae5dd51bc9e5d6d407d9ccb7",
+    "src/evidence.ts": "27d41e84eb11c73059ccfedbd60d4a9a8f861c7476f627f17ce555c659519db9",
+    "src/files.ts": "f176b493480553eb2e74121cc6b4afaae9a29b8b3b23fea6ff38adf8c3075a2e",
+    "src/json.ts": "242a5defafc3e0cdfe92da1c7b5905137985a4524b2b7851005b67271bfccb9b",
+    "src/launch.ts": "fc3ca513dc3e8478ae9acd6960d745611e0908228111273be44fa11a23db992b",
+    "src/launchers.ts": "e2402989d63ccf842356ee1e57cd87b82c7541a1871116bb064524846a0b263e",
+    "src/native.ts": "f7b63ce15dbe6b52fc0328f2e312d7e0fbe0ebd210861b3d32d17ccfa25af85a",
+    "src/probe.ts": "70a21f0b470fc235a21be302897279931357995ad3d77b78605f92ab17576055",
+    "src/render.ts": "4ae51cef703a0bd4d010c67791f84c63306c05624e759e1ed121f661179e5478",
+    "src/terminal.ts": "d49d0a5ce0b6ed8b76d4f09412dd53b4638d60987fb68bc20f3422596304ca7a",
+    "src/tests/evidence.test.ts": "6c2263b874a4bb9d676a789627cdba74e248f97ec53a86aae033bb509a19922f",
+    "src/tests/launchers.test.ts": "0b872f8956eded0ea80cf02bbe98711de41ad90df53848104d0bd07dc7cafa29",
+    "src/tests/platform.test.ts": "4f759c553c0ff9503b19b2b0441fecba2146cc3e1a39ce81342a0c679b251853",
+    "src/tests/terminal.test.ts": "67e5449300c01c011adca9f3d4c4cfdba86d89e310ad83502c9caefd414533f1",
+    "tsconfig.json": "cd8c3959df017ad2cd53bb817bc833b20ef86ffff2db8ee5d18515b5aaac3255",
+    "@repository/src/claude_statusline/platforms/clocks.py": "ac20fa1e6e876165bfacdf975a61bcc55972b59a7cd31c2692771fa4bbe1041a",
+    "@repository/src/claude_statusline/platforms/environment.py": "abdc2d296de7b8cb397dbf49f28dced1c6e9f519c10d38caeef7886e80c14c31",
+    "@repository/src/claude_statusline/platforms/processes.py": "4f7d9ff86f92a12783624eaf156d9bbe84bfd048ecb6189738c751a43823ef76",
+    "@repository/src/claude_statusline/runtime/timing/clock.py": "cbbb6eba151340e1ba4b5e2598c775fac875dac7d909ddd7dc900e0ca5cd0678"
+  },
+  "benchmark": {
+    "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/benchmark/benchmark.json",
+    "sha256": "075d79e7336b0edd83493603b9ac9362457c6a29083aeb0d0048e42b72d9f55c",
+    "scope": "minimal-model-render-only",
+    "policy_sha256": "4039fb5f5c0f999607c47d737a032cd169bebfd1ea61f1aba79a8b41b23cdcb8",
+    "render_samples": 600,
+    "control_samples": 200,
+    "summaries": [
+      {
+        "mode": "warm",
+        "metrics": [
+          {
+            "metric": "p50",
+            "baseline": 268.6366500000004,
+            "candidate": 103.12434999999823,
+            "budget": 295.5003150000004,
+            "baseline_range": 1.5516499999976077,
+            "state": "pass"
+          },
+          {
+            "metric": "p95",
+            "baseline": 280.91179999999986,
+            "candidate": 107.46549999999843,
+            "budget": 323.0485699999998,
+            "baseline_range": 3.7841000000044005,
+            "state": "pass"
+          },
+          {
+            "metric": "peak_rss",
+            "baseline": 27398144,
+            "candidate": 50302976,
+            "budget": 60952576,
+            "baseline_range": 77824,
+            "state": "pass"
+          }
+        ]
+      },
+      {
+        "mode": "cold",
+        "metrics": [
+          {
+            "metric": "p50",
+            "baseline": 428.88750000000437,
+            "candidate": 104.23470000000088,
+            "budget": 471.7762500000048,
+            "baseline_range": 9.537400000001071,
+            "state": "pass"
+          },
+          {
+            "metric": "p95",
+            "baseline": 458.2362000000139,
+            "candidate": 110.45760000000882,
+            "budget": 526.971630000016,
+            "baseline_range": 59.082299999994575,
+            "state": "pass"
+          },
+          {
+            "metric": "peak_rss",
+            "baseline": 28065792,
+            "candidate": 50307072,
+            "budget": 61620224,
+            "baseline_range": 270336,
+            "state": "pass"
+          }
+        ]
+      }
+    ],
+    "repeat_sets_used": 0
+  },
+  "negative_control": {
+    "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/no-power-negative-control/evidence.json",
+    "sha256": "a36fea05f93ade4ab4b10aef10c8d50f350eec48078754c5aa784af47e63a595",
+    "status": "fail",
+    "expected": "fail: ordinary sampling must not count as physical power validation"
+  },
+  "local_fix_status": "verified-on-this-host",
+  "stage_state": "VALIDATING",
+  "decisions": {
+    "D01": "OPEN",
+    "D02": "OPEN",
+    "D04": "OPEN",
+    "TS-03": "NOT_STARTED"
+  },
+  "limits": [
+    "Local Windows x64 and WSL2 checks do not replace the full target CI matrix or other physical desktop targets.",
+    "S0 Modern Standby evidence does not cover S3 or hibernation.",
+    "This fixes an identified blocker; remaining TS-02 platform/support gates still apply.",
+    "Previous receipts retain their original source hashes and must not be presented as runs of the corrected sources."
+  ],
+  "sources": [
+    "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntddk/ns-ntddk-kuser_shared_data",
+    "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-readprocessmemory"
+  ],
+  "record_kind": "public-summary",
+  "private_evidence": {
+    "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/summary.json",
+    "sha256": "ffb6e1877b9866b5574ef077033feeed6c0d0fe66df04b78be1dd8d8fb0f0cf3",
+    "archive": "dist/handoff/ts02-windows-20261013/windows-evidence.zip",
+    "archive_sha256": "36032cf6bdac3b69e308f6c8338562eca77819e34c78bd94ff8dbb3050224baa",
+    "archive_entry": "snapshot/dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/summary.json"
+  },
+  "original_failure": {
+    "summary": "validation.windows-local-20261012.json",
+    "retained": true,
+    "private_original_record_sha256": "bb0fe713a0ecd00dec8eb96637234d83febb00fffbdbcfd888172c6eefb4af18"
+  },
+  "windows": {
+    "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/probe-final/evidence.json",
+    "sha256": "91757b3504e984de923ea8b90f3b1428ef92a58b95b1d18d045e67951e9d5cd4",
+    "status": "pass",
+    "commit": "7f2a41855f711c8ad6dfca31739462b75531af2b",
+    "dirty": true,
+    "platform": "win32",
+    "os": "10.0.26300",
+    "host_arch": "x64",
+    "process_arch": "x64",
+    "checks": {
+      "tests": {
+        "tests": 35,
+        "pass": 27,
+        "fail": 0,
+        "skipped": 8
+      },
+      "npm_cmd_special_path": {
+        "exit_code": 1,
+        "supported": false,
+        "disposition": "npm-generated .cmd is not the bound backend; use PowerShell .ps1 or absolute node + JS argv. Do not change global execution policy."
+      },
+      "installed_shells": [
+        "PowerShell npm .ps1",
+        "Git Bash npm shell shim"
+      ],
+      "installation": {
+        "prebuilt_native_loaded": true,
+        "lifecycle_scripts_disabled": true,
+        "path_excludes_python_and_compilers": true,
+        "outside_checkout": true,
+        "unicode_special_paths": true,
+        "resource_and_render_parity": true,
+        "tarball_sha256": "33c27cb2228b37b09856e13edde2740c319cf0e5020bdd1e15d9b676759284d3",
+        "npm_version": "11.19.0",
+        "entries": [
+          "LICENSE",
+          "LICENSE-Unicode.txt",
+          "LICENSE-Wcwidth.txt",
+          "dist/architecture.js",
+          "dist/benchmark.js",
+          "dist/cli.js",
+          "dist/clocks.js",
+          "dist/context.js",
+          "dist/evidence.js",
+          "dist/files.js",
+          "dist/generated/generated-unicode.js",
+          "dist/generated/unicode.js",
+          "dist/json.js",
+          "dist/launch.js",
+          "dist/launchers.js",
+          "dist/native.js",
+          "dist/probe.js",
+          "dist/render.js",
+          "dist/terminal.js",
+          "dist/tests/evidence.test.js",
+          "dist/tests/launchers.test.js",
+          "dist/tests/platform.test.js",
+          "dist/tests/terminal.test.js",
+          "fixtures/model.json",
+          "fixtures/render.json",
+          "fixtures/windows-reboot.json",
+          "package.json",
+          "policy.json",
+          "runtime-lock.json"
+        ]
+      },
+      "native_clock": {
+        "boot_available": true,
+        "wall_encoding": "JSON integer, bigint in memory"
+      }
+    }
+  },
+  "wsl": {
+    "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/wsl/probe-final/evidence.json",
+    "sha256": "c31c801115d43d642f8c7b3c89a7216461325619d05086f0613090b28ebb6636",
+    "status": "pass",
+    "commit": "7f2a41855f711c8ad6dfca31739462b75531af2b",
+    "dirty": true,
+    "platform": "linux",
+    "os": "5.15.167.4-microsoft-standard-WSL2",
+    "host_arch": "x64",
+    "process_arch": "x64",
+    "checks": {
+      "tests": {
+        "tests": 35,
+        "pass": 33,
+        "fail": 0,
+        "skipped": 2
+      },
+      "installed_shells": [
+        "POSIX npm bin"
+      ],
+      "installation": {
+        "prebuilt_native_loaded": true,
+        "lifecycle_scripts_disabled": true,
+        "path_excludes_python_and_compilers": true,
+        "outside_checkout": true,
+        "unicode_special_paths": true,
+        "resource_and_render_parity": true,
+        "tarball_sha256": "a7449ef53359d10cd3eb0b1cd2b832e429d43f6881257636e3255c9ad8575938",
+        "npm_version": "11.19.0",
+        "entries": [
+          "LICENSE",
+          "LICENSE-Unicode.txt",
+          "LICENSE-Wcwidth.txt",
+          "dist/architecture.js",
+          "dist/benchmark.js",
+          "dist/cli.js",
+          "dist/clocks.js",
+          "dist/context.js",
+          "dist/evidence.js",
+          "dist/files.js",
+          "dist/generated/generated-unicode.js",
+          "dist/generated/unicode.js",
+          "dist/json.js",
+          "dist/launch.js",
+          "dist/launchers.js",
+          "dist/native.js",
+          "dist/probe.js",
+          "dist/render.js",
+          "dist/terminal.js",
+          "dist/tests/evidence.test.js",
+          "dist/tests/launchers.test.js",
+          "dist/tests/platform.test.js",
+          "dist/tests/terminal.test.js",
+          "fixtures/model.json",
+          "fixtures/render.json",
+          "fixtures/windows-reboot.json",
+          "package.json",
+          "policy.json",
+          "runtime-lock.json"
+        ]
+      },
+      "native_clock": {
+        "boot_available": true,
+        "wall_encoding": "JSON integer, bigint in memory"
+      }
+    }
+  },
+  "python": {
+    "tests": {
+      "total": 834,
+      "skipped": 28,
+      "passed": 806,
+      "seconds": 346.468
+    },
+    "final_exit_code": 0,
+    "initial_exit_code": 1,
+    "initial_log": {
+      "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/python-full.log",
+      "sha256": "491b893b2ce31fb7b1ffb5049f3c8794459336c2b9fda3d705f8a36e44a22859"
+    },
+    "final_log": {
+      "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/python-full-final.log",
+      "sha256": "3caca3e8f160cf603b87ef13a6a957e0e314e66947ce9bd28dcfdcb423fab440"
+    },
+    "resolved_initial_failure": "The wall-adjustment test mocked a legacy windows:guid as trusted; its mock now uses a v2 identity while retaining the 10-second expected uptime result.",
+    "affected_module_rerun": {
+      "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/task-timing-recheck.log",
+      "sha256": "0d23b516146a2794675347ea5d038327bc0d013322d04f202a018faf1352532b"
+    }
+  },
+  "physical": {
+    "suspend": {
+      "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/physical-suspend/evidence.json",
+      "sha256": "1f45a9f288fbe70e751b7875b95a31227bfd2c8faa94f0be6ac60db6f664e2d1",
+      "status": "pass",
+      "checks": {
+        "human_confirmed": true,
+        "source_unchanged": true,
+        "runtime_unchanged": true,
+        "python_stable_boot": true,
+        "python_includes_sleep": true,
+        "python_trusted_elapsed": true,
+        "node_stable_boot": true,
+        "node_includes_sleep": true,
+        "node_trusted_elapsed": true,
+        "physical_event": true
+      },
+      "sleep_intervals_seconds": [
+        112.695793
+      ],
+      "artifacts": {
+        "before.json": "b3cf8dc0f704fe63c27112f73bdeb1b02039f1b3f02ecaaeaa6568fbb148daef",
+        "after.json": "152d7b77ca17b6b10e09f597a3c8d67503b635120ad1445da3131fe4b2ff97c6",
+        "events.json": "2ccb38f24a7a2bbdfcfa23111564f3eeff3003a8cbe6a99e5fcde10709aaef99"
+      }
+    },
+    "reboot": {
+      "path": "dist/validation/typescript-migration/ts-02/windows-boot-fix-20261012/physical-reboot/evidence.json",
+      "sha256": "e13d7aac92282216b56955a88e4b4e91b007e40d260f7fe38eacf08d9d575f67",
+      "status": "pass",
+      "checks": {
+        "human_confirmed": true,
+        "source_unchanged": true,
+        "runtime_unchanged": true,
+        "python_new_boot": true,
+        "python_changed_sequence": true,
+        "python_degraded_wall_fallback": true,
+        "node_new_boot": true,
+        "node_changed_sequence": true,
+        "node_degraded_wall_fallback": true,
+        "physical_event": true
+      },
+      "sleep_intervals_seconds": [],
+      "artifacts": {
+        "before.json": "6f99c5b7bd8be520a73568abf3f96fc22bff3718a0a1549cbec0cd032382a761",
+        "after.json": "1308da6ad1d6220548fb94a3d0648ab5e7803a37ddfe0d3ec6bbdc9542f7ed5f",
+        "events.json": "ac07d49a0f3eeec5d3e4f71b9ca02c9889279ea5ff7f6555633985dcea7432eb"
+      },
+      "sequence_transition": {
+        "before": 1301,
+        "after": 1302,
+        "implementations": [
+          "Python",
+          "Node"
+        ]
+      }
+    }
+  },
+  "full_record_format_version": 1
+}

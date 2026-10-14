@@ -2,10 +2,14 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-Updated: **2026-10-12** (Asia/Shanghai). The [migration plan](../../typescript-migration.md)
-owns stage status. TS-02 is **VALIDATING**, not DONE; TS-03 has not started.
-The approved scope allows automated validation first and explicitly retains
-unverified physical/desktop gates. Preferred designs do not close missing evidence.
+2026-10-14: [Linux integration, physical acceptance and approved release deferrals](LINUX-20261014.md).
+
+Updated: **2026-10-14** (Asia/Shanghai). The [migration plan](../../typescript-migration.md)
+owns stage status. TS-02 is **DONE**, D01–D06 are **DECIDED**, and TS-03 is ready
+to begin but has not started. Integrated CI and this physical Linux power/desktop
+acceptance passed. The maintainer explicitly moved unavailable external physical/
+desktop checks to the [release-before checklist](LINUX-20261014.md#approved-stage-and-release-gates);
+they remain unverified and platform support promises are unchanged.
 
 ## Deliverables and decisions
 
@@ -19,15 +23,17 @@ were reviewed for both libraries and four target prebuilt packages. Koffi places
 its binaries in the corresponding optional `@koromix/koffi-*` package; Windows
 ARM uses the x64 package. See [Koffi support](https://koffi.dev/) and the
 [lossless JSON interface](https://github.com/josdejong/lossless-json).
-No production Python, Mod entry point, package version,
-public configuration schema or frozen TS-01 expectation is changed.
+The initial probe delivery changed no production Python, Mod entry point, package
+version, public configuration schema or frozen TS-01 expectation. The Windows
+clock correction following the local failure below was explicitly requested by
+the maintainer; the immutable oracle and fixed expectations remain preserved.
 
 | Decision | State | Direction and outstanding evidence |
 | --- | --- | --- |
-| [D01](D01.md) | OPEN | Node 24/npm/ESM; 64-bit future TS release. Native installation matrix passes; WSL/older desktop coverage remains unresolved. |
-| [D02](D02.md) | OPEN | Native OS clocks/identities and lossless integer literals. Physical suspend/reboot evidence remains missing. |
+| [D01](D01.md) | DECIDED | Node 24.21.0/npm/ESM; 64-bit TS, eight-target native/install matrix and explicit release-before coverage disposition. |
+| [D02](D02.md) | DECIDED | Koffi clocks/identities and strict lossless bigint boundary; corrected Windows and real Linux power evidence, macOS guest reboot; physical macOS sleep deferred. |
 | [D03](D03.md) | DECIDED | Compatible kernel locks and durable replacement validated on all eight native targets; full store transactions remain TS-03. |
-| [D04](D04.md) | OPEN | Raw TTY/VT/shared Unicode. Real Windows keys, GUI launch/focus and tmux popup evidence remain missing. |
+| [D04](D04.md) | DECIDED | Raw TTY/VT/shared Unicode; actual Windows console, macOS Terminal.app/popup and Linux GNOME/popup evidence; remaining external coverage deferred. |
 | [D05](D05.md) | DECIDED | npm entry retirement, argv-prefix binding and transactional upgrade strategy fixed; complete implementation remains TS-04. |
 | [D06](D06.md) | DECIDED | Budget frozen before measurement; minimal render is measured separately from full migration acceptance. |
 
@@ -73,8 +79,9 @@ not complete backend responses, editor parity or human visual acceptance.
 
 ## Evidence and limitations
 
-Delivery is tracked in [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76).
-The [machine-readable summary](validation.json) records tested commits, hashes,
+Initial probes are tracked in [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76);
+[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) integrates local platform evidence, closes decisions and records final checks/merge/synchronization.
+The [initial machine-readable summary](validation.json) records tested commits, hashes,
 counts and CI links. Raw logs remain in ignored
 `dist/validation/typescript-migration/ts-02/`; native CI uploads per-target receipts.
 Each receipt binds source and policy hashes, test counts, installed tarball hash,
@@ -136,11 +143,11 @@ and RSS in MiB. The machine-readable summary retains the per-metric dispositions
 | Warm | 106.59 / 40.75 | 115.31 / 47.54 | 26.52 / 58.19 | 58.52 |
 | Cold | 233.46 / 41.33 | 245.48 / 47.67 | 27.68 / 58.23 | 59.68 |
 
-Required follow-up: supply physical suspend/reboot, WSL, Windows desktop keyboard/resize, macOS 14 Intel and
-GUI terminal/popup evidence. Keep affected decisions OPEN and TS-03 NOT_STARTED
-until the foundational gates are satisfied or the maintainer explicitly resolves
-a support change. Full installation/recovery remains TS-04 and full performance
-acceptance remains TS-05; this probe delivery is not a release.
+The [2026-10-14 integration](LINUX-20261014.md) closes the amended TS-02 gate:
+the repaired matrix and physical Linux sleep/reboot/GNOME/popup pass. Remaining
+external coverage is required before a TS release; it is not counted as passed.
+Full installation/recovery remains TS-04 and full performance acceptance TS-05.
+TS-03 can begin; this probe delivery is not a release.
 
 ## Test-tool handoff
 
@@ -151,14 +158,124 @@ call-through. The selected render input/output comes from `cli-render-bom`; its
 explicit narrow configuration is TS-01 `main-model`, also passed to the Python
 configured-rows adapter. This is deliberately not the full default CLI profile.
 
-The current Linux suite has 33 cases: 31 pass and two Windows-only cases skip.
+The initial PR #76 Linux suite had 33 cases: 31 pass and two Windows-only cases skip.
 The final probe implementation `1e9b16c` passes the [eight-target CI matrix](https://github.com/fbincon/claude-code-statusline/actions/runs/38161869092):
 each POSIX target has 31 passes / 2 skips, each Windows target 25 passes / 8 skips,
 with no failures. This includes native Windows architecture evidence and cleanup
 after logging failure; the earlier failed attempts remain recorded separately.
 The final reviewed head, CI checks, merge commit and Gitee synchronization are
 recorded in the PR; earlier receipts are not relabeled as final-head runs.
-The existing Python suite passes 819 cases with eight platform skips (827 total).
-Both real-host argv probes pass on 2.1.294 and 2.1.296. The rebuilt Python wheel
-has 217 byte-identical entries relative to TS-01; the expanded source archive
+At that initial delivery, the Python suite passed 819 cases with eight platform skips (827 total).
+Both real-host argv probes pass on 2.1.294 and 2.1.296. At that initial delivery, the rebuilt Python wheel
+had 217 byte-identical entries relative to TS-01; the expanded source archive
 contains the probe and evidence, with dependency/build directories excluded.
+
+The following dated follow-ups preserve their original scope and stage state.
+Current decisions and approved release deferrals are recorded above.
+
+## Local Windows follow-up, 2026-10-12
+
+The merged commit `7f2a418` was checked on a physical Windows 11 Home build 26300,
+Intel x64 machine with Node 24.21.0, npm 11.19.0 and Python 3.14.4. The
+[local machine summary](validation.windows-local-20261012.json) binds results to
+raw logs and hashes. Production sources, the TS-01 oracle and performance budgets are unchanged.
+
+- Elevated Windows run: 25 passes and 8 platform skips out of 33; the complete
+  installation probe and receipt verifier pass. The initial unprivileged result
+  remains 24 passes / 1 failure / 8 skips: creating the file-symlink fixture raised
+  `EPERM`. That failure was neither skipped nor resolved by changing system policy.
+  PowerShell / Git Bash installation entry points and a separate directory-junction
+  check pass; the existing `.cmd` special-path failure remains recorded.
+- Local WSL2 Ubuntu 24.04.4 x64: 31 passes / 2 platform skips, with installation
+  and receipt verification passing. This covers native APIs, PTYs and tmux sessions,
+  without claiming GUI or popup human acceptance.
+- Python: 799 passes / 28 platform or permission skips out of 827; all five shared
+  resource checks, Ruff and Windows curses checks pass. Both Mods pass official
+  validation, 112 + 10 tests and installation smoke on 2.1.294 and 2.1.296.
+  Exact declarations and typechecking pass only on 2.1.294; the 2.1.296 gap is unchanged.
+- Human-operated Windows console: all arrow keys, CJK / combining characters /
+  emoji, small and normal window sizes, Ctrl+S / Ctrl+C, recovery after a logging
+  failure and visual confirmation are complete. Two incomplete attempts remain;
+  cumulative acceptance is checked against their original events and the follow-up.
+- Fixed minimal-render performance: 600 render samples and 200 control samples;
+  all six warm/cold latency and RSS metrics pass without budget changes or repeats.
+  Warm Python / TS P50 is 275.46 / 119.60 ms; cold P50 is 425.74 / 112.98 ms.
+- Physical S0 Modern Standby / resume passes: OS events establish about 60.48 seconds
+  in standby, the boot identity stays unchanged, and both Node and the fixed Python
+  oracle include sleep in their boot clocks. This host does not cover S3 or
+  hibernation.
+- **Physical reboot acceptance fails:** shutdown/startup events at 04:01 on
+  2026-10-12 (Asia/Shanghai), together with uptime falling from 2059.515 to
+  160.312 seconds, establish a real restart. However, Node and the frozen Python
+  reference retain exactly the same `boot_id`. An independent ctypes query also
+  returns that GUID. Replaying the captured pair through both unchanged clock
+  implementations yields an unavailable elapsed delta. Candidate/reference parity
+  does not establish reboot identity. The public summary retains results and
+  evidence hashes; the separate evidence archive retains the full diagnosis and
+  raw snapshots. That validation run changed neither production code nor TS-01 expectations.
+
+Applicable local verification has finished with the explicit failure above;
+this is not an all-pass acceptance. This record is limited to this Windows x64 host and its WSL environment. Other
+targets and GUI / popup gates remained outstanding at this historical checkpoint.
+TS-02 was VALIDATING, D01/D02/D04 were OPEN and TS-03 was NOT_STARTED; the current
+disposition is the 2026-10-14 Linux integration above.
+
+## Windows reboot identity correction
+
+The maintainer subsequently requested a fix for the failure above. Working Python
+clock sources and the TS probe implement [D02's v2 boot identity and legacy
+degradation rules](D02.md#windows-boot-identity-v2-correction). The [new fix record](validation.windows-boot-fix-20261012.json)
+is separate from the historical validation: failed receipts and the frozen TS-01
+oracle are retained, and the real reboot sample is a regression fixture. This
+correction neither releases a product nor starts TS-03. Physical revalidation
+and outstanding evidence for other platforms are recorded separately.
+
+The corrected S0 standby/resume check passes, with an OS event interval of about
+112.70 seconds. Both implementations retain boot sequence 1301 and pass
+suspend-aware elapsed/trusted-domain checks. A subsequent real reboot changes
+both Python and Node sequences from **1301 to 1302**. Cross-boot elapsed falls
+back to wall-clock difference with execution coverage degraded. Source/runtime
+hashes and OS startup events verify successfully; the Windows blocker is fixed
+and physically verified on this host.
+
+The corrected Python suite has 806 passes / 28 skips out of 834. The Windows
+probe has 27 passes / 8 skips; WSL has 33 passes / 2 skips. Installation and
+receipt checks pass. Another 600 render and 200 control samples satisfy the
+unchanged budgets. The original failure and the initial test failure involving
+an outdated mock remain preserved, without relabeling them as passing runs.
+
+## Windows to macOS to Linux handoff
+
+The [2026-10-13 handoff manifest](handoff.windows-20261013.json) pins the local
+implementation commit and Windows evidence archive hash. The two committed Windows
+JSON files are public summaries (schema 2). Full records, historical failures and
+tested source bytes are in the separate, untracked
+`dist/handoff/ts02-windows-20261013/windows-evidence.zip`. Its adjacent
+`verify_handoff.py` verifies the ZIP and its files with Python on any platform;
+it never executes archived code. Original receipts still identify their tested
+`7f2a418` base plus dirty worktree and source hashes; they are not relabeled as
+new runs of the subsequent local commits.
+
+Copy `.git`, every committed file and the entire
+`dist/handoff/ts02-windows-20261013/` directory. That directory also contains an
+offline Git bundle, final revision/checksum metadata and a macOS task handoff.
+Windows dependencies, environments, runtimes and generated directories remain
+platform-specific. Install the pinned native dependencies and rebuild on macOS.
+For a clean native checkout, clone the bundle into a new directory while retaining
+the original copied directory and evidence archive.
+
+Use a new macOS branch/output directory to validate this revision, recording host
+and process architecture, native APIs, real sleep/reboot, Terminal.app launch/focus,
+keys/resize/recovery and supported tmux popup behavior. The Windows power-check tool
+does not apply to macOS. Commit additional fixes and summaries separately; retain
+raw macOS evidence without overwriting Windows records or moving the TS-01 oracle.
+
+Linux then integrates the commits through Git, preserves both platforms' evidence,
+assesses any macOS changes against the Windows results, runs the updated full matrix,
+and finishes Linux GUI/popup and support-scope dispositions. Update TS-02/TS-03
+state only after the remaining foundational gates are closed.
+
+The [2026-10-14 macOS acceptance](MACOS-20261014.md) covers a macOS 14.5 x86_64 VMware guest:
+automatic checks, fixed budgets, human Terminal/popup and a real guest reboot have evidence;
+sleep was explicitly skipped by the maintainer. The POSIX host-probe cleanup fix, original incomplete
+attempts and supplements remain distinct. Physical-hardware and global gates stay open for Linux aggregation.

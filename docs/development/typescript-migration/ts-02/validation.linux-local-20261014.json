@@ -1,0 +1,948 @@
+{
+  "format_version": 1,
+  "date": "2026-10-14",
+  "timezone": "Asia/Shanghai",
+  "stage": "DONE",
+  "next_stage": "TS-03 NOT_STARTED",
+  "branch": "fbincon/ts-02-linux-acceptance",
+  "incoming_head": "31c0d8b9b25686eefde52b986d526ec0efd4429f",
+  "tested_implementation": "8a7369ecc78a1ed7086ada825216407b69969dd1",
+  "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "reference_fixtures_and_budget_unchanged": true,
+  "transfer_verification": {
+    "macos_files": 1459,
+    "windows_files": 895,
+    "status": "pass",
+    "historical_failures_preserved": true
+  },
+  "platform": {
+    "os": "Ubuntu 26.04.1 LTS",
+    "kernel": "7.0.0-38-generic",
+    "host_arch": "x86_64",
+    "node_process_arch": "x64",
+    "environment": "physical",
+    "virtualization_result": "none (exit 1)",
+    "desktop": "GNOME Wayland",
+    "mem_sleep": "[s2idle]"
+  },
+  "runtime": {
+    "python": "3.14.4",
+    "python_sha256": "52e0a13e60a981d8c4b6478be2ba5176f69da07948a056bf49cf6f077e30cb41",
+    "node": "v24.21.0",
+    "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+    "npm": "11.19.0"
+  },
+  "source_hashes": {
+    ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+    "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+    "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+    "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+    "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+    "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+    "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+    "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+    "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+    "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+    "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+    "scripts/__pycache__/mod-smoke.cpython-314.pyc": "e5a7a9c30b829d160f5642bfbceec15183fdc46156952144b6755f54dd52e62e",
+    "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+    "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+    "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+    "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+    "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+    "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+    "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+    "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+    "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+    "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+    "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+    "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+    "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+    "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+    "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+    "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+    "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+    "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+    "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+    "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+    "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+    "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+    "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+    "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+    "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+    "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+    "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+  },
+  "policy_sha256": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+  "tests": {
+    "python": {
+      "total": 856,
+      "pass": 847,
+      "skip": 9,
+      "fail": 0,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/python-tests.log",
+        "sha256": "cb85099fe4f642b7d2678609629db243e2584ef6b4f0ad4aa203e37cdecad072"
+      }
+    },
+    "native": {
+      "total": 35,
+      "pass": 33,
+      "skip": 2,
+      "fail": 0,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/native-01/evidence.json",
+        "sha256": "c11f34ba286bff554992573f50650b31eb485f8a74da984db0a93afd67bf1aa4"
+      },
+      "verified": true
+    },
+    "baseline": {
+      "cases": 161,
+      "status": "pass",
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/ts01-capture/receipt.json",
+        "sha256": "891a33262b6a4787d4c2148d001a7dea84ea05ec3462e0801d36d3432c045311"
+      },
+      "verification": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/ts01-verify.log",
+        "sha256": "f403c190f78864647fdccef8a57ac532b8ec024c71434d6a3205e14d51ccfffd"
+      }
+    },
+    "python_distribution": {
+      "status": "pass",
+      "wheel_entries": 217,
+      "sdist_entries": 836,
+      "build_receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/python-build.log",
+        "sha256": "42254ba38628ddf8adc236362476297e1cf1b9c524d402a4a18276af45a59811"
+      },
+      "artifacts": [
+        {
+          "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/python-dist/fbincon_claude_code_statusline-2.0.0-py3-none-any.whl",
+          "sha256": "c9a812f6d9a912d7e3d490a82255026ab11a831aa8874b1fce011f5bcfa8e132"
+        },
+        {
+          "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/python-dist/fbincon_claude_code_statusline-2.0.0.tar.gz",
+          "sha256": "82371837c5bdda8a43a4efe7ca14ee9c261d3c283ac48dc2be76dd37c99bedaa"
+        }
+      ]
+    }
+  },
+  "npm_installation": {
+    "prebuilt_native_loaded": true,
+    "lifecycle_scripts_disabled": true,
+    "path_excludes_python_and_compilers": true,
+    "outside_checkout": true,
+    "unicode_special_paths": true,
+    "resource_and_render_parity": true,
+    "tarball_sha256": "ce1370bd7f10239353d115b7c542c6edab5e9fe60a5b9995ef8e44446a12a462",
+    "npm_version": "11.19.0"
+  },
+  "mods": [
+    {
+      "host": "2.1.294 (Claude Code)",
+      "manifest_validation": [
+        "statusline-native",
+        "statusline-runtime"
+      ],
+      "real_process_api_commands": [
+        "runtime",
+        "ui"
+      ],
+      "model_calls": 0,
+      "credentials": "synthetic key; unreachable loopback API",
+      "temporary_mod_copies": true,
+      "state": "pass",
+      "cleanup_complete": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/mod-294/report.json",
+        "sha256": "5f635279d420e9c6277a53672b20400a2bf4eb83bbba99edef7436d67b6a5e03"
+      }
+    },
+    {
+      "host": "2.1.296 (Claude Code)",
+      "manifest_validation": [
+        "statusline-native",
+        "statusline-runtime"
+      ],
+      "real_process_api_commands": [
+        "runtime",
+        "ui"
+      ],
+      "model_calls": 0,
+      "credentials": "synthetic key; unreachable loopback API",
+      "temporary_mod_copies": true,
+      "state": "pass",
+      "cleanup_complete": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/mod-296/report.json",
+        "sha256": "5a2fa90390809f42314a2367fd0789aa0a3c59756c7937cbfebc6dc961587ea0"
+      }
+    }
+  ],
+  "human_terminal": {
+    "gnome-direct-01": {
+      "status": "pass",
+      "checks": {
+        "human_focus_and_visuals": true,
+        "restored_echo": true,
+        "arrows": true,
+        "unicode_input": true,
+        "ctrl_s": true,
+        "ctrl_c": true,
+        "exit_codes": true,
+        "termios_restored": true,
+        "nonce_tty_handshake": true,
+        "source_unchanged": true,
+        "small_and_large_resize": true
+      },
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-direct-01/manual-evidence.json",
+        "sha256": "dcbc09077b3eaaa0971de84bcad651c6cf54c1efa78bc8c54ed7c631683e33e0"
+      },
+      "source_receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-direct-01/source.json",
+        "sha256": "00d9eb8b47827eedb696b6ab2f8b0e254b6b13ecaa5704f17fd2f5cdac16d177"
+      },
+      "tested_commit": "8a7369ecc78a1ed7086ada825216407b69969dd1",
+      "source_hashes": {
+        "tools/ts02_linux_terminal_smoke.py": "fb50d7c60643151cbb057ffa4f143e6b0de4268cf7f26cdb60488ec4c7c56718",
+        "tools/ts02_macos_terminal_smoke.py": "79b42260e98d53962ef58f9c954433773191eb411b72384260af067ff364a59d",
+        "tools/migration/ts-02/dist/cli.js": "57ba54fa16c902020985e7356a22704ca9d2295f7ff8bbc72099f6519a42df73",
+        "tools/migration/ts-02/dist/launchers.js": "64e79cd5a8c32306dcd3707f0925c53e5731cddc1df6418fd6b64d639b183a9e",
+        "tools/migration/ts-02/dist/launch.js": "c3789516a3586f3955528383daf1b7e14ff76054a4fac69ed42cc0ea220f9aec",
+        "tools/migration/ts-02/dist/clocks.js": "4e618c9f6f2171d0dfacf9ed6cf90506450969fac9e5394de5dde88e2272ecc7",
+        "tools/migration/ts-02/dist/native.js": "6b473d6e3f825ffe719f37fdf336b6b92d6ddf13f23083b958d00a98a1bd7363",
+        "tools/migration/ts-02/dist/terminal.js": "4f119b54cece1857559bace7d880b2edc334cc5f4e5a81fe2ec0c8039ba6f9f7",
+        "tools/migration/ts-02/dist/generated/unicode.js": "c1bb258e3e196709426f75a7c2b603e94e86e0c988dec8d15f05b1a5b4bcf669",
+        "tools/migration/ts-02/dist/generated/generated-unicode.js": "93fa1f50b4343c482793748a987385d2ed48846f1d9fb39853452601c095f61c"
+      }
+    },
+    "gnome-popup-01": {
+      "status": "fail",
+      "checks": {
+        "human_focus_and_visuals": true,
+        "restored_echo": true,
+        "arrows": true,
+        "unicode_input": true,
+        "ctrl_s": true,
+        "ctrl_c": true,
+        "exit_codes": true,
+        "termios_restored": true,
+        "nonce_tty_handshake": true,
+        "source_unchanged": true,
+        "popup_closed_to_parent": false,
+        "popup_visual": true
+      },
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-popup-01/manual-evidence.json",
+        "sha256": "aaa0a3792306084257b734203b44dd7370dbfc3d2ca720fcd37a1f3050b8b655"
+      },
+      "source_receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-popup-01/source.json",
+        "sha256": "00d9eb8b47827eedb696b6ab2f8b0e254b6b13ecaa5704f17fd2f5cdac16d177"
+      },
+      "tested_commit": "8a7369ecc78a1ed7086ada825216407b69969dd1",
+      "source_hashes": {
+        "tools/ts02_linux_terminal_smoke.py": "fb50d7c60643151cbb057ffa4f143e6b0de4268cf7f26cdb60488ec4c7c56718",
+        "tools/ts02_macos_terminal_smoke.py": "79b42260e98d53962ef58f9c954433773191eb411b72384260af067ff364a59d",
+        "tools/migration/ts-02/dist/cli.js": "57ba54fa16c902020985e7356a22704ca9d2295f7ff8bbc72099f6519a42df73",
+        "tools/migration/ts-02/dist/launchers.js": "64e79cd5a8c32306dcd3707f0925c53e5731cddc1df6418fd6b64d639b183a9e",
+        "tools/migration/ts-02/dist/launch.js": "c3789516a3586f3955528383daf1b7e14ff76054a4fac69ed42cc0ea220f9aec",
+        "tools/migration/ts-02/dist/clocks.js": "4e618c9f6f2171d0dfacf9ed6cf90506450969fac9e5394de5dde88e2272ecc7",
+        "tools/migration/ts-02/dist/native.js": "6b473d6e3f825ffe719f37fdf336b6b92d6ddf13f23083b958d00a98a1bd7363",
+        "tools/migration/ts-02/dist/terminal.js": "4f119b54cece1857559bace7d880b2edc334cc5f4e5a81fe2ec0c8039ba6f9f7",
+        "tools/migration/ts-02/dist/generated/unicode.js": "c1bb258e3e196709426f75a7c2b603e94e86e0c988dec8d15f05b1a5b4bcf669",
+        "tools/migration/ts-02/dist/generated/generated-unicode.js": "93fa1f50b4343c482793748a987385d2ed48846f1d9fb39853452601c095f61c"
+      }
+    },
+    "gnome-popup-02": {
+      "status": "pass",
+      "checks": {
+        "human_focus_and_visuals": true,
+        "restored_echo": true,
+        "arrows": true,
+        "unicode_input": true,
+        "ctrl_s": true,
+        "ctrl_c": true,
+        "exit_codes": true,
+        "termios_restored": true,
+        "nonce_tty_handshake": true,
+        "source_unchanged": true,
+        "popup_closed_to_parent": true,
+        "popup_visual": true
+      },
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-popup-02/manual-evidence.json",
+        "sha256": "96d8b2e50a0e0b0dd6ee439eacab5c2343e0e46dc79ea0addcd719ca3f2bb8ef"
+      },
+      "source_receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/gnome-popup-02/source.json",
+        "sha256": "00d9eb8b47827eedb696b6ab2f8b0e254b6b13ecaa5704f17fd2f5cdac16d177"
+      },
+      "tested_commit": "8a7369ecc78a1ed7086ada825216407b69969dd1",
+      "source_hashes": {
+        "tools/ts02_linux_terminal_smoke.py": "fb50d7c60643151cbb057ffa4f143e6b0de4268cf7f26cdb60488ec4c7c56718",
+        "tools/ts02_macos_terminal_smoke.py": "79b42260e98d53962ef58f9c954433773191eb411b72384260af067ff364a59d",
+        "tools/migration/ts-02/dist/cli.js": "57ba54fa16c902020985e7356a22704ca9d2295f7ff8bbc72099f6519a42df73",
+        "tools/migration/ts-02/dist/launchers.js": "64e79cd5a8c32306dcd3707f0925c53e5731cddc1df6418fd6b64d639b183a9e",
+        "tools/migration/ts-02/dist/launch.js": "c3789516a3586f3955528383daf1b7e14ff76054a4fac69ed42cc0ea220f9aec",
+        "tools/migration/ts-02/dist/clocks.js": "4e618c9f6f2171d0dfacf9ed6cf90506450969fac9e5394de5dde88e2272ecc7",
+        "tools/migration/ts-02/dist/native.js": "6b473d6e3f825ffe719f37fdf336b6b92d6ddf13f23083b958d00a98a1bd7363",
+        "tools/migration/ts-02/dist/terminal.js": "4f119b54cece1857559bace7d880b2edc334cc5f4e5a81fe2ec0c8039ba6f9f7",
+        "tools/migration/ts-02/dist/generated/unicode.js": "c1bb258e3e196709426f75a7c2b603e94e86e0c988dec8d15f05b1a5b4bcf669",
+        "tools/migration/ts-02/dist/generated/generated-unicode.js": "93fa1f50b4343c482793748a987385d2ed48846f1d9fb39853452601c095f61c"
+      }
+    }
+  },
+  "power": {
+    "no-power-control": {
+      "status": "fail",
+      "kind": "suspend",
+      "checks": {
+        "action_confirmed": true,
+        "source_unchanged": true,
+        "runtime_unchanged": true,
+        "event_collection_ok": true,
+        "python_stable_boot": true,
+        "python_includes_sleep": true,
+        "python_elapsed": true,
+        "node_stable_boot": true,
+        "node_includes_sleep": true,
+        "node_elapsed": true,
+        "reference_stable_boot": true,
+        "reference_includes_sleep": true,
+        "kernel_suspend_resume_pair": false,
+        "monotonic_excluded_sleep": false
+      },
+      "sleep_intervals_seconds": [],
+      "monotonic_excluded_seconds": -1.298e-06,
+      "scope": "this physical Linux host",
+      "physical_host_coverage": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/no-power-control/evidence.json",
+        "sha256": "1dbc1145319d212895f7db6415bdd46868f42fa87eb2cbf473bc486eb3f53242"
+      },
+      "negative_control": true
+    },
+    "physical-suspend-01": {
+      "status": "pass",
+      "kind": "suspend",
+      "checks": {
+        "action_confirmed": true,
+        "source_unchanged": true,
+        "runtime_unchanged": true,
+        "event_collection_ok": true,
+        "python_stable_boot": true,
+        "python_includes_sleep": true,
+        "python_elapsed": true,
+        "node_stable_boot": true,
+        "node_includes_sleep": true,
+        "node_elapsed": true,
+        "reference_stable_boot": true,
+        "reference_includes_sleep": true,
+        "kernel_suspend_resume_pair": true,
+        "monotonic_excluded_sleep": true
+      },
+      "sleep_intervals_seconds": [
+        36.123504
+      ],
+      "monotonic_excluded_seconds": 35.283545738,
+      "scope": "this physical Linux host",
+      "physical_host_coverage": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/physical-suspend-01/evidence.json",
+        "sha256": "b3f030c92a3190ad261defd616577ed75b000dcdee6af620e56d46ee097ae4f2"
+      },
+      "negative_control": false
+    },
+    "physical-reboot-01": {
+      "status": "pass",
+      "kind": "reboot",
+      "checks": {
+        "action_confirmed": true,
+        "source_unchanged": true,
+        "runtime_unchanged": true,
+        "event_collection_ok": true,
+        "python_new_boot": true,
+        "python_elapsed": true,
+        "node_new_boot": true,
+        "node_elapsed": true,
+        "reference_new_boot": true,
+        "proc_boot_changed": true,
+        "proc_boot_time_in_window": true,
+        "journal_new_boot": true
+      },
+      "deltas_ns": {
+        "python": {
+          "wall_ns": 136760861804,
+          "boot_ns": -4812212460882
+        },
+        "node": {
+          "wall_ns": 136853611869,
+          "boot_ns": -4812119707677
+        },
+        "reference": {
+          "wall_ns": 136532460228,
+          "boot_ns": -4812440857721
+        }
+      },
+      "replays": {
+        "python": {
+          "delta_ns": 136760861804,
+          "trusted": false
+        },
+        "node": {
+          "delta_ns": 136853611869,
+          "trusted": false
+        }
+      },
+      "scope": "this physical Linux host",
+      "physical_host_coverage": true,
+      "receipt": {
+        "path": "dist/validation/typescript-migration/ts-02/linux-local-20261014/physical-reboot-01/evidence.json",
+        "sha256": "ca3c3966aeeb25c6ae20a9c24ebaa53a3b513932eb4c8bae99b6f4c8a576c6aa"
+      },
+      "tested_commit": "0d98b6e0ce995a876e5f82935f51fc9202d71c67",
+      "source_hashes": {
+        "tools/linux_clock_smoke.py": "5e070d626079ffc2194de78d5d0ea677c28885265ab9a0880684e06069d8328b",
+        "tools/macos_clock_smoke.py": "411974d194cbea77982fec54c2fa2cb63573fb92e93b14540334f3a5dfaa4c63",
+        "src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+        "src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+        "src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+        "src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e",
+        "tools/migration/ts-02/package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+        "tools/migration/ts-02/runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+        "tools/migration/ts-02/policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+        "tools/migration/ts-02/scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+        "tools/migration/ts-02/src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+        "tools/migration/ts-02/src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+        "tools/migration/ts-02/src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+        "tools/migration/ts-02/src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+        "tools/migration/ts-02/src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+        "tools/migration/ts-02/dist/cli.js": "57ba54fa16c902020985e7356a22704ca9d2295f7ff8bbc72099f6519a42df73",
+        "tools/migration/ts-02/dist/clocks.js": "4e618c9f6f2171d0dfacf9ed6cf90506450969fac9e5394de5dde88e2272ecc7",
+        "tools/migration/ts-02/dist/native.js": "6b473d6e3f825ffe719f37fdf336b6b92d6ddf13f23083b958d00a98a1bd7363",
+        "tools/migration/ts-02/dist/json.js": "6dd3a01e4efc6a2ed3008f00c5d4199dd676dc00c7556e3aa5940b33f45afd61",
+        "tools/migration/ts-02/dist/context.js": "f18da4c1dd7a84625baccd6a51df85d61333bafd28b909f030418ad1d88dd9f3"
+      },
+      "automatic_collector": "temporary systemd user oneshot; successful and removed after verification"
+    }
+  },
+  "approval": {
+    "date": "2026-10-14",
+    "source": "explicit maintainer reply in Linux integration chat",
+    "choice": "同意，缺项延后到发布前（推荐）",
+    "stage_gate": "integrated CI and this physical Linux power/desktop evidence",
+    "support_promises_unchanged": true
+  },
+  "deferred_until_before_release": [
+    "physical macOS sleep/resume",
+    "physical macOS 14 Intel desktop/power",
+    "Windows 10 desktop",
+    "WSL desktop focus/launch/popup",
+    "remaining target-specific physical power and human visual checks",
+    "selected host exact declarations; existing 2.1.296 declaration generation gap retained"
+  ],
+  "ci": {
+    "status": "pass",
+    "pull_request": "https://github.com/fbincon/claude-code-statusline/pull/77",
+    "head": "0d98b6e0ce995a876e5f82935f51fc9202d71c67",
+    "merge_ref": "63085c2a503e26bb1a64b5e4f5a83695ca882e37",
+    "base": "7f2a41855f711c8ad6dfca31739462b75531af2b",
+    "runs": [
+      {
+        "id": 38520933696,
+        "name": "TypeScript platform probes",
+        "status": "success",
+        "jobs": 8,
+        "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38520933696"
+      },
+      {
+        "id": 38520933727,
+        "name": "CI",
+        "status": "success",
+        "jobs": 14,
+        "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38520933727"
+      },
+      {
+        "id": 38520933878,
+        "name": "Native Mod",
+        "status": "success",
+        "jobs": 13,
+        "url": "https://github.com/fbincon/claude-code-statusline/actions/runs/38520933878"
+      }
+    ],
+    "cancelled_duplicate_push_runs": [
+      38520886933,
+      38520886940,
+      38520886953
+    ],
+    "native_artifacts": [
+      {
+        "id": 11874042177,
+        "name": "ts02-windows-11-arm-x64",
+        "zip_sha256": "cee2c09d5229a7ccdcce319b92520c0d3ff771c74d26ae350fc3ec71a6af810c",
+        "receipt_sha256": "0b09ad6e4dd0b3f467a988bc71cc8982049689955491118857e6b446ca62725f",
+        "host_arch": "arm64",
+        "process_arch": "x64",
+        "architecture_source": "IsWow64Process2",
+        "tests": {
+          "tests": 35,
+          "pass": 27,
+          "fail": 0,
+          "skipped": 8
+        },
+        "source_hashes": {
+          ".gitignore": "9048336df01ba9defb5daea7b35cfc33eaddb0ff7defc6315dce60b8bec80876",
+          "fixtures/model.json": "0b7536bf8e1eae674d95d3426af620360167c497b24d981a7322f25c87641b86",
+          "fixtures/render.json": "b61e9dfc0aa788fa3e119efa0902c5f84efb053bfe4d98713a9fd6e98e6ac261",
+          "fixtures/windows-reboot.json": "6318b3127c10485abda54262a675a90d6cea70731d84044ce48b9be4d463bdef",
+          "LICENSE": "7dd6de24c51ba22433b812216f253040de8da05992ac00afd8a0985b7f74d851",
+          "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+          "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+          "package-lock.json": "a73f5d83b6a9d85760d711683431fef682c6bd6e83a22dfe0b66639b0be13405",
+          "package.json": "1b5f54621e8c47feb5e428c88ed3cd6ddcc1376358e850633341f350ef81b0bf",
+          "policy.json": "4039fb5f5c0f999607c47d737a032cd169bebfd1ea61f1aba79a8b41b23cdcb8",
+          "runtime-lock.json": "b0c29b821601dbcfdf3735b7642232942fc5ecfd79cccb5b810763cb9901003b",
+          "scripts/current-clock.py": "4769a1d3b894199711af23fe0b16477028de89d900313934d190e4c846b99ce0",
+          "scripts/mod-smoke.py": "215c8b8aa684a218e861b16def583d229c689729de5ea6e28f6131a06f05fa83",
+          "scripts/oracle.py": "d72dd2c6587e7ddb0af0d95f760404910c435e0e2047af3d255f1fc24ce987d3",
+          "scripts/prepare.mjs": "06a61f6247074eced42c354a35080cc8d2d083cc8af5fe5accb9c1495bf68a46",
+          "src/architecture.ts": "f98fdc902748d4cc06354b93450c82d96be9b7cd65f47a4fcf0d9a50a9f431ad",
+          "src/benchmark.ts": "643d49655a4c4349a49bb4c3ddb6b255809e1efb988c7d86aa2919ab8747a1a6",
+          "src/cli.ts": "bd3bdceb5fb434b1301f61b6a1ffaf1267b317e5031a5dae284c80da76b99a41",
+          "src/clocks.ts": "beb81964ff5031283ae7d0f4a309838e089d0e0bd98ddc6bd712d61fb6322572",
+          "src/context.ts": "df4159754a911f5f273da261ec2ea4a1f0325923ae5dd51bc9e5d6d407d9ccb7",
+          "src/evidence.ts": "27d41e84eb11c73059ccfedbd60d4a9a8f861c7476f627f17ce555c659519db9",
+          "src/files.ts": "f176b493480553eb2e74121cc6b4afaae9a29b8b3b23fea6ff38adf8c3075a2e",
+          "src/json.ts": "242a5defafc3e0cdfe92da1c7b5905137985a4524b2b7851005b67271bfccb9b",
+          "src/launch.ts": "fc3ca513dc3e8478ae9acd6960d745611e0908228111273be44fa11a23db992b",
+          "src/launchers.ts": "e2402989d63ccf842356ee1e57cd87b82c7541a1871116bb064524846a0b263e",
+          "src/native.ts": "f7b63ce15dbe6b52fc0328f2e312d7e0fbe0ebd210861b3d32d17ccfa25af85a",
+          "src/probe.ts": "70a21f0b470fc235a21be302897279931357995ad3d77b78605f92ab17576055",
+          "src/render.ts": "4ae51cef703a0bd4d010c67791f84c63306c05624e759e1ed121f661179e5478",
+          "src/terminal.ts": "d49d0a5ce0b6ed8b76d4f09412dd53b4638d60987fb68bc20f3422596304ca7a",
+          "src/tests/evidence.test.ts": "6c2263b874a4bb9d676a789627cdba74e248f97ec53a86aae033bb509a19922f",
+          "src/tests/launchers.test.ts": "0b872f8956eded0ea80cf02bbe98711de41ad90df53848104d0bd07dc7cafa29",
+          "src/tests/platform.test.ts": "4f759c553c0ff9503b19b2b0441fecba2146cc3e1a39ce81342a0c679b251853",
+          "src/tests/terminal.test.ts": "67e5449300c01c011adca9f3d4c4cfdba86d89e310ad83502c9caefd414533f1",
+          "tsconfig.json": "cd8c3959df017ad2cd53bb817bc833b20ef86ffff2db8ee5d18515b5aaac3255",
+          "@repository/src/claude_statusline/platforms/clocks.py": "ac20fa1e6e876165bfacdf975a61bcc55972b59a7cd31c2692771fa4bbe1041a",
+          "@repository/src/claude_statusline/platforms/environment.py": "abdc2d296de7b8cb397dbf49f28dced1c6e9f519c10d38caeef7886e80c14c31",
+          "@repository/src/claude_statusline/platforms/processes.py": "4f7d9ff86f92a12783624eaf156d9bbe84bfd048ecb6189738c751a43823ef76",
+          "@repository/src/claude_statusline/runtime/timing/clock.py": "cbbb6eba151340e1ba4b5e2598c775fac875dac7d909ddd7dc900e0ca5cd0678"
+        },
+        "npm_tarball_sha256": "aa836958faf9766a7057fa5d7bf9571479293a59fd97be4368a415abf531060f"
+      },
+      {
+        "id": 11873924011,
+        "name": "ts02-macos-15-intel-x64",
+        "zip_sha256": "ca31c2eac35231dc11ae0adb4e3f530b296782fc81b2d9547a19e011d1cbc8f4",
+        "receipt_sha256": "5a00e5f3672e4e775bf514cd58824c7c60021fbc089113238f2b66bb0f1f1baf",
+        "host_arch": "x64",
+        "process_arch": "x64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 35,
+          "pass": 33,
+          "fail": 0,
+          "skipped": 2
+        },
+        "source_hashes": {
+          ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+          "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+          "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+          "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+          "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+          "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+          "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+          "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+          "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+          "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+          "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+          "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+          "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+          "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+          "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+          "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+          "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+          "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+          "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+          "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+          "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+          "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+          "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+          "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+          "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+          "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+          "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+          "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+          "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+          "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+          "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+          "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+          "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+          "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+          "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+          "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+          "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+          "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+        },
+        "npm_tarball_sha256": "470a7147d5d811f47499808ab0df71cf17e824653a37ada7dad3f98cd956584b"
+      },
+      {
+        "id": 11873922090,
+        "name": "ts02-ubuntu-24.04-x64",
+        "zip_sha256": "0fecbe39d18b684d2b8fc77ded4011544a49d8f7178d65878eb69eff0b4b88ff",
+        "receipt_sha256": "4756973f0af201c8bfdb76b095db8c88bdc62c78788d85cc3764e80474a22c7c",
+        "host_arch": "x64",
+        "process_arch": "x64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 35,
+          "pass": 33,
+          "fail": 0,
+          "skipped": 2
+        },
+        "source_hashes": {
+          ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+          "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+          "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+          "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+          "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+          "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+          "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+          "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+          "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+          "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+          "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+          "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+          "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+          "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+          "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+          "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+          "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+          "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+          "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+          "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+          "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+          "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+          "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+          "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+          "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+          "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+          "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+          "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+          "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+          "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+          "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+          "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+          "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+          "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+          "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+          "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+          "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+          "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+        },
+        "npm_tarball_sha256": "470a7147d5d811f47499808ab0df71cf17e824653a37ada7dad3f98cd956584b"
+      },
+      {
+        "id": 11873703388,
+        "name": "ts02-macos-14-arm64",
+        "zip_sha256": "821186748170569f7e656934e7879b74b4c2181b1dbf12cee007355a9df60324",
+        "receipt_sha256": "03ec337a22f2180f59d22da3822e732f579a0c5549e1521ac7666bebcd78f945",
+        "host_arch": "arm64",
+        "process_arch": "arm64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 35,
+          "pass": 33,
+          "fail": 0,
+          "skipped": 2
+        },
+        "source_hashes": {
+          ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+          "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+          "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+          "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+          "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+          "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+          "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+          "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+          "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+          "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+          "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+          "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+          "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+          "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+          "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+          "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+          "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+          "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+          "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+          "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+          "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+          "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+          "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+          "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+          "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+          "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+          "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+          "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+          "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+          "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+          "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+          "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+          "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+          "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+          "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+          "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+          "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+          "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+        },
+        "npm_tarball_sha256": "470a7147d5d811f47499808ab0df71cf17e824653a37ada7dad3f98cd956584b"
+      },
+      {
+        "id": 11873553757,
+        "name": "ts02-macos-26-arm64",
+        "zip_sha256": "8828ab1c8df32eb50e0fd8c1700006249b58d57ea803937c3f327d3dcaf2cf77",
+        "receipt_sha256": "a7d1e389836dac11590154c21cd09825bff96f9b99a1d216d3eb6533e64309e6",
+        "host_arch": "arm64",
+        "process_arch": "arm64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 35,
+          "pass": 33,
+          "fail": 0,
+          "skipped": 2
+        },
+        "source_hashes": {
+          ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+          "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+          "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+          "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+          "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+          "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+          "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+          "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+          "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+          "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+          "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+          "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+          "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+          "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+          "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+          "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+          "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+          "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+          "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+          "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+          "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+          "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+          "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+          "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+          "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+          "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+          "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+          "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+          "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+          "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+          "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+          "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+          "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+          "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+          "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+          "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+          "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+          "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+        },
+        "npm_tarball_sha256": "470a7147d5d811f47499808ab0df71cf17e824653a37ada7dad3f98cd956584b"
+      },
+      {
+        "id": 11873488111,
+        "name": "ts02-macos-15-arm64",
+        "zip_sha256": "9eb98a6559efbcd429e3549ca610c2458d2fbbc2ce89818ca69674b3620848a8",
+        "receipt_sha256": "e4e3ff6fee7b49a6f3f6929195c208b5e8124407253c7869320acb2ecab1df62",
+        "host_arch": "arm64",
+        "process_arch": "arm64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 35,
+          "pass": 33,
+          "fail": 0,
+          "skipped": 2
+        },
+        "source_hashes": {
+          ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+          "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+          "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+          "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+          "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+          "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+          "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+          "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+          "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+          "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+          "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+          "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+          "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+          "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+          "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+          "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+          "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+          "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+          "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+          "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+          "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+          "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+          "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+          "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+          "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+          "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+          "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+          "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+          "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+          "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+          "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+          "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+          "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+          "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+          "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+          "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+          "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+          "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+        },
+        "npm_tarball_sha256": "470a7147d5d811f47499808ab0df71cf17e824653a37ada7dad3f98cd956584b"
+      },
+      {
+        "id": 11873423498,
+        "name": "ts02-macos-26-intel-x64",
+        "zip_sha256": "a46cddd2250fed26b819531a29ce1652e7d2de8212ff4ffdda9c00082df922ed",
+        "receipt_sha256": "7bb4c887bddd3d7a7e973961530bbe322f66b0ad4091063fe8a5ca4c3307afc4",
+        "host_arch": "x64",
+        "process_arch": "x64",
+        "architecture_source": "os.machine",
+        "tests": {
+          "tests": 35,
+          "pass": 33,
+          "fail": 0,
+          "skipped": 2
+        },
+        "source_hashes": {
+          ".gitignore": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76",
+          "LICENSE": "5aa727f63301e18a6e934e95b42f9a2d98bf4c66a759f3bf2887b645432f86ce",
+          "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+          "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+          "fixtures/model.json": "bf7592d70318b536e73f8fd2f128fd209cb3b352d9a7b7959ad49163308e012f",
+          "fixtures/render.json": "d689262b5afdaed188e7baa782f81d5a618abbe9354dd0640e3aad5cf65f89d7",
+          "fixtures/windows-reboot.json": "f2d0f46a215cd76dc6729b5c5206bd8ec63ca3f6f27fa0cfb91b3a7a289fc9b4",
+          "package-lock.json": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef",
+          "package.json": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4",
+          "policy.json": "dddad6e387e36c880f04449342ccbdf94d99f97c9055aadc5d1f148e9eee51b9",
+          "runtime-lock.json": "a53fc21d3fae07319c4c712c692fb0c4b32cb8a07c635aaecf3ee8f22ee25805",
+          "scripts/current-clock.py": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc",
+          "scripts/mod-smoke.py": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4",
+          "scripts/oracle.py": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e",
+          "scripts/prepare.mjs": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9",
+          "src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+          "src/benchmark.ts": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f",
+          "src/cli.ts": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b",
+          "src/clocks.ts": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553",
+          "src/context.ts": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de",
+          "src/evidence.ts": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631",
+          "src/files.ts": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7",
+          "src/json.ts": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106",
+          "src/launch.ts": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976",
+          "src/launchers.ts": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204",
+          "src/native.ts": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086",
+          "src/probe.ts": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834",
+          "src/render.ts": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80",
+          "src/terminal.ts": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad",
+          "src/tests/evidence.test.ts": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c",
+          "src/tests/launchers.test.ts": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762",
+          "src/tests/platform.test.ts": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc",
+          "src/tests/terminal.test.ts": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2",
+          "tsconfig.json": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d",
+          "@repository/src/claude_statusline/platforms/clocks.py": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e",
+          "@repository/src/claude_statusline/platforms/environment.py": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa",
+          "@repository/src/claude_statusline/platforms/processes.py": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0",
+          "@repository/src/claude_statusline/runtime/timing/clock.py": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+        },
+        "npm_tarball_sha256": "470a7147d5d811f47499808ab0df71cf17e824653a37ada7dad3f98cd956584b"
+      },
+      {
+        "id": 11873218741,
+        "name": "ts02-windows-2025-x64",
+        "zip_sha256": "a977a55b67b7d7a48fec28e42fc878beefb0625c496ab08d63705ce932cc9a36",
+        "receipt_sha256": "5355a6b28b99929559e8fd10e0fb17a55af03fd150f412a25c14e89eaf1045a5",
+        "host_arch": "x64",
+        "process_arch": "x64",
+        "architecture_source": "IsWow64Process2",
+        "tests": {
+          "tests": 35,
+          "pass": 27,
+          "fail": 0,
+          "skipped": 8
+        },
+        "source_hashes": {
+          ".gitignore": "9048336df01ba9defb5daea7b35cfc33eaddb0ff7defc6315dce60b8bec80876",
+          "fixtures/model.json": "0b7536bf8e1eae674d95d3426af620360167c497b24d981a7322f25c87641b86",
+          "fixtures/render.json": "b61e9dfc0aa788fa3e119efa0902c5f84efb053bfe4d98713a9fd6e98e6ac261",
+          "fixtures/windows-reboot.json": "6318b3127c10485abda54262a675a90d6cea70731d84044ce48b9be4d463bdef",
+          "LICENSE": "7dd6de24c51ba22433b812216f253040de8da05992ac00afd8a0985b7f74d851",
+          "LICENSE-Unicode.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+          "LICENSE-Wcwidth.txt": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a",
+          "package-lock.json": "a73f5d83b6a9d85760d711683431fef682c6bd6e83a22dfe0b66639b0be13405",
+          "package.json": "1b5f54621e8c47feb5e428c88ed3cd6ddcc1376358e850633341f350ef81b0bf",
+          "policy.json": "4039fb5f5c0f999607c47d737a032cd169bebfd1ea61f1aba79a8b41b23cdcb8",
+          "runtime-lock.json": "b0c29b821601dbcfdf3735b7642232942fc5ecfd79cccb5b810763cb9901003b",
+          "scripts/current-clock.py": "4769a1d3b894199711af23fe0b16477028de89d900313934d190e4c846b99ce0",
+          "scripts/mod-smoke.py": "215c8b8aa684a218e861b16def583d229c689729de5ea6e28f6131a06f05fa83",
+          "scripts/oracle.py": "d72dd2c6587e7ddb0af0d95f760404910c435e0e2047af3d255f1fc24ce987d3",
+          "scripts/prepare.mjs": "06a61f6247074eced42c354a35080cc8d2d083cc8af5fe5accb9c1495bf68a46",
+          "src/architecture.ts": "f98fdc902748d4cc06354b93450c82d96be9b7cd65f47a4fcf0d9a50a9f431ad",
+          "src/benchmark.ts": "643d49655a4c4349a49bb4c3ddb6b255809e1efb988c7d86aa2919ab8747a1a6",
+          "src/cli.ts": "bd3bdceb5fb434b1301f61b6a1ffaf1267b317e5031a5dae284c80da76b99a41",
+          "src/clocks.ts": "beb81964ff5031283ae7d0f4a309838e089d0e0bd98ddc6bd712d61fb6322572",
+          "src/context.ts": "df4159754a911f5f273da261ec2ea4a1f0325923ae5dd51bc9e5d6d407d9ccb7",
+          "src/evidence.ts": "27d41e84eb11c73059ccfedbd60d4a9a8f861c7476f627f17ce555c659519db9",
+          "src/files.ts": "f176b493480553eb2e74121cc6b4afaae9a29b8b3b23fea6ff38adf8c3075a2e",
+          "src/json.ts": "242a5defafc3e0cdfe92da1c7b5905137985a4524b2b7851005b67271bfccb9b",
+          "src/launch.ts": "fc3ca513dc3e8478ae9acd6960d745611e0908228111273be44fa11a23db992b",
+          "src/launchers.ts": "e2402989d63ccf842356ee1e57cd87b82c7541a1871116bb064524846a0b263e",
+          "src/native.ts": "f7b63ce15dbe6b52fc0328f2e312d7e0fbe0ebd210861b3d32d17ccfa25af85a",
+          "src/probe.ts": "70a21f0b470fc235a21be302897279931357995ad3d77b78605f92ab17576055",
+          "src/render.ts": "4ae51cef703a0bd4d010c67791f84c63306c05624e759e1ed121f661179e5478",
+          "src/terminal.ts": "d49d0a5ce0b6ed8b76d4f09412dd53b4638d60987fb68bc20f3422596304ca7a",
+          "src/tests/evidence.test.ts": "6c2263b874a4bb9d676a789627cdba74e248f97ec53a86aae033bb509a19922f",
+          "src/tests/launchers.test.ts": "0b872f8956eded0ea80cf02bbe98711de41ad90df53848104d0bd07dc7cafa29",
+          "src/tests/platform.test.ts": "4f759c553c0ff9503b19b2b0441fecba2146cc3e1a39ce81342a0c679b251853",
+          "src/tests/terminal.test.ts": "67e5449300c01c011adca9f3d4c4cfdba86d89e310ad83502c9caefd414533f1",
+          "tsconfig.json": "cd8c3959df017ad2cd53bb817bc833b20ef86ffff2db8ee5d18515b5aaac3255",
+          "@repository/src/claude_statusline/platforms/clocks.py": "ac20fa1e6e876165bfacdf975a61bcc55972b59a7cd31c2692771fa4bbe1041a",
+          "@repository/src/claude_statusline/platforms/environment.py": "abdc2d296de7b8cb397dbf49f28dced1c6e9f519c10d38caeef7886e80c14c31",
+          "@repository/src/claude_statusline/platforms/processes.py": "4f7d9ff86f92a12783624eaf156d9bbe84bfd048ecb6189738c751a43823ef76",
+          "@repository/src/claude_statusline/runtime/timing/clock.py": "cbbb6eba151340e1ba4b5e2598c775fac875dac7d909ddd7dc900e0ca5cd0678"
+        },
+        "npm_tarball_sha256": "aa836958faf9766a7057fa5d7bf9571479293a59fd97be4368a415abf531060f"
+      }
+    ],
+    "final_head_gate": "Final documentation head must pass before merge; recorded in PR #77."
+  },
+  "limitations": [
+    "No macOS sleep pass inferred from the VMware guest.",
+    "s2idle does not establish S3/hibernation.",
+    "Wayland focus is human confirmation.",
+    "Full migration performance remains unmeasured.",
+    "Windows legacy boot identity correction is intentional and does not rewrite TS-01."
+  ],
+  "decisions": {
+    "D01": "DECIDED",
+    "D02": "DECIDED",
+    "D03": "DECIDED",
+    "D04": "DECIDED",
+    "D05": "DECIDED",
+    "D06": "DECIDED"
+  }
+}
