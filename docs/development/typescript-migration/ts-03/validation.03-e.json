@@ -486,6 +486,11 @@
       "command": "python tools/generate_unicode.py --check",
       "initial_exit_code": 1,
       "reason": "Read-only checker still expected eager TS table arrays after the generator adopted lazy accessors. Checker updated; check and its two regression tests passed."
+    },
+    {
+      "command": "Exact CI artifact source-byte verification",
+      "initial_passed": false,
+      "reason": "Three newly included Mod/checker paths converted to CRLF on both Windows targets. Exact LF-to-CRLF conversion proven for all six differences. Pinning LF and requiring a fresh full PR CI run; no merge at the failed head."
     }
   ],
   "limitations": [
@@ -497,5 +502,24 @@
   "ci": {
     "status": "pending",
     "required": "43 PR checks and eight exact source/runtime receipts before head-guarded merge and explicit main synchronization"
+  },
+  "initial_ci_source_check": {
+    "head": "3acb7fbfa72893ad5680959e6cfb4c5b6fdeb47b",
+    "tested_merge": "672cf1546e3c86b81247c80a86b68a9718daeab3",
+    "strict_passed": false,
+    "windows_differences": {
+      "ts03-windows-11-arm-x64": [
+        "mods/statusline-native/lib/generated-unicode.ts",
+        "mods/statusline-native/lib/unicode.ts",
+        "tools/generate_unicode.py"
+      ],
+      "ts03-windows-2025-x64": [
+        "mods/statusline-native/lib/generated-unicode.ts",
+        "mods/statusline-native/lib/unicode.ts",
+        "tools/generate_unicode.py"
+      ]
+    },
+    "all_six_match_exact_lf_to_crlf_conversion": true,
+    "resolution": "Pin these source paths to LF and rerun all PR checks before merge."
   }
 }
