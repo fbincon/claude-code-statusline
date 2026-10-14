@@ -14,3 +14,22 @@ export function fixed(value: number, places: number): string {
   const digits = String(rounded).padStart(places + 1, '0');
   return (negative ? '-' : '') + (places ? digits.slice(0, -places) + '.' + digits.slice(-places) : digits);
 }
+
+/** Correctly rounded integer true division without an intermediate float cast. */
+export function divideIntegers(numerator: bigint, denominator: bigint): number {
+  if (denominator === 0n) throw new RangeError('division by zero');
+  const negative = (numerator < 0n) !== (denominator < 0n);
+  const n = numerator < 0n ? -numerator : numerator, d = denominator < 0n ? -denominator : denominator;
+  if (n === 0n) return negative ? -0 : 0;
+  let exponent = n.toString(2).length - d.toString(2).length;
+  if (exponent >= 0 ? n < d << BigInt(exponent) : n << BigInt(-exponent) < d) exponent--;
+  if (exponent > 1023) throw new RangeError('integer division result too large for a float');
+  const shift = exponent < -1022 ? 1074 : 52 - exponent;
+  const top = shift >= 0 ? n << BigInt(shift) : n, bottom = shift >= 0 ? d : d << BigInt(-shift);
+  let quotient = top / bottom;
+  const remainder = top % bottom;
+  if (2n * remainder > bottom || 2n * remainder === bottom && quotient % 2n !== 0n) quotient++;
+  const value = Number(quotient) * 2 ** (exponent < -1022 ? -1074 : exponent - 52);
+  if (!Number.isFinite(value)) throw new RangeError('integer division result too large for a float');
+  return negative ? -value : value;
+}

@@ -10,6 +10,8 @@ TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode 与运�
 
 规范目录为 TypeScript 数据，项目 ID 和预设说明由其派生，不在前端契约中重复手改。规范语言资源位于 `packages/core/resources/i18n`，TypeScript 统一生成 Node、Mod 和 Python 兼容资源。Mod 副本只包含受支持的纯模块，宿主操作保留在原有入口。参见 [TS-03 实施与验收](typescript-migration/ts-03/README.zh-CN.md)。
 
+已迁移的运行逻辑分布在 `core/runtime/{tasks,live}`、`core/timing` 和纯用量／Git 解析模块，由 `cli/runtime` 编排。明确的 `RuntimeContext`、`RuntimeIO`、`CommandRunner` 边界提供时钟、进程身份、私有文件发布及 Git argv 执行。任务历史保留生命周期 schema 4 和 schema-1 兼容镜像；live 写入先取 live 锁再取 task 锁，用量写入先取 cache 锁再取 task 锁，任务写入不反向获取 live／cache 锁。完整 UTF-8 字节游标、有界历史和冻结结果兼容混合版本磁盘访问；开发用 `runtime`／`hook` 入口不切换已安装命令或 Mod 绑定。
+
 ```text
 src/claude_statusline/
   cli.py、__main__.py、_version.py   CLI 分发与版本

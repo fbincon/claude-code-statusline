@@ -174,5 +174,112 @@
     "Five retained Python generation --check commands",
     "ruff check --select F,E9 src tests tools",
     "claude plugin validate --strict / plugin test (both Mods)"
-  ]
+  ],
+  "ci": {
+    "head": "9179d777c5942b460554135da2330e27b790b671",
+    "tested_merge": "d64ed31ab17fe2e346dc914daf6a55fb3980d3c4",
+    "merge_commit": "0faa6395b44c890a5a25dd86deeaa674deb1cf7c",
+    "pr": "https://github.com/fbincon/claude-code-statusline/pull/80",
+    "required_jobs_passed": 43,
+    "runs": {
+      "python_build_baseline": 38539621525,
+      "mods": 38539621583,
+      "platform_ts02": 38539621490,
+      "backend_ts03": 38539621556
+    },
+    "sync": {
+      "remote": "gitee",
+      "refspec": "refs/heads/main:refs/heads/main",
+      "github_and_gitee_commit": "0faa6395b44c890a5a25dd86deeaa674deb1cf7c"
+    },
+    "artifacts": [
+      {
+        "id": 11882315053,
+        "name": "ts03-macos-14-arm64",
+        "digest": "sha256:e67d7a5f1821c18cdc7c20afe4b1108b8ab37e044f66ca85d99788567fc77c42"
+      },
+      {
+        "id": 11881972958,
+        "name": "ts03-macos-26-arm64",
+        "digest": "sha256:4a34bd63bcbac06b9a05c28dcc84062e7fa213b0d796b4bfbbe897fa0ac77896"
+      },
+      {
+        "id": 11881966760,
+        "name": "ts03-windows-11-arm-x64",
+        "digest": "sha256:8999a229042404e99c5d1385b8be1abb3bb0b9dab50bab83ec82f7d7158e8c60"
+      },
+      {
+        "id": 11881878184,
+        "name": "ts03-macos-15-intel-x64",
+        "digest": "sha256:fdcd65c6f04f759d0a16973f19c09f09da390ac9f81f697a9d34391a7c8336fd"
+      },
+      {
+        "id": 11881801388,
+        "name": "ts03-ubuntu-24.04-x64",
+        "digest": "sha256:2c0fd9ad96b28125fc3ad8954d8b0401da6dac881bf0b44cf5b1f8735f91471d"
+      },
+      {
+        "id": 11881742125,
+        "name": "ts03-windows-2025-x64",
+        "digest": "sha256:acc35af1fa27ab73910c26fba14a6ade6b3697c2689b72eff0899978820129ab"
+      },
+      {
+        "id": 11881652642,
+        "name": "ts03-macos-15-arm64",
+        "digest": "sha256:569ab22d90c84be6358b5c2990484868a7514fa7c5d447b14e5b2cf36766a62d"
+      },
+      {
+        "id": 11881549418,
+        "name": "ts03-macos-26-intel-x64",
+        "digest": "sha256:b3bcdfb53c72b0f43fc83e4bda00d6133bc3aef8c156271c3fd0ec51a9570c88"
+      }
+    ],
+    "source_verification": {
+      "head": "9179d777c5942b460554135da2330e27b790b671",
+      "tested_merge": "d64ed31ab17fe2e346dc914daf6a55fb3980d3c4",
+      "same_tree": true,
+      "receipts": [
+        {
+          "artifact": "ts03-macos-14-arm64",
+          "source_files": 106,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-macos-15-arm64",
+          "source_files": 106,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-macos-15-intel-x64",
+          "source_files": 106,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-macos-26-arm64",
+          "source_files": 106,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-macos-26-intel-x64",
+          "source_files": 106,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-ubuntu-24.04-x64",
+          "source_files": 106,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-windows-11-arm-x64",
+          "source_files": 106,
+          "exact_git_blob_hashes": true
+        },
+        {
+          "artifact": "ts03-windows-2025-x64",
+          "source_files": 106,
+          "exact_git_blob_hashes": true
+        }
+      ]
+    }
+  }
 }

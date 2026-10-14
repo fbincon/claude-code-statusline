@@ -13,10 +13,10 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01 DONE; TS-02 DONE**; [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) integrates platform evidence and closes decisions |
-| Current task scope | TS-03 IN_PROGRESS; [03-C configuration services and commands](typescript-migration/ts-03/README.md) validating |
+| Current task scope | TS-03 IN_PROGRESS; [03-D collectors and runtime](typescript-migration/ts-03/README.md) validating |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; estimate after the TS-02 platform probes |
-| Next implementation work | Validate and merge 03-C, then migrate collectors and runtime in 03-D |
+| Next implementation work | Validate and merge 03-D, then finish rendering and backend protocols in 03-E |
 
 The planning request does not mark any implementation gate complete. Existing repository authorization still governs work within subsequently assigned tasks; this plan adds no routine approval step to each stage.
 
@@ -96,7 +96,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | --- | --- | --- | --- | --- |
 | TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | DONE | Codex; `fbincon/ts-01-baseline`; tested `ddc9dde`; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75); [inventory and evidence](typescript-migration/ts-01/README.md) |
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
-| TS-03 | Shared core, backend and runtime migration | TS-02 | IN_PROGRESS | Codex; `fbincon/ts-03-configuration-service`; [six-batch record](typescript-migration/ts-03/README.md) |
+| TS-03 | Shared core, backend and runtime migration | TS-02 | IN_PROGRESS | Codex; `fbincon/ts-03-runtime`; [six-batch record](typescript-migration/ts-03/README.md) |
 | TS-04 | Both editors, installation and recovery | TS-03 | NOT_STARTED | Unassigned |
 | TS-05 | Complete tooling, CI and release candidate | TS-04 | NOT_STARTED | Unassigned |
 | TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |
@@ -135,7 +135,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 **Exit:** applicable functional cases match, regression tests cover state/concurrency boundaries, and the migrated core has no production Python call-through. Changing module names or merely passing the type checker does not establish parity.
 
-**TS-03 active handoff:** The maintainer approved the complete six-PR implementation on 2026-10-14, allowing human CLI help/parameter diagnostic wording changes while retaining machine contracts. 03-A and 03-B are merged ([PR #78](https://github.com/fbincon/claude-code-statusline/pull/78), [PR #79](https://github.com/fbincon/claude-code-statusline/pull/79)) and synchronized to Gitee. 03-C is validating with 26 fixed cases and 78 named baseline test replacements. The stage remains incomplete. [Implementation and acceptance](typescript-migration/ts-03/README.md). No installation switch or release.
+**TS-03 active handoff:** The maintainer approved the complete six-PR implementation on 2026-10-14, allowing human CLI help/parameter diagnostic wording changes while retaining machine contracts. 03-A through 03-C are merged ([PR #78](https://github.com/fbincon/claude-code-statusline/pull/78), [PR #79](https://github.com/fbincon/claude-code-statusline/pull/79), [PR #80](https://github.com/fbincon/claude-code-statusline/pull/80)) and synchronized to Gitee. 03-D is validating with 45 fixed cases and 206 named baseline test replacements. The stage remains incomplete. [Implementation and acceptance](typescript-migration/ts-03/README.md). No installation switch or release.
 
 ### TS-04 Editors and installation
 
