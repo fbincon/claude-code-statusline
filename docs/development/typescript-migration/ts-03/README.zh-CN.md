@@ -13,11 +13,11 @@
 | 03-A | 私有 workspace、正式平台原语、无损 JSON、规范修订及对照框架 | DONE；[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78) |
 | 03-B | 配置核心、实例、目录、语言、Unicode 与生成归属 | DONE；[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79) |
 | 03-C | 加锁配置服务、偏好及管理命令 | DONE；[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80) |
-| 03-D | 采集、缓存、计时、任务、观察及 hooks | VALIDATING |
-| 03-E | 渲染、预览及完整后端协议 | NOT_STARTED |
+| 03-D | 采集、缓存、计时、任务、观察及 hooks | DONE；[PR #81](https://github.com/fbincon/claude-code-statusline/pull/81) |
+| 03-E | 渲染、预览及完整后端协议 | IN_PROGRESS |
 | 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | NOT_STARTED |
 
-当前分支：`fbincon/ts-03-runtime`。03-A／03-B／03-C 分别合并为 `21fb21d`／`f1363e3`／`0faa639`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
+当前分支：`fbincon/ts-03-rendering`。03-A／03-B／03-C／03-D 分别合并为 `21fb21d`／`f1363e3`／`0faa639`／`dc2e218`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
 workspace 包为 0.0.0 私有开发包；现有 Python 应用仍为 2.0.0。
 
 ## 边界与复现
@@ -95,4 +95,14 @@ TS 入口已接入 `runtime [--config-dir PATH]` 和 `hook`。运行协议 v2 �
 
 用量保留逐消息最大值、缺失与明确零的区分、各计数器独立快照增量、5,000 个 ID 折叠及 100 个会话上限。UTF-8 游标仅越过完整字节行。Git 状态保留 500 ms 缓存，分支差异使用不可变提交键及共享超时。计时保留 Stop／续接、通知别名、重叠等待、重启降级和冻结结果。运行协议最多读取 1 MiB 加一个字节；另独立验证 Python 兼容浮点除法、补偿求和、ISO 时间与字节文件编码识别。
 
-本地 TS 验证：276 项测试，275 通过，1 项 Windows 共享冲突测试在 Linux 跳过。台账核销 **206/516** 项，**310** 项待完成；10 项混合 token 测试已具备 TS 采集断言，但渲染输出断言明确留在 03-E，尚不记为完整迁移。固定重放通过 **45/161** 个案例，仅保留原三处 CLI 文字差异；**116** 个渲染／预览／slash 案例待完成。另以 24 个会话的动作序列逐步对照原始 TS-01 Python 导出，比较结果、最终 JSON 状态及数值类型。实际多进程测试覆盖 20 个 live 写入者、8 个 Agent 启动、4 个有界账本写入者及 6 个用量缓存写入者；Git 集成覆盖 worktree、submodule、浅克隆和分支分歧。最终渲染、两个 Mod 绑定 TS、性能验收及完整台账核销继续归 03-E/F。源码绑定的本地证据见 [validation.03-d.json](validation.03-d.json)，CI 完成后补记。
+本地 TS 验证：276 项测试，275 通过，1 项 Windows 共享冲突测试在 Linux 跳过。台账核销 **206/516** 项，**310** 项待完成；10 项混合 token 测试已具备 TS 采集断言，但渲染输出断言明确留在 03-E，尚不记为完整迁移。固定重放通过 **45/161** 个案例，仅保留原三处 CLI 文字差异；**116** 个渲染／预览／slash 案例待完成。另以 24 个会话的动作序列逐步对照原始 TS-01 Python 导出，比较结果、最终 JSON 状态及数值类型。实际多进程测试覆盖 20 个 live 写入者、8 个 Agent 启动、4 个有界账本写入者及 6 个用量缓存写入者；Git 集成覆盖 worktree、submodule、浅克隆和分支分歧。最终渲染、两个 Mod 绑定 TS、性能验收及完整台账核销继续归 03-E/F。源码绑定的本地证据见 [validation.03-d.json](validation.03-d.json)，其中记录全部 43 项成功 PR 检查。八目标干净产物分别精确匹配 161 个源码哈希及固定运行时哈希，随后完成受 head SHA 保护的合并及 Gitee 一致性核验。
+
+## 03-E 渲染与完整后端接口
+
+`core/rendering` 提供实际主／子行、预览、样式、Unicode 拟合、阈值、独立实例格式和 Powerline；`cli/rendering` 通过 `RenderEnvironment` 按需连接来源，`platform/presentation` 负责词法路径、日期和主机名操作。私有开发入口现已支持计划内的全部后端命令和 UI v11 操作。UTF-8／BOM、NDJSON 任务 ID、空行、冻结计时及 stdout／stderr 契约均有回归覆盖。重复指标共享原始快照，预览替换所有实时来源。
+
+生成器继续维护 34 项资源。Core 与 Client 共享延迟初始化的 Unicode 表访问器，ASCII 渲染不分配表数组；状态栏小语言包按语言加载，不将 UI 词库带入渲染路径。大小写折叠／首字母大写及数字文本解析针对 Node 新版数据库差异显式保留 Python 3.14 UCD 16 语义，资源生成不调用 Python 业务逻辑。
+
+编辑器请求／结果接口保留 `LaunchSpec` 和 cwd，检查命令前置条件、限制结果文字并映射全部结束状态。测试注入适配器，开发后端在 TS-04 接入真实终端前返回既有不可用提示。现有 Python 安装和 Mod 绑定保持原状。
+
+全部 **161/161** 个固定案例通过，仅有原先三项 CLI 文案差异。本地 TS **455 项中 454 通过**（一项 Windows 平台跳过），Python **856 项中 847 通过**（九项平台跳过），native Mod **112/112**、runtime Mod **10/10**。台账达到 **389/516** 项已迁移，仍有 **127** 项 pending，`--complete` 仍须失败。[验证证据](validation.03-e.json)绑定源码和固定运行时。剩余工作归 03-F：全台账审计、跨模块及 Mod 到 TS 验证、D06 性能／无 Python 验收和 TS-04 交接。本批不将 TS-03 标记为 DONE。

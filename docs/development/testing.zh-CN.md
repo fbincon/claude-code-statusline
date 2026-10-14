@@ -360,3 +360,9 @@ python tools/upgrade_composition_acceptance.py --baseline RELEASED_WHEEL --candi
 TS-03 C 增加 Linux 独立进程的 26 个固定案例重放、三处获准 CLI 文字差异的准确哈希、配置事务、真实 Node CLI JSON 交互和 Python／TS 混合配置／偏好写入者。43 项 PR 检查及八目标源码绑定产物在合并前全部通过。
 
 TS-03 D 将固定重放扩展至 45/161 个案例，台账完整迁移项达到 206/516；另有 10 项混合 token 测试保留 03-E 的待完成渲染断言。本地 TS 276 项测试中 275 通过，Linux 跳过 1 项 Windows 共享冲突测试。新增确定性动作重放将 24 个会话与原始 Python 对照，独立于原有字节精确案例核验数值类型、返回值和最终 JSON 文件状态。真实多进程验证 live、任务及用量写入；本地 Git 仓库覆盖 submodule、worktree、分歧、浅克隆、不可变缓存和共享超时。详见 [03-D 证据](typescript-migration/ts-03/validation.03-d.json)。尚有 116 个固定案例和 310 个台账项目待完成，因此 `--complete` 仍须失败；性能与两个 Mod 绑定 TS 的完整验证继续作为后续门槛。
+
+## TS-03 E 渲染验收
+
+独立 TS 执行器现已重放全部 **161** 个固定案例。对照仍仅允许原有三项准确的 CLI 文案字段差异，未新增数值、协议、状态、文件或退出码豁免。台账已映射 **389/516** 项测试，仍有 **127** 项等待最终审计；十项混合 token 测试已补齐渲染断言。本地 `npm test` **455 项中 454 通过**，Linux 预期跳过一项 Windows 共享冲突测试；原 Python **856 项中 847 通过**、九项平台跳过。独立官方 Mod 测试 **native 112／runtime 10** 全部通过。
+
+覆盖五种语言的全部指标、40／80／120 列和极窄宽度、显式行／留白／Powerline、固定旧版外观字节、选择性 ANSI 复位、零值／缺失／部分观测、重复来源复用及子代理结束证据冻结。额外对照核验 2,092 组浮点格式、数值构造语法，以及所有 Unicode 码点在 Python 3.14 下的大小写折叠／首字母大写。导入追踪拒绝最小渲染路径加载原生采集器和 UI 词库；独立 ASCII 进程确认 Unicode 表初始化数量为零。参见 [03-E 证据](typescript-migration/ts-03/validation.03-e.json)。D06 性能矩阵、隔离 Mod 到 TS 的绑定及完整 516 项台账审计继续作为 03-F 门槛。

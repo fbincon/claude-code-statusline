@@ -5,6 +5,8 @@ import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
 import type { RuntimeContext } from './runtime/context.js';
+import type { EditorLauncher } from './integration/editor.js';
+import type { RenderEnvironment } from '@fbincon/statusline-core/rendering/context';
 export interface CliEnvironment {
     configDir?: string;
     launch?: LaunchSpec;
@@ -15,6 +17,8 @@ export interface CliEnvironment {
     stdout?: (text: string) => void;
     stderr?: (text: string) => void;
     runtime?: RuntimeContext;
+    editor?: EditorLauncher;
+    renderObservations?: Partial<RenderEnvironment>;
 }
 export async function main(argv: readonly string[] = process.argv.slice(2), environment: CliEnvironment = {}): Promise<number> {
     const stdout = environment.stdout ?? (text => { process.stdout.write(text); });
@@ -30,8 +34,18 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         hook(environment.stdin ?? (() => readFileSync(0)), environment.runtime ?? runtimeContext(environment.configDir));
         return 0;
     }
-    // Render and hook adapters are bound here as their migrations land; management
-    // resources stay below this dispatch boundary for the final renderer hot path.
+    async function renderer(command: string): Promise<number> {
+        const read = environment.stdin ?? (() => readFileSync(0));
+        if (command === 'slash-hook') {
+            const { slashHook } = await import('./integration/slash-hook.js'); stdout(await slashHook(read, environment));
+        } else {
+            const { render } = await import('./rendering/main.js');
+            stdout(await render(read, { configDir: environment.configDir, runtime: environment.runtime, now: environment.now ? () => environment.now!().getTime() / 1000 : undefined, observations: environment.renderObservations }, command === 'render-subagents'));
+        }
+        return 0;
+    }
+    if (args.length === 1 && ['render', 'render-subagents', 'slash-hook'].includes(args[0]!)) return renderer(args[0]!);
+    // Management translations and storage stay outside the rendering hot path.
     const { ArgumentError, parseConfig } = await import('./config/arguments.js');
     const { expandUser, detectClaudeVersion } = await import('@fbincon/statusline-platform/commands');
     const { ConfigurationService } = await import('./config/service.js');
@@ -54,8 +68,12 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return 0;
         }
         const command = args.shift();
-        if (!['config', 'ui', 'runtime', 'hook'].includes(command ?? ''))
+        if (!['config', 'ui', 'runtime', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
+        if (['render', 'render-subagents', 'slash-hook'].includes(command!)) {
+            if (args.length) throw new ArgumentError(`${command} takes no arguments`);
+            return renderer(command!);
+        }
         let explicit: string | undefined;
         if (args[0] === '--config-dir' || args[0]?.startsWith('--config-dir=')) {
             const flag = args.shift()!;
@@ -86,7 +104,8 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
                 throw new ArgumentError('ui takes no positional arguments');
             const { ConfigurationProtocol } = await import('./ui/protocol.js');
             const { pythonJson } = await import('@fbincon/statusline-core/json-text');
-            const protocol = new ConfigurationProtocol(service, undefined, environment.nextId);
+            const { previewAdapter } = await import('./rendering/preview.js');
+            const protocol = new ConfigurationProtocol(service, await previewAdapter(), environment.nextId);
             let raw: string;
             try {
                 raw = stdin();

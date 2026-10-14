@@ -5,6 +5,7 @@ import { runtimeIO } from '../src/runtime/io.js';
 import { sessionTokenCounts, BASE, collapseIds, type UsageEntry } from '@fbincon/statusline-core/runtime/usage';
 import { dictionary, type Data } from '@fbincon/statusline-core/runtime/values';
 import { readJson } from '@fbincon/statusline-core/json-read';
+import { rendered, config } from './render-support.js';
 function assistant(id: string, i = 0, cc = 0, cr = 0, out = 0): Data { return { type: 'assistant', message: { id, usage: { input_tokens: i, cache_creation_input_tokens: cc, cache_read_input_tokens: cr, output_tokens: out } } }; }
 function partial(id: string, usage: Data): Data { return { type: 'assistant', message: { id, usage } }; }
 function snapshot(usage: Data): Data { return { type: 'cost-state', modelUsage: { model: usage } }; }
@@ -15,8 +16,17 @@ function fixture(t: TestContext) {
     io.lines = (...args) => { reads++; return base(...args); };
     const collector = new UsageCollector(f.context, io), data: Data = { session_id: 'fixture', transcript_path: path };
     return { ...f, path, io, collector, data, write: (rows: unknown[], append = false, target = path) => writeLines(target, rows, append),
-        counts: () => sessionTokenCounts(collector.collect(data)![4]), reads: () => reads };
+        counts: () => sessionTokenCounts(collector.collect(data)![4]), reads: () => reads,
+        render: (...ids: string[]) => rendered(data, config(ids.length ? ids : ['input-tokens', 'output-tokens']), { usage: value => {
+            const row = collector.collect(value); return row ? { hit: row[0], miss: row[1], out: row[2], last_prompt: row[3], entry: row[4], counts: sessionTokenCounts(row[4]) } : null;
+        } }) };
 }
+test('tests.runtime.test_token_counts.RawTokenCountsTests.test_input_is_summed_before_formatting_and_one_collection_is_shared', t => {
+    const f = fixture(t); f.write([assistant('m', 1059, 0, 1059, 19)]);
+    let calls = 0; const collect = f.collector.collect.bind(f.collector); f.collector.collect = data => { calls++; return collect(data); };
+    assert.equal(f.render('tokens', 'input-tokens', 'output-tokens'), 'hit 1.1K · miss 1.1K · out 19 · in 2.1K · out 19'); assert.equal(calls, 1);
+    assert.deepEqual(f.counts(), { hit: 1059n, miss: 1059n, input_tokens: 2118n, out: 19n });
+});
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_agents_duplicates_resumes_and_incremental_output_keep_same_scope', t => {
     const f = fixture(t);
     f.write([assistant('main', 1200, 300, 5000, 250)]);
@@ -37,12 +47,16 @@ test('tests.runtime.test_token_counts.RawTokenCountsTests.test_authoritative_cos
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_missing_empty_and_invalid_transcripts_are_unavailable_but_zero_is_observed', t => {
     const f = fixture(t);
+    assert.equal(f.render(), '');
     assert.equal(f.counts(), null);
     f.write([]);
+    assert.equal(f.render(), '');
     assert.equal(f.counts(), null);
     f.write([partial('invalid', { input_tokens: true, output_tokens: '8' }), snapshot({})]);
+    assert.equal(f.render(), '');
     assert.equal(f.counts(), null);
     f.write([assistant('zero')], true);
+    assert.equal(f.render(), 'in 0 · out 0');
     assert.deepEqual(f.counts(), { hit: 0n, miss: 0n, out: 0n, input_tokens: 0n });
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_raw_snapshot_has_no_io_and_invalid_empty_state_has_no_counts', () => {
@@ -61,20 +75,26 @@ test('tests.runtime.test_token_counts.RawTokenCountsTests.test_collected_raw_sna
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_usage_does_not_fabricate_the_missing_counter_as_zero', t => {
     const f = fixture(t);
     f.write([partial('output-only', { output_tokens: 9 })]);
-    for (let i = 0; i < 2; i++)
+    for (let i = 0; i < 2; i++) {
         assert.deepEqual(f.counts(), { hit: null, miss: null, input_tokens: null, out: 9n });
+        assert.equal(f.render(), 'out 9');
+    }
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_input_only_zero_does_not_imply_output_was_observed', t => {
     const f = fixture(t);
     f.write([partial('input-only', { input_tokens: 0 })]);
-    for (let i = 0; i < 2; i++)
+    for (let i = 0; i < 2; i++) {
         assert.deepEqual(f.counts(), { hit: 0n, miss: 0n, input_tokens: 0n, out: null });
+        assert.equal(f.render(), 'in 0');
+    }
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_cost_snapshot_keeps_counter_availability_separate', t => {
     const f = fixture(t);
     f.write([snapshot({ outputTokens: 0 })]);
-    for (let i = 0; i < 2; i++)
+    for (let i = 0; i < 2; i++) {
         assert.deepEqual(f.counts(), { hit: null, miss: null, input_tokens: null, out: 0n });
+        assert.equal(f.render(), 'out 0');
+    }
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_invalid_input_does_not_become_an_observed_zero', t => {
     const f = fixture(t);
@@ -82,13 +102,16 @@ test('tests.runtime.test_token_counts.RawTokenCountsTests.test_invalid_input_doe
         f.data.session_id = String(index);
         f.write([partial('partial', { input_tokens: invalid, output_tokens: 0 })]);
         assert.deepEqual(f.counts(), { hit: null, miss: null, input_tokens: null, out: 0n });
+        assert.equal(f.render(), 'out 0');
     }
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_later_zero_observation_fills_only_the_missing_counter', t => {
     const f = fixture(t);
     f.write([partial('partial', { output_tokens: 9 })]);
+    assert.equal(f.render(), 'out 9');
     assert.equal(f.counts()!.input_tokens, null);
     f.write([partial('partial', { cache_read_input_tokens: 0 })], true);
+    assert.equal(f.render(), 'in 0 · out 9');
     assert.deepEqual(f.counts(), { hit: 0n, miss: 0n, input_tokens: 0n, out: 9n });
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_legacy_zero_observations_are_recovered_once_without_changing_totals', t => {
@@ -100,8 +123,10 @@ test('tests.runtime.test_token_counts.RawTokenCountsTests.test_legacy_zero_obser
     delete state.sessions.fixture.token_observed;
     state.sessions.fixture.usage_scan_version = 2;
     fs.writeFileSync(f.collector.path(), pythonJson(state));
+    assert.equal(f.render(), 'in 0 · out 0');
     assert.deepEqual(f.counts(), { hit: 0n, miss: 0n, input_tokens: 0n, out: 0n });
     const reads = f.reads();
+    assert.equal(f.render(), 'in 0 · out 0');
     assert.deepEqual(f.counts(), { hit: 0n, miss: 0n, input_tokens: 0n, out: 0n });
     assert.equal(f.reads(), reads);
     assert.deepEqual(JSON.parse(fs.readFileSync(f.collector.path(), 'utf8')).sessions.fixture.ids, state.sessions.fixture.ids);
@@ -109,25 +134,32 @@ test('tests.runtime.test_token_counts.RawTokenCountsTests.test_legacy_zero_obser
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_observed_zero_survives_collapsing_ids_and_missing_transcripts', t => {
     const f = fixture(t);
     f.write(Array.from({ length: 5001 }, (_, i) => partial(String(i), { output_tokens: 0 })));
+    assert.equal(f.render(), 'out 0');
     assert.equal(f.counts()!.out, 0n);
     const state = JSON.parse(fs.readFileSync(f.collector.path(), 'utf8'));
     assert.equal(Object.keys(state.sessions.fixture.ids).length, 2501);
     fs.unlinkSync(f.path);
+    assert.equal(f.render(), 'out 0');
     assert.deepEqual(f.counts(), { hit: null, miss: null, input_tokens: null, out: 0n });
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_cost_snapshot_preserves_the_other_visible_counter', t => {
     const f = fixture(t);
     f.write([partial('input', { input_tokens: 5 }), snapshot({ outputTokens: 9 })]);
-    for (let i = 0; i < 2; i++)
+    for (let i = 0; i < 2; i++) {
         assert.deepEqual([f.counts()!.input_tokens, f.counts()!.out], [5n, 9n]);
+        assert.equal(f.render(), 'in 5 · out 9');
+    }
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_cost_snapshot_preserves_the_other_authoritative_counter', t => {
     const f = fixture(t);
     f.write([snapshot({ outputTokens: 9 })]);
+    assert.equal(f.render(), 'out 9');
     assert.equal(f.counts()!.out, 9n);
     f.write([snapshot({ inputTokens: 5 })], true);
-    for (let i = 0; i < 2; i++)
+    for (let i = 0; i < 2; i++) {
         assert.deepEqual([f.counts()!.input_tokens, f.counts()!.out], [5n, 9n]);
+        assert.equal(f.render(), 'in 5 · out 9');
+    }
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_partial_snapshots_in_one_batch_keep_each_counters_live_delta', t => {
     const f = fixture(t);

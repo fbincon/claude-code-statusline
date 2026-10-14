@@ -144,3 +144,9 @@ Display schema 8 replaces wire `items`/`item_options` with ordered `instances`. 
 Reading v1–v7 maps canonical type IDs deterministically and retains disabled overrides. Import review compares instance IDs for additions, removals, enablement, retained ordering, options and text. Applying a complete schema-8 draft bypasses legacy type-selection projections.
 
 TS configuration services use the unchanged installation lock and display schema 8, UI protocol 11, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. UI preview rendering is injected until 03-E; installed launch commands are unchanged.
+
+## TypeScript backend binding during migration
+
+The private compiled ESM backend now implements every UI v11 operation, including preview spans, plus runtime v2/v1, `config`, `render`, `render-subagents`, `hook` and `slash-hook`. Schemas and stdout/stderr roles are unchanged. UI previews and dry-runs do not rewrite live configuration. Direct slash mutations use the same locked configuration service and localize the final block decision in the stored interface language.
+
+For `/statusline-configure`, the application passes `{configDir, backend: LaunchSpec, cwd}` to an injected editor launcher. Results cover updated, already-current, cancelled, interrupted, timed-out and error; recognized commands always block model expansion. Result text is bounded by Unicode characters. The development fallback reports the existing unavailable-editor message; terminal selection, actual editor execution and installed Mod binding switch remain TS-04. Tests inject a launcher and verify its exact request and result without opening user terminals.

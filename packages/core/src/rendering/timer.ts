@@ -2,9 +2,10 @@ import { taskElapsed } from '../timing/timer.js';
 import type { Sample } from '../timing/sample.js';
 import { numeric, object, type Data } from '../runtime/values.js';
 import { divideIntegers } from '../numbers.js';
+import { coercedFloat } from './coercion.js';
 export type Translate = (key: string, params?: Record<string, unknown>) => string;
 export function formatDuration(seconds: unknown, nearest = false): string | null {
-    const number = typeof seconds === 'string' && seconds.trim() ? Number(seconds) : typeof seconds === 'boolean' ? Number(seconds) : numeric(seconds);
+    const number = coercedFloat(seconds);
     if (number === null || !Number.isFinite(number))
         return null;
     const total = BigInt(Math.max(0, Math.trunc(nearest && number >= 0 ? number + 0.5 : number)));

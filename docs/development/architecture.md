@@ -6,7 +6,7 @@ The Python package keeps the existing CLI, configuration formats and storage loc
 
 ## TypeScript migration workspace
 
-TS-03 adds `packages/core` (pure configuration, protocol, localization, Unicode and runtime rules), `packages/platform` (Node/native I/O) and `packages/cli` (application services). The workspace is private and independently compiled; installation/editor cutover remains TS-04. The Python layout below remains the active released implementation and an isolated comparison reference.
+TS-03 adds `packages/core` (pure configuration, protocol, localization, Unicode, rendering and runtime rules), `packages/platform` (Node/native I/O) and `packages/cli` (application services). The workspace is private and independently compiled; installation/editor cutover remains TS-04. The Python layout below remains the active released implementation and an isolated comparison reference.
 
 The canonical catalog is TypeScript data. Item IDs and preset descriptions are derived rather than separately edited in frontend contracts. Canonical languages live under `packages/core/resources/i18n`; the TypeScript generator emits Node, Mod and Python compatibility resources. Mod copies contain only supported pure modules, with host effects in their existing entries. See [TS-03 implementation and acceptance](typescript-migration/ts-03/README.md).
 
@@ -156,6 +156,8 @@ Display schema v8 and configuration protocol v11 carry `statusline_language` thr
 
 ## Component instances and layout
 
-`config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; Python generates the protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).
+`config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; TypeScript generates the shared protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).
 
-The development CLI now binds filesystem transactions and host identity through `ConfigurationService`/`Storage`. Its private ESM entry is `packages/cli/src/entry.ts`; configuration and protocol code reside under `config/` and `ui/`. The rendering dispatch remains a lazy boundary for 03-D/E. Explicit `LaunchSpec` prefixes distinguish the TypeScript development backend from installed renderers.
+The development CLI binds filesystem transactions and host identity through `ConfigurationService`/`Storage`. Its private ESM entry is `packages/cli/src/entry.ts`; configuration and protocol code reside under `config/` and `ui/`. The `render`, `render-subagents`, `hook` and `slash-hook` fast dispatches precede management-resource imports. Explicit `LaunchSpec` prefixes distinguish the TypeScript development backend from installed renderers.
+
+`core/rendering` owns main/subagent composition, formatting, styles, Powerline and deterministic previews. `RenderEnvironment` supplies selected-language presentation and synchronous observation interfaces; `cli/rendering/environment.ts` imports selected collectors and connects runtime services. A frame caches each source and raw task snapshot before independently formatting repeated instances. `platform/presentation.ts` supplies lexical paths, local/UTC dates and hostname. Preview adapters substitute every observation; they do not collect or write runtime evidence. The editor launcher is an injected request/result boundary under `cli/integration`; the real terminal adapter remains TS-04.

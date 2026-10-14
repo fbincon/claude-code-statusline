@@ -10,7 +10,7 @@ import { main } from '@fbincon/statusline-cli/main';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { StatusTimer, loadSample } from '@fbincon/statusline-core/timing/timer';
 import type { Sample } from '@fbincon/statusline-core/timing/sample';
-import { int, type Data } from '@fbincon/statusline-core/runtime/values';
+import { int, numeric, type Data } from '@fbincon/statusline-core/runtime/values';
 import { renderTaskTimer } from '@fbincon/statusline-core/rendering/timer';
 import { MESSAGES } from '@fbincon/statusline-core/i18n/statusline/en';
 import { runtimeContext } from '@fbincon/statusline-cli/runtime/context';
@@ -18,12 +18,17 @@ import { runtimeIO } from '@fbincon/statusline-cli/runtime/io';
 import { TaskService } from '@fbincon/statusline-cli/runtime/tasks/service';
 import { SubmissionIndex } from '@fbincon/statusline-cli/runtime/tasks/submissions';
 import { RuntimeProtocol } from '@fbincon/statusline-cli/runtime/live/protocol';
+import { configuredRows } from '@fbincon/statusline-core/rendering/items';
+import { previewRows } from '@fbincon/statusline-core/rendering/preview';
+import { renderPayload, previewRows as agentPreview } from '@fbincon/statusline-core/rendering/subagents';
+import { renderEnvironment, baseEnvironment, presentation } from '@fbincon/statusline-cli/rendering/environment';
+import { previewAdapter } from '@fbincon/statusline-cli/rendering/preview';
 
 export interface Case { id: string; kind: string; input: Record<string, unknown>; config?: unknown; config_id?: string; files?: Record<string, string> }
 export type Handler = (fixture: Case) => unknown;
 
-function protocol(): ConfigurationProtocol {
-  return new ConfigurationProtocol(new ConfigurationService({ configDir: join(process.cwd(), 'config'), launch: { executable: '/ts01/claude-statusline', args: [] }, hostVersion: () => [2, 1, 294] }, createStorage(() => new Date('2033-05-18T03:33:20Z'))));
+async function protocol(): Promise<ConfigurationProtocol> {
+  return new ConfigurationProtocol(new ConfigurationService({ configDir: join(process.cwd(), 'config'), launch: { executable: '/ts01/claude-statusline', args: [] }, hostVersion: () => [2, 1, 294] }, createStorage(() => new Date('2033-05-18T03:33:20Z'))), await previewAdapter('/ts01/home'));
 }
 function call(protocol: ConfigurationProtocol, raw: string): { response: unknown; exit_code: number } {
   const result = protocol.handle(raw);
@@ -32,15 +37,25 @@ function call(protocol: ConfigurationProtocol, raw: string): { response: unknown
 
 export function supported(fixture: Case): boolean {
   if (!Object.hasOwn(handlers, fixture.kind)) return false;
-  // Successful preview rendering and runtime entry points land in 03-D/E.
-  if (fixture.kind === 'ui' && fixture.id === 'ui-preview') return false;
-  if (fixture.kind === 'cli' && ['render', 'render-subagents', 'slash-hook'].includes((fixture.input.argv as string[])[0]!)) return false;
   return true;
 }
 
 // Subsystems register actual production adapters as their migration lands.
 // An absent handler is an incomplete stage, never a successful fixture replay.
 export const handlers: Readonly<Record<string, Handler>> = {
+  preview: async fixture => {
+    const config = validateDisplay(fixture.config), env = baseEnvironment(await presentation(config.statusline_language), { home: '/ts01/home' }), width = numeric(fixture.input.width)!;
+    return fixture.input.scope === 'subagent' ? agentPreview(config, width, env) : previewRows(config, width, env, '/ts01/home');
+  },
+  render: async fixture => {
+    const config = validateDisplay(fixture.config), base = runtimeContext(join(process.cwd(), 'config')), context = { ...base, nowMs: () => 2_000_000_000_000, sample: () => ({ ...base.sample(), wall_ns: 2_000_000_000_000_000_001n }) };
+    const env = await renderEnvironment(config, fixture.input.payload, { home: '/ts01/home', runtime: context, now: () => 2_000_000_000 });
+    return configuredRows(fixture.input.payload, config, numeric(fixture.input.width)!, env);
+  },
+  subagents: async fixture => {
+    const config = validateDisplay(fixture.config), env = await renderEnvironment(config, fixture.input.payload, { home: '/ts01/home', now: () => 2_000_000_000 }, true);
+    return renderPayload(fixture.input.payload, config, env, numeric(fixture.input.now_ms)!);
+  },
   display: () => {
     const path = join(process.cwd(), 'config', CONFIG_FILENAME);
     let raw: string;
@@ -56,17 +71,17 @@ export const handlers: Readonly<Record<string, Handler>> = {
     });
     return { exit_code, stdout, stderr };
   },
-  ui: fixture => call(protocol(), fixture.input.raw as string),
-  transaction: fixture => {
-    const p = protocol(), request = (operation: string, payload: unknown) => call(p, pythonJson({ protocol_version: 11, operation, payload }));
+  ui: async fixture => call(await protocol(), fixture.input.raw as string),
+  transaction: async fixture => {
+    const p = await protocol(), request = (operation: string, payload: unknown) => call(p, pythonJson({ protocol_version: 11, operation, payload }));
     const initial = request('read', {}) as { response: { result: { revision: string; draft: unknown } }; exit_code: number };
     const revision = initial.response.result.revision;
     const first = request('apply', { draft: fixture.input.draft, expected_revision: revision }), after = snapshot(process.cwd());
     const conflict = request('apply', { draft: initial.response.result.draft, expected_revision: revision });
     return { initial, first_save: first, stale_save: conflict, after_first_save: after, stale_save_unchanged: JSON.stringify(after) === JSON.stringify(snapshot(process.cwd())), reopen: request('read', {}) };
   },
-  transfer: fixture => {
-    const p = protocol(), target = join(process.cwd(), 'portable.json'), responses = [];
+  transfer: async fixture => {
+    const p = await protocol(), target = join(process.cwd(), 'portable.json'), responses = [];
     for (const operation of ['export', 'import', 'review_import']) {
       const payload: Record<string, unknown> = { draft: fixture.input.draft, path: target };
       if (operation === 'export') payload.overwrite = false;
