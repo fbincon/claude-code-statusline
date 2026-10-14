@@ -13,14 +13,14 @@
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01 DONE；TS-02 DONE**；[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)整合平台证据并闭合决策 |
-| 当前任务范围 | TS-03 IN_PROGRESS；[03-E 渲染与完整后端接口](typescript-migration/ts-03/README.zh-CN.md)实施中 |
+| 当前任务范围 | TS-03 IN_PROGRESS；[03-F 整体验收](typescript-migration/ts-03/README.zh-CN.md)进行中 |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
 | 目标版本与工期 | 尚未指定；TS-02 平台验证后估算 |
-| 下一项实施工作 | 完成 03-E 审查／CI，随后在 03-F 审计全部 516 项并开展整体验收 |
+| 下一项实施工作 | 在已合并的 03-E 基础上完成 03-F 的 D06 性能和整体验收 |
 
 编写计划不代表任何实现阶段已通过。后续任务范围内仍适用仓库既有授权，本计划不为每个阶段新增例行审批步骤。
 
-03-E 本地验证现已覆盖全部 161 个固定案例，仅保留三项获准 CLI 文案差异；台账已迁移 389/516 项。审查及 CI 尚待完成，TS-03 在 03-F 验收前继续保持 IN_PROGRESS。
+03-E 已通过 PR #82 合并并同步，43 项检查及八份源码证据通过。03-F 覆盖 161 个固定案例，516 项清单全部审计（471 项迁移、45 项外部 TUI／安装／终端案例归 TS-04，另记录八项混合断言）。D06 性能及最终整体 CI 尚未完成，TS-03 继续保持 IN_PROGRESS。
 
 ## 基线与范围
 
@@ -137,7 +137,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **退出标准：**适用功能案例结果一致，状态／并发边界有回归测试，已迁移核心在生产中不再转调 Python。改变模块名称或通过类型检查不代表行为等价。
 
-**TS-03 当前交接：**维护者于 2026-10-14 批准完整六批 PR 实施，允许调整人类可读的 CLI 帮助／参数诊断文字，保留机器契约。03-A 至 03-D 已合并（[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78)、[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79)、[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80)、[PR #81](https://github.com/fbincon/claude-code-statusline/pull/81)）并同步 Gitee；03-D 全部 43 项 PR 检查通过，完成 45 个固定案例与 206 项具名基线替代测试；03-E 实施中。阶段尚未完成。[实施与验收](typescript-migration/ts-03/README.zh-CN.md)。不切换安装，不发布。
+**TS-03 当前交接：**维护者于 2026-10-14 批准完整六批 PR 实施，允许调整人类可读的 CLI 帮助／参数诊断文字，保留机器契约。03-A 至 03-D 已合并（[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78)、[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79)、[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80)、[PR #81](https://github.com/fbincon/claude-code-statusline/pull/81)）并同步 Gitee；03-D 全部 43 项 PR 检查通过，完成 45 个固定案例与 206 项具名基线替代测试；03-E 已合并为 [PR #82](https://github.com/fbincon/claude-code-statusline/pull/82)，03-F 验收进行中。阶段尚未完成。[实施与验收](typescript-migration/ts-03/README.zh-CN.md)。不切换安装，不发布。
 
 ### TS-04 编辑器与安装
 

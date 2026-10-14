@@ -7,6 +7,7 @@ import { readCompleteLines } from '@fbincon/statusline-platform/line-cursor';
 import { resolvedPath } from '@fbincon/statusline-platform/commands';
 import { decodeUtf8, decodeJsonBytes } from '@fbincon/statusline-platform/utf8';
 import { privateDirectory } from '../config/storage.js';
+import { readDataJson } from './json-data.js';
 export interface FileInfo {
     size: bigint;
     mtimeNs: bigint;
@@ -34,14 +35,16 @@ export interface RuntimeIO {
 }
 export function runtimeIO(): RuntimeIO {
     return {
-        read(path) { try {
-            return fs.readFileSync(path);
-        }
-        catch (error) {
-            if ((error as NodeJS.ErrnoException).code === 'ENOENT')
-                return null;
-            throw error;
-        } },
+        read(path) {
+            try {
+                return fs.readFileSync(path);
+            }
+            catch (error) {
+                if ((error as NodeJS.ErrnoException).code === 'ENOENT')
+                    return null;
+                throw error;
+            }
+        },
         write(path, raw) { atomicWrite(path, raw); }, remove: durableUnlink, privateDirectory, lock: withLock,
         stat(path, follow = true) { const stat = follow ? fs.statSync(path, { bigint: true }) : fs.lstatSync(path, { bigint: true }); return { size: stat.size, mtimeNs: stat.mtimeNs, dev: stat.dev, ino: stat.ino }; },
         entries(path) { return fs.readdirSync(path, { withFileTypes: true }).map(entry => ({ name: entry.name, path: join(path, entry.name), file: entry.isFile(), directory: entry.isDirectory(), link: entry.isSymbolicLink() })); },
@@ -68,7 +71,7 @@ export function transcriptChunk(io: RuntimeIO, path: string, start: bigint): {
             if (!text)
                 return;
             try {
-                lines.push(readJson(text));
+                lines.push(readDataJson(text));
             }
             catch { /* A malformed complete line is consumed permanently. */ }
         });

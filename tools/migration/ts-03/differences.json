@@ -3,8 +3,8 @@
     "case": "cli-help",
     "path": "/value/stdout",
     "before_sha256": "0b0a5acd2ab97f4f7bb0a8a59de0ed0311edbda3e281b33a755667cce6fff1ea",
-    "after_sha256": "a00885c740ea2494793a89a924522606f1cf5f7f66f891c2a025d39f39d98223",
-    "reason": "User-approved human CLI help/argument diagnostic wording change; command semantics, other streams and exit status remain exact."
+    "after_sha256": "b3db6ffb8c55e166b279174dd7653fef0a01ab4de446b58d9a59ea32fde5e11e",
+    "reason": "User-approved human CLI help/argument diagnostic wording change; 03-F localizes headings and command descriptions. Command semantics, other streams and exit status remain exact."
   },
   {
     "case": "cli-config-refused",

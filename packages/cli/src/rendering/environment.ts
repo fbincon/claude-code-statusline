@@ -1,7 +1,8 @@
 import { homedir, release } from 'node:os';
 import type { DisplayDraft } from '@fbincon/statusline-core/contracts/ui';
 import type { RenderEnvironment } from '@fbincon/statusline-core/rendering/context';
-import { Presentation, type Messages } from '@fbincon/statusline-core/rendering/language';
+import { Presentation } from '@fbincon/statusline-core/rendering/language';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
 import { sessionTokenCounts } from '@fbincon/statusline-core/runtime/usage';
 import { truth, string, object } from '@fbincon/statusline-core/runtime/values';
@@ -16,17 +17,10 @@ export interface EnvironmentOptions {
     observations?: Partial<RenderEnvironment>;
 }
 export async function presentation(language: string): Promise<Presentation> {
-    const english = (await import('@fbincon/statusline-core/i18n/statusline/en')).MESSAGES;
-    let messages: Messages = english;
-    if (language === 'zh-CN')
-        messages = (await import('@fbincon/statusline-core/i18n/statusline/zh-CN')).MESSAGES;
-    else if (language === 'zh-Hant')
-        messages = (await import('@fbincon/statusline-core/i18n/statusline/zh-Hant')).MESSAGES;
-    else if (language === 'ja')
-        messages = (await import('@fbincon/statusline-core/i18n/statusline/ja')).MESSAGES;
-    else if (language === 'ko')
-        messages = (await import('@fbincon/statusline-core/i18n/statusline/ko')).MESSAGES;
-    return new Presentation(language, messages, english);
+    // Generation rejects partial shipped packs; a known pack needs no English import.
+    const selected = (LANGUAGES as readonly string[]).includes(language) ? language : 'en';
+    const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + selected);
+    return new Presentation(selected, MESSAGES);
 }
 export function baseEnvironment(language: Presentation, options: EnvironmentOptions = {}): RenderEnvironment {
     const absent = () => { throw new Error('Unselected rendering source was requested'); };
@@ -49,7 +43,7 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
         return env;
     }
     if (liveDirectory(data) && has('git', 'git-branch', 'git-changes', 'git-ahead-behind', 'branch-diff')) {
-        if (!overrides.git || !overrides.branchDiff) {
+        if (has('git', 'git-branch', 'git-changes', 'git-ahead-behind') && !overrides.git || has('branch-diff') && !overrides.branchDiff) {
             const { GitCollector } = await import('../runtime/git.js'), source = new GitCollector(await runtime());
             if (!overrides.git)
                 env.git = (cwd, session) => source.status(cwd, session);
@@ -59,7 +53,7 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
     }
     else if (!overrides.branchDiff)
         env.branchDiff = () => ({ value: null, reason: 'not_observed' });
-    if (sid && truth(payload.transcript_path) && has('tokens', 'input-tokens', 'output-tokens', 'task-timer', 'task-active-timer')) {
+    if (sid && truth(payload.transcript_path) && has('tokens', 'input-tokens', 'output-tokens', 'task-timer', 'task-active-timer') && (!overrides.usage || has('task-timer') && !overrides.task)) {
         const { UsageCollector } = await import('../runtime/usage.js'), source = new UsageCollector(await runtime());
         if (!overrides.usage)
             env.usage = value => { const totals = source.collect(value); return totals ? { hit: totals[0], miss: totals[1], out: totals[2], last_prompt: totals[3], entry: totals[4], counts: sessionTokenCounts(totals[4]) } : null; };
@@ -70,8 +64,12 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
     }
     if (sid && config.scope_labels === 'when-subagents' && !overrides.hadSubagents) {
         const { TaskStore } = await import('../runtime/tasks/store.js'), store = new TaskStore(await runtime());
-        env.hadSubagents = value => { if (!object(value) || !truth(value.session_id))
-            return false; const record = (truth(value.prompt_id) ? store.state(string(value.session_id), string(value.prompt_id)) : null) ?? store.state(string(value.session_id)); return truth(record?.had_subagents); };
+        env.hadSubagents = value => {
+            if (!object(value) || !truth(value.session_id))
+                return false;
+            const record = (truth(value.prompt_id) ? store.state(string(value.session_id), string(value.prompt_id)) : null) ?? store.state(string(value.session_id));
+            return truth(record?.had_subagents);
+        };
     }
     if (sid && has('run-state', 'permission-mode', 'active-agents', 'task-progress', 'last-tool', 'ttft', 'output-rate', 'prompt-input-tokens', 'prompt-output-tokens', 'prompt-cost') && !overrides.live) {
         const [{ LiveStore }, { collectMetrics }] = await Promise.all([import('../runtime/live/store.js'), import('../runtime/live/collect.js')]);

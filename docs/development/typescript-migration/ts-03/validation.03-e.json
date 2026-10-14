@@ -500,8 +500,128 @@
     "Release-before physical hardware, sleep and desktop checks retain their approved deferral."
   ],
   "ci": {
-    "status": "pending",
-    "required": "43 PR checks and eight exact source/runtime receipts before head-guarded merge and explicit main synchronization"
+    "head": "776f0a20bdb3256dc19d05c23a701671f09813e0",
+    "tested_merge": "43263ace5f508eeffdb13364edae0d82f33ab739",
+    "merge_commit": "10c6348aef1fcd1d2a1681aa808a842e0d883b56",
+    "pr": "https://github.com/fbincon/claude-code-statusline/pull/82",
+    "required_jobs_passed": 43,
+    "runs": {
+      "python_build_baseline": 38557839531,
+      "mods": 38557839656,
+      "platform_ts02": 38557839554,
+      "backend_ts03": 38557839544
+    },
+    "sync": {
+      "remote": "gitee",
+      "refspec": "refs/heads/main:refs/heads/main",
+      "github_and_gitee_commit": "10c6348aef1fcd1d2a1681aa808a842e0d883b56"
+    },
+    "artifacts": [
+      {
+        "id": 11892005063,
+        "name": "ts03-ubuntu-24.04-x64",
+        "digest": "sha256:0dbf7e8fb12974ff42bd91be296589baafdff066a27eea13733dc61c7e1ece26"
+      },
+      {
+        "id": 11891705674,
+        "name": "ts03-windows-11-arm-x64",
+        "digest": "sha256:d83d52bc437e49b7c057716033964741083fd593cfbac1f8db400c980fbc1577"
+      },
+      {
+        "id": 11891511039,
+        "name": "ts03-macos-26-intel-x64",
+        "digest": "sha256:1728e4dac30237cb97fdf006151fc8b20d8966f166fc21d9da9dacb18d1d810e"
+      },
+      {
+        "id": 11891356747,
+        "name": "ts03-macos-26-arm64",
+        "digest": "sha256:a85e525eb3f66dbee7b17bbd4e1577d1a6bea1724bcaae95fb75ef61adfec1e2"
+      },
+      {
+        "id": 11891231404,
+        "name": "ts03-macos-14-arm64",
+        "digest": "sha256:4cd3c18a9b5ae2c90222f9aab87a53ecf5f471925b4886274ecf9dcbecacf840"
+      },
+      {
+        "id": 11890971781,
+        "name": "ts03-macos-15-arm64",
+        "digest": "sha256:1d7a70f22b30f155b5056988bfaad02795974a32447d85e2f190a2daf0497da0"
+      },
+      {
+        "id": 11890942553,
+        "name": "ts03-macos-15-intel-x64",
+        "digest": "sha256:3267dd24766a0905295cf420178aa71f8453802ee0819b9c4ec47da4997a2fcd"
+      },
+      {
+        "id": 11890404821,
+        "name": "ts03-windows-2025-x64",
+        "digest": "sha256:7ef4d6d0b07acb2cdfc08f08fab4ea455e6f48b242e42c998a35b4742562cd00"
+      }
+    ],
+    "source_verification": {
+      "head": "776f0a20bdb3256dc19d05c23a701671f09813e0",
+      "tested_merge": "43263ace5f508eeffdb13364edae0d82f33ab739",
+      "same_tree": true,
+      "receipts": [
+        {
+          "artifact": "ts03-ubuntu-24.04-x64",
+          "source_files": 201,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-windows-11-arm-x64",
+          "source_files": 201,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-26-intel-x64",
+          "source_files": 201,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-26-arm64",
+          "source_files": 201,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-14-arm64",
+          "source_files": 201,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-15-arm64",
+          "source_files": 201,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-macos-15-intel-x64",
+          "source_files": 201,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        },
+        {
+          "artifact": "ts03-windows-2025-x64",
+          "source_files": 201,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true
+        }
+      ],
+      "complete": true,
+      "jobs": 43
+    },
+    "duplicate_push_runs_cancelled": [
+      38557839055,
+      38557838948,
+      38557838956,
+      38557839018
+    ],
+    "transport_retries": "Two TLS failures before HTTP/1.1 branch push succeeded; initial main fetch and Gitee ref read each failed once, targeted retries succeeded without credential/configuration changes."
   },
   "initial_ci_source_check": {
     "head": "3acb7fbfa72893ad5680959e6cfb4c5b6fdeb47b",

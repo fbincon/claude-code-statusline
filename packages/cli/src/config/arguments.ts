@@ -3,6 +3,9 @@ import { OPTIONS } from './operations.js';
 import { PALETTE_VALUES, DIRECTORYSTYLE_VALUES, SEPARATORSTYLE_VALUES, SCOPELABELS_VALUES, STATUSLINELANGUAGE_VALUES } from '@fbincon/statusline-core/contracts/ui';
 import { ROWS } from '@fbincon/statusline-core/config/presets';
 export class ArgumentError extends Error {
+    constructor(message: string, public readonly key = 'cli.unrecognized', public readonly params: Record<string, unknown> = { arguments: message }) {
+        super(message);
+    }
 }
 export interface ConfigArguments {
     action: string;
@@ -123,8 +126,10 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
         else
             positional.push(token);
     }
-    if (positional.length < minimum || positional.length > maximum)
-        throw new ArgumentError(`invalid arguments for config ${selected}`);
+    if (positional.length < minimum)
+        throw new ArgumentError(`invalid arguments for config ${selected}`, 'cli.required', { arguments: `config ${selected}` });
+    if (positional.length > maximum)
+        throw new ArgumentError(`invalid arguments for config ${selected}`, 'cli.unrecognized', { arguments: positional.slice(maximum).join(' ') });
     if (action === 'language')
         result.value = positional[0];
     else if (action === 'instance') {
@@ -143,7 +148,7 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
         result.option = positional[0];
         result.value = positional[1];
         if (!OPTIONS.includes(result.option!))
-            throw new ArgumentError(`invalid option: ${result.option}`);
+            throw new ArgumentError(`invalid option: ${result.option}`, 'cli.invalid_choice', { value: result.option, choices: OPTIONS.join(', ') });
     }
     else if (action === 'item') {
         if (!['main', 'subagent'].includes(positional[0]!))

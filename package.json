@@ -16,7 +16,8 @@
     "migration:inventory": "node dist/typescript/tools/migration/ts-03/inventory.js",
     "migration:receipt": "node dist/typescript/tools/migration/ts-03/receipt.js",
     "migration:capture": "node dist/typescript/tools/migration/ts-03/capture.js",
-    "migration:compare": "node dist/typescript/tools/migration/ts-03/compare.js"
+    "migration:compare": "node dist/typescript/tools/migration/ts-03/compare.js",
+    "migration:benchmark": "node dist/typescript/tools/migration/ts-03/performance/benchmark.js"
   },
   "devDependencies": { "@types/node": "24.19.2", "typescript": "5.9.3" }
 }

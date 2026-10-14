@@ -13,14 +13,14 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01 DONE; TS-02 DONE**; [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) integrates platform evidence and closes decisions |
-| Current task scope | TS-03 IN_PROGRESS; [03-E rendering and complete backend interfaces](typescript-migration/ts-03/README.md) in progress |
+| Current task scope | TS-03 IN_PROGRESS; [03-F integrated acceptance](typescript-migration/ts-03/README.md) in progress |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; estimate after the TS-02 platform probes |
-| Next implementation work | Finish 03-E review/CI, then audit all 516 IDs and integrated acceptance in 03-F |
+| Next implementation work | Complete 03-F D06 performance and integrated acceptance after merged 03-E |
 
 The planning request does not mark any implementation gate complete. Existing repository authorization still governs work within subsequently assigned tasks; this plan adds no routine approval step to each stage.
 
-03-E local validation now covers all 161 fixed cases with only the three approved CLI wording differences; 389/516 ledger IDs are ported. Review and CI remain open, and TS-03 stays IN_PROGRESS until 03-F acceptance.
+03-E is merged and synchronized through PR #82 with all 43 checks and eight exact source receipts. 03-F covers all 161 fixed cases and audits all 516 IDs (471 ported, 45 external TUI/installation/terminal cases assigned to TS-04, plus eight mixed assertion handoffs). D06 performance and final integrated CI remain open; TS-03 stays IN_PROGRESS.
 
 ## Baseline and scope
 
@@ -137,7 +137,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 
 **Exit:** applicable functional cases match, regression tests cover state/concurrency boundaries, and the migrated core has no production Python call-through. Changing module names or merely passing the type checker does not establish parity.
 
-**TS-03 active handoff:** The maintainer approved the complete six-PR implementation on 2026-10-14, allowing human CLI help/parameter diagnostic wording changes while retaining machine contracts. 03-A through 03-D are merged ([PR #78](https://github.com/fbincon/claude-code-statusline/pull/78), [PR #79](https://github.com/fbincon/claude-code-statusline/pull/79), [PR #80](https://github.com/fbincon/claude-code-statusline/pull/80), [PR #81](https://github.com/fbincon/claude-code-statusline/pull/81)) and synchronized to Gitee. 03-D passed all 43 PR checks with 45 fixed cases and 206 named baseline test replacements; 03-E implementation is in progress. The stage remains incomplete. [Implementation and acceptance](typescript-migration/ts-03/README.md). No installation switch or release.
+**TS-03 active handoff:** The maintainer approved the complete six-PR implementation on 2026-10-14, allowing human CLI help/parameter diagnostic wording changes while retaining machine contracts. 03-A through 03-D are merged ([PR #78](https://github.com/fbincon/claude-code-statusline/pull/78), [PR #79](https://github.com/fbincon/claude-code-statusline/pull/79), [PR #80](https://github.com/fbincon/claude-code-statusline/pull/80), [PR #81](https://github.com/fbincon/claude-code-statusline/pull/81)) and synchronized to Gitee. 03-D passed all 43 PR checks with 45 fixed cases and 206 named baseline test replacements; 03-E is merged as [PR #82](https://github.com/fbincon/claude-code-statusline/pull/82); 03-F acceptance is in progress. The stage remains incomplete. [Implementation and acceptance](typescript-migration/ts-03/README.md). No installation switch or release.
 
 ### TS-04 Editors and installation
 
