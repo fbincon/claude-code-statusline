@@ -1,3 +1,4 @@
+import { recordEntries, recordKeys, recordValues } from '../ordered-record.js';
 import { object, int, numeric, own, dictionary, string, type Data } from './values.js';
 import { timestamp, float } from './transcript.js';
 export const BASE = { i: 0n, o: 0n, cc: 0n, cr: 0n }, MAX_IDS = 5000, MAX_SESSIONS = 100, TURN_SCAN_VERSION = 6, USAGE_SCAN_VERSION = 3;
@@ -27,7 +28,7 @@ export function tokenObservations(entry: Data, positiveOnly = false): Observed {
         return { input: entry.token_observed.input === true, output: entry.token_observed.output === true };
     const has = (record: unknown, fields: readonly string[]) => positiveOnly ? object(record) && fields.some(field => usageInt(record[field]) > 0n) : hasUsage(record, fields);
     const observed = { input: false, output: false };
-    for (const row of Object.values(object(entry.ids) ? entry.ids : {})) {
+    for (const row of recordValues(object(entry.ids) ? entry.ids : {})) {
         observed.input ||= has(row, ['i', 'cc', 'cr']);
         observed.output ||= has(row, ['o']);
         if (observed.input && observed.output)
@@ -66,7 +67,7 @@ export function parseUsage(lines: readonly unknown[], observed?: Observed): Reco
     return out;
 }
 export function mergeUsageFields(ids: Record<string, Counters>, newIds: Record<string, Counters>, keys: readonly (keyof Totals)[]): void {
-    for (const [id, next] of Object.entries(newIds)) {
+    for (const [id, next] of recordEntries(newIds)) {
         const record = ids[id] ??= { ...BASE };
         for (const key of keys)
             for (const field of TOKEN_FIELDS[key])
@@ -76,7 +77,7 @@ export function mergeUsageFields(ids: Record<string, Counters>, newIds: Record<s
 }
 export function mergeIds(ids: Record<string, Counters>, next: Record<string, Counters>): boolean {
     let changed = false;
-    for (const [id, value] of Object.entries(next)) {
+    for (const [id, value] of recordEntries(next)) {
         const record = own(ids, id);
         if (record === undefined) {
             ids[id] = value;
@@ -100,11 +101,11 @@ export function parseCostSnapshot(lines: readonly unknown[], hash: (input: strin
         const time = timestamp(row.timestamp);
         if (time !== null)
             lastTime = time;
-        if (row.type !== 'cost-state' || !object(row.modelUsage) || !Object.keys(row.modelUsage).length)
+        if (row.type !== 'cost-state' || !object(row.modelUsage) || !recordKeys(row.modelUsage).length)
             continue;
         let hit = 0n, miss = 0n, out = 0n, valid = 0;
         const available = { input: false, output: false };
-        for (const usage of Object.values(row.modelUsage)) {
+        for (const usage of recordValues(row.modelUsage)) {
             const input = ['inputTokens', 'cacheCreationInputTokens', 'cacheReadInputTokens'];
             if (!hasUsage(usage, [...input, 'outputTokens']))
                 continue;
@@ -128,18 +129,18 @@ export function parseCostSnapshot(lines: readonly unknown[], hash: (input: strin
         const merged: Data = {};
         Object.assign(merged, latest, totals);
         latest = merged;
-        for (const key of Object.keys(totals) as (keyof Totals)[]) {
+        for (const key of recordKeys(totals) as (keyof Totals)[]) {
             indices[key] = index;
             times[key] = lastTime === null ? null : float(lastTime);
         }
     }
     if (latest) {
-        latest.fingerprint = hash(Object.keys(TOKEN_FIELDS).map(key => string(latest![key])).join(':'));
+        latest.fingerprint = hash(recordKeys(TOKEN_FIELDS).map(key => string(latest![key])).join(':'));
         latest._snapshot_ts = times;
         const post = dictionary<Counters>();
         latest._post_ids = post;
-        for (const index of new Set(Object.values(indices)))
-            mergeUsageFields(post, parseUsage(lines.slice(index + 1)), (Object.keys(indices) as (keyof Totals)[]).filter(key => indices[key] === index));
+        for (const index of new Set(recordValues(indices)))
+            mergeUsageFields(post, parseUsage(lines.slice(index + 1)), (recordKeys(indices) as (keyof Totals)[]).filter(key => indices[key] === index));
     }
     return latest;
 }
@@ -159,13 +160,13 @@ export function stageSubagentDelta(entry: UsageEntry, lines: readonly unknown[])
         const time = timestamp(row.timestamp);
         if (time === null)
             continue;
-        const keys = Object.entries(pending._snapshot_ts).filter(([, value]) => numeric(value) !== null && time > numeric(value)!).map(([key]) => key as keyof Totals);
+        const keys = recordEntries(pending._snapshot_ts).filter(([, value]) => numeric(value) !== null && time > numeric(value)!).map(([key]) => key as keyof Totals);
         if (keys.length)
             mergeUsageFields(post, parseUsage([row]), keys);
     }
 }
 export function aggregateVisible(entry: Data): Counters {
-    const totals = { ...BASE }, records = [entry.base ?? BASE, ...Object.values(object(entry.ids) ? entry.ids : {})];
+    const totals = { ...BASE }, records = [entry.base ?? BASE, ...recordValues(object(entry.ids) ? entry.ids : {})];
     for (const record of records)
         for (const key of FIELDS)
             totals[key] += object(record) ? usageInt(record[key]) : 0n;
@@ -176,7 +177,7 @@ export function displayTotals(entry: Data, visible = visibleTotals(entry)): Tota
     const { api_snapshot: snapshot, api_visible_anchor: anchor } = entry;
     if (!object(snapshot) || !object(anchor))
         return visible;
-    return Object.fromEntries((Object.keys(TOKEN_FIELDS) as (keyof Totals)[]).map(key => [key, hasUsage(snapshot, [key]) ? usageInt(snapshot[key]) + maxZero(usageInt(visible[key]) - usageInt(anchor[key])) : visible[key]])) as Totals;
+    return Object.fromEntries((recordKeys(TOKEN_FIELDS) as (keyof Totals)[]).map(key => [key, hasUsage(snapshot, [key]) ? usageInt(snapshot[key]) + maxZero(usageInt(visible[key]) - usageInt(anchor[key])) : visible[key]])) as Totals;
 }
 function maxZero(value: bigint): bigint { return value > 0n ? value : 0n; }
 export function acceptPending(entry: UsageEntry, visible: Totals): boolean {
@@ -185,19 +186,19 @@ export function acceptPending(entry: UsageEntry, visible: Totals): boolean {
     if (!object(pending))
         return false;
     const post = visibleTotals({ base: { ...BASE }, ids: object(pending._post_ids) ? pending._post_ids : {} }), candidate: Partial<Totals> = {};
-    for (const key of Object.keys(TOKEN_FIELDS) as (keyof Totals)[])
+    for (const key of recordKeys(TOKEN_FIELDS) as (keyof Totals)[])
         if (hasUsage(pending, [key]))
             candidate[key] = usageInt(pending[key]) + post[key];
     const current = entry.api_snapshot;
     if (object(current)) {
         const displayed = displayTotals(entry, visible);
-        if ((Object.keys(candidate) as (keyof Totals)[]).some(key => candidate[key]! < displayed[key]))
+        if ((recordKeys(candidate) as (keyof Totals)[]).some(key => candidate[key]! < displayed[key]))
             return false;
     }
     const snapshot: Data = object(current) ? { ...current } : {};
     snapshot.fingerprint = pending.fingerprint;
     const anchor: Data = object(entry.api_visible_anchor) ? { ...entry.api_visible_anchor } : {};
-    for (const key of Object.keys(candidate) as (keyof Totals)[]) {
+    for (const key of recordKeys(candidate) as (keyof Totals)[]) {
         snapshot[key] = pending[key];
         anchor[key] = maxZero(visible[key] - post[key]);
     }
@@ -206,7 +207,7 @@ export function acceptPending(entry: UsageEntry, visible: Totals): boolean {
     return true;
 }
 export function collapseIds(entry: UsageEntry): boolean {
-    const ids = Object.keys(entry.ids);
+    const ids = recordKeys(entry.ids);
     if (ids.length <= MAX_IDS)
         return false;
     for (const id of ids.slice(0, Math.floor(ids.length / 2))) {
@@ -229,8 +230,8 @@ export function sessionTokenCounts(entry: unknown): SessionTokenCounts | null {
     const observed = tokenObservations(entry);
     if (!observed.input && !observed.output)
         return null;
-    const raw = object(entry._raw_token_counts) && Object.keys(entry._raw_token_counts).sort().join(',') === 'hit,miss,out' ? entry._raw_token_counts : displayTotals(entry);
-    if (Object.values(raw).some(value => numeric(value) === null || !Number.isFinite(numeric(value)) || numeric(value)! < 0))
+    const raw = object(entry._raw_token_counts) && recordKeys(entry._raw_token_counts).sort().join(',') === 'hit,miss,out' ? entry._raw_token_counts : displayTotals(entry);
+    if (recordValues(raw).some(value => numeric(value) === null || !Number.isFinite(numeric(value)) || numeric(value)! < 0))
         return null;
     const hit = observed.input ? usageInt(raw.hit) : null, miss = observed.input ? usageInt(raw.miss) : null, out = observed.output ? usageInt(raw.out) : null;
     return { hit, miss, out, input_tokens: hit === null || miss === null ? null : hit + miss };

@@ -1,0 +1,350 @@
+{
+  "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "scope": "Only external TUI, installation and terminal assertions; no TS-03 backend behavior deferred.",
+  "deferred_tests": [
+    {
+      "id": "tests.config.test_catalog.CatalogTests.test_wizard_uses_generated_groups_and_constraints",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Installed wizard template substitution and generated group presentation belong to TS-04; core mutual exclusions are covered in final-boundaries.test.ts and catalogue validation is covered in final-protocol.test.ts."
+    },
+    {
+      "id": "tests.config.test_catalog.LanguageWizardContractTests.test_legacy_wizard_reads_interface_language_and_saves_output_language_atomically",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Installed wizard instruction/template generation belongs to TS-04; CLI language preference and atomic output-language saves are covered in final-language.test.ts and final-cli-language.test.ts."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_administration_uses_the_invoked_console_entry_instead_of_another_path_install",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Installer administration entry identity belongs to TS-04; TS-03 configuration LaunchSpec ownership is tested in final-boundaries.test.ts."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_configure_rejects_non_tty_without_traceback_or_changes",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Real external configure command and TTY detection belong to TS-04; injected editor outcomes are covered in slash-hook.test.ts."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_configure_reports_missing_curses_without_traceback",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal backend availability and its user error belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_install_experimental_flags_are_mutually_exclusive",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Install command parser and feature installation choices belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_capture.CaptureTests.test_every_byte_chunking_preserves_clusters_and_base_style",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External PTY capture oracle streaming/SGR state belongs to TS-04; pure grapheme width and renderer ANSI spans are covered in core and renderer tests."
+    },
+    {
+      "id": "tests.integration.test_terminal_capture.CaptureTests.test_clear_and_cursor_moves_do_not_rejoin_old_capture_text",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal capture clear/cursor state belongs to TS-04; this is not a backend rendering cursor."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_external_default_color_chrome_is_readable_in_both_fixtures",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External TUI terminal-theme capture acceptance belongs to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_external_capture_rejects_fixed_white_chrome_and_artificial_preview_background",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External TUI chrome/background capture acceptance belongs to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_preview_preserves_low_contrast_samples_instead_of_changing_their_colors",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal capture acceptance of sample colors belongs to TS-04; backend preview spans preserve colors in final-protocol.test.ts."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_capture_rejects_unreadable_defaults_and_resolves_recorded_ansi_palette",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Recorded terminal palette and contrast oracle belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_default_roles_are_distinct_and_reverse_after_resolution",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Terminal capture default foreground/background role resolution belongs to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_explicit_light_and_sample_cells_keep_their_original_colors",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Terminal capture cell color and contrast oracle belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_white_on_light_is_rejected_but_ansi_names_remain_renderable",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal contrast and named-color capture oracle belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_import_review.ReviewUiTests.test_cancel_preserves_unsaved_draft_revision_and_editor_state",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External import-review modal keyboard cancellation and focus state belong to TS-04; pure review no-write semantics are covered in final-review.test.ts."
+    },
+    {
+      "id": "tests.ui.test_import_review.ReviewUiTests.test_accept_replaces_only_draft_and_keeps_opening_revision",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External import-review modal accept/save key transitions belong to TS-04; revision conflicts remain covered in config and final-boundaries tests."
+    },
+    {
+      "id": "tests.ui.test_import_review.ReviewUiTests.test_review_sections_long_values_and_previews_resize_in_both_languages",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External review screen resize, scrolling and scope-tab navigation belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_import_review.ReviewUiTests.test_empty_review_and_nested_localized_labels",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External review window rows and localized label presentation belong to TS-04; nested localization and empty review generation remain covered in core/final-review tests."
+    },
+    {
+      "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_add_picker_guidance_cancel_and_accept_preserve_drafts",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External instance-picker guidance, input and focus state belong to TS-04; schema/instance mutations remain covered in core tests."
+    },
+    {
+      "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_copy_remove_and_scope_identity_keep_the_baseline",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External editor keyboard copy/toggle/remove state and baseline identity belong to TS-04; core copy/remove identity rules remain covered in core/config tests."
+    },
+    {
+      "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_rejected_spacer_move_keeps_order_and_positions",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External editor selection/order after rejected key movement belongs to TS-04; the direct core edit refusal and unchanged draft are tested in final-boundaries.test.ts."
+    },
+    {
+      "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_literal_instance_can_be_found_by_its_displayed_text",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External editor search filtering after literal-text insertion belongs to TS-04; literal instance storage is covered in core/config tests."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_all_languages_cycle_both_directions_and_persist_outside_draft",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal key cycling, field focus and repaint belong to TS-04; immediate preference persistence is covered in config/final-cli-language tests."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_search_matches_both_languages_ids_and_custom_labels",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External editor localized search results and selection belong to TS-04; Unicode case folding and shared catalogues are already tested."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_statusline_language_is_a_draft_and_preserves_interface_and_input",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External settings-form selection/search/dirty-state transitions belong to TS-04; independent UI/output languages and preview are covered in final-language and rendering tests."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_cancelled_screen_keeps_persisted_output_language_unchanged",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External screen-loop cancel/dirty draft state belongs to TS-04; backend read/preview no-write behavior remains covered."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_all_pages_and_forms_draw_chinese_inside_cell_bounds",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External TUI pages, forms and terminal cell bounds belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_language_persists_immediately_while_draft_and_cancel_are_independent",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External screen repaint/focus and immediate-language-save/cancel interaction belong to TS-04; persistence itself is covered in config and final-cli-language tests."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_failed_language_save_retains_language_draft_and_field",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External language-save failure notice, repaint and focus state belong to TS-04; transactional preference failures are tested in backend preference tests."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_open_reads_shared_preference_and_override_only_changes_initial_locale",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External session opening/cancel locale selection belongs to TS-04; shared preference and invocation override are covered in final-cli-language.test.ts."
+    },
+    {
+      "id": "tests.ui.test_statusline_language.StatuslineLanguageSessionTests.test_save_and_cancel_share_draft_semantics_in_all_25_language_combinations",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal session save/cancel wrapper belongs to TS-04; all 25 backend UI/output combinations and failed writes are covered in final-cli-language/final-language tests."
+    },
+    {
+      "id": "tests.ui.test_statusline_language.StatuslineLanguageSessionTests.test_save_failure_preserves_file_and_draft",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal session save error and retained EditorState belong to TS-04; backend rollback/file preservation is covered in config/final-language tests."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_preview_caption_follows_palette_draft_and_color_disable",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External preview caption and baseline EditorState drawing belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_compatibility_exports_share_the_new_implementation",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Legacy external curses compatibility exports belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_preview_uses_terminal_defaults_without_reserved_background_pairs",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External curses color-pair allocation and terminal default background belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_basic_and_monochrome_capabilities",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal 0/8/16/256-color negotiation belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_preview_preserves_quantized_rgb_and_ansi_sample_foregrounds",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External curses color quantization/pair attributes belong to TS-04; backend RGB/ANSI span interpretation is covered in final-protocol.test.ts."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_default_color_failure_preserves_default_text_instead_of_painting_black",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal default-color initialization failure belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_failed_sample_pair_is_cached_and_falls_back_to_default_text",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External curses failed color-pair cache/fallback belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_start_color_failure_is_monochrome",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal color initialization failure belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_pair_exhaustion_falls_back_to_default_text",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External terminal color-pair exhaustion belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_color_pair_attributes_never_exceed_python_pair_limit",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External curses attribute/pair limit belongs to TS-04; the replacement terminal adapter must retain bounded allocation."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_chrome_is_default_color_on_all_pages_and_selected_actions",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External screen chrome, bold/reverse actions and terminal-default styling belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_preview_fills_empty_rows_trailing_spaces_resets_and_overflow",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "External preview panel fill/overflow and curses drawing belong to TS-04; backend row/spans/width behavior is covered in renderer tests."
+    }
+  ],
+  "mixed_tests": [
+    {
+      "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_cli_and_legacy_parser_share_language_option",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Connect the legacy wizard/install parser to the same output-language option semantics.",
+      "backend_tests": [
+        "packages/cli/test/final-language.test.ts"
+      ]
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_help_lists_public_commands",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Add configure/install/uninstall/doctor command help when those TS-04 entries exist.",
+      "backend_tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ]
+    },
+    {
+      "id": "tests.integration.test_language_cli.LanguageCliTests.test_help_and_parser_errors_are_localized_including_groups",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Verify install-specific translated flag descriptions and mutually exclusive groups.",
+      "backend_tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ]
+    },
+    {
+      "id": "tests.integration.test_language_cli.LanguageCliTests.test_every_output_language_survives_portable_roundtrip_without_ui_changes",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Replace isolated owned-settings setup with real TS installation and repeat the language round trip.",
+      "backend_tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ]
+    },
+    {
+      "id": "tests.runtime.test_task_timing.TaskTimingTests.test_invalid_preferences_hide_derived_timers_and_remain_diagnosable",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Verify installer doctor emits a localized ERROR naming the invalid runtime preference file.",
+      "backend_tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ]
+    },
+    {
+      "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_external_and_client_saves_conflict_in_both_orders",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Repeat with the real external editor state/save wrapper against the Client protocol; service/protocol conflicts already pass.",
+      "backend_tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ]
+    },
+    {
+      "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_cli_curses_and_json_apply_equivalence",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Replace service-side stand-in with real external terminal editor save, preserving identical configuration bytes/semantics.",
+      "backend_tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ]
+    },
+    {
+      "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_curses_expected_snapshot_protects_subagent_owner",
+      "owner": "TS-04",
+      "status": "pending",
+      "assertions": "Wire the external editor opening revision into apply and verify ownership conflict after a foreign subagent binding appears.",
+      "backend_tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ]
+    }
+  ]
+}

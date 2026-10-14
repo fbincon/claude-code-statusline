@@ -21,15 +21,19 @@
     },
     {
       "id": "tests.config.test_appearance.AppearanceConfigTests.test_v6_read_migrate_backup_and_restore",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_appearance.AppearanceConfigTests.test_theme_preserves_overrides_and_failed_write_preserves_bytes",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -44,17 +48,19 @@
     },
     {
       "id": "tests.config.test_catalog.CatalogTests.test_scopes_defaults_and_legacy_descriptions",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-protocol.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_catalog.CatalogTests.test_wizard_uses_generated_groups_and_constraints",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Installed wizard template substitution and generated group presentation belong to TS-04; core mutual exclusions are covered in final-boundaries.test.ts and catalogue validation is covered in final-protocol.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.config.test_catalog.CatalogTests.test_wire_display_fields_and_generated_frontend_are_current",
@@ -76,10 +82,10 @@
     },
     {
       "id": "tests.config.test_catalog.LanguageWizardContractTests.test_legacy_wizard_reads_interface_language_and_saves_output_language_atomically",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Installed wizard instruction/template generation belongs to TS-04; CLI language preference and atomic output-language saves are covered in final-language.test.ts and final-cli-language.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.config.test_config_commands.DisplayMutationTests.test_set_enable_disable_and_order",
@@ -290,162 +296,208 @@
     },
     {
       "id": "tests.config.test_display_config.DisplayConfigTests.test_missing_file_uses_legacy_compatible_defaults",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DisplayConfigTests.test_round_trip_preserves_empty_ordered_items_and_private_mode",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DisplayConfigTests.test_strict_schema_rejects_missing_unknown_duplicate_and_invalid_values",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DisplayConfigTests.test_subagent_status_elapsed_accepts_alone_rejects_legacy_pairs",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DisplayConfigTests.test_schema_one_loads_as_current_schema_without_rewriting",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DisplayConfigTests.test_duplicate_json_fields_are_rejected",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DisplayConfigTests.test_invalid_json_is_reported_without_rewrite",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DisplayConfigTests.test_atomic_write_failure_preserves_previous_file",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DirectoryStyleTests.test_directory_styles",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_display_config.DirectoryStyleTests.test_windows_drive_unc_unicode_case_and_long_paths",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_formatting.FormattingTests.test_v2_normalizes_without_touching_file",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_formatting.FormattingTests.test_invalid_advanced_options_are_rejected",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_formatting.FormattingTests.test_known_model_versions_and_unknown_names",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_formatting.FormattingTests.test_numbers_use_raw_integers_and_preserve_absence",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_formatting.FormattingTests.test_explicit_icons_replace_or_hide_legacy_glyphs",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_formatting.FormattingTests.test_reset_absolute_format_has_fixed_clock_and_expiry",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_formatting.FormattingTests.test_remaining_allowance_uses_used_risk_and_scoped_overrides",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_formatting.FormattingTests.test_protocol_one_is_refused_before_reading_settings",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_import_review.ImportReviewTests.test_empty_review_and_file_snapshot_do_not_touch_inputs",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-review.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_import_review.ImportReviewTests.test_additions_removals_do_not_fake_reordering",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-review.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_import_review.ImportReviewTests.test_every_configuration_section_and_scoped_override_is_reviewed",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-review.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_import_review.ImportReviewTests.test_unsaved_draft_and_legacy_display_only_host_are_the_baseline",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-review.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_import_review.ImportReviewTests.test_invalid_reviews_preserve_draft_and_never_create_configuration",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-review.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -568,78 +620,100 @@
     },
     {
       "id": "tests.config.test_metrics.MetricsConfigTests.test_v3_read_preserves_source_and_formats_until_actual_save",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_metrics.MetricsConfigTests.test_base_field_and_complete_roundtrip_agree",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-config.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_old_schemas_read_as_english_without_rewriting",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_v6_requires_supported_language_and_refuses_future_versions",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_language_changes_revision_but_ui_language_does_not",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_apply_omission_preserves_language_and_explicit_value_changes_it",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_failed_write_retains_prior_language_and_future_schema_is_not_overwritten",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_export_import_presets_and_reset_have_explicit_language_semantics",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_stale_editor_cannot_overwrite_language_changes",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_cli_and_legacy_parser_share_language_option",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
+      "reason": "TS-03 backend assertions ported; remaining TS-04 integration assertion: Connect the legacy wizard/install parser to the same output-language option semantics.",
       "stage": "TS-03"
     },
     {
       "id": "tests.config.test_transfer.TransferTests.test_all_presets_are_editable_and_preserve_unrelated_appearance",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -780,15 +854,19 @@
     },
     {
       "id": "tests.i18n.test_registry.LanguageRegistryTests.test_cache_covers_registered_packs_and_unknown_names_do_not_evict_them",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.i18n.test_registry.LanguageRegistryTests.test_fresh_render_loads_only_selected_statusline_module_and_no_ui_json",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -839,190 +917,236 @@
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_administration_uses_the_invoked_console_entry_instead_of_another_path_install",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Installer administration entry identity belongs to TS-04; TS-03 configuration LaunchSpec ownership is tested in final-boundaries.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_version",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_help_lists_public_commands",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
+      "reason": "TS-03 backend assertions ported; remaining TS-04 integration assertion: Add configure/install/uninstall/doctor command help when those TS-04 entries exist.",
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_configure_rejects_non_tty_without_traceback_or_changes",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Real external configure command and TTY detection belong to TS-04; injected editor outcomes are covered in slash-hook.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_configure_reports_missing_curses_without_traceback",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal backend availability and its user error belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_render_invalid_json_is_silent_and_successful",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_render_subagents_invalid_json_is_silent_and_successful",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_hook_invalid_json_is_silent_and_successful",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_slash_hook_invalid_json_is_silent_and_successful",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_all_hot_commands_accept_utf8_bom",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_experimental_slash_help_is_one_block_json_object",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_install_experimental_flags_are_mutually_exclusive",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Install command parser and feature installation choices belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_hot_paths_do_not_import_curses_or_slash_launcher",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_config_set_items_and_show_json",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_new_items_support_every_cli_item_mutation",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_config_validation_error_has_no_traceback",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_config_rejects_status_elapsed_with_status_or_elapsed",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_cli.CliTests.test_config_apply_updates_display_and_host_settings",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_default_set_override_and_reset",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_help_and_parser_errors_are_localized_including_groups",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
+      "reason": "TS-03 backend assertions ported; remaining TS-04 integration assertion: Verify install-specific translated flag descriptions and mutually exclusive groups.",
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_config_directory_is_resolved_before_help",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_json_catalogue_and_actual_rendering_are_language_independent",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_all_interface_and_statusline_language_combinations_are_independent",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_new_language_help_errors_and_machine_catalogue",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_every_output_language_survives_portable_roundtrip_without_ui_changes",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
+      "reason": "TS-03 backend assertions ported; remaining TS-04 integration assertion: Replace isolated owned-settings setup with real TS installation and repeat the language round trip.",
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_import_requires_installation_with_localized_owned_error",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_invalid_statusline_language_does_not_modify_configuration",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-cli-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -1127,78 +1251,82 @@
     },
     {
       "id": "tests.integration.test_terminal_capture.CaptureTests.test_every_byte_chunking_preserves_clusters_and_base_style",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External PTY capture oracle streaming/SGR state belongs to TS-04; pure grapheme width and renderer ANSI spans are covered in core and renderer tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_terminal_capture.CaptureTests.test_clear_and_cursor_moves_do_not_rejoin_old_capture_text",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal capture clear/cursor state belongs to TS-04; this is not a backend rendering cursor.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_external_default_color_chrome_is_readable_in_both_fixtures",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External TUI terminal-theme capture acceptance belongs to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_external_capture_rejects_fixed_white_chrome_and_artificial_preview_background",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External TUI chrome/background capture acceptance belongs to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_preview_preserves_low_contrast_samples_instead_of_changing_their_colors",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal capture acceptance of sample colors belongs to TS-04; backend preview spans preserve colors in final-protocol.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_capture_rejects_unreadable_defaults_and_resolves_recorded_ansi_palette",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Recorded terminal palette and contrast oracle belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_default_roles_are_distinct_and_reverse_after_resolution",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Terminal capture default foreground/background role resolution belongs to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_explicit_light_and_sample_cells_keep_their_original_colors",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Terminal capture cell color and contrast oracle belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_white_on_light_is_rejected_but_ansi_names_remain_renderable",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal contrast and named-color capture oracle belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.integration.test_unicode_generation.UnicodeGenerationTests.test_decoded_tables_match_every_pinned_reference_interval",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/generation/test/unicode-source.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.integration.test_unicode_generation.UnicodeGenerationTests.test_crlf_checkout_produces_the_same_tables_fixtures_and_provenance",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/generation/test/unicode-source.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -1915,8 +2043,10 @@
     },
     {
       "id": "tests.rendering.test_statusline_git.GitIntegrationTests.test_end_to_end_statusline_uses_live_directory_for_dir_and_git",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -2381,29 +2511,37 @@
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemConfigCommandTests.test_list_items_json_marks_new_items_default_disabled",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemConfigCommandTests.test_enable_new_item_roundtrip",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemConfigCommandTests.test_new_main_items_support_set_enable_disable_and_order",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.rendering.test_statusline_new_items.NewItemConfigCommandTests.test_order_rejects_new_item_not_enabled",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-language.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -3444,8 +3582,10 @@
     },
     {
       "id": "tests.runtime.test_task_timing.TaskTimingTests.test_aliases_normalize_layout_and_options_without_dropping_settings",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -3460,15 +3600,19 @@
     },
     {
       "id": "tests.runtime.test_task_timing.TaskTimingTests.test_invalid_preferences_hide_derived_timers_and_remain_diagnosable",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
+      "reason": "TS-03 backend assertions ported; remaining TS-04 integration assertion: Verify installer doctor emits a localized ERROR naming the invalid runtime preference file.",
       "stage": "TS-03"
     },
     {
       "id": "tests.runtime.test_task_timing.TaskTimingTests.test_aliases_work_in_item_mutations_and_explicit_layouts",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -3987,9 +4131,11 @@
     },
     {
       "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_external_and_client_saves_conflict_in_both_orders",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
+      "reason": "TS-03 backend assertions ported; remaining TS-04 integration assertion: Repeat with the real external editor state/save wrapper against the Client protocol; service/protocol conflicts already pass.",
       "stage": "TS-03"
     },
     {
@@ -4048,8 +4194,10 @@
     },
     {
       "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_legacy_draft_error_tracks_the_supported_schema_without_writes",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -4073,8 +4221,10 @@
     },
     {
       "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_bound_entry_uses_its_own_identity",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
@@ -4089,16 +4239,20 @@
     },
     {
       "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_cli_curses_and_json_apply_equivalence",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
+      "reason": "TS-03 backend assertions ported; remaining TS-04 integration assertion: Replace service-side stand-in with real external terminal editor save, preserving identical configuration bytes/semantics.",
       "stage": "TS-03"
     },
     {
       "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_curses_expected_snapshot_protects_subagent_owner",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-boundaries.test.ts"
+      ],
+      "reason": "TS-03 backend assertions ported; remaining TS-04 integration assertion: Wire the external editor opening revision into apply and verify ownership conflict after a foreign subagent binding appears.",
       "stage": "TS-03"
     },
     {
@@ -4121,115 +4275,115 @@
     },
     {
       "id": "tests.ui.test_import_review.ReviewUiTests.test_cancel_preserves_unsaved_draft_revision_and_editor_state",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External import-review modal keyboard cancellation and focus state belong to TS-04; pure review no-write semantics are covered in final-review.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_import_review.ReviewUiTests.test_accept_replaces_only_draft_and_keeps_opening_revision",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External import-review modal accept/save key transitions belong to TS-04; revision conflicts remain covered in config and final-boundaries tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_import_review.ReviewUiTests.test_review_sections_long_values_and_previews_resize_in_both_languages",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External review screen resize, scrolling and scope-tab navigation belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_import_review.ReviewUiTests.test_empty_review_and_nested_localized_labels",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External review window rows and localized label presentation belong to TS-04; nested localization and empty review generation remain covered in core/final-review tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_add_picker_guidance_cancel_and_accept_preserve_drafts",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External instance-picker guidance, input and focus state belong to TS-04; schema/instance mutations remain covered in core tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_copy_remove_and_scope_identity_keep_the_baseline",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External editor keyboard copy/toggle/remove state and baseline identity belong to TS-04; core copy/remove identity rules remain covered in core/config tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_rejected_spacer_move_keeps_order_and_positions",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External editor selection/order after rejected key movement belongs to TS-04; the direct core edit refusal and unchanged draft are tested in final-boundaries.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_literal_instance_can_be_found_by_its_displayed_text",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External editor search filtering after literal-text insertion belongs to TS-04; literal instance storage is covered in core/config tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_language.LanguageUiTests.test_all_languages_cycle_both_directions_and_persist_outside_draft",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal key cycling, field focus and repaint belong to TS-04; immediate preference persistence is covered in config/final-cli-language tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_language.LanguageUiTests.test_search_matches_both_languages_ids_and_custom_labels",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External editor localized search results and selection belong to TS-04; Unicode case folding and shared catalogues are already tested.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_language.LanguageUiTests.test_statusline_language_is_a_draft_and_preserves_interface_and_input",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External settings-form selection/search/dirty-state transitions belong to TS-04; independent UI/output languages and preview are covered in final-language and rendering tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_language.LanguageUiTests.test_cancelled_screen_keeps_persisted_output_language_unchanged",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External screen-loop cancel/dirty draft state belongs to TS-04; backend read/preview no-write behavior remains covered.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_language.LanguageUiTests.test_all_pages_and_forms_draw_chinese_inside_cell_bounds",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External TUI pages, forms and terminal cell bounds belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_language.LanguageUiTests.test_language_persists_immediately_while_draft_and_cancel_are_independent",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External screen repaint/focus and immediate-language-save/cancel interaction belong to TS-04; persistence itself is covered in config and final-cli-language tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_language.LanguageUiTests.test_failed_language_save_retains_language_draft_and_field",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External language-save failure notice, repaint and focus state belong to TS-04; transactional preference failures are tested in backend preference tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_language.LanguageUiTests.test_open_reads_shared_preference_and_override_only_changes_initial_locale",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External session opening/cancel locale selection belongs to TS-04; shared preference and invocation override are covered in final-cli-language.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_protocol.ProtocolTests.test_invalid_envelopes_and_json_do_not_create_paths",
@@ -4260,136 +4414,146 @@
     },
     {
       "id": "tests.ui.test_protocol.ProtocolTests.test_preview_reuses_production_formatting_without_live_sources",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-protocol.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.ui.test_protocol.ProtocolTests.test_invalid_drafts_width_and_strict_host_types",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-protocol.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.ui.test_protocol.ProtocolTests.test_color_channels_are_not_interpreted_as_sgr_codes",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-protocol.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.ui.test_protocol.ProtocolTests.test_legacy_draft_empty_rows_and_mutual_exclusions",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-protocol.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.ui.test_protocol.ProtocolTests.test_actual_cli_preview_and_utf8_errors_are_json_only",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "packages/cli/test/final-protocol.test.ts"
+      ],
       "reason": null,
       "stage": "TS-03"
     },
     {
       "id": "tests.ui.test_statusline_language.StatuslineLanguageSessionTests.test_save_and_cancel_share_draft_semantics_in_all_25_language_combinations",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal session save/cancel wrapper belongs to TS-04; all 25 backend UI/output combinations and failed writes are covered in final-cli-language/final-language tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_statusline_language.StatuslineLanguageSessionTests.test_save_failure_preserves_file_and_draft",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal session save error and retained EditorState belong to TS-04; backend rollback/file preservation is covered in config/final-language tests.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_preview_caption_follows_palette_draft_and_color_disable",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External preview caption and baseline EditorState drawing belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_compatibility_exports_share_the_new_implementation",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "Legacy external curses compatibility exports belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_preview_uses_terminal_defaults_without_reserved_background_pairs",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External curses color-pair allocation and terminal default background belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_basic_and_monochrome_capabilities",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal 0/8/16/256-color negotiation belongs to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_preview_preserves_quantized_rgb_and_ansi_sample_foregrounds",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External curses color quantization/pair attributes belong to TS-04; backend RGB/ANSI span interpretation is covered in final-protocol.test.ts.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_default_color_failure_preserves_default_text_instead_of_painting_black",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal default-color initialization failure belongs to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_failed_sample_pair_is_cached_and_falls_back_to_default_text",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External curses failed color-pair cache/fallback belongs to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_start_color_failure_is_monochrome",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal color initialization failure belongs to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_pair_exhaustion_falls_back_to_default_text",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External terminal color-pair exhaustion belongs to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_color_pair_attributes_never_exceed_python_pair_limit",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External curses attribute/pair limit belongs to TS-04; the replacement terminal adapter must retain bounded allocation.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_chrome_is_default_color_on_all_pages_and_selected_actions",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External screen chrome, bold/reverse actions and terminal-default styling belong to TS-04.",
+      "stage": "TS-04"
     },
     {
       "id": "tests.ui.test_theme.ThemeTests.test_preview_fills_empty_rows_trailing_spaces_resets_and_overflow",
-      "status": "pending",
+      "status": "deferred",
       "tests": [],
-      "reason": null,
-      "stage": "TS-03"
+      "reason": "External preview panel fill/overflow and curses drawing belong to TS-04; backend row/spans/width behavior is covered in renderer tests.",
+      "stage": "TS-04"
     }
   ]
 }

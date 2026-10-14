@@ -14,8 +14,8 @@
 | 03-B | 配置核心、实例、目录、语言、Unicode 与生成归属 | DONE；[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79) |
 | 03-C | 加锁配置服务、偏好及管理命令 | DONE；[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80) |
 | 03-D | 采集、缓存、计时、任务、观察及 hooks | DONE；[PR #81](https://github.com/fbincon/claude-code-statusline/pull/81) |
-| 03-E | 渲染、预览及完整后端协议 | IN_PROGRESS |
-| 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | NOT_STARTED |
+| 03-E | 渲染、预览及完整后端协议 | DONE — PR #82 |
+| 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | IN_PROGRESS |
 
 当前分支：`fbincon/ts-03-rendering`。03-A／03-B／03-C／03-D 分别合并为 `21fb21d`／`f1363e3`／`0faa639`／`dc2e218`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
 workspace 包为 0.0.0 私有开发包；现有 Python 应用仍为 2.0.0。
@@ -106,3 +106,18 @@ TS 入口已接入 `runtime [--config-dir PATH]` 和 `hook`。运行协议 v2 �
 编辑器请求／结果接口保留 `LaunchSpec` 和 cwd，检查命令前置条件、限制结果文字并映射全部结束状态。测试注入适配器，开发后端在 TS-04 接入真实终端前返回既有不可用提示。现有 Python 安装和 Mod 绑定保持原状。
 
 全部 **161/161** 个固定案例通过，仅有原先三项 CLI 文案差异。本地 TS **455 项中 454 通过**（一项 Windows 平台跳过），Python **856 项中 847 通过**（九项平台跳过），native Mod **112/112**、runtime Mod **10/10**。台账达到 **389/516** 项已迁移，仍有 **127** 项 pending，`--complete` 仍须失败。[验证证据](validation.03-e.json)绑定源码和固定运行时。剩余工作归 03-F：全台账审计、跨模块及 Mod 到 TS 验证、D06 性能／无 Python 验收和 TS-04 交接。本批不将 TS-03 标记为 DONE。
+
+
+## 03-F 整体验收进行中
+
+03-E 在 43 项 PR 检查通过后合并为 `10c6348aef1fcd1d2a1681aa808a842e0d883b56`。八份平台证据分别匹配 201 个源码原始哈希及固定运行时；GitHub、Gitee main 均独立核验为该合并提交。首次 Windows CRLF 差异在合并前被拒绝并修正；[03-E 证据](validation.03-e.json)保留两次尝试。
+
+516 项清单现为 **471 项已迁移、45 项外部 TUI／安装／终端测试交接 TS-04、零 pending**。[断言交接清单](../../../../tools/migration/ts-03/ts04-handoff.json)逐项列出延期测试及八项混合测试中的剩余断言，后端部分均有 TS 证据。`migration:inventory -- --complete` 同时校验两份台账并拒绝缺少责任归属；CI 现要求完整核销。
+
+新进程测试覆盖五种输出语言，每次只加载所选小语言包，不加载其他语言或 UI 目录。CLI 帮助及参数错误遵循已解析的界面偏好和显式语言覆盖；机器目录不受界面语言影响。仅为已获准的帮助文案调整更新了 `cli-help` stdout 精确哈希，原始 Python 期望及另外两项诊断例外保持原样。
+
+两个 Mod 的原始纯逻辑模块被编译到临时测试树，通过空 PATH 环境连接真实 Node 后端。native 解析器校验全部十项 UI v11 操作、保存／无变化／过期修订、导入审阅、样式片段及错误；runtime 队列验证 v2 确认、重试／去重、v1 读取、禁用／仅计时模式及有界批次。同一环境还执行 render、子代理 NDJSON、hook 和 slash-hook，无 Python 调用。另以 Claude Code 2.1.296 PTY 和临时 Mod 绑定验证真实主机进程 API：两个严格清单通过，配置 describe/read/preview/preferences 和 runtime observe 成功，无模型调用且清理完成。这是自动主机证据，既定实体设备／桌面发布前门槛继续保留。
+
+[性能工具](../../../../tools/migration/ts-03/performance/benchmark.ts)覆盖十项完整命令和 22 项进程内负载：三种固定 transcript／Agent／Git 规模、冷／热／追加游标、Git 未命中／命中／过期、重复指标、Unicode 排版、代理、hook、预览及 runtime observe。夹具和字节码预热不计入测量；每个样本核对输出及采集次数。新缓存保留基线的一次生命周期／用量迁移扫描，热刷新不再读取 transcript。正式 D06 要求干净已提交的源码，每侧 50 次、三轮交替、Python 冷／热字节码分开；记录 P50/P95、真实峰值 RSS、策略／运行时／源码哈希并执行一次噪声复测规则。`--validate` 只校验夹具，不能记为性能通过。干净提交 `1fddaa6ea1fef7f631e51641f15214cbddd7ec08` 的正式测量已完成，结论为 **失败**：91 项通过、69 项失败、32 项不确定。19,200 个样本的输出及采集次数全部一致。[完整 D06 记录](PERFORMANCE.zh-CN.md)保留所有判定及源码／运行时／策略哈希。
+
+本地验收通过 TS 550 项中的 549 项（一项平台跳过）、Python 856 项中的 847 项（九项平台跳过）、两个 Mod 测试（112/10）、两个 Mod 类型／严格校验、34 项生成资源、五项保留的只读生成检查及完整 516 项台账。[03-F 验证](validation.03-f.json)记录精确源码和日志；[TS-04 交接](TS04-HANDOFF.zh-CN.md)记录编辑器／安装剩余断言。首个提交已通过 43 项 PR 检查，八目标产物分别精确匹配 296 项源码。最终帮助参数差异矩阵修正无效命令／缺失选项／互斥参数的退出码，保留已批准的帮助文案差异。最终 head／检查／产物核验记录于 [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83)。**D06 失败，TS-03 保持 IN_PROGRESS。** 性能整改继续归本阶段；合并实现与证据不豁免此门槛。

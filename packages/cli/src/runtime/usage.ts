@@ -2,14 +2,16 @@ import { dirname, join, resolve, extname } from 'node:path';
 import { object, own, int, string, truth, dictionary, type Data } from '@fbincon/statusline-core/runtime/values';
 import * as usage from '@fbincon/statusline-core/runtime/usage';
 import { updateTurnMetadata } from '@fbincon/statusline-core/runtime/transcript';
-import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { divideIntegers, fixed } from '@fbincon/statusline-core/numbers';
 import { scalarCompare } from '@fbincon/statusline-core/json';
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import type { RuntimeContext } from './context.js';
-import { runtimeIO, readStored, transcriptChunk, type RuntimeIO } from './io.js';
+import { runtimeIO, transcriptChunk, type RuntimeIO } from './io.js';
 import { TaskService } from './tasks/service.js';
+import { readDataJson, dumpDataJson } from './json-data.js';
+import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
+import { orderedDataRecord, recordEntries } from '@fbincon/statusline-core/ordered-record';
 export function humanizeTokens(value: bigint): string {
     if (value >= 1000000n)
         return fixed(divideIntegers(value, 1000000n), 2).replace(/0+$/u, '').replace(/\.$/u, '') + 'M';
@@ -35,13 +37,21 @@ export class UsageCollector {
         dropped: boolean;
     } {
         try {
-            const raw = readStored(this.io, this.path());
+            const bytes = this.io.read(this.path());
+            const raw = bytes === null ? null : readDataJson(decodeUtf8(bytes));
             if (object(raw) && object(raw.sessions)) {
+                const sessions = orderedDataRecord(raw.sessions);
+                Object.setPrototypeOf(sessions, null);
+                raw.sessions = sessions;
                 let dropped = false;
-                for (const [key, entry] of Object.entries(raw.sessions))
+                for (const [key, entry] of recordEntries(sessions))
                     if (!object(entry) || !object(entry.files) || !object(entry.ids)) {
-                        delete raw.sessions[key];
+                        delete sessions[key];
                         dropped = true;
+                    }
+                    else {
+                        entry.ids = orderedDataRecord(entry.ids);
+                        Object.setPrototypeOf(entry.ids, null);
                     }
                 return { state: raw as Data & {
                         sessions: Record<string, usage.UsageEntry>;
@@ -158,13 +168,15 @@ export class UsageCollector {
             changed = true;
         }
         let root = join(path.slice(0, path.length - extname(path).length), 'subagents');
-        const directory = (target: string) => { try {
-            this.io.entries(target);
-            return true;
-        }
-        catch {
-            return false;
-        } };
+        const directory = (target: string) => {
+            try {
+                this.io.entries(target);
+                return true;
+            }
+            catch {
+                return false;
+            }
+        };
         if (!directory(root)) {
             const alternative = join(dirname(path), session, 'subagents');
             if (directory(alternative))
@@ -192,7 +204,7 @@ export class UsageCollector {
             while (Object.keys(state.sessions).length > usage.MAX_SESSIONS)
                 delete state.sessions[Object.keys(state.sessions)[0]!];
             try {
-                this.io.write(this.path(), Buffer.from(pythonJson(state, { allowNan: true })));
+                this.io.write(this.path(), Buffer.from(dumpDataJson(state)));
             }
             catch { /* Retain this result even if the cache cannot be saved. */ }
         }

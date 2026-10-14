@@ -7,6 +7,7 @@ import { errorDescription } from '@fbincon/statusline-platform/errors';
 import type { RuntimeContext } from './runtime/context.js';
 import type { EditorLauncher } from './integration/editor.js';
 import type { RenderEnvironment } from '@fbincon/statusline-core/rendering/context';
+import type { Language } from '@fbincon/statusline-core/i18n/messages';
 export interface CliEnvironment {
     configDir?: string;
     launch?: LaunchSpec;
@@ -37,25 +38,29 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     async function renderer(command: string): Promise<number> {
         const read = environment.stdin ?? (() => readFileSync(0));
         if (command === 'slash-hook') {
-            const { slashHook } = await import('./integration/slash-hook.js'); stdout(await slashHook(read, environment));
-        } else {
+            const { slashHook } = await import('./integration/slash-hook.js');
+            stdout(await slashHook(read, environment));
+        }
+        else {
             const { render } = await import('./rendering/main.js');
             stdout(await render(read, { configDir: environment.configDir, runtime: environment.runtime, now: environment.now ? () => environment.now!().getTime() / 1000 : undefined, observations: environment.renderObservations }, command === 'render-subagents'));
         }
         return 0;
     }
-    if (args.length === 1 && ['render', 'render-subagents', 'slash-hook'].includes(args[0]!)) return renderer(args[0]!);
+    if (args.length === 1 && ['render', 'render-subagents', 'slash-hook'].includes(args[0]!))
+        return renderer(args[0]!);
     // Management translations and storage stay outside the rendering hot path.
-    const { ArgumentError, parseConfig } = await import('./config/arguments.js');
+    const { ArgumentError, parseConfig, validateConfigHelp, optionToken } = await import('./config/arguments.js');
     const { expandUser, detectClaudeVersion } = await import('@fbincon/statusline-platform/commands');
     const { ConfigurationService } = await import('./config/service.js');
     const { createStorage } = await import('./config/storage.js');
     const { readPreferences } = await import('./config/preferences.js');
     const { ConfigError } = await import('@fbincon/statusline-core/config/validation');
-    const { t, text } = await import('@fbincon/statusline-core/i18n/messages');
+    const { t } = await import('@fbincon/statusline-core/i18n/messages');
     const { LANGUAGES } = await import('@fbincon/statusline-core/i18n/registry');
     const { localizedError } = await import('./errors.js');
     let selectedLanguage: string | undefined;
+    let language: Language = 'en';
     try {
         if (args[0] === '--language' || args[0]?.startsWith('--language=')) {
             const flag = args.shift()!;
@@ -63,15 +68,34 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             if (!(LANGUAGES as readonly unknown[]).includes(selectedLanguage))
                 throw new ArgumentError('unsupported --language');
         }
-        if (args.includes('--help') || args.includes('-h')) {
-            stdout('usage: claude-statusline [--language LANGUAGE] COMMAND\n\nCommands: config, ui, runtime, render, render-subagents, hook, slash-hook\n\nconfig: show, list-items, set-items, enable, disable, order, subagents, set, apply, preset, import, export, item, layout, instance, reset, language\n');
+        // Resolve preferences without creating files, including before help/parser errors.
+        // Only the command's own directory option selects storage. A literal
+        // item value after -- must never redirect a configuration write.
+        const directoryFlag = args[1];
+        const requestedDirectory = directoryFlag === '--config-dir' ? args[2] : directoryFlag?.startsWith('--config-dir=') ? directoryFlag.slice(13) : undefined;
+        const rawDirectory = requestedDirectory ?? environment.configDir ?? process.env.CLAUDE_CONFIG_DIR;
+        const configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
+        const preferences = readPreferences(configDir, createStorage(environment.now));
+        language = (selectedLanguage ?? preferences.ui_language) as Language;
+        if (['config', 'ui', 'runtime'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
+        const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
+        if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
+            const command = args[0];
+            if (command && !command.startsWith('-') && !['config', 'ui', 'runtime', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command === 'config') {
+                const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
+                validateConfigHelp(args.slice(offset));
+            }
+            const { helpText } = await import('./help.js');
+            stdout(helpText(args[0], language));
             return 0;
         }
         const command = args.shift();
         if (!['config', 'ui', 'runtime', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
         if (['render', 'render-subagents', 'slash-hook'].includes(command!)) {
-            if (args.length) throw new ArgumentError(`${command} takes no arguments`);
+            if (args.length)
+                throw new ArgumentError(`${command} takes no arguments`);
             return renderer(command!);
         }
         let explicit: string | undefined;
@@ -81,21 +105,23 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             if (explicit === undefined)
                 throw new ArgumentError('--config-dir requires a path');
         }
-        const rawDirectory = explicit ?? environment.configDir ?? process.env.CLAUDE_CONFIG_DIR;
-        const configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
         if (command === 'runtime' || command === 'hook') {
-            if (command === 'hook' && explicit !== undefined) throw new ArgumentError('hook does not accept --config-dir');
-            if (args.length) throw new ArgumentError(`${command} takes no positional arguments`);
+            if (command === 'hook' && explicit !== undefined)
+                throw new ArgumentError('hook does not accept --config-dir');
+            if (args.length)
+                throw new ArgumentError(`${command} takes no positional arguments`);
             const { runtimeContext } = await import('./runtime/context.js');
             const context = environment.runtime ?? runtimeContext(configDir);
             if (command === 'hook') {
                 const { hook } = await import('./runtime/hook.js');
-                hook(environment.stdin ?? (() => readFileSync(0)), context); return 0;
+                hook(environment.stdin ?? (() => readFileSync(0)), context);
+                return 0;
             }
             const { RuntimeProtocol } = await import('./runtime/live/protocol.js');
             const { readLimitedInput } = await import('@fbincon/statusline-platform/input');
-            const result = await new RuntimeProtocol(context).handle(environment.stdin ?? (() => readLimitedInput(1_048_576)));
-            stdout(result.stdout); return result.status;
+            const result = await new RuntimeProtocol(context).handle(environment.stdin ?? (() => readLimitedInput(1048576)));
+            stdout(result.stdout);
+            return result.status;
         }
         const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
         const service = new ConfigurationService({ configDir, launch, hostVersion: environment.hostVersion ?? detectClaudeVersion }, createStorage(environment.now));
@@ -119,8 +145,6 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return status;
         }
         const parsed = parseConfig(args);
-        const preferences = readPreferences(configDir, service.io);
-        const language = (selectedLanguage ?? preferences.ui_language) as typeof preferences.ui_language;
         if (preferences.warning)
             stderr(t('cli.warning', language, { detail: preferences.warning }) + '\n');
         try {
@@ -136,10 +160,10 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     }
     catch (error) {
         if (error instanceof ArgumentError) {
-            stderr(`claude-statusline: error: ${error.message}\n`);
+            stderr(t('cli.parser_error', language, { prog: 'claude-statusline', detail: language === 'en' ? error.message : t(error.key, language, error.params) }));
             return 2;
         }
-        stderr(t('cli.error', 'en', { detail: error instanceof ConfigError ? localizedError(error) : String(error) }) + '\n');
+        stderr(t('cli.error', language, { detail: error instanceof ConfigError ? localizedError(error) : String(error) }) + '\n');
         return 2;
     }
 }

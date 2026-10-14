@@ -366,3 +366,7 @@ TS-03 D 将固定重放扩展至 45/161 个案例，台账完整迁移项达到 
 独立 TS 执行器现已重放全部 **161** 个固定案例。对照仍仅允许原有三项准确的 CLI 文案字段差异，未新增数值、协议、状态、文件或退出码豁免。台账已映射 **389/516** 项测试，仍有 **127** 项等待最终审计；十项混合 token 测试已补齐渲染断言。本地 `npm test` **455 项中 454 通过**，Linux 预期跳过一项 Windows 共享冲突测试；原 Python **856 项中 847 通过**、九项平台跳过。独立官方 Mod 测试 **native 112／runtime 10** 全部通过。
 
 覆盖五种语言的全部指标、40／80／120 列和极窄宽度、显式行／留白／Powerline、固定旧版外观字节、选择性 ANSI 复位、零值／缺失／部分观测、重复来源复用及子代理结束证据冻结。额外对照核验 2,092 组浮点格式、数值构造语法，以及所有 Unicode 码点在 Python 3.14 下的大小写折叠／首字母大写。导入追踪拒绝最小渲染路径加载原生采集器和 UI 词库；独立 ASCII 进程确认 Unicode 表初始化数量为零。参见 [03-E 证据](typescript-migration/ts-03/validation.03-e.json)。D06 性能矩阵、隔离 Mod 到 TS 的绑定及完整 516 项台账审计继续作为 03-F 门槛。
+
+TS-03 集成测试以原始 Mod 协议模块连接真实 Node 后端，PATH 中不提供 Python。真实主机探测使用临时绑定、合成密钥和不可达的 loopback API。`npm run migration:inventory -- --complete` 要求 516 项均有替代测试或具名 TS-04 责任。固定 D06 后端工具为 `npm run migration:benchmark -- NEW_DIRECTORY`，要求干净且已提交的源码；`--validate` 仅校验功能夹具。参见 [TS-04 交接](typescript-migration/ts-03/TS04-HANDOFF.zh-CN.md)。
+
+正式 [TS-03 D06 报告](typescript-migration/ts-03/PERFORMANCE.zh-CN.md)结论为失败：91 项通过、69 项失败、32 项不确定，全部样本的输出及采集次数仍一致。TS-03 保持 IN_PROGRESS。CLI 帮助另与固定 Python 解析器对照命令路径、缺失值、选项、互斥关系、退出码及输出通道。

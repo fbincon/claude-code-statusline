@@ -1,4 +1,4 @@
-import { integer, isLosslessNumber, pythonFloat } from '../json.js';
+import { isLosslessNumber, pythonFloat } from '../json.js';
 import { object } from '../config/validation.js';
 import { orderedRecord } from '../ordered-record.js';
 export { object };
@@ -15,12 +15,13 @@ export function own<T>(data: Record<string, T>, key: unknown): T | undefined { r
 export function int(value: unknown, strict = true): bigint | null {
     if (!strict && typeof value === 'boolean')
         return value ? 1n : 0n;
-    try {
-        return integer(value);
-    }
-    catch {
-        return null;
-    }
+    if (typeof value === 'bigint')
+        return value;
+    if (typeof value === 'number')
+        return Number.isSafeInteger(value) ? BigInt(value) : null;
+    if (isLosslessNumber(value) && /^-?\d+$/u.test(value.value))
+        return BigInt(value.value);
+    return null;
 }
 export function numeric(value: unknown): number | null {
     if (isLosslessNumber(value))
