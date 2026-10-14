@@ -6,6 +6,8 @@ Updated: **2026-10-14** (Asia/Shanghai). Reference implementation: **v2.0.0**, c
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
+Performance optimization is active on `fbincon/ts-03-performance`; the approved two-round scope and evidence are tracked in [the optimization record](typescript-migration/ts-03/PERFORMANCE-OPTIMIZATION.md). D06 and TS-04 admission are unchanged.
+
 ## Current state
 
 | Item | State |

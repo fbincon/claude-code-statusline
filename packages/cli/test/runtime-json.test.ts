@@ -7,7 +7,7 @@ import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { dictionary } from '@fbincon/statusline-core/runtime/values';
 import { UsageCollector } from '../src/runtime/usage.js';
 import { setup, fs, join } from './runtime-support.js';
-test('internal cache/transcript native parsing preserves exact numeric kinds and ordered-key fallback', () => {
+test('internal cache/transcript parsing preserves exact numeric kinds and ordered keys', () => {
     const vectors = [
         '{"n":9007199254740993,"f":1.0,"z":-0.0,"i":-0,"e":1e20,"tiny":1e-7}',
         '{"10":1,"2":2,"1":3,"\\u0030":4,"x":5}',
@@ -34,7 +34,19 @@ test('internal cache/transcript native parsing preserves exact numeric kinds and
                 return (error as Error).message;
             } })() });
 });
-test('native cache serialization exactly matches Python layout, Unicode escapes and numeric spellings', () => {
+test('data integer accumulation is exact across the safe-integer boundary and long literals', () => {
+    for (let i = -96n; i <= 96n; i++) {
+        for (const sign of [1n, -1n]) {
+            const raw = String((9007199254740991n + i) * sign);
+            assert.equal(integer(readDataJson(raw)), BigInt(raw));
+        }
+    }
+    for (const raw of ['0', '-0', '1234567890123456789012345678901234567890', '1.0000000000000001', '-0e99', '1e400', '1e-400'])
+        assert.equal(pythonJson(readDataJson(raw), { allowNan: true }), pythonJson(readJson(raw), { allowNan: true }));
+    for (const raw of ['[00]', '[01]', '[-01]', '[1.]', '[1e-]', '[truefalse]', '{"x" 1}', '{"x":1,}', '["a\n"]', '["a\\u00xz"]', '["a\\\\\n"]', '{}x', '[1,,2]'])
+        assert.throws(() => readDataJson(raw), { message: (() => { try { readJson(raw); } catch (error) { return (error as Error).message; } })() });
+});
+test('cache serialization exactly matches Python layout, Unicode escapes and numeric spellings', () => {
     for (const raw of [
         '{"n":9007199254740993,"f":1.0,"z":-0.0,"e":1e20,"tiny":1e-7}',
         '{"10":1,"2":2,"nested":{"9":3,"1":4}}',

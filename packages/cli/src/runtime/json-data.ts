@@ -1,75 +1,111 @@
 import { LosslessNumber, isLosslessNumber, pythonFloat } from '@fbincon/statusline-core/json';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
-import { nativeRecord } from '@fbincon/statusline-core/ordered-record';
-/** Internal cache/transcript records have fixed fields. Callers restore mutable
- * ID dictionaries; other nested objects are consumed as data only.
- * Numeric member names require the ordered parser, including escaped names.
- * Public strict JSON parsing and its duplicate/diagnostic rules are unchanged.
+import { nativeRecord, orderedDataRecord } from '@fbincon/statusline-core/ordered-record';
+// Conservative lexical filters: matches inside strings only select the exact
+// path unnecessarily. They never allow a lossy number or reordered key through.
+const EXACT_NUMBER = /[1-9]\d{15,}|(?:0|[1-9]\d*)[.eE]|-0/u;
+const ORDERED_KEY = /"(?:[0-9]|\\)/u;
+/** A single-pass data reader avoids number placeholders and a second tree walk.
+ * Ordinary objects stay native; only integer member names need an order proxy.
+ * Malformed/legacy input goes through the compatibility reader for exact errors.
  */
 export function readDataJson(raw: string): unknown {
-    const marker = '\u0000statusline:number';
-    try {
-        // Only a numeric/escaped first character can become an integer index
-        // or the reserved marker key. Other keys need no JS-level token walk.
-        for (const match of raw.matchAll(/"(?:[0-9]|\\[\s\S])(?:\\[\s\S]|[^"\\])*"\s*:/gu)) {
-            const token = match[0], key = JSON.parse(token.slice(0, token.lastIndexOf(':')).trim()) as string;
-            if (key === marker || /^(?:0|[1-9][0-9]{0,9})$/u.test(key) && Number(key) < 4294967295)
-                return readJson(raw);
-        }
-        // Let the native parser handle ordinary integer fields without a reviver
-        // callback/context allocation per value. Only exceptional numeric tokens
-        // need a temporary placeholder; quote boundaries exclude string contents.
-        const numbers: (bigint | LosslessNumber | number)[] = [], parts: string[] = [];
-        // Safe integer counters need no callback. Number candidates inside
-        // strings are excluded using unescaped quote boundaries. Keep the JSON
-        // integer grammar here so replacement cannot repair invalid leading 0s.
-        const tokens = /-?(?:[1-9]\d{15,}(?:\.\d+)?(?:[eE][+-]?\d+)?|(?:0|[1-9]\d*)\.\d+(?:[eE][+-]?\d+)?|(?:0|[1-9]\d*)[eE][+-]?\d+)|-0(?![\d.eE])/gu;
-        let position = 0, quoteCursor = 0, quoted = false;
-        for (const token of raw.matchAll(tokens)) {
-            const source = token[0];
-            for (;;) {
-                const quote = raw.indexOf('"', quoteCursor);
-                if (quote < 0 || quote >= token.index)
-                    break;
-                let backslashes = 0;
-                for (let i = quote - 1; i >= 0 && raw.charCodeAt(i) === 92; i--)
-                    backslashes++;
-                if (backslashes % 2 === 0)
-                    quoted = !quoted;
-                quoteCursor = quote + 1;
-            }
-            if (quoted)
-                continue;
-            const whole = /^-?\d+$/u.test(source);
-            if (whole && source !== '-0' && Number.isSafeInteger(Number(source)))
-                continue;
-            numbers.push(whole ? source === '-0' ? 0 : BigInt(source) : new LosslessNumber(source));
-            parts.push(raw.slice(position, token.index), '{' + JSON.stringify(marker) + ':' + (numbers.length - 1) + '}');
-            position = token.index + source.length;
-        }
-        const value: unknown = JSON.parse(numbers.length ? parts.join('') + raw.slice(position) : raw);
-        if (!numbers.length)
-            return value;
-        function restore(value: unknown): unknown {
-            if (!value || typeof value !== 'object')
-                return value;
-            if (Object.hasOwn(value, marker))
-                return numbers[(value as Record<string, number>)[marker]!];
-            if (Array.isArray(value)) {
-                for (let i = 0; i < value.length; i++)
-                    value[i] = restore(value[i]);
-            }
-            else
-                for (const key of Object.keys(value))
-                    (value as Record<string, unknown>)[key] = restore((value as Record<string, unknown>)[key]);
-            return value;
-        }
-        return restore(value);
+    if (!EXACT_NUMBER.test(raw) && !ORDERED_KEY.test(raw)) {
+        try { return JSON.parse(raw); }
+        catch { return readJson(raw); }
     }
-    catch (error) {
-        if (error instanceof SyntaxError)
-            return readJson(raw);
+    let offset = 0;
+    const invalid = (): never => { throw new SyntaxError('Invalid data JSON'); };
+    const whitespace = () => { for (;;) { const c = raw.charCodeAt(offset); if (c !== 32 && c !== 9 && c !== 10 && c !== 13) return; offset++; } };
+    const quoted = (): string => {
+        const start = offset++, end = raw.indexOf('"', offset);
+        if (end < 0) return invalid();
+        const value = raw.slice(offset, end);
+        if (!value.includes('\\')) {
+            if (/[\x00-\x1f]/u.test(value)) return invalid();
+            offset = end + 1;
+            return value;
+        }
+        while (offset < raw.length) {
+            const code = raw.charCodeAt(offset++);
+            if (code === 34) return JSON.parse(raw.slice(start, offset)) as string;
+            if (code === 92) offset++;
+        }
+        return invalid();
+    };
+    const value = (): unknown => {
+        whitespace();
+        const code = raw.charCodeAt(offset);
+        if (code === 34) return quoted();
+        if (code === 123) {
+            offset++; whitespace();
+            let result: Record<string, unknown> = {};
+            if (raw.charCodeAt(offset) === 125) { offset++; return result; }
+            for (;;) {
+                if (raw.charCodeAt(offset) !== 34) return invalid();
+                const key = quoted(); whitespace();
+                if (raw.charCodeAt(offset++) !== 58) return invalid();
+                const item = value();
+                // JS reorders array-index names; wrap BEFORE the first insertion.
+                const first = key.charCodeAt(0);
+                if (first >= 48 && first <= 57 && /^(?:0|[1-9][0-9]{0,9})$/u.test(key) && Number(key) < 4294967295) result = orderedDataRecord(result);
+                if (key === '__proto__') Object.defineProperty(result, key, { value: item, enumerable: true, configurable: true, writable: true });
+                else result[key] = item;
+                whitespace();
+                const next = raw.charCodeAt(offset++);
+                if (next === 125) return result;
+                if (next !== 44) return invalid();
+                whitespace();
+            }
+        }
+        if (code === 91) {
+            offset++; whitespace();
+            const result: unknown[] = [];
+            if (raw.charCodeAt(offset) === 93) { offset++; return result; }
+            for (;;) {
+                result.push(value()); whitespace();
+                const next = raw.charCodeAt(offset++);
+                if (next === 93) return result;
+                if (next !== 44) return invalid();
+            }
+        }
+        if (code === 110 && raw.startsWith('null', offset)) { offset += 4; return null; }
+        if (code === 116 && raw.startsWith('true', offset)) { offset += 4; return true; }
+        if (code === 102 && raw.startsWith('false', offset)) { offset += 5; return false; }
+        const start = offset;
+        let integer = 0;
+        if (code === 45) offset++;
+        let digit = raw.charCodeAt(offset);
+        if (digit === 48) offset++;
+        else {
+            if (!(digit >= 49 && digit <= 57)) return invalid();
+            do { integer = integer * 10 + (digit - 48); offset++; digit = raw.charCodeAt(offset); } while (digit >= 48 && digit <= 57);
+        }
+        let whole = true;
+        if (raw.charCodeAt(offset) === 46) {
+            whole = false; offset++;
+            digit = raw.charCodeAt(offset);
+            if (!(digit >= 48 && digit <= 57)) return invalid();
+            do { offset++; digit = raw.charCodeAt(offset); } while (digit >= 48 && digit <= 57);
+        }
+        if (raw.charCodeAt(offset) === 101 || raw.charCodeAt(offset) === 69) {
+            whole = false; offset++;
+            if (raw.charCodeAt(offset) === 43 || raw.charCodeAt(offset) === 45) offset++;
+            digit = raw.charCodeAt(offset);
+            if (!(digit >= 48 && digit <= 57)) return invalid();
+            do { offset++; digit = raw.charCodeAt(offset); } while (digit >= 48 && digit <= 57);
+        }
+        if (whole && Number.isSafeInteger(integer)) return integer === 0 ? 0 : code === 45 ? -integer : integer;
+        const source = raw.slice(start, offset);
+        return whole ? BigInt(source) : new LosslessNumber(source);
+    };
+    try {
+        const result = value(); whitespace();
+        if (offset !== raw.length) return invalid();
+        return result;
+    } catch (error) {
+        if (error instanceof SyntaxError) return readJson(raw);
         throw error;
     }
 }
@@ -83,14 +119,15 @@ export function dumpDataJson(value: unknown): string {
         }).rawJSON;
         const compact = JSON.stringify(value, (_key, item: unknown) => {
             if (typeof item === 'bigint')
-                return raw(String(item));
+                return item >= -9007199254740991n && item <= 9007199254740991n ? Number(item) : raw(String(item));
             if (isLosslessNumber(item))
                 return raw(/^-?\d+$/u.test(item.value) ? String(BigInt(item.value)) : pythonFloat(Number(item.value)));
             if (typeof item === 'number' && (!Number.isSafeInteger(item) || Object.is(item, -0)))
                 return raw(pythonFloat(item));
             if (item && typeof item === 'object' && !Array.isArray(item)) {
                 const record = nativeRecord(item);
-                if (!record || ![Object.prototype, null].includes(Object.getPrototypeOf(record)))
+                const prototype = record && Object.getPrototypeOf(record);
+                if (!record || prototype !== Object.prototype && prototype !== null)
                     throw new Error('Exact JSON path required');
                 return record;
             }

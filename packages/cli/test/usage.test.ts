@@ -1,5 +1,5 @@
 import test, { type TestContext } from 'node:test';
-import { setup, writeLines, assert, fs, join, plain, pythonJson } from './runtime-support.js';
+import { setup, writeLines, assert, fs, join, plain, pythonJson, allFiles } from './runtime-support.js';
 import { UsageCollector } from '../src/runtime/usage.js';
 import { runtimeIO } from '../src/runtime/io.js';
 import { sessionTokenCounts, BASE, collapseIds, type UsageEntry } from '@fbincon/statusline-core/runtime/usage';
@@ -26,6 +26,23 @@ test('tests.runtime.test_token_counts.RawTokenCountsTests.test_input_is_summed_b
     let calls = 0; const collect = f.collector.collect.bind(f.collector); f.collector.collect = data => { calls++; return collect(data); };
     assert.equal(f.render('tokens', 'input-tokens', 'output-tokens'), 'hit 1.1K · miss 1.1K · out 19 · in 2.1K · out 19'); assert.equal(calls, 1);
     assert.deepEqual(f.counts(), { hit: 1059n, miss: 1059n, input_tokens: 2118n, out: 19n });
+});
+test('a transcript read failing after parsed records publishes no partial counters, cursor or task evidence', t => {
+    const f = fixture(t);
+    f.write([assistant('before', 3, 0, 0, 4)]);
+    const expected = f.counts(), cache = fs.readFileSync(f.collector.path()), tasks = allFiles(f.context.runtimeRoot);
+    f.write([
+        { type: 'user', promptId: 'new', promptSource: 'typed', timestamp: '2026-10-04T10:00:01Z', message: { role: 'user', content: '中文 prompt' } },
+        { ...snapshot({ inputTokens: 100, outputTokens: 200 }), timestamp: '2026-10-04T10:00:02Z' },
+        assistant('after', 6, 0, 0, 7),
+    ], true);
+    const read = f.io.lines;
+    f.io.lines = (...args) => { read(...args); throw new Error('injected read failure after complete lines'); };
+    assert.deepEqual(f.counts(), expected);
+    assert.deepEqual(fs.readFileSync(f.collector.path()), cache);
+    assert.deepEqual(allFiles(f.context.runtimeRoot), tasks);
+    f.io.lines = read;
+    assert.deepEqual(f.counts(), { hit: 0n, miss: 106n, input_tokens: 106n, out: 207n });
 });
 test('tests.runtime.test_token_counts.RawTokenCountsTests.test_agents_duplicates_resumes_and_incremental_output_keep_same_scope', t => {
     const f = fixture(t);

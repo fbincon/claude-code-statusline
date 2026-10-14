@@ -6,6 +6,8 @@
 
 将 Python 实现迁移到 TypeScript，保留状态栏行为、既有用户配置及受支持的使用流程。本计划记录范围、依赖、技术决策、验收门槛和交接方式，供后续会话与维护者持续更新。中英文版本随仓库维护；机器私有记录和原始验收数据不写入受版本管理的文档。
 
+性能优化已在 `fbincon/ts-03-performance` 开始；已批准的两轮范围与证据记录于[优化记录](typescript-migration/ts-03/PERFORMANCE-OPTIMIZATION.zh-CN.md)。D06 和 TS-04 准入规则保持不变。
+
 ## 当前状态
 
 | 项目 | 状态 |

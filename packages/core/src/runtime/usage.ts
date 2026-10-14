@@ -1,4 +1,4 @@
-import { recordEntries, recordKeys, recordValues } from '../ordered-record.js';
+import { forEachRecord, recordEntries, recordKeys, recordValues } from '../ordered-record.js';
 import { object, int, numeric, own, dictionary, string, type Data } from './values.js';
 import { timestamp, float } from './transcript.js';
 export const BASE = { i: 0n, o: 0n, cc: 0n, cr: 0n }, MAX_IDS = 5000, MAX_SESSIONS = 100, TURN_SCAN_VERSION = 6, USAGE_SCAN_VERSION = 3;
@@ -48,104 +48,114 @@ function observe(observed: Observed | undefined, usage: unknown, input: readonly
         observed.output ||= hasUsage(usage, output);
     }
 }
+export function addUsage(out: Record<string, Counters> | null, row: unknown, observed?: Observed): void {
+    if (!object(row) || row.type !== 'assistant' || !object(row.message))
+        return;
+    const { id, usage } = row.message;
+    if (typeof id !== 'string' || !id || !hasUsage(usage, [...INPUT, 'output_tokens']))
+        return;
+    observe(observed, usage, INPUT, ['output_tokens']);
+    if (!out) return;
+    const record = out[id] ??= { ...BASE };
+    for (const [key, field] of [['i', 'input_tokens'], ['o', 'output_tokens'], ['cc', 'cache_creation_input_tokens'], ['cr', 'cache_read_input_tokens']] as const) {
+        const value = int(usage[field]);
+        if (value !== null && value > record[key])
+            record[key] = value;
+    }
+}
 export function parseUsage(lines: readonly unknown[], observed?: Observed): Record<string, Counters> {
     const out = dictionary<Counters>();
-    for (const row of lines) {
-        if (!object(row) || row.type !== 'assistant' || !object(row.message))
-            continue;
-        const { id, usage } = row.message;
-        if (typeof id !== 'string' || !id || !hasUsage(usage, [...INPUT, 'output_tokens']))
-            continue;
-        observe(observed, usage, INPUT, ['output_tokens']);
-        const record = out[id] ??= { ...BASE };
-        for (const [key, field] of [['i', 'input_tokens'], ['o', 'output_tokens'], ['cc', 'cache_creation_input_tokens'], ['cr', 'cache_read_input_tokens']] as const) {
-            const value = int(usage[field]);
-            if (value !== null && value > record[key])
-                record[key] = value;
-        }
-    }
+    for (const row of lines) addUsage(out, row, observed);
     return out;
 }
 export function mergeUsageFields(ids: Record<string, Counters>, newIds: Record<string, Counters>, keys: readonly (keyof Totals)[]): void {
-    for (const [id, next] of recordEntries(newIds)) {
+    forEachRecord(newIds, (next, id) => {
         const record = ids[id] ??= { ...BASE };
         for (const key of keys)
             for (const field of TOKEN_FIELDS[key])
                 if (usageInt(next[field]) > usageInt(record[field]))
                     record[field] = next[field];
-    }
+    });
 }
 export function mergeIds(ids: Record<string, Counters>, next: Record<string, Counters>): boolean {
     let changed = false;
-    for (const [id, value] of recordEntries(next)) {
+    forEachRecord(next, (value, id) => {
         const record = own(ids, id);
         if (record === undefined) {
             ids[id] = value;
             changed = true;
-            continue;
+            return;
         }
         for (const key of FIELDS)
             if (usageInt(value[key]) > usageInt(record[key])) {
                 record[key] = value[key];
                 changed = true;
             }
-    }
+    });
     return changed;
 }
-export function parseCostSnapshot(lines: readonly unknown[], hash: (input: string) => string, observed?: Observed): Data | null {
-    let latest: Data | null = null, lastTime: number | null = null;
-    const indices: Partial<Record<keyof Totals, number>> = {}, times: Data = {};
-    for (const [index, row] of lines.entries()) {
-        if (!object(row))
-            continue;
+/** Each independently observed token field keeps only IDs after its latest
+ * snapshot. Group insertion order matches the legacy final-index rescan. */
+export class CostAccumulator {
+    private latest: Data | null = null;
+    private lastTime: number | null = null;
+    private readonly times: Data = {};
+    private readonly fields = new Map<keyof Totals, Record<string, Counters>>();
+    private groups: Record<string, Counters>[] = [];
+    constructor(private readonly observed?: Observed) {}
+    push(row: unknown): void {
+        if (!object(row)) return;
         const time = timestamp(row.timestamp);
-        if (time !== null)
-            lastTime = time;
-        if (row.type !== 'cost-state' || !object(row.modelUsage) || !recordKeys(row.modelUsage).length)
-            continue;
+        if (time !== null) this.lastTime = time;
+        for (const group of this.groups) addUsage(group, row);
+        if (row.type !== 'cost-state' || !object(row.modelUsage) || !recordKeys(row.modelUsage).length) return;
         let hit = 0n, miss = 0n, out = 0n, valid = 0;
         const available = { input: false, output: false };
-        for (const usage of recordValues(row.modelUsage)) {
+        forEachRecord(row.modelUsage, usage => {
             const input = ['inputTokens', 'cacheCreationInputTokens', 'cacheReadInputTokens'];
-            if (!hasUsage(usage, [...input, 'outputTokens']))
-                continue;
+            if (!hasUsage(usage, [...input, 'outputTokens'])) return;
             observe(available, usage, input, ['outputTokens']);
             valid++;
             hit += usageInt(usage.cacheReadInputTokens);
             miss += usageInt(usage.inputTokens) + usageInt(usage.cacheCreationInputTokens);
             out += usageInt(usage.outputTokens);
+        });
+        if (!valid) return;
+        if (this.observed) {
+            this.observed.input ||= available.input;
+            this.observed.output ||= available.output;
         }
-        if (!valid)
-            continue;
-        if (observed) {
-            observed.input ||= available.input;
-            observed.output ||= available.output;
+        const totals: Partial<Totals> = {};
+        if (available.input) Object.assign(totals, { hit, miss });
+        if (available.output) totals.out = out;
+        Object.assign(this.latest ??= {}, totals);
+        const post = dictionary<Counters>();
+        for (const key of Object.keys(totals) as (keyof Totals)[]) {
+            this.fields.set(key, post);
+            this.times[key] = this.lastTime === null ? null : float(this.lastTime);
         }
-        const totals: Data = {};
-        if (available.input)
-            Object.assign(totals, { hit, miss });
-        if (available.output)
-            totals.out = out;
-        const merged: Data = {};
-        Object.assign(merged, latest, totals);
-        latest = merged;
-        for (const key of recordKeys(totals) as (keyof Totals)[]) {
-            indices[key] = index;
-            times[key] = lastTime === null ? null : float(lastTime);
-        }
+        this.groups = [...new Set(this.fields.values())];
     }
-    if (latest) {
-        latest.fingerprint = hash(recordKeys(TOKEN_FIELDS).map(key => string(latest![key])).join(':'));
-        latest._snapshot_ts = times;
+    finish(hash: (input: string) => string): Data | null {
+        if (!this.latest) return null;
+        const latest = this.latest;
+        latest.fingerprint = hash(recordKeys(TOKEN_FIELDS).map(key => string(latest[key])).join(':'));
+        latest._snapshot_ts = this.times;
         const post = dictionary<Counters>();
         latest._post_ids = post;
-        for (const index of new Set(recordValues(indices)))
-            mergeUsageFields(post, parseUsage(lines.slice(index + 1)), (recordKeys(indices) as (keyof Totals)[]).filter(key => indices[key] === index));
+        for (const group of this.groups) mergeUsageFields(post, group, [...this.fields].filter(([, value]) => value === group).map(([key]) => key));
+        return latest;
     }
-    return latest;
+}
+export function parseCostSnapshot(lines: readonly unknown[], hash: (input: string) => string, observed?: Observed): Data | null {
+    const scan = new CostAccumulator(observed);
+    for (const row of lines) scan.push(row);
+    return scan.finish(hash);
 }
 export function stageCostSnapshot(entry: UsageEntry, lines: readonly unknown[], hash: (input: string) => string, force = false): void {
-    const snapshot = parseCostSnapshot(lines, hash, entry.token_observed);
+    stageParsedCostSnapshot(entry, parseCostSnapshot(lines, hash, entry.token_observed), force);
+}
+export function stageParsedCostSnapshot(entry: UsageEntry, snapshot: Data | null, force = false): void {
     if (snapshot && (force || snapshot.fingerprint !== (object(entry.api_snapshot) ? entry.api_snapshot.fingerprint : null)))
         entry._pending_api_snapshot = snapshot;
 }
@@ -166,10 +176,12 @@ export function stageSubagentDelta(entry: UsageEntry, lines: readonly unknown[])
     }
 }
 export function aggregateVisible(entry: Data): Counters {
-    const totals = { ...BASE }, records = [entry.base ?? BASE, ...recordValues(object(entry.ids) ? entry.ids : {})];
-    for (const record of records)
-        for (const key of FIELDS)
-            totals[key] += object(record) ? usageInt(record[key]) : 0n;
+    const totals = { ...BASE };
+    const add = (record: unknown) => {
+        if (object(record)) for (const key of FIELDS) totals[key] += usageInt(record[key]);
+    };
+    add(entry.base ?? BASE);
+    if (object(entry.ids)) forEachRecord(entry.ids, add);
     return totals;
 }
 export function visibleTotals(entry: Data): Totals { const raw = aggregateVisible(entry); return { hit: raw.cr, miss: raw.i + raw.cc, out: raw.o }; }
