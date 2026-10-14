@@ -28,3 +28,15 @@ prune tools/migration/ts-02/node_modules
 prune tools/migration/ts-02/dist
 prune tools/migration/ts-02/src/generated
 recursive-include docs/development/typescript-migration/ts-02 *.json
+
+include package.json package-lock.json .node-version tsconfig.json tsconfig.base.json tsconfig.tools.json
+recursive-include packages *.ts *.json
+prune packages/core/dist
+prune packages/platform/dist
+prune packages/cli/dist
+prune packages/core/node_modules
+prune packages/platform/node_modules
+prune packages/cli/node_modules
+recursive-include tools/typescript *.mjs
+recursive-include tools/migration/ts-03 *.ts *.json
+recursive-include docs/development/typescript-migration/ts-03 *.json

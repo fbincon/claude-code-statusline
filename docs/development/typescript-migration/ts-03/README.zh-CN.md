@@ -1,0 +1,72 @@
+# TS-03 共享核心与后端迁移
+
+[English](README.md) | **简体中文**
+
+[总体迁移计划](../../typescript-migration.zh-CN.md)负责阶段状态。TS-03 从
+`9b121e0` 开始，当前为 **IN_PROGRESS**。维护者已批准全部六批、逐批 PR、检查通过后
+合并并同步 Gitee。本阶段不新增版本、不发布、不切换已安装后端，也不实现外部编辑器。
+
+## 实施顺序
+
+| 批次 | 交付 | 状态 |
+| --- | --- | --- |
+| 03-A | 私有 workspace、正式平台原语、无损 JSON、规范修订及对照框架 | VALIDATING |
+| 03-B | 配置核心、实例、目录、语言、Unicode 与生成归属 | NOT_STARTED |
+| 03-C | 加锁配置服务、偏好及管理命令 | NOT_STARTED |
+| 03-D | 采集、缓存、计时、任务、观察及 hooks | NOT_STARTED |
+| 03-E | 渲染、预览及完整后端协议 | NOT_STARTED |
+| 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | NOT_STARTED |
+
+分支：`fbincon/ts-03-foundation`。测试／合并提交和 PR 在验证后记录。
+workspace 包为 0.0.0 私有开发包；现有 Python 应用仍为 2.0.0。
+
+## 边界与复现
+
+`packages/core` 存放可移植规则，其生产编译不引入 Node 全局类型；
+`packages/platform` 负责 Node／原生 I/O，依赖纯核心类型；`packages/cli` 负责应用编排。
+测试使用独立 Node 类型声明。包通过子路径导出，避免汇总入口提前加载全部模块。
+两个现有 Mod 与 TS-02 探针保留独立构建。
+
+使用 Node **24.21.0**、npm **11.19.0** 和用于对照的 Python **3.14.4**。
+运行时压缩包校验值保留在 [TS-02 锁文件](../../../../tools/migration/ts-02/runtime-lock.json)。
+默认 `python3` 不适用时，以 `TS03_PYTHON` 指定现有解释器。
+
+```bash
+npm ci --ignore-scripts --no-audit --no-fund
+npm test
+npm run migration:inventory
+npm run migration:capture -- /absolute/new-output-directory
+npm run migration:compare -- /absolute/new-output-directory/results.json
+```
+
+capture 拒绝已存在的输出目录。每个已实现案例在新 Node 进程中执行，配置、运行态和
+会话目录独立，不继承模型凭据，PATH 隔离；仅归一化案例根路径。缺少适配器记为待完成，
+退出码为 2，不计入等价通过。03-A 时全部 161 个功能适配器及 516 项 TS-03 测试仍待迁移；
+基础测试是新增证据，不能替代这些案例。`npm run migration:inventory -- --complete`
+必须拒绝未完成状态。
+
+原始参考提交、夹具、期望、适配器哈希和 D06 预算保持不变。Windows v2 启动标识继承
+已批准的 D02 修正。整数字面量无损读取；浮点规范化遵循 Python 有限 binary64 表示、
+指数阈值和负零，按 Unicode 码点排序键并以 UTF-8 计算现有语义修订。
+跨进程锁保留 Python 命名空间，同步事务拒绝递归或异步锁回调。原子发布保证单文件
+完整旧／新值；中断安装的跨文件恢复仍属 TS-04。
+
+## 已批准差异与验收
+
+维护者允许调整人类可读的 CLI 帮助和参数诊断。正常命令输出、协议消息／代码、
+stdout／stderr 分工和退出码仍兼容。准确的文字变化通过案例、字段及新旧内容哈希记录在
+[differences.json](../../../../tools/migration/ts-03/differences.json)；过期、重复或扩大范围
+的例外均验证失败。目前尚未记录文字差异。
+
+[覆盖台账](../../../../tools/migration/ts-03/coverage.json)包含基线中归属 TS-03 的全部
+516 个测试 ID。迁移项须关联替代测试路径；推迟到 TS-04 的项目须注明具体原因。
+混合的编辑器／安装断言按行为拆分，不能通过重命名测试类别丢弃。
+
+03-A 本地基础验证：28 项测试，27 通过，Linux 上跳过 1 项 Windows 共享冲突测试；
+编译通过。包括与 Python 对照的确定性有限 IEEE-754 数值、16 个混合写入者、双向锁持有者
+死亡、发布异常／崩溃、原生时钟／进程身份及 argv 保真。跨平台检查在既有 TS-02 八目标
+运行正式适配器。实体设备电源／桌面补验和 2.1.296 宿主声明缺口继续保持原有明确限制。
+
+原始证据存放在被忽略的 `dist/validation/typescript-migration/ts-03/` 下。
+提交脱敏结果，记录源码／运行时哈希、命令、计数、失败／跳过及准确 CI／PR 链接。
+只有 TS-03 全部验收完成才闭合阶段。
