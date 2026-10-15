@@ -3,6 +3,9 @@ import { join, resolve, relative, dirname, basename, extname, sep } from 'node:p
 import { pathToFileURL } from 'node:url';
 import { rewriteLinks, GITHUB, RAW_GITHUB } from '../release/markdown.js';
 const LOCAL_ONLY = new Set(['ROADMAP.md', 'ROADMAP.zh-CN.md', 'MACOS_VALIDATION.md']);
+export function configurationSection(markdown: string, heading: string): string {
+    return markdown.replaceAll('\r\n', '\n').match(new RegExp('^## ' + heading + '\\n(.*?)(?=^## |$(?![\\s\\S]))', 'ms'))?.[1] ?? '';
+}
 export function anchors(body: string): Set<string> {
     const result = new Set([...body.matchAll(/<a\s+id="([^"]+)"/gu)].map(m => m[1]!)), counts = new Map<string, number>();
     for (const match of body.matchAll(/^#{1,6}\s+(.+)$/gmu)) {
@@ -49,7 +52,7 @@ export function checkDocs(root: string): {
     }
     for (const [suffix, heading, anchor] of [['', 'Common configuration', 'native-configuration-editor'], ['.zh-CN', '常用配置', '原生配置编辑器']]) {
         const readme = fs.readFileSync(join(root, `README${suffix}.md`), 'utf8'), guide = fs.readFileSync(join(root, `docs/USER_GUIDE${suffix}.md`), 'utf8');
-        const section = readme.match(new RegExp('^## ' + heading + '\\n(.*?)(?=^## |$(?![\\s\\S]))', 'ms'))?.[1] ?? '';
+        const section = configurationSection(readme, heading!);
         for (const command of ['/statusline-configure-native', '/statusline-configure', '/statusline-config', 'claude-statusline configure', 'claude-statusline config'])
             if (!new RegExp(command + '(?![\\w-])').test(section))
                 errors.push(`README${suffix}.md: common configuration missing ${command}`);

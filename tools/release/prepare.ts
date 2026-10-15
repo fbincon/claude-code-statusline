@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
-import { verifyCandidate } from '../build/verify.js';
+import { verifyDelivery } from '../build/verify.js';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => os + '-' + host))];
 export function assessEvidence(reports: any[], commit: string, sha256: string) {
@@ -46,7 +46,7 @@ export function evidenceFiles(root: string): any[] {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, evidence: { type: 'string' }, report: { type: 'string' } } });
     if (!values.artifact || !values.commit || !values.evidence || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE');
-    const candidate = verifyCandidate(resolve(values.artifact), values.commit);
+    const candidate = verifyDelivery(resolve(values.artifact), values.commit);
     const result = assessEvidence(evidenceFiles(resolve(values.evidence)), values.commit, candidate.sha256);
     fs.writeFileSync(resolve(values.report), JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
     console.log(JSON.stringify(result));

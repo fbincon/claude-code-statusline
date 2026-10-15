@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import * as tar from 'tar';
-import { readTar, sha256, sums } from '../files.js';
+import { readTar, sha256, sums, verifyChecksums } from '../files.js';
 import { verifyCandidate, verifyContents } from '../verify.js';
 import { PACKAGE, BUSINESS, NATIVE, TARGETS, version } from '../model.js';
 const commit = 'a'.repeat(40);
@@ -57,4 +57,12 @@ test('tests.integration.test_native_resources.NativeResourceTests.test_linked_ru
     fs.mkdirSync(join(directory, 'package')); fs.writeFileSync(join(directory, 'outside'), 'private'); fs.symlinkSync('../outside', join(directory, 'package/link'));
     const artifact = join(directory, 'link.tgz'); tar.c({ cwd: directory, file: artifact, sync: true, gzip: true }, ['package']);
     assert.throws(() => readTar(artifact), /Unsafe/);
+});
+test('delivery preparation rejects missing, extra and corrupt source/checksum assets', t => {
+    const directory = fs.mkdtempSync(join(tmpdir(), 'candidate-delivery-')); t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    fs.writeFileSync(join(directory, 'source.tgz'), 'source'); fs.writeFileSync(join(directory, 'SHA256SUMS'), sha256('source') + '  source.tgz\n');
+    assert.equal(verifyChecksums(directory, ['source.tgz'])['source.tgz'], sha256('source'));
+    assert.throws(() => verifyChecksums(directory, ['source.tgz', 'candidate.tgz']), /Incomplete/);
+    assert.throws(() => verifyChecksums(directory, []), /unexpected/);
+    fs.writeFileSync(join(directory, 'source.tgz'), 'corrupt'); assert.throws(() => verifyChecksums(directory, ['source.tgz']), /mismatch/);
 });

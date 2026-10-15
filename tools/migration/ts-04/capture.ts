@@ -36,6 +36,7 @@ export class Capture {
         y: number;
     } | null = null;
     cursor = { x: 0, y: 0 };
+    private savedCursor = { x: 0, y: 0 };
     buffer: Cell[][];
     lastAlternate: Cell[][] | null = null;
     constructor(readonly columns: number, readonly rows: number) { this.buffer = this.blank(); }
@@ -45,14 +46,34 @@ export class Capture {
         this.pending += typeof chunk === 'string' ? chunk : this.decoder.write(Buffer.from(chunk));
         while (this.pending) {
             if (this.pending[0] === '\x1b') {
-                const match = this.pending.match(/^\x1b\[([?\d;:]*)([A-Za-z~])/u);
+                if (this.pending.length === 1) break;
+                // Host title/hyperlink queries and control strings carry no cells.
+                // Preserve framing across chunks and never render their payload.
+                if (']P_^'.includes(this.pending[1]!)) {
+                    const end = /\x07|\x1b\\/u.exec(this.pending.slice(2));
+                    if (!end) { if (this.pending.length > 8192) throw new Error('Unbounded terminal control string'); break; }
+                    if (end.index > 8192) throw new Error('Unbounded terminal control string');
+                    this.pending = this.pending.slice(2 + end.index + end[0].length); continue;
+                }
+                if (this.pending[1] !== '[') {
+                    const op = this.pending[1]!;
+                    if ('()'.includes(op)) { if (this.pending.length < 3) break; this.pending = this.pending.slice(3); continue; }
+                    if (op === '7') this.savedCursor = { ...this.cursor };
+                    else if (op === '8') this.cursor = { ...this.savedCursor };
+                    else if (op === 'c') { this.style = DEFAULT; this.reverse = false; this.buffer = this.blank(); this.cursor = { x: 0, y: 0 }; }
+                    else if (op === 'D' || op === 'E') { this.cursor.y++; if (op === 'E') this.cursor.x = 0; this.scroll(); }
+                    else if (op === 'M') { if (this.cursor.y) this.cursor.y--; else { this.buffer.unshift(Array.from({ length: this.columns }, () => this.cell())); this.buffer.pop(); } }
+                    else if (!'=>\\'.includes(op)) throw new Error('Unsupported terminal escape: ' + JSON.stringify(op));
+                    this.last = null; this.pending = this.pending.slice(2); continue;
+                }
+                const match = this.pending.match(/^\x1b\[([\x30-\x3f]*)([\x20-\x2f]*)([\x40-\x7e])/u);
                 if (!match) {
                     if (this.pending.length > 256)
                         throw new Error('Unbounded terminal escape sequence');
                     break;
                 }
                 this.pending = this.pending.slice(match[0].length);
-                this.control(match[1]!, match[2]!);
+                if (!match[2] && !/^[><=]/u.test(match[1]!)) this.control(match[1]!, match[3]!);
                 continue;
             }
             const character = [...this.pending][0]!;
@@ -70,6 +91,7 @@ export class Capture {
                 this.cursor.x = Math.max(0, this.cursor.x - 1);
                 this.last = null;
             }
+            else if (character === '\t') { this.cursor.x = Math.min(this.columns - 1, this.cursor.x + 8 - this.cursor.x % 8); this.last = null; }
             else if (!/[\p{Cc}\p{Cs}]/u.test(character))
                 this.write(character);
         }

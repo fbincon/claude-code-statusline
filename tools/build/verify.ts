@@ -3,7 +3,7 @@ import { resolve, basename, dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
-import { readTar, sha256, sums } from './files.js';
+import { readTar, sha256, sums, verifyChecksums } from './files.js';
 import { BUSINESS, NATIVE, TARGETS, PACKAGE, version, type Candidate } from './model.js';
 export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     const read = (name: string) => { const bytes = entries.get(name); if (!bytes) throw new Error('Missing candidate resource: ' + name); return JSON.parse(bytes.toString('utf8')); };
@@ -78,10 +78,26 @@ export function verifyCandidate(path: string, commit: string, checksumFile = joi
     if (!expected || sha256(raw) !== expected) throw new Error('Candidate checksum mismatch');
     return { tarball: resolve(path), sha256: expected, ...verifyContents(readTar(path), commit) };
 }
+export function verifyDelivery(path: string, commit: string) {
+    const candidate = verifyCandidate(path, commit), directory = dirname(path), sourceName = `statusline-ts05-source-${commit.slice(0, 12)}.tgz`;
+    verifyChecksums(directory, [basename(path), sourceName, 'build-manifest.json']);
+    const manifest = JSON.parse(fs.readFileSync(join(directory, 'build-manifest.json'), 'utf8'));
+    assert.equal(manifest.commit, commit); assert.equal(manifest.candidate.file, basename(path));
+    assert.equal(manifest.candidate.sha256, candidate.sha256); assert.equal(manifest.source.file, sourceName);
+    assert.equal(manifest.source.sha256, sha256(fs.readFileSync(join(directory, sourceName))));
+    assert.equal(manifest.byte_identical, true); assert.equal(manifest.builds.length, 2);
+    for (const round of manifest.builds) { assert.equal(round.sha256, candidate.sha256); assert.equal(round.bytes, fs.statSync(path).size); assert.match(round.node_sha256, /^[a-f0-9]{64}$/u); }
+    const entries = readTar(join(directory, sourceName), 'statusline-source/'), raw = entries.get('.candidate-source.json');
+    assert(raw); assert.equal(sha256(raw), candidate.source.source_manifest_sha256);
+    const snapshot = JSON.parse(raw.toString()); assert.equal(snapshot.commit, commit);
+    assert.deepEqual(Object.keys(snapshot.files).sort(), [...entries.keys()].filter(name => name !== '.candidate-source.json').sort());
+    for (const [name, hash] of Object.entries(snapshot.files)) assert.equal(sha256(entries.get(name)!), hash, 'Source archive differs');
+    return candidate;
+}
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, checksums: { type: 'string' }, report: { type: 'string' } } });
     if (!values.artifact || !values.commit) throw new Error('Require --artifact TGZ --commit FULL_SHA [--checksums FILE]');
-    const result = verifyCandidate(resolve(values.artifact), values.commit, values.checksums && resolve(values.checksums));
+    const result = values.checksums ? verifyCandidate(resolve(values.artifact), values.commit, resolve(values.checksums)) : verifyDelivery(resolve(values.artifact), values.commit);
     const report = { status: 'pass', commit: result.source.commit, tarball_sha256: result.sha256, files: result.entries.length, targets: result.source.targets };
     if (values.report) fs.writeFileSync(resolve(values.report), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify(report));

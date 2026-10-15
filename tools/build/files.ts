@@ -45,3 +45,9 @@ export function sums(text: string): Record<string, string> {
     }
     return result;
 }
+export function verifyChecksums(directory: string, expected: readonly string[]): Record<string, string> {
+    const manifest = sums(fs.readFileSync(join(directory, 'SHA256SUMS'), 'utf8'));
+    if (JSON.stringify(Object.keys(manifest).sort()) !== JSON.stringify([...expected].sort())) throw new Error('Incomplete or unexpected delivery checksum inventory');
+    for (const [name, hash] of Object.entries(manifest)) if (sha256(fs.readFileSync(join(directory, name))) !== hash) throw new Error('Delivery checksum mismatch: ' + name);
+    return manifest;
+}
