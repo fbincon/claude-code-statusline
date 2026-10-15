@@ -147,7 +147,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **退出标准：**适用功能案例结果一致，状态／并发边界有回归测试，已迁移核心在生产中不再转调 Python。改变模块名称或通过类型检查不代表行为等价。按 D06 修订，性能测量与预算达标不再属于本阶段退出条件。
 
-**TS-03 完成交接（2026-10-15）：**六批实现及两轮性能优化已通过 PR #78～#85 合并。依据 [D06 修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)和[既有非性能验收证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)，TS-03／03-F 标记为 DONE；机器契约及原三项 CLI 文案差异不变。D06 最新测量仍为 FAIL，后续优化归 PERF-01。TS-04 前置依赖已满足，但保留 NOT_STARTED；本次仅完成计划调整，不切换安装、不发布。
+**TS-03 完成交接（2026-10-15）：**六批实现及两轮性能优化已通过 PR #78～#85 合并。依据 [D06 修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)和[既有非性能验收证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)，TS-03／03-F 标记为 DONE；机器契约及原三项 CLI 文案差异不变。D06 最新测量仍为 FAIL，后续优化归 PERF-01。在该文档交接时，TS-04 前置依赖已满足并保留 NOT_STARTED；该次仅调整计划，不切换安装或发布。后续实施的当前状态见阶段表。
 
 ### TS-04 编辑器与安装
 

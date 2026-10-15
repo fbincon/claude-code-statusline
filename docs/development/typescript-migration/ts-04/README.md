@@ -123,12 +123,14 @@ eight receipts match all 370 source files. Merge `acdf5f9` is recorded in
 editors, native dependencies, 15 frozen render cases, both Windows shells,
 relocation/rebinding, hard-interruption recovery and historical Python upgrades.
 The fixed-host matrix gains real installed-package integration acceptance.
-Local TS passed 857/860 with three platform skips, plus all ten installed tests,
+Local TS passed 858/861 with three platform skips, plus all ten installed tests,
 including a regression protecting links inside the cache. Real host 2.1.296 opened the installed
 native editor and saved, and runtime dispatched to the installed backend without
 a model call. See [candidate acceptance and reproduction](candidate.md).
 
 Initial 04-E Windows CI exposed a harness ancestry check that treated a C-drive temporary installation as inside the D-drive checkout. The corrected guard canonicalizes both prefixes and accepts cross-drive paths; no product behavior or acceptance exemption changed.
+
+Further Windows installed acceptance caught two production boundaries: an npm POSIX shim could precede its `.cmd` sibling during host discovery, and JavaScript replacement-string syntax could expand literal `$` sequences in launch paths. Host discovery now resolves the matching Windows package entry without a shell; skill substitution uses a single literal callback pass. Regression checks cover both cases without relaxing installed acceptance.
 
 Next: complete final 04-E target CI, byte-exact receipt verification and closure.
 Previously approved physical/desktop deferrals remain due before release.

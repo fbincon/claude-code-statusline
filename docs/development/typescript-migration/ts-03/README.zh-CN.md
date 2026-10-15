@@ -6,7 +6,7 @@
 按修订后的非性能标准为 **DONE**。实现从 `9b121e0` 开始，各批通过独立 PR 检查后合并并同步
 Gitee。本次关闭记录不新增版本、不发布、不切换已安装后端，也不实现外部编辑器。
 
-两轮性能优化已完成：[第一轮 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84)、[第二轮 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)。最新 D06 仍为 **FAIL：104 通过／60 失败／28 不确定**，输出与采集次数全部匹配。[D06 修订](../ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)将后续性能工作移交 TS-06 之后的独立 [PERF-01](../../performance/perf-01.zh-CN.md)，原预算与证据不变。TS-04 前置依赖已满足；TS-04～TS-06 和 PERF-01 仍为 NOT_STARTED。
+两轮性能优化已完成：[第一轮 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84)、[第二轮 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)。最新 D06 仍为 **FAIL：104 通过／60 失败／28 不确定**，输出与采集次数全部匹配。[D06 修订](../ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)将后续性能工作移交 TS-06 之后的独立 [PERF-01](../../performance/perf-01.zh-CN.md)，原预算与证据不变。该次交接满足 TS-04 前置依赖，当时 TS-04～TS-06 和 PERF-01 均为 NOT_STARTED。后续 TS-04 实施见[当前记录](../ts-04/README.zh-CN.md)。
 
 <a id="closure-2026-10-15"></a>
 

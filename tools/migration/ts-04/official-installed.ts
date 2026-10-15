@@ -9,7 +9,7 @@ fs.mkdirSync(dirname(path), { recursive: true });
 const candidate = installCandidate(), host = claudeLaunch(), version = detectClaudeVersion();
 try {
     if (!version || version[0] !== 2 || version[1] !== 1 || version[2]! < 287)
-        throw new Error('A fixed supported official host is required for this acceptance');
+        throw new Error('A fixed supported official host is required for this acceptance: ' + JSON.stringify({ host, version }));
     const driver = join(candidate.temporary, 'official-driver.mjs'), request = join(candidate.temporary, 'request.json'), receipt = join(candidate.temporary, 'result.json');
     fs.copyFileSync(fileURLToPath(new URL('./test/installed-driver.js', import.meta.url)), driver);
     fs.writeFileSync(request, JSON.stringify({ host, version }));

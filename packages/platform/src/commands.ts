@@ -115,9 +115,16 @@ export function ownedCommand(command: unknown, operation: string, launch: Launch
     return found !== null && normalizedPath(found) === normalizedPath(launch.executable);
 }
 export function claudeLaunch(executable = 'claude', windows = process.platform === 'win32', find: typeof which = which): LaunchSpec {
-    const found = find(executable);
+    let found = find(executable);
     if (!found)
         throw new Error('errors.capabilities.claude_code_is_not_in_path');
+    // npm installs a POSIX shim beside the Windows .cmd entry. An extensionless
+    // PATH hit must not be handed to CreateProcessW as if it were a PE binary.
+    if (windows && !extname(found)) {
+        const wrapper = find(found + '.cmd');
+        if (wrapper && normalizedPath(wrapper) === normalizedPath(found + '.cmd'))
+            found = wrapper;
+    }
     const path = resolvedPath(found);
     if (!windows || !['.cmd', '.bat'].includes(extname(path).toLowerCase()))
         return { executable: path, args: [] };
