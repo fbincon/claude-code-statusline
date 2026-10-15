@@ -142,6 +142,20 @@ export function unicodeOutputs(root = ROOT): Map<string, string> {
 
 export function outputs(root = ROOT): Map<string, string> {
   const result = new Map([...languageOutputs(root), ...unicodeOutputs(root)]);
+  for (const [source, destination] of editorSources(root)) {
+    let body = utf8(join(root, source));
+    const backend = source.endsWith('/backend.ts'), text = source.endsWith('/text.ts');
+    body = body.replaceAll('../contracts/ui.js', backend ? './generated-contracts.ts' : '../generated-contracts.ts')
+      .replaceAll('../i18n/messages.js', backend ? './i18n/index.ts' : '../i18n/index.ts')
+      .replaceAll('../unicode/index.js', '../lib/unicode.ts');
+    if (backend) body = body.replaceAll('./appearance.js', './editor/appearance.ts');
+    if (!backend && !text) body = body.replaceAll('./backend.js', '../backend.ts').replaceAll('./text.js', '../../ui/text.ts');
+    body = body.replace(/(from ['"][^'"]+)\.js(['"])/gu, '$1.ts$2');
+    result.set(destination, header + body);
+  }
+  for (const name of ['statusline-native', 'statusline-runtime']) {
+    result.set(`mods/${name}/lib/launch.ts`, header + utf8(join(root, 'packages/core/src/integration/binding.ts')));
+  }
   const codes = languages(join(root, 'packages/core/resources/i18n')).registry.map(entry => entry.code);
   const mainIds = catalogData.filter(item => item.scope === 'main').map(item => item.id);
   const subagentIds = catalogData.filter(item => item.scope === 'subagent').map(item => item.id);
@@ -173,6 +187,14 @@ export function outputs(root = ROOT): Map<string, string> {
     result.set(destination!, header + utf8(join(root, 'packages/core/src/' + source)).replaceAll("./generated-unicode.js", "./generated-unicode.ts").replaceAll("./generated-locales.js", "./generated-locales.ts"));
   }
   return result;
+}
+
+/** Keep the Mods self-contained; the core is the sole editable source of these modules. */
+export function editorSources(root = ROOT): [string, string][] {
+  return fs.readdirSync(join(root, 'packages/core/src/editor')).filter(name => name.endsWith('.ts')).sort().map(name => [
+    'packages/core/src/editor/' + name,
+    name === 'backend.ts' ? 'mods/statusline-native/lib/backend.ts' : name === 'text.ts' ? 'mods/statusline-native/ui/text.ts' : 'mods/statusline-native/lib/editor/' + name,
+  ]);
 }
 
 export function obsoleteOutputs(values: ReadonlyMap<string, string>, root = ROOT): string[] {

@@ -1,0 +1,502 @@
+import { text as localizedText } from '../i18n/messages.js';
+/** Protocol parsing only. Host calls stay in the hooks entry for static analysis. */
+import {
+  PROTOCOL_VERSION,
+  MAIN_ITEM_IDS,
+  SUBAGENT_ITEM_IDS,
+  PALETTE_VALUES, THEME_VALUES, POWERLINEGLYPH_VALUES,
+  DIRECTORYSTYLE_VALUES,
+  SEPARATORSTYLE_VALUES,
+  SCOPELABELS_VALUES,
+  STATUSLINELANGUAGE_VALUES,
+  UNAVAILABLEREASON_VALUES,
+  FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, GUIDANCE_KEYS, ITEM_DEFAULTS,
+} from '../contracts/ui.js';
+import type {
+  Capabilities,
+  CatalogItem,
+  ConfigurationOptions,
+  Draft,
+  Operation,
+  ResultFor,
+  Span,
+} from '../contracts/ui.js';
+import { validColor, visibilityChoices } from './appearance.js';
+import { isLocalizedText } from '../i18n/messages.js';
+import type { LocalizedText } from '../i18n/messages.js';
+
+export class BackendError extends Error {
+  constructor(
+    public readonly code: string,
+    message: string | LocalizedText,
+    public readonly localization: LocalizedText | null = typeof message === 'string' ? null : message,
+  ) {
+    super(typeof message === 'string' ? message : message.fallback);
+  }
+}
+
+export function processFailure(error: unknown): BackendError {
+  if (error instanceof BackendError) return error;
+  const message =
+    error instanceof Error
+      ? error.message
+      : 'The backend process could not run.';
+  const timedOut =
+    error instanceof Error &&
+    (error.name === 'TimeoutError' || /timed?\s*out|timeout/i.test(message));
+  return new BackendError(
+    timedOut ? 'backend_timeout' : 'backend_process',
+    message,
+  );
+}
+
+function object(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function fail(): never {
+  throw new BackendError(
+    'invalid_backend_result',
+    localizedText("native.lib.backend.the_backend_returned_an_invalid_configuration_result"),
+  );
+}
+
+function exact(
+  value: Record<string, unknown>,
+  keys: readonly string[],
+): boolean {
+  return (
+    Object.keys(value).length === keys.length &&
+    keys.every((key) => key in value)
+  );
+}
+
+function text(value: unknown): value is string {
+  return typeof value === 'string' && !/[\p{Cc}\p{Cs}]/u.test(value);
+}
+
+function strings(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(text);
+}
+
+function selection(value: unknown, ids: readonly string[]): value is string[] {
+  return (
+    strings(value) &&
+    value.every((id) => ids.includes(id)) &&
+    new Set(value).size === value.length
+  );
+}
+
+function range(value: unknown, min: number, max: number, nullable = false): boolean {
+  return (nullable && value === null) ||
+    (typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max);
+}
+
+function formatOverrides(value: unknown): boolean {
+  if (!object(value)) return false;
+  return Object.entries(value).every(([key, v]) =>
+    key in FORMAT_CHOICES && typeof v === 'string' &&
+    (FORMAT_CHOICES[key as keyof typeof FORMAT_CHOICES] as readonly string[]).includes(v));
+}
+
+function itemOptions(value: unknown, ids: readonly string[], scope: "main" | "subagent"): boolean {
+  if (!object(value)) return false;
+  return Object.entries(value).every(([id, option]) => ids.includes(id) && object(option) &&
+    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold']) &&
+    (option.label === null || (text(option.label) && [...option.label].length <= 256)) &&
+    (option.icon === null || (text(option.icon) && [...option.icon].length <= 256)) &&
+    range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
+    formatOverrides(option.formatting) && validColor(option.foreground) && validColor(option.background) &&
+    typeof option.visibility === "string" && visibilityChoices(scope, id).includes(option.visibility) &&
+    range(option.visibility_threshold, 0, 100));
+}
+
+function formatting(value: unknown): boolean {
+  if (!object(value) || !exact(value, [...Object.keys(FORMAT_CHOICES), 'thresholds'])) return false;
+  const { thresholds, ...choices } = value;
+  return formatOverrides(choices) && object(thresholds) &&
+    exact(thresholds, ['enabled', 'warning', 'critical']) &&
+    typeof thresholds.enabled === 'boolean' && range(thresholds.warning, 0, 100) &&
+    range(thresholds.critical, 0, 100) && Number(thresholds.warning) < Number(thresholds.critical);
+}
+
+function instanceList(value: unknown, ids: readonly string[], scope: "main" | "subagent"): value is import('../contracts/ui.js').InstanceDraft[] {
+  if (!Array.isArray(value)) return false;
+  const seen = new Set<string>();
+  return value.every(node => {
+    if (!object(node) || !exact(node,['id','type_id','enabled','options','text']) ||
+        typeof node.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(node.id) || seen.has(node.id) ||
+        typeof node.type_id !== 'string' || !ids.includes(node.type_id) || typeof node.enabled !== 'boolean' ||
+        !itemOptions({[node.type_id]: node.options},ids,scope)) return false;
+    seen.add(node.id);
+    const option = node.options as Record<string,unknown>;
+    if (node.type_id === 'spacer') {
+      if (JSON.stringify(option) !== JSON.stringify(ITEM_DEFAULTS)) {
+        if (Object.entries(ITEM_DEFAULTS).some(([key,v]) => JSON.stringify(option[key]) !== JSON.stringify(v))) return false;
+      }
+    }
+    if (['text','spacer'].includes(node.type_id) && (option.visibility !== 'always' || Object.keys(option.formatting as object).length)) return false;
+    return node.type_id === 'text' ? text(node.text) && [...node.text].length <= 256 : node.text === null;
+  });
+}
+
+export function isDraft(value: unknown): value is Draft {
+  if (
+    !object(value) ||
+    !exact(value, ['display', 'host']) ||
+    !object(value.display) ||
+    !object(value.host)
+  )
+    return false;
+  const d = value.display;
+  const h = value.host;
+  if (
+    !exact(d, [
+      'schema_version',
+      'statusline_language',
+      'instances',
+      'use_colors',
+      'palette', 'theme', 'powerline_glyph',
+      'directory_style',
+      'separator_style',
+      'scope_labels',
+      'subagents',
+      'formatting', 'layout', 'metrics',
+    ]) ||
+    !exact(h, ['padding', 'refresh_interval', 'hide_vim_mode_indicator'])
+  )
+    return false;
+  if (
+    d.schema_version !== 8 ||
+    !THEME_VALUES.some(x => x === d.theme) || !POWERLINEGLYPH_VALUES.some(x => x === d.powerline_glyph) ||
+    !STATUSLINELANGUAGE_VALUES.some((x) => x === d.statusline_language) ||
+    !object(d.metrics) || !exact(d.metrics, ['branch_diff_base_ref']) ||
+    !(d.metrics.branch_diff_base_ref === null || (text(d.metrics.branch_diff_base_ref) && [...d.metrics.branch_diff_base_ref].length <= 256 &&
+      d.metrics.branch_diff_base_ref.length > 0 && !/[\s]|^-/.test(d.metrics.branch_diff_base_ref))) ||
+    !formatting(d.formatting) ||
+    typeof d.use_colors !== 'boolean' ||
+    !instanceList(d.instances, MAIN_ITEM_IDS, "main") ||
+    !PALETTE_VALUES.some((x) => x === d.palette) ||
+    !DIRECTORYSTYLE_VALUES.some((x) => x === d.directory_style) ||
+    !SEPARATORSTYLE_VALUES.some((x) => x === d.separator_style) ||
+    !SCOPELABELS_VALUES.some((x) => x === d.scope_labels)
+  )
+    return false;
+  const sub = d.subagents;
+  if (
+    !object(sub) ||
+    !exact(sub, ['enabled', 'instances', 'visibility', 'hide_completed', 'row_limit', 'task_max_width']) ||
+    !['all', 'running'].includes(String(sub.visibility)) ||
+    typeof sub.hide_completed !== 'boolean' || !range(sub.row_limit, 0, 10000, true) ||
+    !range(sub.task_max_width, 2, 10000, true) ||
+    typeof sub.enabled !== 'boolean' ||
+    !instanceList(sub.instances, SUBAGENT_ITEM_IDS, "subagent")
+  )
+    return false;
+  if (sub.instances.filter(i => i.type_id === 'spacer').length > 1) return false;
+  const types = new Set(sub.instances.filter(i=>i.enabled).map(i=>i.type_id));
+  if (types.has('status-elapsed') && (types.has('status') || types.has('elapsed'))) return false;
+  const ids = d.instances.map(i=>i.id);
+  const spacers = new Set(d.instances.filter(i=>i.type_id==='spacer').map(i=>i.id));
+  const layout = d.layout;
+  if (!object(layout) || !exact(layout, ['mode', 'rows']) ||
+      !['auto', 'explicit'].includes(String(layout.mode)) || !Array.isArray(layout.rows) ||
+      !layout.rows.every((r) => selection(r, ids) && r.length > 0 && r.filter(id => spacers.has(id)).length <= 1) ||
+      (layout.mode === 'auto' ? layout.rows.length !== 0 || spacers.size > 0 :
+        JSON.stringify(layout.rows.flat()) !== JSON.stringify(ids))) return false;
+  // Exclusions come from describe; the backend remains the final draft validator.
+  return (
+    typeof h.padding === 'number' &&
+    Number.isInteger(h.padding) &&
+    h.padding >= 0 &&
+    h.padding <= 32 &&
+    typeof h.hide_vim_mode_indicator === 'boolean' &&
+    (h.refresh_interval === 'event' ||
+      (typeof h.refresh_interval === 'number' &&
+        Number.isInteger(h.refresh_interval) &&
+        h.refresh_interval >= 1 &&
+        h.refresh_interval <= 3600))
+  );
+}
+
+export function isSpan(value: unknown): value is Span {
+  if (!object(value) || !text(value.text) || typeof value.bold !== 'boolean')
+    return false;
+  return [value.foreground, value.background].every(color =>
+    color === null ||
+    (object(color) &&
+      ((color.kind === 'rgb' && typeof color.value === 'string' && /^#[0-9a-f]{6}$/i.test(color.value)) ||
+       (color.kind === 'ansi' && typeof color.value === 'number' && Number.isInteger(color.value) &&
+        color.value >= 0 && color.value <= 255))));
+}
+
+function isCapabilities(value: unknown): value is Capabilities {
+  return (
+    object(value) &&
+    (value.host_version === null || text(value.host_version)) &&
+    ['unknown', 'supported', 'unsupported'].includes(
+      String(value.subagent_rows),
+    ) &&
+    ['unknown', 'unverified', 'unsupported'].includes(
+      String(value.native_mod),
+    ) &&
+    value.native_mod_loaded === null &&
+    value.data_observation === 'not_observed'
+  );
+}
+
+function isGuidance(value: unknown): boolean {
+  return object(value) && selection(value.source_kinds, GUIDANCE_KEYS.source_kinds) && value.source_kinds.length > 0 &&
+    GUIDANCE_KEYS.scopes.some(scope => scope === value.measurement_scope) &&
+    selection(value.requirements, GUIDANCE_KEYS.requirements) && strings(value.setup);
+}
+
+function isImportChange(value: unknown): boolean {
+  if (!object(value) || !exact(value, ['section', 'kind', 'scope', 'item_id', 'path', 'before', 'after', 'label']) ||
+      !['main','subagent','formatting','layout','language','host'].includes(String(value.section)) ||
+      !['add','remove','enable','disable','reorder','change'].includes(String(value.kind)) ||
+      !(value.scope === null || value.scope === 'main' || value.scope === 'subagent') ||
+      !strings(value.path) || !value.path.length || value.path.length > 8 ||
+      !['display','host'].includes(value.path[0]!) || !isLocalizedText(value.label)) return false;
+  if (value.item_id !== null && (typeof value.item_id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(value.item_id))) return false;
+  if (value.kind === 'enable' || value.kind === 'disable')
+    return value.item_id !== null && value.before === (value.kind === 'disable') && value.after === (value.kind === 'enable');
+  if (value.kind === 'add' || value.kind === 'remove')
+    return value.item_id !== null && (value.kind === 'add' ? value.before === null && object(value.after) : object(value.before) && value.after === null);
+  if (value.kind === 'reorder')
+    return value.item_id === null && strings(value.before) && strings(value.after) &&
+      new Set(value.before).size === value.before.length && new Set(value.after).size === value.after.length &&
+      value.before.length === value.after.length && value.before.every(id => (value.after as string[]).includes(id));
+  return true;
+}
+
+function isCatalog(value: unknown): value is CatalogItem[] {
+  if (
+    !Array.isArray(value) ||
+    value.length !== MAIN_ITEM_IDS.length + SUBAGENT_ITEM_IDS.length
+  )
+    return false;
+  const seen = new Set<string>();
+  return value.every((item) => {
+    if (
+      !object(item) ||
+      !text(item.id) ||
+      !text(item.label) ||
+      !text(item.description) ||
+      !text(item.group) ||
+      !strings(item.sources) ||
+      !strings(item.examples) ||
+      !strings(item.format_options) ||
+      !strings(item.unavailable_reasons) ||
+      !isGuidance(item.guidance) ||
+      typeof item.default_enabled !== 'boolean' ||
+      !(item.minimum_version === null || text(item.minimum_version)) ||
+      !(
+        item.default_position === null ||
+        (typeof item.default_position === 'number' &&
+          Number.isInteger(item.default_position) &&
+          item.default_position >= 0)
+      ) ||
+      item.default_enabled !== (item.default_position !== null) ||
+      item.minimum_version_status !==
+        (item.minimum_version ? 'verified' : 'unknown')
+    )
+      return false;
+    const ids =
+      item.scope === 'main'
+        ? MAIN_ITEM_IDS
+        : item.scope === 'subagent'
+          ? SUBAGENT_ITEM_IDS
+          : [];
+    const key = `${item.scope}:${item.id}`;
+    if (
+      !ids.some((id) => id === item.id) ||
+      !selection(item.excludes, ids) ||
+      item.excludes.includes(item.id) ||
+      seen.has(key)
+    )
+      return false;
+    seen.add(key);
+    return item.unavailable_reasons.every((reason) =>
+      UNAVAILABLEREASON_VALUES.some((known) => known === reason),
+    );
+  });
+}
+
+function isOptions(value: unknown): value is ConfigurationOptions {
+  if (!object(value)) return false;
+  const choices: Record<string, readonly (string | boolean)[]> = {
+    colors: [true, false],
+    palette: PALETTE_VALUES,
+    theme: THEME_VALUES,
+    "powerline-glyph": POWERLINEGLYPH_VALUES,
+    'directory-style': DIRECTORYSTYLE_VALUES,
+    'separator-style': SEPARATORSTYLE_VALUES,
+    'scope-labels': SCOPELABELS_VALUES,
+    'statusline-language': STATUSLINELANGUAGE_VALUES,
+    'subagent-statusline': [true, false],
+    'hide-vim-mode-indicator': [true, false],
+  };
+  for (const [key, allowed] of Object.entries(choices)) {
+    const option = value[key];
+    if (
+      !object(option) ||
+      !Array.isArray(option.choices) ||
+      option.choices.length !== allowed.length ||
+      new Set(option.choices).size !== option.choices.length ||
+      !option.choices.every((choice) => allowed.includes(choice))
+    )
+      return false;
+  }
+  for (const [key, minimum, maximum] of [
+    ['padding', 0, 32],
+    ['refresh-interval', 1, 3600],
+  ] as const) {
+    const option = value[key];
+    if (
+      !object(option) ||
+      option.minimum !== minimum ||
+      option.maximum !== maximum
+    )
+      return false;
+    if (key === 'refresh-interval' && option.special !== 'event') return false;
+  }
+  return true;
+}
+
+export function requestText(
+  operation: Operation,
+  payload: unknown = {},
+): string {
+  return JSON.stringify({
+    protocol_version: PROTOCOL_VERSION,
+    operation,
+    payload,
+  });
+}
+
+export function parseResponse<O extends Operation>(
+  operation: O,
+  process: {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+    isStdoutTruncated?: boolean;
+  },
+): ResultFor<O> {
+  if (process.isStdoutTruncated) {
+    throw new BackendError(
+      'backend_output_truncated',
+      localizedText("native.lib.backend.the_backend_json_was_truncated_by_the_host"),
+    );
+  }
+  let response: unknown;
+  try {
+    response = JSON.parse(process.stdout);
+  } catch {
+    const message =
+      process.exitCode !== 0
+        ? `The backend exited with status ${process.exitCode}.`
+        : 'The backend did not return complete JSON.';
+    throw new BackendError(
+      process.exitCode !== 0 ? 'backend_exit' : 'invalid_backend_json',
+      localizedText("native.lib.backend.check_the_bound_backend_executable_and_reinstall_matching", {message: message}),
+    );
+  }
+  if (!object(response) || response.protocol_version !== PROTOCOL_VERSION) {
+    throw new BackendError(
+      'protocol_mismatch',
+      localizedText("native.lib.backend.the_frontend_and_backend_protocol_versions_do_not"),
+    );
+  }
+  if (
+    'error' in response === 'result' in response ||
+    !exact(response, [
+      'protocol_version',
+      'error' in response ? 'error' : 'result',
+    ])
+  )
+    fail();
+  if ('error' in response) {
+    if (
+      !object(response.error) ||
+      !exact(response.error, ['code', 'message', ...('localization' in response.error ? ['localization'] : [])]) ||
+      !text(response.error.code) ||
+      typeof response.error.message !== 'string' ||
+      !(!('localization' in response.error) || response.error.localization === null || isLocalizedText(response.error.localization))
+    )
+      fail();
+    throw new BackendError(response.error.code, response.error.message, isLocalizedText(response.error.localization) ? response.error.localization : null);
+  }
+  if (process.exitCode !== 0) {
+    throw new BackendError(
+      'backend_exit',
+      localizedText("native.lib.backend.the_backend_exited_with_status", {exitCode: process.exitCode}),
+    );
+  }
+  const result = response.result;
+  if (!object(result)) fail();
+  if (operation === 'read_ui_preferences' || operation === 'set_ui_language') {
+    if (!exact(result, ['schema_version', 'ui_language', 'warning']) || result.schema_version !== 1 ||
+        !STATUSLINELANGUAGE_VALUES.some(language => language === result.ui_language) ||
+        !(result.warning === null || isLocalizedText(result.warning))) fail();
+  } else if (operation === 'read' || operation === 'apply') {
+    if (
+      !isDraft(result.draft) ||
+      typeof result.revision !== 'string' ||
+      !/^[0-9a-f]{64}$/.test(result.revision) ||
+      typeof result.installed !== 'boolean' ||
+      !object(result.installation) ||
+      !isCapabilities(result.capabilities) ||
+      !text(result.backend_version) ||
+      !result.backend_version
+    )
+      fail();
+    if (
+      operation === 'apply' &&
+      (typeof result.changed !== 'boolean' ||
+        !(result.backup_dir === null || typeof result.backup_dir === 'string'))
+    )
+      fail();
+  } else if (operation === 'review_import') {
+    if (!exact(result, ['draft','changes']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange)) fail();
+  } else if (operation === 'import' || operation === 'preset') {
+    if (!isDraft(result.draft)) fail();
+  } else if (operation === 'export') {
+    if (!text(result.path) || !result.path) fail();
+  } else if (operation === 'preview') {
+    if (
+      result.sample !== true ||
+      !Array.isArray(result.main) ||
+      !Array.isArray(result.subagents) ||
+      ![...result.main, ...result.subagents].every(
+        (row) => Array.isArray(row) && row.every(isSpan),
+      )
+    )
+      fail();
+  } else if (operation === 'describe') {
+    if (
+      !text(result.backend_version) ||
+      !result.backend_version ||
+      !isOptions(result.options) ||
+      !isCapabilities(result.capabilities) ||
+      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import']) ||
+      result.operations.length !== 10 ||
+      JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
+      JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
+      !object(result.formatting_options) ||
+      JSON.stringify(result.formatting_options) !== JSON.stringify(FORMAT_CHOICES) ||
+      !isCatalog(result.catalog)
+    )
+      fail();
+  }
+  return result as unknown as ResultFor<O>;
+}
+
+export function spanColor(span: Span, channel: 'foreground' | 'background' = 'foreground'): string | undefined {
+  const color = span[channel];
+  if (color?.kind === 'rgb') return String(color.value);
+  if (color?.kind === 'ansi')
+    return `ansi256(${Number(color.value)})`;
+  return undefined;
+}

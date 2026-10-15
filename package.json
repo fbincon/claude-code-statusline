@@ -3,8 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "workspaces": ["packages/*"],
-  "engines": { "node": ">=24.21.0 <25" },
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24.21.0 <25"
+  },
   "packageManager": "npm@11.19.0",
   "scripts": {
     "build": "node tools/typescript/check-runtime.mjs && tsc -b",
@@ -17,7 +21,11 @@
     "migration:receipt": "node dist/typescript/tools/migration/ts-03/receipt.js",
     "migration:capture": "node dist/typescript/tools/migration/ts-03/capture.js",
     "migration:compare": "node dist/typescript/tools/migration/ts-03/compare.js",
-    "migration:benchmark": "node dist/typescript/tools/migration/ts-03/performance/benchmark.js"
+    "migration:benchmark": "node dist/typescript/tools/migration/ts-03/performance/benchmark.js",
+    "migration:inventory:ts04": "node dist/typescript/tools/migration/ts-04/inventory.js"
   },
-  "devDependencies": { "@types/node": "24.19.2", "typescript": "5.9.3" }
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "5.9.3"
+  }
 }

@@ -29,6 +29,7 @@ import type { PreviewBackground } from '../lib/preview-preferences.ts';
 import { text as localizedText, t } from '../lib/i18n/index.ts';
 import type { Language } from '../lib/i18n/index.ts';
 import { setMessage, failureMessage, setResult, viewMessage } from '../lib/i18n/messages.ts';
+import { binding } from '../lib/launch.ts';
 
 const PANE = 'statusline-native';
 const COMMAND = 'statusline-configure-native';
@@ -41,17 +42,13 @@ async function callBackend<O extends Operation>(
   payload: unknown = {},
 ): Promise<ResultFor<O>> {
   try {
-    const executable =
-      (await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE')) ||
-      (typeof options.backendExecutable === 'string'
-        ? options.backendExecutable
-        : 'claude-statusline');
+    const launch = binding(options, await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
     const directory =
       (await $.env.get('CLAUDE_CONFIG_DIR')) ||
       (typeof options.configDir === 'string' ? options.configDir : undefined);
     const argv = directory
-      ? [executable, 'ui', '--config-dir', directory]
-      : [executable, 'ui'];
+      ? [launch.executable, ...launch.args, 'ui', '--config-dir', directory]
+      : [launch.executable, ...launch.args, 'ui'];
     const output = await $.process.run(argv, {
       stdin: requestText(operation, payload),
       timeoutMs: 30000,

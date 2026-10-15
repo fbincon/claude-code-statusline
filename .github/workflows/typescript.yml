@@ -51,6 +51,8 @@ jobs:
         run: npm run generate:check
       - name: Check immutable baseline and test migration inventory
         run: npm run migration:inventory -- --complete
+      - name: Check complete TS-04 responsibility inventory
+        run: npm run migration:inventory:ts04
       - name: Bind evidence to compiled sources and runtime
         run: npm run migration:receipt -- "${{ runner.temp }}/ts03-evidence.json"
       - uses: actions/upload-artifact@v4

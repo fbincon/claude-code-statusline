@@ -213,7 +213,7 @@ interface Behavior {
   configSet?: (key: string, value: ConfigValue) => ConfigSetResult;
 }
 
-export function setup(on: On) {
+export function setup(on: On, executableOverride: string | undefined = '/tmp/bin with spaces/claude-statusline') {
   const calls: { operation: string; payload: any; argv: readonly string[] }[] =
     [];
   const configCalls: { key: string; value: unknown }[] = [];
@@ -281,7 +281,7 @@ export function setup(on: On) {
       e.name === 'CLAUDE_CONFIG_DIR'
         ? '/tmp/config 中文 $`'
         : e.name === 'CLAUDE_STATUSLINE_NATIVE_EXECUTABLE'
-          ? '/tmp/bin with spaces/claude-statusline'
+          ? executableOverride
           : undefined,
   }));
   on('process.run', async ($, e) => {

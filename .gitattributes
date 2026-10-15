@@ -5,6 +5,7 @@ tools/migration/*.py text eol=lf
 tests/fixtures/migration/ts-01/*.json text eol=lf
 packages/** text eol=lf
 tools/migration/ts-03/** text eol=lf
+tools/migration/ts-04/** text eol=lf
 .gitattributes text eol=lf
 .node-version text eol=lf
 package*.json text eol=lf

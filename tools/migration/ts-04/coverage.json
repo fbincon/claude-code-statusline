@@ -1,0 +1,2178 @@
+{
+  "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "tests": [
+    {
+      "id": "tests.config.test_catalog.CatalogTests.test_wizard_uses_generated_groups_and_constraints",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Installed wizard template substitution and generated group presentation belong to TS-04; core mutual exclusions are covered in final-boundaries.test.ts and catalogue validation is covered in final-protocol.test.ts."
+    },
+    {
+      "id": "tests.config.test_catalog.LanguageWizardContractTests.test_legacy_wizard_reads_interface_language_and_saves_output_language_atomically",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Installed wizard instruction/template generation belongs to TS-04; CLI language preference and atomic output-language saves are covered in final-language.test.ts and final-cli-language.test.ts."
+    },
+    {
+      "id": "tests.config.test_feature_config.FeatureConfigTests.test_atomic_replace_failure_preserves_original",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.config.test_feature_config.FeatureConfigTests.test_enabled_round_trip_is_canonical_private_and_atomic",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.config.test_feature_config.FeatureConfigTests.test_explicit_false_boolean_is_valid_and_disabled",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.config.test_feature_config.FeatureConfigTests.test_missing_file_follows_release_default_without_writes",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.config.test_feature_config.FeatureConfigTests.test_strict_schema_rejects_unknown_missing_duplicate_and_types",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_cli_and_legacy_parser_share_language_option",
+      "origin": "TS-03",
+      "kind": "remaining",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Connect the legacy wizard/install parser to the same output-language option semantics."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_administration_uses_the_invoked_console_entry_instead_of_another_path_install",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Installer administration entry identity belongs to TS-04; TS-03 configuration LaunchSpec ownership is tested in final-boundaries.test.ts."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_configure_rejects_non_tty_without_traceback_or_changes",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Real external configure command and TTY detection belong to TS-04; injected editor outcomes are covered in slash-hook.test.ts."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_configure_reports_missing_curses_without_traceback",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal backend availability and its user error belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_help_lists_public_commands",
+      "origin": "TS-03",
+      "kind": "remaining",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Add configure/install/uninstall/doctor command help when those TS-04 entries exist."
+    },
+    {
+      "id": "tests.integration.test_cli.CliTests.test_install_experimental_flags_are_mutually_exclusive",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Install command parser and feature installation choices belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_bridge_ctrl_c_and_signals_write_interrupted_results",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_bridge_editor_error_writes_error_result_without_traceback",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_bridge_save_current_and_cancel_write_results_without_summary",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_bridge_short_deadline_times_out_without_writes",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_escape_leaves_both_files_byte_identical",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_first_save_migrates_built_in_defaults_to_schema_two",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_signals_restore_terminal_and_use_standard_exit_codes",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_terminal_command_cancel_uses_explicit_installation_with_different_path",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_terminal_command_save_returns_result_and_commits_once",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_terminal_parent_exit_interrupts_editor_without_saving",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_terminal_revoked_request_interrupts_editor_without_saving",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_toggle_move_settings_numeric_edit_and_save",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_too_small_resize_recovers_and_can_cancel",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_cli_tui.ConfigurePtyTests.test_uninstalled_invalid_config_and_terminal_failure_are_clean_errors",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_compatibility.CompatibilityTests.test_forwarded_functions_and_types_share_identity",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_compatibility.CompatibilityTests.test_legacy_render_modules_match_cli_output",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_compatibility.CompatibilityTests.test_legacy_terminal_entry_point_preserves_error_exit_code",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_compatibility.CompatibilityTests.test_terminal_script_uses_package_root_after_relocation",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_all_supported_legacy_schemas_report_current_migration_target",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_current_schema_reports_its_actual_version_without_writes",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_invalid_and_newer_schemas_report_errors_without_writes",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_missing_display_uses_defaults_without_creating_files",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_schema_messages_follow_a_changed_supported_version",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_corrupt_preference_requires_explicit_repair_or_disablement",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_default_stable_install_enables_external_entry_without_preference_file",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_disable_write_failure_rolls_back_every_changed_artifact",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_enable_creates_feature_skill_owner_and_600_second_hook",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_enabled_preference_suspends_on_downgrade_and_restores_on_upgrade",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_explicit_disable_persists_false_and_removes_only_owned_active_artifacts",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_explicit_enable_dry_run_creates_nothing",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_explicit_enable_suspends_old_or_unknown_version_and_keeps_preference",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_plain_reinstall_repairs_feature_permissions",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_reinstall_preserves_enabled_preference_and_is_idempotent",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_skill_write_failure_rolls_back_settings_and_skill",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ExperimentalInstallTests.test_unrelated_experimental_skill_ownership_rules_and_force",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_atomic_write_removes_temp_files_and_fixes_mode",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_dry_run_reports_change_without_creating_files",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_empty_config_is_created_with_private_permissions_and_backup",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_existing_owned_host_options_survive_reinstall",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_force_replaces_unrelated_statusline",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_install_is_idempotent_and_does_not_duplicate_hooks",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_install_rejects_invalid_display_before_any_mutation",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_invalid_json_is_rejected_without_rewrite",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_legacy_configuration_is_replaced_and_unrelated_values_survive",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_old_claude_installs_skill_without_fast_hook",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_unrelated_skill_is_refused_unless_force_backs_it_up",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.InstallTests.test_unrelated_statusline_is_refused_without_force",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_config_dir_precedence",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_cross_platform_command_formats_and_ownership",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_accepts_one_complete_configuration",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_rejects_non_private_or_corrupt_feature_file",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_reports_enabled_disabled_suspended_and_broken_states",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_reports_invalid_display_config_and_missing_skill",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_rendered_skill_has_no_placeholders_and_lists_every_item",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_version_detection_parses_claude_output",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.SubagentInstallTests.test_disabled_rows_keep_foreign_setting_but_install_lifecycle_hooks",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.SubagentInstallTests.test_dry_run_is_read_only_and_install_backs_up_the_v1_display_migration",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.SubagentInstallTests.test_foreign_conflict_fails_before_backup_and_force_takes_ownership",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.SubagentInstallTests.test_old_or_unknown_versions_suspend_and_upgrade_restores",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.SubagentInstallTests.test_supported_default_installs_exact_setting_and_hooks",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.SubagentInstallTests.test_uninstall_removes_owned_but_preserves_foreign",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.UninstallTests.test_uninstall_does_not_remove_unrelated_statusline",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.UninstallTests.test_uninstall_removes_experimental_artifacts_but_keeps_preference",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.UninstallTests.test_uninstall_removes_only_owned_entries_and_preserves_state",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_installer.UninstallTests.test_uninstall_still_preserves_unreadable_display_for_recovery",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_language_cli.LanguageCliTests.test_every_output_language_survives_portable_roundtrip_without_ui_changes",
+      "origin": "TS-03",
+      "kind": "remaining",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Replace isolated owned-settings setup with real TS installation and repeat the language round trip."
+    },
+    {
+      "id": "tests.integration.test_language_cli.LanguageCliTests.test_help_and_parser_errors_are_localized_including_groups",
+      "origin": "TS-03",
+      "kind": "remaining",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Verify install-specific translated flag descriptions and mutually exclusive groups."
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_both_entries_coexist_and_repeat_is_idempotent",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_cached_and_source_foreign_edits_block_update_and_uninstall",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_default_and_explicit_enable_follow_each_host_threshold",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_downgrade_and_unknown_host_suspend_without_new_host_apis",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_downgrade_suspends_then_upgrade_restores_tool_suspension",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_dry_run_calls_no_official_commands_and_creates_no_files",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_explicit_plugin_disable_is_preserved_and_native_disable_restores_legacy",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_external_command_collision_is_checked_only_when_external_is_enabled",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_external_false_does_not_disable_stable_native_default",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_failure_keeps_compatibility_and_retry_reads_the_actual_inventory",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_foreign_command_is_refused_before_writes_even_with_force",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_foreign_external_skill_does_not_block_native_only_install",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_foreign_marketplace_and_unowned_directory_are_not_adopted",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_four_install_combinations_and_independent_disablement",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_historical_directory_cleanup_preserves_unknown_files",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_host_disable_survives_downgrade_and_upgrade",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_host_transport_uses_argv_and_does_not_retry_an_uncertain_write",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_invalid_owner_protocol_is_not_used_to_remove_resources",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_missing_owned_file_is_repaired_and_uninstall_retains_preferences",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_nested_runtime_modules_reach_staging_and_official_cache",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_old_host_disable_and_uninstall_use_supported_cli_options",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_preference_is_strict_and_preview_stable_defaults_preserve_false",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_reinstall_restores_external_resources_removed_by_old_native_migration",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_release_default_activates_native_only_for_stable_versions",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_restricted_and_unsupported_fresh_hosts_preserve_preference",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_same_version_resource_upgrade_uses_verified_official_reinstall",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_upgrade_prunes_old_empty_directories_and_disable_reenable_works",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_user_disabled_upgrade_refreshes_resources_and_binding",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_version_suspension_rolls_back_settings_if_owner_write_fails",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_windows_batch_host_is_invoked_through_node_without_cmd_interpolation",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_windows_npm_native_binary_is_resolved_from_package_bin_metadata",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_native_installer.NativeInstallerTests.test_windows_stripped_console_name_resolves_its_adjacent_executable",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_dry_run_and_old_host_never_call_new_plugin_operations",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_explicit_modes_override_the_legacy_all_off_switch_and_doctor_agrees",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_foreign_runtime_directory_and_changed_resources_are_retained",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_install_migrates_old_preferences_only_in_a_backed_up_transaction",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_opt_in_is_independent_and_reinstall_retains_preference",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_uninstall_removes_only_owned_runtime_resources_and_retains_choice",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_user_plugin_disable_is_not_automatically_reenabled",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.LaunchAndCleanupTests.test_launch_passes_bridge_environment_reads_and_cleans_result",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.LaunchAndCleanupTests.test_launcher_timeout_and_missing_result_are_safe_errors",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.LaunchAndCleanupTests.test_selected_tmux_failure_does_not_try_gnome",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.LaunchAndCleanupTests.test_stale_cleanup_is_age_name_and_symlink_limited",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.LaunchAndCleanupTests.test_unavailable_does_not_create_runtime_directory",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.ResultValidationTests.test_missing_oversized_symlink_and_non_regular_results_fail",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.ResultValidationTests.test_result_requires_exact_random_invocation_parent",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.ResultValidationTests.test_strict_result_schema_and_outcome",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.ResultValidationTests.test_valid_result_round_trip",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.SelectionAndArgumentsTests.test_failed_or_invalid_tmux_preflight_falls_back_to_gnome",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.SelectionAndArgumentsTests.test_gnome_uses_direct_argv_active_tab_wait_and_validated_cwd",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.SelectionAndArgumentsTests.test_macos_without_desktop_requires_valid_tmux_and_never_selects_gnome",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.SelectionAndArgumentsTests.test_no_tmux_or_graphical_gnome_returns_none",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.SelectionAndArgumentsTests.test_tmux_command_uses_fixed_argv_and_shell_quotes_every_value",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.SelectionAndArgumentsTests.test_tmux_preflight_has_two_second_limit_and_takes_priority",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.WindowsConsoleTests.test_abnormal_exit_cannot_return_a_success_result",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.WindowsConsoleTests.test_popen_uses_new_console_real_cwd_and_no_redirection",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.WindowsConsoleTests.test_selection_and_argv_use_current_python_module",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_slash_tui.WindowsConsoleTests.test_timeout_terminates_and_reaps_windows_child",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_terminal_capture.CaptureTests.test_clear_and_cursor_moves_do_not_rejoin_old_capture_text",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal capture clear/cursor state belongs to TS-04; this is not a backend rendering cursor."
+    },
+    {
+      "id": "tests.integration.test_terminal_capture.CaptureTests.test_every_byte_chunking_preserves_clusters_and_base_style",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External PTY capture oracle streaming/SGR state belongs to TS-04; pure grapheme width and renderer ANSI spans are covered in core and renderer tests."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_capture_rejects_unreadable_defaults_and_resolves_recorded_ansi_palette",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Recorded terminal palette and contrast oracle belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_default_roles_are_distinct_and_reverse_after_resolution",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Terminal capture default foreground/background role resolution belongs to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_explicit_light_and_sample_cells_keep_their_original_colors",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Terminal capture cell color and contrast oracle belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_external_capture_rejects_fixed_white_chrome_and_artificial_preview_background",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External TUI chrome/background capture acceptance belongs to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_external_default_color_chrome_is_readable_in_both_fixtures",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External TUI terminal-theme capture acceptance belongs to TS-04."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_preview_preserves_low_contrast_samples_instead_of_changing_their_colors",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal capture acceptance of sample colors belongs to TS-04; backend preview spans preserve colors in final-protocol.test.ts."
+    },
+    {
+      "id": "tests.integration.test_terminal_colors.TerminalColorTests.test_white_on_light_is_rejected_but_ansi_names_remain_renderable",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal contrast and named-color capture oracle belong to TS-04."
+    },
+    {
+      "id": "tests.integration.test_tmux_popup.TmuxPopupIntegrationTests.test_popup_cancel_isolated_from_underlying_pane_and_cleans_up",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installed_main_and_subagent_commands_match_in_both_shells",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.AvailabilityTests.test_desktop_preflight_is_read_only_and_bounded",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.AvailabilityTests.test_macos_desktop_falls_back_from_invalid_tmux_to_terminal",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.AvailabilityTests.test_no_gui_and_failed_gui_probe_are_unavailable",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.AvailabilityTests.test_ssh_and_missing_terminal_do_not_launch_or_probe_desktop",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.CommitGuardTests.test_parent_ending_after_ui_save_prevents_transaction_under_lock",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_cleanup_removes_only_current_invocation_artifacts",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_close_and_total_timeout_are_errors_without_a_result",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_command_quotes_paths_environment_and_uses_exact_python",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_editor_rejects_non_tty_and_expired_request",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_editor_uses_explicit_executable_and_guards_revoked_request",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_malformed_handshake_and_result_are_rejected",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_open_errors_and_timeout_revoke_invocation",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_open_exit_zero_without_handshake_is_not_editor_success",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_open_success_waits_for_handshake_and_editor_result",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_stop_never_signals_reused_process_identity",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.platforms.test_macos_terminal.InvocationTests.test_stop_terminates_only_verified_editor_and_escalates",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.runtime.test_task_timing.TaskTimingTests.test_invalid_preferences_hide_derived_timers_and_remain_diagnosable",
+      "origin": "TS-03",
+      "kind": "remaining",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Verify installer doctor emits a localized ERROR naming the invalid runtime preference file."
+    },
+    {
+      "id": "tests.ui.test_advanced_forms.AdvancedFormsTests.test_field_parser_refuses_coercions_and_fractional_numbers",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_advanced_forms.AdvancedFormsTests.test_global_descriptors_parse_choices_and_thresholds_without_saving",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_advanced_forms.AdvancedFormsTests.test_item_text_cancel_and_numeric_validation",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_advanced_forms.AdvancedFormsTests.test_layout_boundaries_and_navigation_remain_valid",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_advanced_forms.AdvancedFormsTests.test_layout_selection_survives_removing_all_enabled_items",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_advanced_forms.AdvancedFormsTests.test_transfer_input_is_deferred_and_replaces_only_draft",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_cli_curses_and_json_apply_equivalence",
+      "origin": "TS-03",
+      "kind": "remaining",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Replace service-side stand-in with real external terminal editor save, preserving identical configuration bytes/semantics."
+    },
+    {
+      "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_curses_expected_snapshot_protects_subagent_owner",
+      "origin": "TS-03",
+      "kind": "remaining",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Wire the external editor opening revision into apply and verify ownership conflict after a foreign subagent binding appears."
+    },
+    {
+      "id": "tests.ui.test_apply_protocol.ApplyProtocolTests.test_external_and_client_saves_conflict_in_both_orders",
+      "origin": "TS-03",
+      "kind": "remaining",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Repeat with the real external editor state/save wrapper against the Client protocol; service/protocol conflicts already pass."
+    },
+    {
+      "id": "tests.ui.test_guidance.GuidanceTests.test_all_explanations_wrap_inside_terminal_cells",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_guidance.GuidanceTests.test_all_items_have_scoped_translated_guidance_without_process_calls",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_guidance.GuidanceTests.test_guidance_scroll_cancel_and_resize_preserve_draft_and_selection",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_guidance.GuidanceTests.test_requirements_distinguish_collectors_and_metric_scopes",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_import_review.ReviewUiTests.test_accept_replaces_only_draft_and_keeps_opening_revision",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External import-review modal accept/save key transitions belong to TS-04; revision conflicts remain covered in config and final-boundaries tests."
+    },
+    {
+      "id": "tests.ui.test_import_review.ReviewUiTests.test_cancel_preserves_unsaved_draft_revision_and_editor_state",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External import-review modal keyboard cancellation and focus state belong to TS-04; pure review no-write semantics are covered in final-review.test.ts."
+    },
+    {
+      "id": "tests.ui.test_import_review.ReviewUiTests.test_empty_review_and_nested_localized_labels",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External review window rows and localized label presentation belong to TS-04; nested localization and empty review generation remain covered in core/final-review tests."
+    },
+    {
+      "id": "tests.ui.test_import_review.ReviewUiTests.test_review_sections_long_values_and_previews_resize_in_both_languages",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External review screen resize, scrolling and scope-tab navigation belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_add_picker_guidance_cancel_and_accept_preserve_drafts",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External instance-picker guidance, input and focus state belong to TS-04; schema/instance mutations remain covered in core tests."
+    },
+    {
+      "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_copy_remove_and_scope_identity_keep_the_baseline",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External editor keyboard copy/toggle/remove state and baseline identity belong to TS-04; core copy/remove identity rules remain covered in core/config tests."
+    },
+    {
+      "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_literal_instance_can_be_found_by_its_displayed_text",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External editor search filtering after literal-text insertion belongs to TS-04; literal instance storage is covered in core/config tests."
+    },
+    {
+      "id": "tests.ui.test_instance_editor.InstanceEditorTests.test_rejected_spacer_move_keeps_order_and_positions",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External editor selection/order after rejected key movement belongs to TS-04; the direct core edit refusal and unchanged draft are tested in final-boundaries.test.ts."
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_filtered_move_is_blocked_and_preserves_the_full_order",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_initial_order_keeps_enabled_order_then_catalog_order",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_moving_disabled_item_marks_draft_but_does_not_enable_it",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_navigation_and_scroll_stay_valid_across_viewport_changes",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_new_main_items_are_discoverable_and_toggleable",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_no_matches_make_toggle_and_move_noops",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_search_matches_id_and_description_case_insensitively",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_subagent_enabling_status_elapsed_disables_status_and_elapsed",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_subagent_enabling_status_or_elapsed_disables_status_elapsed",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_subagent_items_have_independent_search_order_and_selection",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_tabs_cycle_four_pages_in_both_directions",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.ItemStateTests.test_toggle_empty_set_and_repeated_moves",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SaveAndRunTests.test_bridge_path_rejects_escape_and_reparse_chain",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SaveAndRunTests.test_bridge_write_failure_happens_after_completed_editor_outcome",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SaveAndRunTests.test_cancel_and_interrupt_do_not_save",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SaveAndRunTests.test_non_tty_and_uninstalled_are_rejected",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SaveAndRunTests.test_save_calls_apply_once_with_complete_draft_and_baseline",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SettingStateTests.test_booleans_and_all_enumerations_cycle",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SettingStateTests.test_numeric_edit_accept_error_backspace_and_escape_restore",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SettingStateTests.test_numeric_edit_blocks_tabs_and_needs_second_enter_to_save",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.SettingStateTests.test_padding_clamps_and_refresh_custom_value_joins_cycle",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.TerminalColorTests.test_idle_input_polls_for_signals_without_repainting_the_vt_frame",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.TerminalColorTests.test_resize_key_refreshes_pdcurses_dimensions",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.TerminalColorTests.test_rgb_quantizes_for_256_basic_and_no_color_terminals",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_interactive_config.TerminalColorTests.test_signal_registration_uses_only_available_platform_signals",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_all_languages_cycle_both_directions_and_persist_outside_draft",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal key cycling, field focus and repaint belong to TS-04; immediate preference persistence is covered in config/final-cli-language tests."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_all_pages_and_forms_draw_chinese_inside_cell_bounds",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External TUI pages, forms and terminal cell bounds belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_cancelled_screen_keeps_persisted_output_language_unchanged",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External screen-loop cancel/dirty draft state belongs to TS-04; backend read/preview no-write behavior remains covered."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_failed_language_save_retains_language_draft_and_field",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External language-save failure notice, repaint and focus state belong to TS-04; transactional preference failures are tested in backend preference tests."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_language_persists_immediately_while_draft_and_cancel_are_independent",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External screen repaint/focus and immediate-language-save/cancel interaction belong to TS-04; persistence itself is covered in config and final-cli-language tests."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_open_reads_shared_preference_and_override_only_changes_initial_locale",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External session opening/cancel locale selection belongs to TS-04; shared preference and invocation override are covered in final-cli-language.test.ts."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_search_matches_both_languages_ids_and_custom_labels",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External editor localized search results and selection belong to TS-04; Unicode case folding and shared catalogues are already tested."
+    },
+    {
+      "id": "tests.ui.test_language.LanguageUiTests.test_statusline_language_is_a_draft_and_preserves_interface_and_input",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External settings-form selection/search/dirty-state transitions belong to TS-04; independent UI/output languages and preview are covered in final-language and rendering tests."
+    },
+    {
+      "id": "tests.ui.test_layout.DrawingTests.test_all_pages_at_boundaries_without_overlaps_or_out_of_bounds_writes",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.DrawingTests.test_detail_input_and_invalid_legacy_number_show_contextual_controls",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.DrawingTests.test_long_cjk_values_clipping_empty_search_and_small_window",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.DrawingTests.test_portable_file_action_keys_use_the_same_styles_as_footer_keys",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.DrawingTests.test_preview_uses_the_panel_width_and_retains_sample_styles",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.DrawingTests.test_shortcut_groups_clip_at_cell_boundaries_without_partial_bindings",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.DrawingTests.test_shortcut_keys_and_labels_have_independent_styles_on_every_page",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.GroupWindowTests.test_all_selections_fit_with_group_headings_and_sticky_context",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.GroupWindowTests.test_empty_and_invalid_selection_are_bounded",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.GroupWindowTests.test_navigation_only_selects_fields_across_groups_and_resize",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_layout.GroupWindowTests.test_settings_layout_and_detail_groups_are_contiguous",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_actual_bilingual_fields_and_custom_label_are_searchable",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_alternate_language_highlights_only_the_actual_source_characters",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_categories_cover_both_scopes_without_changing_defaults",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_category_and_highlight_draw_within_small_and_resized_terminals",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_category_keyboard_accept_cancel_and_empty_selection",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_explicit_search_accepts_spaces_without_toggling_or_saving",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_new_languages_share_prepared_index_and_custom_labels_invalidate_locally",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_queries_and_categories_are_ephemeral_and_block_all_reorders",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_search_length_counts_original_unicode_codepoints",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_search_refocuses_better_matches_but_navigation_keeps_weaker_matches",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_search.SearchTests.test_shared_codepoint_matches_and_stable_tiers",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_statusline_language.StatuslineLanguageSessionTests.test_save_and_cancel_share_draft_semantics_in_all_25_language_combinations",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal session save/cancel wrapper belongs to TS-04; all 25 backend UI/output combinations and failed writes are covered in final-cli-language/final-language tests."
+    },
+    {
+      "id": "tests.ui.test_statusline_language.StatuslineLanguageSessionTests.test_save_failure_preserves_file_and_draft",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal session save error and retained EditorState belong to TS-04; backend rollback/file preservation is covered in config/final-language tests."
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_background_mapping_for_monochrome_basic_bright_and_256_color",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_color_pairs_preserve_both_channels_and_selective_defaults",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_non_ansi_cursor_capabilities_do_not_enable_vt_painting",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_plain_text_never_becomes_terminal_control_instructions",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_resize_clips_pending_runs_again_and_restores_style",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_span_merging_retains_background_boundaries_and_resets",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_text_input_accepts_joiners_and_removes_complete_clusters",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_unsupported_backend_replaces_a_whole_cluster_at_the_same_width",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_terminal.TerminalTests.test_vt_paints_complete_runs_in_order_after_blank_backing_refresh",
+      "origin": "TS-01",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_basic_and_monochrome_capabilities",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal 0/8/16/256-color negotiation belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_chrome_is_default_color_on_all_pages_and_selected_actions",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External screen chrome, bold/reverse actions and terminal-default styling belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_color_pair_attributes_never_exceed_python_pair_limit",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External curses attribute/pair limit belongs to TS-04; the replacement terminal adapter must retain bounded allocation."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_compatibility_exports_share_the_new_implementation",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "Legacy external curses compatibility exports belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_default_color_failure_preserves_default_text_instead_of_painting_black",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal default-color initialization failure belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_failed_sample_pair_is_cached_and_falls_back_to_default_text",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External curses failed color-pair cache/fallback belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_pair_exhaustion_falls_back_to_default_text",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal color-pair exhaustion belongs to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_preview_caption_follows_palette_draft_and_color_disable",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External preview caption and baseline EditorState drawing belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_preview_fills_empty_rows_trailing_spaces_resets_and_overflow",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External preview panel fill/overflow and curses drawing belong to TS-04; backend row/spans/width behavior is covered in renderer tests."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_preview_preserves_quantized_rgb_and_ansi_sample_foregrounds",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External curses color quantization/pair attributes belong to TS-04; backend RGB/ANSI span interpretation is covered in final-protocol.test.ts."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_preview_uses_terminal_defaults_without_reserved_background_pairs",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External curses color-pair allocation and terminal default background belong to TS-04."
+    },
+    {
+      "id": "tests.ui.test_theme.ThemeTests.test_start_color_failure_is_monochrome",
+      "origin": "TS-03",
+      "kind": "complete",
+      "status": "pending",
+      "tests": [],
+      "reason": null,
+      "assertions": "External terminal color initialization failure belongs to TS-04."
+    }
+  ]
+}

@@ -11,7 +11,7 @@
     "backendExecutable": {
       "type": "string",
       "title": "Backend executable",
-      "description": "Absolute matching claude-statusline executable",
+      "description": "Matching backend executable; an executable environment override replaces the complete executable/args binding.",
       "default": "claude-statusline"
     },
     "configDir": {
@@ -37,6 +37,13 @@
       "title": "Advanced live metrics",
       "description": "Collect request, cost, tool and checklist metrics",
       "default": false
+    },
+    "backendArgs": {
+      "type": "string",
+      "multiple": true,
+      "title": "Backend arguments",
+      "description": "Argument prefix for the matching backend, including the absolute installed JavaScript entry for Node installations.",
+      "default": []
     }
   }
 }

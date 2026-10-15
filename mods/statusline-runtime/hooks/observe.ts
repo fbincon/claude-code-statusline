@@ -7,15 +7,17 @@ import { tapStream, usage } from '../lib/streams.ts';
 import { cost } from '../lib/costs.ts';
 import { promptLink, reportAgent } from '../lib/identity.ts';
 import { WaitCoverage } from '../lib/timing.ts';
+import { binding } from '../lib/launch.ts';
 
-type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[] };
+type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; args: readonly string[]; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[] };
 
 async function bind($: EngineInterface, options: PluginOptions, state: State): Promise<void> {
   const queue = state.queue;
   const session = await $.session.id();
   if (state.ready && queue.session === session) return;
-  state.executable = (await $.env.get('CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE')) ||
-    (typeof options.backendExecutable === 'string' ? options.backendExecutable : 'claude-statusline');
+  const launch = binding(options, await $.env.get('CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE') || undefined);
+  state.executable = launch.executable;
+  state.args = launch.args;
   state.directory = (await $.env.get('CLAUDE_CONFIG_DIR')) ||
     (typeof options.configDir === 'string' ? options.configDir : '');
   state.hostVersion = (await $.session.version()).version;
@@ -33,7 +35,7 @@ async function flush($: EngineInterface, options: PluginOptions, state: State): 
   state.busy = true;
   const batch = queue.batch();
   try {
-    const argv = state.directory ? [state.executable, 'runtime', '--config-dir', state.directory] : [state.executable, 'runtime'];
+    const argv = [state.executable, ...state.args, 'runtime', ...(state.directory ? ['--config-dir', state.directory] : [])];
     const result = await $.process.run(argv, {
       stdin: JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation: 'observe', payload: { observations: batch } }),
       timeoutMs: 2000,
@@ -46,7 +48,7 @@ async function flush($: EngineInterface, options: PluginOptions, state: State): 
 
 
 export const register: Register = (on, options: PluginOptions) => {
-  const state: State = { queue: new Queue(), ready: false, busy: false, executable: '', directory: '', hostVersion: '', turns: {}, agentTypes: [] };
+  const state: State = { queue: new Queue(), ready: false, busy: false, executable: '', args: [], directory: '', hostVersion: '', turns: {}, agentTypes: [] };
   const queue = state.queue;
   queue.timing = options.nativeTiming !== false;
   queue.metrics = options.liveMetrics === true;
