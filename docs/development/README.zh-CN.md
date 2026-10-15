@@ -10,6 +10,7 @@
 
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [TypeScript 重构计划与进度](typescript-migration.zh-CN.md)：当前状态、范围、阶段、决策、验收及会话交接。
+- [PERF-01 迁移后性能专项](performance/perf-01.zh-CN.md)：TS-06 后的独立工作、保留的 D06 目标及历史证据；尚未开始。
 - [TS-01 固定参考与清单](typescript-migration/ts-01/README.zh-CN.md)：可复现样例、核验工具及验证证据。
 - [TS-02 平台探针与决策](typescript-migration/ts-02/README.zh-CN.md)：原生适配、安装实验、性能策略及剩余门槛。
 - [TS-03 共享核心与后端](typescript-migration/ts-03/README.zh-CN.md)：workspace、六批实施、兼容差异与验收。

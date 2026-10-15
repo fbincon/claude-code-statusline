@@ -6,6 +6,10 @@
 
 TS-03 新增 `npm test` 验证共享核心／正式适配器，以 `npm run generate:check` 检查 TypeScript 生成资源。下方 Python 生成检查仅作为迁移期只读对照，普通写入入口已退役。新的八目标后端工作流补充既有矩阵。
 
+迁移门槛更新（2026-10-15）：按 [D06 修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)，完整性能测量和预算达标不再阻塞 TS-03～TS-06，包括预览／正式交付。[TS-03／03-F 已依据既有非性能证据 DONE](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)，最新 D06 仍为 FAIL（104 通过／60 失败／28 不确定）；后续性能工作归 TS-06 之后的 [PERF-01](performance/perf-01.zh-CN.md)。功能／稳定性、精确采集次数及平台／安装／恢复验收继续适用；本次不启动后续实施，也不修改 CI。
+
+下方 TS-03 分批记录保留当时的数量与门槛；当前状态见[迁移总计划](typescript-migration.zh-CN.md)，最新既有验证证据见关闭记录。
+
 ## 本地检查
 
 共享目录/协议测试覆盖严格输入、Unicode 路径和不访问实时来源的样例预览。运行 `python tools/generate_ui_contracts.py --check` 检查 TypeScript 与 Python 定义一致；原生工作流也执行契约测试。参见[协议说明](contracts.zh-CN.md)。
@@ -369,4 +373,4 @@ TS-03 D 将固定重放扩展至 45/161 个案例，台账完整迁移项达到 
 
 TS-03 集成测试以原始 Mod 协议模块连接真实 Node 后端，PATH 中不提供 Python。真实主机探测使用临时绑定、合成密钥和不可达的 loopback API。`npm run migration:inventory -- --complete` 要求 516 项均有替代测试或具名 TS-04 责任。固定 D06 后端工具为 `npm run migration:benchmark -- NEW_DIRECTORY`，要求干净且已提交的源码；`--validate` 仅校验功能夹具。参见 [TS-04 交接](typescript-migration/ts-03/TS04-HANDOFF.zh-CN.md)。
 
-正式 [TS-03 D06 报告](typescript-migration/ts-03/PERFORMANCE.zh-CN.md)结论为失败：91 项通过、69 项失败、32 项不确定，全部样本的输出及采集次数仍一致。TS-03 保持 IN_PROGRESS。CLI 帮助另与固定 Python 解析器对照命令路径、缺失值、选项、互斥关系、退出码及输出通道。
+原正式 [TS-03 D06 报告](typescript-migration/ts-03/PERFORMANCE.zh-CN.md)结论为失败：91 项通过、69 项失败、32 项不确定，全部样本的输出及采集次数仍一致。按当时门槛，TS-03 保持 IN_PROGRESS。CLI 帮助另与固定 Python 解析器对照命令路径、缺失值、选项、互斥关系、退出码及输出通道。

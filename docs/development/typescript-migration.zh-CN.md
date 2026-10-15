@@ -6,7 +6,13 @@
 
 将 Python 实现迁移到 TypeScript，保留状态栏行为、既有用户配置及受支持的使用流程。本计划记录范围、依赖、技术决策、验收门槛和交接方式，供后续会话与维护者持续更新。中英文版本随仓库维护；机器私有记录和原始验收数据不写入受版本管理的文档。
 
-两轮性能优化已完成，第二轮 D06 为 **104 通过／60 失败／28 不确定**；TS-03 保持 **IN_PROGRESS**，按批准的两轮上限停止实施并进入专项评审。原预算和 TS-04 准入不变，见[完整优化与退化审查](typescript-migration/ts-03/PERFORMANCE-OPTIMIZATION.zh-CN.md)。
+## 当前决策：2026-10-15
+
+先完成 TS-01～TS-06，再进行后续性能优化。维护者已批准 [D06 适用范围修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)：完整 D06 测量及性能预算达标不再阻塞 TS-03～TS-06，包括预览与正式交付。独立 [PERF-01](performance/perf-01.zh-CN.md) 在 TS-06 后执行，当前保持 **NOT_STARTED**。
+
+**TS-03／03-F 按修订后的非性能标准为 DONE。** 最新 D06 测量仍为 **FAIL：104 通过／60 失败／28 不确定**。保留[两轮优化评审](typescript-migration/ts-03/PERFORMANCE-OPTIMIZATION.zh-CN.md)、数值策略及全部原始证据；阶段门槛调整不将失败测量改记为通过。
+
+相对延迟／RSS 退化可以后移处理。宿主超时导致操作无法完成、事件丢失、保存失败或内存耗尽等功能／稳定性故障仍须解决。现有超时、资源有界、锁、原子写、时钟精度和采集次数契约，以及实体机／桌面、安装／恢复验收继续适用。
 
 ## 当前状态
 
@@ -14,15 +20,15 @@
 | --- | --- |
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
-| 实现进度 | **TS-01 DONE；TS-02 DONE**；[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)整合平台证据并闭合决策 |
-| 当前任务范围 | TS-03 IN_PROGRESS；两轮性能整改结束，进入专项评审 |
+| 实现进度 | **TS-01～TS-03 DONE**；TS-03 依据现有[功能与 CI 证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)按修订标准关闭 |
+| 当前任务范围 | 仅调整文档与门槛；TS-04～TS-06 和 PERF-01 保持 NOT_STARTED |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
-| 目标版本与工期 | 尚未指定；TS-02 平台验证后估算 |
-| 下一项实施工作 | 先评审剩余 D06 差距；第三轮、架构或预算调整另行决定 |
+| 目标版本与工期 | 尚未指定；后续候选／交付任务确定版本及工期 |
+| 下一项实施工作 | TS-04 编辑器、安装与恢复；前置依赖已满足，本次不启动 |
 
-编写计划不代表任何实现阶段已通过。后续任务范围内仍适用仓库既有授权，本计划不为每个阶段新增例行审批步骤。
+本次文档任务依据既有已验证工作和批准的门槛修订关闭 TS-03，不实施后续阶段、不切换已安装后端、不新增版本或发布。后续任务仍适用仓库既有授权，本计划不为每个阶段新增例行审批步骤。
 
-03-E 已通过 PR #82 合并并同步，43 项检查及八份源码证据通过。03-F 覆盖 161 个固定案例，516 项清单全部审计（471 项迁移、45 项外部 TUI／安装／终端案例归 TS-04，另记录八项混合断言）。03-F 首个提交的 43 项 CI 和八目标源码证据均通过。[D06 正式测量失败](typescript-migration/ts-03/PERFORMANCE.zh-CN.md)：91 项通过、69 项失败、32 项不确定。TS-03 继续保持 IN_PROGRESS；最终 CLI 帮助兼容修正与证据记录于 [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83)。
+TS-03 覆盖全部 161 个固定案例，保留原三项已批准的 CLI 文案差异；516 项清单已审计：471 项迁移、45 项完整测试交接 TS-04，另保留八项混合测试中的剩余断言。最新本地 TS 验证为 556/557 通过、1 项平台跳过；[PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) 最终 head 的 43 项 CI 和八份源码回执通过后合并为 `7eae7c4`。这些是既有实现证据，不是本次计划调整重新执行的测试。[关闭依据与证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)。
 
 ## 基线与范围
 
@@ -49,7 +55,7 @@
 | 显示目录 | 主栏 62 类、子代理 16 类，均包含文本与留白 |
 | 语言 | `en`、`zh-CN`、`zh-Hant`、`ja`、`ko`，界面与输出独立选择 |
 
-计划范围覆盖生产 Python、外部 TUI 和平台辅助程序、CLI／安装／doctor／卸载、两个 Mod 接入、生成脚本、持续维护的测试、基准、验收工具、打包、CI 及开发／用户文档。已过时的 Python 专用工具须记录替代方案或退役理由。迁移中可保留隔离的 Python 对照实现；完成时，受支持的运行、构建、测试和发布流程均不再依赖 Python。
+计划范围覆盖生产 Python、外部 TUI 和平台辅助程序、CLI／安装／doctor／卸载、两个 Mod 接入、生成脚本、持续维护的测试、基准工具、验收工具、打包、CI 及开发／用户文档。已过时的 Python 专用工具须记录替代方案或退役理由。完成时，正常受支持的运行、构建、测试和发布流程均不再依赖 Python。冻结 Python 参考、夹具和历史对照测试器／来源记录保留在这些流程之外的隔离归档环境，供 PERF-01 使用；替换依赖 Python 的现行测试时保留行为覆盖。性能优化和最终完整成品测量不属于迁移完成条件。
 
 首轮不包含新增功能、视觉重设计、指标含义变更、常驻守护进程和新增平台。Python 导入 API、`python -m` 入口及 pipx 安装方式的退役／过渡由 D05 明确决定。保留用户可见能力，不为简化实现而静默缩减平台支持或丢失用户数据。
 
@@ -86,7 +92,7 @@ D01–D06 已选定 Node 24.21.0／npm、编译 ESM、node:test、Koffi／严格
 | [D03](typescript-migration/ts-02/D03.zh-CN.md) | DECIDED | 跨进程锁与持久写入 | 并发更新、进程异常退出、Windows 共享冲突、临时文件清理、符号链接／reparse 处理及新旧切换 | TS-02 |
 | [D04](typescript-migration/ts-02/D04.zh-CN.md) | DECIDED | 外部 TUI 输入输出及终端启动 | Ctrl+S 等原始按键、缩放、终端恢复、Unicode 单元格、tmux、Windows 控制台及 macOS Terminal 辅助程序验证 | TS-02 |
 | [D05](typescript-migration/ts-02/D05.zh-CN.md) | DECIDED | 安装、旧入口退役、升级与回滚 | pipx／PATH 识别、Windows 可执行文件或 argv 方案、归属、插件／后端绑定、关闭偏好保留及兼容备份恢复 | TS-02 定策略；TS-04 完成 |
-| [D06](typescript-migration/ts-02/D06.zh-CN.md) | DECIDED | 可测量的性能验收预算 | 测量前由 `3c448b8` 固定各案例延迟／RSS 预算、三轮交替及有界噪声复查规则 | TS-02 |
+| [D06](typescript-migration/ts-02/D06.zh-CN.md) | DECIDED；2026-10-15 修订适用范围 | 保留的性能测量策略与目标 | `3c448b8` 冻结策略和历史结果不变；成品测量／优化归 PERF-01，不阻塞迁移或发布 | TS-02 固定策略；TS-06 后执行 PERF-01 |
 
 重点代码边界是[平台时钟](../../src/claude_statusline/platforms/clocks.py)、[文件锁与发布](../../src/claude_statusline/platforms/files.py)、[序列化计时器](../../src/claude_statusline/runtime/timing/clock.py)、[提交索引字节游标](../../src/claude_statusline/runtime/tasks/evidence.py)、[语义 revision](../../src/claude_statusline/config/revisions.py)、[CLI 归属](../../src/claude_statusline/integration/ownership.py)和[外部终端](../../src/claude_statusline/ui/terminal.py)。
 
@@ -94,16 +100,18 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 ## 阶段与进度
 
-阶段状态统一使用 `NOT_STARTED`（未开始）、`IN_PROGRESS`（进行中）、`BLOCKED`（受阻）、`VALIDATING`（验收中）、`DONE`（完成）。`DONE` 要求全部退出标准及证据齐全；`BLOCKED` 应写明缺少的依赖及解除条件。开始工作时登记执行者／会话、分支、提交和 PR，未开始前保持未分配。
+阶段状态统一使用 `NOT_STARTED`（未开始）、`IN_PROGRESS`（进行中）、`BLOCKED`（受阻）、`VALIDATING`（验收中）、`DONE`（完成）。`DONE` 要求当前适用的全部退出标准及证据齐全；按 D06 修订，迁移状态与性能测量状态分别记录。`BLOCKED` 应写明缺少的依赖及解除条件。开始工作时登记执行者／会话、分支、提交和 PR，未开始前保持未分配。
 
 | 阶段 | 交付物 | 依赖 | 状态 | 执行者与证据 |
 | --- | --- | --- | --- | --- |
 | TS-01 | 固定基线与行为清单 | 明确开始实施任务 | DONE | Codex；`fbincon/ts-01-baseline`；测试提交 `ddc9dde`；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
 | TS-02 | 平台验证及 D01–D06 决策 | TS-01 | DONE | Codex；`fbincon/ts-02-linux-acceptance`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)及[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)；[整合与证据](typescript-migration/ts-02/LINUX-20261014.zh-CN.md) |
-| TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | IN_PROGRESS | Codex；`fbincon/ts-03-performance-round-2`；[PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)；[六批实施记录](typescript-migration/ts-03/README.zh-CN.md) |
+| TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | DONE | Codex；实现 [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)，合并 `7eae7c4`；[修订标准下的关闭记录](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15) |
 | TS-04 | 双编辑器、安装与恢复 | TS-03 | NOT_STARTED | 未分配 |
 | TS-05 | 完整工具链、CI 与发布候选 | TS-04 | NOT_STARTED | 未分配 |
 | TS-06 | 预览验收与正式交付 | TS-05 | NOT_STARTED | 未分配 |
+
+独立后续专项：**PERF-01 — NOT_STARTED**，依赖 TS-06 DONE。[专项计划](performance/perf-01.zh-CN.md)记录未来工作与证据，不新增 TS-07，也不使已完成迁移重新处于未完成状态。
 
 ### TS-01 固定基线与行为清单
 
@@ -125,9 +133,9 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **退出标准：**每个必要平台都有验证证据，或已有明确解决的支持范围决策。原生依赖、启动器、状态编码和终端方案具备具体设计。基础决策尚未解决时不展开大规模迁移。
 
-**TS-02 交接：**[D01–D06 记录与可复现探针](typescript-migration/ts-02/README.zh-CN.md)保留不可变 Python 参考。维护者已批准未来主版本采用 npm 优先、64 位 TS 分发，退役 Python import／模块／pipx 及旧 Windows `.exe` 入口，并保留历史 Python 包用于兼容和回滚。这是未来产品决策，不修改当前已发布安装。原生、安装包、真实宿主 argv 与性能自动证据同物理休眠／重启及桌面输入／焦点验收分开记录。整合矩阵及本 Linux 实体机电源／桌面证据已满足下述调整后的阶段门槛，D01–D06 均为 DECIDED，TS-02 为 DONE，TS-03 已可开始（NOT_STARTED）。
+**TS-02 交接：**[D01–D06 记录与可复现探针](typescript-migration/ts-02/README.zh-CN.md)保留不可变 Python 参考。维护者已批准未来主版本采用 npm 优先、64 位 TS 分发，退役 Python import／模块／pipx 及旧 Windows `.exe` 入口，并保留历史 Python 包用于兼容和回滚。这是未来产品决策，不修改当前已发布安装。原生、安装包、真实宿主 argv 与性能自动证据同物理休眠／重启及桌面输入／焦点验收分开记录。整合矩阵及本 Linux 实体机电源／桌面证据已满足下述调整后的阶段门槛，D01–D06 均为 DECIDED，TS-02 为 DONE；在 2026-10-14 交接时 TS-03 为 NOT_STARTED，当前状态见阶段表。
 
-**2026-10-14 阶段门槛调整：** 维护者明确同意将本机无法补齐的 macOS 实体机睡眠、Windows 10、实体 macOS 14 Intel、WSL 桌面及其余目标特定人工／电源验收延后至发布前，不改变平台支持承诺，不记为通过。整合 CI 和本 Linux 实体机睡眠／重启／GNOME／popup 已通过，调整后的 TS-02 门槛已闭合；TS-03 尚未实施。[整合结果及补验清单](typescript-migration/ts-02/LINUX-20261014.zh-CN.md)。当前分支：`fbincon/ts-02-linux-acceptance`。
+**2026-10-14 阶段门槛调整：** 维护者明确同意将本机无法补齐的 macOS 实体机睡眠、Windows 10、实体 macOS 14 Intel、WSL 桌面及其余目标特定人工／电源验收延后至发布前，不改变平台支持承诺，不记为通过。整合 CI 和本 Linux 实体机睡眠／重启／GNOME／popup 已通过，调整后的 TS-02 门槛已闭合；当时 TS-03 尚未实施。[整合结果及补验清单](typescript-migration/ts-02/LINUX-20261014.zh-CN.md)。当时分支：`fbincon/ts-02-linux-acceptance`。
 
 ### TS-03 共享核心与后端
 
@@ -137,11 +145,13 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 - 每迁移一个模块同步迁移相关测试；在隔离的 Python／TS 实例中输入相同样例、事件和注入的时间／进程观测，对比输出及最终语义状态。每项有意差异均须记录。
 - 将生成定义归属迁入 TypeScript／共享数据，不维护竞争定义；两个 Mod 继续校验所选契约。
 
-**退出标准：**适用功能案例结果一致，状态／并发边界有回归测试，已迁移核心在生产中不再转调 Python。改变模块名称或通过类型检查不代表行为等价。
+**退出标准：**适用功能案例结果一致，状态／并发边界有回归测试，已迁移核心在生产中不再转调 Python。改变模块名称或通过类型检查不代表行为等价。按 D06 修订，性能测量与预算达标不再属于本阶段退出条件。
 
-**TS-03 当前交接：**维护者于 2026-10-14 批准完整六批 PR 实施，允许调整人类可读的 CLI 帮助／参数诊断文字，保留机器契约。03-A 至 03-D 已合并（[PR #78](https://github.com/fbincon/claude-code-statusline/pull/78)、[PR #79](https://github.com/fbincon/claude-code-statusline/pull/79)、[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80)、[PR #81](https://github.com/fbincon/claude-code-statusline/pull/81)）并同步 Gitee；03-D 全部 43 项 PR 检查通过，完成 45 个固定案例与 206 项具名基线替代测试；03-E 已合并为 [PR #82](https://github.com/fbincon/claude-code-statusline/pull/82)，03-F 功能验收及完整测试审计记录于 [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83)。正式 D06 性能门槛失败，阶段尚未完成。[实施与验收](typescript-migration/ts-03/README.zh-CN.md)。不切换安装，不发布。
+**TS-03 完成交接（2026-10-15）：**六批实现及两轮性能优化已通过 PR #78～#85 合并。依据 [D06 修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)和[既有非性能验收证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)，TS-03／03-F 标记为 DONE；机器契约及原三项 CLI 文案差异不变。D06 最新测量仍为 FAIL，后续优化归 PERF-01。TS-04 前置依赖已满足，但保留 NOT_STARTED；本次仅完成计划调整，不切换安装、不发布。
 
 ### TS-04 编辑器与安装
+
+**准入：**TS-03 已按修订门槛完成。后续实施须兑现[交接清单](typescript-migration/ts-03/TS04-HANDOFF.zh-CN.md)中的 45 项完整测试及八项混合测试剩余断言；本次不启动该阶段。
 
 - 复用兼容的原生编辑器逻辑并适配后端启动；验证资源／版本匹配、输入顺序、迟到响应拒绝和保存结果不明的处理。
 - 替换外部 curses 适配，保留草稿语义、四页、文本输入、保存／取消、导入审阅、主题行为及缩放处理。
@@ -155,9 +165,9 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 - 完成持续维护的生成器、文档／发行物检查、基准、smoke 和验收工具替换；依据 TS-01 清单移除剩余必需 Python 依赖，保留行为覆盖。
 - 按已选运行时和系统／架构矩阵更新 CI；保留两个 Mod 的验证／测试，以及能够取得声明的宿主精确类型检查。
 - 从固定提交构建、独立重建并核对内容／校验和，再离开源码目录测试已安装包；覆盖语言包、Unicode 许可、skills、Mod 资源及归属元数据。
-- 执行验收矩阵和最终性能对照，按 D06 处理回退标记；更新安装、升级、恢复、开发及发布文档。
+- 执行功能与稳定性验收矩阵，更新安装、升级、恢复、开发及发布文档；保留性能限制和对照资源，将完整成品性能测量移至 PERF-01。
 
-**退出标准：**可复现候选满足全部工程门槛；正常运行／构建／测试／发布流程不需要 Python；每个已映射测试／工具都有经验证的替代或合理退役记录。Python 兼容入口和分发过渡已说明。
+**退出标准：**可复现候选满足适用的非性能工程门槛；正常运行／构建／测试／发布流程不需要 Python；每个已映射测试／工具都有经验证的替代或合理退役记录。Python 兼容入口和分发过渡已说明；隔离的历史参考及比较工具保留在日常工作流之外。完整 D06 测量及其达标不作为退出条件。
 
 ### TS-06 预览与正式交付
 
@@ -165,9 +175,10 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 - 兼容决策后再确定版本号及预览／正式计划；过渡期间保留 Python 版本和可恢复发行物。
 - 验证实际预览资产、目标终端及升级／恢复路径，按具体提交记录反馈和修复；自动化、PTY、图像及真人证据分别记录。
 - 按已适配新分发方式的[发布流程](../RELEASING.zh-CN.md)交付；核验必要检查和公开资产后，按任务同步已验证的 GitHub 提交／标签／资产到 Gitee。
-- 关闭剩余决策和回归问题，链接最终实现／发布证据，注明最后支持的 Python 版本及过渡方法。
+- 关闭剩余非性能决策和回归问题，链接最终实现／发布证据，注明最后支持的 Python 版本及过渡方法；发布说明披露已知性能退化和恢复方式。
+- 固定实际交付的源码提交、发行物校验和、运行时与依赖版本，交接 PERF-01；本阶段不要求完整性能测量或优化。
 
-**退出标准：**目标版本已交付，发行物经过验证，限制及恢复方式有据可查。合并重构 PR 或本机可执行文件能运行不代表正式交付完成。
+**退出标准：**目标版本已交付，发行物经过验证，适用平台／实体机／桌面及安装恢复门槛通过，限制及恢复方式有据可查。已披露的 D06 失败或不确定不阻塞预览／正式交付。合并重构 PR 或本机可执行文件能运行不代表正式交付完成。
 
 ## 验收矩阵
 
@@ -180,13 +191,15 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | 渲染与界面 | 五语言、CJK／组合 emoji、ANSI／背景重置、文本／Powerline、重复实例、隐藏／空组件及 40／80／120 列输出 | 固定观测、单元格／输出检查及已安装 PTY 捕获 |
 | 编辑器交互 | 原生／外部四页编辑、搜索、导入审阅、独立 Apply／Save、取消、冲突、按键和缩放；既有最小尺寸边界 | Mod 测试，外部 64×18、64×20、80×24、120×30、80×48 PTY 及原生尺寸案例 |
 | 接入与分发 | 全新／重复安装、旧版升级、资源／归属冲突、关闭偏好、不支持／未知宿主、失败恢复、卸载和降级 | 已安装资产 smoke 与恢复记录 |
-| 性能 | 启动／渲染／hook 延迟、RSS，100／10,000／100,000 行 transcript，0／8／32 Agent，冷／热／追加／缓存命中及采集调用数 | 固定脚本、交替轮次、P50／P95、原始样本及 D06 结论 |
+| 性能（PERF-01，TS-06 后） | 启动／渲染／hook 延迟、RSS，100／10,000／100,000 行 transcript，0／8／32 Agent，冷／热／追加／缓存命中 | 保留 D06 方法与历史结果；最终已安装成品测量在 PERF-01 执行，不作为迁移或发布门槛 |
+
+精确采集次数、资源有界及既有超时契约继续由功能／稳定性检查覆盖；不因性能后移而跳过或放宽。
 
 两套实现使用独立的配置／运行样例副本，注入时钟与进程身份，只归一化有说明的非确定字段。新实现不能写入 Python 对照的真实运行目录。每个疑似差异都应判断属于回归还是需要另行记录的既有缺陷，不把缺陷静默固化为新契约。
 
 基线的 [CI](../../.github/workflows/ci.yml) 和 [Native Mod](../../.github/workflows/native.yml) 定义 Linux、Windows、Intel／Apple Silicon macOS 及固定 Claude 宿主覆盖。README 另有 Windows x86／x64 和 WSL 支持说明，必须明确列出未支持或未验证的组合，不假设选定运行时／打包工具天然覆盖。Claude Code 2.1.296 当前有运行／安装覆盖，但现有准备流程未提供声明，不得记作已通过精确版本类型检查。
 
-性能对照使用相同机器、样例、固定源码／脚本版本及明确缓存条件，分别记录运行时启动和完整命令延迟；避免用常驻且已预热的 TS 代码对比新启动的 Python 进程。历史 [v2.0 性能报告](performance-v2.0.0.zh-CN.md)用于选择场景，不是本次迁移的直接测量。不在实测前承诺提速或内存下降。
+迁移期间无需每个阶段或 PR 重复完整 D06；现有功能、Mod、平台及工具链检查保持适用，CI 工具链迁移仍按 TS-05 实施。PERF-01 的性能对照使用相同机器、样例、固定源码／脚本版本及明确缓存条件，分别记录运行时启动和完整命令延迟；避免用常驻且已预热的 TS 代码对比新启动的 Python 进程。历史 [v2.0 性能报告](performance-v2.0.0.zh-CN.md)用于选择场景，不是本次迁移的直接测量。不在实测前承诺提速或内存下降。
 
 普通检查使用临时配置且不调用付费模型，尽量复用已捕获生命周期证据。确需新增付费验收时，沿用[测试文档](testing.zh-CN.md)中的既有预算／账本规则，重构不重置账本。Linux CI、模拟时钟和 PTY 捕获不能证明 Windows／macOS 真人交互或真实硬件睡眠／恢复已验收。
 
@@ -224,8 +237,11 @@ git diff --check
 
 ## 进展日志
 
+下列旧记录保留当时的阶段状态和门槛；当前规则以本文顶部及 D06 最新修订为准。
+
 | 日期 | 工作 | 结果与下一步 |
 | --- | --- | --- |
+| 2026-10-15 | 批准迁移优先、性能后移；`fbincon/ts-migration-plan-performance-deferral` | D06 数值策略及证据不变，性能达标不再阻塞 TS-03～TS-06。依据 PR #85 既有证据关闭 TS-03／03-F；TS-04～TS-06、独立 PERF-01 均为 NOT_STARTED。本次仅调整文档与状态。 |
 | 2026-10-14 | TS-02 闭合，[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) | 验证 Windows／macOS 交接、修复 Windows 重启身份，本 Linux 实体机 s2idle／重启和人工 GNOME／popup 通过，整合 8／14／13 项 CI 作业通过。维护者批准外部缺项作为发布前必需补验。D01–D06 DECIDED，TS-02 DONE；下一步 TS-03，尚未开始。 |
 | 2026-10-12 | TS-02 探针与决策，[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) | 固定 Node 24.21.0 和测量前 D06 策略；新增原生时钟／身份、混合锁、终端、安装和真实宿主 argv 探针。[证据及剩余门槛](typescript-migration/ts-02/README.zh-CN.md)。TS-02 VALIDATING；TS-03 尚未开始。 |
 | 2026-10-11 | 源码可行性分析及双语初始计划 | 已记录基线、范围、风险、六个实施／交付阶段和交接规则。`python3 -B tools/check_docs.py` 通过，检查 1313 个相对链接及双语配对；`git diff --check`、双语阶段／决策一致性检查通过。未运行应用测试或开展实现。TS-01–TS-06 均为 NOT_STARTED；下一次实施任务从 TS-01 开始。 |

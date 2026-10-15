@@ -2,6 +2,8 @@
 
 **English** | [简体中文](PERFORMANCE.zh-CN.md)
 
+> **Current applicability (2026-10-15 amendment):** this report preserves its measured results and then-current stage decisions. Statements below about IN_PROGRESS, TS-03 remediation or TS-04 admission are historical. The latest measurement remains FAIL (104/60/28), with unchanged data. Under the [D06 amendment](../ts-02/D06.md#applicability-amendment-2026-10-15), TS-03/03-F [close as DONE](README.md#closure-2026-10-15) on existing non-performance evidence. Further performance work belongs to [PERF-01](../../performance/perf-01.md) after TS-06 and does not block migration/release; this task starts no subsequent implementation.
+
 **Result: FAIL. TS-03 remains IN_PROGRESS.** All 32 workloads produced matching outputs and collection counts, but the fixed performance gate failed: **91 pass, 69 fail, 32 inconclusive** across 192 latency/RSS dispositions. Warm Python bytecode: 38/43/15; cold bytecode: 53/26/17. No failed or noisy result is counted as a pass.
 
 This page preserves the original 03-F measurement. Both subsequent optimization rounds are complete; round 2 is **104/60/28 (pass/fail/inconclusive)** and still fails. See the [optimization and per-metric regression report](PERFORMANCE-OPTIMIZATION.md).

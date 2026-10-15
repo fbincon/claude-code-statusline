@@ -6,6 +6,10 @@ Run all ordinary validation with temporary Claude configuration. The tests do no
 
 TS-03 adds `npm test` for the shared core/production adapters and `npm run generate:check` for TypeScript-owned resources. The Python generation checks below are read-only parity checks retained during migration; their ordinary write entry points are retired. The new eight-target backend workflow complements the existing matrices.
 
+Migration gate update (2026-10-15): under the [D06 amendment](typescript-migration/ts-02/D06.md#applicability-amendment-2026-10-15), full performance measurement and passing budgets no longer block TS-03–TS-06, including preview/stable delivery. [TS-03/03-F are DONE](typescript-migration/ts-03/README.md#closure-2026-10-15) on existing non-performance evidence; the latest D06 remains FAIL (104 pass / 60 fail / 28 inconclusive). Further performance work belongs to [PERF-01](performance/perf-01.md) after TS-06. Functional/stability checks, exact collector counts and platform/installation/recovery acceptance remain required; this change does not start later implementation or alter CI.
+
+The TS-03 batch notes below preserve their then-current counts and gates. Use the [migration plan](typescript-migration.md) for current status and the closure record for the latest existing validation evidence.
+
 ## Local checks
 
 Shared catalog/protocol tests include strict input, Unicode paths and no-live-I/O sample previews. Run `python tools/generate_ui_contracts.py --check` to verify generated TypeScript agrees with Python; the native workflow also runs these contract tests. See [protocol details](contracts.md).
@@ -368,4 +372,4 @@ Rendering coverage includes every metric in five languages, 40/80/120 columns an
 
 TS-03 integrated tests connect each original Mod protocol library to real Node backend processes with Python absent from PATH. The isolated real-host probe uses temporary bindings, a synthetic key and unreachable loopback API. `npm run migration:inventory -- --complete` requires all 516 IDs to have a replacement or named TS-04 responsibility. The fixed D06 backend harness is `npm run migration:benchmark -- NEW_DIRECTORY`; it requires a clean committed source tree. `--validate` is only a functional fixture check. See the [TS-04 handoff](typescript-migration/ts-03/TS04-HANDOFF.md).
 
-The formal [TS-03 D06 report](typescript-migration/ts-03/PERFORMANCE.md) failed: 91 pass, 69 fail and 32 inconclusive metrics, despite matching outputs and collection counts for every sample. TS-03 remains IN_PROGRESS. CLI help validation is additionally compared against the frozen Python parser for command paths, missing values, choices, mutual exclusion, exit codes and output channels.
+The original formal [TS-03 D06 report](typescript-migration/ts-03/PERFORMANCE.md) failed: 91 pass, 69 fail and 32 inconclusive metrics, despite matching outputs and collection counts for every sample. Under the gates in effect then, TS-03 remained IN_PROGRESS. CLI help validation is additionally compared against the frozen Python parser for command paths, missing values, choices, mutual exclusion, exit codes and output channels.

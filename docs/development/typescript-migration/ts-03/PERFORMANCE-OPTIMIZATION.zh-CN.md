@@ -2,6 +2,8 @@
 
 [English](PERFORMANCE-OPTIMIZATION.md) | **简体中文**
 
+> **当前适用说明（2026-10-15 门槛修订）：**本文保留当时的测量结果及阶段处置，以下 IN_PROGRESS、TS-03 性能整改或 TS-04 准入限制均为历史记录。最新测量仍为 FAIL（104／60／28），原数据不变；按 [D06 修订](../ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)，TS-03／03-F 已依据既有非性能证据 [关闭为 DONE](README.zh-CN.md#closure-2026-10-15)。后续性能工作归 TS-06 之后的 [PERF-01](../../performance/perf-01.zh-CN.md)，不阻塞迁移／发布；本次不启动后续实施。
+
 状态：**IN_PROGRESS**。批准的两轮优化及各自原 D06 全量测量均已完成，第二轮为 **104 通过／60 失败／28 不确定**；本次实施停止，进入专项评审。保留[原 03-F 失败](PERFORMANCE.zh-CN.md)和[原始摘要](performance.03-f.json)作为历史证据。本任务不调整 TS-04 准入，也不切换已安装后端。
 
 ## 范围与复现

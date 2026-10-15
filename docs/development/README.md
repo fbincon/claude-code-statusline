@@ -8,6 +8,7 @@ Start here to set up a development environment, run checks and build the package
 
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [TypeScript migration plan and progress](typescript-migration.md): current state, scope, stages, decisions, acceptance and session handoffs.
+- [PERF-01 post-migration performance plan](performance/perf-01.md): independent work after TS-06, preserved D06 targets and historical evidence; not started.
 - [TS-01 frozen reference and inventory](typescript-migration/ts-01/README.md): reproducible cases, tooling and validation evidence.
 - [TS-02 platform probes and decisions](typescript-migration/ts-02/README.md): native adapters, installation experiments, performance policy and remaining gates.
 - [TS-03 shared core and backend](typescript-migration/ts-03/README.md): workspace, six implementation batches, compatibility differences and acceptance.

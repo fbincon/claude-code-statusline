@@ -2,12 +2,41 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-The [migration plan](../../typescript-migration.md) owns stage status. TS-03 is
-**IN_PROGRESS**, starting at `9b121e0`. The maintainer approved all six batches,
-separate PRs with checks before merging, and synchronization to Gitee. There is
-no new version, release, installed backend switch or external editor in this stage.
+The [migration plan](../../typescript-migration.md) owns stage status. TS-03 and
+03-F are **DONE under the revised non-performance criteria**, effective 2026-10-15.
+The implementation started at `9b121e0` and completed through separately checked
+PRs synchronized to Gitee. This closure creates no version, release, installed
+backend switch or external editor.
 
-Both performance rounds are complete: [round 1 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84), [round 2 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85). Complete round 2 D06: **104 pass / 60 fail / 28 inconclusive**. TS-03 remains IN_PROGRESS; another implementation round requires focused review. All outputs/counts matched; original budgets, installed bindings and TS-04 admission remain unchanged. [Results, regressions and remaining gaps](PERFORMANCE-OPTIMIZATION.md).
+Both performance rounds are complete: [round 1 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84), [round 2 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85). The latest D06 result remains **FAIL: 104 pass / 60 fail / 28 inconclusive**, with all outputs/counts matching. The [D06 amendment](../ts-02/D06.md#applicability-amendment-2026-10-15) transfers further performance work to independent [PERF-01](../../performance/perf-01.md) after TS-06. Original budgets and evidence are unchanged. TS-04's prerequisite is now satisfied; TS-04–TS-06 and PERF-01 remain NOT_STARTED.
+
+<a id="closure-2026-10-15"></a>
+
+## Closure under revised criteria, 2026-10-15
+
+The maintainer explicitly approved closing TS-03/03-F on existing non-performance
+evidence while deferring performance optimization. This is a documentation/status
+change, not another implementation or performance round.
+
+| Criterion | Existing evidence |
+| --- | --- |
+| Functional parity | All 161 fixed cases match with the same three approved CLI text differences. |
+| TS regression suite | 556/557 pass; one Windows-only test skipped locally on Linux. |
+| Complete ownership audit | 516 IDs: 471 ported, 45 complete tests assigned to TS-04, zero pending; eight mixed tests retain explicit TS-04 assertions. |
+| Supporting checks | Python 847/856 (nine platform skips); official Claude Code 2.1.294 Mods 112 native / 10 runtime; both typechecks/strict validators, 34 resources and five read-only generator checks passed. |
+| Final implementation CI | All 43 jobs and eight receipts passed for PR #85's final head; each receipt matches 298 source hashes and the pinned runtime. |
+| Integration | Measured source `93384f5`, reviewed evidence head `468b729`, merge `7eae7c4`; identical reviewed/tested/merged trees and GitHub/Gitee synchronization verified in PR #85. |
+| Performance disposition | Full D06 completed and still FAIL; excluded from migration exit criteria by the dated amendment, with no result rewritten. |
+
+[Source-bound validation](validation.optimization-02.json) and [PR #85's final integration record](https://github.com/fbincon/claude-code-statusline/pull/85)
+retain exact commits, checks and provenance. This documentation task does not
+rerun those local functional suites or the full benchmark. Historical JSON
+receipts keep their original IN_PROGRESS stage values; current status is owned
+by the migration plan and this closure.
+
+The [TS-04 handoff](TS04-HANDOFF.md) still owns the 45 tests and eight mixed-test
+remainders. Physical/desktop and installation/recovery release gates remain
+required. No TS-04 implementation or PERF-01 work starts here.
 
 ## Implementation sequence
 
@@ -18,13 +47,17 @@ Both performance rounds are complete: [round 1 PR #84](https://github.com/fbinco
 | 03-C | Locked configuration services, preferences and management commands | DONE; [PR #80](https://github.com/fbincon/claude-code-statusline/pull/80) |
 | 03-D | Collectors, caches, timing, tasks, observations and hooks | DONE; [PR #81](https://github.com/fbincon/claude-code-statusline/pull/81) |
 | 03-E | Rendering, preview and complete backend protocols | DONE — PR #82 |
-| 03-F | Integrated parity, Mod checks, CI, performance and TS-04 handoff | IN_PROGRESS |
+| 03-F | Integrated parity, Mod checks, CI and TS-04 handoff; measured performance retained for PERF-01 | DONE under revised criteria; [closure](#closure-2026-10-15) |
 
-Active branch: `fbincon/ts-03-performance-round-2`. 03-A/03-B/03-C/03-D merged as `21fb21d`/`f1363e3`/`0faa639`/`dc2e218`; GitHub/Gitee main were verified equal after each merge. Tested/merged commits and PRs are recorded after
+Last implementation branch: `fbincon/ts-03-performance-round-2`; closure documentation: `fbincon/ts-migration-plan-performance-deferral`. 03-A/03-B/03-C/03-D merged as `21fb21d`/`f1363e3`/`0faa639`/`dc2e218`; GitHub/Gitee main were verified equal after each merge. Tested/merged commits and PRs are recorded after
 verification. The package workspaces are private development packages at 0.0.0;
 the existing Python application remains at 2.0.0.
 
 ## Boundaries and reproducibility
+
+The implementation notes below retain the evidence and stage gates that applied
+when each batch ran. Historical incomplete states are not current blockers;
+the closure above and the latest D06 amendment define current acceptance.
 
 `packages/core` contains portable rules with no Node ambient types in its production
 compilation. `packages/platform` owns Node/native I/O and imports pure core types.
@@ -124,7 +157,9 @@ The editor request/result interface preserves `LaunchSpec` and cwd, validates co
 All **161/161** fixed cases pass with the original three CLI wording exceptions. Local TS tests pass **454/455** (one Windows-only skip), Python **847/856** (nine platform skips), native Mod **112/112**, runtime Mod **10/10**. The ledger advances to **389/516** ported IDs; **127** remain pending, so `--complete` must still fail. [Validation evidence](validation.03-e.json) binds the results to sources and the pinned runtime. Remaining work is 03-F's full ledger audit, cross-module and Mod-to-TS validation, D06 performance/no-Python acceptance and TS-04 handoff. This intermediate batch does not mark TS-03 DONE.
 
 
-## 03-F integrated acceptance in progress
+<a id="03-f-integrated-acceptance-in-progress"></a>
+
+## 03-F integrated acceptance history
 
 03-E merged as `10c6348aef1fcd1d2a1681aa808a842e0d883b56` after all 43 PR checks. Eight receipts each matched 201 raw source hashes and the pinned runtime; GitHub and Gitee main were independently verified at the merge commit. The initial Windows CRLF mismatch was rejected and corrected before merge; [03-E evidence](validation.03-e.json) retains both attempts.
 
@@ -136,4 +171,4 @@ Both original Mod libraries are compiled into temporary test trees and connected
 
 The [performance harness](../../../../tools/migration/ts-03/performance/benchmark.ts) covers ten complete-command and 22 in-process workloads: three fixed transcript/agent/Git sizes, cold/warm/append transcript caches, Git miss/hit/expiry, repeated metrics, Unicode composition, agents, hook, preview and runtime observe. Fixture and bytecode priming remain outside measurement. Every measured output and collector count is checked; a fresh cache retains the reference's one-time lifecycle/usage rescans, while warm refreshes perform zero transcript reads. Full D06 runs require a clean committed source graph, 50 samples per side, three alternating rounds and separate cold/warm Python bytecode. They retain P50/P95, true peak RSS, policy/runtime/source hashes and the one-repeat noise rule. `--validate` checks fixtures only and cannot establish a performance pass. The formal run on clean commit `1fddaa6ea1fef7f631e51641f15214cbddd7ec08` completed and **failed**: 91 metrics passed, 69 failed and 32 were inconclusive. All 19,200 samples matched outputs and collector counts. [The full D06 record](PERFORMANCE.md) preserves every disposition and source/runtime/policy hash.
 
-Local acceptance passes 549 of 550 TS tests (one platform skip), 847 of 856 Python tests (nine platform skips), both Mod suites (112/10), both Mod typechecks/strict validators, 34 generated resources, five retained read-only generators and the complete 516-ID audit. [03-F validation](validation.03-f.json) records exact sources and logs. [TS-04 handoff](TS04-HANDOFF.md) records pending editor/install assertions. The initial head passed all 43 PR jobs and eight exact 296-source-file receipts. A final differential help matrix corrects invalid-command/missing-option/mutual-exclusion exit codes without changing the allowed help wording. Final head/check/artifact verification is recorded in [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83). **D06 failed; TS-03 remains IN_PROGRESS.** Further performance work belongs to this stage; merging its implementation and evidence does not waive that gate.
+Local acceptance passes 549 of 550 TS tests (one platform skip), 847 of 856 Python tests (nine platform skips), both Mod suites (112/10), both Mod typechecks/strict validators, 34 generated resources, five retained read-only generators and the complete 516-ID audit. [03-F validation](validation.03-f.json) records exact sources and logs. [TS-04 handoff](TS04-HANDOFF.md) records pending editor/install assertions. The initial head passed all 43 PR jobs and eight exact 296-source-file receipts. A final differential help matrix corrects invalid-command/missing-option/mutual-exclusion exit codes without changing the allowed help wording. Final head/check/artifact verification is recorded in [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83). **At that acceptance, D06 failed and TS-03 remained IN_PROGRESS, with performance remediation assigned to this stage.** This is the historical disposition under the original gates. The stage now [closes under the 2026-10-15 amendment](#closure-2026-10-15), while the failed measurement remains unchanged.

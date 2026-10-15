@@ -4,9 +4,12 @@
 
 2026-10-14: [Linux integration, physical acceptance and approved release deferrals](LINUX-20261014.md).
 
-Updated: **2026-10-14** (Asia/Shanghai). The [migration plan](../../typescript-migration.md)
-owns stage status. TS-02 is **DONE**, D01–D06 are **DECIDED**, and TS-03 is ready
-to begin but has not started. Integrated CI and this physical Linux power/desktop
+Updated: **2026-10-15** (Asia/Shanghai). The [migration plan](../../typescript-migration.md)
+owns stage status. TS-02 is **DONE**, D01–D06 are **DECIDED**, and TS-03 has
+[closed under revised non-performance criteria](../ts-03/README.md#closure-2026-10-15).
+The [D06 applicability amendment](D06.md#applicability-amendment-2026-10-15)
+assigns further performance work to [PERF-01](../../performance/perf-01.md) after TS-06.
+TS-04–TS-06 and PERF-01 remain NOT_STARTED. Integrated CI and this physical Linux power/desktop
 acceptance passed. The maintainer explicitly moved unavailable external physical/
 desktop checks to the [release-before checklist](LINUX-20261014.md#approved-stage-and-release-gates);
 they remain unverified and platform support promises are unchanged.
@@ -35,7 +38,7 @@ the maintainer; the immutable oracle and fixed expectations remain preserved.
 | [D03](D03.md) | DECIDED | Compatible kernel locks and durable replacement validated on all eight native targets; full store transactions remain TS-03. |
 | [D04](D04.md) | DECIDED | Raw TTY/VT/shared Unicode; actual Windows console, macOS Terminal.app/popup and Linux GNOME/popup evidence; remaining external coverage deferred. |
 | [D05](D05.md) | DECIDED | npm entry retirement, argv-prefix binding and transactional upgrade strategy fixed; complete implementation remains TS-04. |
-| [D06](D06.md) | DECIDED | Budget frozen before measurement; minimal render is measured separately from full migration acceptance. |
+| [D06](D06.md) | DECIDED; applicability amended 2026-10-15 | Frozen budgets and historical results retained; full final-product measurement and optimization move to PERF-01 after TS-06, outside migration/release gates. |
 
 The maintainer approved a future major-release transition away from Windows x86,
 Python imports, `python -m`, pipx installation and the old Windows `.exe` name.
@@ -132,8 +135,9 @@ The 600-sample comparison at `f891065` (plus 200 startup control samples)
 passed its fixed latency/RSS budgets, but Node's
 peak RSS was close to the allowed Python-plus-32-MiB limit. It is a feasibility
 result for **one minimal profile**, not a whole-backend speedup or memory claim.
-The complete collector/Agent/hook/in-process matrix remains unmeasured. New
-measurements preserve prior raw results and the frozen budget.
+At the probe handoff the full collector/Agent/hook/in-process matrix was unmeasured.
+Subsequent [TS-03 measurements](../ts-03/PERFORMANCE-OPTIMIZATION.md) remain failed;
+all earlier raw results and the frozen budget are preserved.
 
 The values below are medians of the three round statistics; latency is in ms
 and RSS in MiB. The machine-readable summary retains the per-metric dispositions.
@@ -146,8 +150,10 @@ and RSS in MiB. The machine-readable summary retains the per-metric dispositions
 The [2026-10-14 integration](LINUX-20261014.md) closes the amended TS-02 gate:
 the repaired matrix and physical Linux sleep/reboot/GNOME/popup pass. Remaining
 external coverage is required before a TS release; it is not counted as passed.
-Full installation/recovery remains TS-04 and full performance acceptance TS-05.
-TS-03 can begin; this probe delivery is not a release.
+Full installation/recovery remains TS-04. Under the 2026-10-15 amendment,
+full final-product performance measurement/optimization belongs to PERF-01 after
+TS-06 and does not block migration or release. TS-03 is DONE under the revised
+criteria; no TS-04 implementation starts in this documentation task.
 
 ## Test-tool handoff
 
