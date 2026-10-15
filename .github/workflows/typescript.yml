@@ -53,6 +53,8 @@ jobs:
         run: npm run migration:inventory -- --complete
       - name: Check complete TS-04 responsibility inventory
         run: npm run migration:inventory:ts04 -- --complete
+      - name: Audit every remaining toolchain responsibility
+        run: npm run migration:inventory:ts05
       - name: Install and validate the private TS-04 candidate outside the checkout
         run: npm run migration:installed -- "${{ runner.temp }}/ts04-installed.json"
       - name: Bind evidence to compiled sources and runtime

@@ -24,6 +24,7 @@
   "include": [
     "tools/migration/ts-03/**/*.ts",
     "tools/generation/**/*.ts",
-    "tools/migration/ts-04/**/*.ts"
+    "tools/migration/ts-04/**/*.ts",
+    "tools/migration/ts-05/**/*.ts"
   ]
 }

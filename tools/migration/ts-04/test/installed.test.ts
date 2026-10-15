@@ -9,9 +9,11 @@ import { repoRoot, sourceHashes, exportReference, python as referencePython } fr
 import { openPty } from './pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import { Capture } from '../capture.js';
+import { POWERSHELL_FLAGS, runShell, type ShellReceipt } from '../shell.js';
 let installed: ReturnType<typeof installCandidate>;
 const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false };
 let driver: string, report: Record<string, unknown> = {};
+const shellReceipts: ShellReceipt[] = [];
 before(() => {
     installed = installCandidate();
     driver = join(installed.temporary, 'acceptance-driver.mjs');
@@ -22,7 +24,7 @@ after(() => {
     const path = process.env.TS04_INSTALLED_REPORT;
     if (path) {
         fs.mkdirSync(dirname(path), { recursive: true });
-        fs.writeFileSync(path, JSON.stringify({ ...report, status: Object.values(checks).every(Boolean) ? 'pass' : 'fail', checks }, null, 2) + '\n');
+        fs.writeFileSync(path, JSON.stringify({ ...report, status: Object.values(checks).every(Boolean) ? 'pass' : 'fail', checks, shell_receipts: shellReceipts }, null, 2) + '\n');
     }
     installed?.cleanup();
 });
@@ -123,12 +125,16 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
             const input = join(installed.temporary, 'shell-input.json');
             fs.writeFileSync(input, payload);
             const command = `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); Get-Content -Raw -Encoding UTF8 ${quote(input)} | & ${quote(installed.bin + '.ps1')} ${operation}; exit $LASTEXITCODE`;
-            const result = spawnSync(ps, ['-NoProfile', '-Command', command], { env: { ...installed.env, CLAUDE_CONFIG_DIR: config }, encoding: 'utf8', timeout: 20000 });
-            assert.equal(result.status, 0, result.stderr);
+            const executed = runShell(ps, [...POWERSHELL_FLAGS, command], operation, { ...installed.env, CLAUDE_CONFIG_DIR: config });
+            shellReceipts.push(executed.receipt);
+            const result = executed.result;
+            assert.equal(result.status, 0, JSON.stringify(executed.receipt));
             assert.equal(result.stdout.replaceAll('\r\n', '\n'), expected);
             const bash = process.env.TS04_GIT_BASH ?? join(process.env.ProgramFiles ?? 'C:\\Program Files', 'Git/bin/bash.exe');
-            const shell = spawnSync(bash, ['--noprofile', '--norc', '-c', 'export PATH="$(cygpath -u "$TS04_NODE_DIR"):/usr/bin"; "$(cygpath -u "$TS04_BIN")" "$TS04_OPERATION"'], { env: { ...installed.env, CLAUDE_CONFIG_DIR: config, TS04_NODE_DIR: installed.nodeDir, TS04_BIN: installed.bin, TS04_OPERATION: operation }, input: payload, encoding: 'utf8', timeout: 20000 });
-            assert.equal(shell.status, 0, shell.stderr);
+            const executedBash = runShell(bash, ['--noprofile', '--norc', '-c', 'export PATH="$(cygpath -u "$TS04_NODE_DIR"):/usr/bin"; "$(cygpath -u "$TS04_BIN")" "$TS04_OPERATION"'], operation, { ...installed.env, CLAUDE_CONFIG_DIR: config, TS04_NODE_DIR: installed.nodeDir, TS04_BIN: installed.bin, TS04_OPERATION: operation }, payload);
+            shellReceipts.push(executedBash.receipt);
+            const shell = executedBash.result;
+            assert.equal(shell.status, 0, JSON.stringify(executedBash.receipt));
             assert.equal(shell.stdout, expected);
         }
         else {
