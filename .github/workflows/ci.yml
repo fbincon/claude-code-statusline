@@ -141,7 +141,10 @@ jobs:
       - name: Install the fixed host and development dependencies
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
-          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund "@anthropic-ai/claude-code@${{ matrix.claude }}"
+          # These runners use native Node and glibc on Linux. Make the selected
+          # binary required: npm may otherwise silently omit a failed optional download.
+          claude_native=$(node -p "'@anthropic-ai/claude-code-' + process.platform + '-' + process.arch")
+          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund "@anthropic-ai/claude-code@${{ matrix.claude }}" "$claude_native@${{ matrix.claude }}"
           # The official wrapper needs its Node-only native-binary placement step.
           # Candidate installation itself always keeps all lifecycle scripts disabled.
           node "$RUNNER_TEMP/claude-host/node_modules/@anthropic-ai/claude-code/install.cjs"
