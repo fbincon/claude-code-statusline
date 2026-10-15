@@ -17,6 +17,12 @@ test('manual observer records real PTY keys and restores terminal on save, cance
             }
             await p.exited();
             assert.equal(p.child.exitCode, code);
+            // Darwin sets PENDIN when ICANON is restored (XNU bsd/kern/tty.c).
+            // A real cooked read consumes that kernel transition. Do not mask
+            // flags or repair termios before comparing the complete snapshot.
+            p.send('TS05-RESTORED\n');
+            let restored = '';
+            await p.wait(() => { restored += p.readInput(); return restored.includes('TS05-RESTORED\n'); });
             assert.deepEqual(p.attributes(), p.before);
             if (key)
                 assert.ok(fs.readFileSync(log, 'utf8').includes('restored'));

@@ -63,6 +63,13 @@ export function openPty(configDir: string, columns = 80, rows = 24, extra: NodeJ
     return {
         child, before, attributes, captured, wait,
         send: (value: string | Buffer) => { fs.writeSync(m, typeof value === 'string' ? Buffer.from(value) : value); },
+        readInput: () => {
+            const original = fcntl(s, 3);
+            if (original < 0 || fcntl(s, 4, 'int', original | (process.platform === 'darwin' ? 4 : 2048))) throw new Error('fcntl input failed');
+            try { const bytes = Buffer.alloc(4096); return bytes.subarray(0, fs.readSync(s, bytes, 0, bytes.length, null)).toString('utf8'); }
+            catch (error) { if ((error as NodeJS.ErrnoException).code === 'EAGAIN') return ''; throw error; }
+            finally { if (fcntl(s, 4, 'int', original)) throw new Error('fcntl input restoration failed'); }
+        },
         resize(width: number, height: number) { size.writeUInt16LE(height); size.writeUInt16LE(width, 2); if (lib.func('int ioctl(int fd, unsigned long request, ...)')(m, process.platform === 'darwin' ? 0x80087467 : 0x5414, 'void *', size))
             throw new Error('ioctl failed'); child.kill('SIGWINCH'); },
         exited: () => wait(() => closed),

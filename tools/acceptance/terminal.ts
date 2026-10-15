@@ -15,7 +15,7 @@ import { sourceHashes } from '../migration/ts-03/common.js';
 import { assessTerminal } from './terminal-evidence.js';
 const entry = fileURLToPath(import.meta.url);
 const write = (path: string, value: unknown) => fs.writeFileSync(path, JSON.stringify(value, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
-async function question(text: string) { const io = createInterface({ input: process.stdin, output: process.stdout }); try {
+async function question(text: string) { const io = createInterface({ input: process.stdin, output: process.stdout, terminal: false }); try {
     return (await io.question(text)).trim();
 }
 finally {
@@ -62,8 +62,9 @@ async function exercise(config: any) {
     for (const [name, log] of [['save', 'save.jsonl'], ['cancel', 'cancel.jsonl'], ['log-failure', 'missing/events.jsonl']]) {
         if (name === 'cancel')
             await question('Next screen: Ctrl+C / 下一屏按 Ctrl+C，准备后按 Enter: ');
-        const before = attributes(), result = spawnSync(process.execPath, [entry, 'observe', '--output', join(config.output, log!)], { stdio: 'inherit' }), after = attributes();
-        runs.push({ name, exit_code: result.status, before, after, restored_without_harness_repair: before === after });
+        const before = attributes(), result = spawnSync(process.execPath, [entry, 'observe', '--output', join(config.output, log!)], { stdio: 'inherit' });
+        const restoredInput = await question('Type TS05-RESTORED and Enter / 输入 TS05-RESTORED 后按 Enter: '), after = attributes();
+        runs.push({ name, exit_code: result.status, before, after, restored_input: restoredInput, restored_without_harness_repair: before === after && restoredInput === 'TS05-RESTORED' });
     }
     let echo = '';
     while (!['TS02-RESTORED', 'SKIP'].includes(echo))
