@@ -4,6 +4,8 @@
 
 TS-03 remains **IN_PROGRESS**: [D06 failed](PERFORMANCE.md) with 69 failed and 32 inconclusive metrics. The initial 03-F head passed 43 CI jobs; final head verification is recorded in [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83). Performance remediation remains owned by TS-03. This document records the interfaces TS-04 will consume; it does not switch the installed Python product or claim external-editor acceptance.
 
+Admission update (2026-10-15): after two performance rounds D06 still fails (104 pass / 60 fail / 28 inconclusive). This handoff does not authorize TS-04 implementation; first address the [TS-03 focused review](PERFORMANCE-OPTIMIZATION.md).
+
 ## Backend entry and ownership
 
 Build with the private workspace's pinned Node 24.21.0, then invoke `node packages/cli/dist/src/entry.js`. The internal binding is `LaunchSpec { executable, args }`: the executable is the fixed Node binary and args begins with the compiled entry. Configuration ownership compares the complete binding; canonical legacy single-executable bindings remain readable. Preserve Windows v2 reboot-domain identities from TS-02.

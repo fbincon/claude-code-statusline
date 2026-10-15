@@ -4,6 +4,8 @@
 
 TS-03 保持 **IN_PROGRESS**：[D06 失败](PERFORMANCE.zh-CN.md)，69 项失败、32 项不确定。03-F 首个提交的 43 项 CI 通过，最终 head 核验记录于 [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83)；性能整改继续归 TS-03。本文记录 TS-04 将使用的接口，不切换已安装的 Python 产品，也不代表外部编辑器已验收。
 
+准入状态更新（2026-10-15）：两轮性能整改后 D06 仍未通过（104 通过／60 失败／28 不确定）。本交接尚不构成 TS-04 实施准入，先处理[TS-03 专项评审](PERFORMANCE-OPTIMIZATION.zh-CN.md).
+
 ## 后端入口与所有权
 
 使用私有 workspace 固定的 Node 24.21.0 构建，执行 `node packages/cli/dist/src/entry.js`。内部绑定为 `LaunchSpec { executable, args }`：executable 指向固定 Node，args 以编译后入口开始。配置所有权比较完整绑定，继续读取规范的旧单可执行文件绑定。保留 TS-02 的 Windows v2 重启域标识。

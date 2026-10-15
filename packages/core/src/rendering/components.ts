@@ -25,7 +25,7 @@ export function literal(node: InstanceDraft, config: DisplayDraft, scope: Scope 
         text = layout.truncateStyled(text, options.max_width);
     return text;
 }
-export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: DisplayDraft, join: (side: Cell<T>[]) => string): string {
+export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: DisplayDraft, join: (side: Cell<T>[]) => string, measure: (text: string) => number = layout.displayWidth): string {
     if (columns < 1)
         return '';
     const divider = cells.findIndex(cell => cell.spacer), left = (divider < 0 ? cells : cells.slice(0, divider)).filter(cell => cell.text), right = divider < 0 ? [] : cells.slice(divider + 1).filter(cell => cell.text);
@@ -33,7 +33,7 @@ export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: Di
         return '';
     const isPowerline = config.separator_style === 'powerline';
     let padding = 1, cap = true;
-    const text = (side: Cell<T>[]) => isPowerline ? powerline.row(side, config, padding, cap) : join(side), occupied = () => layout.displayWidth(text(left)) + layout.displayWidth(text(right));
+    const text = (side: Cell<T>[]) => isPowerline ? powerline.row(side, config, padding, cap) : join(side), occupied = () => measure(text(left)) + measure(text(right));
     if (isPowerline && occupied() > columns)
         padding = 0;
     if (isPowerline && occupied() > columns)
@@ -51,6 +51,6 @@ export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: Di
         const side = left.length ? left : right;
         side[0] = { ...side[0]!, text: layout.truncateStyled(side[0]!.text, columns) };
     }
-    const a = text(left), b = text(right), gap = divider < 0 ? 0 : Math.max(0, columns - layout.displayWidth(a) - layout.displayWidth(b)), reset = config.use_colors ? styles.RESET : '';
+    const a = text(left), b = text(right), gap = divider < 0 ? 0 : Math.max(0, columns - measure(a) - measure(b)), reset = config.use_colors ? styles.RESET : '';
     return layout.ensureReset(a + (gap ? reset + ' '.repeat(gap) : '') + b, reset);
 }

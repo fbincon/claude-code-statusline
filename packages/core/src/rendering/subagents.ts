@@ -1,4 +1,4 @@
-import type { DisplayDraft } from '../contracts/ui.js';
+import type { DisplayDraft, InstanceDraft } from '../contracts/ui.js';
 import { int, numeric, object, own, type Data } from '../runtime/values.js';
 import { divideIntegers } from '../numbers.js';
 import type { RenderEnvironment } from './context.js';
@@ -26,6 +26,37 @@ interface Part {
     type: string;
 }
 function paletteFor(config: DisplayDraft): Palette { return !config.use_colors ? EMPTY : appearance.themedPalette(config.palette === 'ansi' ? ANSI : DEFAULT, config, true); }
+interface Prepared {
+    palette: Palette;
+    nodes: Map<string, InstanceDraft>;
+    options: Map<string, ReturnType<typeof preferences.optionsFor>>;
+    enabled: InstanceDraft[];
+    literals: Map<InstanceDraft, string>;
+    legacyFitting: boolean;
+    measure: (text: string) => number;
+}
+function prepare(config: DisplayDraft): Prepared {
+    const nodes = new Map<string, InstanceDraft>(), options = new Map<string, ReturnType<typeof preferences.optionsFor>>();
+    const enabled = config.subagents.enabled ? config.subagents.instances.filter(node => node.enabled) : [];
+    const literals = new Map<InstanceDraft, string>(), widths = new Map<string, number>();
+    for (const node of config.subagents.instances) {
+        nodes.set(node.id, node);
+        if (!options.has(node.id)) options.set(node.id, [{ ...config.formatting, ...node.options.formatting }, node.options]);
+    }
+    for (const node of enabled) if (node.type_id === 'text') literals.set(node, literal(node, config, 'subagent'));
+    return { palette: paletteFor(config), nodes, options, enabled, literals,
+        legacyFitting: preferences.legacyFitting(config.subagents.instances.map(node => node.options)),
+        measure(text) {
+            let width = widths.get(text);
+            if (width === undefined) {
+                width = formatters.displayWidth(text);
+                // Bound retained strings within this render. Always measure the
+                // whole string so combining marks across parts remain correct.
+                if (widths.size < 1024) widths.set(text, width);
+            }
+            return width;
+        } };
+}
 function finite(value: unknown): number | null { const n = numeric(value); return n !== null && Number.isFinite(n) ? n : null; }
 /** Default Unicode caseless matching; dotted/dotless I and Cherokee retain UCD rules. */
 export function caseFold(text: string): string {
@@ -66,54 +97,56 @@ function context(task: Data, remaining: boolean, env: RenderEnvironment): string
     const used = BigInt(Math.trunc(ratio + 0.5)), left = 100n - used;
     return env.language.text(remaining ? 'context.remaining' : 'context.used', { percentage: remaining ? left < 0n ? 0n : left > 100n ? 100n : left : used });
 }
-function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvironment): Part[] {
-    const p = paletteFor(config), language = env.language, text = (key: string, params: Data) => language.text(key, params);
-    const type = formatters.sanitizePayloadText(task.type)?.replace(/[_-]+/gu, ' ').split(/\s+/u).filter(Boolean).map(upperFirst).join(' ');
-    const name = formatters.sanitizePayloadText(task.name) || type || language.text('agent.fallback');
-    const modelName = model(task), effort = language.value('effort', metrics.effortText(task.effort)) as string | null;
-    const status = ICONS.get(caseFold(formatters.sanitizePayloadText(task.status) ?? '')) ?? '?', duration = elapsed(task, now);
-    const tokens = formatters.humanizeTokens(task.tokenCount), label = formatters.sanitizePayloadText(task.label) || formatters.sanitizePayloadText(task.description), cwd = formatters.sanitizePayloadText(task.cwd);
-    const capacity = metrics.tokenCount(task.contextWindowSize);
-    const values: Record<string, readonly [
-        string | null,
-        string
-    ]> = {
-        status: [status, p.status], 'status-elapsed': [status + (duration ? ' ' + duration : ''), p.elapsed], name: [name, p.name],
-        'model-with-effort': [modelName ? modelName + (effort ? '/' + effort : '') : null, p.model], model: [modelName, p.model], effort: [effort, p.model],
-        'context-tokens': [metrics.tokenRatio(task.tokenCount, task.contextWindowSize, language), p.context],
-        'context-window-size': [capacity !== null && capacity !== 0n ? text('context.window', { value: formatters.humanizeTokens(task.contextWindowSize) }) : null, p.context],
-        'context-remaining': [context(task, true, env), p.context], 'context-used': [context(task, false, env), p.context], elapsed: [duration, p.elapsed],
-        task: [label && caseFold(label) !== caseFold(name) ? label : null, p.task], tokens: [tokens !== null ? text('tokens.count', { value: tokens }) : null, p.tokens],
-        'current-dir': [cwd ? env.directory(cwd, config.directory_style) : null, p.directory],
-    };
+function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvironment, prepared: Prepared): Part[] {
+    const p = prepared.palette, language = env.language, text = (key: string, params: Data) => language.text(key, params);
+    let agentName: string | undefined, modelName: string | null | undefined, agentEffort: string | null | undefined, duration: string | null | undefined;
+    const name = () => agentName ??= formatters.sanitizePayloadText(task.name) || formatters.sanitizePayloadText(task.type)?.replace(/[_-]+/gu, ' ').split(/\s+/u).filter(Boolean).map(upperFirst).join(' ') || language.text('agent.fallback');
+    const taskModel = () => modelName === undefined ? modelName = model(task) : modelName;
+    const effort = () => agentEffort === undefined ? agentEffort = language.value('effort', metrics.effortText(task.effort)) as string | null : agentEffort;
+    const taskElapsed = () => duration === undefined ? duration = elapsed(task, now) : duration;
+    const status = () => ICONS.get(caseFold(formatters.sanitizePayloadText(task.status) ?? '')) ?? '?';
     const result: Part[] = [];
-    for (const node of config.subagents.instances) {
-        if (!node.enabled)
-            continue;
+    for (const node of prepared.enabled) {
         const item = node.type_id;
         if (item === 'spacer') {
             result.push({ item: node.id, text: '', style: '', used: null, type: item });
             continue;
         }
         if (item === 'text') {
-            const value = literal(node, config, 'subagent');
-            if (value)
-                result.push({ item: node.id, text: value, style: '', used: null, type: item });
+            const value = prepared.literals.get(node)!;
+            if (value) result.push({ item: node.id, text: value, style: '', used: null, type: item });
             continue;
         }
-        let [value, style] = values[item]!;
-        const [fmt, options] = preferences.optionsFor(config, node.id, 'subagent');
-        if (item === 'model' || item === 'model-with-effort') {
-            const model = preferences.modelName(modelName, fmt);
-            value = item === 'model-with-effort' && model && effort ? model + '/' + effort : model;
-        }
-        else if (item === 'tokens' && fmt.number_format !== 'legacy')
-            value = preferences.number(metrics.tokenCount(task.tokenCount), fmt);
-        else if (item === 'context-tokens')
-            value = metrics.tokenRatio(task.tokenCount, task.contextWindowSize, language, fmt);
-        else if (item === 'context-window-size' && fmt.number_format !== 'legacy') {
-            const number = preferences.number(task.contextWindowSize, fmt);
-            value = number ? text('context.window', { value: number }) : null;
+        const [fmt, options] = prepared.options.get(node.id)!;
+        let value: string | null, style: string;
+        switch (item) {
+            case 'status': value = status(); style = p.status; break;
+            case 'status-elapsed': { const duration = taskElapsed(); value = status() + (duration ? ' ' + duration : ''); style = p.elapsed; break; }
+            case 'name': value = name(); style = p.name; break;
+            case 'model': case 'model-with-effort': {
+                value = preferences.modelName(taskModel(), fmt);
+                if (item === 'model-with-effort' && value && effort()) value += '/' + effort();
+                style = p.model; break;
+            }
+            case 'effort': value = effort(); style = p.model; break;
+            case 'context-tokens': value = metrics.tokenRatio(task.tokenCount, task.contextWindowSize, language, fmt); style = p.context; break;
+            case 'context-window-size': {
+                const capacity = metrics.tokenCount(task.contextWindowSize);
+                const number = fmt.number_format !== 'legacy' ? preferences.number(task.contextWindowSize, fmt) : capacity !== null && capacity !== 0n ? formatters.humanizeTokens(task.contextWindowSize) : null;
+                value = number ? text('context.window', { value: number }) : null; style = p.context; break;
+            }
+            case 'context-remaining': case 'context-used': value = context(task, item === 'context-remaining', env); style = p.context; break;
+            case 'elapsed': value = taskElapsed(); style = p.elapsed; break;
+            case 'task': {
+                const label = formatters.sanitizePayloadText(task.label) || formatters.sanitizePayloadText(task.description);
+                value = label && caseFold(label) !== caseFold(name()) ? label : null; style = p.task; break;
+            }
+            case 'tokens': {
+                const tokens = fmt.number_format !== 'legacy' ? preferences.number(metrics.tokenCount(task.tokenCount), fmt) : formatters.humanizeTokens(task.tokenCount);
+                value = fmt.number_format !== 'legacy' ? tokens : tokens !== null ? text('tokens.count', { value: tokens }) : null; style = p.tokens; break;
+            }
+            case 'current-dir': { const cwd = formatters.sanitizePayloadText(task.cwd); value = cwd ? env.directory(cwd, config.directory_style) : null; style = p.directory; break; }
+            default: throw new Error('Unknown subagent component');
         }
         if (!value)
             continue;
@@ -141,10 +174,11 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
     return result;
 }
 function plain(parts: readonly Part[]): string { return parts.map((part, i) => (i ? parts[i - 1]!.item === 'status' && part.item === 'name' ? ' ' : ' · ' : '') + part.text).join(''); }
-function fit(parts: Part[], columns: number): Part[] {
-    const width = () => formatters.displayWidth(plain(parts)), remove = (item: string) => { parts = parts.filter(part => part.item !== item); };
+function fit(parts: Part[], columns: number, measure: Prepared['measure']): Part[] {
+    let measured: number | undefined;
+    const width = () => measured ??= measure(plain(parts)), remove = (item: string) => { parts = parts.filter(part => part.item !== item); measured = undefined; };
     const shorten = (item: string) => { const part = parts.find(p => p.item === item); if (!part)
-        return; const text = formatters.truncateText(part.text, Math.max(0, formatters.displayWidth(part.text) - (width() - columns))); parts = text ? parts.map(p => p.item === item ? { ...p, text } : p) : parts.filter(p => p.item !== item); };
+        return; const text = formatters.truncateText(part.text, Math.max(0, measure(part.text) - (width() - columns))); parts = text ? parts.map(p => p.item === item ? { ...p, text } : p) : parts.filter(p => p.item !== item); measured = undefined; };
     if (width() <= columns)
         return parts;
     shorten('task');
@@ -170,34 +204,36 @@ function fit(parts: Part[], columns: number): Part[] {
     return parts;
 }
 export function renderTask(task: Data, config: DisplayDraft, env: RenderEnvironment, columns = DEFAULT_COLUMNS, nowMs = env.now() * 1000): string {
-    if (!config.subagents.enabled || !config.subagents.instances.some(node => node.enabled))
-        return '';
-    let parts = partsFor(task, config, nowMs, env);
-    const p = paletteFor(config), separator = p.separator ? p.separator + ' · ' + p.reset : ' · ';
+    return renderPrepared(task, config, env, columns, nowMs, prepare(config));
+}
+function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment, columns: number, nowMs: number, prepared: Prepared): string {
+    if (!prepared.enabled.length) return '';
+    let parts = partsFor(task, config, nowMs, env, prepared);
+    const p = prepared.palette, separator = p.separator ? p.separator + ' · ' + p.reset : ' · ';
     const styled = (part: Part) => part.style + part.text + (part.style ? p.reset : '');
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
-        const nodes = new Map(config.subagents.instances.map(node => [node.id, node]));
+        const nodes = prepared.nodes;
         const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
-        return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + cell.text).join(''));
+        return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + cell.text).join(''), prepared.measure);
     }
     if (config.separator_style === 'powerline')
-        return powerline.fit(parts.map(part => { const options = preferences.optionsFor(config, part.item, 'subagent')[1]; return { text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), priority: options.priority }; }), columns, config);
-    if (preferences.legacyFitting(config.subagents.instances.map(node => node.options)))
-        while (parts.length > 1 && formatters.displayWidth(plain(parts)) > columns) {
-            const priority = (i: number) => preferences.optionsFor(config, parts[i]!.item, 'subagent')[1].priority;
+        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), priority: options.priority }; }), columns, config);
+    if (prepared.legacyFitting)
+        while (parts.length > 1 && prepared.measure(plain(parts)) > columns) {
+            const priority = (i: number) => prepared.options.get(parts[i]!.item)![1].priority;
             let victim = 0;
             for (let i = 1; i < parts.length; i++)
                 if (priority(i) <= priority(victim))
                     victim = i;
             parts.splice(victim, 1);
         }
-    parts = fit(parts, columns);
+    parts = fit(parts, columns, prepared.measure);
     const content = parts.map((part, i) => {
-        const options = preferences.optionsFor(config, part.item, 'subagent')[1];
+        const options = prepared.options.get(part.item)![1];
         const value = config.theme !== 'classic' || options.foreground !== null || options.background !== null ? appearance.apply(styled(part), config, part.type, options, 'subagent', part.used) : styled(part);
         return (i ? parts[i - 1]!.item === 'status' && part.item === 'name' ? ' ' : separator : '') + value;
     }).join('');
-    return formatters.displayWidth(content) > columns ? formatters.truncateText(plain(parts), columns) : content;
+    return prepared.measure(content) > columns ? formatters.truncateText(plain(parts), columns) : content;
 }
 export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEnvironment, nowMs?: number): {
     id: string;
@@ -206,7 +242,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
     if (!object(data) || !Array.isArray(data.tasks))
         return [];
     const width = int(data.columns), columns = width !== null && width > 0n ? Number(width) : DEFAULT_COLUMNS, seen = new Set<string>(), result = [];
-    let visible = 0, endings: Data | null = null;
+    let visible = 0, endings: Data | null = null, prepared: Prepared | undefined;
     for (let task of data.tasks) {
         if (!object(task) || typeof task.id !== 'string' || !trim(task.id) || seen.has(task.id))
             continue;
@@ -222,7 +258,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
                     task = { ...task, _frozen_duration_ms: end - start };
             }
             if (!hidden)
-                content = renderTask(task, config, env, columns, nowMs);
+                content = renderPrepared(task, config, env, columns, nowMs === undefined ? env.now() * 1000 : nowMs, prepared ??= prepare(config));
         }
         catch { /* A malformed task must not break the remaining NDJSON records. */ }
         if (content)

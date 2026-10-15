@@ -177,11 +177,22 @@ export function stageSubagentDelta(entry: UsageEntry, lines: readonly unknown[])
 }
 export function aggregateVisible(entry: Data): Counters {
     const totals = { ...BASE };
+    const small = { i: 0, o: 0, cc: 0, cr: 0 };
     const add = (record: unknown) => {
-        if (object(record)) for (const key of FIELDS) totals[key] += usageInt(record[key]);
+        if (object(record)) for (const key of FIELDS) {
+            const value = record[key];
+            if (typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) {
+                if (value > Number.MAX_SAFE_INTEGER - small[key]) {
+                    // Flush the exact operands BEFORE an unsafe floating sum.
+                    totals[key] += BigInt(small[key]);
+                    small[key] = value;
+                } else small[key] += value;
+            } else totals[key] += usageInt(value);
+        }
     };
     add(entry.base ?? BASE);
     if (object(entry.ids)) forEachRecord(entry.ids, add);
+    for (const key of FIELDS) totals[key] += BigInt(small[key]);
     return totals;
 }
 export function visibleTotals(entry: Data): Totals { const raw = aggregateVisible(entry); return { hit: raw.cr, miss: raw.i + raw.cc, out: raw.o }; }

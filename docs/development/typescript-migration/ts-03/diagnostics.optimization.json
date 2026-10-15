@@ -1,0 +1,1911 @@
+{
+  "note": "Diagnostics include profiler overhead and initial preparation; sampled live heap is not total allocations. They never replace D06. Intermediate dirty working trees are not release candidates.",
+  "profiles": [
+    {
+      "directory": "perf-opt-profile-before-02",
+      "base_commit": "f7cf0e1315165fa6353b2f090a099c1119ab78a1",
+      "diagnostic_only": true,
+      "node": "v24.21.0",
+      "results": [
+        {
+          "case": "in-process/medium/transcript/cold",
+          "samples": 12,
+          "measured_median_ms": 134.42428450000006,
+          "elapsed_with_profiler_ms": 1792.918689,
+          "peak_rss_bytes": 276389888,
+          "output_hashes": [
+            "553986c574cc3914b9b36abf99a1a47a5bae02d00f0b2a1e2c578903571c7ca8"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 19,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 4286064,
+          "gc_events": 38,
+          "gc_wall_ms": 81.85,
+          "cpu_top": [
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              564660
+            ],
+            [
+              "RegExp: -?(?:[1-9]\\d{15,}(?:\\.\\d+)?(?:[eE][+-]?\\d+)?|(?:0|[1-9]\\d*)\\.\\d+(?:[eE][+-]?\\d+)?|(?:0|[1-9]\\d*)[eE][+-]?\\d+)|-0(?![\\d.eE]) @ ",
+              110923
+            ],
+            [
+              "define @ packages/core/dist/src/ordered-record.js",
+              104506
+            ],
+            [
+              "parseUsage @ packages/core/dist/src/runtime/usage.js",
+              92364
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              91901
+            ],
+            [
+              "(garbage collector) @ ",
+              87541
+            ],
+            [
+              "trim @ packages/core/dist/src/runtime/transcript.js",
+              68973
+            ],
+            [
+              "fsync @ ",
+              68478
+            ],
+            [
+              "RegExp: ^[\\p{White_Space}\\x1c-\\x1f]+|[\\p{White_Space}\\x1c-\\x1f]+$ @ ",
+              57066
+            ],
+            [
+              "utf8Slice @ ",
+              40879
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "4f2fb59ee67d2aa68a401f7ddbffe56886c20be2493b953239bee193a4b69511",
+            "heapprofile": "6d25744dab927f1525ef7b9efd8b89134f58c3c6e2cd4862bab48ddf83030e1c",
+            "stdout": "cde011544d81baf0f2d0c8fcd6bbd5905cdc96e6906e98347449845744124312",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/transcript/warm",
+          "samples": 12,
+          "measured_median_ms": 143.2358314999999,
+          "elapsed_with_profiler_ms": 3409.987315,
+          "peak_rss_bytes": 486780928,
+          "output_hashes": [
+            "2b5012bab9cfb6dff1480c74b65ef748032201059041d6d2385d8929e23cde9d"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3716624,
+          "gc_events": 41,
+          "gc_wall_ms": 208.81,
+          "cpu_top": [
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              782373
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              425706
+            ],
+            [
+              "RegExp: -?(?:[1-9]\\d{15,}(?:\\.\\d+)?(?:[eE][+-]?\\d+)?|(?:0|[1-9]\\d*)\\.\\d+(?:[eE][+-]?\\d+)?|(?:0|[1-9]\\d*)[eE][+-]?\\d+)|-0(?![\\d.eE]) @ ",
+              233261
+            ],
+            [
+              "(garbage collector) @ ",
+              209989
+            ],
+            [
+              "restore @ packages/cli/dist/src/runtime/json-data.js",
+              168472
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              166687
+            ],
+            [
+              "parseUsage @ packages/core/dist/src/runtime/usage.js",
+              131454
+            ],
+            [
+              "define @ packages/core/dist/src/ordered-record.js",
+              124656
+            ],
+            [
+              "fsync @ ",
+              88941
+            ],
+            [
+              "deleteProperty @ packages/core/dist/src/ordered-record.js",
+              79332
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "09de8ef315a97a16491aa09903a100aa54123284249a008bb9b63bfac1f7036d",
+            "heapprofile": "aefea3b9343d0446dfec88b1ecd48e06906b1b93b10d88606f94b39fda0b0030",
+            "stdout": "5e0eaaa052611cb96d0c13ab9fba6537f33b2648c6f0f77778a431e62b04c42c",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/transcript/append",
+          "samples": 12,
+          "measured_median_ms": 146.1038974999999,
+          "elapsed_with_profiler_ms": 3420.651296000001,
+          "peak_rss_bytes": 488284160,
+          "output_hashes": [
+            "9ed6e685a38aa82902b8c38920850ec7d49f3dab189da78cff6ea2b44e7385e9"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 1,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 5287720,
+          "gc_events": 41,
+          "gc_wall_ms": 220.26,
+          "cpu_top": [
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              781615
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              427630
+            ],
+            [
+              "RegExp: -?(?:[1-9]\\d{15,}(?:\\.\\d+)?(?:[eE][+-]?\\d+)?|(?:0|[1-9]\\d*)\\.\\d+(?:[eE][+-]?\\d+)?|(?:0|[1-9]\\d*)[eE][+-]?\\d+)|-0(?![\\d.eE]) @ ",
+              227776
+            ],
+            [
+              "(garbage collector) @ ",
+              226302
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              169411
+            ],
+            [
+              "restore @ packages/cli/dist/src/runtime/json-data.js",
+              161710
+            ],
+            [
+              "define @ packages/core/dist/src/ordered-record.js",
+              137088
+            ],
+            [
+              "parseUsage @ packages/core/dist/src/runtime/usage.js",
+              127742
+            ],
+            [
+              "fsync @ ",
+              79177
+            ],
+            [
+              "collapseIds @ packages/core/dist/src/runtime/usage.js",
+              74421
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "fbf28e70882548db2315b9857c5940a4b1fa9641b8bc8d191643002b626c956c",
+            "heapprofile": "9d9e0c11f775965249fc527b3d37f35c12008ecf0b92e9a83895a83ddd373863",
+            "stdout": "d58c8e200701ae1cc1be5bf7e030f4cab8c09394003764d0bfc75426c12f1281",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "command/large/render-composite",
+          "samples": 1,
+          "measured_median_ms": null,
+          "elapsed_with_profiler_ms": 317.7496259999989,
+          "peak_rss_bytes": 148443136,
+          "output_hashes": null,
+          "counts": {
+            "usage_calls": 1,
+            "transcript_reads": 0,
+            "git_calls": 0
+          },
+          "sampled_live_heap_bytes": 3681808,
+          "gc_events": 12,
+          "gc_wall_ms": 21.080000000000002,
+          "cpu_top": [
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              34170
+            ],
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              33365
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              18926
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              18042
+            ],
+            [
+              "(garbage collector) @ ",
+              17659
+            ],
+            [
+              "restore @ packages/cli/dist/src/runtime/json-data.js",
+              17602
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              13244
+            ],
+            [
+              "RegExp: -?(?:[1-9]\\d{15,}(?:\\.\\d+)?(?:[eE][+-]?\\d+)?|(?:0|[1-9]\\d*)\\.\\d+(?:[eE][+-]?\\d+)?|(?:0|[1-9]\\d*)[eE][+-]?\\d+)|-0(?![\\d.eE]) @ ",
+              12060
+            ],
+            [
+              "collapseIds @ packages/core/dist/src/runtime/usage.js",
+              10994
+            ],
+            [
+              "(program) @ ",
+              9822
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "2f1d7411f200f6c5398375db3f8c8cbd7d0bdd8520200072eb98d95395e71851",
+            "heapprofile": "4de724b293e21e7b9cf6deb02ea3f95b284cc8851d48e33913129d6c6b5726c7",
+            "stdout": "f3d944ad08abc5a8271639a9b5d6c166f72c9316fbd075cee566f895b3286c87",
+            "stderr": "61b53c08158a83d1efd13b3f8d1047431e335ef134e59b6a6fa47024a7b73541"
+          }
+        },
+        {
+          "case": "command/hook",
+          "samples": 1,
+          "measured_median_ms": null,
+          "elapsed_with_profiler_ms": 124.16098899999997,
+          "peak_rss_bytes": 74932224,
+          "output_hashes": null,
+          "counts": {
+            "usage_calls": 0,
+            "transcript_reads": 0,
+            "git_calls": 0
+          },
+          "sampled_live_heap_bytes": 3146208,
+          "gc_events": 5,
+          "gc_wall_ms": 7.8100000000000005,
+          "cpu_top": [
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              17740
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              9862
+            ],
+            [
+              "(program) @ ",
+              8977
+            ],
+            [
+              "(garbage collector) @ ",
+              6843
+            ],
+            [
+              "fsync @ ",
+              6695
+            ],
+            [
+              "compileFunction @ ",
+              4316
+            ],
+            [
+              "realpathSync @ node:fs",
+              2287
+            ],
+            [
+              "ModuleWrap @ ",
+              2133
+            ],
+            [
+              "normalizeString @ node:path",
+              1371
+            ],
+            [
+              "createSupportedAlgorithms @ node:internal/crypto/util",
+              1210
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "fcd60c95136617dfbf54edfe6bce8bdf10ee493f26f4f3aab4b19efb0f5c4dba",
+            "heapprofile": "2e6719644c153f1889a2c9488f236142d4990df28e4235934a638647fa939336",
+            "stdout": "c230fce55e7572aa1b9cac2d9da015c343d894cb45e60a8bd314ef35e2204ed3",
+            "stderr": "7ee1eccca1a6d423cd86584c20989126fee21840a44a9ab2b561b8adf65205a2"
+          }
+        },
+        {
+          "case": "in-process/medium/git/hit",
+          "samples": 12,
+          "measured_median_ms": 0.5839105000000018,
+          "elapsed_with_profiler_ms": 164.6818489999987,
+          "peak_rss_bytes": 74493952,
+          "output_hashes": [
+            "2791f9964e05fc9604921cb9ef08eb2b3451493b7c2ac80cc0e18512f1980495"
+          ],
+          "counts": [
+            {
+              "usage_calls": 0,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3154392,
+          "gc_events": 5,
+          "gc_wall_ms": 7.23,
+          "cpu_top": [
+            [
+              "fsync @ ",
+              27252
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              18721
+            ],
+            [
+              "(program) @ ",
+              9475
+            ],
+            [
+              "spawnSync @ node:internal/child_process",
+              8604
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              6179
+            ],
+            [
+              "posixTime @ packages/platform/dist/src/clocks.js",
+              4514
+            ],
+            [
+              "compileFunction @ ",
+              3545
+            ],
+            [
+              "(garbage collector) @ ",
+              3385
+            ],
+            [
+              "afterLoad @ node:internal/modules/esm/loader",
+              3348
+            ],
+            [
+              "normalizeString @ node:path",
+              3225
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "40835b1b832936b0f4a4264eb66a9162aa08e70ec49dd2ac6aa9091086e7e120",
+            "heapprofile": "56d32b698ed7b021518407f47c89f4f44fbefcf9273fe7d863b6a11082f9838a",
+            "stdout": "361efae7e523319e9bce66781aedb97227e629525bcab1a0fd24e6c320f973e9",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/agents",
+          "samples": 12,
+          "measured_median_ms": 7.0160444999999925,
+          "elapsed_with_profiler_ms": 211.6702320000004,
+          "peak_rss_bytes": 81641472,
+          "output_hashes": [
+            "71916ed029b4af44113c3acab3e3b41882769fa60c1a59a977ff29b991bfe0de"
+          ],
+          "counts": [
+            {
+              "usage_calls": 0,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3145992,
+          "gc_events": 50,
+          "gc_wall_ms": 13.73,
+          "cpu_top": [
+            [
+              "graphemes @ packages/core/dist/src/unicode/index.js",
+              30372
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              13176
+            ],
+            [
+              "(garbage collector) @ ",
+              11801
+            ],
+            [
+              "(program) @ ",
+              8867
+            ],
+            [
+              "displayWidth @ packages/core/dist/src/unicode/index.js",
+              8554
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              7490
+            ],
+            [
+              "clusterWidth @ packages/core/dist/src/unicode/index.js",
+              6503
+            ],
+            [
+              " @ packages/core/dist/src/rendering/subagents.js",
+              5660
+            ],
+            [
+              " @ packages/core/dist/src/unicode/index.js",
+              4338
+            ],
+            [
+              "sanitizePayloadText @ packages/core/dist/src/rendering/formatters.js",
+              4182
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "6913ac492e695eaa2eaa673fa3502c0032a847ae396692f81cb267fa5c716743",
+            "heapprofile": "c972546591eab87c14ab7b154eb1cc579ed6a7f0e51aaed49008c1422831f05c",
+            "stdout": "07c09340c543a96050057cb2574f7c80003aced87e12c53db78a9e03b800f641",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ]
+    },
+    {
+      "directory": "perf-opt-profile-after-01",
+      "base_commit": "f7cf0e1315165fa6353b2f090a099c1119ab78a1",
+      "diagnostic_only": true,
+      "node": "v24.21.0",
+      "results": [
+        {
+          "case": "in-process/medium/transcript/cold",
+          "samples": 12,
+          "measured_median_ms": 130.32500799999997,
+          "elapsed_with_profiler_ms": 1711.393051,
+          "peak_rss_bytes": 182276096,
+          "output_hashes": [
+            "553986c574cc3914b9b36abf99a1a47a5bae02d00f0b2a1e2c578903571c7ca8"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 19,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3689000,
+          "gc_events": 98,
+          "gc_wall_ms": 61.1,
+          "cpu_top": [
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              541425
+            ],
+            [
+              "quoted @ packages/cli/dist/src/runtime/json-data.js",
+              140053
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              84596
+            ],
+            [
+              "addUsage @ packages/core/dist/src/runtime/usage.js",
+              80990
+            ],
+            [
+              "fsync @ ",
+              71759
+            ],
+            [
+              "arrayIndex @ packages/core/dist/src/ordered-record.js",
+              69668
+            ],
+            [
+              "RegExp: ^[\\p{White_Space}\\x1c-\\x1f]+|[\\p{White_Space}\\x1c-\\x1f]+$ @ ",
+              64249
+            ],
+            [
+              "RegExp: [\\x00-\\x1f] @ ",
+              60906
+            ],
+            [
+              "(garbage collector) @ ",
+              58944
+            ],
+            [
+              "whitespace @ packages/cli/dist/src/runtime/json-data.js",
+              48685
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "c94153a0b65e461ca1c3ff0206325e6a15ff63a69d71d29141a0ae65d25d6648",
+            "heapprofile": "97c7061bc5118c5a82e054868cee2081ae967f421c745162875d944dab0468b9",
+            "stdout": "ba35457bcd961dd32963906a73430db664cabf5d5230b373600d568fe1395ac6",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/transcript/warm",
+          "samples": 12,
+          "measured_median_ms": 128.01370850000012,
+          "elapsed_with_profiler_ms": 3008.727032,
+          "peak_rss_bytes": 420175872,
+          "output_hashes": [
+            "2b5012bab9cfb6dff1480c74b65ef748032201059041d6d2385d8929e23cde9d"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3195928,
+          "gc_events": 73,
+          "gc_wall_ms": 141.17,
+          "cpu_top": [
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              813452
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              429915
+            ],
+            [
+              "quoted @ packages/cli/dist/src/runtime/json-data.js",
+              155866
+            ],
+            [
+              "(garbage collector) @ ",
+              145926
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              119778
+            ],
+            [
+              "forEachRecord @ packages/core/dist/src/ordered-record.js",
+              99562
+            ],
+            [
+              "recordKeys @ packages/core/dist/src/ordered-record.js",
+              91635
+            ],
+            [
+              "addUsage @ packages/core/dist/src/runtime/usage.js",
+              89263
+            ],
+            [
+              "whitespace @ packages/cli/dist/src/runtime/json-data.js",
+              78433
+            ],
+            [
+              "fsync @ ",
+              76596
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "167563fa5498d04d916afe9dd1b1ee14bf13b09c6cc7bef0b667d841a5f29151",
+            "heapprofile": "839cc625da08244461fd1b64d337339a3c2af1abc706d98dd5183b6a933ad39a",
+            "stdout": "ee503c94177f97e63fd5000134ead7c60a809eca7357ef26a81d89e8a6f7de4a",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/transcript/append",
+          "samples": 12,
+          "measured_median_ms": 129.93470049999996,
+          "elapsed_with_profiler_ms": 3126.7203200000004,
+          "peak_rss_bytes": 411783168,
+          "output_hashes": [
+            "9ed6e685a38aa82902b8c38920850ec7d49f3dab189da78cff6ea2b44e7385e9"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 1,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3717640,
+          "gc_events": 71,
+          "gc_wall_ms": 154.7,
+          "cpu_top": [
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              852243
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              435205
+            ],
+            [
+              "quoted @ packages/cli/dist/src/runtime/json-data.js",
+              173488
+            ],
+            [
+              "(garbage collector) @ ",
+              154272
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              119014
+            ],
+            [
+              "forEachRecord @ packages/core/dist/src/ordered-record.js",
+              100631
+            ],
+            [
+              "addUsage @ packages/core/dist/src/runtime/usage.js",
+              98972
+            ],
+            [
+              "recordKeys @ packages/core/dist/src/ordered-record.js",
+              94506
+            ],
+            [
+              "arrayIndex @ packages/core/dist/src/ordered-record.js",
+              87410
+            ],
+            [
+              "fsync @ ",
+              80180
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "f606b459ba29c599367392add58fe57fb77a05d04eb2c5a083aac6712c39e89e",
+            "heapprofile": "4ec24d733a4d78d14b29172ba9004df24fad6df0cd0350b2666bc4fb6459f16a",
+            "stdout": "d91c1179863df7fb98fca29622b5b965ceffda98593c2aae78672d0582c3e3e9",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "command/large/render-composite",
+          "samples": 1,
+          "measured_median_ms": null,
+          "elapsed_with_profiler_ms": 371.5721059999996,
+          "peak_rss_bytes": 136511488,
+          "output_hashes": null,
+          "counts": {
+            "usage_calls": 1,
+            "transcript_reads": 0,
+            "git_calls": 0
+          },
+          "sampled_live_heap_bytes": 2630784,
+          "gc_events": 17,
+          "gc_wall_ms": 34.27,
+          "cpu_top": [
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              56058
+            ],
+            [
+              "(garbage collector) @ ",
+              36124
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              29536
+            ],
+            [
+              "(program) @ ",
+              17652
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              17331
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              13143
+            ],
+            [
+              "quoted @ packages/cli/dist/src/runtime/json-data.js",
+              11791
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              9618
+            ],
+            [
+              "collapseIds @ packages/core/dist/src/runtime/usage.js",
+              8523
+            ],
+            [
+              "recordKeys @ packages/core/dist/src/ordered-record.js",
+              7578
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "a1f4a30e16e05e4c6e06e9e9beb09c06f0abf8e9cb9ede052c5be709a945d496",
+            "heapprofile": "b83c952c4efbf565ae8d7fffcd0ba7beed370c4f9908af003450d84f63643e60",
+            "stdout": "f663b570a5899e7769626cfc7da3cce8d6641567b860942527dca2660d2fade4",
+            "stderr": "567fd3f698c051fce2788cc6378d9438fbe835b47bab5a2c9b9d40f4ebe8789e"
+          }
+        },
+        {
+          "case": "command/hook",
+          "samples": 1,
+          "measured_median_ms": null,
+          "elapsed_with_profiler_ms": 131.28889799999888,
+          "peak_rss_bytes": 74686464,
+          "output_hashes": null,
+          "counts": {
+            "usage_calls": 0,
+            "transcript_reads": 0,
+            "git_calls": 0
+          },
+          "sampled_live_heap_bytes": 3163304,
+          "gc_events": 5,
+          "gc_wall_ms": 5.62,
+          "cpu_top": [
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              17859
+            ],
+            [
+              "(program) @ ",
+              11125
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              7764
+            ],
+            [
+              "fsync @ ",
+              6547
+            ],
+            [
+              "compileFunction @ ",
+              3243
+            ],
+            [
+              "(garbage collector) @ ",
+              3229
+            ],
+            [
+              "normalizeString @ node:path",
+              2449
+            ],
+            [
+              "get @ node:internal/modules/package_json_reader",
+              2212
+            ],
+            [
+              "getPackageScopeConfig @ ",
+              2174
+            ],
+            [
+              "Writable.write @ node:internal/streams/writable",
+              1208
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "57b78222624a2982e954a4b15348b3ad6c14e15dc532c7269672a707448024d6",
+            "heapprofile": "118efd266b17bf5d02e31a6bbdf3dfc3e8e48bffbbba5f43bc28d81b2e5fa20a",
+            "stdout": "4c3777ed3347ff46fa857d8ca04d0c477f1788ea1b25f9540ea7efffa0b2fe99",
+            "stderr": "3b511ec6006d2ac30e46bf71dc736ab4d617ccceced012379fa818b868e6bcb8"
+          }
+        },
+        {
+          "case": "in-process/medium/git/hit",
+          "samples": 12,
+          "measured_median_ms": 0.3477875000000026,
+          "elapsed_with_profiler_ms": 156.11169900000095,
+          "peak_rss_bytes": 74428416,
+          "output_hashes": [
+            "2791f9964e05fc9604921cb9ef08eb2b3451493b7c2ac80cc0e18512f1980495"
+          ],
+          "counts": [
+            {
+              "usage_calls": 0,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 2099696,
+          "gc_events": 5,
+          "gc_wall_ms": 7.550000000000001,
+          "cpu_top": [
+            [
+              "fsync @ ",
+              22021
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              18271
+            ],
+            [
+              "(program) @ ",
+              8705
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              8646
+            ],
+            [
+              "spawnSync @ node:internal/child_process",
+              6617
+            ],
+            [
+              "orderedRecord @ packages/core/dist/src/ordered-record.js",
+              5262
+            ],
+            [
+              "(garbage collector) @ ",
+              4242
+            ],
+            [
+              "resolvePackageTargetString @ node:internal/modules/esm/resolve",
+              2182
+            ],
+            [
+              "compileFunction @ ",
+              2157
+            ],
+            [
+              "posixTime @ packages/platform/dist/src/clocks.js",
+              1649
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "dd4279e1998f26447f34eef1887e86d498d545ba4484340e2ca66fcc981ebf51",
+            "heapprofile": "75dea355c7ac1d085d3e9e0c0a0705228bcc9094608426a9bebe27819e80c79e",
+            "stdout": "0c9fdcfae5e8aa69ae012f8e479aaecb8c38ef5559cb8dfb3fd71f90b01d38bf",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/agents",
+          "samples": 12,
+          "measured_median_ms": 6.307491999999996,
+          "elapsed_with_profiler_ms": 195.64472299999943,
+          "peak_rss_bytes": 81735680,
+          "output_hashes": [
+            "71916ed029b4af44113c3acab3e3b41882769fa60c1a59a977ff29b991bfe0de"
+          ],
+          "counts": [
+            {
+              "usage_calls": 0,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3682008,
+          "gc_events": 51,
+          "gc_wall_ms": 9.36,
+          "cpu_top": [
+            [
+              "graphemes @ packages/core/dist/src/unicode/index.js",
+              37344
+            ],
+            [
+              "(garbage collector) @ ",
+              12169
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              11294
+            ],
+            [
+              "(program) @ ",
+              11023
+            ],
+            [
+              "displayWidth @ packages/core/dist/src/unicode/index.js",
+              6756
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              6579
+            ],
+            [
+              "compileFunction @ ",
+              5606
+            ],
+            [
+              "partsFor @ packages/core/dist/src/rendering/subagents.js",
+              4892
+            ],
+            [
+              "contains @ packages/core/dist/src/unicode/index.js",
+              4376
+            ],
+            [
+              " @ packages/core/dist/src/rendering/subagents.js",
+              4316
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "3e11aaec787bdc6002d5709ccb5cb2b4489a0fe8a587e1751447c91793d6b395",
+            "heapprofile": "835f2e728df24a89a5ce0029c19cad2e9fb828328471a605dd3931df09fc3039",
+            "stdout": "01e67da03dfbf50d0e4b241600080870091d735683ec49d9ab811ae4f0d4b202",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ]
+    },
+    {
+      "directory": "perf-opt-profile-round-02",
+      "base_commit": "735ff9c024567d756f5ab07d1c58494ecb1c6e17",
+      "diagnostic_only": true,
+      "node": "v24.21.0",
+      "results": [
+        {
+          "case": "in-process/medium/transcript/cold",
+          "samples": 12,
+          "measured_median_ms": 92.83182249999999,
+          "elapsed_with_profiler_ms": 1282.972968,
+          "peak_rss_bytes": 181231616,
+          "output_hashes": [
+            "553986c574cc3914b9b36abf99a1a47a5bae02d00f0b2a1e2c578903571c7ca8"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 19,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 1742536,
+          "gc_events": 59,
+          "gc_wall_ms": 45.99,
+          "cpu_top": [
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              372674
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              72766
+            ],
+            [
+              "RegExp: ^[\\p{White_Space}\\x1c-\\x1f]+|[\\p{White_Space}\\x1c-\\x1f]+$ @ ",
+              57982
+            ],
+            [
+              "addUsage @ packages/core/dist/src/runtime/usage.js",
+              57260
+            ],
+            [
+              "RegExp: [1-9]\\d{15,}|(?:0|[1-9]\\d*)[.eE]|-0 @ ",
+              55863
+            ],
+            [
+              "define @ packages/core/dist/src/ordered-record.js",
+              49422
+            ],
+            [
+              "(garbage collector) @ ",
+              48607
+            ],
+            [
+              "RegExp: \"(?:[0-9]|\\\\) @ ",
+              47313
+            ],
+            [
+              "fsync @ ",
+              34662
+            ],
+            [
+              "forEachRecord @ packages/core/dist/src/ordered-record.js",
+              28818
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "5cef6f109fd9682af966907fb4d89182f8af6e65763fa4dd2d95a6721ae0ecca",
+            "heapprofile": "b40c725e0c47d7c1b84215f54bfd2318e5e25661bc6f0e8b35b4196326cd4d6f",
+            "stdout": "89eee1c1ccb30ea475666361b8d99ac465a9b5304aea51320d746178b56eb2e3",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/transcript/warm",
+          "samples": 12,
+          "measured_median_ms": 141.38370650000002,
+          "elapsed_with_profiler_ms": 2854.001648,
+          "peak_rss_bytes": 416829440,
+          "output_hashes": [
+            "2b5012bab9cfb6dff1480c74b65ef748032201059041d6d2385d8929e23cde9d"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3802848,
+          "gc_events": 46,
+          "gc_wall_ms": 132.69,
+          "cpu_top": [
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              404933
+            ],
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              388947
+            ],
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              293208
+            ],
+            [
+              "(garbage collector) @ ",
+              125179
+            ],
+            [
+              "containerEnd @ packages/cli/dist/src/runtime/json-data.js",
+              120775
+            ],
+            [
+              "RegExp: [1-9]\\d{15,}|(?:0|[1-9]\\d*)[.eE]|-0 @ ",
+              120394
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              110320
+            ],
+            [
+              "forEachRecord @ packages/core/dist/src/ordered-record.js",
+              97073
+            ],
+            [
+              "recordKeys @ packages/core/dist/src/ordered-record.js",
+              91179
+            ],
+            [
+              "fsync @ ",
+              85256
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "a7e8bb1aa74a075490213051e611caf5c87df593849923aa29dce844e2c7dea4",
+            "heapprofile": "cfff182a5da6c979f47ec084c6e55fdeb6827e8fd2bf8fa95a69eab69850a5c8",
+            "stdout": "8c41d90916cde222e37645aaf078e7d2c898039e7a664c48d345e845b6ef407d",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/transcript/append",
+          "samples": 12,
+          "measured_median_ms": 141.51400599999988,
+          "elapsed_with_profiler_ms": 2869.443685,
+          "peak_rss_bytes": 418840576,
+          "output_hashes": [
+            "9ed6e685a38aa82902b8c38920850ec7d49f3dab189da78cff6ea2b44e7385e9"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 1,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 6347624,
+          "gc_events": 47,
+          "gc_wall_ms": 124.27,
+          "cpu_top": [
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              398295
+            ],
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              382868
+            ],
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              315276
+            ],
+            [
+              "RegExp: [1-9]\\d{15,}|(?:0|[1-9]\\d*)[.eE]|-0 @ ",
+              130601
+            ],
+            [
+              "(garbage collector) @ ",
+              123574
+            ],
+            [
+              "containerEnd @ packages/cli/dist/src/runtime/json-data.js",
+              122352
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              114642
+            ],
+            [
+              "forEachRecord @ packages/core/dist/src/ordered-record.js",
+              102151
+            ],
+            [
+              "recordKeys @ packages/core/dist/src/ordered-record.js",
+              91044
+            ],
+            [
+              "fsync @ ",
+              86796
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "51511670bbdde7ebfc775babeb718eb1c4b66429a947b1ef0a7883719c20b58d",
+            "heapprofile": "542758325d0a6f0cafb37cceb3c64cc0e992b32d6ed3308ad8627b7d3b9bb7dc",
+            "stdout": "b141daf56622001333ae47b8b454f6d20fbcf2cc95b3508208374d4ffa663ec0",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "command/large/render-composite",
+          "samples": 1,
+          "measured_median_ms": null,
+          "elapsed_with_profiler_ms": 335.6280619999998,
+          "peak_rss_bytes": 134492160,
+          "output_hashes": null,
+          "counts": {
+            "usage_calls": 1,
+            "transcript_reads": 0,
+            "git_calls": 0
+          },
+          "sampled_live_heap_bytes": 2625616,
+          "gc_events": 16,
+          "gc_wall_ms": 33.25,
+          "cpu_top": [
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              59010
+            ],
+            [
+              "(garbage collector) @ ",
+              37127
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              29191
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              18864
+            ],
+            [
+              "containerEnd @ packages/cli/dist/src/runtime/json-data.js",
+              12295
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              10660
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              8993
+            ],
+            [
+              "(program) @ ",
+              8782
+            ],
+            [
+              "quoted @ packages/cli/dist/src/runtime/json-data.js",
+              7807
+            ],
+            [
+              "fsync @ ",
+              7115
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "6324a341f4631572e735568362e57ee34c0a17532f408f5c6a096390be8b8978",
+            "heapprofile": "2306a3a29ef178084d92abd4a810436e67291b924d2973e6e32d31cb5a9e1fa6",
+            "stdout": "63b7ff385cfa735757c34122dda7a6b64eb8f9b10c46751039cb8816d1067efb",
+            "stderr": "656e0394aca6852a8b56182b4147fe6f5190432369663b6e08b88fd9ddcd758f"
+          }
+        },
+        {
+          "case": "command/hook",
+          "samples": 1,
+          "measured_median_ms": null,
+          "elapsed_with_profiler_ms": 98.67979099999866,
+          "peak_rss_bytes": 71229440,
+          "output_hashes": null,
+          "counts": {
+            "usage_calls": 0,
+            "transcript_reads": 0,
+            "git_calls": 0
+          },
+          "sampled_live_heap_bytes": 3234592,
+          "gc_events": 4,
+          "gc_wall_ms": 3.94,
+          "cpu_top": [
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              18479
+            ],
+            [
+              "(program) @ ",
+              8824
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              5287
+            ],
+            [
+              "fsync @ ",
+              2055
+            ],
+            [
+              " @ node:internal/main/run_main_module",
+              1159
+            ],
+            [
+              "mkdir @ ",
+              1129
+            ],
+            [
+              " @ node:stream",
+              1101
+            ],
+            [
+              "isArrayIndex @ node:internal/modules/esm/resolve",
+              1100
+            ],
+            [
+              "#cachedDefaultResolve @ node:internal/modules/esm/loader",
+              1099
+            ],
+            [
+              "normalizeString @ node:path",
+              1095
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "07b9e31882f4ecc1338c975246e0c973d58d1af39557e4d17ecc94bf9f998d05",
+            "heapprofile": "ddc53d37de86919a85d2072f0c3df3ec9538b4f6ea5e7c2388c1fd754a8c9ce5",
+            "stdout": "938efdd8f06dffd30b73c93830d6cd9b396628224775bd7517e957640862e2ac",
+            "stderr": "34682f1a52c583ba2731e43a7e4cc7b469721826634c1af5b395de15831e84f4"
+          }
+        },
+        {
+          "case": "in-process/medium/git/hit",
+          "samples": 12,
+          "measured_median_ms": 0.18535599999999874,
+          "elapsed_with_profiler_ms": 231.51970400000027,
+          "peak_rss_bytes": 71884800,
+          "output_hashes": [
+            "2791f9964e05fc9604921cb9ef08eb2b3451493b7c2ac80cc0e18512f1980495"
+          ],
+          "counts": [
+            {
+              "usage_calls": 0,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3762704,
+          "gc_events": 4,
+          "gc_wall_ms": 5.1,
+          "cpu_top": [
+            [
+              "spawnSync @ node:internal/child_process",
+              94313
+            ],
+            [
+              "fsync @ ",
+              17464
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              16178
+            ],
+            [
+              "(program) @ ",
+              9391
+            ],
+            [
+              "compileFunction @ ",
+              5398
+            ],
+            [
+              "writeCache @ packages/cli/dist/src/runtime/git.js",
+              4886
+            ],
+            [
+              "(garbage collector) @ ",
+              3250
+            ],
+            [
+              "close @ ",
+              2235
+            ],
+            [
+              "resolveExports @ node:internal/modules/cjs/loader",
+              2185
+            ],
+            [
+              "defaultLoadSync @ node:internal/modules/esm/load",
+              2152
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "bbf367d02993076e7e6aec2e2d8a81af27544d564de459b99432901282fe889d",
+            "heapprofile": "fee74be5b35b96036b5aa59569f4ef1f3e5c55a063c7a10b4e2038b7edf3d8d7",
+            "stdout": "74e562cfb45ec12633abbeb4792ce82b06202a7f85b684c60856b3a072944b6b",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/agents",
+          "samples": 12,
+          "measured_median_ms": 3.446261000000007,
+          "elapsed_with_profiler_ms": 160.4468909999996,
+          "peak_rss_bytes": 80740352,
+          "output_hashes": [
+            "71916ed029b4af44113c3acab3e3b41882769fa60c1a59a977ff29b991bfe0de"
+          ],
+          "counts": [
+            {
+              "usage_calls": 0,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3733544,
+          "gc_events": 29,
+          "gc_wall_ms": 7.33,
+          "cpu_top": [
+            [
+              "graphemes @ packages/core/dist/src/unicode/index.js",
+              19515
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              15144
+            ],
+            [
+              "(program) @ ",
+              9768
+            ],
+            [
+              "(garbage collector) @ ",
+              9551
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              8506
+            ],
+            [
+              " @ packages/core/dist/src/rendering/subagents.js",
+              4339
+            ],
+            [
+              "displayWidth @ packages/core/dist/src/unicode/index.js",
+              4304
+            ],
+            [
+              "afterLoad @ node:internal/modules/esm/loader",
+              3414
+            ],
+            [
+              "quote @ packages/core/dist/src/json-text.js",
+              3224
+            ],
+            [
+              "measure @ packages/core/dist/src/rendering/subagents.js",
+              3209
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "d7ea300326c60d94795beebfb38892fb04c442294c4b5e9265fe462efe47d7bc",
+            "heapprofile": "57cb4e8a59fa79682c49017e9df4febce0e192750715e74f61fea5a16680dcbc",
+            "stdout": "99bc7de38887fe5d40ce7fd4aeaa43132feb96c4735a85345037c15054c2515b",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ]
+    },
+    {
+      "directory": "perf-opt-profile-round-02-final",
+      "base_commit": "735ff9c024567d756f5ab07d1c58494ecb1c6e17",
+      "diagnostic_only": true,
+      "node": "v24.21.0",
+      "results": [
+        {
+          "case": "in-process/medium/transcript/cold",
+          "samples": 12,
+          "measured_median_ms": 102.417505,
+          "elapsed_with_profiler_ms": 1367.8797579999998,
+          "peak_rss_bytes": 180113408,
+          "output_hashes": [
+            "553986c574cc3914b9b36abf99a1a47a5bae02d00f0b2a1e2c578903571c7ca8"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 19,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3296032,
+          "gc_events": 58,
+          "gc_wall_ms": 53.44,
+          "cpu_top": [
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              411915
+            ],
+            [
+              "RegExp: (?:^|[\\s:,\\[])(?:-?(?:[1-9]\\d{15,}|(?:0|[1-9]\\d*)[.eE])|-0) @ ",
+              102290
+            ],
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              69975
+            ],
+            [
+              "(garbage collector) @ ",
+              61270
+            ],
+            [
+              "addUsage @ packages/core/dist/src/runtime/usage.js",
+              59546
+            ],
+            [
+              "RegExp: ^[\\p{White_Space}\\x1c-\\x1f]+|[\\p{White_Space}\\x1c-\\x1f]+$ @ ",
+              55277
+            ],
+            [
+              "define @ packages/core/dist/src/ordered-record.js",
+              53825
+            ],
+            [
+              "readCompleteLines @ packages/platform/dist/src/line-cursor.js",
+              48336
+            ],
+            [
+              "fsync @ ",
+              41780
+            ],
+            [
+              "utf8Slice @ ",
+              31721
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "e26dd2125e907a2dfe2fdd90734cd327394e5c180ea12be4bb566d6d2d49dae8",
+            "heapprofile": "f090277514447379b622c7bafe079fe421dca215927a41d27fc57c359328e6db",
+            "stdout": "94c5bc6e8816857c6bc23c508d41b6d7b00a5662e323b8c2caea367d3f73db23",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/transcript/warm",
+          "samples": 12,
+          "measured_median_ms": 119.50835949999987,
+          "elapsed_with_profiler_ms": 2583.306705,
+          "peak_rss_bytes": 410992640,
+          "output_hashes": [
+            "2b5012bab9cfb6dff1480c74b65ef748032201059041d6d2385d8929e23cde9d"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3714408,
+          "gc_events": 46,
+          "gc_wall_ms": 153.05,
+          "cpu_top": [
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              400923
+            ],
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              309267
+            ],
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              205541
+            ],
+            [
+              "RegExp: (?:^|[\\s:,\\[])(?:-?(?:[1-9]\\d{15,}|(?:0|[1-9]\\d*)[.eE])|-0) @ ",
+              161236
+            ],
+            [
+              "(garbage collector) @ ",
+              146818
+            ],
+            [
+              "containerEnd @ packages/cli/dist/src/runtime/json-data.js",
+              117203
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              114558
+            ],
+            [
+              "forEachRecord @ packages/core/dist/src/ordered-record.js",
+              103976
+            ],
+            [
+              "recordKeys @ packages/core/dist/src/ordered-record.js",
+              88467
+            ],
+            [
+              "fsync @ ",
+              78105
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "fae460652961ab153cc42ac39cfaa230d4b059af914bd9f8684332936b70a657",
+            "heapprofile": "53de73b8a2f2cfddbb0a4f2073c423156a1cf4267c0063ad548d13b728868eaf",
+            "stdout": "fa4663f644256537eb0d968d64ba8ec691ce4ceb1ed27fd68310378326ed5512",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/transcript/append",
+          "samples": 12,
+          "measured_median_ms": 117.754006,
+          "elapsed_with_profiler_ms": 2526.908894,
+          "peak_rss_bytes": 319528960,
+          "output_hashes": [
+            "9ed6e685a38aa82902b8c38920850ec7d49f3dab189da78cff6ea2b44e7385e9"
+          ],
+          "counts": [
+            {
+              "usage_calls": 1,
+              "transcript_reads": 1,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3803104,
+          "gc_events": 45,
+          "gc_wall_ms": 96.39,
+          "cpu_top": [
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              403847
+            ],
+            [
+              "readDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              319878
+            ],
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              214475
+            ],
+            [
+              "RegExp: (?:^|[\\s:,\\[])(?:-?(?:[1-9]\\d{15,}|(?:0|[1-9]\\d*)[.eE])|-0) @ ",
+              157539
+            ],
+            [
+              "containerEnd @ packages/cli/dist/src/runtime/json-data.js",
+              120877
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              112221
+            ],
+            [
+              "forEachRecord @ packages/core/dist/src/ordered-record.js",
+              103029
+            ],
+            [
+              "(garbage collector) @ ",
+              91592
+            ],
+            [
+              "recordKeys @ packages/core/dist/src/ordered-record.js",
+              91257
+            ],
+            [
+              "fsync @ ",
+              77918
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "905ab5209d66423c4934436395337c026e2e5b13c1e755b60cd96d7784cf0ecd",
+            "heapprofile": "df67558903fd50bdf61e507076c889ce984f5411afa66a673a8643c25710d5f6",
+            "stdout": "d9a4c74d73f70a6f9ff326aab13bfabe1f3f3450eb7f87b10b818530ded33621",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "command/large/render-composite",
+          "samples": 1,
+          "measured_median_ms": null,
+          "elapsed_with_profiler_ms": 287.57778300000064,
+          "peak_rss_bytes": 130002944,
+          "output_hashes": null,
+          "counts": {
+            "usage_calls": 1,
+            "transcript_reads": 0,
+            "git_calls": 0
+          },
+          "sampled_live_heap_bytes": 7366616,
+          "gc_events": 11,
+          "gc_wall_ms": 29.39,
+          "cpu_top": [
+            [
+              "dumpDataJson @ packages/cli/dist/src/runtime/json-data.js",
+              30899
+            ],
+            [
+              "(garbage collector) @ ",
+              25010
+            ],
+            [
+              "value @ packages/cli/dist/src/runtime/json-data.js",
+              21218
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              15327
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              14269
+            ],
+            [
+              "orderedDataRecord @ packages/core/dist/src/ordered-record.js",
+              12926
+            ],
+            [
+              "containerEnd @ packages/cli/dist/src/runtime/json-data.js",
+              11406
+            ],
+            [
+              "(program) @ ",
+              8784
+            ],
+            [
+              "collapseIds @ packages/core/dist/src/runtime/usage.js",
+              8593
+            ],
+            [
+              "recordKeys @ packages/core/dist/src/ordered-record.js",
+              7621
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "336468abcf88a7031806735885cf377dc46b7086fe7e271a9c4cff5830f4107c",
+            "heapprofile": "8b678a483520b7cb0ac79142fe312b4c729cfc649812f5501c21cce85847109a",
+            "stdout": "6b0acffb53299935b94b89ac69673fafeb1576987e1545d1bcbbb6edc6ee60db",
+            "stderr": "c5cd6a46bae5b53ec4ea297073e55e1cfe0aa868e87178b3515f73c76470ea01"
+          }
+        },
+        {
+          "case": "command/hook",
+          "samples": 1,
+          "measured_median_ms": null,
+          "elapsed_with_profiler_ms": 99.42144800000005,
+          "peak_rss_bytes": 70316032,
+          "output_hashes": null,
+          "counts": {
+            "usage_calls": 0,
+            "transcript_reads": 0,
+            "git_calls": 0
+          },
+          "sampled_live_heap_bytes": 2626296,
+          "gc_events": 4,
+          "gc_wall_ms": 4.36,
+          "cpu_top": [
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              15954
+            ],
+            [
+              "(program) @ ",
+              9375
+            ],
+            [
+              "compileFunction @ ",
+              3212
+            ],
+            [
+              "fsync @ ",
+              2409
+            ],
+            [
+              "resolvePackageTargetString @ node:internal/modules/esm/resolve",
+              2170
+            ],
+            [
+              "parse @ ",
+              2138
+            ],
+            [
+              "initializeCJS @ node:internal/modules/cjs/loader",
+              1237
+            ],
+            [
+              "getSourceSync @ node:internal/modules/esm/load",
+              1186
+            ],
+            [
+              "__copyProps @ node_modules/koffi/src/koffi/index.cjs",
+              1185
+            ],
+            [
+              "link @ node:internal/modules/esm/module_job",
+              1163
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "251c470ceb3233a5e98a72cd4bfc06995e0fabdfbf08068dc00a1c5fb5238ce9",
+            "heapprofile": "580b5023718d2d28bd632ace2466ebbd9031848b246abf7ddddbbeef096eff2f",
+            "stdout": "b8630e760c4ab12b6cac6352ab47a2650e5efa83d79aa1f25718f41becf50f2e",
+            "stderr": "91c1dbd56d7ef40418addbea72553cc9db5ff7c51cb6d74adbe188e6bd2e5f0d"
+          }
+        },
+        {
+          "case": "in-process/medium/git/hit",
+          "samples": 12,
+          "measured_median_ms": 0.1463900000000038,
+          "elapsed_with_profiler_ms": 142.108921,
+          "peak_rss_bytes": 70750208,
+          "output_hashes": [
+            "2791f9964e05fc9604921cb9ef08eb2b3451493b7c2ac80cc0e18512f1980495"
+          ],
+          "counts": [
+            {
+              "usage_calls": 0,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 1048632,
+          "gc_events": 4,
+          "gc_wall_ms": 7.88,
+          "cpu_top": [
+            [
+              "fsync @ ",
+              18345
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              18288
+            ],
+            [
+              "(program) @ ",
+              9048
+            ],
+            [
+              "spawnSync @ node:internal/child_process",
+              7899
+            ],
+            [
+              "(garbage collector) @ ",
+              3789
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              3192
+            ],
+            [
+              "posixTime @ packages/platform/dist/src/clocks.js",
+              2818
+            ],
+            [
+              "normalizeString @ node:path",
+              2225
+            ],
+            [
+              "rename @ ",
+              2194
+            ],
+            [
+              " @ dist/typescript/tools/migration/ts-03/performance/candidate.js",
+              2185
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "643655ca2a0c078d0be74ef6b2341b6fbf78d4094ac0d9634606adacaebe07bc",
+            "heapprofile": "fecced47128d0a45d7a89feef921076d054bf11b2dc53d0fc27d42d13c516d42",
+            "stdout": "1e1bd1d649bed571a3c8e91d4df748867a4de020ec36a4b8c6472c119b1bf040",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "case": "in-process/large/agents",
+          "samples": 12,
+          "measured_median_ms": 3.917048000000001,
+          "elapsed_with_profiler_ms": 160.36220000000048,
+          "peak_rss_bytes": 82210816,
+          "output_hashes": [
+            "71916ed029b4af44113c3acab3e3b41882769fa60c1a59a977ff29b991bfe0de"
+          ],
+          "counts": [
+            {
+              "usage_calls": 0,
+              "transcript_reads": 0,
+              "git_calls": 0
+            }
+          ],
+          "sampled_live_heap_bytes": 3726296,
+          "gc_events": 26,
+          "gc_wall_ms": 7.74,
+          "cpu_top": [
+            [
+              "graphemes @ packages/core/dist/src/unicode/index.js",
+              23026
+            ],
+            [
+              "compileForInternalLoader @ node:internal/bootstrap/realm",
+              15430
+            ],
+            [
+              "compileSourceTextModule @ node:internal/modules/esm/utils",
+              12035
+            ],
+            [
+              "(program) @ ",
+              8681
+            ],
+            [
+              "sanitizePayloadText @ packages/core/dist/src/rendering/formatters.js",
+              7464
+            ],
+            [
+              " @ packages/core/dist/src/rendering/subagents.js",
+              6437
+            ],
+            [
+              "(garbage collector) @ ",
+              4370
+            ],
+            [
+              "resolveSync @ node:internal/modules/esm/loader",
+              3483
+            ],
+            [
+              "displayWidth @ packages/core/dist/src/unicode/index.js",
+              3395
+            ],
+            [
+              "clusterWidth @ packages/core/dist/src/unicode/index.js",
+              3251
+            ]
+          ],
+          "profile_sha256": {
+            "cpuprofile": "d9b66157373d74ddf0088dc7b219458034c3cf6e0e423092057ea921c3bec081",
+            "heapprofile": "42f9098df65f297ecfc6c3e85ac1f5dbf78dd720bfd4ed38f2374556fdfa3581",
+            "stdout": "062c63ba19826d127545839a6ba77297c38421024a3877d22c5f9da2c2b5f769",
+            "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ]
+    }
+  ],
+  "round_2_final_source_commit": "93384f573ddb02b4067947493b6d89a64b276341",
+  "profile_source_note": "Final diagnostic was collected from the working tree later committed as round 2; each profile also retains its then-current base commit. Earlier diagnostic sets are intermediate, not formal candidates."
+}

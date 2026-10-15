@@ -7,6 +7,8 @@ The [migration plan](../../typescript-migration.md) owns stage status. TS-03 is
 separate PRs with checks before merging, and synchronization to Gitee. There is
 no new version, release, installed backend switch or external editor in this stage.
 
+Both performance rounds are complete: [round 1 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84), [round 2 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85). Complete round 2 D06: **104 pass / 60 fail / 28 inconclusive**. TS-03 remains IN_PROGRESS; another implementation round requires focused review. All outputs/counts matched; original budgets, installed bindings and TS-04 admission remain unchanged. [Results, regressions and remaining gaps](PERFORMANCE-OPTIMIZATION.md).
+
 ## Implementation sequence
 
 | Batch | Deliverable | State |
@@ -18,7 +20,7 @@ no new version, release, installed backend switch or external editor in this sta
 | 03-E | Rendering, preview and complete backend protocols | DONE — PR #82 |
 | 03-F | Integrated parity, Mod checks, CI, performance and TS-04 handoff | IN_PROGRESS |
 
-Active branch: `fbincon/ts-03-rendering`. 03-A/03-B/03-C/03-D merged as `21fb21d`/`f1363e3`/`0faa639`/`dc2e218`; GitHub/Gitee main were verified equal after each merge. Tested/merged commits and PRs are recorded after
+Active branch: `fbincon/ts-03-performance-round-2`. 03-A/03-B/03-C/03-D merged as `21fb21d`/`f1363e3`/`0faa639`/`dc2e218`; GitHub/Gitee main were verified equal after each merge. Tested/merged commits and PRs are recorded after
 verification. The package workspaces are private development packages at 0.0.0;
 the existing Python application remains at 2.0.0.
 

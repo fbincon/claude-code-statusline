@@ -1,7 +1,14 @@
 import * as fs from 'node:fs';
 import { dirname, basename, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { library, koffi, winError } from './native.js';
+import { library, nativeApi, nativeFunction, winError } from './native.js';
+
+export function privateDirectory(path: string): void {
+  fs.mkdirSync(path, { recursive: true, mode: 0o700 });
+  if (process.platform !== 'win32') {
+    try { fs.chmodSync(path, 0o700); } catch { /* Match best-effort legacy permissions. */ }
+  }
+}
 
 export function isLinkOrReparse(path: string): boolean {
   try {
@@ -38,7 +45,7 @@ function acquire(path: string): () => void {
   if (process.platform === 'win32') {
     const k = library('kernel32.dll');
     const h = k.func('void *CreateFileW(const char16_t *path, uint32_t access, uint32_t share, void *security, uint32_t disposition, uint32_t flags, void *template)')(path, 0xc0000000, 7, null, 4, 0x80, null);
-    if (!h || koffi.address(h) === 0xffffffffffffffffn) throw winError('CreateFileW');
+    if (!h || nativeApi().address(h) === 0xffffffffffffffffn) throw winError('CreateFileW');
     const close = () => { k.func('bool CloseHandle(void *handle)')(h); };
     // Same byte-range namespace as Python's msvcrt.locking, including empty files.
     if (!k.func('bool LockFileEx(void *handle, uint32_t flags, uint32_t reserved, uint32_t low, uint32_t high, _Inout_ void *overlapped)')(h, 2, 0, 1, 0, Buffer.alloc(32))) {
@@ -49,7 +56,7 @@ function acquire(path: string): () => void {
   const fd = fs.openSync(path, fs.constants.O_CREAT | fs.constants.O_RDWR | fs.constants.O_NOFOLLOW, 0o600);
   try {
     fs.fchmodSync(fd, 0o600);
-    const flock = library(process.platform === 'darwin' ? '/usr/lib/libSystem.B.dylib' : 'libc.so.6').func('int flock(int fd, int op)');
+    const flock = nativeFunction(process.platform === 'darwin' ? '/usr/lib/libSystem.B.dylib' : 'libc.so.6', 'int flock(int fd, int op)');
     if (flock(fd, 2)) throw new Error('flock failed');
     return () => fs.closeSync(fd);
   } catch (error) { fs.closeSync(fd); throw error; }

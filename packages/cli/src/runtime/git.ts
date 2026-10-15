@@ -7,6 +7,8 @@ import { sha256 } from '@fbincon/statusline-platform/hash';
 import { runCommand, CommandTimeout, monotonicMilliseconds, type CommandRunner } from '@fbincon/statusline-platform/command';
 import type { RuntimeContext } from './context.js';
 import { runtimeIO, readStored, type RuntimeIO } from './io.js';
+import { readDataJson } from './json-data.js';
+import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 function strip(raw: Buffer): Buffer { let start = 0, end = raw.length; const space = (v: number) => v === 32 || v >= 9 && v <= 13; while (start < end && space(raw[start]!))
     start++; while (end > start && space(raw[end - 1]!))
     end--; return raw.subarray(start, end); }
@@ -20,7 +22,8 @@ export class GitCollector {
         if (!truth(session))
             return null;
         try {
-            const raw = readStored(this.io, this.path(session));
+            const bytes = this.io.read(this.path(session));
+            const raw = bytes === null ? null : readDataJson(decodeUtf8(bytes));
             if (!object(raw) || !equalSettings(raw.version, GIT_CACHE_VERSION) || raw.cwd !== resolve(cwd))
                 return null;
             const checked = int(raw.checked_ns, false), age = checked === null ? -1n : this.context.sample().wall_ns - checked;

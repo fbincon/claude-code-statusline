@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import { basename, dirname, join } from 'node:path';
-import { atomicWrite, durableUnlink, withLock } from '@fbincon/statusline-platform/files';
+import { atomicWrite, durableUnlink, withLock, privateDirectory } from '@fbincon/statusline-platform/files';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
 export { decodeUtf8 };
@@ -23,15 +23,7 @@ export interface Storage {
 }
 export function jsonBytes(value: unknown): Buffer { return Buffer.from(pythonJson(value, { ensureAscii: false, indent: 2 }) + '\n'); }
 export const errorDetail = errorDescription;
-export function privateDirectory(path: string): void {
-    fs.mkdirSync(path, { recursive: true, mode: 0o700 });
-    if (process.platform !== 'win32') {
-        try {
-            fs.chmodSync(path, 0o700);
-        }
-        catch { /* Match best-effort legacy permissions. */ }
-    }
-}
+export { privateDirectory } from '@fbincon/statusline-platform/files';
 export function timestamp(now: Date): string {
     const pad = (n: number, size = 2) => String(n).padStart(size, '0');
     const zone = -now.getTimezoneOffset();
