@@ -98,6 +98,8 @@ See [testing](testing.md), the [timer contract](timer.md) and the [release guide
 
 ## Native editor structure
 
+TS-04 makes `packages/core/src/editor` the canonical source of reusable editor and response-validation rules. `tools/generation/resources.ts` generates matching self-contained Mod modules. The pure `core/integration/binding` module supplies executable/argv selection for Node and both Mods; executable overrides discard the entire stored prefix. Host and Client adapters remain separate.
+
 `ui/components/` holds shared sections: `section.ts` paints themed frame edges and `preview.ts` draws terminal-default samples independently of the host theme. `ui/layout.ts` owns the cell budget.
 
 The sole editor Mod source remains `mods/statusline-native`. Host APIs stay in `hooks/register.ts`, draft/numeric rules in `lib/editor/`, validated batches/keys/settings in `lib/client/`, and independent port snapshots in `lib/session.ts`. `ui/client/` owns Client input/drawing, `ui/components/` reusable sections, and `ui/layout.ts` the body budget. Tests mirror backend, client, editor, integration and UI.

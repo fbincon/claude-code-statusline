@@ -21,12 +21,12 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01–TS-03 DONE**; TS-03 closes on existing [functional and CI evidence](typescript-migration/ts-03/README.md#closure-2026-10-15) under the revised criteria |
-| Current task scope | Documentation and gate adjustment only; TS-04–TS-06 and PERF-01 remain NOT_STARTED |
+| Current task scope | TS-04 IN_PROGRESS: both editors, installation and explicit recovery; TS-05/TS-06 and PERF-01 remain NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; later candidate/delivery tasks determine versions and schedule |
-| Next implementation work | TS-04 editors, installation and recovery; its prerequisite is satisfied, but no work starts in this task |
+| Next implementation work | [04-A shared editor and argv foundation](typescript-migration/ts-04/README.md), followed by external TUI and installation/recovery |
 
-This documentation task closes TS-03 using verified existing work and the approved gate revision. It implements none of the subsequent stages, switches no installed backend and creates no version or release. Existing repository authorization governs subsequently assigned tasks; this plan adds no routine approval step to each stage.
+The maintainer approved TS-04 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-04 record](typescript-migration/ts-04/README.md) tracks five implementation batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
 TS-03 covers all 161 fixed cases with the same three approved CLI text differences and audits all 516 IDs: 471 ported, 45 complete tests assigned to TS-04, plus remaining assertions in eight mixed tests. Latest local TS validation passed 556/557 tests with one platform skip; the final [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) head passed all 43 CI jobs and eight source-bound receipts before merge `7eae7c4`. These are existing implementation results, not tests newly run by this planning change. [Closure and evidence](typescript-migration/ts-03/README.md#closure-2026-10-15).
 
@@ -107,7 +107,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | DONE | Codex; `fbincon/ts-01-baseline`; tested `ddc9dde`; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75); [inventory and evidence](typescript-migration/ts-01/README.md) |
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | DONE | Codex; implementation [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85), merge `7eae7c4`; [closure under revised criteria](typescript-migration/ts-03/README.md#closure-2026-10-15) |
-| TS-04 | Both editors, installation and recovery | TS-03 | NOT_STARTED | Unassigned |
+| TS-04 | Both editors, installation and recovery | TS-03 | IN_PROGRESS | Codex; `fbincon/ts-04-editor-foundation`; [batches and evidence](typescript-migration/ts-04/README.md) |
 | TS-05 | Complete tooling, CI and release candidate | TS-04 | NOT_STARTED | Unassigned |
 | TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |
 
@@ -151,7 +151,7 @@ Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its
 
 ### TS-04 Editors and installation
 
-**Entry:** TS-03 has completed under the revised criteria. Subsequent implementation must satisfy the [handoff](typescript-migration/ts-03/TS04-HANDOFF.md): 45 complete tests and the remaining assertions in eight mixed tests. This task does not start that stage.
+**Entry:** TS-03 has completed under the revised criteria. Implementation covers the 212 original TS-04 tests plus the [handoff](typescript-migration/ts-03/TS04-HANDOFF.md): 45 complete tests and the remaining assertions in eight mixed tests. The [265-entry ledger](typescript-migration/ts-04/README.md#responsibility-and-architecture) owns completion evidence.
 
 - Reuse compatible native editor logic and adapt backend invocation; verify resource/version matching, ordered input, stale-response rejection and unknown-save-result handling.
 - Replace the external curses adapter while retaining draft semantics, four pages, text input, save/cancel, import review, theme behavior and resize handling.

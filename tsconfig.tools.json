@@ -1,6 +1,26 @@
 {
   "extends": "./tsconfig.base.json",
-  "compilerOptions": { "rootDir": ".", "outDir": "dist/typescript", "types": ["node"] },
-  "references": [{ "path": "packages/core" }, { "path": "packages/platform" }, { "path": "packages/cli" }],
-  "include": ["tools/migration/ts-03/**/*.ts", "tools/generation/**/*.ts"]
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist/typescript",
+    "types": [
+      "node"
+    ]
+  },
+  "references": [
+    {
+      "path": "packages/core"
+    },
+    {
+      "path": "packages/platform"
+    },
+    {
+      "path": "packages/cli"
+    }
+  ],
+  "include": [
+    "tools/migration/ts-03/**/*.ts",
+    "tools/generation/**/*.ts",
+    "tools/migration/ts-04/**/*.ts"
+  ]
 }

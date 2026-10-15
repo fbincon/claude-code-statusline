@@ -21,12 +21,12 @@
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01～TS-03 DONE**；TS-03 依据现有[功能与 CI 证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)按修订标准关闭 |
-| 当前任务范围 | 仅调整文档与门槛；TS-04～TS-06 和 PERF-01 保持 NOT_STARTED |
+| 当前任务范围 | TS-04 IN_PROGRESS：双编辑器、安装与显式恢复；TS-05／TS-06 和 PERF-01 保持 NOT_STARTED |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
 | 目标版本与工期 | 尚未指定；后续候选／交付任务确定版本及工期 |
-| 下一项实施工作 | TS-04 编辑器、安装与恢复；前置依赖已满足，本次不启动 |
+| 下一项实施工作 | [04-A 共享编辑器与 argv 基础](typescript-migration/ts-04/README.zh-CN.md)，随后实施外部 TUI 和安装／恢复 |
 
-本次文档任务依据既有已验证工作和批准的门槛修订关闭 TS-03，不实施后续阶段、不切换已安装后端、不新增版本或发布。后续任务仍适用仓库既有授权，本计划不为每个阶段新增例行审批步骤。
+维护者已批准 TS-04 实施，安装验收使用隔离环境，恢复采用显式命令，保留现用 Python 安装。[TS-04 记录](typescript-migration/ts-04/README.zh-CN.md)跟踪五批实现，本阶段不发布。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 
 TS-03 覆盖全部 161 个固定案例，保留原三项已批准的 CLI 文案差异；516 项清单已审计：471 项迁移、45 项完整测试交接 TS-04，另保留八项混合测试中的剩余断言。最新本地 TS 验证为 556/557 通过、1 项平台跳过；[PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) 最终 head 的 43 项 CI 和八份源码回执通过后合并为 `7eae7c4`。这些是既有实现证据，不是本次计划调整重新执行的测试。[关闭依据与证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)。
 
@@ -107,7 +107,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | TS-01 | 固定基线与行为清单 | 明确开始实施任务 | DONE | Codex；`fbincon/ts-01-baseline`；测试提交 `ddc9dde`；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
 | TS-02 | 平台验证及 D01–D06 决策 | TS-01 | DONE | Codex；`fbincon/ts-02-linux-acceptance`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)及[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)；[整合与证据](typescript-migration/ts-02/LINUX-20261014.zh-CN.md) |
 | TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | DONE | Codex；实现 [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)，合并 `7eae7c4`；[修订标准下的关闭记录](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15) |
-| TS-04 | 双编辑器、安装与恢复 | TS-03 | NOT_STARTED | 未分配 |
+| TS-04 | 双编辑器、安装与恢复 | TS-03 | IN_PROGRESS | Codex；`fbincon/ts-04-editor-foundation`；[批次与证据](typescript-migration/ts-04/README.zh-CN.md) |
 | TS-05 | 完整工具链、CI 与发布候选 | TS-04 | NOT_STARTED | 未分配 |
 | TS-06 | 预览验收与正式交付 | TS-05 | NOT_STARTED | 未分配 |
 
@@ -151,7 +151,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 ### TS-04 编辑器与安装
 
-**准入：**TS-03 已按修订门槛完成。后续实施须兑现[交接清单](typescript-migration/ts-03/TS04-HANDOFF.zh-CN.md)中的 45 项完整测试及八项混合测试剩余断言；本次不启动该阶段。
+**准入：**TS-03 已按修订门槛完成。实施覆盖原分配的 212 个 TS-04 测试，以及[交接清单](typescript-migration/ts-03/TS04-HANDOFF.zh-CN.md)中的 45 项完整测试和八项混合测试剩余断言；[265 项台账](typescript-migration/ts-04/README.zh-CN.md#责任与架构)记录完成证据。
 
 - 复用兼容的原生编辑器逻辑并适配后端启动；验证资源／版本匹配、输入顺序、迟到响应拒绝和保存结果不明的处理。
 - 替换外部 curses 适配，保留草稿语义、四页、文本输入、保存／取消、导入审阅、主题行为及缩放处理。

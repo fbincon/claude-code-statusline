@@ -11,7 +11,7 @@
     "backendExecutable": {
       "type": "string",
       "title": "Backend executable",
-      "description": "Absolute matching claude-statusline executable; source development can override it with CLAUDE_STATUSLINE_NATIVE_EXECUTABLE.",
+      "description": "Matching backend executable; an executable environment override replaces the complete executable/args binding.",
       "default": "claude-statusline"
     },
     "configDir": {
@@ -25,6 +25,13 @@
       "title": "Expected backend version",
       "description": "Version bound by the installer; empty permits protocol-compatible source development.",
       "default": ""
+    },
+    "backendArgs": {
+      "type": "string",
+      "multiple": true,
+      "title": "Backend arguments",
+      "description": "Argument prefix for the matching backend, including the absolute installed JavaScript entry for Node installations.",
+      "default": []
     }
   }
 }
