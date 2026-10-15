@@ -12,11 +12,12 @@ import { createStorage, decodeUtf8, jsonBytes, readSettings, readDisplay, type S
 import { loadFeature, loadNative, loadRuntime } from '../config/backend-preferences.js';
 import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import { OWNER, OWNER_FILE, SKILL, EXTERNAL, NATIVE, RUNTIME, VERSION, type InstallContext, type InstallOptions, type ChangeResult, type Host, type ModSpec } from './model.js';
-import { BINDING_FILE, previousBinding, skillOwned } from './ownership.js';
+import { BINDING_FILE, previousBinding, bindingRecord, skillOwned } from './ownership.js';
 import { renderSkill } from './resources.js';
 import { settingsPlan } from './plan.js';
 import { commandPreflight, integrate } from './mods.js';
 import { commit, safeTarget, type Change } from './transaction.js';
+import { administration } from '../recovery/service.js';
 export function installContext(configDir: string, launch: LaunchSpec, version: readonly number[] | null, io: Storage = createStorage(), host: (spec: ModSpec) => Host = () => new PluginHost(configDir)): InstallContext {
     return { configDir, launch, version, io, host };
 }
@@ -80,7 +81,8 @@ function prepare(context: InstallContext, options: InstallOptions, uninstall: bo
         const runtimeRaw = io.read(join(configDir, RUNTIME_FILENAME));
         if (runtimeRaw !== null || options.liveMetrics !== undefined || options.nativeTiming !== undefined)
             add(RUNTIME_FILENAME, jsonBytes(loadRuntime(configDir, io, options.liveMetrics, options.nativeTiming)), true, runtimeRaw);
-        add(BINDING_FILE, jsonBytes({ owner: OWNER, schema_version: 1, backend_version: VERSION, launch }));
+        const intents = bindingRecord(configDir, io)?.refresh_disabled;
+        add(BINDING_FILE, jsonBytes({ owner: OWNER, schema_version: 1, backend_version: VERSION, launch, ...(intents ? { refresh_disabled: intents } : {}) }));
     }
     else if (previous)
         add(BINDING_FILE, null);
@@ -101,7 +103,7 @@ function changeFiles(context: InstallContext, options: InstallOptions, uninstall
     }
     return options.dryRun ? run() : io.lock(configDir, run);
 }
-export function install(context: InstallContext, options: InstallOptions = {}): ChangeResult {
+function installImpl(context: InstallContext, options: InstallOptions): ChangeResult {
     const { configDir, version, io } = context;
     const requested = loadNative(configDir, options.native, VERSION, io), modes = loadRuntime(configDir, io, options.liveMetrics, options.nativeTiming), runtime = modes.native_timing || modes.live_metrics;
     const external = options.external ?? loadFeature(configDir, VERSION, io), compatible = atLeast(version, NATIVE.minimum);
@@ -114,7 +116,7 @@ export function install(context: InstallContext, options: InstallOptions = {}): 
     const result = changeFiles(context, options, false), native = integrate(context, NATIVE, requested), live = integrate(context, RUNTIME, runtime);
     return { ...result, changed: result.changed || native.changed || live.changed, nativeState: native.state, messages: [externalMessage, ...native.messages, ...live.messages], failed: native.state === 'blocked' || live.state === 'blocked' || options.native === true && !native.active && !(native.state === 'suspended' && !compatible) || (options.liveMetrics === true || options.nativeTiming === true) && !live.active && live.state !== 'suspended' };
 }
-export function uninstall(context: InstallContext, options: InstallOptions = {}): ChangeResult {
+function uninstallImpl(context: InstallContext, options: InstallOptions): ChangeResult {
     const planned = changeFiles(context, { ...options, dryRun: true }, true);
     if (options.dryRun)
         return planned;
@@ -126,4 +128,13 @@ export function uninstall(context: InstallContext, options: InstallOptions = {})
         return { ...planned, changed: runtime.changed || native.changed, changedPaths: [], messages: [...runtime.messages, ...native.messages], failed: true };
     const result = changeFiles(context, options, true);
     return { ...result, changed: result.changed || runtime.changed || native.changed, nativeState: native.state, messages: [...native.messages, ...runtime.messages] };
+}
+export function install(context: InstallContext, options: InstallOptions = {}): ChangeResult {
+    // Validation precedes even the administration lock file on invalid input.
+    if (!options.dryRun) installImpl(context, { ...options, dryRun: true });
+    return administration(context, options.dryRun ?? false, tracked => installImpl(tracked, options));
+}
+export function uninstall(context: InstallContext, options: InstallOptions = {}): ChangeResult {
+    if (!options.dryRun) uninstallImpl(context, { ...options, dryRun: true });
+    return administration(context, options.dryRun ?? false, tracked => uninstallImpl(tracked, options));
 }

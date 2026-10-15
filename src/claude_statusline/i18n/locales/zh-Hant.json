@@ -1357,5 +1357,11 @@
   "composition.errors.legacy": "此設定需要使用 config instance {scope}，類型命令無法完整表達目前版面",
   "presets.left-right": "左右配置",
   "presets.repeated-metrics": "重複指標",
-  "ui.hints.category": "分類"
+  "ui.hints.category": "分類",
+  "cli.help.recover_installation": "恢復中斷的設定或外掛交易",
+  "recovery.pending": "未完成交易 {id}（{phase}）；請執行 claude-statusline recover",
+  "recovery.none": "沒有未完成的交易。",
+  "recovery.preview": "恢復預覽：{id}：{outcome}",
+  "recovery.result": "恢復完成：{id}：{outcome}",
+  "recovery.required": "需要恢復：{detail}"
 }

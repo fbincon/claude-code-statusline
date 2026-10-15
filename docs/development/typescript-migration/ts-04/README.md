@@ -15,7 +15,7 @@ doctor remains read-only. No release version or tag is assigned here.
 | 04-A | Complete responsibility ledger, shared editor rules and production Mod argv binding | DONE; [PR #87](https://github.com/fbincon/claude-code-statusline/pull/87) |
 | 04-B | External raw-TTY/VT editor, terminal launchers and result bridge | DONE; [PR #88](https://github.com/fbincon/claude-code-statusline/pull/88) |
 | 04-C | Install, uninstall, doctor, ownership and resources | VALIDATING; `fbincon/ts-04-installation` |
-| 04-D | Persistent transaction checkpoints and explicit recovery | NOT_STARTED |
+| 04-D | Persistent transaction checkpoints and explicit recovery | VALIDATING; `fbincon/ts-04-recovery` |
 | 04-E | Installed candidate acceptance, CI, documentation and closure | NOT_STARTED |
 
 ## Responsibility and architecture
@@ -105,7 +105,19 @@ npm run migration:inventory -- --complete
 npm run migration:inventory:ts04
 ```
 
-Next: complete PR checks for 04-C and implement interrupted recovery. The final stage requires
+04-D adds explicit `recover [--config-dir PATH] [--dry-run]`, immutable synced
+before-images, versioned journal checkpoints and pending-write guards. Recovery
+checks every original/target before restoration and reconciles uncertain official
+operations from inventory without blindly replaying writes. A durable refresh
+intent preserves user-disabled plugins even across a kill between successful
+uninstall and reinstall. See the [recovery procedure](recovery.md).
+
+Local 04-D tests: 853/856 TS passed (three Windows-only skips), 847/856 Python
+passed (nine platform skips), 24 recovery scenarios including real process interruption and 50 generated
+resources passed. The real isolated official install/reinstall/doctor/uninstall
+flow passed with no pending journals. The final target CI remains required.
+
+Next: finish 04-C/04-D PR checks and installed-candidate acceptance. The final stage requires
 installed-package editor and recovery coverage on the existing target matrix.
 Physical/desktop checks already deferred until before release retain that status.
 Performance remains in PERF-01; timeout, resource-bound and stability contracts

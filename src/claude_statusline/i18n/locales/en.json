@@ -1357,5 +1357,11 @@
   "composition.errors.legacy": "This composition requires config instance {scope}; type commands cannot represent it losslessly",
   "presets.left-right": "Left and right",
   "presets.repeated-metrics": "Repeated metrics",
-  "ui.hints.category": "category"
+  "ui.hints.category": "category",
+  "cli.help.recover_installation": "Recover an interrupted configuration or plugin transaction",
+  "recovery.pending": "Unfinished transaction {id} ({phase}); run claude-statusline recover",
+  "recovery.none": "No unfinished transactions.",
+  "recovery.preview": "Recovery preview: {id}: {outcome}",
+  "recovery.result": "Recovery completed: {id}: {outcome}",
+  "recovery.required": "Recovery required: {detail}"
 }

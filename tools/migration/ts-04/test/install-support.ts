@@ -88,7 +88,7 @@ export function snapshot(root: string): Record<string, string> {
     function walk(path: string, prefix: string) {
         for (const entry of fs.readdirSync(path, { withFileTypes: true })) {
             const name = prefix + entry.name;
-            if (name.startsWith('backups') || name === 'statusline_runtime/install.lock')
+            if (name.startsWith('backups') || ['statusline_runtime/install.lock', 'statusline_runtime/admin.lock'].includes(name))
                 continue;
             if (entry.isDirectory())
                 walk(join(path, entry.name), name + '/');

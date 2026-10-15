@@ -17,17 +17,18 @@ export function skillOwned(raw: Buffer | null): boolean {
         return false;
     }
 }
-export function previousBinding(directory: string, io: Storage): LaunchSpec | null {
+export function bindingRecord(directory: string, io: Storage): Record<string, unknown> | null {
     const path = join(directory, BINDING_FILE);
     safeTarget(directory, path);
     const raw = io.read(path);
     if (raw === null)
         return null;
     const value = readJson(decodeUtf8(raw), { duplicate(key) { throw new Error('Duplicate binding field: ' + key); } });
-    if (!object(value) || Object.keys(value).sort().join(',') !== 'backend_version,launch,owner,schema_version' || value.owner !== OWNER || !isSchema(value.schema_version, 1) || typeof value.backend_version !== 'string' || !object(value.launch) || Object.keys(value.launch).sort().join(',') !== 'args,executable' || typeof value.launch.executable !== 'string' || !Array.isArray(value.launch.args) || !value.launch.args.every(x => typeof x === 'string' && !x.includes('\0')))
+    if (!object(value) || Object.keys(value).filter(key => key !== 'refresh_disabled').sort().join(',') !== 'backend_version,launch,owner,schema_version' || value.owner !== OWNER || !isSchema(value.schema_version, 1) || typeof value.backend_version !== 'string' || !object(value.launch) || Object.keys(value.launch).sort().join(',') !== 'args,executable' || typeof value.launch.executable !== 'string' || !Array.isArray(value.launch.args) || !value.launch.args.every(x => typeof x === 'string' && !x.includes('\0')) || Object.hasOwn(value, 'refresh_disabled') && (!Array.isArray(value.refresh_disabled) || value.refresh_disabled.some(name => !['statusline-native', 'statusline-runtime'].includes(String(name)))))
         throw new Error('Untrusted installation binding');
-    return value.launch as unknown as LaunchSpec;
+    return value;
 }
+export function previousBinding(directory: string, io: Storage): LaunchSpec | null { return bindingRecord(directory, io)?.launch as LaunchSpec ?? null; }
 export function owns(command: unknown, operation: string, launch: LaunchSpec, previous?: LaunchSpec | null): boolean {
     if (ownedCommand(command, operation, launch) || previous && ownedCommand(command, operation, previous))
         return true;
