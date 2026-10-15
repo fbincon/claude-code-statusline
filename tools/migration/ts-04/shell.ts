@@ -14,6 +14,25 @@ export interface ShellReceipt {
 
 /** A shell smoke must never wait for terminal input or an interactive prompt. */
 export const POWERSHELL_FLAGS = ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command'];
+
+/** Windows PowerShell initializes .NET known folders before the command starts.
+ * A fabricated USERPROFILE is not a loaded Windows user profile. Bootstrap the
+ * shell with the actual OS profile, then restore isolated product paths inside
+ * the command before launching Node. No PowerShell profile script is loaded.
+ */
+export function powershellEnvironment(isolated: NodeJS.ProcessEnv, operatingSystem: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+    const result = { ...isolated };
+    for (const name of ['USERPROFILE', 'HOME', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA']) {
+        if (operatingSystem[name] !== undefined) result[name] = operatingSystem[name];
+        else delete result[name];
+    }
+    return result;
+}
+export function powershellIsolation(isolated: NodeJS.ProcessEnv): string {
+    const quote = (value: string) => "'" + value.replaceAll("'", "''") + "'";
+    return ['USERPROFILE', 'HOME', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA'].map(name =>
+        isolated[name] === undefined ? `Remove-Item Env:${name} -ErrorAction SilentlyContinue; ` : `$env:${name} = ${quote(isolated[name]!)}; `).join('');
+}
 export function shellReceipt(executable: string, operation: string, result: SpawnSyncReturns<string>, elapsed: number, timeout: number): ShellReceipt {
   const error = result.error as (Error & { code?: string }) | undefined;
   return {
