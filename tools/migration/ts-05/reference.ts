@@ -45,7 +45,15 @@ try {
     run(python, ['-m', 'unittest', 'discover', '-s', 'tests', '-t', '.', '-v'], root, env); report.checks.python_suite = 'pass; platform skips remain in the log';
     run(process.execPath, [npmEntry(), 'ci', '--ignore-scripts', '--no-audit', '--no-fund'], root, env);
     const files = ['packages/core/test/json.test.ts', ...['cli-help', 'json-boundaries', 'rendering-primitives', 'runtime-numbers', 'runtime-parity', 'streaming-usage'].map(name => `tools/migration/ts-03/test/${name}.test.ts`)];
-    for (const name of files) fs.writeFileSync(join(root, name), execFileSync('git', ['show', '250ea02:' + name], { cwd: root, maxBuffer: 8 * 1024 * 1024 }));
+    // These seven files are byte-identical to the original 250ea02 capture
+    // harness. Reconstruct from main's retained baseline, not a removable PR ref.
+    const harnessCommit = '748cc79840cd08280da4ab7ab8ef3dea7dee9873';
+    const harnessFiles: Record<string, string> = {};
+    for (const name of files) {
+        const raw = execFileSync('git', ['show', harnessCommit + ':' + name], { cwd: root, maxBuffer: 8 * 1024 * 1024 });
+        fs.writeFileSync(join(root, name), raw); harnessFiles[name] = sha256(raw);
+    }
+    report.harness_reconstruction = { commit: harnessCommit, source_files: harnessFiles };
     for (const name of ['platform', 'transactions']) fs.copyFileSync(join(repoRoot, 'archive/python/comparisons/' + name + '.test.ts'), join(root, 'tools/migration/ts-03/test/' + name + '.test.ts'));
     fs.copyFileSync(join(repoRoot, 'archive/python/comparisons/installed.test.ts'), join(root, 'tools/migration/ts-04/test/installed.test.ts'));
     run(process.execPath, [npmEntry(), 'run', 'build'], root, env);

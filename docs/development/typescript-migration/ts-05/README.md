@@ -40,6 +40,10 @@ tests require an installed console entry beside their Python interpreter. The
 runner now creates a private venv, installs hash-locked dependencies and the frozen
 package, and isolates HOME/configuration. Earlier local results are retained as
 historical evidence, not substituted for the clean-environment CI result.
+The seven live-comparison sources reconstruct from retained main baseline
+`748cc79840cd08280da4ab7ab8ef3dea7dee9873`; each matches the original `250ea02`
+capture source byte for byte. Reports bind those file hashes. Original frozen
+provenance remains unchanged, and replay does not require that removable PR ref.
 
 The Windows failure was a 20-second PowerShell startup/command-pipeline timeout,
 not a reported renderer exit. The harness now keeps valid OS folders during
