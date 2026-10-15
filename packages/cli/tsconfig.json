@@ -1,6 +1,25 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": ".", "outDir": "dist", "types": ["node"] },
-  "references": [{ "path": "../core" }, { "path": "../platform" }],
-  "include": ["src/**/*.ts", "test/**/*.ts"]
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "types": [
+      "node"
+    ]
+  },
+  "references": [
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../platform"
+    },
+    {
+      "path": "../tui"
+    }
+  ],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ]
 }

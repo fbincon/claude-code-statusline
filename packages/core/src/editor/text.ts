@@ -1,4 +1,4 @@
-import { cellWidth } from '../unicode/index.js';
+import { clusterWidth, graphemes } from '../unicode/index.js';
 
 /** Read-only paragraph wrapping with existing terminal cell semantics. */
 export function wrapText(paragraphs: readonly string[], width: number): string[] {
@@ -8,9 +8,9 @@ export function wrapText(paragraphs: readonly string[], width: number): string[]
     if (!text) lines.push('');
     while (text) {
       let prefix = '', used = 0;
-      for (const character of text) {
-        if (used + cellWidth(character) > width) break;
-        prefix += character; used += cellWidth(character);
+      for (const character of graphemes(text)) {
+        if (used + clusterWidth(character) > width) break;
+        prefix += character; used += clusterWidth(character);
       }
       if (prefix === text) { lines.push(text); break; }
       let cut = prefix.lastIndexOf(' ');

@@ -1,5 +1,6 @@
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 const COMMANDS: Readonly<Record<string, string>> = {
+    configure: 'open_the_interactive_status_line_configuration_editor',
     config: 'view_or_change_status_line_display_settings',
     ui: 'serve_one_internal_json_configuration_request',
     runtime: 'serve_one_independent_live_observation_json_request',
@@ -38,7 +39,7 @@ export function helpText(command: string | undefined, language: Language): strin
         '  -h, --help          ' + t('cli.help.help', language),
         '  --language LANGUAGE ' + t('cli.help.language_override', language),
     ];
-    if (config || command === 'ui' || command === 'runtime')
+    if (config || command === 'ui' || command === 'runtime' || command === 'configure')
         lines.push('  --config-dir PATH   ' + t('cli.help.claude_configuration_directory_default_claude_config_dir_or', language));
     return lines.join('\n') + '\n';
 }

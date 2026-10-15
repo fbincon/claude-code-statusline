@@ -183,8 +183,8 @@ export function outputs(root = ROOT): Map<string, string> {
   const search = JSON.parse(utf8(join(root, 'tests/fixtures/editor-search.json')));
   result.set('mods/statusline-native/tests/generated-search-fixtures.ts', header + 'export const APPEARANCE_CASES = ' + utf8(join(root, 'tests/fixtures/appearance.json')).trim() + ';\n' +
     'export const SEARCH_CASES = ' + json(search, 2, false) + ';\nexport const SEARCH_CATALOG = ' + json(catalogData, 2, false) + ';\n');
-  for (const [source, destination] of [['unicode/index.ts', 'mods/statusline-native/lib/unicode.ts'], ['i18n/messages.ts', 'mods/statusline-native/lib/i18n/index.ts']]) {
-    result.set(destination!, header + utf8(join(root, 'packages/core/src/' + source)).replaceAll("./generated-unicode.js", "./generated-unicode.ts").replaceAll("./generated-locales.js", "./generated-locales.ts"));
+  for (const [source, destination] of [['unicode/index.ts', 'mods/statusline-native/lib/unicode.ts'], ['i18n/messages.ts', 'mods/statusline-native/lib/i18n/index.ts'], ['terminal/spans.ts', 'mods/statusline-native/ui/styled-text.ts']]) {
+    result.set(destination!, header + utf8(join(root, 'packages/core/src/' + source)).replaceAll("./generated-unicode.js", "./generated-unicode.ts").replaceAll("./generated-locales.js", "./generated-locales.ts").replaceAll("../unicode/index.js", "../lib/unicode.ts"));
   }
   return result;
 }

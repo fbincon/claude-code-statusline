@@ -1,10 +1,23 @@
 {
   "files": [],
   "references": [
-    { "path": "packages/core" },
-    { "path": "packages/core/tsconfig.test.json" },
-    { "path": "packages/platform" },
-    { "path": "packages/cli" },
-    { "path": "tsconfig.tools.json" }
+    {
+      "path": "packages/core"
+    },
+    {
+      "path": "packages/core/tsconfig.test.json"
+    },
+    {
+      "path": "packages/platform"
+    },
+    {
+      "path": "packages/tui"
+    },
+    {
+      "path": "packages/cli"
+    },
+    {
+      "path": "tsconfig.tools.json"
+    }
   ]
 }

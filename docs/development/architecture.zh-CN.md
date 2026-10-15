@@ -159,6 +159,6 @@ Client 的 `ui/layout.ts` 按终端尺寸计算内容、Preview 和两行操作�
 
 开发 CLI 通过 `ConfigurationService`／`Storage` 绑定文件事务与宿主身份；私有 ESM 入口为 `packages/cli/src/entry.ts`，配置与协议代码位于 `config/`、`ui/`。`render`、`render-subagents`、`hook`、`slash-hook` 的快速分发位于管理资源导入之前，完整 `LaunchSpec` 前缀区分 TS 开发后端与已安装渲染器。
 
-`core/rendering` 负责主／子行组合、格式、样式、Powerline 和确定性预览。`RenderEnvironment` 提供选定语言与同步观测接口；`cli/rendering/environment.ts` 按组件需要导入采集器并连接运行服务。每帧缓存各来源和原始任务快照，重复实例分别格式化；`platform/presentation.ts` 提供词法路径、本地／UTC 日期和主机名。预览替换所有观测，不采集或写入运行证据。`cli/integration` 中的编辑器启动器仅定义可注入的请求／结果边界，真实终端适配继续归 TS-04。
+`core/rendering` 负责主／子行组合、格式、样式、Powerline 和确定性预览。`RenderEnvironment` 提供选定语言与同步观测接口；`cli/rendering/environment.ts` 按组件需要导入采集器并连接运行服务。每帧缓存各来源和原始任务快照，重复实例分别格式化；`platform/presentation.ts` 提供词法路径、本地／UTC 日期和主机名。预览替换所有观测，不采集或写入运行证据。`packages/tui` 在共享编辑核心及可注入协议后端上实现外部编辑器；`platform/terminal` 负责 raw mode、增量 UTF-8／VT 输入、有界输出、启动器及私有请求／结果文件；`cli/integration` 连接适配层并在配置锁内复核请求撤销。详见 [TS-04](typescript-migration/ts-04/README.zh-CN.md)。
 
 内部用量／transcript JSON 路径保留数值词法，遇到有序数字键或旧非有限常量时回到精确解析器。可变 ID 字典以有界删除开销保持 Python 插入顺序；原生缓存序列化保持 Python 空格、ASCII 转义及数值拼写。公开配置／协议仍使用严格解析，不改变磁盘 schema。

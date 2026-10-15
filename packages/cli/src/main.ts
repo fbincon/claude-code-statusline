@@ -77,11 +77,11 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         const configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
         const preferences = readPreferences(configDir, createStorage(environment.now));
         language = (selectedLanguage ?? preferences.ui_language) as Language;
-        if (['config', 'ui', 'runtime'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
+        if (['config', 'ui', 'runtime', 'configure'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
             const command = args[0];
-            if (command && !command.startsWith('-') && !['config', 'ui', 'runtime', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command && !command.startsWith('-') && !['config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
             if (command === 'config') {
                 const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
                 validateConfigHelp(args.slice(offset));
@@ -91,7 +91,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return 0;
         }
         const command = args.shift();
-        if (!['config', 'ui', 'runtime', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
+        if (!['config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
         if (['render', 'render-subagents', 'slash-hook'].includes(command!)) {
             if (args.length)
@@ -125,6 +125,11 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         }
         const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
         const service = new ConfigurationService({ configDir, launch, hostVersion: environment.hostVersion ?? detectClaudeVersion }, createStorage(environment.now));
+        if (command === 'configure') {
+            if (args.length) throw new ArgumentError('configure takes no positional arguments');
+            const { configure } = await import('./integration/configure.js');
+            return configure(service, language, stdout, stderr);
+        }
         if (command === 'ui') {
             if (args.length)
                 throw new ArgumentError('ui takes no positional arguments');
