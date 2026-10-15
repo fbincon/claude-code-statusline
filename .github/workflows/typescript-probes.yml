@@ -2,6 +2,7 @@ name: TypeScript platform probes
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:

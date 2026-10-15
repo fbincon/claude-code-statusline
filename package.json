@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "tools/testing"
   ],
   "engines": {
     "node": ">=24.21.0 <25"
@@ -13,6 +14,12 @@
   "scripts": {
     "build": "node tools/typescript/check-runtime.mjs && tsc -b",
     "typecheck": "npm run build",
+    "docs:check": "npm run build && node dist/typescript/tools/checks/docs.js",
+    "mods:prepare": "npm run build && node dist/typescript/tools/acceptance/mod-types.js",
+    "acceptance:power": "npm run build && node dist/typescript/tools/acceptance/power.js",
+    "capture:render": "npm run build && node dist/typescript/tools/acceptance/render-capture.js",
+    "release:gitee-notes": "npm run build && node dist/typescript/tools/release/gitee-notes.js",
+    "benchmark": "npm run build && node dist/typescript/tools/benchmarks/run.js",
     "generate": "npm run build && node dist/typescript/tools/generation/resources.js",
     "generate:check": "npm run build && node dist/typescript/tools/generation/resources.js --check",
     "languages:coverage": "npm run build && node dist/typescript/tools/generation/resources.js --coverage",
@@ -27,9 +34,11 @@
     "migration:installed": "npm run build && node dist/typescript/tools/migration/ts-04/installed.js",
     "migration:pack:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/package.js",
     "migration:official:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/official-installed.js",
-    "migration:host:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/host-smoke.js"
+    "migration:host:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/host-smoke.js",
+    "acceptance:paid": "npm run build && node dist/typescript/tools/acceptance/paid.js"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
     "@types/node": "24.19.2",
     "typescript": "5.9.3"
   }

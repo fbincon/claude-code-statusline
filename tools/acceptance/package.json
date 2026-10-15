@@ -1,0 +1,7 @@
+{
+  "name": "statusline-paid-acceptance-dependencies",
+  "private": true,
+  "type": "module",
+  "description": "Optional dependencies for explicitly budgeted acceptance; excluded from product and default CI",
+  "dependencies": { "@anthropic-ai/claude-agent-sdk": "0.3.296" }
+}

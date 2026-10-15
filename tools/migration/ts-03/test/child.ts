@@ -1,10 +1,11 @@
 import * as fs from 'node:fs';
 import { lock, atomicWrite } from '@fbincon/statusline-platform/files';
+import { processToken } from '@fbincon/statusline-platform/processes';
 import { sample } from '@fbincon/statusline-platform/clocks';
 import { encode } from '@fbincon/statusline-core/json';
 
 const [operation, path, action, extra] = process.argv.slice(2);
-if (operation === 'clock') process.stdout.write(encode(sample()));
+if (operation === 'clock') process.stdout.write(encode({ ...sample(), token: processToken(Number(path ?? process.pid)) }));
 else if (operation === 'echo') {
   process.stdout.write(JSON.stringify({ args: process.argv.slice(3), stdin: fs.readFileSync(0, 'utf8') }));
 } else if (operation === 'wait') setTimeout(() => {}, 60_000);

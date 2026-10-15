@@ -967,37 +967,47 @@
     },
     {
       "id": "tests.integration.test_benchmark_render.BenchmarkTests.test_comparison_flags_consistent_changes_beyond_baseline_round_noise",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_benchmark_render.BenchmarkTests.test_comparison_runs_one_case_from_each_source_before_advancing",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_benchmark_render.BenchmarkTests.test_fixture_contains_nested_agents_and_a_real_committed_repository",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_benchmark_render.BenchmarkTests.test_immutable_source_verification_rejects_modified_runtime",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_benchmark_render.BenchmarkTests.test_setup_and_cleanup_are_outside_the_timed_region",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
@@ -1830,107 +1840,137 @@
     },
     {
       "id": "tests.integration.test_linux_clock_smoke.LinuxPowerEvidenceTests.test_changed_code_runtime_and_event_failures_are_rejected",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_linux_clock_smoke.LinuxPowerEvidenceTests.test_guest_result_never_claims_physical_host",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_linux_clock_smoke.LinuxPowerEvidenceTests.test_old_boot_events_and_unconfirmed_actions_do_not_pass",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_linux_clock_smoke.LinuxPowerEvidenceTests.test_reboot_needs_new_identity_new_journal_and_wall_fallback",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_linux_clock_smoke.LinuxPowerEvidenceTests.test_sleep_requires_events_and_excluded_monotonic_time",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_live_budget.LiveBudgetTests.test_unknown_costs_and_concurrent_reservations_retain_shared_cap",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/budget.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_live_budget.LiveBudgetTests.test_zero_and_known_costs_release_only_unused_reservations",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/budget.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_macos_clock_smoke.MacOSPowerEvidenceTests.test_changed_source_runtime_or_unreadable_events_cannot_pass",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_macos_clock_smoke.MacOSPowerEvidenceTests.test_monotonic_sleep_exclusion_is_independent_evidence",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_macos_clock_smoke.MacOSPowerEvidenceTests.test_no_event_no_human_and_display_only_are_failures",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_macos_clock_smoke.MacOSPowerEvidenceTests.test_reboot_rejects_historical_or_missing_boot_events",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_macos_clock_smoke.MacOSPowerEvidenceTests.test_reboot_requires_new_domain_and_wall_fallback",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_macos_clock_smoke.MacOSPowerEvidenceTests.test_short_sleep_does_not_meet_gate",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_macos_clock_smoke.MacOSPowerEvidenceTests.test_sleep_pairs_only_in_capture_window_and_respects_offset",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_macos_clock_smoke.MacOSPowerEvidenceTests.test_vm_pass_never_claims_physical_host",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
@@ -2398,121 +2438,155 @@
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_all_repository_release_bodies",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_cli_rejects_missing_assets_before_overwriting_output",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_commands_use_actual_assets_and_preserve_git_refs",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_cross_version_asset_requires_matching_release",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_download_link_retained_but_pipx_installs_local_wheel",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_keep_github_workflows_issues_and_original_provenance",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_missing_asset_duplicate_target_and_prerelease_mismatch",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_pinned_index_install_uses_local_wheel_and_rejects_another_version",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_relative_docs_resolve_from_release_file",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_repeat_render_retains_source_and_release_metadata",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.GiteeNotesTests.test_wrong_identity_tag_url_and_unpublished_source",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.MarkdownTests.test_commands_code_spans_and_external_links_are_unchanged",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.MarkdownTests.test_conversion_is_idempotent_and_source_is_unchanged",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.MarkdownTests.test_fixed_tag_links_images_fragments_and_titles",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.MarkdownTests.test_nested_badges_reference_images_and_html",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.MarkdownTests.test_only_destinations_change",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_release_documentation.MarkdownTests.test_relative_escape_and_invalid_version_are_rejected",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
@@ -2940,65 +3014,83 @@
     },
     {
       "id": "tests.integration.test_ts02_linux_terminal_smoke.LinuxManualEvidenceTests.test_complete_fixture_uses_human_focus_without_claiming_os_query",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_ts02_linux_terminal_smoke.LinuxManualEvidenceTests.test_popup_needs_parent_input_and_visual_confirmation",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_ts02_linux_terminal_smoke.LinuxManualEvidenceTests.test_unconfirmed_focus_wrong_nonce_and_terminal_repair_fail",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_ts02_macos_terminal_smoke.TerminalEvidenceGates.test_complete_synthetic_fixture_passes_evaluator",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_ts02_macos_terminal_smoke.TerminalEvidenceGates.test_missing_unicode_directions_and_small_size_are_rejected",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_ts02_macos_terminal_smoke.TerminalEvidenceGates.test_unconfirmed_visual_and_repaired_terminal_are_not_passes",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_ts02_macos_terminal_smoke.TerminalEvidenceGates.test_wrong_nonce_or_wrong_focus_cannot_pass",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_ts02_mod_smoke.HostCleanupTests.test_busy_host_ignoring_sigterm_is_drained_closed_and_reaped",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_ts02_mod_smoke.HostCleanupTests.test_unreapable_child_has_bounded_wait_and_master_is_closed",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
@@ -6309,9 +6401,11 @@
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_a_wait_ending_before_its_start_invalidates_precision",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
@@ -6323,44 +6417,56 @@
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_clock_loss_during_a_wait_survives_restore_and_hides_precision",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_confirmed_resume_reopens_the_same_clock_origin",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_overlapping_waits_and_duplicate_events",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_reboot_and_backwards_uptime_cannot_claim_execution_coverage",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_reset_preserves_an_open_modal_and_freezing_survives_restart",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_uptime_ignores_wall_clock_adjustment_and_includes_suspend",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "Observable assertions retained in the named TypeScript regression tests.",
       "owner": "TS-05"
     },
     {

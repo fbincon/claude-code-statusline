@@ -5,7 +5,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { installCandidate, PACKAGE } from '../package.js';
-import { repoRoot, sourceHashes, exportReference, python as referencePython } from '../../ts-03/common.js';
+import { repoRoot, sourceHashes } from '../../ts-03/common.js';
 import { openPty } from './pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import { Capture } from '../capture.js';
@@ -274,14 +274,11 @@ test('installed candidate upgrades owned Python entry bytes while preserving opt
     // none of the candidate operations above had it on PATH.
     fs.copyFileSync(settingsBackup, join(config, 'settings.json'));
     fs.copyFileSync(displayBackup, join(config, 'claude-statusline.json'));
-    const reference = exportReference();
-    try {
-        const restored = spawnSync(referencePython, ['-B', '-m', 'claude_statusline', 'render'], { cwd: installed.temporary, env: { ...process.env, PYTHONPATH: join(reference, 'src'), PYTHONUTF8: '1', CLAUDE_CONFIG_DIR: config, COLUMNS: String(fixture.input.width + 2) }, input: JSON.stringify(fixture.input.payload), encoding: 'utf8', timeout: 20000 });
-        assert.equal(restored.status, 0, restored.stderr);
-        const expected = JSON.parse(fs.readFileSync(join(repoRoot, 'tests/fixtures/migration/ts-01/expected.json'), 'utf8'))[fixture.id].value;
-        assert.equal(restored.stdout, expected.join('\n') + '\n');
-        assert.equal(fs.readFileSync(join(config, 'settings.json'), 'utf8'), raw);
-        report.compatible_backup_python_replay = true;
-    } finally { fs.rmSync(reference, { recursive: true, force: true }); }
+    const expected = JSON.parse(fs.readFileSync(join(repoRoot, 'tests/fixtures/migration/ts-01/expected.json'), 'utf8'))[fixture.id].value.join('\n') + '\n';
+    assert.equal(run(['render'], config, JSON.stringify(fixture.input.payload), { COLUMNS: String(fixture.input.width + 2) }), expected);
+    assert.equal(fs.readFileSync(join(config, 'settings.json'), 'utf8'), raw);
+    assert.equal(fs.readFileSync(join(config, 'claude-statusline.json'), 'utf8'), display);
+    report.compatible_backup_golden_replay = true;
+    report.compatible_backup = { settings: raw, display, payload: fixture.input.payload, columns: fixture.input.width + 2, expected };
     checks.python_upgrade = true;
 });

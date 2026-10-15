@@ -1,11 +1,12 @@
+import { oracle, referenceDirectory as exportReference } from '@fbincon/statusline-test-support/oracle';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+
 import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { main } from '@fbincon/statusline-cli/main';
-import { exportReference, python } from '../common.js';
+
 
 test('help preserves Python command validation, exit codes and output channels without writes', async t => {
     const reference = exportReference(), root = mkdtempSync(join(tmpdir(), 'ts03-help-'));
@@ -43,7 +44,7 @@ for args in json.load(sys.stdin):
     results.append([status, bool(out.getvalue()), bool(err.getvalue())])
 print(json.dumps(results))
 `;
-    const expected = JSON.parse(execFileSync(python, ['-B', '-c', script], {
+    const expected = JSON.parse(oracle(['-B', '-c', script], {
         input: JSON.stringify(vectors), encoding: 'utf8',
         env: { ...process.env, PYTHONPATH: join(reference, 'src'), PYTHONDONTWRITEBYTECODE: '1', CLAUDE_CONFIG_DIR: join(root, 'python') },
     })) as [number, boolean, boolean][];

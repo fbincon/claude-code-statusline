@@ -14,23 +14,18 @@ import { atomicWrite, lock, withLock, durableUnlink, isLinkOrReparse, retryWindo
 import { run, binding, nodeBinding } from '@fbincon/statusline-platform/launch';
 import { library, nativeApi } from '@fbincon/statusline-platform/native';
 import { architecture } from '@fbincon/statusline-platform/architecture';
-import { exportReference, python, repoRoot } from '../common.js';
+import { repoRoot } from '../common.js';
 
 const cli = fileURLToPath(new URL('./child.js', import.meta.url));
 const temporary = fs.mkdtempSync(join(tmpdir(), 'ts03-中文 space-'));
-let oracleRoot: string;
 let env: NodeJS.ProcessEnv;
-const oracleScript = join(repoRoot, 'tools/migration/ts-02/scripts/oracle.py');
 before(() => {
-  oracleRoot = exportReference();
   env = Object.fromEntries(['PATH', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', 'TMP', 'TEMP', 'TMPDIR', 'LD_LIBRARY_PATH']
     .filter(key => process.env[key] !== undefined).map(key => [key, process.env[key]]));
-  Object.assign(env, { TS02_REFERENCE_ROOT: oracleRoot, PYTHONDONTWRITEBYTECODE: '1', PYTHONUTF8: '1',
-    CLAUDE_CONFIG_DIR: join(temporary, 'config'), CLAUDE_STATUSLINE_RUNTIME_DIR: join(temporary, 'runtime'),
+  Object.assign(env, { CLAUDE_CONFIG_DIR: join(temporary, 'config'), CLAUDE_STATUSLINE_RUNTIME_DIR: join(temporary, 'runtime'),
     HOME: join(temporary, 'home'), USERPROFILE: join(temporary, 'home') });
 });
-after(() => { fs.rmSync(temporary, { recursive: true, force: true }); if (oracleRoot) fs.rmSync(oracleRoot, { recursive: true, force: true }); });
-function oracle(args: string[], input = '') { return execFileSync(python, [oracleScript, ...args], { input, env, encoding: 'utf8' }); }
+after(() => { fs.rmSync(temporary, { recursive: true, force: true }); });
 test('architecture evidence distinguishes native machine from process ABI', () => {
   const result = architecture(); assert.equal(result.process_arch, process.arch);
   if (process.env.TS03_EXPECT_PROCESS_ARCH) assert.equal(result.process_arch, process.env.TS03_EXPECT_PROCESS_ARCH);
@@ -38,22 +33,12 @@ test('architecture evidence distinguishes native machine from process ABI', () =
   if (process.platform === 'win32') assert.equal(result.architecture_source, 'IsWow64Process2');
   if (process.env.TS03_EXPECT_HOST_ARCH) assert.equal(result.host_arch, process.env.TS03_EXPECT_HOST_ARCH);
 });
-test('native clock matches frozen Python except the explicit Windows boot-domain fix', () => {
+test('native clocks and process identities agree across independent processes', () => {
   const a = sample();
-  const expected = decode(oracle(['clock', String(process.pid)])) as Record<string, unknown>;
+  const expected = decode(execFileSync(process.execPath, [cli, 'clock', String(process.pid)], { env, encoding: 'utf8' })) as Record<string, unknown>;
   const b = sample();
   assert.ok(a.boot_id); assert.ok(a.boot_ns !== null);
-  assert.equal(b.boot_id, a.boot_id);
-  if (process.platform === 'win32') {
-    // Retain the frozen GUID-only result as evidence of the intentional change.
-    assert.match(String(expected.boot_id), /^windows:[0-9a-f-]{36}$/);
-    assert.ok(a.boot_id!.startsWith('windows:v2:' + String(expected.boot_id).slice(8) + ':'));
-    const fixed = decode(execFileSync(python, [join(repoRoot, 'tools/migration/ts-02/scripts/current-clock.py'), String(process.pid)], { env, encoding: 'utf8' })) as Record<string, unknown>;
-    assert.equal(a.boot_id, fixed.boot_id);
-    assert.equal(fixed.token, expected.token);
-    const independent = decode(execFileSync(process.execPath, [cli, 'clock'], { env, encoding: 'utf8' })) as Record<string, unknown>;
-    assert.equal(a.boot_id, independent.boot_id);
-  } else assert.equal(expected.boot_id, a.boot_id);
+  assert.equal(b.boot_id, a.boot_id); assert.equal(expected.boot_id, a.boot_id);
   assert.ok(integer(expected.boot_ns) >= a.boot_ns! && integer(expected.boot_ns) <= b.boot_ns!);
   assert.ok(integer(expected.wall_ns) >= a.wall_ns && integer(expected.wall_ns) <= b.wall_ns);
   assert.equal(processToken(process.pid), expected.token);
@@ -97,20 +82,18 @@ test('exited process is not live even when Windows retains its creation identity
   assert.equal(processMatches(child.pid!, token), false);
   const retained = processToken(child.pid!); assert.ok(retained === null || retained === token);
 });
-test('TS and Python independent writers serialize updates using the same lock file', async () => {
+test('independent Node writers serialize updates using the same lock file', async () => {
   const path = join(temporary, 'counter'); fs.writeFileSync(path, '0');
-  const jobs = Array.from({ length: 16 }, (_, i) => i % 2
-    ? run({ executable: python, args: [oracleScript] }, ['lock', path + '.lock', 'increment', path], '', 15000, env)
-    : run(nodeBinding(cli), ['lock', path + '.lock', 'increment', path], '', 15000));
+  const jobs = Array.from({ length: 16 }, () => run(nodeBinding(cli), ['lock', path + '.lock', 'increment', path], '', 15000, env));
   for (const result of await Promise.all(jobs)) assert.equal(result.code, 0, result.stderr);
   assert.equal(fs.readFileSync(path, 'utf8'), '16');
 });
-for (const pythonFirst of [true, false]) test(`mixed lock blocks until holder death: Python first=${pythonFirst}`, async () => {
-  const path = join(temporary, `death-${pythonFirst}.lock`);
-  const holder = spawn(pythonFirst ? python : process.execPath, [...(pythonFirst ? [oracleScript] : [cli]), 'lock', path, 'hold'], { env });
+for (const round of [0, 1]) test(`lock blocks until independent holder death: round=${round}`, async () => {
+  const path = join(temporary, `death-${round}.lock`);
+  const holder = spawn(process.execPath, [cli, 'lock', path, 'hold'], { env });
   const closed = once(holder, 'close');
   await Promise.race([once(holder.stdout, 'data'), new Promise((_, reject) => setTimeout(() => reject(new Error('holder did not lock')), 10000).unref())]);
-  const waiter = run(pythonFirst ? nodeBinding(cli) : { executable: python, args: [oracleScript] }, ['lock', path, 'once'], '', 10000, env);
+  const waiter = run(nodeBinding(cli), ['lock', path, 'once'], '', 10000, env);
   let ended = false; void waiter.then(() => { ended = true; });
   await new Promise(r => setTimeout(r, 250)); assert.equal(ended, false);
   holder.kill('SIGKILL'); await closed;

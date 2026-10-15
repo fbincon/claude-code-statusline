@@ -1,9 +1,10 @@
+import { oracle, referenceDirectory as exportReference } from '@fbincon/statusline-test-support/oracle';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
-import { exportReference, python } from '../common.js';
+
+
 import { canonical, decode, encode } from '@fbincon/statusline-core/json';
 import { parseUsage, parseCostSnapshot } from '@fbincon/statusline-core/runtime/usage';
 import { sha256 } from '@fbincon/statusline-platform/hash';
@@ -28,7 +29,7 @@ test('streaming usage and independently replaced cost fields match the immutable
         }
         traces.push(rows);
     }
-    const expected = decode(execFileSync(python, ['-B', '-c', [
+    const expected = decode(oracle(['-B', '-c', [
         'import json,sys',
         'from claude_statusline.runtime.usage import _parse_usage, _parse_cost_snapshot',
         'result=[]',
