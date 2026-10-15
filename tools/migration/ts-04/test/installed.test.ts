@@ -124,10 +124,21 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
             const ps = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe'), quote = (value: string) => "'" + value.replaceAll("'", "''") + "'";
             const input = join(installed.temporary, 'shell-input.json');
             fs.writeFileSync(input, payload);
-            const command = `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); Get-Content -Raw -Encoding UTF8 ${quote(input)} | & ${quote(installed.bin + '.ps1')} ${operation}; exit $LASTEXITCODE`;
+            const checkpoint = join(installed.temporary, `powershell-${operation}.phases`);
+            const mark = (phase: string) => `[IO.File]::AppendAllText(${quote(checkpoint)}, ${quote(phase + '\n')}); `;
+            const command = mark('started') + `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); ` + mark('encoding') + `$source = Get-Content -Raw -Encoding UTF8 ${quote(input)}; ` + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
             const executed = runShell(ps, [...POWERSHELL_FLAGS, command], operation, { ...installed.env, CLAUDE_CONFIG_DIR: config });
             shellReceipts.push(executed.receipt);
             const result = executed.result;
+            report.powershell_phases = { ...(report.powershell_phases as object ?? {}), [operation]: fs.existsSync(checkpoint) ? fs.readFileSync(checkpoint, 'utf8').trim().split('\n') : [] };
+            if (result.status !== 0) {
+                const commands = [
+                    { name: 'isolated-startup', text: '[Console]::WriteLine("ready")', env: { ...installed.env } },
+                    { name: 'original-startup', text: '[Console]::WriteLine("ready")', env: { ...process.env } },
+                    { name: 'direct-node', text: `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); Get-Content -Raw -Encoding UTF8 ${quote(input)} | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`, env: { ...installed.env, CLAUDE_CONFIG_DIR: config } },
+                ];
+                report.shell_diagnostics = commands.map(probe => { const observed = runShell(ps, [...POWERSHELL_FLAGS, probe.text], probe.name, probe.env); return { ...observed.receipt, stdout: observed.result.stdout }; });
+            }
             assert.equal(result.status, 0, JSON.stringify(executed.receipt));
             assert.equal(result.stdout.replaceAll('\r\n', '\n'), expected);
             const bash = process.env.TS04_GIT_BASH ?? join(process.env.ProgramFiles ?? 'C:\\Program Files', 'Git/bin/bash.exe');
