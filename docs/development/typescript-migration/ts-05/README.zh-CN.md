@@ -53,7 +53,10 @@ PR #92 合并为 `bc424e3ec8e4734b7c29bbf734b9328ecfc42ba3`。
 仅保留缓存目录未能修复命令模块查找。验收器现显式加载 npm 原始 `.ps1` 启动脚本所需的系统
 Management 模块，保留有效系统目录变量，并用 `.NET File.ReadAllText` 按字面路径读取输入。
 依据 [Microsoft 启动说明](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_psmodulepath)
-清除父进程继承的 PowerShell 7 模块路径。模块加载仍包含在原有 20 秒限制内，CI 验证待完成。
+清除父进程继承的 PowerShell 7 模块路径。下一次运行已到达 `read`，但原生 stdin 格式化仍停滞。
+PowerShell 的[原生命令处理器](https://github.com/PowerShell/PowerShell/blob/master/src/System.Management.Automation/engine/NativeCommandProcessor.cs)
+还会调用 Utility 的 `Out-String`；现显式加载这两个系统模块，并关闭自动模块搜索，使缺失依赖立即报错。
+全部模块加载仍包含在原有 20 秒限制内，CI 验证待完成。
 
 ## 完成条件
 

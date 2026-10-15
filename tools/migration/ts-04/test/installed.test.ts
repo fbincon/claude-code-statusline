@@ -131,7 +131,7 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
             const encoding = `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); `;
             const command = mark('started') + POWERSHELL_BOOTSTRAP + mark('modules') + powershellIsolation(installed.env) + encoding + mark('encoding') + readInput + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
             const executed = runShell(ps, [...POWERSHELL_FLAGS, command], operation, powershellEnvironment({ ...installed.env, CLAUDE_CONFIG_DIR: config }));
-            report.powershell_profile = 'OS profile and explicit built-in Management module with -NoProfile; isolated product paths restored before Node';
+            report.powershell_profile = 'OS profile with -NoProfile, explicit built-in Management/Utility, no automatic module search; isolated product paths restored before Node';
             shellReceipts.push(executed.receipt);
             const result = executed.result;
             report.powershell_phases = { ...(report.powershell_phases as object ?? {}), [operation]: fs.existsSync(checkpoint) ? fs.readFileSync(checkpoint, 'utf8').trim().split('\n') : [] };
@@ -140,6 +140,8 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
                     { name: 'isolated-startup', text: '[Console]::WriteLine("ready")', env: { ...installed.env } },
                     { name: 'original-startup', text: '[Console]::WriteLine("ready")', env: { ...process.env } },
                     { name: 'original-input', text: `$source = Get-Content -LiteralPath ${quote(input)} -Raw -Encoding UTF8; [Console]::WriteLine($source.Length)`, env: { ...process.env } },
+                    { name: 'node-version', text: `& ${quote(installed.node)} --version; exit $LASTEXITCODE`, env: { ...installed.env } },
+                    { name: 'original-node', text: encoding + readInput + `$source | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`, env: { ...process.env, CLAUDE_CONFIG_DIR: config } },
                     { name: 'direct-node', text: encoding + readInput + `$source | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`, env: { ...installed.env, CLAUDE_CONFIG_DIR: config } },
                 ];
                 report.shell_diagnostics = commands.map(probe => { const observed = runShell(ps, [...POWERSHELL_FLAGS, probe.text], probe.name, probe.env); return { ...observed.receipt, stdout: observed.result.stdout }; });

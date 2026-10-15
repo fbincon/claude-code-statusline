@@ -67,7 +67,11 @@ module needed by npm's unchanged `.ps1` shim, keeps valid OS folder variables an
 reads input with `.NET File.ReadAllText` so shell metacharacters remain literal.
 It removes inherited PowerShell 7 module paths in accordance with
 [Microsoft's startup documentation](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_psmodulepath).
-Module loading remains within the same 20-second bound; CI verification is pending.
+The next run reached `read` but native stdin formatting still stalled. PowerShell's
+[native command processor](https://github.com/PowerShell/PowerShell/blob/master/src/System.Management.Automation/engine/NativeCommandProcessor.cs)
+also invokes Utility's `Out-String`; both system modules are now explicit and
+automatic module search is disabled so a missing dependency fails immediately.
+All module loading remains within the same 20-second bound; CI verification is pending.
 
 ## Completion gates
 
