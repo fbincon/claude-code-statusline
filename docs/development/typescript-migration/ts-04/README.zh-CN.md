@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-状态：**IN_PROGRESS**，2026-10-15（Asia/Shanghai）；执行者：Codex。
+状态：**VALIDATING**，2026-10-15（Asia/Shanghai）；执行者：Codex。
 [迁移总计划](../../typescript-migration.zh-CN.md)维护阶段状态。
 已批准的执行计划只使用隔离包与配置，保留维护者现用 Python 安装；恢复使用显式命令，
 doctor 保持只读。本阶段不分配发行版本或标签。
@@ -13,9 +13,9 @@ doctor 保持只读。本阶段不分配发行版本或标签。
 | --- | --- | --- |
 | 04-A | 完整责任台账、共享编辑器规则及生产 Mod argv 绑定 | DONE；[PR #87](https://github.com/fbincon/claude-code-statusline/pull/87) |
 | 04-B | 外部 raw-TTY/VT 编辑器、终端启动器与结果桥 | DONE；[PR #88](https://github.com/fbincon/claude-code-statusline/pull/88) |
-| 04-C | 安装、卸载、doctor、归属与资源 | VALIDATING；`fbincon/ts-04-installation` |
-| 04-D | 持久化事务检查点与显式恢复 | VALIDATING；`fbincon/ts-04-recovery` |
-| 04-E | 已安装候选包验收、CI、文档及收口 | NOT_STARTED |
+| 04-C | 安装、卸载、doctor、归属与资源 | DONE；[PR #89](https://github.com/fbincon/claude-code-statusline/pull/89) |
+| 04-D | 持久化事务检查点与显式恢复 | DONE；[PR #90](https://github.com/fbincon/claude-code-statusline/pull/90) |
+| 04-E | 已安装候选包验收、CI、文档及收口 | VALIDATING; `fbincon/ts-04-installed-acceptance` |
 
 ## 责任与架构
 
@@ -23,8 +23,8 @@ doctor 保持只读。本阶段不分配发行版本或标签。
 TS-03 转交的 45 个完整测试及八项混合测试剩余断言，共 **265 项独立责任**。
 冻结基线及 TS-03 交接文件保留为历史证据。新审计拒绝遗漏／重复 ID、责任变化、
 缺少替代测试和无理由退役；`--complete` 还拒绝待完成条目。
-04-A 从 265 项 pending 起步。04-B 为 152 项迁移、八项有替代证据的退役及 105 项待完成的
-安装／恢复责任。平台限定测试仍需目标 CI 结果；该台账不代表阶段完成。
+04-A 从 265 项 pending 起步。04-E 现为 **252 项迁移、13 项有明确替代证据的退役、
+零项 pending**。退役遵循已批准的 D05 入口决策；平台验收仍以目标 CI 为准。
 
 `core/editor` 统一维护可复用的草稿、实例、搜索、数值控制、指引、导入审查和协议响应逻辑。
 生成器将纯模块同步到自包含的 Mod 资源并检查漂移；Node 与两个 Mod 共用纯 argv 绑定。
@@ -48,8 +48,7 @@ nonce 和父进程身份；获取配置锁后再次检查请求撤销，防止�
 安装在 `statusline_runtime/installation.json` 记录精确 Node／JS 绑定；升级识别该历史
 绑定及旧 Python 入口。doctor 报告 PATH／Python 冲突，不卸载环境。官方插件 CLI 以 JSON
 字符串传递多值输入；两个 Mod 同时解码并校验这种形式及数组默认值。技能模板的唯一编辑源
-迁至 `packages/cli/resources`，生成器维护保留的 Python 副本。中断后的持久恢复属于下一批，
-04-C 单独不宣称具备该保证。
+迁至 `packages/cli/resources`，生成器维护保留的 Python 副本。04-D 增加持久恢复，04-E 在真实安装包中验证。
 
 ## 验证与下一步
 
@@ -71,14 +70,15 @@ Windows CI 执行。独立 VT 捕获校验可见单元格、完整字素、预�
 04-C 本地检查：TS 830/833 通过，三项 Windows 限定跳过；官方原生／runtime Mod 测试
 115/14 通过，两个验证器、声明类型检查及 50 项生成资源检查通过。真实 Claude Code
 2.1.296 在含中文及特殊字符的隔离目录安装两个 Mod，重复安装无变更，doctor 无错误，
-卸载成功清理所属集成；未调用模型、未修改维护者安装。台账现为 **251 项迁移、九项退役、
-五项待完成**；剩余 Python 入口／已安装 Windows Shell 替代验收归 04-E。
+卸载成功清理所属集成；未调用模型、未修改维护者安装。当批台账为 251 项迁移、九项退役、
+五项交接 04-E。最终 `18a1275` 的 43 项 CI 通过，八份回执精确匹配 363 个源码文件；
+合并为 `daaaccd`，详见[04-C 证据](validation.04-c.json)。
 
 ```bash
 npm test
 npm run generate:check
 npm run migration:inventory -- --complete
-npm run migration:inventory:ts04
+npm run migration:inventory:ts04 -- --complete
 ```
 
 04-D 新增显式 `recover [--config-dir PATH] [--dry-run]`、已同步且不可覆盖的原始快照、
@@ -88,9 +88,16 @@ npm run migration:inventory:ts04
 
 04-D 本地 TS 853/856 通过（三项 Windows 限定跳过），Python 847/856 通过（九项平台
 跳过），24 项恢复场景（包含真实进程中断）与 50 项生成资源检查通过。真实隔离的官方安装／重装／doctor／
-卸载流程通过，无残留待恢复日志；最终目标 CI 仍待完成。
+卸载流程通过，无残留待恢复日志。最终 `35c1702` 的 43 项 CI 通过，八份回执匹配
+370 个源码文件；合并为 `acdf5f9`，详见[04-D 证据](validation.04-d.json)。
 
-下一步：完成 04-C／04-D PR 检查及已安装候选包验收。阶段最终需要在既有目标矩阵上完成真实候选包
-编辑器与恢复验收。已批准延至发布前的实体／桌面补验维持原状态。
-性能归 PERF-01；超时、资源上限与稳定性契约仍为必需。
-原始证据置于忽略目录 `dist/validation/typescript-migration/ts-04/`。
+04-E 将私有候选在仓库外离线安装，覆盖双编辑器、原生依赖、15 个固定渲染案例、
+Windows 双 shell、目录迁移重绑、强制中断恢复及旧 Python 入口升级。固定宿主矩阵
+新增真实安装包集成验收。本地完整 TS 857/860 通过（三项平台跳过），10 项安装验收
+全部通过，包含缓存内部链接回归。真实 2.1.296 宿主已打开安装后的原生编辑器并保存，
+runtime 也调用了已安装后端，无模型调用。详见[候选验收与复现](candidate.zh-CN.md)。
+
+下一步：完成 04-E 最终目标 CI、逐字节回执核验及阶段关闭。已批准延至发布前的
+实体／桌面补验维持原状态；TS-05／TS-06 与 PERF-01 尚未开始。超时、资源上限与
+稳定性契约仍为必需，历史 D06 FAIL 保留。原始证据置于忽略目录
+`dist/validation/typescript-migration/ts-04/`。

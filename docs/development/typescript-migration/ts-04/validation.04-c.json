@@ -1,0 +1,386 @@
+{
+  "stage": "04-C",
+  "state": "DONE",
+  "tested_head": "18a1275bab1bd96058290192e652dc1f69a16423",
+  "merge_commit": "daaaccd239d596825cdba01d0bcdaeaa3c680926",
+  "pull_request": "https://github.com/fbincon/claude-code-statusline/pull/89",
+  "ci_jobs": [
+    {
+      "id": 116430983194,
+      "run_id": 38737662792,
+      "name": "Frozen Python migration baseline",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430983493,
+      "run_id": 38737662792,
+      "name": "Build and inspect distributions",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430983600,
+      "run_id": 38737662792,
+      "name": "macos-26-intel / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430983663,
+      "run_id": 38737662792,
+      "name": "macos-15 / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430983879,
+      "run_id": 38737662792,
+      "name": "ubuntu-latest / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430983881,
+      "run_id": 38737662792,
+      "name": "ubuntu-latest / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430983895,
+      "run_id": 38737662792,
+      "name": "macos-15-intel / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430983945,
+      "run_id": 38737662792,
+      "name": "macos-26-intel / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984029,
+      "run_id": 38737662792,
+      "name": "macos-15-intel / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984046,
+      "run_id": 38737662792,
+      "name": "windows-latest / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984085,
+      "run_id": 38737662792,
+      "name": "macos-26 / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984152,
+      "run_id": 38737662792,
+      "name": "macos-26 / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984299,
+      "run_id": 38737662792,
+      "name": "macos-15 / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984318,
+      "run_id": 38737662792,
+      "name": "windows-latest / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984809,
+      "run_id": 38737662846,
+      "name": "macOS / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984924,
+      "run_id": 38737662846,
+      "name": "Linux / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985112,
+      "run_id": 38737662846,
+      "name": "Linux / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985123,
+      "run_id": 38737662846,
+      "name": "Windows / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985159,
+      "run_id": 38737662846,
+      "name": "Linux / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985165,
+      "run_id": 38737662846,
+      "name": "Linux / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985186,
+      "run_id": 38737662846,
+      "name": "Windows / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985243,
+      "run_id": 38737662846,
+      "name": "macOS / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985305,
+      "run_id": 38737662846,
+      "name": "macOS / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985323,
+      "run_id": 38737662846,
+      "name": "Linux / Claude Code 2.1.287",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985327,
+      "run_id": 38737662846,
+      "name": "macOS / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985359,
+      "run_id": 38737662846,
+      "name": "Windows / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430985490,
+      "run_id": 38737662846,
+      "name": "Windows / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984478,
+      "run_id": 38737663188,
+      "name": "TS-02 / windows-11-arm / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984537,
+      "run_id": 38737663188,
+      "name": "TS-02 / macos-14 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984559,
+      "run_id": 38737663188,
+      "name": "TS-02 / windows-2025 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984573,
+      "run_id": 38737663188,
+      "name": "TS-02 / macos-15 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984625,
+      "run_id": 38737663188,
+      "name": "TS-02 / macos-15-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984722,
+      "run_id": 38737663188,
+      "name": "TS-02 / macos-26-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984815,
+      "run_id": 38737663188,
+      "name": "TS-02 / ubuntu-24.04 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430984908,
+      "run_id": 38737663188,
+      "name": "TS-02 / macos-26 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430981431,
+      "run_id": 38737662608,
+      "name": "TS-03 / macos-15-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430981914,
+      "run_id": 38737662608,
+      "name": "TS-03 / macos-14 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430981922,
+      "run_id": 38737662608,
+      "name": "TS-03 / macos-15 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430981998,
+      "run_id": 38737662608,
+      "name": "TS-03 / macos-26 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430982015,
+      "run_id": 38737662608,
+      "name": "TS-03 / ubuntu-24.04 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430982069,
+      "run_id": 38737662608,
+      "name": "TS-03 / windows-11-arm / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430982114,
+      "run_id": 38737662608,
+      "name": "TS-03 / macos-26-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116430982320,
+      "run_id": 38737662608,
+      "name": "TS-03 / windows-2025 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "source_receipts": [
+    {
+      "artifact_id": 11976080071,
+      "name": "ts03-windows-11-arm-x64",
+      "digest": "sha256:e14c28de593825bd84a8fb5f2e3219517e8063bceafa552c0cdb6e7897bc17b2",
+      "source_files": 363,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11976048278,
+      "name": "ts03-macos-26-arm64",
+      "digest": "sha256:96e4edc9285ecf715e473aa91be6d614bf1a0cacd3519727031c004319d32d53",
+      "source_files": 363,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11975444178,
+      "name": "ts03-macos-15-arm64",
+      "digest": "sha256:77bf49ff22c6ee706d5eb1b26f293092c5cadef8cf2ef9dc52d29a7fbcc6576e",
+      "source_files": 363,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11975190453,
+      "name": "ts03-macos-26-intel-x64",
+      "digest": "sha256:b0fe64987446c02f00932b585739458a689a33d208db0058adfade8159fd8183",
+      "source_files": 363,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11974818996,
+      "name": "ts03-macos-15-intel-x64",
+      "digest": "sha256:c62aaea935fe57145b971476a94a2388690fd3296379cf7c8ec38f146bb28fad",
+      "source_files": 363,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11974568755,
+      "name": "ts03-windows-2025-x64",
+      "digest": "sha256:fa58e7ff6144c349be9d795d832cf1be4e9418db990d193180144fb2ff11b3e7",
+      "source_files": 363,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11973618948,
+      "name": "ts03-ubuntu-24.04-x64",
+      "digest": "sha256:d59221fd39a4c0ede27889bee2bb7cb3f422b6249a8aff97826a399887d45ffa",
+      "source_files": 363,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11973364337,
+      "name": "ts03-macos-14-arm64",
+      "digest": "sha256:51490f056d19205ffa247889d001ae092548ac34259541b0f4cdebc268d59941",
+      "source_files": 363,
+      "mismatches": []
+    }
+  ],
+  "local_validation": {
+    "typescript": {
+      "passed": 830,
+      "total": 833,
+      "skipped": 3
+    },
+    "installation_assertions": 100,
+    "official_native": 115,
+    "official_runtime": 14,
+    "generated_resources": 50
+  },
+  "notes": [
+    "Initial CI assertions compared lexical temporary paths. Corrected assertions use canonical native paths on macOS and Windows; production behavior did not change."
+  ],
+  "physical_power_loss_claimed": false,
+  "release_created": false,
+  "installed_python_changed": false,
+  "gitee_contains_merge_at": "acdf5f95b4f3212f0aa1aae3b74ec045193bab7d"
+}

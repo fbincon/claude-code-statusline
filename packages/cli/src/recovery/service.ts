@@ -45,6 +45,7 @@ export function recover(context: InstallContext, dryRun = false): RecoveryResult
         return finishRefresh({ changed: false, transactions: [] });
     function run(): RecoveryResult {
         const current = pending(context.configDir);
+        if (!current.length) return { changed: false, transactions: [] };
         if (current.length > 1)
             throw new RecoveryRequired('Multiple pending transactions require inspection; no automatic ordering is assumed');
         const journal = readJournal(context.configDir, current[0]!);

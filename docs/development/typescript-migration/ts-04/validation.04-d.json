@@ -1,0 +1,391 @@
+{
+  "stage": "04-D",
+  "state": "DONE",
+  "tested_head": "35c1702664ba21b4e6c3e6361c730f92eddeb4c3",
+  "merge_commit": "acdf5f95b4f3212f0aa1aae3b74ec045193bab7d",
+  "pull_request": "https://github.com/fbincon/claude-code-statusline/pull/90",
+  "ci_jobs": [
+    {
+      "id": 116434339936,
+      "run_id": 38738653149,
+      "name": "TS-02 / windows-11-arm / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340264,
+      "run_id": 38738653149,
+      "name": "TS-02 / macos-14 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340297,
+      "run_id": 38738653149,
+      "name": "TS-02 / windows-2025 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340319,
+      "run_id": 38738653149,
+      "name": "TS-02 / macos-26-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340329,
+      "run_id": 38738653149,
+      "name": "TS-02 / ubuntu-24.04 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340370,
+      "run_id": 38738653149,
+      "name": "TS-02 / macos-15-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340438,
+      "run_id": 38738653149,
+      "name": "TS-02 / macos-26 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340586,
+      "run_id": 38738653149,
+      "name": "TS-02 / macos-15 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340745,
+      "run_id": 38738653246,
+      "name": "TS-03 / windows-11-arm / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340755,
+      "run_id": 38738653246,
+      "name": "TS-03 / windows-2025 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340842,
+      "run_id": 38738653246,
+      "name": "TS-03 / macos-14 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340854,
+      "run_id": 38738653246,
+      "name": "TS-03 / macos-26 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340903,
+      "run_id": 38738653246,
+      "name": "TS-03 / macos-15-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340933,
+      "run_id": 38738653246,
+      "name": "TS-03 / ubuntu-24.04 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340934,
+      "run_id": 38738653246,
+      "name": "TS-03 / macos-15 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434341379,
+      "run_id": 38738653246,
+      "name": "TS-03 / macos-26-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434339572,
+      "run_id": 38738653015,
+      "name": "Linux / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434339877,
+      "run_id": 38738653015,
+      "name": "Windows / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340016,
+      "run_id": 38738653015,
+      "name": "Windows / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340041,
+      "run_id": 38738653015,
+      "name": "Windows / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340059,
+      "run_id": 38738653015,
+      "name": "Linux / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340063,
+      "run_id": 38738653015,
+      "name": "macOS / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340082,
+      "run_id": 38738653015,
+      "name": "macOS / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340106,
+      "run_id": 38738653015,
+      "name": "macOS / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340127,
+      "run_id": 38738653015,
+      "name": "Linux / Claude Code 2.1.287",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340158,
+      "run_id": 38738653015,
+      "name": "macOS / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340196,
+      "run_id": 38738653015,
+      "name": "Windows / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340204,
+      "run_id": 38738653015,
+      "name": "Linux / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340269,
+      "run_id": 38738653015,
+      "name": "Linux / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434339847,
+      "run_id": 38738653143,
+      "name": "Frozen Python migration baseline",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340274,
+      "run_id": 38738653143,
+      "name": "Build and inspect distributions",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340304,
+      "run_id": 38738653143,
+      "name": "macos-26 / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340473,
+      "run_id": 38738653143,
+      "name": "windows-latest / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340512,
+      "run_id": 38738653143,
+      "name": "macos-15-intel / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340574,
+      "run_id": 38738653143,
+      "name": "macos-15 / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340602,
+      "run_id": 38738653143,
+      "name": "macos-15 / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340604,
+      "run_id": 38738653143,
+      "name": "macos-26-intel / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340625,
+      "run_id": 38738653143,
+      "name": "macos-15-intel / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340663,
+      "run_id": 38738653143,
+      "name": "windows-latest / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340669,
+      "run_id": 38738653143,
+      "name": "macos-26 / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340764,
+      "run_id": 38738653143,
+      "name": "ubuntu-latest / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340882,
+      "run_id": 38738653143,
+      "name": "ubuntu-latest / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116434340977,
+      "run_id": 38738653143,
+      "name": "macos-26-intel / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "source_receipts": [
+    {
+      "artifact_id": 11977325501,
+      "name": "ts03-macos-15-intel-x64",
+      "digest": "sha256:962bae0d45e192f11536eea734fb8cd89090d21a53aac9d2bd37480612d1910c",
+      "source_files": 370,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11977176235,
+      "name": "ts03-macos-26-intel-x64",
+      "digest": "sha256:93fe998ea9e25c01353f9d02458eed2dc959c280c2efa0d8776a9c015602321e",
+      "source_files": 370,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11976676288,
+      "name": "ts03-macos-15-arm64",
+      "digest": "sha256:6f3d048d9169692275b8c53cf631b8ccddbb2f377c4c07ddcf06f1ed46febab9",
+      "source_files": 370,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11976336492,
+      "name": "ts03-windows-11-arm-x64",
+      "digest": "sha256:d7fadd5603eba76f12ccc9c83a832528010bb43d74bbd754f4c243f3116474ae",
+      "source_files": 370,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11976065410,
+      "name": "ts03-windows-2025-x64",
+      "digest": "sha256:6ac4734401830f1c8cdf874fe6cf09e001e9205c9204d2765c10b645b8b4474b",
+      "source_files": 370,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11975405688,
+      "name": "ts03-macos-14-arm64",
+      "digest": "sha256:91426eea4aaaaef56596bb09c2b3894ff29347b1f463775921302c4a7015bf71",
+      "source_files": 370,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11975358062,
+      "name": "ts03-macos-26-arm64",
+      "digest": "sha256:cb17e6bfafdc3423b4ccc8a9274016beaa8480755cf542c15d65120f3d300ba9",
+      "source_files": 370,
+      "mismatches": []
+    },
+    {
+      "artifact_id": 11974094963,
+      "name": "ts03-ubuntu-24.04-x64",
+      "digest": "sha256:dfd95071d5d35545f17bb55ca9a546b52cf0649c455f4a140aa2c7ef2a9aef20",
+      "source_files": 370,
+      "mismatches": []
+    }
+  ],
+  "local_validation": {
+    "typescript": {
+      "passed": 853,
+      "total": 856,
+      "skipped": 3
+    },
+    "python": {
+      "passed": 847,
+      "total": 856,
+      "skipped": 9
+    },
+    "recovery_scenarios": 24,
+    "official_native": 115,
+    "official_runtime": 14,
+    "generated_resources": 50
+  },
+  "notes": [
+    "The full-suite count precedes the additional config-directory-link test. All final source checks passed in CI. Retargeted to main after #89; its merge tree matches the tested dependency."
+  ],
+  "physical_power_loss_claimed": false,
+  "release_created": false,
+  "installed_python_changed": false,
+  "gitee_contains_merge_at": "acdf5f95b4f3212f0aa1aae3b74ec045193bab7d"
+}

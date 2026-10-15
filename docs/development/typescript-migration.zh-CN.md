@@ -21,10 +21,10 @@
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01～TS-03 DONE**；TS-03 依据现有[功能与 CI 证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)按修订标准关闭 |
-| 当前任务范围 | TS-04 IN_PROGRESS：双编辑器、安装与显式恢复；TS-05／TS-06 和 PERF-01 保持 NOT_STARTED |
+| 当前任务范围 | TS-04 VALIDATING：双编辑器、安装与显式恢复；TS-05／TS-06 和 PERF-01 保持 NOT_STARTED |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
 | 目标版本与工期 | 尚未指定；后续候选／交付任务确定版本及工期 |
-| 下一项实施工作 | [04-D 恢复验证](typescript-migration/ts-04/README.zh-CN.md)，随后实施安装／恢复 |
+| 下一项实施工作 | [04-E 安装候选验收](typescript-migration/ts-04/candidate.zh-CN.md)，随后关闭阶段 |
 
 维护者已批准 TS-04 实施，安装验收使用隔离环境，恢复采用显式命令，保留现用 Python 安装。[TS-04 记录](typescript-migration/ts-04/README.zh-CN.md)跟踪五批实现，本阶段不发布。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 
@@ -107,7 +107,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | TS-01 | 固定基线与行为清单 | 明确开始实施任务 | DONE | Codex；`fbincon/ts-01-baseline`；测试提交 `ddc9dde`；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
 | TS-02 | 平台验证及 D01–D06 决策 | TS-01 | DONE | Codex；`fbincon/ts-02-linux-acceptance`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)及[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)；[整合与证据](typescript-migration/ts-02/LINUX-20261014.zh-CN.md) |
 | TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | DONE | Codex；实现 [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)，合并 `7eae7c4`；[修订标准下的关闭记录](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15) |
-| TS-04 | 双编辑器、安装与恢复 | TS-03 | IN_PROGRESS | Codex；`fbincon/ts-04-recovery`；[批次与证据](typescript-migration/ts-04/README.zh-CN.md) |
+| TS-04 | 双编辑器、安装与恢复 | TS-03 | VALIDATING | Codex；`fbincon/ts-04-installed-acceptance`；[批次与证据](typescript-migration/ts-04/README.zh-CN.md) |
 | TS-05 | 完整工具链、CI 与发布候选 | TS-04 | NOT_STARTED | 未分配 |
 | TS-06 | 预览验收与正式交付 | TS-05 | NOT_STARTED | 未分配 |
 

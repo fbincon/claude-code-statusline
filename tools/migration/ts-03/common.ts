@@ -71,8 +71,8 @@ export function sourceHashes(): Record<string, string> {
         const manifest = root + '/.claude-plugin/plugin.json';
         hashes[manifest] = sha256(readFileSync(join(repoRoot, manifest)));
     }
-    for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.base.json', 'tsconfig.tools.json', '.node-version', '.gitattributes', '.github/workflows/typescript.yml',
-        'tools/generate_unicode.py', 'mods/statusline-native/lib/generated-unicode.ts', 'mods/statusline-native/lib/unicode.ts'])
+    for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.base.json', 'tsconfig.tools.json', '.node-version', '.gitattributes', '.github/workflows/typescript.yml', '.github/workflows/native.yml',
+        'tools/generate_unicode.py', 'tools/unicode/UNICODE-LICENSE.txt', 'tools/unicode/WCWIDTH-LICENSE.txt', 'mods/statusline-native/lib/generated-unicode.ts', 'mods/statusline-native/lib/unicode.ts'])
         hashes[path] = sha256(readFileSync(join(repoRoot, path)));
     return Object.fromEntries(Object.entries(hashes).sort());
 }

@@ -7,6 +7,7 @@ import { repoRoot } from '../../ts-03/common.js';
 export function openPty(configDir: string, columns = 80, rows = 24, extra: NodeJS.ProcessEnv = {}, language = 'en', command?: {
     executable: string;
     args: string[];
+    cwd?: string;
 }) {
     if (process.platform === 'win32')
         throw new Error('POSIX PTY only');
@@ -27,7 +28,7 @@ export function openPty(configDir: string, columns = 80, rows = 24, extra: NodeJ
     if (fcntl(m, 4, 'int', process.platform === 'darwin' ? 4 : 2048))
         throw new Error('fcntl failed');
     const child = spawn(command?.executable ?? process.execPath, command?.args ?? [join(repoRoot, 'packages/cli/dist/src/entry.js'), '--language', language, 'configure', '--config-dir', configDir], {
-        detached: true, stdio: [s, s, s], env: { PATH: '', HOME: configDir, USERPROFILE: configDir, LANG: 'C.UTF-8', TERM: 'xterm-256color', ...extra },
+        detached: true, cwd: command?.cwd, stdio: [s, s, s], env: { PATH: '', HOME: configDir, USERPROFILE: configDir, LANG: 'C.UTF-8', TERM: 'xterm-256color', ...extra },
     });
     let closed = false, failure: Error | null = null;
     child.once('exit', () => { closed = true; });

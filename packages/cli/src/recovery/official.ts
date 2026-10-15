@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { object } from '@fbincon/statusline-core/config/validation';
 import { UnconfirmedOperation } from '@fbincon/statusline-platform/plugin-host';
+import { resolvedPath } from '@fbincon/statusline-platform/commands';
 import { type InstallContext, type Host, type ModSpec } from '../integration/model.js';
 import { owner, registered, cacheOwned } from '../integration/mod-ownership.js';
 import { bindingMatches } from '../integration/mods.js';
@@ -24,16 +25,16 @@ function inspect(context: InstallContext, spec: ModSpec, host: Host, args: reado
         }
         catch { /* A verified historical cache is distinguishable from the new one. */ }
     }
-    const plugin = row ? Object.fromEntries(['id', 'scope', 'version', 'installPath', 'enabled'].map(key => [key, row[key] ?? null])) : null;
+    const plugin = row ? Object.fromEntries(['id', 'scope', 'version', 'installPath', 'enabled'].map(key => [key, key === 'installPath' && typeof row[key] === 'string' ? resolvedPath(row[key]) : row[key] ?? null])) : null;
     const configured = row && ['configure', 'install', 'update'].includes(args[0] ?? '') ? host.run(['configure', spec.plugin, '--json'], undefined, true) : null;
-    return { market: registeredMarket ? { name: spec.marketplace, path: join(context.configDir, spec.name), source: 'directory' } : null, plugin, inputs: object(configured) ? configured.inputs ?? null : null, currentCache };
+    return { market: registeredMarket ? { name: spec.marketplace, path: resolvedPath(join(context.configDir, spec.name)), source: 'directory' } : null, plugin, inputs: object(configured) ? configured.inputs ?? null : null, currentCache };
 }
 function mutation(args: readonly string[]): boolean {
     return ['install', 'uninstall', 'update', 'enable', 'disable'].includes(args[0] ?? '') || args[0] === 'configure' && args.includes('--values-stdin') || args[0] === 'marketplace' && ['add', 'remove', 'update'].includes(args[1] ?? '');
 }
 function validate(journal: OfficialJournal, spec: ModSpec): void {
     const args = journal.args, operation = args[0];
-    if (!mutation(args) || operation === 'marketplace' && (args[1] === 'add' ? args[2] !== join(journal.configDir, spec.name) : args[2] !== spec.marketplace) || operation !== 'marketplace' && args[1] !== spec.plugin)
+    if (!mutation(args) || operation === 'marketplace' && (args[1] === 'add' ? resolvedPath(args[2]!) !== resolvedPath(join(journal.configDir, spec.name)) : args[2] !== spec.marketplace) || operation !== 'marketplace' && args[1] !== spec.plugin)
         throw new RecoveryRequired('Untrusted official operation identity');
     if (journal.values && (operation !== 'configure' || !args.includes('--values-stdin')))
         throw new RecoveryRequired('Unexpected official operation values');
@@ -74,7 +75,9 @@ export function reconcile(context: InstallContext, spec: ModSpec, host: Host, jo
     if (active(journal))
         throw new RecoveryRequired('Official operation owner is still running');
     const actual = inspect(context, spec, host, journal.args);
-    const state = expected(journal, actual) ? 'confirmed' : equalSettings(actual, journal.before) ? 'not-applied' : null;
+    const before = structuredClone(journal.before);
+    if (object(before)) for (const [key, field] of [['market', 'path'], ['plugin', 'installPath']] as const) if (object(before[key]) && typeof before[key][field] === 'string') before[key][field] = resolvedPath(before[key][field]);
+    const state = expected(journal, actual) ? 'confirmed' : equalSettings(actual, before) ? 'not-applied' : null;
     if (!state)
         throw new RecoveryRequired('Official operation is still ambiguous; inspect its inventory and binding before retrying');
     if (!dryRun)

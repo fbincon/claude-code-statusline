@@ -22,7 +22,11 @@
     "migration:capture": "node dist/typescript/tools/migration/ts-03/capture.js",
     "migration:compare": "node dist/typescript/tools/migration/ts-03/compare.js",
     "migration:benchmark": "node dist/typescript/tools/migration/ts-03/performance/benchmark.js",
-    "migration:inventory:ts04": "node dist/typescript/tools/migration/ts-04/inventory.js"
+    "migration:inventory:ts04": "node dist/typescript/tools/migration/ts-04/inventory.js",
+    "migration:installed": "npm run build && node dist/typescript/tools/migration/ts-04/installed.js",
+    "migration:pack:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/package.js",
+    "migration:official:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/official-installed.js",
+    "migration:host:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/host-smoke.js"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

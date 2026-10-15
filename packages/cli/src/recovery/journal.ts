@@ -6,6 +6,7 @@ import { processToken, processMatches } from '@fbincon/statusline-platform/proce
 import { decode } from '@fbincon/statusline-core/json';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
+import { resolvedPath } from '@fbincon/statusline-platform/commands';
 import { safeTarget } from '../integration/paths.js';
 export const ROOT = 'statusline_runtime/transactions';
 export const hash = (raw: Buffer | null): string | null => raw === null ? null : createHash('sha256').update(raw).digest('hex');
@@ -144,7 +145,7 @@ export function readJournal(directory: string, path: string): Journal {
     const raw = decodeUtf8(readRegular(path, 4 * 1024 * 1024));
     decode(raw);
     const value = JSON.parse(raw);
-    if (!record(value) || value.schema_version !== 1 || !/^txn-[0-9a-f-]{36}$/u.test(value.id) || value.configDir !== directory || journalPath(value as Base) !== path || typeof value.action !== 'string' || typeof value.created !== 'string' || !record(value.process) || !Number.isSafeInteger(value.process.pid) || value.process.pid <= 0 || typeof value.process.token !== 'string' || !['files', 'official'].includes(value.kind))
+    if (!record(value) || value.schema_version !== 1 || !/^txn-[0-9a-f-]{36}$/u.test(value.id) || typeof value.configDir !== 'string' || !isAbsolute(value.configDir) || resolvedPath(value.configDir) !== resolvedPath(directory) || resolvedPath(journalPath(value as Base)) !== resolvedPath(path) || typeof value.action !== 'string' || typeof value.created !== 'string' || !record(value.process) || !Number.isSafeInteger(value.process.pid) || value.process.pid <= 0 || typeof value.process.token !== 'string' || !['files', 'official'].includes(value.kind))
         throw new RecoveryRequired('Untrusted recovery journal: ' + path);
     const expected = ['schema_version', 'id', 'configDir', 'action', 'created', 'process', 'kind', ...(value.kind === 'files' ? ['backup', 'phase', 'progress', 'entries'] : ['spec', 'args', 'values', 'before', 'phase'])].sort().join(',');
     if (Object.keys(value).sort().join(',') !== expected || Object.keys(value.process).sort().join(',') !== 'pid,token')
@@ -166,7 +167,7 @@ export function readJournal(directory: string, path: string): Journal {
     }
     else if (!['statusline-native', 'statusline-runtime'].includes(value.spec) || !['prepared', 'uncertain'].includes(value.phase) || !Array.isArray(value.args) || value.args.some((x: unknown) => typeof x !== 'string' || /[\0\r\n]/u.test(x)) || !(value.values === null || record(value.values) && Object.values(value.values).every(x => typeof x === 'string')))
         throw new RecoveryRequired('Invalid official operation checkpoint');
-    return value as Journal;
+    return { ...value, configDir: directory } as Journal;
 }
 export function allowedArtifact(path: string): boolean {
     if (path.includes('\\') || isAbsolute(path) || path.split('/').some(x => !x || x === '.' || x === '..'))

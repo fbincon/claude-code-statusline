@@ -9,7 +9,7 @@ function tests(root) {
   });
 }
 const files = ['packages/core/dist', 'packages/platform/dist', 'packages/cli/dist', 'packages/tui/dist', 'dist/typescript']
-  .flatMap(tests).sort();
+  .flatMap(tests).filter(path => !path.endsWith(join('ts-04', 'test', 'installed.test.js'))).sort();
 if (!files.length) throw new Error('No compiled tests found');
 const result = spawnSync(process.execPath, ['--test', '--test-concurrency=1', ...process.argv.slice(2), ...files], { stdio: 'inherit' });
 if (result.error) throw result.error;
