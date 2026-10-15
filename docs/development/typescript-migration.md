@@ -24,7 +24,7 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | Current task scope | TS-04 IN_PROGRESS: both editors, installation and explicit recovery; TS-05/TS-06 and PERF-01 remain NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; later candidate/delivery tasks determine versions and schedule |
-| Next implementation work | [04-A shared editor and argv foundation](typescript-migration/ts-04/README.md), followed by external TUI and installation/recovery |
+| Next implementation work | [04-B external editor validation](typescript-migration/ts-04/README.md), followed by installation/recovery |
 
 The maintainer approved TS-04 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-04 record](typescript-migration/ts-04/README.md) tracks five implementation batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
@@ -107,7 +107,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | DONE | Codex; `fbincon/ts-01-baseline`; tested `ddc9dde`; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75); [inventory and evidence](typescript-migration/ts-01/README.md) |
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | DONE | Codex; implementation [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85), merge `7eae7c4`; [closure under revised criteria](typescript-migration/ts-03/README.md#closure-2026-10-15) |
-| TS-04 | Both editors, installation and recovery | TS-03 | IN_PROGRESS | Codex; `fbincon/ts-04-editor-foundation`; [batches and evidence](typescript-migration/ts-04/README.md) |
+| TS-04 | Both editors, installation and recovery | TS-03 | IN_PROGRESS | Codex; `fbincon/ts-04-external-editor`; [batches and evidence](typescript-migration/ts-04/README.md) |
 | TS-05 | Complete tooling, CI and release candidate | TS-04 | NOT_STARTED | Unassigned |
 | TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |
 

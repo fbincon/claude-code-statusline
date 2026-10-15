@@ -21,17 +21,8 @@ function groupKey(group: string): string {
   return 'groups.' + group.toLowerCase().replaceAll(' / ', '.').replaceAll(' ', '-');
 }
 
-export function fieldMessage(row: SettingRow, view: View) {
-  const key = row.key;
-  if (key.startsWith('field:')) return text('fields.global.' + key.slice(6) + '.label');
-  if (key.startsWith('item:')) return text('fields.item.' + key.slice(5) + '.label');
-  if (key.startsWith('fit:')) {
-    const [, id, field] = key.split(':');
-    return text('native.fitting_label', {item: view.editor!.instanceLabel('main',id!,view.language), field: text('fields.item.' + field + '.label')});
-  }
-  if (key.startsWith('break:')) return text('layout.break_before', {item: view.editor!.instanceLabel('main',key.slice(6),view.language)});
-  return text('native.settings.' + key);
-}
+export { fieldMessage } from '../editor/forms.ts';
+import { fieldMessage } from '../editor/forms.ts';
 
 const VALUE_KEYS = new Set(['on','off','inherit','default','ansi','full','home','project-relative','basename','classic','compact','powerline','terminal','git-dirty','nonzero','used-at-least',
   'when-subagents','always','event','hide','show','auto','explicit','original','short','legacy','grouped','unicode','ascii',

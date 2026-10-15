@@ -15,7 +15,7 @@ import { executeConfig, parseSlashArguments } from '../config/commands.js';
 import { ArgumentError } from '../config/arguments.js';
 import { configDirectory, renderInput } from '../rendering/main.js';
 import { localizedError } from '../errors.js';
-import { unavailableEditor, UNAVAILABLE_MESSAGE } from './editor.js';
+import { UNAVAILABLE_MESSAGE } from './editor.js';
 const cut = (value: string, length: number) => [...value].slice(0, length).join('');
 export function safeErrorReason(message: unknown): string | LocalizedText {
     if (typeof message !== 'string')
@@ -74,7 +74,8 @@ export async function handlePayload(data: unknown, environment: CliEnvironment =
             return decision(text('slash.tui_disabled'));
         if (!atLeast((environment.hostVersion ?? detectClaudeVersion)(), [2, 1, 258]))
             return decision(text('slash.tui_suspended'));
-        const result = await (environment.editor ?? unavailableEditor)({ configDir, backend: launch(), cwd: data.cwd });
+        const editor = environment.editor ?? (await import('./launcher.js')).launchEditor;
+        const result = await editor({ configDir, backend: launch(), cwd: data.cwd });
         return decision(experimentalReason(result));
     }
     catch (error) {

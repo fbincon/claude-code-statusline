@@ -1,0 +1,333 @@
+{
+  "head": "caf28a9e283bbe0f0384dc3d57245f5f8a0d0150",
+  "merge": "264fd8aedc7db486e3ab939f6817aea1eb29e44e",
+  "pr": "https://github.com/fbincon/claude-code-statusline/pull/87",
+  "jobs": [
+    [
+      {
+        "id": 116380620042,
+        "name": "TS-02 / macos-26 / arm64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620138,
+        "name": "TS-02 / macos-15 / arm64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620174,
+        "name": "TS-02 / ubuntu-24.04 / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620186,
+        "name": "TS-02 / windows-2025 / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620201,
+        "name": "TS-02 / macos-14 / arm64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620217,
+        "name": "TS-02 / windows-11-arm / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620363,
+        "name": "TS-02 / macos-15-intel / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620512,
+        "name": "TS-02 / macos-26-intel / x64",
+        "conclusion": "success"
+      }
+    ],
+    [
+      {
+        "id": 116380619658,
+        "name": "TS-03 / windows-2025 / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620040,
+        "name": "TS-03 / windows-11-arm / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620059,
+        "name": "TS-03 / macos-15-intel / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620065,
+        "name": "TS-03 / macos-26-intel / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620091,
+        "name": "TS-03 / ubuntu-24.04 / x64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620112,
+        "name": "TS-03 / macos-14 / arm64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620126,
+        "name": "TS-03 / macos-15 / arm64",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620136,
+        "name": "TS-03 / macos-26 / arm64",
+        "conclusion": "success"
+      }
+    ],
+    [
+      {
+        "id": 116380620609,
+        "name": "Linux / Claude Code 2.1.288",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620768,
+        "name": "Windows / Claude Code 2.1.289",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620793,
+        "name": "macOS / Claude Code 2.1.294",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620796,
+        "name": "Linux / Claude Code 2.1.296",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620837,
+        "name": "Windows / Claude Code 2.1.288",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620859,
+        "name": "macOS / Claude Code 2.1.296",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620861,
+        "name": "macOS / Claude Code 2.1.289",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620878,
+        "name": "Windows / Claude Code 2.1.294",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620882,
+        "name": "Linux / Claude Code 2.1.287",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620936,
+        "name": "Linux / Claude Code 2.1.289",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620941,
+        "name": "Linux / Claude Code 2.1.294",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380621013,
+        "name": "Windows / Claude Code 2.1.296",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380621246,
+        "name": "macOS / Claude Code 2.1.288",
+        "conclusion": "success"
+      }
+    ],
+    [
+      {
+        "id": 116380620086,
+        "name": "Build and inspect distributions",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620356,
+        "name": "Frozen Python migration baseline",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620742,
+        "name": "ubuntu-latest / Python 3.10",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620794,
+        "name": "ubuntu-latest / Python 3.14",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620843,
+        "name": "macos-15 / Python 3.10",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620854,
+        "name": "macos-26-intel / Python 3.14",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620855,
+        "name": "macos-26 / Python 3.10",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620865,
+        "name": "macos-26 / Python 3.14",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380620922,
+        "name": "macos-26-intel / Python 3.10",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380621024,
+        "name": "windows-latest / Python 3.10",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380621061,
+        "name": "macos-15-intel / Python 3.10",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380621062,
+        "name": "macos-15-intel / Python 3.14",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380621072,
+        "name": "macos-15 / Python 3.14",
+        "conclusion": "success"
+      },
+      {
+        "id": 116380621107,
+        "name": "windows-latest / Python 3.14",
+        "conclusion": "success"
+      }
+    ]
+  ],
+  "local": {
+    "node": "24.21.0",
+    "npm": "11.19.0",
+    "typescript": {
+      "passed": 560,
+      "skipped": 1
+    },
+    "native_mod": {
+      "host": "2.1.296",
+      "passed": 114
+    },
+    "runtime_mod": {
+      "host": "2.1.296",
+      "passed": 12
+    },
+    "python": {
+      "passed": 847,
+      "skipped": 9
+    },
+    "first_python_attempt": {
+      "passed": 844,
+      "failed": 1,
+      "skipped": 11,
+      "reason": "System interpreter lacked installed console entry; rerun used existing development venv."
+    },
+    "generated_resources": 46
+  },
+  "receipts": [
+    {
+      "name": "ts03-macos-26-arm64",
+      "id": 11968140123,
+      "digest": "sha256:e667b60e511ae540c9a93257bb7b602ad7ac475bbb389879fae8c487ca6d0fb7",
+      "source_count": 317,
+      "source_match": true,
+      "reported_commit": "89e2937eed80ad9260eb39bfb264d5ab44551bc0",
+      "node": "v24.21.0"
+    },
+    {
+      "name": "ts03-macos-15-arm64",
+      "id": 11967596180,
+      "digest": "sha256:474c35ccf94984ac42c4de1f974cfcdcca8919b0210d26b6a345081c9eda62d5",
+      "source_count": 317,
+      "source_match": true,
+      "reported_commit": "89e2937eed80ad9260eb39bfb264d5ab44551bc0",
+      "node": "v24.21.0"
+    },
+    {
+      "name": "ts03-macos-14-arm64",
+      "id": 11967083370,
+      "digest": "sha256:ccbf70ee80135debe7911fa96a17dd315635b68f064549a008cb671f38903495",
+      "source_count": 317,
+      "source_match": true,
+      "reported_commit": "89e2937eed80ad9260eb39bfb264d5ab44551bc0",
+      "node": "v24.21.0"
+    },
+    {
+      "name": "ts03-macos-26-intel-x64",
+      "id": 11967079668,
+      "digest": "sha256:221637c04e8345e58e5326900e021d1e04ddb5f638920e09838812f2a6bf79fc",
+      "source_count": 317,
+      "source_match": true,
+      "reported_commit": "89e2937eed80ad9260eb39bfb264d5ab44551bc0",
+      "node": "v24.21.0"
+    },
+    {
+      "name": "ts03-windows-11-arm-x64",
+      "id": 11967023369,
+      "digest": "sha256:a1298ef5d8880377484dde2a55d52cd7af86ed241629f2ec26b8d8131ef7b5e5",
+      "source_count": 317,
+      "source_match": true,
+      "reported_commit": "89e2937eed80ad9260eb39bfb264d5ab44551bc0",
+      "node": "v24.21.0"
+    },
+    {
+      "name": "ts03-ubuntu-24.04-x64",
+      "id": 11966557749,
+      "digest": "sha256:e140f3864f67e44e0508c2af0ca77b0f10228feb7dd03de670e7b92619c48035",
+      "source_count": 317,
+      "source_match": true,
+      "reported_commit": "89e2937eed80ad9260eb39bfb264d5ab44551bc0",
+      "node": "v24.21.0"
+    },
+    {
+      "name": "ts03-macos-15-intel-x64",
+      "id": 11966549604,
+      "digest": "sha256:4893a2765a0cf4186fce06e5e68cdee67fa1c2de57c4b9923eb10581ddeafbbb",
+      "source_count": 317,
+      "source_match": true,
+      "reported_commit": "89e2937eed80ad9260eb39bfb264d5ab44551bc0",
+      "node": "v24.21.0"
+    },
+    {
+      "name": "ts03-windows-2025-x64",
+      "id": 11965584376,
+      "digest": "sha256:d1fa0de80d7dc48bf55b3888484fad7cebe0f7fe0a197dc2b4cc669e1bc39ee2",
+      "source_count": 317,
+      "source_match": true,
+      "reported_commit": "89e2937eed80ad9260eb39bfb264d5ab44551bc0",
+      "node": "v24.21.0"
+    }
+  ],
+  "initial_receipt_disposition": "c8eb4e7 Windows checkouts converted three new TS-04 tool files to CRLF. caf28a9 enforces LF; all final hashes match without normalization.",
+  "github_gitee_main": "264fd8aedc7db486e3ab939f6817aea1eb29e44e"
+}

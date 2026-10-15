@@ -8,7 +8,7 @@ function tests(root) {
     return entry.isDirectory() ? tests(path) : path.endsWith('.test.js') ? [path] : [];
   });
 }
-const files = ['packages/core/dist', 'packages/platform/dist', 'packages/cli/dist', 'dist/typescript']
+const files = ['packages/core/dist', 'packages/platform/dist', 'packages/cli/dist', 'packages/tui/dist', 'dist/typescript']
   .flatMap(tests).sort();
 if (!files.length) throw new Error('No compiled tests found');
 const result = spawnSync(process.execPath, ['--test', '--test-concurrency=1', ...process.argv.slice(2), ...files], { stdio: 'inherit' });
