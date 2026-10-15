@@ -142,6 +142,9 @@ export function unicodeOutputs(root = ROOT): Map<string, string> {
 
 export function outputs(root = ROOT): Map<string, string> {
   const result = new Map([...languageOutputs(root), ...unicodeOutputs(root)]);
+  for (const skill of ['statusline-config', 'statusline-configure']) {
+    result.set(`src/claude_statusline/resources/${skill}/SKILL.md`, utf8(join(root, `packages/cli/resources/${skill}/SKILL.md`)));
+  }
   for (const [source, destination] of editorSources(root)) {
     let body = utf8(join(root, source));
     const backend = source.endsWith('/backend.ts'), text = source.endsWith('/text.ts');

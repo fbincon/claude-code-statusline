@@ -13,8 +13,8 @@ doctor remains read-only. No release version or tag is assigned here.
 | Batch | Deliverable | State |
 | --- | --- | --- |
 | 04-A | Complete responsibility ledger, shared editor rules and production Mod argv binding | DONE; [PR #87](https://github.com/fbincon/claude-code-statusline/pull/87) |
-| 04-B | External raw-TTY/VT editor, terminal launchers and result bridge | VALIDATING; `fbincon/ts-04-external-editor` |
-| 04-C | Install, uninstall, doctor, ownership and resources | NOT_STARTED |
+| 04-B | External raw-TTY/VT editor, terminal launchers and result bridge | DONE; [PR #88](https://github.com/fbincon/claude-code-statusline/pull/88) |
+| 04-C | Install, uninstall, doctor, ownership and resources | VALIDATING; `fbincon/ts-04-installation` |
 | 04-D | Persistent transaction checkpoints and explicit recovery | NOT_STARTED |
 | 04-E | Installed candidate acceptance, CI, documentation and closure | NOT_STARTED |
 
@@ -50,6 +50,23 @@ backend argv, nonce and parent process identity. A revoked request is checked
 again after acquiring the configuration lock, so a delayed editor cannot save.
 The six existing outcomes and legacy result-path environment remain compatible.
 
+The installation service prepares read-only before taking the common file lock,
+backs up changed artifacts, and preserves compatibility configuration when a
+separate official plugin phase fails. Mod source and cache hashes, scope,
+marketplace identity and prior inventory are checked before updates or removal.
+Same-version resource changes use a verified official reinstall. Explicit plugin
+disablement survives refresh; only tool-owned suspension is automatically undone.
+Runtime preferences and the two editors remain independent.
+
+Installation records the exact Node/JS binding in
+`statusline_runtime/installation.json`; upgrades recognize that prior binding and
+the historical Python entries. Doctor reports PATH/Python collisions without
+uninstalling either environment. The official plugin CLI accepts multiple inputs
+as serialized JSON strings; both Mods decode and validate this form as well as
+array-valued defaults. Skill templates now live in `packages/cli/resources`; the
+generator maintains the retained Python copies. Persistent interrupted recovery
+is the next batch, not a guarantee of 04-C alone.
+
 ## Validation and next work
 
 04-A local checks: Node 24.21.0/npm 11.19.0; TS 560 passed / 1 platform skip;
@@ -69,6 +86,17 @@ input-isolation test. Windows console tests run only on Windows CI. Independent
 VT capture verifies visible cells, complete graphemes, preview color and chrome.
 The existing CLI-help exemption is refreshed for the approved `configure`
 addition; all 161 frozen replay cases retain the original three exemptions.
+All 43 CI jobs passed for `73262a9`; eight receipts match all 346 source files.
+Merge `c9709d1` and detailed results are recorded in [04-B evidence](validation.04-b.json).
+
+04-C local checks: 830/833 TS tests passed, with three Windows-only skips;
+official native/runtime Mod tests passed 115/14, both validators and declaration
+typechecks passed, and 50 generated resources are current. Real Claude Code
+2.1.296 installed both Mods in an isolated Unicode/special-character path,
+reinstalled without changes, returned no doctor errors and uninstalled owned
+integration successfully. No model request or maintainer installation change was
+needed. The ledger now has **251 ported, nine retired and five pending**; the
+remaining Python entry/installed Windows-shell replacements belong to 04-E.
 
 ```bash
 npm test
@@ -77,7 +105,7 @@ npm run migration:inventory -- --complete
 npm run migration:inventory:ts04
 ```
 
-Next: complete PR checks for 04-B and implement installation and recovery. The final stage requires
+Next: complete PR checks for 04-C and implement interrupted recovery. The final stage requires
 installed-package editor and recovery coverage on the existing target matrix.
 Physical/desktop checks already deferred until before release retain that status.
 Performance remains in PERF-01; timeout, resource-bound and stability contracts

@@ -114,12 +114,12 @@ export function ownedCommand(command: unknown, operation: string, launch: Launch
     const found = which(candidate);
     return found !== null && normalizedPath(found) === normalizedPath(launch.executable);
 }
-export function claudeLaunch(executable = 'claude'): LaunchSpec {
-    const found = which(executable);
+export function claudeLaunch(executable = 'claude', windows = process.platform === 'win32', find: typeof which = which): LaunchSpec {
+    const found = find(executable);
     if (!found)
         throw new Error('errors.capabilities.claude_code_is_not_in_path');
     const path = resolvedPath(found);
-    if (process.platform !== 'win32' || !['.cmd', '.bat'].includes(extname(path).toLowerCase()))
+    if (!windows || !['.cmd', '.bat'].includes(extname(path).toLowerCase()))
         return { executable: path, args: [] };
     for (const root of [join(dirname(path), 'node_modules/@anthropic-ai/claude-code'), join(dirname(dirname(path)), '@anthropic-ai/claude-code')]) {
         try {
@@ -134,7 +134,7 @@ export function claudeLaunch(executable = 'claude'): LaunchSpec {
                 continue;
             if (extname(target).toLowerCase() === '.exe')
                 return { executable: target, args: [] };
-            const node = which('node');
+            const node = find('node');
             if (node && ['.js', '.cjs', '.mjs'].includes(extname(target).toLowerCase()))
                 return { executable: resolvedPath(node), args: [target] };
         }

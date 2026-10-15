@@ -3,8 +3,8 @@
     "case": "cli-help",
     "path": "/value/stdout",
     "before_sha256": "0b0a5acd2ab97f4f7bb0a8a59de0ed0311edbda3e281b33a755667cce6fff1ea",
-    "after_sha256": "6697fe65c6ad0b9c89f20a56174d8bafd11b4150eacea2e4e2be42538505b0a7",
-    "reason": "User-approved human CLI help/argument diagnostic wording change; TS-04 adds the approved configure command to localized help. Command semantics, other streams and exit status remain exact; the frozen Python baseline is unchanged."
+    "after_sha256": "ff4c6c2925fa5cce37d5a304d3c8fc33bbad53e1dafa5ffc7bed036945716f97",
+    "reason": "User-approved human CLI help/argument diagnostic wording change; TS-04 adds the approved configure/install/uninstall/doctor commands to localized help. Command semantics, other streams and exit status remain exact; the frozen Python baseline is unchanged."
   },
   {
     "case": "cli-config-refused",

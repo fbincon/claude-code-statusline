@@ -5,8 +5,10 @@
       "id": "tests.config.test_catalog.CatalogTests.test_wizard_uses_generated_groups_and_constraints",
       "origin": "TS-03",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null,
       "assertions": "Installed wizard template substitution and generated group presentation belong to TS-04; core mutual exclusions are covered in final-boundaries.test.ts and catalogue validation is covered in final-protocol.test.ts."
     },
@@ -14,8 +16,10 @@
       "id": "tests.config.test_catalog.LanguageWizardContractTests.test_legacy_wizard_reads_interface_language_and_saves_output_language_atomically",
       "origin": "TS-03",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null,
       "assertions": "Installed wizard instruction/template generation belongs to TS-04; CLI language preference and atomic output-language saves are covered in final-language.test.ts and final-cli-language.test.ts."
     },
@@ -23,48 +27,60 @@
       "id": "tests.config.test_feature_config.FeatureConfigTests.test_atomic_replace_failure_preserves_original",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.config.test_feature_config.FeatureConfigTests.test_enabled_round_trip_is_canonical_private_and_atomic",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.config.test_feature_config.FeatureConfigTests.test_explicit_false_boolean_is_valid_and_disabled",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.config.test_feature_config.FeatureConfigTests.test_missing_file_follows_release_default_without_writes",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.config.test_feature_config.FeatureConfigTests.test_strict_schema_rejects_unknown_missing_duplicate_and_types",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_cli_and_legacy_parser_share_language_option",
       "origin": "TS-03",
       "kind": "remaining",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null,
       "assertions": "Connect the legacy wizard/install parser to the same output-language option semantics."
     },
@@ -72,8 +88,10 @@
       "id": "tests.integration.test_cli.CliTests.test_administration_uses_the_invoked_console_entry_instead_of_another_path_install",
       "origin": "TS-03",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null,
       "assertions": "Installer administration entry identity belongs to TS-04; TS-03 configuration LaunchSpec ownership is tested in final-boundaries.test.ts."
     },
@@ -103,8 +121,10 @@
       "id": "tests.integration.test_cli.CliTests.test_help_lists_public_commands",
       "origin": "TS-03",
       "kind": "remaining",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null,
       "assertions": "Add configure/install/uninstall/doctor command help when those TS-04 entries exist."
     },
@@ -112,8 +132,10 @@
       "id": "tests.integration.test_cli.CliTests.test_install_experimental_flags_are_mutually_exclusive",
       "origin": "TS-03",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null,
       "assertions": "Install command parser and feature installation choices belong to TS-04."
     },
@@ -293,384 +315,480 @@
       "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_all_supported_legacy_schemas_report_current_migration_target",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_current_schema_reports_its_actual_version_without_writes",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_invalid_and_newer_schemas_report_errors_without_writes",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_missing_display_uses_defaults_without_creating_files",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_schema_messages_follow_a_changed_supported_version",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_corrupt_preference_requires_explicit_repair_or_disablement",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_default_stable_install_enables_external_entry_without_preference_file",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_disable_write_failure_rolls_back_every_changed_artifact",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_enable_creates_feature_skill_owner_and_600_second_hook",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_enabled_preference_suspends_on_downgrade_and_restores_on_upgrade",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_explicit_disable_persists_false_and_removes_only_owned_active_artifacts",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_explicit_enable_dry_run_creates_nothing",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_explicit_enable_suspends_old_or_unknown_version_and_keeps_preference",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_plain_reinstall_repairs_feature_permissions",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_reinstall_preserves_enabled_preference_and_is_idempotent",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_skill_write_failure_rolls_back_settings_and_skill",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ExperimentalInstallTests.test_unrelated_experimental_skill_ownership_rules_and_force",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_atomic_write_removes_temp_files_and_fixes_mode",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_dry_run_reports_change_without_creating_files",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_empty_config_is_created_with_private_permissions_and_backup",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_existing_owned_host_options_survive_reinstall",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_force_replaces_unrelated_statusline",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_install_is_idempotent_and_does_not_duplicate_hooks",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_install_rejects_invalid_display_before_any_mutation",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_invalid_json_is_rejected_without_rewrite",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_legacy_configuration_is_replaced_and_unrelated_values_survive",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_old_claude_installs_skill_without_fast_hook",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_unrelated_skill_is_refused_unless_force_backs_it_up",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.InstallTests.test_unrelated_statusline_is_refused_without_force",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_config_dir_precedence",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_cross_platform_command_formats_and_ownership",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_accepts_one_complete_configuration",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_rejects_non_private_or_corrupt_feature_file",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_reports_enabled_disabled_suspended_and_broken_states",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_doctor_reports_invalid_display_config_and_missing_skill",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_rendered_skill_has_no_placeholders_and_lists_every_item",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.ResolutionAndDoctorTests.test_version_detection_parses_claude_output",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.SubagentInstallTests.test_disabled_rows_keep_foreign_setting_but_install_lifecycle_hooks",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.SubagentInstallTests.test_dry_run_is_read_only_and_install_backs_up_the_v1_display_migration",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.SubagentInstallTests.test_foreign_conflict_fails_before_backup_and_force_takes_ownership",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.SubagentInstallTests.test_old_or_unknown_versions_suspend_and_upgrade_restores",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.SubagentInstallTests.test_supported_default_installs_exact_setting_and_hooks",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.SubagentInstallTests.test_uninstall_removes_owned_but_preserves_foreign",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.UninstallTests.test_uninstall_does_not_remove_unrelated_statusline",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.UninstallTests.test_uninstall_removes_experimental_artifacts_but_keeps_preference",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.UninstallTests.test_uninstall_removes_only_owned_entries_and_preserves_state",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_installer.UninstallTests.test_uninstall_still_preserves_unreadable_display_for_recovery",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_every_output_language_survives_portable_roundtrip_without_ui_changes",
       "origin": "TS-03",
       "kind": "remaining",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null,
       "assertions": "Replace isolated owned-settings setup with real TS installation and repeat the language round trip."
     },
@@ -678,8 +796,10 @@
       "id": "tests.integration.test_language_cli.LanguageCliTests.test_help_and_parser_errors_are_localized_including_groups",
       "origin": "TS-03",
       "kind": "remaining",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null,
       "assertions": "Verify install-specific translated flag descriptions and mutually exclusive groups."
     },
@@ -687,312 +807,390 @@
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_both_entries_coexist_and_repeat_is_idempotent",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_cached_and_source_foreign_edits_block_update_and_uninstall",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_default_and_explicit_enable_follow_each_host_threshold",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_downgrade_and_unknown_host_suspend_without_new_host_apis",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_downgrade_suspends_then_upgrade_restores_tool_suspension",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_dry_run_calls_no_official_commands_and_creates_no_files",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_explicit_plugin_disable_is_preserved_and_native_disable_restores_legacy",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_external_command_collision_is_checked_only_when_external_is_enabled",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_external_false_does_not_disable_stable_native_default",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_failure_keeps_compatibility_and_retry_reads_the_actual_inventory",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_foreign_command_is_refused_before_writes_even_with_force",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_foreign_external_skill_does_not_block_native_only_install",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_foreign_marketplace_and_unowned_directory_are_not_adopted",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_four_install_combinations_and_independent_disablement",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_historical_directory_cleanup_preserves_unknown_files",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_host_disable_survives_downgrade_and_upgrade",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_host_transport_uses_argv_and_does_not_retry_an_uncertain_write",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_invalid_owner_protocol_is_not_used_to_remove_resources",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_missing_owned_file_is_repaired_and_uninstall_retains_preferences",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_nested_runtime_modules_reach_staging_and_official_cache",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_old_host_disable_and_uninstall_use_supported_cli_options",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_preference_is_strict_and_preview_stable_defaults_preserve_false",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_reinstall_restores_external_resources_removed_by_old_native_migration",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_release_default_activates_native_only_for_stable_versions",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_restricted_and_unsupported_fresh_hosts_preserve_preference",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_same_version_resource_upgrade_uses_verified_official_reinstall",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_upgrade_prunes_old_empty_directories_and_disable_reenable_works",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_user_disabled_upgrade_refreshes_resources_and_binding",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_version_suspension_rolls_back_settings_if_owner_write_fails",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_windows_batch_host_is_invoked_through_node_without_cmd_interpolation",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_windows_npm_native_binary_is_resolved_from_package_bin_metadata",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_native_installer.NativeInstallerTests.test_windows_stripped_console_name_resolves_its_adjacent_executable",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
-      "reason": null
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-04/test/install-boundaries.test.ts"
+      ],
+      "reason": "D05 retires the Python .exe frontend. The replacement verifies that installation binds the invoked Node executable and JS entry directly, without relying on a stripped Python console name or PATH."
     },
     {
       "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_dry_run_and_old_host_never_call_new_plugin_operations",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_explicit_modes_override_the_legacy_all_off_switch_and_doctor_agrees",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_foreign_runtime_directory_and_changed_resources_are_retained",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_install_migrates_old_preferences_only_in_a_backed_up_transaction",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_opt_in_is_independent_and_reinstall_retains_preference",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_uninstall_removes_only_owned_runtime_resources_and_retains_choice",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
       "id": "tests.integration.test_runtime_installer.RuntimeInstallerTests.test_user_plugin_disable_is_not_automatically_reenabled",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null
     },
     {
@@ -1466,8 +1664,10 @@
       "id": "tests.runtime.test_task_timing.TaskTimingTests.test_invalid_preferences_hide_derived_timers_and_remain_diagnosable",
       "origin": "TS-03",
       "kind": "remaining",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts"
+      ],
       "reason": null,
       "assertions": "Verify installer doctor emits a localized ERROR naming the invalid runtime preference file."
     },

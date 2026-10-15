@@ -19,3 +19,12 @@ test('native executable override discards the installed argument prefix', {
   await $.command.run(RUN);
   expect(f.calls[0]!.argv).toEqual(['/tmp/bin with spaces/claude-statusline', 'ui', '--config-dir', '/tmp/config 中文 $`']);
 });
+
+test('native hook decodes the official CLI serialized multiple input', {
+  options: { backendExecutable: '/node with spaces/node', backendArgs: JSON.stringify(['/installed 中文 & $`/entry.js']) },
+}, async ($, on) => {
+  const f = setup(on, '');
+  await $.session.start(START);
+  await $.command.run(RUN);
+  expect(f.calls[0]!.argv).toEqual(['/node with spaces/node', '/installed 中文 & $`/entry.js', 'ui', '--config-dir', '/tmp/config 中文 $`']);
+});

@@ -20,6 +20,7 @@ export interface CliEnvironment {
     runtime?: RuntimeContext;
     editor?: EditorLauncher;
     renderObservations?: Partial<RenderEnvironment>;
+    installation?: { io?: import('./config/storage.js').Storage; host?: (spec: import('./integration/model.js').ModSpec) => import('./integration/model.js').Host };
 }
 export async function main(argv: readonly string[] = process.argv.slice(2), environment: CliEnvironment = {}): Promise<number> {
     const stdout = environment.stdout ?? (text => { process.stdout.write(text); });
@@ -71,17 +72,19 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         // Resolve preferences without creating files, including before help/parser errors.
         // Only the command's own directory option selects storage. A literal
         // item value after -- must never redirect a configuration write.
-        const directoryFlag = args[1];
-        const requestedDirectory = directoryFlag === '--config-dir' ? args[2] : directoryFlag?.startsWith('--config-dir=') ? directoryFlag.slice(13) : undefined;
+        const administrative = ['install', 'uninstall', 'doctor'].includes(args[0] ?? '');
+        const directoryIndex = administrative ? args.findIndex(arg => arg === '--config-dir' || arg.startsWith('--config-dir=')) : 1;
+        const directoryFlag = args[directoryIndex];
+        const requestedDirectory = directoryFlag === '--config-dir' ? args[directoryIndex + 1] : directoryFlag?.startsWith('--config-dir=') ? directoryFlag.slice(13) : undefined;
         const rawDirectory = requestedDirectory ?? environment.configDir ?? process.env.CLAUDE_CONFIG_DIR;
         const configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
         const preferences = readPreferences(configDir, createStorage(environment.now));
         language = (selectedLanguage ?? preferences.ui_language) as Language;
-        if (['config', 'ui', 'runtime', 'configure'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
+        if (['install', 'uninstall', 'doctor', 'config', 'ui', 'runtime', 'configure'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
             const command = args[0];
-            if (command && !command.startsWith('-') && !['config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command && !command.startsWith('-') && !['install', 'uninstall', 'doctor', 'config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
             if (command === 'config') {
                 const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
                 validateConfigHelp(args.slice(offset));
@@ -91,8 +94,27 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return 0;
         }
         const command = args.shift();
-        if (!['config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
+        if (!['install', 'uninstall', 'doctor', 'config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
+        if (administrative) {
+            const { parseAdministration } = await import('./integration/arguments.js');
+            const options = parseAdministration(command!, args);
+            const { installContext, install, uninstall } = await import('./integration/install.js');
+            const { renderMessage } = await import('@fbincon/statusline-core/i18n/messages');
+            const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
+            const context = installContext(configDir, launch, (environment.hostVersion ?? detectClaudeVersion)(), environment.installation?.io, environment.installation?.host);
+            if (command === 'doctor') {
+                const { doctor } = await import('./integration/doctor.js');
+                const diagnostics = doctor(context);
+                for (const row of diagnostics) stdout(`[${row.level}] ${renderMessage(row.message, language)}\n`);
+                return diagnostics.some(row => row.level === 'ERROR') ? 1 : 0;
+            }
+            const result = command === 'install' ? install(context, options) : uninstall(context, options);
+            stdout(t('cli.change', language, { action: command, state: result.changed ? options.dryRun ? t('state.would_change', language) : t('state.updated', language) : t('state.correct', language), path: result.settingsPath }) + '\n');
+            if (result.backupDir) stdout(t('cli.backup', language, { path: result.backupDir }) + '\n');
+            for (const message of result.messages) stdout(renderMessage(message, language) + '\n');
+            return result.failed ? 2 : 0;
+        }
         if (['render', 'render-subagents', 'slash-hook'].includes(command!)) {
             if (args.length)
                 throw new ArgumentError(`${command} takes no arguments`);

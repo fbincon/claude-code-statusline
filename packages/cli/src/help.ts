@@ -1,5 +1,8 @@
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 const COMMANDS: Readonly<Record<string, string>> = {
+    install: 'configure_claude_code_to_use_this_status_line',
+    uninstall: 'remove_only_this_tool_s_claude_code_configuration',
+    doctor: 'diagnose_the_installation_without_changing_files',
     configure: 'open_the_interactive_status_line_configuration_editor',
     config: 'view_or_change_status_line_display_settings',
     ui: 'serve_one_internal_json_configuration_request',
@@ -39,7 +42,22 @@ export function helpText(command: string | undefined, language: Language): strin
         '  -h, --help          ' + t('cli.help.help', language),
         '  --language LANGUAGE ' + t('cli.help.language_override', language),
     ];
-    if (config || command === 'ui' || command === 'runtime' || command === 'configure')
+    if (config || ['ui', 'runtime', 'configure', 'install', 'uninstall', 'doctor'].includes(command ?? ''))
         lines.push('  --config-dir PATH   ' + t('cli.help.claude_configuration_directory_default_claude_config_dir_or', language));
+    if (command === 'install' || command === 'uninstall') lines.push('  --dry-run           ' + t('cli.help.report_whether_settings_would_change', language));
+    if (command === 'install') {
+        const options = {
+            force: 'replace_conflicting_statusline_and_subagentstatusline_settings_or_unrelated',
+            'experimental-slash-tui': 'enable_external_statusline_configure_stable_default_suspend_on',
+            'no-experimental-slash-tui': 'persistently_disable_the_external_statusline_configure_entry',
+            'native-editor': 'enable_the_in_session_client_tui_stable_default',
+            'no-native-editor': 'persistently_disable_and_remove_owned_native_editor_integration',
+            'live-metrics': 'enable_independent_runtime_collection_opt_in_claude_code',
+            'no-live-metrics': 'persistently_disable_independent_runtime_collection',
+            'native-timing': 'enable_native_task_timing_default_on_compatible_hosts',
+            'no-native-timing': 'disable_native_timing_while_retaining_hook_transcript_timing',
+        };
+        for (const [flag, key] of Object.entries(options)) lines.push('  --' + flag.padEnd(25) + t('cli.help.' + key, language));
+    }
     return lines.join('\n') + '\n';
 }
