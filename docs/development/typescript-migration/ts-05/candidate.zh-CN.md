@@ -65,6 +65,11 @@ npm run test:mods -- --artifact /absolute/candidate.tgz --commit FULL_SHA --repo
 路径迁移、重装、显式关闭、写入中断、恢复、卸载和兼容的原始字节备份。已有 Python 产品和
 真实 Claude 设置保持不变；证据绑定源码、锁文件、运行时、原生依赖和 tgz 摘要。
 
+Windows 先单独记录有 60 秒上限的系统 PowerShell 就绪检查，仅加载系统模块、路径提供器和
+文本格式器，不执行 Node、候选包或验收输入。全新 ARM runner 有时在第一条 PowerShell
+脚本语句执行前就超过 20 秒。后续每个应用/shell 验收调用仍以新进程运行，保留原 20 秒
+上限且不重试；环境准备失败或缺失不能计为通过。
+
 人工临时安装可运行 `npm install --prefix /absolute/test-prefix --cache /absolute/empty-cache
 --offline --ignore-scripts --no-audit --no-fund /absolute/candidate.tgz`，随后通过 `node
 /absolute/test-prefix/node_modules/@fbincon/statusline-ts05-candidate/bin/claude-statusline.js`

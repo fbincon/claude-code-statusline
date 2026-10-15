@@ -18,6 +18,13 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             assert.equal(report.offline_install, true); assert.equal(report.initially_empty_npm_cache, true);
             assert.equal(report.lifecycle_scripts, false); assert.equal(report.outside_checkout, true);
             assert.equal(report.path_excludes_python_and_compilers, true);
+            if (report.target.startsWith('windows-')) {
+                assert.equal(report.powershell_setup?.status, 'pass', 'Windows shell environment evidence is required');
+                assert.equal(report.powershell_setup.candidate_invoked, false);
+                assert.equal(report.powershell_setup.receipt.status, 0);
+                assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
+                assert.equal(report.powershell_setup.receipt.error, null);
+            }
             assert.equal(Object.keys(report.checks).length, 10); assert(Object.values(report.checks).every(value => value === true));
         } else {
             assert(HOST_TARGETS.includes(report.target), 'Unexpected host target');

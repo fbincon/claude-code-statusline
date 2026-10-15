@@ -79,6 +79,13 @@ recovery, uninstall and compatible before-image backups. The installed Python
 product and real Claude settings are untouched. Installed evidence binds source,
 lock, runtime, native dependencies and tgz digests.
 
+Windows first performs a separately reported, 60-second-bounded system PowerShell
+readiness check. It loads only OS modules/providers and their text formatter; it
+does not execute Node, the candidate or acceptance input. Fresh ARM runners can
+exceed 20 seconds before PowerShell's first script statement. Every subsequent
+application/shell acceptance call retains the original 20-second bound, starts a
+new process and must pass without retries. Failed/missing preparation is not a pass.
+
 For a manual temporary installation, run `npm install --prefix /absolute/test-prefix
 --cache /absolute/empty-cache --offline --ignore-scripts --no-audit --no-fund
 /absolute/candidate.tgz`, then invoke `node

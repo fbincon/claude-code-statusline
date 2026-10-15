@@ -56,6 +56,16 @@ x64 Node they took **12,285 / 1,288 ms**. All phase checkpoints completed. Earli
 failures, including the [intermediate ARM timeout](https://github.com/fbincon/claude-code-statusline/actions/runs/38797824515), remain recorded below and in raw
 receipts; retries, diagnostics and cancelled runs are not counted as passes.
 
+The subsequent [ARM failure](https://github.com/fbincon/claude-code-statusline/actions/runs/38805419049/job/116666259583)
+occurred before the first PowerShell script checkpoint. Traced diagnostics then
+showed Node reading stdin EOF and exiting normally; shell setup was the remaining
+variable. The final harness therefore records a separate system-shell readiness
+phase, bounded to 60 seconds, loading OS modules/formatting without executing any
+candidate code. All actual application/shell calls remain new processes bounded
+to 20 seconds with no retries. Final receipts include both phases; preparation
+failure or missing evidence rejects the Windows target. The earlier timings above
+remain the earlier merge's measurements, not evidence for this final setup phase.
+
 The [candidate guide](candidate.md) contains rebuild/install commands and the
 [TS-06 handoff](TS06-HANDOFF.md) lists release prerequisites. No public tag, preview,
 Release, registry publication, paid model call, physical acceptance or installed

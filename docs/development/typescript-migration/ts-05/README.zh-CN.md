@@ -46,6 +46,13 @@ x64 的 PowerShell 主/子 Agent 渲染为 **2998 / 466 ms**；ARM 主机使用 
 **12285 / 1288 ms**，所有检查点完成。此前失败（包括[中间一次 ARM 超时](https://github.com/fbincon/claude-code-statusline/actions/runs/38797824515)）保留在下文和原始回执，
 重试、诊断探针和取消的任务不计为通过。
 
+随后一次 [ARM 失败](https://github.com/fbincon/claude-code-statusline/actions/runs/38805419049/job/116666259583)
+发生在第一条 PowerShell 脚本检查点之前；带跟踪的后续诊断显示 Node 读到 stdin EOF 并正常退出，
+剩余变量在系统 shell 初始化。最终验收器因此单独记录有 60 秒上限的系统 shell 就绪阶段，
+只加载系统模块/格式器，不执行任何候选代码。实际应用/shell 调用仍逐次新建进程、保留 20 秒
+上限且不重试。最终回执包含两阶段，准备失败或缺失证据会拒绝该 Windows 目标。
+上文耗时保留为此前合并提交的测量，不用它证明此最终准备阶段。
+
 [候选指南](candidate.zh-CN.md)提供重建和安装命令，[TS-06 交接](TS06-HANDOFF.zh-CN.md)
 列出发布前条件。本轮没有公开标签、预览、Release、注册表发布、新增付费调用、实机验收或
 现用 Python 切换。D06 保持 FAIL，PERF-01 和 TS-06 保持 NOT_STARTED。
