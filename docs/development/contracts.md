@@ -70,7 +70,7 @@ Unrelated settings are merged from the latest locked snapshot. A write failure r
 
 TS-03 moves canonical protocol types, catalog and resource generation to `packages/core` and `tools/generation/resources.ts`. Run `npm run generate` to regenerate and `npm run generate:check` to reject drift. The Python declarations and read-only `tools/generate_ui_contracts.py --check` remain comparison evidence during migration. Do not maintain another catalog or edit generated Mod types. The Mod uses `$.process.run` with argument arrays and JSON stdin; set `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` to an absolute backend executable if PATH is unsuitable. `CLAUDE_CONFIG_DIR` is passed explicitly when present. No shell interpolation is used.
 
-The development TS backend now serves runtime protocol 2 with v1 compatibility through `node packages/cli/dist/src/entry.js runtime --config-dir PATH`. It validates a whole observation batch before writing and emits one JSON response on stdout, with status 2 for invalid observations or unavailable state. Its 1 MiB input limit, duplicate-field rejection, non-finite rejection and preference semantics match the Python boundary. `hook` keeps silent success semantics. Runtime reads never persist binding repair; task/live schemas and installed Mod bindings remain unchanged. Installation and editor launch integration are still TS-04.
+The development TS backend now serves runtime protocol 2 with v1 compatibility through `node packages/cli/dist/src/entry.js runtime --config-dir PATH`. It validates a whole observation batch before writing and emits one JSON response on stdout, with status 2 for invalid observations or unavailable state. Its 1 MiB input limit, duplicate-field rejection, non-finite rejection and preference semantics match the Python boundary. `hook` keeps silent success semantics. Runtime reads never persist binding repair; task/live schemas remain unchanged. TS-04 installation binds both Mods through the shared executable/argv contract.
 
 The bridge rejects malformed or truncated responses, protocol mismatches and nonzero exits, preserving structured backend errors such as conflicts. Process start/refusal errors use `backend_process`; timeout errors use `backend_timeout`. The host process call has a 30-second timeout. The editor displays failures and offers a preview retry; reopening reloads configuration after an opening failure.
 
@@ -143,12 +143,26 @@ Display schema 8 replaces wire `items`/`item_options` with ordered `instances`. 
 
 Reading v1–v7 maps canonical type IDs deterministically and retains disabled overrides. Import review compares instance IDs for additions, removals, enablement, retained ordering, options and text. Applying a complete schema-8 draft bypasses legacy type-selection projections.
 
-TS configuration services use the unchanged installation lock and display schema 8, UI protocol 11, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. UI preview rendering is injected until 03-E; installed launch commands are unchanged.
+TS configuration services use the unchanged installation lock and display schema 8, UI protocol 11, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
 
 ## TypeScript backend binding during migration
 
 The private compiled ESM backend now implements every UI v11 operation, including preview spans, plus runtime v2/v1, `config`, `render`, `render-subagents`, `hook` and `slash-hook`. Schemas and stdout/stderr roles are unchanged. UI previews and dry-runs do not rewrite live configuration. Direct slash mutations use the same locked configuration service and localize the final block decision in the stored interface language.
 
-For `/statusline-configure`, the application passes `{configDir, backend: LaunchSpec, cwd}` to an injected editor launcher. Results cover updated, already-current, cancelled, interrupted, timed-out and error; recognized commands always block model expansion. Result text is bounded by Unicode characters. The development fallback reports the existing unavailable-editor message; terminal selection, actual editor execution and installed Mod binding switch remain TS-04. Tests inject a launcher and verify its exact request and result without opening user terminals.
+For `/statusline-configure`, the application passes `{configDir, backend: LaunchSpec, cwd}` to an injected editor launcher. Results cover updated, already-current, cancelled, interrupted, timed-out and error; recognized commands always block model expansion. Result text is bounded by Unicode characters. TS-04 selects the native terminal launcher and binds a private result lease to the parent identity, backend argv, configuration and nonce. The save guard is rechecked under the configuration lock after waiting. Tests cover real isolated PTYs, tmux popups and Windows consoles as well as injected launchers.
 
 TS-03 configuration help and parser diagnostics resolve the interface preference before display, including an explicit configuration directory. Literal values after `--` cannot act as help or redirect storage. Machine JSON catalogues and output-language selection remain independent of the interface language. Exact human-wording exceptions are recorded per field in the migration comparator.
+
+
+## Candidate installation and recovery
+
+The TS candidate adds `install`, `uninstall`, read-only `doctor` and explicit
+`recover [--config-dir PATH] [--dry-run]`. File phases use version-1 journals and
+hash-bound before-images; interrupted work blocks new configuration writes while
+rendering/runtime observations remain available. Recovery validates every target
+before restoring bytes/absence/modes, or retains a confirmed committed phase.
+Official mutation outcomes are reconciled from actual inventory, cache hashes
+and argv binding; recovery never blindly replays recorded mutating arguments.
+The durable refresh intent preserves an explicitly disabled plugin across the
+uninstall/reinstall gap. These artifacts do not change display/UI/runtime wire
+schemas. See the [candidate recovery contract](typescript-migration/ts-04/recovery.md).

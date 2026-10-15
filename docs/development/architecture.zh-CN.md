@@ -6,11 +6,42 @@ Python 包保留现有 CLI、配置格式和存储位置。实现按职责组织
 
 ## TypeScript 迁移 workspace
 
-TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode、渲染与运行规则）、`packages/platform`（Node／原生 I/O）和 `packages/cli`（应用服务）。workspace 为独立编译的私有开发包，安装／编辑器切换仍属 TS-04。下方 Python 布局继续用于当前已发布实现及隔离对照参考。
+TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode、渲染与运行规则）、`packages/platform`（Node／原生 I/O）和 `packages/cli`（应用服务）。TS-04 新增 `packages/tui`、安装集成与持久恢复。workspace 和验收归档保持私有，维护者现用安装不变。下方 Python 布局继续用于当前已发布实现及隔离对照参考。
 
 规范目录为 TypeScript 数据，项目 ID 和预设说明由其派生，不在前端契约中重复手改。规范语言资源位于 `packages/core/resources/i18n`，TypeScript 统一生成 Node、Mod 和 Python 兼容资源。Mod 副本只包含受支持的纯模块，宿主操作保留在原有入口。参见 [TS-03 实施与验收](typescript-migration/ts-03/README.zh-CN.md)。
 
 已迁移的运行逻辑分布在 `core/runtime/{tasks,live}`、`core/timing` 和纯用量／Git 解析模块，由 `cli/runtime` 编排。明确的 `RuntimeContext`、`RuntimeIO`、`CommandRunner` 边界提供时钟、进程身份、私有文件发布及 Git argv 执行。任务历史保留生命周期 schema 4 和 schema-1 兼容镜像；live 写入先取 live 锁再取 task 锁，用量写入先取 cache 锁再取 task 锁，任务写入不反向获取 live／cache 锁。完整 UTF-8 字节游标、有界历史和冻结结果兼容混合版本磁盘访问；开发用 `runtime`／`hook` 入口不切换已安装命令或 Mod 绑定。
+
+TypeScript 结构将复用规则、系统操作及应用编排分开：
+
+```text
+packages/
+  core/
+    src/editor/                    共享草稿、表单、搜索及响应规则
+    src/integration/               纯 executable／argv 绑定
+    resources/i18n/                规范翻译资源
+  platform/
+    src/terminal/                  raw mode、VT 输入输出、启动器及结果桥
+    src/plugin-host.ts             有界官方 CLI 传输
+  cli/
+    src/config/                    配置及 UI 协议服务
+    src/integration/               归属、资源、安装及 doctor
+    src/recovery/                  journal、文件还原及官方状态核对
+    resources/                     规范技能模板
+  tui/
+    src/                           外部编辑器状态、布局、绘制及会话
+tools/migration/ts-04/
+  package.ts                       私有安装验收归档
+  installed.ts                     八目标入口／编辑器／恢复验收
+  official-installed.ts            固定宿主安装验收
+  host-smoke.ts                     本地真实宿主编辑器／runtime 交互
+  test/                            具名责任、进程及终端测试
+```
+
+文件发布在修改前记录不可覆盖的原始快照与持久检查点。共同安装锁保护文件提交，
+管理锁串行化官方集成各阶段。显式恢复核验所有记录状态，核对不明确的宿主结果并
+保留插件禁用偏好。参见[恢复流程](typescript-migration/ts-04/recovery.zh-CN.md)和
+[安装验收](typescript-migration/ts-04/candidate.zh-CN.md)。
 
 ```text
 src/claude_statusline/

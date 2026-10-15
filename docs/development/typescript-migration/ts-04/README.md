@@ -128,6 +128,8 @@ including a regression protecting links inside the cache. Real host 2.1.296 open
 native editor and saved, and runtime dispatched to the installed backend without
 a model call. See [candidate acceptance and reproduction](candidate.md).
 
+Initial 04-E Windows CI exposed a harness ancestry check that treated a C-drive temporary installation as inside the D-drive checkout. The corrected guard canonicalizes both prefixes and accepts cross-drive paths; no product behavior or acceptance exemption changed.
+
 Next: complete final 04-E target CI, byte-exact receipt verification and closure.
 Previously approved physical/desktop deferrals remain due before release.
 TS-05/TS-06 and PERF-01 remain NOT_STARTED. Timeout, resource-bound and stability

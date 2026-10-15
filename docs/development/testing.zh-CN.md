@@ -374,3 +374,17 @@ TS-03 D 将固定重放扩展至 45/161 个案例，台账完整迁移项达到 
 TS-03 集成测试以原始 Mod 协议模块连接真实 Node 后端，PATH 中不提供 Python。真实主机探测使用临时绑定、合成密钥和不可达的 loopback API。`npm run migration:inventory -- --complete` 要求 516 项均有替代测试或具名 TS-04 责任。固定 D06 后端工具为 `npm run migration:benchmark -- NEW_DIRECTORY`，要求干净且已提交的源码；`--validate` 仅校验功能夹具。参见 [TS-04 交接](typescript-migration/ts-03/TS04-HANDOFF.zh-CN.md)。
 
 原正式 [TS-03 D06 报告](typescript-migration/ts-03/PERFORMANCE.zh-CN.md)结论为失败：91 项通过、69 项失败、32 项不确定，全部样本的输出及采集次数仍一致。按当时门槛，TS-03 保持 IN_PROGRESS。CLI 帮助另与固定 Python 解析器对照命令路径、缺失值、选项、互斥关系、退出码及输出通道。
+
+
+## TS-04 安装验收
+
+[候选流程](typescript-migration/ts-04/candidate.zh-CN.md)覆盖私有离线 npm 归档、八个
+原生目标和 13 个固定官方宿主作业。`npm run migration:inventory:ts04 -- --complete`
+检查全部 265 项责任，拒绝 pending；原 516 项 TS-03 台账保留为历史记录，转交的
+45 个完整测试／八项部分断言均由 TS-04 承接。`npm run migration:installed` 单独验证
+安装后入口、双编辑器、中断恢复及 Python 升级／兼容备份回放；普通 `npm test` 不能
+替代此门槛。回执源码哈希、归档摘要及必需 CI 结论必须匹配审查过的 head。
+
+本地 `npm run migration:host:ts04` 使用合成凭据且不调用模型，验证真实宿主中的
+已安装原生编辑器保存和 runtime 调用；它与已批准延期至发布前的实体／桌面／视觉
+验收分开记录。源码及进程中断测试不宣称硬件断电验证。性能后续工作仍归 PERF-01。

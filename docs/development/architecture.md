@@ -6,11 +6,44 @@ The Python package keeps the existing CLI, configuration formats and storage loc
 
 ## TypeScript migration workspace
 
-TS-03 adds `packages/core` (pure configuration, protocol, localization, Unicode, rendering and runtime rules), `packages/platform` (Node/native I/O) and `packages/cli` (application services). The workspace is private and independently compiled; installation/editor cutover remains TS-04. The Python layout below remains the active released implementation and an isolated comparison reference.
+TS-03 adds `packages/core` (pure configuration, protocol, localization, Unicode, rendering and runtime rules), `packages/platform` (Node/native I/O) and `packages/cli` (application services). TS-04 adds `packages/tui`, installed integration and durable recovery. The workspace and acceptance archives remain private; the maintainer installation is unchanged. The Python layout below remains the active released implementation and an isolated comparison reference.
 
 The canonical catalog is TypeScript data. Item IDs and preset descriptions are derived rather than separately edited in frontend contracts. Canonical languages live under `packages/core/resources/i18n`; the TypeScript generator emits Node, Mod and Python compatibility resources. Mod copies contain only supported pure modules, with host effects in their existing entries. See [TS-03 implementation and acceptance](typescript-migration/ts-03/README.md).
 
 The migrated runtime uses `core/runtime/{tasks,live}`, `core/timing` and pure usage/Git parsers, coordinated by `cli/runtime`. Explicit `RuntimeContext`, `RuntimeIO` and `CommandRunner` boundaries supply clocks, process identity, private file publication and Git argv execution. Task history remains lifecycle schema 4 with its schema-1 compatibility mirror. Live writers acquire live then task locks; usage writers acquire cache then task locks. Task writers never acquire live/cache locks. Complete UTF-8 byte cursors, bounded histories and immutable frozen results survive mixed-version disk access. The development `runtime`/`hook` entry points do not switch installed commands or Mod bindings.
+
+The TypeScript layout separates reusable rules, OS effects and application work:
+
+```text
+packages/
+  core/
+    src/editor/                    Shared drafts, forms, search and response rules
+    src/integration/               Pure executable/argv binding
+    resources/i18n/                Canonical translations
+  platform/
+    src/terminal/                  Raw mode, VT input/output, launchers and bridge
+    src/plugin-host.ts             Bounded official CLI transport
+  cli/
+    src/config/                    Configuration and UI protocol services
+    src/integration/               Ownership, resources, installation and doctor
+    src/recovery/                  Journals, file restore and official reconciliation
+    resources/                     Canonical skill templates
+  tui/
+    src/                           External editor state, layout, drawing and session
+tools/migration/ts-04/
+  package.ts                       Private installed acceptance archive
+  installed.ts                     Eight-target installed entry/editor/recovery gate
+  official-installed.ts            Fixed-host installation gate
+  host-smoke.ts                     Local real-host editor/runtime interaction
+  test/                            Named responsibility and process/terminal tests
+```
+
+File publication records immutable before-images and durable checkpoints before
+mutation. The shared installation lock protects file commits; an administration
+lock serializes official integration phases. Explicit recovery verifies all
+recorded states, reconciles uncertain host outcomes and preserves plugin opt-outs.
+See [recovery](typescript-migration/ts-04/recovery.md) and
+[installed acceptance](typescript-migration/ts-04/candidate.md).
 
 ```text
 src/claude_statusline/

@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { join, dirname, resolve, relative } from 'node:path';
+import { join, dirname, resolve, relative, isAbsolute, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import { spawnSync, execFileSync } from 'node:child_process';
@@ -87,7 +87,10 @@ export function installCandidate() {
         throw new Error('Isolated candidate installation failed: ' + installed.stderr);
     }
     const root = join(directory, 'node_modules', PACKAGE), modules = join(root, 'node_modules/@fbincon'), entry = join(modules, 'statusline-cli/dist/src/entry.js'), bin = join(directory, 'node_modules/.bin/claude-statusline');
-    if (!relative(repoRoot, root).startsWith('..'))
+    const outside = relative(fs.realpathSync.native(repoRoot), fs.realpathSync.native(root));
+    // On Windows a candidate on another drive produces an absolute relative()
+    // result. Canonicalize both prefixes before checking same-drive ancestry.
+    if (!isAbsolute(outside) && outside !== '..' && !outside.startsWith('..' + sep))
         throw new Error('Candidate must be installed outside the checkout');
     return { temporary, directory, nodeDir, node, env, root, modules, entry, bin, packed, cleanup: () => fs.rmSync(temporary, { recursive: true, force: true }) };
 }
