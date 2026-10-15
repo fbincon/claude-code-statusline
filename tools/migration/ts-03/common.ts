@@ -58,7 +58,7 @@ export function sourceHashes(): Record<string, string> {
                 hashes[name] = sha256(readFileSync(join(repoRoot, name)));
         }
     }
-    for (const path of ['packages', 'tools/typescript', 'tools/migration/ts-03', 'tools/migration/ts-04', 'tools/migration/ts-05', 'tools/generation', 'tools/testing', 'tools/checks', 'tools/release', 'tools/acceptance', 'tools/benchmarks', 'tests/fixtures/migration/ts-05'])
+    for (const path of ['packages', 'tools/typescript', 'tools/migration/ts-03', 'tools/migration/ts-04', 'tools/migration/ts-05', 'tools/generation', 'tools/testing', 'tools/checks', 'tools/release', 'tools/acceptance', 'tools/benchmarks', 'tools/build', 'tests/fixtures/migration/ts-05'])
         walk(path);
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const root = 'mods/' + name;
