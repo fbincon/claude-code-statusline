@@ -2,7 +2,7 @@ import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { installCandidate, PACKAGE } from '../package.js';
 import { repoRoot, sourceHashes } from '../../ts-03/common.js';
@@ -136,15 +136,31 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
             const result = executed.result;
             report.powershell_phases = { ...(report.powershell_phases as object ?? {}), [operation]: fs.existsSync(checkpoint) ? fs.readFileSync(checkpoint, 'utf8').trim().split('\n') : [] };
             if (result.status !== 0) {
+                const traceModule = join(installed.temporary, 'node-stdin-trace.cjs');
+                fs.writeFileSync(traceModule, `const fs = require('node:fs');
+const record = event => fs.appendFileSync(process.env.TS05_NODE_TRACE, JSON.stringify({ event, pid: process.pid, at: Date.now() }) + '\\n');
+record('node-start');
+const original = fs.readFileSync;
+fs.readFileSync = function(file, ...args) { if (file === 0) record('stdin-start'); const result = original.call(this, file, ...args); if (file === 0) record('stdin-end:' + result.length); return result; };
+require('node:module').syncBuiltinESMExports();
+process.on('exit', code => record('exit:' + code));
+`);
+                const traced = (name: string) => powershellEnvironment({ ...installed.env, CLAUDE_CONFIG_DIR: config, NODE_OPTIONS: '--import=' + pathToFileURL(traceModule).href, TS05_NODE_TRACE: join(installed.temporary, name + '.node-trace') });
+                const direct = encoding + readInput + `$source | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`;
                 const commands = [
                     { name: 'isolated-startup', text: '[Console]::WriteLine("ready")', env: { ...installed.env } },
                     { name: 'original-startup', text: '[Console]::WriteLine("ready")', env: { ...process.env } },
                     { name: 'original-input', text: `$source = Get-Content -LiteralPath ${quote(input)} -Raw -Encoding UTF8; [Console]::WriteLine($source.Length)`, env: { ...process.env } },
                     { name: 'node-version', text: `& ${quote(installed.node)} --version; exit $LASTEXITCODE`, env: { ...installed.env } },
-                    { name: 'original-node', text: encoding + readInput + `$source | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`, env: { ...process.env, CLAUDE_CONFIG_DIR: config } },
-                    { name: 'direct-node', text: encoding + readInput + `$source | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`, env: { ...installed.env, CLAUDE_CONFIG_DIR: config } },
+                    { name: 'original-node', text: direct, env: { ...process.env, CLAUDE_CONFIG_DIR: config } },
+                    { name: 'direct-node', text: POWERSHELL_BOOTSTRAP + powershellIsolation(installed.env) + direct, env: traced('direct-node') },
+                    { name: 'shim-traced', text: command, env: traced('shim-traced') },
                 ];
-                report.shell_diagnostics = commands.map(probe => { const observed = runShell(ps, [...POWERSHELL_FLAGS, probe.text], probe.name, probe.env); return { ...observed.receipt, stdout: observed.result.stdout }; });
+                report.shell_diagnostics = commands.map(probe => {
+                    const observed = runShell(ps, [...POWERSHELL_FLAGS, probe.text], probe.name, probe.env);
+                    const trace = join(installed.temporary, probe.name + '.node-trace');
+                    return { ...observed.receipt, stdout: observed.result.stdout, node_trace: fs.existsSync(trace) ? fs.readFileSync(trace, 'utf8').trim().split('\n').map(line => JSON.parse(line)) : [] };
+                });
             }
             assert.equal(result.status, 0, JSON.stringify(executed.receipt));
             assert.equal(result.stdout.replaceAll('\r\n', '\n'), expected);
