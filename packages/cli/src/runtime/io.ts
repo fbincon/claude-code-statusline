@@ -60,7 +60,14 @@ export function transcriptChunk(io: RuntimeIO, path: string, start: bigint): {
     cursor: bigint;
 } {
     const lines: unknown[] = [];
+    const result = visitTranscript(io, path, start, row => { lines.push(row); });
+    return result ? { lines, cursor: result.cursor } : { lines: [], cursor: start };
+}
+/** Visit parsed complete records without retaining the transcript. A caller must
+ * stage its reductions until success; I/O failure discards the entire chunk. */
+export function visitTranscript(io: RuntimeIO, path: string, start: bigint, visit: (row: unknown) => void): { cursor: bigint; count: number } | null {
     let first = true;
+    let count = 0, consumerFailed = false;
     try {
         const cursor = io.lines(path, start, raw => {
             let text = raw.toString('utf8');
@@ -70,14 +77,17 @@ export function transcriptChunk(io: RuntimeIO, path: string, start: bigint): {
             text = trim(text);
             if (!text)
                 return;
-            try {
-                lines.push(readDataJson(text));
-            }
-            catch { /* A malformed complete line is consumed permanently. */ }
+            let row: unknown;
+            try { row = readDataJson(text); }
+            catch { return; /* A malformed complete line is consumed permanently. */ }
+            count++;
+            try { visit(row); }
+            catch (error) { consumerFailed = true; throw error; }
         });
-        return { lines, cursor };
+        return { count, cursor };
     }
-    catch {
-        return { lines: [], cursor: start };
+    catch (error) {
+        if (consumerFailed) throw error;
+        return null;
     }
 }
