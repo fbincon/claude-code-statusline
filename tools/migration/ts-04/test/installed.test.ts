@@ -174,6 +174,7 @@ test('installed external editor saves and cancels in a real native terminal', { 
                 assert.equal(child.code(), 0, fs.existsSync(receipt) ? fs.readFileSync(receipt, 'utf8') : 'No Windows console receipt');
                 const saved = JSON.parse(fs.readFileSync(receipt, 'utf8'));
                 assert.equal(saved.before_mode, saved.after_mode);
+                assert.equal(saved.before_output_mode, saved.after_output_mode);
                 output = saved.output;
                 columns = saved.columns;
                 rows = saved.rows;

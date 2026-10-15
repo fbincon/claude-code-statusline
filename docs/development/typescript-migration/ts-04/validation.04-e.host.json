@@ -6,7 +6,7 @@
     296
   ],
   "source": {
-    "commit": "3e5c0051512d4d13c7b427eb95dbd8b50d351f0d",
+    "commit": "b84172c652e955dcc107399e58186c22ab378afb",
     "dirty": false,
     "node": "v24.21.0",
     "source_hashes": {
@@ -121,7 +121,7 @@
       "packages/cli/src/integration/ownership.ts": "77cb4fee3a113074b5a5c672a293bcbe9ed420667e8f9cd7375b45bfe59f0ecf",
       "packages/cli/src/integration/paths.ts": "c2b364ac742ec4fa256e0bd1539e667aa138d7f3879545453cf5ad44f78e5d0d",
       "packages/cli/src/integration/plan.ts": "e318c0212ca66632dee7537c50f6432da3f91ed025433550257eb3d4af312b54",
-      "packages/cli/src/integration/resources.ts": "05180e7815aa112a6732eb54cec86a2bdab4de5f7b2b467cbb65f024852abc4f",
+      "packages/cli/src/integration/resources.ts": "6a08caa4c9e7c5b7f414e219a9ac528dc8951d7685a916fde1c54ee36bde608e",
       "packages/cli/src/integration/slash-hook.ts": "4ee0449486f616fc110db80e1dad45e52334cd66c0d9dbc5a639fe4865bdfd78",
       "packages/cli/src/integration/transaction.ts": "9964dda94e72cfab69e57777e73f3d955bdc4e2be77e42b22d6b809a6ead4131",
       "packages/cli/src/main.ts": "b6b3734af0d0d2aae9e26fae5013240de4205c32c6a8b6143cd2130ab73a0194",
@@ -295,7 +295,7 @@
       "packages/platform/src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
       "packages/platform/src/clocks.ts": "0ae0475d22015ec3ad7e83edd9a4638f98782587d6667e0dfad00def3527be90",
       "packages/platform/src/command.ts": "2fdbc1337bf66b1df5c348d28a5f90ba01207c942b76853c4a9df5f4d6426291",
-      "packages/platform/src/commands.ts": "6e70b795ba4f429fc8ee9b224d3ea1c683e1848727892309d3aa35af02a6f163",
+      "packages/platform/src/commands.ts": "cd0dcb6b1bd8504144a7fce900c2f2509d4b85f3e1f393c325a6471c2afbb566",
       "packages/platform/src/errors.ts": "4ece1d2682dbcc9aa3ce4e90bb81efdb070e47c79dc7a543e4bdafde83c3b57f",
       "packages/platform/src/files.ts": "e11e1af6af79f82f5e2ba3f3f9ee15f3b7ea50760907e82d94c36abb00114f41",
       "packages/platform/src/hash.ts": "5a2c4cc9df59bd0ae2bbe08237788a40335b71112e911b86857c213135b69974",
@@ -359,8 +359,8 @@
       "tools/migration/ts-04/host-smoke.ts": "fb90195d8690bdded1c29698de652ede5083fa33a9bba7ef24e25733d1699ca3",
       "tools/migration/ts-04/installed.ts": "ac9ed6c89870008e2aa0c565abc2d509f6ffad48d1fb5b5ff012b4aade89d38a",
       "tools/migration/ts-04/inventory.ts": "a66b68ec1a8832799e8fa8c46074f97159ffe48f325dc163c0fa809b3dc268c1",
-      "tools/migration/ts-04/official-installed.ts": "5acd561b285fc2dcd64faca2b7f6a56f4531c1182bd4dab648f054473cb5500e",
-      "tools/migration/ts-04/package.ts": "b14e404ef35fb73db62099d05dfc30803e8aeadc25b1271065d354b3605744e7",
+      "tools/migration/ts-04/official-installed.ts": "3c9780b708476cac5336fc73b3bf5357cb2d384107022dc1d1ee1266f51c863e",
+      "tools/migration/ts-04/package.ts": "0caae3e5051f05c0fb5de45b7cd9cc6bb8f4ef9656b1b1c36e04ff86ffa760ee",
       "tools/migration/ts-04/test/capture.test.ts": "e49d01e86e6105516c28feb956cdbc616aed9ca32ce905002469bf8eab29c64c",
       "tools/migration/ts-04/test/console-child.ts": "8bc6cc8fcae76ed979a7cc7244c39bea7494365b31aaab55cd5f2934bee5c95a",
       "tools/migration/ts-04/test/editor-acceptance.test.ts": "e9eee39d7f3e59aab01ed09954f2fbfd78a76bd8e49439bf4fab441dd340342e",
@@ -368,7 +368,7 @@
       "tools/migration/ts-04/test/editor-pty.test.ts": "52ecf088c4ee11d3ecb351ba5537fb65b1b207e4415e1c659f110f5efa119d88",
       "tools/migration/ts-04/test/editor-session.test.ts": "00b3836a6f949bb1a61839d5bac197b4f54e94cc9ac4997b5a1c4757854ea021",
       "tools/migration/ts-04/test/editor-state.test.ts": "1bef8edb966a2d91847433cf4e46778ea35eaa28aa3691d56aa94f060e49c92c",
-      "tools/migration/ts-04/test/install-boundaries.test.ts": "bccbe94001e935413deb8ee491605a066b5b73041f0ac085e50b99a5721f6c34",
+      "tools/migration/ts-04/test/install-boundaries.test.ts": "ce40b0ef4e624483e67bdc113c670c5f5304e100b00b7963d7eb999a8be43be2",
       "tools/migration/ts-04/test/install-support.ts": "4d07c3e19762ea321969a9c638cfe0b91278018d14b9212a67bd9e63032eb29e",
       "tools/migration/ts-04/test/install.test.ts": "ce1e9d43b219e36f3fd9e8ccad6198ff09f7e87b717c45305c631201d6534370",
       "tools/migration/ts-04/test/installed-driver.ts": "d9ad1396649b6254e3a2868744be5748d3f9844dfb6b63b87781f57b2c20bf80",
@@ -391,7 +391,7 @@
       "tsconfig.tools.json": "3cb658aff07336996e795e79951d6e7e5cfb1418f50436eec63b7d7b54383919"
     }
   },
-  "tarball_sha256": "23a2e16405b10eafa2d05cd8d2e4def15a9e55510390d5e0b9951ab4ad9aad3b",
+  "tarball_sha256": "072fcb0acd9ebf02b837b5a24c88d4cb162457e05100112f50ff35e0b9219c1d",
   "installed_resources": true,
   "real_host_commands": [
     "hook",
@@ -410,6 +410,6 @@
   "model_calls": 0,
   "credentials": "synthetic key and unreachable loopback API",
   "physical_visual_acceptance": false,
-  "terminal_capture_sha256": "b8ee0976489603ad0e743bd051ada433889f5d8274c986c5df0e156dc3165633",
+  "terminal_capture_sha256": "eaca0247a33ad842a636ac29cd26f161c1b6de343742fe9723ded279596e61ad",
   "terminal_capture_committed": false
 }

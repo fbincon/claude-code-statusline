@@ -84,6 +84,12 @@ else if (operation === 'windows-editor') {
     const mode = () => { const value = [0]; if (!k.func('bool GetConsoleMode(void *handle, _Out_ uint32_t *mode)')(input, value))
         throw new Error('GetConsoleMode failed'); return value[0]; };
     const before = mode(), columns = process.stdout.columns || 80, rows = process.stdout.rows || 24, chunks: string[] = [];
+    const outputMode = () => {
+        const value = [0], handle = k.func('void *GetStdHandle(uint32_t kind)')(0xfffffff5);
+        if (!k.func('bool GetConsoleMode(void *handle, _Out_ uint32_t *mode)')(handle, value)) throw new Error('Cannot read console output mode');
+        return value[0];
+    };
+    const beforeOutput = outputMode();
     let scheduled = false, timer: NodeJS.Timeout | undefined;
     const write = process.stdout.write.bind(process.stdout);
     (process.stdout.write as any) = (chunk: any, ...args: any[]) => {
@@ -114,7 +120,7 @@ else if (operation === 'windows-editor') {
     try {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', 'configure', '--config-dir', config!]);
-        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), columns, rows, output: chunks.join('') }));
+        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), columns, rows, output: chunks.join('') }));
         process.exitCode = status;
     }
     finally {

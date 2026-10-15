@@ -36,7 +36,7 @@ historical Python comparisons still need their development dependencies.
 | --- | --- |
 | Package and entry points | Compiled installed modules, resource manifests, licenses, native dependency loading, npm shim invocation and moved-prefix rebinding. |
 | Frozen rendering | Fifteen production render cases compared byte-for-byte with the immutable reference. |
-| Both editors | Installed UI protocol describe/read/preview/revision-bound apply/export; external save/cancel in an actual POSIX PTY or Windows console, terminal-mode restoration and independent visible-cell capture. |
+| Both editors | Installed UI protocol describe/read/preview/revision-bound apply/export; external save/cancel in an actual POSIX PTY or Windows console, exact Win32 input/output mode restoration or POSIX terminal attributes, and independent visible-cell capture. |
 | Recovery and upgrade | Hard termination during installed editor publication, dry-run and idempotent recovery; historical Python-command rebinding, preserved old environment, opt-outs and compatible backup bytes, followed by explicit backup restoration and replay with the frozen Python reference. |
 | Official integration | Actual fixed-host install/reinstall, cache and binding verification, installed UI save, user-disabled state, uninstall and no unresolved journal. |
 

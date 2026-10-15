@@ -1,5 +1,6 @@
 import type { ReadStream, WriteStream } from 'node:tty';
 import { KeyDecoder, type Key } from './input.js';
+import { captureWindowsModes } from './windows-modes.js';
 export interface TerminalClient<T> {
     draw(columns: number, rows: number): string;
     key(key: Key, columns: number, rows: number): T | null | Promise<T | null>;
@@ -23,6 +24,7 @@ export async function terminal<T>(client: TerminalClient<T>, options: TerminalOp
         throw new Error('Interactive configuration requires an ANSI/VT terminal');
     const now = options.now ?? (() => performance.now()), decoder = new KeyDecoder();
     const raw = input.isRaw, flowing = input.readableFlowing;
+    const restoreConsoleModes = captureWindowsModes(input === process.stdin, output === process.stdout);
     let escapeTimer: ReturnType<typeof setTimeout> | undefined, poll: ReturnType<typeof setInterval> | undefined;
     let closed = false, queued = 0, chain = Promise.resolve(), drainWait: (() => void) | null = null;
     const size = () => [output.columns || 80, output.rows || 24] as const;
@@ -54,9 +56,11 @@ export async function terminal<T>(client: TerminalClient<T>, options: TerminalOp
                 output.write('\x1b[0m\x1b[?2004l\x1b[?25h\x1b[?1049l');
             }
             catch { /* A closed terminal cannot receive restoration bytes. */ }
+            try { restoreConsoleModes(); }
+            catch (error) { return error; }
         };
-        const finish = (value: T) => { cleanup(); resolve(value); };
-        const failed = (error: unknown) => { cleanup(); reject(error); };
+        const finish = (value: T) => { const error = cleanup(); error ? reject(error) : resolve(value); };
+        const failed = (error: unknown) => { const restoration = cleanup(); reject(restoration ? new AggregateError([error, restoration], 'Terminal cleanup failed') : error); };
         const ended = () => finish(client.interrupted('SIGHUP'));
         const draw = async () => {
             if (closed)

@@ -132,6 +132,8 @@ Initial 04-E Windows CI exposed a harness ancestry check that treated a C-drive 
 
 Further Windows installed acceptance caught two production boundaries: an npm POSIX shim could precede its `.cmd` sibling during host discovery, and JavaScript replacement-string syntax could expand literal `$` sequences in launch paths. Host discovery now resolves the matching Windows package entry without a shell; skill substitution uses a single literal callback pass. Regression checks cover both cases without relaxing installed acceptance.
 
+The installed Windows console then detected that [libuv normal-mode restoration](https://github.com/libuv/libuv/blob/v1.51.0/src/win/tty.c#L341) changed the original input flags from 503 to 7. The terminal owner now captures and restores complete Win32 input/output masks and verifies restoration; installed save/cancel asserts both masks exactly. The fixed-host Windows integration checks had already passed.
+
 Next: complete final 04-E target CI, byte-exact receipt verification and closure.
 Previously approved physical/desktop deferrals remain due before release.
 TS-05/TS-06 and PERF-01 remain NOT_STARTED. Timeout, resource-bound and stability
