@@ -116,6 +116,7 @@ jobs:
       - name: Installed TypeScript candidate with the fixed official host
         run: npm run migration:official:ts04 -- "$RUNNER_TEMP/ts04-official-installed.json"
       - name: Upload native installation evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-${{ matrix.platform }}-${{ matrix.claude }}

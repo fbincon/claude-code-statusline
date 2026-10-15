@@ -32,8 +32,18 @@ else if (operation === 'official' || operation === 'prepare-host') {
     fs.writeFileSync(join(config!, 'settings.json'), '{"env":{"KEEP":"yes"}}\n', { mode: 0o600 });
     const context = installContext(config, launch, request.version, undefined, () => host);
     const first = install(context, { native: true, external: true, nativeTiming: request.version[2] >= 289, liveMetrics: false });
-    if (first.failed)
-        throw new Error(JSON.stringify(first.messages));
+    if (first.failed) {
+        const observed: Record<string, unknown> = {};
+        try { observed.inventory = host.listing(); } catch (error) { observed.inventory_error = String(error); }
+        try { observed.binding = host.run(['configure', NATIVE.plugin, '--json'], undefined, true); } catch (error) { observed.binding_error = String(error); }
+        const journals = pending(config).map((path: string) => {
+            const row = JSON.parse(fs.readFileSync(path, 'utf8'));
+            return { action: row.action, kind: row.kind, phase: row.phase, args: row.args, values: row.values };
+        });
+        const failure = { messages: first.messages, journals, observed };
+        fs.writeFileSync(receipt!, JSON.stringify({ failed: true, ...failure }));
+        throw new Error(JSON.stringify(failure));
+    }
     if (operation === 'prepare-host') {
         fs.writeFileSync(receipt!, JSON.stringify({ installed: true }));
     }
