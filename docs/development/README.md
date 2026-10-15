@@ -24,7 +24,7 @@ Start here to set up a development environment, run checks and build the package
 - [Release process](../RELEASING.md).
 
 
-For the private TS-03 workspace, use pinned Node 24.21.0/npm 11.19.0 and run `npm ci --ignore-scripts`, `npm test`, and `npm run generate:check` from the root. Python 3.14.4 remains the isolated comparison interpreter; see the [TS-03 record](typescript-migration/ts-03/README.md).
+The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows require no Python; the frozen Python reference has a separate manual entry.
 
 ## Contents
 
@@ -41,103 +41,43 @@ For the private TS-03 workspace, use pinned Node 24.21.0/npm 11.19.0 and run `np
 
 ### Prepare a development environment
 
-Clone the repository and enter the project root (Bash / PowerShell):
-
-```text
-git clone https://github.com/fbincon/claude-code-statusline.git
-cd claude-code-statusline
-```
-
-For an existing checkout, enter its root directly. The development environment is independent of the user's pipx installation.
-
-Linux / WSL / macOS:
+Install pinned Node 24.21.0/npm 11.19.0, then run from the checkout root:
 
 ```bash
-python3 -m venv .venv-dev
-source .venv-dev/bin/activate
-python -m pip install -e . ruff build twine 'readme-renderer[md]'
+npm ci --ignore-scripts --no-audit --no-fund
+npm run check
 ```
 
-Windows PowerShell, using an installed supported Python (3.10 here):
-
-```powershell
-py -3.10 -m venv .venv-dev
-.\.venv-dev\Scripts\python.exe -m pip install -e . ruff build twine 'readme-renderer[md]'
-```
+Development is independent of the installed pipx product. Normal workflows need no Python, pip, Ruff, wheel or native compiler.
 
 <a id="运行检查"></a>
 
 ### Run checks
 
-On Linux / WSL / macOS, run in the activated development environment:
-
-```bash
-python -m unittest discover -s tests -t . -v
-python -m ruff check --select F,E9 src tests tools
-python tools/generate_i18n.py --check
-python tools/check_docs.py
-git diff --check
-python -m build
-```
-
-On Windows PowerShell, call the virtual-environment interpreter directly without an activation script:
-
-```powershell
-.\.venv-dev\Scripts\python.exe -m unittest discover -s tests -t . -v
-.\.venv-dev\Scripts\python.exe -m ruff check --select F,E9 src tests tools
-.\.venv-dev\Scripts\python.exe tools/check_docs.py
-git diff --check
-.\.venv-dev\Scripts\python.exe -m build
-```
-
-GitHub Actions runs on push and pull requests across `ubuntu-latest`, `windows-latest`, `macos-15-intel`, `macos-15`, `macos-26-intel`, and `macos-26`, covering Python 3.10/3.14 with explicit native architectures; ARM64 Python 3.10 is pinned to 3.10.11. Windows checks `windows-curses` and runs PowerShell/Git Bash smoke tests. Linux/macOS prepare tmux and run PTY/popup integration plus installed-package CLI smoke tests. macOS also runs native PTY lifecycle tests for the Terminal helper; desktop Terminal.app smoke is explicit and default tests do not open desktop windows. The build job checks versions, conditional dependencies, platform/Terminal modules, skills, and all platform screenshots. Refer to [Actions for the relevant commit](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml) for results.
+`npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and complete responsibility ledgers.
+`tools/generation/` maintains five languages, two Mods and skill templates; it never regenerates the Python archive.
+Eight installations and thirteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately.
 
 <a id="从源码构建与安装"></a>
 
 ### Build and install from source
 
-Run in the project root; an independent build environment is sufficient when only building packages.
-
-Linux / WSL / macOS:
-
 ```bash
-python3 -m venv .venv-build
-source .venv-build/bin/activate
-python -m pip install --upgrade build
-python -m build
-pipx install dist/fbincon_claude_code_statusline-1.13.0-py3-none-any.whl
-pipx ensurepath
+SOURCE_COMMIT=$(git rev-parse HEAD)
+npm run candidate:build -- --commit "$SOURCE_COMMIT" --output /absolute/new-candidate
 ```
 
-Windows PowerShell:
-
-```powershell
-py -3.10 -m venv .venv-build
-.\.venv-build\Scripts\python.exe -m pip install --upgrade build
-.\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\fbincon_claude_code_statusline-1.13.0-py3-none-any.whl
-pipx ensurepath
-```
-
-These filenames correspond to stable v1.13.0; use the actual generated filenames for other versions. Replace existing packages using the [upgrade steps](../USER_GUIDE.md#upgrading). After `pipx ensurepath`, reopen the terminal and complete [Claude Code integration](../USER_GUIDE.md#integrate-with-claude-code).
-
-In an activated build environment, inspect the wheel with `python -m zipfile -l dist/fbincon_claude_code_statusline-1.13.0-py3-none-any.whl`; on Windows, use `.\.venv-build\Scripts\python.exe`. Confirm `_platform.py`, `macos_terminal.py`, `resources/statusline-config/SKILL.md`, and `resources/statusline-configure/SKILL.md`. The source distribution should also contain this guide, the release guide, and `images/` screenshots. See the [release guide](../RELEASING.md) for the complete process.
+Two independent clean builds must match byte for byte. Outputs include the candidate, source archive, SHA256SUMS and build manifest.
+See the [candidate guide](typescript-migration/ts-05/candidate.md) for temporary installation, PowerShell/direct Node invocation, upgrades and recovery.
+Do not use pipx to install current main; published Python tags and wheels remain available.
 
 <a id="隔离测试与人工验收"></a>
 
 ### Isolated testing and manual acceptance
 
-On macOS, explicitly run the Terminal.app smoke test in a Python virtual environment with the current wheel installed:
-
-```bash
-.venv-wheel-check/bin/python tools/macos_terminal_smoke.py
-```
-
-This opens Terminal.app and uses temporary configuration with shortened deadlines in the production TUI to check terminal behavior, result bridging, and cleanup, without calling the Claude API.
-
-Automated acceptance should run install dry-run, install, doctor, idempotent reinstall, conflict rollback, and uninstall against temporary `CLAUDE_CONFIG_DIR`, never real configuration. After code and installation transactions pass, the user decides whether to install the wheel into real configuration.
-
-Real multi-agent visual checks incur model costs and are not started automatically. User-assisted final acceptance should verify: owned default `subagentStatusLine` and two unique hooks; correct main line without subagents; correct rows for two concurrent agents with distinct model/effort; timer progression through agent count and `main wrap-up`; a main Stop candidate followed by confirmed completion freezing total duration; global `Main/Session` scope when viewing a subagent transcript; final `doctor`; and `uninstall --dry-run` matching only owned configuration.
+`test:installed` accepts an artifact, fixed commit and report path, and uses an outside-checkout installation with an empty cache, offline mode, disabled lifecycle scripts and no Python/compiler on PATH.
+`test:mods` validates fixed official hosts and actual installed bindings. `reference:verify` is the separate manual Python historical entry; see [testing](testing.md).
+Terminal, power and paid acceptance require explicit invocation. Ordinary CI makes no paid calls. Preserve the installed Python product and real configuration.
 
 <a id="appendix-internal-commands"></a>
 <a id="附录内部命令"></a>
@@ -198,6 +138,8 @@ Read `UserPromptExpansion` events from stdin. Handle local `statusline-config` s
 <a id="附录实现说明"></a>
 
 ## Implementation notes
+
+The following details describe the published Python implementation. Current TypeScript absolute Node/JS argv, native locks, recovery and layout are documented in the [candidate guide](typescript-migration/ts-05/candidate.md) and [TS-04 record](typescript-migration/ts-04/README.md).
 
 <a id="平台执行与文件安全"></a>
 

@@ -28,18 +28,27 @@
     "migration:receipt": "node dist/typescript/tools/migration/ts-03/receipt.js",
     "migration:capture": "node dist/typescript/tools/migration/ts-03/capture.js",
     "migration:compare": "node dist/typescript/tools/migration/ts-03/compare.js",
-    "migration:benchmark": "node dist/typescript/tools/migration/ts-03/performance/benchmark.js",
     "migration:inventory:ts04": "node dist/typescript/tools/migration/ts-04/inventory.js",
     "migration:inventory:ts05": "npm run build && node dist/typescript/tools/migration/ts-05/inventory.js",
-    "migration:installed": "npm run build && node dist/typescript/tools/migration/ts-04/installed.js",
-    "migration:pack:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/package.js",
+    "migration:installed": "npm run test:installed --",
     "migration:official:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/official-installed.js",
     "migration:host:ts04": "npm run build && node dist/typescript/tools/migration/ts-04/host-smoke.js",
-    "acceptance:paid": "npm run build && node dist/typescript/tools/acceptance/paid.js"
+    "acceptance:paid": "npm run build && node dist/typescript/tools/acceptance/paid.js",
+    "candidate:build": "npm run build && node dist/typescript/tools/build/candidate.js",
+    "candidate:verify": "npm run build && node dist/typescript/tools/build/verify.js",
+    "check": "npm run build && node dist/typescript/tools/checks/all.js",
+    "archive:check": "npm run build && node dist/typescript/tools/checks/archive.js",
+    "reference:verify": "npm run build && node dist/typescript/tools/migration/ts-05/reference.js",
+    "release:prepare": "npm run build && node dist/typescript/tools/release/prepare.js",
+    "benchmark:compare": "npm run build && node dist/typescript/tools/benchmarks/compare.js",
+    "acceptance:terminal": "npm run build && node dist/typescript/tools/acceptance/terminal.js",
+    "test:installed": "npm run build && node dist/typescript/tools/acceptance/installed.js",
+    "test:mods": "npm run build && node dist/typescript/tools/acceptance/mods.js"
   },
   "devDependencies": {
     "@resvg/resvg-js": "2.6.2",
     "@types/node": "24.19.2",
+    "tar": "7.5.22",
     "typescript": "5.9.3"
   }
 }

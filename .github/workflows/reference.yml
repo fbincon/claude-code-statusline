@@ -1,0 +1,33 @@
+name: Historical Python reference
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reference:
+    name: Frozen oracle, archived Python and mixed-runtime recovery
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14.4'
+      - run: python -m pip install 'wcwidth==0.9.1' 'pyte==0.8.2'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run reference:verify -- --python python --report '${{ runner.temp }}/reference.json'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ts05-historical-reference
+          path: |
+            ${{ runner.temp }}/reference.json
+            ${{ runner.temp }}/reference-logs/
+          if-no-files-found: error

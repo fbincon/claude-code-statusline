@@ -269,13 +269,7 @@ Both editors default on for compatible hosts, respecting saved disablement prefe
 <details>
 <summary>Other installation methods</summary>
 
-Install the development source (requires Git):
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
-```
-
-Run `pipx install .` from a local checkout. Fixed-tag installation and verified Release wheels are covered in the installation guide. Then run `pipx ensurepath` and complete integration above.
+Source development on main uses Node and TypeScript; follow the [source development guide](docs/development/README.md#build-and-install-from-source). Fixed-tag and Release wheel installation for the published Python product remains documented in the installation guide.
 
 Download checksums and platform-specific instructions are in the [installation guide](docs/USER_GUIDE.md#installation-and-integration); source builds are in the [development guide](docs/development/README.md#build-and-install-from-source).
 
@@ -374,82 +368,43 @@ Display settings and backups remain available; see [uninstalling](docs/USER_GUID
 
 ```text
 claude-code-statusline/
-├── .github/workflows/                       # GitHub Actions workflows
-│   ├── ci.yml                               # Cross-platform tests and distribution builds
-│   ├── native.yml                           # Mod validation, type checks and installation tests
-│   └── publish.yml                          # PyPI/TestPyPI publication and install verification
-├── README.md / README.zh-CN.md              # Project overview and quick start
-├── CHANGELOG.md / CHANGELOG.zh-CN.md        # Versioned change history
-├── LICENSE                                  # MIT license
-├── MANIFEST.in                              # Source distribution file selection
-├── pyproject.toml                           # Package metadata, dependencies and build configuration
-├── docs/                                    # User, reference and development documentation
-│   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # Installation, configuration and troubleshooting
-│   ├── APPEARANCE.md / APPEARANCE.zh-CN.md  # Visibility, item colors, themes and Powerline
-│   ├── COMPOSITION.md / COMPOSITION.zh-CN.md # Instances, text and flexible layouts
-│   ├── reference/                           # CLI and configuration reference
-│   ├── images/                              # Current TUI screenshots and historical archives
-│   │   ├── composition/                     # Component editor captures
-│   │   ├── tui/                             # Current configuration editor screenshots
-│   │   │   ├── native/                      # In-session configuration editor screenshots
-│   │   │   └── external/                    # External terminal configuration editor screenshots
-│   │   ├── discovery/                       # Search, source guidance and import-review captures
-│   │   ├── appearance/                      # Color controls and Powerline captures
-│   │   └── archive/                         # Historical screenshots and UI reconstructions
-│   ├── development/                         # Development setup, architecture and validation
-│   └── releases/                            # Historical release notes
-├── src/                                     # Python source and build extensions
-│   ├── build_native.py                      # Mod resource bundling and package README link rewriting
-│   └── claude_statusline/                   # Python CLI and implementation modules
-│       ├── config/                          # Configuration models, storage, migrations and commands
-│       │   ├── catalog.py / guidance.py      # Scoped definitions and static source/requirement metadata
-│       │   ├── import_review.py              # Semantic differences between validated drafts
-│       │   ├── ui_preferences.py            # Shared language preference transactions
-│       │   ├── storage.py                   # Locks, backups and atomic writes
-│       │   └── instances.py / instance_commands.py # Instance model and explicit CLI
-│       ├── i18n/                            # Registered interface/output languages
-│       │   ├── locales/                     # en / zh-CN / zh-Hant / ja / ko
-│       │   ├── translator.py                # Message keys, parameters and English fallback
-│       │   ├── statusline.py                # Explicit-language output and known-value presentation
-│       │   ├── _generated_statusline/        # Generated modules loaded per output language
-│       │   └── presentation.py              # Localized fields and choices
-│       ├── integration/                     # Claude Code setup, install transactions, hooks and diagnostics
-│       ├── platforms/                       # Cross-platform files, processes, clocks and terminals
-│       ├── rendering/                       # Statusline formatting, colors, layout and previews
-│       │   ├── components.py                 # Text and flexible-space fitting
-│       │   ├── visibility.py                 # Raw-observation visibility rules
-│       │   ├── appearance.py / colors.py     # Theme roles and terminal color mapping
-│       │   └── powerline.py                  # Visible block composition and fitting
-│       ├── runtime/                         # Session data collection, caches and task state
-│       │   ├── live/                        # Independent observation protocol, aggregation and storage
-│       │   ├── tasks/                       # User task ownership, lifecycle and timing state
-│       │   ├── timing/                      # Pure pause/resume clock logic
-│       │   └── turns/                       # Compatibility aliases forwarding to tasks/
-│       ├── resources/                       # Bundled configuration skill templates
-│       └── ui/                              # Editor state, search, guidance, import review and JSON backend
-├── mods/                                    # Claude Code TypeScript Mods
-│   ├── statusline-native/                   # In-session configuration editor Mod
-│   │   ├── hooks/                           # Host APIs, commands, saves and recovery
-│   │   ├── lib/                             # Backend, drafts, input and independent snapshots
-│   │   │   └── i18n/                       # Generated locales, semantic messages and presentation
-│   │   ├── ui/                              # Client drawing, components, theme and geometry
-│   │   │   └── theme.ts                     # Host color roles and independent preview surface
-│   │   └── tests/                           # Tests grouped by backend, client, editor, integration and UI
-│   └── statusline-runtime/                  # Native task timing and optional advanced metrics Mod
-├── tests/                                   # Python unit and integration tests
-│   ├── fixtures/                            # Shared language-neutral editor search cases
-│   ├── config/                              # Configuration, formatting, migration and transfer tests
-│   ├── i18n/                                # Translation resources and fallback tests
-│   ├── integration/                         # CLI, installation, packaging and compatibility tests
-│   ├── platforms/                           # Platform adapters and terminal integration tests
-│   ├── rendering/                           # Statusline formatting, layout and metric display tests
-│   ├── runtime/                             # Session state, task lifecycle and timing tests
-│   └── ui/                                  # Configuration editor, layout and protocol tests
-└── tools/                                   # Development, validation and release utilities
-    ├── generate_i18n.py                     # Validate resources and generate TypeScript locales
-    ├── inspect_dist.py                      # Wheel/sdist metadata, contents and exclusion checks
-    ├── publish_package.py                   # Release asset validation and package index install checks
-    └── check_docs.py                        # Documentation links, anchors and bilingual pair checks
+├── .github/workflows/
+│   ├── ci.yml                    # Candidate build, eight installations and thirteen hosts
+│   └── reference.yml             # Manual historical Python verification
+├── packages/                     # Four business packages
+│   ├── core/src/                 # Configuration, protocols, pure state, rendering and Unicode
+│   │   └── i18n/                 # Five generated languages; sources in core/resources
+│   ├── platform/src/             # Files, locks, processes, clocks and terminal adapters
+│   ├── cli/                      # Commands, integration, runtime and recovery
+│   │   ├── src/                  # Installation and editor protocols
+│   │   └── resources/            # Two configuration skill templates
+│   └── tui/src/                  # Standalone terminal editor
+├── mods/
+│   ├── statusline-native/        # In-session editor: hooks, lib, ui, tests
+│   └── statusline-runtime/       # Timing and optional live metrics
+├── tests/fixtures/               # Shared contracts, Unicode and frozen reference data
+├── tools/
+│   ├── generation/               # Shared resource generation
+│   ├── checks/                   # Documentation, archive and aggregate checks
+│   ├── build/                    # Fixed sources, universal offline packaging and digests
+│   ├── acceptance/               # Installation, Mods, terminals, power and budgeted acceptance
+│   ├── benchmarks/               # Functional fixtures and optional descriptive measurement
+│   ├── release/                  # Candidate evidence and release-note preparation
+│   ├── migration/                # Stage ledgers, frozen references and compatibility tests
+│   ├── testing/                  # Development-only test support package
+│   ├── typescript/               # Runtime constraints and test entry points
+│   └── unicode/                  # Pinned data, provenance and licenses
+├── archive/python/               # Frozen Python implementation, tests, tools and publishing workflows
+├── docs/                         # Usage, development, migration and historical releases
+│   ├── reference/                # CLI and configuration reference
+│   ├── development/              # Architecture, testing and stage records
+│   ├── images/                   # UI screenshots and historical captures
+│   └── releases/                 # Historical release notes
+├── package.json / package-lock.json
+├── tsconfig*.json / .node-version
+├── README.md / README.zh-CN.md
+├── CHANGELOG.md / CHANGELOG.zh-CN.md
+└── LICENSE
 ```
 
 ## Documentation and help

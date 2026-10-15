@@ -68,6 +68,8 @@
 
 ## 安装与接入
 
+以下安装和升级命令适用于已发布的 Python 产品。当前 main 的 TypeScript 源码和工程候选应按[开发/隔离安装指南](development/typescript-migration/ts-05/candidate.zh-CN.md)操作；候选验收使用临时目录，保留已有 Python 环境。TS-06 才负责公开发布与产品切换。
+
 ### 安装 Python 包
 
 从 [PyPI](https://pypi.org/project/fbincon-claude-code-statusline/) 安装稳定包：
@@ -102,7 +104,7 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v2.0.0"
 pipx ensurepath
 ```
 
-使用 `@main` 获取开发源码，本地检出可运行 `pipx install .`。自行构建见[开发指南](development/README.zh-CN.md#从源码构建与安装)。
+当前 `main` 使用 TypeScript。源码构建和隔离候选安装见[开发指南](development/README.zh-CN.md#从源码构建与安装)；Python 源码安装请使用已发布的固定标签。
 
 ### 接入 Claude Code
 

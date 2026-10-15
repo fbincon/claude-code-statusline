@@ -3,7 +3,7 @@
 [English](README.md) | **简体中文**
 
 状态：**IN_PROGRESS**，2026-10-16（Asia/Shanghai）。执行者：Codex。
-分支：`fbincon/ts-05-tooling-ledger`。[迁移总计划](../../typescript-migration.zh-CN.md)
+分支：`fbincon/ts-05-candidate`。[迁移总计划](../../typescript-migration.zh-CN.md)
 维护阶段状态。已批准交付通用离线工程候选包、验证后的 CI 制品和仓库内隔离的 Python 归档。
 公开标签、预览/正式发布及剩余实机/桌面验收属于 TS-06。保留已安装的 Python 产品。
 
@@ -11,11 +11,11 @@
 
 | 批次 | 交付内容 | 状态 |
 | --- | --- | --- |
-| 05-A | 现存 Windows ARM 失败与完整责任台账 | DONE；[PR #92](https://github.com/fbincon/claude-code-statusline/pull/92) |
-| 05-B | 维护工具与无 Python 测试替代 | IN_PROGRESS |
-| 05-C | 可复现的通用离线候选包 | NOT_STARTED |
-| 05-D | CI 切换与 Python 归档 | NOT_STARTED |
-| 05-E | 候选验收、文档与阶段收尾 | NOT_STARTED |
+| 05-A | 现存 Windows ARM 失败与完整责任台账 | VALIDATING；[PR #92](https://github.com/fbincon/claude-code-statusline/pull/92) 已合并诊断，最终 Windows 验收待完成 |
+| 05-B | 维护工具与无 Python 测试替代 | DONE；[PR #93](https://github.com/fbincon/claude-code-statusline/pull/93)，43 项检查通过 |
+| 05-C | 可复现的通用离线候选包 | VALIDATING；两次本地构建一致 |
+| 05-D | CI 切换与 Python 归档 | VALIDATING；独立历史验证通过 |
+| 05-E | 候选验收、文档与阶段收尾 | IN_PROGRESS；最终目标 CI 待验 |
 
 ## 责任基线
 
@@ -39,9 +39,24 @@ TS-05 开始前 main 的[运行记录](https://github.com/fbincon/claude-code-st
 不是渲染器主动退出。现先创建隔离 HOME，在 PowerShell 管道之前读取输入，并记录四个检查点。
 [Windows ARM 重验](https://github.com/fbincon/claude-code-statusline/actions/runs/38780352740/job/116578626507)
 在 `665f273` 全部十项安装测试通过：首次 PowerShell 渲染 14788 ms，子 Agent 渲染
-1387 ms，两次检查点均完整。已处理观察到的验收器失败；冷启动波动仍由报告记录。
+1387 ms，两次检查点均完整。这只是一次初步通过，尚不能证明启动问题已稳定解决。
 四组 PR 工作流通过，重复 push 工作流被取消、不计为通过。
 PR #92 合并为 `bc424e3ec8e4734b7c29bbf734b9328ecfc42ba3`。
+
+[05-B ARM 复验](https://github.com/fbincon/claude-code-statusline/actions/runs/38785440463/job/116596113070)
+随后在首个脚本检查点前超时。伪造用户目录中的空命令也超时，系统用户目录启动和直接 Node
+诊断则通过。现让 PowerShell 以 `-NoProfile` 和有效系统用户目录启动，再在脚本内恢复临时
+产品路径，保留原超时限制。最终跨平台确认仍待完成。
+
+`bfd4639` 的共享候选[运行记录](https://github.com/fbincon/claude-code-statusline/actions/runs/38794199753)
+有二十项任务通过，但两个 Windows shell 案例均在 `encoding` 后、`read` 前超时；空启动探针通过。
+仅保留缓存目录未能修复命令模块查找。验收器现显式加载 npm 原始 `.ps1` 启动脚本所需的系统
+Management 模块，保留有效系统目录变量，并用 `.NET File.ReadAllText` 按字面路径读取输入。
+依据 [Microsoft 启动说明](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_psmodulepath)
+清除父进程继承的 PowerShell 7 模块路径。下一次运行已到达 `read`，但原生 stdin 格式化仍停滞。
+PowerShell 的[原生命令处理器](https://github.com/PowerShell/PowerShell/blob/master/src/System.Management.Automation/engine/NativeCommandProcessor.cs)
+还会调用 Utility 的 `Out-String`；现显式加载这两个系统模块，并关闭自动模块搜索，使缺失依赖立即报错。
+全部模块加载仍包含在原有 20 秒限制内，CI 验证待完成。
 
 ## 完成条件
 
@@ -72,4 +87,29 @@ Node 维护工具现覆盖文档链接、发布 Markdown/Gitee 说明、精确�
 本地证据：预加载拒绝 Python/编译器子进程时，918 项测试中 915 项通过、三项仅 Windows 跳过；
 十三个小型基准案例完成功能检查，没有运行 D06 测量。既有单任务/并行任务和单 Agent/并行
 指标记录的副本经 Node 重验通过，指标分别包含 5/7 个请求和 1/2 个 Agent。
-没有新增付费调用，也不据此宣称实机验收通过。候选打包、剩余台账映射及 CI/归档切换仍待完成。
+没有新增付费调用，也不据此宣称实机验收通过。该批检查点时，候选打包、剩余台账映射及 CI/归档切换仍待完成。
+
+## 05-C/05-D 本地验证
+
+[候选指南](candidate.zh-CN.md)是当前开发、构建和安装入口。台账已闭环：测试 **808 项移植、
+19 项退役、29 项历史保留**，工具 **45 项替代、17 项历史保留**，每个原责任项均保留。
+历史项由独立参考入口执行验证，不能只凭移动文件认定兼容完成。
+
+源码 `38ff85b75c936201764c64f80b8fff96f091e176` 的两次干净构建得到相同的
+3317861 字节通用包，SHA-256 为
+`f72e8a04e17e22c3a0a4dddbc9468cdb441b0bf741d335fa34c96a93aab17a7f`。
+十项源码之外的安装测试通过，使用空 npm 缓存、离线模式、禁用生命周期脚本和仅含 Node
+的 PATH。本地官方主机 2.1.294 的两个 Mod、精确声明和安装绑定通过；2.1.296 的两个 Mod
+及绑定通过，声明缺失明确记录为不可用。
+
+归档切换后的本地 `check` 完成 **932 项测试，929 项通过、三项 Windows 跳过**，
+33 项有效生成资源及 1729 个文档链接通过；随后新增的 PowerShell 启动回归也在本地通过。
+归档核验覆盖 318 个 Python 源文件和 361 个映射文件。独立重建完成 856 项 Python 测试
+（九项平台跳过）、161 个冻结案例、十二个精确预期重采、真实混合版本锁和 Python 兼容回退。
+没有新增付费会话或完整 D06 测量。最终 CI 及 main/Gitee 同步完成前，不标记 TS-05 DONE。
+
+在 `bfd4639`，PATH 只包含 Node、Git、shell 工具和 tmux，不含 Python 或编译器的验证通过：
+**936 项测试，933 项通过、三项 Windows 跳过**，33 项生成资源及 1731 个文档链接通过。
+从 CI 源码包进行两次构建，候选包、源码包、构建清单及校验文件均与 CI 逐字节一致，候选
+SHA-256 为 `5cff3e20d248bfc575fa00ae77e2fda335bdd1d26797458713cc496cd49b6c69`。
+第一次受限 PATH 探针缺少 Git 所需的 POSIX 辅助工具，补全环境后才取得上述结果；失败探针不计为通过。

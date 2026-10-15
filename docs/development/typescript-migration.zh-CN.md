@@ -24,9 +24,9 @@
 | 当前任务范围 | TS-05 IN_PROGRESS：完整工具链、CI 与工程候选；TS-06 和 PERF-01 保持 NOT_STARTED |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
 | 目标版本与工期 | 尚未指定；后续候选／交付任务确定版本及工期 |
-| 下一项实施工作 | TS-05 05-A：Windows ARM Shell 诊断与完整责任台账 |
+| 下一项实施工作 | TS-05 05-C/05-D：统一候选 CI 与归档切换，随后完成验收 |
 
-维护者已批准 TS-04 实施，安装验收使用隔离环境，恢复采用显式命令，保留现用 Python 安装。[TS-04 记录](typescript-migration/ts-04/README.zh-CN.md)跟踪五批实现，本阶段不发布。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
+维护者已批准 TS-05 实施，安装验收使用隔离环境，恢复采用显式命令，保留现用 Python 安装。[TS-04 记录](typescript-migration/ts-04/README.zh-CN.md)跟踪五批实现，本阶段不发布。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 
 TS-03 覆盖全部 161 个固定案例，保留原三项已批准的 CLI 文案差异；516 项清单已审计：471 项迁移、45 项完整测试交接 TS-04，另保留八项混合测试中的剩余断言。最新本地 TS 验证为 556/557 通过、1 项平台跳过；[PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) 最终 head 的 43 项 CI 和八份源码回执通过后合并为 `7eae7c4`。这些 TS-03 历史结果与 TS-04 的安装验收分别保留。[关闭依据与证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)。
 
@@ -94,7 +94,7 @@ D01–D06 已选定 Node 24.21.0／npm、编译 ESM、node:test、Koffi／严格
 | [D05](typescript-migration/ts-02/D05.zh-CN.md) | DECIDED | 安装、旧入口退役、升级与回滚 | pipx／PATH 识别、Windows 可执行文件或 argv 方案、归属、插件／后端绑定、关闭偏好保留及兼容备份恢复 | TS-02 定策略；TS-04 完成 |
 | [D06](typescript-migration/ts-02/D06.zh-CN.md) | DECIDED；2026-10-15 修订适用范围 | 保留的性能测量策略与目标 | `3c448b8` 冻结策略和历史结果不变；成品测量／优化归 PERF-01，不阻塞迁移或发布 | TS-02 固定策略；TS-06 后执行 PERF-01 |
 
-重点代码边界是[平台时钟](../../src/claude_statusline/platforms/clocks.py)、[文件锁与发布](../../src/claude_statusline/platforms/files.py)、[序列化计时器](../../src/claude_statusline/runtime/timing/clock.py)、[提交索引字节游标](../../src/claude_statusline/runtime/tasks/evidence.py)、[语义 revision](../../src/claude_statusline/config/revisions.py)、[CLI 归属](../../src/claude_statusline/integration/ownership.py)和[外部终端](../../src/claude_statusline/ui/terminal.py)。
+重点代码边界是[平台时钟](../../archive/python/src/claude_statusline/platforms/clocks.py)、[文件锁与发布](../../archive/python/src/claude_statusline/platforms/files.py)、[序列化计时器](../../archive/python/src/claude_statusline/runtime/timing/clock.py)、[提交索引字节游标](../../archive/python/src/claude_statusline/runtime/tasks/evidence.py)、[语义 revision](../../archive/python/src/claude_statusline/config/revisions.py)、[CLI 归属](../../archive/python/src/claude_statusline/integration/ownership.py)和[外部终端](../../archive/python/src/claude_statusline/ui/terminal.py)。
 
 UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希需要明确序列化规则；`.cmd` 启动器不会自动满足当前 Windows `.exe` 契约。进程行为应核对 [Node 进程启动文档](https://nodejs.org/api/child_process.html#spawning-bat-and-cmd-files-on-windows)。如评估独立分发，应按所选版本检查 [Node SEA](https://nodejs.org/api/single-executable-applications.html) 或 [Bun 可执行文件](https://bun.sh/docs/bundler/executables)的真实目标范围和资源行为。
 
@@ -108,7 +108,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | TS-02 | 平台验证及 D01–D06 决策 | TS-01 | DONE | Codex；`fbincon/ts-02-linux-acceptance`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)及[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)；[整合与证据](typescript-migration/ts-02/LINUX-20261014.zh-CN.md) |
 | TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | DONE | Codex；实现 [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)，合并 `7eae7c4`；[修订标准下的关闭记录](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15) |
 | TS-04 | 双编辑器、安装与恢复 | TS-03 | DONE | Codex；验证 `f37e5f5`；[PR #91](https://github.com/fbincon/claude-code-statusline/pull/91)；[批次与证据](typescript-migration/ts-04/README.zh-CN.md) |
-| TS-05 | 完整工具链、CI 与发布候选 | TS-04 | IN_PROGRESS | Codex；`fbincon/ts-05-tooling-ledger`；[执行记录](typescript-migration/ts-05/README.zh-CN.md) |
+| TS-05 | 完整工具链、CI 与发布候选 | TS-04 | IN_PROGRESS | Codex；`fbincon/ts-05-candidate`；[执行记录](typescript-migration/ts-05/README.zh-CN.md) |
 | TS-06 | 预览验收与正式交付 | TS-05 | NOT_STARTED | 未分配 |
 
 独立后续专项：**PERF-01 — NOT_STARTED**，依赖 TS-06 DONE。[专项计划](performance/perf-01.zh-CN.md)记录未来工作与证据，不新增 TS-07，也不使已完成迁移重新处于未完成状态。
@@ -199,7 +199,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 两套实现使用独立的配置／运行样例副本，注入时钟与进程身份，只归一化有说明的非确定字段。新实现不能写入 Python 对照的真实运行目录。每个疑似差异都应判断属于回归还是需要另行记录的既有缺陷，不把缺陷静默固化为新契约。
 
-基线的 [CI](../../.github/workflows/ci.yml) 和 [Native Mod](../../.github/workflows/native.yml) 定义 Linux、Windows、Intel／Apple Silicon macOS 及固定 Claude 宿主覆盖。README 另有 Windows x86／x64 和 WSL 支持说明，必须明确列出未支持或未验证的组合，不假设选定运行时／打包工具天然覆盖。Claude Code 2.1.296 当前有运行／安装覆盖，但现有准备流程未提供声明，不得记作已通过精确版本类型检查。
+基线的 [CI](../../.github/workflows/ci.yml) 和 [Native Mod](../../archive/python/workflows/native.yml) 定义 Linux、Windows、Intel／Apple Silicon macOS 及固定 Claude 宿主覆盖。README 另有 Windows x86／x64 和 WSL 支持说明，必须明确列出未支持或未验证的组合，不假设选定运行时／打包工具天然覆盖。Claude Code 2.1.296 当前有运行／安装覆盖，但现有准备流程未提供声明，不得记作已通过精确版本类型检查。
 
 迁移期间无需每个阶段或 PR 重复完整 D06；现有功能、Mod、平台及工具链检查保持适用，CI 工具链迁移仍按 TS-05 实施。PERF-01 的性能对照使用相同机器、样例、固定源码／脚本版本及明确缓存条件，分别记录运行时启动和完整命令延迟；避免用常驻且已预热的 TS 代码对比新启动的 Python 进程。历史 [v2.0 性能报告](performance-v2.0.0.zh-CN.md)用于选择场景，不是本次迁移的直接测量。不在实测前承诺提速或内存下降。
 
@@ -231,11 +231,11 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 每次更新后检查文档：
 
 ```bash
-python3 -B tools/check_docs.py
+npm run docs:check
 git diff --check
 ```
 
-规划阶段的文档检查器仍是 Python，在 TS-05 替换此操作说明。已映射行为取得替代证据之前，不删除 Python 对照或宣称全面等价。文档中的后续事项本身不构成开始编码或发布的任务指令。
+TS-05 已使用 TypeScript 文档检查器；独立 Python 参考已归档。已映射行为取得替代证据之前，不删除 Python 对照或宣称全面等价。文档中的后续事项本身不构成开始编码或发布的任务指令。
 
 ## 进展日志
 

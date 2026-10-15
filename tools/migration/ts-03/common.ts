@@ -20,7 +20,8 @@ export function checkBaseline(): void {
             throw new Error(`Frozen fixture changed: ${name}`);
     }
     for (const [name, hash] of Object.entries(lock.harness)) {
-        if (sha256(readFileSync(join(repoRoot, name))) !== hash)
+        const archived = JSON.parse(readFileSync(join(repoRoot, 'archive/python/manifest.json'), 'utf8')).files[name]?.path;
+        if (sha256(readFileSync(join(repoRoot, archived ?? name))) !== hash)
             throw new Error(`Frozen adapter changed: ${name}`);
     }
 }
@@ -58,7 +59,7 @@ export function sourceHashes(): Record<string, string> {
                 hashes[name] = sha256(readFileSync(join(repoRoot, name)));
         }
     }
-    for (const path of ['packages', 'tools/typescript', 'tools/migration/ts-03', 'tools/migration/ts-04', 'tools/migration/ts-05', 'tools/generation', 'tools/testing', 'tools/checks', 'tools/release', 'tools/acceptance', 'tools/benchmarks', 'tests/fixtures/migration/ts-05'])
+    for (const path of ['packages', 'tools/typescript', 'tools/migration/ts-03', 'tools/migration/ts-04', 'tools/migration/ts-05', 'tools/generation', 'tools/testing', 'tools/checks', 'tools/release', 'tools/acceptance', 'tools/benchmarks', 'tools/build', 'tests/fixtures/migration/ts-05'])
         walk(path);
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const root = 'mods/' + name;
@@ -71,8 +72,8 @@ export function sourceHashes(): Record<string, string> {
         const manifest = root + '/.claude-plugin/plugin.json';
         hashes[manifest] = sha256(readFileSync(join(repoRoot, manifest)));
     }
-    for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.base.json', 'tsconfig.tools.json', '.node-version', '.gitattributes', '.github/workflows/typescript.yml', '.github/workflows/native.yml',
-        'tools/generate_unicode.py', 'tools/unicode/UNICODE-LICENSE.txt', 'tools/unicode/WCWIDTH-LICENSE.txt', 'mods/statusline-native/lib/generated-unicode.ts', 'mods/statusline-native/lib/unicode.ts'])
+    for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.base.json', 'tsconfig.tools.json', '.node-version', '.gitattributes', '.github/workflows/ci.yml', '.github/workflows/reference.yml',
+        'archive/python/manifest.json', 'archive/python/manifest.sha256', 'tools/unicode/UNICODE-LICENSE.txt', 'tools/unicode/WCWIDTH-LICENSE.txt', 'mods/statusline-native/lib/generated-unicode.ts', 'mods/statusline-native/lib/unicode.ts'])
         hashes[path] = sha256(readFileSync(join(repoRoot, path)));
     return Object.fromEntries(Object.entries(hashes).sort());
 }

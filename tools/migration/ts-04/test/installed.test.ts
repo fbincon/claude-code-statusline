@@ -2,14 +2,15 @@ import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { installCandidate, PACKAGE } from '../package.js';
 import { repoRoot, sourceHashes } from '../../ts-03/common.js';
 import { openPty } from './pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import { Capture } from '../capture.js';
-import { POWERSHELL_FLAGS, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
+import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
+import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
 const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false };
 let driver: string, report: Record<string, unknown> = {};
@@ -18,7 +19,7 @@ before(() => {
     installed = installCandidate();
     driver = join(installed.temporary, 'acceptance-driver.mjs');
     fs.copyFileSync(fileURLToPath(new URL('./installed-driver.js', import.meta.url)), driver);
-    report = { schema_version: 1, stage: 'TS-04', node: process.version, platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
+    report = { schema_version: 1, stage: 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
 });
 after(() => {
     const path = process.env.TS04_INSTALLED_REPORT;
@@ -126,19 +127,40 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
             fs.writeFileSync(input, payload);
             const checkpoint = join(installed.temporary, `powershell-${operation}.phases`);
             const mark = (phase: string) => `[IO.File]::AppendAllText(${quote(checkpoint)}, ${quote(phase + '\n')}); `;
-            const command = mark('started') + powershellIsolation(installed.env) + `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); ` + mark('encoding') + `$source = Get-Content -Raw -Encoding UTF8 ${quote(input)}; ` + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
+            const readInput = `$source = [IO.File]::ReadAllText(${quote(input)}, [Text.Encoding]::UTF8); `;
+            const encoding = `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); `;
+            const command = mark('started') + POWERSHELL_BOOTSTRAP + mark('modules') + powershellIsolation(installed.env) + encoding + mark('encoding') + readInput + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
             const executed = runShell(ps, [...POWERSHELL_FLAGS, command], operation, powershellEnvironment({ ...installed.env, CLAUDE_CONFIG_DIR: config }));
-            report.powershell_profile = 'OS profile for shell initialization with -NoProfile; isolated product paths restored before Node';
+            report.powershell_profile = 'OS profile with -NoProfile, explicit built-in Management/Utility, no automatic module search; isolated product paths restored before Node';
             shellReceipts.push(executed.receipt);
             const result = executed.result;
             report.powershell_phases = { ...(report.powershell_phases as object ?? {}), [operation]: fs.existsSync(checkpoint) ? fs.readFileSync(checkpoint, 'utf8').trim().split('\n') : [] };
             if (result.status !== 0) {
+                const traceModule = join(installed.temporary, 'node-stdin-trace.cjs');
+                fs.writeFileSync(traceModule, `const fs = require('node:fs');
+const record = event => fs.appendFileSync(process.env.TS05_NODE_TRACE, JSON.stringify({ event, pid: process.pid, at: Date.now() }) + '\\n');
+record('node-start');
+const original = fs.readFileSync;
+fs.readFileSync = function(file, ...args) { if (file === 0) record('stdin-start'); const result = original.call(this, file, ...args); if (file === 0) record('stdin-end:' + result.length); return result; };
+require('node:module').syncBuiltinESMExports();
+process.on('exit', code => record('exit:' + code));
+`);
+                const traced = (name: string) => powershellEnvironment({ ...installed.env, CLAUDE_CONFIG_DIR: config, NODE_OPTIONS: '--import=' + pathToFileURL(traceModule).href, TS05_NODE_TRACE: join(installed.temporary, name + '.node-trace') });
+                const direct = encoding + readInput + `$source | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`;
                 const commands = [
                     { name: 'isolated-startup', text: '[Console]::WriteLine("ready")', env: { ...installed.env } },
                     { name: 'original-startup', text: '[Console]::WriteLine("ready")', env: { ...process.env } },
-                    { name: 'direct-node', text: `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); Get-Content -Raw -Encoding UTF8 ${quote(input)} | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`, env: { ...installed.env, CLAUDE_CONFIG_DIR: config } },
+                    { name: 'original-input', text: `$source = Get-Content -LiteralPath ${quote(input)} -Raw -Encoding UTF8; [Console]::WriteLine($source.Length)`, env: { ...process.env } },
+                    { name: 'node-version', text: `& ${quote(installed.node)} --version; exit $LASTEXITCODE`, env: { ...installed.env } },
+                    { name: 'original-node', text: direct, env: { ...process.env, CLAUDE_CONFIG_DIR: config } },
+                    { name: 'direct-node', text: POWERSHELL_BOOTSTRAP + powershellIsolation(installed.env) + direct, env: traced('direct-node') },
+                    { name: 'shim-traced', text: command, env: traced('shim-traced') },
                 ];
-                report.shell_diagnostics = commands.map(probe => { const observed = runShell(ps, [...POWERSHELL_FLAGS, probe.text], probe.name, probe.env); return { ...observed.receipt, stdout: observed.result.stdout }; });
+                report.shell_diagnostics = commands.map(probe => {
+                    const observed = runShell(ps, [...POWERSHELL_FLAGS, probe.text], probe.name, probe.env);
+                    const trace = join(installed.temporary, probe.name + '.node-trace');
+                    return { ...observed.receipt, stdout: observed.result.stdout, node_trace: fs.existsSync(trace) ? fs.readFileSync(trace, 'utf8').trim().split('\n').map(line => JSON.parse(line)) : [] };
+                });
             }
             assert.equal(result.status, 0, JSON.stringify(executed.receipt));
             assert.equal(result.stdout.replaceAll('\r\n', '\n'), expected);

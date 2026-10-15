@@ -2,6 +2,16 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## TypeScript engineering candidate delivery
+
+Current main uses the [TS-05 candidate workflow](development/typescript-migration/ts-05/candidate.md): build twice from a fixed commit, verify the universal offline tgz, source archive and SHA256SUMS, then aggregate eight installation targets and thirteen host reports. `npm run release:prepare` verifies local evidence without uploading or publishing. Every receipt must match source and actual artifact digests; missing, skipped or failed evidence cannot pass.
+
+Candidate identity and application version are separate. Public previews, versions, tags, npm publication and Releases belong to TS-06 after remaining physical acceptance. GitHub is primary; after merge-commit CI passes, synchronize main to Gitee with explicit refspecs. TS-05 creates no version tags. `release:gitee-notes` prepares notes from verified attachment metadata.
+
+## Archived Python publication procedure
+
+The following preserves the published Python product and its historical procedure from the [pre-archive source](https://github.com/fbincon/claude-code-statusline/tree/38ff85b75c936201764c64f80b8fff96f091e176). The old PyPI workflow lives in archive/python/workflows. These wheel/PyPI commands do not apply to current main; published fixed tags retain their original procedures.
+
 <a id="发布-github-release"></a>
 
 This guide is for maintainers. Users should start with [installation in the README](../README.md#quick-installation) and the [user guide](USER_GUIDE.md) for configuration. The current stable release is [v2.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v2.0.0); commands below use it as an example. Replace the tag, package version, and filenames together for another release.

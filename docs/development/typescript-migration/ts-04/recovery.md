@@ -2,11 +2,13 @@
 
 **English** | [简体中文](recovery.zh-CN.md)
 
-This procedure applies to the private TS-04 candidate. The released Python
+This procedure applies to the private TS-04/TS-05 candidates. The released Python
 package and the maintainer's existing installation remain unchanged. Run the
 candidate with an explicit isolated configuration directory until release
 acceptance authorizes a cutover.
 
+
+See the [engineering candidate guide](../ts-05/candidate.md) for TS-05 offline installation, artifact hashes and independent Python rollback verification.
 ## Inspect and recover
 
 ```bash

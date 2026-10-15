@@ -1,0 +1,1455 @@
+{
+  "schema_version": 1,
+  "reference_commit": "38ff85b75c936201764c64f80b8fff96f091e176",
+  "baseline_commit": "748cc79840cd08280da4ab7ab8ef3dea7dee9873",
+  "files": {
+    "MANIFEST.in": {
+      "path": "archive/python/MANIFEST.in",
+      "sha256": "2940cddf544a6a9547903dad603a4fbf856e99ab65cd03e58a38858930ef600c"
+    },
+    "pyproject.toml": {
+      "path": "archive/python/pyproject.toml",
+      "sha256": "a63dada30a093310f0a13cd8ae65d191610c0b4c3fe260859511ad997a48527b"
+    },
+    "src/build_native.py": {
+      "path": "archive/python/src/build_native.py",
+      "sha256": "7cc19314e862cc4b79c7cff4f4438b07276395bd1ad9611ed6e7ceeecb62eadd"
+    },
+    "src/claude_statusline/__init__.py": {
+      "path": "archive/python/src/claude_statusline/__init__.py",
+      "sha256": "3ad9091d0a36550bac62f56a82ea8d49183044220c4bb04fe98230c9dc64edb4"
+    },
+    "src/claude_statusline/__main__.py": {
+      "path": "archive/python/src/claude_statusline/__main__.py",
+      "sha256": "3d2438ae92f4746e9ffaa1f837b1fe803f6281091d1f31f8c95643716f257d9a"
+    },
+    "src/claude_statusline/_platform.py": {
+      "path": "archive/python/src/claude_statusline/_platform.py",
+      "sha256": "fb5fce89b8f5dc91a57c924100523b6efcab932cd631679e904d40654204b0e3"
+    },
+    "src/claude_statusline/_version.py": {
+      "path": "archive/python/src/claude_statusline/_version.py",
+      "sha256": "ffb3a541d6d590ae2369dd022dda48d20ad3fb31006feaa01661f9985cc35e20"
+    },
+    "src/claude_statusline/cli.py": {
+      "path": "archive/python/src/claude_statusline/cli.py",
+      "sha256": "9d2760ccf8146227f770af1686f803fbdd062420b6219cdc691cb33b7044efb1"
+    },
+    "src/claude_statusline/config/__init__.py": {
+      "path": "archive/python/src/claude_statusline/config/__init__.py",
+      "sha256": "8f684e81796948b25ebdc4890ff30615e6f0e07c2580c7292b3fabb38368cd61"
+    },
+    "src/claude_statusline/config/advanced.py": {
+      "path": "archive/python/src/claude_statusline/config/advanced.py",
+      "sha256": "33e0325164cb34100564b016ee0a6e94703365f79194f39cbbe8bdc434fa0fa9"
+    },
+    "src/claude_statusline/config/appearance.py": {
+      "path": "archive/python/src/claude_statusline/config/appearance.py",
+      "sha256": "87bbe3a5673c86afa32f7d05aec471190017978ba16c6152add9d7bafce9e13c"
+    },
+    "src/claude_statusline/config/catalog.py": {
+      "path": "archive/python/src/claude_statusline/config/catalog.py",
+      "sha256": "3fba2063b7c8ee57f974068af30de88357e1a5e06782dee81c30c1963da25f5d"
+    },
+    "src/claude_statusline/config/commands.py": {
+      "path": "archive/python/src/claude_statusline/config/commands.py",
+      "sha256": "a50bf7e06648c540625387d8eeeb93be3038d3f3b3288c858c4fa3dce96591a8"
+    },
+    "src/claude_statusline/config/display.py": {
+      "path": "archive/python/src/claude_statusline/config/display.py",
+      "sha256": "100109c737a5d8629058a1fdf0853db23ee178dd44192188bf0879745eaaf165"
+    },
+    "src/claude_statusline/config/editor_defaults.py": {
+      "path": "archive/python/src/claude_statusline/config/editor_defaults.py",
+      "sha256": "0c1a82bc6dbaf4c38e7beef4dcebb30641be5be237cd1c2afa1d16352395281b"
+    },
+    "src/claude_statusline/config/editor_fields.py": {
+      "path": "archive/python/src/claude_statusline/config/editor_fields.py",
+      "sha256": "8f765d4cb97264c23b01468f0d9818bfc227d48c169be35ab870080f8a98711e"
+    },
+    "src/claude_statusline/config/features.py": {
+      "path": "archive/python/src/claude_statusline/config/features.py",
+      "sha256": "282268f10545dbf626b99ce54fc70ff04867e452e4942d6c630e72b481ced0e9"
+    },
+    "src/claude_statusline/config/formatting.py": {
+      "path": "archive/python/src/claude_statusline/config/formatting.py",
+      "sha256": "e52ab28d179a1de29175a1aba65b2492bb571085972873a2598c5d27e0808f21"
+    },
+    "src/claude_statusline/config/guidance.py": {
+      "path": "archive/python/src/claude_statusline/config/guidance.py",
+      "sha256": "428d9c961eb6dcd6b46c5befd1557641e1298add3bf520208194cf26ca07dfe8"
+    },
+    "src/claude_statusline/config/host.py": {
+      "path": "archive/python/src/claude_statusline/config/host.py",
+      "sha256": "f85bf8d84f5cefa6f8bea909b8b730633ae0ccb183ce6e361ae2197bdc8d5fae"
+    },
+    "src/claude_statusline/config/import_review.py": {
+      "path": "archive/python/src/claude_statusline/config/import_review.py",
+      "sha256": "3e8a216e5ae2930c2a9a4d61c147887bce7c14ad4aec23bbf253219e7661ca28"
+    },
+    "src/claude_statusline/config/instance_commands.py": {
+      "path": "archive/python/src/claude_statusline/config/instance_commands.py",
+      "sha256": "c305875574989a2f9916fc34b8ba43959652b2e95e5bde4c5757ab6fa8d38b35"
+    },
+    "src/claude_statusline/config/instances.py": {
+      "path": "archive/python/src/claude_statusline/config/instances.py",
+      "sha256": "b5d27ccf8158de938a0f67d7fdf5502817a92e827896e76eff4fbd3eebcc2719"
+    },
+    "src/claude_statusline/config/metrics.py": {
+      "path": "archive/python/src/claude_statusline/config/metrics.py",
+      "sha256": "ed4ff328d7288b661ccba297e61540e8dea646f1db97d701a91fcc355471355a"
+    },
+    "src/claude_statusline/config/models.py": {
+      "path": "archive/python/src/claude_statusline/config/models.py",
+      "sha256": "645be1437f7ca6a1d83cdd71137f734be1a91ba674dd8ce65ad831e8ec91b57b"
+    },
+    "src/claude_statusline/config/native.py": {
+      "path": "archive/python/src/claude_statusline/config/native.py",
+      "sha256": "dce1014f6db0f9db4a3e6461c11c2785e674fcb35d14d58c42453af5a58157d1"
+    },
+    "src/claude_statusline/config/presets.py": {
+      "path": "archive/python/src/claude_statusline/config/presets.py",
+      "sha256": "da3112bc710c29352235d6eebd77f8acd34a6ba9df5ee8b2b9989ddb375e6386"
+    },
+    "src/claude_statusline/config/revisions.py": {
+      "path": "archive/python/src/claude_statusline/config/revisions.py",
+      "sha256": "5808b43c08d3f844f8268e1f5ea7e0e781e9f6a2ae1993273ce17bb3472223a4"
+    },
+    "src/claude_statusline/config/runtime.py": {
+      "path": "archive/python/src/claude_statusline/config/runtime.py",
+      "sha256": "3ec6634a1118d73938b24d9f01674dafb7b9c80ff003d01149260638cd1b3771"
+    },
+    "src/claude_statusline/config/service.py": {
+      "path": "archive/python/src/claude_statusline/config/service.py",
+      "sha256": "f93b4bb2b6014ea23e4ffdff7833a11569165b23f0956a471f092b594e6d168c"
+    },
+    "src/claude_statusline/config/storage.py": {
+      "path": "archive/python/src/claude_statusline/config/storage.py",
+      "sha256": "5511691c64615dc615fa6fa1f67552d6a589b98edc2242192e45bba2c288a2bb"
+    },
+    "src/claude_statusline/config/transfer.py": {
+      "path": "archive/python/src/claude_statusline/config/transfer.py",
+      "sha256": "1e932eac595608f1a2e2bbb1729a6d06cda3d2c7246b4a78402ef3c663bd444a"
+    },
+    "src/claude_statusline/config/ui_preferences.py": {
+      "path": "archive/python/src/claude_statusline/config/ui_preferences.py",
+      "sha256": "8e1e449279a4bd26e6a3f763b32c561dc16aa819d42eb36450240ee44e05a5dc"
+    },
+    "src/claude_statusline/config_commands.py": {
+      "path": "archive/python/src/claude_statusline/config_commands.py",
+      "sha256": "30c913880039ef6f728c684ebb4fd8bb2446d68af053c07589689c6625b986ed"
+    },
+    "src/claude_statusline/display_config.py": {
+      "path": "archive/python/src/claude_statusline/display_config.py",
+      "sha256": "cae2ec12d83838434ff1bd70fa32a27237731890d28beaf9db1459231b1e322e"
+    },
+    "src/claude_statusline/feature_config.py": {
+      "path": "archive/python/src/claude_statusline/feature_config.py",
+      "sha256": "02b03f326ee76f08e4e422ff2c47dfca34f942398ff7fe3fdc752beb831b6abd"
+    },
+    "src/claude_statusline/i18n/__init__.py": {
+      "path": "archive/python/src/claude_statusline/i18n/__init__.py",
+      "sha256": "97627bf2104013ae90c944f5fd02bad1a5e67ed0fb1015f57ef091605ebe913c"
+    },
+    "src/claude_statusline/i18n/_generated_languages.py": {
+      "path": "archive/python/src/claude_statusline/i18n/_generated_languages.py",
+      "sha256": "c3b3968680c1e622afc7d87a561062a4721f64e60325734ec88ce934a23d0200"
+    },
+    "src/claude_statusline/i18n/_generated_statusline/__init__.py": {
+      "path": "archive/python/src/claude_statusline/i18n/_generated_statusline/__init__.py",
+      "sha256": "a276ce3bf3caa99ae947959890f8453252b0d6f2326481e4a8385220fd52254f"
+    },
+    "src/claude_statusline/i18n/_generated_statusline/en.py": {
+      "path": "archive/python/src/claude_statusline/i18n/_generated_statusline/en.py",
+      "sha256": "38b3a5dbac3d98d2f3607a0883fbeac3378c4b5e1084d2dbcc8af150e435ad3f"
+    },
+    "src/claude_statusline/i18n/_generated_statusline/ja.py": {
+      "path": "archive/python/src/claude_statusline/i18n/_generated_statusline/ja.py",
+      "sha256": "46dc93b6d98c124dc84be770c80ef06c79e6a13f428ff8f4e2ef8b988d4d9947"
+    },
+    "src/claude_statusline/i18n/_generated_statusline/ko.py": {
+      "path": "archive/python/src/claude_statusline/i18n/_generated_statusline/ko.py",
+      "sha256": "0da40f7b8a318cce04c5e28dc469b33c00a7d8acab86312150a8931ac51fb04f"
+    },
+    "src/claude_statusline/i18n/_generated_statusline/zh_cn.py": {
+      "path": "archive/python/src/claude_statusline/i18n/_generated_statusline/zh_cn.py",
+      "sha256": "3bae80fbeeffe792a268aa9f6cb33df1409c7a20aafc0648189fe8f37c3cd634"
+    },
+    "src/claude_statusline/i18n/_generated_statusline/zh_hant.py": {
+      "path": "archive/python/src/claude_statusline/i18n/_generated_statusline/zh_hant.py",
+      "sha256": "7bbd7c01ef4d87fda1fd67346dd98d8d7e10568982a13e7a3295d36828ba9ada"
+    },
+    "src/claude_statusline/i18n/argparse.py": {
+      "path": "archive/python/src/claude_statusline/i18n/argparse.py",
+      "sha256": "6aa182b3baff061d1cd544f83d9f6e5378d944ae8b2f807ccc9f175a732f4d69"
+    },
+    "src/claude_statusline/i18n/languages.json": {
+      "path": "archive/python/src/claude_statusline/i18n/languages.json",
+      "sha256": "2dc2697c9ab274cb5bd5b43fc2c50cf6e0fcd9e23e6360b2a28f78d62ac0ae44"
+    },
+    "src/claude_statusline/i18n/locales/en.json": {
+      "path": "archive/python/src/claude_statusline/i18n/locales/en.json",
+      "sha256": "c051c1c7657889c49e281b68d64b47c73f7b7fdd5927aa9935d77ed36cb38a41"
+    },
+    "src/claude_statusline/i18n/locales/ja.json": {
+      "path": "archive/python/src/claude_statusline/i18n/locales/ja.json",
+      "sha256": "e60c28ff26095a2203c54cb381192b53a968d46631b14075c5765c321d8d14e4"
+    },
+    "src/claude_statusline/i18n/locales/ko.json": {
+      "path": "archive/python/src/claude_statusline/i18n/locales/ko.json",
+      "sha256": "15b813b88d7d49fa0789d282790ceb7095724266265c15ce45092660cd41bdf3"
+    },
+    "src/claude_statusline/i18n/locales/zh-CN.json": {
+      "path": "archive/python/src/claude_statusline/i18n/locales/zh-CN.json",
+      "sha256": "282b03aff71398da3b6a037eee2aa2721df119e185d954f7d67675874a28a018"
+    },
+    "src/claude_statusline/i18n/locales/zh-Hant.json": {
+      "path": "archive/python/src/claude_statusline/i18n/locales/zh-Hant.json",
+      "sha256": "6b7bb83bcc8b60a39a4e7bd5e9a618c4aae966425d51480a64ba1395ba73bf6a"
+    },
+    "src/claude_statusline/i18n/presentation.py": {
+      "path": "archive/python/src/claude_statusline/i18n/presentation.py",
+      "sha256": "2d609cc86791d436fcfd3e9c0d2500add23f5f413a14aa42f763ad80fc83d1f0"
+    },
+    "src/claude_statusline/i18n/registry.py": {
+      "path": "archive/python/src/claude_statusline/i18n/registry.py",
+      "sha256": "9e6b1f272ab99e07594e6704f4d55c524965ca23ae000a4f98696ec4aab07f24"
+    },
+    "src/claude_statusline/i18n/statusline.py": {
+      "path": "archive/python/src/claude_statusline/i18n/statusline.py",
+      "sha256": "9334799803628396f173b7c64befe870aba3ba7e8344e9c5abf877feacd108f8"
+    },
+    "src/claude_statusline/i18n/translator.py": {
+      "path": "archive/python/src/claude_statusline/i18n/translator.py",
+      "sha256": "284ebd181d5e6cafead0e6b2ff37320ce0c5994a70a638914dbf48bea055a0fe"
+    },
+    "src/claude_statusline/installer.py": {
+      "path": "archive/python/src/claude_statusline/installer.py",
+      "sha256": "02b0aec862d3c0e882e2f81cd5319631de6c206f5eb0e98b85e7282d79c61532"
+    },
+    "src/claude_statusline/integration/__init__.py": {
+      "path": "archive/python/src/claude_statusline/integration/__init__.py",
+      "sha256": "aa8a7bda893deed333fc95659c9bb078e1cae9d41a77b4530706e568fea5adec"
+    },
+    "src/claude_statusline/integration/bridge.py": {
+      "path": "archive/python/src/claude_statusline/integration/bridge.py",
+      "sha256": "caa3ae50e888033784e49c549a9313ebbbeb24cadb0fcbb70523fd4dcbf28c10"
+    },
+    "src/claude_statusline/integration/capabilities.py": {
+      "path": "archive/python/src/claude_statusline/integration/capabilities.py",
+      "sha256": "5f5b6abe99d5d4561a2b5865298e37a133fb59748a9cea7a94efcebbb247cdfd"
+    },
+    "src/claude_statusline/integration/doctor.py": {
+      "path": "archive/python/src/claude_statusline/integration/doctor.py",
+      "sha256": "97464a95f3dcc836c5c76778a0f013393cc35d55e6d19b11b182fc35af3e10fd"
+    },
+    "src/claude_statusline/integration/install_plan.py": {
+      "path": "archive/python/src/claude_statusline/integration/install_plan.py",
+      "sha256": "ff22a59be7a423eda47470a15c04aadd52f513e3f8956e6c29710b664e56d46b"
+    },
+    "src/claude_statusline/integration/installer.py": {
+      "path": "archive/python/src/claude_statusline/integration/installer.py",
+      "sha256": "34606b2d23ddb221dc397e70b4192b8c8f86c53898b0340d3366f779417e3fbf"
+    },
+    "src/claude_statusline/integration/launcher.py": {
+      "path": "archive/python/src/claude_statusline/integration/launcher.py",
+      "sha256": "e43e591565d435fa182efd7a6d80b71b76496aeec87480e8e10f67e771af358a"
+    },
+    "src/claude_statusline/integration/lifecycle_hook.py": {
+      "path": "archive/python/src/claude_statusline/integration/lifecycle_hook.py",
+      "sha256": "c7f0b69f96c47dbf292f22a2ba2d582990106bdbfa5fde3dd13050131f214f67"
+    },
+    "src/claude_statusline/integration/models.py": {
+      "path": "archive/python/src/claude_statusline/integration/models.py",
+      "sha256": "73638826aea5e332e3e310cf30073eb8ea79b01a26d33acb93693dd1bfcba381"
+    },
+    "src/claude_statusline/integration/mods.py": {
+      "path": "archive/python/src/claude_statusline/integration/mods.py",
+      "sha256": "208959d5dcd98967494cff1e8e0825c1d11216ef34fe2dacb989981d5d2598e3"
+    },
+    "src/claude_statusline/integration/native.py": {
+      "path": "archive/python/src/claude_statusline/integration/native.py",
+      "sha256": "01923a5f59cb8fd7d01c99497b3c68fc55e3307a5edad02a1a76b70a62b7733c"
+    },
+    "src/claude_statusline/integration/native_resources.py": {
+      "path": "archive/python/src/claude_statusline/integration/native_resources.py",
+      "sha256": "f2429406a1c4421002999aa6c31f1998c0331eeade3482de5faad8518f1763a0"
+    },
+    "src/claude_statusline/integration/ownership.py": {
+      "path": "archive/python/src/claude_statusline/integration/ownership.py",
+      "sha256": "2fde3a69eb3fe9d662d83cc54856aebf01aee862981920b483112f7148032bbe"
+    },
+    "src/claude_statusline/integration/resources.py": {
+      "path": "archive/python/src/claude_statusline/integration/resources.py",
+      "sha256": "1bc10e80bae4e5942ea179f6e9b139f62eef1f60d677e95d68b718be6e659818"
+    },
+    "src/claude_statusline/integration/runtime.py": {
+      "path": "archive/python/src/claude_statusline/integration/runtime.py",
+      "sha256": "8385614547cb9aa960b9fc73eb9eedb96ccd0ee3b90fd687de2ca5886bf1271a"
+    },
+    "src/claude_statusline/integration/slash_hook.py": {
+      "path": "archive/python/src/claude_statusline/integration/slash_hook.py",
+      "sha256": "ffc47be7b812f9b8ff9cc320469e6d882bfe9ad1c0bb4b12f5fa328c8127c2a3"
+    },
+    "src/claude_statusline/interactive_config.py": {
+      "path": "archive/python/src/claude_statusline/interactive_config.py",
+      "sha256": "3d63baddcff2f6e514752d0bec182867f2b14d074eadfa2b9790ec5cea4dbaed"
+    },
+    "src/claude_statusline/macos_terminal.py": {
+      "path": "archive/python/src/claude_statusline/macos_terminal.py",
+      "sha256": "a2c3fa77f938b441279134227375fd459e3250632cf75cc64581b73ed93c4a0c"
+    },
+    "src/claude_statusline/platforms/__init__.py": {
+      "path": "archive/python/src/claude_statusline/platforms/__init__.py",
+      "sha256": "e17771ea4795db5daa406dcd17afe6ebbdd3a34de0954f8ec2e7e76c98c4b9c4"
+    },
+    "src/claude_statusline/platforms/clocks.py": {
+      "path": "archive/python/src/claude_statusline/platforms/clocks.py",
+      "sha256": "326d4ef686d606bfd2c1c6859794c393844b35615044fef30807bf298362707e"
+    },
+    "src/claude_statusline/platforms/environment.py": {
+      "path": "archive/python/src/claude_statusline/platforms/environment.py",
+      "sha256": "2cb379b8d7a6d79afee5aa0ac2acae76f7678d0ced5ab672908d21808ec56eaa"
+    },
+    "src/claude_statusline/platforms/files.py": {
+      "path": "archive/python/src/claude_statusline/platforms/files.py",
+      "sha256": "f64021bbfa469c90a83b703fcfcf08b4a1be9d8d8b6ccc2bd9fff6cf4c5528b9"
+    },
+    "src/claude_statusline/platforms/macos_terminal.py": {
+      "path": "archive/python/src/claude_statusline/platforms/macos_terminal.py",
+      "sha256": "dd7ee46f2cd294e5c36c72468dd1cf41bc766d160aa9923672e2fc95da50dfb8"
+    },
+    "src/claude_statusline/platforms/processes.py": {
+      "path": "archive/python/src/claude_statusline/platforms/processes.py",
+      "sha256": "ad26e1fc096225930be4d9d748af5cd666eeaf161522a913c33bb3cc348310e0"
+    },
+    "src/claude_statusline/render_utils.py": {
+      "path": "archive/python/src/claude_statusline/render_utils.py",
+      "sha256": "dedd6f1b17eb048b2547b45be4cfc1af494892567a1348b56e46b529df7ba94c"
+    },
+    "src/claude_statusline/rendering/__init__.py": {
+      "path": "archive/python/src/claude_statusline/rendering/__init__.py",
+      "sha256": "8b69fc70b46dd082f5cc4eceb96052a68f6addb7c058e8e86e3bfd87556635dd"
+    },
+    "src/claude_statusline/rendering/_unicode_grapheme.py": {
+      "path": "archive/python/src/claude_statusline/rendering/_unicode_grapheme.py",
+      "sha256": "c12d90851851f327e67877445239e032db5c4de7fd3780ffd803c223a9ad6d7d"
+    },
+    "src/claude_statusline/rendering/_unicode_width.py": {
+      "path": "archive/python/src/claude_statusline/rendering/_unicode_width.py",
+      "sha256": "ba2efc972b2cc4e53d51d89fae3daeac3bda6ce4a68ccfb2852ea156a19bc59e"
+    },
+    "src/claude_statusline/rendering/appearance.py": {
+      "path": "archive/python/src/claude_statusline/rendering/appearance.py",
+      "sha256": "dc2e671b6f99a8ed9451bef91cb43143fe94b7f66d15342439e5cea618d9e69c"
+    },
+    "src/claude_statusline/rendering/colors.py": {
+      "path": "archive/python/src/claude_statusline/rendering/colors.py",
+      "sha256": "33db630c668fed9a0879dab9c04d01b6898802e673ae9436eb51773beb9cfb1f"
+    },
+    "src/claude_statusline/rendering/components.py": {
+      "path": "archive/python/src/claude_statusline/rendering/components.py",
+      "sha256": "52c9adb51a629b36b752500e14e47691590c966fcc70113825724d63da40a332"
+    },
+    "src/claude_statusline/rendering/formatters.py": {
+      "path": "archive/python/src/claude_statusline/rendering/formatters.py",
+      "sha256": "b29e20984e8914ce28715dc4959c63cec19fe1e4d0f85428a2162b453743aa0f"
+    },
+    "src/claude_statusline/rendering/git.py": {
+      "path": "archive/python/src/claude_statusline/rendering/git.py",
+      "sha256": "eab326628c4e7073774f5760f8e8bde8f8f6b2749518996791226c9b8e37b5ff"
+    },
+    "src/claude_statusline/rendering/items.py": {
+      "path": "archive/python/src/claude_statusline/rendering/items.py",
+      "sha256": "9c8ffa606a09ce22f468e0bf4428e93f7167dc33dc0847df712ce931acf4f2f2"
+    },
+    "src/claude_statusline/rendering/layout.py": {
+      "path": "archive/python/src/claude_statusline/rendering/layout.py",
+      "sha256": "5f1f8d20a1e5ff864f7adc804fb1c08b85584b817d1707bbcac61557eb7b023f"
+    },
+    "src/claude_statusline/rendering/live.py": {
+      "path": "archive/python/src/claude_statusline/rendering/live.py",
+      "sha256": "c2d1eaf6b3bfbc3b6cc2dc21175653463aee4d35e47d8929de06567f6625bca7"
+    },
+    "src/claude_statusline/rendering/main.py": {
+      "path": "archive/python/src/claude_statusline/rendering/main.py",
+      "sha256": "b2b27d652edaecc4a189fe747c7760e9f8cd2e84772c084a664b4280133dd5d0"
+    },
+    "src/claude_statusline/rendering/metrics.py": {
+      "path": "archive/python/src/claude_statusline/rendering/metrics.py",
+      "sha256": "60dc8a36583e13d8a633096042455cdc19cb398001895749a9e73d91953da689"
+    },
+    "src/claude_statusline/rendering/palette.py": {
+      "path": "archive/python/src/claude_statusline/rendering/palette.py",
+      "sha256": "de450fdebba7f0133e3d69ea8e9c3084d1b32cc096fa17a2c4fc04ad93fa2118"
+    },
+    "src/claude_statusline/rendering/powerline.py": {
+      "path": "archive/python/src/claude_statusline/rendering/powerline.py",
+      "sha256": "588fbe8c151f260eb26b5ebac4ceb48b9d2eaaaa464d5f4dec846227faff80ba"
+    },
+    "src/claude_statusline/rendering/preferences.py": {
+      "path": "archive/python/src/claude_statusline/rendering/preferences.py",
+      "sha256": "007623c99c5b817a8b7c2c208ee59029b22559adb5ecfca05906d369f6135369"
+    },
+    "src/claude_statusline/rendering/preview.py": {
+      "path": "archive/python/src/claude_statusline/rendering/preview.py",
+      "sha256": "4541d1f4ab2f4cb4f5f47c6a4beab90dbff8e40bc73d19cbbe25a0ee6a95beed"
+    },
+    "src/claude_statusline/rendering/spans.py": {
+      "path": "archive/python/src/claude_statusline/rendering/spans.py",
+      "sha256": "e2cdac43ffed727372980e2ff19591ce1305fd264beb6225685480048775e1cc"
+    },
+    "src/claude_statusline/rendering/styles.py": {
+      "path": "archive/python/src/claude_statusline/rendering/styles.py",
+      "sha256": "a8631c1c3e9fe03ecce482fbc020e30e932a945a401d40e29cc06f6d6b615961"
+    },
+    "src/claude_statusline/rendering/subagents.py": {
+      "path": "archive/python/src/claude_statusline/rendering/subagents.py",
+      "sha256": "e50b84a4fe7dba6a0879b72753c5da101dda293d8c698c2cc7f346ccf417fbab"
+    },
+    "src/claude_statusline/rendering/text.py": {
+      "path": "archive/python/src/claude_statusline/rendering/text.py",
+      "sha256": "5e74b59daa416b6d660b0eff525eb53873757b07f0fe5440bb34aa55625d0637"
+    },
+    "src/claude_statusline/rendering/timer.py": {
+      "path": "archive/python/src/claude_statusline/rendering/timer.py",
+      "sha256": "4139e4a10950c7328e139c8dc1d58364493fc1e7d5b008ee0aade4b41018bbb4"
+    },
+    "src/claude_statusline/rendering/visibility.py": {
+      "path": "archive/python/src/claude_statusline/rendering/visibility.py",
+      "sha256": "eb552821edd4a2932c29b0d2b257f4cf9444fc027c34538a9add128c7a81449e"
+    },
+    "src/claude_statusline/resources/statusline-config/SKILL.md": {
+      "path": "archive/python/src/claude_statusline/resources/statusline-config/SKILL.md",
+      "sha256": "8371cb718dccc7ccf67d3d76b689c7e8d95e4d5f21a3247d05005540afade7b4"
+    },
+    "src/claude_statusline/resources/statusline-configure/SKILL.md": {
+      "path": "archive/python/src/claude_statusline/resources/statusline-configure/SKILL.md",
+      "sha256": "a0dfc24cf1109f66f6384d0f265c848279c945c9e97f7e63741f828f2e4c94c6"
+    },
+    "src/claude_statusline/runtime/__init__.py": {
+      "path": "archive/python/src/claude_statusline/runtime/__init__.py",
+      "sha256": "2a1f8dbd80479f17e9a3a5af6f7969c1d173eb25d1bdbc9ad09fac82deed768b"
+    },
+    "src/claude_statusline/runtime/branch_diff.py": {
+      "path": "archive/python/src/claude_statusline/runtime/branch_diff.py",
+      "sha256": "faacb04bc46064efccb2885da97f49708661d45b2a47cc9fa26c8c82b821614d"
+    },
+    "src/claude_statusline/runtime/cache.py": {
+      "path": "archive/python/src/claude_statusline/runtime/cache.py",
+      "sha256": "0a347f124a13e006a0fa3f595db2ee680b053da50c3506058eb00d13581e1f9b"
+    },
+    "src/claude_statusline/runtime/git.py": {
+      "path": "archive/python/src/claude_statusline/runtime/git.py",
+      "sha256": "261fba38e17aa47fe0472ffcd3ba83993a38ded211d8f0ba3bc9302eccbed275"
+    },
+    "src/claude_statusline/runtime/live/__init__.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/__init__.py",
+      "sha256": "f3b29c6a540837f253853b1871b582d280cd6f957a1c288f1f318d38d2037ec0"
+    },
+    "src/claude_statusline/runtime/live/bindings.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/bindings.py",
+      "sha256": "992afd3a89a5b82fe74efc329da1200820aabaf3374f205b0df25208b3346698"
+    },
+    "src/claude_statusline/runtime/live/durations.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/durations.py",
+      "sha256": "741c6b9b1f07468153a935a0db545de82dd2546409fdd132494d7c3933448216"
+    },
+    "src/claude_statusline/runtime/live/model.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/model.py",
+      "sha256": "c01edbdbfa3fbae4b1188d7538ff32d76631fcd8020df28d5cdc6cddf9a53b20"
+    },
+    "src/claude_statusline/runtime/live/ownership.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/ownership.py",
+      "sha256": "6154b6ebac31915147c3a781c6fc458894fa6c660e7a145bbb08ab7b304281fd"
+    },
+    "src/claude_statusline/runtime/live/protocol.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/protocol.py",
+      "sha256": "14449977f9cd68baac6dbca0bb00643069f308822512afedae255001b38edd15"
+    },
+    "src/claude_statusline/runtime/live/reducer.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/reducer.py",
+      "sha256": "4c904f95084a819b131e3433e4745d24dc174d19a1c69e206990d5adb49a7d73"
+    },
+    "src/claude_statusline/runtime/live/requests.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/requests.py",
+      "sha256": "249427d83d3c7e9e588d827b444f69166bf46c3fe0898c0a8d0558651d1fe6e3"
+    },
+    "src/claude_statusline/runtime/live/snapshot.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/snapshot.py",
+      "sha256": "f88cc14aaa018e7399ba8b16936ca33bd6096cd8b1341cc9b06b93c964c40aef"
+    },
+    "src/claude_statusline/runtime/live/store.py": {
+      "path": "archive/python/src/claude_statusline/runtime/live/store.py",
+      "sha256": "69a7c9f320ba27fe26c0e7431bca3e9c4ea36106497c213b267790597e2f197d"
+    },
+    "src/claude_statusline/runtime/paths.py": {
+      "path": "archive/python/src/claude_statusline/runtime/paths.py",
+      "sha256": "ca7b74d2ad261f46b8f00687fd4d40998576d871ad9cc591589ccaa87a4b0c09"
+    },
+    "src/claude_statusline/runtime/registry.py": {
+      "path": "archive/python/src/claude_statusline/runtime/registry.py",
+      "sha256": "cb7a777e33c5d24532f8c0915b2b8cbe39247361d61fd76c1032df8879fcaf10"
+    },
+    "src/claude_statusline/runtime/tasks/__init__.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/__init__.py",
+      "sha256": "35f2c44a398d1f1bb505da1fe17ea6214b61cd04612f5406f2802bf0a5d08be3"
+    },
+    "src/claude_statusline/runtime/tasks/agents.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/agents.py",
+      "sha256": "cea273cca43b04a90d14467be162945aa27d096e7181b7d9957eb04957543455"
+    },
+    "src/claude_statusline/runtime/tasks/collect.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/collect.py",
+      "sha256": "51c031a2c41bec06fd591662f9da6b656f1bf57231992d04e659db81b65fcc06"
+    },
+    "src/claude_statusline/runtime/tasks/evidence.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/evidence.py",
+      "sha256": "e27c049bb20e7395ba6a9b860238c4c1af80c840add0c1681040ab1446b2f54e"
+    },
+    "src/claude_statusline/runtime/tasks/model.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/model.py",
+      "sha256": "1388dc71c1f889d2a34c47cc054f08d7c987179f376536174b3471c71a44ca98"
+    },
+    "src/claude_statusline/runtime/tasks/native.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/native.py",
+      "sha256": "9ca018d74ec84903243b58e02b9ca79cb7969dae01508518746ff66b70c3018b"
+    },
+    "src/claude_statusline/runtime/tasks/reducer.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/reducer.py",
+      "sha256": "1c6379a813c03832b395dfba968f42d2f7b749a67a5f07f93536610fa4b7e724"
+    },
+    "src/claude_statusline/runtime/tasks/store.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/store.py",
+      "sha256": "cf0c5897e866167e6816317ffb140d9eea6d96649301f6d5dded64f0c1272390"
+    },
+    "src/claude_statusline/runtime/tasks/view.py": {
+      "path": "archive/python/src/claude_statusline/runtime/tasks/view.py",
+      "sha256": "96d85a572df68d7e77388a87383683d8e301ac3d366aaa8feca16e577a79ce3b"
+    },
+    "src/claude_statusline/runtime/timing/__init__.py": {
+      "path": "archive/python/src/claude_statusline/runtime/timing/__init__.py",
+      "sha256": "05734eeeeed025e33eb8f3c1bf32ab87b896f214b93a4b627736fa78d3edf28a"
+    },
+    "src/claude_statusline/runtime/timing/clock.py": {
+      "path": "archive/python/src/claude_statusline/runtime/timing/clock.py",
+      "sha256": "d0db05b14f24d63e247f8fe9aaa19260284f0012185de705231dcd7a8f8f5d4e"
+    },
+    "src/claude_statusline/runtime/transcript.py": {
+      "path": "archive/python/src/claude_statusline/runtime/transcript.py",
+      "sha256": "11e830d873903ac6aee1f621cd9ca5c4ede7a15ef9ec72f785207047db2a23be"
+    },
+    "src/claude_statusline/runtime/turns/__init__.py": {
+      "path": "archive/python/src/claude_statusline/runtime/turns/__init__.py",
+      "sha256": "8c448b860c1609e3a8d154e01799f6d0256a326f3054ce11e80a414bdab5a5b7"
+    },
+    "src/claude_statusline/runtime/turns/model.py": {
+      "path": "archive/python/src/claude_statusline/runtime/turns/model.py",
+      "sha256": "1ba850cf6075be1ebb2df77531fc1bdaa50a99b180e9445417722071baf21c49"
+    },
+    "src/claude_statusline/runtime/turns/reducer.py": {
+      "path": "archive/python/src/claude_statusline/runtime/turns/reducer.py",
+      "sha256": "1302c1c1f228f81201b1a3cb1cc24df2b56092e9ac6020cbb9e048550050aae1"
+    },
+    "src/claude_statusline/runtime/turns/store.py": {
+      "path": "archive/python/src/claude_statusline/runtime/turns/store.py",
+      "sha256": "2ddaf912911cc1090943a1b2e5950034ecf01c0c0247264e4c4c943fa90bd9db"
+    },
+    "src/claude_statusline/runtime/usage.py": {
+      "path": "archive/python/src/claude_statusline/runtime/usage.py",
+      "sha256": "3bc5470a1ec1d89fafd2861dfeecc48982acb4a7f4e422fb5caab87b57a13cd5"
+    },
+    "src/claude_statusline/slash_hook.py": {
+      "path": "archive/python/src/claude_statusline/slash_hook.py",
+      "sha256": "7a0da93aa9098d52633d279d4d9e7add140ebd6479cf153dfc0bd13c2893ae3d"
+    },
+    "src/claude_statusline/slash_tui.py": {
+      "path": "archive/python/src/claude_statusline/slash_tui.py",
+      "sha256": "e45daf67e0f0a5f62955849c73a5021c404cc60eea7597b0995284899cefd500"
+    },
+    "src/claude_statusline/statusline.py": {
+      "path": "archive/python/src/claude_statusline/statusline.py",
+      "sha256": "70162f5227e6d9ad72f0f6fd5f83820fa6cb2559cb45efe00c93a002d3cedeb9"
+    },
+    "src/claude_statusline/subagent_statusline.py": {
+      "path": "archive/python/src/claude_statusline/subagent_statusline.py",
+      "sha256": "29d7e12fcee2fb58860c95c5a80226be3c69421d1dc432d5f5e5c8e5b234738d"
+    },
+    "src/claude_statusline/turn_state.py": {
+      "path": "archive/python/src/claude_statusline/turn_state.py",
+      "sha256": "f5ba4eae1939198469cf056096b5aa765d4ccdf809f6b6f9e0bb7ca8490ab350"
+    },
+    "src/claude_statusline/ui/__init__.py": {
+      "path": "archive/python/src/claude_statusline/ui/__init__.py",
+      "sha256": "3f9933e6da00c88e8505f53aa4d1b0f0c3704afa08bf89b5785e07a22f683f2e"
+    },
+    "src/claude_statusline/ui/catalog_view.py": {
+      "path": "archive/python/src/claude_statusline/ui/catalog_view.py",
+      "sha256": "704c4146602589ef1380c73186c2f525fd55d858499da54ab46f1ae962b8297e"
+    },
+    "src/claude_statusline/ui/contracts.py": {
+      "path": "archive/python/src/claude_statusline/ui/contracts.py",
+      "sha256": "d0622c0b9c4e95adfe92e54d4db05dc55f348599180a370c2a68daf52d0ea089"
+    },
+    "src/claude_statusline/ui/drawing.py": {
+      "path": "archive/python/src/claude_statusline/ui/drawing.py",
+      "sha256": "cadfb0847e487bdcee65c00d9b1580abcc649eb1f8f5b3efe3209f709fd2de13"
+    },
+    "src/claude_statusline/ui/editor.py": {
+      "path": "archive/python/src/claude_statusline/ui/editor.py",
+      "sha256": "038f7cd441e17a799c81f595d2b117eb976e337ee3d66c93b1d018a124d1d95e"
+    },
+    "src/claude_statusline/ui/forms.py": {
+      "path": "archive/python/src/claude_statusline/ui/forms.py",
+      "sha256": "207f2b620cbd0776265d13a91f79b736e4853312aaac7521b1e04188328071c2"
+    },
+    "src/claude_statusline/ui/guidance.py": {
+      "path": "archive/python/src/claude_statusline/ui/guidance.py",
+      "sha256": "e09cdf5361b5b16d32c582882168cafd441a4702d278df2aad462e3b8ecc3969"
+    },
+    "src/claude_statusline/ui/import_review.py": {
+      "path": "archive/python/src/claude_statusline/ui/import_review.py",
+      "sha256": "3c3b671afff5bc720b39768bc8a8c0567e174214d6444eea052bb4c5d8e47022"
+    },
+    "src/claude_statusline/ui/keys.py": {
+      "path": "archive/python/src/claude_statusline/ui/keys.py",
+      "sha256": "a9f6a6c3c93068f8c133567c1fff5f35e5049f4f5b8eed89795857e43a979f31"
+    },
+    "src/claude_statusline/ui/layout.py": {
+      "path": "archive/python/src/claude_statusline/ui/layout.py",
+      "sha256": "5150b3e0df6ad02d474dc7cd26f05398d0bf5a7801e1e2b931ad19bc8c283380"
+    },
+    "src/claude_statusline/ui/models.py": {
+      "path": "archive/python/src/claude_statusline/ui/models.py",
+      "sha256": "e8dc90b21d6f10b82142ab4f6ca78a2bc1e0042dac3dea31d161ea3aa1218ac1"
+    },
+    "src/claude_statusline/ui/protocol.py": {
+      "path": "archive/python/src/claude_statusline/ui/protocol.py",
+      "sha256": "65e877ccbcf5120803a6eb92e35ea815024fae92e1bb0f08bbf25ae98f484722"
+    },
+    "src/claude_statusline/ui/search.py": {
+      "path": "archive/python/src/claude_statusline/ui/search.py",
+      "sha256": "d990f9afd85dff74d677ba673089a3bb5f992948cbcf5c279664c5ba9aacb677"
+    },
+    "src/claude_statusline/ui/session.py": {
+      "path": "archive/python/src/claude_statusline/ui/session.py",
+      "sha256": "23c265f2aad903142985d899a03b4f6d5700591f472ad0a5aed7d0bd7c9f4821"
+    },
+    "src/claude_statusline/ui/shortcuts.py": {
+      "path": "archive/python/src/claude_statusline/ui/shortcuts.py",
+      "sha256": "910a05aaf06451ea7c6981fe8204aab2cd48a190f5a788019b208151d5d8e7d9"
+    },
+    "src/claude_statusline/ui/terminal.py": {
+      "path": "archive/python/src/claude_statusline/ui/terminal.py",
+      "sha256": "3f381f1fbc271d707da7555a16284173897d9263c8fe3386647142045dd7eccf"
+    },
+    "src/claude_statusline/ui/text_input.py": {
+      "path": "archive/python/src/claude_statusline/ui/text_input.py",
+      "sha256": "fda7ae4965cf3b458f910577315fb6ae0a71e76f8a2edf571e298cbe6d901143"
+    },
+    "src/claude_statusline/ui/text_view.py": {
+      "path": "archive/python/src/claude_statusline/ui/text_view.py",
+      "sha256": "2a7da13fe3b7d7e7dedd628f21f9474dbfab681bd1862ec8d28d376161c7228e"
+    },
+    "src/claude_statusline/ui/theme.py": {
+      "path": "archive/python/src/claude_statusline/ui/theme.py",
+      "sha256": "0fbc2ee8538d4823c725d3a514fb8553c68e6c179a82e88ed314dfd52e965cb1"
+    },
+    "tests/__init__.py": {
+      "path": "archive/python/tests/__init__.py",
+      "sha256": "1dc11a7a47c2d64464aa7cdfb4cf3328109a0b938058560e2cbd9189d99a164b"
+    },
+    "tests/config/__init__.py": {
+      "path": "archive/python/tests/config/__init__.py",
+      "sha256": "1dc11a7a47c2d64464aa7cdfb4cf3328109a0b938058560e2cbd9189d99a164b"
+    },
+    "tests/config/test_appearance.py": {
+      "path": "archive/python/tests/config/test_appearance.py",
+      "sha256": "ad56c0a16f44d19c8235baed93120e9e520daa98da7f44f7817241b407b74440"
+    },
+    "tests/config/test_catalog.py": {
+      "path": "archive/python/tests/config/test_catalog.py",
+      "sha256": "b8a5a38f5ae52b852afac98e00cd467fbea11cc70352f8e46bde356915061bde"
+    },
+    "tests/config/test_config_commands.py": {
+      "path": "archive/python/tests/config/test_config_commands.py",
+      "sha256": "7e510c30088744d490f024e7c24ebfa0cab2ea8c3a95666d4f9dea02ebe7bf89"
+    },
+    "tests/config/test_display_config.py": {
+      "path": "archive/python/tests/config/test_display_config.py",
+      "sha256": "1c10dcda0f937fae92b8042c173df0296621937b9136bba9a5b95e2321b15ed4"
+    },
+    "tests/config/test_feature_config.py": {
+      "path": "archive/python/tests/config/test_feature_config.py",
+      "sha256": "b0068bf145cc1934fc099b4af7b50a32db86661aea2bcd513807141631bdc67a"
+    },
+    "tests/config/test_formatting.py": {
+      "path": "archive/python/tests/config/test_formatting.py",
+      "sha256": "c5e85eff2fffce075b892d05dc8567b170db072f23a3b4a5bcdf53001ca11e93"
+    },
+    "tests/config/test_import_review.py": {
+      "path": "archive/python/tests/config/test_import_review.py",
+      "sha256": "196b9ed4f25b797ec7d5dde1f8b6b41e03fe4548fcf61c297078b5d1f698083c"
+    },
+    "tests/config/test_instance_commands.py": {
+      "path": "archive/python/tests/config/test_instance_commands.py",
+      "sha256": "399080f3018525b946aa3c9c1e51bc2bf4861b92fcbfd39c1b5c0e9add9b5b9e"
+    },
+    "tests/config/test_instances.py": {
+      "path": "archive/python/tests/config/test_instances.py",
+      "sha256": "5fcac09eb8f2a25085bead91a01b51d40b71d1b0f32af996dc5c583adff18078"
+    },
+    "tests/config/test_metrics.py": {
+      "path": "archive/python/tests/config/test_metrics.py",
+      "sha256": "00ff47297a25280fdad3408ebe5835c62c14711b014db3c48496ab0076bb364c"
+    },
+    "tests/config/test_statusline_language.py": {
+      "path": "archive/python/tests/config/test_statusline_language.py",
+      "sha256": "3b86d610fb084984e7d75701322425058debf5ba03840eedef7058e88cb01b6c"
+    },
+    "tests/config/test_transfer.py": {
+      "path": "archive/python/tests/config/test_transfer.py",
+      "sha256": "5da6d68e0ac340a2f7a8d29f6d3db6122fb04651ca610be6c5b304816d71d8a7"
+    },
+    "tests/config/test_ui_preferences.py": {
+      "path": "archive/python/tests/config/test_ui_preferences.py",
+      "sha256": "62fd9a1d43c1756cb95a94615a5a914c3ce2cb3b3a4e8ff5945bf1bb43c9e031"
+    },
+    "tests/config_support.py": {
+      "path": "archive/python/tests/config_support.py",
+      "sha256": "6639be8e5e88cc0bb7da90cd5539907b758ebc6da766d3553f39a8b83ce2f215"
+    },
+    "tests/i18n/__init__.py": {
+      "path": "archive/python/tests/i18n/__init__.py",
+      "sha256": "948b417e129a0cedf671a91b36a0feebc15cc0e0a74d2527b007d60ff7533812"
+    },
+    "tests/i18n/test_registry.py": {
+      "path": "archive/python/tests/i18n/test_registry.py",
+      "sha256": "bb555701b446c6f3290701969f7a970ad05e3003c16ca90ffe95ef887e4aa1e6"
+    },
+    "tests/i18n/test_translation.py": {
+      "path": "archive/python/tests/i18n/test_translation.py",
+      "sha256": "5a50c3e1f54269cb545ed2959034e1539bcf69f2e286b0d2eec115881590dd02"
+    },
+    "tests/integration/__init__.py": {
+      "path": "archive/python/tests/integration/__init__.py",
+      "sha256": "1dc11a7a47c2d64464aa7cdfb4cf3328109a0b938058560e2cbd9189d99a164b"
+    },
+    "tests/integration/test_benchmark_render.py": {
+      "path": "archive/python/tests/integration/test_benchmark_render.py",
+      "sha256": "b0c75fae2e0ecce1f6c62de9e44914d2302d0ec1d15a0bd9393fe28a1d7035a7"
+    },
+    "tests/integration/test_cli.py": {
+      "path": "archive/python/tests/integration/test_cli.py",
+      "sha256": "cd33e2321abad61fee375fab1686fbeec97a1d706cd6ae72db9fe108b3770dc0"
+    },
+    "tests/integration/test_cli_tui.py": {
+      "path": "archive/python/tests/integration/test_cli_tui.py",
+      "sha256": "efcb337881e2f35ee16394d9e3fac13efc3a432a1e7d299a04a3c4acdb6b3890"
+    },
+    "tests/integration/test_compatibility.py": {
+      "path": "archive/python/tests/integration/test_compatibility.py",
+      "sha256": "b22ed5131f2d5faaa50795697e13155e34d25fd29b32dcbe01d8e0e7a4bbbab8"
+    },
+    "tests/integration/test_installer.py": {
+      "path": "archive/python/tests/integration/test_installer.py",
+      "sha256": "da9297d9c06855559ae43fcd6a074c2711ecce0976170cbceab933da1375111e"
+    },
+    "tests/integration/test_language_cli.py": {
+      "path": "archive/python/tests/integration/test_language_cli.py",
+      "sha256": "5acbd29a55bc7896a320cd3b48f329c2459684e445876e3e86cbb45ca8a7e426"
+    },
+    "tests/integration/test_linux_clock_smoke.py": {
+      "path": "archive/python/tests/integration/test_linux_clock_smoke.py",
+      "sha256": "9f545b414322c8b7a8fc99015e2660e53b531c5e077410bee0cce6aaaee8a433"
+    },
+    "tests/integration/test_live_budget.py": {
+      "path": "archive/python/tests/integration/test_live_budget.py",
+      "sha256": "c1ac17893015e857ff24b524d3810b46c695890a7d2170fd6a3a1bcd607578eb"
+    },
+    "tests/integration/test_macos_clock_smoke.py": {
+      "path": "archive/python/tests/integration/test_macos_clock_smoke.py",
+      "sha256": "519d1280da8f21f12aab5a88b822214c3513f0bf0a2d8fa8c7950e3c5e29245a"
+    },
+    "tests/integration/test_native_installer.py": {
+      "path": "archive/python/tests/integration/test_native_installer.py",
+      "sha256": "676e57d17e4c5317648e0e5b29c721482ba15f4290a225a21d1b2a09b0c13b49"
+    },
+    "tests/integration/test_native_resources.py": {
+      "path": "archive/python/tests/integration/test_native_resources.py",
+      "sha256": "50a997a46f7f2f0ce8eb08c52409383c97e3275643bc8627b41facad26b113e2"
+    },
+    "tests/integration/test_publish_package.py": {
+      "path": "archive/python/tests/integration/test_publish_package.py",
+      "sha256": "5e064d4b396ca7a08599b1b5b17dbfbab6d6d8067e069517bb77418d996b36de"
+    },
+    "tests/integration/test_release_documentation.py": {
+      "path": "archive/python/tests/integration/test_release_documentation.py",
+      "sha256": "202e1320c8fb6627d45eba6cad3431de212a75527c020b700978b48bee756230"
+    },
+    "tests/integration/test_runtime_installer.py": {
+      "path": "archive/python/tests/integration/test_runtime_installer.py",
+      "sha256": "fc125603e8840f1574bdf6d0fa765c1e9d6716ac050001b83591131df95d705d"
+    },
+    "tests/integration/test_slash_hook.py": {
+      "path": "archive/python/tests/integration/test_slash_hook.py",
+      "sha256": "027d0ee37854f5d84322e3ae15f411ec929b5a175783a922521266ffc7668c0f"
+    },
+    "tests/integration/test_slash_tui.py": {
+      "path": "archive/python/tests/integration/test_slash_tui.py",
+      "sha256": "05d8fc2dc557890fc51b5b0b23b00813e1e2cbc4151d91e556f845fd97a74bc9"
+    },
+    "tests/integration/test_terminal_capture.py": {
+      "path": "archive/python/tests/integration/test_terminal_capture.py",
+      "sha256": "fac4c60d7a12d26aadbb4272961bbaf965fe0eca32de78ff1303d2c330ad56f5"
+    },
+    "tests/integration/test_terminal_colors.py": {
+      "path": "archive/python/tests/integration/test_terminal_colors.py",
+      "sha256": "a1c534ffca934a84a3b187820b6dfc5cad7a06503f5c81138ef660e08bf95237"
+    },
+    "tests/integration/test_tmux_popup.py": {
+      "path": "archive/python/tests/integration/test_tmux_popup.py",
+      "sha256": "274095bc1c50ff9ea51f9c2f3aadf65be99652e166966edff2777e4c2d15a8cd"
+    },
+    "tests/integration/test_ts02_linux_terminal_smoke.py": {
+      "path": "archive/python/tests/integration/test_ts02_linux_terminal_smoke.py",
+      "sha256": "0ed1238d16290e760a386defa3873f50da26ca64f7084140e9577e4656446f3d"
+    },
+    "tests/integration/test_ts02_macos_terminal_smoke.py": {
+      "path": "archive/python/tests/integration/test_ts02_macos_terminal_smoke.py",
+      "sha256": "21a2003edeaf0e497aca8270243baef3d66225e96dcaee7effdcb87065b167eb"
+    },
+    "tests/integration/test_ts02_mod_smoke.py": {
+      "path": "archive/python/tests/integration/test_ts02_mod_smoke.py",
+      "sha256": "0c623891ffdbbae9ef88701c545284763ad10405d66bc9d54a4da176c26a0ed3"
+    },
+    "tests/integration/test_unicode_generation.py": {
+      "path": "archive/python/tests/integration/test_unicode_generation.py",
+      "sha256": "39f9a8f9b31a8b8a43d7d5c6e46a3c7534713656b54c4fa8dcc4a665deab35f3"
+    },
+    "tests/integration/test_windows_shells.py": {
+      "path": "archive/python/tests/integration/test_windows_shells.py",
+      "sha256": "0bc561df014b8f4cbf9ca6abda143ae50999e52e143bc19e557e619da735b7a1"
+    },
+    "tests/migration/__init__.py": {
+      "path": "archive/python/tests/migration/__init__.py",
+      "sha256": "ceb3ef99d0579ece7243f3d625fa960109464ede01a8505787243dd1fd61f0c1"
+    },
+    "tests/migration/test_baseline.py": {
+      "path": "archive/python/tests/migration/test_baseline.py",
+      "sha256": "f952fd58db49c0d8f3578040472f5161ebbfacf101b308d4a76755f738d24795"
+    },
+    "tests/platforms/__init__.py": {
+      "path": "archive/python/tests/platforms/__init__.py",
+      "sha256": "1dc11a7a47c2d64464aa7cdfb4cf3328109a0b938058560e2cbd9189d99a164b"
+    },
+    "tests/platforms/test_macos_platform.py": {
+      "path": "archive/python/tests/platforms/test_macos_platform.py",
+      "sha256": "cdc57af57aeab9cfc37f587e108ab3d601eae91dd30058cf223a0b98b7baa3af"
+    },
+    "tests/platforms/test_macos_terminal.py": {
+      "path": "archive/python/tests/platforms/test_macos_terminal.py",
+      "sha256": "70d1c27f75274bd5af3cb45c78a3cf6c20ab138ab414a90efc7be4f96e1db2c4"
+    },
+    "tests/platforms/test_platform.py": {
+      "path": "archive/python/tests/platforms/test_platform.py",
+      "sha256": "a5d770b24b8c40db50664017e864e7ba791e7c3e9eb02e082e1f82a23006fbe0"
+    },
+    "tests/platforms/test_windows_clocks.py": {
+      "path": "archive/python/tests/platforms/test_windows_clocks.py",
+      "sha256": "def4405708b4e6299f26e238cf2652c2d4781f95cdd9222b5ea86cd5b573f654"
+    },
+    "tests/rendering/__init__.py": {
+      "path": "archive/python/tests/rendering/__init__.py",
+      "sha256": "1dc11a7a47c2d64464aa7cdfb4cf3328109a0b938058560e2cbd9189d99a164b"
+    },
+    "tests/rendering/test_appearance.py": {
+      "path": "archive/python/tests/rendering/test_appearance.py",
+      "sha256": "ebfa2f0023ae0608564f05c570594ad093782558aa791da4281d9100d99af8c0"
+    },
+    "tests/rendering/test_components.py": {
+      "path": "archive/python/tests/rendering/test_components.py",
+      "sha256": "e367c0e06f580049656adedd34c323a660da98292098c0c11944bc2adce3a797"
+    },
+    "tests/rendering/test_display_metrics.py": {
+      "path": "archive/python/tests/rendering/test_display_metrics.py",
+      "sha256": "5927aabdec8e6b4328111599691d0c40a82acb9559d0027ae48ef1f0a4fe1f2a"
+    },
+    "tests/rendering/test_explicit_layout.py": {
+      "path": "archive/python/tests/rendering/test_explicit_layout.py",
+      "sha256": "ceaf1a2e27111c85e47339419ec4dcffbf7fafa6226b7999ae2fbc5f23d6cfa0"
+    },
+    "tests/rendering/test_graphemes.py": {
+      "path": "archive/python/tests/rendering/test_graphemes.py",
+      "sha256": "f2e946f857ca928a428116c1e95b290a51398c16a98ecdf225526062af2f4f7f"
+    },
+    "tests/rendering/test_live.py": {
+      "path": "archive/python/tests/rendering/test_live.py",
+      "sha256": "921fafbb7f95999d9d41778fe668f7e2e446a0ed42d389a0a8a266f979923d6a"
+    },
+    "tests/rendering/test_statusline_configurable.py": {
+      "path": "archive/python/tests/rendering/test_statusline_configurable.py",
+      "sha256": "761a56f9367c93978a02313507593459ce2cb77435a749738481c59c9beffb6e"
+    },
+    "tests/rendering/test_statusline_git.py": {
+      "path": "archive/python/tests/rendering/test_statusline_git.py",
+      "sha256": "cf2ebb47eaa5beb3cf808a284f091ccf3a642dd0125e576148b20259146c18e4"
+    },
+    "tests/rendering/test_statusline_language.py": {
+      "path": "archive/python/tests/rendering/test_statusline_language.py",
+      "sha256": "5ac545de6b37394c7a5d905498965d354ea600153bd61b3fd6a44e4fba975a83"
+    },
+    "tests/rendering/test_statusline_layout.py": {
+      "path": "archive/python/tests/rendering/test_statusline_layout.py",
+      "sha256": "562974425b54a406f61c3c678e83d42185b2654a9105612a5fa0f37cb69ba36b"
+    },
+    "tests/rendering/test_statusline_new_items.py": {
+      "path": "archive/python/tests/rendering/test_statusline_new_items.py",
+      "sha256": "9aa54a9c921de559eb508fd4931cd26f44ffd638b0584e6f89c2ed3ed4bcb3da"
+    },
+    "tests/rendering/test_statusline_preview.py": {
+      "path": "archive/python/tests/rendering/test_statusline_preview.py",
+      "sha256": "b97f972e6dbe05cd33b877d0fe37b1097102f6c84b98bf9039710e8505281297"
+    },
+    "tests/rendering/test_statusline_rate_limits.py": {
+      "path": "archive/python/tests/rendering/test_statusline_rate_limits.py",
+      "sha256": "515270c200ba2523fef119452173181ec478f4b70c499cec627297c097410d80"
+    },
+    "tests/rendering/test_statusline_scope.py": {
+      "path": "archive/python/tests/rendering/test_statusline_scope.py",
+      "sha256": "14a7a63760f9b0a2841d285a136e8642c91393a39187f5090bbf7b2119771bdf"
+    },
+    "tests/rendering/test_styles.py": {
+      "path": "archive/python/tests/rendering/test_styles.py",
+      "sha256": "0c9e98e398ac7ef40d5d8d159a7f6ccf432bc0fc3abca12222b342e6d071c06d"
+    },
+    "tests/rendering/test_subagent_statusline.py": {
+      "path": "archive/python/tests/rendering/test_subagent_statusline.py",
+      "sha256": "afbeaa4263e69d5fae482f092ab2022c601de26d730317f0e6043fe5e5615339"
+    },
+    "tests/runtime/__init__.py": {
+      "path": "archive/python/tests/runtime/__init__.py",
+      "sha256": "1dc11a7a47c2d64464aa7cdfb4cf3328109a0b938058560e2cbd9189d99a164b"
+    },
+    "tests/runtime/live/__init__.py": {
+      "path": "archive/python/tests/runtime/live/__init__.py",
+      "sha256": "3b49e502b10dab5f719524e0bbdd2b8f53d838d1505812cd2e3bbb3cf1cf65b9"
+    },
+    "tests/runtime/live/support.py": {
+      "path": "archive/python/tests/runtime/live/support.py",
+      "sha256": "d6bd16d11ec5616aff039b3d3afabfff1898f1c8517017c1fd7572b45cd442a6"
+    },
+    "tests/runtime/live/test_bindings.py": {
+      "path": "archive/python/tests/runtime/live/test_bindings.py",
+      "sha256": "818d39d1f5986546bcc0f2fc339f5593272b055e78d291171292efdc2ca20f92"
+    },
+    "tests/runtime/live/test_durations.py": {
+      "path": "archive/python/tests/runtime/live/test_durations.py",
+      "sha256": "3f3c1e1791b98bfb80cb873f4fbd7affeb2609c77d3b97209e69e014c963e390"
+    },
+    "tests/runtime/live/test_metrics.py": {
+      "path": "archive/python/tests/runtime/live/test_metrics.py",
+      "sha256": "0de9cc4fd9d5c5e3d5ae06f9a898a5037c7772cd32f7ade53dba9ee3336d44d5"
+    },
+    "tests/runtime/live/test_protocol.py": {
+      "path": "archive/python/tests/runtime/live/test_protocol.py",
+      "sha256": "22aca5596ff0beeda1b39bd4f2fac8bbfc792537267179cc530f005d6ada40b4"
+    },
+    "tests/runtime/live/test_requests.py": {
+      "path": "archive/python/tests/runtime/live/test_requests.py",
+      "sha256": "a73482b3973465b9516fd0c5fe1ee1e99475f9cbee4ec340c33333fb7a550710"
+    },
+    "tests/runtime/live/test_store.py": {
+      "path": "archive/python/tests/runtime/live/test_store.py",
+      "sha256": "bd0c36178a097e980aa8e257cf5497764b2653cbdcbac3a4c6c97fce57df4cc7"
+    },
+    "tests/runtime/test_agent_notifications.py": {
+      "path": "archive/python/tests/runtime/test_agent_notifications.py",
+      "sha256": "0fdca2cb39ee09ff63ac06fff4453aa707a7aec2691144bd89d913606ba9652e"
+    },
+    "tests/runtime/test_branch_diff.py": {
+      "path": "archive/python/tests/runtime/test_branch_diff.py",
+      "sha256": "6258beacee5f836cf507c452212fad3a49cffa6c7f3bd2916cf92028be45c283"
+    },
+    "tests/runtime/test_statusline_state.py": {
+      "path": "archive/python/tests/runtime/test_statusline_state.py",
+      "sha256": "749b8dabc887a7598294e062129c4b11de3cc1774d97bacd834d2fe373298f5b"
+    },
+    "tests/runtime/test_statusline_timer.py": {
+      "path": "archive/python/tests/runtime/test_statusline_timer.py",
+      "sha256": "7107eacc27d4a0475d80ca91024634217690f927bab2d52a11594b1a657ac42f"
+    },
+    "tests/runtime/test_subagent_lifecycle.py": {
+      "path": "archive/python/tests/runtime/test_subagent_lifecycle.py",
+      "sha256": "8510d9b4fcbe04cef3c94b03703b1177e4c916397583dc23475a9576b29ffa0d"
+    },
+    "tests/runtime/test_submission_index.py": {
+      "path": "archive/python/tests/runtime/test_submission_index.py",
+      "sha256": "407b1c2f99e66ff3d20c5dae45796c076de0345fed5e5accab94dd7302652181"
+    },
+    "tests/runtime/test_task_timing.py": {
+      "path": "archive/python/tests/runtime/test_task_timing.py",
+      "sha256": "9498d8d9eb772599c8eabfec61beb9b4e7b53e6186a50f644d4cc10c076952f8"
+    },
+    "tests/runtime/test_timer_regressions.py": {
+      "path": "archive/python/tests/runtime/test_timer_regressions.py",
+      "sha256": "3058e780139443db6b0ce43f70974f553aa066331ec73baf7f7ca3d5ffed47d9"
+    },
+    "tests/runtime/test_token_counts.py": {
+      "path": "archive/python/tests/runtime/test_token_counts.py",
+      "sha256": "7642a7457353b694734e7e2656cbc16165b20f3dba1d8c812b90bbd43557160d"
+    },
+    "tests/runtime/test_turn_state.py": {
+      "path": "archive/python/tests/runtime/test_turn_state.py",
+      "sha256": "c7b80a2b54ea19286154486d948e8609c32ff7aa96b221d4f2e90b24b3781955"
+    },
+    "tests/runtime/timing/__init__.py": {
+      "path": "archive/python/tests/runtime/timing/__init__.py",
+      "sha256": "c51ce87235160ea5a376dd1471642599f870908a585f83089b04887cf07d265a"
+    },
+    "tests/runtime/timing/test_clock.py": {
+      "path": "archive/python/tests/runtime/timing/test_clock.py",
+      "sha256": "58102f55f1472ab768b97e229042f23b362b0169edfff59b374f65b949fa279d"
+    },
+    "tests/support.py": {
+      "path": "archive/python/tests/support.py",
+      "sha256": "7b80964d00674e96566c4664bc8e5379f83a9826e6f2cc1c12e8f2d18f3f20b1"
+    },
+    "tests/ui/__init__.py": {
+      "path": "archive/python/tests/ui/__init__.py",
+      "sha256": "1dc11a7a47c2d64464aa7cdfb4cf3328109a0b938058560e2cbd9189d99a164b"
+    },
+    "tests/ui/test_advanced_forms.py": {
+      "path": "archive/python/tests/ui/test_advanced_forms.py",
+      "sha256": "d03931471ce22bcf20765fc8c190ff91ef2dce3d313068205791551b9d29bd5f"
+    },
+    "tests/ui/test_apply_protocol.py": {
+      "path": "archive/python/tests/ui/test_apply_protocol.py",
+      "sha256": "c3e2a0cfaca63c7966c69e8c119c9597e01f143c05939731ea306b1021c5070c"
+    },
+    "tests/ui/test_guidance.py": {
+      "path": "archive/python/tests/ui/test_guidance.py",
+      "sha256": "adfa618e02c49f964380827220605d3b44ca2c172065f43ff702c0766f73ad46"
+    },
+    "tests/ui/test_import_review.py": {
+      "path": "archive/python/tests/ui/test_import_review.py",
+      "sha256": "b9434fd49f58714a355e0e8c99747c4cdb41ec4e7bf4253b6431d8f1644b6b2f"
+    },
+    "tests/ui/test_instance_editor.py": {
+      "path": "archive/python/tests/ui/test_instance_editor.py",
+      "sha256": "6ad0cc68e7abeb0fdf1b4e4a57885696b5d9f1757bc2dfff5ef94d29e6872689"
+    },
+    "tests/ui/test_interactive_config.py": {
+      "path": "archive/python/tests/ui/test_interactive_config.py",
+      "sha256": "e652754614dfdc60feaa01ec3ca33482682ad26d089a8ac1931ffa384798ea07"
+    },
+    "tests/ui/test_language.py": {
+      "path": "archive/python/tests/ui/test_language.py",
+      "sha256": "ab57ee6b0c41ab9863015f502bff13ca58bb1b8e177fcaf0ec5348e1cecd57c1"
+    },
+    "tests/ui/test_layout.py": {
+      "path": "archive/python/tests/ui/test_layout.py",
+      "sha256": "2e42be470ef261436e16182b4c068c483cfc4a6f6f0195e5e63c370d86a68956"
+    },
+    "tests/ui/test_protocol.py": {
+      "path": "archive/python/tests/ui/test_protocol.py",
+      "sha256": "1a7c96ba7f2d4aecc18592ca85d46c29c0347a0efed6e9e7a0db1587e1511492"
+    },
+    "tests/ui/test_search.py": {
+      "path": "archive/python/tests/ui/test_search.py",
+      "sha256": "f58672f7274d4bc5ea8c10468bfe6c65b0e40bfe12c2ec95fab795ec8f28084f"
+    },
+    "tests/ui/test_statusline_language.py": {
+      "path": "archive/python/tests/ui/test_statusline_language.py",
+      "sha256": "df7b911d2bfb582ae441f0e5a5b1d21dacb16499bbfb73b23e0a81a3af5296e7"
+    },
+    "tests/ui/test_terminal.py": {
+      "path": "archive/python/tests/ui/test_terminal.py",
+      "sha256": "6d489e39be0bb2f7b2a4602f9f13b67352e1ac9a65a008615b022deb5ba34a7f"
+    },
+    "tests/ui/test_theme.py": {
+      "path": "archive/python/tests/ui/test_theme.py",
+      "sha256": "36190e420c89e9a5a7ef31b4a9c73cb0080dfd44ba64b70baa71a0ce7eacbfa6"
+    },
+    "tools/benchmark_compare.py": {
+      "path": "archive/python/tools/benchmark_compare.py",
+      "sha256": "b4eea9900e6bd492d015e9809238923bf76bb6d7e514a550b92241bb120b4b9d"
+    },
+    "tools/benchmark_i18n.py": {
+      "path": "archive/python/tools/benchmark_i18n.py",
+      "sha256": "9723dc5755c6c883d95389d7977534e558b89429bf0ed2d73ba2008592a76a17"
+    },
+    "tools/benchmark_i18n_resources.py": {
+      "path": "archive/python/tools/benchmark_i18n_resources.py",
+      "sha256": "59ed0a2bef0a5dfa7ea3381efd6c25056dc311b63c8aa7291b2fa0703b07a4d8"
+    },
+    "tools/benchmark_render.py": {
+      "path": "archive/python/tools/benchmark_render.py",
+      "sha256": "0f2fc45bab1da0627870ab0222b2443f87bc25878dd934f0b96a127707c7e339"
+    },
+    "tools/benchmark_task_timer.py": {
+      "path": "archive/python/tools/benchmark_task_timer.py",
+      "sha256": "808a8b5224fa52584bfa0b9ac09ee052e64dac2b186391af1a0fa5fbcfbf6b4f"
+    },
+    "tools/benchmarking/__init__.py": {
+      "path": "archive/python/tools/benchmarking/__init__.py",
+      "sha256": "8f3bc101757778615701971cca37ad2361160f054ced412ae2b7279f09601972"
+    },
+    "tools/benchmarking/appearance.py": {
+      "path": "archive/python/tools/benchmarking/appearance.py",
+      "sha256": "cd4a08d80c37979bc33eef07b963d8891ae78261c9ea31514728f7a38a6b7aba"
+    },
+    "tools/benchmarking/composition.py": {
+      "path": "archive/python/tools/benchmarking/composition.py",
+      "sha256": "e7f554f31e1fb2803eb7ca03322a2b098f57ea2e5acb0108239490a50098437a"
+    },
+    "tools/benchmarking/render.py": {
+      "path": "archive/python/tools/benchmarking/render.py",
+      "sha256": "f89a4bbd3dced75fd0e9cadcd82730167b379c596d25b9f564158b54c5e3db85"
+    },
+    "tools/benchmarking/source.py": {
+      "path": "archive/python/tools/benchmarking/source.py",
+      "sha256": "8dacbf0818860495ec39667d8f9c799b7687d3806f70fbb593f8566dfcf53e59"
+    },
+    "tools/check_docs.py": {
+      "path": "archive/python/tools/check_docs.py",
+      "sha256": "ad6e72c0ffb7bfb2fec2b6d34db42cd772fc05f8d25d0e5a66ff90955151d783"
+    },
+    "tools/ci_smoke.py": {
+      "path": "archive/python/tools/ci_smoke.py",
+      "sha256": "73c057d232b7a3dbde98add1c141d11d79ade1406a9aef9a16f8a209871815e7"
+    },
+    "tools/editor_appearance_acceptance.py": {
+      "path": "archive/python/tools/editor_appearance_acceptance.py",
+      "sha256": "dce6b43be2d79715cb391223f17de366a7f79dd9964ed77c32cb550218eb37d2"
+    },
+    "tools/editor_composition_acceptance.py": {
+      "path": "archive/python/tools/editor_composition_acceptance.py",
+      "sha256": "94fbd2e597023b8de4105878770598846cb1a96a49e8b70c804edca078f60a99"
+    },
+    "tools/editor_discovery_acceptance.py": {
+      "path": "archive/python/tools/editor_discovery_acceptance.py",
+      "sha256": "9ee539d39e09fb3db3af342f52a60a07969788652c4c097c4e3b61757e899123"
+    },
+    "tools/external_tui_acceptance.py": {
+      "path": "archive/python/tools/external_tui_acceptance.py",
+      "sha256": "2ddd3a636bb77fb01843f1106859b144ad54905a8cb7c454fc28642486c68413"
+    },
+    "tools/generate_editor_fixtures.py": {
+      "path": "archive/python/tools/generate_editor_fixtures.py",
+      "sha256": "9f484da14e084dc4f4ea4486ff0814bcd5715cf70510634b98a732b774409be9"
+    },
+    "tools/generate_i18n.py": {
+      "path": "archive/python/tools/generate_i18n.py",
+      "sha256": "f49e6c73155e8a8741f8aecb7f956cf2cd67347999589deee587ec917c8323c8"
+    },
+    "tools/generate_runtime_contracts.py": {
+      "path": "archive/python/tools/generate_runtime_contracts.py",
+      "sha256": "4656f766d4437da6db9f4113725d976c5210f607643024967673675f59dfe826"
+    },
+    "tools/generate_ui_contracts.py": {
+      "path": "archive/python/tools/generate_ui_contracts.py",
+      "sha256": "40820865d71d93b535bd246bac6c407f034734f7e142da0f1ee44291f93148ad"
+    },
+    "tools/generate_unicode.py": {
+      "path": "archive/python/tools/generate_unicode.py",
+      "sha256": "978c094ae929a6902c2cb1d58473e1985246fdbd6cc85331f72ab2cefc2570ee"
+    },
+    "tools/inspect_dist.py": {
+      "path": "archive/python/tools/inspect_dist.py",
+      "sha256": "0ccc4d680a6f426305a794bc740a1e37fbe041b213ce4693c194eb0be7b5cc9e"
+    },
+    "tools/language_acceptance.py": {
+      "path": "archive/python/tools/language_acceptance.py",
+      "sha256": "9d2b510e98f8784556859b62558ee3c61dc3749386b6b1204ec6af0af58768af"
+    },
+    "tools/linux_clock_smoke.py": {
+      "path": "archive/python/tools/linux_clock_smoke.py",
+      "sha256": "5e070d626079ffc2194de78d5d0ea677c28885265ab9a0880684e06069d8328b"
+    },
+    "tools/live_metrics_acceptance.py": {
+      "path": "archive/python/tools/live_metrics_acceptance.py",
+      "sha256": "fe99fb83009829746288174757077db48810673c79264b18441c6ea8489c8c33"
+    },
+    "tools/live_timer_acceptance.py": {
+      "path": "archive/python/tools/live_timer_acceptance.py",
+      "sha256": "637d5d6d62e8770d1ca09b0d50f3b6d481a8e62cd3766f80ed1ca7741017c78c"
+    },
+    "tools/macos_clock_smoke.py": {
+      "path": "archive/python/tools/macos_clock_smoke.py",
+      "sha256": "411974d194cbea77982fec54c2fa2cb63573fb92e93b14540334f3a5dfaa4c63"
+    },
+    "tools/macos_terminal_smoke.py": {
+      "path": "archive/python/tools/macos_terminal_smoke.py",
+      "sha256": "07ba74f020b9316f916e0c36eba91979f08e37100f8e4b485b0e7b5fbe54ed9a"
+    },
+    "tools/markdown_links.py": {
+      "path": "archive/python/tools/markdown_links.py",
+      "sha256": "195df527b87b68f0f8fb82b87f79c5e66fe4a2c0db85c050fb2708e849f497e1"
+    },
+    "tools/migration/__init__.py": {
+      "path": "archive/python/tools/migration/__init__.py",
+      "sha256": "7985021219e58ac99405bf795e6c944708529ccfc19c6a41fb933c56ca088206"
+    },
+    "tools/migration/__main__.py": {
+      "path": "archive/python/tools/migration/__main__.py",
+      "sha256": "affcc6dffd47e23f34ab22c5a68e2a6d6f5565b301fc238813e2ce2b172476f6"
+    },
+    "tools/migration/capture.py": {
+      "path": "archive/python/tools/migration/capture.py",
+      "sha256": "7c733870b374146371b9d4a7408a2976c5b15ea53612d7627a90d847a566a71c"
+    },
+    "tools/migration/common.py": {
+      "path": "archive/python/tools/migration/common.py",
+      "sha256": "5ec354ff336a6a3edb2e17e376225bca962d5d2d8ff8848dac6ee1240d405e2e"
+    },
+    "tools/migration/inventory.py": {
+      "path": "archive/python/tools/migration/inventory.py",
+      "sha256": "cd09375af7df118b9e9aaa97f4b95130e3c7a85bf11b67624eb1eb80abe75f1f"
+    },
+    "tools/migration/policy.py": {
+      "path": "archive/python/tools/migration/policy.py",
+      "sha256": "6c557b6515f9af4a25b2608ce222318830167765026cb093c521bac11334c98d"
+    },
+    "tools/migration/scenarios.py": {
+      "path": "archive/python/tools/migration/scenarios.py",
+      "sha256": "edd9e8c265996d4b70b2dbe6c1bc0762d693ead7fe87e0a433c61c0ab201fe6a"
+    },
+    "tools/migration/ts-02/scripts/current-clock.py": {
+      "path": "archive/python/tools/migration/ts-02/scripts/current-clock.py",
+      "sha256": "b20b501f105be6e5cf731f6e2e1237e875aab9c9c06116fd812704a7554b8bcc"
+    },
+    "tools/migration/ts-02/scripts/mod-smoke.py": {
+      "path": "archive/python/tools/migration/ts-02/scripts/mod-smoke.py",
+      "sha256": "e1c443c659e33566cd14b16f22898cdde734909f75af1f4c6342f488871feab4"
+    },
+    "tools/migration/ts-02/scripts/oracle.py": {
+      "path": "archive/python/tools/migration/ts-02/scripts/oracle.py",
+      "sha256": "4227ed67c9a5acce4e99c9ae39d5206717084ba09ce0a73370e4a75ad70f876e"
+    },
+    "tools/migration/ts-03/performance/oracle.py": {
+      "path": "archive/python/tools/migration/ts-03/performance/oracle.py",
+      "sha256": "41be95406817db8cfd64021dcf4bcbc4674f65f133836773215f872f6e8c28da"
+    },
+    "tools/migration/ts-03/scripts/mod-smoke.py": {
+      "path": "archive/python/tools/migration/ts-03/scripts/mod-smoke.py",
+      "sha256": "cb16d0714eed5727c804bfc130cd7bf916198c34da28996e961317297dd92647"
+    },
+    "tools/migration/ts-03/test/runtime-oracle.py": {
+      "path": "archive/python/tools/migration/ts-03/test/runtime-oracle.py",
+      "sha256": "a33e69b2e3f475e2cf5e2d8a3d4605530275661382a63d84e654b2d90a1a6a64"
+    },
+    "tools/migration/worker.py": {
+      "path": "archive/python/tools/migration/worker.py",
+      "sha256": "eb9c70fa8b7a65837157606557bd81483bf7821ce2494018f27f94d35777876b"
+    },
+    "tools/native_install_smoke.py": {
+      "path": "archive/python/tools/native_install_smoke.py",
+      "sha256": "43a64476e7e39b5fb3f3a304d643476cf976ce275cf38d4fc9923d17b4b5034c"
+    },
+    "tools/native_mod_acceptance.py": {
+      "path": "archive/python/tools/native_mod_acceptance.py",
+      "sha256": "eb6d4f37a35273d1faa159590a69758884526bb2bb4d563e56447471cf65ad34"
+    },
+    "tools/native_preview_acceptance.py": {
+      "path": "archive/python/tools/native_preview_acceptance.py",
+      "sha256": "24a9b260c7014ea03da4c09861d66044d0327503ce7d18a0023db9edfe71a83d"
+    },
+    "tools/prepare_mod_types.py": {
+      "path": "archive/python/tools/prepare_mod_types.py",
+      "sha256": "42c0637ae9eb7d0507eff4db3fd2974f407453996efdabcdf0121e344f08a9a4"
+    },
+    "tools/publish_package.py": {
+      "path": "archive/python/tools/publish_package.py",
+      "sha256": "c4bf54b64dd2bf14e924a3ebd6aa2239b86604c0bf595ef518af32c4d3a8f30d"
+    },
+    "tools/render_gitee_release.py": {
+      "path": "archive/python/tools/render_gitee_release.py",
+      "sha256": "1e6cf94896a01ccbe005058b750524b037f9389ee2fb28c8d1b6feb2881b55a3"
+    },
+    "tools/render_native_capture.py": {
+      "path": "archive/python/tools/render_native_capture.py",
+      "sha256": "7657d59fcbc9c8893b40944cc490d9192308286b1a9969a49e193121b71ccf5d"
+    },
+    "tools/rendering_acceptance.py": {
+      "path": "archive/python/tools/rendering_acceptance.py",
+      "sha256": "ea6511766d5fb5282fe6a948878122b3ab559f9446e47882f5b694531a80559d"
+    },
+    "tools/runtime_install_smoke.py": {
+      "path": "archive/python/tools/runtime_install_smoke.py",
+      "sha256": "ef8f82cfd80846ecec287adfb71679dd3b94a4796667424e0af6ebc59f17a07b"
+    },
+    "tools/task_timer_acceptance.py": {
+      "path": "archive/python/tools/task_timer_acceptance.py",
+      "sha256": "80b7de11e81e843d463c73a3679dc7334f3a87ea72de2fb856568fac49a2198e"
+    },
+    "tools/terminal_capture.py": {
+      "path": "archive/python/tools/terminal_capture.py",
+      "sha256": "ef0956f5b1cb95abc3094d37cbc97ddc7e86e7e7c6175e4641bc3a697692ca65"
+    },
+    "tools/terminal_colors.py": {
+      "path": "archive/python/tools/terminal_colors.py",
+      "sha256": "d080a442ba42b62d1196a8d65a0775f9afe1e5fb87a51d83d66406078eafc80e"
+    },
+    "tools/ts02_linux_terminal_smoke.py": {
+      "path": "archive/python/tools/ts02_linux_terminal_smoke.py",
+      "sha256": "fb50d7c60643151cbb057ffa4f143e6b0de4268cf7f26cdb60488ec4c7c56718"
+    },
+    "tools/ts02_macos_terminal_smoke.py": {
+      "path": "archive/python/tools/ts02_macos_terminal_smoke.py",
+      "sha256": "79b42260e98d53962ef58f9c954433773191eb411b72384260af067ff364a59d"
+    },
+    "tools/upgrade_composition_acceptance.py": {
+      "path": "archive/python/tools/upgrade_composition_acceptance.py",
+      "sha256": "0b2439d7257c11a741619194297557bc43d2890a54707c7f65349a0e1e09c53f"
+    },
+    "tools/validation/__init__.py": {
+      "path": "archive/python/tools/validation/__init__.py",
+      "sha256": "662cbf961d8774375dc4e5055d4788026efced7c1685040c62fabc5e34f85a3a"
+    },
+    "tools/validation/configuration.py": {
+      "path": "archive/python/tools/validation/configuration.py",
+      "sha256": "86923443911860b60e8e19fe25719d4ab7340faf9d518047dc60fdfca2c966f6"
+    },
+    "tools/windows_clock_smoke.py": {
+      "path": "archive/python/tools/windows_clock_smoke.py",
+      "sha256": "33077f940d73795baf47fe238a957d8e185d3d24ae2209708a17859d0a9046fe"
+    },
+    ".github/workflows/ci.yml": {
+      "path": "archive/python/workflows/ci.yml",
+      "sha256": "9914b1c0a5da65222b6e976bbdb713b49c71f28f31e98d7aa38d14a7206909bd"
+    },
+    ".github/workflows/typescript.yml": {
+      "path": "archive/python/workflows/typescript.yml",
+      "sha256": "e1bc86390b2ec3d76f44a4ee08cf91722c5e32fec89e2f476a9ab727a6714566"
+    },
+    ".github/workflows/typescript-probes.yml": {
+      "path": "archive/python/workflows/typescript-probes.yml",
+      "sha256": "0352a6a1a274f49681ac0e38a5621c3560c39e7e7dfe3c51bd40868286bc9d9e"
+    },
+    ".github/workflows/native.yml": {
+      "path": "archive/python/workflows/native.yml",
+      "sha256": "2a64f79efe8bab10cb9731126bf2ed94472badb471fe64c369664eb461bdf018"
+    },
+    ".github/workflows/publish.yml": {
+      "path": "archive/python/workflows/publish.yml",
+      "sha256": "085515430fa4eeb9905f6c6f7b5a4ef3854a6a3865a3fcc690cd087717d4c688"
+    },
+    "comparison:platform.test.ts": {
+      "path": "archive/python/comparisons/platform.test.ts",
+      "sha256": "3ce74bc977f99f815e1f6c3b3b8e1efbe4d0e91369043ff07c24edc116d9eb8c",
+      "reference_commit": "250ea02"
+    },
+    "comparison:transactions.test.ts": {
+      "path": "archive/python/comparisons/transactions.test.ts",
+      "sha256": "05cacfefb9ca13cc54b38467e5baaf271d4a94cd386c21c60dcea317eec21acc",
+      "reference_commit": "250ea02"
+    },
+    "comparison:installed.test.ts": {
+      "path": "archive/python/comparisons/installed.test.ts",
+      "sha256": "d34a099715000f6000211e44609eb2924a32a2314501d09ad635c3cec729e47b",
+      "reference_commit": "250ea02"
+    },
+    "comparison:ts04-package.ts": {
+      "path": "archive/python/comparisons/ts04-package.ts",
+      "sha256": "a4d086aaf3137d110fc3c64f43775dc43089da3605005a3e890218925de696a1",
+      "reference_commit": "38ff85b75c936201764c64f80b8fff96f091e176"
+    },
+    "tools/migration/ts-02/.gitignore": {
+      "path": "archive/python/tools/migration/ts-02/.gitignore",
+      "sha256": "423153dabd75f7b5ff9ab23022cdd64a7c969f9b9b4168a2b84b200ce82cdb76"
+    },
+    "tools/migration/ts-02/package-lock.json": {
+      "path": "archive/python/tools/migration/ts-02/package-lock.json",
+      "sha256": "7fecca7bb440cdb659ddc4ecee68ffed9e2f3525c27e29c84c8229f3ab9d26ef"
+    },
+    "tools/migration/ts-02/package.json": {
+      "path": "archive/python/tools/migration/ts-02/package.json",
+      "sha256": "25e0abbf4af87a950ce882cdfae501dbb9a7b9967aa85df8946ee1c9a2787fb4"
+    },
+    "tools/migration/ts-02/scripts/prepare.mjs": {
+      "path": "archive/python/tools/migration/ts-02/scripts/prepare.mjs",
+      "sha256": "e38efc0f08dc6c0abc91a6980f4659b4f8a86d8f28109db246d6f6a995a9a0b9"
+    },
+    "tools/migration/ts-02/src/architecture.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/architecture.ts",
+      "sha256": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f"
+    },
+    "tools/migration/ts-02/src/benchmark.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/benchmark.ts",
+      "sha256": "c44264487ae667eb8f0411cace3c8d06f7778bf0fe074608e7d4e74b9259826f"
+    },
+    "tools/migration/ts-02/src/cli.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/cli.ts",
+      "sha256": "8d62dd8f713f44e3028bf2c8482464621b615d337f56aa123d28a9219408216b"
+    },
+    "tools/migration/ts-02/src/clocks.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/clocks.ts",
+      "sha256": "e82847ea4e424dd875ff97d269dd3c5598ca213e48988b4b72894c8159953553"
+    },
+    "tools/migration/ts-02/src/context.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/context.ts",
+      "sha256": "78dde4850ff3fe9165dcb013d14f8b479284a5527b40610b050a30ca163535de"
+    },
+    "tools/migration/ts-02/src/evidence.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/evidence.ts",
+      "sha256": "6af3fdfc315b14efeb1b564dbf59aff517f9ee5d3bfd47db65acb6ef4e008631"
+    },
+    "tools/migration/ts-02/src/files.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/files.ts",
+      "sha256": "48bebb57f581972a2d4f55f9ccf7796824817b5c04114a81f289749bc01481d7"
+    },
+    "tools/migration/ts-02/src/json.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/json.ts",
+      "sha256": "5479022b06f52c41234af353c062962b6b09980b1c4bebe490e6b448ecc5e106"
+    },
+    "tools/migration/ts-02/src/launch.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/launch.ts",
+      "sha256": "69643d7b32b5179e5c8fbe31102f5c9a09a460ab3be04b2938787d463ab71976"
+    },
+    "tools/migration/ts-02/src/launchers.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/launchers.ts",
+      "sha256": "8e36980c380b73d788f2dcab9cbea08025ab6ebfcee6ca842a27e84616f4b204"
+    },
+    "tools/migration/ts-02/src/native.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/native.ts",
+      "sha256": "b6b98aaf2a892715687e1449c3a1fe31c450a0b3be07c202c7ee79e975d4f086"
+    },
+    "tools/migration/ts-02/src/probe.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/probe.ts",
+      "sha256": "c918504a4babf46794b6569e0cf36391e1953bee54c64289dd71cd5ad7246834"
+    },
+    "tools/migration/ts-02/src/render.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/render.ts",
+      "sha256": "247ddf994be03565b2eb358a681a2ff7fa3b542ad8a598d4c2b44b765009fb80"
+    },
+    "tools/migration/ts-02/src/terminal.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/terminal.ts",
+      "sha256": "5eae194b9bc7700e1e85cec1f49ff918273cea2ccc1f331c788cf4614f2cb2ad"
+    },
+    "tools/migration/ts-02/src/tests/evidence.test.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/tests/evidence.test.ts",
+      "sha256": "2f42082994e0dfacbe0093b8fc9b4b6e6755a858009f50b644ddc6a0d2f46f9c"
+    },
+    "tools/migration/ts-02/src/tests/launchers.test.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/tests/launchers.test.ts",
+      "sha256": "6019bc853a3f6594a42a74f2eb34360e43b32d07d05b03ec2704556833ba2762"
+    },
+    "tools/migration/ts-02/src/tests/platform.test.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/tests/platform.test.ts",
+      "sha256": "a33ea762e4910dbd7da5423d1acf75624587c19119562aaf5f6552857eff72fc"
+    },
+    "tools/migration/ts-02/src/tests/terminal.test.ts": {
+      "path": "archive/python/tools/migration/ts-02/src/tests/terminal.test.ts",
+      "sha256": "355cdd258425d0a0cf972338ea7db4faa594f43a30540565b7e7ce0b410248e2"
+    },
+    "tools/migration/ts-02/tsconfig.json": {
+      "path": "archive/python/tools/migration/ts-02/tsconfig.json",
+      "sha256": "f7ac2e19ad29ea6cc836ba3646360e7dcfb2fb14552bb7696b81f8f0e2ea6c8d"
+    },
+    "tools/migration/ts-03/performance/benchmark.ts": {
+      "path": "archive/python/tools/migration/ts-03/performance/benchmark.ts",
+      "sha256": "a7ca628379a08c6e86b8e87b245bd7d6e9f5c2281f5ff5267740f2316f099460"
+    }
+  }
+}

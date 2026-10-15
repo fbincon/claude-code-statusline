@@ -2263,177 +2263,261 @@
     },
     {
       "id": "tests.integration.test_native_resources.NativeResourceTests.test_linked_runtime_directory_is_not_packaged",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/build/test/verify.test.ts"
+      ],
       "reason": null,
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_annotated_tag_is_peeled",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_asset_redirect_drops_github_credentials",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_completed_matrix_is_required",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/release/test/prepare.test.ts"
+      ],
       "reason": null,
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_dispatching_on_main_is_rejected",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_existing_python_and_mod_prerelease_identifiers_remain_compatible",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_formal_release_requires_testpypi_acceptance_at_the_same_tag",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_other_commits_refs_events_and_skipped_jobs_do_not_pass",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/release/test/prepare.test.ts"
+      ],
       "reason": null,
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_read_only_preparation_rejects_a_receipt_from_another_commit",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/build/test/verify.test.ts"
+      ],
       "reason": null,
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_release_array_pagination_reads_drafts_beyond_the_first_page",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_release_lookup_accepts_exact_visible_draft_and_published_tags",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.AcceptanceTests.test_unmerged_or_moved_tags_fail_before_acceptance_checks",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.DistributionTests.test_accepts_only_the_expected_packages_and_entry_point",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/build/test/verify.test.ts"
+      ],
       "reason": null,
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.DistributionTests.test_checksum_manifest_rejects_paths_duplicates_and_missing_entries",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/build/test/verify.test.ts"
+      ],
       "reason": null,
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.DistributionTests.test_exact_index_downloads_are_verified_before_installation",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.DistributionTests.test_missing_extra_and_corrupt_assets_fail",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/build/test/verify.test.ts"
+      ],
       "reason": null,
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.DistributionTests.test_wrong_distribution_names_versions_and_entry_points_fail",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/build/test/verify.test.ts"
+      ],
       "reason": null,
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.IndexTests.test_index_integrity_failure_is_not_retried",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.IndexTests.test_index_permission_failure_is_not_retried",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.IndexTests.test_new_version_404_is_polled_without_repeating_uploads",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.IndexTests.test_only_a_404_means_the_version_is_unpublished",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.IndexTests.test_only_identical_existing_files_can_be_skipped_on_retry",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.IndexTests.test_partial_upload_can_resume_but_is_not_verified_as_complete",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.IndexTests.test_partially_visible_index_is_polled",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
       "id": "tests.integration.test_publish_package.IndexTests.test_unavailable_index_has_a_bounded_deadline",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/integration/test_publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI/tag/publication semantics remain frozen and are exercised by the separate archived suite. TS-05 does not publish; universal candidate identity, integrity and complete-matrix checks are tested separately.",
       "owner": "TS-05"
     },
     {
@@ -3122,170 +3206,266 @@
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_child_has_no_user_credentials_or_real_claude_on_path",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_independent_captures_are_identical_and_existing_output_is_protected",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_lock_rejects_wrong_reference_and_tampered_expectations",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_missing_null_zero_boolean_and_large_integers_remain_distinct",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_source_tampering_and_extra_python_are_rejected",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_strict_fixture_json_rejects_duplicates_and_nonfinite_values",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_unmapped_discovered_test_cannot_pass_inventory",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_unmapped_or_duplicate_cases_are_refused",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.ComparisonTests.test_verify_rejects_difference_without_rewriting_expected",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.CorpusTests.test_all_catalog_types_and_languages_have_replay_cases",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.CorpusTests.test_every_frozen_definition_and_command_has_a_behavior_mapping",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.migration.test_baseline.CorpusTests.test_successful_saves_conflicts_and_read_only_cases_are_not_error_goldens",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "historical",
+      "tests": [
+        "archive/python/tests/migration/test_baseline.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Frozen Python capture/discovery/fixture-authoring guard remains an independently executable historical oracle. Normal TS replay uses immutable data and the three exact approved differences.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSClockTests.test_clock_success_keeps_reboot_identifier_independent_of_wall_clock",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSClockTests.test_failed_native_api_or_missing_reboot_id_falls_back_as_one_unit",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSClockTests.test_missing_library_is_a_wall_clock_fallback",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSClockTests.test_native_binding_uses_uint64_and_integer_nanoseconds_without_precision_loss",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSDirectorySyncTests.test_only_macos_unsupported_directory_sync_is_softened",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSInstallationTests.test_doctor_reports_native_capabilities_or_degradation_without_opening_terminal",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts",
+        "tools/migration/ts-04/test/install-boundaries.test.ts",
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSInstallationTests.test_file_sync_failure_is_not_treated_as_unsupported_directory_sync",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts",
+        "tools/migration/ts-04/test/install-boundaries.test.ts",
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSInstallationTests.test_install_repairs_runtime_lock_and_backup_permissions_then_is_idempotent",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/install.test.ts",
+        "tools/migration/ts-04/test/install-boundaries.test.ts",
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSProcessTests.test_failed_empty_and_unreadable_ps_results_are_unverifiable",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.MacOSProcessTests.test_token_preserves_claude_ps_spacing_and_overrides_locale_and_timezone",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.NativeMacOSTests.test_child_process_becomes_unverifiable_after_exit",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_macos_platform.NativeMacOSTests.test_continuous_clock_and_reboot_id_are_valid_and_shared_between_processes",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
@@ -3434,170 +3614,260 @@
     },
     {
       "id": "tests.platforms.test_platform.AtomicFileTests.test_durable_unlink_retries_windows_transient_failure",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.AtomicFileTests.test_exception_before_fdopen_still_closes_descriptor",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.AtomicFileTests.test_permanent_replace_failure_rolls_back_closes_fd_and_cleans_temp",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.AtomicFileTests.test_private_mode_is_not_applicable_on_windows",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.AtomicFileTests.test_windows_replace_retries_transient_sharing_violation",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.FileLockTests.test_exception_releases_lock",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.FileLockTests.test_independent_processes_do_not_lose_updates",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.FileLockTests.test_threads_and_file_lock_form_one_serialized_transaction",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-04/test/launchers.test.ts"
+      ],
+      "reason": "Python RLock/thread orchestration is implementation-specific. Node synchronous lock callbacks reject recursion/Promises; independent processes still compete on the same native lock and termination releases it.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.FileLockTests.test_windows_locks_empty_and_legacy_files_without_unlocked_writes",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.PathSafetyTests.test_regular_file_is_not_a_link_or_reparse_point",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.PathSafetyTests.test_windows_reparse_attribute_is_rejected",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.PlatformIdentityTests.test_posix_file_capabilities_do_not_enable_other_unix_platforms",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-04/test/launchers.test.ts"
+      ],
+      "reason": "Python environment convenience predicates and subprocess creationflags are not exported by the Node implementation. Actual supported native adapters, process ABI, explicit argv and terminal selection are independently exercised; WSL desktop remains a TS-06 physical gate.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.PlatformIdentityTests.test_subprocess_creation_flags_are_platform_scoped",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-04/test/launchers.test.ts"
+      ],
+      "reason": "Python environment convenience predicates and subprocess creationflags are not exported by the Node implementation. Actual supported native adapters, process ABI, explicit argv and terminal selection are independently exercised; WSL desktop remains a TS-06 physical gate.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.PlatformIdentityTests.test_supported_platform_contract",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-04/test/launchers.test.ts"
+      ],
+      "reason": "Python environment convenience predicates and subprocess creationflags are not exported by the Node implementation. Actual supported native adapters, process ABI, explicit argv and terminal selection are independently exercised; WSL desktop remains a TS-06 physical gate.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.PlatformIdentityTests.test_wsl_environment_markers_short_circuit_kernel_detection",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-04/test/launchers.test.ts"
+      ],
+      "reason": "Python environment convenience predicates and subprocess creationflags are not exported by the Node implementation. Actual supported native adapters, process ABI, explicit argv and terminal selection are independently exercised; WSL desktop remains a TS-06 physical gate.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.PlatformIdentityTests.test_wsl_kernel_detection_and_platform_guard",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-04/test/launchers.test.ts"
+      ],
+      "reason": "Python environment convenience predicates and subprocess creationflags are not exported by the Node implementation. Actual supported native adapters, process ABI, explicit argv and terminal selection are independently exercised; WSL desktop remains a TS-06 physical gate.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.ProcessAndClockTests.test_current_and_missing_process_tokens",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.ProcessAndClockTests.test_windows_boot_clock_and_wall_clock_fallback",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_platform.ProcessAndClockTests.test_windows_process_token_conversion_and_access_denied",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_windows_clocks.WindowsBootIdentityTests.test_boot_guid_rejects_native_error_truncation_and_zero",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_windows_clocks.WindowsBootIdentityTests.test_checked_self_read_rejects_failure_short_reads_and_zero",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_windows_clocks.WindowsBootIdentityTests.test_missing_identity_preserves_wall_clock_only_fallback",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_windows_clocks.WindowsBootIdentityTests.test_native_identity_is_shared_across_independent_processes",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
       "id": "tests.platforms.test_windows_clocks.WindowsBootIdentityTests.test_same_guid_and_different_sequences_are_distinct_boots",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-03/test/platform.test.ts",
+        "tools/migration/ts-05/test/native-faults.test.ts",
+        "tools/migration/ts-05/test/native-fault-driver.ts"
+      ],
+      "reason": "The equivalent observable contract is exercised through actual compiled Node native adapters, isolated native API fault injection, and real process/installation tests; Python ctypes/fdopen implementation details are not required to remain identical.",
       "owner": "TS-05"
     },
     {
@@ -6410,9 +6680,11 @@
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_captured_legacy_windows_reboot_degrades_to_wall_time",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "The post-baseline captured Windows GUID-reuse and versioned-domain assertions already exist as named TS regression scenarios.",
       "owner": "TS-05"
     },
     {
@@ -6471,9 +6743,11 @@
     },
     {
       "id": "tests.runtime.timing.test_clock.StatusTimerTests.test_versioned_windows_domain_keeps_clock_adjustment_and_frozen_semantics",
-      "status": "pending",
-      "tests": [],
-      "reason": null,
+      "status": "ported",
+      "tests": [
+        "packages/core/test/timer.test.ts"
+      ],
+      "reason": "The post-baseline captured Windows GUID-reuse and versioned-domain assertions already exist as named TS regression scenarios.",
       "owner": "TS-05"
     },
     {
@@ -7560,437 +7834,680 @@
   "tools": [
     {
       "id": "src/build_native.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/build/pack.ts",
+      "tests": [
+        "tools/build/test/verify.test.ts",
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": "npm bundles the same owned Mod resources and skill templates; Python build commands are frozen. Fixed-reference README destination rewriting has a maintained TS implementation.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmark_compare.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/benchmarks/compare.ts",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmark_i18n.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/benchmark_i18n.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Completed Python language-count/bytecode/wheel experiment retained with its original sources and results. Maintained Node fixture and comparison tools live in tools/benchmarks; PERF-01 owns future optimization.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmark_i18n_resources.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/benchmark_i18n_resources.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Completed Python language-count/bytecode/wheel experiment retained with its original sources and results. Maintained Node fixture and comparison tools live in tools/benchmarks; PERF-01 owns future optimization.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmark_render.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/benchmarks/run.ts",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts",
+        "tools/migration/ts-03/test/performance-policy.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmark_task_timer.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/benchmarks/run.ts",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts",
+        "tools/migration/ts-03/test/performance-policy.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmarking/__init__.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/benchmarks/engine.ts",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmarking/appearance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/benchmarks/engine.ts",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmarking/composition.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/benchmarks/engine.ts",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmarking/render.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/benchmarks/engine.ts",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/benchmarking/source.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/benchmarks/engine.ts",
+      "tests": [
+        "tools/benchmarks/test/engine.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/check_docs.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/checks/docs.ts",
+      "tests": [
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/ci_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/installed.ts",
+      "tests": [
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/editor_appearance_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/editor_composition_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/editor_discovery_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/external_tui_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/generate_editor_fixtures.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/generation/resources.ts",
+      "tests": [
+        "tools/generation/test/resources.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/generate_i18n.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/generation/resources.ts",
+      "tests": [
+        "tools/generation/test/resources.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/generate_runtime_contracts.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/generation/resources.ts",
+      "tests": [
+        "tools/generation/test/resources.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/generate_ui_contracts.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/generation/resources.ts",
+      "tests": [
+        "tools/generation/test/resources.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/generate_unicode.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/generation/resources.ts",
+      "tests": [
+        "tools/generation/test/resources.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/inspect_dist.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/build/verify.ts",
+      "tests": [
+        "tools/build/test/verify.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/language_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/linux_clock_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/power.ts",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/live_metrics_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/paid.ts",
+      "tests": [
+        "tools/acceptance/test/paid.test.ts",
+        "tools/acceptance/test/budget.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/live_timer_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/paid.ts",
+      "tests": [
+        "tools/acceptance/test/paid.test.ts",
+        "tools/acceptance/test/budget.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/macos_clock_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/power.ts",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/macos_terminal_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/terminal.ts",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts",
+        "tools/acceptance/test/terminal-observer.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/markdown_links.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/release/markdown.ts",
+      "tests": [
+        "tools/release/test/markdown.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/__init__.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/__init__.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/__main__.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/__main__.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/capture.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/capture.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/common.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/common.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/inventory.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/inventory.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/policy.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/policy.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/scenarios.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/scenarios.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/ts-02/scripts/current-clock.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/ts-02/scripts/current-clock.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/ts-02/scripts/mod-smoke.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/ts-02/scripts/mod-smoke.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/ts-02/scripts/oracle.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/ts-02/scripts/oracle.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/ts-03/performance/oracle.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/ts-03/performance/oracle.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/ts-03/scripts/mod-smoke.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/ts-03/scripts/mod-smoke.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/ts-03/test/runtime-oracle.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/ts-03/test/runtime-oracle.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/migration/worker.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/migration/worker.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Immutable Python reference/probe harness retained for independent recapture, mixed-runtime locks, rollback and historical D06 reproduction. Excluded from normal development and CI.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/native_install_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/mods.ts",
+      "tests": [
+        "tools/migration/ts-04/test/installed-driver.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/native_mod_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/host-smoke.ts",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts",
+        "tools/migration/ts-04/test/installed-driver.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/native_preview_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/host-smoke.ts",
+      "tests": [
+        "tools/migration/ts-04/test/mod-install.test.ts",
+        "tools/migration/ts-04/test/installed-driver.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/prepare_mod_types.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/mod-types.ts",
+      "tests": [
+        "tools/acceptance/test/budget.test.ts",
+        "tools/acceptance/mods.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/publish_package.py",
-      "status": "pending",
+      "status": "historical",
       "replacement": null,
-      "tests": [],
-      "reason": null
+      "tests": [
+        "archive/python/tools/publish_package.py",
+        "tools/checks/archive.ts",
+        "tools/migration/ts-05/reference.ts"
+      ],
+      "reason": "Python wheel/PyPI publication is archived. TS-05 produces engineering candidates through tools/build and tools/release/prepare.ts; public npm/tag/Release operations are TS-06 scope.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/render_gitee_release.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/release/gitee-notes.ts",
+      "tests": [
+        "tools/release/test/gitee-notes.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/render_native_capture.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/render-capture.ts",
+      "tests": [
+        "tools/acceptance/test/render-capture.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/rendering_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/runtime_install_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/mods.ts",
+      "tests": [
+        "tools/migration/ts-04/test/installed-driver.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/task_timer_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/paid.ts",
+      "tests": [
+        "tools/acceptance/test/paid.test.ts",
+        "tools/acceptance/test/budget.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/terminal_capture.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/capture.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/acceptance/test/render-capture.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/terminal_colors.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/capture.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/acceptance/test/render-capture.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/ts02_linux_terminal_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/terminal.ts",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts",
+        "tools/acceptance/test/terminal-observer.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/ts02_macos_terminal_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/terminal.ts",
+      "tests": [
+        "tools/acceptance/test/terminal-evidence.test.ts",
+        "tools/acceptance/test/terminal-observer.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/upgrade_composition_acceptance.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": "Maintained acceptance assertions are consolidated into the TS installed/editor/host harnesses, with private reports and synthetic credentials. Historical Python-specific invocation options remain documented in the archive; human/physical outcomes require TS-06 evidence.",
+      "owner": "TS-05"
     },
     {
       "id": "tools/validation/__init__.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/validation/configuration.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/migration/ts-04/test/editor-acceptance.test.ts",
+      "tests": [
+        "tools/migration/ts-04/test/editor-acceptance.test.ts",
+        "tools/migration/ts-04/test/editor-pty.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     },
     {
       "id": "tools/windows_clock_smoke.py",
-      "status": "pending",
-      "replacement": null,
-      "tests": [],
-      "reason": null
+      "status": "ported",
+      "replacement": "tools/acceptance/power.ts",
+      "tests": [
+        "tools/acceptance/test/power-evidence.test.ts"
+      ],
+      "reason": null,
+      "owner": "TS-05"
     }
   ]
 }
