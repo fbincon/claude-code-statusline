@@ -20,7 +20,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.14.4'
-      - run: python -m pip install 'wcwidth==0.9.1' 'pyte==0.8.2'
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run reference:verify -- --python python --report '${{ runner.temp }}/reference.json'
       - uses: actions/upload-artifact@v4
