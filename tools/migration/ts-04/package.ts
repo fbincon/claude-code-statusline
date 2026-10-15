@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { join, dirname, resolve, relative, isAbsolute, sep } from 'node:path';
+import { join, dirname, resolve, relative, isAbsolute, sep, delimiter } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import { spawnSync, execFileSync } from 'node:child_process';
@@ -93,6 +93,23 @@ export function installCandidate() {
     if (!isAbsolute(outside) && outside !== '..' && !outside.startsWith('..' + sep))
         throw new Error('Candidate must be installed outside the checkout');
     return { temporary, directory, nodeDir, node, env, root, modules, entry, bin, packed, cleanup: () => fs.rmSync(temporary, { recursive: true, force: true }) };
+}
+/** The official macOS host uses the OS security utility when loading plugin
+ * options, including non-sensitive inputs. Keep that system capability without
+ * exposing Python, compilers or the rest of the developer's PATH to acceptance.
+ */
+export function officialEnvironment(candidate: ReturnType<typeof installCandidate>): NodeJS.ProcessEnv {
+    const env: NodeJS.ProcessEnv = { ...candidate.env, ANTHROPIC_API_KEY: 'ts04-synthetic-not-a-real-key', ANTHROPIC_BASE_URL: 'http://127.0.0.1:9', DISABLE_AUTOUPDATER: '1', CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1' };
+    fs.mkdirSync(candidate.env.HOME, { recursive: true, mode: 0o700 });
+    if (process.platform === 'darwin') {
+        const directory = join(candidate.temporary, 'host-system-tools');
+        fs.mkdirSync(directory, { mode: 0o700 });
+        fs.accessSync('/usr/bin/security', fs.constants.X_OK);
+        fs.symlinkSync('/usr/bin/security', join(directory, 'security'));
+        env.PATH = candidate.nodeDir + delimiter + directory;
+    }
+    delete env.CLAUDECODE;
+    return env;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     if (process.argv.length !== 3)

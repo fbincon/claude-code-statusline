@@ -134,6 +134,8 @@ Further Windows installed acceptance caught two production boundaries: an npm PO
 
 The installed Windows console then detected that [libuv normal-mode restoration](https://github.com/libuv/libuv/blob/v1.51.0/src/win/tty.c#L341) changed the original input flags from 503 to 7. The terminal owner now captures and restores complete Win32 input/output masks and verifies restoration; installed save/cancel asserts both masks exactly. The fixed-host Windows integration checks had already passed.
 
+The macOS diagnostic receipts confirmed a successfully installed/enabled plugin but empty configuration inputs. The isolated host PATH omitted the system `security` executable used by the official configuration store. Official-host acceptance now exposes only that macOS system utility alongside Node, retaining the Python/compiler exclusion and strict binding confirmation.
+
 Next: complete final 04-E target CI, byte-exact receipt verification and closure.
 Previously approved physical/desktop deferrals remain due before release.
 TS-05/TS-06 and PERF-01 remain NOT_STARTED. Timeout, resource-bound and stability

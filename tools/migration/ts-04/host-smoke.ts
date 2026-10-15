@@ -3,7 +3,7 @@ import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { claudeLaunch, detectClaudeVersion } from '@fbincon/statusline-platform/commands';
-import { installCandidate } from './package.js';
+import { installCandidate, officialEnvironment } from './package.js';
 import { openPty } from './test/pty.js';
 if (process.platform === 'win32')
     throw new Error('This local host interaction probe uses the POSIX PTY; Windows has native console acceptance');
@@ -23,7 +23,7 @@ try {
     const request = join(f.temporary, 'host-request.json'), driver = join(f.temporary, 'prepare-host.mjs');
     fs.writeFileSync(request, JSON.stringify({ host, version, launch: { executable: f.node, args: [shim] } }));
     fs.copyFileSync(fileURLToPath(new URL('./test/installed-driver.js', import.meta.url)), driver);
-    const env = { ...f.env, CLAUDE_CONFIG_DIR: config, HOME: f.temporary, USERPROFILE: f.temporary, ANTHROPIC_API_KEY: 'ts04-synthetic-not-a-real-key', ANTHROPIC_BASE_URL: 'http://127.0.0.1:9', DISABLE_AUTOUPDATER: '1', CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1' };
+    const env = { ...officialEnvironment(f), CLAUDE_CONFIG_DIR: config, HOME: f.temporary, USERPROFILE: f.temporary };
     delete (env as NodeJS.ProcessEnv).CLAUDECODE;
     const prepared = spawnSync(f.node, [driver, f.modules, 'prepare-host', config, join(f.temporary, 'prepared.json'), request], { cwd: project, env, encoding: 'utf8', timeout: 180000 });
     if (prepared.status !== 0)

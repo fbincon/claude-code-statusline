@@ -25,7 +25,9 @@ npm run migration:official:ts04
 `npm run migration:pack:ts04 -- /absolute/output/directory`，不会发布到 registry。
 验收程序在仓库外临时目录中离线安装归档，禁用生命周期脚本，复制独立 Node，隔离
 HOME 和 `CLAUDE_CONFIG_DIR`。候选进程的 PATH 不含 Python 和编译器；Windows
-Git Bash 入口检查额外提供 Git 的 shell 工具。仓库工具和历史 Python 对比仍需
+Git Bash 入口检查额外提供 Git 的 shell 工具。macOS 官方宿主检查还通过私有工具目录
+提供 `/usr/bin/security`，以便宿主读取配置存储，不暴露 `/usr/bin` 中的其他程序。
+仓库工具和历史 Python 对比仍需
 开发依赖。
 
 | 门槛 | 证据 |

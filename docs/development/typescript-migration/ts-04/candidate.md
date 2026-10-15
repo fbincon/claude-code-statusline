@@ -29,7 +29,10 @@ publication is performed. The acceptance harness installs the archive offline
 with lifecycle scripts disabled into a temporary directory outside the checkout,
 copies Node to an independent path, and isolates HOME and `CLAUDE_CONFIG_DIR`.
 The candidate process PATH excludes Python and compilers. The Windows Git Bash
-shim check additionally exposes Git's shell utilities. Repository tooling and the
+shim check additionally exposes Git's shell utilities. Official macOS host checks
+also expose `/usr/bin/security` through a private tool directory because the host
+needs it to load its configuration store; they do not expose the rest of `/usr/bin`.
+Repository tooling and the
 historical Python comparisons still need their development dependencies.
 
 | Gate | Evidence |
