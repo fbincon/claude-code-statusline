@@ -331,5 +331,6 @@
   "limitations": [
     "Physical desktop/visual checks retain the previously approved before-release deferral.",
     "Performance remains PERF-01; the historical D06 failure is unchanged."
-  ]
+  ],
+  "gitee_main_verified": "c9709d1ac37f4f8c0aedcbeb1774499d15cc13f6"
 }

@@ -1362,7 +1362,13 @@ export const LOCALES = {
     "composition.errors.legacy": "This composition requires config instance {scope}; type commands cannot represent it losslessly",
     "presets.left-right": "Left and right",
     "presets.repeated-metrics": "Repeated metrics",
-    "ui.hints.category": "category"
+    "ui.hints.category": "category",
+    "cli.help.recover_installation": "Recover an interrupted configuration or plugin transaction",
+    "recovery.pending": "Unfinished transaction {id} ({phase}); run claude-statusline recover",
+    "recovery.none": "No unfinished transactions.",
+    "recovery.preview": "Recovery preview: {id}: {outcome}",
+    "recovery.result": "Recovery completed: {id}: {outcome}",
+    "recovery.required": "Recovery required: {detail}"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -2723,7 +2729,13 @@ export const LOCALES = {
     "composition.errors.legacy": "此配置需要使用 config instance {scope}，类型命令无法完整表达当前布局",
     "presets.left-right": "左右布局",
     "presets.repeated-metrics": "重复指标",
-    "ui.hints.category": "分类"
+    "ui.hints.category": "分类",
+    "cli.help.recover_installation": "恢复中断的配置或插件事务",
+    "recovery.pending": "未完成事务 {id}（{phase}）；请运行 claude-statusline recover",
+    "recovery.none": "没有未完成的事务。",
+    "recovery.preview": "恢复预览：{id}：{outcome}",
+    "recovery.result": "恢复完成：{id}：{outcome}",
+    "recovery.required": "需要恢复：{detail}"
   },
   "zh-Hant": {
     "preferences.read_failed": "無法讀取 {path} 的界面偏好，使用英文：{detail}",
@@ -4084,7 +4096,13 @@ export const LOCALES = {
     "composition.errors.legacy": "此設定需要使用 config instance {scope}，類型命令無法完整表達目前版面",
     "presets.left-right": "左右配置",
     "presets.repeated-metrics": "重複指標",
-    "ui.hints.category": "分類"
+    "ui.hints.category": "分類",
+    "cli.help.recover_installation": "恢復中斷的設定或外掛交易",
+    "recovery.pending": "未完成交易 {id}（{phase}）；請執行 claude-statusline recover",
+    "recovery.none": "沒有未完成的交易。",
+    "recovery.preview": "恢復預覽：{id}：{outcome}",
+    "recovery.result": "恢復完成：{id}：{outcome}",
+    "recovery.required": "需要恢復：{detail}"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -5445,7 +5463,13 @@ export const LOCALES = {
     "composition.errors.legacy": "この構成には config instance {scope} が必要です。種類を指定するコマンドでは構成を完全に表現できません",
     "presets.left-right": "左右配置",
     "presets.repeated-metrics": "指標を複数表示",
-    "ui.hints.category": "カテゴリ"
+    "ui.hints.category": "カテゴリ",
+    "cli.help.recover_installation": "中断した設定またはプラグインのトランザクションを復旧",
+    "recovery.pending": "未完了のトランザクション {id}（{phase}）。claude-statusline recover を実行してください",
+    "recovery.none": "未完了のトランザクションはありません。",
+    "recovery.preview": "復旧プレビュー：{id}：{outcome}",
+    "recovery.result": "復旧完了：{id}：{outcome}",
+    "recovery.required": "復旧が必要です：{detail}"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -6806,7 +6830,13 @@ export const LOCALES = {
     "composition.errors.legacy": "이 구성에는 config instance {scope}가 필요합니다. 유형 명령으로는 현재 구성을 완전히 표현할 수 없습니다",
     "presets.left-right": "좌우 배치",
     "presets.repeated-metrics": "지표 반복 표시",
-    "ui.hints.category": "분류"
+    "ui.hints.category": "분류",
+    "cli.help.recover_installation": "중단된 설정 또는 플러그인 트랜잭션 복구",
+    "recovery.pending": "미완료 트랜잭션 {id} ({phase}): claude-statusline recover를 실행하세요",
+    "recovery.none": "미완료 트랜잭션이 없습니다.",
+    "recovery.preview": "복구 미리 보기: {id}: {outcome}",
+    "recovery.result": "복구 완료: {id}: {outcome}",
+    "recovery.required": "복구가 필요합니다: {detail}"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

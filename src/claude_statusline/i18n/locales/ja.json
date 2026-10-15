@@ -1357,5 +1357,11 @@
   "composition.errors.legacy": "この構成には config instance {scope} が必要です。種類を指定するコマンドでは構成を完全に表現できません",
   "presets.left-right": "左右配置",
   "presets.repeated-metrics": "指標を複数表示",
-  "ui.hints.category": "カテゴリ"
+  "ui.hints.category": "カテゴリ",
+  "cli.help.recover_installation": "中断した設定またはプラグインのトランザクションを復旧",
+  "recovery.pending": "未完了のトランザクション {id}（{phase}）。claude-statusline recover を実行してください",
+  "recovery.none": "未完了のトランザクションはありません。",
+  "recovery.preview": "復旧プレビュー：{id}：{outcome}",
+  "recovery.result": "復旧完了：{id}：{outcome}",
+  "recovery.required": "復旧が必要です：{detail}"
 }

@@ -12,7 +12,7 @@ export class PluginHost {
     run(args: readonly string[], values?: Record<string, string>, json = false): unknown {
         const env = { ...process.env, CLAUDE_CONFIG_DIR: this.configDir, DISABLE_AUTOUPDATER: '1' };
         delete (env as NodeJS.ProcessEnv).CLAUDECODE;
-        const result = this.execute(this.command.executable, [...this.command.args, 'plugin', ...args], { cwd: this.configDir, env, input: values === undefined ? undefined : JSON.stringify(values), timeout: 45000, maxBuffer: 4 * 1024 * 1024, shell: false, windowsHide: true });
+        const result = this.execute(this.command.executable, [...this.command.args, 'plugin', ...args], { cwd: this.configDir, env, input: values === undefined ? undefined : JSON.stringify(values), timeout: 45000, killSignal: 'SIGKILL', maxBuffer: 4 * 1024 * 1024, shell: false, windowsHide: true });
         if (result.error || result.signal || result.status === null)
             throw new UnconfirmedOperation('Official plugin operation could not be confirmed: ' + args.slice(0, 2).join(' '));
         if (result.status !== 0)

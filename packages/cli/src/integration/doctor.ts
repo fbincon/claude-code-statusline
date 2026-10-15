@@ -17,6 +17,7 @@ import { skillOwned } from './ownership.js';
 import { owner, registered, cacheOwned } from './mod-ownership.js';
 import { bundledFiles } from './resources.js';
 import { bindingValues, bindingMatches, commandPreflight } from './mods.js';
+import { pending, readJournal, refreshIntents } from '../recovery/journal.js';
 export function pathCollisions(context: InstallContext, environment: NodeJS.ProcessEnv = process.env): Diagnostic[] {
     const path = which('claude-statusline', environment);
     if (!path || context.launch.args.some(arg => resolvedPath(arg) === resolvedPath(path)))
@@ -47,6 +48,13 @@ export function doctor(context: InstallContext): Diagnostic[] {
     catch (error) {
         rows.push({ level: 'ERROR', message: error instanceof ConfigError ? localizedError(error) : String(error) });
     } };
+    capture(() => {
+        for (const id of refreshIntents(configDir)) add('ERROR', 'recovery.pending', { id, phase: 'restore-disabled' });
+        for (const path of pending(configDir)) {
+            const journal = readJournal(configDir, path);
+            add('ERROR', 'recovery.pending', { id: journal.id, phase: journal.phase });
+        }
+    });
     rows.push({ level: process.versions.node.startsWith('24.') ? 'OK' : 'ERROR', message: `Node runtime: ${process.versions.node}; ${process.platform}/${process.arch}` }, ...pathCollisions(context));
     capture(() => { fs.accessSync(launch.executable, process.platform === 'win32' ? fs.constants.F_OK : fs.constants.X_OK); add('OK', 'doctor.doctor.executable', { executable: launch.executable }); });
     let settings: Record<string, unknown> = {};

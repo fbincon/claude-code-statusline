@@ -9,6 +9,8 @@ import { revision } from '@fbincon/statusline-platform/hash';
 import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import { hostFromSettings, installationIdentity, settingsWithHost } from './host.js';
 import { artifact, createStorage, errorDetail, jsonBytes, readDisplay, readSettings, type Storage } from './storage.js';
+import { commit } from '../recovery/files.js';
+import { assertClear } from '../recovery/journal.js';
 export interface ConfigurationContext {
     configDir: string;
     launch: LaunchSpec;
@@ -75,6 +77,7 @@ export class ConfigurationService {
     mutate(action: string, mutation: Mutation, tolerateInvalidDisplay = false): MutationResult {
         const { configDir, launch } = this.context;
         return this.io.lock(configDir, () => {
+            assertClear(configDir);
             const [display, displayRaw] = readDisplay(configDir, this.io, tolerateInvalidDisplay);
             const [settings, settingsRaw] = readSettings(configDir, this.io);
             const { host, installed } = hostFromSettings(settings, launch);
@@ -87,31 +90,12 @@ export class ConfigurationService {
                 return { changed: false, effective: this.snapshot(display, settings), backup_dir: null };
             const displayPath = join(configDir, CONFIG_FILENAME), settingsPath = join(configDir, 'settings.json');
             const artifacts = [...(displayChanged ? [artifact(displayPath, displayRaw)] : []), ...(settingsChanged ? [artifact(settingsPath, settingsRaw)] : [])];
-            const backup = this.io.backup(configDir, action, artifacts);
+            let backup: string | null;
             try {
-                if (settingsChanged)
-                    this.io.write(settingsPath, Buffer.from(pythonJson(newSettings, { ensureAscii: false, indent: 2, allowNan: true }) + '\n'));
-                if (displayChanged) {
-                    if (displayBytes === null)
-                        this.io.remove(displayPath);
-                    else
-                        this.io.write(displayPath, displayBytes);
-                }
+                backup = commit(configDir, action, artifacts.map(item => ({ ...item, desired: item.path === settingsPath ? Buffer.from(pythonJson(newSettings, { ensureAscii: false, indent: 2, allowNan: true }) + '\n') : displayBytes })), this.io);
             }
             catch (exc) {
-                const errors: string[] = [];
-                for (const item of artifacts) {
-                    try {
-                        if (item.raw === null)
-                            this.io.remove(item.path);
-                        else
-                            this.io.write(item.path, item.raw);
-                    }
-                    catch (rollback) {
-                        errors.push(errorDetail(rollback));
-                    }
-                }
-                throw new ConfigError('errors.service.configuration_update_failed', { exc: errorDetail(exc), suffix: errors.length ? '; rollback also failed: ' + errors.join('; ') : '' }, 'io_error');
+                throw new ConfigError('errors.service.configuration_update_failed', { exc: errorDetail(exc), suffix: '' }, 'io_error');
             }
             return {
                 changed: true,

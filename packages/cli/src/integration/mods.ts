@@ -10,6 +10,20 @@ import { OWNER, OWNER_FILE, type InstallContext, type ModSpec, type ModResult } 
 import { bundledFiles, digest } from './resources.js';
 import { owner, ownedPath, registered, cacheOwned, prune, type Marker } from './mod-ownership.js';
 import { commit, safeTarget, type Change } from './transaction.js';
+import { BINDING_FILE, bindingRecord } from './ownership.js';
+import { refreshIntents } from '../recovery/journal.js';
+function rememberDisabled(context: InstallContext, spec: ModSpec, enabled: boolean): void {
+    context.io.lock(context.configDir, () => {
+        const current = bindingRecord(context.configDir, context.io);
+        if (!current) throw new Error('Plugin refresh requires an owned installation binding');
+        const intents = new Set((current.refresh_disabled ?? []) as string[]);
+        if (intents.has(spec.name) === enabled) return;
+        if (enabled) intents.add(spec.name); else intents.delete(spec.name);
+        if (intents.size) current.refresh_disabled = [...intents].sort(); else delete current.refresh_disabled;
+        const path = join(context.configDir, BINDING_FILE);
+        commit(context.configDir, 'plugin-refresh-intent', [{ name: BINDING_FILE, path, raw: context.io.read(path), desired: jsonBytes(current) }], context.io);
+    });
+}
 export function commandPreflight(directory: string, spec: ModSpec): void {
     if (spec.name !== 'statusline-native')
         return;
@@ -102,8 +116,10 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
     };
     try {
         const marker = owner(configDir, spec, io, true);
-        if (!requested && !marker)
+        if (!requested && !marker) {
+            if (refreshIntents(configDir).includes(spec.name)) { rememberDisabled(context, spec, false); changed = true; }
             return result('disabled', 'disabled by preference');
+        }
         const restricted = readSettings(configDir, io)[0].disableAllHooks === true, compatible = atLeast(version, spec.minimum);
         if (requested && !marker && (!compatible || restricted))
             return result('suspended', 'preference retained; host unavailable or restricted');
@@ -133,6 +149,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
                 removeResources(context, spec, marker);
                 changed = true;
             }
+            if (refreshIntents(configDir).includes(spec.name)) rememberDisabled(context, spec, false);
             return result('disabled', 'owned plugin and marketplace removed; preferences retained');
         }
         if (restricted) {
@@ -145,7 +162,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
             }
             return result('suspended', 'disableAllHooks is enabled; preference retained');
         }
-        const userDisabled = !!row && row.enabled !== true && !marker!.suspended;
+        const userDisabled = !!row && row.enabled !== true && !marker!.suspended || refreshIntents(configDir).includes(spec.name);
         commandPreflight(configDir, spec);
         const [current, staged] = stage(context, spec, marker);
         changed ||= staged;
@@ -160,6 +177,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
             host.run(['marketplace', 'update', spec.marketplace]);
         const values = bindingValues(context, spec);
         if (row && staged && row.version === current.mod_version) {
+            if (userDisabled) rememberDisabled(context, spec, true);
             host.run(['uninstall', spec.plugin, '--scope', 'user']);
             changed = true;
             row = null;
@@ -195,6 +213,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         if (!bindingMatches(host.run(['configure', spec.plugin, '--json'], undefined, true), values))
             throw new Error('Mod backend binding could not be confirmed');
         suspended(context, spec, current, false);
+        if (refreshIntents(configDir).includes(spec.name)) rememberDisabled(context, spec, false);
         return result(userDisabled ? 'plugin-disabled' : 'installed', userDisabled ? 'explicitly disabled; resources and binding refreshed' : 'installed and enabled on disk; session loading remains unverified');
     }
     catch (error) {

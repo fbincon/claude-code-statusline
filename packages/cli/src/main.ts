@@ -52,7 +52,8 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         return renderer(args[0]!);
     // Management translations and storage stay outside the rendering hot path.
     const { ArgumentError, parseConfig, validateConfigHelp, optionToken } = await import('./config/arguments.js');
-    const { expandUser, detectClaudeVersion } = await import('@fbincon/statusline-platform/commands');
+    const { expandUser, detectClaudeVersion, resolvedPath } = await import('@fbincon/statusline-platform/commands');
+    const { isLinkOrReparse } = await import('@fbincon/statusline-platform/files');
     const { ConfigurationService } = await import('./config/service.js');
     const { createStorage } = await import('./config/storage.js');
     const { readPreferences } = await import('./config/preferences.js');
@@ -72,19 +73,20 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         // Resolve preferences without creating files, including before help/parser errors.
         // Only the command's own directory option selects storage. A literal
         // item value after -- must never redirect a configuration write.
-        const administrative = ['install', 'uninstall', 'doctor'].includes(args[0] ?? '');
+        const administrative = ['install', 'uninstall', 'doctor', 'recover'].includes(args[0] ?? '');
         const directoryIndex = administrative ? args.findIndex(arg => arg === '--config-dir' || arg.startsWith('--config-dir=')) : 1;
         const directoryFlag = args[directoryIndex];
         const requestedDirectory = directoryFlag === '--config-dir' ? args[directoryIndex + 1] : directoryFlag?.startsWith('--config-dir=') ? directoryFlag.slice(13) : undefined;
         const rawDirectory = requestedDirectory ?? environment.configDir ?? process.env.CLAUDE_CONFIG_DIR;
-        const configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
+        let configDir = resolve(expandUser(rawDirectory?.trim() ? rawDirectory : '~/.claude'));
+        if (isLinkOrReparse(configDir)) configDir = resolvedPath(configDir);
         const preferences = readPreferences(configDir, createStorage(environment.now));
         language = (selectedLanguage ?? preferences.ui_language) as Language;
-        if (['install', 'uninstall', 'doctor', 'config', 'ui', 'runtime', 'configure'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
+        if (['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
             const command = args[0];
-            if (command && !command.startsWith('-') && !['install', 'uninstall', 'doctor', 'config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command && !command.startsWith('-') && !['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
             if (command === 'config') {
                 const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
                 validateConfigHelp(args.slice(offset));
@@ -94,7 +96,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return 0;
         }
         const command = args.shift();
-        if (!['install', 'uninstall', 'doctor', 'config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
+        if (!['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
         if (administrative) {
             const { parseAdministration } = await import('./integration/arguments.js');
@@ -103,6 +105,13 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { renderMessage } = await import('@fbincon/statusline-core/i18n/messages');
             const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
             const context = installContext(configDir, launch, (environment.hostVersion ?? detectClaudeVersion)(), environment.installation?.io, environment.installation?.host);
+            if (command === 'recover') {
+                const { recover } = await import('./recovery/service.js');
+                const result = recover(context, options.dryRun);
+                if (!result.transactions.length) stdout(t('recovery.none', language) + '\n');
+                for (const transaction of result.transactions) stdout(t(options.dryRun ? 'recovery.preview' : 'recovery.result', language, transaction) + '\n');
+                return 0;
+            }
             if (command === 'doctor') {
                 const { doctor } = await import('./integration/doctor.js');
                 const diagnostics = doctor(context);

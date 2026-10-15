@@ -1357,5 +1357,11 @@
   "composition.errors.legacy": "此配置需要使用 config instance {scope}，类型命令无法完整表达当前布局",
   "presets.left-right": "左右布局",
   "presets.repeated-metrics": "重复指标",
-  "ui.hints.category": "分类"
+  "ui.hints.category": "分类",
+  "cli.help.recover_installation": "恢复中断的配置或插件事务",
+  "recovery.pending": "未完成事务 {id}（{phase}）；请运行 claude-statusline recover",
+  "recovery.none": "没有未完成的事务。",
+  "recovery.preview": "恢复预览：{id}：{outcome}",
+  "recovery.result": "恢复完成：{id}：{outcome}",
+  "recovery.required": "需要恢复：{detail}"
 }

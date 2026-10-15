@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import { basename, dirname, join } from 'node:path';
-import { atomicWrite, durableUnlink, withLock, privateDirectory } from '@fbincon/statusline-platform/files';
+import { atomicWrite, durableUnlink, withLock, privateDirectory, syncDirectory } from '@fbincon/statusline-platform/files';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
 export { decodeUtf8 };
@@ -60,18 +60,23 @@ export function createStorage(now: () => Date = () => new Date()): Storage {
                         path = `${base}-${suffix++}`;
                     }
                 }
+                function snapshot(target: string, bytes: Buffer): void {
+                    const fd = fs.openSync(target, 'wx', 0o600);
+                    try { fs.writeFileSync(fd, bytes); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+                    for (let parent = dirname(target); parent.startsWith(directory) && parent !== dirname(directory); parent = dirname(parent)) syncDirectory(join(parent, 'snapshot'));
+                }
                 const recorded = artifacts.map(artifact => {
                     const state = artifact.raw === null ? 'absent' : 'before';
                     const target = join(path, `${artifact.name}.${state}`);
                     privateDirectory(dirname(target));
-                    fs.writeFileSync(target, artifact.raw ?? Buffer.alloc(0), { mode: 0o600, flag: 'wx' });
+                    snapshot(target, artifact.raw ?? Buffer.alloc(0));
                     return { path: artifact.path, state };
                 });
                 const metadata: Record<string, unknown> = { action, created_at: timestamp(now()), artifacts: recorded };
                 const settings = artifacts.find(artifact => artifact.name === 'settings.json');
                 if (settings)
                     metadata.settings_path = settings.path;
-                fs.writeFileSync(join(path, 'metadata.json'), jsonBytes(metadata), { mode: 0o600, flag: 'wx' });
+                snapshot(join(path, 'metadata.json'), jsonBytes(metadata));
                 return path;
             }
             catch (exc) {

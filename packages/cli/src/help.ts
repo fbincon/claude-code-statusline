@@ -1,5 +1,6 @@
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 const COMMANDS: Readonly<Record<string, string>> = {
+    recover: 'recover_installation',
     install: 'configure_claude_code_to_use_this_status_line',
     uninstall: 'remove_only_this_tool_s_claude_code_configuration',
     doctor: 'diagnose_the_installation_without_changing_files',
@@ -42,9 +43,9 @@ export function helpText(command: string | undefined, language: Language): strin
         '  -h, --help          ' + t('cli.help.help', language),
         '  --language LANGUAGE ' + t('cli.help.language_override', language),
     ];
-    if (config || ['ui', 'runtime', 'configure', 'install', 'uninstall', 'doctor'].includes(command ?? ''))
+    if (config || ['ui', 'runtime', 'configure', 'install', 'uninstall', 'doctor', 'recover'].includes(command ?? ''))
         lines.push('  --config-dir PATH   ' + t('cli.help.claude_configuration_directory_default_claude_config_dir_or', language));
-    if (command === 'install' || command === 'uninstall') lines.push('  --dry-run           ' + t('cli.help.report_whether_settings_would_change', language));
+    if (command === 'install' || command === 'uninstall' || command === 'recover') lines.push('  --dry-run           ' + t('cli.help.report_whether_settings_would_change', language));
     if (command === 'install') {
         const options = {
             force: 'replace_conflicting_statusline_and_subagentstatusline_settings_or_unrelated',

@@ -6,6 +6,8 @@ import { ConfigError, object, fail } from '@fbincon/statusline-core/config/valid
 import { LANGUAGES, type Language } from '@fbincon/statusline-core/i18n/registry';
 import { text, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import { artifact, createStorage, decodeUtf8, errorDetail, jsonBytes, type Storage } from './storage.js';
+import { commit } from '../recovery/files.js';
+import { assertClear } from '../recovery/journal.js';
 export const UI_FILENAME = 'statusline-ui.json';
 export interface Preferences {
     schema_version: 1;
@@ -48,6 +50,7 @@ export function setLanguage(directory: string, language: unknown, io: Storage = 
     const path = join(directory, UI_FILENAME);
     try {
         io.lock(directory, () => {
+            assertClear(directory);
             const raw = io.read(path);
             if (raw !== null) {
                 let data: unknown = null;
@@ -66,21 +69,11 @@ export function setLanguage(directory: string, language: unknown, io: Storage = 
                 }
                 if (valid(data) && data.ui_language === language)
                     return;
-                io.backup(directory, 'ui-language', [artifact(path, raw)]);
             }
             try {
-                io.write(path, jsonBytes({ schema_version: 1, ui_language: language }));
+                commit(directory, 'ui-language', [{ ...artifact(path, raw), desired: jsonBytes({ schema_version: 1, ui_language: language }) }], io, raw !== null);
             }
             catch (detail) {
-                try {
-                    if (raw === null)
-                        io.remove(path);
-                    else
-                        io.write(path, raw);
-                }
-                catch (rollback) {
-                    throw new ConfigError('preferences.rollback_failed', { path, detail: errorDetail(detail), rollback: errorDetail(rollback) }, 'io_error');
-                }
                 throw detail;
             }
         });

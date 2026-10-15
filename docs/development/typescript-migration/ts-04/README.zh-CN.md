@@ -14,7 +14,7 @@ doctor 保持只读。本阶段不分配发行版本或标签。
 | 04-A | 完整责任台账、共享编辑器规则及生产 Mod argv 绑定 | DONE；[PR #87](https://github.com/fbincon/claude-code-statusline/pull/87) |
 | 04-B | 外部 raw-TTY/VT 编辑器、终端启动器与结果桥 | DONE；[PR #88](https://github.com/fbincon/claude-code-statusline/pull/88) |
 | 04-C | 安装、卸载、doctor、归属与资源 | VALIDATING；`fbincon/ts-04-installation` |
-| 04-D | 持久化事务检查点与显式恢复 | NOT_STARTED |
+| 04-D | 持久化事务检查点与显式恢复 | VALIDATING；`fbincon/ts-04-recovery` |
 | 04-E | 已安装候选包验收、CI、文档及收口 | NOT_STARTED |
 
 ## 责任与架构
@@ -81,7 +81,16 @@ npm run migration:inventory -- --complete
 npm run migration:inventory:ts04
 ```
 
-下一步：完成 04-C PR 检查，实施中断恢复。阶段最终需要在既有目标矩阵上完成真实候选包
+04-D 新增显式 `recover [--config-dir PATH] [--dry-run]`、已同步且不可覆盖的原始快照、
+带版本的日志检查点及待恢复写保护。恢复前核验全部原始／目标文件，并通过实际库存核对
+结果不明的官方操作，不盲目重放写入。持久刷新意图在成功卸载与重装之间被强制终止时仍能
+保留用户禁用选择。详见[恢复流程](recovery.zh-CN.md)。
+
+04-D 本地 TS 853/856 通过（三项 Windows 限定跳过），Python 847/856 通过（九项平台
+跳过），24 项恢复场景（包含真实进程中断）与 50 项生成资源检查通过。真实隔离的官方安装／重装／doctor／
+卸载流程通过，无残留待恢复日志；最终目标 CI 仍待完成。
+
+下一步：完成 04-C／04-D PR 检查及已安装候选包验收。阶段最终需要在既有目标矩阵上完成真实候选包
 编辑器与恢复验收。已批准延至发布前的实体／桌面补验维持原状态。
 性能归 PERF-01；超时、资源上限与稳定性契约仍为必需。
 原始证据置于忽略目录 `dist/validation/typescript-migration/ts-04/`。
