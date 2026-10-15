@@ -10,7 +10,13 @@ export function binding(options: { backendExecutable?: unknown; backendArgs?: un
     if (!executable(override)) throw new TypeError('Invalid backend executable');
     return { executable: override, args: [] };
   }
-  const program = options.backendExecutable ?? 'claude-statusline', args = options.backendArgs ?? [];
+  const program = options.backendExecutable ?? 'claude-statusline';
+  // Official configure --values-stdin accepts strings, including multiple inputs.
+  // Defaults and SDK callers may already provide the array.
+  let args: unknown = options.backendArgs ?? [];
+  if (typeof args === 'string') {
+    try { args = JSON.parse(args); } catch { throw new TypeError('Invalid backend argument array'); }
+  }
   if (!executable(program) || !Array.isArray(args) || !args.every(x => typeof x === 'string' && !x.includes('\0'))) {
     throw new TypeError('Invalid backend binding');
   }

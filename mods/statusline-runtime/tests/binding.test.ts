@@ -1,7 +1,7 @@
 import { test, expect, mock } from 'claude-code/testing';
 
-for (const override of [false, true]) test(`runtime argv binding with override=${override}`, {
-  options: { backendExecutable: '/node with spaces/node', backendArgs: ['/installed 中文 & $`/entry.js'], configDir: '/config 中文' },
+for (const serialized of [false, true]) for (const override of [false, true]) test(`runtime argv binding with override=${override}, serialized=${serialized}`, {
+  options: { backendExecutable: '/node with spaces/node', backendArgs: serialized ? JSON.stringify(['/installed 中文 & $`/entry.js']) : ['/installed 中文 & $`/entry.js'], configDir: '/config 中文' },
 }, async ($, on) => {
   mock.clock(on, { now: 1000 });
   mock.env(on, override ? { CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE: 'legacy-backend' } : {});
