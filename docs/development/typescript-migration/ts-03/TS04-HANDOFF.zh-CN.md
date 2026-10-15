@@ -2,9 +2,14 @@
 
 [English](TS04-HANDOFF.md) | **简体中文**
 
-TS-03 保持 **IN_PROGRESS**：[D06 失败](PERFORMANCE.zh-CN.md)，69 项失败、32 项不确定。03-F 首个提交的 43 项 CI 通过，最终 head 核验记录于 [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83)；性能整改继续归 TS-03。本文记录 TS-04 将使用的接口，不切换已安装的 Python 产品，也不代表外部编辑器已验收。
+准入更新（2026-10-15）：**TS-03／03-F 为 DONE；TS-04 为 NOT_STARTED**。
+[关闭记录](README.zh-CN.md#closure-2026-10-15)绑定既有功能、CI 和源码证据。
+按 [D06 修订](../ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)，性能不再阻塞准入。
+最新 D06 仍为 **FAIL：104 通过／60 失败／28 不确定**；后续优化归入 TS-06 之后的
+[PERF-01](../../performance/perf-01.zh-CN.md)。
 
-准入状态更新（2026-10-15）：两轮性能整改后 D06 仍未通过（104 通过／60 失败／28 不确定）。本交接尚不构成 TS-04 实施准入，先处理[TS-03 专项评审](PERFORMANCE-OPTIMIZATION.zh-CN.md).
+本文为后续 TS-04 任务记录接口及剩余断言。本次计划调整不启动实现、不切换已安装的 Python
+产品，也不代表外部编辑器或安装流程已验收。
 
 ## 后端入口与所有权
 
@@ -27,6 +32,8 @@ TS-03 保持 **IN_PROGRESS**：[D06 失败](PERFORMANCE.zh-CN.md)，69 项失败
 
 ## 证据与发布门槛
 
-参照 [TS-03 实施记录](README.zh-CN.md)、其中绑定源码的验证摘要及具名替代测试。重复执行 `npm test`、`npm run generate:check`、`npm run migration:inventory -- --complete`、两个官方 Mod 测试及必需的跨平台 CI。完整 D06 报告必须保留失败／不确定结果；单样本 `--validate` 报告仅证明夹具有效。
+后续实施 TS-04 时，参照 [TS-03 实施记录](README.zh-CN.md)、其中绑定源码的验证摘要及具名替代测试。执行 `npm test`、`npm run generate:check`、`npm run migration:inventory -- --complete`、两个官方 Mod 测试及必需的跨平台 CI，并补齐编辑器／安装／恢复覆盖。精确采集次数、现有超时和资源有界契约仍属于功能／稳定性要求。
+
+完整 D06 测量及预算达标不再作为 TS-04 准入或退出条件。保留历史失败／不确定结果；单样本 `--validate` 报告仍只证明夹具有效。本次纯文档任务不运行上述本地实施套件或基准。
 
 实体设备、休眠和人工桌面检查继续作为已批准的发布前门槛。Claude Code 2.1.296 运行验证不能代替仍不可用的精确主机构建类型声明检查。TS-03 不创建 TS 版本标签或 Release。

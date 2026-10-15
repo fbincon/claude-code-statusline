@@ -4,8 +4,10 @@
 
 2026-10-14: [Linux 整合、实体机验收及已批准的发布前补验](LINUX-20261014.zh-CN.md).
 
-更新：**2026-10-14**（Asia/Shanghai）。阶段状态由[迁移总计划](../../typescript-migration.zh-CN.md)统一维护。
-TS-02 为 **DONE**，D01–D06 均为 **DECIDED**；TS-03 已可开始，但尚未实施。
+更新：**2026-10-15**（Asia/Shanghai）。阶段状态由[迁移总计划](../../typescript-migration.zh-CN.md)统一维护。
+TS-02 为 **DONE**，D01–D06 均为 **DECIDED**；TS-03 已[按修订后的非性能标准关闭](../ts-03/README.zh-CN.md#closure-2026-10-15)。
+[D06 适用范围修订](D06.zh-CN.md#applicability-amendment-2026-10-15)将后续性能工作归入 TS-06 之后的
+[PERF-01](../../performance/perf-01.zh-CN.md)。TS-04～TS-06 和 PERF-01 保持 NOT_STARTED。
 整合 CI 和本 Linux 实体机电源／桌面验收已通过。维护者明确将无法补齐的外部实体机／桌面检查
 延后到[发布前补验](LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛)，仍记为未验证，平台支持承诺不变。
 
@@ -28,7 +30,7 @@ Koffi 的原生二进制位于对应 `@koromix/koffi-*` 可选包中，Windows A
 | [D03](D03.zh-CN.md) | DECIDED | 八个原生目标已验证兼容内核锁与持久化替换；完整存储事务留给 TS-03。 |
 | [D04](D04.zh-CN.md) | DECIDED | raw TTY／VT／共享 Unicode；真实 Windows 控制台、macOS Terminal.app／popup、Linux GNOME／popup 已有证据，其余外部覆盖延后补验。 |
 | [D05](D05.zh-CN.md) | DECIDED | npm 入口退役、argv 前缀绑定及事务升级策略已固定；完整实现留给 TS-04。 |
-| [D06](D06.zh-CN.md) | DECIDED | 测量前固定预算；最小渲染测量与完整迁移验收分开。 |
+| [D06](D06.zh-CN.md) | DECIDED；2026-10-15 修订适用范围 | 冻结预算与历史结果保留；完整成品测量和优化移至 TS-06 后的 PERF-01，不阻塞迁移／发布。 |
 
 维护者已批准未来主版本退役 Windows x86、Python import、`python -m`、pipx 安装和旧 Windows `.exe` 名称。
 历史 Python 发布物保留供既有用户使用和兼容回滚，不因此承诺新增维护分支。
@@ -101,7 +103,7 @@ Mod 无 shell 调用不把 `.cmd` 当作原生可执行文件。
 
 `f891065` 的 600 样本对照（另有 200 个启动控制样本）通过固定延迟／RSS 预算，但 Node 峰值 RSS 接近 Python 加 32 MiB 的上限。
 这只证明**一个最小配置**的可行性，不代表完整后端加速或内存结论。
-完整采集器／Agent／hook／进程内矩阵仍未测量；新测量保留旧原始结果及固定预算。
+探针交接时完整采集器／Agent／hook／进程内矩阵尚未测量；后续 [TS-03 测量](../ts-03/PERFORMANCE-OPTIMIZATION.zh-CN.md)仍为失败，旧原始结果及固定预算继续保留。
 
 下表为三轮统计值的中位数；延迟单位 ms，RSS 单位 MiB，具体逐轮结果及判定见机器摘要。
 
@@ -112,7 +114,8 @@ Mod 无 shell 调用不把 `.cmd` 当作原生可执行文件。
 
 [2026-10-14 整合](LINUX-20261014.zh-CN.md)已满足调整后的 TS-02 门槛：修复后的矩阵及本 Linux 实体机
 睡眠／重启／GNOME／popup 通过。其余外部覆盖仍须在 TS 发布前补验，不记为通过。
-完整安装／恢复属于 TS-04，完整性能验收属于 TS-05。TS-03 已可开始，本轮探针交付不是产品发布。
+完整安装／恢复仍属于 TS-04。按 2026-10-15 修订，完整成品性能测量／优化归 TS-06 后的 PERF-01，
+不阻塞迁移或发布。TS-03 已按修订标准 DONE；本次文档任务不启动 TS-04 实现。
 
 ## 测试工具交接
 

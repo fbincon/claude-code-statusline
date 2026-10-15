@@ -2,6 +2,8 @@
 
 **English** | [简体中文](PERFORMANCE-OPTIMIZATION.zh-CN.md)
 
+> **Current applicability (2026-10-15 amendment):** this report preserves its measured results and then-current stage decisions. Statements below about IN_PROGRESS, TS-03 remediation or TS-04 admission are historical. The latest measurement remains FAIL (104/60/28), with unchanged data. Under the [D06 amendment](../ts-02/D06.md#applicability-amendment-2026-10-15), TS-03/03-F [close as DONE](README.md#closure-2026-10-15) on existing non-performance evidence. Further performance work belongs to [PERF-01](../../performance/perf-01.md) after TS-06 and does not block migration/release; this task starts no subsequent implementation.
+
 State: **IN_PROGRESS**. Both approved optimization rounds and their complete unchanged D06 measurements are finished. Round 2 has **104 pass / 60 fail / 28 inconclusive**; implementation stops for focused review. The original [03-F failure](PERFORMANCE.md) and [raw summary](performance.03-f.json) remain historical evidence. This work does not change TS-04 admission or switch the installed backend.
 
 ## Scope and reproducibility

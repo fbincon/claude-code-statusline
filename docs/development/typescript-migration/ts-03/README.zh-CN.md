@@ -2,11 +2,35 @@
 
 [English](README.md) | **简体中文**
 
-[总体迁移计划](../../typescript-migration.zh-CN.md)负责阶段状态。TS-03 从
-`9b121e0` 开始，当前为 **IN_PROGRESS**。维护者已批准全部六批、逐批 PR、检查通过后
-合并并同步 Gitee。本阶段不新增版本、不发布、不切换已安装后端，也不实现外部编辑器。
+[总体迁移计划](../../typescript-migration.zh-CN.md)负责阶段状态。自 2026-10-15 起，TS-03／03-F
+按修订后的非性能标准为 **DONE**。实现从 `9b121e0` 开始，各批通过独立 PR 检查后合并并同步
+Gitee。本次关闭记录不新增版本、不发布、不切换已安装后端，也不实现外部编辑器。
 
-两轮性能优化已完成：[第一轮 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84)、[第二轮 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)。第二轮完整 D06 **104 通过／60 失败／28 不确定**；TS-03 保持 IN_PROGRESS，第三轮实施需专项评审。输出／采集次数全部匹配，原预算、已安装后端及 TS-04 准入不变。[完整结果、退化与剩余差距](PERFORMANCE-OPTIMIZATION.zh-CN.md).
+两轮性能优化已完成：[第一轮 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84)、[第二轮 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)。最新 D06 仍为 **FAIL：104 通过／60 失败／28 不确定**，输出与采集次数全部匹配。[D06 修订](../ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)将后续性能工作移交 TS-06 之后的独立 [PERF-01](../../performance/perf-01.zh-CN.md)，原预算与证据不变。TS-04 前置依赖已满足；TS-04～TS-06 和 PERF-01 仍为 NOT_STARTED。
+
+<a id="closure-2026-10-15"></a>
+
+## 按修订标准关闭：2026-10-15
+
+维护者明确批准依据既有非性能证据关闭 TS-03／03-F，将性能优化后移。
+本次仅更新文档与状态，不构成新一轮实现或性能优化。
+
+| 标准 | 既有证据 |
+| --- | --- |
+| 功能对照 | 全部 161 个固定案例匹配，保留原三项已批准的 CLI 文案差异。 |
+| TS 回归测试 | 556/557 通过；Linux 本地跳过一项 Windows 专用测试。 |
+| 完整责任审计 | 516 项 ID：471 项已迁移，45 项完整测试归 TS-04，零 pending；八项混合测试保留明确的 TS-04 断言。 |
+| 配套检查 | Python 847/856（九项平台跳过）；官方 Claude Code 2.1.294 Mod 112 native／10 runtime；两个类型／严格校验、34 项资源及五项只读生成检查通过。 |
+| 最终实现 CI | PR #85 最终 head 的 43 项作业和八份回执通过；每份回执匹配 298 个源码哈希与固定运行时。 |
+| 集成 | 测量源码 `93384f5`、证据审查 head `468b729`、合并 `7eae7c4`；PR #85 已核对审查／测试／合并树一致及 GitHub／Gitee 同步。 |
+| 性能处置 | 完整 D06 已执行且仍 FAIL；按有日期的修订移出迁移退出条件，不改写测量结果。 |
+
+[源码绑定验证](validation.optimization-02.json)和 [PR #85 最终集成记录](https://github.com/fbincon/claude-code-statusline/pull/85)
+保留精确提交、检查和来源。本次文档任务不重复运行这些本地功能套件或完整基准。
+历史 JSON 回执保留原 IN_PROGRESS 阶段值；当前状态以迁移总计划和本关闭记录为准。
+
+[TS-04 交接](TS04-HANDOFF.zh-CN.md)继续承担 45 项测试与八项混合测试剩余断言。
+实体机／桌面和安装／恢复发布门槛仍为必需。本次不开始 TS-04 实现或 PERF-01 工作。
 
 ## 实施顺序
 
@@ -17,12 +41,15 @@
 | 03-C | 加锁配置服务、偏好及管理命令 | DONE；[PR #80](https://github.com/fbincon/claude-code-statusline/pull/80) |
 | 03-D | 采集、缓存、计时、任务、观察及 hooks | DONE；[PR #81](https://github.com/fbincon/claude-code-statusline/pull/81) |
 | 03-E | 渲染、预览及完整后端协议 | DONE — PR #82 |
-| 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | IN_PROGRESS |
+| 03-F | 整体等价、Mod 检查、CI 与 TS-04 交接；保留性能测量供 PERF-01 使用 | 按修订标准 DONE；[关闭记录](#closure-2026-10-15) |
 
-当前分支：`fbincon/ts-03-performance-round-2`。03-A／03-B／03-C／03-D 分别合并为 `21fb21d`／`f1363e3`／`0faa639`／`dc2e218`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
+最后实施分支：`fbincon/ts-03-performance-round-2`；关闭文档分支：`fbincon/ts-migration-plan-performance-deferral`。03-A／03-B／03-C／03-D 分别合并为 `21fb21d`／`f1363e3`／`0faa639`／`dc2e218`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
 workspace 包为 0.0.0 私有开发包；现有 Python 应用仍为 2.0.0。
 
 ## 边界与复现
+
+下文实施记录保留各批运行时的证据和门槛。历史未完成状态不代表当前阻塞；
+现行验收以本页关闭记录及 D06 最新修订为准。
 
 `packages/core` 存放可移植规则，其生产编译不引入 Node 全局类型；
 `packages/platform` 负责 Node／原生 I/O，依赖纯核心类型；`packages/cli` 负责应用编排。
@@ -110,7 +137,9 @@ TS 入口已接入 `runtime [--config-dir PATH]` 和 `hook`。运行协议 v2 �
 全部 **161/161** 个固定案例通过，仅有原先三项 CLI 文案差异。本地 TS **455 项中 454 通过**（一项 Windows 平台跳过），Python **856 项中 847 通过**（九项平台跳过），native Mod **112/112**、runtime Mod **10/10**。台账达到 **389/516** 项已迁移，仍有 **127** 项 pending，`--complete` 仍须失败。[验证证据](validation.03-e.json)绑定源码和固定运行时。剩余工作归 03-F：全台账审计、跨模块及 Mod 到 TS 验证、D06 性能／无 Python 验收和 TS-04 交接。本批不将 TS-03 标记为 DONE。
 
 
-## 03-F 整体验收进行中
+<a id="03-f-整体验收进行中"></a>
+
+## 03-F 整体验收历史记录
 
 03-E 在 43 项 PR 检查通过后合并为 `10c6348aef1fcd1d2a1681aa808a842e0d883b56`。八份平台证据分别匹配 201 个源码原始哈希及固定运行时；GitHub、Gitee main 均独立核验为该合并提交。首次 Windows CRLF 差异在合并前被拒绝并修正；[03-E 证据](validation.03-e.json)保留两次尝试。
 
@@ -122,4 +151,4 @@ TS 入口已接入 `runtime [--config-dir PATH]` 和 `hook`。运行协议 v2 �
 
 [性能工具](../../../../tools/migration/ts-03/performance/benchmark.ts)覆盖十项完整命令和 22 项进程内负载：三种固定 transcript／Agent／Git 规模、冷／热／追加游标、Git 未命中／命中／过期、重复指标、Unicode 排版、代理、hook、预览及 runtime observe。夹具和字节码预热不计入测量；每个样本核对输出及采集次数。新缓存保留基线的一次生命周期／用量迁移扫描，热刷新不再读取 transcript。正式 D06 要求干净已提交的源码，每侧 50 次、三轮交替、Python 冷／热字节码分开；记录 P50/P95、真实峰值 RSS、策略／运行时／源码哈希并执行一次噪声复测规则。`--validate` 只校验夹具，不能记为性能通过。干净提交 `1fddaa6ea1fef7f631e51641f15214cbddd7ec08` 的正式测量已完成，结论为 **失败**：91 项通过、69 项失败、32 项不确定。19,200 个样本的输出及采集次数全部一致。[完整 D06 记录](PERFORMANCE.zh-CN.md)保留所有判定及源码／运行时／策略哈希。
 
-本地验收通过 TS 550 项中的 549 项（一项平台跳过）、Python 856 项中的 847 项（九项平台跳过）、两个 Mod 测试（112/10）、两个 Mod 类型／严格校验、34 项生成资源、五项保留的只读生成检查及完整 516 项台账。[03-F 验证](validation.03-f.json)记录精确源码和日志；[TS-04 交接](TS04-HANDOFF.zh-CN.md)记录编辑器／安装剩余断言。首个提交已通过 43 项 PR 检查，八目标产物分别精确匹配 296 项源码。最终帮助参数差异矩阵修正无效命令／缺失选项／互斥参数的退出码，保留已批准的帮助文案差异。最终 head／检查／产物核验记录于 [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83)。**D06 失败，TS-03 保持 IN_PROGRESS。** 性能整改继续归本阶段；合并实现与证据不豁免此门槛。
+本地验收通过 TS 550 项中的 549 项（一项平台跳过）、Python 856 项中的 847 项（九项平台跳过）、两个 Mod 测试（112/10）、两个 Mod 类型／严格校验、34 项生成资源、五项保留的只读生成检查及完整 516 项台账。[03-F 验证](validation.03-f.json)记录精确源码和日志；[TS-04 交接](TS04-HANDOFF.zh-CN.md)记录编辑器／安装剩余断言。首个提交已通过 43 项 PR 检查，八目标产物分别精确匹配 296 项源码。最终帮助参数差异矩阵修正无效命令／缺失选项／互斥参数的退出码，保留已批准的帮助文案差异。最终 head／检查／产物核验记录于 [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83)。**当时 D06 失败，TS-03 保持 IN_PROGRESS，性能整改归本阶段。** 这是原验收门槛下的历史结论；当前阶段已按 [2026-10-15 修订关闭](#closure-2026-10-15)，测量失败仍保留。

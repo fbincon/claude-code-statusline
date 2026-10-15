@@ -2,9 +2,16 @@
 
 **English** | [简体中文](TS04-HANDOFF.zh-CN.md)
 
-TS-03 remains **IN_PROGRESS**: [D06 failed](PERFORMANCE.md) with 69 failed and 32 inconclusive metrics. The initial 03-F head passed 43 CI jobs; final head verification is recorded in [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83). Performance remediation remains owned by TS-03. This document records the interfaces TS-04 will consume; it does not switch the installed Python product or claim external-editor acceptance.
+Admission update (2026-10-15): **TS-03/03-F are DONE; TS-04 is NOT_STARTED**.
+The [closure record](README.md#closure-2026-10-15) binds existing functional,
+CI and source evidence. Under the [D06 amendment](../ts-02/D06.md#applicability-amendment-2026-10-15),
+performance no longer blocks entry. The latest D06 remains **FAIL: 104 pass /
+60 fail / 28 inconclusive**; further optimization belongs to [PERF-01](../../performance/perf-01.md)
+after TS-06.
 
-Admission update (2026-10-15): after two performance rounds D06 still fails (104 pass / 60 fail / 28 inconclusive). This handoff does not authorize TS-04 implementation; first address the [TS-03 focused review](PERFORMANCE-OPTIMIZATION.md).
+This document records interfaces and outstanding assertions for a later TS-04
+task. The planning change starts no implementation, switches no installed Python
+product and does not claim external-editor or installation acceptance.
 
 ## Backend entry and ownership
 
@@ -27,6 +34,8 @@ Cover real editor save/cancel/conflicts, import-review acceptance and scrolling,
 
 ## Evidence and release gates
 
-Use [the TS-03 record](README.md), its source-bound validation summaries and the named replacement tests. Repeat `npm test`, `npm run generate:check`, `npm run migration:inventory -- --complete`, both official Mod suites and required cross-platform CI. The full D06 report must retain every failed/inconclusive result; a single-sample `--validate` report is fixture evidence only.
+When TS-04 is implemented, use [the TS-03 record](README.md), its source-bound validation summaries and the named replacement tests. Run `npm test`, `npm run generate:check`, `npm run migration:inventory -- --complete`, both official Mod suites and required cross-platform CI, with new editor/install/recovery coverage. Exact collection counts, existing timeout and bounded-resource contracts remain functional/stability requirements.
+
+Full D06 measurement and passing budgets are not TS-04 prerequisites or exit conditions. Preserve every historical failed/inconclusive result; a single-sample `--validate` report remains fixture evidence only. This documentation-only task does not run these local implementation suites or a benchmark.
 
 Physical device, sleep and human desktop checks retain their approved release-before status. Claude Code 2.1.296 runtime tests do not establish unavailable exact-build host declaration checks. No TS version tag or Release is created in TS-03.
