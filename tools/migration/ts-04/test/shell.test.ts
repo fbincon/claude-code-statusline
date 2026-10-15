@@ -10,7 +10,9 @@ test('PowerShell bootstraps OS folders while child Node retains isolated literal
   const command = powershellIsolation(isolated);
   assert.ok(command.includes("$env:HOME = 'C:/isolated 中文 '' $` &';"));
   assert.ok(command.includes("$env:USERPROFILE = 'C:/isolated';"));
-  assert.ok(command.includes('Remove-Item Env:LOCALAPPDATA'));
+  assert.equal(command.includes('Remove-Item'), false);
+  assert.equal(command.includes('LOCALAPPDATA'), false);
+  assert.ok(powershellIsolation({}).includes('$env:HOME = $null;'));
 });
 
 test('shell acceptance closes stdin and records abnormal exits without hiding diagnostics', () => {

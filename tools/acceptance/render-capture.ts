@@ -1,7 +1,7 @@
 /** Reconstruct captured terminal cells. This is never described as an OS screenshot. */
 import * as fs from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { Resvg } from '@resvg/resvg-js';
@@ -36,8 +36,8 @@ export function renderCapture(capture: TerminalCapture, bounds: readonly number[
             if (cell.data)
                 texts.push(`<text x="${12 + x * 12}" y="${31 + y * 24}" fill="${fg}" font-weight="${cell.bold ? 'bold' : 'normal'}">${escape(cell.data.replace(/[\p{Cc}\p{Cs}]/gu, ''))}</text>`);
         }
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="${background}"/><g font-family="DejaVu Sans Mono,Noto Sans CJK SC,Noto Sans Symbols 2,monospace" font-size="20">${rectangles.join('')}${texts.join('')}</g></svg>`;
-    const renderer = new Resvg(svg, { font: { loadSystemFonts: false, fontFiles: fonts } }), image = renderer.render();
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="${background}"/><g font-family="DejaVu Sans Mono,Noto Sans CJK SC,Noto Sans Symbols2,monospace" font-size="20">${rectangles.join('')}${texts.join('')}</g></svg>`;
+    const renderer = new Resvg(svg, { font: { loadSystemFonts: false, fontFiles: fonts, defaultFontFamily: 'DejaVu Sans Mono', monospaceFamily: 'DejaVu Sans Mono' } }), image = renderer.render();
     return { svg, png: image.asPng(), width: image.width, height: image.height, pixels: image.pixels };
 }
 export function writeCapture(input: string, output: string, commit: string, bounds: number[], fonts: string[]) {
@@ -47,7 +47,7 @@ export function writeCapture(input: string, output: string, commit: string, boun
     const rendered = renderCapture(JSON.parse(raw.toString('utf8')), bounds, fonts);
     fs.mkdirSync(dirname(output), { recursive: true });
     fs.writeFileSync(output, rendered.png, { flag: 'wx' });
-    fs.writeFileSync(output + '.json', JSON.stringify({ kind: 'terminal-cell reconstruction; not an OS screenshot', commit, capture_sha256: sha(raw), png_sha256: sha(rendered.png), font_hashes: fontHashes, bounds, width: rendered.width, height: rendered.height }, null, 2) + '\n', { flag: 'wx' });
+    fs.writeFileSync(output + '.json', JSON.stringify({ kind: 'terminal-cell reconstruction; not an OS screenshot', commit, capture_sha256: sha(raw), png_sha256: sha(rendered.png), renderer_sha256: sha(fs.readFileSync(fileURLToPath(import.meta.url))), node: process.version, node_sha256: sha(fs.readFileSync(process.execPath)), resvg: '2.6.2', font_hashes: fontHashes, bounds, width: rendered.width, height: rendered.height }, null, 2) + '\n', { flag: 'wx' });
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values, positionals } = parseArgs({ allowPositionals: true, options: { commit: { type: 'string' }, bounds: { type: 'string' }, font: { type: 'string', multiple: true } } });

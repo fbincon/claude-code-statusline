@@ -30,8 +30,12 @@ export function powershellEnvironment(isolated: NodeJS.ProcessEnv, operatingSyst
 }
 export function powershellIsolation(isolated: NodeJS.ProcessEnv): string {
     const quote = (value: string) => "'" + value.replaceAll("'", "''") + "'";
-    return ['USERPROFILE', 'HOME', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA'].map(name =>
-        isolated[name] === undefined ? `Remove-Item Env:${name} -ErrorAction SilentlyContinue; ` : `$env:${name} = ${quote(isolated[name]!)}; `).join('');
+    // Keep the shell's OS cache/known-folder environment valid. Removing those
+    // with a cmdlet autoloads modules under an invalid profile before Node runs.
+    // Only product home paths change; CLAUDE_CONFIG_DIR and restricted PATH were
+    // isolated at process creation. Null assignment requires no module autoload.
+    return ['USERPROFILE', 'HOME'].map(name =>
+        `$env:${name} = ${isolated[name] === undefined ? '$null' : quote(isolated[name]!)}; `).join('');
 }
 export function shellReceipt(executable: string, operation: string, result: SpawnSyncReturns<string>, elapsed: number, timeout: number): ShellReceipt {
   const error = result.error as (Error & { code?: string }) | undefined;
