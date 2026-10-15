@@ -20,15 +20,15 @@
 | --- | --- |
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
-| 实现进度 | **TS-01～TS-03 DONE**；TS-03 依据现有[功能与 CI 证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)按修订标准关闭 |
-| 当前任务范围 | TS-04 IN_PROGRESS：双编辑器、安装与显式恢复；TS-05／TS-06 和 PERF-01 保持 NOT_STARTED |
+| 实现进度 | **TS-01～TS-04 DONE**；[TS-03 证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)与[TS-04 关闭记录](typescript-migration/ts-04/README.zh-CN.md) |
+| 当前任务范围 | TS-04 DONE：双编辑器、安装与显式恢复；TS-05／TS-06 和 PERF-01 保持 NOT_STARTED |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
 | 目标版本与工期 | 尚未指定；后续候选／交付任务确定版本及工期 |
-| 下一项实施工作 | [04-D 恢复验证](typescript-migration/ts-04/README.zh-CN.md)，随后实施安装／恢复 |
+| 下一项实施工作 | TS-05 工具链、CI 与发布候选；尚未开始 |
 
 维护者已批准 TS-04 实施，安装验收使用隔离环境，恢复采用显式命令，保留现用 Python 安装。[TS-04 记录](typescript-migration/ts-04/README.zh-CN.md)跟踪五批实现，本阶段不发布。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 
-TS-03 覆盖全部 161 个固定案例，保留原三项已批准的 CLI 文案差异；516 项清单已审计：471 项迁移、45 项完整测试交接 TS-04，另保留八项混合测试中的剩余断言。最新本地 TS 验证为 556/557 通过、1 项平台跳过；[PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) 最终 head 的 43 项 CI 和八份源码回执通过后合并为 `7eae7c4`。这些是既有实现证据，不是本次计划调整重新执行的测试。[关闭依据与证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)。
+TS-03 覆盖全部 161 个固定案例，保留原三项已批准的 CLI 文案差异；516 项清单已审计：471 项迁移、45 项完整测试交接 TS-04，另保留八项混合测试中的剩余断言。最新本地 TS 验证为 556/557 通过、1 项平台跳过；[PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) 最终 head 的 43 项 CI 和八份源码回执通过后合并为 `7eae7c4`。这些 TS-03 历史结果与 TS-04 的安装验收分别保留。[关闭依据与证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)。
 
 ## 基线与范围
 
@@ -107,7 +107,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | TS-01 | 固定基线与行为清单 | 明确开始实施任务 | DONE | Codex；`fbincon/ts-01-baseline`；测试提交 `ddc9dde`；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)；[清单与证据](typescript-migration/ts-01/README.zh-CN.md) |
 | TS-02 | 平台验证及 D01–D06 决策 | TS-01 | DONE | Codex；`fbincon/ts-02-linux-acceptance`；[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76)及[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77)；[整合与证据](typescript-migration/ts-02/LINUX-20261014.zh-CN.md) |
 | TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | DONE | Codex；实现 [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)，合并 `7eae7c4`；[修订标准下的关闭记录](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15) |
-| TS-04 | 双编辑器、安装与恢复 | TS-03 | IN_PROGRESS | Codex；`fbincon/ts-04-recovery`；[批次与证据](typescript-migration/ts-04/README.zh-CN.md) |
+| TS-04 | 双编辑器、安装与恢复 | TS-03 | DONE | Codex；验证 `f37e5f5`；[PR #91](https://github.com/fbincon/claude-code-statusline/pull/91)；[批次与证据](typescript-migration/ts-04/README.zh-CN.md) |
 | TS-05 | 完整工具链、CI 与发布候选 | TS-04 | NOT_STARTED | 未分配 |
 | TS-06 | 预览验收与正式交付 | TS-05 | NOT_STARTED | 未分配 |
 
@@ -147,7 +147,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 **退出标准：**适用功能案例结果一致，状态／并发边界有回归测试，已迁移核心在生产中不再转调 Python。改变模块名称或通过类型检查不代表行为等价。按 D06 修订，性能测量与预算达标不再属于本阶段退出条件。
 
-**TS-03 完成交接（2026-10-15）：**六批实现及两轮性能优化已通过 PR #78～#85 合并。依据 [D06 修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)和[既有非性能验收证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)，TS-03／03-F 标记为 DONE；机器契约及原三项 CLI 文案差异不变。D06 最新测量仍为 FAIL，后续优化归 PERF-01。TS-04 前置依赖已满足，但保留 NOT_STARTED；本次仅完成计划调整，不切换安装、不发布。
+**TS-03 完成交接（2026-10-15）：**六批实现及两轮性能优化已通过 PR #78～#85 合并。依据 [D06 修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)和[既有非性能验收证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)，TS-03／03-F 标记为 DONE；机器契约及原三项 CLI 文案差异不变。D06 最新测量仍为 FAIL，后续优化归 PERF-01。在该文档交接时，TS-04 前置依赖已满足并保留 NOT_STARTED；该次仅调整计划，不切换安装或发布。后续实施的当前状态见阶段表。
 
 ### TS-04 编辑器与安装
 
@@ -159,6 +159,8 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 - 检查全新安装、重复安装、Python 到 TS 升级、中断／恢复、卸载及兼容备份降级；覆盖旧可执行文件／PATH 冲突和显式禁用的接入。
 
 **退出标准：**已安装候选包在必要平台通过双编辑器与事务测试；文档中的恢复流程有效；用户配置和无关 Claude 设置保留。剩余平台限制明确记录。
+
+**TS-04 完成交接（2026-10-15）：**五批通过 PR #87～#91 交付。265 项台账完成，八目标安装包及 13 个固定宿主通过，43 项 CI 与 29 份源码绑定回执已核验；恢复保持显式，现用 Python 安装未切换。[关闭证据](typescript-migration/ts-04/README.zh-CN.md)。TS-05／TS-06 与 PERF-01 尚未开始，实体／桌面发布前补验及历史 D06 FAIL 保留。
 
 ### TS-05 工具链与发布候选
 
@@ -241,6 +243,7 @@ git diff --check
 
 | 日期 | 工作 | 结果与下一步 |
 | --- | --- | --- |
+| 2026-10-15 | TS-04 双编辑器、安装与恢复，[PR #91](https://github.com/fbincon/claude-code-statusline/pull/91) | 04-A～04-E 完成；265 项责任清零待办；43 项 CI、八目标安装验收及 13 宿主回执通过，全部 380 个源码哈希一致。文档收口与同步记录见 PR；不切换现用安装、不发布。 |
 | 2026-10-15 | 批准迁移优先、性能后移；`fbincon/ts-migration-plan-performance-deferral` | D06 数值策略及证据不变，性能达标不再阻塞 TS-03～TS-06。依据 PR #85 既有证据关闭 TS-03／03-F；TS-04～TS-06、独立 PERF-01 均为 NOT_STARTED。本次仅调整文档与状态。 |
 | 2026-10-14 | TS-02 闭合，[PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) | 验证 Windows／macOS 交接、修复 Windows 重启身份，本 Linux 实体机 s2idle／重启和人工 GNOME／popup 通过，整合 8／14／13 项 CI 作业通过。维护者批准外部缺项作为发布前必需补验。D01–D06 DECIDED，TS-02 DONE；下一步 TS-03，尚未开始。 |
 | 2026-10-12 | TS-02 探针与决策，[PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) | 固定 Node 24.21.0 和测量前 D06 策略；新增原生时钟／身份、混合锁、终端、安装和真实宿主 argv 探针。[证据及剩余门槛](typescript-migration/ts-02/README.zh-CN.md)。TS-02 VALIDATING；TS-03 尚未开始。 |

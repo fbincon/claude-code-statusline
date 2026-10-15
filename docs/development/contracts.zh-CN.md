@@ -65,7 +65,7 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 
 TS-03 将规范协议类型、目录与资源生成迁入 `packages/core` 和 `tools/generation/resources.ts`。运行 `npm run generate` 重新生成，以 `npm run generate:check` 检查漂移。迁移期保留 Python 声明和只读的 `tools/generate_ui_contracts.py --check` 作为对照证据；不维护另一份目录，不手改生成的 Mod 类型。Mod 使用 `$.process.run` 参数数组与 JSON stdin；PATH 不合适时通过 `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` 指定后端绝对路径，存在 `CLAUDE_CONFIG_DIR` 时显式传递。不会进行 shell 插值。
 
-开发用 TS 后端现通过 `node packages/cli/dist/src/entry.js runtime --config-dir PATH` 提供运行协议 2，并兼容 v1。整批观察在写入前完整校验，stdout 只输出一个 JSON 响应，非法观察或状态不可用时返回 2。1 MiB 输入上限、重复字段／非有限数值拒绝及偏好语义与 Python 边界一致；`hook` 保持静默成功。运行读取不持久化身份修复，任务／live schema 和已安装 Mod 绑定保持现状；安装及编辑器启动集成仍归 TS-04。
+开发用 TS 后端现通过 `node packages/cli/dist/src/entry.js runtime --config-dir PATH` 提供运行协议 2，并兼容 v1。整批观察在写入前完整校验，stdout 只输出一个 JSON 响应，非法观察或状态不可用时返回 2。1 MiB 输入上限、重复字段／非有限数值拒绝及偏好语义与 Python 边界一致；`hook` 保持静默成功。运行读取不持久化身份修复，任务／live schema 保持现状；TS-04 安装通过共享 executable／argv 契约绑定两个 Mod。
 
 桥接拒绝非法或截断响应、协议版本不匹配及非零退出，保留冲突等结构化后端错误。进程启动/拒绝错误使用 `backend_process`，超时错误使用 `backend_timeout`；宿主进程调用的超时为 30 秒。验证入口显示故障并提供预览重试；打开失败后重新打开会重读配置。
 
@@ -130,12 +130,23 @@ schema 8 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。Python 的 `
 
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 8 草稿时不经过旧类型选择投影。
 
-TS 配置服务沿用安装锁、显示 schema 8、UI protocol 11、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；UI 预览渲染在 03-E 接入前通过接口注入，已安装启动命令保持现状。
+TS 配置服务沿用安装锁、显示 schema 8、UI protocol 11、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
 
 ## 迁移期间的 TypeScript 后端绑定
 
 私有编译 ESM 后端已实现全部 UI v11 操作（含预览 span）、runtime v2／v1，以及 `config`、`render`、`render-subagents`、`hook`、`slash-hook`。schema 与 stdout／stderr 分工保持兼容，UI 预览和 dry-run 不重写活动配置。直接 slash 修改调用同一加锁配置服务，并按已保存的界面语言呈现最终 block 决策。
 
-`/statusline-configure` 将 `{configDir, backend: LaunchSpec, cwd}` 传入可注入的编辑器启动器。结果涵盖 updated、already-current、cancelled、interrupted、timed-out、error；识别出的命令始终阻止模型扩展，结果文字按 Unicode 字符数限长。开发后端默认返回既有的编辑器不可用提示；终端选择、真实编辑器执行和已安装 Mod 绑定切换归 TS-04。测试注入启动器并核验准确的请求和结果，不打开用户终端。
+`/statusline-configure` 将 `{configDir, backend: LaunchSpec, cwd}` 传入可注入的编辑器启动器。结果涵盖 updated、already-current、cancelled、interrupted、timed-out、error；识别出的命令始终阻止模型扩展，结果文字按 Unicode 字符数限长。TS-04 选择原生终端启动器，将私有结果租约与父进程身份、后端 argv、配置及 nonce 绑定；等待配置锁后在锁内再次检查保存许可。测试同时覆盖隔离的真实 PTY、tmux 弹窗、Windows 控制台与注入启动器。
 
 TS-03 配置帮助及参数诊断在显示前解析界面偏好，包括显式配置目录。`--` 之后的字面值不能触发帮助或重定向存储。机器 JSON 目录及输出语言选择独立于界面语言；人类文案例外在迁移对照器中逐字段精确登记。
+
+
+## 候选安装与恢复
+
+TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
+`recover [--config-dir PATH] [--dry-run]`。文件阶段使用版本 1 journal 和绑定哈希的
+原始快照；中断待恢复状态阻止新的配置写入，渲染／runtime 观察仍可使用。恢复先核验
+全部目标，再还原字节／缺失状态／模式，或保留已确认提交的阶段。官方写入结果通过
+实际库存、缓存哈希及 argv 绑定核对，不盲目重放记录的写入参数。持久刷新意图在
+卸载／重装间隙保留用户明确禁用。上述新增文件不改变显示／UI／runtime 协议 schema。
+参见[候选恢复契约](typescript-migration/ts-04/recovery.zh-CN.md)。

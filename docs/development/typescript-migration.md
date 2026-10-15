@@ -20,15 +20,15 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | --- | --- |
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
-| Implementation | **TS-01–TS-03 DONE**; TS-03 closes on existing [functional and CI evidence](typescript-migration/ts-03/README.md#closure-2026-10-15) under the revised criteria |
-| Current task scope | TS-04 IN_PROGRESS: both editors, installation and explicit recovery; TS-05/TS-06 and PERF-01 remain NOT_STARTED |
+| Implementation | **TS-01–TS-04 DONE**; [TS-03 evidence](typescript-migration/ts-03/README.md#closure-2026-10-15) and [TS-04 closure](typescript-migration/ts-04/README.md) |
+| Current task scope | TS-04 DONE: both editors, installation and explicit recovery; TS-05/TS-06 and PERF-01 remain NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; later candidate/delivery tasks determine versions and schedule |
-| Next implementation work | [04-D recovery validation](typescript-migration/ts-04/README.md), followed by installation/recovery |
+| Next implementation work | TS-05 tooling, CI and release candidate; not started |
 
 The maintainer approved TS-04 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-04 record](typescript-migration/ts-04/README.md) tracks five implementation batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
-TS-03 covers all 161 fixed cases with the same three approved CLI text differences and audits all 516 IDs: 471 ported, 45 complete tests assigned to TS-04, plus remaining assertions in eight mixed tests. Latest local TS validation passed 556/557 tests with one platform skip; the final [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) head passed all 43 CI jobs and eight source-bound receipts before merge `7eae7c4`. These are existing implementation results, not tests newly run by this planning change. [Closure and evidence](typescript-migration/ts-03/README.md#closure-2026-10-15).
+TS-03 covers all 161 fixed cases with the same three approved CLI text differences and audits all 516 IDs: 471 ported, 45 complete tests assigned to TS-04, plus remaining assertions in eight mixed tests. Latest local TS validation passed 556/557 tests with one platform skip; the final [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) head passed all 43 CI jobs and eight source-bound receipts before merge `7eae7c4`. These historical TS-03 results are retained separately from the installed TS-04 acceptance. [Closure and evidence](typescript-migration/ts-03/README.md#closure-2026-10-15).
 
 ## Baseline and scope
 
@@ -107,7 +107,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | DONE | Codex; `fbincon/ts-01-baseline`; tested `ddc9dde`; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75); [inventory and evidence](typescript-migration/ts-01/README.md) |
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | DONE | Codex; implementation [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85), merge `7eae7c4`; [closure under revised criteria](typescript-migration/ts-03/README.md#closure-2026-10-15) |
-| TS-04 | Both editors, installation and recovery | TS-03 | IN_PROGRESS | Codex; `fbincon/ts-04-recovery`; [batches and evidence](typescript-migration/ts-04/README.md) |
+| TS-04 | Both editors, installation and recovery | TS-03 | DONE | Codex; tested `f37e5f5`; [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91); [batches and evidence](typescript-migration/ts-04/README.md) |
 | TS-05 | Complete tooling, CI and release candidate | TS-04 | NOT_STARTED | Unassigned |
 | TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |
 
@@ -147,7 +147,7 @@ Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its
 
 **Exit:** applicable functional cases match, regression tests cover state/concurrency boundaries, and the migrated core has no production Python call-through. Changing module names or merely passing the type checker does not establish parity. Under the D06 amendment, performance measurement and passing budgets are no longer stage-exit conditions.
 
-**TS-03 completion handoff (2026-10-15):** the six implementation batches and two performance rounds merged through PRs #78–#85. Under the [D06 amendment](typescript-migration/ts-02/D06.md#applicability-amendment-2026-10-15) and [existing non-performance evidence](typescript-migration/ts-03/README.md#closure-2026-10-15), TS-03/03-F are DONE. Machine contracts and the three approved CLI text differences remain unchanged. The latest D06 result is still FAIL; follow-up optimization belongs to PERF-01. TS-04 prerequisites are satisfied but its state remains NOT_STARTED. This task adjusts documentation only, with no installation switch or release.
+**TS-03 completion handoff (2026-10-15):** the six implementation batches and two performance rounds merged through PRs #78–#85. Under the [D06 amendment](typescript-migration/ts-02/D06.md#applicability-amendment-2026-10-15) and [existing non-performance evidence](typescript-migration/ts-03/README.md#closure-2026-10-15), TS-03/03-F are DONE. Machine contracts and the three approved CLI text differences remain unchanged. The latest D06 result is still FAIL; follow-up optimization belongs to PERF-01. At that documentation handoff, TS-04 prerequisites were satisfied and its state remained NOT_STARTED. That change made no installation switch or release; the stage table tracks subsequent implementation.
 
 ### TS-04 Editors and installation
 
@@ -159,6 +159,8 @@ Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its
 - Test new installation, repeated installation, Python-to-TypeScript upgrade, interruption/recovery, uninstall and downgrade to a compatible backup. Cover old executable/PATH collisions and explicitly disabled integrations.
 
 **Exit:** installed candidate packages pass both-editor and transaction tests on required targets; documented recovery works; user configuration and unrelated Claude settings survive. Remaining platform limitations are explicit.
+
+**TS-04 completion handoff (2026-10-15):** five batches are delivered through PRs #87–#91. The 265-entry ledger, eight installed targets and 13 fixed hosts pass, with 43 CI checks and 29 source-bound receipts verified. Recovery stays explicit and the installed Python product is not switched. [Closure evidence](typescript-migration/ts-04/README.md). TS-05/TS-06 and PERF-01 remain NOT_STARTED; pre-release physical/desktop checks and historical D06 FAIL are retained.
 
 ### TS-05 Tooling and release candidate
 
@@ -241,6 +243,7 @@ Older entries retain their then-current stage states and gates. Current rules ar
 
 | Date | Work | Result and next action |
 | --- | --- | --- |
+| 2026-10-15 | TS-04 editors, installation and recovery, [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91) | 04-A–04-E complete; 265 responsibilities with no pending IDs; 43 CI checks, eight installed targets and 13 host receipts pass, with all 380 source hashes matching. Final documentation integration/synchronization is recorded in the PR; no installed cutover or release. |
 | 2026-10-15 | Approved migration-first performance deferral; `fbincon/ts-migration-plan-performance-deferral` | Numerical D06 policy and evidence unchanged; performance no longer blocks TS-03–TS-06. Close TS-03/03-F on existing PR #85 evidence. TS-04–TS-06 and independent PERF-01 remain NOT_STARTED. Documentation/status changes only. |
 | 2026-10-14 | TS-02 closure, [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) | Windows/macOS handoffs verified; Windows reboot identity corrected; real Linux s2idle/reboot and human GNOME/popup passed; integrated 8/14/13 CI jobs passed. Maintainer approved external gaps as mandatory before release. D01–D06 DECIDED, TS-02 DONE; next TS-03, not started. |
 | 2026-10-12 | TS-02 probes and decisions, [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) | Locked Node 24.21.0 and pre-measurement D06 policy; native clock/identity, mixed locks, terminal, installation and real-host argv probes added. [Evidence and open gates](typescript-migration/ts-02/README.md). TS-02 VALIDATING; TS-03 has not started. |

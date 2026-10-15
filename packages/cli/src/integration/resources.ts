@@ -24,6 +24,9 @@ export function wizardGroups(): string {
 }
 export function renderSkill(launch: LaunchSpec, external = false): Buffer {
     let template = fs.readFileSync(join(resourceRoot, external ? EXTERNAL : SKILL, 'SKILL.md'), 'utf8');
+    const token = /__CLAUDE_STATUSLINE_([A-Z_]+)__/gu;
+    if (template.replace(token, '').includes('__CLAUDE_STATUSLINE_') || external && template.includes('__CLAUDE_STATUSLINE_'))
+        throw new Error('Unresolved bundled skill placeholder');
     if (!external) {
         const bash = [launch.executable, ...launch.args].map(quoteArgument).join(' ');
         const powershell = '& ' + [launch.executable, ...launch.args].map(value => "'" + value.replaceAll("'", "''") + "'").join(' ');
@@ -32,11 +35,14 @@ export function renderSkill(launch: LaunchSpec, external = false): Buffer {
         if (process.platform === 'win32')
             rules.push(`PowerShell(${powershell} config *)`);
         const replacements = { ALLOWED_RULES: rules.map(rule => '  - ' + JSON.stringify(rule)).join('\n'), COMMAND: command, ITEM_GROUPS: wizardGroups(), LANGUAGES: LANGUAGES.map(code => `${code} (${LANGUAGE_NAMES[code]})`).join(', '), LANGUAGE_CHOICES: LANGUAGES.join('|') };
-        for (const [key, value] of Object.entries(replacements))
-            template = template.replaceAll('__CLAUDE_STATUSLINE_' + key + '__', value);
+        // Insert argv literally in one pass: replacement-string $&, $` and $'
+        // syntax, or a placeholder-looking path, must never expand as a template.
+        template = template.replace(token, (_match, key: string) => {
+            if (!Object.hasOwn(replacements, key))
+                throw new Error('Unresolved bundled skill placeholder');
+            return replacements[key as keyof typeof replacements];
+        });
     }
-    if (template.includes('__CLAUDE_STATUSLINE_'))
-        throw new Error('Unresolved bundled skill placeholder');
     return Buffer.from(template);
 }
 export interface Inventory {

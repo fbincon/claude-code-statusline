@@ -52,7 +52,9 @@ jobs:
       - name: Check immutable baseline and test migration inventory
         run: npm run migration:inventory -- --complete
       - name: Check complete TS-04 responsibility inventory
-        run: npm run migration:inventory:ts04
+        run: npm run migration:inventory:ts04 -- --complete
+      - name: Install and validate the private TS-04 candidate outside the checkout
+        run: npm run migration:installed -- "${{ runner.temp }}/ts04-installed.json"
       - name: Bind evidence to compiled sources and runtime
         run: npm run migration:receipt -- "${{ runner.temp }}/ts03-evidence.json"
       - uses: actions/upload-artifact@v4
@@ -61,3 +63,9 @@ jobs:
           name: ts03-${{ matrix.os }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/ts03-evidence.json
           if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ts04-installed-${{ matrix.os }}-${{ matrix.arch }}
+          path: ${{ runner.temp }}/ts04-installed.json
+          if-no-files-found: error

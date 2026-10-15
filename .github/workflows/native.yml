@@ -62,9 +62,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24.21.0"
           cache: npm
           cache-dependency-path: |
+            package-lock.json
             mods/statusline-native/package-lock.json
             mods/statusline-runtime/package-lock.json
       - uses: actions/setup-python@v5
@@ -77,6 +78,7 @@ jobs:
           npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
           npm ci --prefix mods/statusline-runtime --ignore-scripts --no-audit --no-fund
           python -m pip install .
+          npm ci --ignore-scripts --no-audit --no-fund
       # 2.1.296 loads/tests Mods but no longer emits the declaration file here.
       # Retain exact-build type coverage on every earlier fixed host.
       - name: Generate exact-build official declarations
@@ -111,11 +113,15 @@ jobs:
             npm run --prefix mods/statusline-runtime typecheck
           fi
           python tools/runtime_install_smoke.py --report "$RUNNER_TEMP/runtime-installation.json"
+      - name: Installed TypeScript candidate with the fixed official host
+        run: npm run migration:official:ts04 -- "$RUNNER_TEMP/ts04-official-installed.json"
       - name: Upload native installation evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-${{ matrix.platform }}-${{ matrix.claude }}
           path: |
             ${{ runner.temp }}/native-installation.json
             ${{ runner.temp }}/runtime-installation.json
+            ${{ runner.temp }}/ts04-official-installed.json
           if-no-files-found: error

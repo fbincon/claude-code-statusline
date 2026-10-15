@@ -4,12 +4,37 @@ import { fileURLToPath } from 'node:url';
 import { fresh, snapshot, assert, fs, join, NATIVE, doctor } from './install-support.js';
 import { pending, readJournal, refreshIntents, RecoveryRequired } from '@fbincon/statusline-cli/recovery/journal';
 import { digest } from '@fbincon/statusline-cli/integration/resources';
+import { owner, registered, cacheOwned } from '@fbincon/statusline-cli/integration/mod-ownership';
 import { recover } from '@fbincon/statusline-cli/recovery/service';
 import { ConfigurationService } from '@fbincon/statusline-cli/config/service';
 import { setLanguage } from '@fbincon/statusline-cli/config/preferences';
 import { UnconfirmedOperation } from '@fbincon/statusline-platform/plugin-host';
 import { main } from '@fbincon/statusline-cli/main';
 const helper = fileURLToPath(new URL('./recovery-child.js', import.meta.url));
+test('canonical cache identity never conceals a link inside the configuration tree', t => {
+    const f = fresh(t); f.install({ native: true, nativeTiming: false });
+    const row = f.host.plugins[0]!, path = String(row.installPath), moved = path + '-original';
+    fs.renameSync(path, moved); fs.symlinkSync(moved, path, process.platform === 'win32' ? 'junction' : 'dir');
+    assert.throws(() => cacheOwned(f.root, NATIVE, row, owner(f.root, NATIVE, f.io)!, f.io), /symbolic link|reparse/u);
+});
+test('concurrent explicit recoveries serialize and the second reports already recovered', async t => {
+    const f = fresh(t); initialize(f); crash(f.root, 'applied:0');
+    const run = () => new Promise<void>((resolve, reject) => {
+        const child = spawn(process.execPath, [...f.launch.args, 'recover', '--config-dir', f.root], { env: { ...process.env, PATH: '' }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+        let error = ''; child.stderr.on('data', chunk => { error += chunk; });
+        const timer = setTimeout(() => { child.kill('SIGKILL'); reject(new Error('Recovery wait exceeded bound')); }, 10000);
+        child.on('error', failure => { clearTimeout(timer); reject(failure); }); child.on('exit', code => { clearTimeout(timer); code === 0 ? resolve() : reject(new Error(error)); });
+    });
+    await Promise.all([run(), run()]); assert.equal(pending(f.root).length, 0); assert.equal(f.json('settings.json').original, 'unchanged');
+});
+test('official registration and recovery compare canonical directory identities', t => {
+    const f = fresh(t); f.install({ native: true, nativeTiming: false });
+    const alias = join(f.temporary, 'market-alias'); fs.symlinkSync(join(f.root, NATIVE.name), alias, process.platform === 'win32' ? 'junction' : 'dir');
+    assert.equal(registered(f.root, NATIVE, [{ name: NATIVE.marketplace, source: 'directory', path: alias }], f.host.listing()[1], owner(f.root, NATIVE, f.io))[0], true);
+    const parent = join(f.temporary, 'parent-alias'); fs.symlinkSync(f.temporary, parent, process.platform === 'win32' ? 'junction' : 'dir');
+    const aliasRoot = join(parent, f.root.slice(f.temporary.length + 1)); const before = snapshot(f.root);
+    crash(aliasRoot, 'applied:0'); recover(f.context); assert.deepEqual(snapshot(f.root), before);
+});
 test('an explicitly selected configuration-directory link resolves before ownership checks', async t => {
     const f = fresh(t); f.put('settings.json', { env: { KEEP: 'yes' } });
     const alias = join(f.temporary, 'selected-config'); fs.symlinkSync(f.root, alias, process.platform === 'win32' ? 'junction' : 'dir');

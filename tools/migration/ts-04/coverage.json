@@ -283,33 +283,41 @@
       "id": "tests.integration.test_compatibility.CompatibilityTests.test_forwarded_functions_and_types_share_identity",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
-      "reason": null
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
+      "reason": "D05 retires Python imports, python -m and script/.exe compatibility entry points. The named replacement verifies the independently installed TypeScript package: shared binding identity/native loading, frozen render bytes, non-TTY exit behavior, or relocation and owned rebinding, respectively."
     },
     {
       "id": "tests.integration.test_compatibility.CompatibilityTests.test_legacy_render_modules_match_cli_output",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
-      "reason": null
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
+      "reason": "D05 retires Python imports, python -m and script/.exe compatibility entry points. The named replacement verifies the independently installed TypeScript package: shared binding identity/native loading, frozen render bytes, non-TTY exit behavior, or relocation and owned rebinding, respectively."
     },
     {
       "id": "tests.integration.test_compatibility.CompatibilityTests.test_legacy_terminal_entry_point_preserves_error_exit_code",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
-      "reason": null
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
+      "reason": "D05 retires Python imports, python -m and script/.exe compatibility entry points. The named replacement verifies the independently installed TypeScript package: shared binding identity/native loading, frozen render bytes, non-TTY exit behavior, or relocation and owned rebinding, respectively."
     },
     {
       "id": "tests.integration.test_compatibility.CompatibilityTests.test_terminal_script_uses_package_root_after_relocation",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
-      "reason": null
+      "status": "retired",
+      "tests": [
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
+      "reason": "D05 retires Python imports, python -m and script/.exe compatibility entry points. The named replacement verifies the independently installed TypeScript package: shared binding identity/native loading, frozen render bytes, non-TTY exit behavior, or relocation and owned rebinding, respectively."
     },
     {
       "id": "tests.integration.test_installer.DisplaySchemaDoctorTests.test_all_supported_legacy_schemas_report_current_migration_target",
@@ -1496,8 +1504,10 @@
       "id": "tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installed_main_and_subagent_commands_match_in_both_shells",
       "origin": "TS-01",
       "kind": "complete",
-      "status": "pending",
-      "tests": [],
+      "status": "ported",
+      "tests": [
+        "tools/migration/ts-04/test/installed.test.ts"
+      ],
       "reason": null
     },
     {

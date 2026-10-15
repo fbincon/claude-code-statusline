@@ -8,7 +8,7 @@ The implementation started at `9b121e0` and completed through separately checked
 PRs synchronized to Gitee. This closure creates no version, release, installed
 backend switch or external editor.
 
-Both performance rounds are complete: [round 1 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84), [round 2 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85). The latest D06 result remains **FAIL: 104 pass / 60 fail / 28 inconclusive**, with all outputs/counts matching. The [D06 amendment](../ts-02/D06.md#applicability-amendment-2026-10-15) transfers further performance work to independent [PERF-01](../../performance/perf-01.md) after TS-06. Original budgets and evidence are unchanged. TS-04's prerequisite is now satisfied; TS-04–TS-06 and PERF-01 remain NOT_STARTED.
+Both performance rounds are complete: [round 1 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84), [round 2 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85). The latest D06 result remains **FAIL: 104 pass / 60 fail / 28 inconclusive**, with all outputs/counts matching. The [D06 amendment](../ts-02/D06.md#applicability-amendment-2026-10-15) transfers further performance work to independent [PERF-01](../../performance/perf-01.md) after TS-06. Original budgets and evidence are unchanged. That handoff satisfied TS-04's prerequisite; TS-04–TS-06 and PERF-01 were NOT_STARTED at the time. See the [current TS-04 record](../ts-04/README.md) for subsequent implementation.
 
 <a id="closure-2026-10-15"></a>
 

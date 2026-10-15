@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import { join, relative, isAbsolute, dirname, resolve } from 'node:path';
 import { isLinkOrReparse } from '@fbincon/statusline-platform/files';
+import { resolvedPath } from '@fbincon/statusline-platform/commands';
 import { decode } from '@fbincon/statusline-core/json';
 import { object } from '@fbincon/statusline-core/config/validation';
 import { isSchema } from '@fbincon/statusline-core/config/display';
@@ -67,7 +68,7 @@ export function registered(directory: string, spec: ModSpec, markets: Record<str
     Record<string, unknown> | null
 ] {
     const matches = markets.filter(row => row.name === spec.marketplace), rows = plugins.filter(row => row.id === spec.plugin);
-    if (matches.length && (matches.length !== 1 || matches[0]!.source !== 'directory' || typeof matches[0]!.path !== 'string' || resolve(matches[0]!.path) !== join(directory, spec.name) || !marker))
+    if (matches.length && (matches.length !== 1 || matches[0]!.source !== 'directory' || typeof matches[0]!.path !== 'string' || resolvedPath(matches[0]!.path) !== resolvedPath(join(directory, spec.name)) || !marker))
         throw new Error('Foreign marketplace: ' + spec.marketplace);
     if (rows.length && (rows.length !== 1 || rows[0]!.scope !== 'user' || !marker))
         throw new Error('Foreign or ambiguous plugin: ' + spec.plugin);
@@ -76,10 +77,18 @@ export function registered(directory: string, spec: ModSpec, markets: Record<str
 export function cacheOwned(directory: string, spec: ModSpec, row: Record<string, unknown>, marker: Marker, io: Storage, current = false): string {
     if (typeof row.installPath !== 'string')
         throw new Error('Missing plugin installPath');
-    const path = resolve(row.installPath), root = join(directory, 'plugins/cache', spec.marketplace, spec.name), rel = relative(root, path);
+    // Canonicalize the explicitly selected configuration prefix only. Resolving
+    // the entire cache path first would conceal links inside owned artifacts.
+    const configRoot = resolvedPath(directory);
+    let prefix = resolve(row.installPath);
+    while (resolvedPath(prefix) !== configRoot && prefix !== dirname(prefix))
+        prefix = dirname(prefix);
+    if (resolvedPath(prefix) !== configRoot)
+        throw new Error('Foreign Mod cache location');
+    const path = join(configRoot, relative(prefix, resolve(row.installPath))), root = join(configRoot, 'plugins/cache', spec.marketplace, spec.name), rel = relative(root, path);
     if (!rel || rel.startsWith('..') || isAbsolute(rel))
         throw new Error('Foreign Mod cache location');
-    safeTarget(directory, path);
+    safeTarget(configRoot, path);
     for (const snapshot of [{ mod_version: marker.mod_version, files: marker.files }, ...(current ? [] : marker.cache_inventories)]) {
         if (row.version !== snapshot.mod_version)
             continue;

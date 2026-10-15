@@ -8,12 +8,22 @@ import { exportFile, importFile } from '@fbincon/statusline-cli/config/transfer'
 import { wizardGroups, renderSkill } from '@fbincon/statusline-cli/integration/resources';
 import { schemaDiagnostic } from '@fbincon/statusline-cli/integration/doctor';
 import { parseAdministration } from '@fbincon/statusline-cli/integration/arguments';
-import { claudeLaunch, commandFor } from '@fbincon/statusline-platform/commands';
+import { claudeLaunch, commandFor, quoteArgument } from '@fbincon/statusline-platform/commands';
 import { CONFIG_FILENAME, SCHEMA_VERSION, defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { LANGUAGES, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/registry';
 import { renderMessage } from '@fbincon/statusline-core/i18n/messages';
 import { conflicts } from '@fbincon/statusline-core/config/catalog';
 const simple = { native: false, nativeTiming: false, liveMetrics: false };
+test('skill templates preserve literal replacement syntax and placeholder-looking launch paths', () => {
+    const launch = { executable: '/tmp/node $& $` $$', args: ["/tmp/entry $' __CLAUDE_STATUSLINE_LANGUAGES__.js"] };
+    const bash = [launch.executable, ...launch.args].map(quoteArgument).join(' ');
+    const powershell = '& ' + [launch.executable, ...launch.args].map(value => "'" + value.replaceAll("'", "''") + "'").join(' ');
+    const rendered = renderSkill(launch).toString();
+    const rules = rendered.split('\n---\n')[0]!.split('\n').filter(line => line.startsWith('  - "')).map(line => JSON.parse(line.slice(4)));
+    assert.ok(rules.includes(`Bash(${bash} config *)`));
+    if (process.platform === 'win32') assert.ok(rules.includes(`PowerShell(${powershell} config *)`));
+    assert.ok(rendered.includes('Use only `' + (process.platform === 'win32' ? powershell : bash) + ' config ...`.'));
+});
 function service(f: ReturnType<typeof fresh>) { return new ConfigurationService({ configDir: f.root, launch: f.launch, hostVersion: () => f.context.version }, f.io); }
 function legacy(version: number) {
     const d = defaultDisplay(), { instances: _instances, ...subagents } = d.subagents;
@@ -66,6 +76,13 @@ test('tests.integration.test_language_cli.LanguageCliTests.test_help_and_parser_
     if (language !== 'en')
         assert.equal(error.includes('not allowed with argument'), false);
 } });
-test('tests.integration.test_native_installer.NativeInstallerTests.test_windows_batch_host_is_invoked_through_node_without_cmd_interpolation', t => { const f = fresh(t), shim = f.put('npm/node_modules/.bin/claude.cmd', Buffer.from('shim')), script = f.put('npm/node_modules/@anthropic-ai/claude-code/cli.js', Buffer.from('script')); f.put('npm/node_modules/@anthropic-ai/claude-code/package.json', { bin: { claude: 'cli.js' } }); const launch = claudeLaunch('claude', true, name => name === 'claude' ? shim : process.execPath); assert.deepEqual(launch, { executable: fs.realpathSync.native(process.execPath), args: [fs.realpathSync.native(script)] }); });
+test('tests.integration.test_native_installer.NativeInstallerTests.test_windows_batch_host_is_invoked_through_node_without_cmd_interpolation', t => {
+    const f = fresh(t), shim = f.put('npm/node_modules/.bin/claude.cmd', Buffer.from('shim')), script = f.put('npm/node_modules/@anthropic-ai/claude-code/cli.js', Buffer.from('script'));
+    f.put('npm/node_modules/@anthropic-ai/claude-code/package.json', { bin: { claude: 'cli.js' } });
+    const expected = { executable: fs.realpathSync.native(process.execPath), args: [fs.realpathSync.native(script)] };
+    assert.deepEqual(claudeLaunch('claude', true, name => name === 'claude' ? shim : process.execPath), expected);
+    const posixShim = f.put('npm/node_modules/.bin/claude', Buffer.from('#!/bin/sh\n'));
+    assert.deepEqual(claudeLaunch('claude', true, name => name === 'claude' ? posixShim : name === posixShim + '.cmd' ? shim : process.execPath), expected);
+});
 test('tests.integration.test_native_installer.NativeInstallerTests.test_windows_npm_native_binary_is_resolved_from_package_bin_metadata', t => { const f = fresh(t), shim = f.put('npm/node_modules/.bin/claude.cmd', Buffer.from('shim')), binary = f.put('npm/node_modules/@anthropic-ai/claude-code/bin/claude.exe', Buffer.from('MZ')); f.put('npm/node_modules/@anthropic-ai/claude-code/package.json', { bin: { claude: 'bin/claude.exe' } }); assert.deepEqual(claudeLaunch('claude', true, () => shim), { executable: fs.realpathSync.native(binary), args: [] }); f.put('npm/node_modules/@anthropic-ai/claude-code/package.json', { bin: { claude: '../outside.cmd' } }); assert.throws(() => claudeLaunch('claude', true, () => shim)); });
 test('tests.integration.test_native_installer.NativeInstallerTests.test_windows_stripped_console_name_resolves_its_adjacent_executable', t => { const f = fresh(t); f.install(simple); const argv = f.json('statusline_runtime/installation.json').launch; assert.equal(argv.executable, process.execPath); assert.deepEqual(argv.args, f.launch.args); assert.equal(f.json('settings.json').statusLine.command.includes('claude-statusline.exe'), false); });

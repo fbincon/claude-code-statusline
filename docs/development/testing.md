@@ -373,3 +373,22 @@ Rendering coverage includes every metric in five languages, 40/80/120 columns an
 TS-03 integrated tests connect each original Mod protocol library to real Node backend processes with Python absent from PATH. The isolated real-host probe uses temporary bindings, a synthetic key and unreachable loopback API. `npm run migration:inventory -- --complete` requires all 516 IDs to have a replacement or named TS-04 responsibility. The fixed D06 backend harness is `npm run migration:benchmark -- NEW_DIRECTORY`; it requires a clean committed source tree. `--validate` is only a functional fixture check. See the [TS-04 handoff](typescript-migration/ts-03/TS04-HANDOFF.md).
 
 The original formal [TS-03 D06 report](typescript-migration/ts-03/PERFORMANCE.md) failed: 91 pass, 69 fail and 32 inconclusive metrics, despite matching outputs and collection counts for every sample. Under the gates in effect then, TS-03 remained IN_PROGRESS. CLI help validation is additionally compared against the frozen Python parser for command paths, missing values, choices, mutual exclusion, exit codes and output channels.
+
+
+## TS-04 installed acceptance
+
+Use the [candidate procedure](typescript-migration/ts-04/candidate.md) for the
+private offline npm archive, eight native targets and 13 fixed official-host
+jobs. `npm run migration:inventory:ts04 -- --complete` rejects pending IDs across
+all 265 responsibilities; the 516-entry TS-03 ledger remains historical and its
+45 complete tests/eight partial assertions are accounted for in TS-04.
+`npm run migration:installed` separately gates installed entry points, both
+editors, crash recovery and Python upgrade/compatible-backup replay. Ordinary
+`npm test` does not substitute for this installed gate. Receipt source hashes,
+archive digests and required CI conclusions must match the reviewed head.
+
+The local `npm run migration:host:ts04` probe verifies actual installed native
+editor saving and runtime calls in the real host, using synthetic credentials
+and no model request. It is separate from physical/desktop/visual acceptance
+already deferred until before release. Source and process-interruption tests do
+not claim hardware power-loss validation. PERF-01 remains the performance follow-up.
