@@ -15,6 +15,13 @@ tsconfig*.json text eol=lf
 .github/workflows/native.yml text eol=lf
 tools/typescript/*.mjs text eol=lf
 tools/generation/** text eol=lf
+tools/testing/** text eol=lf
+tools/checks/** text eol=lf
+tools/release/** text eol=lf
+tools/acceptance/** text eol=lf
+tools/build/** text eol=lf
+tools/benchmarks/** text eol=lf
+tests/fixtures/migration/ts-05/** text eol=lf
 # Shared Mod code and retained generator checks are part of TS-03 source receipts.
 mods/**/*.ts text eol=lf
 mods/**/.claude-plugin/plugin.json text eol=lf

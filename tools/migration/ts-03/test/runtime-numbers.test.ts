@@ -1,11 +1,12 @@
+import { oracle, referenceDirectory as exportReference } from '@fbincon/statusline-test-support/oracle';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+
 import { decode, encode, canonical, LosslessNumber } from '@fbincon/statusline-core/json';
 import { divideIntegers } from '@fbincon/statusline-core/numbers';
 import { sumNumbers } from '@fbincon/statusline-core/runtime/live/requests';
 import { float, timestamp } from '@fbincon/statusline-core/runtime/transcript';
-import { python } from '../common.js';
+
 import { aggregateVisible, usageInt } from '@fbincon/statusline-core/runtime/usage';
 test('cache totals flush safe integer sums before overflow and retain exact numeric kinds', () => {
     const values: unknown[] = [0, -0, 1, 9007199254740991, 2, 9007199254740990, 3, 10n ** 40n, -1, -2n, true, '12', new LosslessNumber('1.0'), new LosslessNumber('9007199254740993'), Infinity, NaN, 1.5];
@@ -29,7 +30,7 @@ test('runtime divisions and compensated cost sums retain Python binary64 results
     for (let i = 0; i < 64; i++)
         sums.push(Array.from({ length: 64 }, () => new LosslessNumber((Number(random() % 100000n) / 1000).toExponential())));
     const source = 'import json,sys\nx=json.load(sys.stdin)\nout=[]\nfor a,b in x["divisions"]:\n try:out.append(a/b)\n except OverflowError:out.append("overflow")\nprint(json.dumps({"divisions":out,"sums":[sum(v) for v in x["sums"]]}))';
-    const expected = decode(execFileSync(python, ['-c', source], { input: encode({ divisions, sums }), encoding: 'utf8' }));
+    const expected = decode(oracle(['-c', source], { input: encode({ divisions, sums }), encoding: 'utf8' }));
     const actual = { divisions: divisions.map(([n, d]) => { try {
             return float(divideIntegers(n!, d!));
         }
@@ -51,7 +52,7 @@ test('transcript ISO timestamps match Python calendar, week, precision and malfo
         for (const zone of ['', 'Z', '+04:61', '+00:00:00.123', '+01:00:00.1234567', '-02:00', '+24:00'])
             values.push('2026-10-14T' + clock + zone);
     const source = 'import json,sys,datetime\nr=[]\nfor value in json.load(sys.stdin):\n try:\n  s=value.strip();s=s[:-1]+"+00:00" if s.endswith("Z") else s\n  r.append(datetime.datetime.fromisoformat(s).timestamp())\n except Exception:r.append(None)\nprint(json.dumps(r))';
-    const expected = decode(execFileSync(python, ['-c', source], { input: encode(values), encoding: 'utf8', env: { ...process.env, TZ: 'UTC' } })) as unknown[];
+    const expected = decode(oracle(['-c', source], { input: encode(values), encoding: 'utf8', env: { ...process.env, TZ: 'UTC' } })) as unknown[];
     for (const [i, value] of values.entries()) {
         const actual = timestamp(value);
         assert.equal(canonical(actual === null ? null : float(actual)), canonical(expected[i]), String(value));

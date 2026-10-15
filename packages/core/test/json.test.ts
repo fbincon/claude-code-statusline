@@ -1,6 +1,7 @@
+import { oracle, referenceDirectory as exportReference } from '@fbincon/statusline-test-support/oracle';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+
 import { decode, encode, integer, safeInteger, canonical, pythonFloat, finiteNumber } from '../src/json.js';
 
 test('numeric lexemes retain integer kind and values above JavaScript precision', () => {
@@ -32,7 +33,7 @@ test('untrusted objects cannot impersonate numbers or silently change serialized
 
 test('canonical serialization retains float kind, negative zero, scalar sorting and UTF-8', () => {
   const raw = '{"𐀀":9007199254740993,"\ue000":null,"n":-0.0,"f":1.0,"e":1e-7,"label":"中文 é 👩🏽‍💻"}';
-  const expected = execFileSync(process.env.TS03_PYTHON || 'python3', ['-c',
+  const expected = oracle(['-c',
     'import json,sys; print(json.dumps(json.load(sys.stdin),ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False))'], { input: raw, encoding: 'utf8', env: { ...process.env, PYTHONUTF8: '1' } }).trim();
   assert.equal(canonical(decode(raw)), expected);
   assert.notEqual(canonical(decode('1')), canonical(decode('1.0')));
@@ -51,7 +52,7 @@ test('Python float formatting agrees on deterministic IEEE-754 samples and bound
     const value = bytes.readDoubleBE(); if (Number.isFinite(value)) values.push(value);
   }
   const hex = values.map(value => { const bytes = Buffer.alloc(8); bytes.writeDoubleBE(value); return bytes.toString('hex'); });
-  const expected: string[] = JSON.parse(execFileSync(process.env.TS03_PYTHON || 'python3', ['-c',
+  const expected: string[] = JSON.parse(oracle(['-c',
     'import json,sys,struct; print(json.dumps([repr(struct.unpack(">d",bytes.fromhex(h))[0]) for h in json.load(sys.stdin)]))'], { input: JSON.stringify(hex), encoding: 'utf8' }));
   values.forEach((value, i) => assert.equal(pythonFloat(value), expected[i], hex[i]));
 });

@@ -5,11 +5,11 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { installCandidate, PACKAGE } from '../package.js';
-import { repoRoot, sourceHashes, exportReference, python as referencePython } from '../../ts-03/common.js';
+import { repoRoot, sourceHashes } from '../../ts-03/common.js';
 import { openPty } from './pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import { Capture } from '../capture.js';
-import { POWERSHELL_FLAGS, runShell, type ShellReceipt } from '../shell.js';
+import { POWERSHELL_FLAGS, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 let installed: ReturnType<typeof installCandidate>;
 const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false };
 let driver: string, report: Record<string, unknown> = {};
@@ -126,8 +126,9 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
             fs.writeFileSync(input, payload);
             const checkpoint = join(installed.temporary, `powershell-${operation}.phases`);
             const mark = (phase: string) => `[IO.File]::AppendAllText(${quote(checkpoint)}, ${quote(phase + '\n')}); `;
-            const command = mark('started') + `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); ` + mark('encoding') + `$source = Get-Content -Raw -Encoding UTF8 ${quote(input)}; ` + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
-            const executed = runShell(ps, [...POWERSHELL_FLAGS, command], operation, { ...installed.env, CLAUDE_CONFIG_DIR: config });
+            const command = mark('started') + powershellIsolation(installed.env) + `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); ` + mark('encoding') + `$source = Get-Content -Raw -Encoding UTF8 ${quote(input)}; ` + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
+            const executed = runShell(ps, [...POWERSHELL_FLAGS, command], operation, powershellEnvironment({ ...installed.env, CLAUDE_CONFIG_DIR: config }));
+            report.powershell_profile = 'OS profile for shell initialization with -NoProfile; isolated product paths restored before Node';
             shellReceipts.push(executed.receipt);
             const result = executed.result;
             report.powershell_phases = { ...(report.powershell_phases as object ?? {}), [operation]: fs.existsSync(checkpoint) ? fs.readFileSync(checkpoint, 'utf8').trim().split('\n') : [] };
@@ -274,14 +275,11 @@ test('installed candidate upgrades owned Python entry bytes while preserving opt
     // none of the candidate operations above had it on PATH.
     fs.copyFileSync(settingsBackup, join(config, 'settings.json'));
     fs.copyFileSync(displayBackup, join(config, 'claude-statusline.json'));
-    const reference = exportReference();
-    try {
-        const restored = spawnSync(referencePython, ['-B', '-m', 'claude_statusline', 'render'], { cwd: installed.temporary, env: { ...process.env, PYTHONPATH: join(reference, 'src'), PYTHONUTF8: '1', CLAUDE_CONFIG_DIR: config, COLUMNS: String(fixture.input.width + 2) }, input: JSON.stringify(fixture.input.payload), encoding: 'utf8', timeout: 20000 });
-        assert.equal(restored.status, 0, restored.stderr);
-        const expected = JSON.parse(fs.readFileSync(join(repoRoot, 'tests/fixtures/migration/ts-01/expected.json'), 'utf8'))[fixture.id].value;
-        assert.equal(restored.stdout, expected.join('\n') + '\n');
-        assert.equal(fs.readFileSync(join(config, 'settings.json'), 'utf8'), raw);
-        report.compatible_backup_python_replay = true;
-    } finally { fs.rmSync(reference, { recursive: true, force: true }); }
+    const expected = JSON.parse(fs.readFileSync(join(repoRoot, 'tests/fixtures/migration/ts-01/expected.json'), 'utf8'))[fixture.id].value.join('\n') + '\n';
+    assert.equal(run(['render'], config, JSON.stringify(fixture.input.payload), { COLUMNS: String(fixture.input.width + 2) }), expected);
+    assert.equal(fs.readFileSync(join(config, 'settings.json'), 'utf8'), raw);
+    assert.equal(fs.readFileSync(join(config, 'claude-statusline.json'), 'utf8'), display);
+    report.compatible_backup_golden_replay = true;
+    report.compatible_backup = { settings: raw, display, payload: fixture.input.payload, columns: fixture.input.width + 2, expected };
     checks.python_upgrade = true;
 });

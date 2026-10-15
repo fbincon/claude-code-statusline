@@ -1,10 +1,11 @@
+import { oracle, referenceDirectory as exportReference } from '@fbincon/statusline-test-support/oracle';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { tmpdir } from 'node:os';
-import { execFileSync } from 'node:child_process';
-import { exportReference, python, repoRoot } from '../common.js';
+
+import { repoRoot } from '../common.js';
 import { canonical, decode, encode } from '@fbincon/statusline-core/json';
 import { object, int, type Data } from '@fbincon/statusline-core/runtime/values';
 import { runtimeContext } from '@fbincon/statusline-cli/runtime/context';
@@ -60,7 +61,7 @@ test('runtime action traces match frozen Python task, live and duration state in
         read(50000);
     }
     const pyRoot = join(root, 'python'), tsRoot = join(root, 'typescript');
-    const expected = decode(execFileSync(python, ['-B', join(repoRoot, 'tools/migration/ts-03/test/runtime-oracle.py')], { input: encode(actions), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
+    const expected = decode(oracle(['-B', join(repoRoot, 'tools/migration/ts-03/test/runtime-oracle.py')], { input: encode(actions), encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
         env: { ...process.env, PYTHONPATH: join(reference, 'src'), PYTHONDONTWRITEBYTECODE: '1', PYTHONHASHSEED: '0', CLAUDE_CONFIG_DIR: pyRoot, CLAUDE_STATUSLINE_RUNTIME_DIR: join(pyRoot, 'runtime') } })) as Data;
     fs.mkdirSync(tsRoot);
     fs.writeFileSync(join(tsRoot, 'claude-statusline-runtime.json'), '{"schema_version":2,"native_timing":true,"live_metrics":true}');

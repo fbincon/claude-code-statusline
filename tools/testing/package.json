@@ -1,0 +1,7 @@
+{
+  "name": "@fbincon/statusline-test-support",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { "./oracle": { "types": "./dist/oracle.d.ts", "import": "./dist/oracle.js" } }
+}

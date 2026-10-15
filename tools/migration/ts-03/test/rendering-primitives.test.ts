@@ -1,9 +1,10 @@
+import { oracle, referenceDirectory as exportReference } from '@fbincon/statusline-test-support/oracle';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { exportReference, python } from '../common.js';
+
 import { encode, LosslessNumber, pythonFloat } from '@fbincon/statusline-core/json';
 import * as layout from '@fbincon/statusline-core/rendering/layout';
 import { general } from '@fbincon/statusline-core/rendering/numeric-format';
@@ -17,7 +18,7 @@ test('ANSI state and Unicode layout match the frozen Python pipeline at five wid
         '\x1b[1;38:2::20:30:40mCJK 中文\x1b[49m tail', '\x1b[38;5;123;48;2;1;2;3mwide text\x1b[m', '/some/中文/path/file', 'C:\\some\\中文\\file', '\x1b[48;9;31munsupported', '\r\n\t\0a', 'क्‍ष/தமிழ்'];
     const cases = inputs.flatMap(text => [2, 4, 8, 12, 20].map(width => ({ text, width })));
     const source = 'import json,sys\nfrom claude_statusline.rendering import layout as l\nr=[]\nfor c in json.load(sys.stdin):\n s,w=c["text"],c["width"]\n r.append({"units":[[u.text,u.width,u.style] for u in l._styled_units(s)],"truncate":l.truncate_styled(s,w),"split":l._split_ansi_text(s,w,True),"reset":l._ensure_reset(s)})\nprint(json.dumps(r))';
-    const expected = JSON.parse(execFileSync(python, ['-B', '-c', source], { input: JSON.stringify(cases), encoding: 'utf8', env: { ...process.env, PYTHONUTF8: '1', PYTHONPATH: join(reference, 'src'), PYTHONDONTWRITEBYTECODE: '1' } }));
+    const expected = JSON.parse(oracle(['-B', '-c', source], { input: JSON.stringify(cases), encoding: 'utf8', env: { ...process.env, PYTHONUTF8: '1', PYTHONPATH: join(reference, 'src'), PYTHONDONTWRITEBYTECODE: '1' } }));
     const actual = cases.map(({ text, width }) => ({ units: layout.styledUnits(text).map(u => [u.text, u.width, u.style]), truncate: layout.truncateStyled(text, width), split: layout.splitAnsiText(text, width, true), reset: layout.ensureReset(text) }));
     assert.deepEqual(actual, expected);
 });
@@ -33,13 +34,13 @@ test('general display formats round 2,092 binary64/precision vectors like Python
     }
     const input = values.flatMap(value => [1, 3, 6, 17].map(precision => [new LosslessNumber(pythonFloat(value)), precision]));
     const source = 'import json,sys\nprint(json.dumps([format(v,"."+str(p)+"g") for v,p in json.load(sys.stdin)]))';
-    const expected = JSON.parse(execFileSync(python, ['-c', source], { input: encode(input), encoding: 'utf8' }));
+    const expected = JSON.parse(oracle(['-c', source], { input: encode(input), encoding: 'utf8' }));
     assert.equal(input.length, 2092);
     assert.deepEqual(values.flatMap(value => [1, 3, 6, 17].map(precision => general(value, precision))), expected);
 });
 test('Unicode case folding and initial capitals preserve Python 3.14 UCD 16 for every code point', () => {
     const source = 'import json,unicodedata as u\nassert u.unidata_version == "16.0.0"\nprint(json.dumps({str(n):[chr(n).casefold(),chr(n).upper()] for n in range(0x110000) if chr(n).casefold()!=chr(n) or chr(n).upper()!=chr(n)}))';
-    const expected = JSON.parse(execFileSync(python, ['-c', source], { encoding: 'utf8' }));
+    const expected = JSON.parse(oracle(['-c', source], { encoding: 'utf8' }));
     for (let n = 0; n < 0x110000; n++) {
         const c = String.fromCodePoint(n), row = expected[n] ?? [c, c];
         assert.equal(caseFold(c), row[0], n.toString(16));
@@ -54,7 +55,7 @@ test('legacy numeric constructors accept Python decimal syntax without JavaScrip
             values.push(c);
     }
     const source = 'import json,sys\ndef read(f,v):\n try: return repr(f(v))\n except (ValueError,TypeError,OverflowError): return None\nprint(json.dumps([[read(int,v),read(float,v)] for v in json.load(sys.stdin)]))';
-    const expected = JSON.parse(execFileSync(python, ['-c', source], { input: pythonJson(values), encoding: 'utf8' }));
+    const expected = JSON.parse(oracle(['-c', source], { input: pythonJson(values), encoding: 'utf8' }));
     const actual = values.map(value => { const n = coercedFloat(value), i = coercedInteger(value); return [i === null ? null : String(i), n === null ? null : Number.isNaN(n) ? 'nan' : n === Infinity ? 'inf' : n === -Infinity ? '-inf' : pythonFloat(n)]; });
     assert.deepEqual(actual, expected);
 });

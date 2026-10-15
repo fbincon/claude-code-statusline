@@ -8,6 +8,7 @@
     ]
   },
   "references": [
+    { "path": "tools/testing" },
     {
       "path": "packages/core"
     },
@@ -25,6 +26,11 @@
     "tools/migration/ts-03/**/*.ts",
     "tools/generation/**/*.ts",
     "tools/migration/ts-04/**/*.ts",
-    "tools/migration/ts-05/**/*.ts"
+    "tools/migration/ts-05/**/*.ts",
+    "tools/checks/**/*.ts",
+    "tools/release/**/*.ts",
+    "tools/acceptance/**/*.ts",
+    "tools/build/**/*.ts",
+    "tools/benchmarks/**/*.ts"
   ]
 }
