@@ -6,6 +6,8 @@
 `9b121e0` 开始，当前为 **IN_PROGRESS**。维护者已批准全部六批、逐批 PR、检查通过后
 合并并同步 Gitee。本阶段不新增版本、不发布、不切换已安装后端，也不实现外部编辑器。
 
+两轮性能优化已完成：[第一轮 PR #84](https://github.com/fbincon/claude-code-statusline/pull/84)、[第二轮 PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)。第二轮完整 D06 **104 通过／60 失败／28 不确定**；TS-03 保持 IN_PROGRESS，第三轮实施需专项评审。输出／采集次数全部匹配，原预算、已安装后端及 TS-04 准入不变。[完整结果、退化与剩余差距](PERFORMANCE-OPTIMIZATION.zh-CN.md).
+
 ## 实施顺序
 
 | 批次 | 交付 | 状态 |
@@ -17,7 +19,7 @@
 | 03-E | 渲染、预览及完整后端协议 | DONE — PR #82 |
 | 03-F | 整体等价、Mod 检查、CI、性能及 TS-04 交接 | IN_PROGRESS |
 
-当前分支：`fbincon/ts-03-rendering`。03-A／03-B／03-C／03-D 分别合并为 `21fb21d`／`f1363e3`／`0faa639`／`dc2e218`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
+当前分支：`fbincon/ts-03-performance-round-2`。03-A／03-B／03-C／03-D 分别合并为 `21fb21d`／`f1363e3`／`0faa639`／`dc2e218`，每次合并后均验证 GitHub／Gitee main 一致。测试／合并提交和 PR 在验证后记录。
 workspace 包为 0.0.0 私有开发包；现有 Python 应用仍为 2.0.0。
 
 ## 边界与复现

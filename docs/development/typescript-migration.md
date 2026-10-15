@@ -2,11 +2,11 @@
 
 **English** | [简体中文](typescript-migration.zh-CN.md)
 
-Updated: **2026-10-14** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
+Updated: **2026-10-15** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
-Performance optimization is active on `fbincon/ts-03-performance`; the approved two-round scope and evidence are tracked in [the optimization record](typescript-migration/ts-03/PERFORMANCE-OPTIMIZATION.md). D06 and TS-04 admission are unchanged.
+Both performance optimization rounds are complete. Round 2 D06 has **104 pass / 60 fail / 28 inconclusive**; TS-03 remains **IN_PROGRESS** and implementation stops at the approved two-round limit for focused review. Original budgets and TS-04 admission remain unchanged; see the [optimization and regression review](typescript-migration/ts-03/PERFORMANCE-OPTIMIZATION.md).
 
 ## Current state
 
@@ -15,10 +15,10 @@ Performance optimization is active on `fbincon/ts-03-performance`; the approved 
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01 DONE; TS-02 DONE**; [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) integrates platform evidence and closes decisions |
-| Current task scope | TS-03 IN_PROGRESS; [03-F integrated acceptance](typescript-migration/ts-03/README.md) in progress |
+| Current task scope | TS-03 IN_PROGRESS; two performance rounds complete, focused review required |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; estimate after the TS-02 platform probes |
-| Next implementation work | Resolve the measured D06 latency/RSS regressions; retain TS-03 IN_PROGRESS |
+| Next implementation work | Review remaining D06 gaps before a third round, architecture or budget change |
 
 The planning request does not mark any implementation gate complete. Existing repository authorization still governs work within subsequently assigned tasks; this plan adds no routine approval step to each stage.
 
@@ -100,7 +100,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | --- | --- | --- | --- | --- |
 | TS-01 | Frozen baseline and behavioral inventory | Implementation task begins | DONE | Codex; `fbincon/ts-01-baseline`; tested `ddc9dde`; [PR #75](https://github.com/fbincon/claude-code-statusline/pull/75); [inventory and evidence](typescript-migration/ts-01/README.md) |
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
-| TS-03 | Shared core, backend and runtime migration | TS-02 | IN_PROGRESS | Codex; `fbincon/ts-03-acceptance`; [PR #83](https://github.com/fbincon/claude-code-statusline/pull/83); [six-batch record](typescript-migration/ts-03/README.md) |
+| TS-03 | Shared core, backend and runtime migration | TS-02 | IN_PROGRESS | Codex; `fbincon/ts-03-performance-round-2`; [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85); [six-batch record](typescript-migration/ts-03/README.md) |
 | TS-04 | Both editors, installation and recovery | TS-03 | NOT_STARTED | Unassigned |
 | TS-05 | Complete tooling, CI and release candidate | TS-04 | NOT_STARTED | Unassigned |
 | TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |

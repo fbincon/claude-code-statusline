@@ -1,0 +1,5236 @@
+{
+  "format_version": 1,
+  "reference": "9b6d2fab4bf165be280d428a874521bfbf02c7e1",
+  "commit": "93384f573ddb02b4067947493b6d89a64b276341",
+  "dirty": false,
+  "node": "v24.21.0",
+  "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+  "platform": "linux",
+  "host_arch": "x64",
+  "process_arch": "x64",
+  "node_os_machine": "x86_64",
+  "architecture_source": "os.machine",
+  "coverage": {
+    "total": 516,
+    "pending": 0,
+    "ported": 471,
+    "deferred": 45
+  },
+  "source_hashes": {
+    ".gitattributes": "d0d4ce54a78a9e65fd697a0f04e79e985b9e5f898ae18ebce8eb6ad6f605e620",
+    ".github/workflows/typescript.yml": "15527c1eb25a9da14725d44a7852b11388e8e8bade275e2f9b824e9db8aedf5f",
+    ".node-version": "73fb1b615e2043a933be1c0895cde4358036acc28d785692509b822aa53c761f",
+    "mods/statusline-native/.claude-plugin/plugin.json": "1835d857dc940a92bd32c40b4f4d124d2379a17d9d4eb3ecf626edd6a11bdfe9",
+    "mods/statusline-native/hooks/register.ts": "e9951a659d42d3503e50abc175a319b7eff38e23886730299b16e2946b793121",
+    "mods/statusline-native/lib/backend.ts": "53e0a90bba52fe12d854bce06a050902b528d7466cf7e3effffb1264384b23e6",
+    "mods/statusline-native/lib/client/forms.ts": "db006e74f898fb0e8a51566ed0f7250cc46cfd97de315e2b603df90d41b486fa",
+    "mods/statusline-native/lib/client/keys.ts": "340d8f724546d5ce5102063af9ac72d70f640b29a6702398cb182d8facfa130d",
+    "mods/statusline-native/lib/client/messages.ts": "fa1ed7aa9da9dd3f89e9fcb6556cbe6fce185a4ebc35465bf9ea3456a9c7446b",
+    "mods/statusline-native/lib/client/settings.ts": "455f1f17c3f5e857bfb152797efb070136cb68bec235c1937b5362f407b4a72f",
+    "mods/statusline-native/lib/editor/appearance.ts": "11ad734fb961b346ad066fa22fce6958a4a7588a534f4602fcd7517d91321d42",
+    "mods/statusline-native/lib/editor/draft.ts": "fb20686c70cca1303a479486a79223eb6cb86e043846e2abf5b0ccb06cff7019",
+    "mods/statusline-native/lib/editor/guidance.ts": "1f5dcd210662d4b521e97a25b06bbb709061e40d6e2a5c1ab13a6b6810dc391f",
+    "mods/statusline-native/lib/editor/import-review.ts": "9e13bbb868ce520dc7c7f237f887099afd199711aebe63f81fb95adec220df56",
+    "mods/statusline-native/lib/editor/instances.ts": "2f3845de7f833fcd03b5da8ab213e2c4a8988dfa172227c2ffe5069e3fce336a",
+    "mods/statusline-native/lib/editor/navigation.ts": "e6ac3f739ba4e54d11a00d32fd3a0e011cdc10d5aa67e80a0c9bdd88bd103bd8",
+    "mods/statusline-native/lib/editor/numeric.ts": "7e1f0c8b26b49cddfead78725c4a51eb94540a5216c8a7acab9fba270c70e318",
+    "mods/statusline-native/lib/editor/search.ts": "33b7f7a3878757a36254e1e4aaee8c7daef9e141823d4edfd840181f12d7fd11",
+    "mods/statusline-native/lib/generated-contracts.ts": "e0f4aa153479de82f297f8a803e4342488ba5a84c4a1c8e4aee68c0dc197df4e",
+    "mods/statusline-native/lib/generated-unicode.ts": "781c7db664dc6166bc2fcf878565937cd8b25b57d192ae420b3016e1ce510907",
+    "mods/statusline-native/lib/i18n/generated-locales.ts": "d03fa3dcb3d61ef5b26b381d388caf331b90a4e53c5cdd220254a27ba0c769cb",
+    "mods/statusline-native/lib/i18n/index.ts": "eeb1e6b432b685cbd5efa56f6ed730f6d3658b74b054d3b6575f97bd14f50239",
+    "mods/statusline-native/lib/i18n/messages.ts": "31775673f7b18efec0f131012e220c523625c77e1e34fc09ecc7732070ede5d1",
+    "mods/statusline-native/lib/i18n/presentation.ts": "f1f48afe090fa4d3089f54445736dca08002ac55dd54f36420b66cc9744995b2",
+    "mods/statusline-native/lib/preferences.ts": "472cccb55fe3b1ab99ba58416654c3982f4ff83479df19960ab8f1dcd551d410",
+    "mods/statusline-native/lib/preview-preferences.ts": "54fee4a98d18717064ce083a76e6fee5f6ddaead98455cfd24391641cb6aff6d",
+    "mods/statusline-native/lib/session.ts": "18fe56b2339739b033be50f028404c9727eeaa103de741bb9942f3f0984cb173",
+    "mods/statusline-native/lib/unicode.ts": "f19f01c0255a3e82a227b04dec1c95457cbd6c0834387dcd857037828b1245f6",
+    "mods/statusline-native/tests/backend/i18n.test.ts": "beb22593dd6b314f70d5e47b55f61626d2464f09fc5e1812a0a200b159f7cd3b",
+    "mods/statusline-native/tests/backend/protocol.test.ts": "db13994f87ba50f254db9949a425be84d141cfaf6ac48b33c3b659eadfd65616",
+    "mods/statusline-native/tests/client/keys.test.ts": "08daa4d95f1b066c0a8c59273a2ea9bb71bb683c2c354f2f106c97089acedb79",
+    "mods/statusline-native/tests/client/transport.test.ts": "a179340fe367db42853bb0589a145d7697e8ff6523135561d00baf9665158fcf",
+    "mods/statusline-native/tests/editor/appearance.test.ts": "1f49c11048c918da5125136a03a68fb4a8e8c5c63f38f6c44d912bfe76cedd10",
+    "mods/statusline-native/tests/editor/guidance.test.ts": "aec1c66daefbf674b8327e37d05511b32eb2577141bab1a685bb8706ac21bb19",
+    "mods/statusline-native/tests/editor/instances.test.ts": "60ec5819e8ecfee4280dc5a8c125adb792637205f7beaae4c95de7445602c654",
+    "mods/statusline-native/tests/editor/search.test.ts": "5f4b22bff3e6614f8f8d966454ab44ddc52abe2564796d83c3a4602d32692072",
+    "mods/statusline-native/tests/editor/state.test.ts": "37decfe25ca13b3970597df12120ca002df458a6c4bc5eb5622cd54c90e27b79",
+    "mods/statusline-native/tests/fixtures.ts": "1929c8b11987f3f9c6e25e25470c7fc152a3e159154c8f6257899dfe94db2413",
+    "mods/statusline-native/tests/generated-search-fixtures.ts": "05c650675761da0b29aff7decd3124a4e4257343ca4e3cf7300b29b0a3f508fa",
+    "mods/statusline-native/tests/generated-unicode-fixtures.ts": "72dcd095de29c4c76d8178ffbaf14ca5c9be85a7cf48eeaab9c624798a2bf0c2",
+    "mods/statusline-native/tests/integration/advanced.test.ts": "228a01e655a913d191348514697f8e5f2f29e0af84a809f866015d46030b788d",
+    "mods/statusline-native/tests/integration/editor.test.ts": "306c2dd6815a79278cf832cb94d0912834fee5435c836c239c8bf675e6335923",
+    "mods/statusline-native/tests/integration/import-review.test.ts": "da772ccf9bc24b5433d4a91a992b4096e0b7838c8286a55cf20a4e5c2821b870",
+    "mods/statusline-native/tests/integration/language.test.ts": "e21f629f3a93dfeb374659d3be5b54187e3477b59c5060bfee3580fe3423b596",
+    "mods/statusline-native/tests/integration/preview-preferences.test.ts": "dcf259364341f1d2b5df27e8e7c227fdc337eaec95a08e063312f0c1f6d0d27f",
+    "mods/statusline-native/tests/ui/drawing.test.ts": "a4d126df8f887bb58df04906301ccea9dedd331598474f52d49a948c9783ee54",
+    "mods/statusline-native/tests/ui/layout.test.ts": "1b8342c1887e12d078f23e58f438a02089c51666d1372bfa3bc5cf31c05cd339",
+    "mods/statusline-native/tests/ui/preview.test.ts": "55deaeeb9782e963fb3323b64e1ebc25303ad8478058fdff9ec05926586555d8",
+    "mods/statusline-native/tests/ui/theme.test.ts": "01fd6ee4643c3f2758c0d03faa529f609f5406e77a88c31f6fb0f77ce3b87084",
+    "mods/statusline-native/tests/ui/unicode.test.ts": "60e2fab71eb80d81e912714da759380f3e8df1019dca784dae4992549867c9c9",
+    "mods/statusline-native/ui/client/draw.ts": "dcbe5a6a3aebf55f138b4f2c5fbe62ca70a4e3dc222e5111dd3e33750422226f",
+    "mods/statusline-native/ui/client/help.ts": "093a26aadea38408dc141d2bac18c442eb22601c87d15f48ea6fda247900302e",
+    "mods/statusline-native/ui/client/surface.ts": "dd8a3c789ab2dd1b3fd9d014e483bfcd30ebc6c7cca0d6c1fe89e9cec7b92450",
+    "mods/statusline-native/ui/components/catalog.ts": "aceb7bf838514497aa8d5bcb2ca48b1fa7a2a969eb842ea8000cb1f84600a29d",
+    "mods/statusline-native/ui/components/preview.ts": "fd7a8b836c633fd9838764c05e47300cda29cebad2132e942313b819195a9616",
+    "mods/statusline-native/ui/components/section.ts": "759b9cf126061db72cee6f8e730c18c377314f566fbe08cea897179acedc65eb",
+    "mods/statusline-native/ui/components/shortcuts.ts": "66263a4a49568421e3dd5ee39e4241e31004d679b1023ee399e96f516a8fae41",
+    "mods/statusline-native/ui/layout.ts": "86e11b465509e6dbcd58ec6e5d759a7e352ffe239281fc653299149e050d3e11",
+    "mods/statusline-native/ui/styled-text.ts": "e779a0bd3a7275883bd5154beeefb95506468afdf13dab728029ee5cf61b953e",
+    "mods/statusline-native/ui/text.ts": "6a349ca4a8f88341655bd1ab7956ffbbbe675dbc1dcac185ea720280afcae6f4",
+    "mods/statusline-native/ui/theme.ts": "7b620fcde02d4a4696e3b41e644ab6848035c2a56936d6024c555c59504f0c2f",
+    "mods/statusline-runtime/.claude-plugin/plugin.json": "9ef5ae9a3a4250759d424a457ad4897f7194701f4665cd3da2998fb67ede52d4",
+    "mods/statusline-runtime/hooks/observe.ts": "eee0c7330ff6ecbd65993566315e2c277c0038d1b9387e49a6915803bda0aca1",
+    "mods/statusline-runtime/lib/checklists.ts": "88dc407841f917527e70ed5f03c55cdabb9224b077e4765da92f2f5d9654a904",
+    "mods/statusline-runtime/lib/costs.ts": "77c827c3adc6b9329a5f302520224d7c642f769000a021a56714153e1a20ad69",
+    "mods/statusline-runtime/lib/generated-contracts.ts": "ad2ba16a457817a1e576d150d89b6bad3f57d97fd773f00de8dbef040b4a8231",
+    "mods/statusline-runtime/lib/identity.ts": "274c0192b35d07bb842a62690e17681e0ced786a74c97cf1b585fddfdcb7ec42",
+    "mods/statusline-runtime/lib/queue.ts": "1cfb8927e86e8f16fef655523b9b9121c7d3b8c4a2b91fe11f64f9bb4a74e2d8",
+    "mods/statusline-runtime/lib/streams.ts": "ec4dd3e83dede22f29dc00fcfcb4ae095a94f7d2c2798339898de2f51579a648",
+    "mods/statusline-runtime/lib/timing.ts": "25e776b6346c4b92438137db66c1141e1bf1eb83650b923b07106fda5a7710f6",
+    "mods/statusline-runtime/tests/checklists.test.ts": "cee2300bf656fc44e6857c09b197b13def46ae4180922713995533e958ae2ece",
+    "mods/statusline-runtime/tests/observe.test.ts": "b933bb59face217fc3e2ae95c9c97f21618368c0d5a682dd8b199dd48a976f39",
+    "mods/statusline-runtime/tests/queue.test.ts": "bf89c0330dc459bc2af5934a12560ece05726eb5c78b03676666201555c01289",
+    "mods/statusline-runtime/tests/streams.test.ts": "1ec15a55a445ee84b55b66245ef6a1de629c3165e5ef0739abc46d35922791db",
+    "mods/statusline-runtime/tests/timing.test.ts": "d9fd4877e3c27b132b945f8e537bd9e13750a0db09a555fcc7db9f0928c7d967",
+    "package-lock.json": "1bd7fe62ca59dd085068c916aa99002e8ee5997b188dcda098d5b57e96e106b8",
+    "package.json": "def164bb120bff71b6c0fa470a9b5ac1ce291ee9e9e3f837de681ef2b3c590ea",
+    "packages/cli/package.json": "8aaf2d9cd52c90cec1ea9ea9bf44635ccc10f530e6ed78e62c4d484ce01700cc",
+    "packages/cli/src/config/arguments.ts": "11306dae616ff8e6c5490d46b7d42ef47769516c764a1a62b578bc68d9b8e8b8",
+    "packages/cli/src/config/backend-preferences.ts": "8cd193d01c3cf8f2b41d17840be78d7454b7189cae1b45ac299e276e03d0eb4a",
+    "packages/cli/src/config/commands.ts": "fecca3bcb99ed6ea1481ed903e35d793164185308b649ad46806a88df97893a3",
+    "packages/cli/src/config/host.ts": "a7d80094d52868d24a53a7eb3a02d5aef6f5f88451aaecb56a6bf3835d4c12b2",
+    "packages/cli/src/config/operations.ts": "a51b4c9fd3e46a1010688b28ced4cfb8c2cf5c2d6211e7e501d0a5b8e52fab84",
+    "packages/cli/src/config/preferences.ts": "5780e19c6a891710b41d63f3f7cdaea1612a38cc169ebf832893b17fcc6973eb",
+    "packages/cli/src/config/service.ts": "e5d3da0d06b25ead8335f9f0f886cdea2c46157408e45bfbe151a62283ffa37d",
+    "packages/cli/src/config/storage.ts": "14c76213d264632ae90fac4606d25febb10f7843e01754ca71cdc03438c3780b",
+    "packages/cli/src/config/transfer.ts": "33002ff3897ac179c68c492ae0f5d74c87391662e1e30325bba48f12fb6f3bbb",
+    "packages/cli/src/context.ts": "a1750f84e78bd5095ad71b3244496157fe2595edc302400e12467b52213bb403",
+    "packages/cli/src/entry.ts": "b3501bae438939860fb9edd290308d2e4d512615fc8ea3f7e03b77a0a94e53e8",
+    "packages/cli/src/errors.ts": "66ea859452f0a251110009825a386dfa6b9be345c2c4d72f4f8e99ed7a65e51d",
+    "packages/cli/src/help.ts": "18e42df94ff291062a9450b15cc8e7a34c1f6fb57211280629fe8f9d1ab9301e",
+    "packages/cli/src/integration/editor.ts": "c52fa6c85d258e2888472c3e0fd136d4ee88716cc945df76bbb3ded8eb0d54d5",
+    "packages/cli/src/integration/slash-hook.ts": "2ed93e6e688ab00c246f2b73eaadcfc6daa79d17ea989b8a27d37823224e11d3",
+    "packages/cli/src/main.ts": "bf3581f639ac22bc272eedc23493a67d4dc0cdeaa04aa1ff65a85c91662002f3",
+    "packages/cli/src/rendering/environment.ts": "8e744cf0a694354b8e1668a9a4f88519b31708e4f41ad068153f2fdc1fd258a5",
+    "packages/cli/src/rendering/main.ts": "29e45748866285e654dd08ba7526d0f8f9c1340ba8dca1e10755b40249e6a38d",
+    "packages/cli/src/rendering/preview.ts": "1bcd01485138c174d1cd44edb4e3a9925e4b9a3dfba9c4529e38b6055d998297",
+    "packages/cli/src/runtime/context.ts": "7a20b926b7a2d87b7a6e2281b3c96ef2d504b8073766e7bd836ce0ad16b31338",
+    "packages/cli/src/runtime/git.ts": "a1514968cec0b4977fbdd88440b47a355f4a0320eb39ee0385752dae66334704",
+    "packages/cli/src/runtime/hook.ts": "f28fa708b880f12a348f4279846b58a1a24ff1d09faaa4f24fe02aaf299af06a",
+    "packages/cli/src/runtime/io.ts": "a6003d79d22b412c9b975fc21b61aa00a6be4af158c11135534ad67c9ab1e740",
+    "packages/cli/src/runtime/json-data.ts": "1404c53e36ae039a2b04b501268908a2d6254be9690eca3916d930cff5300a0d",
+    "packages/cli/src/runtime/live/collect.ts": "708ec9e85544ba12cd12cb83964c6c3ccf478cab0efdd4ba138e61d878f61ccf",
+    "packages/cli/src/runtime/live/durations.ts": "b57beb5055ce7a0de418fb1fb2ea56183b14ec6bad2fd63c16c67f587f8ec12d",
+    "packages/cli/src/runtime/live/protocol.ts": "f9b0fd6abd46be2761cb08f35e23e5fb53176b5321868277c75d6cfd4a7e72d0",
+    "packages/cli/src/runtime/live/store.ts": "60e88db026c506a8a0622a14ebd99d4d535cf8ac28b01314392ebe7d3ad858c4",
+    "packages/cli/src/runtime/registry.ts": "567fdece892eca6d12061ffa6a65dcc14a90b43b663a887f3294536ffad7c2e9",
+    "packages/cli/src/runtime/tasks/collect.ts": "3c0e60a562e02af78115b160128749d9000ea0b6ad591e5d738de53068ba1768",
+    "packages/cli/src/runtime/tasks/service.ts": "7afbfb0b1b8d2ebd011e763b28c4564d4ee7f66efd28778ee8eac08f22c1a8d4",
+    "packages/cli/src/runtime/tasks/store.ts": "b3a06822e962ba84325bf86eb4818a2196bf9f9f90343095f06acd190ddedbe0",
+    "packages/cli/src/runtime/tasks/submissions.ts": "60cab3262252a1a9136d2873e2d460584ce992cd29efd692ff261cf64481a3c0",
+    "packages/cli/src/runtime/usage.ts": "1c82b7ece677f2f2db7964c3e6a2214964bbfa26bb9a68367d542d0ed4e27268",
+    "packages/cli/src/ui/protocol.ts": "b74659ded229e7b7afaea59b1e656251c820bd1b88c0218ca0804e7bc16b4ab8",
+    "packages/cli/test/agent-notifications.test.ts": "6c97f72710396dc2adfc2bc37363126f68755a212c3698915b101b90ac9f840b",
+    "packages/cli/test/backend-preferences.test.ts": "99d9fb312051c9edab4e6280a5a2b6eba2ddcdadd9f8dde95ba2db1e3f64d24c",
+    "packages/cli/test/config.test.ts": "982e99b1da0fcd5dda68852d8056d3461ff7e209a898c239e25852f257e44a6f",
+    "packages/cli/test/final-boundaries.test.ts": "9d3af73b7ab734a0432d96a83be7a9274473f8cb937d0481dd1591659e4fcc40",
+    "packages/cli/test/final-cli-language.test.ts": "5d4ceb266f572eea51a384ec4fe16984511a51518a3dae22ee287dbd3ac4f27f",
+    "packages/cli/test/final-cli-support.ts": "5c242878885b0de65b112a85ec9a6bda801fbd53be8efe360d5f55806c5c70aa",
+    "packages/cli/test/final-cli.test.ts": "4a042ce7ab8670fb42385015da21a3d6ec635f9966770d95d583335f7402c490",
+    "packages/cli/test/final-config.test.ts": "6b73c689290e3c81b11e7949e0b11aa0b6453dfc81063afe83260178ca99e754",
+    "packages/cli/test/final-language.test.ts": "fb78a4833f03ba8323b2169299a4f008ab00f376be170d2019e08f03c677cb9f",
+    "packages/cli/test/final-protocol.test.ts": "247a3011fc9181aa2335b3e006709c6dd1f6a184e814bca9664e2b5435a56689",
+    "packages/cli/test/final-review.test.ts": "daf4e4fde8ea900916fcfcc3e833f925a2be8cf40e4c20995604bc4a09c1a113",
+    "packages/cli/test/final-support.ts": "b4da83bed1d5164992027bee2758ba5dfba4e5024808aeb4b7dfbe2d1aea48a0",
+    "packages/cli/test/git.test.ts": "d669898f3777c4dcc95d45b0f3757480fbc65f543ec38ac1c869f59b0c2f0af5",
+    "packages/cli/test/lifecycle-support.ts": "e1d089d27d477d1f025bfed5951cfcc7ac382f7072a4a95b5a29c51bb138a038",
+    "packages/cli/test/lifecycle.test.ts": "8ca479380126c2245db558f927ab8d271a7280c5b17fb4c37adcd0c0b88db272",
+    "packages/cli/test/live-bindings.test.ts": "2149923c42c371128c20520ff79f15745f65742be619cc790224158620475e16",
+    "packages/cli/test/live-metrics.test.ts": "1e037bcae785852533e432ab74b2b4e7f0536318dee72a17f2eb9aad98fef966",
+    "packages/cli/test/live-requests.test.ts": "1e17499059bc400b76cda318205ee29b6fa921b9532c70a94fe33e9995b21a7a",
+    "packages/cli/test/live-store.test.ts": "e2e2dc7fe1ea43dee4f117809e9b9e72afa08227c50816bc756a9255e9a76028",
+    "packages/cli/test/render-composition.test.ts": "d82318fac9e59cb5734cda585435e8a458a91a6585b6f314d3125f575c8c6882",
+    "packages/cli/test/render-items.test.ts": "e3bacb96446e568d05879e8fc7db7caa104842a1a71283c9a9d4b825b4bcf922",
+    "packages/cli/test/render-language.test.ts": "ae36a06ca8bd955a424816942ca7cfbf7b1410137790b72c2f9d5216eb5e779a",
+    "packages/cli/test/render-layout.test.ts": "0101cc6f133b2140d047ed375908f6d60b7b85da3092a0dd4153dcf2728e5270",
+    "packages/cli/test/render-metrics.test.ts": "b66b02b9d58b43bc2b50f96e7d187808c2ee9ff4dc454f548f2f0cd75e19b63f",
+    "packages/cli/test/render-observations.test.ts": "603b3b79315b58dd4bc953abdaaadd2ecd31786917f3ef79c2f7193ff4f408ad",
+    "packages/cli/test/render-subagents.test.ts": "50ffdd2f8f1cf45fd27dbb8691548725ff5ec9c8eabe3485535158efb8a194e9",
+    "packages/cli/test/render-support.ts": "e8c4244f3a42700446462361cccc40ed7035a4c4c98386d68bae67d78d7e2824",
+    "packages/cli/test/runtime-json.test.ts": "0aa362638572269de51d46842d4121209e417e8eebd74b4d804a983d2c9b1589",
+    "packages/cli/test/runtime-protocol.test.ts": "d5b9914d7b9e993564b711250ef93dd139f33a261b536b50b23b25072c419c4e",
+    "packages/cli/test/runtime-support.ts": "75f4ad7fa9fe9c7d8077e73fa59a74bba58df078eb96fffe6e52865f81646cd5",
+    "packages/cli/test/runtime-writer.ts": "c4a36b888c81f10a156716aa8580e36e95b1b09fcfff5e02f9d38e7747f49901",
+    "packages/cli/test/slash-hook.test.ts": "87e2c7735954d645ea10280685ca953530ff96a2f7e3f1600fee64e4f0cabcce",
+    "packages/cli/test/task-timing.test.ts": "e4c2d991e4cb27982f815ea82cb5c805795cb6c1b217b2f3cef41c30702451e8",
+    "packages/cli/test/timer-regressions.test.ts": "5f4e870bac92b2168b82793fc9e24ae94cd1a9da17c41800ef5ff8382a64ab1f",
+    "packages/cli/test/transcript-timer.test.ts": "814f44d630c01089bc07a95d8fae2eea8dad103e96e50f28ab76f9bf6ce0841c",
+    "packages/cli/test/usage.test.ts": "b4b1671a7a37a4e8ff2c5ff37eba06618dabef26edb728f89091fa02702a882c",
+    "packages/cli/tsconfig.json": "e416ec1224f1ce4d457b063ef8ed68082406b3b93b8e85fa3811499c723fa2a1",
+    "packages/core/package.json": "9e03212188805859b2d11ce9a8dcae57993b4bd8234b6a84a9b1d81450d3deed",
+    "packages/core/resources/i18n/languages.json": "2dc2697c9ab274cb5bd5b43fc2c50cf6e0fcd9e23e6360b2a28f78d62ac0ae44",
+    "packages/core/resources/i18n/locales/en.json": "05e979b055f3ea05edc8383b4400dafd72a8e4d095f990343934613db8e523e2",
+    "packages/core/resources/i18n/locales/ja.json": "fa89a12bfef1db2a732c93e83e648d88897e2ed7dc0bc1b3bf18ea29f0b6fc0f",
+    "packages/core/resources/i18n/locales/ko.json": "2d554a90b049cc17e4aed0c6bfb8bcfa4506f4d0bb3a2b4391d1c69c641cc916",
+    "packages/core/resources/i18n/locales/zh-CN.json": "d10fa6e21f8ea586d679914c9cf3552f950f90eb335bef030110dad4690cbc5d",
+    "packages/core/resources/i18n/locales/zh-Hant.json": "d6e5c399bd3295b94fa439ea726b6746c6c1a45a65d46b0e03628e0471b243c6",
+    "packages/core/src/config/backend-preferences.ts": "5c5a157c361d372d160ab216c92e19cb8a62636cf59ac091be0c6aabe4e8b0fc",
+    "packages/core/src/config/catalog-data.ts": "a5128de942dcae0f31bc609bd0f372d33a8a98a82ed2979df7e66216080b55c1",
+    "packages/core/src/config/catalog.ts": "b0337266ce75b840af1c8308810e591cda626974d7f20bd9d00c66982aadf853",
+    "packages/core/src/config/defaults.ts": "bcbef0f894abcdc2e698130a0d22faa404fcbd1f60493984872ddbd0883de016",
+    "packages/core/src/config/display.ts": "c3f4044cf3956f73474fa8311892c8b7f9fee16106520c660a884a7a48cd77e2",
+    "packages/core/src/config/draft.ts": "030f89c4b74177ab4b395261fed76a49c8e7a92604da520dca6ec2c6d3502eca",
+    "packages/core/src/config/editor-fields.ts": "dfb132f35271d2525db84aa9a530618cd480fd83a034ba458bb82555f1e299a7",
+    "packages/core/src/config/formatting.ts": "2f8b4b8776f9dc5608dc0c81682fcde8fb265e9535ac9a7c21dca54b53fa1372",
+    "packages/core/src/config/generated-constants.ts": "b57b5feb10b8ae3effa31c353290e00f7304265933ba678aace5009c1810647c",
+    "packages/core/src/config/import-review.ts": "a4285664b464a2d8f7464783399e137654781ce81924dd9c04cc8be94eb18a5c",
+    "packages/core/src/config/instances.ts": "26817b2eba81d15e0ac0c6551963e86b2fa06d5a21966afbd62c9104788fb538",
+    "packages/core/src/config/presets.ts": "893807e938fd73b8ffbf38e9c12e75b88df6af15a3d2d51572554d5196c75ce2",
+    "packages/core/src/config/transfer.ts": "7234a271c9a8bca6e40a05956c89839ecf9f157388c0563425729c5b4e4e1d63",
+    "packages/core/src/config/validation.ts": "6d384be63ef623322197aadb7044182a24bcf75a1c4678856d94caf56427bb21",
+    "packages/core/src/contracts/generated-catalog.ts": "96e4bfbf718993bf7eb1301d32909c723065ec31a30d1296cb7b6e2422ed1696",
+    "packages/core/src/contracts/runtime.ts": "5efacf377bc3138d157260ac032a98642d784a560037212cd0b8037d67ded80b",
+    "packages/core/src/contracts/ui.ts": "fcacacab0a3673a158e239998c95ec09bc0c9b17b8eb75e495188275ea716c6d",
+    "packages/core/src/i18n/generated-locales.ts": "d03fa3dcb3d61ef5b26b381d388caf331b90a4e53c5cdd220254a27ba0c769cb",
+    "packages/core/src/i18n/messages.ts": "a96e3c0b3a62025a7f3ed01cf23b5e931725aa797729fd726b46dbd49bf44162",
+    "packages/core/src/i18n/registry.ts": "0c705b2417e3ff7dc306c9b3199399bee6642bc68aafe2deae48769ed5065093",
+    "packages/core/src/i18n/statusline/en.ts": "9fca18cedc86a3b942f87b4d80e4fa45d00018a7de2ba54b4d27fbb24668d4a3",
+    "packages/core/src/i18n/statusline/ja.ts": "b0079b150705cef57eb4289781595af5927b7c3506fd539db41d077f5c93fc4b",
+    "packages/core/src/i18n/statusline/ko.ts": "f8e3ebfa1dad83977d9de5651102c1d5c5edd3b8ab90ffff486f7895469a83e1",
+    "packages/core/src/i18n/statusline/zh-CN.ts": "63dfbdfa21be122947f4dc01322b258d6dec0ab949a0bc9a18b84f5e1e488cb4",
+    "packages/core/src/i18n/statusline/zh-Hant.ts": "bd5cafccbd4749f845b347d211b9ab750acbb692210d57329edd2c33894508a5",
+    "packages/core/src/json-equality.ts": "676c80ce04a4f3e9e6c123110c704dc7188a53575585931e5e3a863934111b73",
+    "packages/core/src/json-read.ts": "fc10d73871fb533a80e15ed1df62197466476db6f4311caaae3c8911a27b103c",
+    "packages/core/src/json-text.ts": "560ed253997046bd681fb2578018801314a6eae3cdba509d66f6d47daf69361b",
+    "packages/core/src/json.ts": "02edca2af5ef918ece75d8970f55ae3cf4206d1ae95491fbb55f11fce7ea16ba",
+    "packages/core/src/numbers.ts": "c0c6569683121699cf52a90c37a0288181879921b5f04dc89da53212456fa19e",
+    "packages/core/src/ordered-record.ts": "13bec23b4eb72e6c608de35663b0be2f4969f8ef89a5368fa590ef6a3f833215",
+    "packages/core/src/rendering/appearance.ts": "eca29ede2ec0ed0c6eb84557d45855140fddf27d839a39322131a37a999a320f",
+    "packages/core/src/rendering/coercion.ts": "fc683bcd76b149d18cb2825e80e64f97d917234516875c68df29f40dbb5f6bed",
+    "packages/core/src/rendering/colors.ts": "4a84f26ef0002fb04a1597aa9e6b44fef04a289974e9e9b8ed7e1e69dfb555fd",
+    "packages/core/src/rendering/components.ts": "8456f20722d1af5aad5eafb89cf16cab856b3eadcc0904b3183f5a435b3c0fed",
+    "packages/core/src/rendering/context.ts": "2795faffe6a10095b1471f0ee413df6a6ddc9b9dc440573b50a080c6b4902824",
+    "packages/core/src/rendering/formatters.ts": "3809cda46106d72d1859ad32281baec11f5e2590646aad3cdb2164bfdfefe4a5",
+    "packages/core/src/rendering/git.ts": "ba015d7da80c659d824579c8f4e07fa250cdf516106bbed6135db0a41e833059",
+    "packages/core/src/rendering/items.ts": "0b21881e0edf01421c3a546e9b9cee29cef6732e78e91db1e425f2b4b613b7d8",
+    "packages/core/src/rendering/language.ts": "e6172bc5b3e1774abc42e24b63ba58a82182444c42234f8d554494249ee8798a",
+    "packages/core/src/rendering/layout.ts": "ae1a53bd4004c412d4a04c5eea2a8f94f8d8a6a16f8a14faf5b978511e75c616",
+    "packages/core/src/rendering/live.ts": "e34d2b052f948acee2835dbdb89d9d9fc1b5a5fbfb71114a795c9ef44a43baee",
+    "packages/core/src/rendering/metrics.ts": "f5113286fcdde580d4f0b6d7ecc04fc6bafa160a5f17a2084fad84d36d48ac47",
+    "packages/core/src/rendering/numeric-format.ts": "07d741caeb8176d529d7226f232f1a0506c25c9291bd4acbc8efdbd302cef986",
+    "packages/core/src/rendering/palette.ts": "2ec05a1574cdf9d34eb0d9637e8b6e6dff815c206bc3476437d33d9ec182c814",
+    "packages/core/src/rendering/powerline.ts": "40a487d18f029714189089c60720c0f533b77cdde9561fe567b33c1b8578e3c0",
+    "packages/core/src/rendering/preferences.ts": "c1a2f932758555b3b4db50dde0e9d22ed36997737e1530aeea4cd0bfec2f2a4c",
+    "packages/core/src/rendering/preview.ts": "4bf0471ccd3e2c2e5f70397a14c9b7374283f685b446c6e119d862da2a1efc65",
+    "packages/core/src/rendering/spans.ts": "94ae5e23e812c8cc4d71fdee440a05195a23cf3103b3153cd988e8a25d08c224",
+    "packages/core/src/rendering/styles.ts": "6f5000c0c105038fcede5a8daab9ef8631eb28ecb2ab5af37cdbfd0b95419318",
+    "packages/core/src/rendering/subagents.ts": "a44ea27a444d847e70ee0a8e8fb3eaa2fabf041ee0bad5b2e97345222ff375d7",
+    "packages/core/src/rendering/timer.ts": "0725f06f2291537d716eb741f54d9825de482397438a2cb5abca2db4dc2d9652",
+    "packages/core/src/rendering/visibility.ts": "6dad8732eed8a81596e5d594bd63db0ac598d147adfb1255a54a9c861da21dc9",
+    "packages/core/src/runtime/git.ts": "52dcb0ae10b3e2c9d0fb8b0ac7e4334581a459fa76c0415fb4ff24a266920836",
+    "packages/core/src/runtime/live/bindings.ts": "6db3eff66c22f4d4e37fb46167a2fde2873317f3ff2a9e490452c0926427b3e9",
+    "packages/core/src/runtime/live/model.ts": "4e010a9c96a3eb2e89c8c9c846803851bb246929b188ca336e9a34ed35e3b0fd",
+    "packages/core/src/runtime/live/ownership.ts": "10618b09fa066d6c7d236108f0f15707c30f76be7c1589f7cacc1a457bb68b26",
+    "packages/core/src/runtime/live/reducer.ts": "4d5266a750161bdc45bfb66d7c86e344094a9232f58cb6fdabf67d2e7020aa79",
+    "packages/core/src/runtime/live/requests.ts": "34f7278ea4734cd7e7c389a8de9cec16dd937725ad6bedc93ff8a50722e595d1",
+    "packages/core/src/runtime/live/snapshot.ts": "ea51c8fa58fd410e722ebb3a5d537a8eb47d4a263c6a454bb017ed50ed7d200a",
+    "packages/core/src/runtime/live/state.ts": "3c9927bb0b0cc24f64d9f7cc673f24ea30e5f53efaf9a9795da0d560388967eb",
+    "packages/core/src/runtime/tasks/agents.ts": "f81fd38c1a81d43420f89a166b2639388bc146f0736e26da18149a31c64f184a",
+    "packages/core/src/runtime/tasks/hooks.ts": "f7c827d71ae96d2ffa13e767885cd1d8f0a7cdea0462aa6ef4184758dbe2b407",
+    "packages/core/src/runtime/tasks/model.ts": "a761fd4328dddfe4ab5f53bc5e3550cd0baf61512aad13f614a2cb9342ca2667",
+    "packages/core/src/runtime/tasks/native.ts": "2ed03d9c646abbd2935315a44d4d0d1a142a9257acb2a00256975147d2262af1",
+    "packages/core/src/runtime/tasks/transitions.ts": "ffec266e805ed8aaa842fd7e07f2d05c6bb5e6e6b524149b03e21e523c6fb928",
+    "packages/core/src/runtime/tasks/view.ts": "d9173b3a00a5a45e0ea06d1beb4a42ba68e56eb0a5e1de239a7f15b0b0945a3b",
+    "packages/core/src/runtime/transcript.ts": "48610104d86f8d0ad9751208cd1f5caba17286b0ca01f4cd73801766518ee650",
+    "packages/core/src/runtime/usage.ts": "c7d15bf09a728119e4bf003a5d6d2c7d00126d5da05d097c43e5cb88dd2333bf",
+    "packages/core/src/runtime/values.ts": "5219c899f0e4c51b1dcbe811628d5e23b09fb9f7fc67ad220a6ebc08f0fc00c8",
+    "packages/core/src/timing/sample.ts": "ad76903d89f96db1622c82877ad4a13968e87fb97c96b6b68c7fb9c9c6fa1c08",
+    "packages/core/src/timing/timer.ts": "3b950911aec6ddacfaa12fd3e6c4781b3ec47528a382ed87e128afefb3ce8f0c",
+    "packages/core/src/unicode/generated-unicode.ts": "781c7db664dc6166bc2fcf878565937cd8b25b57d192ae420b3016e1ce510907",
+    "packages/core/src/unicode/index.ts": "f508a15c9fafee3859d5d96522c09cb68b765823f44bfec17104cbed01251206",
+    "packages/core/test/config.test.ts": "2b8c5e993d74e5752742da9d73b0230dadf538ba319565093e70614e047687e4",
+    "packages/core/test/json-read.test.ts": "f07ae75472e98f40d6f4eae63467bf25c3d19132224d48b0aeee56ed1436a6a7",
+    "packages/core/test/json.test.ts": "7ec9e927fbaedc8a392aabc34e90318c866acebc66cd3d6b1de99e9eef7cd31d",
+    "packages/core/test/messages.test.ts": "95a293db7a804e3f7a71f5195cb0eb7ea5c52bbb38c6504fbaceb2d378af7dcd",
+    "packages/core/test/ordered-record.test.ts": "0753d63f81fc851cc9a1790e0174a29f03ee6c794830c924a4c641c72d4f1f44",
+    "packages/core/test/sample.test.ts": "9adcff6f1076e880c12fe12219c8739f18573c5261035daa143eeca80b1113b9",
+    "packages/core/test/timer.test.ts": "a7c2adfd339e75a0e27cbd93e93ab8ea3bafba4514465cc3784526a589aa061e",
+    "packages/core/test/unicode.test.ts": "8dceff883cab44956611dd5a6f4644dcb6ee9299cce70746cf47b9f127d036b7",
+    "packages/core/tsconfig.json": "9cd7fac2b8823673bd371d534ef442ebafdb1811dc88f0e9ec2bff6063982969",
+    "packages/core/tsconfig.test.json": "cefc434a1e0b33311627891d260ae4ecbfd7973c8a648128782a89181dd94143",
+    "packages/platform/package.json": "51d83bede0c426d1e619c58a61200d08391be471ae0f6f672bc73b3c8b4352ee",
+    "packages/platform/src/architecture.ts": "f4ff6ebdc262b85d931c01950ead1b5abc41910b7344ba3bf8a5a00af1e4f28f",
+    "packages/platform/src/clocks.ts": "0ae0475d22015ec3ad7e83edd9a4638f98782587d6667e0dfad00def3527be90",
+    "packages/platform/src/command.ts": "2fdbc1337bf66b1df5c348d28a5f90ba01207c942b76853c4a9df5f4d6426291",
+    "packages/platform/src/commands.ts": "99b4d03840a3598744f19e92e8568522b55e8015eabe8ffc20d37065bdbefd03",
+    "packages/platform/src/errors.ts": "4ece1d2682dbcc9aa3ce4e90bb81efdb070e47c79dc7a543e4bdafde83c3b57f",
+    "packages/platform/src/files.ts": "e11e1af6af79f82f5e2ba3f3f9ee15f3b7ea50760907e82d94c36abb00114f41",
+    "packages/platform/src/hash.ts": "5a2c4cc9df59bd0ae2bbe08237788a40335b71112e911b86857c213135b69974",
+    "packages/platform/src/input.ts": "2cb6ab2fbf6b538ecfd4f660e8f472501d039b831ea86914664ff51febeb3245",
+    "packages/platform/src/launch.ts": "111f8ed48b8f55867eedfc45bae5391235aca387390a7b0fcf579a65dc93f47c",
+    "packages/platform/src/line-cursor.ts": "0baa39a49dadc153b42976e5c58616d307aed6bbad3b39d073005374a36109d9",
+    "packages/platform/src/native.ts": "22d7e1e82fc93e4c2c375b9491d398d6d143216049259718ef3830666aa49c3b",
+    "packages/platform/src/presentation.ts": "90187a3f94072d823d88ca7ddb0eb59082a4e6b2c9351544fc5f52f91fa4f795",
+    "packages/platform/src/processes.ts": "eeb92d7f5cda7b7b75c84ed37b70d498f9d5ceae48b455d51e57c4735aacf5da",
+    "packages/platform/src/utf8.ts": "0313a63238173daf0d9cf7a0fafcb47476bc6c815a6b6b9cc9b0d4a68c994b11",
+    "packages/platform/tsconfig.json": "1095db9e8677576550acc383c24f24d151dda7583022ce443db0d72ff9fae25d",
+    "tools/generate_unicode.py": "978c094ae929a6902c2cb1d58473e1985246fdbd6cc85331f72ab2cefc2570ee",
+    "tools/generation/resources.ts": "732f2b5be490d160affc7b8e457eb220ae98cc5bf66dd7b0b164facdb7a6bca6",
+    "tools/generation/test/resources.test.ts": "58c8acf658c596d6bef5264a50f164e0cd340681e809113fc154d3e4e3ed496f",
+    "tools/generation/test/unicode-source.test.ts": "9002c8f2a814f6b4bca1b57d88883f22bf5c2a9872aa107c3b549509061c2515",
+    "tools/migration/ts-03/capture.ts": "f9f9f89412fdff4f3eb155200c4d7b6337abb472dc3e6aa946e1a936acedf49e",
+    "tools/migration/ts-03/common.ts": "35b9e5d8fb3a56d9345e30e611accb3a060415694033432b0791a664efdbc29b",
+    "tools/migration/ts-03/compare.ts": "a79730e71c83fbe64a81d3fce6015697c3157b908c3cb67d6de82d72490e04bb",
+    "tools/migration/ts-03/coverage.json": "77104be2b715ddafed79c983ec2768551bdb4a38c3088a285cb5eb73c22382c3",
+    "tools/migration/ts-03/differences.json": "190fc880add4aea9a342502d35a45a1677391d99547c68cb68f043259e10d03d",
+    "tools/migration/ts-03/inventory.ts": "8b13cc0868f11e25770b30e243a64a9f0cdc6e995f105cdaba61457a184309fc",
+    "tools/migration/ts-03/mod-bridge.ts": "9dfeb44c12a314d11d8f3427389262e6dbb4c76acb5633deb5bb92e4d2193ded",
+    "tools/migration/ts-03/mod-support.ts": "a2e5317cd0644895da06d79bf1ed2209d77c4209eea9ca6dcb1ad8041e51d254",
+    "tools/migration/ts-03/performance/benchmark.ts": "a7ca628379a08c6e86b8e87b245bd7d6e9f5c2281f5ff5267740f2316f099460",
+    "tools/migration/ts-03/performance/candidate.ts": "e7c24914e02e72badc32bd78d90d332b7e788cce25c65064a1f6528e5d290fd1",
+    "tools/migration/ts-03/performance/fixtures.ts": "12fbf83f04a26bc6204f4fc6931ac6aec6791e59f0665726cac5aa885cb0f3bc",
+    "tools/migration/ts-03/performance/oracle.py": "41be95406817db8cfd64021dcf4bcbc4674f65f133836773215f872f6e8c28da",
+    "tools/migration/ts-03/performance/policy.ts": "0506f1555e495ce820a259c65f39b432b0fe4ebe1be4243bba6556570a9ea4da",
+    "tools/migration/ts-03/receipt.ts": "a2ff8cb96d8c6ef8db08ec3eb74c15da300412b6086fae56dcd63d1b7ff19f58",
+    "tools/migration/ts-03/scenarios.ts": "5dd085eb9c01cc6f870582508c16a0f9acda2a945e8d3a9fb50de704ea9e8125",
+    "tools/migration/ts-03/scripts/mod-smoke.py": "cb16d0714eed5727c804bfc130cd7bf916198c34da28996e961317297dd92647",
+    "tools/migration/ts-03/test/child.ts": "8b176defe26cd1fed1ae51c70cf5f0083288e397b2847e52c29813a3cc81cca8",
+    "tools/migration/ts-03/test/cli-help.test.ts": "2cef60217a42853c4edec46dc5ae0efd704a812c6c18d24e005e3da0d962dd3a",
+    "tools/migration/ts-03/test/compare.test.ts": "adefc6dc01ebaa5f9fc8ae0c127620bf7f2733f23e44ccc8c56b1e4167a39669",
+    "tools/migration/ts-03/test/json-boundaries.test.ts": "fbbc0e13bd99db4a454bf7ca3158fd68414a81c9874ccb668c11da274b66dbea",
+    "tools/migration/ts-03/test/mod-backend.test.ts": "6a8e950e3eec646e5d87eedc6603dc1a51de731aca847079c9c39945040a52e6",
+    "tools/migration/ts-03/test/performance-policy.test.ts": "77763e92a5b902f0d7dcadf41ba0b94a7df091bfbada040dcd7a4864a45c8b80",
+    "tools/migration/ts-03/test/platform.test.ts": "3ce74bc977f99f815e1f6c3b3b8e1efbe4d0e91369043ff07c24edc116d9eb8c",
+    "tools/migration/ts-03/test/rendering-primitives.test.ts": "1e6099f3f240c153040bfae6f2d1e4dd4aa4990c0bdf342d54c45057b1d3056c",
+    "tools/migration/ts-03/test/replay.test.ts": "d7c7a455d6e6a4146d266e26dc18a116702973dfabe46a07acd0bab758d6f2bb",
+    "tools/migration/ts-03/test/runtime-numbers.test.ts": "2366d9f4a35a9acc0115202b3bbb1256c1a30af4f81fefe6058ba189a0ebeaba",
+    "tools/migration/ts-03/test/runtime-oracle.py": "a33e69b2e3f475e2cf5e2d8a3d4605530275661382a63d84e654b2d90a1a6a64",
+    "tools/migration/ts-03/test/runtime-parity.test.ts": "53955cca3ed0494b18d30651cf3f987190babafa12de89a8e809d69ee4e50ec1",
+    "tools/migration/ts-03/test/streaming-usage.test.ts": "ca6c8a1e33638d7004f31f8686a5d53a0f511df01747b1d4ba90e1185548b223",
+    "tools/migration/ts-03/test/transactions.test.ts": "05cacfefb9ca13cc54b38467e5baaf271d4a94cd386c21c60dcea317eec21acc",
+    "tools/migration/ts-03/ts04-handoff.json": "511f0459ff219e7ef76ec41b65e9812452970aaee9dbc325ed9f0d46ec473cfc",
+    "tools/migration/ts-03/worker.ts": "22ac86f651dd8bf5cb66b79e5f725fd3f40bffab0aa042ddf7e8cdb5c050f749",
+    "tools/typescript/check-runtime.mjs": "3edfce93d19bfc6b4f513617fd4aa17baf51ce19462214ec720f0fd45b659047",
+    "tools/typescript/test.mjs": "3e2e58fee7fbf71a60281c3b97257711e9e64c464a3bddcd33797094dd337659",
+    "tsconfig.base.json": "3ad2d89fc6861d08d632a815211bf0538994c7fc1c3e4becd08422cb9f933fa2",
+    "tsconfig.json": "0d2803372982443c270acecd46fdde31246576a31e86d2f96f70b1a14799e7cf",
+    "tsconfig.tools.json": "6e44ba9782d2a0af083fe5e60f3d4361b60dccd50d78d8a4fd7874162097a6d2"
+  },
+  "baseline_lock_sha256": "a701f70744de7fbc9ffe7c8122fcf4383e690ab052bf7b421008b3c523227bfc",
+  "limitation": "Source/provenance receipt; CI/test results and functional parity are separate evidence.",
+  "scope": "Second and final approved TS-03 performance optimization round; performance gate remains failed",
+  "pr": "https://github.com/fbincon/claude-code-statusline/pull/85",
+  "functional": {
+    "typescript": {
+      "total": 557,
+      "passed": 556,
+      "skipped": 1,
+      "failed": 0
+    },
+    "fixed_cases": {
+      "completed": 161,
+      "differences": 3,
+      "difference_policy": "Original approved CLI text exceptions unchanged"
+    },
+    "inventory": {
+      "total": 516,
+      "ported": 471,
+      "deferred": 45,
+      "pending": 0
+    },
+    "python": {
+      "total": 856,
+      "passed": 847,
+      "skipped": 9,
+      "failed": 0,
+      "interpreter": ".venv/bin/python",
+      "version": "3.14.4"
+    },
+    "mods": {
+      "host": "Official Claude Code 2.1.294",
+      "native_passed": 112,
+      "runtime_passed": 10,
+      "typechecks": true,
+      "strict_validators": true
+    },
+    "generated_resources": 34,
+    "retained_read_only_generators": 5,
+    "docs_links": 1552,
+    "fixture_validation": {
+      "cases": 32,
+      "bytecode_modes": 2,
+      "not_performance_acceptance": true
+    }
+  },
+  "log_sha256": {
+    "perf-opt-02-diff.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "perf-opt-02-docs.log": "57ed3f958874c420a864c2bf97fd5454c4312eb493d7f8eebf5978f7f9d017ac",
+    "perf-opt-02-editor_fixtures.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "perf-opt-02-i18n.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "perf-opt-02-inventory.log": "fe214a932dc0ffb60bad524ea9202844e453e5db33a6c1eae5a18c1aff44b923",
+    "perf-opt-02-native-mod.log": "be0f69407c9acd4c9e8039abcab0e772e148f104ca9395d7a7bcdf39cef3598b",
+    "perf-opt-02-native-typecheck.log": "f7290d232641a010f20cc6dbe0fecc7c9ca0c0b9b73dc9235caccb8d538d7cef",
+    "perf-opt-02-native-validate.log": "1e25e78655ae9ddfacf6c8718be2af4997dcd13e5384d04ef938b4a52b5500f3",
+    "perf-opt-02-python.log": "1ab52703435b3c02865c9e79a81206756b4382156064122da767111a66881e48",
+    "perf-opt-02-resources.log": "e64ae4bcb2f0b9f0680b3059a13e95b9d2d22633095fafe35a4d01c2293169fa",
+    "perf-opt-02-runtime-mod.log": "8a563bebf91ce9b5deeb61315807c525f87651a808683eea71d88c55304f751e",
+    "perf-opt-02-runtime-typecheck.log": "61b073b18c91c652d73fa3de43c5dcfc19fde3d32379c380c6284effd5ff4a89",
+    "perf-opt-02-runtime-validate.log": "1010ac898bfa28a8fec98f6a4ac54aac86688d6aadf8700b82822b71114581a4",
+    "perf-opt-02-runtime_contracts.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "perf-opt-02-targeted.log": "a2ed794d4ef7b42f8a0b13a37f571ccf2c981c61bff47f828dae16b31598560e",
+    "perf-opt-02-tests-final.log": "69c6383255cc262f22e4f60356148bf92fbf2334080121497f621591bdebb211",
+    "perf-opt-02-tests-initial.log": "1cf1e7dff65f96ff8cfcde817322f51e07a49ef4c659ccdaf0998c81a7771919",
+    "perf-opt-02-ui_contracts.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "perf-opt-02-unicode.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "perf-opt-02-validation.log": "7dc9dbda692d7b08ee749cba7edd89b5482039604d07fd8bcb79f3754a4cf19b"
+  },
+  "performance": {
+    "summary": "performance.optimization-02.json",
+    "raw_sha256": "906471de949f879fb76f8b812e12770ee5ec109b144d84c3daf20e9c697eff01",
+    "sample_count": 19200,
+    "dispositions": {
+      "pass": 104,
+      "fail": 60,
+      "inconclusive": 28
+    },
+    "repeats_used": 0,
+    "state": "fail"
+  },
+  "initial_ci": {
+    "jobs": [
+      {
+        "id": 116284807885,
+        "name": "TS-03 / macos-26 / arm64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560971,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned development and prebuilt native dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Compile and test the production adapters and core",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Verify TypeScript-owned shared resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Check immutable baseline and test migration inventory",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Bind evidence to compiled sources and runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          }
+        ]
+      },
+      {
+        "id": 116284807995,
+        "name": "TS-03 / windows-11-arm / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560971,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned development and prebuilt native dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Compile and test the production adapters and core",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Verify TypeScript-owned shared resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Check immutable baseline and test migration inventory",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Bind evidence to compiled sources and runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          }
+        ]
+      },
+      {
+        "id": 116284808023,
+        "name": "TS-03 / macos-15-intel / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560971,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned development and prebuilt native dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Compile and test the production adapters and core",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Verify TypeScript-owned shared resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Check immutable baseline and test migration inventory",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Bind evidence to compiled sources and runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          }
+        ]
+      },
+      {
+        "id": 116284808056,
+        "name": "TS-03 / macos-14 / arm64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560971,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned development and prebuilt native dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Compile and test the production adapters and core",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Verify TypeScript-owned shared resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Check immutable baseline and test migration inventory",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Bind evidence to compiled sources and runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          }
+        ]
+      },
+      {
+        "id": 116284808087,
+        "name": "TS-03 / ubuntu-24.04 / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560971,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned development and prebuilt native dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Compile and test the production adapters and core",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Verify TypeScript-owned shared resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Check immutable baseline and test migration inventory",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Bind evidence to compiled sources and runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          }
+        ]
+      },
+      {
+        "id": 116284808155,
+        "name": "TS-03 / macos-26-intel / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560971,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned development and prebuilt native dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Compile and test the production adapters and core",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Verify TypeScript-owned shared resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Check immutable baseline and test migration inventory",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Bind evidence to compiled sources and runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          }
+        ]
+      },
+      {
+        "id": 116284808383,
+        "name": "TS-03 / macos-15 / arm64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560971,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned development and prebuilt native dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Compile and test the production adapters and core",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Verify TypeScript-owned shared resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Check immutable baseline and test migration inventory",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Bind evidence to compiled sources and runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          }
+        ]
+      },
+      {
+        "id": 116284809055,
+        "name": "TS-03 / windows-2025 / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560971,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned development and prebuilt native dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Compile and test the production adapters and core",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Verify TypeScript-owned shared resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Check immutable baseline and test migration inventory",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Bind evidence to compiled sources and runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          }
+        ]
+      },
+      {
+        "id": 116284807891,
+        "name": "TS-02 / macos-14 / arm64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693561008,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned prebuilt probe dependencies without lifecycle scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Prepare terminal harness",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Compile probes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Native APIs, mixed locks, terminal and installed artifact evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Verify evidence receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "PowerShell argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Git Bash argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          }
+        ]
+      },
+      {
+        "id": 116284808100,
+        "name": "TS-02 / macos-15-intel / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693561008,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned prebuilt probe dependencies without lifecycle scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Prepare terminal harness",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Compile probes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Native APIs, mixed locks, terminal and installed artifact evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Verify evidence receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "PowerShell argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Git Bash argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          }
+        ]
+      },
+      {
+        "id": 116284808128,
+        "name": "TS-02 / ubuntu-24.04 / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693561008,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned prebuilt probe dependencies without lifecycle scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Prepare terminal harness",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Compile probes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Native APIs, mixed locks, terminal and installed artifact evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Verify evidence receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "PowerShell argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Git Bash argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          }
+        ]
+      },
+      {
+        "id": 116284808130,
+        "name": "TS-02 / macos-26 / arm64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693561008,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned prebuilt probe dependencies without lifecycle scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Prepare terminal harness",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Compile probes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Native APIs, mixed locks, terminal and installed artifact evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Verify evidence receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "PowerShell argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Git Bash argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          }
+        ]
+      },
+      {
+        "id": 116284808140,
+        "name": "TS-02 / windows-11-arm / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693561008,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned prebuilt probe dependencies without lifecycle scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Prepare terminal harness",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Compile probes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Native APIs, mixed locks, terminal and installed artifact evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Verify evidence receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "PowerShell argv smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Git Bash argv smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          }
+        ]
+      },
+      {
+        "id": 116284808235,
+        "name": "TS-02 / macos-26-intel / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693561008,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned prebuilt probe dependencies without lifecycle scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Prepare terminal harness",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Compile probes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Native APIs, mixed locks, terminal and installed artifact evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Verify evidence receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "PowerShell argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Git Bash argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          }
+        ]
+      },
+      {
+        "id": 116284808264,
+        "name": "TS-02 / windows-2025 / x64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693561008,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned prebuilt probe dependencies without lifecycle scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Prepare terminal harness",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Compile probes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Native APIs, mixed locks, terminal and installed artifact evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Verify evidence receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "PowerShell argv smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Git Bash argv smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          }
+        ]
+      },
+      {
+        "id": 116284808302,
+        "name": "TS-02 / macos-15 / arm64",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693561008,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install pinned prebuilt probe dependencies without lifecycle scripts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Prepare terminal harness",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Compile probes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Native APIs, mixed locks, terminal and installed artifact evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Verify evidence receipt",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "PowerShell argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Git Bash argv smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          }
+        ]
+      },
+      {
+        "id": 116284807810,
+        "name": "Linux / Claude Code 2.1.288",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284807909,
+        "name": "macOS / Claude Code 2.1.289",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808000,
+        "name": "macOS / Claude Code 2.1.294",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808044,
+        "name": "Linux / Claude Code 2.1.287",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808068,
+        "name": "Windows / Claude Code 2.1.288",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808070,
+        "name": "macOS / Claude Code 2.1.296",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808086,
+        "name": "Linux / Claude Code 2.1.294",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808089,
+        "name": "Windows / Claude Code 2.1.289",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808157,
+        "name": "Windows / Claude Code 2.1.294",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808187,
+        "name": "Linux / Claude Code 2.1.296",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808227,
+        "name": "macOS / Claude Code 2.1.288",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808236,
+        "name": "Windows / Claude Code 2.1.296",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284808260,
+        "name": "Linux / Claude Code 2.1.289",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560962,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install fixed host and development dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Generate exact-build official declarations",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Shared protocol contracts",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Official static validation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Official Mod tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "TypeScript checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Official installation and backend bridge",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Independent runtime Mod and installation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "Upload native installation evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 26
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          }
+        ]
+      },
+      {
+        "id": 116284807552,
+        "name": "Frozen Python migration baseline",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Install reference test discovery dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Capture frozen behavioral cases",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify frozen source, inventories and behavioral cases",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Preserve synthetic replay evidence",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15
+          }
+        ]
+      },
+      {
+        "id": 116284807658,
+        "name": "macos-15 / Python 3.10",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807849,
+        "name": "macos-15-intel / Python 3.10",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807875,
+        "name": "Build and inspect distributions",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Run python -m pip install build twine 'readme-renderer[md]'",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Validate documentation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Build with local-only exclusion fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Inspect wheel and sdist contents",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Validate PyPI metadata and long description",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 16
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17
+          }
+        ]
+      },
+      {
+        "id": 116284807904,
+        "name": "macos-15 / Python 3.14",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807905,
+        "name": "windows-latest / Python 3.10",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807955,
+        "name": "macos-26 / Python 3.10",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807956,
+        "name": "ubuntu-latest / Python 3.10",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807974,
+        "name": "macos-26-intel / Python 3.14",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807986,
+        "name": "windows-latest / Python 3.14",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807987,
+        "name": "macos-26-intel / Python 3.10",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284807999,
+        "name": "ubuntu-latest / Python 3.14",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284808033,
+        "name": "macos-15-intel / Python 3.14",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      },
+      {
+        "id": 116284808064,
+        "name": "macos-26 / Python 3.14",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 38693560933,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Prepare POSIX terminal integration prerequisites",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Install from package metadata",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verify Windows curses backend",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Unit and integration tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Shared language resources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Fixed Unicode tables and conformance fixtures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Ruff fatal and syntax checks",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "PowerShell command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Git Bash command smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12
+          },
+          {
+            "name": "POSIX installed CLI and native adapter smoke",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13
+          },
+          {
+            "name": "Upload platform validation report",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Run actions/setup-python@v5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 27
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 28
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 29
+          }
+        ]
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 11954130736,
+        "name": "ts03-macos-26-arm64",
+        "size_in_bytes": 14254,
+        "url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11954130736",
+        "archive_download_url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11954130736/zip",
+        "expired": false,
+        "created_at": "2026-10-15T06:46:48Z",
+        "expires_at": "2027-01-13T06:37:53Z",
+        "updated_at": "2026-10-15T06:46:48Z",
+        "digest": "sha256:edb8ad392388c80eedd9d7fed3cfde6905e3e0083527866a1f1858a340be9327",
+        "workflow_run": {
+          "id": 38693560971,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-performance-round-2",
+          "head_sha": "93384f573ddb02b4067947493b6d89a64b276341"
+        }
+      },
+      {
+        "id": 11953950042,
+        "name": "ts03-windows-2025-x64",
+        "size_in_bytes": 14286,
+        "url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953950042",
+        "archive_download_url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953950042/zip",
+        "expired": false,
+        "created_at": "2026-10-15T06:41:59Z",
+        "expires_at": "2027-01-13T06:37:53Z",
+        "updated_at": "2026-10-15T06:41:59Z",
+        "digest": "sha256:6ec958496b34266e1ad72743b92b99331e00a26aed5a5c92ddf00d252779293c",
+        "workflow_run": {
+          "id": 38693560971,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-performance-round-2",
+          "head_sha": "93384f573ddb02b4067947493b6d89a64b276341"
+        }
+      },
+      {
+        "id": 11953891395,
+        "name": "ts03-macos-15-intel-x64",
+        "size_in_bytes": 14261,
+        "url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953891395",
+        "archive_download_url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953891395/zip",
+        "expired": false,
+        "created_at": "2026-10-15T06:48:08Z",
+        "expires_at": "2027-01-13T06:37:53Z",
+        "updated_at": "2026-10-15T06:48:08Z",
+        "digest": "sha256:ba349be8d9e040a3ba356aa7cc2cf948b2f897673b14cef63c703c0653eae93c",
+        "workflow_run": {
+          "id": 38693560971,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-performance-round-2",
+          "head_sha": "93384f573ddb02b4067947493b6d89a64b276341"
+        }
+      },
+      {
+        "id": 11953886252,
+        "name": "ts03-macos-26-intel-x64",
+        "size_in_bytes": 14261,
+        "url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953886252",
+        "archive_download_url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953886252/zip",
+        "expired": false,
+        "created_at": "2026-10-15T06:47:29Z",
+        "expires_at": "2027-01-13T06:37:53Z",
+        "updated_at": "2026-10-15T06:47:29Z",
+        "digest": "sha256:84a8a23963aaa95ea582ab9277df8239be6a3027b20c11c5cda01efa22240a7d",
+        "workflow_run": {
+          "id": 38693560971,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-performance-round-2",
+          "head_sha": "93384f573ddb02b4067947493b6d89a64b276341"
+        }
+      },
+      {
+        "id": 11953490429,
+        "name": "ts03-ubuntu-24.04-x64",
+        "size_in_bytes": 14262,
+        "url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953490429",
+        "archive_download_url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953490429/zip",
+        "expired": false,
+        "created_at": "2026-10-15T06:40:26Z",
+        "expires_at": "2027-01-13T06:37:53Z",
+        "updated_at": "2026-10-15T06:40:26Z",
+        "digest": "sha256:508ee915024e1114e973216bd80a7741ad4700d7a828b7406902ac01ec16172a",
+        "workflow_run": {
+          "id": 38693560971,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-performance-round-2",
+          "head_sha": "93384f573ddb02b4067947493b6d89a64b276341"
+        }
+      },
+      {
+        "id": 11953452010,
+        "name": "ts03-macos-15-arm64",
+        "size_in_bytes": 14254,
+        "url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953452010",
+        "archive_download_url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953452010/zip",
+        "expired": false,
+        "created_at": "2026-10-15T06:44:35Z",
+        "expires_at": "2027-01-13T06:37:53Z",
+        "updated_at": "2026-10-15T06:44:35Z",
+        "digest": "sha256:97ff94af2b737de0cf04f284f1849b399e0fa23b4fec294fd585c014b9fa1bf9",
+        "workflow_run": {
+          "id": 38693560971,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-performance-round-2",
+          "head_sha": "93384f573ddb02b4067947493b6d89a64b276341"
+        }
+      },
+      {
+        "id": 11953337416,
+        "name": "ts03-windows-11-arm-x64",
+        "size_in_bytes": 14288,
+        "url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953337416",
+        "archive_download_url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11953337416/zip",
+        "expired": false,
+        "created_at": "2026-10-15T06:45:56Z",
+        "expires_at": "2027-01-13T06:37:53Z",
+        "updated_at": "2026-10-15T06:45:56Z",
+        "digest": "sha256:f562524fc4adec711eb0868f5e5c7830729788c32f7d39dfeccfd6885fdd3bb3",
+        "workflow_run": {
+          "id": 38693560971,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-performance-round-2",
+          "head_sha": "93384f573ddb02b4067947493b6d89a64b276341"
+        }
+      },
+      {
+        "id": 11952964263,
+        "name": "ts03-macos-14-arm64",
+        "size_in_bytes": 14254,
+        "url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11952964263",
+        "archive_download_url": "https://api.github.com/repos/fbincon/claude-code-statusline/actions/artifacts/11952964263/zip",
+        "expired": false,
+        "created_at": "2026-10-15T06:40:48Z",
+        "expires_at": "2027-01-13T06:37:53Z",
+        "updated_at": "2026-10-15T06:40:48Z",
+        "digest": "sha256:8fc06185b37d885791c0558f308bef5c036a5caf0221917913767e4fb2e43040",
+        "workflow_run": {
+          "id": 38693560971,
+          "repository_id": 1399787498,
+          "head_repository_id": 1399787498,
+          "head_branch": "fbincon/ts-03-performance-round-2",
+          "head_sha": "93384f573ddb02b4067947493b6d89a64b276341"
+        }
+      }
+    ],
+    "source_verification": {
+      "head": "93384f573ddb02b4067947493b6d89a64b276341",
+      "tested_merge": "880d2b98cdf0f0f52f4e04daf9446203e1917fa8",
+      "same_tree": true,
+      "jobs_passed": 43,
+      "receipts": [
+        {
+          "artifact": "ts03-macos-14-arm64",
+          "source_files": 298,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "node_sha256": "e4b5a3af0e05c75de2eae013904145f40fe7fc2a6e6f17510128bf45cca4e79b",
+          "host_arch": "arm64",
+          "process_arch": "arm64"
+        },
+        {
+          "artifact": "ts03-macos-15-arm64",
+          "source_files": 298,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "node_sha256": "e4b5a3af0e05c75de2eae013904145f40fe7fc2a6e6f17510128bf45cca4e79b",
+          "host_arch": "arm64",
+          "process_arch": "arm64"
+        },
+        {
+          "artifact": "ts03-macos-15-intel-x64",
+          "source_files": 298,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "node_sha256": "7abcf39bd37ab251015337ff75304d7555f0d8e88c6e0fbf04bce8ce34636f49",
+          "host_arch": "x64",
+          "process_arch": "x64"
+        },
+        {
+          "artifact": "ts03-macos-26-arm64",
+          "source_files": 298,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "node_sha256": "e4b5a3af0e05c75de2eae013904145f40fe7fc2a6e6f17510128bf45cca4e79b",
+          "host_arch": "arm64",
+          "process_arch": "arm64"
+        },
+        {
+          "artifact": "ts03-macos-26-intel-x64",
+          "source_files": 298,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "node_sha256": "7abcf39bd37ab251015337ff75304d7555f0d8e88c6e0fbf04bce8ce34636f49",
+          "host_arch": "x64",
+          "process_arch": "x64"
+        },
+        {
+          "artifact": "ts03-ubuntu-24.04-x64",
+          "source_files": 298,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+          "host_arch": "x64",
+          "process_arch": "x64"
+        },
+        {
+          "artifact": "ts03-windows-11-arm-x64",
+          "source_files": 298,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "node_sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32",
+          "host_arch": "arm64",
+          "process_arch": "x64"
+        },
+        {
+          "artifact": "ts03-windows-2025-x64",
+          "source_files": 298,
+          "exact_git_blob_hashes": true,
+          "unchanged_pinned_runtime_hash": true,
+          "node_sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32",
+          "host_arch": "x64",
+          "process_arch": "x64"
+        }
+      ],
+      "complete": true
+    }
+  },
+  "duplicate_push_cancellations": {
+    "head": "93384f573ddb02b4067947493b6d89a64b276341",
+    "pr_runs": [
+      38693560971,
+      38693561008,
+      38693560962,
+      38693560933
+    ],
+    "cancelled_duplicate_push_runs": [
+      {
+        "run": 38693535095,
+        "event": "push",
+        "reason": "Duplicate of four confirmed same-head pull_request runs; not counted as passing CI",
+        "exit": 0,
+        "output": "\u2713 Request to cancel workflow 38693535095 submitted.\n"
+      },
+      {
+        "run": 38693535129,
+        "event": "push",
+        "reason": "Duplicate of four confirmed same-head pull_request runs; not counted as passing CI",
+        "exit": 0,
+        "output": "\u2713 Request to cancel workflow 38693535129 submitted.\n"
+      },
+      {
+        "run": 38693535067,
+        "event": "push",
+        "reason": "Duplicate of four confirmed same-head pull_request runs; not counted as passing CI",
+        "exit": 0,
+        "output": "\u2713 Request to cancel workflow 38693535067 submitted.\n"
+      },
+      {
+        "run": 38693535074,
+        "event": "push",
+        "reason": "Duplicate of four confirmed same-head pull_request runs; not counted as passing CI",
+        "exit": 0,
+        "output": "\u2713 Request to cancel workflow 38693535074 submitted.\n"
+      }
+    ]
+  },
+  "stage": "IN_PROGRESS",
+  "integration_record": {
+    "measured_commit": "93384f573ddb02b4067947493b6d89a64b276341",
+    "final_head_merge_and_gitee_record": "https://github.com/fbincon/claude-code-statusline/pull/85",
+    "note": "The final documentation head and integration merge are separate from the measured commit; verified final CI and merge SHA are recorded on the PR after integration."
+  },
+  "final_documentation_validation": {
+    "links": 1566,
+    "passed": true,
+    "log_sha256": "9eb07ca547a9be4c9b6dced20777d652f735e060bee3f0edc63dca288fe231d7",
+    "measured_source_and_compiled_graph_unchanged": true,
+    "original_performance_03_f_unchanged": true
+  }
+}

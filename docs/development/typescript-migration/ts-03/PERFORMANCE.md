@@ -4,6 +4,8 @@
 
 **Result: FAIL. TS-03 remains IN_PROGRESS.** All 32 workloads produced matching outputs and collection counts, but the fixed performance gate failed: **91 pass, 69 fail, 32 inconclusive** across 192 latency/RSS dispositions. Warm Python bytecode: 38/43/15; cold bytecode: 53/26/17. No failed or noisy result is counted as a pass.
 
+This page preserves the original 03-F measurement. Both subsequent optimization rounds are complete; round 2 is **104/60/28 (pass/fail/inconclusive)** and still fails. See the [optimization and per-metric regression report](PERFORMANCE-OPTIMIZATION.md).
+
 ## Reproducible evidence
 
 Candidate: `1fddaa6ea1fef7f631e51641f15214cbddd7ec08` (clean). Immutable Python oracle: `9b6d2fab4bf165be280d428a874521bfbf02c7e1`. Node 24.21.0 and Python 3.14.4 ran on the same Linux x86-64 machine. The [complete machine-readable summary](performance.03-f.json) retains all 64 workload/mode comparisons, all 192 round summaries, runtime/policy/fixture hashes, output hashes and exact collector counts. The 424-entry source/compiled graph is identified by the measured commit and manifest digest. Raw samples remain under the ignored evidence path recorded in that summary; the raw report SHA-256 is `61525a2604ad709b4f2b8b953851f3b668ebf4053d5b291afe53b69538b7c985`.
