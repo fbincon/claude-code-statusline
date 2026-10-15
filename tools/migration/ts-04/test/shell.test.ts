@@ -4,9 +4,10 @@ import { POWERSHELL_FLAGS, runShell, powershellEnvironment, powershellIsolation 
 
 test('PowerShell bootstraps OS folders while child Node retains isolated literal paths', () => {
   const isolated = { HOME: "C:/isolated 中文 ' $` &", USERPROFILE: 'C:/isolated', PATH: 'C:/node-only', CLAUDE_CONFIG_DIR: 'C:/temporary-config' };
-  const actual = powershellEnvironment(isolated, { USERPROFILE: 'C:/Users/runner', LOCALAPPDATA: 'C:/Users/runner/AppData/Local' });
+  const actual = powershellEnvironment({ ...isolated, PSModulePath: 'C:/PowerShell/7/Modules' }, { USERPROFILE: 'C:/Users/runner', LOCALAPPDATA: 'C:/Users/runner/AppData/Local', ProgramFiles: 'C:/Program Files' });
   assert.equal(actual.USERPROFILE, 'C:/Users/runner'); assert.equal(actual.HOME, undefined);
   assert.equal(actual.PATH, isolated.PATH); assert.equal(actual.CLAUDE_CONFIG_DIR, isolated.CLAUDE_CONFIG_DIR);
+  assert.equal(actual.ProgramFiles, 'C:/Program Files'); assert.equal(actual.PSModulePath, undefined);
   const command = powershellIsolation(isolated);
   assert.ok(command.includes("$env:HOME = 'C:/isolated 中文 '' $` &';"));
   assert.ok(command.includes("$env:USERPROFILE = 'C:/isolated';"));

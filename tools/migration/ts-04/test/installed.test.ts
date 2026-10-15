@@ -9,7 +9,7 @@ import { repoRoot, sourceHashes } from '../../ts-03/common.js';
 import { openPty } from './pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import { Capture } from '../capture.js';
-import { POWERSHELL_FLAGS, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
+import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
 const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false };
@@ -127,9 +127,11 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
             fs.writeFileSync(input, payload);
             const checkpoint = join(installed.temporary, `powershell-${operation}.phases`);
             const mark = (phase: string) => `[IO.File]::AppendAllText(${quote(checkpoint)}, ${quote(phase + '\n')}); `;
-            const command = mark('started') + powershellIsolation(installed.env) + `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); ` + mark('encoding') + `$source = Get-Content -Raw -Encoding UTF8 ${quote(input)}; ` + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
+            const readInput = `$source = [IO.File]::ReadAllText(${quote(input)}, [Text.Encoding]::UTF8); `;
+            const encoding = `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); `;
+            const command = mark('started') + POWERSHELL_BOOTSTRAP + mark('modules') + powershellIsolation(installed.env) + encoding + mark('encoding') + readInput + mark('read') + `$source | & ${quote(installed.bin + '.ps1')} ${operation}; $status = $LASTEXITCODE; ` + mark('completed') + `exit $status`;
             const executed = runShell(ps, [...POWERSHELL_FLAGS, command], operation, powershellEnvironment({ ...installed.env, CLAUDE_CONFIG_DIR: config }));
-            report.powershell_profile = 'OS profile for shell initialization with -NoProfile; isolated product paths restored before Node';
+            report.powershell_profile = 'OS profile and explicit built-in Management module with -NoProfile; isolated product paths restored before Node';
             shellReceipts.push(executed.receipt);
             const result = executed.result;
             report.powershell_phases = { ...(report.powershell_phases as object ?? {}), [operation]: fs.existsSync(checkpoint) ? fs.readFileSync(checkpoint, 'utf8').trim().split('\n') : [] };
@@ -137,7 +139,8 @@ test('tests.integration.test_windows_shells.WindowsShellSmokeTests.test_installe
                 const commands = [
                     { name: 'isolated-startup', text: '[Console]::WriteLine("ready")', env: { ...installed.env } },
                     { name: 'original-startup', text: '[Console]::WriteLine("ready")', env: { ...process.env } },
-                    { name: 'direct-node', text: `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Text.UTF8Encoding]::new($false); Get-Content -Raw -Encoding UTF8 ${quote(input)} | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`, env: { ...installed.env, CLAUDE_CONFIG_DIR: config } },
+                    { name: 'original-input', text: `$source = Get-Content -LiteralPath ${quote(input)} -Raw -Encoding UTF8; [Console]::WriteLine($source.Length)`, env: { ...process.env } },
+                    { name: 'direct-node', text: encoding + readInput + `$source | & ${quote(installed.node)} ${quote(installed.entry)} ${operation}; exit $LASTEXITCODE`, env: { ...installed.env, CLAUDE_CONFIG_DIR: config } },
                 ];
                 report.shell_diagnostics = commands.map(probe => { const observed = runShell(ps, [...POWERSHELL_FLAGS, probe.text], probe.name, probe.env); return { ...observed.receipt, stdout: observed.result.stdout }; });
             }

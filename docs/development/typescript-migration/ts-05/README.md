@@ -13,8 +13,8 @@ belong to TS-06. The installed Python product remains intact.
 
 | Batch | Deliverable | State |
 | --- | --- | --- |
-| 05-A | Existing Windows ARM failure and complete responsibility ledger | DONE; [PR #92](https://github.com/fbincon/claude-code-statusline/pull/92) |
-| 05-B | Maintained tools and Python-free test replacements | VALIDATING; [PR #93](https://github.com/fbincon/claude-code-statusline/pull/93) |
+| 05-A | Existing Windows ARM failure and complete responsibility ledger | VALIDATING; diagnostics in [PR #92](https://github.com/fbincon/claude-code-statusline/pull/92), final Windows acceptance pending |
+| 05-B | Maintained tools and Python-free test replacements | DONE; [PR #93](https://github.com/fbincon/claude-code-statusline/pull/93), all 43 checks passed |
 | 05-C | Reproducible universal offline candidate | VALIDATING; two local builds identical |
 | 05-D | CI cutover and Python archive | VALIDATING; independent historical verification passed |
 | 05-E | Candidate acceptance, documentation and closure | IN_PROGRESS; final target CI pending |
@@ -58,6 +58,16 @@ fabricated user profile also timed out; OS-profile startup and direct Node
 diagnostics succeeded. PowerShell now bootstraps with valid OS profile folders
 under `-NoProfile`, restores isolated product paths inside the command and retains
 the existing timeout. Final cross-platform confirmation is pending.
+
+The shared-candidate [run at `bfd4639`](https://github.com/fbincon/claude-code-statusline/actions/runs/38794199753)
+passed twenty jobs but both Windows shell cases timed out after `encoding`, before
+`read`; empty startup probes passed. Preserving cache folders alone did not fix
+the command-module lookup. The harness now explicitly loads the built-in Management
+module needed by npm's unchanged `.ps1` shim, keeps valid OS folder variables and
+reads input with `.NET File.ReadAllText` so shell metacharacters remain literal.
+It removes inherited PowerShell 7 module paths in accordance with
+[Microsoft's startup documentation](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_psmodulepath).
+Module loading remains within the same 20-second bound; CI verification is pending.
 
 ## Completion gates
 
@@ -127,3 +137,11 @@ PowerShell bootstrap regression also passed locally. Archive validation checked
 recaptures, real mixed-version locks and Python-compatible rollback successfully.
 No paid session or full D06 measurement ran. Final CI and main/Gitee synchronization
 remain required before TS-05 can be marked DONE.
+
+At `bfd4639`, a restricted PATH containing Node, Git, shell utilities and tmux,
+but no Python or compilers, passed **936 tests: 933 pass / three Windows skips**,
+33 generated resources and 1,731 documentation links. Two builds from the CI
+source archive exactly matched CI's candidate, source archive, build manifest and
+checksums: candidate SHA-256 `5cff3e20d248bfc575fa00ae77e2fda335bdd1d26797458713cc496cd49b6c69`.
+The initial restricted PATH lacked Git's POSIX helper utilities; that failed
+environment probe was corrected before this passing run and is not counted as a pass.

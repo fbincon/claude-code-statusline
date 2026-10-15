@@ -88,10 +88,10 @@ jobs:
           name: ts05-candidate
           path: ${{ runner.temp }}/candidate
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Native platform, process, failure and terminal tests without Python
-        run: npm run check
       - name: Install the shared artifact offline with empty cache and scripts disabled
         run: npm run test:installed -- --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/installed.json"
+      - name: Native platform, process, failure and terminal tests without Python
+        run: npm run check
       - name: Bind platform and runtime evidence
         run: npm run migration:receipt -- "$RUNNER_TEMP/evidence/platform.json"
       - uses: actions/upload-artifact@v4

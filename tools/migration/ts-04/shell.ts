@@ -14,6 +14,11 @@ export interface ShellReceipt {
 
 /** A shell smoke must never wait for terminal input or an interactive prompt. */
 export const POWERSHELL_FLAGS = ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command'];
+/** npm's stock .ps1 shim uses Split-Path/Test-Path from this built-in module.
+ * Resolve it directly instead of searching every installed/user module under a
+ * deliberately reduced environment. Keep loading inside the same smoke timeout.
+ */
+export const POWERSHELL_BOOTSTRAP = "$ErrorActionPreference = 'Stop'; Import-Module ($PSHOME + '\\Modules\\Microsoft.PowerShell.Management\\Microsoft.PowerShell.Management.psd1') -ErrorAction Stop; ";
 
 /** Windows PowerShell initializes .NET known folders before the command starts.
  * A fabricated USERPROFILE is not a loaded Windows user profile. Bootstrap the
@@ -22,10 +27,12 @@ export const POWERSHELL_FLAGS = ['-NoLogo', '-NoProfile', '-NonInteractive', '-C
  */
 export function powershellEnvironment(isolated: NodeJS.ProcessEnv, operatingSystem: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
     const result = { ...isolated };
-    for (const name of ['USERPROFILE', 'HOME', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA']) {
+    for (const name of ['USERPROFILE', 'HOME', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA', 'SystemDrive', 'ProgramData', 'ProgramFiles', 'ProgramFiles(x86)', 'ProgramW6432', 'CommonProgramFiles', 'CommonProgramFiles(x86)', 'CommonProgramW6432']) {
         if (operatingSystem[name] !== undefined) result[name] = operatingSystem[name];
         else delete result[name];
     }
+    // A PowerShell 7 parent can leak incompatible module paths through Node.
+    for (const name of Object.keys(result)) if (name.toUpperCase() === 'PSMODULEPATH') delete result[name];
     return result;
 }
 export function powershellIsolation(isolated: NodeJS.ProcessEnv): string {
