@@ -23,18 +23,37 @@ function run(executable: string, args: string[], cwd: string, environment: NodeJ
     return result.stdout.trim();
 }
 try {
-    const python = run(values.python!, ['-c', 'import sys;assert sys.version_info[:3]==(3,14,4);print(sys.executable)'], repoRoot);
-    run(python, ['-c', 'import importlib.metadata as m;assert m.version("wcwidth")=="0.9.1";assert m.version("pyte")=="0.8.2"'], repoRoot);
-    report.python = { version: '3.14.4', executable_sha256: sha256(fs.readFileSync(python)) };
+    const basePython = run(values.python!, ['-c', 'import sys;assert sys.version_info[:3]==(3,14,4);print(sys.executable)'], repoRoot);
+    report.python = { version: '3.14.4', executable_sha256: sha256(fs.readFileSync(basePython)) };
     run('git', ['clone', '--shared', '--no-checkout', '--quiet', repoRoot, root], temp);
     run('git', ['checkout', '--detach', '--quiet', archive.reference_commit], root);
-    const env = { ...process.env, PYTHONPATH: join(root, 'src'), PYTHONDONTWRITEBYTECODE: '1', PYTHONUTF8: '1', TS03_PYTHON: python, PATH: dirname(python) + delimiter + dirname(process.execPath) + delimiter + (process.env.PATH ?? '') };
-    delete (env as NodeJS.ProcessEnv).NODE_OPTIONS;
+    // Historical CLI tests require the actual console entry beside sys.executable.
+    // Never borrow an entry from the operator's existing Python installation.
+    const venv = join(temp, 'python-environment'), home = join(temp, 'home'); fs.mkdirSync(home);
+    const python = join(venv, process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
+    const env: NodeJS.ProcessEnv = { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_CONFIG_DIR: join(home, '.claude'), PYTHONPATH: join(root, 'src'), PYTHONNOUSERSITE: '1', PYTHONDONTWRITEBYTECODE: '1', PYTHONUTF8: '1', TS03_PYTHON: python, VIRTUAL_ENV: venv, PATH: dirname(python) + delimiter + dirname(process.execPath) + delimiter + (process.env.PATH ?? '') };
+    delete env.NODE_OPTIONS; delete env.PYTHONHOME;
+    run(basePython, ['-m', 'venv', venv], root, env);
+    const requirements = join(repoRoot, 'tools/migration/ts-05/reference-requirements.txt'), dependencyReport = join(logs, 'dependencies.json');
+    run(python, ['-m', 'pip', '--isolated', 'install', '--disable-pip-version-check', '--no-input', '--cache-dir', join(temp, 'pip-cache'), '--index-url', 'https://pypi.org/simple', '--require-hashes', '--only-binary=:all:', '--requirement', requirements, '--report', dependencyReport], root, env);
+    run(python, ['-m', 'pip', '--isolated', 'install', '--disable-pip-version-check', '--no-input', '--no-build-isolation', '--no-deps', root], root, env);
+    const entry = join(dirname(python), process.platform === 'win32' ? 'claude-statusline.exe' : 'claude-statusline');
+    if (!fs.statSync(entry).isFile()) throw new Error('Historical installed console entry is missing');
+    report.environment = { isolated: true, source_commit: archive.reference_commit, console_entry_sha256: sha256(fs.readFileSync(entry)), requirements_sha256: sha256(fs.readFileSync(requirements)), dependencies_sha256: sha256(fs.readFileSync(dependencyReport)) };
+    report.checks.installed_entry = run(entry, ['--version'], root, env);
     report.checks.frozen = JSON.parse(run(python, ['-m', 'tools.migration', 'verify', '--python', python], root, env));
     run(python, ['-m', 'unittest', 'discover', '-s', 'tests', '-t', '.', '-v'], root, env); report.checks.python_suite = 'pass; platform skips remain in the log';
     run(process.execPath, [npmEntry(), 'ci', '--ignore-scripts', '--no-audit', '--no-fund'], root, env);
     const files = ['packages/core/test/json.test.ts', ...['cli-help', 'json-boundaries', 'rendering-primitives', 'runtime-numbers', 'runtime-parity', 'streaming-usage'].map(name => `tools/migration/ts-03/test/${name}.test.ts`)];
-    for (const name of files) fs.writeFileSync(join(root, name), execFileSync('git', ['show', '250ea02:' + name], { cwd: root, maxBuffer: 8 * 1024 * 1024 }));
+    // These seven files are byte-identical to the original 250ea02 capture
+    // harness. Reconstruct from main's retained baseline, not a removable PR ref.
+    const harnessCommit = '748cc79840cd08280da4ab7ab8ef3dea7dee9873';
+    const harnessFiles: Record<string, string> = {};
+    for (const name of files) {
+        const raw = execFileSync('git', ['show', harnessCommit + ':' + name], { cwd: root, maxBuffer: 8 * 1024 * 1024 });
+        fs.writeFileSync(join(root, name), raw); harnessFiles[name] = sha256(raw);
+    }
+    report.harness_reconstruction = { commit: harnessCommit, source_files: harnessFiles };
     for (const name of ['platform', 'transactions']) fs.copyFileSync(join(repoRoot, 'archive/python/comparisons/' + name + '.test.ts'), join(root, 'tools/migration/ts-03/test/' + name + '.test.ts'));
     fs.copyFileSync(join(repoRoot, 'archive/python/comparisons/installed.test.ts'), join(root, 'tools/migration/ts-04/test/installed.test.ts'));
     run(process.execPath, [npmEntry(), 'run', 'build'], root, env);

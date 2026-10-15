@@ -2,22 +2,85 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-State: **IN_PROGRESS**, 2026-10-16 (Asia/Shanghai). Worker: Codex.
-Branch: `fbincon/ts-05-candidate`. The [migration plan](../../typescript-migration.md)
+State: **DONE**, 2026-10-16 (Asia/Shanghai). Worker: Codex.
+Completion branch: `fbincon/ts-05-closure`. The [migration plan](../../typescript-migration.md)
 owns stage status. The approved deliverable is one universal offline engineering
 candidate, verified CI artifacts and an isolated in-repository Python archive.
 Public tags, preview/stable publication and the remaining physical/desktop gates
 belong to TS-06. The installed Python product remains intact.
 
+<a id="closure-2026-10-16"></a>
+
+## Closure evidence, 2026-10-16
+
+TS-05's engineering gates are complete. [PR #92](https://github.com/fbincon/claude-code-statusline/pull/92)
+added diagnostics and the responsibility baseline; [PR #93](https://github.com/fbincon/claude-code-statusline/pull/93)
+replaced maintained tools and live Python comparisons; [PR #94](https://github.com/fbincon/claude-code-statusline/pull/94)
+delivered the universal candidate, CI cutover and archive. [Closure PR #95](https://github.com/fbincon/claude-code-statusline/pull/95) also
+makes historical execution independent of any preinstalled Python product.
+Final integration, its rebuilt artifact identity and Gitee synchronization are
+recorded in the closure PR and the local delivery receipt after merge validation.
+
+| Evidence | Verified result |
+| --- | --- |
+| Implementation source | `e438a45fa840a032e8bc3c549250a3950166fff7`, PR #94 merge |
+| PR and merged-main CI | All 23 jobs pass in [PR CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38799227829) and [main CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38801015640). Downloaded artifacts and receipts were independently rechecked. |
+| Shared candidate | `fbincon-statusline-ts05-candidate-0.0.0-ts05.ge438a45fa840.tgz`, 3,318,565 bytes; two clean builds are byte-identical. |
+| Candidate SHA-256 | `b9d032f7ce742ecb7a8c25a997ff759d03b626f5fbbd4f406289a6cdb7e7de59` |
+| Rebuildable source SHA-256 | `statusline-ts05-source-e438a45fa840.tgz`: `48911cb63d9fddd7a2f3820258127b11098c100e41c35dcec73de0815ac171fa` |
+| Installed targets | All ten scenarios pass on each of eight targets, outside the checkout, with empty npm cache, offline installation, scripts disabled and no Python/compiler in PATH. |
+| Fixed hosts | All thirteen host receipts match that same source and artifact; both supported Mods and installed binding pass. Six Mod type results on 2.1.296 remain explicitly unavailable, never passes. |
+| Default tooling | 936 local tests: 933 pass / three native-Windows skips; 33 generated resources; documentation, archive and all responsibility ledgers pass without Python/compiler executables. |
+| Responsibility ledger | 856 methods: 808 ported / 19 retired / 29 historical; 62 tools: 45 replaced / 17 historical; zero pending. |
+| Frozen reference | 161 cases and exactly three approved CLI text differences retained; twelve locked oracle files independently reproduce. |
+| Python archive | 318 Python sources / 361 mapped files preserve original hashes and paths. [Isolated reference CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38802513945) at `7ac7ed2e1a5a894ec2aba10454dea514892a5926` passes the 856-test suite (nine platform skips), oracle recapture, mixed locks and compatible rollback. |
+
+The first manual reference CI exposed an undeclared assumption: some historical
+tests require an installed console entry beside their Python interpreter. The
+runner now creates a private venv, installs hash-locked dependencies and the frozen
+package, and isolates HOME/configuration. Earlier local results are retained as
+historical evidence, not substituted for the clean-environment CI result.
+The seven live-comparison sources reconstruct from retained main baseline
+`748cc79840cd08280da4ab7ab8ef3dea7dee9873`; each matches the original `250ea02`
+capture source byte for byte. Reports bind those file hashes. Original frozen
+provenance remains unchanged, and replay does not require that removable PR ref.
+
+The Windows failure was a 20-second PowerShell startup/command-pipeline timeout,
+not a reported renderer exit. The harness now keeps valid OS folders during
+initialization, explicitly imports Management and Utility (including native stdin
+formatting), disables automatic module search and restores isolated product paths.
+It preserves Windows PowerShell 5.1, the original npm `.ps1` shim, exact stdout,
+Git Bash/direct Node coverage and the 20-second bound. At the verified main merge,
+x64 PowerShell render/subagent calls took **2,998 / 466 ms**; on an ARM host with
+x64 Node they took **12,285 / 1,288 ms**. All phase checkpoints completed. Earlier
+failures, including the [intermediate ARM timeout](https://github.com/fbincon/claude-code-statusline/actions/runs/38797824515), remain recorded below and in raw
+receipts; retries, diagnostics and cancelled runs are not counted as passes.
+
+The subsequent [ARM failure](https://github.com/fbincon/claude-code-statusline/actions/runs/38805419049/job/116666259583)
+occurred before the first PowerShell script checkpoint. Traced diagnostics then
+showed Node reading stdin EOF and exiting normally; shell setup was the remaining
+variable. The final harness therefore records a separate system-shell readiness
+phase, bounded to 60 seconds, loading OS modules/formatting without executing any
+candidate code. All actual application/shell calls remain new processes bounded
+to 20 seconds with no retries. Final receipts include both phases; preparation
+failure or missing evidence rejects the Windows target. The earlier timings above
+remain the earlier merge's measurements, not evidence for this final setup phase.
+
+The [candidate guide](candidate.md) contains rebuild/install commands and the
+[TS-06 handoff](TS06-HANDOFF.md) lists release prerequisites. No public tag, preview,
+Release, registry publication, paid model call, physical acceptance or installed
+Python cutover occurred. D06 remains FAIL; PERF-01 and TS-06 remain NOT_STARTED.
+The following batch notes preserve their original checkpoint states and counts.
+
 ## Batches
 
 | Batch | Deliverable | State |
 | --- | --- | --- |
-| 05-A | Existing Windows ARM failure and complete responsibility ledger | VALIDATING; diagnostics in [PR #92](https://github.com/fbincon/claude-code-statusline/pull/92), final Windows acceptance pending |
+| 05-A | Existing Windows ARM failure and complete responsibility ledger | DONE; [PR #92](https://github.com/fbincon/claude-code-statusline/pull/92) and the final Windows receipts above |
 | 05-B | Maintained tools and Python-free test replacements | DONE; [PR #93](https://github.com/fbincon/claude-code-statusline/pull/93), all 43 checks passed |
-| 05-C | Reproducible universal offline candidate | VALIDATING; two local builds identical |
-| 05-D | CI cutover and Python archive | VALIDATING; independent historical verification passed |
-| 05-E | Candidate acceptance, documentation and closure | IN_PROGRESS; final target CI pending |
+| 05-C | Reproducible universal offline candidate | DONE; independent local and CI builds identical |
+| 05-D | CI cutover and Python archive | DONE; shared CI and isolated historical verification pass |
+| 05-E | Candidate acceptance, documentation and closure | DONE; [TS-06 handoff](TS06-HANDOFF.md) |
 
 ## Responsibility baseline
 

@@ -20,6 +20,7 @@ before(() => {
     driver = join(installed.temporary, 'acceptance-driver.mjs');
     fs.copyFileSync(fileURLToPath(new URL('./installed-driver.js', import.meta.url)), driver);
     report = { schema_version: 1, stage: 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
+    report.powershell_setup = JSON.parse(process.env.TS05_POWERSHELL_SETUP ?? 'null');
 });
 after(() => {
     const path = process.env.TS04_INSTALLED_REPORT;

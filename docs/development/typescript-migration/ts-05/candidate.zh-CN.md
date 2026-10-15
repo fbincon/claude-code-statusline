@@ -50,7 +50,9 @@ npm run candidate:build -- --commit FULL_SHA --source /absolute/source.tgz --out
 
 ## 隔离安装与验收
 
-将 `SHA256SUMS` 放在候选包旁边。全部目标使用同一份制品：
+保留实际生成的文件名，将候选包、源码包、`build-manifest.json` 和 `SHA256SUMS` 放在同一目录。
+以下 `candidate.tgz` 须替换为真实生成的文件名；完整核验会检查整套交付文件。
+全部目标使用同一份制品：
 
 ```bash
 npm run candidate:verify -- --artifact /absolute/candidate.tgz --commit FULL_SHA
@@ -62,6 +64,11 @@ npm run test:mods -- --artifact /absolute/candidate.tgz --commit FULL_SHA --repo
 `--offline --ignore-scripts` 安装。覆盖两种编辑器、特殊字符路径、旧 Python 自有入口升级、
 路径迁移、重装、显式关闭、写入中断、恢复、卸载和兼容的原始字节备份。已有 Python 产品和
 真实 Claude 设置保持不变；证据绑定源码、锁文件、运行时、原生依赖和 tgz 摘要。
+
+Windows 先单独记录有 60 秒上限的系统 PowerShell 就绪检查，仅加载系统模块、路径提供器和
+文本格式器，不执行 Node、候选包或验收输入。全新 ARM runner 有时在第一条 PowerShell
+脚本语句执行前就超过 20 秒。后续每个应用/shell 验收调用仍以新进程运行，保留原 20 秒
+上限且不重试；环境准备失败或缺失不能计为通过。
 
 人工临时安装可运行 `npm install --prefix /absolute/test-prefix --cache /absolute/empty-cache
 --offline --ignore-scripts --no-audit --no-fund /absolute/candidate.tgz`，随后通过 `node
@@ -92,11 +99,14 @@ TS-05 仅保存工程制品。公开预览版本、标签、注册表发布、Re
 预期文件，并验证 Python/Node 混合锁与回退：
 
 ```bash
-# 使用隔离的 Python 3.14.4，安装 wcwidth 0.9.1 和 pyte 0.8.2。
+# 提供 Python 3.14.4；执行器自行创建临时安装环境。
 npm run reference:verify -- --python /absolute/reference-python --report /absolute/new-reference.json
 ```
 
-该入口不刷新预期值、不修改归档字节。旧 Python 发布工作流已归档，仅手动触发的
+执行器创建私有 venv，按[参考依赖锁](../../../../tools/migration/ts-05/reference-requirements.txt)
+安装带哈希的固定依赖，并将冻结包安装到该环境。此步骤需要访问 PyPI，不依赖或修改已有的
+`claude-statusline` 安装；证据记录控制台入口及依赖哈希。该入口不刷新预期值、不修改归档字节。
+旧 Python 发布工作流已归档，仅手动触发的
 `reference.yml` 使用 Python。原阶段结论及来源继续保留。
 
 `benchmark -- --validate --output NEW_DIRECTORY` 验证功能夹具；描述性测量和

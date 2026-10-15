@@ -60,7 +60,10 @@ npm run candidate:build -- --commit FULL_SHA --source /absolute/source.tgz --out
 
 ## Isolated installation and acceptance
 
-Keep `SHA256SUMS` beside the candidate. Every target uses the identical artifact:
+Keep the candidate, source archive, `build-manifest.json` and `SHA256SUMS` together
+under their generated filenames. Replace `candidate.tgz` below with the actual
+generated filename; full verification checks the complete delivery bundle.
+Every target uses the identical artifact:
 
 ```bash
 npm run candidate:verify -- --artifact /absolute/candidate.tgz --commit FULL_SHA
@@ -75,6 +78,13 @@ upgrades, relocation, reinstall, explicit disablement, interrupted writes,
 recovery, uninstall and compatible before-image backups. The installed Python
 product and real Claude settings are untouched. Installed evidence binds source,
 lock, runtime, native dependencies and tgz digests.
+
+Windows first performs a separately reported, 60-second-bounded system PowerShell
+readiness check. It loads only OS modules/providers and their text formatter; it
+does not execute Node, the candidate or acceptance input. Fresh ARM runners can
+exceed 20 seconds before PowerShell's first script statement. Every subsequent
+application/shell acceptance call retains the original 20-second bound, starts a
+new process and must pass without retries. Failed/missing preparation is not a pass.
 
 For a manual temporary installation, run `npm install --prefix /absolute/test-prefix
 --cache /absolute/empty-cache --offline --ignore-scripts --no-audit --no-fund
@@ -115,11 +125,16 @@ sources, replays 161 reference cases, runs the archived Python suite, independen
 recaptures twelve oracle files, and exercises mixed Python/Node locks and rollback:
 
 ```bash
-# Use an isolated Python 3.14.4 environment with wcwidth 0.9.1 and pyte 0.8.2.
+# Supply Python 3.14.4; the runner creates its own temporary installed environment.
 npm run reference:verify -- --python /absolute/reference-python --report /absolute/new-reference.json
 ```
 
-It never refreshes goldens or modifies archive bytes. Historical Python publication
+The runner creates a private venv, installs hash-locked dependencies from
+[reference-requirements.txt](../../../../tools/migration/ts-05/reference-requirements.txt)
+and installs the frozen package there. This requires network access to PyPI and
+does not rely on or modify an existing `claude-statusline` installation. Evidence
+records the console entry and dependency hashes. It never refreshes goldens or
+modifies archive bytes. Historical Python publication
 workflows are archived; only `reference.yml` can run Python and only by manual
 dispatch. Original phase conclusions and sources remain recorded.
 
