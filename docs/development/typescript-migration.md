@@ -21,10 +21,10 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01–TS-04 DONE**; [TS-03 evidence](typescript-migration/ts-03/README.md#closure-2026-10-15) and [TS-04 closure](typescript-migration/ts-04/README.md) |
-| Current task scope | TS-04 DONE: both editors, installation and explicit recovery; TS-05/TS-06 and PERF-01 remain NOT_STARTED |
+| Current task scope | TS-05 IN_PROGRESS: complete tooling, CI and engineering candidate; TS-06 and PERF-01 remain NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; later candidate/delivery tasks determine versions and schedule |
-| Next implementation work | TS-05 tooling, CI and release candidate; not started |
+| Next implementation work | TS-05 05-A: Windows ARM shell diagnostics and complete responsibility ledger |
 
 The maintainer approved TS-04 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-04 record](typescript-migration/ts-04/README.md) tracks five implementation batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
@@ -108,7 +108,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | DONE | Codex; implementation [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85), merge `7eae7c4`; [closure under revised criteria](typescript-migration/ts-03/README.md#closure-2026-10-15) |
 | TS-04 | Both editors, installation and recovery | TS-03 | DONE | Codex; tested `f37e5f5`; [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91); [batches and evidence](typescript-migration/ts-04/README.md) |
-| TS-05 | Complete tooling, CI and release candidate | TS-04 | NOT_STARTED | Unassigned |
+| TS-05 | Complete tooling, CI and release candidate | TS-04 | IN_PROGRESS | Codex; `fbincon/ts-05-tooling-ledger`; [execution record](typescript-migration/ts-05/README.md) |
 | TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |
 
 Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its [plan](performance/perf-01.md) records future work and evidence; it is not TS-07 and does not keep a completed migration open.

@@ -79,6 +79,7 @@ export function installCandidate() {
     if (process.platform !== 'win32')
         fs.chmodSync(node, 0o700);
     const env = { ...process.env, PATH: nodeDir, NODE_PATH: '', TERM: 'xterm-256color', CLAUDE_CONFIG_DIR: join(temporary, 'config'), HOME: join(temporary, 'home'), USERPROFILE: join(temporary, 'home'), npm_config_audit: 'false', npm_config_fund: 'false' };
+    fs.mkdirSync(env.HOME, { recursive: true, mode: 0o700 });
     fs.writeFileSync(join(directory, 'package.json'), '{"name":"ts04-isolated-acceptance","version":"0.0.0","private":true}\n');
     const installed = spawnSync(node, [npmEntry(), 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', packed.tarball], { cwd: directory, env, encoding: 'utf8', timeout: 180000, maxBuffer: 8 * 1024 * 1024 });
     fs.writeFileSync(join(temporary, 'install.log'), installed.stdout + installed.stderr);

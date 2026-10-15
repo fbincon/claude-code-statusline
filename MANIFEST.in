@@ -40,4 +40,5 @@ prune packages/cli/node_modules
 recursive-include tools/typescript *.mjs
 recursive-include tools/generation *.ts
 recursive-include tools/migration/ts-03 *.ts *.json
+recursive-include tools/migration/ts-05 *.ts *.json *.sha256
 recursive-include docs/development/typescript-migration/ts-03 *.json
