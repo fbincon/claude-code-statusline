@@ -24,9 +24,9 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | Current task scope | TS-05 IN_PROGRESS: complete tooling, CI and engineering candidate; TS-06 and PERF-01 remain NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; later candidate/delivery tasks determine versions and schedule |
-| Next implementation work | TS-05 05-A: Windows ARM shell diagnostics and complete responsibility ledger |
+| Next implementation work | TS-05 05-C/05-D: shared candidate CI and archive cutover; final acceptance pending |
 
-The maintainer approved TS-04 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-04 record](typescript-migration/ts-04/README.md) tracks five implementation batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
+The maintainer approved TS-05 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-04 record](typescript-migration/ts-04/README.md) tracks five implementation batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
 TS-03 covers all 161 fixed cases with the same three approved CLI text differences and audits all 516 IDs: 471 ported, 45 complete tests assigned to TS-04, plus remaining assertions in eight mixed tests. Latest local TS validation passed 556/557 tests with one platform skip; the final [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) head passed all 43 CI jobs and eight source-bound receipts before merge `7eae7c4`. These historical TS-03 results are retained separately from the installed TS-04 acceptance. [Closure and evidence](typescript-migration/ts-03/README.md#closure-2026-10-15).
 
@@ -94,7 +94,7 @@ Decision states are `OPEN`, `DECIDED` or `SUPERSEDED`. A decided row must link a
 | [D05](typescript-migration/ts-02/D05.md) | DECIDED | Installation, old-entry retirement, upgrade and rollback | Existing pipx/PATH detection, Windows executable or argv strategy, ownership, plugin/backend binding, opt-out preservation and compatible-backup recovery | Strategy in TS-02; complete in TS-04 |
 | [D06](typescript-migration/ts-02/D06.md) | DECIDED; applicability amended 2026-10-15 | Preserved performance measurement policy and targets | Frozen `3c448b8` policy and historical results unchanged; final-product measurement/optimization belongs to PERF-01 and does not block migration or release | Policy fixed in TS-02; PERF-01 after TS-06 |
 
-The highest-risk source boundaries are [platform clocks](../../src/claude_statusline/platforms/clocks.py), [file locking/publication](../../src/claude_statusline/platforms/files.py), [serialized timers](../../src/claude_statusline/runtime/timing/clock.py), [submission byte cursors](../../src/claude_statusline/runtime/tasks/evidence.py), [semantic revisions](../../src/claude_statusline/config/revisions.py), [CLI ownership](../../src/claude_statusline/integration/ownership.py) and [external terminal handling](../../src/claude_statusline/ui/terminal.py).
+The highest-risk source boundaries are [platform clocks](../../archive/python/src/claude_statusline/platforms/clocks.py), [file locking/publication](../../archive/python/src/claude_statusline/platforms/files.py), [serialized timers](../../archive/python/src/claude_statusline/runtime/timing/clock.py), [submission byte cursors](../../archive/python/src/claude_statusline/runtime/tasks/evidence.py), [semantic revisions](../../archive/python/src/claude_statusline/config/revisions.py), [CLI ownership](../../archive/python/src/claude_statusline/integration/ownership.py) and [external terminal handling](../../archive/python/src/claude_statusline/ui/terminal.py).
 
 In particular, UTF-8 byte offsets are not JavaScript string lengths; canonical revision hashing needs explicit serialization rules; `.cmd` launchers do not automatically preserve the current Windows `.exe` contract. Check runtime behavior against the [Node process-launch documentation](https://nodejs.org/api/child_process.html#spawning-bat-and-cmd-files-on-windows). If evaluating standalone delivery, verify the actual targets and asset behavior in the [Node SEA](https://nodejs.org/api/single-executable-applications.html) or [Bun executable](https://bun.sh/docs/bundler/executables) documentation for the selected version.
 
@@ -108,7 +108,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | DONE | Codex; implementation [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85), merge `7eae7c4`; [closure under revised criteria](typescript-migration/ts-03/README.md#closure-2026-10-15) |
 | TS-04 | Both editors, installation and recovery | TS-03 | DONE | Codex; tested `f37e5f5`; [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91); [batches and evidence](typescript-migration/ts-04/README.md) |
-| TS-05 | Complete tooling, CI and release candidate | TS-04 | IN_PROGRESS | Codex; `fbincon/ts-05-tooling-ledger`; [execution record](typescript-migration/ts-05/README.md) |
+| TS-05 | Complete tooling, CI and release candidate | TS-04 | IN_PROGRESS | Codex; `fbincon/ts-05-candidate`; [execution record](typescript-migration/ts-05/README.md) |
 | TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |
 
 Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its [plan](performance/perf-01.md) records future work and evidence; it is not TS-07 and does not keep a completed migration open.
@@ -199,7 +199,7 @@ Exact collector counts, bounded resources and existing timeout contracts remain 
 
 Use independent copies of configuration/runtime fixtures for the two implementations. Inject clocks and process identities; normalize only documented nondeterministic fields. A new implementation must not write into the Python reference's live directories. For each suspected mismatch, identify whether it is a regression or a separately documented existing defect; do not silently encode a defect as the new contract.
 
-The baseline CI defines Linux, Windows and Intel/Apple Silicon macOS coverage in [CI](../../.github/workflows/ci.yml) and fixed Claude hosts in [Native Mod](../../.github/workflows/native.yml). The README also documents Windows x86/x64 and WSL; list unsupported or untested target combinations explicitly instead of assuming a runtime/package supports them. Claude Code 2.1.296 currently has runtime/installation coverage but lacks declarations from the existing preparation flow, so it must not be reported as passing exact-build type checks.
+The baseline CI defines Linux, Windows and Intel/Apple Silicon macOS coverage in [CI](../../.github/workflows/ci.yml) and fixed Claude hosts in [Native Mod](../../archive/python/workflows/native.yml). The README also documents Windows x86/x64 and WSL; list unsupported or untested target combinations explicitly instead of assuming a runtime/package supports them. Claude Code 2.1.296 currently has runtime/installation coverage but lacks declarations from the existing preparation flow, so it must not be reported as passing exact-build type checks.
 
 Migration stages and PRs do not require repeated full D06 runs. Existing functional, Mod, platform and tooling checks remain applicable; CI/toolchain migration stays in TS-05. PERF-01 performance comparisons use the same machine, fixtures, fixed source/harness revisions and documented cache conditions. Record runtime-only startup separately from full command latency; avoid comparing warmed long-lived TypeScript code to a newly launched Python process. Historical [v2.0 performance](performance-v2.0.0.md) informs case selection but is not a direct measurement of this migration. Do not promise faster execution or less memory before measurement.
 
@@ -231,11 +231,11 @@ Blocker and the action needed to resolve it, if any:
 Check documentation after each update:
 
 ```bash
-python3 -B tools/check_docs.py
+npm run docs:check
 git diff --check
 ```
 
-The documentation checker is still Python at this planning stage; replace this instruction in TS-05. Do not delete the Python reference or mark full parity complete until its mapped behaviors have replacement evidence. Do not start coding or publishing merely because a future task appears in this document.
+TS-05 uses the TypeScript documentation checker; the independent Python reference is archived. Do not delete the Python reference or mark full parity complete until its mapped behaviors have replacement evidence. Do not start coding or publishing merely because a future task appears in this document.
 
 ## Activity log
 

@@ -4,6 +4,9 @@
 
 ## Unreleased
 
+- Move daily tools, frozen-reference tests, candidate builds and CI to TypeScript while preserving the Python implementation and independent historical checks.
+- Add a universal offline engineering candidate, byte-identical independent rebuilds and complete platform/host evidence binding; public versions and publication remain TS-06 work.
+
 ## 2.0.0 - 2026-10-11
 
 - Promote component composition to stable: repeated metrics, literal text, flexible spacers, independent instance options, and opt-in left/right and repeated-metric presets. Existing default display content remains unchanged.

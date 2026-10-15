@@ -3,7 +3,7 @@
 **English** | [简体中文](README.zh-CN.md)
 
 State: **IN_PROGRESS**, 2026-10-16 (Asia/Shanghai). Worker: Codex.
-Branch: `fbincon/ts-05-tooling-ledger`. The [migration plan](../../typescript-migration.md)
+Branch: `fbincon/ts-05-candidate`. The [migration plan](../../typescript-migration.md)
 owns stage status. The approved deliverable is one universal offline engineering
 candidate, verified CI artifacts and an isolated in-repository Python archive.
 Public tags, preview/stable publication and the remaining physical/desktop gates
@@ -14,10 +14,10 @@ belong to TS-06. The installed Python product remains intact.
 | Batch | Deliverable | State |
 | --- | --- | --- |
 | 05-A | Existing Windows ARM failure and complete responsibility ledger | DONE; [PR #92](https://github.com/fbincon/claude-code-statusline/pull/92) |
-| 05-B | Maintained tools and Python-free test replacements | IN_PROGRESS |
-| 05-C | Reproducible universal offline candidate | NOT_STARTED |
-| 05-D | CI cutover and Python archive | NOT_STARTED |
-| 05-E | Candidate acceptance, documentation and closure | NOT_STARTED |
+| 05-B | Maintained tools and Python-free test replacements | VALIDATING; [PR #93](https://github.com/fbincon/claude-code-statusline/pull/93) |
+| 05-C | Reproducible universal offline candidate | VALIDATING; two local builds identical |
+| 05-D | CI cutover and Python archive | VALIDATING; independent historical verification passed |
+| 05-E | Candidate acceptance, documentation and closure | IN_PROGRESS; final target CI pending |
 
 ## Responsibility baseline
 
@@ -47,10 +47,17 @@ The isolated HOME is now created before shell startup; the script reads input
 before entering the PowerShell pipeline and records four checkpoints. The
 [Windows ARM rerun](https://github.com/fbincon/claude-code-statusline/actions/runs/38780352740/job/116578626507)
 passed all ten installed tests at `665f273`: first PowerShell render 14,788 ms,
-subagent render 1,387 ms, both with all checkpoints complete. This fixes the
-observed harness failure; cold-start variability remains visible in receipts.
+subagent render 1,387 ms, both with all checkpoints complete. This was an initial
+passing run, not proof of a stable startup fix.
 All four PR workflows passed; duplicate push runs were cancelled, not counted
 as passes. PR #92 merged as `bc424e3ec8e4734b7c29bbf734b9328ecfc42ba3`.
+
+The [05-B ARM rerun](https://github.com/fbincon/claude-code-statusline/actions/runs/38785440463/job/116596113070)
+later failed before the first script checkpoint. An empty command under the
+fabricated user profile also timed out; OS-profile startup and direct Node
+diagnostics succeeded. PowerShell now bootstraps with valid OS profile folders
+under `-NoProfile`, restores isolated product paths inside the command and retains
+the existing timeout. Final cross-platform confirmation is pending.
 
 ## Completion gates
 
@@ -94,4 +101,29 @@ fixtures validated without a D06 measurement. Copies of existing single/parallel
 task records and single-agent/parallel metrics records revalidated with Node
 (respectively 5/7 requests and 1/2 agents). No paid calls or physical acceptance
 claims were made. Candidate packaging, remaining ledger mappings and CI/archive
-cutover are still pending.
+cutover were still pending at this batch checkpoint.
+
+## 05-C/05-D local validation
+
+The [candidate guide](candidate.md) is the current development/build/installation
+entry. The ledger is closed: **808 ported / 19 retired / 29 historical tests**,
+and **45 replaced / 17 historical tools**. Every original responsibility remains
+listed. Historical entries execute through the independent reference runner;
+moving their files alone does not establish parity.
+
+At source `38ff85b75c936201764c64f80b8fff96f091e176`, two clean builds produced
+the same 3,317,861-byte universal package, SHA-256
+`f72e8a04e17e22c3a0a4dddbc9468cdb441b0bf741d335fa34c96a93aab17a7f`.
+All ten outside-checkout installed tests passed with an empty npm cache, offline
+mode, disabled lifecycle scripts and a Node-only PATH. Local official host
+2.1.294 passed both Mods, exact-host types and installed binding; 2.1.296 passed
+both Mods and binding with its declaration gap explicitly unavailable.
+
+After archive cutover, local `check` passed **932 tests: 929 pass, three Windows
+skips**, 33 active generated resources and 1,729 documentation links; the later
+PowerShell bootstrap regression also passed locally. Archive validation checked
+318 Python sources and 361 mapped files. Independent reconstruction ran all
+856 Python tests (nine platform skips), 161 frozen cases, twelve exact oracle
+recaptures, real mixed-version locks and Python-compatible rollback successfully.
+No paid session or full D06 measurement ran. Final CI and main/Gitee synchronization
+remain required before TS-05 can be marked DONE.

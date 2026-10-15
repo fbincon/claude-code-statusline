@@ -68,6 +68,8 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 
 ## Installation and integration
 
+The installation and upgrade commands below apply to the published Python product. Follow the [development and isolated installation guide](development/typescript-migration/ts-05/candidate.md) for TypeScript source and engineering candidates on current main. Candidate acceptance uses temporary directories and retains the existing Python environment; TS-06 owns public delivery and product cutover.
+
 ### Install the Python package
 
 Install the stable package from [PyPI](https://pypi.org/project/fbincon-claude-code-statusline/):
@@ -102,7 +104,7 @@ pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v2.0.0"
 pipx ensurepath
 ```
 
-Use `@main` for development source or `pipx install .` for a local checkout. Build instructions are in the [development guide](development/README.md#build-and-install-from-source).
+Current `main` uses TypeScript. Follow the [development guide](development/README.md#build-and-install-from-source) for source builds and isolated candidates; use published fixed tags for Python source installation.
 
 ### Integrate with Claude Code
 

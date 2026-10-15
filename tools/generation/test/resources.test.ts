@@ -110,14 +110,14 @@ test('tests.i18n.test_translation.TranslationTests.test_invalid_keys_placeholder
   } finally { run.close(); }
 });
 
-test('language removal identifies only generator-owned obsolete modules and compatibility packs', () => {
+test('language removal identifies only active generator-owned modules', () => {
   const run = fixture();
   try {
     for (const [name, body] of languageOutputs(run.root)) { const path = join(run.root, name); fs.mkdirSync(dirname(path), { recursive: true }); fs.writeFileSync(path, body); }
     fs.writeFileSync(join(run.directory, 'languages.json'), JSON.stringify([run.registry[0]]));
     fs.unlinkSync(join(run.directory, 'locales/fr.json'));
     const values = languageOutputs(run.root);
-    assert.deepEqual(obsoleteOutputs(values, run.root).sort(), ['packages/core/src/i18n/statusline/fr.ts', 'src/claude_statusline/i18n/_generated_statusline/fr.py', 'src/claude_statusline/i18n/locales/fr.json'].sort());
+    assert.deepEqual(obsoleteOutputs(values, run.root).sort(), ['packages/core/src/i18n/statusline/fr.ts'].sort());
     fs.writeFileSync(join(run.root, 'packages/core/src/i18n/statusline/private.ts'), '// handwritten');
     assert.throws(() => obsoleteOutputs(values, run.root), /Unowned/);
   } finally { run.close(); }

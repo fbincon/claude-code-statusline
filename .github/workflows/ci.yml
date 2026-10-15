@@ -4,148 +4,178 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ts05-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  migration-baseline:
-    name: Frozen Python migration baseline
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      PYTHONUTF8: "1"
-      PYTHONDONTWRITEBYTECODE: "1"
+  candidate:
+    name: Reproducible universal candidate
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.identity.outputs.commit }}
+      filename: ${{ steps.identity.outputs.filename }}
     steps:
       - uses: actions/checkout@v4
         with:
-          # The oracle is an immutable older commit, never the current PR head.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          # argparse diagnostic text is part of the byte-level oracle.
-          python-version: "3.14.4"
-      - name: Install reference test discovery dependencies
-        run: python -m pip install "wcwidth==0.9.1" pyte
-      - name: Capture frozen behavioral cases
-        run: python -m tools.migration capture --output-dir "$RUNNER_TEMP/ts01-capture"
-      - name: Verify frozen source, inventories and behavioral cases
-        run: python -m tools.migration verify --capture-dir "$RUNNER_TEMP/ts01-capture"
-      - name: Preserve synthetic replay evidence
-        if: always()
-        uses: actions/upload-artifact@v4
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Python-free development checks and complete responsibility ledger
+        run: npm run check
+      - name: Two independent builds from one immutable commit
+        run: npm run candidate:build -- --commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/candidate"
+      - id: identity
+        name: Record immutable artifact identity
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const manifest = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/candidate/build-manifest.json'));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `commit=${manifest.commit}\nfilename=${manifest.candidate.file}\n`);
+          JS
+      - uses: actions/upload-artifact@v4
         with:
-          name: ts01-python-reference
-          path: ${{ runner.temp }}/ts01-capture
-          if-no-files-found: warn
+          name: ts05-candidate
+          path: ${{ runner.temp }}/candidate/
+          if-no-files-found: error
+          retention-days: 30
 
-  test:
-    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+  installed:
+    name: Installed / ${{ matrix.os }} / ${{ matrix.arch }}
+    needs: candidate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-15-intel, macos-15, macos-26-intel, macos-26]
-        python: ["3.10", "3.14"]
         include:
-          - os: macos-15
-            python: "3.10"
-            architecture: arm64
-            python_spec: "3.10.11"
-          - os: macos-15
-            python: "3.14"
-            architecture: arm64
-          - os: macos-26
-            python: "3.10"
-            architecture: arm64
-            python_spec: "3.10.11"
-          - os: macos-26
-            python: "3.14"
-            architecture: arm64
-
+          - { os: ubuntu-24.04, arch: x64 }
+          - { os: windows-2025, arch: x64 }
+          - { os: windows-11-arm, arch: x64, host_arch: arm64 }
+          - { os: macos-14, arch: arm64 }
+          - { os: macos-15, arch: arm64 }
+          - { os: macos-15-intel, arch: x64 }
+          - { os: macos-26, arch: arm64 }
+          - { os: macos-26-intel, arch: x64 }
     env:
-      PYTHONUTF8: "1"
-      PYTHONDONTWRITEBYTECODE: "1"
-      STATUSLINE_EXPECTED_ARCH: ${{ matrix.architecture || 'x64' }}
-
+      TS05_TARGET: ${{ matrix.os }}-${{ matrix.arch }}
+      TS03_EXPECT_PROCESS_ARCH: ${{ matrix.arch }}
+      TS03_EXPECT_HOST_ARCH: ${{ matrix.host_arch || matrix.arch }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python_spec || matrix.python }}
-          architecture: ${{ matrix.architecture || 'x64' }}
-      - name: Prepare POSIX terminal integration prerequisites
-        if: runner.os != 'Windows'
-        shell: bash
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: "1"
-        run: |
-          if ! command -v tmux >/dev/null 2>&1; then
-            if [ "$RUNNER_OS" = macOS ]; then
-              brew install tmux
-            else
-              sudo -n apt-get update
-              sudo -n apt-get install -y tmux
-            fi
-          fi
-          tmux -V
-          python -c "import curses, platform; assert curses.wrapper; print(platform.platform()); print(platform.python_version()); print(platform.machine())"
-      - name: Install from package metadata
-        run: python -m pip install . ruff "wcwidth==0.9.1" pyte
-      - name: Verify Windows curses backend
-        if: runner.os == 'Windows'
-        run: python -c "import curses, importlib.metadata as m; assert m.version('windows-curses') >= '2.4.2'; assert curses.wrapper"
-      - name: Unit and integration tests
-        run: python -m unittest discover -s tests -t . -v
-      - name: Shared language resources
-        run: python tools/generate_i18n.py --check
-      - name: Fixed Unicode tables and conformance fixtures
-        run: python tools/generate_unicode.py --check
-      - name: Ruff fatal and syntax checks
-        run: ruff check --select F,E9 src tests tools
-      - name: PowerShell command smoke
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $env:CLAUDE_CONFIG_DIR = Join-Path $env:RUNNER_TEMP "statusline powershell"
-          New-Item -ItemType Directory -Force -Path $env:CLAUDE_CONFIG_DIR | Out-Null
-          '{"model":{"id":"claude-ci"},"workspace":{"current_dir":"C:\\ci"},"context_window":{"remaining_percentage":50,"context_window_size":200000}}' | claude-statusline.exe render
-      - name: Git Bash command smoke
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          export CLAUDE_CONFIG_DIR="$RUNNER_TEMP/statusline git bash"
-          mkdir -p "$CLAUDE_CONFIG_DIR"
-          printf '%s' '{"model":{"id":"claude-ci"},"workspace":{"current_dir":"C:\\ci"},"context_window":{"remaining_percentage":50,"context_window_size":200000}}' | claude-statusline.exe render
-      - name: POSIX installed CLI and native adapter smoke
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          python tools/ci_smoke.py --report "$RUNNER_TEMP/statusline-validation.json"
-      - name: Upload platform validation report
-        if: runner.os != 'Windows'
-        uses: actions/upload-artifact@v4
+          ref: ${{ needs.candidate.outputs.commit }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
         with:
-          name: validation-${{ matrix.os }}-python-${{ matrix.python }}
-          path: ${{ runner.temp }}/statusline-validation.json
+          node-version: '24.21.0'
+          architecture: ${{ matrix.arch }}
+          cache: npm
+      - uses: actions/download-artifact@v4
+        with:
+          name: ts05-candidate
+          path: ${{ runner.temp }}/candidate
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Native platform, process, failure and terminal tests without Python
+        run: npm run check
+      - name: Install the shared artifact offline with empty cache and scripts disabled
+        run: npm run test:installed -- --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/installed.json"
+      - name: Bind platform and runtime evidence
+        run: npm run migration:receipt -- "$RUNNER_TEMP/evidence/platform.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ts05-installed-${{ matrix.os }}-${{ matrix.arch }}
+          path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
 
-  build:
-    name: Build and inspect distributions
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+  mods:
+    name: Mods / ${{ matrix.os }} / Claude ${{ matrix.claude }}
+    needs: candidate
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, claude: '2.1.287' }
+          - { os: ubuntu-24.04, claude: '2.1.288' }
+          - { os: ubuntu-24.04, claude: '2.1.289' }
+          - { os: ubuntu-24.04, claude: '2.1.294' }
+          - { os: ubuntu-24.04, claude: '2.1.296' }
+          - { os: windows-2025, claude: '2.1.288' }
+          - { os: windows-2025, claude: '2.1.289' }
+          - { os: windows-2025, claude: '2.1.294' }
+          - { os: windows-2025, claude: '2.1.296' }
+          - { os: macos-15, claude: '2.1.288' }
+          - { os: macos-15, claude: '2.1.289' }
+          - { os: macos-15, claude: '2.1.294' }
+          - { os: macos-15, claude: '2.1.296' }
+    env:
+      DISABLE_AUTOUPDATER: '1'
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
-      - run: python -m pip install build twine 'readme-renderer[md]'
-      - name: Validate documentation
-        run: python tools/check_docs.py
-      - name: Build with local-only exclusion fixtures
+          ref: ${{ needs.candidate.outputs.commit }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - uses: actions/download-artifact@v4
+        with:
+          name: ts05-candidate
+          path: ${{ runner.temp }}/candidate
+      - name: Install the fixed host and development dependencies
         run: |
-          python tools/inspect_dist.py --write-exclusion-fixtures
-          python -m build
-      - name: Inspect wheel and sdist contents
-        run: python tools/inspect_dist.py --check-long-description
-      - name: Validate PyPI metadata and long description
-        run: python -m twine check --strict dist/*.whl dist/*.tar.gz
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund "@anthropic-ai/claude-code@${{ matrix.claude }}"
+          # The official wrapper needs its Node-only native-binary placement step.
+          # Candidate installation itself always keeps all lifecycle scripts disabled.
+          node "$RUNNER_TEMP/claude-host/node_modules/@anthropic-ai/claude-code/install.cjs"
+          echo "$RUNNER_TEMP/claude-host/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Official Mod tests, available exact-build types and installed binding
+        run: npm run test:mods -- --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/mods.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ts05-mods-${{ matrix.os }}-${{ matrix.claude }}
+          path: ${{ runner.temp }}/evidence/
+          if-no-files-found: error
+
+  acceptance:
+    name: Complete candidate evidence
+    needs: [candidate, installed, mods]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.candidate.outputs.commit }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ts05-*
+          path: ${{ runner.temp }}/evidence
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Require all eight targets and thirteen hosts to match the same artifact
+        run: npm run release:prepare -- --artifact "$RUNNER_TEMP/evidence/ts05-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ts05-acceptance
+          path: ${{ runner.temp }}/candidate-acceptance.json
+          if-no-files-found: error

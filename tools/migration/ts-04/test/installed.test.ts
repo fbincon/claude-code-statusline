@@ -10,6 +10,7 @@ import { openPty } from './pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
 import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
+import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
 const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false };
 let driver: string, report: Record<string, unknown> = {};
@@ -18,7 +19,7 @@ before(() => {
     installed = installCandidate();
     driver = join(installed.temporary, 'acceptance-driver.mjs');
     fs.copyFileSync(fileURLToPath(new URL('./installed-driver.js', import.meta.url)), driver);
-    report = { schema_version: 1, stage: 'TS-04', node: process.version, platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
+    report = { schema_version: 1, stage: 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
 });
 after(() => {
     const path = process.env.TS04_INSTALLED_REPORT;

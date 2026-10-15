@@ -1,7 +1,7 @@
 # Preserve canonical Unicode source bytes across Windows and POSIX checkouts.
 tools/unicode/* text eol=lf
 # The frozen replay lock hashes these exact UTF-8 bytes on every native target.
-tools/migration/*.py text eol=lf
+archive/python/** text eol=lf
 tests/fixtures/migration/ts-01/*.json text eol=lf
 packages/** text eol=lf
 tools/migration/ts-03/** text eol=lf
@@ -11,8 +11,7 @@ tools/migration/ts-05/** text eol=lf
 .node-version text eol=lf
 package*.json text eol=lf
 tsconfig*.json text eol=lf
-.github/workflows/typescript.yml text eol=lf
-.github/workflows/native.yml text eol=lf
+.github/workflows/*.yml text eol=lf
 tools/typescript/*.mjs text eol=lf
 tools/generation/** text eol=lf
 tools/testing/** text eol=lf

@@ -16,7 +16,7 @@ they remain unverified and platform support promises are unchanged.
 
 ## Deliverables and decisions
 
-The private [probe package](../../../../tools/migration/ts-02/package.json) uses
+The private [probe package](../../../../archive/python/tools/migration/ts-02/package.json) uses
 Node **24.21.0**, npm (local **11.19.0**), TypeScript **5.9.3**, Koffi **3.3.3**
 and lossless-json **4.3.1**. Runtime archives are pinned by official SHA-256;
 npm dependencies by exact versions and lockfile integrity. Both new dependencies
@@ -121,7 +121,7 @@ The existing declaration boundary is preserved: 2.1.294 generates exact-build
 official declarations and typechecks both Mods. Version 2.1.296 loads, tests and
 installs Mods, but the current generation flow does not emit its declarations;
 no exact-build typecheck pass is claimed. Real argv receipts do not fill that gap.
-See [Native Mod CI](../../../../.github/workflows/native.yml).
+See [Native Mod CI](../../../../archive/python/workflows/native.yml).
 
 ## Performance interpretation and next gate
 

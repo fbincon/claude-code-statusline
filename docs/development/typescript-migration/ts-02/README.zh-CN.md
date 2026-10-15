@@ -13,7 +13,7 @@ TS-02 为 **DONE**，D01–D06 均为 **DECIDED**；TS-03 已[按修订后的非
 
 ## 交付物与决策
 
-私有[探针包](../../../../tools/migration/ts-02/package.json)使用 Node **24.21.0**、npm（本机 **11.19.0**）、
+私有[探针包](../../../../archive/python/tools/migration/ts-02/package.json)使用 Node **24.21.0**、npm（本机 **11.19.0**）、
 TypeScript **5.9.3**、Koffi **3.3.3** 和 lossless-json **4.3.1**。
 运行时归档固定官方 SHA-256，npm 依赖固定版本及 lockfile integrity；两个新增依赖均为 MIT。
 复用的 Unicode 源码和许可文件属于构建产物，原始定义的所有者不变。
@@ -93,7 +93,7 @@ Mod 无 shell 调用不把 `.cmd` 当作原生可执行文件。
 
 保留既有宿主声明边界：2.1.294 继续生成精确版本的官方声明并对两个 Mod 做类型检查；
 2.1.296 能加载、测试和安装 Mod，但现有生成流程不产出精确宿主声明，因此没有声明／类型检查通过结论。
-真实 argv 回执不能填补这一缺口。详见 [Native Mod CI](../../../../.github/workflows/native.yml)。
+真实 argv 回执不能填补这一缺口。详见 [Native Mod CI](../../../../archive/python/workflows/native.yml)。
 
 ## 性能解释与下一门槛
 

@@ -2,6 +2,16 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## TypeScript 工程候选交付
+
+当前 main 使用[TS-05 候选流程](development/typescript-migration/ts-05/candidate.zh-CN.md)：固定提交两次构建，核验通用离线 tgz、源码包和 SHA256SUMS，再汇总八目标安装与十三主机报告。`npm run release:prepare` 只核验本地证据，不上传或发布。每个报告必须匹配源码与实际候选摘要；缺失、跳过和失败不能记为通过。
+
+候选身份与应用版本分开。公开预览、正式版本、标签、npm 发布与 Release 属于 TS-06；先满足剩余实机验收。GitHub 是主仓库，验证合并提交 CI 后，以显式 refspec 同步 main 到 Gitee，不在本阶段创建版本标签。Gitee 说明可用 `release:gitee-notes` 从已核验附件元数据生成。
+
+## 已归档的 Python 发布流程
+
+下文保留已发布 Python 产品及历史发布程序，来源为[归档前提交](https://github.com/fbincon/claude-code-statusline/tree/38ff85b75c936201764c64f80b8fff96f091e176)。旧 PyPI 工作流已移入 archive/python/workflows，不能用当前 main 运行这些 wheel/PyPI 命令。已发布固定标签仍适用其当时流程。
+
 本指南供维护者使用。用户安装请看[项目首页](../README.zh-CN.md#快速安装)，配置说明见[使用指南](USER_GUIDE.zh-CN.md)。当前稳定版为 [v2.0.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v2.0.0)，以下命令以该版本为例；发布其他版本时同步替换标签、包版本和文件名。
 
 本地检查、已安装包 smoke 与显式启用的真实 Linux 计时验收命令见 [测试与验收](development/testing.zh-CN.md)。计时版本发布前，13 个平台/构建 CI 作业与真实计时验收必须通过。原始记录只留在忽略目录，如实记录被测源码、最终提交、实际 CI 链接及原生 duration/视觉验收边界。

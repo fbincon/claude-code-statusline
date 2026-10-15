@@ -6,7 +6,10 @@ import { claudeLaunch, detectClaudeVersion } from '@fbincon/statusline-platform/
 import { installCandidate, officialEnvironment } from './package.js';
 const path = resolve(process.argv[2] ?? 'dist/validation/typescript-migration/ts-04/04-e/official-installed.json');
 fs.mkdirSync(dirname(path), { recursive: true });
-const candidate = installCandidate(), host = claudeLaunch(), version = detectClaudeVersion();
+const candidate = installCandidate(), host = claudeLaunch(process.env.TS05_CLAUDE);
+const versionOutput = spawnSync(host.executable, [...host.args, '--version'], { encoding: 'utf8', timeout: 10000 });
+const versionText = versionOutput.status === 0 ? versionOutput.stdout.match(/\d+\.\d+\.\d+/u)?.[0] : undefined;
+const version = versionText ? versionText.split('.').map(Number) : null;
 try {
     if (!version || version[0] !== 2 || version[1] !== 1 || version[2]! < 287)
         throw new Error('A fixed supported official host is required for this acceptance: ' + JSON.stringify({ host, version }));

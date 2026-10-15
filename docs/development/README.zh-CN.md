@@ -38,97 +38,38 @@
 
 ### 准备开发环境
 
-先克隆仓库并进入项目根目录（Bash / PowerShell 通用）：
-
-```text
-git clone https://github.com/fbincon/claude-code-statusline.git
-cd claude-code-statusline
-```
-
-已有源码时直接进入项目根目录。开发环境与 pipx 的用户安装相互独立。
-
-Linux / WSL / macOS：
+安装固定的 Node 24.21.0/npm 11.19.0 后，在仓库根目录运行：
 
 ```bash
-python3 -m venv .venv-dev
-source .venv-dev/bin/activate
-python -m pip install -e . ruff build twine 'readme-renderer[md]'
+npm ci --ignore-scripts --no-audit --no-fund
+npm run check
 ```
 
-Windows PowerShell（使用已安装的受支持 Python；此处以 3.10 为例）：
-
-```powershell
-py -3.10 -m venv .venv-dev
-.\.venv-dev\Scripts\python.exe -m pip install -e . ruff build twine 'readme-renderer[md]'
-```
+开发环境独立于已有 pipx 产品。默认流程不需要 Python、pip、Ruff、wheel 或原生编译器。
 
 ### 运行检查
 
-Linux / WSL / macOS 在已激活的开发环境中执行：
-
-```bash
-python -m unittest discover -s tests -t . -v
-python -m ruff check --select F,E9 src tests tools
-python tools/generate_i18n.py --check
-python tools/check_docs.py
-git diff --check
-python -m build
-```
-
-Windows PowerShell 直接使用虚拟环境的解释器，无需执行激活脚本：
-
-```powershell
-.\.venv-dev\Scripts\python.exe -m unittest discover -s tests -t . -v
-.\.venv-dev\Scripts\python.exe -m ruff check --select F,E9 src tests tools
-.\.venv-dev\Scripts\python.exe tools/check_docs.py
-git diff --check
-.\.venv-dev\Scripts\python.exe -m build
-```
-
-GitHub Actions 在推送和拉取请求时运行 `ubuntu-latest`、`windows-latest`，以及 `macos-15-intel`、`macos-15`、`macos-26-intel`、`macos-26`，均覆盖 Python 3.10/3.14；显式选择原生架构，ARM64 的 3.10 固定为 3.10.11。Windows 检查 `windows-curses` 并执行 PowerShell/Git Bash smoke；Linux/macOS 准备 tmux 并执行 PTY/popup 集成和安装包 CLI smoke。macOS 还执行 Terminal 辅助进程的原生 PTY 生命周期测试；桌面 Terminal.app smoke 需显式运行，默认测试不打开桌面窗口。构建任务检查版本、条件依赖、平台/Terminal 模块、skills 和所有平台截图。具体结果以[对应提交的 Actions 记录](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)为准。
+`npm run check` 运行真实 Node 并发、故障、终端、冻结案例、生成资源、文档与完整责任台账检查。
+五种语言、两个 Mod 和技能模板由 `tools/generation/` 维护，归档 Python 副本不再生成。
+八目标安装和十三个固定主机组合都使用同一个通用候选 tgz。2.1.296 的声明缺失单独记录。
 
 ### 从源码构建与安装
 
-在项目根目录执行；如果只需要构建包，可使用独立构建环境。
-
-Linux / WSL / macOS：
-
 ```bash
-python3 -m venv .venv-build
-source .venv-build/bin/activate
-python -m pip install --upgrade build
-python -m build
-pipx install dist/fbincon_claude_code_statusline-1.13.0-py3-none-any.whl
-pipx ensurepath
+SOURCE_COMMIT=$(git rev-parse HEAD)
+npm run candidate:build -- --commit "$SOURCE_COMMIT" --output /absolute/new-candidate
 ```
 
-Windows PowerShell：
-
-```powershell
-py -3.10 -m venv .venv-build
-.\.venv-build\Scripts\python.exe -m pip install --upgrade build
-.\.venv-build\Scripts\python.exe -m build
-pipx install .\dist\fbincon_claude_code_statusline-1.13.0-py3-none-any.whl
-pipx ensurepath
-```
-
-上述文件名对应稳定 v1.7.5；构建其他版本时使用实际生成的文件名。已有安装按[升级步骤](../USER_GUIDE.zh-CN.md#升级)替换包。执行 `pipx ensurepath` 后重新打开终端，再完成[接入 Claude Code](../USER_GUIDE.zh-CN.md#接入-claude-code)。
-
-可在已激活的构建环境中用 `python -m zipfile -l dist/fbincon_claude_code_statusline-1.13.0-py3-none-any.whl` 检查 wheel；Windows 使用 `.\.venv-build\Scripts\python.exe`。确认包含 `_platform.py`、`macos_terminal.py` 及 `resources/statusline-config/SKILL.md`、`resources/statusline-configure/SKILL.md`。源码包还应包含本指南、发布指南和 `images/` 截图，完整发布步骤见[发布指南](../RELEASING.zh-CN.md)。
+构建执行两次独立干净重建并要求字节一致。输出候选包、源码包、SHA256SUMS 和构建清单。
+临时安装、PowerShell/直接 Node 入口、升级和恢复步骤见[候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。
+不要从当前 main 执行 pipx 源码安装；已发布 Python 产品仍可按固定标签或 wheel 安装。
 
 ### 隔离测试与人工验收
 
-macOS 用户可在安装了当前 wheel 的 Python 虚拟环境中，显式执行 Terminal.app smoke：
-
-```bash
-.venv-wheel-check/bin/python tools/macos_terminal_smoke.py
-```
-
-该命令打开 Terminal.app，使用临时配置和缩短期限的生产 TUI 检查终端、结果回传及清理，不调用 Claude API。
-
-自动验收应先对临时 `CLAUDE_CONFIG_DIR` 执行 install dry-run、install、doctor、幂等重装、冲突回滚和 uninstall，绝不触碰真实配置。代码和安装事务通过后，再由用户决定是否把 wheel 安装到真实配置。
-
-真实多 Agent 视觉检查会产生模型费用，工具不会自动发起。用户参与的最终人工验收应检查：默认由本工具管理的 `subagentStatusLine` 和两个唯一 hooks；无子 Agent 时主栏显示正确；两个不同模型/effort 的并行 Agent 各自显示正确行；主栏计时器依次显示 Agent 数量和 `main wrap-up`；主 Stop 候选经可靠完成证据确认后冻结完整用时；进入子 Agent transcript 时全局栏只声明 `Main/Session`；最后运行 `doctor`，并确认 `uninstall --dry-run` 只命中本工具拥有的配置。
+`test:installed` 接收制品、固定提交和报告路径，在源码之外使用空缓存、离线模式、禁用生命周期脚本，
+且 PATH 不包含 Python/编译器。`test:mods` 验证固定官方主机与实际安装绑定。
+`reference:verify` 是独立的手动 Python 历史入口。详见[测试指南](testing.zh-CN.md)。
+终端、电源和付费验收均显式调用；普通 CI 不产生付费会话。保留旧 Python 产品及真实配置。
 
 <a id="附录内部命令"></a>
 
@@ -187,6 +128,8 @@ Windows PowerShell：
 <a id="附录实现说明"></a>
 
 ## 实现说明
+
+以下为已发布 Python 产品的历史实现说明。当前 TypeScript 的绝对 Node/JS argv、原生锁、恢复与布局见[候选指南](typescript-migration/ts-05/candidate.zh-CN.md)和[TS-04 记录](typescript-migration/ts-04/README.zh-CN.md)。
 
 ### 平台执行与文件安全
 

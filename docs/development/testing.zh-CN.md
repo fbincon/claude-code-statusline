@@ -2,6 +2,15 @@
 
 [English](testing.md) | **简体中文**
 
+## 当前 TypeScript 检查
+
+日常入口为 `npm run check`、`docs:check`、`candidate:build`、`candidate:verify`、`test:installed` 和 `test:mods`。完整命令、离线安装、八目标/十三主机证据及手动历史入口见[工程候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。
+默认流程不启动 Python；固定参考保留全部 161 案例和原有三项文本差异，真实 Node 并发、原子写入、终止与终端恢复仍执行。2.1.296 类型声明不可用不计为类型通过。完整 D06 测量归 PERF-01，历史 FAIL 保留。
+
+## 历史 Python 与迁移阶段记录
+
+以下保留原始阶段结论、命令和限制，来源为[归档前提交](https://github.com/fbincon/claude-code-statusline/tree/38ff85b75c936201764c64f80b8fff96f091e176)。这些 Python 路径已移入 archive/python，不能当作当前 main 的日常命令。通过 `reference:verify` 重建原布局验证；不刷新历史数据、不重置付费账本。
+
 普通验证全部使用临时 Claude 配置。测试不会安装到用户真实设置，也不会调用模型。
 
 TS-03 新增 `npm test` 验证共享核心／正式适配器，以 `npm run generate:check` 检查 TypeScript 生成资源。下方 Python 生成检查仅作为迁移期只读对照，普通写入入口已退役。新的八目标后端工作流补充既有矩阵。

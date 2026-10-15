@@ -22,6 +22,12 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     const dependencies = [...BUSINESS.map(name => '@fbincon/statusline-' + name), 'koffi', 'lossless-json', ...NATIVE];
     assert.deepEqual([...manifest.bundleDependencies].sort(), [...dependencies].sort());
     assert.deepEqual(Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies }).sort(), [...dependencies].sort());
+    for (const name of BUSINESS.map(short => '@fbincon/statusline-' + short)) assert.equal(manifest.dependencies[name], '0.0.0');
+    assert.equal(manifest.dependencies.koffi, '3.3.3'); assert.equal(manifest.dependencies['lossless-json'], '4.3.1');
+    for (const name of NATIVE) assert.equal(manifest.optionalDependencies[name], '3.3.3');
+    assert.deepEqual(Object.keys(source.dependencies).sort(), ['koffi', 'lossless-json', ...NATIVE].sort());
+    assert.match(source.source_manifest_sha256, /^[a-f0-9]{64}$/u);
+    assert.equal(source.lock_sha256, source.source_hashes['package-lock.json']);
     assert.deepEqual(Object.keys(source.files).sort(), [...entries.keys()].filter(name => name !== 'candidate.json').sort(), 'Candidate inventory mismatch');
     for (const [name, hash] of Object.entries(source.files)) {
         assert.match(hash, /^[a-f0-9]{64}$/u); assert.equal(sha256(entries.get(name)!), hash, 'Changed candidate file: ' + name);
@@ -33,8 +39,18 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
         const name = '@fbincon/statusline-' + short, root = 'node_modules/' + name;
         assert.equal(read(root + '/package.json').name, name);
         assert([...entries.keys()].some(file => file.startsWith(root + '/dist/src/') && file.endsWith('.js')), 'Missing business package');
+        for (const file of entries.keys()) if (file.startsWith(root + '/') && file !== root + '/package.json') {
+            const path = file.slice(root.length + 1);
+            const compiled = /^dist\/src\/.+\.(?:js|d\.ts)(?:\.map)?$/u.test(path);
+            const language = short === 'core' && /^resources\/i18n\/(?:languages\.json|locales\/(?:en|zh-CN|zh-Hant|ja|ko)\.json)$/u.test(path);
+            const cliResource = short === 'cli' && /^resources\/statusline-(?:native\/|runtime\/|config\/SKILL\.md$|configure\/SKILL\.md$)/u.test(path);
+            assert(compiled || language || cliResource, 'Unexpected business resource: ' + path);
+        }
     }
     assert(entries.has('node_modules/@fbincon/statusline-cli/dist/src/entry.js'));
+    const languages = read('node_modules/@fbincon/statusline-core/resources/i18n/languages.json').map((row: any) => row.code);
+    assert.deepEqual(languages, ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko']);
+    for (const code of languages) assert(entries.has('node_modules/@fbincon/statusline-core/resources/i18n/locales/' + code + '.json'), 'Missing language pack');
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const root = 'node_modules/@fbincon/statusline-cli/resources/' + name;
         const owned = read(root + '/resource-manifest.json');
@@ -42,6 +58,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
         assert(mapping && typeof mapping === 'object', 'Missing ownership map');
         for (const [path, hash] of Object.entries(mapping)) assert.equal(sha256(entries.get(root + '/' + path) ?? Buffer.alloc(0)), hash, 'Missing/changed owned resource: ' + path);
         assert(entries.has(root + '/.claude-plugin/plugin.json'));
+        assert.deepEqual([...entries.keys()].filter(file => file.startsWith(root + '/') && file !== root + '/resource-manifest.json').map(file => file.slice(root.length + 1)).sort(), Object.keys(mapping).sort(), 'Unowned Mod resource');
     }
     for (const name of ['statusline-configure', 'statusline-config']) assert(entries.has('node_modules/@fbincon/statusline-cli/resources/' + name + '/SKILL.md'));
     for (const name of NATIVE) {
@@ -51,6 +68,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     for (const [name, dependency] of Object.entries(source.dependencies)) {
         assert.match(dependency.integrity, /^sha512-[A-Za-z0-9+/]+=*$/u);
         assert.equal(read('node_modules/' + name + '/package.json').version, dependency.version);
+        assert.deepEqual(Object.keys(dependency.files).sort(), [...entries.keys()].filter(path => path.startsWith('node_modules/' + name + '/')).map(path => path.slice(('node_modules/' + name + '/').length)).sort(), 'Incomplete dependency inventory');
         for (const [path, hash] of Object.entries(dependency.files)) assert.equal(source.files['node_modules/' + name + '/' + path], hash, 'Dependency digest differs');
     }
     return { source, entries: [...entries.keys()] };

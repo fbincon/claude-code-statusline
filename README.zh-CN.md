@@ -258,13 +258,7 @@ Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claud
 <details>
 <summary>其他安装方式</summary>
 
-安装开发源码，需要 Git：
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@main"
-```
-
-本地检出可在仓库根目录执行 `pipx install .`。固定标签和已校验的 Release wheel 安装见安装指南。随后运行 `pipx ensurepath`，并完成上面的接入步骤。
+当前 main 的源码开发使用 Node 与 TypeScript，步骤见[源码开发指南](docs/development/README.zh-CN.md#从源码构建与安装)。已发布 Python 产品的固定标签和 Release wheel 安装见安装指南。
 
 下载校验和平台步骤见[安装指南](docs/USER_GUIDE.zh-CN.md#安装与接入)，源码构建见[开发指南](docs/development/README.zh-CN.md#从源码构建与安装)。
 
@@ -363,82 +357,43 @@ pipx uninstall fbincon-claude-code-statusline
 
 ```text
 claude-code-statusline/
-├── .github/workflows/                       # GitHub Actions 工作流
-│   ├── ci.yml                               # 跨平台测试与分发包构建
-│   ├── native.yml                           # Mod 校验、类型检查与安装验证
-│   └── publish.yml                          # PyPI/TestPyPI 发布与安装验证
-├── README.md / README.zh-CN.md              # 项目概览与快速开始
-├── CHANGELOG.md / CHANGELOG.zh-CN.md        # 版本变更记录
-├── LICENSE                                  # MIT 许可证
-├── MANIFEST.in                              # 源码包文件收录规则
-├── pyproject.toml                           # 软件包元数据、依赖与构建配置
-├── docs/                                    # 使用、参考与开发文档
-│   ├── USER_GUIDE.md / USER_GUIDE.zh-CN.md  # 安装、配置与故障排查
-│   ├── APPEARANCE.md / APPEARANCE.zh-CN.md  # 条件显示、逐项颜色、主题与 Powerline
-│   ├── COMPOSITION.md / COMPOSITION.zh-CN.md # 组件实例、文本与弹性布局
-│   ├── reference/                           # CLI 与配置参考
-│   ├── images/                              # 当前 TUI 截图与历史归档
-│   │   ├── composition/                     # 组件实例编辑器捕获
-│   │   ├── tui/                             # 当前配置编辑器截图
-│   │   │   ├── native/                      # 会话内配置编辑器截图
-│   │   │   └── external/                    # 外部终端配置编辑器截图
-│   │   ├── discovery/                       # 搜索、来源说明与导入审阅捕获
-│   │   ├── appearance/                      # 颜色设置与 Powerline 捕获
-│   │   └── archive/                         # 历史截图与界面重建记录
-│   ├── development/                         # 开发环境、架构与验证
-│   └── releases/                            # 历史发布说明
-├── src/                                     # Python 源码与构建扩展
-│   ├── build_native.py                      # Mod 资源打包与软件包 README 链接转换
-│   └── claude_statusline/                   # Python CLI 与实现模块
-│       ├── config/                          # 配置模型、存储、迁移与命令
-│       │   ├── catalog.py / guidance.py      # 项目定义、来源与条件元数据
-│       │   ├── import_review.py              # 校验后草稿的语义差异
-│       │   ├── ui_preferences.py            # 共享语言偏好事务
-│       │   ├── storage.py                   # 锁、备份及原子写入
-│       │   └── instances.py / instance_commands.py # 实例模型及显式 CLI
-│       ├── i18n/                            # 界面与输出语言资源
-│       │   ├── locales/                     # en / zh-CN / zh-Hant / ja / ko
-│       │   ├── translator.py                # 消息键、参数与英文回退
-│       │   ├── statusline.py                # 显式语言输出与已知值展示
-│       │   ├── _generated_statusline/        # 按输出语言加载的生成模块
-│       │   └── presentation.py              # 翻译字段与选项
-│       ├── integration/                     # Claude Code 接入、安装事务、hooks 与诊断
-│       ├── platforms/                       # 跨平台文件、进程、时钟与终端适配
-│       ├── rendering/                       # 状态栏格式、颜色、布局与预览
-│       │   ├── components.py                 # 文字与弹性留白拟合
-│       │   ├── visibility.py                 # 原始观测条件规则
-│       │   ├── appearance.py / colors.py     # 主题角色与终端颜色映射
-│       │   └── powerline.py                  # 可见色块组合与宽度适配
-│       ├── runtime/                         # 会话数据采集、缓存与任务状态
-│       │   ├── live/                        # 独立运行观测协议、归并与存储
-│       │   ├── tasks/                       # 用户任务归属、生命周期与计时状态
-│       │   ├── timing/                      # 支持暂停与恢复的纯逻辑时钟
-│       │   └── turns/                       # 转发至 tasks/ 的兼容别名
-│       ├── resources/                       # 随包提供的配置 Skill 模板
-│       └── ui/                              # 外部终端编辑器与共享 JSON 后端
-├── mods/                                    # Claude Code TypeScript Mod
-│   ├── statusline-native/                   # 会话内配置编辑器 Mod
-│   │   ├── hooks/                           # 宿主 API、命令、保存与恢复
-│   │   ├── lib/                             # 后端、草稿、输入与独立快照
-│   │   │   └── i18n/                       # 生成语言包、语义消息与展示
-│   │   ├── ui/                              # Client 绘制、组件、主题与布局
-│   │   │   └── theme.ts                     # 宿主颜色职责与独立预览背景
-│   │   └── tests/                           # 按后端、Client、编辑器、集成与 UI 分组测试
-│   └── statusline-runtime/                  # 原生任务计时与可选高级指标采集 Mod
-├── tests/                                   # Python 单元与集成测试
-│   ├── fixtures/                            # 两端共享的搜索样例
-│   ├── config/                              # 配置、格式、迁移与导入导出测试
-│   ├── i18n/                                # 翻译资源与回退测试
-│   ├── integration/                         # CLI、安装、打包与兼容性测试
-│   ├── platforms/                           # 平台适配与终端集成测试
-│   ├── rendering/                           # 状态栏格式、布局与指标显示测试
-│   ├── runtime/                             # 会话状态、任务生命周期与计时测试
-│   └── ui/                                  # 配置编辑器、布局与协议测试
-└── tools/                                   # 开发、验证与发布工具
-    ├── generate_i18n.py                     # 校验语言资源并生成 TypeScript
-    ├── inspect_dist.py                      # wheel/sdist 元数据、内容与排除规则检查
-    ├── publish_package.py                   # 发布资产校验与软件源安装验证
-    └── check_docs.py                        # 文档链接、锚点与双语配对检查
+├── .github/workflows/
+│   ├── ci.yml                    # 统一候选构建、八目标安装与十三主机组合
+│   └── reference.yml             # 手动 Python 历史验证
+├── packages/                     # 四个业务包
+│   ├── core/src/                 # 配置、协议、纯状态、渲染与 Unicode
+│   │   └── i18n/                 # 五种语言的生成模块；资源在 core/resources
+│   ├── platform/src/             # 文件、锁、进程、时钟及终端适配
+│   ├── cli/                      # 命令、集成、运行时与恢复
+│   │   ├── src/                  # 安装与编辑器协议实现
+│   │   └── resources/            # 两个配置技能模板
+│   └── tui/src/                  # 独立终端编辑器
+├── mods/
+│   ├── statusline-native/        # 会话内编辑器：hooks、lib、ui、tests
+│   └── statusline-runtime/       # 计时与可选实时指标
+├── tests/fixtures/               # 共享契约、Unicode 与冻结参考数据
+├── tools/
+│   ├── generation/               # 共享资源生成
+│   ├── checks/                   # 文档、归档及统一检查
+│   ├── build/                    # 固定提交、通用离线包和摘要
+│   ├── acceptance/               # 安装、Mod、终端、电源和显式预算验收
+│   ├── benchmarks/               # 功能夹具与可选描述性测量
+│   ├── release/                  # 候选证据与发布说明准备
+│   ├── migration/                # 阶段台账、固定参考及兼容测试
+│   ├── testing/                  # 仅开发使用的测试支持包
+│   ├── typescript/               # 运行时约束与测试入口
+│   └── unicode/                  # 固定数据、来源及许可证
+├── archive/python/               # 冻结 Python 实现、测试、工具及旧发布工作流
+├── docs/                         # 使用、开发、迁移和历史发布文档
+│   ├── reference/                # CLI 与配置参考
+│   ├── development/              # 架构、测试与阶段记录
+│   ├── images/                   # 界面截图与历史归档
+│   └── releases/                 # 历史发布说明
+├── package.json / package-lock.json
+├── tsconfig*.json / .node-version
+├── README.md / README.zh-CN.md
+├── CHANGELOG.md / CHANGELOG.zh-CN.md
+└── LICENSE
 ```
 
 ## 文档与帮助

@@ -16,6 +16,9 @@ mods/*/.claude-plugin/types/
 build/
 !tools/build/
 !tools/build/**
+# Retained local products of the archived TS-02 probe, never source inputs.
+tools/migration/ts-02/LICENSE*
+tools/migration/ts-02/src/generated/
 dist/
 .env
 .env.*
