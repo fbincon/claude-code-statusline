@@ -46,6 +46,18 @@ test('data integer accumulation is exact across the safe-integer boundary and lo
     for (const raw of ['[00]', '[01]', '[-01]', '[1.]', '[1e-]', '[truefalse]', '{"x" 1}', '{"x":1,}', '["a\n"]', '["a\\u00xz"]', '["a\\\\\n"]', '{}x', '[1,,2]'])
         assert.throws(() => readDataJson(raw), { message: (() => { try { readJson(raw); } catch (error) { return (error as Error).message; } })() });
 });
+test('large counter subtrees keep exact values, order and native grammar validation', () => {
+    const ordinary = Array.from({ length: 300 }, (_, i) => `"message-${i}":{"i":${i},"o":2,"cc":0,"cr":1}`).join(',');
+    const tails = ['"text":"escaped \\\" } ] \\\\ tail"', '"n":9007199254740993', '"f":1.0,"z":-0.0', '"10":1,"2":2,"\\u0030":3', '"x":1,"\\u0078":2', '"__proto__":{"future":true}', '"legacy":NaN'];
+    for (const tail of tails) {
+        const raw = `{"ns":1788400000000000001,"ids":{${ordinary},${tail}},"future":[1.0,2]}`;
+        assert.equal(pythonJson(readDataJson(raw), { allowNan: true }), pythonJson(readJson(raw), { allowNan: true }));
+    }
+    for (const tail of ['"x":01', '"x":[1,]', '"x":true false', '"x":"bad\\x"', '"x":[1}', '"x":1,']) {
+        const raw = `{"ns":1788400000000000001,"ids":{${ordinary},${tail}}}`;
+        assert.throws(() => readDataJson(raw), { message: (() => { try { readJson(raw); } catch (error) { return (error as Error).message; } })() });
+    }
+});
 test('cache serialization exactly matches Python layout, Unicode escapes and numeric spellings', () => {
     for (const raw of [
         '{"n":9007199254740993,"f":1.0,"z":-0.0,"e":1e20,"tiny":1e-7}',

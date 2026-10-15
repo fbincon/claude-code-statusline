@@ -4,6 +4,21 @@ import { renderTask, renderPayload, previewRows } from '@fbincon/statusline-core
 import { displayWidth } from '@fbincon/statusline-core/rendering/layout';
 import { BY_SCOPE } from '@fbincon/statusline-core/config/catalog';
 import { config, agentConfig, task, env, NOW, cli } from './render-support.js';
+test('per-render preparation observes configuration changes and measures full Unicode strings', () => {
+    const cfg = agentConfig(['name', 'tokens']), tasks = Array.from({ length: 32 }, (_, i) => task({ id: String(i), name: 'é👩🏽‍💻中文', tokenCount: 1000 + i }));
+    for (const count of [0, 8, 32]) {
+        const rows = renderPayload({ columns: 35, tasks: tasks.slice(0, count) }, cfg, env, NOW);
+        assert.equal(rows.length, count);
+        assert.ok(rows.every(row => row.content.startsWith('é👩🏽‍💻中文 · ') && displayWidth(row.content) <= 35));
+    }
+    cfg.subagents.instances.find(node => node.type_id === 'tokens')!.enabled = false;
+    cfg.use_colors = true;
+    cfg.palette = 'ansi';
+    assert.equal(renderPayload({ tasks: [tasks[0]] }, cfg, env, NOW)[0]!.content, '\x1b[1;33mé👩🏽‍💻中文\x1b[0m');
+    cfg.subagents.instances.find(node => node.type_id === 'name')!.options.label = 'Agent';
+    cfg.use_colors = false;
+    assert.equal(renderPayload({ tasks: [tasks[0]] }, cfg, env, NOW)[0]!.content, 'Agent é👩🏽‍💻中文');
+});
 const statuses = { pending: '…', running: '⏱', completed: '✓', failed: '✗', killed: '■', paused: '⏳', waiting: '⏳', 'new-state': '?' };
 test('tests.rendering.test_subagent_statusline.RendererTests.test_default_exact_output_and_task_order', () => {
     assert.deepEqual(renderPayload({ columns: 100, tasks: [task(), task({ id: 'task-2', name: 'Review' })] }, config(), env, NOW), [

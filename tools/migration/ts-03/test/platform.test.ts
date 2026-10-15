@@ -12,7 +12,7 @@ import { delta, trusted } from '@fbincon/statusline-core/timing/sample';
 import { decode, integer } from '@fbincon/statusline-core/json';
 import { atomicWrite, lock, withLock, durableUnlink, isLinkOrReparse, retryWindows } from '@fbincon/statusline-platform/files';
 import { run, binding, nodeBinding } from '@fbincon/statusline-platform/launch';
-import { library, koffi } from '@fbincon/statusline-platform/native';
+import { library, nativeApi } from '@fbincon/statusline-platform/native';
 import { architecture } from '@fbincon/statusline-platform/architecture';
 import { exportReference, python, repoRoot } from '../common.js';
 
@@ -144,7 +144,7 @@ test('real Windows sharing denial preserves old bytes then replacement recovers'
   const path = join(temporary, 'sharing'); fs.writeFileSync(path, 'old');
   const k = library('kernel32.dll');
   const h = k.func('void *CreateFileW(const char16_t *path, uint32_t access, uint32_t share, void *security, uint32_t disposition, uint32_t flags, void *template)')(path, 0x80000000, 1, null, 3, 0x80, null);
-  assert.ok(h && koffi.address(h) !== 0xffffffffffffffffn);
+  assert.ok(h && nativeApi().address(h) !== 0xffffffffffffffffn);
   try { assert.throws(() => atomicWrite(path, 'new')); }
   finally { k.func('bool CloseHandle(void *handle)')(h); }
   assert.equal(fs.readFileSync(path, 'utf8'), 'old');

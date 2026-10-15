@@ -2,11 +2,10 @@ import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { trim } from '@fbincon/statusline-core/runtime/transcript';
-import { atomicWrite, durableUnlink, isLinkOrReparse, withLock } from '@fbincon/statusline-platform/files';
+import { atomicWrite, durableUnlink, isLinkOrReparse, withLock, privateDirectory } from '@fbincon/statusline-platform/files';
 import { readCompleteLines } from '@fbincon/statusline-platform/line-cursor';
 import { resolvedPath } from '@fbincon/statusline-platform/commands';
 import { decodeUtf8, decodeJsonBytes } from '@fbincon/statusline-platform/utf8';
-import { privateDirectory } from '../config/storage.js';
 import { readDataJson } from './json-data.js';
 export interface FileInfo {
     size: bigint;

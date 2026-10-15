@@ -6,6 +6,16 @@ import { divideIntegers } from '@fbincon/statusline-core/numbers';
 import { sumNumbers } from '@fbincon/statusline-core/runtime/live/requests';
 import { float, timestamp } from '@fbincon/statusline-core/runtime/transcript';
 import { python } from '../common.js';
+import { aggregateVisible, usageInt } from '@fbincon/statusline-core/runtime/usage';
+test('cache totals flush safe integer sums before overflow and retain exact numeric kinds', () => {
+    const values: unknown[] = [0, -0, 1, 9007199254740991, 2, 9007199254740990, 3, 10n ** 40n, -1, -2n, true, '12', new LosslessNumber('1.0'), new LosslessNumber('9007199254740993'), Infinity, NaN, 1.5];
+    for (let offset = 0; offset < values.length; offset++) {
+        const ordered = [...values.slice(offset), ...values.slice(0, offset)];
+        const ids = Object.fromEntries(ordered.map((i, index) => ['id-' + index, { i, o: i, cc: i, cr: i }]));
+        const expected = ordered.reduce<bigint>((total, value) => total + usageInt(value), 7n);
+        assert.deepEqual(aggregateVisible({ base: { i: 7, o: 7, cc: 7, cr: 7 }, ids }), { i: expected, o: expected, cc: expected, cr: expected });
+    }
+});
 test('runtime divisions and compensated cost sums retain Python binary64 results and integer kinds', () => {
     let seed = 0x21c57n;
     const random = () => { seed = (seed * 6364136223846793005n + 1442695040888963407n) & ((1n << 64n) - 1n); return seed; };

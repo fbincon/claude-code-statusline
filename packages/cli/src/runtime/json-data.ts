@@ -4,8 +4,21 @@ import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { nativeRecord, orderedDataRecord } from '@fbincon/statusline-core/ordered-record';
 // Conservative lexical filters: matches inside strings only select the exact
 // path unnecessarily. They never allow a lossy number or reordered key through.
-const EXACT_NUMBER = /[1-9]\d{15,}|(?:0|[1-9]\d*)[.eE]|-0/u;
+const EXACT_NUMBER = /(?:^|[\s:,\[])(?:-?(?:[1-9]\d{15,}|(?:0|[1-9]\d*)[.eE])|-0)/u;
 const ORDERED_KEY = /"(?:[0-9]|\\)/u;
+function containerEnd(raw: string, start: number): number {
+    let depth = 0, quoted = false;
+    for (let i = start; i < raw.length; i++) {
+        const code = raw.charCodeAt(i);
+        if (quoted && code === 92) i++;
+        else if (code === 34) quoted = !quoted;
+        else if (!quoted) {
+            if (code === 123 || code === 91) depth++;
+            else if ((code === 125 || code === 93) && --depth === 0) return i + 1;
+        }
+    }
+    return -1;
+}
 /** A single-pass data reader avoids number placeholders and a second tree walk.
  * Ordinary objects stay native; only integer member names need an order proxy.
  * Malformed/legacy input goes through the compatibility reader for exact errors.
@@ -34,9 +47,23 @@ export function readDataJson(raw: string): unknown {
         }
         return invalid();
     };
-    const value = (): unknown => {
+    const value = (largeDictionary = false): unknown => {
         whitespace();
         const code = raw.charCodeAt(offset);
+        // A timestamp elsewhere in the cache must not force JS-level parsing of
+        // tens of thousands of ordinary counters. The same conservative guards
+        // and native grammar validation apply to this independently parsed span.
+        if (largeDictionary && raw.length - offset >= 4096 && (code === 123 || code === 91)) {
+            const end = containerEnd(raw, offset);
+            if (end > offset) {
+                const span = raw.slice(offset, end);
+                if (!EXACT_NUMBER.test(span) && !ORDERED_KEY.test(span)) {
+                    const result: unknown = JSON.parse(span);
+                    offset = end;
+                    return result;
+                }
+            }
+        }
         if (code === 34) return quoted();
         if (code === 123) {
             offset++; whitespace();
@@ -46,7 +73,7 @@ export function readDataJson(raw: string): unknown {
                 if (raw.charCodeAt(offset) !== 34) return invalid();
                 const key = quoted(); whitespace();
                 if (raw.charCodeAt(offset++) !== 58) return invalid();
-                const item = value();
+                const item = value(key === 'ids');
                 // JS reorders array-index names; wrap BEFORE the first insertion.
                 const first = key.charCodeAt(0);
                 if (first >= 48 && first <= 57 && /^(?:0|[1-9][0-9]{0,9})$/u.test(key) && Number(key) < 4294967295) result = orderedDataRecord(result);

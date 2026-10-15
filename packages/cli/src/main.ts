@@ -32,7 +32,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     }
     if (args.length === 1 && args[0] === 'hook') {
         const [{ hook }, { runtimeContext }] = await Promise.all([import('./runtime/hook.js'), import('./runtime/context.js')]);
-        hook(environment.stdin ?? (() => readFileSync(0)), environment.runtime ?? runtimeContext(environment.configDir));
+        await hook(environment.stdin ?? (() => readFileSync(0)), environment.runtime ?? runtimeContext(environment.configDir));
         return 0;
     }
     async function renderer(command: string): Promise<number> {
@@ -114,7 +114,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const context = environment.runtime ?? runtimeContext(configDir);
             if (command === 'hook') {
                 const { hook } = await import('./runtime/hook.js');
-                hook(environment.stdin ?? (() => readFileSync(0)), context);
+                await hook(environment.stdin ?? (() => readFileSync(0)), context);
                 return 0;
             }
             const { RuntimeProtocol } = await import('./runtime/live/protocol.js');
