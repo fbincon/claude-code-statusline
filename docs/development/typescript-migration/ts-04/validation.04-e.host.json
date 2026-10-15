@@ -6,12 +6,12 @@
     296
   ],
   "source": {
-    "commit": "97b2cf41fc28907527e70418883714d109a411bd",
+    "commit": "f37e5f50bc4c3c9470cd00a926a2428a4f7563d7",
     "dirty": false,
     "node": "v24.21.0",
     "source_hashes": {
       ".gitattributes": "15279c7f304135f346dc7688da531ea002e67ae835048f35ba67e912880008eb",
-      ".github/workflows/native.yml": "91344cbbe45583f8f60c1ef7f3e1a12533b2c530b244dd11a618b3a1e35341ec",
+      ".github/workflows/native.yml": "955d831ddb264ecc4111e9e61ba4a4de80bdea93fc54ae8baf2f15f671830e63",
       ".github/workflows/typescript.yml": "06a4e599c280c61a0ea254931505ac93879c283a6cca18d289d6ecbdf66c3b50",
       ".node-version": "73fb1b615e2043a933be1c0895cde4358036acc28d785692509b822aa53c761f",
       "mods/statusline-native/.claude-plugin/plugin.json": "af71763eba496312d03e134376efc5c32975cdedd44e148b3613d2eaa8d8a64c",
@@ -357,11 +357,11 @@
       "tools/migration/ts-03/worker.ts": "22ac86f651dd8bf5cb66b79e5f725fd3f40bffab0aa042ddf7e8cdb5c050f749",
       "tools/migration/ts-04/capture.ts": "cbdbb9694a5dc84ef2fb30a2e4e177bc815305248e77ddbc5a5635a5425e0dd1",
       "tools/migration/ts-04/coverage.json": "c84ff9566a0ee6465fca3948d717ecfb0083a9af42a6249dbb1f62ed8b9fc1f2",
-      "tools/migration/ts-04/host-smoke.ts": "fb90195d8690bdded1c29698de652ede5083fa33a9bba7ef24e25733d1699ca3",
+      "tools/migration/ts-04/host-smoke.ts": "0aed0884731d62a771ac7779efd761fd9ac33ac1da4ba1961f0d210ed64b3307",
       "tools/migration/ts-04/installed.ts": "ac9ed6c89870008e2aa0c565abc2d509f6ffad48d1fb5b5ff012b4aade89d38a",
       "tools/migration/ts-04/inventory.ts": "a66b68ec1a8832799e8fa8c46074f97159ffe48f325dc163c0fa809b3dc268c1",
-      "tools/migration/ts-04/official-installed.ts": "3c9780b708476cac5336fc73b3bf5357cb2d384107022dc1d1ee1266f51c863e",
-      "tools/migration/ts-04/package.ts": "0caae3e5051f05c0fb5de45b7cd9cc6bb8f4ef9656b1b1c36e04ff86ffa760ee",
+      "tools/migration/ts-04/official-installed.ts": "3cc4ed1f85d5707df9065a07723c55d4e1d32d26fbff57afced0acffd3c68eda",
+      "tools/migration/ts-04/package.ts": "ac2f095d3bf54db110a72aa22959891a6abe4493746fb6aed7dc52e1805e716c",
       "tools/migration/ts-04/test/capture.test.ts": "e49d01e86e6105516c28feb956cdbc616aed9ca32ce905002469bf8eab29c64c",
       "tools/migration/ts-04/test/console-child.ts": "8bc6cc8fcae76ed979a7cc7244c39bea7494365b31aaab55cd5f2934bee5c95a",
       "tools/migration/ts-04/test/editor-acceptance.test.ts": "e9eee39d7f3e59aab01ed09954f2fbfd78a76bd8e49439bf4fab441dd340342e",
@@ -372,7 +372,7 @@
       "tools/migration/ts-04/test/install-boundaries.test.ts": "ce40b0ef4e624483e67bdc113c670c5f5304e100b00b7963d7eb999a8be43be2",
       "tools/migration/ts-04/test/install-support.ts": "4d07c3e19762ea321969a9c638cfe0b91278018d14b9212a67bd9e63032eb29e",
       "tools/migration/ts-04/test/install.test.ts": "ce1e9d43b219e36f3fd9e8ccad6198ff09f7e87b717c45305c631201d6534370",
-      "tools/migration/ts-04/test/installed-driver.ts": "64a435446ad37e340d0d0163eaa72e100310320e735f62142e728ae8dde7644d",
+      "tools/migration/ts-04/test/installed-driver.ts": "1171aa97f2fa73052c094281970e22a61cb5089531262cb43f3944ae6b109ee9",
       "tools/migration/ts-04/test/installed.test.ts": "8dac47a06d6ff30c39d2cd4d1d3b6556ed7d1114a4c904754f2778000a9cba44",
       "tools/migration/ts-04/test/inventory.test.ts": "b49163d59f1799d6d9392b9e1f1191a3287607395870ed40b6ca853eb677dd16",
       "tools/migration/ts-04/test/launchers.test.ts": "818ffa5a4c8bfce2d8ac4168efc5bce9afed3899441a21159783cd46f4a833c8",
@@ -392,7 +392,7 @@
       "tsconfig.tools.json": "3cb658aff07336996e795e79951d6e7e5cfb1418f50436eec63b7d7b54383919"
     }
   },
-  "tarball_sha256": "dae7490dcce4be9b642b19e9ea285d6c11b70b5f216d31d96a8503fb58547e94",
+  "tarball_sha256": "798606798e9613788808b20ad05bc13e21f8386a108e85f0f84efe67809289fd",
   "installed_resources": true,
   "real_host_commands": [
     "hook",
@@ -411,6 +411,6 @@
   "model_calls": 0,
   "credentials": "synthetic key and unreachable loopback API",
   "physical_visual_acceptance": false,
-  "terminal_capture_sha256": "a834bd3b2e16b1d28a02b0e0da2c6949970f1446aa386d32feffc71b07dbd041",
+  "terminal_capture_sha256": "ddb5ca1811de83c7ee2313be3c04093711badedb385b1a522c902c62d1eefd9b",
   "terminal_capture_committed": false
 }

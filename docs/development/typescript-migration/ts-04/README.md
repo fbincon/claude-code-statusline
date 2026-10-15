@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-State: **VALIDATING**, 2026-10-15 (Asia/Shanghai). Worker: Codex.
+State: **DONE**, 2026-10-15 (Asia/Shanghai). Worker: Codex.
 The [migration plan](../../typescript-migration.md) owns stage status.
 The approved execution plan uses isolated packages/configuration only and retains
 the maintainer's installed Python product. Recovery is an explicit command;
@@ -16,7 +16,7 @@ doctor remains read-only. No release version or tag is assigned here.
 | 04-B | External raw-TTY/VT editor, terminal launchers and result bridge | DONE; [PR #88](https://github.com/fbincon/claude-code-statusline/pull/88) |
 | 04-C | Install, uninstall, doctor, ownership and resources | DONE; [PR #89](https://github.com/fbincon/claude-code-statusline/pull/89) |
 | 04-D | Persistent transaction checkpoints and explicit recovery | DONE; [PR #90](https://github.com/fbincon/claude-code-statusline/pull/90) |
-| 04-E | Installed candidate acceptance, CI, documentation and closure | VALIDATING; `fbincon/ts-04-installed-acceptance` |
+| 04-E | Installed candidate acceptance, CI, documentation and closure | DONE; [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91) |
 
 ## Responsibility and architecture
 
@@ -66,7 +66,7 @@ as serialized JSON strings; both Mods decode and validate this form as well as
 array-valued defaults. Skill templates now live in `packages/cli/resources`; the
 generator maintains the retained Python copies. 04-D adds persistent interrupted recovery; 04-E verifies it in an installed package.
 
-## Validation and next work
+## Validation and closure
 
 04-A local checks: Node 24.21.0/npm 11.19.0; TS 560 passed / 1 platform skip;
 Claude Code 2.1.296 native Mod 114/114 and runtime Mod 12/12; both strict validators
@@ -123,8 +123,8 @@ eight receipts match all 370 source files. Merge `acdf5f9` is recorded in
 editors, native dependencies, 15 frozen render cases, both Windows shells,
 relocation/rebinding, hard-interruption recovery and historical Python upgrades.
 The fixed-host matrix gains real installed-package integration acceptance.
-Local TS passed 858/861 with three platform skips, plus all ten installed tests,
-including a regression protecting links inside the cache. Real host 2.1.296 opened the installed
+Local TS passed 858/861 with three platform skips, including the cache-link
+regression. All ten separate installed tests passed. Real host 2.1.296 opened the installed
 native editor and saved, and runtime dispatched to the installed backend without
 a model call. See [candidate acceptance and reproduction](candidate.md).
 
@@ -136,8 +136,29 @@ The installed Windows console then detected that [libuv normal-mode restoration]
 
 The macOS diagnostic receipts confirmed a successfully installed/enabled plugin but empty configuration inputs. The isolated host PATH omitted the system `security` executable used by the official configuration store. Official-host acceptance now exposes only that macOS system utility alongside Node, retaining the Python/compiler exclusion and strict binding confirmation.
 
-Next: complete final 04-E target CI, byte-exact receipt verification and closure.
-Previously approved physical/desktop deferrals remain due before release.
-TS-05/TS-06 and PERF-01 remain NOT_STARTED. Timeout, resource-bound and stability
-contracts remain required; historical D06 FAIL is retained. Private captures
-belong under ignored `dist/validation/typescript-migration/ts-04/`.
+## Closure evidence: 2026-10-15
+
+Head `f37e5f5` passed **all 43 PR checks**. Eight source receipts, eight installed
+receipts and 13 official-host receipts were downloaded: all 29 archive SHA-256
+values and all **380 source files** match exactly. The eight targets cover Linux,
+Windows x64, x64 on a Windows ARM host, and the existing macOS 14/15/26 ARM64/Intel
+matrix. Every target passes the separate ten-check installed suite.
+
+| Gate | Completed evidence |
+| --- | --- |
+| Responsibility and compatibility | 265 IDs: 252 ported, 13 named retirements, zero pending; 161 frozen cases retain exactly three approved CLI text exemptions. |
+| Both editors | Shared rules and official Mod checks; installed UI protocol saves; real PTY/Windows console save/cancel, complete mode restoration and visible-cell capture. |
+| Installation and recovery | Offline package/prebuilt dependencies, relocation/rebinding, explicit opt-outs, hard termination, explicit recovery, uninstall and compatible-backup replay by the frozen Python reference. |
+| Fixed hosts | Thirteen official install/reinstall, binding, save, disabled-preference and uninstall flows, with no pending journal. |
+| Real host interaction | Clean-source 2.1.296 native editor save and installed runtime dispatch, without a model request; physical/visual acceptance is not claimed. |
+
+[04-E machine evidence](validation.04-e.json) and the [real-host receipt](validation.04-e.host.json)
+pin sources, digests and outcomes. [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91)
+records the final documentation head, merge and GitHub/Gitee synchronization;
+documentation-only closure must retain the same reviewed source hashes.
+
+TS-04/04-A–04-E are complete. TS-05/TS-06 and PERF-01 remain NOT_STARTED. The
+existing Python installation is not switched and this stage creates no release.
+Previously approved physical/desktop checks remain due before release. Historical
+D06 FAIL is preserved; timeout, resource-bound and stability contracts still
+apply. Raw captures stay under ignored `dist/validation/typescript-migration/ts-04/`.

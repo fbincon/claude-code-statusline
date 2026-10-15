@@ -1,0 +1,1065 @@
+{
+  "stage": "04-E",
+  "state": "DONE",
+  "tested_head": "f37e5f50bc4c3c9470cd00a926a2428a4f7563d7",
+  "pull_request": "https://github.com/fbincon/claude-code-statusline/pull/91",
+  "integration_record": "The final documentation head, merge and GitHub/Gitee verification are recorded in PR #91. These receipts pin the accepted source; later documentation-only heads must retain the same source hashes.",
+  "ci_jobs": [
+    {
+      "id": 116511215999,
+      "run_id": 38756265337,
+      "name": "TS-03 / macos-26 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116511216345,
+      "run_id": 38756265337,
+      "name": "TS-03 / windows-2025 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116511217607,
+      "run_id": 38756265337,
+      "name": "TS-03 / windows-11-arm / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116511218824,
+      "run_id": 38756265337,
+      "name": "TS-03 / macos-26-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116511267866,
+      "run_id": 38756265337,
+      "name": "TS-03 / ubuntu-24.04 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116511273665,
+      "run_id": 38756265337,
+      "name": "TS-03 / macos-15 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116511273722,
+      "run_id": 38756265337,
+      "name": "TS-03 / macos-14 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116511296380,
+      "run_id": 38756265337,
+      "name": "TS-03 / macos-15-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404661,
+      "run_id": 38756265273,
+      "name": "macOS / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404937,
+      "run_id": 38756265273,
+      "name": "Linux / Claude Code 2.1.287",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404985,
+      "run_id": 38756265273,
+      "name": "Windows / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405018,
+      "run_id": 38756265273,
+      "name": "macOS / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405021,
+      "run_id": 38756265273,
+      "name": "Linux / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405075,
+      "run_id": 38756265273,
+      "name": "Linux / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405110,
+      "run_id": 38756265273,
+      "name": "Windows / Claude Code 2.1.294",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405143,
+      "run_id": 38756265273,
+      "name": "Linux / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405181,
+      "run_id": 38756265273,
+      "name": "Windows / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405203,
+      "run_id": 38756265273,
+      "name": "Linux / Claude Code 2.1.296",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405269,
+      "run_id": 38756265273,
+      "name": "macOS / Claude Code 2.1.288",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405282,
+      "run_id": 38756265273,
+      "name": "Windows / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405434,
+      "run_id": 38756265273,
+      "name": "macOS / Claude Code 2.1.289",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495403975,
+      "run_id": 38756265286,
+      "name": "Build and inspect distributions",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404372,
+      "run_id": 38756265286,
+      "name": "windows-latest / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404436,
+      "run_id": 38756265286,
+      "name": "macos-15 / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404443,
+      "run_id": 38756265286,
+      "name": "macos-26-intel / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404466,
+      "run_id": 38756265286,
+      "name": "windows-latest / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404484,
+      "run_id": 38756265286,
+      "name": "Frozen Python migration baseline",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404514,
+      "run_id": 38756265286,
+      "name": "ubuntu-latest / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404546,
+      "run_id": 38756265286,
+      "name": "macos-26 / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404576,
+      "run_id": 38756265286,
+      "name": "macos-15 / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404696,
+      "run_id": 38756265286,
+      "name": "macos-15-intel / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404745,
+      "run_id": 38756265286,
+      "name": "macos-26 / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404918,
+      "run_id": 38756265286,
+      "name": "macos-26-intel / Python 3.10",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495404966,
+      "run_id": 38756265286,
+      "name": "macos-15-intel / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495405092,
+      "run_id": 38756265286,
+      "name": "ubuntu-latest / Python 3.14",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495406767,
+      "run_id": 38756265260,
+      "name": "TS-02 / ubuntu-24.04 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495407144,
+      "run_id": 38756265260,
+      "name": "TS-02 / macos-14 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495407228,
+      "run_id": 38756265260,
+      "name": "TS-02 / macos-15 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495407266,
+      "run_id": 38756265260,
+      "name": "TS-02 / macos-15-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495407297,
+      "run_id": 38756265260,
+      "name": "TS-02 / macos-26 / arm64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495407382,
+      "run_id": 38756265260,
+      "name": "TS-02 / macos-26-intel / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495407411,
+      "run_id": 38756265260,
+      "name": "TS-02 / windows-11-arm / x64",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116495407447,
+      "run_id": 38756265260,
+      "name": "TS-02 / windows-2025 / x64",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "receipts": [
+    {
+      "artifact_id": 11986010625,
+      "name": "ts04-installed-macos-26-arm64",
+      "digest": "sha256:ff57219d4d52485f3dc1ed2499926aab60755b727f4e90a5a15d75af724f9c76",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "installed",
+      "status": "pass",
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      },
+      "shells": [
+        "POSIX npm bin"
+      ],
+      "render_cases": 15,
+      "compatible_backup_python_replay": true,
+      "tarball_sha256": "c199f419c7f31db5214ca177eefbfe9bafd61069a4809153022e9a7760e6ee07",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11985250540,
+      "name": "ts03-macos-26-intel-x64",
+      "digest": "sha256:1cc3e93969f67c7851f7777ba915ce2fe4c2f08a97b9c6e3e92c222b3ea8f5cf",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "source",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11985131292,
+      "name": "ts04-installed-macos-26-intel-x64",
+      "digest": "sha256:11cf97d85f3e52ddc845aa67c7b6b344e791a19d158c2586b0c089097c32f870",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "installed",
+      "status": "pass",
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      },
+      "shells": [
+        "POSIX npm bin"
+      ],
+      "render_cases": 15,
+      "compatible_backup_python_replay": true,
+      "tarball_sha256": "d5f247b16367f5d9f9aafed914ff023be57d6f540b7011e6a77b1a105f11e529",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11984963866,
+      "name": "ts03-macos-26-arm64",
+      "digest": "sha256:f91a07090511a5a3b4e76c4fb34978c7b48134a5bfe10f5c5d9684028f34aa66",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "source",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11984945089,
+      "name": "ts03-macos-15-intel-x64",
+      "digest": "sha256:04eb77c4d2f2c8a11f73c4638db138e54fe3ed821bcaca939f3ca1b561274748",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "source",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11984786971,
+      "name": "ts04-installed-windows-11-arm-x64",
+      "digest": "sha256:2ac016eaab8e1677dd9da8edf55a10ceced168395c05fc2c455ec31318a7f2ab",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "installed",
+      "status": "pass",
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      },
+      "shells": [
+        "PowerShell .ps1",
+        "Git Bash npm shim"
+      ],
+      "render_cases": 15,
+      "compatible_backup_python_replay": true,
+      "tarball_sha256": "c84b0d382fb3f00e5f2c876abace5bac6100c0c0aa993cf4fe194a12293746dc",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11984660140,
+      "name": "ts03-macos-14-arm64",
+      "digest": "sha256:3755caa64ba2c1af3ad5bf2e94ec4ad9e19b4c874b432f5323d18f9a5abb33e7",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "source",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11984487551,
+      "name": "ts03-windows-11-arm-x64",
+      "digest": "sha256:a71ab0e6e03afcbd519938f0aedc96ac205eb2ee1a93655cebf279d1d0738437",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "source",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11984237856,
+      "name": "ts03-macos-15-arm64",
+      "digest": "sha256:71f14bcf830bb031bea0b8bd32702ae16ef3fdc1ddb0dc0624f84932748a917c",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "source",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11984156156,
+      "name": "ts03-ubuntu-24.04-x64",
+      "digest": "sha256:9b7b32b88862171386fc9bb5825838dcdc2e67d70203dec922d6a7a2895cd41b",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "source",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11983988341,
+      "name": "ts04-installed-macos-15-arm64",
+      "digest": "sha256:d3f6f617338f13c31f92d19880597af3c9225a6acb858e0f33202628b1d1451b",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "installed",
+      "status": "pass",
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      },
+      "shells": [
+        "POSIX npm bin"
+      ],
+      "render_cases": 15,
+      "compatible_backup_python_replay": true,
+      "tarball_sha256": "c199f419c7f31db5214ca177eefbfe9bafd61069a4809153022e9a7760e6ee07",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11983748925,
+      "name": "ts03-windows-2025-x64",
+      "digest": "sha256:be81808997802c653bbe102e264bb710893dadf1f921c1dcefff6b67ee22c207",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "source",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11983602891,
+      "name": "ts04-installed-ubuntu-24.04-x64",
+      "digest": "sha256:c834c6d3926c435d8aeee4a224121c1fc8abd9aab744de842128008aa42e92b9",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "installed",
+      "status": "pass",
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      },
+      "shells": [
+        "POSIX npm bin"
+      ],
+      "render_cases": 15,
+      "compatible_backup_python_replay": true,
+      "tarball_sha256": "1f56169432c7a3b99cfd9c16d5b5f28312ab14cb69db4baa56383c0fd3bb344c",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11983199940,
+      "name": "ts04-installed-windows-2025-x64",
+      "digest": "sha256:87c842345893e8644f4a615a9810287605e0a333809b1901bc17f34dcc3cd567",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "installed",
+      "status": "pass",
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      },
+      "shells": [
+        "PowerShell .ps1",
+        "Git Bash npm shim"
+      ],
+      "render_cases": 15,
+      "compatible_backup_python_replay": true,
+      "tarball_sha256": "c84b0d382fb3f00e5f2c876abace5bac6100c0c0aa993cf4fe194a12293746dc",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11983179700,
+      "name": "ts04-installed-macos-15-intel-x64",
+      "digest": "sha256:62290793cc9551283f58cc1bad48b1714fdb413b0ddfb19c29bdd49ca00ad042",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "installed",
+      "status": "pass",
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      },
+      "shells": [
+        "POSIX npm bin"
+      ],
+      "render_cases": 15,
+      "compatible_backup_python_replay": true,
+      "tarball_sha256": "d5f247b16367f5d9f9aafed914ff023be57d6f540b7011e6a77b1a105f11e529",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11982884954,
+      "name": "ts04-installed-macos-14-arm64",
+      "digest": "sha256:c21fa0efe9e899f91f30efb1320804e09f30c252cdb32bcdac8396485b7d616b",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "installed",
+      "status": "pass",
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      },
+      "shells": [
+        "POSIX npm bin"
+      ],
+      "render_cases": 15,
+      "compatible_backup_python_replay": true,
+      "tarball_sha256": "c199f419c7f31db5214ca177eefbfe9bafd61069a4809153022e9a7760e6ee07",
+      "run_id": 38756265337
+    },
+    {
+      "artifact_id": 11984950392,
+      "name": "native-macOS-2.1.296",
+      "digest": "sha256:a580332e879d5f8719f9f802cbc9025128c08331a686fdaa0c55d0e052b755fb",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "c199f419c7f31db5214ca177eefbfe9bafd61069a4809153022e9a7760e6ee07",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          296
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [
+        "/usr/bin/security"
+      ],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11984890742,
+      "name": "native-macOS-2.1.289",
+      "digest": "sha256:b56762a9060cb5797d398729d58a5c5d9ef28128a7861753eefe5b6edbc535c8",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "c199f419c7f31db5214ca177eefbfe9bafd61069a4809153022e9a7760e6ee07",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          289
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [
+        "/usr/bin/security"
+      ],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11984715481,
+      "name": "native-Windows-2.1.289",
+      "digest": "sha256:6c04b950c51ba7c4d2b211ef325952ba013747863564e9e5f68f9c619d096e23",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "c84b0d382fb3f00e5f2c876abace5bac6100c0c0aa993cf4fe194a12293746dc",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          289
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11984615138,
+      "name": "native-Windows-2.1.288",
+      "digest": "sha256:bb6c0cceddb058349c43d2b7371641403ffe79d7920afb72256eb6a301195a56",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "c84b0d382fb3f00e5f2c876abace5bac6100c0c0aa993cf4fe194a12293746dc",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          288
+        ],
+        "installed_mods": [
+          "statusline-native"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11984455545,
+      "name": "native-Linux-2.1.294",
+      "digest": "sha256:46526107ea811e8ab8e64cc6860d4513ef1f9e22d043499c9a93b576571d58a4",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "1f56169432c7a3b99cfd9c16d5b5f28312ab14cb69db4baa56383c0fd3bb344c",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          294
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11984321294,
+      "name": "native-Linux-2.1.296",
+      "digest": "sha256:dcce9500bf98b8aeab60c7a394f099218bd132bba0fe134e92824d72462e484e",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "1f56169432c7a3b99cfd9c16d5b5f28312ab14cb69db4baa56383c0fd3bb344c",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          296
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11983788527,
+      "name": "native-macOS-2.1.294",
+      "digest": "sha256:b7488eac74dab84c131ac8219c9149b79f2570870f71875dd8984599bf9740cb",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "c199f419c7f31db5214ca177eefbfe9bafd61069a4809153022e9a7760e6ee07",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          294
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [
+        "/usr/bin/security"
+      ],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11983617967,
+      "name": "native-Linux-2.1.287",
+      "digest": "sha256:da4c702955d24f270ce30ee2d191cb75da621825ce12417cd5e911f95b661d7d",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "1f56169432c7a3b99cfd9c16d5b5f28312ab14cb69db4baa56383c0fd3bb344c",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          287
+        ],
+        "installed_mods": [
+          "statusline-native"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11983529310,
+      "name": "native-macOS-2.1.288",
+      "digest": "sha256:8669e1d647e2dd973f90f0ba503aa13f9297305216bec9efe94448e9c026c8d8",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "c199f419c7f31db5214ca177eefbfe9bafd61069a4809153022e9a7760e6ee07",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          288
+        ],
+        "installed_mods": [
+          "statusline-native"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [
+        "/usr/bin/security"
+      ],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11983328943,
+      "name": "native-Windows-2.1.294",
+      "digest": "sha256:75e8562bb88f6e0b98931609a274fcb09bb412ed62e5a24181add09fa2ae0cdb",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "c84b0d382fb3f00e5f2c876abace5bac6100c0c0aa993cf4fe194a12293746dc",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          294
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11983139481,
+      "name": "native-Linux-2.1.288",
+      "digest": "sha256:42a6a11fb6e235403b28f816ece0609edb3e37576d793c39251a8491ab56e208",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "1f56169432c7a3b99cfd9c16d5b5f28312ab14cb69db4baa56383c0fd3bb344c",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          288
+        ],
+        "installed_mods": [
+          "statusline-native"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11983094368,
+      "name": "native-Windows-2.1.296",
+      "digest": "sha256:844c2e583f60bbbe9b7037ad383580027cf703c0738570b9cc289f9dd889839c",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "c84b0d382fb3f00e5f2c876abace5bac6100c0c0aa993cf4fe194a12293746dc",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          296
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    },
+    {
+      "artifact_id": 11982904824,
+      "name": "native-Linux-2.1.289",
+      "digest": "sha256:5af35d0a5f9e4def30a77b495208cc830737bb69f98b8b812eb98dd38e42aa66",
+      "source_files": 380,
+      "source_match": true,
+      "kind": "official-installed",
+      "status": "pass",
+      "tarball_sha256": "1f56169432c7a3b99cfd9c16d5b5f28312ab14cb69db4baa56383c0fd3bb344c",
+      "host_result": {
+        "host_version": [
+          2,
+          1,
+          289
+        ],
+        "installed_mods": [
+          "statusline-native",
+          "statusline-runtime"
+        ],
+        "idempotent": true,
+        "bindings": true,
+        "native_protocol_save": true,
+        "user_disabled_preserved": true,
+        "removed_owned_only": true,
+        "pending": 0,
+        "model_calls": 0
+      },
+      "host_system_utilities": [],
+      "run_id": 38756265273
+    }
+  ],
+  "source_manifest": "validation.04-e.host.json",
+  "local_validation": {
+    "typescript": {
+      "passed": 858,
+      "total": 861,
+      "skipped": 3
+    },
+    "recovery_scenarios": 27,
+    "installed_tests": 10,
+    "frozen_replay_cases": 161,
+    "approved_cli_text_exemptions": 3,
+    "generated_resources": 50,
+    "official_native_tests": 115,
+    "official_runtime_tests": 14
+  },
+  "responsibilities": {
+    "total": 265,
+    "ported": 252,
+    "retired": 13,
+    "pending": 0
+  },
+  "acceptance_repairs": [
+    {
+      "head": "3e5c0051512d4d13c7b427eb95dbd8b50d351f0d",
+      "job": 116462920332,
+      "finding": "Windows cross-drive installation was misclassified by the harness. Canonicalize both prefixes and accept absolute relative-path results."
+    },
+    {
+      "head": "765ffd4cf84c1e4384c877eb4cd047fbd90e9dea",
+      "jobs": [
+        116467384526,
+        116467365288
+      ],
+      "finding": "Windows host discovery selected the npm POSIX shim; skill replacement strings expanded literal dollar syntax. Resolve the adjacent Windows entry and substitute template tokens with a literal callback."
+    },
+    {
+      "head": "b84172c652e955dcc107399e58186c22ab378afb",
+      "job": 116475767652,
+      "finding": "Windows input flags changed from 503 to 7 on normal-mode restoration. Capture, restore and verify full Win32 input/output masks."
+    },
+    {
+      "head": "c83b8c51658145d91b4838126e8799d93af62cce",
+      "jobs": [
+        116488761543,
+        116488761402
+      ],
+      "finding": "The macOS isolated host lacked its security utility, so installed plugin input reads were empty. Expose only the native security utility beside Node; keep strict binding checks and Python/compiler exclusion."
+    }
+  ],
+  "release_created": false,
+  "installed_python_switched": false,
+  "physical_visual_acceptance_claimed": false,
+  "performance_disposition": "Historical D06 FAIL unchanged. PERF-01 follows TS-06 and remains NOT_STARTED.",
+  "ci_infrastructure": {
+    "run_id": 38756265337,
+    "initial_job_id": 116495406626,
+    "initial_state": "cancelled before runner allocation",
+    "rerun_job_id": 116511215999,
+    "rerun_scope": "single cancelled macOS 26 ARM job; seven successful targets retained",
+    "final_state": "success"
+  }
+}

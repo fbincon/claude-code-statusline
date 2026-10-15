@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-状态：**VALIDATING**，2026-10-15（Asia/Shanghai）；执行者：Codex。
+状态：**DONE**，2026-10-15（Asia/Shanghai）；执行者：Codex。
 [迁移总计划](../../typescript-migration.zh-CN.md)维护阶段状态。
 已批准的执行计划只使用隔离包与配置，保留维护者现用 Python 安装；恢复使用显式命令，
 doctor 保持只读。本阶段不分配发行版本或标签。
@@ -15,7 +15,7 @@ doctor 保持只读。本阶段不分配发行版本或标签。
 | 04-B | 外部 raw-TTY/VT 编辑器、终端启动器与结果桥 | DONE；[PR #88](https://github.com/fbincon/claude-code-statusline/pull/88) |
 | 04-C | 安装、卸载、doctor、归属与资源 | DONE；[PR #89](https://github.com/fbincon/claude-code-statusline/pull/89) |
 | 04-D | 持久化事务检查点与显式恢复 | DONE；[PR #90](https://github.com/fbincon/claude-code-statusline/pull/90) |
-| 04-E | 已安装候选包验收、CI、文档及收口 | VALIDATING; `fbincon/ts-04-installed-acceptance` |
+| 04-E | 已安装候选包验收、CI、文档及收口 | DONE; [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91) |
 
 ## 责任与架构
 
@@ -50,7 +50,7 @@ nonce 和父进程身份；获取配置锁后再次检查请求撤销，防止�
 字符串传递多值输入；两个 Mod 同时解码并校验这种形式及数组默认值。技能模板的唯一编辑源
 迁至 `packages/cli/resources`，生成器维护保留的 Python 副本。04-D 增加持久恢复，04-E 在真实安装包中验证。
 
-## 验证与下一步
+## 验证与关闭
 
 04-A 本地检查：Node 24.21.0／npm 11.19.0；TS 560 通过／1 项平台跳过；
 Claude Code 2.1.296 原生 Mod 114/114、runtime Mod 12/12；两个严格验证器及已有声明
@@ -105,7 +105,26 @@ runtime 也调用了已安装后端，无模型调用。详见[候选验收与�
 
 macOS 诊断回执确认插件已安装／启用，但配置输入全部为空。隔离宿主 PATH 遗漏了官方配置存储所用的系统 `security` 程序；官方宿主验收现仅在 Node 旁提供该 macOS 系统工具，继续排除 Python／编译器，并保持严格绑定确认。
 
-下一步：完成 04-E 最终目标 CI、逐字节回执核验及阶段关闭。已批准延至发布前的
-实体／桌面补验维持原状态；TS-05／TS-06 与 PERF-01 尚未开始。超时、资源上限与
-稳定性契约仍为必需，历史 D06 FAIL 保留。原始证据置于忽略目录
+## 关闭证据：2026-10-15
+
+`f37e5f5` 的 **43 项 PR 检查全部通过**。下载的八份源码回执、八份安装验收回执和
+13 份官方宿主回执共 29 份，归档 SHA-256 及全部 **380 个源码文件**均逐字节核验。
+八目标覆盖 Linux、Windows x64、Windows ARM 宿主上的 x64 进程，以及 macOS
+14／15／26 的既定 ARM64／Intel 矩阵；每个目标均通过独立的十项安装验收。
+
+| 门槛 | 已完成证据 |
+| --- | --- |
+| 责任与兼容 | 265 项：252 项迁移、13 项具名退役、零待办；161 个固定案例仅使用原三项 CLI 文案豁免。 |
+| 双编辑器 | 共享规则及官方 Mod 检查；已安装 UI 协议保存；真实 PTY／Windows 控制台保存、取消、完整模式恢复及可见单元格检查。 |
+| 安装与恢复 | 离线包与预编译依赖、迁移重绑、明确禁用、硬终止、显式恢复、卸载及兼容备份的冻结 Python 回放。 |
+| 固定宿主 | 13 组官方安装、重复安装、绑定确认、保存、保留禁用和卸载，无待恢复 journal。 |
+| 真实宿主交互 | 干净源码上的 2.1.296 原生编辑器实际保存，已安装 runtime 调用，无模型请求；实体／视觉验收未宣称完成。 |
+
+[04-E 机器证据](validation.04-e.json)和[真实宿主回执](validation.04-e.host.json)绑定
+具体源码、摘要及结果。[PR #91](https://github.com/fbincon/claude-code-statusline/pull/91)
+记录最终文档 head、合并及 GitHub／Gitee 同步；文档收口后的源码必须继续匹配上述哈希。
+
+TS-04／04-A～04-E 已完成。TS-05／TS-06 和 PERF-01 保持 NOT_STARTED，现用 Python
+安装未切换，本阶段不发布。已批准延至发布前的实体／桌面验收维持原要求。历史 D06
+FAIL 保留；超时、资源上限和稳定性契约仍为必需。原始证据置于忽略目录
 `dist/validation/typescript-migration/ts-04/`。
