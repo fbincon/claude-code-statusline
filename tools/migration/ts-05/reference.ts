@@ -31,7 +31,7 @@ try {
     // Never borrow an entry from the operator's existing Python installation.
     const venv = join(temp, 'python-environment'), home = join(temp, 'home'); fs.mkdirSync(home);
     const python = join(venv, process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
-    const env: NodeJS.ProcessEnv = { ...process.env, HOME: home, USERPROFILE: home, PYTHONPATH: join(root, 'src'), PYTHONNOUSERSITE: '1', PYTHONDONTWRITEBYTECODE: '1', PYTHONUTF8: '1', TS03_PYTHON: python, VIRTUAL_ENV: venv, PATH: dirname(python) + delimiter + dirname(process.execPath) + delimiter + (process.env.PATH ?? '') };
+    const env: NodeJS.ProcessEnv = { ...process.env, HOME: home, USERPROFILE: home, CLAUDE_CONFIG_DIR: join(home, '.claude'), PYTHONPATH: join(root, 'src'), PYTHONNOUSERSITE: '1', PYTHONDONTWRITEBYTECODE: '1', PYTHONUTF8: '1', TS03_PYTHON: python, VIRTUAL_ENV: venv, PATH: dirname(python) + delimiter + dirname(process.execPath) + delimiter + (process.env.PATH ?? '') };
     delete env.NODE_OPTIONS; delete env.PYTHONHOME;
     run(basePython, ['-m', 'venv', venv], root, env);
     const requirements = join(repoRoot, 'tools/migration/ts-05/reference-requirements.txt'), dependencyReport = join(logs, 'dependencies.json');

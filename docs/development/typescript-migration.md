@@ -2,7 +2,7 @@
 
 **English** | [简体中文](typescript-migration.zh-CN.md)
 
-Updated: **2026-10-15** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
+Updated: **2026-10-16** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
@@ -20,13 +20,13 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | --- | --- |
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
-| Implementation | **TS-01–TS-04 DONE**; [TS-03 evidence](typescript-migration/ts-03/README.md#closure-2026-10-15) and [TS-04 closure](typescript-migration/ts-04/README.md) |
-| Current task scope | TS-05 IN_PROGRESS: complete tooling, CI and engineering candidate; TS-06 and PERF-01 remain NOT_STARTED |
+| Implementation | **TS-01–TS-05 DONE**; [TS-05 closure](typescript-migration/ts-05/README.md#closure-2026-10-16) |
+| Current task scope | TS-05 DONE: complete tooling, CI and engineering candidate; TS-06 and PERF-01 remain NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
 | Target release and schedule | Unassigned; later candidate/delivery tasks determine versions and schedule |
-| Next implementation work | TS-05 05-C/05-D: shared candidate CI and archive cutover; final acceptance pending |
+| Next implementation work | TS-06: complete the remaining release gates and plan preview/stable delivery; [handoff](typescript-migration/ts-05/TS06-HANDOFF.md) |
 
-The maintainer approved TS-05 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-04 record](typescript-migration/ts-04/README.md) tracks five implementation batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
+The maintainer approved TS-05 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-05 record](typescript-migration/ts-05/README.md) tracks all five batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
 TS-03 covers all 161 fixed cases with the same three approved CLI text differences and audits all 516 IDs: 471 ported, 45 complete tests assigned to TS-04, plus remaining assertions in eight mixed tests. Latest local TS validation passed 556/557 tests with one platform skip; the final [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) head passed all 43 CI jobs and eight source-bound receipts before merge `7eae7c4`. These historical TS-03 results are retained separately from the installed TS-04 acceptance. [Closure and evidence](typescript-migration/ts-03/README.md#closure-2026-10-15).
 
@@ -108,7 +108,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | TS-02 | Platform probes and decisions D01–D06 | TS-01 | DONE | Codex; `fbincon/ts-02-linux-acceptance`; [PR #76](https://github.com/fbincon/claude-code-statusline/pull/76) and [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77); [integration and evidence](typescript-migration/ts-02/LINUX-20261014.md) |
 | TS-03 | Shared core, backend and runtime migration | TS-02 | DONE | Codex; implementation [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85), merge `7eae7c4`; [closure under revised criteria](typescript-migration/ts-03/README.md#closure-2026-10-15) |
 | TS-04 | Both editors, installation and recovery | TS-03 | DONE | Codex; tested `f37e5f5`; [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91); [batches and evidence](typescript-migration/ts-04/README.md) |
-| TS-05 | Complete tooling, CI and release candidate | TS-04 | IN_PROGRESS | Codex; `fbincon/ts-05-candidate`; [execution record](typescript-migration/ts-05/README.md) |
+| TS-05 | Complete tooling, CI and engineering candidate | TS-04 | DONE | Codex; `fbincon/ts-05-closure`; [PR #94](https://github.com/fbincon/claude-code-statusline/pull/94), verified merge `e438a45`; [closure](typescript-migration/ts-05/README.md#closure-2026-10-16) |
 | TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |
 
 Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its [plan](performance/perf-01.md) records future work and evidence; it is not TS-07 and does not keep a completed migration open.
@@ -160,7 +160,7 @@ Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its
 
 **Exit:** installed candidate packages pass both-editor and transaction tests on required targets; documented recovery works; user configuration and unrelated Claude settings survive. Remaining platform limitations are explicit.
 
-**TS-04 completion handoff (2026-10-15):** five batches are delivered through PRs #87–#91. The 265-entry ledger, eight installed targets and 13 fixed hosts pass, with 43 CI checks and 29 source-bound receipts verified. Recovery stays explicit and the installed Python product is not switched. [Closure evidence](typescript-migration/ts-04/README.md). TS-05/TS-06 and PERF-01 remain NOT_STARTED; pre-release physical/desktop checks and historical D06 FAIL are retained.
+**TS-04 completion handoff (2026-10-15):** five batches are delivered through PRs #87–#91. The 265-entry ledger, eight installed targets and 13 fixed hosts pass, with 43 CI checks and 29 source-bound receipts verified. Recovery stays explicit and the installed Python product is not switched. [Closure evidence](typescript-migration/ts-04/README.md). At that handoff TS-05/TS-06 and PERF-01 were NOT_STARTED; the stage table records subsequent progress. Pre-release physical/desktop checks and historical D06 FAIL are retained.
 
 ### TS-05 Tooling and release candidate
 
@@ -169,7 +169,9 @@ Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its
 - Build from a fixed commit, independently rebuild and verify artifact contents/checksums, then test installed packages outside the source checkout. Include locales, Unicode licensing, skills, Mod resources and ownership metadata.
 - Run functional and stability acceptance and update installation, upgrade, recovery, development and release documentation. Preserve performance limitations and comparison resources; move full final-product measurement to PERF-01.
 
-**Exit:** a reproducible candidate satisfies applicable non-performance engineering gates; normal runtime/build/test/release paths require no Python; every mapped test/tool has a verified replacement or justified retirement. Python compatibility and distribution transitions are documented; isolated historical references and comparison tools remain outside everyday workflows. Full D06 measurement and a passing result are not exit conditions.
+**Exit:** a reproducible candidate satisfies applicable non-performance engineering gates; normal runtime/build/test/release paths require no Python; every mapped test/tool has a verified replacement, justified retirement or independently validated historical disposition. Python compatibility and distribution transitions are documented; isolated historical references and comparison tools remain outside everyday workflows. Full D06 measurement and a passing result are not exit conditions.
+
+**TS-05 completion handoff (2026-10-16):** all five batches are complete. The 856-method/62-tool ledger has no pending entries; a universal offline candidate is byte-identical across clean builds, eight installed targets and thirteen hosts pass against one digest, and the isolated Python archive reproduces its reference. [Closure evidence](typescript-migration/ts-05/README.md#closure-2026-10-16) and [TS-06 handoff](typescript-migration/ts-05/TS06-HANDOFF.md). No public version, release, paid call or installed-product cutover; D06 FAIL remains unchanged.
 
 ### TS-06 Preview and stable delivery
 
@@ -243,6 +245,7 @@ Older entries retain their then-current stage states and gates. Current rules ar
 
 | Date | Work | Result and next action |
 | --- | --- | --- |
+| 2026-10-16 | TS-05 tooling, shared candidate CI and archive; PRs #92–#94 and [closure PR #95](https://github.com/fbincon/claude-code-statusline/pull/95) | Five batches complete; 856 methods / 62 tools closed; 23-job PR/main candidate CI and independent historical execution pass. [Evidence and source/artifact identities](typescript-migration/ts-05/README.md#closure-2026-10-16). TS-06 and PERF-01 remain NOT_STARTED; no public release or installed cutover. |
 | 2026-10-15 | TS-04 editors, installation and recovery, [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91) | 04-A–04-E complete; 265 responsibilities with no pending IDs; 43 CI checks, eight installed targets and 13 host receipts pass, with all 380 source hashes matching. Final documentation integration/synchronization is recorded in the PR; no installed cutover or release. |
 | 2026-10-15 | Approved migration-first performance deferral; `fbincon/ts-migration-plan-performance-deferral` | Numerical D06 policy and evidence unchanged; performance no longer blocks TS-03–TS-06. Close TS-03/03-F on existing PR #85 evidence. TS-04–TS-06 and independent PERF-01 remain NOT_STARTED. Documentation/status changes only. |
 | 2026-10-14 | TS-02 closure, [PR #77](https://github.com/fbincon/claude-code-statusline/pull/77) | Windows/macOS handoffs verified; Windows reboot identity corrected; real Linux s2idle/reboot and human GNOME/popup passed; integrated 8/14/13 CI jobs passed. Maintainer approved external gaps as mandatory before release. D01–D06 DECIDED, TS-02 DONE; next TS-03, not started. |

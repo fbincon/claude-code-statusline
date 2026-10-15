@@ -2,20 +2,61 @@
 
 [English](README.md) | **简体中文**
 
-状态：**IN_PROGRESS**，2026-10-16（Asia/Shanghai）。执行者：Codex。
-分支：`fbincon/ts-05-candidate`。[迁移总计划](../../typescript-migration.zh-CN.md)
+状态：**DONE**，2026-10-16（Asia/Shanghai）。执行者：Codex。
+收尾分支：`fbincon/ts-05-closure`。[迁移总计划](../../typescript-migration.zh-CN.md)
 维护阶段状态。已批准交付通用离线工程候选包、验证后的 CI 制品和仓库内隔离的 Python 归档。
 公开标签、预览/正式发布及剩余实机/桌面验收属于 TS-06。保留已安装的 Python 产品。
+
+<a id="closure-2026-10-16"></a>
+
+## 关闭证据，2026-10-16
+
+TS-05 工程门槛已完成。[PR #92](https://github.com/fbincon/claude-code-statusline/pull/92)
+建立诊断和责任基线，[PR #93](https://github.com/fbincon/claude-code-statusline/pull/93)
+替代持续维护的工具和实时 Python 对照，[PR #94](https://github.com/fbincon/claude-code-statusline/pull/94)
+交付通用候选、CI 切换及归档。[收尾 PR #95](https://github.com/fbincon/claude-code-statusline/pull/95) 还使历史验证独立于任何已安装的 Python 产品。
+最终整合提交、重建制品身份和 Gitee 同步，在合并验证后记录于收尾 PR 及本地交付回执。
+
+| 证据 | 已核验结果 |
+| --- | --- |
+| 实现源码 | `e438a45fa840a032e8bc3c549250a3950166fff7`，PR #94 合并提交 |
+| PR 与 main CI | [PR CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38799227829)及 [main CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38801015640)各 23 项任务全部通过；下载的制品和回执已独立复核。 |
+| 共享候选 | `fbincon-statusline-ts05-candidate-0.0.0-ts05.ge438a45fa840.tgz`，3318565 字节；两次干净构建逐字节一致。 |
+| 候选 SHA-256 | `b9d032f7ce742ecb7a8c25a997ff759d03b626f5fbbd4f406289a6cdb7e7de59` |
+| 可重建源码 SHA-256 | `statusline-ts05-source-e438a45fa840.tgz`：`48911cb63d9fddd7a2f3820258127b11098c100e41c35dcec73de0815ac171fa` |
+| 安装目标 | 八目标各十项场景通过；位于源码之外，使用空 npm 缓存、离线安装、禁用脚本，PATH 不含 Python/编译器。 |
+| 固定主机 | 十三份主机回执与同一源码及制品一致；两个受支持 Mod 及安装绑定通过。2.1.296 的六项 Mod 类型结果仍明确为不可用，不计为通过。 |
+| 默认工具链 | 本地 936 项测试：933 通过、三项仅 Windows 跳过；33 项生成资源，以及文档、归档和所有责任台账在无 Python/编译器可执行文件时通过。 |
+| 责任台账 | 856 个方法：808 移植、19 退役、29 历史保留；62 个工具：45 替代、17 历史保留；待处理为零。 |
+| 冻结参考 | 保留 161 个案例及原有三个已批准 CLI 文本差异；十二个固定预期文件独立重现。 |
+| Python 归档 | 318 个 Python 源码、361 个映射文件保留原始哈希和路径。[隔离参考 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38802513945)在 `7ac7ed2e1a5a894ec2aba10454dea514892a5926` 通过 856 项旧测试（九项平台跳过）、预期重采、混合锁和兼容回退。 |
+
+首次手动参考 CI 暴露了隐含环境假设：部分旧测试要求 Python 解释器旁有已安装的控制台入口。
+执行器现创建私有 venv，安装带哈希的固定依赖及冻结包，并隔离 HOME/配置。
+此前本地结果继续保留为历史证据，不用它替代干净环境的 CI 结果。
+
+Windows 失败确认为 PowerShell 启动/命令管道的 20 秒超时，不是已有报告中的渲染器退出。
+验收器现以有效系统目录初始化，显式加载 Management 和 Utility（包含原生 stdin 格式化），
+关闭自动模块搜索，再恢复隔离的产品路径。保留 Windows PowerShell 5.1、原始 npm `.ps1`
+入口、stdout 精确断言、Git Bash/直接 Node 验证及 20 秒上限。在已验证的 main 合并提交，
+x64 的 PowerShell 主/子 Agent 渲染为 **2998 / 466 ms**；ARM 主机使用 x64 Node 时为
+**12285 / 1288 ms**，所有检查点完成。此前失败（包括[中间一次 ARM 超时](https://github.com/fbincon/claude-code-statusline/actions/runs/38797824515)）保留在下文和原始回执，
+重试、诊断探针和取消的任务不计为通过。
+
+[候选指南](candidate.zh-CN.md)提供重建和安装命令，[TS-06 交接](TS06-HANDOFF.zh-CN.md)
+列出发布前条件。本轮没有公开标签、预览、Release、注册表发布、新增付费调用、实机验收或
+现用 Python 切换。D06 保持 FAIL，PERF-01 和 TS-06 保持 NOT_STARTED。
+下文各批次记录保留当时的检查点状态和数量。
 
 ## 实施批次
 
 | 批次 | 交付内容 | 状态 |
 | --- | --- | --- |
-| 05-A | 现存 Windows ARM 失败与完整责任台账 | VALIDATING；[PR #92](https://github.com/fbincon/claude-code-statusline/pull/92) 已合并诊断，最终 Windows 验收待完成 |
+| 05-A | 现存 Windows ARM 失败与完整责任台账 | DONE；[PR #92](https://github.com/fbincon/claude-code-statusline/pull/92) 及上文最终 Windows 回执 |
 | 05-B | 维护工具与无 Python 测试替代 | DONE；[PR #93](https://github.com/fbincon/claude-code-statusline/pull/93)，43 项检查通过 |
-| 05-C | 可复现的通用离线候选包 | VALIDATING；两次本地构建一致 |
-| 05-D | CI 切换与 Python 归档 | VALIDATING；独立历史验证通过 |
-| 05-E | 候选验收、文档与阶段收尾 | IN_PROGRESS；最终目标 CI 待验 |
+| 05-C | 可复现的通用离线候选包 | DONE；独立本地与 CI 构建一致 |
+| 05-D | CI 切换与 Python 归档 | DONE；共享 CI 与隔离历史验证通过 |
+| 05-E | 候选验收、文档与阶段收尾 | DONE；[TS-06 交接](TS06-HANDOFF.zh-CN.md) |
 
 ## 责任基线
 
