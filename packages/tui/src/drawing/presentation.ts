@@ -52,7 +52,7 @@ export function contentTitle(state: State): string {
     if (e.detail) {
         const scope = tr(e.detail.scope === 'main' ? 'ui.drawing.main_items' : 'ui.drawing.subagent_items');
         return tr('ui.drawing.item_format_2') + scope + ': ' +
-            e.instanceLabel(e.detail.scope, e.detail.id, state.language);
+            state.detailLabel;
     }
     const key = e.page === 'layout' ? 'layout_rows_and_fitting'
         : e.page === 'settings' ? 'settings_global_options'

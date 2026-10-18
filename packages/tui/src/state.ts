@@ -1,11 +1,12 @@
-import { Editor, copyDraft } from '@fbincon/statusline-core/editor/draft';
+import { Editor, copyDraft, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
 import { navigateReview } from '@fbincon/statusline-core/editor/import-review';
 import { graphemes } from '@fbincon/statusline-core/unicode/index';
-import { LANGUAGES, LANGUAGE_NAMES, text, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
+import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/statusline-core/contracts/ui';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
+import { formPageIndex } from './navigation.js';
 export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | null;
 type Input = {
     kind: 'search';
@@ -44,9 +45,21 @@ export class State {
     } = {};
     pendingLanguage: Language | null = null;
     scroll: Record<string, number> = {};
+    private readonly pageSettings: Partial<Record<Page, string>> = { settings: 'colors', layout: 'layout-mode' };
     constructor(description: DescribeResult, current: ReadResult, public language: Language = 'en') { this.editor = new Editor(description, current); }
     get scope(): Scope { return this.editor.page === 'subagents' ? 'subagent' : 'main'; }
     get form(): boolean { return !!this.editor.detail || ['settings', 'layout'].includes(this.editor.page); }
+    get detailItem() {
+        const e = this.editor, detail = e.detail;
+        if (!detail) return undefined;
+        // Picker IDs denote catalog types; configured IDs may collide with those names.
+        return e.adding ? e.catalog(detail.scope).find(item => item.id === detail.id) : e.definition(detail.scope, detail.id);
+    }
+    get detailLabel(): string {
+        const e = this.editor, detail = e.detail;
+        if (!detail) return '';
+        return e.adding ? t(`items.${detail.scope}.${detail.id}.label`, this.language) : e.instanceLabel(detail.scope, detail.id, this.language);
+    }
     get modified(): boolean {
         const input = this.input;
         return this.editor.modified || (input?.kind === 'field' && input.buffer !== input.original);
@@ -54,7 +67,7 @@ export class State {
     notice(value: string | LocalizedText): void { this.message = typeof value === 'string' ? value : value.fallback; this.localized = typeof value === 'string' ? {} : { message: value }; }
     rows(): Row[] {
         const e = this.editor, d = e.draft.display, h = e.draft.host;
-        const fields = formRows(this).map(form => ({ ...form, key: form.key === 'layout.mode' ? 'layout-mode' : form.key, form, kind: form.spec.kind }));
+        const fields = (e.adding && e.detail ? [] : formRows(this)).map(form => ({ ...form, key: form.key === 'layout.mode' ? 'layout-mode' : form.key, form, kind: form.spec.kind }));
         const row = (key: string, label: string, value: string, group: string, kind: Row['kind'] = 'legacy'): Row => ({ key, label, value, group, kind, editable: true });
         if (e.detail)
             return [row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'), ...fields];
@@ -80,6 +93,7 @@ export class State {
             const rows = this.rows(), index = Math.max(0, rows.findIndex(row => row.key === e.setting));
             e.setting = rows[index]?.key ?? '';
             this.scroll[slot] = formWindow(rows, index, this.scroll[slot] ?? 0, height).start;
+            if (!e.detail) this.pageSettings[e.page] = e.setting;
         }
         else {
             const ids = e.visible(this.scope).map(row => row.id), index = Math.max(0, ids.indexOf(e.selected[this.scope]));
@@ -94,7 +108,8 @@ export class State {
     adjust(delta: -1 | 1): Effect {
         const e = this.editor, row = this.selectedRow(), d = e.draft.display;
         if (row.form) {
-            adjustForm(this, row.form, delta);
+            if (adjustForm(this, row.form, delta) && this.localized.message?.key.startsWith('native.lib.client.forms.'))
+                this.notice('');
             return null;
         }
         const cycle = <T>(values: readonly T[], value: T): T => values[(values.indexOf(value) + delta + values.length) % values.length]!;
@@ -297,7 +312,9 @@ export class State {
             }
             if (ctrl && k === 'e' && e.selected[this.scope]) {
                 e.detail = { scope: this.scope, id: e.selected[this.scope] };
-                e.setting = 'item:label';
+                this.scroll.detail = 0;
+                const keys = this.rows().map(row => row.key);
+                e.setting = ['item:text', 'item:label'].find(key => keys.includes(key)) ?? keys[0] ?? '';
                 if (e.adding)
                     e.guidanceScroll = 0;
                 return null;
@@ -331,13 +348,19 @@ export class State {
             return null;
         }
         if (k === 'tab' && !e.adding) {
+            if (this.form && !e.detail) this.pageSettings[e.page] = e.setting;
             e.page = pages[(pages.indexOf(e.page) + (event.shift ? 3 : 1)) % 4]!;
             e.detail = null;
+            e.setting = this.pageSettings[e.page] ?? e.setting;
         }
         else if (['up', 'down', 'home', 'end', 'pageup', 'pagedown'].includes(k)) {
+            this.ensureVisible(height);
             const ids = this.form ? this.rows().map(row => row.key) : e.visible(this.scope).map(row => row.id);
             let index = Math.max(0, ids.indexOf(this.form ? e.setting : e.selected[this.scope]));
-            index = k === 'home' ? 0 : k === 'end' ? ids.length - 1 : index + (k === 'up' || k === 'pageup' ? -1 : 1) * (k === 'pageup' || k === 'pagedown' ? height : 1);
+            if (this.form && (k === 'pageup' || k === 'pagedown'))
+                index = formPageIndex(this.rows(), index, this.scroll[e.detail ? 'detail' : e.page] ?? 0, height, k === 'pageup' ? -1 : 1);
+            else
+                index = k === 'home' ? 0 : k === 'end' ? ids.length - 1 : index + (k === 'up' || k === 'pageup' ? -1 : 1) * (k === 'pageup' || k === 'pagedown' ? height : 1);
             const next = ids[Math.max(0, Math.min(ids.length - 1, index))] ?? '';
             if (this.form)
                 e.setting = next;

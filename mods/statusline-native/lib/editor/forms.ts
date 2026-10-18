@@ -153,15 +153,16 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
     e.draft = draft;
     return true;
 }
-export function adjustForm(view: FormView, current: FormRow, delta: -1 | 1): void {
+export function adjustForm(view: FormView, current: FormRow, delta: -1 | 1): boolean {
     const spec = current.spec;
     if (spec.kind === 'boolean')
-        setFormValue(view, current, !current.valueRaw);
+        return setFormValue(view, current, !current.valueRaw);
     else if (spec.kind === 'choice') {
         const index = spec.choices.indexOf(String(current.valueRaw));
-        setFormValue(view, current, spec.choices[(index + delta + spec.choices.length) % spec.choices.length]!);
+        return setFormValue(view, current, spec.choices[(index + delta + spec.choices.length) % spec.choices.length]!);
     }
     else if (spec.kind === 'integer') {
-        setFormValue(view, current, String(Math.max(spec.minimum, Math.min(spec.maximum, Number(current.valueRaw ?? spec.minimum) + delta))));
+        return setFormValue(view, current, String(Math.max(spec.minimum, Math.min(spec.maximum, Number(current.valueRaw ?? spec.minimum) + delta))));
     }
+    return false;
 }
