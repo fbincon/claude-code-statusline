@@ -19,8 +19,55 @@ defaults:
     shell: bash
 
 jobs:
+  scope:
+    name: Classify documentation changes
+    runs-on: ubuntu-24.04
+    outputs:
+      docs_only: ${{ steps.scope.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - id: scope
+        env:
+          CI_EVENT: ${{ github.event_name }}
+          CI_REF_TYPE: ${{ github.ref_type }}
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          CI_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node dist/typescript/tools/checks/ci-scope.js
+
+  documentation:
+    name: Documentation links and formatting
+    needs: scope
+    if: needs.scope.outputs.docs_only == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run docs:check
+      - name: Check changed documentation whitespace
+        env:
+          CI_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: git diff --check "$CI_BASE" HEAD
+
   candidate:
     name: Reproducible public package
+    needs: scope
+    if: needs.scope.outputs.docs_only != 'true'
     runs-on: ubuntu-24.04
     outputs:
       commit: ${{ steps.identity.outputs.commit }}
@@ -221,26 +268,35 @@ jobs:
 
   acceptance:
     name: Complete candidate evidence
-    needs: [candidate, installed, runtime, mods]
+    needs: [scope, documentation, candidate, installed, runtime, mods]
+    if: always()
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.candidate.outputs.commit }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24.21.0'
           cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - name: Require successful documentation or complete product checks
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}
+        run: node dist/typescript/tools/checks/ci-scope.js gate
       - uses: actions/download-artifact@v4
+        if: needs.scope.outputs.docs_only != 'true'
         with:
           pattern: ts06-*
           path: ${{ runner.temp }}/evidence
-      - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Require eight targets, thirteen hosts and all 32 runtime cases for the same artifact
+        if: needs.scope.outputs.docs_only != 'true'
         run: |
           release_channel=$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.RUNNER_TEMP + '/evidence/ts06-candidate/build-manifest.json')).channel")
           npm run release:prepare -- --"$release_channel" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
       - uses: actions/upload-artifact@v4
+        if: needs.scope.outputs.docs_only != 'true'
         with:
           name: ts06-acceptance
           path: ${{ runner.temp }}/candidate-acceptance.json
