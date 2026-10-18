@@ -3,7 +3,7 @@ import { integer } from '@fbincon/statusline-core/json';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { isSchema } from '@fbincon/statusline-core/config/display';
 import { ConfigError, object, fail } from '@fbincon/statusline-core/config/validation';
-import { LANGUAGES, type Language } from '@fbincon/statusline-core/i18n/registry';
+import { resolveLanguage, type Language } from '@fbincon/statusline-core/i18n/registry';
 import { text, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import { artifact, createStorage, decodeUtf8, errorDetail, jsonBytes, type Storage } from './storage.js';
 import { commit } from '../recovery/files.js';
@@ -19,9 +19,9 @@ function decode(raw: Buffer): unknown {
 }
 function valid(data: unknown): data is {
     schema_version: unknown;
-    ui_language: Language;
+    ui_language: string;
 } {
-    return object(data) && Object.keys(data).length === 2 && isSchema(data.schema_version, 1) && typeof data.ui_language === 'string' && (LANGUAGES as readonly string[]).includes(data.ui_language);
+    return object(data) && Object.keys(data).length === 2 && isSchema(data.schema_version, 1) && typeof data.ui_language === 'string' && resolveLanguage(data.ui_language) !== null;
 }
 export function readPreferences(directory: string, io: Storage = createStorage()): Preferences {
     const path = join(directory, UI_FILENAME), base = { schema_version: 1 as const, ui_language: 'en' as const };
@@ -38,14 +38,15 @@ export function readPreferences(directory: string, io: Storage = createStorage()
         const data = decode(raw);
         if (!valid(data))
             throw new Error('unsupported or invalid preferences');
-        return { schema_version: 1, ui_language: data.ui_language, warning: null };
+        return { schema_version: 1, ui_language: resolveLanguage(data.ui_language)!, warning: null };
     }
     catch {
         return { ...base, warning: text('preferences.invalid', { path }) };
     }
 }
 export function setLanguage(directory: string, language: unknown, io: Storage = createStorage()): Preferences {
-    if (typeof language !== 'string' || !(LANGUAGES as readonly string[]).includes(language))
+    const selected = resolveLanguage(language);
+    if (selected === null)
         fail('preferences.unsupported_language', { language });
     const path = join(directory, UI_FILENAME);
     try {
@@ -67,11 +68,11 @@ export function setLanguage(directory: string, language: unknown, io: Storage = 
                     if (version !== undefined && version > 1n)
                         fail('preferences.future_schema', { version });
                 }
-                if (valid(data) && data.ui_language === language)
+                if (valid(data) && data.ui_language === selected)
                     return;
             }
             try {
-                commit(directory, 'ui-language', [{ ...artifact(path, raw), desired: jsonBytes({ schema_version: 1, ui_language: language }) }], io, raw !== null);
+                commit(directory, 'ui-language', [{ ...artifact(path, raw), desired: jsonBytes({ schema_version: 1, ui_language: selected }) }], io, raw !== null);
             }
             catch (detail) {
                 throw detail;
@@ -83,5 +84,5 @@ export function setLanguage(directory: string, language: unknown, io: Storage = 
             throw detail;
         throw new ConfigError('preferences.write_failed', { path, detail: errorDetail(detail) }, 'io_error');
     }
-    return { schema_version: 1, ui_language: language as Language, warning: null };
+    return { schema_version: 1, ui_language: selected, warning: null };
 }

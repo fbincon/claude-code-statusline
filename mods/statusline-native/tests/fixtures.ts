@@ -171,7 +171,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 11, result }));
+  return output(JSON.stringify({ protocol_version: 12, result }));
 }
 
 export function sample(text: string) {

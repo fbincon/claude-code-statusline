@@ -103,7 +103,7 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
             payload.path = args.path;
         if (action === 'export')
             payload.overwrite = Boolean(flags.overwrite);
-        const transformed = protocol.dispatch({ protocol_version: 11, operation: action, payload }) as {
+        const transformed = protocol.dispatch({ protocol_version: 12, operation: action, payload }) as {
             draft: Draft;
             path: string;
         };

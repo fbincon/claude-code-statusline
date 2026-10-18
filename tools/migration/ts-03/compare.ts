@@ -5,6 +5,8 @@ import { canonical, decode, isLosslessNumber } from '@fbincon/statusline-core/js
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import { checkBaseline, fixtures, repoRoot } from './common.js';
 import { VERSION } from '@fbincon/statusline-core/release';
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 
 // TS-06 release metadata only. Frozen fixtures and the three wording exceptions stay intact.
 const versionFields = new Set([
@@ -36,6 +38,22 @@ export function runtimeDefaultDifference(id: string, path: string, before: unkno
 }
 
 export interface Difference { case: string; path: string; before_sha256: string; after_sha256: string; reason: string }
+const UI_CASES = new Set(['ui-read', 'ui-describe', 'ui-preview', 'ui-read-ui-preferences', 'ui-invalid', 'ui-duplicate', 'ui-nonfinite', 'ui-wrong-version', 'ui-unknown-operation', 'ui-null-draft', 'ui-zero-width']);
+/** v3.1.0's explicit protocol/registry changes, bounded to known frozen fields. */
+export function regionalLanguageDifference(id: string, path: string, before: unknown, after: unknown): boolean {
+  const protocol = UI_CASES.has(id) && path === '/value/response/protocol_version'
+    || id === 'transaction-save-conflict-backup' && /^\/value\/(initial|first_save|stale_save|reopen)\/response\/protocol_version$/u.test(path)
+    || id === 'portable-roundtrip-review-no-save' && /^\/value\/responses\/[012]\/response\/protocol_version$/u.test(path);
+  if (protocol || id === 'ui-wrong-version' && path === '/value/response/error/localization/params/version') return canonical(before) === canonical(11) && canonical(after) === canonical(PROTOCOL_VERSION);
+  if (id === 'ui-wrong-version' && ['/value/response/error/message', '/value/response/error/localization/fallback'].includes(path)) {
+    return before === 'Only protocol_version 11 is supported; reinstall matching frontend/backend resources'
+      && after === `Only protocol_version ${PROTOCOL_VERSION} is supported; reinstall matching frontend/backend resources`;
+  }
+  if (id === 'ui-describe' && ['/value/response/result/editor_fields/global/2/choices', '/value/response/result/options/statusline-language/choices'].includes(path)) {
+    return canonical(before) === canonical(['en', 'zh-CN', 'zh-Hant', 'ja', 'ko']) && canonical(after) === canonical([...LANGUAGES]);
+  }
+  return false;
+}
 export function compare(expected: unknown, actual: unknown, differences: readonly Difference[] = []): string[] {
   const errors: string[] = [], used = new Set<Difference>();
   const permitted = new Map<string, string>([['cli-help', '/value/stdout'], ['cli-unknown-command', '/value/stderr'], ['cli-config-refused', '/value/stderr']]);
@@ -47,6 +65,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (canonical(a) === canonical(b)) return;
     if (releaseMetadataDifference(id, path, a, b)) return;
     if (runtimeDefaultDifference(id, path, a, b)) return;
+    if (regionalLanguageDifference(id, path, a, b)) return;
     const allowed = differences.find(x => x.case === id && x.path === path);
     if (allowed && typeof a === 'string' && typeof b === 'string' && sha256(a) === allowed.before_sha256 && sha256(b) === allowed.after_sha256) { used.add(allowed); return; }
     if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {

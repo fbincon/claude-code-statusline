@@ -9,6 +9,7 @@ import { decodeUtf8, type Storage } from '../config/storage.js';
 import { OWNER, OWNER_FILE, type ModSpec } from './model.js';
 import { digest, type Inventory } from './resources.js';
 import { safeTarget } from './transaction.js';
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 export interface Snapshot {
     mod_version: string;
     files: Record<string, string>;
@@ -35,7 +36,7 @@ export function owner(directory: string, spec: ModSpec, io: Storage, allowMissin
         return null;
     }
     const value = decode(decodeUtf8(raw));
-    if (!object(value) || Object.keys(value).sort().join(',') !== 'backend_version,cache_inventories,files,mod_version,owner,protocol_version,schema_version,suspended' || value.owner !== OWNER || !isSchema(value.schema_version, 1) || typeof value.suspended !== 'boolean' || typeof value.backend_version !== 'string' || typeof value.mod_version !== 'string' || !Array.from({ length: 11 }, (_, i) => i + 1).some(n => isSchema(value.protocol_version, n)) || !Array.isArray(value.cache_inventories) || value.cache_inventories.length > 3)
+    if (!object(value) || Object.keys(value).sort().join(',') !== 'backend_version,cache_inventories,files,mod_version,owner,protocol_version,schema_version,suspended' || value.owner !== OWNER || !isSchema(value.schema_version, 1) || typeof value.suspended !== 'boolean' || typeof value.backend_version !== 'string' || typeof value.mod_version !== 'string' || !Array.from({ length: PROTOCOL_VERSION }, (_, i) => i + 1).some(n => isSchema(value.protocol_version, n)) || !Array.isArray(value.cache_inventories) || value.cache_inventories.length > 3)
         throw new Error('Untrusted Mod ownership marker: ' + path);
     function hashes(files: unknown): asserts files is Record<string, string> {
         if (!object(files) || !Object.keys(files).length)

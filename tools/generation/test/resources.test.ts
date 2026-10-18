@@ -43,8 +43,8 @@ test('tests.config.test_catalog.CatalogTests.test_wire_display_fields_and_genera
 
 test('tests.i18n.test_registry.LanguageRegistryTests.test_order_autonyms_coverage_and_real_translations', () => {
   const directory = join(ROOT, 'packages/core/resources/i18n'), { registry } = languages(directory);
-  assert.deepEqual(registry.map(entry => entry.code), ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko']);
-  assert.deepEqual(registry.map(entry => entry.name), ['English', '简体中文', '繁體中文', '日本語', '한국어']);
+  assert.deepEqual(registry.map(entry => entry.code), ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko']);
+  assert.deepEqual(registry.map(entry => entry.name), ['English', '简体中文', '繁體中文（台灣）', '繁體中文（香港）', '日本語', '한국어']);
   const report = languageCoverage(directory);
   for (const value of Object.values(report)) {
     assert.equal(value.percent, 100); assert.deepEqual(value.missing, []);

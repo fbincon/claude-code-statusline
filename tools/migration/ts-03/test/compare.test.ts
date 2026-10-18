@@ -1,3 +1,4 @@
+import { regionalLanguageDifference } from '../compare.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { compare } from '../compare.js';
@@ -54,4 +55,14 @@ test('coverage accounts for every frozen test while unfinished stage cannot pass
 
 test('broad and stale comparison exemptions are rejected', () => {
   assert.throws(() => compare({}, {}, [{ case: 'anything', path: '/', before_sha256: '0'.repeat(64), after_sha256: '0'.repeat(64), reason: 'ignore' }]));
+});
+
+test('regional comparison exceptions are restricted to known protocol and language-choice fields', () => {
+  assert(regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 12));
+  assert(!regionalLanguageDifference('ui-unknown-case', '/value/response/protocol_version', 11, 12));
+  assert(!regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 13));
+  assert(!regionalLanguageDifference('ui-read', '/value/response/result/value', 11, 12));
+  const before = ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko'], after = ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko'];
+  assert(regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, after));
+  assert(!regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, [...after, 'fr']));
 });

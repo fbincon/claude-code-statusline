@@ -12,6 +12,7 @@ import { sourceHashes } from '../migration/ts-03/common.js';
 import { openPty } from '../migration/ts-04/test/pty.js';
 import { Capture } from '../migration/ts-04/capture.js';
 import { renderCapture } from './render-capture.js';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' }, font: { type: 'string', multiple: true } } });
 if (!values.artifact || !values.commit || !values.output || !values.font?.length)
@@ -29,7 +30,7 @@ try {
     run(['install', '--no-native-editor', '--no-experimental-slash-tui', '--no-live-metrics']);
     run(['config', 'set', 'directory-style', 'home']);
     const settings = fs.readFileSync(join(config, 'settings.json'));
-    for (const language of ['en', 'zh-CN']) {
+    for (const language of LANGUAGES) {
         run(['config', 'set', 'statusline-language', language]);
         const display = fs.readFileSync(join(config, 'claude-statusline.json'));
         const pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });

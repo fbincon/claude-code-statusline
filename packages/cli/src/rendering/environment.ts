@@ -2,7 +2,7 @@ import { homedir, release } from 'node:os';
 import type { DisplayDraft } from '@fbincon/statusline-core/contracts/ui';
 import type { RenderEnvironment } from '@fbincon/statusline-core/rendering/context';
 import { Presentation } from '@fbincon/statusline-core/rendering/language';
-import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
+import { resolveLanguage } from '@fbincon/statusline-core/i18n/registry';
 import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
 import { sessionTokenCounts } from '@fbincon/statusline-core/runtime/usage';
 import { truth, string, object } from '@fbincon/statusline-core/runtime/values';
@@ -18,7 +18,7 @@ export interface EnvironmentOptions {
 }
 export async function presentation(language: string): Promise<Presentation> {
     // Generation rejects partial shipped packs; a known pack needs no English import.
-    const selected = (LANGUAGES as readonly string[]).includes(language) ? language : 'en';
+    const selected = resolveLanguage(language) ?? 'en';
     const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + selected);
     return new Presentation(selected, MESSAGES);
 }

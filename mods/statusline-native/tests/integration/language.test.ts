@@ -52,7 +52,7 @@ test('registered languages cycle forwards and backwards without replacing the di
   const ui = await $.ui.mount(PANE);
   const view = async () => ((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view;
   const headings: Partial<Record<Language, string>> = {
-    en: 'Configure Status Line', 'zh-CN': '配置状态栏', 'zh-Hant': '配置狀態欄',
+    en: 'Configure Status Line', 'zh-CN': '配置状态栏', 'zh-TW': '設定狀態列',
     ja: 'ステータスライン設定', ko: '상태 표시줄 설정',
   };
   await keys(ui, '3');
@@ -117,7 +117,7 @@ test('language persists immediately across cancel and reopening while display dr
 test('rejected language write restores the last display language without replacing the draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture=setup(on);
   fixture.behavior.process=(request,next)=>request.operation==='set_ui_language'
-    ? {value:output(JSON.stringify({protocol_version:11,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
+    ? {value:output(JSON.stringify({protocol_version:12,error:{code:'io_error',message:'Storage refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);
@@ -185,7 +185,7 @@ test('saving statusline language persists the complete draft while a refusal ret
   const fixture = setup(on);
   let refused = true;
   fixture.behavior.process = (request, next) => request.operation === 'apply' && refused
-    ? {value: output(JSON.stringify({protocol_version:11,error:{code:'io_error',message:'Write refused.',localization:null}}),2)} : next();
+    ? {value: output(JSON.stringify({protocol_version:12,error:{code:'io_error',message:'Write refused.',localization:null}}),2)} : next();
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);

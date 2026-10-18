@@ -1,8 +1,8 @@
 /** Explicit-language messages; canonical backend metadata remains English. */
-import { LOCALES } from './generated-locales.js';
+import { LOCALES, resolveLanguage } from './generated-locales.js';
 import type { Language } from './generated-locales.js';
 export type { MessageKey, Language } from './generated-locales.js';
-export { LANGUAGES, LANGUAGE_NAMES } from './generated-locales.js';
+export { LANGUAGES, LANGUAGE_NAMES, resolveLanguage } from './generated-locales.js';
 export interface LocalizedText { key: string; params: Record<string, unknown>; fallback: string }
 
 export class LocalizedError extends Error {
@@ -20,7 +20,7 @@ export function isLocalizedText(value: unknown, depth = 0): value is LocalizedTe
 
 export function t(key: string, language: Language = 'en', params: Record<string, unknown> = {}, fallback?: string): string {
   const base: Record<string, string> = LOCALES.en;
-  const current: Record<string, string> = Object.hasOwn(LOCALES, language) ? LOCALES[language] : base;
+  const current: Record<string, string> = LOCALES[resolveLanguage(language) ?? 'en'];
   const template = (Object.hasOwn(current, key) ? current[key] : undefined) ??
     (Object.hasOwn(base, key) ? base[key] : undefined) ?? fallback ?? key;
   return template.replace(/\{\{|\}\}|\{([A-Za-z_][A-Za-z_0-9]*)\}/g, (matched, name: string | undefined) => {

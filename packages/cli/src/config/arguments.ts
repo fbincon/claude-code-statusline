@@ -2,6 +2,7 @@ import type { Scope } from '@fbincon/statusline-core/contracts/ui';
 import { OPTIONS } from './operations.js';
 import { PALETTE_VALUES, DIRECTORYSTYLE_VALUES, SEPARATORSTYLE_VALUES, SCOPELABELS_VALUES, STATUSLINELANGUAGE_VALUES } from '@fbincon/statusline-core/contracts/ui';
 import { ROWS } from '@fbincon/statusline-core/config/presets';
+import { resolveLanguage } from '@fbincon/statusline-core/i18n/registry';
 export class ArgumentError extends Error {
     constructor(message: string, public readonly key = 'cli.unrecognized', public readonly params: Record<string, unknown> = { arguments: message }, public readonly help?: { unrecognizedOption?: string; pending?: boolean }) {
         super(message);
@@ -35,10 +36,15 @@ function positionalChoices(action: string, selected: string | undefined, values:
     if (action === 'set' && !OPTIONS.includes(first)) throw new ArgumentError(`invalid option: ${first}`, 'cli.invalid_choice', { value: first, choices: OPTIONS.join(', ') });
     if (action === 'item' && !['main', 'subagent'].includes(first)) throw new ArgumentError('scope must be main or subagent');
     if (action === 'layout' && !['auto', 'explicit'].includes(first)) throw new ArgumentError('layout must be auto or explicit');
-    if (action === 'language' && selected === 'set' && !(STATUSLINELANGUAGE_VALUES as readonly string[]).includes(first)) throw new ArgumentError('unsupported language');
+    if (action === 'language' && selected === 'set') {
+        const language = resolveLanguage(first);
+        if (language === null) throw new ArgumentError('unsupported language');
+        values[0] = language;
+    }
     if (action === 'preset' && !Object.hasOwn(ROWS, first)) throw new ArgumentError('unknown preset');
 }
 function applyChoices(flags: ConfigArguments['flags']): void {
+    if (flags['statusline-language'] !== undefined) flags['statusline-language'] = resolveLanguage(flags['statusline-language']) ?? flags['statusline-language'];
     const choices: Record<string, readonly string[]> = { colors: ['on', 'off'], palette: PALETTE_VALUES, 'directory-style': DIRECTORYSTYLE_VALUES, 'separator-style': SEPARATORSTYLE_VALUES, 'scope-labels': SCOPELABELS_VALUES, 'statusline-language': STATUSLINELANGUAGE_VALUES, 'subagent-statusline': ['on', 'off'], 'hide-vim-mode-indicator': ['on', 'off'] };
     for (const [key, values] of Object.entries(choices)) if (flags[key] !== undefined && !values.includes(flags[key] as string)) throw new ArgumentError(`invalid value for --${key}`);
 }
