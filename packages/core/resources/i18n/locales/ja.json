@@ -1363,5 +1363,10 @@
   "recovery.none": "未完了のトランザクションはありません。",
   "recovery.preview": "復旧プレビュー：{id}：{outcome}",
   "recovery.result": "復旧完了：{id}：{outcome}",
-  "recovery.required": "復旧が必要です：{detail}"
+  "recovery.required": "復旧が必要です：{detail}",
+  "ui.actions.item-guidance": "説明を読む",
+  "ui.actions.preset-apply": "下書きを置換；後で保存",
+  "ui.actions.import-file": "パスを入力；後で保存",
+  "ui.actions.export-file": "新しいパスを入力（未保存の場合あり）",
+  "ui.hints.add_copy_remove_short": "追加/複製/削除"
 }

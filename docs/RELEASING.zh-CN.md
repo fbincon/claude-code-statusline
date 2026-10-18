@@ -3,6 +3,10 @@
 [English](RELEASING.md) | **简体中文**
 
 
+## 当前外部 TUI 正式交付
+
+v3.1.1 保留既有 Node 22／24 矩阵、八安装目标、十三宿主及 OIDC 发布流程。[本版批准](releases/approvals/v3.1.1.json) 接受相同六项已披露缺口，不豁免新增失败。发布前必须通过最终 head、合并及标签 CI、独立构建／源码重建一致、安装包扩展 TUI 捕获与草稿附件核验；除推进 npm `latest` 和 GitHub Latest 到本稳定版外，保留既有选择器。[发布说明](releases/v3.1.1.md#简体中文) · [实现与证据](development/external-tui-parity.zh-CN.md)。
+
 ## 当前地区语言与 Node 正式版流程
 
 v3.1.0 使用固定构建工具链和现有 OIDC 发布流程。除八目标和十三宿主外，还必须收齐 32 项 Node 运行环境回执；公开下载工作流覆盖三平台的最新 22.x／24.x。正式版读取[本版本批准](releases/approvals/v3.1.0.json)，原 v3.0.0 决定与下方历史记录保留。PR 最终提交、合并提交及版本标签的全部 CI 均须通过，复用同一已验证包发布到 npm latest、GitHub stable/Latest 和 Gitee，保留 beta。具体见[实现及交付记录](development/node-regional-languages.zh-CN.md)与[发布说明](releases/v3.1.0.md)。

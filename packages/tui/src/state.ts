@@ -18,6 +18,7 @@ type Input = {
     kind: 'field' | 'path';
     key: string;
     buffer: string;
+    original?: string;
 } | {
     kind: 'numeric';
     field: 'padding' | 'refresh_interval';
@@ -46,6 +47,10 @@ export class State {
     constructor(description: DescribeResult, current: ReadResult, public language: Language = 'en') { this.editor = new Editor(description, current); }
     get scope(): Scope { return this.editor.page === 'subagents' ? 'subagent' : 'main'; }
     get form(): boolean { return !!this.editor.detail || ['settings', 'layout'].includes(this.editor.page); }
+    get modified(): boolean {
+        const input = this.input;
+        return this.editor.modified || (input?.kind === 'field' && input.buffer !== input.original);
+    }
     notice(value: string | LocalizedText): void { this.message = typeof value === 'string' ? value : value.fallback; this.localized = typeof value === 'string' ? {} : { message: value }; }
     rows(): Row[] {
         const e = this.editor, d = e.draft.display, h = e.draft.host;
@@ -59,7 +64,7 @@ export class State {
             row('colors', 'Use colors', d.use_colors ? 'on' : 'off', 'Appearance'), row('palette', 'Palette', d.palette, 'Appearance'),
             row('directory-style', 'Directory style', d.directory_style, 'Appearance'), row('separator-style', 'Separator style', d.separator_style, 'Appearance'),
             row('padding', 'Padding', e.buffers.padding, 'Refresh / behavior'), row('refresh_interval', 'Refresh interval', e.buffers.refresh_interval, 'Refresh / behavior'),
-            row('vim-indicator', 'Built-in Vim indicator', h.hide_vim_mode_indicator ? 'hidden' : 'shown', 'Refresh / behavior'),
+            row('vim-indicator', 'Built-in Vim indicator', h.hide_vim_mode_indicator ? 'hide' : 'show', 'Refresh / behavior'),
             row('scope-labels', 'Scope labels', d.scope_labels, 'Appearance'), row('custom-subagent-rows', 'Custom subagent rows', d.subagents.enabled ? 'on' : 'off', 'Refresh / behavior'),
             ...fields,
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
@@ -320,7 +325,7 @@ export class State {
             else if (row.key === 'import-file' || row.key === 'export-file')
                 this.input = { kind: 'path', key: row.key, buffer: e.path };
             else if (row.kind === 'integer' || row.kind === 'text')
-                this.input = { kind: 'field', key: row.key, buffer: row.value };
+                this.input = { kind: 'field', key: row.key, buffer: row.value, original: row.value };
             else
                 return this.adjust(1);
             return null;

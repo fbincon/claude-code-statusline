@@ -4,6 +4,10 @@
 
 Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
 
+## External TUI product regressions
+
+The TUI package owns pure rendering/state regressions without importing the CLI. Tests assert complete separator styling, exact labels and literal values, context-specific key hints, Unicode clipping and pending-edit markers across six languages, seven sizes and four color depths. Existing migration-named backend/PTY tests retain their responsibility ledger. Installed captures and delivery evidence are recorded separately in [the external TUI follow-up](external-tui-parity.md); reconstructed cells do not establish human desktop or power acceptance.
+
 ## Current TypeScript checks
 
 Daily entries are `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/thirteen-host evidence and the manual historical entry.

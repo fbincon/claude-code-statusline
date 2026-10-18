@@ -1363,5 +1363,10 @@
   "recovery.none": "No unfinished transactions.",
   "recovery.preview": "Recovery preview: {id}: {outcome}",
   "recovery.result": "Recovery completed: {id}: {outcome}",
-  "recovery.required": "Recovery required: {detail}"
+  "recovery.required": "Recovery required: {detail}",
+  "ui.actions.item-guidance": "read guidance",
+  "ui.actions.preset-apply": "replace draft; save later",
+  "ui.actions.import-file": "file path; save later",
+  "ui.actions.export-file": "new path (may be unsaved)",
+  "ui.hints.add_copy_remove_short": "add/copy/rm"
 }

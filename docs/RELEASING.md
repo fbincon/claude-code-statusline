@@ -3,6 +3,10 @@
 **English** | [简体中文](RELEASING.zh-CN.md)
 
 
+## Current external-TUI stable delivery
+
+v3.1.1 retains the existing Node 22/24 matrix, eight installation targets, thirteen hosts and OIDC publication workflow. Its [version-specific approval](releases/approvals/v3.1.1.json) accepts the same six disclosed gaps without waiving new failures. Require final-head, merge and tag CI, identical independent builds/source rebuild, installed extended TUI capture and verified draft attachments before publication. Preserve all existing selectors except advancing npm `latest` and GitHub Latest to this stable release. [Release notes](releases/v3.1.1.md) · [Implementation and evidence](development/external-tui-parity.md).
+
 ## Current regional-language and Node stable delivery
 
 v3.1.0 uses the fixed build toolchain and existing OIDC publication workflow. In addition to eight installed targets and thirteen hosts, require all 32 Node runtime receipts; public downloads cover latest 22.x/24.x on three operating systems. Stable readiness reads the [version-specific approval](releases/approvals/v3.1.0.json); the v3.0.0 decision and historical procedures below are retained. Require every final-head, merge and tag CI check, then publish the identical verified package to npm latest, GitHub stable/Latest and Gitee while retaining beta. See [implementation/delivery evidence](development/node-regional-languages.md) and [release notes](releases/v3.1.0.md).

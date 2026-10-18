@@ -30,7 +30,9 @@ test('stable approval is explicit, scoped to v3.0.0 and retains the exact unveri
     const approval = { schema_version: 1, version: '3.0.0', decision: 'accept-known-gaps', approved_by: 'fbincon', approved_on: '2026-10-18', authority: 'Maintainer confirmation', reference: 'https://github.com/fbincon/claude-code-statusline/issues/96', accepted_gaps: ACCEPTED_GAPS };
     assert.equal(assessStableApproval(approval, '3.0.0').decision, 'accept-known-gaps');
     assert.equal(assessStableApproval({ ...approval, version: '3.1.0' }, '3.1.0').decision, 'accept-known-gaps');
+    assert.equal(assessStableApproval({ ...approval, version: '3.1.1' }, '3.1.1').decision, 'accept-known-gaps');
     assert.throws(() => assessStableApproval(approval, '3.1.0'));
+    assert.throws(() => assessStableApproval({ ...approval, version: '3.1.0' }, '3.1.1'));
     for (const version of ['3.0.0-beta.1', '3.0.1', '4.0.0']) assert.throws(() => assessStableApproval(approval, version));
     for (const value of [null, {}, { ...approval, version: '3.0.1' }, { ...approval, decision: 'all-passed' }, { ...approval, accepted_gaps: [] }, { ...approval, accepted_gaps: [...ACCEPTED_GAPS, 'failed-ci'] }])
         assert.throws(() => assessStableApproval(value, '3.0.0'));

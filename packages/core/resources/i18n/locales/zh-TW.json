@@ -1363,5 +1363,10 @@
   "recovery.none": "沒有未完成的交易。",
   "recovery.preview": "恢復預覽：{id}：{outcome}",
   "recovery.result": "恢復完成：{id}：{outcome}",
-  "recovery.required": "需要恢復：{detail}"
+  "recovery.required": "需要恢復：{detail}",
+  "ui.actions.item-guidance": "檢視說明",
+  "ui.actions.preset-apply": "取代草稿；稍後儲存",
+  "ui.actions.import-file": "輸入路徑；稍後儲存",
+  "ui.actions.export-file": "輸入新路徑（可能尚未儲存）",
+  "ui.hints.add_copy_remove_short": "增/複/刪"
 }

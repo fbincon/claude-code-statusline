@@ -1363,5 +1363,10 @@
   "recovery.none": "미완료 트랜잭션이 없습니다.",
   "recovery.preview": "복구 미리 보기: {id}: {outcome}",
   "recovery.result": "복구 완료: {id}: {outcome}",
-  "recovery.required": "복구가 필요합니다: {detail}"
+  "recovery.required": "복구가 필요합니다: {detail}",
+  "ui.actions.item-guidance": "설명 읽기",
+  "ui.actions.preset-apply": "초안 교체; 나중에 저장",
+  "ui.actions.import-file": "경로 입력; 나중에 저장",
+  "ui.actions.export-file": "새 경로 입력(저장 전일 수 있음)",
+  "ui.hints.add_copy_remove_short": "추가/복제/삭제"
 }

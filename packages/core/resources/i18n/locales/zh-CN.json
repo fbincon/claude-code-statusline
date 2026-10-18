@@ -1363,5 +1363,10 @@
   "recovery.none": "没有未完成的事务。",
   "recovery.preview": "恢复预览：{id}：{outcome}",
   "recovery.result": "恢复完成：{id}：{outcome}",
-  "recovery.required": "需要恢复：{detail}"
+  "recovery.required": "需要恢复：{detail}",
+  "ui.actions.item-guidance": "查看说明",
+  "ui.actions.preset-apply": "替换草稿；稍后保存",
+  "ui.actions.import-file": "输入路径；稍后保存",
+  "ui.actions.export-file": "输入新路径（可能尚未保存）",
+  "ui.hints.add_copy_remove_short": "增/复/删"
 }

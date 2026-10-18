@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 const APPROVALS: Readonly<Record<string, string>> = {
     '3.0.0': 'docs/development/typescript-migration/ts-06/stable-approval.json',
     '3.1.0': 'docs/releases/approvals/v3.1.0.json',
+    '3.1.1': 'docs/releases/approvals/v3.1.1.json',
 };
 export function stableApprovalPath(version: string): string {
     assert(Object.hasOwn(APPROVALS, version), 'No maintainer decision approves this version');
