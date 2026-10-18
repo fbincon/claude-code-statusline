@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-状态：**IN_PROGRESS**；**v3.0.0-beta.1 已在 GitHub、Gitee 和 npm beta 发布并通过下载核验**。[发布身份、摘要及 CI 证据](preview-release.zh-CN.md)。v3.0.0 正按下述限定版本的决定准备正式发布，尚未记录为交付完成。[试用指南](../../../PREVIEW.zh-CN.md) · [反馈与平台跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
+状态：依据下述限定版本决定，**DONE**。**v3.0.0 已在 npm `latest`、GitHub 正式版/Latest 和 Gitee 正式版发布并通过下载核验**。[正式版身份、摘要及 CI 证据](stable-release.zh-CN.md)。保留 [beta.1 交付记录](preview-release.zh-CN.md)、npm `beta` 和不可变附件。[用户指南](../../../USER_GUIDE.zh-CN.md) · [反馈与平台跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
 ## 正式版决定：2026-10-18
 
@@ -12,23 +12,27 @@
 
 v3.0.0 使用 npm `latest`、GitHub 正式版/Latest 和 Gitee 正式 Release。双编辑器默认接入保持不变；未保存偏好时，原生计时和高级采集均默认关闭，显式参数和已保存偏好仍优先。不上传 PyPI，Python v2.0.0 保留为回退目标；beta.1 保持 `beta` 和不可变附件。
 
+## 关闭记录：2026-10-18
+
+[PR #99](https://github.com/fbincon/claude-code-statusline/pull/99)交付安装默认值、外部 TUI 恢复及正式发布支持。最终 head、合并提交、标签的 CI 各 23 项通过；固定源码 `d3c87090fed4005f9d1ec8d84d3b016e0cdd4774` 可从源码附件重建为相同字节，草稿下载、npm 和 Gitee 字节一致。三系统公开下载检查均通过精确版本及 `latest` 安装。[完整报告](stable-release.zh-CN.md)记录各附件、源码归档内批准及仍未验证的范围。TS-06 为 DONE；PERF-01 保持 NOT_STARTED，须由后续任务启动。#96 继续收集缺失的平台观察。
+
 ## 已批准的预览门槛修订，2026-10-18
 
-维护者批准先公开预览，收集本机无法完成的 macOS/Windows 及其他目标平台反馈。本修订替代此前“任何 TS 发布之前完成全部实体/桌面验证”的要求；缺失项仍是正式版门槛，延期不代表通过。目标平台边界不变。本次任务交付首个预览版，随后 TS-06 仍进行中，PERF-01 保持 NOT_STARTED。
+预览交接时，维护者批准先公开预览，收集本机无法完成的 macOS/Windows 及其他目标平台反馈，替代此前“任何 TS 发布之前完成全部实体/桌面验证”的要求。上文限定版本决定出台前，缺失项仍是正式版门槛，延期从不代表通过。目标平台边界不变。当时首个预览交付后 TS-06 仍进行中，后续正式交付见上文关闭记录；PERF-01 保持 NOT_STARTED。
 
-包名为 `@fbincon/claude-code-statusline`，版本 `3.0.0-beta.1`，npm 使用 `beta` 标签；GitHub/Gitee 使用 `v3.0.0-beta.1` 并标记预览。Python v2.0.0 保持最新稳定版与回退目标，不上传 PyPI。与历史 Python 预览不同，TS 预览默认开启两个兼容编辑器，保留显式关闭；高级 live metrics 仍显式启用。
+当时预览包名为 `@fbincon/claude-code-statusline`，版本 `3.0.0-beta.1`，npm 使用 `beta` 标签；GitHub/Gitee 使用 `v3.0.0-beta.1` 并标记预览。Python v2.0.0 当时为最新稳定版，现仍保留为回退目标，没有上传 PyPI。与历史 Python 预览不同，TS 预览默认开启两个兼容编辑器，保留显式关闭；高级 live metrics 仍显式启用。
 
 | 门槛 | 预览版 | 正式版 |
 | --- | --- | --- |
 | 固定源码独立构建及相同字节 | 必须 | 必须 |
-| 八安装目标 / 十三固定宿主 | 最终 head、合并及标签必须通过 | 最终产品必须通过 |
+| 八安装目标 / 十三固定宿主 | 最终 head、合并及标签必须通过 | 最终 head、合并及标签均已通过 |
 | GitHub/Gitee/npm 下载身份与安装 smoke | 必须 | 必须 |
 | macOS 实机休眠恢复 | 未验证，收集反馈 | 未验证；v3.0.0 已接受 |
 | macOS 14 Intel 实机桌面/电源 | 未验证 | 未验证；v3.0.0 已接受 |
 | Windows 10 桌面、焦点、编辑器与恢复 | 未验证 | 未验证；v3.0.0 已接受 |
 | WSL 桌面启动/焦点与弹窗 | 未验证 | 未验证；v3.0.0 已接受 |
 | 其他平台电源/人工视觉 | 保留历史精确范围，新缺口未验证 | 未验证范围仅对 v3.0.0 接受 |
-| Claude 2.1.296 精确声明 | 不可用；复查，保留官方 Mod 测试与 2.1.294 类型检查 | 复查所选精确宿主 |
+| Claude 2.1.296 精确声明 | 不可用；复查，保留官方 Mod 测试与 2.1.294 类型检查 | 不可用；仅对 v3.0.0 接受，六项缺口保留 |
 | 功能超时、事件丢失、写入与恢复 | 阻塞 | 阻塞 |
 | D06 性能预算 | 披露历史 FAIL | 不阻塞，后续 PERF-01 处理 |
 

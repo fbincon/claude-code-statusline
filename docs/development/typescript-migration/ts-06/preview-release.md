@@ -2,6 +2,8 @@
 
 **English** | [简体中文](preview-release.zh-CN.md)
 
+Historical snapshot: stage states, stable gates and dist-tags below describe the beta.1 handoff. For the current v3.0.0 delivery and accepted unverified scope, see the [stable report](stable-release.md). Published preview identities and the original results below are unchanged.
+
 Publication status: **v3.0.0-beta.1 delivered on 2026-10-18** through GitHub, Gitee and npm beta; public download and installation acceptance passed. TS-06 remains **IN_PROGRESS**; PERF-01 remains **NOT_STARTED**. [Decision and stable gates](README.md) · [Feedback tracker #96](https://github.com/fbincon/claude-code-statusline/issues/96).
 
 ## Immutable release identity

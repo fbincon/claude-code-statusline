@@ -2,17 +2,17 @@
 
 [English](PREVIEW.md) | **简体中文**
 
-本页保留 beta.1 试用及恢复流程。正式 npm 产品请使用[用户指南](USER_GUIDE.zh-CN.md#安装与接入)。下文占位 `latest` 和正式版门槛描述首预览发布时的状态；[v3.0.0 决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)修订发布政策，未验证项仍不标为通过。
+本页保留 beta.1 试用及恢复流程。正式 npm 产品现为 **v3.0.0**，请使用[用户指南](USER_GUIDE.zh-CN.md#安装与接入)及[正式交付证据](development/typescript-migration/ts-06/stable-release.zh-CN.md)。[v3.0.0 决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)仅对本版本接受已记录缺项发布，未验证项仍不标为通过。
 
-预览版本为 **v3.0.0-beta.1**，通过 `@fbincon/claude-code-statusline@beta` 和内容相同的 GitHub/Gitee Release 附件分发，用于正式版之前的验证。[发布说明](releases/v3.0.0-beta.1.md) · [验收跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
+保留的预览版本为 **v3.0.0-beta.1**，通过 `@fbincon/claude-code-statusline@beta` 和内容相同的 GitHub/Gitee Release 附件分发，当时用于正式版之前的验证。[发布说明](releases/v3.0.0-beta.1.md) · [验收跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
-每次 npm 安装都需明确使用 `@beta` 或精确预览版本。npm 暂无稳定产品版本，不带版本/标签的安装或 `@latest` 只会解析到 registry 占位包，不包含状态栏产品；稳定产品仍为 Python v2.0.0。
+重现预览时需明确使用 `@beta` 或 `@3.0.0-beta.1`。不带版本的 npm 安装或 `@latest` 现安装正式版 v3.0.0，`beta` 仍保留 beta.1；Python v2.0.0 继续可用于回退。
 
 ## 环境要求与验证限制
 
 使用 Node **24.21.0**、npm **11.19.0**。安装包目标为 Linux/WSL x64、Windows x64、macOS x64 与 ARM64。Windows ARM 使用**模拟运行的 x64 Node**，不提供原生 Windows ARM 或 32 位运行时。安装预览版无需 Python 或原生编译器。
 
-CI 覆盖八个安装目标、十三个固定 Claude 宿主组合。macOS 实机休眠恢复、macOS 14 Intel 桌面/电源、Windows 10 桌面、WSL 桌面/弹窗和其他目标平台电源/人工视觉检查仍是**未验证的正式版门槛**。CI、PTY 不能替代真人桌面和实体电源验收。macOS Client 的历史焦点限制仍存在：输入前先点击 Client 区域。Claude 2.1.296 没有可用的精确宿主类型声明，其官方 Mod 测试与 2.1.294 类型检查分别记录。
+CI 覆盖八个安装目标、十三个固定 Claude 宿主组合。macOS 实机休眠恢复、macOS 14 Intel 桌面/电源、Windows 10 桌面、WSL 桌面/弹窗和其他目标平台电源/人工视觉检查保持**未验证**，仅对 v3.0.0 接受缺项发布。CI、PTY 不能替代真人桌面和实体电源验收。macOS Client 的历史焦点限制仍存在：输入前先点击 Client 区域。Claude 2.1.296 没有可用的精确宿主类型声明，其官方 Mod 测试与 2.1.294 类型检查分别记录。
 
 兼容宿主上双编辑器默认开启，保留已有停用偏好。外部入口要求 Claude 2.1.258+，会话内 Client 要求 2.1.287+，原生计时要求 2.1.289+；高级 live metrics 继续显式启用。显示 schema 8、编辑器协议 11、运行时协议 2/v1、任务 schema 4 保持兼容。D06 保持 **FAIL：104 pass / 60 fail / 28 inconclusive**，性能工作属于 PERF-01；功能超时、事件丢失、写入或恢复失败仍是缺陷。
 

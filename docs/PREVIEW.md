@@ -2,17 +2,17 @@
 
 **English** | [简体中文](PREVIEW.zh-CN.md)
 
-This guide preserves the beta.1 trial and recovery procedure. For the stable npm product use the [user guide](USER_GUIDE.md#installation-and-integration). The statements about a placeholder `latest` and blocking stable gates below describe the original preview publication; the [v3.0.0 decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18) supersedes that release policy without passing unverified checks.
+This guide preserves the beta.1 trial and recovery procedure. The stable npm product is now **v3.0.0**; use the [user guide](USER_GUIDE.md#installation-and-integration) and [stable delivery evidence](development/typescript-migration/ts-06/stable-release.md). The [v3.0.0 decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18) accepts the recorded known gaps for this version without passing unverified checks.
 
-The preview is **v3.0.0-beta.1**, distributed as `@fbincon/claude-code-statusline@beta` and identical GitHub/Gitee Release attachments. It is for testing before stable delivery. [Release notes](releases/v3.0.0-beta.1.md) · [Validation tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
+The retained preview is **v3.0.0-beta.1**, distributed as `@fbincon/claude-code-statusline@beta` and identical GitHub/Gitee Release attachments. It was issued for testing before stable delivery. [Release notes](releases/v3.0.0-beta.1.md) · [Validation tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
 
-Use `@beta` or an exact preview version in every npm installation. There is no npm stable product release yet; an unqualified install or `@latest` resolves to a registry placeholder, not the statusline. The stable product remains Python v2.0.0.
+To reproduce the preview, specify `@beta` or `@3.0.0-beta.1`. An unqualified npm installation or `@latest` now installs stable v3.0.0; `beta` remains on beta.1. Python v2.0.0 remains available for rollback.
 
 ## Requirements and validation limits
 
 Use Node **24.21.0** with npm **11.19.0**. Supported package targets are Linux/WSL x64, Windows x64, macOS x64 and ARM64. Windows ARM testing uses **x64 Node under emulation**. A native Windows ARM or 32-bit runtime is not provided. No Python or native compiler is needed to install the preview.
 
-CI covers eight installation targets and thirteen fixed Claude host combinations. Physical macOS sleep/resume, macOS 14 Intel desktop/power, Windows 10 desktop, WSL desktop/popup and remaining target-specific power/visual checks are **unverified stable-release gates**. CI and PTY results do not establish human desktop or physical power acceptance. The historical macOS Client focus limitation still applies: click the Client region before typing. Claude 2.1.296 has no usable exact-host declarations; its official Mod tests are separate from type checking on 2.1.294.
+CI covers eight installation targets and thirteen fixed Claude host combinations. Physical macOS sleep/resume, macOS 14 Intel desktop/power, Windows 10 desktop, WSL desktop/popup and remaining target-specific power/visual checks remain **unverified**, accepted for v3.0.0 publication only. CI and PTY results do not establish human desktop or physical power acceptance. The historical macOS Client focus limitation still applies: click the Client region before typing. Claude 2.1.296 has no usable exact-host declarations; its official Mod tests are separate from type checking on 2.1.294.
 
 Both editors default on for compatible hosts, preserving saved disablement. External needs Claude 2.1.258+, in-session Client 2.1.287+, and native timing 2.1.289+. Advanced live metrics remain opt-in. Display schema 8, editor protocol 11, runtime protocol 2/v1 and task schema 4 remain compatible. D06 remains **FAIL: 104 pass / 60 fail / 28 inconclusive**; performance work belongs to PERF-01. Functional timeouts, event loss, failed writes and recovery failures remain bugs.
 
