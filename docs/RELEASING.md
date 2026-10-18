@@ -2,6 +2,53 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## npm trusted publishing with GitHub Actions
+
+[Publish npm with OIDC](../.github/workflows/npm-publish.yml) replaces interactive npm authentication for future releases. Codex can dispatch it after release preparation, without an npm password, OTP or persistent publishing token. It does not create versions, move Git tags or publish GitHub/Gitee Releases. Keep the release gates below.
+
+### One-time npm configuration
+
+Open [the npm package](https://www.npmjs.com/package/@fbincon/claude-code-statusline), choose **Settings → Trusted publishing → GitHub Actions**, and complete npm's authentication challenge. Enter:
+
+| Field | Value |
+| --- | --- |
+| Organization or user | `fbincon` |
+| Repository | `claude-code-statusline` |
+| Workflow filename | `npm-publish.yml` (filename only) |
+| Environment name | Leave empty; the workflow uses no GitHub Environment |
+| Allow npm publish | Enabled, to publish without staged-release approval |
+| Allow npm dist-tag | Enabled, to correct selectors without another OTP |
+
+Keep account 2FA enabled. After the first successful OIDC publication, npm recommends **Publishing access → Require two-factor authentication and disallow tokens**; OIDC continues working. No `NPM_TOKEN`/`NODE_AUTH_TOKEN` repository secret is needed. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
+
+**Create the binding when the next real release is ready.** A new binding must complete its first successful publication within two days. A dry-run, `npm whoami`, or a retry of an existing version does not validate it. If it expires, delete/recreate it with the same fields and publish within the new window. Never republish an immutable version to test authentication.
+
+### Verify and publish
+
+The default is a read-only dry-run. Check the existing stable release from `main` without npm authentication or publication:
+
+```bash
+gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
+  --ref main --field tag=v3.0.0 --field dry_run=true
+```
+
+For a new release, finish PR review, main CI, annotated-tag CI, readiness and draft-asset verification first. The tag must contain this workflow and its verifier. Dispatch **from that same tag**, selecting it in GitHub's “Use workflow from” menu and entering the identical `tag` input. After setting `RELEASE_TAG` to the actual approved release tag:
+
+```bash
+gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
+  --ref "$RELEASE_TAG" --field "tag=$RELEASE_TAG" --field dry_run=true
+gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
+  --ref "$RELEASE_TAG" --field "tag=$RELEASE_TAG" --field dry_run=false
+```
+
+Wait for each run and inspect its summary before proceeding. Live dispatch from a branch is rejected so npm provenance identifies the actual package source SHA. Only the publishing job receives `id-token: write`; dry-runs never start it. There is no GitHub Environment manual approval.
+
+The workflow requires the tag commit on `main` and successful latest main/tag **CI** runs. It downloads the tag run's `ts06-*` artifacts, rechecks eight installation targets and thirteen hosts with `release:prepare`, and verifies the exact package/source/manifest/checksum bundle. Missing/expired artifacts fail; rerun the original tag CI instead of substituting unrelated artifacts. Stable approval stays version-scoped: changing authentication does not approve other versions or waive gates.
+
+The isolated publishing job uploads that same `.tgz` with lifecycle scripts disabled, using Node 24.21.0/npm 11.21.0. Build identity remains npm 11.19.0; the newer publishing CLI supports OIDC dist-tag operations. It verifies public SHA-256/SHA-512 bytes, sets `latest` for stable or `beta` for preview, and preserves other existing selectors. An existing identical version is a no-op only while its intended selector still matches; other states fail instead of overwriting bytes or rolling back selectors. Inspect ambiguous registry results before retrying.
+
+The `npm-publish-bundle` workflow artifact contains verified inputs/readiness; `npm-publication` contains the successful publication receipt. Only the four delivery files belong in a public Release, excluding helper scripts/reports. Dry-runs confirm preparation, not the npm binding. The first **new-version publication** confirms OIDC end to end. Then continue GitHub/Gitee publication and three-OS public-download checks below.
+
 ## TypeScript stable publication
 
 v3.0.0 uses the public npm package `@fbincon/claude-code-statusline`, npm `latest`, stable GitHub/Gitee Releases and GitHub Latest. The [TS-06 decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18) accepts the listed known gaps for this version only; it does not pass those checks or relax functional acceptance. Preserve the existing beta selector and published artifacts.
@@ -12,7 +59,7 @@ The completed [v3.0.0 delivery report](development/typescript-migration/ts-06/st
 2. Build from the immutable merge SHA with `npm run release:build -- --commit FULL_SHA --output NEW_DIRECTORY`. Require two byte-identical builds, matching source/Mod/application identities and `release:verify -- --artifact ABSOLUTE_TGZ --commit FULL_SHA`. Rebuild from the delivered source with `--source ABSOLUTE_SOURCE_TAR_GZ` in a separate new output directory.
 3. Require eight installed targets and thirteen fixed hosts. Run `release:prepare -- --stable --artifact ABSOLUTE_TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE`. Stable readiness also reads the v3.0.0 approval from the verified source archive and records its digest and unverified scope. Missing, failed, skipped, duplicate or mismatched automated receipts still fail. No paid calls or new physical acceptance are implied.
 4. Create the annotated `v3.0.0` tag at that SHA and require tag CI. Create a GitHub draft **stable** Release. Upload exactly the package tgz, source tar.gz, `build-manifest.json` and `SHA256SUMS`; download and verify the draft bundle, installed smoke and installed TUI. Render relative links from `docs/releases/v3.0.0.md` to fixed-tag URLs with `tools/release/markdown.ts`.
-5. Verify npm account/namespace access and use its official login/2FA flow when required. Publish the verified tgz from outside the checkout using `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag latest --ignore-scripts`. Do not repack. Wait for public metadata, compare SHA-512 integrity and tgz bytes, require `latest=3.0.0`, and retain `beta=3.0.0-beta.1`.
+5. Future tags containing `npm-publish.yml` use the OIDC workflow above to publish the verified CI tgz without repacking or interactive npm login. The original v3.0.0 delivery used local npm authentication and `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag latest --ignore-scripts`. Wait for public metadata and compare SHA-512 integrity and tgz bytes; v3.0.0 requires `latest=3.0.0` while retaining `beta=3.0.0-beta.1`.
 6. Publish GitHub as stable/Latest. The **Release public downloads** workflow verifies the four attachments and both exact-version and `latest` installations on Linux, Windows and macOS. Manual dispatch takes the exact tag; reports distinguish release and verifier commits. `release:downloads -- --tag v3.0.0 --commit FULL_SHA --output NEW_DIRECTORY` performs the same read-only checks.
 7. Inspect divergence, then synchronize validated `main` and the exact tag to the existing Gitee SSH remote with explicit refspecs. Use official Gitee MCP to create the stable Release, and the keyring-backed official API helper for attachments. Upload the identical four files, render notes against actual attachment metadata, and redownload/check every digest.
 8. Record actual checks, release identity and public-channel results through a follow-up PR; synchronize the validated evidence commit and update issue #96. Mark TS-06 DONE only after all channels and download checks pass. Keep raw logs, receipts and machine paths under ignored validation directories.

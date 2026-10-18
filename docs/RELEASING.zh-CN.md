@@ -2,6 +2,53 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## 通过 GitHub Actions 可信发布 npm
+
+[Publish npm with OIDC](../.github/workflows/npm-publish.yml) 为后续版本替代交互式 npm 发布认证。Codex 完成准备后即可触发，无需 npm 密码、验证码或长期发布令牌。工作流不创建新版本、不移动 Git 标签，也不发布 GitHub/Gitee Release；下文发布门槛仍须完成。
+
+### npm 端首次配置
+
+打开 [npm 包页面](https://www.npmjs.com/package/@fbincon/claude-code-statusline)，选择 **Settings → Trusted publishing → GitHub Actions**，完成 npm 要求的身份验证，填写：
+
+| 配置项 | 值 |
+| --- | --- |
+| Organization or user | `fbincon` |
+| Repository | `claude-code-statusline` |
+| Workflow filename | `npm-publish.yml`，只填文件名 |
+| Environment name | 留空；工作流未使用 GitHub Environment |
+| Allow npm publish | 开启，使发布无需逐次批准暂存版本 |
+| Allow npm dist-tag | 开启，使标签修正无需另外输入验证码 |
+
+保留账号 2FA。首次 OIDC 发布成功后，npm 建议将 **Publishing access** 设置为 **Require two-factor authentication and disallow tokens**，仍允许 OIDC。仓库无需配置 `NPM_TOKEN` 或 `NODE_AUTH_TOKEN` Secret。参见 [npm 可信发布文档](https://docs.npmjs.com/trusted-publishers/)。
+
+**在下一个真实版本准备好时再创建绑定。** 新绑定须在两天内首次成功发布。只读试运行、`npm whoami` 或重试已有版本都不能验证绑定。过期后删除并按相同字段重新创建，在新时限内发布；不得重复发布已有不可变版本来测试认证。
+
+### 试运行与正式发布
+
+默认只执行只读试运行。以下命令从 `main` 检查现有正式版，不进行 npm 认证或发布：
+
+```bash
+gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
+  --ref main --field tag=v3.0.0 --field dry_run=true
+```
+
+新版本须先完成 PR 审查、主分支 CI、注释标签 CI、就绪及草稿附件核验。标签必须包含本工作流及其校验工具。**从同一个版本标签触发**，网页操作时在 “Use workflow from” 中选择该标签，`tag` 输入也填该标签。将 `RELEASE_TAG` 设置为本次实际批准的发布标签后执行：
+
+```bash
+gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
+  --ref "$RELEASE_TAG" --field "tag=$RELEASE_TAG" --field dry_run=true
+gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
+  --ref "$RELEASE_TAG" --field "tag=$RELEASE_TAG" --field dry_run=false
+```
+
+每次等待工作流完成并检查摘要，再继续下一步。正式发布拒绝从分支触发，使 npm 来源证明指向实际产物源码 SHA。只有发布任务拥有 `id-token: write`，试运行不会启动它，没有 GitHub Environment 人工审批。
+
+工作流要求标签提交已进入 `main`，且同一提交最新的主分支和标签 **CI** 均成功。下载标签 CI 的 `ts06-*` 附件，用 `release:prepare` 重新核验八安装目标、十三宿主及完整的安装包/源码/清单/摘要。附件缺失或过期会失败，须重跑原标签 CI，不能换用其他提交的附件。正式版批准仍限定版本；本次认证改动不批准其他版本，也不豁免门槛。
+
+独立发布任务使用 Node 24.21.0/npm 11.21.0，禁用生命周期脚本，上传同一 `.tgz`。构建身份仍为 npm 11.19.0，较新的发布 CLI 用于支持 OIDC 标签操作。核对公开包 SHA-256/SHA-512，正式版使用 `latest`、预览版使用 `beta`，保留其他既有选择器。已发布且字节相同的版本仅在目标选择器仍匹配时视为无需操作；其他状态失败，不覆盖字节或回退标签。结果不明时先检查 registry 状态再重试。
+
+`npm-publish-bundle` 工作流附件包含已验证输入和就绪报告，`npm-publication` 包含成功发布回执。公开 Release 只上传四个交付文件，不包含辅助脚本或报告。试运行只能证明准备检查通过，第一次**新版本发布**才能证明 npm 绑定和 OIDC 全链路可用。之后继续下文 GitHub/Gitee 发布及三系统公开下载检查。
+
 ## TypeScript 正式发布
 
 v3.0.0 使用公开 npm 包 `@fbincon/claude-code-statusline`、npm `latest`、GitHub/Gitee 正式 Release 和 GitHub Latest。[TS-06 决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)仅接受本版本列出的已知缺项，不代表这些检查通过，也不放宽功能验收。保留现有 beta 选择器和已发布产物。
@@ -12,7 +59,7 @@ v3.0.0 使用公开 npm 包 `@fbincon/claude-code-statusline`、npm `latest`、G
 2. 从不可变合并 SHA 执行 `npm run release:build -- --commit FULL_SHA --output NEW_DIRECTORY`。两次独立构建必须字节一致，源码/Mod/应用身份匹配；执行 `release:verify -- --artifact ABSOLUTE_TGZ --commit FULL_SHA`。在另一新目录用 `--source ABSOLUTE_SOURCE_TAR_GZ` 从交付源码重建。
 3. 必须通过八个安装目标和十三个固定宿主。执行 `release:prepare -- --stable --artifact ABSOLUTE_TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE`，从已校验源码包读取 v3.0.0 批准记录，报告其摘要和未验证范围。自动回执缺失、失败、跳过、重复或身份不一致仍失败。不暗示新增付费调用或实机验收。
 4. 在该 SHA 创建注释标签 `v3.0.0` 并通过标签 CI。创建 GitHub **正式版**草稿，仅上传 npm tgz、源码 tar.gz、`build-manifest.json`、`SHA256SUMS`。下载草稿验证全部附件、安装及实际安装包 TUI。用 `tools/release/markdown.ts` 将 `docs/releases/v3.0.0.md` 相对链接渲染为固定标签链接。
-5. 核对 npm 账号/命名空间，必要时完成官方登录/2FA。从仓库外执行 `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag latest --ignore-scripts`，直接发布已验证 tgz，不重新打包。等待公开元数据，核对 SHA-512 和 tgz 字节，要求 `latest=3.0.0` 并保留 `beta=3.0.0-beta.1`。
+5. 后续包含 `npm-publish.yml` 的标签使用上文 OIDC 工作流，发布同一已验证 CI tgz，无需重新打包或交互式 npm 登录。原 v3.0.0 交付使用本机 npm 认证及 `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag latest --ignore-scripts`。等待公开元数据，核对 SHA-512 和 tgz 字节；v3.0.0 要求 `latest=3.0.0` 并保留 `beta=3.0.0-beta.1`。
 6. 发布 GitHub 正式 Release 并设为 Latest。**Release public downloads** 工作流在 Linux、Windows、macOS 核验四附件及精确版本、`latest` 安装。手动触发明确标签，回执分别记录发布和验证器提交。`release:downloads -- --tag v3.0.0 --commit FULL_SHA --output NEW_DIRECTORY` 执行同样的只读验证。
 7. 检查远端分歧，以显式 refspec 将已验证 `main` 和准确标签同步到现有 Gitee SSH remote。用官方 Gitee MCP 创建正式 Release，使用 keyring 支持的官方 API helper 上传相同四附件；根据实际附件元数据渲染说明，并重新下载核对全部摘要。
 8. 通过后续 PR 记录实际检查、发布身份和公开渠道结果，同步已验证的证据提交并更新 Issue #96。只有全部渠道和下载检查完成后，TS-06 才标记 DONE。原始日志、回执和机器路径保留在忽略目录。

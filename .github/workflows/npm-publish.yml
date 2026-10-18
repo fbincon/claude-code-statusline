@@ -1,0 +1,100 @@
+name: Publish npm with OIDC
+run-name: npm ${{ inputs.tag }} / dry-run=${{ inputs.dry_run }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing annotated version tag with successful main and tag CI
+        required: true
+        type: string
+      dry_run:
+        description: Verify release inputs without requesting npm credentials or publishing
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+# Serialize all versions of this package; never interrupt a registry write.
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  prepare:
+    if: github.repository == 'fbincon/claude-code-statusline'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - id: resolve
+        name: Require immutable tag, main ancestry and successful main/tag CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: node dist/typescript/tools/release/npm.js resolve --selection "$RUNNER_TEMP/selection.json"
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.resolve.outputs.ci_run }}
+          pattern: ts06-*
+          path: ${{ runner.temp }}/evidence
+      - name: Verify exact CI package bytes, full acceptance and registry state
+        run: node dist/typescript/tools/release/npm.js prepare --selection "$RUNNER_TEMP/selection.json" --evidence "$RUNNER_TEMP/evidence" --output "$RUNNER_TEMP/npm-bundle"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-publish-bundle
+          path: ${{ runner.temp }}/npm-bundle/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: prepare
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          registry-url: https://registry.npmjs.org
+      # Build identity stays at npm 11.19.0. This isolated publishing CLI also
+      # supports OIDC dist-tag corrections, which require npm >=11.21.0.
+      - run: npm install --global npm@11.21.0 --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-publish-bundle
+          path: ${{ runner.temp }}/npm-bundle
+      - name: Publish the verified tgz with OIDC and verify registry bytes/tags
+        working-directory: ${{ runner.temp }}/npm-bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node npm-registry.js publish --plan release-plan.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-publication
+          path: ${{ runner.temp }}/npm-bundle/npm-publication.json
+          if-no-files-found: ignore
