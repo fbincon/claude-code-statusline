@@ -44,7 +44,7 @@
   "cli.help.persistently_disable_and_remove_owned_native_editor_integration": "本ツールのネイティブエディター連携を継続的に無効化して削除",
   "cli.help.enable_independent_runtime_collection_opt_in_claude_code": "独立したランタイム収集を有効化（任意。Claude Code 2.1.289+ が必要）",
   "cli.help.persistently_disable_independent_runtime_collection": "独立したランタイム収集を継続的に無効化",
-  "cli.help.enable_native_task_timing_default_on_compatible_hosts": "ネイティブタスク計時を有効化（対応ホストで既定で有効）",
+  "cli.help.enable_native_task_timing_opt_in": "ネイティブタスク計時を有効化（対応ホストで明示的に有効化）",
   "cli.help.disable_native_timing_while_retaining_hook_transcript_timing": "ネイティブ計時を無効化し、フック／トランスクリプト計時を維持",
   "cli.help.remove_only_this_tool_s_claude_code_configuration": "本ツールの Claude Code 設定のみを削除",
   "cli.help.diagnose_the_installation_without_changing_files": "ファイルを変更せずにインストール状態を診断",

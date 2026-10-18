@@ -44,7 +44,7 @@
   "cli.help.persistently_disable_and_remove_owned_native_editor_integration": "이 도구의 네이티브 편집기 연동을 지속적으로 비활성화하고 제거",
   "cli.help.enable_independent_runtime_collection_opt_in_claude_code": "독립 런타임 수집 활성화 (선택 사항, Claude Code 2.1.289+ 필요)",
   "cli.help.persistently_disable_independent_runtime_collection": "독립 런타임 수집을 지속적으로 비활성화",
-  "cli.help.enable_native_task_timing_default_on_compatible_hosts": "네이티브 작업 시간 측정 활성화 (호환 호스트에서 기본 활성화)",
+  "cli.help.enable_native_task_timing_opt_in": "네이티브 작업 시간 측정 활성화 (호환 호스트에서 명시적으로 활성화)",
   "cli.help.disable_native_timing_while_retaining_hook_transcript_timing": "네이티브 시간 측정을 비활성화하고 훅/대화 기록 시간 측정 유지",
   "cli.help.remove_only_this_tool_s_claude_code_configuration": "이 도구의 Claude Code 설정만 제거",
   "cli.help.diagnose_the_installation_without_changing_files": "파일을 변경하지 않고 설치 상태 진단",

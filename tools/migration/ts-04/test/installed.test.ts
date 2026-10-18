@@ -20,7 +20,7 @@ before(() => {
     installed = installCandidate();
     driver = join(installed.temporary, 'acceptance-driver.mjs');
     fs.copyFileSync(fileURLToPath(new URL('./installed-driver.js', import.meta.url)), driver);
-    report = { schema_version: 1, stage: installed.packed.source.channel === 'preview' ? 'TS-06' : 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
+    report = { schema_version: 1, stage: installed.packed.source.channel && installed.packed.source.channel !== 'candidate' ? 'TS-06' : 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
     report.powershell_setup = JSON.parse(process.env.TS05_POWERSHELL_SETUP ?? 'null');
 });
 after(() => {
@@ -56,7 +56,7 @@ function ui(config: string, operation: string, payload: unknown = {}) {
 test('private packed candidate contains only compiled business entry points and complete owned resources', () => {
     const manifest = JSON.parse(fs.readFileSync(join(installed.root, 'package.json'), 'utf8'));
     assert.equal(manifest.name, installed.packed.source.name);
-    assert.equal(manifest.private, installed.packed.source.channel !== 'preview');
+    assert.equal(manifest.private, (installed.packed.source.channel ?? 'candidate') === 'candidate');
     assert.equal(manifest.scripts, undefined);
     assert.deepEqual(Object.keys(manifest.bin), ['claude-statusline']);
     for (const name of ['LICENSE', 'LICENSE-Unicode.txt', 'LICENSE-Wcwidth.txt'])

@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
-    tags: ['v3.0.0-beta.*']
+    tags: ['v3.*']
   pull_request:
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   candidate:
-    name: Reproducible preview package
+    name: Reproducible public package
     runs-on: ubuntu-24.04
     outputs:
       commit: ${{ steps.identity.outputs.commit }}
@@ -186,7 +186,9 @@ jobs:
           path: ${{ runner.temp }}/evidence
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Require all eight targets and thirteen hosts to match the same artifact
-        run: npm run release:prepare -- --preview --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
+        run: |
+          release_channel=$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.RUNNER_TEMP + '/evidence/ts06-candidate/build-manifest.json')).channel")
+          npm run release:prepare -- --"$release_channel" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
       - uses: actions/upload-artifact@v4
         with:
           name: ts06-acceptance

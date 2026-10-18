@@ -16,6 +16,8 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 
 **Preview amendment, 2026-10-18:** the maintainer approved v3.0.0-beta.1, npm beta and identical GitHub/Gitee artifacts to collect missing platform feedback. Both compatible editors default on, preserving explicit disablement. Physical/desktop gaps block stable, not this preview; TS-06 remains IN_PROGRESS after preview publication. [Decision and gates](typescript-migration/ts-06/README.md).
 
+**Stable amendment, 2026-10-18:** the maintainer accepted the disclosed known gaps specifically for v3.0.0 and approved stable delivery after this task's default-collection and external-TUI fixes. Missing physical/desktop checks stay unverified; the [approval and stable gates](typescript-migration/ts-06/README.md#stable-decision-2026-10-18) supersede the prior stable-blocking policy only for this version. Automated/functional checks remain blocking. TS-06 stays IN_PROGRESS until all three channels and download checks complete.
+
 ## Current state
 
 | Item | State |
@@ -23,10 +25,10 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01–TS-05 DONE**; [TS-05 closure](typescript-migration/ts-05/README.md#closure-2026-10-16) |
-| Current task scope | TS-06 IN_PROGRESS: first preview delivered; stable validation pending; PERF-01 remains NOT_STARTED |
+| Current task scope | TS-06 IN_PROGRESS: first preview delivered; v3.0.0 fixes and stable delivery in progress; PERF-01 remains NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
-| Target release and schedule | v3.0.0-beta.1 delivered on GitHub/Gitee and npm beta; stable after missing validation/feedback |
-| Next implementation work | Collect preview feedback and missing stable acceptance; [delivery evidence](typescript-migration/ts-06/preview-release.md) |
+| Target release and schedule | v3.0.0-beta.1 delivered on GitHub/Gitee and npm beta; v3.0.0 stable delivery approved with disclosed known gaps |
+| Next implementation work | Complete v3.0.0 fixes, final-artifact validation and stable publication; [delivery evidence](typescript-migration/ts-06/preview-release.md) |
 
 The maintainer approved TS-06 preview delivery with isolated acceptance and explicit recovery. The installed Python product remains intact. The [TS-06 record](typescript-migration/ts-06/README.md) tracks delivered preview evidence and remaining stable gates. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 

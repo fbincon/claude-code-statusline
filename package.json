@@ -18,6 +18,7 @@
     "mods:prepare": "npm run build && node dist/typescript/tools/acceptance/mod-types.js",
     "acceptance:power": "npm run build && node dist/typescript/tools/acceptance/power.js",
     "capture:render": "npm run build && node dist/typescript/tools/acceptance/render-capture.js",
+    "capture:editor": "npm run build && node dist/typescript/tools/acceptance/editor-capture.js",
     "release:gitee-notes": "npm run build && node dist/typescript/tools/release/gitee-notes.js",
     "benchmark": "npm run build && node dist/typescript/tools/benchmarks/run.js",
     "generate": "npm run build && node dist/typescript/tools/generation/resources.js",
@@ -44,7 +45,7 @@
     "acceptance:terminal": "npm run build && node dist/typescript/tools/acceptance/terminal.js",
     "test:installed": "npm run build && node dist/typescript/tools/acceptance/installed.js",
     "test:mods": "npm run build && node dist/typescript/tools/acceptance/mods.js",
-    "release:build": "npm run build && node dist/typescript/tools/build/candidate.js --channel preview",
+    "release:build": "npm run build && node dist/typescript/tools/build/candidate.js --channel public",
     "release:verify": "npm run build && node dist/typescript/tools/build/verify.js --release",
     "release:downloads": "npm run build && node dist/typescript/tools/release/downloads.js"
   },

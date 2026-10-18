@@ -55,7 +55,7 @@ export function helpText(command: string | undefined, language: Language): strin
             'no-native-editor': 'persistently_disable_and_remove_owned_native_editor_integration',
             'live-metrics': 'enable_independent_runtime_collection_opt_in_claude_code',
             'no-live-metrics': 'persistently_disable_independent_runtime_collection',
-            'native-timing': 'enable_native_task_timing_default_on_compatible_hosts',
+            'native-timing': 'enable_native_task_timing_opt_in',
             'no-native-timing': 'disable_native_timing_while_retaining_hook_transcript_timing',
         };
         for (const [flag, key] of Object.entries(options)) lines.push('  --' + flag.padEnd(25) + t('cli.help.' + key, language));

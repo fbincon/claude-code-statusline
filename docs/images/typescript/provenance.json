@@ -1,0 +1,123 @@
+{
+  "status": "pass",
+  "kind": "installed PTY terminal-cell reconstruction; not an OS screenshot",
+  "commit": "2f6d1c21f2abccfe0a05396172c1c8ec55cd989a",
+  "tarball_sha256": "4870797de594c064ab7bbea190eaaa0e6981ac5b60a263b7ac418b5cd94d8b50",
+  "application_version": "3.0.0",
+  "platform": "linux",
+  "arch": "x64",
+  "os_release": "7.0.0-38-generic",
+  "node": "v24.21.0",
+  "collector_sha256": "ac870fed439dc6e583b131711fd8adbf1f445c7cd077547b2743226628c5674f",
+  "model_calls": 0,
+  "terminal_restored": true,
+  "sample_configuration": {
+    "directory_style": "home",
+    "statusline_language": "matches the interface language",
+    "data": "fixed production preview samples"
+  },
+  "font_sha256": {
+    "DejaVuSansMono.ttf": "a54dca07c76d6289e717e75e0a58c0128f6d7269ef3faf76417c9d7d3bba37ab",
+    "DejaVuSansMono-Bold.ttf": "2d67eed9b325ee2e69f906ce4f3f6264d5105230a13352c8494daad4f17b12c8",
+    "NotoSansCJK-Regular.ttc": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+    "NotoSansCJK-Bold.ttc": "faa5f3656a78b2e2d450d27fe8382c778bc2b6bb5ea29c986664a6a435056ceb",
+    "NotoSansSymbols2-Regular.ttf": "876598db5f1e3bef2bc77c4d94c5b0d5d2c1620be4878a06f18fb5434e331688"
+  },
+  "captures": [
+    {
+      "language": "en",
+      "page": "main",
+      "columns": 120,
+      "rows": 32,
+      "ansi_sha256": "798cf642f3b6f83f8aa908b14183181a065ca8a39e47f875f5fc85341094584a",
+      "cells_sha256": "02ff2ed6fbd8627a510044fe1f481000930d1ad74058693b04779c4d3d6b8335",
+      "png_sha256": "a6e9364084017779b9e2f9c9960d19d03607e41e5a981909c6cdfe1dfb0590c3",
+      "width": 1464,
+      "height": 792
+    },
+    {
+      "language": "en",
+      "page": "subagents",
+      "columns": 120,
+      "rows": 32,
+      "ansi_sha256": "349f6cb399459d0aba519ed76f9035a070f8582cf8d5a00dccda08038b7b8acd",
+      "cells_sha256": "9fb3d31714890c1d5a0d9963916d8729e189880c7143bf494b0f0997f61f7110",
+      "png_sha256": "ea817adab25f782eaf76e1d3d75d80984aafbd3b764c06a3813e4b4acb6f8650",
+      "width": 1464,
+      "height": 792
+    },
+    {
+      "language": "en",
+      "page": "settings",
+      "columns": 120,
+      "rows": 32,
+      "ansi_sha256": "3ba81f317fb03313c344f08ae21ff711662715dd17309c697d55a6841fcdbbf5",
+      "cells_sha256": "66f6dc990ec772ccf3a10728af44cd7945310d4c9d62aef5bbcb8abc72315cde",
+      "png_sha256": "0aeccdd35f11b1506c4185e16070b1f3f04786beb6a47f1907b4b383f3fc0fc5",
+      "width": 1464,
+      "height": 792
+    },
+    {
+      "language": "en",
+      "page": "layout",
+      "columns": 120,
+      "rows": 32,
+      "ansi_sha256": "918353169e23f0a68dbe30ad0db5dd919f09a7a408cf435a128cdf0a3286f754",
+      "cells_sha256": "75764dcbd31d01392ec8a8403548022b345bb98d72e389ee8a8ccd8ab5f8d0ad",
+      "png_sha256": "ef499cf6bfe42c09bd477b4b49fd1adf4508eb088456b504c323d4dea363d2a3",
+      "width": 1464,
+      "height": 792
+    },
+    {
+      "language": "zh-CN",
+      "page": "main",
+      "columns": 120,
+      "rows": 32,
+      "ansi_sha256": "d43903970f9839477982e89df869b31507b199833a9843f13127829ed2eb40d4",
+      "cells_sha256": "6c0a306727a40e20e2094b8ba40ff7914397a5e0953863a59e05a3bf397dd4d9",
+      "png_sha256": "97382e4dc2f3f3e120d52a506cb42eb63fa1a8096a060a25d8e1765214aa96fd",
+      "width": 1464,
+      "height": 792
+    },
+    {
+      "language": "zh-CN",
+      "page": "subagents",
+      "columns": 120,
+      "rows": 32,
+      "ansi_sha256": "a6b551f1d57d9f911e5bb0baec296756c090f778ca3bd6f6a484c62a943d7032",
+      "cells_sha256": "2ef2ce3083672183a767cb24c5df49868ae0da65208e55da3652ef71a50b004f",
+      "png_sha256": "2ab59633e6904e5a9bf55cebdf17f4f9c5c37caca6104481962fde16c2ce066b",
+      "width": 1464,
+      "height": 792
+    },
+    {
+      "language": "zh-CN",
+      "page": "settings",
+      "columns": 120,
+      "rows": 32,
+      "ansi_sha256": "8393e80ec77928de5dd146e1dbe2e93bc12231eb66c0b61d18fabe47b6c8321f",
+      "cells_sha256": "3838dad9d0db1a8f52bc94ecfe2e905fadad0061530b6f75a270938b33f91734",
+      "png_sha256": "ba9ea12b16a2aa22e8dc588e1732ed9844cb59c433910b769ad9d50c23493552",
+      "width": 1464,
+      "height": 792
+    },
+    {
+      "language": "zh-CN",
+      "page": "layout",
+      "columns": 120,
+      "rows": 32,
+      "ansi_sha256": "13fb9907c7e9dd7352c420d9c46587a4e662186b624ee2df8826bd5d165b0436",
+      "cells_sha256": "de6b3afe9dad4552e297acbb6a4828eb6db5e9c562f0c7bbf4b6c00fc2b03a9a",
+      "png_sha256": "6c98cf05a9300ca1a0f02cfa0ef3c92da331d5d401127f7d1b9df906a0b572cd",
+      "width": 1464,
+      "height": 792
+    }
+  ],
+  "distribution": "Ubuntu 26.04.1 LTS x64",
+  "terminal_fixture": {
+    "foreground": "#dedee7",
+    "background": "#17191e",
+    "colors": 256
+  },
+  "evidence_limit": "Automated installed PTY input and terminal-cell reconstruction; no human desktop focus or physical power acceptance."
+}

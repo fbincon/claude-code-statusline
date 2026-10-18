@@ -44,7 +44,7 @@
   "cli.help.persistently_disable_and_remove_owned_native_editor_integration": "persistently disable and remove owned native editor integration",
   "cli.help.enable_independent_runtime_collection_opt_in_claude_code": "enable independent runtime collection (opt-in; Claude Code 2.1.289+)",
   "cli.help.persistently_disable_independent_runtime_collection": "persistently disable independent runtime collection",
-  "cli.help.enable_native_task_timing_default_on_compatible_hosts": "enable native task timing (default on compatible hosts)",
+  "cli.help.enable_native_task_timing_opt_in": "enable native task timing (opt-in on compatible hosts)",
   "cli.help.disable_native_timing_while_retaining_hook_transcript_timing": "disable native timing while retaining hook/transcript timing",
   "cli.help.remove_only_this_tool_s_claude_code_configuration": "remove only this tool's Claude Code configuration",
   "cli.help.diagnose_the_installation_without_changing_files": "diagnose the installation without changing files",

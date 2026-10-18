@@ -16,6 +16,8 @@
 
 **2026-10-18 预览修订：** 维护者批准 v3.0.0-beta.1、npm beta 与相同 GitHub/Gitee 附件，用于收集缺失平台反馈。兼容宿主双编辑器默认开启，保留显式关闭。实体/桌面缺口仍阻塞正式版，不阻塞本预览；预览发布后 TS-06 保持 IN_PROGRESS。[决定与门槛](typescript-migration/ts-06/README.zh-CN.md)。
 
+**2026-10-18 正式版修订：** 维护者仅对 v3.0.0 接受已披露缺项，批准在本任务默认采集及外部 TUI 修复后正式发布。实体/桌面缺项仍为未验证；[批准记录与正式门槛](typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)仅对该版本修订此前阻塞政策。自动化/功能失败仍阻塞，三渠道及下载验证完成前 TS-06 保持 IN_PROGRESS。
+
 ## 当前状态
 
 | 项目 | 状态 |
@@ -23,10 +25,10 @@
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01～TS-05 DONE**；[TS-05 关闭记录](typescript-migration/ts-05/README.zh-CN.md#closure-2026-10-16) |
-| 当前任务范围 | TS-06 IN_PROGRESS：首个预览已交付，正式版验收待补；PERF-01 保持 NOT_STARTED |
+| 当前任务范围 | TS-06 IN_PROGRESS：首预览已交付，v3.0.0 修复及正式交付进行中；PERF-01 保持 NOT_STARTED |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
-| 目标版本与工期 | v3.0.0-beta.1 已交付 GitHub/Gitee 与 npm beta；正式版等待缺失验收与反馈 |
-| 下一项实施工作 | 收集预览反馈与缺失正式版验收；[交付证据](typescript-migration/ts-06/preview-release.zh-CN.md) |
+| 目标版本与工期 | v3.0.0-beta.1 已交付 GitHub/Gitee 与 npm beta；v3.0.0 已获已知缺项发布批准 |
+| 下一项实施工作 | 完成 v3.0.0 修复、最终产物复验及正式发布；[交付证据](typescript-migration/ts-06/preview-release.zh-CN.md) |
 
 维护者已批准 TS-06 预览交付，验收使用隔离环境和显式恢复，现用 Python 安装保持不变。[TS-06 记录](typescript-migration/ts-06/README.zh-CN.md)跟踪已交付预览证据与正式版剩余门槛。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 

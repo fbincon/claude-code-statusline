@@ -2,7 +2,22 @@
 
 [English](RELEASING.md) | **简体中文**
 
-## TypeScript 预览发布
+## TypeScript 正式发布
+
+v3.0.0 使用公开 npm 包 `@fbincon/claude-code-statusline`、npm `latest`、GitHub/Gitee 正式 Release 和 GitHub Latest。[TS-06 决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)仅接受本版本列出的已知缺项，不代表这些检查通过，也不放宽功能验收。保留现有 beta 选择器和已发布产物。
+
+1. 固定 Node 24.21.0/npm 11.19.0。完成 `npm run check`、PR 审查、最终提交及合并 CI。`release:build` 按应用版本选择 preview/stable，拒绝显式通道与版本不匹配。
+2. 从不可变合并 SHA 执行 `npm run release:build -- --commit FULL_SHA --output NEW_DIRECTORY`。两次独立构建必须字节一致，源码/Mod/应用身份匹配；执行 `release:verify -- --artifact ABSOLUTE_TGZ --commit FULL_SHA`。在另一新目录用 `--source ABSOLUTE_SOURCE_TAR_GZ` 从交付源码重建。
+3. 必须通过八个安装目标和十三个固定宿主。执行 `release:prepare -- --stable --artifact ABSOLUTE_TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE`，从已校验源码包读取 v3.0.0 批准记录，报告其摘要和未验证范围。自动回执缺失、失败、跳过、重复或身份不一致仍失败。不暗示新增付费调用或实机验收。
+4. 在该 SHA 创建注释标签 `v3.0.0` 并通过标签 CI。创建 GitHub **正式版**草稿，仅上传 npm tgz、源码 tar.gz、`build-manifest.json`、`SHA256SUMS`。下载草稿验证全部附件、安装及实际安装包 TUI。用 `tools/release/markdown.ts` 将 `docs/releases/v3.0.0.md` 相对链接渲染为固定标签链接。
+5. 核对 npm 账号/命名空间，必要时完成官方登录/2FA。从仓库外执行 `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag latest --ignore-scripts`，直接发布已验证 tgz，不重新打包。等待公开元数据，核对 SHA-512 和 tgz 字节，要求 `latest=3.0.0` 并保留 `beta=3.0.0-beta.1`。
+6. 发布 GitHub 正式 Release 并设为 Latest。**Release public downloads** 工作流在 Linux、Windows、macOS 核验四附件及精确版本、`latest` 安装。手动触发明确标签，回执分别记录发布和验证器提交。`release:downloads -- --tag v3.0.0 --commit FULL_SHA --output NEW_DIRECTORY` 执行同样的只读验证。
+7. 检查远端分歧，以显式 refspec 将已验证 `main` 和准确标签同步到现有 Gitee SSH remote。用官方 Gitee MCP 创建正式 Release，使用 keyring 支持的官方 API helper 上传相同四附件；根据实际附件元数据渲染说明，并重新下载核对全部摘要。
+8. 通过后续 PR 记录实际检查、发布身份和公开渠道结果，同步已验证的证据提交并更新 Issue #96。只有全部渠道和下载检查完成后，TS-06 才标记 DONE。原始日志、回执和机器路径保留在忽略目录。
+
+结果不明确时先检查远端状态再重试。公开包版本、标签和附件字节不可改写；功能失败阻塞发布，单渠道成功不等于交付完成。不上传 PyPI。下文首预览流程属于历史记录，其正式版阻塞项仅按上述限定版本的决定修订。
+
+## TypeScript 首预览发布历史
 
 使用[试用指南](PREVIEW.zh-CN.md)和 [TS-06 门槛](development/typescript-migration/ts-06/README.zh-CN.md)。GitHub 为主仓库。首个预览为 v3.0.0-beta.1，npm 包名 @fbincon/claude-code-statusline。缺失实机/桌面证据仍阻塞正式版，本次经批准的预览可用于收集反馈。双编辑器默认开启，保留停用设置。
 

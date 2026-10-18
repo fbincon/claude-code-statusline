@@ -2,7 +2,22 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
-## TypeScript preview publication
+## TypeScript stable publication
+
+v3.0.0 uses the public npm package `@fbincon/claude-code-statusline`, npm `latest`, stable GitHub/Gitee Releases and GitHub Latest. The [TS-06 decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18) accepts the listed known gaps for this version only; it does not pass those checks or relax functional acceptance. Preserve the existing beta selector and published artifacts.
+
+1. Use Node 24.21.0/npm 11.19.0. Complete `npm run check`, review a PR and require all final-head and merge CI jobs. `release:build` selects preview/stable from the application version; an explicit mismatched channel is rejected.
+2. Build from the immutable merge SHA with `npm run release:build -- --commit FULL_SHA --output NEW_DIRECTORY`. Require two byte-identical builds, matching source/Mod/application identities and `release:verify -- --artifact ABSOLUTE_TGZ --commit FULL_SHA`. Rebuild from the delivered source with `--source ABSOLUTE_SOURCE_TAR_GZ` in a separate new output directory.
+3. Require eight installed targets and thirteen fixed hosts. Run `release:prepare -- --stable --artifact ABSOLUTE_TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE`. Stable readiness also reads the v3.0.0 approval from the verified source archive and records its digest and unverified scope. Missing, failed, skipped, duplicate or mismatched automated receipts still fail. No paid calls or new physical acceptance are implied.
+4. Create the annotated `v3.0.0` tag at that SHA and require tag CI. Create a GitHub draft **stable** Release. Upload exactly the package tgz, source tar.gz, `build-manifest.json` and `SHA256SUMS`; download and verify the draft bundle, installed smoke and installed TUI. Render relative links from `docs/releases/v3.0.0.md` to fixed-tag URLs with `tools/release/markdown.ts`.
+5. Verify npm account/namespace access and use its official login/2FA flow when required. Publish the verified tgz from outside the checkout using `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag latest --ignore-scripts`. Do not repack. Wait for public metadata, compare SHA-512 integrity and tgz bytes, require `latest=3.0.0`, and retain `beta=3.0.0-beta.1`.
+6. Publish GitHub as stable/Latest. The **Release public downloads** workflow verifies the four attachments and both exact-version and `latest` installations on Linux, Windows and macOS. Manual dispatch takes the exact tag; reports distinguish release and verifier commits. `release:downloads -- --tag v3.0.0 --commit FULL_SHA --output NEW_DIRECTORY` performs the same read-only checks.
+7. Inspect divergence, then synchronize validated `main` and the exact tag to the existing Gitee SSH remote with explicit refspecs. Use official Gitee MCP to create the stable Release, and the keyring-backed official API helper for attachments. Upload the identical four files, render notes against actual attachment metadata, and redownload/check every digest.
+8. Record actual checks, release identity and public-channel results through a follow-up PR; synchronize the validated evidence commit and update issue #96. Mark TS-06 DONE only after all channels and download checks pass. Keep raw logs, receipts and machine paths under ignored validation directories.
+
+Inspect remote state before retrying an ambiguous result. Public package versions, tags and asset bytes remain immutable; any functional failure blocks publication, and a partially successful channel is not completed delivery. No PyPI upload occurs. The first-preview procedure below is historical; its original stable blockers are superseded only by the version-limited decision above.
+
+## Historical TypeScript preview publication
 
 Use the [preview guide](PREVIEW.md) and [TS-06 gates](development/typescript-migration/ts-06/README.md). GitHub is primary. The first preview is v3.0.0-beta.1; npm identity is @fbincon/claude-code-statusline. Missing physical/desktop evidence blocks stable delivery, not this explicitly approved preview. Both editors default on, preserving opt-outs.
 

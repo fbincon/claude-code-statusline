@@ -2,6 +2,15 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.0.0 — 2026-10-18
+
+- Ship the TypeScript implementation as the stable npm distribution, with bundled native dependencies, reproducible builds and identical GitHub/Gitee assets.
+- Default both native timing and advanced live collection off; preserve saved preferences and explicit collector flags, basic hook/transcript timing and editor defaults.
+- Restore complete external TUI frames, grouped separators, aligned columns, full-row selection, cyan headings and bold shortcut keys across all pages.
+- Add source-bound stable readiness, `latest` download/install checks and a v3.0.0-only maintainer decision accepting disclosed validation gaps without marking them passed.
+- Preserve configuration/protocol compatibility, Python rollback and the frozen reference. D06 remains FAIL; PERF-01 is separate.
+- [Release notes](docs/releases/v3.0.0.md) · [Installation and upgrade](docs/USER_GUIDE.md#installation-and-integration).
+
 ## 3.0.0-beta.1 — 2026-10-18
 
 - First TypeScript preview with a reproducible offline npm package, source archive and verified GitHub/Gitee delivery.
@@ -9,11 +18,6 @@
 - Preserve configuration/protocol formats, explicit recovery and Python v2.0.0 rollback; document physical/desktop validation still required for stable.
 - Add preview feedback and source/artifact-bound acceptance. D06 FAIL remains disclosed; PERF-01 is separate.
 - [Release notes](docs/releases/v3.0.0-beta.1.md) · [Preview guide](docs/PREVIEW.md).
-
-## Unreleased
-
-- Move daily tools, frozen-reference tests, candidate builds and CI to TypeScript while preserving the Python implementation and independent historical checks.
-- Add a universal offline engineering candidate, byte-identical independent rebuilds and complete platform/host evidence binding; public versions and publication remain TS-06 work.
 
 ## 2.0.0 - 2026-10-11
 

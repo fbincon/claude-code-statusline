@@ -12,7 +12,7 @@ test('independent runtime preferences retain v1 opt-outs and reject numeric bool
     const root = fs.mkdtempSync(join(tmpdir(), 'ts03-preferences-'));
     t.after(() => fs.rmSync(root, { recursive: true, force: true }));
     const directory = join(root, 'absent');
-    assert.deepEqual(loadRuntime(directory), { schema_version: 2, native_timing: true, live_metrics: false });
+    assert.deepEqual(loadRuntime(directory), { schema_version: 2, native_timing: false, live_metrics: false });
     assert.equal(fs.existsSync(directory), false);
     for (const enabled of [true, false])
         assert.deepEqual(parseRuntime(JSON.stringify({ schema_version: 1, live_metrics: enabled })), { schema_version: 2, native_timing: enabled, live_metrics: enabled });

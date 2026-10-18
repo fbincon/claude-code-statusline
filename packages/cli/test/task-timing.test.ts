@@ -17,6 +17,7 @@ function observations(unknown = false, gap = false): Observation[] {
     return rows;
 }
 function ingest(f: ReturnType<typeof setup>, rows: Observation[]): void {
+    f.preferences(false, true);
     for (const row of rows) {
         f.clock(BigInt(numeric(row.observed_at_ms)! * 1e6));
         f.store.observe([row], { timing: true });
@@ -165,7 +166,7 @@ test('tests.runtime.test_task_timing.TaskTimingTests.test_message_link_does_not_
 });
 test('tests.runtime.test_task_timing.TaskTimingTests.test_runtime_default_and_old_explicit_opt_out', t => {
     const f = setup(t);
-    assert.deepEqual(loadRuntime(f.root), { schema_version: 2, native_timing: true, live_metrics: false });
+    assert.deepEqual(loadRuntime(f.root), { schema_version: 2, native_timing: false, live_metrics: false });
     const path = join(f.root, 'claude-statusline-runtime.json'), raw = '{"schema_version":1,"live_metrics":false}';
     fs.writeFileSync(path, raw);
     assert.deepEqual(loadRuntime(f.root), { schema_version: 2, native_timing: false, live_metrics: false });

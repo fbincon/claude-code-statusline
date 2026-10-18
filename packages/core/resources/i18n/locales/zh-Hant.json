@@ -44,7 +44,7 @@
   "cli.help.persistently_disable_and_remove_owned_native_editor_integration": "持續禁用並移除本工具的原生編輯器接入",
   "cli.help.enable_independent_runtime_collection_opt_in_claude_code": "啓用獨立運行時採集（按需開啓；需要 Claude Code 2.1.289+）",
   "cli.help.persistently_disable_independent_runtime_collection": "持續禁用獨立運行時採集",
-  "cli.help.enable_native_task_timing_default_on_compatible_hosts": "啓用原生任務計時（兼容宿主默認開啓）",
+  "cli.help.enable_native_task_timing_opt_in": "啓用原生任務計時（兼容宿主需明確啓用）",
   "cli.help.disable_native_timing_while_retaining_hook_transcript_timing": "禁用原生計時並保留 hook／轉錄計時",
   "cli.help.remove_only_this_tool_s_claude_code_configuration": "移除本工具的 Claude Code 接入配置",
   "cli.help.diagnose_the_installation_without_changing_files": "檢查安裝狀況，保持文件原狀",

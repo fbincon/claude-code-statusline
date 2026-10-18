@@ -55,7 +55,7 @@ claude-statusline doctor [--config-dir PATH]
 claude-statusline --version
 ```
 
-Windows PowerShell 中把命令名替换为 `claude-statusline.exe`；参数和输出格式相同。上面的方括号和省略号是语法记号，不是要原样输入的参数。供 Claude Code 调用的命令见[内部命令附录](../development/README.zh-CN.md#附录内部命令)。
+Windows PowerShell 中把命令名替换为 `claude-statusline.cmd`；参数和输出格式相同。上面的方括号和省略号是语法记号，不是要原样输入的参数。供 Claude Code 调用的命令见[内部命令附录](../development/README.zh-CN.md#附录内部命令)。
 
 查看任意层级的内建帮助：
 
@@ -109,7 +109,7 @@ claude-statusline doctor --config-dir /path/to/claude-config
 - `--native-timing` / `--no-native-timing`：原生计时元数据，需 2.1.289+。
 - `--live-metrics` / `--no-live-metrics`：高级实时采集，需 2.1.289+。
 
-每组参数互斥。显式参数优先于已保存值，已保存值优先于默认值；编辑器和原生计时默认启用，高级实时指标默认关闭。`--no-live-metrics` 保留同时关闭计时和高级采集的旧语义，同一命令中的显式计时参数可单独决定计时部分。不兼容或未知宿主暂挂请求的接入并保留偏好，宿主中主动禁用的插件保持禁用。接入变化后重启 Claude Code。详见[安装](../USER_GUIDE.zh-CN.md#安装与接入)、[备份](../USER_GUIDE.zh-CN.md#备份与回滚)和[卸载](../USER_GUIDE.zh-CN.md#卸载)。
+每组参数互斥。显式参数优先于已保存值，已保存值优先于默认值；编辑器默认启用，原生计时和高级实时指标默认关闭。`--no-live-metrics` 保留同时关闭计时和高级采集的旧语义，同一命令中的显式计时参数可单独决定计时部分。不兼容或未知宿主暂挂请求的接入并保留偏好，宿主中主动禁用的插件保持禁用。接入变化后重启 Claude Code。详见[安装](../USER_GUIDE.zh-CN.md#安装与接入)、[备份](../USER_GUIDE.zh-CN.md#备份与回滚)和[卸载](../USER_GUIDE.zh-CN.md#卸载)。
 
 ## slash 命令支持范围
 
@@ -331,7 +331,7 @@ claude-statusline config apply \
 Windows PowerShell：
 
 ```powershell
-claude-statusline.exe config apply `
+claude-statusline.cmd config apply `
   --items model-with-effort current-dir git context-remaining task-timer `
   --subagent-items status-elapsed name model-with-effort context-remaining task `
   --subagent-statusline on `
@@ -812,10 +812,10 @@ claude-statusline config set refresh-interval event
 `<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` 使用独立 schema v2：
 
 ```json
-{"schema_version": 2, "native_timing": true, "live_metrics": false}
+{"schema_version": 2, "native_timing": false, "live_metrics": false}
 ```
 
-文件缺失时原生计时默认开启、高级实时指标默认关闭。`install --native-timing`／`--no-native-timing` 独立控制计时；`install --live-metrics` 开启完整采集，`--no-live-metrics` 保留旧全部关闭语义，明确的计时选项可覆盖计时部分；重装保留偏好，不兼容宿主保留偏好但暂挂采集。详见[启用采集与显示](../USER_GUIDE.zh-CN.md#可选实时状态)。
+文件缺失时原生计时和高级实时指标均默认关闭。`install --native-timing`／`--no-native-timing` 独立控制计时；`install --live-metrics` 开启完整采集，`--no-live-metrics` 保留旧全部关闭语义，明确的计时选项可覆盖计时部分；重装保留偏好，不兼容宿主保留偏好但暂挂采集。详见[启用采集与显示](../USER_GUIDE.zh-CN.md#可选实时状态)。
 
 ### Claude Code 宿主配置
 
@@ -844,9 +844,9 @@ Windows PowerShell：
 
 ```powershell
 $env:CLAUDE_CONFIG_DIR = 'C:\Path With Spaces\Claude 配置'
-claude-statusline.exe install
-claude-statusline.exe configure
-claude-statusline.exe config show
+claude-statusline.cmd install
+claude-statusline.cmd configure
+claude-statusline.cmd config show
 ```
 
 管理命令也支持显式 `--config-dir PATH`。显式参数优先于环境变量。

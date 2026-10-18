@@ -9,17 +9,19 @@ import { t, renderMessage, LANGUAGE_NAMES } from '@fbincon/statusline-core/i18n/
 import type { Span } from '@fbincon/statusline-core/contracts/ui';
 import type { State, Row } from './state.js';
 import { dimensions, formWindow, type Panel } from './layout.js';
-export interface Paint extends Span {
-    reverse?: boolean;
-}
+import { paint, heading, type Paint } from './theme.js';
+export type { Paint } from './theme.js';
 export interface Frame {
     columns: number;
     rows: Paint[][];
 }
-const paint = (text: string, bold = false, reverse = false): Paint => ({ text, bold, reverse, foreground: null, background: null });
 const safe = (text: string) => text.replace(/[\p{Cc}\p{Cs}]/gu, ' ');
 const groupKey = (group: string) => 'groups.' + group.toLowerCase().replaceAll(' / ', '.').replaceAll(' ', '-');
-const col = (text: string, width: number) => { text = clip(safe(text), width); return text + ' '.repeat(Math.max(0, width - displayWidth(text))); };
+const col = (text: string, width: number) => {
+    text = safe(text);
+    if (displayWidth(text) > width) text = width > 0 ? clip(text, width - 1) + '…' : '';
+    return text + ' '.repeat(Math.max(0, width - displayWidth(text)));
+};
 /** Fit whole bindings; a key and its action never get split between rows. */
 export function shortcuts(hints: readonly [
     string,
@@ -33,7 +35,7 @@ export function shortcuts(hints: readonly [
             break;
         if (sep)
             spans.push(paint(sep));
-        spans.push(paint(key, true, true), paint(' ' + label));
+        spans.push(paint(key, true), paint(' ' + label));
         used += size;
     }
     return spans;
@@ -76,18 +78,19 @@ export function frame(state: State, columns: number, rows: number): Frame {
         return result();
     }
     state.ensureVisible(size.listHeight);
-    line(0, tr('ui.drawing.configure_status_line') + (e.modified ? ' *' : ''), true);
+    put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (e.modified ? ' *' : ''))]);
     line(1, e.detail ? tr('ui.drawing.edit_item_format') + e.instanceLabel(e.detail.scope, e.detail.id, state.language) : tr(e.page === 'layout' ? 'ui.drawing.set_explicit_rows_priorities_and_widths' : e.page === 'main' ? 'ui.drawing.choose_main_status_line_items_and_their' : e.page === 'subagents' ? 'ui.drawing.choose_subagent_row_items_and_their_order' : 'ui.drawing.adjust_display_and_tool_refresh_settings'));
     let tabX = 0;
     for (const page of ['main', 'subagents', 'settings', 'layout']) {
         const label = tr('ui.drawing.' + page);
         put(2, tabX, [paint(label, page === e.page, page === e.page)]);
-        tabX += displayWidth(label) + 1;
+        tabX += displayWidth(label) + 2;
     }
     const notice = renderMessage(state.localized.message ?? state.message, state.language) || (e.review ? tr('review.intro') : state.form ? tr(e.detail ? 'ui.drawing.item_format_ctrl_g_back' : e.page === 'layout' ? 'ui.drawing.explicit_rows_priority_width' : 'ui.drawing.use_arrows_to_change_values_enter_edits') : `Ctrl+F ${tr('catalog.categories.' + e.category[state.scope])} · / ${tr('ui.drawing.type_to_search')}${e.search[state.scope]}${state.input?.kind === 'search' ? ' _' : ''}`);
     line(3, notice);
     const panel = (p: Panel, title: string) => {
-        line(p.y, p.framed ? '┌' + col(' ' + title + ' ', p.width - 2) + '┐' : title, true);
+        line(p.y, p.framed ? '┌' + '─'.repeat(p.width - 2) + '┐' : '─'.repeat(p.width));
+        put(p.y, p.framed ? 2 : 1, [heading(' ' + col(title, Math.max(0, p.width - (p.framed ? 6 : 4))).trimEnd() + ' ')], p.width - (p.framed ? 4 : 2));
         if (p.framed) {
             for (let y = p.y + 1; y < p.y + p.height - 1; y++) {
                 line(y, '│');
@@ -99,7 +102,11 @@ export function frame(state: State, columns: number, rows: number): Frame {
     const p = size.content;
     const title = e.review ? tr('review.title') : e.guidanceScroll !== null ? tr('guidance.title') : state.input?.kind === 'category' ? tr('catalog.search.categories') : e.adding ? tr('composition.picker') : e.detail ? tr('ui.drawing.item_format_2') + e.instanceLabel(e.detail.scope, e.detail.id, state.language) : tr(e.page === 'layout' ? 'ui.drawing.layout_rows_and_fitting' : e.page === 'settings' ? 'ui.drawing.settings_global_options' : e.page === 'subagents' ? 'ui.drawing.subagent_items' : 'ui.drawing.main_items');
     panel(p, title);
-    const content = (offset: number, text: string, bold = false, selected = false) => line(p.innerY + offset, text, bold, selected, p.innerX, p.innerWidth);
+    const contentSpans = (offset: number, spans: readonly Paint[], selected = false) => {
+        if (selected) line(p.innerY + offset, ' '.repeat(p.innerWidth), false, true, p.innerX, p.innerWidth);
+        put(p.innerY + offset, p.innerX, spans, p.innerWidth);
+    };
+    const content = (offset: number, text: string, bold = false, selected = false) => contentSpans(offset, [paint(text, bold, selected)], selected);
     let summary = '';
     if (e.review || e.guidanceScroll !== null) {
         const review = e.review, capacity = Math.max(1, p.innerHeight - 1);
@@ -109,7 +116,10 @@ export function frame(state: State, columns: number, rows: number): Frame {
             review.scroll = start;
         else
             e.guidanceScroll = start;
-        values.slice(start, start + capacity).forEach((row, i) => content(i, row.text, row.heading, row.heading && row.section === review?.selected));
+        values.slice(start, start + capacity).forEach((row, i) => {
+            const selected = row.heading && row.section === review?.selected;
+            contentSpans(i, [row.heading ? heading(row.text, selected) : paint(row.text)], selected);
+        });
         summary = `${start + 1}–${Math.min(values.length, start + capacity)}/${values.length}`;
     }
     else if (state.input?.kind === 'category') {
@@ -125,10 +135,12 @@ export function frame(state: State, columns: number, rows: number): Frame {
             return t(message.key, state.language, message.params, row.label);
         };
         const labelWidth = Math.min(44, Math.max(24, Math.floor(p.innerWidth / 2)), Math.max(...values.map(row => displayWidth(label(row)) + 1)));
-        content(0, '  ' + col(tr('ui.drawing.option'), labelWidth) + tr('ui.drawing.value'), true);
+        content(0, '  ' + col(tr('ui.drawing.option').trim(), labelWidth) + '  ' + tr('ui.drawing.value').trim(), true);
         window.lines.forEach((entry, i) => {
-            if (entry.index === undefined)
-                content(i + 1, tr(groupKey(entry.group), {}, entry.group), true);
+            if (entry.index === undefined) {
+                const label = '─ ' + col(tr(groupKey(entry.group), {}, entry.group), p.innerWidth - 3).trimEnd() + ' ';
+                contentSpans(i + 1, [heading(label), paint('─'.repeat(Math.max(0, p.innerWidth - displayWidth(label))))]);
+            }
             else {
                 const row = values[entry.index]!;
                 let value = row.value;
@@ -145,9 +157,9 @@ export function frame(state: State, columns: number, rows: number): Frame {
                     value = input.buffer + ' _';
                 if (input?.kind === 'numeric' && input.field === row.key)
                     value = input.buffer + ' _';
-                const prefix = (row.key === e.setting ? '› ' : '  ') + col(label(row), labelWidth) + '  ';
+                const prefix = (row.key === e.setting ? '› ' : '  ') + col(label(row) + ':', labelWidth) + '  ';
                 if (row.kind === 'action')
-                    put(p.innerY + i + 1, p.innerX, [paint(prefix, false, row.key === e.setting), paint('Enter', true, true), paint(' ' + value, false, row.key === e.setting)], p.innerWidth);
+                    contentSpans(i + 1, [paint(prefix, false, row.key === e.setting), paint('Enter', true, row.key === e.setting), paint(' ' + value, false, row.key === e.setting)], row.key === e.setting);
                 else
                     content(i + 1, prefix + value, false, row.key === e.setting);
             }
@@ -156,17 +168,18 @@ export function frame(state: State, columns: number, rows: number): Frame {
     }
     else {
         const scope = state.scope, values = e.matches(scope), start = state.scroll[scope] ?? 0;
-        content(0, tr('ui.drawing.on') + tr('ui.drawing.item') + tr('ui.drawing.description'), true);
+        const itemWidth = Math.min(30, Math.max(18, Math.floor(p.innerWidth / 3)));
+        content(0, '  ' + col(tr('ui.drawing.on').trim(), 5) + col(tr('ui.drawing.item').trim(), itemWidth) + ' ' + tr('ui.drawing.description').trim(), true);
         values.slice(start, start + size.listHeight).forEach(({ item, match }, i) => {
             const selected = item.id === e.selected[scope], enabled = e.items(scope).includes(item.id);
             const label = e.adding ? tr(`items.${scope}.${item.id}.label`, {}, item.label) : e.instanceLabel(scope, item.id, state.language);
             const description = tr(`items.${scope}.${item.type_id ?? item.id}.description`, {}, item.description);
             const query = e.search[scope], labelMatch = query ? matchText(label, query) : null;
-            const hint = !!query && (!labelMatch || labelMatch.rank > match.rank), shown = col(label, Math.min(28, Math.floor(p.innerWidth / 2)));
+            const hint = !!query && (!labelMatch || labelMatch.rank > match.rank), shown = col(label, itemWidth);
             const points = [...shown], positions = labelMatch?.positions.filter(index => points[index] === [...label][index]) ?? [];
             const styled = (value: string, marked: number[]) => segments(value, marked).map(span => paint(span.text, span.highlighted, selected));
             const matchHint = snippet(match);
-            put(p.innerY + i + 1, p.innerX, [paint((selected ? '› ' : '  ') + (enabled ? '[x] ' : '[ ] '), false, selected), ...styled(shown, positions), paint(' ', false, selected), ...(hint ? styled(matchHint.text, matchHint.positions) : [paint(description, false, selected)])], p.innerWidth);
+            contentSpans(i + 1, [paint((selected ? '› ' : '  ') + (enabled ? '[x]  ' : '[ ]  '), false, selected), ...styled(shown, positions), paint(' ', false, selected), ...(hint ? styled(matchHint.text, matchHint.positions) : [paint(description, false, selected)])], selected);
         });
         if (!values.length)
             content(1, tr('ui.drawing.no_matching_items'));
@@ -190,7 +203,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
         string
     ][] = [['Tab', 'page'], ['↑↓', 'select'], ['←→', state.form ? 'adjust' : 'order'], ['Enter', state.form ? 'edit_save' : 'save']];
     if (!state.form)
-        help = [['Ctrl+A/D/X', 'add_copy_remove'], ['Tab', 'page'], ['Space', 'toggle'], ['Ctrl+E', 'format'], ['↑↓', 'select']];
+        help = [['Tab', 'page'], ['Space', 'toggle'], ['Ctrl+E', 'format'], ['↑↓', 'select'], ['←→', 'order'], ['Ctrl+A/D/X', 'add_copy_remove']];
     if (e.review) {
         actions = [['A', 'accept_draft'], ['Esc/Ctrl+G', 'cancel_review']];
         help = [['Enter', 'details'], ['↑↓', 'section'], ['PgUp/PgDn', 'scroll'], ['Tab', 'preview']];
