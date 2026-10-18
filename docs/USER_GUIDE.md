@@ -125,7 +125,7 @@ To preserve a third-party subagent renderer, run `claude-statusline config set s
 
 macOS uses the same npm package and installation flow, with Intel and Apple Silicon native dependencies bundled. Terminal.app is the supported desktop external launcher; tmux popup is preferred when available. SSH and sessions without a graphical desktop should use the standalone editor or CLI.
 
-Current layouts are in the [README gallery](../README.md#screenshots) and [image index](images/README.md). The known in-session Client input limitation is separate from the main line and external editor; see [focus checks](#macos-mouse-reporting-and-client-focus).
+Current layouts are in the [README gallery](../README.md#screenshots), [six-language external editor captures](images/typescript/v3.1.1/README.md) and [image index](images/README.md). The known in-session Client input limitation is separate from the main line and external editor; see [focus checks](#macos-mouse-reporting-and-client-focus).
 
 ## Choose a configuration entry point
 

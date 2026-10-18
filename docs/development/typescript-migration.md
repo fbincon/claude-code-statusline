@@ -11,7 +11,7 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 
 TS-01–TS-06 remain DONE. The separate Node 22/24 compatibility and Taiwan/Hong Kong Traditional Chinese follow-up is **DONE**, delivered as v3.1.0 on npm, GitHub and Gitee. [Implementation, capture and delivery evidence](node-regional-languages.md). Historical stage results below are retained; D06 remains FAIL and PERF-01 remains NOT_STARTED.
 
-The separate v3.1.1 external-TUI parity follow-up is **IN_PROGRESS**, preserving the six-language release and published Python reference. [Implementation, acceptance and delivery](external-tui-parity.md).
+The separate v3.1.1 external-TUI parity follow-up is **DONE**: npm latest, GitHub stable/Latest and Gitee stable are delivered with matching artifacts and six passing public Node 22/24 installation jobs. The six-language release, accepted-gap boundaries and published Python reference are preserved. [Implementation, acceptance and delivery](external-tui-parity.md).
 
 ## Current decision, 2026-10-15
 

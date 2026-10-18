@@ -125,7 +125,7 @@ Windows 使用 `claude-statusline.cmd`，或明确的 Node/JavaScript 入口。�
 
 macOS 使用相同 npm 包和安装流程，包内包含 Intel 与 Apple Silicon 原生依赖。外部桌面启动器支持 Terminal.app，有可用 tmux 时优先使用 popup。SSH 或无图形桌面的会话使用独立编辑器或 CLI。
 
-当前布局见 [README 图库](../README.zh-CN.md#界面预览)和[图片索引](images/README.zh-CN.md)。已有会话内 Client 输入限制与主栏、外部编辑器分别记录，见[焦点检查](#macos-鼠标报告与-client-焦点)。
+当前布局见 [README 图库](../README.zh-CN.md#界面预览)、[六语言外部编辑器捕获](images/typescript/v3.1.1/README.zh-CN.md)和[图片索引](images/README.zh-CN.md)。已有会话内 Client 输入限制与主栏、外部编辑器分别记录，见[焦点检查](#macos-鼠标报告与-client-焦点)。
 
 ## 选择配置入口
 
