@@ -58,7 +58,7 @@
 
 准备 Claude Code CLI 和 npm，验证工具链固定为 npm 11.19.0。Git 字段和源码构建需要 Git。Windows ARM 设备使用模拟 x64 Node；原生 Windows ARM64 与 32 位运行时暂不在支持范围。安装包已包含原生依赖，无需 Python 或编译器。
 
-维护者接受 v3.0.0 已披露的实体/桌面及精确宿主声明缺项；这些项目仍标为未验证，见[正式发布决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)。
+维护者仅对 v3.1.0 接受六项已披露的实机／桌面及精确宿主声明缺口；这些项目仍为未验证，见[本版本决定](releases/approvals/v3.1.0.json)与[交付证据](development/node-regional-languages.zh-CN.md)。
 
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
@@ -78,16 +78,16 @@
 npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
-固定版本使用 `@3.0.0`。软件包安装与 Claude 接入是两个步骤，npm 不修改 Claude 配置。确保 npm 命令目录位于 PATH。Windows 的 npm 包装入口为 `.cmd`/`.ps1`；安装后的 Claude 绑定使用绝对 Node/JavaScript argv。
+固定版本使用 `@3.1.0`。软件包安装与 Claude 接入是两个步骤，npm 不修改 Claude 配置。确保 npm 命令目录位于 PATH。Windows 的 npm 包装入口为 `.cmd`/`.ps1`；安装后的 Claude 绑定使用绝对 Node/JavaScript argv。
 
 ### 离线安装
 
-从 [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.0.0) 或 [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.0.0) 下载 npm tgz、可重建源码 tar.gz、`build-manifest.json` 和 `SHA256SUMS`，先校验全部摘要再安装：
+从 [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.1.0) 或 [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.1.0) 下载 npm tgz、可重建源码 tar.gz、`build-manifest.json` 和 `SHA256SUMS`，先校验全部摘要再安装：
 
 ```bash
 # Linux / WSL；macOS 使用 shasum -a 256 -c SHA256SUMS
 sha256sum -c SHA256SUMS
-npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.0.0.tgz
+npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.1.0.tgz
 ```
 
 PowerShell 用 `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` 将每个摘要与 `SHA256SUMS` 比较，再用相同 npm 参数安装本地 tgz。GitHub/Gitee 自动源码 ZIP 不是可重建源码附件。源码构建见[开发指南](development/README.zh-CN.md#从源码构建与安装)。
@@ -202,7 +202,7 @@ claude-statusline config show --json
 
 `statusline_language` 属于显示 schema v8，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
 
-降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v6 草稿。见[备份与回滚](#备份与回滚)。
+降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v8 草稿。见[备份与回滚](#备份与回滚)。
 
 降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 8 与界面偏好 schema 1 独立演进；编辑器协议 12 会拒绝新旧前后端混用。
 
@@ -615,7 +615,7 @@ claude-statusline configure --config-dir /path/to/claude-config
 切换写入实现前停止活动 Claude 会话并备份配置目录。记录原 Python 命令的绝对路径和版本，保留其环境用于回退。已有 Python 命令占用相同 PATH 名称时，先将 npm 包安装到独立目录：
 
 ```text
-npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.0.0
+npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.1.0
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install --dry-run
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js doctor
@@ -682,14 +682,14 @@ Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 
 claude-statusline doctor
 ```
 
-Doctor 检查平台与 Python、PATH、配置有效性、命令归属、hooks、编辑器偏好及资源、宿主兼容、启动条件、实时采集和状态目录。它不重写配置、不打开编辑器窗口；macOS 可检查父目录同步能力。诊断通过不另行证明 GUI 焦点或人工交互有效。
+Doctor 检查平台与 Node、PATH、配置有效性、命令归属、hooks、编辑器偏好及资源、宿主兼容、启动条件、实时采集和状态目录。它不重写配置、不打开编辑器窗口；macOS 可检查父目录同步能力。诊断通过不另行证明 GUI 焦点或人工交互有效。
 
 `[OK]` 表示通过，`[WARN]` 表示降级但仍可返回 0，存在 `[ERROR]` 时返回 1。接入过时先运行 `install`、再次 `doctor`，然后重启 Claude Code。归属冲突先检查具体目标，再决定是否使用 `--force`。
 
-已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v6`。有效旧文件改为提示，例如：
+已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v8`。有效旧文件改为提示，例如：
 
 ```text
-[WARN] display config schema v4 is valid and will migrate to v6 on the next configuration save
+[WARN] display config schema v4 is valid and will migrate to v8 on the next configuration save
 ```
 
 此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v12、运行协议 v2 分别管理版本。
@@ -754,7 +754,7 @@ claude-statusline doctor
 
 tmux 路径要求 hook 环境中同时存在有效的 `TMUX`、形如 `%<数字>` 的 `TMUX_PANE`，且 2 秒预检查能访问目标 server/pane。Linux 目标失效时会尝试 GNOME；macOS 改为检查本地图形会话和 Terminal.app；缺少条件时提示独立命令。若已成功选择 tmux，popup 内失败不会二次启动其他终端。
 
-macOS Terminal 路径要求本地图形会话、系统 Terminal.app、`/usr/bin/open` 和可用的进程启动标识。启动后 30 秒内没有握手会返回错误；先检查窗口是否打开以及 Python 是否提供 curses。`doctor` 只检查条件，不打开窗口。SSH 中改用独立命令；Terminal 窗口在结束后仍保留时，按 Terminal 的窗口关闭偏好处理。
+macOS Terminal 路径要求本地图形会话、系统 Terminal.app、`/usr/bin/open` 和可用的进程启动标识。启动后 30 秒内没有握手会返回错误；先检查窗口是否打开，以及安装后的 Node 入口能否在该终端运行 `configure`。`doctor` 只检查条件，不打开窗口。SSH 中改用独立命令；Terminal 窗口在结束后仍保留时，按 Terminal 的窗口关闭偏好处理。
 
 GNOME 路径要求 `DISPLAY` 或 `WAYLAND_DISPLAY`、可执行的 `gnome-terminal` 和可用的用户 D-Bus/图形会话。D-Bus 启动错误会作为短错误返回原 Claude 对话。Linux 两种启动器都不可用，或 macOS 没有有效 tmux 及本地 Terminal.app 条件时，直接在终端运行：
 
@@ -963,6 +963,6 @@ claude-statusline config enable task-active-timer
 
 ## Unicode 文本与终端列宽
 
-换行、截断和编辑器预览保留完整扩展字符簇，包括组合音标和组合 emoji。歧义字符默认一列，普通 CJK／emoji 簇为两列；不同 Python 版本和编辑器使用相同布局规则。实际字形仍取决于终端与字体。
+换行、截断和编辑器预览保留完整扩展字符簇，包括组合音标和组合 emoji。歧义字符默认一列，普通 CJK／emoji 簇为两列；受支持的 Node 版本和两个编辑器使用相同布局规则。实际字形仍取决于终端与字体。
 
 外部编辑器在支持 ANSI／VT 的终端整体绘制文本；旧后端对无法安全绘制的字符簇使用等宽占位符，保存的标签、图标和路径保持原值。退格删除一个完整文本簇。调色板继续属于显示草稿；原生浅／深预览底色仍是独立界面偏好。

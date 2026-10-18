@@ -9,7 +9,7 @@
 
 ## 迁移后后续工作
 
-TS-01–TS-06 继续保持 DONE。Node 22／24 成品兼容和台湾／香港繁体语言拆分作为独立后续任务，见[实施与验收记录](node-regional-languages.zh-CN.md)；不改写历史阶段结果，也不启动 PERF-01。
+TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾／香港繁体语言后续工作已 **DONE**，v3.1.0 已交付 npm、GitHub 和 Gitee，见[实现、界面捕获及交付证据](node-regional-languages.zh-CN.md)。下方历史阶段结果保留；D06 继续 FAIL，PERF-01 继续 NOT_STARTED。
 
 ## 当前决策：2026-10-15
 

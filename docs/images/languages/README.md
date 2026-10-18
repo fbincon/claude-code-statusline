@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+The current TypeScript package offers separate Taiwan/Hong Kong languages. See the [v3.1.0 regional gallery](../typescript/regional/README.md) for final-package captures in both editors. The historical Python images below keep their original language names and source identity.
+
 These images reconstruct actual decoded Linux terminal cells captured from the installed v1.13.0 wheel at source `1134aee5425ed50fa0ca936321abb246e011b6b0`, on 2026-10-11. They are agent-inspected terminal reconstructions, not desktop screenshots or new human platform acceptance. The original cross-platform gallery remains [separate](../README.md).
 
 | Language | Native, light | External, dark | External minimum |

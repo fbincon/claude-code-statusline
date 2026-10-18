@@ -13,6 +13,8 @@ v3.1.0 使用固定构建工具链和现有 OIDC 发布流程。除八目标和�
 
 ### npm 端首次配置
 
+下列现有绑定已通过 2026-10-18 的 v3.1.0 首次 OIDC 发布验证，状态为 **Valid**。后续相同仓库／工作流继续复用；下方两天规则适用于新建绑定。[实际发布及 registry 核验](development/node-regional-languages.zh-CN.md)。
+
 打开 [npm 包页面](https://www.npmjs.com/package/@fbincon/claude-code-statusline)，选择 **Settings → Trusted publishing → GitHub Actions**，完成 npm 要求的身份验证，填写：
 
 | 配置项 | 值 |
@@ -52,7 +54,9 @@ gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
 
 独立发布任务使用 Node 24.21.0/npm 11.21.0，禁用生命周期脚本，上传同一 `.tgz`。构建身份仍为 npm 11.19.0，较新的发布 CLI 用于支持 OIDC 标签操作。核对公开包 SHA-256/SHA-512，正式版使用 `latest`、预览版使用 `beta`，保留其他既有选择器。已发布且字节相同的版本仅在目标选择器仍匹配时视为无需操作；其他状态失败，不覆盖字节或回退标签。结果不明时先检查 registry 状态再重试。
 
-`npm-publish-bundle` 工作流附件包含已验证输入和就绪报告，`npm-publication` 包含成功发布回执。公开 Release 只上传四个交付文件，不包含辅助脚本或报告。试运行只能证明准备检查通过，第一次**新版本发布**才能证明 npm 绑定和 OIDC 全链路可用。之后继续下文 GitHub/Gitee 发布及三系统公开下载检查。
+`npm-publish-bundle` 工作流附件包含已验证输入和就绪报告；新版本发布并完成核验后才写入 `npm-publication`。已有版本校验分支记录 `already-published`，不写新的发布回执，也不重新验证 OIDC。公开 Release 只上传四个交付文件，不包含辅助脚本或报告。试运行只能证明准备检查通过，第一次**新版本发布**才能证明 npm 绑定和 OIDC 全链路可用。之后继续下文 GitHub/Gitee 发布及三系统公开下载检查。
+
+npm 接受发布时，公开元数据可能尚未可用。v3.1.0 首次任务耗尽约三分钟等待后失败；随后版本公开，同一工作流的失败任务重跑以 `already-published` 通过。必要时用现有维护者认证读取[精确版本生命周期状态](https://api-docs.npmjs.com/#tag/Packages)，再核验匿名元数据、安装包字节和所有选择器，确认后才重试。结果未定时不重复提交发布，并分别保留首次上传／来源证明和重跑校验结果。
 
 ## TypeScript 正式发布
 

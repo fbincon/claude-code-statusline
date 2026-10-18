@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+Current Taiwan/Hong Kong interfaces are in the [v3.1.0 regional gallery](regional/README.md), captured from the final release package in both editors. The preparation captures below retain their original provenance.
+
 These eight images reconstruct the cells emitted by the actual installed external editor in a Linux PTY. They are **not operating-system screenshots**. Original Python screenshots remain unchanged in [the cross-platform gallery](../README.md).
 
 Capture source: `2f6d1c21f2abccfe0a05396172c1c8ec55cd989a`; preparation tgz SHA-256: `4870797de594c064ab7bbea190eaaa0e6981ac5b60a263b7ac418b5cd94d8b50`. This is a preparation artifact, distinct from the final release artifact. [Capture hashes, fonts and configuration](provenance.json) · [Final delivery evidence](../../development/typescript-migration/ts-06/stable-release.md).

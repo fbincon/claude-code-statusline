@@ -152,6 +152,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           architecture: ${{ matrix.target.arch }}
+          check-latest: true
       - name: Product tests and isolated offline installation on the selected Node
         run: node dist/typescript/tools/acceptance/runtime.js --case "${{ matrix.node }}" --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/runtime.json"
       - uses: actions/upload-artifact@v4

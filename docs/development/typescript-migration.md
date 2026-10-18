@@ -9,7 +9,7 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 
 ## Post-migration follow-up
 
-TS-01–TS-06 remain DONE. Node 22/24 product compatibility and Taiwan/Hong Kong Traditional Chinese are tracked as a separate [implementation and acceptance task](node-regional-languages.md). Historical stage results are retained; PERF-01 is not started by this work.
+TS-01–TS-06 remain DONE. The separate Node 22/24 compatibility and Taiwan/Hong Kong Traditional Chinese follow-up is **DONE**, delivered as v3.1.0 on npm, GitHub and Gitee. [Implementation, capture and delivery evidence](node-regional-languages.md). Historical stage results below are retained; D06 remains FAIL and PERF-01 remains NOT_STARTED.
 
 ## Current decision, 2026-10-15
 

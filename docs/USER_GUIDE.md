@@ -58,7 +58,7 @@ The main line reports main/session data; each subagent row reports its own task.
 
 Install Claude Code CLI and npm; the pinned validation toolchain uses npm 11.19.0. Git is needed for Git fields and source builds. Windows ARM devices use x64 Node emulation; native Windows ARM64 and 32-bit runtimes are outside the support contract. The package bundles native dependencies and needs no Python or compiler.
 
-The maintainer accepted the disclosed physical/desktop and exact-host declaration gaps for v3.0.0. They remain unverified; see the [release decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18).
+The maintainer accepted the six disclosed physical/desktop and exact-host declaration gaps specifically for v3.1.0. They remain unverified; see the [version-specific decision](releases/approvals/v3.1.0.json) and [delivery evidence](development/node-regional-languages.md).
 
 | Feature | Claude Code requirement |
 | --- | --- |
@@ -78,16 +78,16 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
-Use `@3.0.0` for a fixed version. Package installation and Claude integration are separate; npm does not edit your Claude settings. Ensure the npm command directory is on PATH. Windows npm wrappers are `.cmd`/`.ps1`; installed Claude bindings use absolute Node/JavaScript argv.
+Use `@3.1.0` for a fixed version. Package installation and Claude integration are separate; npm does not edit your Claude settings. Ensure the npm command directory is on PATH. Windows npm wrappers are `.cmd`/`.ps1`; installed Claude bindings use absolute Node/JavaScript argv.
 
 ### Offline installation
 
-Download the npm tgz, rebuildable source tar.gz, `build-manifest.json` and `SHA256SUMS` from the [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.0.0) or [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.0.0). Verify all listed hashes before installing:
+Download the npm tgz, rebuildable source tar.gz, `build-manifest.json` and `SHA256SUMS` from the [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.1.0) or [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.1.0). Verify all listed hashes before installing:
 
 ```bash
 # Linux / WSL; on macOS use shasum -a 256 -c SHA256SUMS
 sha256sum -c SHA256SUMS
-npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.0.0.tgz
+npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.1.0.tgz
 ```
 
 In PowerShell use `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` and compare each result with `SHA256SUMS`, then install the local tgz using the same npm options. Automatic GitHub/Gitee source ZIPs are not the rebuildable source asset. See the [development guide](development/README.md#build-and-install-from-source) for source builds.
@@ -202,7 +202,7 @@ This applies to the main line and all custom subagent rows. Translate built-in p
 
 Before downgrading to a release that lacks a selected language, set both languages to `en` with `config language reset` and `config set statusline-language en`. Reinstall matching native resources. Display schema 8 and interface preferences schema 1 evolve independently; editor protocol 12 rejects older frontend/backend pairs.
 
-Before downgrading to a package that supports only schema v5, use the newer package to remove its native integration, preserve a portable export, and restore a compatible `.before` display backup according to `metadata.json`. If the previous file was absent, restore absence. Then install the older package and refresh integration; do not pass a v6 draft to an older backend. See [backups](#backups-and-rollback).
+Before downgrading to a package that supports only schema v5, use the newer package to remove its native integration, preserve a portable export, and restore a compatible `.before` display backup according to `metadata.json`. If the previous file was absent, restore absence. Then install the older package and refresh integration; do not pass a v8 draft to an older backend. See [backups](#backups-and-rollback).
 
 ## Native configuration editor
 
@@ -629,7 +629,7 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 Stop active Claude sessions and back up the configuration directory before switching writers. Record the Python executable's absolute path and version; keep that environment for rollback. Install npm into a separate prefix if a Python command already owns the same PATH name:
 
 ```text
-npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.0.0
+npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.1.0
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install --dry-run
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install
 node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js doctor
@@ -700,10 +700,10 @@ Doctor checks platform/Node, PATH, configuration validity, command ownership, ho
 
 `[OK]` passes; `[WARN]` describes degradation and still allows exit 0; any `[ERROR]` makes exit 1. For stale integration, run `install`, rerun `doctor`, then restart Claude Code. Resolve ownership conflicts before using `--force`.
 
-For an existing display configuration file, the schema check reports the supported version, currently `[OK] display config schema: v6`. A valid older file instead reports, for example:
+For an existing display configuration file, the schema check reports the supported version, currently `[OK] display config schema: v8`. A valid older file instead reports, for example:
 
 ```text
-[WARN] display config schema v4 is valid and will migrate to v6 on the next configuration save
+[WARN] display config schema v4 is valid and will migrate to v8 on the next configuration save
 ```
 
 This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v12 and runtime protocol v2.
@@ -780,7 +780,7 @@ Explicit enabling below 2.1.258 or on an unrecognized host retains the preferenc
 
 The tmux path requires valid `TMUX`, `TMUX_PANE` shaped as `%<digits>`, and access to the target server/pane within a 2-second preflight check in the hook environment. An invalid Linux target falls back to GNOME; macOS checks the local graphical session and Terminal.app instead. Missing prerequisites lead to a standalone-command suggestion. Once tmux is selected successfully, failure inside the popup does not launch another terminal.
 
-The macOS Terminal path requires a local graphical session, system Terminal.app, `/usr/bin/open`, and usable process start identity. No handshake within 30 seconds produces an error; first check whether a window opened and Python provides curses. `doctor` checks conditions without opening a window. Over SSH, use the standalone command. If Terminal retains its window after completion, adjust Terminal's window-closing preferences.
+The macOS Terminal path requires a local graphical session, system Terminal.app, `/usr/bin/open`, and usable process start identity. No handshake within 30 seconds produces an error; first check whether a window opened and the installed Node entry can run `configure` in that terminal. `doctor` checks conditions without opening a window. Over SSH, use the standalone command. If Terminal retains its window after completion, adjust Terminal's window-closing preferences.
 
 GNOME requires `DISPLAY` or `WAYLAND_DISPLAY`, executable `gnome-terminal`, and a usable user D-Bus/graphical session. D-Bus startup errors return a short error to the original Claude conversation. If neither Linux launcher is available, or macOS lacks valid tmux and local Terminal.app conditions, run directly in a terminal:
 
