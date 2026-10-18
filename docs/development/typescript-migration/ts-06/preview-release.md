@@ -2,7 +2,7 @@
 
 **English** | [简体中文](preview-release.zh-CN.md)
 
-Publication status: GitHub, Gitee and npm are public; final public download acceptance is in progress. TS-06 remains **IN_PROGRESS**; PERF-01 remains **NOT_STARTED**. [Decision and stable gates](README.md) · [Feedback tracker #96](https://github.com/fbincon/claude-code-statusline/issues/96).
+Publication status: **v3.0.0-beta.1 delivered on 2026-10-18** through GitHub, Gitee and npm beta; public download and installation acceptance passed. TS-06 remains **IN_PROGRESS**; PERF-01 remains **NOT_STARTED**. [Decision and stable gates](README.md) · [Feedback tracker #96](https://github.com/fbincon/claude-code-statusline/issues/96).
 
 ## Immutable release identity
 
@@ -60,6 +60,14 @@ D06 remains **FAIL: 104 pass / 60 fail / 28 inconclusive**. Physical macOS sleep
 
 The npm registry accepted the upload asynchronously, then reported the exact version as published. A fresh anonymous download matches the final package byte for byte. `beta` resolves to `3.0.0-beta.1`. The registry also created a `0.0.0-stage` stub and initially assigned `latest` to the preview; removing `latest` returned HTTP 400, so it was redirected to that existing registry stub. No package bytes were republished. The stub is not a usable product; installation must specify `@beta` or the exact version until a real npm stable version is released.
 
-Local public GitHub/npm verification passed on Ubuntu 26.04.1 x64: all four GitHub attachments match, npm bytes/integrity match, and both exact-version and beta installations pass with empty caches and lifecycle scripts disabled. Gitee attachment download verification and the final three-OS CI result are pending.
+Local public GitHub/npm verification passed on Ubuntu 26.04.1 x64: all four GitHub attachments match, npm bytes/integrity match, and both exact-version and beta installations pass with empty caches and lifecycle scripts disabled. All four anonymous Gitee downloads also match the table above; the downloaded Gitee tgz passed bundle verification and isolated, empty-cache offline installation, version/config/render smoke with scripts disabled.
 
-The [initial three-OS download run](https://github.com/fbincon/claude-code-statusline/actions/runs/39094514522) failed because the verification script passed unsupported `--config-dir` arguments to `config show`. The corrected verifier uses its already-isolated `CLAUDE_CONFIG_DIR` environment. This changes the verification harness, not the published package. Manual verification now records the verifier commit separately from the immutable release commit and checks out the selected workflow commit while resolving the exact release tag. Historical failed receipts are retained; passing CI must be linked before this delivery is complete.
+The [initial three-OS download run](https://github.com/fbincon/claude-code-statusline/actions/runs/39094514522) failed because the verification script passed unsupported `--config-dir` arguments to `config show`. The corrected verifier uses its already-isolated `CLAUDE_CONFIG_DIR` environment. This changes the verification harness, not the published package. Manual verification now records the verifier commit separately from the immutable release commit and checks out the selected workflow commit while resolving the exact release tag. Historical failed receipts are retained. The [corrected three-OS run](https://github.com/fbincon/claude-code-statusline/actions/runs/39094840584) passed all three jobs: ubuntu-24.04 x64, windows-2025 x64 and macos-15 ARM64, each using Node 24.21.0 and both selectors. All three downloaded receipts bind release commit `a6cfb6aadf2fcacbd5bf8f027665528cf6b6f29f`, verifier commit `02fc7807d50be96956256c5261c4702ce6e9ae3d` and the final tarball digest.
+
+| Public channel | Delivered identity and acceptance |
+| --- | --- |
+| [GitHub prerelease](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.0.0-beta.1) | Release `416206854`, published `2026-10-18T03:41:34Z`; four byte-matched attachments; Python v2.0.0 retains Latest |
+| [Gitee prerelease](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.0.0-beta.1) | Release `1214744`; same source/tag, four byte-matched delivery attachments, translated installation notes and primary GitHub feedback links; the platform's additional automatic source archives are not the delivered rebuildable source package |
+| [npm preview](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.0.0-beta.1) | Published `2026-10-18T03:33:36.416Z`; `beta=3.0.0-beta.1`, `latest=0.0.0-stage`; identical tgz SHA-256 and SHA-512 integrity |
+
+The evidence follow-up changes documentation and the public-download verifier only. It does not move the release tag or replace published files. Gitee main synchronization follows verified GitHub PR/main checks. Stable delivery remains a separate task after the outstanding physical/desktop evidence and blocking feedback are addressed.

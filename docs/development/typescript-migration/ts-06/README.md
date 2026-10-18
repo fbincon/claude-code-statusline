@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-Status: **IN_PROGRESS**. Target: **v3.0.0-beta.1**. Preparation is not publication; public download receipts and final commit/tag identities will be recorded after delivery. [Preview guide](../../../PREVIEW.md) · [Feedback and platform tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
+Status: **IN_PROGRESS**. **v3.0.0-beta.1 is published and download-verified** on GitHub, Gitee and npm beta. [Release identity, checksums and CI evidence](preview-release.md). Stable delivery remains pending the gates below. [Preview guide](../../../PREVIEW.md) · [Feedback and platform tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
 
 ## Approved preview amendment, 2026-10-18
 

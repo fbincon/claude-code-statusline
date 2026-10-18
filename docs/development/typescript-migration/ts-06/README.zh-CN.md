@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-状态：**IN_PROGRESS**，目标 **v3.0.0-beta.1**。准备工作不等于已经发布；交付后补记公开下载验收与最终提交/标签身份。[试用指南](../../../PREVIEW.zh-CN.md) · [反馈与平台跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
+状态：**IN_PROGRESS**；**v3.0.0-beta.1 已在 GitHub、Gitee 和 npm beta 发布并通过下载核验**。[发布身份、摘要及 CI 证据](preview-release.zh-CN.md)。正式版仍等待下列门槛。[试用指南](../../../PREVIEW.zh-CN.md) · [反馈与平台跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
 ## 已批准的预览门槛修订，2026-10-18
 

@@ -23,12 +23,12 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01–TS-05 DONE**; [TS-05 closure](typescript-migration/ts-05/README.md#closure-2026-10-16) |
-| Current task scope | TS-06 IN_PROGRESS: first public preview; PERF-01 remains NOT_STARTED |
+| Current task scope | TS-06 IN_PROGRESS: first preview delivered; stable validation pending; PERF-01 remains NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
-| Target release and schedule | v3.0.0-beta.1 on GitHub/Gitee and npm beta; stable after missing validation/feedback |
-| Next implementation work | Complete preview publication and downloaded-artifact acceptance; [TS-06 record](typescript-migration/ts-06/README.md) |
+| Target release and schedule | v3.0.0-beta.1 delivered on GitHub/Gitee and npm beta; stable after missing validation/feedback |
+| Next implementation work | Collect preview feedback and missing stable acceptance; [delivery evidence](typescript-migration/ts-06/preview-release.md) |
 
-The maintainer approved TS-05 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-05 record](typescript-migration/ts-05/README.md) tracks all five batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
+The maintainer approved TS-06 preview delivery with isolated acceptance and explicit recovery. The installed Python product remains intact. The [TS-06 record](typescript-migration/ts-06/README.md) tracks delivered preview evidence and remaining stable gates. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
 TS-03 covers all 161 fixed cases with the same three approved CLI text differences and audits all 516 IDs: 471 ported, 45 complete tests assigned to TS-04, plus remaining assertions in eight mixed tests. Latest local TS validation passed 556/557 tests with one platform skip; the final [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) head passed all 43 CI jobs and eight source-bound receipts before merge `7eae7c4`. These historical TS-03 results are retained separately from the installed TS-04 acceptance. [Closure and evidence](typescript-migration/ts-03/README.md#closure-2026-10-15).
 
@@ -247,6 +247,7 @@ Older entries retain their then-current stage states and gates. Current rules ar
 
 | Date | Work | Result and next action |
 | --- | --- | --- |
+| 2026-10-18 | TS-06 first preview, [implementation PR #97](https://github.com/fbincon/claude-code-statusline/pull/97) | v3.0.0-beta.1 published on GitHub/Gitee/npm beta; identical package, three 23-job source matrices and corrected three-OS public installation checks pass. [Release evidence](typescript-migration/ts-06/preview-release.md). TS-06 remains IN_PROGRESS for stable gates; PERF-01 NOT_STARTED. |
 | 2026-10-16 | TS-05 tooling, shared candidate CI and archive; PRs #92–#94 and [closure PR #95](https://github.com/fbincon/claude-code-statusline/pull/95) | Five batches complete; 856 methods / 62 tools closed; 23-job PR/main candidate CI and independent historical execution pass. [Evidence and source/artifact identities](typescript-migration/ts-05/README.md#closure-2026-10-16). TS-06 and PERF-01 remain NOT_STARTED; no public release or installed cutover. |
 | 2026-10-15 | TS-04 editors, installation and recovery, [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91) | 04-A–04-E complete; 265 responsibilities with no pending IDs; 43 CI checks, eight installed targets and 13 host receipts pass, with all 380 source hashes matching. Final documentation integration/synchronization is recorded in the PR; no installed cutover or release. |
 | 2026-10-15 | Approved migration-first performance deferral; `fbincon/ts-migration-plan-performance-deferral` | Numerical D06 policy and evidence unchanged; performance no longer blocks TS-03–TS-06. Close TS-03/03-F on existing PR #85 evidence. TS-04–TS-06 and independent PERF-01 remain NOT_STARTED. Documentation/status changes only. |

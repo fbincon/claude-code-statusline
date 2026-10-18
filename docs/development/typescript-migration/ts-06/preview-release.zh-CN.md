@@ -2,7 +2,7 @@
 
 [English](preview-release.md) | **简体中文**
 
-发布状态：GitHub、Gitee 与 npm 已公开，最终公开下载验收进行中。TS-06 保持 **IN_PROGRESS**，PERF-01 保持 **NOT_STARTED**。[决策与正式版门槛](README.zh-CN.md) · [反馈跟踪 #96](https://github.com/fbincon/claude-code-statusline/issues/96)。
+发布状态：**v3.0.0-beta.1 已于 2026-10-18 通过 GitHub、Gitee 和 npm beta 交付**，公开下载及安装验收通过。TS-06 保持 **IN_PROGRESS**，PERF-01 保持 **NOT_STARTED**。[决策与正式版门槛](README.zh-CN.md) · [反馈跟踪 #96](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
 ## 固定发布身份
 
@@ -60,6 +60,14 @@ D06 保持 **FAIL：104 pass / 60 fail / 28 inconclusive**。macOS 实机休眠�
 
 npm registry 异步接收上传，随后将精确版本状态标记为 published；新的匿名下载与最终安装包逐字节一致。`beta` 指向 `3.0.0-beta.1`。registry 还生成了 `0.0.0-stage` 占位版本，并最初将 `latest` 指向预览；删除 `latest` 返回 HTTP 400，因此将它改指既有的 registry 占位包，没有重新发布任何包字节。占位包不是可用产品，真正的 npm 稳定版发布前，安装必须明确指定 `@beta` 或固定版本。
 
-本地 Ubuntu 26.04.1 x64 的 GitHub/npm 公开核验通过：GitHub 四附件一致，npm 字节与完整性摘要一致，空缓存、禁用生命周期脚本的固定版本及 beta 安装均通过。Gitee 附件下载核验与最终三系统 CI 结果待补。
+本地 Ubuntu 26.04.1 x64 的 GitHub/npm 公开核验通过：GitHub 四附件一致，npm 字节与完整性摘要一致，空缓存、禁用生命周期脚本的固定版本及 beta 安装均通过。Gitee 四项匿名下载也与上表完全一致；下载的 Gitee tgz 通过分发包校验，以及空缓存、禁用生命周期脚本的隔离离线安装和版本/配置/渲染检查。
 
-[首次三系统下载工作流](https://github.com/fbincon/claude-code-statusline/actions/runs/39094514522)因验证脚本向 `config show` 传入不支持的 `--config-dir` 而失败。修正后的脚本使用已隔离的 `CLAUDE_CONFIG_DIR` 环境变量，只修改验收工具，不修改已发布包。人工触发核验现在分别记录验证代码提交和固定发布提交，检出所选工作流提交并解析精确发布标签。历史失败证据保留，交付完成前必须补充已通过的 CI 链接。
+[首次三系统下载工作流](https://github.com/fbincon/claude-code-statusline/actions/runs/39094514522)因验证脚本向 `config show` 传入不支持的 `--config-dir` 而失败。修正后的脚本使用已隔离的 `CLAUDE_CONFIG_DIR` 环境变量，只修改验收工具，不修改已发布包。人工触发核验现在分别记录验证代码提交和固定发布提交，检出所选工作流提交并解析精确发布标签。历史失败证据保留。[修正后的三系统工作流](https://github.com/fbincon/claude-code-statusline/actions/runs/39094840584)全部通过：ubuntu-24.04 x64、windows-2025 x64、macos-15 ARM64，均使用 Node 24.21.0 并检查两种选择器。下载的三份回执均绑定发布提交 `a6cfb6aadf2fcacbd5bf8f027665528cf6b6f29f`、验证代码提交 `02fc7807d50be96956256c5261c4702ce6e9ae3d` 和最终安装包摘要。
+
+| 公开渠道 | 发布身份与验收 |
+| --- | --- |
+| [GitHub 预览版](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.0.0-beta.1) | Release `416206854`，发布时间 `2026-10-18T03:41:34Z`；四附件字节一致，Python v2.0.0 保持 Latest |
+| [Gitee 预览版](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.0.0-beta.1) | Release `1214744`；同源码/标签、四项交付附件字节一致、镜像安装说明及 GitHub 主反馈入口；平台额外生成的自动源码归档不等同于交付的可重建源码包 |
+| [npm 预览包](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.0.0-beta.1) | 发布时间 `2026-10-18T03:33:36.416Z`；`beta=3.0.0-beta.1`、`latest=0.0.0-stage`，tgz 的 SHA-256 和 SHA-512 完整性摘要一致 |
+
+证据补充只修改文档及公开下载验收工具，不移动发布标签、不替换已公开文件。Gitee main 在 GitHub PR/main 检查通过后同步。缺失实体/桌面证据及阻塞反馈处理完成后，正式版另行推进。

@@ -11,7 +11,7 @@
 3. CI 将同一公开形态包分发到八安装目标和十三固定宿主。`release:prepare -- --preview --artifact ABSOLUTE_TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE` 拒绝缺失、失败、跳过、重复及身份不符证据，只报告预览就绪，不报告正式就绪。无付费调用或虚构实机证据。
 4. 在已验证提交创建带注释的 v3.0.0-beta.1 标签，推送精确引用并等待标签 CI。创建 GitHub **预览草稿**，设置 `--latest=false`；仅上传同提交的安装 tgz、源码 tar.gz、build-manifest.json、SHA256SUMS。下载草稿，核验摘要及隔离安装，日志和本机路径不作为附件。上传双语 Release 正文前，使用 `tools/release/markdown.ts` 中的辅助函数，以 `docs/releases/<tag>.md` 为起点，将仓库内文档和图片的相对链接转换为固定标签的 GitHub blob/raw URL，保留外部 Issue/CI 链接和代码示例；GitHub Release 页面不会按源码文件目录解析相对链接。
 5. 维护者以 fbincon 完成官方 npm 登录/双重验证，核实身份及作用域权限。在开发 workspace 之外运行 `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag beta --ignore-scripts`，直接上传已验证 tarball，不重新打包。凭据不进入仓库、日志或聊天。检查包元数据、完整性、beta/latest；预览不得成为 latest。
-6. 发布 GitHub 预览，不设 Latest，Python v2.0.0 保持 Latest。公开下载工作流在 Linux/Windows/macOS 校验 GitHub/npm 相同字节及固定版本/beta 安装，也可对精确标签手动调度。工作流只验证，不代替维护者的发布认证。
+6. 发布 GitHub 预览，不设 Latest，Python v2.0.0 保持 Latest。公开下载工作流在 Linux/Windows/macOS 校验 GitHub/npm 相同字节及固定版本/beta 安装，也可从选定验证分支对精确标签手动调度，回执分别记录验证与发布提交；只修正验证工具时不替换公开附件、不移动标签。工作流只验证，不代替维护者的发布认证。
 7. 检查分歧后，以明确 refspec 将验证后的 main 和精确标签推送现有 Gitee SSH remote。预览 Release 使用官方 Gitee MCP，附件上传用官方 API 和现有系统钥匙环管理客户端，不导出凭据。上传同四项附件，按真实附件元数据生成说明，确认预览状态并重新下载核验；保留 GitHub 的问题/CI 主入口。
 8. 以后续 PR 记录下载证据、标签/源码/摘要和真实 CI 链接，原始数据留在忽略目录，更新跟踪 Issue。正式门槛通过前 TS-06 仍进行中。
 
@@ -242,7 +242,7 @@ python tools/render_gitee_release.py \
 
 从已验证的当前 main 分支运行生成器。它不发起网络请求或平台写入，使用实际附件地址并保留各版本分发名。相对文档地址以 `docs/releases/<tag>.md` 为基准；显式分支／标签引用保留原含义。即使浏览器／curl 下载正常，Gitee 也可能对 pip／pipx 直接 URL 请求返回 HTTP 403，因此 wheel 说明先链接至 Gitee 附件，要求下载并核验校验和后，在下载目录安装本地 wheel。源码引用、GitHub Actions、Issues 与原始发布来源保留原含义。附件缺失／重复、标签或包身份不符、预发布属性冲突时，在写入输出前停止。
 
-检查 Markdown，与权威来源和快照对比，核验文档目标与安装命令，再通过官方 MCP/API 仅更新 Gitee 正文。MCP 缺少的发行版更新能力使用 `PATCH /repos/{owner}/{repo}/releases/{release_id}`，字段以表单编码提交。更新后重新读取，确认标签、预发布属性及附件清单未变。重复同步仍从 GitHub 重新生成，附录不会累积；仅说明更新需要回滚时恢复已保存正文。网页导航与 API／附件检查分别记录；遇到验证码时，由用户完成后继续网页验收。
+检查 Markdown，与权威来源和快照对比，核验文档目标与安装命令，再通过官方 MCP/API 仅更新 Gitee 正文。MCP 缺少的发行版更新能力使用 `PATCH /repos/{owner}/{repo}/releases/{release_id}`，字段以表单编码提交；更新正文时同时携带原 `tag_name` 和 `target_commitish` 以满足 API 校验。更新后重新读取，确认标签、预发布属性及附件清单未变。重复同步仍从 GitHub 重新生成，附录不会累积；仅说明更新需要回滚时恢复已保存正文。网页导航与 API／附件检查分别记录；遇到验证码时，由用户完成后继续网页验收。
 
 认证配置保存在维护者本机：使用专用 Gitee SSH 身份和系统密钥环保存的私人令牌。Codex 可通过 `http_headers_helper` 提供 MCP 认证头，附件客户端在进程内读取同一密钥环条目。不得把令牌写入仓库、文档、URL、命令参数或日志。版本控制使用标准 `git`，Gitee 平台操作使用 MCP/API；`gh` 继续用于 GitHub。
 
