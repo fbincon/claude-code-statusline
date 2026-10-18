@@ -2,7 +2,7 @@
 
 [English](typescript-migration.md) | **简体中文**
 
-更新日期：**2026-10-16**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
+更新日期：**2026-10-18**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
 
 将 Python 实现迁移到 TypeScript，保留状态栏行为、既有用户配置及受支持的使用流程。本计划记录范围、依赖、技术决策、验收门槛和交接方式，供后续会话与维护者持续更新。中英文版本随仓库维护；机器私有记录和原始验收数据不写入受版本管理的文档。
 
@@ -14,6 +14,8 @@
 
 相对延迟／RSS 退化可以后移处理。宿主超时导致操作无法完成、事件丢失、保存失败或内存耗尽等功能／稳定性故障仍须解决。现有超时、资源有界、锁、原子写、时钟精度和采集次数契约，以及实体机／桌面、安装／恢复验收继续适用。
 
+**2026-10-18 预览修订：** 维护者批准 v3.0.0-beta.1、npm beta 与相同 GitHub/Gitee 附件，用于收集缺失平台反馈。兼容宿主双编辑器默认开启，保留显式关闭。实体/桌面缺口仍阻塞正式版，不阻塞本预览；预览发布后 TS-06 保持 IN_PROGRESS。[决定与门槛](typescript-migration/ts-06/README.zh-CN.md)。
+
 ## 当前状态
 
 | 项目 | 状态 |
@@ -21,10 +23,10 @@
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01～TS-05 DONE**；[TS-05 关闭记录](typescript-migration/ts-05/README.zh-CN.md#closure-2026-10-16) |
-| 当前任务范围 | TS-05 DONE：完整工具链、CI 与工程候选；TS-06 和 PERF-01 保持 NOT_STARTED |
+| 当前任务范围 | TS-06 IN_PROGRESS：首个公开预览；PERF-01 保持 NOT_STARTED |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
-| 目标版本与工期 | 尚未指定；后续候选／交付任务确定版本及工期 |
-| 下一项实施工作 | TS-06：补齐发布前门槛并制定预览/正式交付方案；[交接清单](typescript-migration/ts-05/TS06-HANDOFF.zh-CN.md) |
+| 目标版本与工期 | v3.0.0-beta.1，GitHub/Gitee 与 npm beta；正式版等待缺失验收与反馈 |
+| 下一项实施工作 | 完成预览发布与下载产物验收；[TS-06 记录](typescript-migration/ts-06/README.zh-CN.md) |
 
 维护者已批准 TS-05 实施，安装验收使用隔离环境，恢复采用显式命令，保留现用 Python 安装。[TS-05 记录](typescript-migration/ts-05/README.zh-CN.md)跟踪全部五批，本阶段不发布。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 
@@ -109,7 +111,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | TS-03 | 共享核心、后端与运行逻辑迁移 | TS-02 | DONE | Codex；实现 [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85)，合并 `7eae7c4`；[修订标准下的关闭记录](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15) |
 | TS-04 | 双编辑器、安装与恢复 | TS-03 | DONE | Codex；验证 `f37e5f5`；[PR #91](https://github.com/fbincon/claude-code-statusline/pull/91)；[批次与证据](typescript-migration/ts-04/README.zh-CN.md) |
 | TS-05 | 完整工具链、CI 与工程候选 | TS-04 | DONE | Codex；`fbincon/ts-05-closure`；[PR #94](https://github.com/fbincon/claude-code-statusline/pull/94)，已验证合并 `e438a45`；[关闭记录](typescript-migration/ts-05/README.zh-CN.md#closure-2026-10-16) |
-| TS-06 | 预览验收与正式交付 | TS-05 | NOT_STARTED | 未分配 |
+| TS-06 | 预览验收与正式交付 | TS-05 | IN_PROGRESS | v3.0.0-beta.1 |
 
 独立后续专项：**PERF-01 — NOT_STARTED**，依赖 TS-06 DONE。[专项计划](performance/perf-01.zh-CN.md)记录未来工作与证据，不新增 TS-07，也不使已完成迁移重新处于未完成状态。
 
@@ -175,7 +177,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 
 ### TS-06 预览与正式交付
 
-- 在任何 TypeScript 发布前完成[延后的实体机／桌面验收](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛)，不得将未验证观测改记为通过。
+- 依据[已批准的 TS-06 预览修订](typescript-migration/ts-06/README.zh-CN.md)，缺失的实体/桌面验收延后至正式版，预览用于收集反馈；未验证结果不得记为通过。
 - 兼容决策后再确定版本号及预览／正式计划；过渡期间保留 Python 版本和可恢复发行物。
 - 验证实际预览资产、目标终端及升级／恢复路径，按具体提交记录反馈和修复；自动化、PTY、图像及真人证据分别记录。
 - 按已适配新分发方式的[发布流程](../RELEASING.zh-CN.md)交付；核验必要检查和公开资产后，按任务同步已验证的 GitHub 提交／标签／资产到 Gitee。

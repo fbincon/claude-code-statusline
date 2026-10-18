@@ -27,7 +27,7 @@ export function installCandidate(artifact = process.env.TS05_CANDIDATE_ARTIFACT,
         fs.rmSync(temporary, { recursive: true, force: true });
         throw new Error('Isolated candidate installation failed: ' + installed.stderr);
     }
-    const root = join(directory, 'node_modules', PACKAGE), modules = join(root, 'node_modules/@fbincon'), entry = join(modules, 'statusline-cli/dist/src/entry.js'), bin = join(directory, 'node_modules/.bin/claude-statusline');
+    const root = join(directory, 'node_modules', packed.source.name), modules = join(root, 'node_modules/@fbincon'), entry = join(modules, 'statusline-cli/dist/src/entry.js'), bin = join(directory, 'node_modules/.bin/claude-statusline');
     const outside = relative(fs.realpathSync.native(repoRoot), fs.realpathSync.native(root));
     // On Windows a candidate on another drive produces an absolute relative()
     // result. Canonicalize both prefixes before checking same-drive ancestry.

@@ -240,6 +240,8 @@ Claude Code feature requirements: subagent rows 2.1.205+; local argument-based c
 
 ## Quick installation
 
+[TypeScript preview trial and rollback instructions](docs/PREVIEW.md).
+
 Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). All supported platforms use the same wheel.
 
 ### Install the package

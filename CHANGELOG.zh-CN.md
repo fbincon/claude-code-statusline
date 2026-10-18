@@ -2,6 +2,14 @@
 
 [English](CHANGELOG.md) | **简体中文**
 
+## 3.0.0-beta.1 — 2026-10-18
+
+- 首个 TypeScript 预览，提供可复现的离线 npm 包、源码包与 GitHub/Gitee 分发核验。
+- 统一应用/Mod 版本身份，兼容宿主双编辑器默认开启并保留停用偏好。
+- 保持配置/协议格式、显式恢复与 Python v2.0.0 回退；记录正式版仍需的实体/桌面验证。
+- 新增预览反馈与源码/安装包关联验收；披露 D06 FAIL，PERF-01 保持独立。
+- [发布说明](docs/releases/v3.0.0-beta.1.md) · [试用指南](docs/PREVIEW.zh-CN.md)。
+
 ## Unreleased
 
 - 将日常工具、固定参考测试、候选构建与 CI 切换到 TypeScript，冻结 Python 实现及历史验证入口。

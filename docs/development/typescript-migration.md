@@ -2,7 +2,7 @@
 
 **English** | [简体中文](typescript-migration.zh-CN.md)
 
-Updated: **2026-10-16** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
+Updated: **2026-10-18** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
@@ -14,6 +14,8 @@ Complete TS-01–TS-06 before further performance optimization. The maintainer a
 
 Relative latency/RSS regression may be deferred. Functional or stability failures, including operations prevented by host timeouts, lost events, failed saves or memory exhaustion, remain actionable. Existing timeout, bounded-resource, locking, atomic-write, clock-precision and collector-count contracts, and physical/desktop and installation/recovery acceptance remain required.
 
+**Preview amendment, 2026-10-18:** the maintainer approved v3.0.0-beta.1, npm beta and identical GitHub/Gitee artifacts to collect missing platform feedback. Both compatible editors default on, preserving explicit disablement. Physical/desktop gaps block stable, not this preview; TS-06 remains IN_PROGRESS after preview publication. [Decision and gates](typescript-migration/ts-06/README.md).
+
 ## Current state
 
 | Item | State |
@@ -21,10 +23,10 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01–TS-05 DONE**; [TS-05 closure](typescript-migration/ts-05/README.md#closure-2026-10-16) |
-| Current task scope | TS-05 DONE: complete tooling, CI and engineering candidate; TS-06 and PERF-01 remain NOT_STARTED |
+| Current task scope | TS-06 IN_PROGRESS: first public preview; PERF-01 remains NOT_STARTED |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
-| Target release and schedule | Unassigned; later candidate/delivery tasks determine versions and schedule |
-| Next implementation work | TS-06: complete the remaining release gates and plan preview/stable delivery; [handoff](typescript-migration/ts-05/TS06-HANDOFF.md) |
+| Target release and schedule | v3.0.0-beta.1 on GitHub/Gitee and npm beta; stable after missing validation/feedback |
+| Next implementation work | Complete preview publication and downloaded-artifact acceptance; [TS-06 record](typescript-migration/ts-06/README.md) |
 
 The maintainer approved TS-05 implementation with isolated installation acceptance and explicit recovery. Keep the installed Python product intact. The [TS-05 record](typescript-migration/ts-05/README.md) tracks all five batches; this stage creates no release. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
@@ -109,7 +111,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | TS-03 | Shared core, backend and runtime migration | TS-02 | DONE | Codex; implementation [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85), merge `7eae7c4`; [closure under revised criteria](typescript-migration/ts-03/README.md#closure-2026-10-15) |
 | TS-04 | Both editors, installation and recovery | TS-03 | DONE | Codex; tested `f37e5f5`; [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91); [batches and evidence](typescript-migration/ts-04/README.md) |
 | TS-05 | Complete tooling, CI and engineering candidate | TS-04 | DONE | Codex; `fbincon/ts-05-closure`; [PR #94](https://github.com/fbincon/claude-code-statusline/pull/94), verified merge `e438a45`; [closure](typescript-migration/ts-05/README.md#closure-2026-10-16) |
-| TS-06 | Preview validation and stable delivery | TS-05 | NOT_STARTED | Unassigned |
+| TS-06 | Preview validation and stable delivery | TS-05 | IN_PROGRESS | v3.0.0-beta.1 |
 
 Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its [plan](performance/perf-01.md) records future work and evidence; it is not TS-07 and does not keep a completed migration open.
 
@@ -175,7 +177,7 @@ Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its
 
 ### TS-06 Preview and stable delivery
 
-- Complete the [deferred physical/desktop acceptance](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) before any TypeScript release; unsupported observations must not be converted into passes.
+- Under the [approved TS-06 preview amendment](typescript-migration/ts-06/README.md), defer missing physical/desktop acceptance until stable delivery. The preview collects these observations; missing results remain unverified.
 - Assign version identifiers and a preview/stable plan after the compatibility decisions. Keep the Python release and recoverable artifacts available during the transition.
 - Validate the actual preview artifacts, target terminals and upgrade/recovery paths; record feedback and fixes against exact commits. Separate automated, PTY, visual and human evidence.
 - Follow the [release process](../RELEASING.md), updated for the selected distribution. Verify required checks and released artifacts before task-driven synchronization of the validated GitHub commit/tags/assets to Gitee.

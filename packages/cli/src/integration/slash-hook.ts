@@ -1,3 +1,4 @@
+import { VERSION } from '@fbincon/statusline-core/release';
 import { fileURLToPath } from 'node:url';
 import { object } from '@fbincon/statusline-core/runtime/values';
 import { trim } from '@fbincon/statusline-core/runtime/transcript';
@@ -63,7 +64,7 @@ export async function handlePayload(data: unknown, environment: CliEnvironment =
     try {
         let enabled: boolean;
         try {
-            enabled = loadFeature(configDir, '2.0.0', io);
+            enabled = loadFeature(configDir, VERSION, io);
         }
         catch (error) {
             if (!(error instanceof ConfigError))

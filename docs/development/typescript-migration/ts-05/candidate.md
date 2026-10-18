@@ -150,3 +150,7 @@ a cap, a new directory, an installed JS entry and pinned 2.1.296 executable.
 Install its optional SDK only with `npm ci --prefix tools/acceptance --ignore-scripts`.
 Unknown costs retain the full reservation and block another call. TS-05 uses
 existing records and mock tests, not new paid sessions or human/physical claims.
+
+## TS-06 preview amendment, 2026-10-18
+
+The historical conclusions above retain their original scope. The maintainer subsequently approved a public preview with unavailable physical/desktop checks deferred to stable. Missing checks are not passed. See the [current TS-06 decision](../ts-06/README.md) and [preview instructions](../../../PREVIEW.md).

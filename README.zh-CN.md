@@ -229,6 +229,8 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 
 ## 快速安装
 
+[TypeScript 预览试用与回退指南](docs/PREVIEW.zh-CN.md)。
+
 先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。支持平台共用同一个 wheel。
 
 ### 安装软件包

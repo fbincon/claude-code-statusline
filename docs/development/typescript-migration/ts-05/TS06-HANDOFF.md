@@ -53,3 +53,7 @@ D06 remains **FAIL: 104 pass / 60 fail / 28 inconclusive**. No full D06 measurem
 ran in TS-05. PERF-01 remains **NOT_STARTED** after TS-06; retain its original
 measurement policy, source/harness pins and failure records. Functional timeouts,
 bounded resources, event loss, atomic writes and recovery remain current gates.
+
+## TS-06 preview amendment, 2026-10-18
+
+The historical conclusions above retain their original scope. The maintainer subsequently approved a public preview with unavailable physical/desktop checks deferred to stable. Missing checks are not passed. See the [current TS-06 decision](../ts-06/README.md) and [preview instructions](../../../PREVIEW.md).

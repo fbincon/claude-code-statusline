@@ -13,6 +13,7 @@ import { shellQuote } from '@fbincon/statusline-platform/terminal/launchers';
 import { clip } from '@fbincon/statusline-core/unicode/index';
 import { sourceHashes } from '../migration/ts-03/common.js';
 import { assessTerminal } from './terminal-evidence.js';
+import { artifactOptions, artifactEvidence } from './artifact.js';
 const entry = fileURLToPath(import.meta.url);
 const write = (path: string, value: unknown) => fs.writeFileSync(path, JSON.stringify(value, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
 async function question(text: string) { const io = createInterface({ input: process.stdin, output: process.stdout, terminal: false }); try {
@@ -77,7 +78,7 @@ async function exercise(config: any) {
 async function main() {
     if (!['linux', 'darwin'].includes(process.platform))
         throw new Error('Use the installed native Windows-console acceptance on Windows');
-    const { values, positionals } = parseArgs({ allowPositionals: true, options: { output: { type: 'string' }, mode: { type: 'string', default: 'direct' }, config: { type: 'string' }, nonce: { type: 'string' } } }), phase = positionals[0];
+    const { values, positionals } = parseArgs({ allowPositionals: true, options: { ...artifactOptions, output: { type: 'string' }, mode: { type: 'string', default: 'direct' }, config: { type: 'string' }, nonce: { type: 'string' } } }), phase = positionals[0];
     if (phase === 'observe') {
         if (!values.output)
             throw new Error('Missing output');
@@ -87,10 +88,11 @@ async function main() {
         if (!values.output || !['direct', 'popup'].includes(values.mode!))
             throw new Error('launch requires --output NEW_DIRECTORY --mode direct|popup');
         const output = resolve(values.output), nonce = randomUUID(), configPath = join(output, 'config.json');
+        const installed = artifactEvidence(values);
         fs.mkdirSync(output, { mode: 0o700 });
         const config = { output, nonce, mode: values.mode, parent_pid: process.pid, parent_token: processToken(process.pid), socket: 'statusline-' + randomUUID() };
         write(configPath, config);
-        write(join(output, 'source.json'), { files: sourceHashes(), node_sha256: createHash('sha256').update(fs.readFileSync(process.execPath)).digest('hex') });
+        write(join(output, 'source.json'), { files: sourceHashes(), installed_artifact: installed, node_sha256: createHash('sha256').update(fs.readFileSync(process.execPath)).digest('hex') });
         write(join(output, 'launch.json'), { prepared: { request: { nonce } } });
         const argv = [process.execPath, entry, 'child', '--config', configPath, '--nonce', nonce];
         if (process.platform === 'linux') {

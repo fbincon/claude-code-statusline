@@ -13,8 +13,8 @@ function release(tag: string, body = ''): [
     const version = tag.slice(1), numbers = version.match(/^(\d+)\.(\d+)\.(\d+)/u)!.slice(1).map(Number);
     const current = numbers[0]! > 1 || numbers[1]! > 7 || numbers[1] === 7 && numbers[2]! >= 4;
     const prefix = current ? 'fbincon_claude_code_statusline' : 'claude_code_statusline';
-    const assets = [`${prefix}-${version}-py3-none-any.whl`, `${prefix}-${version}.tar.gz`, 'SHA256SUMS'].map(name => ({ name, browser_download_url: `${GITEE}/releases/download/${tag}/${name}` }));
-    const source: Release = { tag_name: tag, prerelease: /(?:a|b|rc)\d+$/u.test(version), draft: false, body, html_url: `${GITHUB}/releases/tag/${tag}`, published_at: '2026-10-08T01:00:00Z', assets: structuredClone(assets) };
+    const assets = (numbers[0]! >= 3 ? [`fbincon-claude-code-statusline-${version}.tgz`, `claude-code-statusline-${version}-source.tar.gz`, 'build-manifest.json', 'SHA256SUMS'] : [`${prefix}-${version}-py3-none-any.whl`, `${prefix}-${version}.tar.gz`, 'SHA256SUMS']).map(name => ({ name, browser_download_url: `${GITEE}/releases/download/${tag}/${name}` }));
+    const source: Release = { tag_name: tag, prerelease: version.includes('-') || /(?:a|b|rc)\d+$/u.test(version), draft: false, body, html_url: `${GITHUB}/releases/tag/${tag}`, published_at: '2026-10-08T01:00:00Z', assets: structuredClone(assets) };
     return [source, { tag_name: tag, prerelease: source.prerelease, assets }];
 }
 test('tests.integration.test_release_documentation.GiteeNotesTests.test_all_repository_release_bodies', () => {
@@ -92,4 +92,11 @@ test('tests.integration.test_release_documentation.GiteeNotesTests.test_cli_reje
     fs.writeFileSync(path, 'reviewed');
     assert.throws(() => writeNotes(s.tag_name, join(root, 's.json'), join(root, 't.json'), path));
     assert.equal(fs.readFileSync(path, 'utf8'), 'reviewed');
+});
+
+test('preview notes require all four matching assets and retain beta installation', () => {
+    const [source, target] = release('v3.0.0-beta.1', 'npm install --global @fbincon/claude-code-statusline@beta');
+    assert.ok(renderGitee(source.tag_name, source, [target]).includes('@beta'));
+    assert.throws(() => renderGitee(source.tag_name, source, [{ ...target, assets: target.assets.slice(1) }]));
+    assert.throws(() => renderGitee(source.tag_name, { ...source, assets: source.assets.slice(1) }, [target]));
 });

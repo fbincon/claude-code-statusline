@@ -1,0 +1,45 @@
+name: Preview public downloads
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published preview tag
+        required: true
+        default: v3.0.0-beta.1
+
+permissions:
+  contents: read
+
+jobs:
+  downloads:
+    if: github.event_name == 'workflow_dispatch' || (github.event.release.prerelease && startsWith(github.event.release.tag_name, 'v3.0.0-beta.'))
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.event.release.tag_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify published package bytes and fixed-version/beta installations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run release:downloads -- --commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/public-downloads"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-downloads-${{ matrix.os }}
+          path: ${{ runner.temp }}/public-downloads/public-downloads.json
+          if-no-files-found: error

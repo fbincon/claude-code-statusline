@@ -3,6 +3,19 @@ import assert from 'node:assert/strict';
 import { compare } from '../compare.js';
 import { inventory } from '../inventory.js';
 import { decode } from '@fbincon/statusline-core/json';
+import { VERSION } from '@fbincon/statusline-core/release';
+import { releaseMetadataDifference } from '../compare.js';
+
+test('release metadata exemptions cannot hide unrelated fields, versions or stdout changes', () => {
+  assert(releaseMetadataDifference('ui-read', '/value/response/result/backend_version', '2.0.0', VERSION));
+  assert(!releaseMetadataDifference('ui-read', '/value/response/result/backend_version', '2.0.0', '9.0.0'));
+  assert(!releaseMetadataDifference('other', '/value/response/result/backend_version', '2.0.0', VERSION));
+  const before = '{"result":{"backend_version":"2.0.0","accepted":1}}\n';
+  const after = before.replace('2.0.0', VERSION);
+  assert(releaseMetadataDifference('runtime-v1-dedup-order', '/value/0/stdout', before, after));
+  assert(!releaseMetadataDifference('runtime-v1-dedup-order', '/value/0/stdout', before, after.replace('"accepted":1', '"accepted":2')));
+  assert(!releaseMetadataDifference('runtime-v1-dedup-order', '/value/0/stdout', before, after.trim()));
+});
 
 test('comparison preserves numeric kinds, missing values, order and encoded file bytes', () => {
   assert.deepEqual(compare(decode('{"a":{"x":1,"y":2}}'), decode('{"a":{"y":2,"x":1}}')), []);

@@ -119,3 +119,7 @@ npm run reference:verify -- --python /absolute/reference-python --report /absolu
 仅在需要时用 `npm ci --prefix tools/acceptance --ignore-scripts` 安装可选 SDK。
 费用未知保留完整预留并阻止下次调用。本轮使用已有记录和模拟测试，没有新增付费会话或
 人工/实机通过声明。
+
+## TS-06 预览修订，2026-10-18
+
+上述历史结论保留原有范围。维护者随后批准公开预览，将无法完成的实体/桌面检查延后至正式版；缺失不等于通过。见[当前 TS-06 决定](../ts-06/README.zh-CN.md)与[试用说明](../../../PREVIEW.zh-CN.md)。

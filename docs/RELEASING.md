@@ -1,12 +1,21 @@
-# Publishing GitHub, PyPI and Gitee Releases
+# Publishing npm, GitHub and Gitee Releases
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
-## TypeScript engineering candidate delivery
+## TypeScript preview publication
 
-Current main uses the [TS-05 candidate workflow](development/typescript-migration/ts-05/candidate.md): build twice from a fixed commit, verify the universal offline tgz, source archive and SHA256SUMS, then aggregate eight installation targets and thirteen host reports. `npm run release:prepare` verifies local evidence without uploading or publishing. Every receipt must match source and actual artifact digests; missing, skipped or failed evidence cannot pass.
+Use the [preview guide](PREVIEW.md) and [TS-06 gates](development/typescript-migration/ts-06/README.md). GitHub is primary. The first preview is v3.0.0-beta.1; npm identity is @fbincon/claude-code-statusline. Missing physical/desktop evidence blocks stable delivery, not this explicitly approved preview. Both editors default on, preserving opt-outs.
 
-Candidate identity and application version are separate. Public previews, versions, tags, npm publication and Releases belong to TS-06 after remaining physical acceptance. GitHub is primary; after merge-commit CI passes, synchronize main to Gitee with explicit refspecs. TS-05 creates no version tags. `release:gitee-notes` prepares notes from verified attachment metadata.
+1. Use pinned Node 24.21.0/npm 11.19.0. Run `npm run check`; review and merge through a PR with complete final-head and merge CI. Never change the Python archive or existing published tags/assets.
+2. From the fixed merge SHA run `npm run release:build -- --commit FULL_SHA --output NEW_DIRECTORY`. This exports tracked bytes and independently builds twice. `candidate:build` retains private engineering mode. `release:verify -- --artifact ABSOLUTE_TGZ --commit FULL_SHA` requires the public package and all four deterministic assets, including the rebuildable source archive. Rebuild without Git history using `release:build -- --commit FULL_SHA --source ABSOLUTE_SOURCE_TAR_GZ --output NEW_DIRECTORY`.
+3. CI distributes one public-shape artifact to eight installation targets and thirteen fixed hosts. `release:prepare -- --preview --artifact ABSOLUTE_TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE` rejects missing, failed, skipped, duplicate or mismatched receipts. It reports preview readiness, never stable readiness. No paid calls or fabricated physical evidence are allowed.
+4. Create an annotated v3.0.0-beta.1 tag at that verified commit, push its exact ref and require tag CI. Create a GitHub **draft prerelease** with `--latest=false`. Upload only the package tgz, source tar.gz, build-manifest.json and SHA256SUMS from that commit. Download the draft, verify checksums and isolated installation. Logs and machine paths are not Release assets.
+5. The maintainer completes official npm login/2FA as fbincon. Verify identity/namespace access. From outside the development workspace run `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag beta --ignore-scripts`. Publish the already-verified tarball, without repacking. No npm credentials belong in this repository, logs or chat. Check package metadata, tarball integrity, beta and latest before proceeding; preview must not become latest.
+6. Publish the GitHub prerelease without Latest; Python v2.0.0 retains Latest. The public-download workflow verifies GitHub/npm bytes plus exact-version and beta installations on Linux/Windows/macOS. It can also be dispatched for the exact tag. Its checks are read-only; publication requires the separately authenticated maintainer.
+7. Inspect divergence, then push validated main and the exact tag to the existing Gitee SSH remote with explicit refspecs. Use official Gitee MCP for the prerelease and the official API for attachment uploads. Use the existing keyring-backed administrative client; never export credentials. Upload the same four assets, render notes using actual attachment metadata, confirm prerelease status and redownload/check all hashes. Preserve GitHub primary issue/CI links.
+8. Record public download evidence, tag/source/checksums and actual CI URLs through a follow-up PR. Keep raw output ignored. Update the tracking issue. TS-06 remains in progress until stable gates pass.
+
+On an ambiguous upload/publish result, inspect remote metadata and bytes before retrying. Do not overwrite a public npm version or a published Release asset. Fixes use the next beta; a partially successful channel is not a completed release. The registry verification command is `npm run release:downloads -- --commit FULL_SHA --output NEW_DIRECTORY` and requires an already published GitHub/npm preview. The source-bound test harness retains only explicitly whitelisted version metadata changes against the frozen Python oracle.
 
 ## Archived Python publication procedure
 

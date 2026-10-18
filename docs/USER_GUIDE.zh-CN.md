@@ -8,6 +8,8 @@
 
 通用单行 CLI 示例适用于 Bash、Zsh 和 PowerShell，Windows 使用 `claude-statusline.exe`。`<CLAUDE_CONFIG_DIR>` 表示环境变量 `CLAUDE_CONFIG_DIR` 的值，未设置时为 `~/.claude`；这是路径占位符，不要原样输入。
 
+主动试用 TypeScript 分发请见[预览安装与回退指南](PREVIEW.zh-CN.md)。下文 Python 说明仍为稳定安装路径。
+
 ## 文档导航
 
 - [功能概览](#功能概览)

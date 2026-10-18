@@ -8,6 +8,8 @@ Settings apply to the current user's Claude Code projects. Rendering reads Claud
 
 Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude-statusline.exe`. `<CLAUDE_CONFIG_DIR>` means the value of `CLAUDE_CONFIG_DIR`, or `~/.claude` if unset; it is a placeholder, not a literal argument.
 
+For the opt-in TypeScript distribution, use the [preview installation and rollback guide](PREVIEW.md). The Python instructions below remain the stable path.
+
 ## Contents
 
 - [Feature overview](#feature-overview)
