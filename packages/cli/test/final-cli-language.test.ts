@@ -97,7 +97,7 @@ test('tests.integration.test_language_cli.LanguageCliTests.test_every_output_lan
 test('tests.integration.test_language_cli.LanguageCliTests.test_import_requires_installation_with_localized_owned_error', async (t) => {
     const f = setup(t), path = join(f.root, 'before-install.json');
     assert.equal((await invoke(['config', 'export', path], f.context)).status, 0);
-    for (const [language, expected] of [['zh-CN', '此 claude-statusline 可执行文件尚未配置'], ['zh-TW', '此 claude-statusline 可執行檔案尚未設定'], ['ja', 'インストールされていません'], ['ko', '설치되지 않았습니다']]) {
+    for (const [language, expected] of [['zh-CN', '此 claude-statusline 可执行文件尚未配置'], ['zh-TW', '此 claude-statusline 執行檔尚未設定'], ['ja', 'インストールされていません'], ['ko', '설치되지 않았습니다']]) {
         const result = await invoke(['--language', language!, 'config', 'import', path], f.context);
         assert.equal(result.status, 2);
         assert.ok(result.stderr.includes(expected!), result.stderr);
