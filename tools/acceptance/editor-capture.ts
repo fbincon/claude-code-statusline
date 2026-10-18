@@ -204,14 +204,15 @@ try {
             const pty = openPty(config, 80, 24, { ...installed.env, TERM, COLORTERM: 'truecolor', NO_COLOR: undefined }, 'en',
                 { executable: installed.node, args: [installed.entry, '--language', 'en', 'configure'], cwd: installed.temporary });
             try {
-                await pty.wait(text => text.includes('\x1b[24;1H'));
+                const supported = TERM !== 'dumb';
+                await pty.wait(text => text.includes(supported ? '\x1b[24;1H' : 'Interactive configuration requires an ANSI/VT terminal'));
                 const raw = pty.captured();
                 assert(!/\x1b\[(?:3[0-9]|4[0-9]|9[0-7]|10[0-7])(?:;|m)/u.test(raw.toString('utf8')), TERM + ' emitted explicit colors');
                 fs.writeFileSync(join(output, TERM + '.ansi'), raw);
-                monochrome.push({ TERM, COLORTERM: 'truecolor', explicit_colors: false, ansi_sha256: sha256(raw) });
-                pty.send('\x1b');
+                monochrome.push({ TERM, COLORTERM: 'truecolor', supported, explicit_colors: false, ansi_sha256: sha256(raw) });
+                if (supported) pty.send('\x1b');
                 await pty.exited();
-                assert.equal(pty.child.exitCode, 0);
+                assert.equal(pty.child.exitCode, supported ? 0 : 2);
                 assert.deepEqual(pty.attributes(), pty.before);
                 assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), display);
             } finally { await pty.close(); }

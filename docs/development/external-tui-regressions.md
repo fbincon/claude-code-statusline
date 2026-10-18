@@ -25,6 +25,8 @@ The new product suite first failed eight cases against the unchanged implementat
 
 The installed `capture:editor -- --extended` collector additionally exercises picker guidance, text body/preview in both scopes, Settings/Layout focus restoration and four monochrome TERM values. It retains existing style-cell assertions, review states, seven boundary dimensions, six locales, configuration-byte checks and terminal restoration. Light/dark images reconstruct recorded terminal cells using fixed fonts; they are not OS screenshots or physical/human acceptance.
 
+The first PR capture completed all six language/page sequences and three monochrome PTYs, then failed because the collector incorrectly expected a TUI frame for `TERM=dumb`. The unchanged POSIX entry explicitly rejects that terminal before raw mode. The corrected collector requires its ANSI/VT explanation, exit 2, unchanged configuration and restored attributes; it still requires actual frames and clean cancellation for vt100, vt220 and xterm-mono. The failed attempt is retained separately; only a complete capture of the final source counts as acceptance.
+
 ## CI and release boundaries
 
 Ordinary PR/push changes limited to root README/CHANGELOG Markdown and `docs/**/*.md` use documentation link/bilingual and whitespace checks. Unknown paths, executable changes, generated resources, version identity, approval JSON, workflow changes, tags and manual runs require the full candidate matrix. Rename detection checks both paths; missing/invalid revisions fall back to the full matrix. The existing Complete candidate evidence gate rejects scope failures, missing/skipped/failed product checks, and failed documentation checks. Documentation-only runs produce no release receipts.
