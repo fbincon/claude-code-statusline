@@ -63,14 +63,26 @@ test('tests.integration.test_cli_tui.ConfigurePtyTests.test_toggle_move_settings
 test('tests.integration.test_cli_tui.ConfigurePtyTests.test_too_small_resize_recovers_and_can_cancel', posix, async (t) => {
     const f = await fixture(t), before = f.bytes(), p = openPty(f.root, 32, 12);
     try {
-        await p.wait(o => o.includes('Terminal too small'));
-        p.send(' \x13');
+        await p.wait(o => o.includes('Terminal too small') && o.includes('\x1b[12;1H'));
+        // A resize may overtake unread input. Observe each disabled key being
+        // processed at the small size before changing the PTY dimensions.
+        for (const key of [' ', '\x13']) {
+            const start = p.captured().toString('utf8').length;
+            p.send(key);
+            await p.wait(output => {
+                const fresh = output.slice(start);
+                return fresh.includes('\x1b[H') && fresh.includes('\x1b[12;1H') &&
+                    fresh.includes('Terminal too small');
+            });
+            assert.deepEqual(f.bytes(), before);
+        }
         p.resize(80, 24);
         await ready(p);
         p.send('\x1b');
         await p.exited();
         assert.equal(p.child.exitCode, 0);
         assert.deepEqual(f.bytes(), before);
+        assert.deepEqual(p.attributes(), p.before);
     }
     finally {
         await p.close();
