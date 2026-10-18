@@ -28,7 +28,7 @@ instances of the same type; it follows their current order.
 | Move the selected instance | Left / Right |
 | Search / choose category | `/` / Ctrl+F |
 
-The picker searches names, descriptions and categories in all five supported
+The picker searches names, descriptions and categories in all supported
 languages. Enter adds the selected type after the previously selected instance;
 Ctrl+E shows its sources and requirements before adding. Ctrl+G returns from the
 guidance or cancels the picker. Accepting an addition clears the old list filter

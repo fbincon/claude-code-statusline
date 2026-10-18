@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { dirname, basename, join, resolve } from 'node:path';
+import { dirname, basename, join, resolve, toNamespacedPath } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { library, nativeApi, nativeFunction, winError } from './native.js';
 
@@ -10,6 +10,26 @@ export function sameFileIdentity(left: Pick<fs.BigIntStats, 'dev' | 'ino'>, righ
   return left.ino === right.ino && (windows
     ? BigInt.asUintN(32, left.dev) === BigInt.asUintN(32, right.dev)
     : left.dev === right.dev);
+}
+
+/** Node 24.0.0/libuv 1.50 can return dev=0 for Windows path stats. Obtain
+ * the volume serial from a no-follow native handle instead of accepting an
+ * unknown device. Its file index must still match the preceding lstat. */
+export function fileIdentity(path: string, stat: Pick<fs.BigIntStats, 'dev' | 'ino'>): Pick<fs.BigIntStats, 'dev' | 'ino'> {
+  if (process.platform !== 'win32') return stat;
+  const k = library('kernel32.dll');
+  const h = nativeFunction('kernel32.dll', 'void *CreateFileW(const char16_t *path, uint32_t access, uint32_t share, void *security, uint32_t disposition, uint32_t flags, void *template)')(
+    toNamespacedPath(resolve(path)), 0x80, 7, null, 3, 0x02200000, null);
+  if (!h || nativeApi().address(h) === 0xffffffffffffffffn) throw winError('CreateFileW');
+  try {
+    // BY_HANDLE_FILE_INFORMATION consists entirely of 32-bit fields.
+    const info = Buffer.alloc(52);
+    if (!nativeFunction('kernel32.dll', 'bool GetFileInformationByHandle(void *handle, _Out_ void *info)')(h, info)) throw winError('GetFileInformationByHandle');
+    const attributes = info.readUInt32LE(0), dev = BigInt(info.readUInt32LE(28));
+    const ino = BigInt(info.readUInt32LE(44)) << 32n | BigInt(info.readUInt32LE(48));
+    if (attributes & (0x400 | 0x10) || ino !== stat.ino) throw new Error('File changed or became a reparse point while checking identity');
+    return { dev, ino };
+  } finally { k.func('bool CloseHandle(void *handle)')(h); }
 }
 
 export function privateDirectory(path: string): void {

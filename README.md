@@ -371,7 +371,7 @@ claude-code-statusline/
 │   └── reference.yml             # Manual historical Python verification
 ├── packages/                     # Four business packages
 │   ├── core/src/                 # Configuration, protocols, pure state, rendering and Unicode
-│   │   └── i18n/                 # Five generated languages; sources in core/resources
+│   │   └── i18n/                 # Registry-generated languages; sources in core/resources
 │   ├── platform/src/             # Files, locks, processes, clocks and terminal adapters
 │   ├── cli/                      # Commands, integration, runtime and recovery
 │   │   ├── src/                  # Installation and editor protocols

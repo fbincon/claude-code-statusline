@@ -10,7 +10,7 @@
 
 保留原有八个安装目标和十三个宿主。另有 32 个案例，以相同发布包在每个安装目标分别测试 22.0.0、最新 22.x、24.0.0 和最新 24.x。回执记录源码提交、包 SHA-256、实际 Node 版本／摘要、产品测试和隔离离线安装；缺失、重复、运行版本错误或失败均不能通过发布验收。先用固定工具链构建，再切换 Node 运行 `npm run test:runtime`，不重新构建。模块追踪使用异步加载钩子和明确的消息排空握手，兼容 Node 22.0.0。
 
-Windows Node 24.0.0 暴露了旧 libuv 的路径／描述符卷序列号位宽差异。恢复检查使用 BigInt 文件编号，并按当前 libuv 约定规范化 Windows 的 32 位卷序列号；POSIX 设备号保留全部位，普通文件、重解析点和权限保护继续执行。回归测试确保超过安全整数边界的不同文件编号也会拒绝。
+Windows Node 24.0.0/libuv 1.50 的路径统计还会返回零设备号，而描述符统计保留真实卷序列号；[独立 Windows 诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/39117485659) 已在两个 Windows 目标上复现。恢复读取从不跟随重解析点的原生句柄取得卷号和文件索引，确认索引仍匹配此前路径快照，再与已打开描述符核对身份。BigInt 避免索引舍入；Windows 卷号使用 32 位，POSIX 设备号保留全部位。保留普通文件／重解析点／权限保护，回归检查不同文件和路径替换。原生结构采用 [Microsoft 文档布局](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information)。
 
 ## 地区语言约定
 
