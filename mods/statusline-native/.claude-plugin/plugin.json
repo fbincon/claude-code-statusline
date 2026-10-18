@@ -1,6 +1,6 @@
 {
   "name": "statusline-native",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "In-session Client TUI for statusline configuration",
   "author": {
     "name": "fbincon"

@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { VERSION, isPrerelease, editorsEnabledByDefault } from '../src/release.js';
 
-test('TS preview channel and editor defaults are independent; legacy defaults remain readable', () => {
-    assert.equal(isPrerelease(VERSION), true);
+test('Release channel and editor defaults are independent; legacy defaults remain readable', () => {
+    assert.equal(isPrerelease(VERSION), false);
     assert.equal(editorsEnabledByDefault(VERSION), true);
     for (const version of ['2.0.0a1', '2.0.0rc1', '2.0.0-beta.1']) {
         assert.equal(isPrerelease(version), true);

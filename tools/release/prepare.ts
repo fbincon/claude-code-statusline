@@ -5,6 +5,8 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
 import { verifyDelivery } from '../build/verify.js';
+import { sha256 } from '../build/files.js';
+import { APPROVAL_PATH, UNVERIFIED_GATES, assessStableApproval } from './approval.js';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => os + '-' + host))];
 export function assessEvidence(reports: any[], commit: string, sha256: string) {
@@ -51,14 +53,23 @@ export function evidenceFiles(root: string): any[] {
     });
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, evidence: { type: 'string' }, report: { type: 'string' }, preview: { type: 'boolean' } } });
+    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, evidence: { type: 'string' }, report: { type: 'string' }, preview: { type: 'boolean' }, stable: { type: 'boolean' } } });
     if (!values.artifact || !values.commit || !values.evidence || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE');
+    assert(!(values.preview && values.stable), 'Choose preview or stable readiness');
     const candidate = verifyDelivery(resolve(values.artifact), values.commit);
     const result = assessEvidence(evidenceFiles(resolve(values.evidence)), values.commit, candidate.sha256);
     if (values.preview) assert.equal(candidate.source.channel, 'preview', 'Preview gate requires the public package');
+    let approval = null;
+    if (values.stable) {
+        assert.equal(candidate.source.channel, 'stable', 'Stable gate requires the stable public package');
+        const raw = candidate.sourceEntries.get(APPROVAL_PATH);
+        assert(raw, 'Verified source archive is missing the maintainer approval');
+        approval = { path: APPROVAL_PATH, sha256: sha256(raw), record: assessStableApproval(JSON.parse(raw.toString('utf8')), candidate.source.application_version) };
+    }
     const report = { ...result, application_version: candidate.source.application_version, channel: candidate.source.channel ?? 'candidate',
-        preview_ready: values.preview === true, stable_ready: false,
-        deferred_to_stable: ['physical-macos-sleep', 'macos-14-intel-desktop-power', 'windows-10-desktop', 'wsl-desktop-popup', 'remaining-target-power-and-human-visual'] };
+        preview_ready: values.preview === true, stable_ready: values.stable === true && approval !== null,
+        unverified_gates: UNVERIFIED_GATES, maintainer_approval: approval,
+        deferred_to_stable: values.stable ? [] : UNVERIFIED_GATES };
     fs.writeFileSync(resolve(values.report), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
     console.log(JSON.stringify(report));
 }

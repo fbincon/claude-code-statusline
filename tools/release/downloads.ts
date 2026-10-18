@@ -7,14 +7,15 @@ import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
 import { VERSION, PACKAGE_NAME, REPOSITORY_URL } from '@fbincon/statusline-core/release';
-import { identity, sourceFilename } from '../build/model.js';
+import { identity, sourceFilename, publicChannel } from '../build/model.js';
 import { npmEntry, sha256 } from '../build/files.js';
 import { verifyDelivery } from '../build/verify.js';
 
-const { values } = parseArgs({ options: { commit: { type: 'string' }, output: { type: 'string' }, 'verifier-commit': { type: 'string' } } });
+const { values } = parseArgs({ options: { commit: { type: 'string' }, output: { type: 'string' }, 'verifier-commit': { type: 'string' }, tag: { type: 'string' } } });
 if (!values.commit || !values.output) throw new Error('Require --commit FULL_SHA --output NEW_DIRECTORY');
 if (values['verifier-commit'] && !/^[a-f0-9]{40}$/u.test(values['verifier-commit'])) throw new Error('Verifier commit must be a full SHA');
-const product = identity(values.commit, 'preview'), tag = 'v' + VERSION, output = resolve(values.output);
+const kind = publicChannel(), product = identity(values.commit, kind), tag = values.tag ?? 'v' + VERSION, output = resolve(values.output);
+assert.equal(tag, 'v' + VERSION, 'Verifier application version and requested tag differ');
 fs.mkdirSync(output);
 async function response(url: string, authenticated = false) {
     const headers: Record<string, string> = { 'User-Agent': 'claude-code-statusline-release-verifier' };
@@ -24,9 +25,9 @@ async function response(url: string, authenticated = false) {
     return result;
 }
 const release: any = await (await response('https://api.github.com/repos/fbincon/claude-code-statusline/releases/tags/' + tag, true)).json();
-assert.equal(release.tag_name, tag); assert.equal(release.draft, false); assert.equal(release.prerelease, true);
+assert.equal(release.tag_name, tag); assert.equal(release.draft, false); assert.equal(release.prerelease, kind === 'preview');
 const filename = product.name.replace('@', '').replace('/', '-') + '-' + VERSION + '.tgz';
-const names = [filename, sourceFilename(values.commit, 'preview'), 'build-manifest.json', 'SHA256SUMS'];
+const names = [filename, sourceFilename(values.commit, kind), 'build-manifest.json', 'SHA256SUMS'];
 assert.deepEqual(release.assets.map((asset: any) => asset.name).sort(), [...names].sort(), 'Release asset inventory differs');
 for (const name of names) {
     const asset = release.assets.find((row: any) => row.name === name);
@@ -35,10 +36,12 @@ for (const name of names) {
     fs.writeFileSync(join(output, name), Buffer.from(await (await response(url)).arrayBuffer()), { flag: 'wx' });
 }
 const checked = verifyDelivery(join(output, filename), values.commit);
-assert.equal(checked.source.channel, 'preview');
+assert.equal(checked.source.channel, kind);
 const metadata: any = await (await response('https://registry.npmjs.org/' + encodeURIComponent(PACKAGE_NAME))).json();
-assert.equal(metadata['dist-tags']?.beta, VERSION);
-assert.notEqual(metadata['dist-tags']?.latest, VERSION, 'Preview must not be latest');
+const distTag = kind === 'stable' ? 'latest' : 'beta';
+assert.equal(metadata['dist-tags']?.[distTag], VERSION);
+if (kind === 'preview') assert.notEqual(metadata['dist-tags']?.latest, VERSION, 'Preview must not be latest');
+if (VERSION === '3.0.0') assert.equal(metadata['dist-tags']?.beta, '3.0.0-beta.1', 'Stable delivery must preserve the existing beta selector');
 const published = metadata.versions?.[VERSION];
 assert.equal(published?.name, PACKAGE_NAME); assert.equal(published?.version, VERSION);
 const url = new URL(published.dist.tarball);
@@ -47,7 +50,7 @@ const bytes = Buffer.from(await (await response(url.href)).arrayBuffer());
 assert.equal(sha256(bytes), checked.sha256, 'npm and Release package bytes differ');
 assert.equal(published.dist.integrity, 'sha512-' + createHash('sha512').update(bytes).digest('base64'));
 const installed = [];
-for (const selector of [VERSION, 'beta']) {
+for (const selector of [VERSION, distTag]) {
     const root = fs.mkdtempSync(join(tmpdir(), 'statusline-registry-'));
     try {
         const prefix = join(root, 'prefix'), config = join(root, 'config');
@@ -61,5 +64,5 @@ for (const selector of [VERSION, 'beta']) {
         installed.push({ selector, status: 'pass', initially_empty_cache: true, lifecycle_scripts: false });
     } finally { fs.rmSync(root, { recursive: true, force: true }); }
 }
-fs.writeFileSync(join(output, 'public-downloads.json'), JSON.stringify({ status: 'pass', commit: values.commit, verifier_commit: values['verifier-commit'] ?? null, tag, platform: process.platform, arch: process.arch, node: process.version, tarball_sha256: checked.sha256, registry_integrity: published.dist.integrity, installations: installed }, null, 2) + '\n');
+fs.writeFileSync(join(output, 'public-downloads.json'), JSON.stringify({ status: 'pass', commit: values.commit, verifier_commit: values['verifier-commit'] ?? null, tag, channel: kind, dist_tags: metadata['dist-tags'], platform: process.platform, arch: process.arch, node: process.version, tarball_sha256: checked.sha256, registry_integrity: published.dist.integrity, installations: installed }, null, 2) + '\n');
 console.log(JSON.stringify({ status: 'pass', tag, tarball_sha256: checked.sha256, installations: installed }));
