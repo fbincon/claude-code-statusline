@@ -10,6 +10,8 @@ The product accepts stable Node `^22.0.0 || ^24.0.0`. Development, resource gene
 
 The original eight installed targets and thirteen hosts remain. An additional 32-case matrix tests each installed target with 22.0.0, latest 22.x, 24.0.0 and latest 24.x against the identical package. Each receipt records the source commit, package SHA-256, actual Node version/hash, product tests and isolated offline installation. Release readiness rejects missing, duplicate, wrong-runtime or failed evidence. Bootstrap with the fixed toolchain, then run `npm run test:runtime` under the selected Node without rebuilding. Module-import tracing uses asynchronous loader hooks with an explicit flush handshake, including on Node 22.0.0.
 
+Windows Node 24.0.0 exposed a historical libuv mismatch between path and descriptor volume-serial widths. Recovery compares BigInt inode IDs and normalized 32-bit Windows volume serials (the current libuv representation), retaining all POSIX device bits and existing regular-file/reparse/permission guards. The regression tests reject different inodes even beyond the safe-number boundary.
+
 ## Regional language contract
 
 Selectors contain `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`, in that order. `zh-Hant` is an input-only compatibility alias for Taiwan. Reads normalize without rewriting; explicit saves and exports emit canonical codes. Unknown inputs remain invalid. Taiwan and Hong Kong have complete independent packs, regional terminology, shared generation, multilingual search and independent UI/output selection. [Translation conventions](i18n.md).

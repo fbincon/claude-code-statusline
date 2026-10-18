@@ -3,6 +3,15 @@ import { dirname, basename, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { library, nativeApi, nativeFunction, winError } from './native.js';
 
+/** Older Windows libuv reports a 64-bit path volume serial but a 32-bit fd
+ * serial. Match the low 32 bits, as current libuv does, without rounding IDs
+ * through number. POSIX device identifiers retain all their bits. */
+export function sameFileIdentity(left: Pick<fs.BigIntStats, 'dev' | 'ino'>, right: Pick<fs.BigIntStats, 'dev' | 'ino'>, windows = process.platform === 'win32'): boolean {
+  return left.ino === right.ino && (windows
+    ? BigInt.asUintN(32, left.dev) === BigInt.asUintN(32, right.dev)
+    : left.dev === right.dev);
+}
+
 export function privateDirectory(path: string): void {
   fs.mkdirSync(path, { recursive: true, mode: 0o700 });
   if (process.platform !== 'win32') {
