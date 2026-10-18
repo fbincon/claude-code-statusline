@@ -9,6 +9,8 @@
 
 普通纯文档 PR／push 使用严格 Markdown 允许清单，仅运行必要文档／空白校验。版本、批准 JSON、生成资源、工作流、未知路径、标签和手动运行仍要求完整 CI；既有汇总门槛继续必需并按失败关闭，纯文档不产生可用于发布的验收回执。批准逐版本限定，不豁免自动化失败。
 
+Gitee 说明更新需包含原 `tag_name`、`name` 和 `body`，保留既有正式／预览状态，表单布尔值使用小写；更新后核对元数据、注释标签和附件。[官方 Release 更新参数](https://gitee.com/sdk/gitee5j/blob/main/docs/ReleasesIdBody.md)也要求 Tag 名称，仅发送正文的 PATCH 不足。
+
 ## 当前外部 TUI 正式交付
 
 v3.1.1 保留既有 Node 22／24 矩阵、八安装目标、十三宿主及 OIDC 发布流程。[本版批准](releases/approvals/v3.1.1.json) 接受相同六项已披露缺口，不豁免新增失败。发布前必须通过最终 head、合并及标签 CI、独立构建／源码重建一致、安装包扩展 TUI 捕获与草稿附件核验；除推进 npm `latest` 和 GitHub Latest 到本稳定版外，保留既有选择器。[发布说明](releases/v3.1.1.md#简体中文) · [实现与证据](development/external-tui-parity.zh-CN.md)。

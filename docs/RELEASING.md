@@ -9,6 +9,8 @@ Use the existing stable procedure with the [v3.1.2-only approval](releases/appro
 
 Ordinary documentation-only PR/push changes use a strict Markdown allowlist and necessary docs/whitespace checks. Version, approval JSON, generated resources, workflows, unknown paths, tags and manual runs require full CI. The existing aggregate gate remains required and fails closed; documentation runs produce no releasable acceptance receipts. Approval is version-limited and never waives failed automated evidence.
 
+Gitee release-note updates must include the original `tag_name`, `name` and `body`; keep the existing prerelease state (lowercase form booleans) and verify metadata, annotation and attachments after updating. The [official Release update schema](https://gitee.com/sdk/gitee5j/blob/main/docs/ReleasesIdBody.md) also requires the Tag name; a body-only PATCH is insufficient.
+
 ## Current external-TUI stable delivery
 
 v3.1.1 retains the existing Node 22/24 matrix, eight installation targets, thirteen hosts and OIDC publication workflow. Its [version-specific approval](releases/approvals/v3.1.1.json) accepts the same six disclosed gaps without waiving new failures. Require final-head, merge and tag CI, identical independent builds/source rebuild, installed extended TUI capture and verified draft attachments before publication. Preserve all existing selectors except advancing npm `latest` and GitHub Latest to this stable release. [Release notes](releases/v3.1.1.md) · [Implementation and evidence](development/external-tui-parity.md).
