@@ -6,9 +6,9 @@
 
 配置对当前用户的 Claude Code 项目生效。状态栏渲染读取 Claude 输入、本地 Git、transcript 和状态文件，不自行发起网络请求或使用模型 token；问答向导使用模型回合。
 
-通用单行 CLI 示例适用于 Bash、Zsh 和 PowerShell，Windows 使用 `claude-statusline.exe`。`<CLAUDE_CONFIG_DIR>` 表示环境变量 `CLAUDE_CONFIG_DIR` 的值，未设置时为 `~/.claude`；这是路径占位符，不要原样输入。
+通用单行 CLI 示例适用于 Bash、Zsh 和 PowerShell，Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 入口的绝对路径。`<CLAUDE_CONFIG_DIR>` 表示环境变量 `CLAUDE_CONFIG_DIR` 的值，未设置时为 `~/.claude`；这是路径占位符，不要原样输入。
 
-主动试用 TypeScript 分发请见[预览安装与回退指南](PREVIEW.zh-CN.md)。下文 Python 说明仍为稳定安装路径。
+当前使用 TypeScript npm 分发；已有 Python 环境可保留用于显式回退，见[升级](#升级)。
 
 ## 文档导航
 
@@ -52,11 +52,13 @@
 
 | 平台 | 环境 |
 | --- | --- |
-| Linux / WSL | Python 3.10+ |
-| Windows 10/11 | CPython 3.10–3.14，x86/x64；条件依赖 `windows-curses>=2.4.2` |
-| macOS 14+ | 提供 curses 的 CPython 3.10–3.14，Intel / Apple Silicon |
+| Linux / WSL | Node 24.21.0，x64 |
+| Windows 10/11 | Node 24.21.0，x64 |
+| macOS 14+ | Node 24.21.0，Intel / Apple Silicon |
 
-准备 Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。显示 Git 字段或从源码安装时需要 Git。Windows ARM 设备可使用 x64 Python 仿真，原生 ARM64 Python 暂不在支持范围。
+准备 Claude Code CLI 和 npm，验证工具链固定为 npm 11.19.0。Git 字段和源码构建需要 Git。Windows ARM 设备使用模拟 x64 Node；原生 Windows ARM64 与 32 位运行时暂不在支持范围。安装包已包含原生依赖，无需 Python 或编译器。
+
+维护者接受 v3.0.0 已披露的实体/桌面及精确宿主声明缺项；这些项目仍标为未验证，见[正式发布决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)。
 
 | 功能 | Claude Code 版本条件 |
 | --- | --- |
@@ -70,47 +72,29 @@
 
 ## 安装与接入
 
-以下安装和升级命令适用于已发布的 Python 产品。当前 main 的 TypeScript 源码和工程候选应按[开发/隔离安装指南](development/typescript-migration/ts-05/candidate.zh-CN.md)操作；候选验收使用临时目录，保留已有 Python 环境。TS-06 才负责公开发布与产品切换。
-
-### 安装 Python 包
-
-从 [PyPI](https://pypi.org/project/fbincon-claude-code-statusline/) 安装稳定包：
+### 安装 npm 包
 
 ```text
-pipx install fbincon-claude-code-statusline
-pipx ensurepath
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
-分发名为 `fbincon-claude-code-statusline`，命令仍为 `claude-statusline`，Python 导入名仍为 `claude_statusline`。本仓库旧安装按[迁移步骤](#迁移旧分发名称)操作。[v2.0.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v2.0.0) 提供相同的 wheel 与源码包。
+固定版本使用 `@3.0.0`。软件包安装与 Claude 接入是两个步骤，npm 不修改 Claude 配置。确保 npm 命令目录位于 PATH。Windows 的 npm 包装入口为 `.cmd`/`.ps1`；安装后的 Claude 绑定使用绝对 Node/JavaScript argv。
 
-也可从该 Release 下载 wheel、源码包和 `SHA256SUMS`，将下载文件的 SHA-256 与对应条目比较：
+### 离线安装
+
+从 [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.0.0) 或 [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.0.0) 下载 npm tgz、可重建源码 tar.gz、`build-manifest.json` 和 `SHA256SUMS`，先校验全部摘要再安装：
 
 ```bash
-# Linux / WSL
-sha256sum fbincon_claude_code_statusline-2.0.0-py3-none-any.whl
-# macOS
-shasum -a 256 fbincon_claude_code_statusline-2.0.0-py3-none-any.whl
+# Linux / WSL；macOS 使用 shasum -a 256 -c SHA256SUMS
+sha256sum -c SHA256SUMS
+npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.0.0.tgz
 ```
 
-```powershell
-Get-FileHash .\fbincon_claude_code_statusline-2.0.0-py3-none-any.whl -Algorithm SHA256
-Get-Content .\SHA256SUMS
-```
-
-已下载校验文件列出的全部资产时，Linux/WSL 使用 `sha256sum -c SHA256SUMS`，macOS 使用 `shasum -a 256 -c SHA256SUMS`。安装本地 wheel 使用 `pipx install ./fbincon_claude_code_statusline-2.0.0-py3-none-any.whl`，PowerShell 路径为 `.\fbincon_claude_code_statusline-2.0.0-py3-none-any.whl`。
-
-固定标签源码安装需要 Git：
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v2.0.0"
-pipx ensurepath
-```
-
-当前 `main` 使用 TypeScript。源码构建和隔离候选安装见[开发指南](development/README.zh-CN.md#从源码构建与安装)；Python 源码安装请使用已发布的固定标签。
+PowerShell 用 `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` 将每个摘要与 `SHA256SUMS` 比较，再用相同 npm 参数安装本地 tgz。GitHub/Gitee 自动源码 ZIP 不是可重建源码附件。源码构建见[开发指南](development/README.zh-CN.md#从源码构建与安装)。
 
 ### 接入 Claude Code
 
-运行 `pipx ensurepath` 后重新打开终端，再执行：
+确认 npm 命令目录位于 PATH 后执行：
 
 ```text
 claude-statusline --version
@@ -119,13 +103,13 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows 使用 `claude-statusline.exe`，并确保该可执行文件位于 PATH。随后在受信任终端重启 Claude Code，加载安装的插件和命令。
+Windows 使用 `claude-statusline.cmd`，或明确的 Node/JavaScript 入口。随后在受信任终端重启 Claude Code，加载安装的插件和命令。
 
 ### `install` 会做什么
 
 安装器将本工具拥有的状态栏命令、计时及子 Agent hooks、配置 skills 和兼容的编辑器接入合并到用户配置中，保留无关设置与 hooks。实际修改前创建备份，并通过原子写入保存；重复安装是幂等的。
 
-没有保存偏好时，两个编辑器入口默认启用。显式参数优先于已保存偏好，已保存偏好优先于默认值；不兼容的接入暂挂，但保留偏好。原生计时和高级实时采集分别管理偏好；兼容宿主新安装默认开启计时元数据，高级指标默认关闭。现有有效的 padding、刷新间隔和 Vim 指示器选项保留；首次安装默认每秒刷新。
+没有保存偏好时，两个编辑器入口默认启用。显式参数优先于已保存偏好，已保存偏好优先于默认值；不兼容的接入暂挂，但保留偏好。原生计时和高级实时采集分别管理偏好；新安装默认关闭两种采集；用 `install --native-timing` 显式启用计时，或用 `install --live-metrics` 启用完整采集。现有有效的 padding、刷新间隔和 Vim 指示器选项保留；首次安装默认每秒刷新。
 
 ### 安装前预览
 
@@ -139,7 +123,7 @@ Windows 使用 `claude-statusline.exe`，并确保该可执行文件位于 PATH�
 
 ### macOS 安装与验证边界
 
-macOS 使用相同 wheel 和安装流程，CPython 需要提供 curses。外部桌面启动器支持 Terminal.app，有可用 tmux 时优先使用 popup。SSH 或无图形桌面的会话使用独立编辑器或 CLI。
+macOS 使用相同 npm 包和安装流程，包内包含 Intel 与 Apple Silicon 原生依赖。外部桌面启动器支持 Terminal.app，有可用 tmux 时优先使用 popup。SSH 或无图形桌面的会话使用独立编辑器或 CLI。
 
 当前布局见 [README 图库](../README.zh-CN.md#界面预览)和[图片索引](images/README.zh-CN.md)。已有会话内 Client 输入限制与主栏、外部编辑器分别记录，见[焦点检查](#macos-鼠标报告与-client-焦点)。
 
@@ -165,7 +149,7 @@ macOS 使用相同 wheel 和安装流程，CPython 需要提供 curses。外部�
 
 语言代码为 `en`（英文）、`zh-CN`（简体中文）、`zh-Hant`（通用繁体中文）、`ja`（日语）、`ko`（韩语）。语言由用户明确选择，不跟随系统区域设置；左右方向键按此顺序循环切换。
 
-CLI、外部／独立 curses 编辑器和会话内 Client 默认英文。在设置页选择**界面语言（立即保存）** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어**。两个编辑器与 CLI 共用此偏好，与 Claude 自身的主题和语言设置独立。
+CLI、外部／独立终端编辑器和会话内 Client 默认英文。在设置页选择**界面语言（立即保存）** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어**。两个编辑器与 CLI 共用此偏好，与 Claude 自身的主题和语言设置独立。
 
 ```text
 claude-statusline config language show [--json]
@@ -188,11 +172,11 @@ claude-statusline --language en config --help
 
 ## 查找项目与审阅导入
 
-在 Main／Subagents 按 `/` 输入查询，Enter 确认，Ctrl+U 清空，Ctrl+G 恢复原查询。curses 也保留直接输入搜索，显式搜索时 Esc 可以取消。任一界面语言都可检索 ID、全部五种语言的名称和说明、自定义标签及分类；优先级为精确、前缀、英文单词首字母缩写（如 `mwe`）、连续子串、有序子序列，同等级保留现有顺序。高亮对应实际匹配文字，命中另一语言时显示相应片段。
+在 Main／Subagents 按 `/` 输入查询，Enter 确认，Ctrl+U 清空，Ctrl+G 恢复原查询。外部编辑器也保留直接输入搜索，显式搜索时 Esc 可以取消。任一界面语言都可检索 ID、全部五种语言的名称和说明、自定义标签及分类；优先级为精确、前缀、英文单词首字母缩写（如 `mwe`）、连续子串、有序子序列，同等级保留现有顺序。高亮对应实际匹配文字，命中另一语言时显示相应片段。
 
 Ctrl+F 打开分类选择器，方向键选择、Enter 确认；选择“全部分类”去掉分类筛选。查询与分类组合生效，仅保存在当前编辑会话中。筛选时可勾选和设置格式，暂时禁止排序；清除筛选后恢复完整顺序。筛选不写入配置或导出文件。
 
-查看来源和条件：Ctrl+E 打开项目格式页，选择顶部“来源与启用条件”，按 Enter。方向键或 Page Up/Down 滚动，Ctrl+G 返回（curses 也支持 Esc）。说明包括统计范围、来源字段、已核实宿主要求、可选采集及可能不可用原因，不探测当前数据，也不开启任何采集。未观测项目仍可选择，预览继续使用固定样例。
+查看来源和条件：Ctrl+E 打开项目格式页，选择顶部“来源与启用条件”，按 Enter。方向键或 Page Up/Down 滚动，Ctrl+G 返回（外部编辑器也支持 Esc）。说明包括统计范围、来源字段、已核实宿主要求、可选采集及可能不可用原因，不探测当前数据，也不开启任何采集。未观测项目仍可选择，预览继续使用固定样例。
 
 从 Settings 导入时，与**当前未保存草稿**比较。分区展示项目选择、保留项目相对顺序、格式／逐项覆盖、布局、状态栏语言和宿主状态栏设置。Enter 展开选中分区，方向键选择分区，Page Up/Down 滚动，Tab 切换主栏／子代理候选预览。**A 仅将候选接受到草稿，保存是独立操作。** 取消或无效输入保留原草稿；接受使用已读取的候选，源文件随后变化不会改变接受内容。保留原保存 revision，并发保存冲突时保留当前草稿。首版完整替换草稿，不逐字段合并。
 
@@ -254,7 +238,7 @@ Settings、Layout 和逐项格式详情按分组标题与字段实际占用的�
 | 仅外部 TUI | `claude-statusline install --no-native-editor --experimental-slash-tui` |
 | 基础接入，不安装两个 TUI 入口 | `claude-statusline install --no-native-editor --no-experimental-slash-tui` |
 
-Windows 使用 `claude-statusline.exe`。两组参数相互独立，`--experimental-slash-tui` 的历史名称继续保留。显式参数优先于已保存偏好，已保存偏好优先于默认值；用户在宿主中主动禁用的插件不会自动启用。
+Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 入口的绝对路径。两组参数相互独立，`--experimental-slash-tui` 的历史名称继续保留。显式参数优先于已保存偏好，已保存偏好优先于默认值；用户在宿主中主动禁用的插件不会自动启用。
 
 | Claude Code 版本 | 外部 `/statusline-configure` | 会话内 `/statusline-configure-native` |
 | --- | --- | --- |
@@ -316,7 +300,7 @@ Claude 高级偏好独立 Apply；保存或 Finish 不隐式应用这些偏好�
 claude-statusline configure
 ```
 
-Windows 使用 `claude-statusline.exe configure`。stdin、stdout 必须都是 TTY，curses 能初始化，配置有效，且已安装状态栏由当前 CLI 接管。最低尺寸为 64×18；窗口更小时等待放大，仍可取消。
+Windows 使用 `claude-statusline.cmd configure`。stdin、stdout 必须都是 TTY，ANSI/VT 终端能够初始化，配置有效，且已安装状态栏由当前 CLI 接管。最低尺寸为 64×18；窗口更小时等待放大，仍可取消。
 
 | 按键 | 操作 |
 | --- | --- |
@@ -343,14 +327,14 @@ Settings 按外观、刷新与行为、Git 指标、格式、风险颜色、子 
 
 ### 外部终端配色
 
-外部编辑器使用终端默认前景与背景，标题和快捷键加粗，说明保持普通字重。活动页签及选中行反转默认颜色，并保留选择标记。界面随浅色／深色终端配置显示，独立于 Claude 实际应用的主题。
+外部编辑器使用终端默认前景与背景，页面、面板及分组标题使用终端 ANSI 青色加粗，快捷键加粗，说明保持普通字重。活动页签及选中行反转默认颜色，并保留选择标记。界面随浅色／深色终端配置显示，独立于 Claude 实际应用的主题。
 
-样例预览使用当前终端背景和所选 `Palette`，标题显示当前选择。无色文字、颜色重置、空行和行尾空格使用终端默认色。curses 按终端能力量化 RGB 样例，ANSI 样例使用终端配置的 ANSI 颜色。浅色终端中若 `Palette: default` 显得过淡，可在 Settings 比较 `Palette: ansi`；修改立即更新预览，保存后应用到实际状态栏。预览保留原有配色，使比较反映终端实际显示效果。默认色不支持、无色终端以及样例颜色对失败／不足时回退到默认文字。
+样例预览使用当前终端背景和所选 `Palette`，标题显示当前选择。无色文字、颜色重置、空行和行尾空格使用终端默认色。渲染器按终端能力量化 RGB 样例，ANSI 样例使用终端配置的 ANSI 颜色。浅色终端中若 `Palette: default` 显得过淡，可在 Settings 比较 `Palette: ansi`；修改立即更新预览，保存后应用到实际状态栏。预览保留原有配色，使比较反映终端实际显示效果。默认色不支持、无色终端以及样例颜色不受支持时回退到默认文字。
 
 
 ## 外部终端入口 `/statusline-configure`
 
-在 Claude Code 中无参数运行 `/statusline-configure`。该入口需 2.1.258+，按平台在 tmux popup、GNOME Terminal、Terminal.app 或 Windows 新控制台中打开相同的 curses TUI。
+在 Claude Code 中无参数运行 `/statusline-configure`。该入口需 2.1.258+，按平台在 tmux popup、GNOME Terminal、Terminal.app 或 Windows 新控制台中打开相同的终端 TUI。
 
 外部入口和会话内 Client 的偏好相互独立。只启用或关闭外部入口使用：
 
@@ -577,7 +561,7 @@ claude-statusline config enable task-active-timer
 claude-statusline doctor
 ```
 
-改变采集器接入后重启 Claude Code。兼容宿主新安装已默认开启原生计时，已保存的显式关闭仍受尊重；高级实时指标独立管理，此计时项无需开启它们。缺失观测、等待覆盖不完整、状态过期或时钟不可信时隐藏执行耗时，不把未知等待当作零。原生单轮耗时、会话运行时间和累计 API 耗时是独立指标，不校准两个任务时钟，详见[计时契约](development/timer.zh-CN.md)。
+改变采集器接入后重启 Claude Code。新安装默认关闭原生计时，保留已保存的明确选择；高级实时指标独立管理，此计时项无需开启它们。缺失观测、等待覆盖不完整、状态过期或时钟不可信时隐藏执行耗时，不把未知等待当作零。原生单轮耗时、会话运行时间和累计 API 耗时是独立指标，不校准两个任务时钟，详见[计时契约](development/timer.zh-CN.md)。
 
 ## 子 Agent 行与三种作用域
 
@@ -622,29 +606,30 @@ claude-statusline configure --config-dir /path/to/claude-config
 
 ## 升级
 
-### 迁移旧分发名称
+<a id="迁移旧分发名称"></a>
 
-本仓库 1.7.3 及更早 Release wheel 使用分发名 `claude-code-statusline`；PyPI 上该名称属于另一个项目。移除前先用 `pipx list --json` 和 `claude-statusline --version` 确认旧安装来自本仓库。索引安装与后续升级使用新名称。
+### 从 Python 迁移
 
-迁移时先关闭 Claude Code。移除旧 pipx 环境，安装新分发包并同步接入：
-
-```text
-pipx uninstall claude-code-statusline
-pipx install fbincon-claude-code-statusline
-claude-statusline install --dry-run
-claude-statusline install
-claude-statusline doctor
-```
-
-pipx 软件包移除会保留 Claude 显示配置、接入偏好、运行状态和备份；重新接入更新命令路径与 Mod 后端绑定，之后重启 Claude Code。配置归属标记和可移植导出格式保持兼容。确认 `claude-statusline --version` 为 2.0.0，且 `pipx list` 中该工具仅保留新分发包。迁移未完成时，可重新安装本仓库已验证的原始 wheel，再运行 `install` 和 `doctor`。
-
-### 替换 Python 包
+切换写入实现前停止活动 Claude 会话并备份配置目录。记录原 Python 命令的绝对路径和版本，保留其环境用于回退。已有 Python 命令占用相同 PATH 名称时，先将 npm 包安装到独立目录：
 
 ```text
-pipx upgrade fbincon-claude-code-statusline
+npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.0.0
+node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install --dry-run
+node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install
+node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js doctor
 ```
 
-本地 wheel 或源码安装使用 `pipx install --force`，参数为更新或构建后的原文件、固定标签 Git URL 或本地检出目录。
+请从长期保留的安装目录运行，并在接入期间保留该目录和 Node 可执行文件。隔离测试时给每条命令传入相同的 `--config-dir`。已有显示配置、明确的采集/编辑器偏好及无关设置均保留；未保存采集偏好时两者默认关闭。不要用 npm `--force` 覆盖归属不明的 PATH 命令。历史 Python 分发名说明见 [v2.0.0 指南](https://github.com/fbincon/claude-code-statusline/blob/v2.0.0/docs/USER_GUIDE.zh-CN.md)。
+
+回退时停止 Claude，使用 Node 入口执行 `install --no-native-timing --no-live-metrics` 和 `uninstall`，从切换前备份恢复兼容配置或原本不存在的状态，再用保留的 Python 入口执行 `install` 和 `doctor`。按原记录恢复 PATH 选择；npm 不删除保留的 Python 环境。
+
+### 替换 npm 包
+
+```text
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
+```
+
+目录安装升级时保持相同 prefix；离线升级使用已校验的本地 tgz，并加 `--offline --ignore-scripts`。
 
 ### 同步 Claude Code 接入
 
@@ -674,10 +659,10 @@ Claude 宿主版本跨过功能门槛时，各接入独立按偏好暂挂或恢�
 ```text
 claude-statusline uninstall --dry-run
 claude-statusline uninstall
-pipx uninstall fbincon-claude-code-statusline
+npm uninstall --global @fbincon/claude-code-statusline
 ```
 
-Windows 使用 `claude-statusline.exe`。卸载只移除归属本工具的命令、hooks、skills、插件和资源，第三方设置保留。显示文件、编辑器及实时偏好、缓存、任务状态和备份保留供重装复用。如需重装后继续关闭某项接入，先明确保存对应 `install --no-...` 偏好。
+Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 入口的绝对路径。卸载只移除归属本工具的命令、hooks、skills、插件和资源，第三方设置保留。显示文件、编辑器及实时偏好、缓存、任务状态和备份保留供重装复用。如需重装后继续关闭某项接入，先明确保存对应 `install --no-...` 偏好。
 
 ## 备份与回滚
 
@@ -775,7 +760,7 @@ GNOME 路径要求 `DISPLAY` 或 `WAYLAND_DISPLAY`、可执行的 `gnome-termina
 claude-statusline configure
 ```
 
-Windows 使用系统默认终端承载 `CREATE_NEW_CONSOLE`。若关窗、子进程异常退出或未生成可信结果，原对话会立即收到错误；直接排查时在 PowerShell 中运行 `claude-statusline.exe configure`。确认 `doctor` 的 `windows-curses backend` 与 `Windows system new-console launcher` 均为 OK。
+Windows 使用系统默认终端承载 `CREATE_NEW_CONSOLE`。若关窗、子进程异常退出或未生成可信结果，原对话会立即收到错误；直接排查时在 PowerShell 中运行 `claude-statusline.cmd configure`。确认 `doctor` 的 `windows-curses backend` 与 `Windows system new-console launcher` 均为 OK。
 
 若 hook 在 600 秒结束，TUI 通常应已在 570 秒自行超时。检查 `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/` 时，不要手工跟随或删除不明符号链接；工具只自动清理超过 24 小时、符合自身命名前缀且不含符号链接的残留。
 
@@ -963,14 +948,14 @@ claude-statusline config set refresh-interval 1
 [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0) 已包含任务计时。升级稳定软件包：
 
 ```bash
-pipx upgrade fbincon-claude-code-statusline
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```
 
 `task-timer` 默认显示任务总耗时，旧命令和旧配置仍可使用 `prompt-timer`。可选 `task-active-timer` 只在原生执行／等待证据完整时出现。原始 Stop 未确认时显示下界 `? ...+`，可信续跑继续同一任务；原生单轮耗时不缩短总耗时，会话和 API 耗时分别定义。
 
-兼容宿主的新安装默认采集计时元数据，高级指标仍需 `install --live-metrics`。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
+新安装默认不采集原生计时或高级指标。用 `install --native-timing` 启用计时，或用 `install --live-metrics` 启用完整采集。`install --no-native-timing` 关闭原生计时，`install --no-live-metrics` 保留原先的全部关闭行为；仅计时模式可明确使用 `install --no-live-metrics --native-timing`。旧显式关闭偏好和已禁用插件保持关闭。当前宿主的权限、问题或 MCP 等待可能使执行耗时不可用，`doctor` 说明覆盖情况。
 
 降级前运行 `claude-statusline install --no-native-timing --no-live-metrics`，旧版不能管理编辑器时也先移除对应原生编辑器，并恢复迁移前显示／运行偏好备份；然后安装旧包和接入。读取不重写旧配置，实际保存使用 schema 8 并备份。覆盖限制与验证证据见 Release 和[计时契约](development/timer.zh-CN.md)。
 

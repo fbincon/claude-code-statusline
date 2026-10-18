@@ -208,6 +208,6 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 
 `config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; Python generates the protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).
 
-## Public preview delivery
+## Public package delivery
 
-See [TS-06](typescript-migration/ts-06/README.md), the [preview guide](../PREVIEW.md) and [release process](../RELEASING.md). Engineering candidate and public package identities remain distinct.
+See [TS-06](typescript-migration/ts-06/README.md), the [installation guide](../USER_GUIDE.md#installation-and-integration) and [release process](../RELEASING.md). Engineering candidate and public package identities remain distinct.

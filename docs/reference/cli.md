@@ -57,7 +57,7 @@ claude-statusline doctor [--config-dir PATH]
 claude-statusline --version
 ```
 
-In Windows PowerShell, replace the command name with `claude-statusline.exe`; arguments and output formats are identical. Brackets and ellipses above indicate syntax, not literal arguments. See the [internal commands appendix](../development/README.md#appendix-internal-commands) for commands called by Claude Code.
+In Windows PowerShell, replace the command name with `claude-statusline.cmd`; arguments and output formats are identical. Brackets and ellipses above indicate syntax, not literal arguments. See the [internal commands appendix](../development/README.md#appendix-internal-commands) for commands called by Claude Code.
 
 View built-in help at any level:
 
@@ -111,7 +111,7 @@ All commands accept `--config-dir PATH` after the command name. The four indepen
 - `--native-timing` / `--no-native-timing`: native timing metadata, 2.1.289+.
 - `--live-metrics` / `--no-live-metrics`: advanced live collection, 2.1.289+.
 
-Each pair is mutually exclusive. Explicit flags override saved values, which override defaults. Editors and native timing default on; advanced live metrics default off. `--no-live-metrics` retains the legacy choice to disable both timing and advanced collection; an explicit timing flag in the same command controls timing separately. Incompatible or unknown hosts suspend requested integration without discarding its preference. Host-disabled plugins remain disabled. Restart Claude Code after changing integration. See [installation](../USER_GUIDE.md#installation-and-integration), [backups](../USER_GUIDE.md#backups-and-rollback), and [uninstalling](../USER_GUIDE.md#uninstalling).
+Each pair is mutually exclusive. Explicit flags override saved values, which override defaults. Editors default on; native timing and advanced live metrics default off. `--no-live-metrics` retains the legacy choice to disable both timing and advanced collection; an explicit timing flag in the same command controls timing separately. Incompatible or unknown hosts suspend requested integration without discarding its preference. Host-disabled plugins remain disabled. Restart Claude Code after changing integration. See [installation](../USER_GUIDE.md#installation-and-integration), [backups](../USER_GUIDE.md#backups-and-rollback), and [uninstalling](../USER_GUIDE.md#uninstalling).
 
 ## Slash-command support
 
@@ -172,7 +172,7 @@ Use JSON output for scripts or automation:
 claude-statusline config show --json
 ```
 
-The top-level JSON `installed` still indicates only whether `settings.json/statusLine.command` points exactly to the current `claude-statusline render` on PATH, not whether the Python package exists. `subagent_statusline` separately contains `enabled`, `installed`, and `state`; `state` is one of `owned`, `absent`, `foreign`, or `unsupported`.
+The top-level JSON `installed` still indicates only whether `settings.json/statusLine.command` points exactly to the current `claude-statusline render` on PATH, not whether the npm package exists. `subagent_statusline` separately contains `enabled`, `installed`, and `state`; `state` is one of `owned`, `absent`, `foreign`, or `unsupported`.
 
 ### `config list-items`
 
@@ -335,7 +335,7 @@ claude-statusline config apply \
 Windows PowerShell:
 
 ```powershell
-claude-statusline.exe config apply `
+claude-statusline.cmd config apply `
   --items model-with-effort current-dir git context-remaining task-timer `
   --subagent-items status-elapsed name model-with-effort context-remaining task `
   --subagent-statusline on `
@@ -471,7 +471,7 @@ The following three optional items show context usage, project directory name, a
 | --- | --- | --- | --- |
 | `context-used` | `Context N% used`, rounded with `round()` | `context_window.used_percentage` in Claude's official status-line payload | Omitted for missing, boolean, nonnumeric, nonfinite, or out-of-range values outside `0–100` |
 | `project-name` | `Project NAME` | Final directory component of Claude's launch directory `workspace.project_dir`, using platform path semantics; string processing only, without filesystem access | Omitted for invalid, empty, sanitized-empty, or root-directory values; no fallback to `workspace.repo.name` or `current-dir` |
-| `hostname` | `Host NAME` | Local Python standard-library `socket.gethostname()`; not a Claude Code 2.1.258+ payload field | Omitted on `OSError` or an empty result after removing newlines, control characters, and ANSI injection; no external commands or network access |
+| `hostname` | `Host NAME` | Local Node `os.hostname()`; not a Claude Code 2.1.258+ payload field | Omitted on `OSError` or an empty result after removing newlines, control characters, and ANSI injection; no external commands or network access |
 
 Enable all three together:
 
@@ -844,10 +844,10 @@ Fields, types, duplicate keys and schema are strictly validated; install/doctor 
 `<CLAUDE_CONFIG_DIR>/claude-statusline-runtime.json` uses its own schema v2:
 
 ```json
-{"schema_version": 2, "native_timing": true, "live_metrics": false}
+{"schema_version": 2, "native_timing": false, "live_metrics": false}
 ```
 
-A missing file defaults to native timing on and advanced metrics off. `install --native-timing` / `install --no-native-timing` controls timing independently; `--live-metrics` enables complete collection and `--no-live-metrics` retains the legacy all-off choice. An explicit timing flag overrides the timing part. Reinstall preserves saved preferences; unsupported hosts retain them but suspend collection. [Enabling collection and display](../USER_GUIDE.md#opt-in-live-state).
+A missing file defaults to both native timing and advanced metrics off. `install --native-timing` / `install --no-native-timing` controls timing independently; `--live-metrics` enables complete collection and `--no-live-metrics` retains the legacy all-off choice. An explicit timing flag overrides the timing part. Reinstall preserves saved preferences; unsupported hosts retain them but suspend collection. [Enabling collection and display](../USER_GUIDE.md#opt-in-live-state).
 
 <a id="claude-code-宿主配置"></a>
 

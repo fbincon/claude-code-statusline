@@ -3,8 +3,7 @@
 [English](README.md) | **简体中文**
 
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
-[![Native Mod](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml)
-[PyPI](https://pypi.org/project/fbincon-claude-code-statusline/)
+[npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline)
 [MIT License](LICENSE)
 
 面向 Linux、WSL、Windows 和 macOS 的 Claude Code 状态栏，集中显示模型与思考强度（effort）、工作目录、Git、上下文、使用限额、token 和任务用时。主状态栏与子 Agent 独立行可通过会话内编辑器、终端交互界面（TUI）、问答向导或 CLI 配置。
@@ -28,7 +27,7 @@
 - **审阅配置改动：** 六种预设可展开编辑，支持可移植 JSON；导入时先查看差异和候选预览，再接受草稿并单独保存。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
 - **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在单独选择的浅色／深色底色上保留生产配色。
-- **适配终端配色：**外部 TUI 文字与粗体快捷键使用终端默认色，预览在当前终端背景上显示所选配色。
+- **适配终端配色：** 外部 TUI 文字与粗体快捷键使用终端默认色，标题使用青色，预览在当前终端背景上显示所选配色。
 - **按需开启实时指标：** 运行状态、代理数量、工具进度、请求用时和逐任务用量需主动启用；缺失数据和部分观测分别标记。
 
 状态栏渲染读取 Claude Code 输入和本地状态，不自行发起网络请求或使用模型 token。问答向导使用 Claude 模型回合。数据来源与可用条件见[显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)。
@@ -215,11 +214,11 @@ Linux 终端采集展示共享语言选项与中文界面。图片由真实 PTY 
 
 | 平台 | 支持环境 |
 | --- | --- |
-| Linux / WSL | Python 3.10+ |
-| Windows 10/11 | CPython 3.10–3.14，x86/x64；自动安装 `windows-curses>=2.4.2` |
-| macOS 14+ | CPython 3.10–3.14，Intel / Apple Silicon |
+| Linux / WSL | Node 24.21.0，x64 |
+| Windows 10/11 | Node 24.21.0，x64 |
+| macOS 14+ | Node 24.21.0，Intel / Apple Silicon |
 
-Windows ARM 设备可使用 x64 Python 仿真；原生 ARM64 Python 暂不在支持范围。Git 信息需要系统中存在 `git`。
+Windows ARM 设备使用模拟 x64 Node；原生 Windows ARM64 与 32 位运行时暂不在支持范围。Git 信息需要系统中存在 `git`。
 
 Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地执行与外部 TUI 入口需 2.1.258+，会话内 Client 需 2.1.287+，原生计时和高级实时指标采集需 2.1.289+。版本不兼容或无法识别时，对应接入暂挂。详见[运行要求](docs/USER_GUIDE.zh-CN.md#运行要求)。
 
@@ -229,22 +228,19 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 
 ## 快速安装
 
-[TypeScript 预览试用与回退指南](docs/PREVIEW.zh-CN.md)。
-
-先准备 Python、Claude Code CLI 和 [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)。支持平台共用同一个 wheel。
+先准备 Node 24.21.0、npm 与 Claude Code CLI。通用 npm 包已包含受支持的原生依赖，无需 Python 或编译器。[已有 Python 安装的迁移与回退](docs/USER_GUIDE.zh-CN.md#升级)。
 
 ### 安装软件包
 
 Bash、Zsh、PowerShell 通用：
 
 ```text
-pipx install fbincon-claude-code-statusline
-pipx ensurepath
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
 ### 接入 Claude Code
 
-重新打开终端，让 PATH 设置生效，再执行：
+确保 npm 命令目录位于 PATH，再执行：
 
 ```text
 claude-statusline --version
@@ -253,14 +249,14 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows 使用 `claude-statusline.exe`。接入后在受信任终端重启 Claude Code。
+Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后的 JavaScript 入口。接入后在受信任终端重启 Claude Code。
 
-两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；Claude Code 2.1.289+ 默认采集原生计时元数据，高级实时指标仍按需启用。软件包安装与 Claude 接入是两个步骤，`install` 不会打开编辑器。已有冲突资源需按[冲突处理说明](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
+两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；兼容宿主的原生计时和高级实时指标均需显式启用，保留已保存偏好。软件包安装与 Claude 接入是两个步骤，`install` 不会打开编辑器。已有冲突资源需按[冲突处理说明](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
 
 <details>
 <summary>其他安装方式</summary>
 
-当前 main 的源码开发使用 Node 与 TypeScript，步骤见[源码开发指南](docs/development/README.zh-CN.md#从源码构建与安装)。已发布 Python 产品的固定标签和 Release wheel 安装见安装指南。
+当前 main 的源码开发使用 Node 与 TypeScript，步骤见[源码开发指南](docs/development/README.zh-CN.md#从源码构建与安装)。Release 附件支持离线 npm 安装，安装指南包含固定版本安装及 Python 恢复。
 
 下载校验和平台步骤见[安装指南](docs/USER_GUIDE.zh-CN.md#安装与接入)，源码构建见[开发指南](docs/development/README.zh-CN.md#从源码构建与安装)。
 
@@ -338,19 +334,19 @@ claude-statusline config show
 升级软件包并同步接入，然后重启 Claude Code：
 
 ```text
-pipx upgrade fbincon-claude-code-statusline
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
 claude-statusline install
 claude-statusline doctor
 ```
 
-本仓库已有 wheel 安装请先按[软件包名称迁移](docs/USER_GUIDE.zh-CN.md#迁移旧分发名称)操作。保留显示配置、运行状态和接入偏好。旧显示 schema 与软件包降级操作见[版本兼容](docs/USER_GUIDE.zh-CN.md#版本兼容)。
+已有 Python 安装请先按[迁移与回退步骤](docs/USER_GUIDE.zh-CN.md#迁移旧分发名称)操作。保留显示配置、运行状态和接入偏好。旧显示 schema 与软件包降级操作见[版本兼容](docs/USER_GUIDE.zh-CN.md#版本兼容)。
 
 先移除 Claude 接入，再卸载软件包：
 
 ```text
 claude-statusline uninstall --dry-run
 claude-statusline uninstall
-pipx uninstall fbincon-claude-code-statusline
+npm uninstall --global @fbincon/claude-code-statusline
 ```
 
 显示配置与备份继续保留，详见[卸载](docs/USER_GUIDE.zh-CN.md#卸载)。

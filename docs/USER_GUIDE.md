@@ -6,9 +6,9 @@ This guide walks through installation, editor use, common configuration, optiona
 
 Settings apply to the current user's Claude Code projects. Rendering reads Claude input, local Git, transcripts, and state without network requests or model tokens. The question-and-answer wizard uses model turns.
 
-Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude-statusline.exe`. `<CLAUDE_CONFIG_DIR>` means the value of `CLAUDE_CONFIG_DIR`, or `~/.claude` if unset; it is a placeholder, not a literal argument.
+Single-line CLI examples work in Bash, Zsh, and PowerShell. Windows uses `claude-statusline.cmd`, or Node with the absolute installed JavaScript entry. `<CLAUDE_CONFIG_DIR>` means the value of `CLAUDE_CONFIG_DIR`, or `~/.claude` if unset; it is a placeholder, not a literal argument.
 
-For the opt-in TypeScript distribution, use the [preview installation and rollback guide](PREVIEW.md). The Python instructions below remain the stable path.
+The current distribution is the TypeScript npm package. Python installations can be retained for explicit rollback; see [upgrading](#upgrading).
 
 ## Contents
 
@@ -52,11 +52,13 @@ The main line reports main/session data; each subagent row reports its own task.
 
 | Platform | Environment |
 | --- | --- |
-| Linux / WSL | Python 3.10+ |
-| Windows 10/11 | CPython 3.10–3.14, x86/x64; conditional `windows-curses>=2.4.2` dependency |
-| macOS 14+ | CPython 3.10–3.14 with curses, Intel / Apple Silicon |
+| Linux / WSL | Node 24.21.0, x64 |
+| Windows 10/11 | Node 24.21.0, x64 |
+| macOS 14+ | Node 24.21.0, Intel / Apple Silicon |
 
-Install Claude Code CLI and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). Git is needed for Git fields and source installation. Windows ARM devices can use x64 Python emulation; native ARM64 Python is outside the support contract.
+Install Claude Code CLI and npm; the pinned validation toolchain uses npm 11.19.0. Git is needed for Git fields and source builds. Windows ARM devices use x64 Node emulation; native Windows ARM64 and 32-bit runtimes are outside the support contract. The package bundles native dependencies and needs no Python or compiler.
+
+The maintainer accepted the disclosed physical/desktop and exact-host declaration gaps for v3.0.0. They remain unverified; see the [release decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18).
 
 | Feature | Claude Code requirement |
 | --- | --- |
@@ -70,47 +72,29 @@ The external launcher uses tmux or GNOME Terminal on Linux, tmux or Terminal.app
 
 ## Installation and integration
 
-The installation and upgrade commands below apply to the published Python product. Follow the [development and isolated installation guide](development/typescript-migration/ts-05/candidate.md) for TypeScript source and engineering candidates on current main. Candidate acceptance uses temporary directories and retains the existing Python environment; TS-06 owns public delivery and product cutover.
-
-### Install the Python package
-
-Install the stable package from [PyPI](https://pypi.org/project/fbincon-claude-code-statusline/):
+### Install the npm package
 
 ```text
-pipx install fbincon-claude-code-statusline
-pipx ensurepath
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
-The distribution name is `fbincon-claude-code-statusline`; the command remains `claude-statusline` and the Python import remains `claude_statusline`. Previous installations from this repository use the [migration procedure](#migrate-the-previous-distribution-name). The [v2.0.0 Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v2.0.0) provides the same wheel and source distribution.
+Use `@3.0.0` for a fixed version. Package installation and Claude integration are separate; npm does not edit your Claude settings. Ensure the npm command directory is on PATH. Windows npm wrappers are `.cmd`/`.ps1`; installed Claude bindings use absolute Node/JavaScript argv.
 
-Alternatively download the wheel, source archive, and `SHA256SUMS` from that release. Compare the downloaded file's SHA-256 with the corresponding entry:
+### Offline installation
+
+Download the npm tgz, rebuildable source tar.gz, `build-manifest.json` and `SHA256SUMS` from the [GitHub Release](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.0.0) or [Gitee Release](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.0.0). Verify all listed hashes before installing:
 
 ```bash
-# Linux / WSL
-sha256sum fbincon_claude_code_statusline-2.0.0-py3-none-any.whl
-# macOS
-shasum -a 256 fbincon_claude_code_statusline-2.0.0-py3-none-any.whl
+# Linux / WSL; on macOS use shasum -a 256 -c SHA256SUMS
+sha256sum -c SHA256SUMS
+npm install --global --offline --ignore-scripts ./fbincon-claude-code-statusline-3.0.0.tgz
 ```
 
-```powershell
-Get-FileHash .\fbincon_claude_code_statusline-2.0.0-py3-none-any.whl -Algorithm SHA256
-Get-Content .\SHA256SUMS
-```
-
-With all listed assets downloaded, use `sha256sum -c SHA256SUMS` on Linux/WSL or `shasum -a 256 -c SHA256SUMS` on macOS. Install a local wheel with `pipx install ./fbincon_claude_code_statusline-2.0.0-py3-none-any.whl` (PowerShell: `.\fbincon_claude_code_statusline-2.0.0-py3-none-any.whl`).
-
-Fixed-tag source installation requires Git:
-
-```text
-pipx install "git+https://github.com/fbincon/claude-code-statusline.git@v2.0.0"
-pipx ensurepath
-```
-
-Current `main` uses TypeScript. Follow the [development guide](development/README.md#build-and-install-from-source) for source builds and isolated candidates; use published fixed tags for Python source installation.
+In PowerShell use `Get-FileHash -Algorithm SHA256 -LiteralPath FILE` and compare each result with `SHA256SUMS`, then install the local tgz using the same npm options. Automatic GitHub/Gitee source ZIPs are not the rebuildable source asset. See the [development guide](development/README.md#build-and-install-from-source) for source builds.
 
 ### Integrate with Claude Code
 
-Reopen the terminal after `pipx ensurepath`, then run:
+After confirming the npm command directory is on PATH, run:
 
 ```text
 claude-statusline --version
@@ -119,13 +103,13 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-Windows uses `claude-statusline.exe` and requires that executable on PATH. Restart Claude Code in a trusted terminal to load the installed plugins and commands.
+Windows uses `claude-statusline.cmd` or the explicit Node/JavaScript entry. Restart Claude Code in a trusted terminal to load the installed plugins and commands.
 
 ### What `install` does
 
 The installer merges owned status-line commands, timing/subagent hooks, configuration skills, and compatible editor integrations into the user configuration. It preserves unrelated settings and hooks, backs up actual changes, and uses atomic writes. Repeated installation is idempotent.
 
-The two editor entries default on when there is no saved preference. Explicit parameters override saved preferences; saved preferences override defaults. Unsupported integrations suspend without losing the preference. Native timing and advanced collection have independent preferences; compatible fresh installs default to timing metadata on and advanced metrics off. Existing valid padding, refresh, and Vim-indicator choices remain; a new installation refreshes once per second.
+The two editor entries default on when there is no saved preference. Explicit parameters override saved preferences; saved preferences override defaults. Unsupported integrations suspend without losing the preference. Native timing and advanced collection have independent preferences; fresh installs default to both collectors off. Enable timing explicitly with `install --native-timing` or complete collection with `install --live-metrics`. Existing valid padding, refresh, and Vim-indicator choices remain; a new installation refreshes once per second.
 
 ### Preview installation
 
@@ -139,7 +123,7 @@ To preserve a third-party subagent renderer, run `claude-statusline config set s
 
 ### macOS installation and validation boundaries
 
-macOS uses the same wheel and installation flow. CPython must provide curses. Terminal.app is the supported desktop external launcher; tmux popup is preferred when available. SSH and sessions without a graphical desktop should use the standalone editor or CLI.
+macOS uses the same npm package and installation flow, with Intel and Apple Silicon native dependencies bundled. Terminal.app is the supported desktop external launcher; tmux popup is preferred when available. SSH and sessions without a graphical desktop should use the standalone editor or CLI.
 
 Current layouts are in the [README gallery](../README.md#screenshots) and [image index](images/README.md). The known in-session Client input limitation is separate from the main line and external editor; see [focus checks](#macos-mouse-reporting-and-client-focus).
 
@@ -163,7 +147,7 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 
 Supported codes are `en` (English), `zh-CN` (Simplified Chinese), `zh-Hant` (general Traditional Chinese), `ja` (Japanese), and `ko` (Korean). Selection is explicit; system locale settings do not change it. Use Left/Right to cycle through this order.
 
-The CLI, external/standalone curses editor and in-session Client default to English. In Settings choose **Interface language (saved immediately)** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어**. The language is shared across both editors and CLI, independent of Claude's own theme and language settings.
+The CLI, external/standalone terminal editor and in-session Client default to English. In Settings choose **Interface language (saved immediately)** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어**. The language is shared across both editors and CLI, independent of Claude's own theme and language settings.
 
 ```text
 claude-statusline config language show [--json]
@@ -186,11 +170,11 @@ Interface language does not change actual statusline samples/output. Model names
 
 ## Find items and review imports
 
-Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it, and Ctrl+G restores the previous query. Curses also accepts direct typing and Esc cancels explicit search input. Search matches IDs, names and descriptions in all five languages, custom labels and categories in any interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighted text identifies the actual match, including an alternate-language snippet when needed.
+Press `/` on Main/Subagents to enter a query; Enter accepts it, Ctrl+U clears it, and Ctrl+G restores the previous query. The external editor also accepts direct typing and Esc cancels explicit search input. Search matches IDs, names and descriptions in all five languages, custom labels and categories in any interface language. Exact matches rank before prefixes, English initials (for example `mwe`), substrings and ordered subsequences; equal ranks preserve the existing order. Highlighted text identifies the actual match, including an alternate-language snippet when needed.
 
 Ctrl+F opens the category picker. Select with arrows and accept with Enter; choose All categories to remove the category filter. Query and category combine and stay local to the editor session. While filtered, items can be toggled or formatted; ordering is disabled. Clearing filters restores the full order and neither filter is exported or saved.
 
-For an item's source and conditions, press Ctrl+E, select **Sources and requirements** at the start of the form, then Enter. Scroll with arrows or Page Up/Down and return with Ctrl+G (Esc also works in curses). This page explains measurement scope, source fields, verified host requirements, optional collectors and possible unavailable reasons. It does not inspect current data or enable anything. An unobserved item remains selectable and its preview stays a fixed sample.
+For an item's source and conditions, press Ctrl+E, select **Sources and requirements** at the start of the form, then Enter. Scroll with arrows or Page Up/Down and return with Ctrl+G (Esc also works in the external editor). This page explains measurement scope, source fields, verified host requirements, optional collectors and possible unavailable reasons. It does not inspect current data or enable anything. An unobserved item remains selectable and its preview stays a fixed sample.
 
 Import from Settings opens a review against the current **unsaved draft**. Sections cover selection, retained-item order, formatting/overrides, layout, statusline language and statusline host settings. Enter expands the selected section, arrows select sections, Page Up/Down scrolls and Tab switches the candidate preview between Main/Subagents. **A accepts only into the draft; saving is a separate action.** Cancelling or invalid input retains the previous draft. Acceptance uses the already-read candidate even if the source file changes, and keeps the original save revision; a concurrent-save conflict retains the current draft. The first version replaces the complete draft rather than merging individual fields.
 
@@ -252,7 +236,7 @@ Without recorded preferences, `claude-statusline install` defaults both entries 
 | External TUI only | `claude-statusline install --no-native-editor --experimental-slash-tui` |
 | Basic integration without either TUI entry | `claude-statusline install --no-native-editor --no-experimental-slash-tui` |
 
-On Windows use `claude-statusline.exe`. The two flag pairs are independent; the historical `--experimental-slash-tui` name remains. Explicit flags override recorded preferences, which override defaults. Plugins explicitly disabled through the host remain disabled.
+On Windows use `claude-statusline.cmd`. The two flag pairs are independent; the historical `--experimental-slash-tui` name remains. Explicit flags override recorded preferences, which override defaults. Plugins explicitly disabled through the host remain disabled.
 
 | Claude Code version | External `/statusline-configure` | In-session `/statusline-configure-native` |
 | --- | --- | --- |
@@ -314,7 +298,7 @@ In a real terminal outside Claude Code, run:
 claude-statusline configure
 ```
 
-Windows uses `claude-statusline.exe configure`. Both stdin and stdout must be TTYs, curses must initialize, configuration must be valid, and the current CLI must own the installed status line. The minimum size is 64×18; a smaller window waits for resizing and still permits cancellation.
+Windows uses `claude-statusline.cmd configure`. Both stdin and stdout must be TTYs, ANSI/VT terminal initialization must succeed, configuration must be valid, and the current CLI must own the installed status line. The minimum size is 64×18; a smaller window waits for resizing and still permits cancellation.
 
 | Key | Action |
 | --- | --- |
@@ -341,14 +325,14 @@ Settings groups appearance, refresh/behavior, Git metrics, formatting, risk colo
 
 ### External terminal colors
 
-The external editor uses the terminal's default foreground and background. Headings and shortcut keys are bold; descriptions use regular text. Active tabs and selected rows reverse the default colors and retain their selection markers. This follows light/dark terminal profiles independently of Claude's applied theme.
+The external editor uses the terminal's default foreground and background. Page, panel and group headings use bold terminal ANSI cyan; shortcut keys are bold; descriptions use regular text. Active tabs and selected rows reverse the default colors and retain their selection markers. This follows light/dark terminal profiles independently of Claude's applied theme.
 
-Sample previews use the current terminal background and the selected `Palette`, shown in the preview title. Uncolored text, resets, empty rows and trailing spaces use terminal defaults. Curses quantizes RGB samples to the available terminal palette; ANSI samples use the terminal’s configured ANSI colors. If `Palette: default` looks faint on a light terminal, compare `Palette: ansi` in Settings; changes preview immediately and affect the actual status line after saving. Preview colors are preserved so the comparison reflects the terminal’s real appearance. Unsupported default colors, monochrome terminals and failed/exhausted sample pairs fall back to default text.
+Sample previews use the current terminal background and the selected `Palette`, shown in the preview title. Uncolored text, resets, empty rows and trailing spaces use terminal defaults. The renderer quantizes RGB samples to the available terminal palette; ANSI samples use the terminal’s configured ANSI colors. If `Palette: default` looks faint on a light terminal, compare `Palette: ansi` in Settings; changes preview immediately and affect the actual status line after saving. Preview colors are preserved so the comparison reflects the terminal’s real appearance. Unsupported default colors, monochrome terminals and unsupported sample colors fall back to default text.
 
 
 ## External terminal `/statusline-configure`
 
-Run `/statusline-configure` without arguments inside Claude Code. This entry requires 2.1.258+ and opens the same curses TUI in tmux popup, GNOME Terminal, Terminal.app, or a Windows new console according to platform.
+Run `/statusline-configure` without arguments inside Claude Code. This entry requires 2.1.258+ and opens the same terminal TUI in tmux popup, GNOME Terminal, Terminal.app, or a Windows new console according to platform.
 
 The external entry and in-session Client have independent preferences. Enable or disable just the external entry with:
 
@@ -591,7 +575,7 @@ claude-statusline config enable task-active-timer
 claude-statusline doctor
 ```
 
-Restart Claude Code after changing collector integration. Compatible fresh installs already default to native timing on; explicit saved disablement remains respected. Advanced live metrics are independent and need not be enabled for this timer. Missing observations, incomplete wait coverage, stale state or an untrusted clock hide execution time rather than assuming zero waiting. Native single-turn duration, session runtime and cumulative API duration are separate quantities and do not calibrate either task clock. See the [timing contract](development/timer.md).
+Restart Claude Code after changing collector integration. Fresh installs default to native timing off; explicit saved choices remain respected. Advanced live metrics are independent and need not be enabled for this timer. Missing observations, incomplete wait coverage, stale state or an untrusted clock hide execution time rather than assuming zero waiting. Native single-turn duration, session runtime and cumulative API duration are separate quantities and do not calibrate either task clock. See the [timing contract](development/timer.md).
 
 ## Subagent rows and the three scopes
 
@@ -636,29 +620,30 @@ The explicit directory takes precedence over `CLAUDE_CONFIG_DIR`, then the defau
 
 ## Upgrading
 
-### Migrate the previous distribution name
+<a id="migrate-the-previous-distribution-name"></a>
 
-Versions through 1.7.3 used the distribution name `claude-code-statusline` for this repository’s Release wheels. That name on PyPI belongs to another project. Check `pipx list --json` and `claude-statusline --version` to confirm the existing installation came from this repository before removing it. Use the new name for index installations and future upgrades.
+### Migrate from Python
 
-Close Claude Code during migration. Remove the old pipx environment, install the new distribution and refresh integration:
-
-```text
-pipx uninstall claude-code-statusline
-pipx install fbincon-claude-code-statusline
-claude-statusline install --dry-run
-claude-statusline install
-claude-statusline doctor
-```
-
-The pipx package removal preserves Claude display configuration, integration preferences, runtime state and backups. Reinstallation updates command paths and Mod backend bindings; restart Claude Code afterward. The configuration ownership marker and portable export format remain unchanged. Confirm `claude-statusline --version` reports 2.0.0 and `pipx list` contains only the new distribution for this tool. If migration cannot finish, reinstall the verified original wheel from this repository and rerun `install` and `doctor`.
-
-### Replace the Python package
+Stop active Claude sessions and back up the configuration directory before switching writers. Record the Python executable's absolute path and version; keep that environment for rollback. Install npm into a separate prefix if a Python command already owns the same PATH name:
 
 ```text
-pipx upgrade fbincon-claude-code-statusline
+npm install --prefix ./statusline-node --ignore-scripts @fbincon/claude-code-statusline@3.0.0
+node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install --dry-run
+node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js install
+node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js doctor
 ```
 
-For local wheels or source installations, use `pipx install --force` with the original file, fixed-tag Git URL, or local checkout after updating/building it.
+Run these commands from a durable installation directory and keep that directory and Node executable in place while integrated. To use temporary Claude configuration, pass the same explicit `--config-dir` to every command. Existing display settings, saved collector/editor choices and unrelated settings are preserved; a missing collector preference now means both off. Do not overwrite a foreign PATH command with npm `--force`. Historical Python distribution-name instructions remain in the [v2.0.0 guide](https://github.com/fbincon/claude-code-statusline/blob/v2.0.0/docs/USER_GUIDE.md).
+
+For rollback, stop Claude, use the Node entry to run `install --no-native-timing --no-live-metrics` and `uninstall`, restore the pre-cutover compatible configuration/absence from backup, then run the retained Python entry's `install` and `doctor`. Restore any former PATH selection deliberately; npm does not remove the retained Python environment.
+
+### Replace the npm package
+
+```text
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
+```
+
+Keep the same prefix when upgrading a prefix installation. Use a verified local tgz with `--offline --ignore-scripts` for offline upgrades.
 
 ### Synchronize Claude Code integration
 
@@ -688,10 +673,10 @@ Remove integration while the CLI is still installed:
 ```text
 claude-statusline uninstall --dry-run
 claude-statusline uninstall
-pipx uninstall fbincon-claude-code-statusline
+npm uninstall --global @fbincon/claude-code-statusline
 ```
 
-Windows uses `claude-statusline.exe`. The uninstaller removes only owned commands, hooks, skills, plugins, and resources; third-party settings remain. Display files, editor/live preferences, caches, task state, and backups remain for reuse. Keep integrations disabled across a later reinstall by explicitly saving the corresponding `install --no-...` preferences first.
+Windows uses `claude-statusline.cmd`, or Node with the absolute installed JavaScript entry. The uninstaller removes only owned commands, hooks, skills, plugins, and resources; third-party settings remain. Display files, editor/live preferences, caches, task state, and backups remain for reuse. Keep integrations disabled across a later reinstall by explicitly saving the corresponding `install --no-...` preferences first.
 
 ## Backups and rollback
 
@@ -709,7 +694,7 @@ Actual installation, removal, and configuration changes create backups in:
 claude-statusline doctor
 ```
 
-Doctor checks platform/Python, PATH, configuration validity, command ownership, hooks, editor preferences/resources, host compatibility, launch prerequisites, runtime collection, and writable state. It does not rewrite configuration or open editor windows; macOS may check parent-directory synchronization capability. Passing diagnostics does not independently verify GUI focus or human interaction.
+Doctor checks platform/Node, PATH, configuration validity, command ownership, hooks, editor preferences/resources, host compatibility, launch prerequisites, runtime collection, and writable state. It does not rewrite configuration or open editor windows; macOS may check parent-directory synchronization capability. Passing diagnostics does not independently verify GUI focus or human interaction.
 
 `[OK]` passes; `[WARN]` describes degradation and still allows exit 0; any `[ERROR]` makes exit 1. For stale integration, run `install`, rerun `doctor`, then restart Claude Code. Resolve ownership conflicts before using `--force`.
 
@@ -801,7 +786,7 @@ GNOME requires `DISPLAY` or `WAYLAND_DISPLAY`, executable `gnome-terminal`, and 
 claude-statusline configure
 ```
 
-Windows hosts `CREATE_NEW_CONSOLE` in the system default terminal. Closing the window, abnormal child exit, or absence of a trusted result immediately returns an error to the original conversation. Diagnose directly with `claude-statusline.exe configure` in PowerShell. Confirm that `windows-curses backend` and `Windows system new-console launcher` are both OK in `doctor`.
+Windows hosts `CREATE_NEW_CONSOLE` in the system default terminal. Closing the window, abnormal child exit, or absence of a trusted result immediately returns an error to the original conversation. Diagnose directly with `claude-statusline.cmd configure` in PowerShell. Confirm that `windows-curses backend` and `Windows system new-console launcher` are both OK in `doctor`.
 
 When the hook ends after 600 seconds, the TUI should normally already have timed out at 570 seconds. When inspecting `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/`, do not manually follow or delete unknown symbolic links. Automatic cleanup handles only remnants older than 24 hours that match this tool's naming prefix and contain no symbolic links.
 
@@ -1068,19 +1053,19 @@ Management commands use 0 for success, 1 for doctor errors, and 2 for handled ar
 Task timing is included in [v1.7.0](https://github.com/fbincon/claude-code-statusline/releases/tag/v1.7.0). Upgrade the stable package:
 
 ```bash
-pipx upgrade fbincon-claude-code-statusline
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
 claude-statusline install
 claude-statusline config enable task-active-timer
 ```
 
 `task-timer` is the default total task clock; `prompt-timer` remains accepted by existing commands and old configuration files. `task-active-timer` is optional and only appears with complete native execution/wait evidence. A raw Stop shows a lower bound (`? ...+`) until an ending is confirmed; a verified continuation resumes the same task. Native turn duration never shortens total elapsed. Session and API durations remain separate.
 
-On compatible hosts, fresh installations collect timing metadata by default; advanced metrics still require `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
+Fresh installations do not collect native timing or advanced metrics. Enable native timing with `install --native-timing`, or complete collection with `install --live-metrics`. Use `install --no-native-timing` to disable native timing or `install --no-live-metrics` to preserve the previous all-off behavior. For timing-only mode explicitly use `install --no-live-metrics --native-timing`. Old explicit disabled preferences and disabled plugins remain disabled. The current host can leave execution time unavailable for approval, question or MCP waits; `doctor` explains coverage.
 
 Before downgrading, run `claude-statusline install --no-native-timing --no-live-metrics`, remove the native editor if the old version cannot manage it, and restore the display/runtime preference backups from before migration. Reinstall the older package and integrations. Reading does not rewrite an old schema; an actual save uses schema 8 and retains a backup. Coverage limitations and validation evidence are recorded in the Release and [timer contracts](development/timer.md).
 
 ## Unicode text and terminal widths
 
-Wrapping, truncation and editor previews keep extended grapheme clusters together, including combining accents and joined emoji. Ambiguous characters use one column; ordinary CJK and emoji clusters use two. The layout policy is fixed across Python versions and editors. Actual glyph appearance still depends on your terminal and fonts.
+Wrapping, truncation and editor previews keep extended grapheme clusters together, including combining accents and joined emoji. Ambiguous characters use one column; ordinary CJK and emoji clusters use two. The layout policy is fixed across supported runtimes and editors. Actual glyph appearance still depends on your terminal and fonts.
 
 On ANSI/VT-capable terminals, the external editor paints complete text runs. Older backends use a width-preserving placeholder for clusters they cannot safely draw; saved labels, icons and paths remain intact. Backspace removes a complete text cluster. Palette changes still belong to the display draft; the native light/dark preview background remains an independent UI preference.

@@ -2,6 +2,8 @@
 
 **English** | [简体中文](PREVIEW.zh-CN.md)
 
+This guide preserves the beta.1 trial and recovery procedure. For the stable npm product use the [user guide](USER_GUIDE.md#installation-and-integration). The statements about a placeholder `latest` and blocking stable gates below describe the original preview publication; the [v3.0.0 decision](development/typescript-migration/ts-06/README.md#stable-decision-2026-10-18) supersedes that release policy without passing unverified checks.
+
 The preview is **v3.0.0-beta.1**, distributed as `@fbincon/claude-code-statusline@beta` and identical GitHub/Gitee Release attachments. It is for testing before stable delivery. [Release notes](releases/v3.0.0-beta.1.md) · [Validation tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
 
 Use `@beta` or an exact preview version in every npm installation. There is no npm stable product release yet; an unqualified install or `@latest` resolves to a registry placeholder, not the statusline. The stable product remains Python v2.0.0.

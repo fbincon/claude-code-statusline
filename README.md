@@ -3,8 +3,7 @@
 **English** | [简体中文](README.zh-CN.md)
 
 [![CI](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/ci.yml)
-[![Native Mod](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml/badge.svg)](https://github.com/fbincon/claude-code-statusline/actions/workflows/native.yml)
-[PyPI](https://pypi.org/project/fbincon-claude-code-statusline/)
+[npm](https://www.npmjs.com/package/@fbincon/claude-code-statusline)
 [MIT License](LICENSE)
 
 A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reasoning effort, directory, Git, context, usage limits, tokens, and task timing at a glance. Configure the main line and individual subagent rows through an in-session editor, a terminal UI, a wizard, or the CLI.
@@ -27,7 +26,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Review configuration changes:** six editable presets and portable JSON, with import differences and candidate previews before accepting a draft and saving.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
 - **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain production colors on a separately chosen light/dark background.
-- **Follow terminal colors:** external TUI text and bold keys use terminal defaults; previews show the selected palette on the current terminal background.
+- **Follow terminal colors:** external TUI text and bold keys use terminal defaults, with cyan headings; previews show the selected palette on the current terminal background.
 - **Enable optional live metrics:** runtime state, agent count, tool progress, request timing, and per-task usage are opt-in. Missing or partial observations stay distinguishable.
 
 Rendering uses Claude Code input and local state without making network requests or using model tokens. The question-and-answer wizard uses Claude model turns. See [field definitions](docs/DISPLAY_ITEMS.md) for data sources and availability.
@@ -216,11 +215,11 @@ Earlier screenshots and terminal reconstructions remain in the [archive](docs/im
 
 | Platform | Supported environment |
 | --- | --- |
-| Linux / WSL | Python 3.10+ |
-| Windows 10/11 | CPython 3.10–3.14, x86/x64; `windows-curses>=2.4.2` installs automatically |
-| macOS 14+ | CPython 3.10–3.14, Intel / Apple Silicon |
+| Linux / WSL | Node 24.21.0, x64 |
+| Windows 10/11 | Node 24.21.0, x64 |
+| macOS 14+ | Node 24.21.0, Intel / Apple Silicon |
 
-Windows ARM devices can use x64 Python emulation; native ARM64 Python is outside the current support contract. Git information requires `git`.
+Windows ARM devices use x64 Node under emulation; native Windows ARM64 and 32-bit runtimes are outside the current support contract. Git information requires `git`.
 
 Claude Code feature requirements: subagent rows 2.1.205+; local argument-based configuration and external TUI entry 2.1.258+; in-session Client 2.1.287+; native timing and advanced live-metrics collection 2.1.289+. Unsupported or unknown host versions suspend the corresponding integration. See [requirements](docs/USER_GUIDE.md#requirements).
 
@@ -240,22 +239,19 @@ Claude Code feature requirements: subagent rows 2.1.205+; local argument-based c
 
 ## Quick installation
 
-[TypeScript preview trial and rollback instructions](docs/PREVIEW.md).
-
-Install Python, Claude Code CLI, and [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html). All supported platforms use the same wheel.
+Install Node 24.21.0 with npm and Claude Code CLI. One npm package includes the supported native dependencies and needs no Python or compiler. [Existing Python installation and rollback](docs/USER_GUIDE.md#upgrading).
 
 ### Install the package
 
 Bash, Zsh, and PowerShell:
 
 ```text
-pipx install fbincon-claude-code-statusline
-pipx ensurepath
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
 ```
 
 ### Integrate with Claude Code
 
-Reopen the terminal so PATH changes take effect, then run:
+Ensure the npm command directory is on PATH, then run:
 
 ```text
 claude-statusline --version
@@ -264,14 +260,14 @@ claude-statusline install
 claude-statusline doctor
 ```
 
-On Windows, use `claude-statusline.exe`. Restart Claude Code in a trusted terminal after integration.
+On Windows, use `claude-statusline.cmd`, or invoke the installed JavaScript entry with Node. Restart Claude Code in a trusted terminal after integration.
 
-Both editors default on for compatible hosts, respecting saved disablement preferences. Native timing metadata defaults on for Claude Code 2.1.289+; advanced live metrics remain opt-in. Package installation and Claude integration are separate steps; `install` does not open an editor. Existing conflicting resources require [explicit handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
+Both editors default on for compatible hosts, respecting saved disablement preferences. Native timing and advanced live metrics both require explicit opt-in on compatible hosts; saved choices are preserved. Package installation and Claude integration are separate steps; `install` does not open an editor. Existing conflicting resources require [explicit handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
 
 <details>
 <summary>Other installation methods</summary>
 
-Source development on main uses Node and TypeScript; follow the [source development guide](docs/development/README.md#build-and-install-from-source). Fixed-tag and Release wheel installation for the published Python product remains documented in the installation guide.
+Source development on main uses Node and TypeScript; follow the [source development guide](docs/development/README.md#build-and-install-from-source). Release attachments support offline npm installation; the installation guide covers fixed versions and Python recovery.
 
 Download checksums and platform-specific instructions are in the [installation guide](docs/USER_GUIDE.md#installation-and-integration); source builds are in the [development guide](docs/development/README.md#build-and-install-from-source).
 
@@ -349,19 +345,19 @@ Configuration is per user. `set-items` replaces the enabled set; `enable` and `d
 Upgrade the package, synchronize integration, then restart Claude Code:
 
 ```text
-pipx upgrade fbincon-claude-code-statusline
+npm install --global --ignore-scripts @fbincon/claude-code-statusline
 claude-statusline install
 claude-statusline doctor
 ```
 
-Existing wheel installations from this repository should first follow the [package-name migration](docs/USER_GUIDE.md#migrate-the-previous-distribution-name). Saved display settings, runtime state, and integration preferences remain. For older display schemas or package downgrade, follow [version compatibility](docs/USER_GUIDE.md#version-compatibility).
+Existing Python installations should first follow the [migration and rollback procedure](docs/USER_GUIDE.md#migrate-the-previous-distribution-name). Saved display settings, runtime state, and integration preferences remain. For older display schemas or package downgrade, follow [version compatibility](docs/USER_GUIDE.md#version-compatibility).
 
 Remove Claude integration before uninstalling the package:
 
 ```text
 claude-statusline uninstall --dry-run
 claude-statusline uninstall
-pipx uninstall fbincon-claude-code-statusline
+npm uninstall --global @fbincon/claude-code-statusline
 ```
 
 Display settings and backups remain available; see [uninstalling](docs/USER_GUIDE.md#uninstalling).
