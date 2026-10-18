@@ -9,11 +9,13 @@
 1. 使用固定 Node 24.21.0/npm 11.19.0，运行 `npm run check`；通过 PR 评审合并，核验最终 head 与合并 CI。保留 Python 归档和已公开标签/附件。
 2. 固定合并 SHA 执行 `npm run release:build -- --commit FULL_SHA --output NEW_DIRECTORY`，导出受版本控制的源码并独立构建两次。`candidate:build` 保留私有工程模式。`release:verify -- --artifact ABSOLUTE_TGZ --commit FULL_SHA` 要求公开包及四项确定性附件。无 Git 历史重建用 `release:build -- --commit FULL_SHA --source ABSOLUTE_SOURCE_TAR_GZ --output NEW_DIRECTORY`。
 3. CI 将同一公开形态包分发到八安装目标和十三固定宿主。`release:prepare -- --preview --artifact ABSOLUTE_TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE` 拒绝缺失、失败、跳过、重复及身份不符证据，只报告预览就绪，不报告正式就绪。无付费调用或虚构实机证据。
-4. 在已验证提交创建带注释的 v3.0.0-beta.1 标签，推送精确引用并等待标签 CI。创建 GitHub **预览草稿**，设置 `--latest=false`；仅上传同提交的安装 tgz、源码 tar.gz、build-manifest.json、SHA256SUMS。下载草稿，核验摘要及隔离安装，日志和本机路径不作为附件。
+4. 在已验证提交创建带注释的 v3.0.0-beta.1 标签，推送精确引用并等待标签 CI。创建 GitHub **预览草稿**，设置 `--latest=false`；仅上传同提交的安装 tgz、源码 tar.gz、build-manifest.json、SHA256SUMS。下载草稿，核验摘要及隔离安装，日志和本机路径不作为附件。上传双语 Release 正文前，使用 `tools/release/markdown.ts` 中的辅助函数，以 `docs/releases/<tag>.md` 为起点，将仓库内文档和图片的相对链接转换为固定标签的 GitHub blob/raw URL，保留外部 Issue/CI 链接和代码示例；GitHub Release 页面不会按源码文件目录解析相对链接。
 5. 维护者以 fbincon 完成官方 npm 登录/双重验证，核实身份及作用域权限。在开发 workspace 之外运行 `npm publish ABSOLUTE_TGZ --registry=https://registry.npmjs.org/ --access public --tag beta --ignore-scripts`，直接上传已验证 tarball，不重新打包。凭据不进入仓库、日志或聊天。检查包元数据、完整性、beta/latest；预览不得成为 latest。
 6. 发布 GitHub 预览，不设 Latest，Python v2.0.0 保持 Latest。公开下载工作流在 Linux/Windows/macOS 校验 GitHub/npm 相同字节及固定版本/beta 安装，也可对精确标签手动调度。工作流只验证，不代替维护者的发布认证。
 7. 检查分歧后，以明确 refspec 将验证后的 main 和精确标签推送现有 Gitee SSH remote。预览 Release 使用官方 Gitee MCP，附件上传用官方 API 和现有系统钥匙环管理客户端，不导出凭据。上传同四项附件，按真实附件元数据生成说明，确认预览状态并重新下载核验；保留 GitHub 的问题/CI 主入口。
 8. 以后续 PR 记录下载证据、标签/源码/摘要和真实 CI 链接，原始数据留在忽略目录，更新跟踪 Issue。正式门槛通过前 TS-06 仍进行中。
+
+npm 命令成功退出可能早于公开可用；先等待 registry 验证及公开元数据，再开始下载验收。需要时通过已认证的[精确版本状态接口](https://api-docs.npmjs.com/#tag/Packages)区分处理状态。必须明确核对首次发布的 dist-tags：本次 registry 生成了 `0.0.0-stage` 占位版本，并在使用 `--tag beta` 时仍将预览设为 `latest`；删除 `latest` 返回 HTTP 400。在真正的 npm 稳定版交付前，将预览保留在 `beta`，`latest` 指向 registry 占位版本。占位包不是可用的状态栏产品，用户必须选择 `@beta` 或精确预览版本；不得将已存在的真正稳定版 `latest` 改为占位包。标签修正可能需要另一次官方 2FA 验证。
 
 上传/发布结果不明时先检查远端元数据和字节再重试。不可覆盖公开 npm 版本或已发布附件，修复递增 beta；部分渠道成功不算完整交付。公开核验命令为 `npm run release:downloads -- --commit FULL_SHA --output NEW_DIRECTORY`，要求 GitHub/npm 已发布。冻结 Python oracle 对比只允许明确白名单中的发布版本元数据差异。
 

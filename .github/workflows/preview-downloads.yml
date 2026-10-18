@@ -27,7 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.event.release.tag_name }}
+          ref: ${{ github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24.21.0'
@@ -36,7 +37,10 @@ jobs:
       - name: Verify published package bytes and fixed-version/beta installations
         env:
           GH_TOKEN: ${{ github.token }}
-        run: npm run release:downloads -- --commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/public-downloads"
+          RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: |
+          release_commit=$(git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}")
+          npm run release:downloads -- --commit "$release_commit" --verifier-commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/public-downloads"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

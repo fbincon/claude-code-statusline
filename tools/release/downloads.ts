@@ -11,8 +11,9 @@ import { identity, sourceFilename } from '../build/model.js';
 import { npmEntry, sha256 } from '../build/files.js';
 import { verifyDelivery } from '../build/verify.js';
 
-const { values } = parseArgs({ options: { commit: { type: 'string' }, output: { type: 'string' } } });
+const { values } = parseArgs({ options: { commit: { type: 'string' }, output: { type: 'string' }, 'verifier-commit': { type: 'string' } } });
 if (!values.commit || !values.output) throw new Error('Require --commit FULL_SHA --output NEW_DIRECTORY');
+if (values['verifier-commit'] && !/^[a-f0-9]{40}$/u.test(values['verifier-commit'])) throw new Error('Verifier commit must be a full SHA');
 const product = identity(values.commit, 'preview'), tag = 'v' + VERSION, output = resolve(values.output);
 fs.mkdirSync(output);
 async function response(url: string, authenticated = false) {
@@ -55,10 +56,10 @@ for (const selector of [VERSION, 'beta']) {
         assert.deepEqual(JSON.parse(fs.readFileSync(join(packageRoot, 'candidate.json'), 'utf8')), checked.source);
         const run = (args: string[], input = '') => execFileSync(process.execPath, [entry, ...args], { input, encoding: 'utf8', timeout: 30000, env: { ...process.env, CLAUDE_CONFIG_DIR: config } });
         assert.equal(run(['--version']), `claude-statusline ${VERSION}\n`);
-        assert(run(['config', 'show', '--config-dir', config]).trim());
+        assert(run(['config', 'show']).trim());
         assert(run(['render'], '{"model":{"id":"registry-smoke"},"context_window":{"remaining_percentage":50}}').includes('registry-smoke'));
         installed.push({ selector, status: 'pass', initially_empty_cache: true, lifecycle_scripts: false });
     } finally { fs.rmSync(root, { recursive: true, force: true }); }
 }
-fs.writeFileSync(join(output, 'public-downloads.json'), JSON.stringify({ status: 'pass', commit: values.commit, tag, platform: process.platform, arch: process.arch, node: process.version, tarball_sha256: checked.sha256, registry_integrity: published.dist.integrity, installations: installed }, null, 2) + '\n');
+fs.writeFileSync(join(output, 'public-downloads.json'), JSON.stringify({ status: 'pass', commit: values.commit, verifier_commit: values['verifier-commit'] ?? null, tag, platform: process.platform, arch: process.arch, node: process.version, tarball_sha256: checked.sha256, registry_integrity: published.dist.integrity, installations: installed }, null, 2) + '\n');
 console.log(JSON.stringify({ status: 'pass', tag, tarball_sha256: checked.sha256, installations: installed }));

@@ -4,6 +4,8 @@
 
 预览版本为 **v3.0.0-beta.1**，通过 `@fbincon/claude-code-statusline@beta` 和内容相同的 GitHub/Gitee Release 附件分发，用于正式版之前的验证。[发布说明](releases/v3.0.0-beta.1.md) · [验收跟踪](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
+每次 npm 安装都需明确使用 `@beta` 或精确预览版本。npm 暂无稳定产品版本，不带版本/标签的安装或 `@latest` 只会解析到 registry 占位包，不包含状态栏产品；稳定产品仍为 Python v2.0.0。
+
 ## 环境要求与验证限制
 
 使用 Node **24.21.0**、npm **11.19.0**。安装包目标为 Linux/WSL x64、Windows x64、macOS x64 与 ARM64。Windows ARM 使用**模拟运行的 x64 Node**，不提供原生 Windows ARM 或 32 位运行时。安装预览版无需 Python 或原生编译器。
