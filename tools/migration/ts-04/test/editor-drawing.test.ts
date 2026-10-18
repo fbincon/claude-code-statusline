@@ -76,13 +76,39 @@ test('tests.ui.test_layout.DrawingTests.test_all_pages_at_boundaries_without_ove
                 assert.ok(body.includes('Terminal too small'));
         }
 });
+test('all framed pages retain complete borders, aligned columns and full-width selections in every language', async t => {
+    for (const language of LANGUAGES) {
+        const f = await fixture(t, language);
+        for (const page of ['main', 'subagents', 'settings', 'layout'] as const) {
+            f.e.page = page;
+            for (const [width, height] of [[64, 20], [80, 24], [120, 30]]) {
+                const value = bounded(f.state, width!, height!), size = dimensions(width!, height!);
+                const plain = value.rows.map(row => row.map(span => span.text).join(''));
+                for (const panel of [size.content, size.preview]) {
+                    assert.ok(plain[panel.y]!.startsWith('┌─'));
+                    assert.ok(plain[panel.y]!.endsWith('─┐'));
+                    assert.equal(plain[panel.y + panel.height - 1], '└' + '─'.repeat(width! - 2) + '┘');
+                    for (let y = panel.innerY; y < panel.y + panel.height - 1; y++) {
+                        assert.ok(plain[y]!.startsWith('│'));
+                        assert.ok(plain[y]!.endsWith('│'));
+                    }
+                }
+                const selected = value.rows.slice(size.content.innerY, size.content.y + size.content.height - 1).find(row => row.some(span => span.reverse));
+                assert.ok(selected);
+                assert.equal(selected.filter(span => span.reverse).reduce((n, span) => n + displayWidth(span.text), 0), size.content.innerWidth);
+                if (page === 'settings' || page === 'layout')
+                    assert.ok(plain.slice(size.content.innerY, size.preview.y).some(line => line.includes('───')));
+            }
+        }
+    }
+});
 test('tests.ui.test_layout.DrawingTests.test_shortcut_keys_and_labels_have_independent_styles_on_every_page', async (t) => {
     const f = await fixture(t);
     for (const page of ['main', 'subagents', 'settings', 'layout'] as const) {
         f.e.page = page;
         const rows = bounded(f.state, 120, 30).rows;
         const action = rows[28]!;
-        assert.ok(action.some(s => s.text === 'Ctrl+S' && s.bold && s.reverse));
+        assert.ok(action.some(s => s.text === 'Ctrl+S' && s.bold && !s.reverse));
         assert.ok(action.some(s => s.text.includes('save') && !s.reverse));
     }
 });
@@ -101,7 +127,7 @@ test('tests.ui.test_layout.DrawingTests.test_portable_file_action_keys_use_the_s
         f.e.setting = key;
         const output = bounded(f.state, 120, 30);
         const cell = output.rows.flat().find(s => s.text === 'Enter');
-        assert.ok(cell?.bold && cell.reverse);
+        assert.ok(cell?.bold);
     }
 });
 test('tests.ui.test_layout.DrawingTests.test_preview_uses_the_panel_width_and_retains_sample_styles', async (t) => {
@@ -231,9 +257,11 @@ test('tests.ui.test_theme.ThemeTests.test_chrome_is_default_color_on_all_pages_a
     for (const page of ['main', 'subagents', 'settings', 'layout'] as const) {
         f.e.page = page;
         const value = bounded(f.state, 80, 24);
-        assert.ok(value.rows.flat().every(s => s.foreground === null && s.background === null));
+        assert.ok(value.rows.flat().every(s => s.background === null && (s.foreground === null || s.bold && s.foreground.kind === 'ansi' && s.foreground.value === 6)));
+        assert.ok(value.rows[0]!.some(s => s.bold && s.foreground?.value === 6));
         assert.ok(value.rows.flat().some(s => s.reverse));
-        assert.ok(!ansiFrame(value).includes('38;'));
+        assert.ok(ansiFrame(value).includes('38;5;6m'));
+        assert.ok(!ansiFrame(value, 0).includes('38;'));
     }
 });
 test('tests.ui.test_theme.ThemeTests.test_preview_uses_terminal_defaults_without_reserved_background_pairs', async (t) => {

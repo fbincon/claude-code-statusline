@@ -11,7 +11,7 @@ export interface RuntimePreferences {
     native_timing: boolean;
     live_metrics: boolean;
 }
-export const DEFAULT_RUNTIME: RuntimePreferences = { schema_version: 2, native_timing: true, live_metrics: false };
+export const DEFAULT_RUNTIME: RuntimePreferences = { schema_version: 2, native_timing: false, live_metrics: false };
 export const enabledByDefault = editorsEnabledByDefault;
 function detail(error: unknown): unknown { return error instanceof ConfigError ? error : error instanceof Error ? error.message : String(error); }
 export function parseRuntime(raw: string): RuntimePreferences {

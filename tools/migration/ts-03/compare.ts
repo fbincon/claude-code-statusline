@@ -25,6 +25,16 @@ export function releaseMetadataDifference(id: string, path: string, before: unkn
   return before.replace(field, (_match, space: string) => '"backend_version":' + space + JSON.stringify(VERSION)) === after;
 }
 
+/** v3.0.0 explicitly changes the no-preference collector policy, not the frozen oracle. */
+export function runtimeDefaultDifference(id: string, path: string, before: unknown, after: unknown): boolean {
+  if (id !== 'runtime-null-prompt' || path !== '/value/0/stdout' || typeof before !== 'string' || typeof after !== 'string') return false;
+  if (sha256(before) !== '31d3f479903f622279afdf0f0a6016a8c519807da0a84b0da8b9d3fd02c69be8') return false;
+  return before.replace('"native_timing": true', '"native_timing": false')
+    .replace('"backend_version": "2.0.0"', '"backend_version": ' + JSON.stringify(VERSION))
+    .replace('"enabled": true, "fresh": false, "reason": "not_observed"', '"enabled": false, "fresh": false, "reason": "runtime_disabled"')
+    .replace('"task-active-timer": {"value": null, "reason": "not_observed"', '"task-active-timer": {"value": null, "reason": "native_timing_disabled"') === after;
+}
+
 export interface Difference { case: string; path: string; before_sha256: string; after_sha256: string; reason: string }
 export function compare(expected: unknown, actual: unknown, differences: readonly Difference[] = []): string[] {
   const errors: string[] = [], used = new Set<Difference>();
@@ -36,6 +46,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
   function walk(a: unknown, b: unknown, path: string, id: string) {
     if (canonical(a) === canonical(b)) return;
     if (releaseMetadataDifference(id, path, a, b)) return;
+    if (runtimeDefaultDifference(id, path, a, b)) return;
     const allowed = differences.find(x => x.case === id && x.path === path);
     if (allowed && typeof a === 'string' && typeof b === 'string' && sha256(a) === allowed.before_sha256 && sha256(b) === allowed.after_sha256) { used.add(allowed); return; }
     if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {

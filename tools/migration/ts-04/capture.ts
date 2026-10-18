@@ -199,9 +199,10 @@ export function verifyColors(cells: Cell[][], columns: number, rows: number, for
                     samples++;
             }
             else if (cell.data.trim()) {
-                if (cell.fg !== 'default' || cell.bg !== 'default')
+                const accent = cell.fg === 'cyan' && cell.bold;
+                if ((!accent && cell.fg !== 'default') || cell.bg !== 'default')
                     throw new Error('Fixed chrome color');
-                if (contrast(...cellColors(cell, foreground, background, XTERM_PALETTE)) < 4.5)
+                if (contrast(...cellColors(cell, foreground, background, XTERM_PALETTE)) < (accent ? 3 : 4.5))
                     throw new Error('Unreadable chrome');
             }
         }

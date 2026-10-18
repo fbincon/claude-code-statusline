@@ -5,6 +5,27 @@ import { inventory } from '../inventory.js';
 import { decode } from '@fbincon/statusline-core/json';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { releaseMetadataDifference } from '../compare.js';
+import { runtimeDefaultDifference } from '../compare.js';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fixtures } from '../common.js';
+
+test('approved default-collection difference is bound to one frozen stdout and rejects other changes', () => {
+  const before = JSON.parse(readFileSync(join(fixtures, 'expected.json'), 'utf8'))['runtime-null-prompt'].value[0].stdout as string;
+  const value = JSON.parse(before);
+  Object.assign(value.result, { backend_version: VERSION, native_timing: false, enabled: false, reason: 'runtime_disabled' });
+  value.result.metrics['task-active-timer'].reason = 'native_timing_disabled';
+  // Preserve the oracle's exact serialization; normalizing JSON would hide unrelated byte changes.
+  const after = before.replace('"native_timing": true', '"native_timing": false').replace('"backend_version": "2.0.0"', '"backend_version": ' + JSON.stringify(VERSION))
+    .replace('"enabled": true, "fresh": false, "reason": "not_observed"', '"enabled": false, "fresh": false, "reason": "runtime_disabled"')
+    .replace('"task-active-timer": {"value": null, "reason": "not_observed"', '"task-active-timer": {"value": null, "reason": "native_timing_disabled"');
+  assert.deepEqual(JSON.parse(after), value);
+  assert(runtimeDefaultDifference('runtime-null-prompt', '/value/0/stdout', before, after));
+  for (const changed of [after.trim(), after.replace('"observed_at_ms": null', '"observed_at_ms": 0'), after.replace('"live_metrics": false', '"live_metrics": true')])
+    assert(!runtimeDefaultDifference('runtime-null-prompt', '/value/0/stdout', before, changed));
+  assert(!runtimeDefaultDifference('other', '/value/0/stdout', before, after));
+  assert(!runtimeDefaultDifference('runtime-null-prompt', '/value/0/stdout', before.trim(), after));
+});
 
 test('release metadata exemptions cannot hide unrelated fields, versions or stdout changes', () => {
   assert(releaseMetadataDifference('ui-read', '/value/response/result/backend_version', '2.0.0', VERSION));
