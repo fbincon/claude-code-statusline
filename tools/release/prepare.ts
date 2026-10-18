@@ -6,7 +6,8 @@ import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
 import { verifyDelivery } from '../build/verify.js';
 import { sha256 } from '../build/files.js';
-import { APPROVAL_PATH, UNVERIFIED_GATES, assessStableApproval } from './approval.js';
+import { stableApprovalPath, UNVERIFIED_GATES, assessStableApproval } from './approval.js';
+import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => os + '-' + host))];
 export function assessEvidence(reports: any[], commit: string, sha256: string) {
@@ -15,7 +16,16 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
         assert.equal(report.status, 'pass', 'Failed/skipped evidence cannot pass');
         assert.equal(report.commit, commit, 'Evidence belongs to another commit');
         assert.equal(report.tarball_sha256, sha256, 'Evidence belongs to another artifact');
-        assert(!seen.has(report.target), 'Duplicate target evidence'); seen.add(report.target);
+        const runtime = report.kind === 'node-runtime';
+        const key = runtime ? report.target + '@' + report.runtime_case : report.target;
+        assert(!seen.has(key), 'Duplicate target evidence'); seen.add(key);
+        if (runtime) {
+            assert(INSTALL_TARGETS.includes(report.target), 'Unexpected runtime target');
+            assert(NODE_RUNTIME_CASES.includes(report.runtime_case), 'Unexpected runtime case');
+            assert(typeof report.node === 'string' && report.node.startsWith('v') && matchesNodeCase(report.node.slice(1), report.runtime_case), 'Wrong runtime version');
+            assert.match(report.node_sha256, /^[a-f0-9]{64}$/u);
+            assert.equal(report.runtime_tests, true, 'Missing product runtime tests');
+        }
         if (INSTALL_TARGETS.includes(report.target)) {
             assert.equal(report.offline_install, true); assert.equal(report.initially_empty_npm_cache, true);
             assert.equal(report.lifecycle_scripts, false); assert.equal(report.outside_checkout, true);
@@ -42,14 +52,15 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             assert.equal(report.installed.source.commit, commit);
         }
     }
-    assert.deepEqual([...seen].sort(), [...INSTALL_TARGETS, ...HOST_TARGETS].sort(), 'Incomplete candidate matrix');
-    return { status: 'pass', commit, tarball_sha256: sha256, installations: 8, hosts: 13, type_declarations_unavailable: typesUnavailable, public_release: false };
+    const runtimeTargets = INSTALL_TARGETS.flatMap(target => NODE_RUNTIME_CASES.map(runtime => target + '@' + runtime));
+    assert.deepEqual([...seen].sort(), [...INSTALL_TARGETS, ...HOST_TARGETS, ...runtimeTargets].sort(), 'Incomplete candidate matrix');
+    return { status: 'pass', commit, tarball_sha256: sha256, installations: INSTALL_TARGETS.length, hosts: HOST_TARGETS.length, runtime_installations: runtimeTargets.length, type_declarations_unavailable: typesUnavailable, public_release: false };
 }
 export function evidenceFiles(root: string): any[] {
     return fs.readdirSync(root, { withFileTypes: true }).flatMap(entry => {
         const path = join(root, entry.name);
         if (entry.isSymbolicLink()) throw new Error('Linked evidence is not accepted');
-        return entry.isDirectory() ? evidenceFiles(path) : ['installed.json', 'mods.json'].includes(entry.name) ? [JSON.parse(fs.readFileSync(path, 'utf8'))] : [];
+        return entry.isDirectory() ? evidenceFiles(path) : ['installed.json', 'mods.json', 'runtime.json'].includes(entry.name) ? [JSON.parse(fs.readFileSync(path, 'utf8'))] : [];
     });
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
@@ -62,9 +73,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     let approval = null;
     if (values.stable) {
         assert.equal(candidate.source.channel, 'stable', 'Stable gate requires the stable public package');
-        const raw = candidate.sourceEntries.get(APPROVAL_PATH);
+        const approvalPath = stableApprovalPath(candidate.source.application_version);
+        const raw = candidate.sourceEntries.get(approvalPath);
         assert(raw, 'Verified source archive is missing the maintainer approval');
-        approval = { path: APPROVAL_PATH, sha256: sha256(raw), record: assessStableApproval(JSON.parse(raw.toString('utf8')), candidate.source.application_version) };
+        approval = { path: approvalPath, sha256: sha256(raw), record: assessStableApproval(JSON.parse(raw.toString('utf8')), candidate.source.application_version) };
     }
     const report = { ...result, application_version: candidate.source.application_version, channel: candidate.source.channel ?? 'candidate',
         preview_ready: values.preview === true, stable_ready: values.stable === true && approval !== null,

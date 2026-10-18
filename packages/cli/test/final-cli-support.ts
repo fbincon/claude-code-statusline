@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { main } from '../src/main.js';
 import type { CliEnvironment } from '../src/main.js';
 import { assert, join, repo } from './final-support.js';
+import { traceScript } from './trace-script.js';
 export async function invoke(args: string[], environment: CliEnvironment) {
     let stdout = '', stderr = '';
     const status = await main(args, { ...environment, stdout: text => { stdout += text; }, stderr: text => { stderr += text; } });
@@ -18,11 +19,7 @@ export function subprocess(root: string, args: string[], input: string | Buffer 
 }
 export function traced(root: string, args: string[], input: string) {
     const url = pathToFileURL(join(repo, 'packages/cli/dist/src/main.js')).href;
-    const script = `import {registerHooks} from 'node:module';
-const modules=[]; registerHooks({load(url,context,next){modules.push(url);return next(url,context);}});
-const {main}=await import(${JSON.stringify(url)});
-const status=await main(${JSON.stringify(args)},{stdin:()=>${JSON.stringify(input)}});
-process.stderr.write(JSON.stringify({status,modules}));`;
+    const script = traceScript(url, args, input);
     const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8', timeout: 20000, env: { ...process.env, CLAUDE_CONFIG_DIR: root } });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stderr);

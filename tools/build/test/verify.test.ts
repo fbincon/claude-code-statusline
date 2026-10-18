@@ -1,3 +1,5 @@
+import { NODE_RUNTIME_RANGE } from '@fbincon/statusline-core/node-runtime';
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { VERSION, REPOSITORY_URL } from '@fbincon/statusline-core/release';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,15 +15,15 @@ function fixture(kind: Channel = 'candidate') {
     const entries = new Map<string, Buffer>(), put = (name: string, value: unknown) => entries.set(name, Buffer.from(typeof value === 'string' ? value : JSON.stringify(value)));
     for (const name of ['LICENSE', 'LICENSE-Unicode.txt', 'LICENSE-Wcwidth.txt', 'bin/claude-statusline.js']) put(name, 'fixture');
     const business = BUSINESS.map(name => '@fbincon/statusline-' + name), dependencies = { ...Object.fromEntries(business.map(name => [name, '0.0.0'])), koffi: '3.3.3', 'lossless-json': '4.3.1' };
-    put('package.json', { ...identity(commit, kind), ...(kind !== 'candidate' ? { publishConfig: { registry: 'https://registry.npmjs.org/', access: 'public', tag: kind === 'stable' ? 'latest' : 'beta' }, repository: { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' }, bugs: { url: REPOSITORY_URL + '/issues' } } : {}), bin: { 'claude-statusline': 'bin/claude-statusline.js' }, dependencies, optionalDependencies: Object.fromEntries(NATIVE.map(name => [name, '3.3.3'])), bundleDependencies: [...Object.keys(dependencies), ...NATIVE] });
+    put('package.json', { ...identity(commit, kind), ...(kind !== 'candidate' ? { publishConfig: { registry: 'https://registry.npmjs.org/', access: 'public', tag: kind === 'stable' ? 'latest' : 'beta' }, repository: { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' }, bugs: { url: REPOSITORY_URL + '/issues' } } : {}), engines: { node: NODE_RUNTIME_RANGE }, bin: { 'claude-statusline': 'bin/claude-statusline.js' }, dependencies, optionalDependencies: Object.fromEntries(NATIVE.map(name => [name, '3.3.3'])), bundleDependencies: [...Object.keys(dependencies), ...NATIVE] });
     for (const name of business) { put(`node_modules/${name}/package.json`, { name, version: '0.0.0' }); put(`node_modules/${name}/dist/src/entry.js`, 'export {};'); }
-    const languages = ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko'];
+    const languages = ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko'];
     put('node_modules/@fbincon/statusline-core/resources/i18n/languages.json', languages.map(code => ({ code })));
     for (const code of languages) put(`node_modules/@fbincon/statusline-core/resources/i18n/locales/${code}.json`, { example: code });
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const root = 'node_modules/@fbincon/statusline-cli/resources/' + name;
         put(root + '/.claude-plugin/plugin.json', { name, version: VERSION });
-        put(root + '/resource-manifest.json', { backend_version: VERSION, mod_version: VERSION, protocol_version: name === 'statusline-native' ? 11 : 2, files: { '.claude-plugin/plugin.json': sha256(entries.get(root + '/.claude-plugin/plugin.json')!) } });
+        put(root + '/resource-manifest.json', { backend_version: VERSION, mod_version: VERSION, protocol_version: name === 'statusline-native' ? PROTOCOL_VERSION : 2, files: { '.claude-plugin/plugin.json': sha256(entries.get(root + '/.claude-plugin/plugin.json')!) } });
     }
     for (const name of ['statusline-config', 'statusline-configure']) put(`node_modules/@fbincon/statusline-cli/resources/${name}/SKILL.md`, 'template');
     const external: Record<string, any> = {};

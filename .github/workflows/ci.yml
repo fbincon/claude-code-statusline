@@ -111,6 +111,56 @@ jobs:
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
 
+  runtime:
+    name: Node ${{ matrix.node }} / ${{ matrix.target.os }} / ${{ matrix.target.arch }}
+    needs: candidate
+    runs-on: ${{ matrix.target.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.0.0', '22.x', '24.0.0', '24.x']
+        target:
+          - { os: ubuntu-24.04, arch: x64 }
+          - { os: windows-2025, arch: x64 }
+          - { os: windows-11-arm, arch: x64, host_arch: arm64 }
+          - { os: macos-14, arch: arm64 }
+          - { os: macos-15, arch: arm64 }
+          - { os: macos-15-intel, arch: x64 }
+          - { os: macos-26, arch: arm64 }
+          - { os: macos-26-intel, arch: x64 }
+    env:
+      TS05_TARGET: ${{ matrix.target.os }}-${{ matrix.target.arch }}
+      TS03_EXPECT_PROCESS_ARCH: ${{ matrix.target.arch }}
+      TS03_EXPECT_HOST_ARCH: ${{ matrix.target.host_arch || matrix.target.arch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.candidate.outputs.commit }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          architecture: ${{ matrix.target.arch }}
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/download-artifact@v4
+        with:
+          name: ts06-candidate
+          path: ${{ runner.temp }}/candidate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          architecture: ${{ matrix.target.arch }}
+      - name: Product tests and isolated offline installation on the selected Node
+        run: node dist/typescript/tools/acceptance/runtime.js --case "${{ matrix.node }}" --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/runtime.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ts06-runtime-${{ matrix.target.os }}-${{ matrix.target.arch }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/evidence/
+          if-no-files-found: error
+
   mods:
     name: Mods / ${{ matrix.os }} / Claude ${{ matrix.claude }}
     needs: candidate
@@ -170,7 +220,7 @@ jobs:
 
   acceptance:
     name: Complete candidate evidence
-    needs: [candidate, installed, mods]
+    needs: [candidate, installed, runtime, mods]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -185,7 +235,7 @@ jobs:
           pattern: ts06-*
           path: ${{ runner.temp }}/evidence
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Require all eight targets and thirteen hosts to match the same artifact
+      - name: Require eight targets, thirteen hosts and all 32 runtime cases for the same artifact
         run: |
           release_channel=$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.RUNNER_TEMP + '/evidence/ts06-candidate/build-manifest.json')).channel")
           npm run release:prepare -- --"$release_channel" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
