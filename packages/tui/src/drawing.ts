@@ -157,7 +157,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
                     value = input.buffer + ' _';
                 if (input?.kind === 'numeric' && input.field === row.key)
                     value = input.buffer + ' _';
-                const prefix = (row.key === e.setting ? '› ' : '  ') + col(label(row), labelWidth) + '  ';
+                const prefix = (row.key === e.setting ? '› ' : '  ') + col(label(row) + ':', labelWidth) + '  ';
                 if (row.kind === 'action')
                     contentSpans(i + 1, [paint(prefix, false, row.key === e.setting), paint('Enter', true, row.key === e.setting), paint(' ' + value, false, row.key === e.setting)], row.key === e.setting);
                 else
@@ -169,7 +169,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     else {
         const scope = state.scope, values = e.matches(scope), start = state.scroll[scope] ?? 0;
         const itemWidth = Math.min(30, Math.max(18, Math.floor(p.innerWidth / 3)));
-        content(0, '  ' + col(tr('ui.drawing.on').trim(), 4) + col(tr('ui.drawing.item').trim(), itemWidth) + ' ' + tr('ui.drawing.description').trim(), true);
+        content(0, '  ' + col(tr('ui.drawing.on').trim(), 5) + col(tr('ui.drawing.item').trim(), itemWidth) + ' ' + tr('ui.drawing.description').trim(), true);
         values.slice(start, start + size.listHeight).forEach(({ item, match }, i) => {
             const selected = item.id === e.selected[scope], enabled = e.items(scope).includes(item.id);
             const label = e.adding ? tr(`items.${scope}.${item.id}.label`, {}, item.label) : e.instanceLabel(scope, item.id, state.language);
@@ -179,7 +179,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
             const points = [...shown], positions = labelMatch?.positions.filter(index => points[index] === [...label][index]) ?? [];
             const styled = (value: string, marked: number[]) => segments(value, marked).map(span => paint(span.text, span.highlighted, selected));
             const matchHint = snippet(match);
-            contentSpans(i + 1, [paint((selected ? '› ' : '  ') + (enabled ? '[x] ' : '[ ] '), false, selected), ...styled(shown, positions), paint(' ', false, selected), ...(hint ? styled(matchHint.text, matchHint.positions) : [paint(description, false, selected)])], selected);
+            contentSpans(i + 1, [paint((selected ? '› ' : '  ') + (enabled ? '[x]  ' : '[ ]  '), false, selected), ...styled(shown, positions), paint(' ', false, selected), ...(hint ? styled(matchHint.text, matchHint.positions) : [paint(description, false, selected)])], selected);
         });
         if (!values.length)
             content(1, tr('ui.drawing.no_matching_items'));

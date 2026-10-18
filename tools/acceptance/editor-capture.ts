@@ -25,9 +25,13 @@ const installed = installCandidate(values.artifact, values.commit), captures: Re
 const columns = 120, rows = 32;
 try {
     const config = installed.env.CLAUDE_CONFIG_DIR;
-    execFileSync(installed.node, [installed.entry, 'install', '--no-native-editor', '--no-experimental-slash-tui', '--no-live-metrics'], { cwd: installed.temporary, env: installed.env, timeout: 30000 });
+    const run = (args: string[]) => execFileSync(installed.node, [installed.entry, ...args], { cwd: installed.temporary, env: installed.env, timeout: 30000 });
+    run(['install', '--no-native-editor', '--no-experimental-slash-tui', '--no-live-metrics']);
+    run(['config', 'set', 'directory-style', 'home']);
     const settings = fs.readFileSync(join(config, 'settings.json'));
     for (const language of ['en', 'zh-CN']) {
+        run(['config', 'set', 'statusline-language', language]);
+        const display = fs.readFileSync(join(config, 'claude-statusline.json'));
         const pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });
         try {
             await pty.wait(text => text.includes(`\x1b[${rows};1H`));
@@ -54,11 +58,13 @@ try {
             assert.equal(pty.child.exitCode, 0);
             assert.deepEqual(pty.attributes(), pty.before, 'Terminal attributes were not restored');
             assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settings, 'Capture changed configuration');
+            assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), display, 'Capture changed display configuration');
         } finally { await pty.close(); }
     }
     const report = { status: 'pass', kind: 'installed PTY terminal-cell reconstruction; not an OS screenshot', commit: values.commit, tarball_sha256: artifact.sha256,
         application_version: artifact.source.application_version, platform: process.platform, arch: process.arch, os_release: release(), node: process.version,
         collector_sha256: artifact.source.source_hashes['tools/acceptance/editor-capture.ts'], model_calls: 0, terminal_restored: true,
+        sample_configuration: { directory_style: 'home', statusline_language: 'matches the interface language', data: 'fixed production preview samples' },
         font_sha256: Object.fromEntries(fonts.map(path => [basename(path), sha256(fs.readFileSync(path))])), captures };
     fs.writeFileSync(join(output, 'editor-capture.json'), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify({ status: 'pass', captures: captures.length, commit: values.commit, tarball_sha256: artifact.sha256 }));
