@@ -4,6 +4,10 @@
 
 Updated: **2026-10-19** (Asia/Shanghai). Delivered: **v3.1.1**. Status: **DONE** under the version-specific maintainer decision. [Machine-readable delivery evidence](external-tui-parity.delivery.json).
 
+## Subsequent regression review
+
+The v3.1.1 record below remains historical. An independent review of fixed v3.1.1 and Python v2.0.0 found six additional external-editor regressions. [v3.1.2 repairs and separate acceptance](external-tui-regressions.md) track their resolution without treating the earlier DONE state as a correctness proof.
+
 ## Decision and boundaries
 
 The maintainer approved implementation after comparing Python v2.0.0 (`9b6d2fab4bf165be280d428a874521bfbf02c7e1`) and TypeScript v3.1.0 (`10de45895d2734a8ab1eacec09b57bc89417be51`). Retain cyan headings, full-row selection, aligned columns and six languages. Restore useful external-editor information and repair presentation defects. Keep terminal-default frames and backgrounds, four pages, minimum 64×18 and full frames from 20 rows.

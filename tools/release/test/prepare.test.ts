@@ -31,9 +31,17 @@ test('stable approval is explicit, scoped to v3.0.0 and retains the exact unveri
     assert.equal(assessStableApproval(approval, '3.0.0').decision, 'accept-known-gaps');
     assert.equal(assessStableApproval({ ...approval, version: '3.1.0' }, '3.1.0').decision, 'accept-known-gaps');
     assert.equal(assessStableApproval({ ...approval, version: '3.1.1' }, '3.1.1').decision, 'accept-known-gaps');
+    const patch = { ...approval, version: '3.1.2', approved_on: '2026-10-19' };
+    assert.equal(assessStableApproval(patch, '3.1.2').decision, 'accept-known-gaps');
+    assert.throws(() => assessStableApproval({ ...patch, approved_on: '2026-10-18' }, '3.1.2'));
+    assert.throws(() => assessStableApproval({ ...approval, approved_on: '2026-10-19' }, '3.0.0'));
+    assert.throws(() => assessStableApproval(patch, '3.1.1'));
+    assert.throws(() => assessStableApproval(approval, '3.1.2'));
+    assert.throws(() => assessStableApproval({ ...patch, accepted_gaps: [...ACCEPTED_GAPS, 'failed-ci'] }, '3.1.2'));
+    assert.throws(() => assessStableApproval({ ...patch, accepted_gaps: [] }, '3.1.2'));
     assert.throws(() => assessStableApproval(approval, '3.1.0'));
     assert.throws(() => assessStableApproval({ ...approval, version: '3.1.0' }, '3.1.1'));
-    for (const version of ['3.0.0-beta.1', '3.0.1', '4.0.0']) assert.throws(() => assessStableApproval(approval, version));
+    for (const version of ['3.0.0-beta.1', '3.0.1', '3.1.3', '4.0.0']) assert.throws(() => assessStableApproval(approval, version));
     for (const value of [null, {}, { ...approval, version: '3.0.1' }, { ...approval, decision: 'all-passed' }, { ...approval, accepted_gaps: [] }, { ...approval, accepted_gaps: [...ACCEPTED_GAPS, 'failed-ci'] }])
         assert.throws(() => assessStableApproval(value, '3.0.0'));
     const failed = receipts(); failed[0].status = 'fail';
