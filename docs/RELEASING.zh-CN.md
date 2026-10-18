@@ -6,6 +6,8 @@
 
 v3.0.0 使用公开 npm 包 `@fbincon/claude-code-statusline`、npm `latest`、GitHub/Gitee 正式 Release 和 GitHub Latest。[TS-06 决定](development/typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18)仅接受本版本列出的已知缺项，不代表这些检查通过，也不放宽功能验收。保留现有 beta 选择器和已发布产物。
 
+已完成的 [v3.0.0 交付报告](development/typescript-migration/ts-06/stable-release.zh-CN.md)记录不可变源码、四项附件摘要、三轮源码绑定 CI 及公开下载验收，作为本版本的实际证据；批准不适用于其他版本。
+
 1. 固定 Node 24.21.0/npm 11.19.0。完成 `npm run check`、PR 审查、最终提交及合并 CI。`release:build` 按应用版本选择 preview/stable，拒绝显式通道与版本不匹配。
 2. 从不可变合并 SHA 执行 `npm run release:build -- --commit FULL_SHA --output NEW_DIRECTORY`。两次独立构建必须字节一致，源码/Mod/应用身份匹配；执行 `release:verify -- --artifact ABSOLUTE_TGZ --commit FULL_SHA`。在另一新目录用 `--source ABSOLUTE_SOURCE_TAR_GZ` 从交付源码重建。
 3. 必须通过八个安装目标和十三个固定宿主。执行 `release:prepare -- --stable --artifact ABSOLUTE_TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE`，从已校验源码包读取 v3.0.0 批准记录，报告其摘要和未验证范围。自动回执缺失、失败、跳过、重复或身份不一致仍失败。不暗示新增付费调用或实机验收。
@@ -30,7 +32,7 @@ v3.0.0 使用公开 npm 包 `@fbincon/claude-code-statusline`、npm `latest`、G
 7. 检查分歧后，以明确 refspec 将验证后的 main 和精确标签推送现有 Gitee SSH remote。预览 Release 使用官方 Gitee MCP，附件上传用官方 API 和现有系统钥匙环管理客户端，不导出凭据。上传同四项附件，按真实附件元数据生成说明，确认预览状态并重新下载核验；保留 GitHub 的问题/CI 主入口。
 8. 以后续 PR 记录下载证据、标签/源码/摘要和真实 CI 链接，原始数据留在忽略目录，更新跟踪 Issue。正式门槛通过前 TS-06 仍进行中。
 
-npm 命令成功退出可能早于公开可用；先等待 registry 验证及公开元数据，再开始下载验收。需要时通过已认证的[精确版本状态接口](https://api-docs.npmjs.com/#tag/Packages)区分处理状态。必须明确核对首次发布的 dist-tags：本次 registry 生成了 `0.0.0-stage` 占位版本，并在使用 `--tag beta` 时仍将预览设为 `latest`；删除 `latest` 返回 HTTP 400。在真正的 npm 稳定版交付前，将预览保留在 `beta`，`latest` 指向 registry 占位版本。占位包不是可用的状态栏产品，用户必须选择 `@beta` 或精确预览版本；不得将已存在的真正稳定版 `latest` 改为占位包。标签修正可能需要另一次官方 2FA 验证。
+npm 命令成功退出可能早于公开可用；先等待 registry 验证及公开元数据，再开始下载验收。需要时通过已认证的[精确版本状态接口](https://api-docs.npmjs.com/#tag/Packages)区分处理状态。首预览发布时，registry 生成了 `0.0.0-stage` 占位版本，并在使用 `--tag beta` 时仍将预览设为 `latest`；删除 `latest` 返回 HTTP 400。当时预览保留在 `beta`，正式版发布前将 `latest` 指向占位版本。**现 v3.0.0 已使用 `latest`，beta.1 保持 `beta`。**不得将真正稳定版的 `latest` 改为占位包；标签修正可能需要另一次官方 2FA 验证。
 
 上传/发布结果不明时先检查远端元数据和字节再重试。不可覆盖公开 npm 版本或已发布附件，修复递增 beta；部分渠道成功不算完整交付。公开核验命令为 `npm run release:downloads -- --commit FULL_SHA --output NEW_DIRECTORY`，要求 GitHub/npm 已发布。冻结 Python oracle 对比只允许明确白名单中的发布版本元数据差异。
 

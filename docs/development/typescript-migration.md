@@ -14,9 +14,9 @@ Complete TS-01–TS-06 before further performance optimization. The maintainer a
 
 Relative latency/RSS regression may be deferred. Functional or stability failures, including operations prevented by host timeouts, lost events, failed saves or memory exhaustion, remain actionable. Existing timeout, bounded-resource, locking, atomic-write, clock-precision and collector-count contracts, and physical/desktop and installation/recovery acceptance remain required.
 
-**Preview amendment, 2026-10-18:** the maintainer approved v3.0.0-beta.1, npm beta and identical GitHub/Gitee artifacts to collect missing platform feedback. Both compatible editors default on, preserving explicit disablement. Physical/desktop gaps block stable, not this preview; TS-06 remains IN_PROGRESS after preview publication. [Decision and gates](typescript-migration/ts-06/README.md).
+**Preview amendment, 2026-10-18:** the maintainer approved v3.0.0-beta.1, npm beta and identical GitHub/Gitee artifacts to collect missing platform feedback. Both compatible editors default on, preserving explicit disablement. At that handoff physical/desktop gaps blocked stable, not the preview; TS-06 remained IN_PROGRESS. The subsequent stable amendment below records the current policy. [Decision and gates](typescript-migration/ts-06/README.md).
 
-**Stable amendment, 2026-10-18:** the maintainer accepted the disclosed known gaps specifically for v3.0.0 and approved stable delivery after this task's default-collection and external-TUI fixes. Missing physical/desktop checks stay unverified; the [approval and stable gates](typescript-migration/ts-06/README.md#stable-decision-2026-10-18) supersede the prior stable-blocking policy only for this version. Automated/functional checks remain blocking. TS-06 stays IN_PROGRESS until all three channels and download checks complete.
+**Stable amendment, 2026-10-18:** the maintainer accepted the disclosed known gaps specifically for v3.0.0 and approved stable delivery after this task's default-collection and external-TUI fixes. Missing physical/desktop checks stay unverified; the [approval and stable gates](typescript-migration/ts-06/README.md#stable-decision-2026-10-18) supersede the prior stable-blocking policy only for this version. Automated/functional checks remain blocking. All three channels and public-download checks have now passed; **TS-06 is DONE**. [Stable delivery evidence](typescript-migration/ts-06/stable-release.md).
 
 ## Current state
 
@@ -24,13 +24,13 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | --- | --- |
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
-| Implementation | **TS-01–TS-05 DONE**; [TS-05 closure](typescript-migration/ts-05/README.md#closure-2026-10-16) |
-| Current task scope | TS-06 IN_PROGRESS: first preview delivered; v3.0.0 fixes and stable delivery in progress; PERF-01 remains NOT_STARTED |
-| Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; explicit [release-before checks](typescript-migration/ts-02/LINUX-20261014.md#approved-stage-and-release-gates) remain |
-| Target release and schedule | v3.0.0-beta.1 delivered on GitHub/Gitee and npm beta; v3.0.0 stable delivery approved with disclosed known gaps |
-| Next implementation work | Complete v3.0.0 fixes, final-artifact validation and stable publication; [delivery evidence](typescript-migration/ts-06/preview-release.md) |
+| Implementation | **TS-01–TS-06 DONE**; [TS-06 closure](typescript-migration/ts-06/README.md#closure-2026-10-18) |
+| Current task scope | v3.0.0 fixes and three-channel stable delivery complete; accepted gaps stay unverified; PERF-01 remains NOT_STARTED |
+| Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; [version-limited approval and unverified scope](typescript-migration/ts-06/README.md#stable-decision-2026-10-18) retained |
+| Target release and schedule | v3.0.0 delivered on npm latest, GitHub stable/Latest and Gitee stable; beta.1 and Python rollback artifacts preserved |
+| Next implementation work | Await a subsequent task to start PERF-01; [stable source, checksums and delivery evidence](typescript-migration/ts-06/stable-release.md) are its baseline |
 
-The maintainer approved TS-06 preview delivery with isolated acceptance and explicit recovery. The installed Python product remains intact. The [TS-06 record](typescript-migration/ts-06/README.md) tracks delivered preview evidence and remaining stable gates. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
+The maintainer approved preview delivery and the version-limited stable decision with isolated acceptance and explicit recovery. The personal Python installation remains intact. The [TS-06 record](typescript-migration/ts-06/README.md) tracks completed stable delivery, historical preview evidence and accepted unverified checks. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 
 TS-03 covers all 161 fixed cases with the same three approved CLI text differences and audits all 516 IDs: 471 ported, 45 complete tests assigned to TS-04, plus remaining assertions in eight mixed tests. Latest local TS validation passed 556/557 tests with one platform skip; the final [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) head passed all 43 CI jobs and eight source-bound receipts before merge `7eae7c4`. These historical TS-03 results are retained separately from the installed TS-04 acceptance. [Closure and evidence](typescript-migration/ts-03/README.md#closure-2026-10-15).
 
@@ -113,7 +113,7 @@ Use `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `VALIDATING` and `DONE` as stage st
 | TS-03 | Shared core, backend and runtime migration | TS-02 | DONE | Codex; implementation [PR #85](https://github.com/fbincon/claude-code-statusline/pull/85), merge `7eae7c4`; [closure under revised criteria](typescript-migration/ts-03/README.md#closure-2026-10-15) |
 | TS-04 | Both editors, installation and recovery | TS-03 | DONE | Codex; tested `f37e5f5`; [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91); [batches and evidence](typescript-migration/ts-04/README.md) |
 | TS-05 | Complete tooling, CI and engineering candidate | TS-04 | DONE | Codex; `fbincon/ts-05-closure`; [PR #94](https://github.com/fbincon/claude-code-statusline/pull/94), verified merge `e438a45`; [closure](typescript-migration/ts-05/README.md#closure-2026-10-16) |
-| TS-06 | Preview validation and stable delivery | TS-05 | IN_PROGRESS | v3.0.0-beta.1 |
+| TS-06 | Preview validation and stable delivery | TS-05 | DONE | v3.0.0; source `d3c8709`; [PR #99](https://github.com/fbincon/claude-code-statusline/pull/99); [delivery and accepted gaps](typescript-migration/ts-06/stable-release.md) |
 
 Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its [plan](performance/perf-01.md) records future work and evidence; it is not TS-07 and does not keep a completed migration open.
 
@@ -179,7 +179,7 @@ Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its
 
 ### TS-06 Preview and stable delivery
 
-- Under the [approved TS-06 preview amendment](typescript-migration/ts-06/README.md), defer missing physical/desktop acceptance until stable delivery. The preview collects these observations; missing results remain unverified.
+- The preview amendment deferred missing physical/desktop acceptance. The subsequent [v3.0.0-only stable decision](typescript-migration/ts-06/README.md#stable-decision-2026-10-18) accepts the recorded known gaps for publication; missing results remain unverified and functional failures remain blocking.
 - Assign version identifiers and a preview/stable plan after the compatibility decisions. Keep the Python release and recoverable artifacts available during the transition.
 - Validate the actual preview artifacts, target terminals and upgrade/recovery paths; record feedback and fixes against exact commits. Separate automated, PTY, visual and human evidence.
 - Follow the [release process](../RELEASING.md), updated for the selected distribution. Verify required checks and released artifacts before task-driven synchronization of the validated GitHub commit/tags/assets to Gitee.
@@ -187,6 +187,8 @@ Independent follow-up: **PERF-01 — NOT_STARTED**, dependent on TS-06 DONE. Its
 - Record the delivered source commit, artifact checksums, runtime and dependency versions for PERF-01. Full performance measurement or optimization is not required in this stage.
 
 **Exit:** the intended release is delivered with verified artifacts, applicable platform/physical/desktop and installation/recovery gates satisfied, and documented limitations/recovery. Disclosed D06 failures or inconclusive results do not block preview/stable delivery. A merged migration PR or a locally working executable is not a completed release.
+
+**TS-06 closure, 2026-10-18:** v3.0.0 is delivered on npm latest, GitHub stable/Latest and Gitee stable under the version-limited known-gap approval. Final-head, merge and tag CI each passed 23 jobs; independent builds, source rebuild, draft and three-channel downloads match. Three-OS public installations passed both exact version and latest. [Source identity, checksums, approval and remaining unverified scope](typescript-migration/ts-06/stable-release.md). TS-01–TS-06 are DONE; D06 remains FAIL and PERF-01 remains NOT_STARTED.
 
 ## Acceptance matrix
 
@@ -249,6 +251,7 @@ Older entries retain their then-current stage states and gates. Current rules ar
 
 | Date | Work | Result and next action |
 | --- | --- | --- |
+| 2026-10-18 | TS-06 stable fixes and delivery, [PR #99](https://github.com/fbincon/claude-code-statusline/pull/99) | v3.0.0 published on npm latest, GitHub stable/Latest and Gitee stable. Three 23-job source matrices, identical four-file builds/source rebuild, downloaded draft and three-OS public installs pass. [Final evidence](typescript-migration/ts-06/stable-release.md). TS-06 DONE under v3.0.0-only approval; missing physical/type checks remain unverified; PERF-01 NOT_STARTED. |
 | 2026-10-18 | TS-06 first preview, [implementation PR #97](https://github.com/fbincon/claude-code-statusline/pull/97) | v3.0.0-beta.1 published on GitHub/Gitee/npm beta; identical package, three 23-job source matrices and corrected three-OS public installation checks pass. [Release evidence](typescript-migration/ts-06/preview-release.md). TS-06 remains IN_PROGRESS for stable gates; PERF-01 NOT_STARTED. |
 | 2026-10-16 | TS-05 tooling, shared candidate CI and archive; PRs #92–#94 and [closure PR #95](https://github.com/fbincon/claude-code-statusline/pull/95) | Five batches complete; 856 methods / 62 tools closed; 23-job PR/main candidate CI and independent historical execution pass. [Evidence and source/artifact identities](typescript-migration/ts-05/README.md#closure-2026-10-16). TS-06 and PERF-01 remain NOT_STARTED; no public release or installed cutover. |
 | 2026-10-15 | TS-04 editors, installation and recovery, [PR #91](https://github.com/fbincon/claude-code-statusline/pull/91) | 04-A–04-E complete; 265 responsibilities with no pending IDs; 43 CI checks, eight installed targets and 13 host receipts pass, with all 380 source hashes matching. Final documentation integration/synchronization is recorded in the PR; no installed cutover or release. |

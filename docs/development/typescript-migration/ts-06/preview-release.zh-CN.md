@@ -2,6 +2,8 @@
 
 [English](preview-release.md) | **简体中文**
 
+历史快照：下文阶段状态、正式门槛及 dist-tags 记录 beta.1 交接时的情况。当前 v3.0.0 交付及接受的未验证范围见[正式报告](stable-release.zh-CN.md)；预览已发布身份及下文原始结果保持不变。
+
 发布状态：**v3.0.0-beta.1 已于 2026-10-18 通过 GitHub、Gitee 和 npm beta 交付**，公开下载及安装验收通过。TS-06 保持 **IN_PROGRESS**，PERF-01 保持 **NOT_STARTED**。[决策与正式版门槛](README.zh-CN.md) · [反馈跟踪 #96](https://github.com/fbincon/claude-code-statusline/issues/96)。
 
 ## 固定发布身份

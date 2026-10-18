@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-Status: **IN_PROGRESS**. **v3.0.0-beta.1 is published and download-verified** on GitHub, Gitee and npm beta. [Release identity, checksums and CI evidence](preview-release.md). v3.0.0 stable preparation is in progress under the version-limited decision below; publication is not yet recorded as complete. [Preview guide](../../../PREVIEW.md) · [Feedback and platform tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
+Status: **DONE** under the version-limited decision below. **v3.0.0 is published and download-verified** on npm `latest`, GitHub stable/Latest and Gitee stable. [Stable identity, checksums and CI evidence](stable-release.md). The [beta.1 delivery record](preview-release.md), npm `beta` and its immutable artifacts are preserved. [User guide](../../../USER_GUIDE.md) · [Feedback and platform tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
 
 ## Stable decision, 2026-10-18
 
@@ -12,23 +12,27 @@ The [machine-readable approval](stable-approval.json) is carried in the verified
 
 v3.0.0 uses npm `latest`, GitHub stable/Latest and a stable Gitee Release. Both editors keep their existing defaults. Native timing and advanced collection default off without saved preferences; explicit flags and saved preferences retain precedence. No PyPI upload occurs. Python v2.0.0 remains a rollback target; beta.1 remains on `beta` with its immutable assets.
 
+## Closure, 2026-10-18
+
+[PR #99](https://github.com/fbincon/claude-code-statusline/pull/99) delivered the installation defaults, external TUI restoration and stable release support. Final-head, merge and tag CI each passed all 23 jobs. The fixed source `d3c87090fed4005f9d1ec8d84d3b016e0cdd4774` rebuilt identically from its source archive; downloaded draft, npm and Gitee bytes match. All three public-download jobs passed exact-version and `latest` installations. The [complete report](stable-release.md) records every attachment, source-archived approval and remaining unverified scope. TS-06 is DONE; PERF-01 remains NOT_STARTED and requires a subsequent task. #96 remains available for missing platform observations.
+
 ## Approved preview amendment, 2026-10-18
 
-The maintainer approved a public preview to obtain unavailable macOS/Windows and other target feedback. This supersedes the earlier requirement to complete every physical/desktop check before *any* TS release. Those checks remain mandatory for stable delivery and are not passed by deferral. The supported target boundaries are unchanged. Current task delivery is the first preview; TS-06 remains in progress afterward. PERF-01 stays NOT_STARTED.
+At the preview handoff, the maintainer approved a public preview to obtain unavailable macOS/Windows and other target feedback. This superseded the earlier requirement to complete every physical/desktop check before *any* TS release. Those checks were stable gates until the version-limited decision above; deferral never passed them. The supported target boundaries are unchanged. TS-06 remained in progress after that preview; the closure above records subsequent stable delivery. PERF-01 stays NOT_STARTED.
 
-The selected package is `@fbincon/claude-code-statusline`, version `3.0.0-beta.1`, published with npm dist-tag `beta`; GitHub/Gitee use `v3.0.0-beta.1` and prerelease status. Python v2.0.0 remains the latest stable release and the rollback target. No PyPI upload occurs. Unlike historical Python previews, TS previews default both compatible editors on, preserving explicit disablement. Advanced live metrics remain opt-in.
+The selected preview package was `@fbincon/claude-code-statusline`, version `3.0.0-beta.1`, published with npm dist-tag `beta`; GitHub/Gitee use `v3.0.0-beta.1` and prerelease status. Python v2.0.0 was then the latest stable release and remains a rollback target. No PyPI upload occurred. Unlike historical Python previews, TS previews default both compatible editors on, preserving explicit disablement. Advanced live metrics remain opt-in.
 
 | Gate | Preview | Stable |
 | --- | --- | --- |
 | Fixed-source independent builds and matching bytes | Required | Required |
-| Eight installed targets / thirteen fixed hosts | Required on final head, merge and tag | Required on final product |
+| Eight installed targets / thirteen fixed hosts | Required on final head, merge and tag | Passed on final head, merge and tag |
 | Downloaded GitHub/Gitee/npm identity and installed smoke | Required | Required |
 | Physical macOS sleep/resume | Unverified; collect feedback | Unverified; accepted for v3.0.0 |
 | macOS 14 Intel physical desktop/power | Unverified | Unverified; accepted for v3.0.0 |
 | Windows 10 desktop, focus, editors and recovery | Unverified | Unverified; accepted for v3.0.0 |
 | WSL desktop launch/focus and popup | Unverified | Unverified; accepted for v3.0.0 |
 | Other target-specific power/human visual checks | Preserve exact historical scope; new gaps unverified | Unverified scope accepted for v3.0.0 |
-| Claude 2.1.296 exact declarations | Unavailable; recheck, retain official Mod tests and 2.1.294 typecheck | Recheck exact selected host |
+| Claude 2.1.296 exact declarations | Unavailable; recheck, retain official Mod tests and 2.1.294 typecheck | Unavailable; accepted for v3.0.0 only, six gaps retained |
 | Functional timeouts, event loss, writes and recovery | Blocking | Blocking |
 | D06 performance budgets | Historical FAIL disclosed | Not blocking; PERF-01 afterward |
 
