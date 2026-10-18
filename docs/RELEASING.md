@@ -13,6 +13,8 @@ v3.1.0 uses the fixed build toolchain and existing OIDC publication workflow. In
 
 ### One-time npm configuration
 
+The existing binding below was validated by the first v3.1.0 OIDC publication on 2026-10-18 and displays **Valid**. Reuse it for this repository/workflow; the two-day rule below applies when creating a new binding. [Actual publication and registry checks](development/node-regional-languages.md).
+
 Open [the npm package](https://www.npmjs.com/package/@fbincon/claude-code-statusline), choose **Settings → Trusted publishing → GitHub Actions**, and complete npm's authentication challenge. Enter:
 
 | Field | Value |
@@ -52,7 +54,9 @@ The workflow requires the tag commit on `main` and successful latest main/tag **
 
 The isolated publishing job uploads that same `.tgz` with lifecycle scripts disabled, using Node 24.21.0/npm 11.21.0. Build identity remains npm 11.19.0; the newer publishing CLI supports OIDC dist-tag operations. It verifies public SHA-256/SHA-512 bytes, sets `latest` for stable or `beta` for preview, and preserves other existing selectors. An existing identical version is a no-op only while its intended selector still matches; other states fail instead of overwriting bytes or rolling back selectors. Inspect ambiguous registry results before retrying.
 
-The `npm-publish-bundle` workflow artifact contains verified inputs/readiness; `npm-publication` contains the successful publication receipt. Only the four delivery files belong in a public Release, excluding helper scripts/reports. Dry-runs confirm preparation, not the npm binding. The first **new-version publication** confirms OIDC end to end. Then continue GitHub/Gitee publication and three-OS public-download checks below.
+The `npm-publish-bundle` workflow artifact contains verified inputs/readiness; a fresh publication that completes verification writes `npm-publication`. The existing-version verification path logs `already-published` without writing a new publication receipt or revalidating OIDC. Only the four delivery files belong in a public Release, excluding helper scripts/reports. Dry-runs confirm preparation, not the npm binding. The first **new-version publication** confirms OIDC end to end. Then continue GitHub/Gitee publication and three-OS public-download checks below.
+
+npm can accept a publish before public metadata becomes available. v3.1.0's initial attempt exhausted the verifier's approximately three-minute wait; the version then became public and the same run's failed-job retry passed as `already-published`. Inspect the [exact-version lifecycle status](https://api-docs.npmjs.com/#tag/Packages) with existing maintainer authentication when necessary, then verify anonymous metadata, package bytes and every selector before retrying. Do not submit another publish while its outcome is pending. Preserve the original publish/provenance evidence and the retry's verification result separately.
 
 ## TypeScript stable publication
 
