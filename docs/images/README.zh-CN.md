@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-[当前 TypeScript 安装包外部页面](typescript/README.zh-CN.md)包含中英文主栏、子代理、设置和布局，并记录源码/产物来源；下方 Python 原图库保留。
+[当前 TypeScript 安装包外部页面](typescript/v3.1.1/README.zh-CN.md)覆盖六语言、主栏、子代理、设置、布局和上下文操作，并记录源码／产物来源及图片校验；此前 TypeScript 捕获及下方 Python 原图库保留。
 
 最新组件实例界面见[组件编辑器捕获](composition/README.zh-CN.md)。下方保留原始跨平台图片来源。
 

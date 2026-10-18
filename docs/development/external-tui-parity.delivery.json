@@ -1,0 +1,2105 @@
+{
+  "schema_version": 1,
+  "status": "delivered",
+  "version": "3.1.1",
+  "source_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+  "tag": "v3.1.1",
+  "annotated_tag_object": "0a74c5b40456725e2e7bd15be9d77d7fb7627a47",
+  "files": [
+    {
+      "name": "fbincon-claude-code-statusline-3.1.1.tgz",
+      "bytes": 3448826,
+      "sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609"
+    },
+    {
+      "name": "claude-code-statusline-3.1.1-source.tar.gz",
+      "bytes": 19108621,
+      "sha256": "aebff6ad18db91c120df37cbbdc30fc851cdfc634adf949819f47d1ec51868d8"
+    },
+    {
+      "name": "build-manifest.json",
+      "bytes": 952,
+      "sha256": "be28c29c4617dfea66b4029dfb78d2125d5b326dd5d7af1224cc2c1b3f1ded86"
+    },
+    {
+      "name": "SHA256SUMS",
+      "bytes": 302,
+      "sha256": "1f5be22e6e2ee5a64faaf788fa2bb8dbd294bff4f95c6a27bd6fdc4e34a40582"
+    }
+  ],
+  "expected_npm_integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+  "build": {
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "independent_identical_builds": 2,
+    "source_archive_independent_builds": 2,
+    "source_archive_rebuild_identical": true,
+    "packaged_files": 667
+  },
+  "local_check": {
+    "tests": 969,
+    "passes": 965,
+    "platform_skips": 4,
+    "failures": 0,
+    "generated_resources": 36,
+    "documentation_links": 2051,
+    "locale_keys": {
+      "zh-CN": 1370,
+      "zh-HK": 1370,
+      "zh-TW": 1370,
+      "ja": 1370,
+      "en": 1370,
+      "ko": 1370
+    },
+    "new_tui_product_tests": 11
+  },
+  "installed_local": {
+    "checks": 10,
+    "status": "pass",
+    "source_and_package_bound": true
+  },
+  "capture": {
+    "status": "pass",
+    "frames": 252,
+    "selected_images": 50,
+    "images_reviewed": 50,
+    "languages": [
+      "en",
+      "zh-CN",
+      "zh-TW",
+      "zh-HK",
+      "ja",
+      "ko"
+    ],
+    "cancel_preserved_configuration_bytes": true,
+    "terminal_restored": true,
+    "model_calls": 0,
+    "os_screenshot": false,
+    "terminal_color_capacity": 256,
+    "common_size": "120x32",
+    "boundary_sizes": [
+      "32x12",
+      "64x18",
+      "64x19",
+      "64x20",
+      "80x24",
+      "120x30",
+      "80x48"
+    ]
+  },
+  "approval": {
+    "path": "docs/releases/approvals/v3.1.1.json",
+    "sha256": "7352650c32c059fb522ad11c19e804cda879d415a5f942168e667a24a82d2cbd",
+    "accepted_existing_gaps": 6,
+    "new_failures_waived": false
+  },
+  "historical": {
+    "D06": "FAIL: 104 pass / 60 fail / 28 inconclusive",
+    "PERF-01": "NOT_STARTED",
+    "python_archive_modified": false,
+    "previous_images_modified": false,
+    "root_readmes_modified": false,
+    "personal_installation_changed": false,
+    "published_assets_replaced": false,
+    "public_release_tag_moved": false
+  },
+  "implementation_pr": 104,
+  "main_ci": 39145660480,
+  "pr_ci": 39143608031,
+  "tag_ci": 39147113769,
+  "rendering_regressions": {
+    "product_tests": 11,
+    "languages": 6,
+    "color_depths": [
+      0,
+      8,
+      16,
+      256
+    ],
+    "separate_from_screenshot_inspection": true
+  },
+  "acceptance_correction_pr": 105,
+  "final_reviewed_pr_head": "4e741e7d5ddb85adeb04cc4f973dad3f48698966",
+  "unpublished_tag_correction": {
+    "old_object": "e60fcb548f5aefff2b0d5d13ed6fa49a12ed07ed",
+    "old_source": "ff4f0de04f45b1d1d7a9e81010cfd2e122dc8b5c",
+    "new_object": "0a74c5b40456725e2e7bd15be9d77d7fb7627a47",
+    "new_source": "b484dc9acc87bc55a2833904dd332827307603ca",
+    "exact_old_ref_lease": true,
+    "v311_package_or_release_existed": false,
+    "previous_released_tags_assets_untouched": true
+  },
+  "runtime_resources_byte_identical_after_test_fixes": 666,
+  "runtime_package_files": 667,
+  "source_rebuild_network_profile": "IPv4-first DNS, normal TLS, six locked SHA512 dependencies matched; no source modifications",
+  "final_image_review": {
+    "fresh_captures": 252,
+    "images": 50,
+    "byte_identical_to_inspected_initial_images": 50
+  },
+  "source_bound_ci": [
+    {
+      "stage": "reviewed PR #105 head",
+      "commit": "4e741e7d5ddb85adeb04cc4f973dad3f48698966",
+      "run": 39143608031,
+      "attempt": 2,
+      "passed_jobs": 55
+    },
+    {
+      "stage": "main merge",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "run": 39145660480,
+      "attempt": 1,
+      "passed_jobs": 55
+    },
+    {
+      "stage": "v3.1.1 tag",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "run": 39147113769,
+      "attempt": 1,
+      "passed_jobs": 55
+    }
+  ],
+  "readiness": {
+    "status": "pass",
+    "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+    "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+    "installations": 8,
+    "hosts": 13,
+    "runtime_installations": 32,
+    "type_declarations_unavailable": [
+      "darwin-2.1.296/statusline-native",
+      "darwin-2.1.296/statusline-runtime",
+      "linux-2.1.296/statusline-native",
+      "linux-2.1.296/statusline-runtime",
+      "win32-2.1.296/statusline-native",
+      "win32-2.1.296/statusline-runtime"
+    ],
+    "public_release": false,
+    "application_version": "3.1.1",
+    "channel": "stable",
+    "preview_ready": false,
+    "stable_ready": true,
+    "unverified_gates": [
+      "physical-macos-sleep",
+      "macos-14-intel-desktop-power",
+      "windows-10-desktop",
+      "wsl-desktop-popup",
+      "remaining-target-power-and-human-visual"
+    ],
+    "maintainer_approval": {
+      "path": "docs/releases/approvals/v3.1.1.json",
+      "sha256": "7352650c32c059fb522ad11c19e804cda879d415a5f942168e667a24a82d2cbd",
+      "record": {
+        "schema_version": 1,
+        "version": "3.1.1",
+        "decision": "accept-known-gaps",
+        "approved_by": "fbincon",
+        "approved_on": "2026-10-18",
+        "authority": "The maintainer explicitly selected acceptance and honest disclosure of the same six existing gaps for v3.1.1, selected retaining cyan headings with complete external-TUI repairs, and approved this implementation plan and stable npm/GitHub/Gitee delivery. New functional or automated failures are not waived.",
+        "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+        "accepted_gaps": [
+          "physical-macos-sleep",
+          "macos-14-intel-desktop-power",
+          "windows-10-desktop",
+          "wsl-desktop-popup",
+          "remaining-target-power-and-human-visual",
+          "claude-2.1.296-exact-declarations"
+        ]
+      }
+    },
+    "deferred_to_stable": []
+  },
+  "installed_receipts": [
+    {
+      "status": "pass",
+      "target": "macos-14-arm64",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.21.0",
+      "node_sha256": "e4b5a3af0e05c75de2eae013904145f40fe7fc2a6e6f17510128bf45cca4e79b",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-arm64",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.21.0",
+      "node_sha256": "e4b5a3af0e05c75de2eae013904145f40fe7fc2a6e6f17510128bf45cca4e79b",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-intel-x64",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v24.21.0",
+      "node_sha256": "7abcf39bd37ab251015337ff75304d7555f0d8e88c6e0fbf04bce8ce34636f49",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-arm64",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.21.0",
+      "node_sha256": "e4b5a3af0e05c75de2eae013904145f40fe7fc2a6e6f17510128bf45cca4e79b",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-intel-x64",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v24.21.0",
+      "node_sha256": "7abcf39bd37ab251015337ff75304d7555f0d8e88c6e0fbf04bce8ce34636f49",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "ubuntu-24.04-x64",
+      "platform": "linux",
+      "process_arch": "x64",
+      "node": "v24.21.0",
+      "node_sha256": "7fde7b8afa198da66257f42ee2001d874c7355631e6d1579a5fb5ef1f246df4c",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-11-arm-x64",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v24.21.0",
+      "node_sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-2025-x64",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v24.21.0",
+      "node_sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    }
+  ],
+  "runtime_receipts": [
+    {
+      "status": "pass",
+      "target": "macos-14-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "22.0.0",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v22.0.0",
+      "node_sha256": "9507031f6769f2381eae353b3614bafa871c957dc6f2ae86a3af948acdf9b178",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-14-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "22.x",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v22.23.3",
+      "node_sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-14-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "24.0.0",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.0.0",
+      "node_sha256": "f28f6fdb2b24cdfc3785f4f8b46fa7b392b0ec5892b075b434049c7d05cfc956",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-14-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "24.x",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.22.0",
+      "node_sha256": "b468fb9c67427c9d3aec07ee1105e63020923a631a9a2a00beb71a7ba3768bfd",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "22.0.0",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v22.0.0",
+      "node_sha256": "9507031f6769f2381eae353b3614bafa871c957dc6f2ae86a3af948acdf9b178",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "22.x",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v22.23.3",
+      "node_sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "24.0.0",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.0.0",
+      "node_sha256": "f28f6fdb2b24cdfc3785f4f8b46fa7b392b0ec5892b075b434049c7d05cfc956",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "24.x",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.22.0",
+      "node_sha256": "b468fb9c67427c9d3aec07ee1105e63020923a631a9a2a00beb71a7ba3768bfd",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-intel-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.0.0",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v22.0.0",
+      "node_sha256": "7bf07129d8283073d722ff32070b2976c6e00c9690ffea54d6266d811f1b843e",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-intel-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.x",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v22.23.3",
+      "node_sha256": "fdb8d4da9332c2c99c3b2ae4bad4672bfef225ecd603e656cd1378b3644583a2",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-intel-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.0.0",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v24.0.0",
+      "node_sha256": "b1a2a148a85c0cb98f1a0e675ab27a63c3f4c11bab5063745543ad51690aeaa0",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-15-intel-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.x",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v24.22.0",
+      "node_sha256": "83dc50ed654b9494c722c4b9a836ce423242a9bd3214b99935e5a5c483ca025b",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "22.0.0",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v22.0.0",
+      "node_sha256": "9507031f6769f2381eae353b3614bafa871c957dc6f2ae86a3af948acdf9b178",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "22.x",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v22.23.3",
+      "node_sha256": "68f4d07ca49e0500cc135c7e0a445093e228e42e126ac22306d045f0a8c2636b",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "24.0.0",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.0.0",
+      "node_sha256": "f28f6fdb2b24cdfc3785f4f8b46fa7b392b0ec5892b075b434049c7d05cfc956",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-arm64",
+      "kind": "node-runtime",
+      "runtime_case": "24.x",
+      "platform": "darwin",
+      "process_arch": "arm64",
+      "node": "v24.22.0",
+      "node_sha256": "b468fb9c67427c9d3aec07ee1105e63020923a631a9a2a00beb71a7ba3768bfd",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-intel-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.0.0",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v22.0.0",
+      "node_sha256": "7bf07129d8283073d722ff32070b2976c6e00c9690ffea54d6266d811f1b843e",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-intel-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.x",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v22.23.3",
+      "node_sha256": "fdb8d4da9332c2c99c3b2ae4bad4672bfef225ecd603e656cd1378b3644583a2",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-intel-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.0.0",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v24.0.0",
+      "node_sha256": "b1a2a148a85c0cb98f1a0e675ab27a63c3f4c11bab5063745543ad51690aeaa0",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "macos-26-intel-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.x",
+      "platform": "darwin",
+      "process_arch": "x64",
+      "node": "v24.22.0",
+      "node_sha256": "83dc50ed654b9494c722c4b9a836ce423242a9bd3214b99935e5a5c483ca025b",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "ubuntu-24.04-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.0.0",
+      "platform": "linux",
+      "process_arch": "x64",
+      "node": "v22.0.0",
+      "node_sha256": "0570891fc6e07540b25f18b753445fc16d4428b8a894cca5cf9805c2feee230f",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "ubuntu-24.04-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.x",
+      "platform": "linux",
+      "process_arch": "x64",
+      "node": "v22.23.3",
+      "node_sha256": "fde6a4bf8d0562f7751d1a2d6cb9b417c4cfe107bbcb0aa3e9a24e125e348f48",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "ubuntu-24.04-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.0.0",
+      "platform": "linux",
+      "process_arch": "x64",
+      "node": "v24.0.0",
+      "node_sha256": "5677177955d00aa75909df3490120a2e2a2bba80ebcc66a505e8f9d7a5f0b463",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "ubuntu-24.04-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.x",
+      "platform": "linux",
+      "process_arch": "x64",
+      "node": "v24.22.0",
+      "node_sha256": "67ca5783febb8bf85736c79fcdd92c8d6d465a0eb2a082672bcdfa76a506751c",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-11-arm-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.0.0",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v22.0.0",
+      "node_sha256": "db174445b3d28314772bc3918e39d8543cfbd18d542cf2a662f431f5cdc259ea",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-11-arm-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.x",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v22.23.3",
+      "node_sha256": "9c9245166b4a8e182e0b797da9c20136117ff24368eaff1fec8343a123c8db0e",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-11-arm-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.0.0",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v24.0.0",
+      "node_sha256": "ade7ce4d4ff97447aa4fdcf2ae9e9094cbfaca0b135475cac621349bc2d335ab",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-11-arm-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.x",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v24.22.0",
+      "node_sha256": "ba93f9a70bd86fce3ebbb39ec758501458453467aa92a34a0a3602d1e3fc2b9c",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-2025-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.0.0",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v22.0.0",
+      "node_sha256": "db174445b3d28314772bc3918e39d8543cfbd18d542cf2a662f431f5cdc259ea",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-2025-x64",
+      "kind": "node-runtime",
+      "runtime_case": "22.x",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v22.23.3",
+      "node_sha256": "9c9245166b4a8e182e0b797da9c20136117ff24368eaff1fec8343a123c8db0e",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-2025-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.0.0",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v24.0.0",
+      "node_sha256": "ade7ce4d4ff97447aa4fdcf2ae9e9094cbfaca0b135475cac621349bc2d335ab",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    },
+    {
+      "status": "pass",
+      "target": "windows-2025-x64",
+      "kind": "node-runtime",
+      "runtime_case": "24.x",
+      "platform": "win32",
+      "process_arch": "x64",
+      "node": "v24.22.0",
+      "node_sha256": "ba93f9a70bd86fce3ebbb39ec758501458453467aa92a34a0a3602d1e3fc2b9c",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "lifecycle_scripts": false,
+      "offline_install": true,
+      "initially_empty_npm_cache": true,
+      "outside_checkout": true,
+      "path_excludes_python_and_compilers": true,
+      "runtime_tests": true,
+      "checks": {
+        "package": true,
+        "modules": true,
+        "rendering": true,
+        "entry": true,
+        "relocation": true,
+        "shell": true,
+        "native_protocol": true,
+        "external_editor": true,
+        "recovery": true,
+        "python_upgrade": true
+      }
+    }
+  ],
+  "host_receipts": [
+    {
+      "status": "pass",
+      "target": "darwin-2.1.288",
+      "platform": "darwin",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.288",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.288"
+          }
+        },
+        "statusline-runtime": {}
+      }
+    },
+    {
+      "status": "pass",
+      "target": "darwin-2.1.289",
+      "platform": "darwin",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.289",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.289"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.289"
+          }
+        }
+      }
+    },
+    {
+      "status": "pass",
+      "target": "darwin-2.1.294",
+      "platform": "darwin",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.294",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.294"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.294"
+          }
+        }
+      }
+    },
+    {
+      "status": "pass",
+      "target": "darwin-2.1.296",
+      "platform": "darwin",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.296",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "unavailable",
+            "reason": "This exact host does not emit /plugin-types declarations; no typecheck pass is claimed"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "unavailable",
+            "reason": "This exact host does not emit /plugin-types declarations; no typecheck pass is claimed"
+          }
+        }
+      }
+    },
+    {
+      "status": "pass",
+      "target": "linux-2.1.287",
+      "platform": "linux",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.287",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.287"
+          }
+        },
+        "statusline-runtime": {}
+      }
+    },
+    {
+      "status": "pass",
+      "target": "linux-2.1.288",
+      "platform": "linux",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.288",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.288"
+          }
+        },
+        "statusline-runtime": {}
+      }
+    },
+    {
+      "status": "pass",
+      "target": "linux-2.1.289",
+      "platform": "linux",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.289",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.289"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.289"
+          }
+        }
+      }
+    },
+    {
+      "status": "pass",
+      "target": "linux-2.1.294",
+      "platform": "linux",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.294",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.294"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.294"
+          }
+        }
+      }
+    },
+    {
+      "status": "pass",
+      "target": "linux-2.1.296",
+      "platform": "linux",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.296",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "unavailable",
+            "reason": "This exact host does not emit /plugin-types declarations; no typecheck pass is claimed"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "unavailable",
+            "reason": "This exact host does not emit /plugin-types declarations; no typecheck pass is claimed"
+          }
+        }
+      }
+    },
+    {
+      "status": "pass",
+      "target": "win32-2.1.288",
+      "platform": "win32",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.288",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.288"
+          }
+        },
+        "statusline-runtime": {}
+      }
+    },
+    {
+      "status": "pass",
+      "target": "win32-2.1.289",
+      "platform": "win32",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.289",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.289"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.289"
+          }
+        }
+      }
+    },
+    {
+      "status": "pass",
+      "target": "win32-2.1.294",
+      "platform": "win32",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.294",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.294"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "pass",
+            "host": "2.1.294"
+          }
+        }
+      }
+    },
+    {
+      "status": "pass",
+      "target": "win32-2.1.296",
+      "platform": "win32",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "host": "2.1.296",
+      "model_calls": 0,
+      "mods": {
+        "statusline-native": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "unavailable",
+            "reason": "This exact host does not emit /plugin-types declarations; no typecheck pass is claimed"
+          }
+        },
+        "statusline-runtime": {
+          "validation": "pass",
+          "official_tests": "pass",
+          "types": {
+            "status": "unavailable",
+            "reason": "This exact host does not emit /plugin-types declarations; no typecheck pass is claimed"
+          }
+        }
+      }
+    }
+  ],
+  "github_draft": {
+    "id": 416587715,
+    "draft": true,
+    "prerelease": false,
+    "verified_asset_inventory": 4,
+    "download_verified_files": 4,
+    "verify_release_files": 667,
+    "offline_installed_checks": 10
+  },
+  "npm_dry_run": {
+    "run": 39148939884,
+    "status": "success",
+    "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+    "main_ci": 39145660480,
+    "tag_ci": 39147113769,
+    "registry_version_previously_published": false,
+    "publisher_skipped": true,
+    "new_upload": false
+  },
+  "completed_on": "2026-10-19",
+  "timezone": "Asia/Shanghai",
+  "readiness_snapshot_phase": "Prepublication verification; public_release=false describes the input package before publication.",
+  "publication": {
+    "npm": {
+      "url": "https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.1.1",
+      "name": "@fbincon/claude-code-statusline",
+      "version": "3.1.1",
+      "published_at": "2026-10-18T17:27:50.672Z",
+      "dist_tags": {
+        "beta": "3.0.0-beta.1",
+        "latest": "3.1.1"
+      },
+      "dist": {
+        "shasum": "5b21d40fbb1284e3d014aeda0b48c510f5a34378",
+        "tarball": "https://registry.npmjs.org/@fbincon/claude-code-statusline/-/claude-code-statusline-3.1.1.tgz",
+        "fileCount": 667,
+        "integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+        "signatures": [
+          {
+            "sig": "MEUCIBGkYbLMI8ZhoAvzOPyDs+2U6N1kVa3R3wOl1cqbN1fTAiEA/H1K4SgURjiTnwl2iTH0atQzzRimzLNGSFpdZHaLmEI=",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          {
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+            "sig": "MEQCIHW6dDDVqRR8vmNFsKGHf0USuIWkhJ3b3uNgA03I5P9KAiBp4O8LEN95oR6+qntwpWjSfEAoWEtB0lBUXLC6N9Hnvg=="
+          }
+        ],
+        "attestations": {
+          "url": "https://registry.npmjs.org/-/npm/v1/attestations/@fbincon%2fclaude-code-statusline@3.1.1",
+          "provenance": {
+            "predicateType": "https://slsa.dev/provenance/v1"
+          }
+        },
+        "unpackedSize": 12188647
+      },
+      "dry_run": 39148939884,
+      "live_run": 39149157401,
+      "live_attempts": 2,
+      "final_result": "success",
+      "initial_publish_job": 117739146705,
+      "signed_provenance_log_index": 3314357879,
+      "initial_upload_accepted_at": "2026-10-18T17:21:38Z",
+      "initial_verification_result": "Registry processing exceeded 175-second visibility limit; no duplicate upload was requested.",
+      "recovery_job": 117740757942,
+      "recovery_action": "already-published",
+      "recovery_oidc_verified": false,
+      "recovery_uploaded_package": false,
+      "anonymous_package_bytes_verified": true
+    },
+    "github": {
+      "id": 416587715,
+      "url": "https://github.com/fbincon/claude-code-statusline/releases/tag/v3.1.1",
+      "published_at": "2026-10-18T17:29:37Z",
+      "draft": false,
+      "prerelease": false,
+      "latest": true,
+      "assets": [
+        {
+          "id": 654017541,
+          "name": "build-manifest.json",
+          "size": 952,
+          "digest": "sha256:be28c29c4617dfea66b4029dfb78d2125d5b326dd5d7af1224cc2c1b3f1ded86",
+          "browser_download_url": "https://github.com/fbincon/claude-code-statusline/releases/download/v3.1.1/build-manifest.json"
+        },
+        {
+          "id": 654017543,
+          "name": "claude-code-statusline-3.1.1-source.tar.gz",
+          "size": 19108621,
+          "digest": "sha256:aebff6ad18db91c120df37cbbdc30fc851cdfc634adf949819f47d1ec51868d8",
+          "browser_download_url": "https://github.com/fbincon/claude-code-statusline/releases/download/v3.1.1/claude-code-statusline-3.1.1-source.tar.gz"
+        },
+        {
+          "id": 654017539,
+          "name": "fbincon-claude-code-statusline-3.1.1.tgz",
+          "size": 3448826,
+          "digest": "sha256:364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+          "browser_download_url": "https://github.com/fbincon/claude-code-statusline/releases/download/v3.1.1/fbincon-claude-code-statusline-3.1.1.tgz"
+        },
+        {
+          "id": 654017542,
+          "name": "SHA256SUMS",
+          "size": 302,
+          "digest": "sha256:1f5be22e6e2ee5a64faaf788fa2bb8dbd294bff4f95c6a27bd6fdc4e34a40582",
+          "browser_download_url": "https://github.com/fbincon/claude-code-statusline/releases/download/v3.1.1/SHA256SUMS"
+        }
+      ],
+      "anonymous_four_file_download_verified": true
+    },
+    "gitee": {
+      "id": 1216887,
+      "url": "https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.1.1",
+      "created_at": "2026-10-19T01:30:03+08:00",
+      "prerelease": false,
+      "target_commitish": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "annotated_tag_object": "0a74c5b40456725e2e7bd15be9d77d7fb7627a47",
+      "public": true,
+      "assets": [
+        {
+          "browser_download_url": "https://gitee.com/fbincon/claude-code-statusline/releases/download/v3.1.1/fbincon-claude-code-statusline-3.1.1.tgz",
+          "name": "fbincon-claude-code-statusline-3.1.1.tgz"
+        },
+        {
+          "browser_download_url": "https://gitee.com/fbincon/claude-code-statusline/releases/download/v3.1.1/claude-code-statusline-3.1.1-source.tar.gz",
+          "name": "claude-code-statusline-3.1.1-source.tar.gz"
+        },
+        {
+          "browser_download_url": "https://gitee.com/fbincon/claude-code-statusline/releases/download/v3.1.1/build-manifest.json",
+          "name": "build-manifest.json"
+        },
+        {
+          "browser_download_url": "https://gitee.com/fbincon/claude-code-statusline/releases/download/v3.1.1/SHA256SUMS",
+          "name": "SHA256SUMS"
+        }
+      ],
+      "anonymous_four_file_download_verified": true,
+      "verified_package_files": 667,
+      "offline_installed_checks": 10,
+      "installation_links_verified": true,
+      "automatic_archives_are_delivery_attachments": false
+    },
+    "public_download_ci": {
+      "run": 39149828588,
+      "attempt": 1,
+      "status": "success",
+      "jobs": 6,
+      "source_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "verifier_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "receipts": [
+        {
+          "artifact_name": "public-downloads-ubuntu-24.04-24.x",
+          "artifact_id": 12145135256,
+          "artifact_sha256": "7ed998e55524f8424930474edd4f65da3853ac170865bc6ae5497f42385c296c",
+          "status": "pass",
+          "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "verifier_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "tag": "v3.1.1",
+          "channel": "stable",
+          "dist_tags": {
+            "beta": "3.0.0-beta.1",
+            "latest": "3.1.1"
+          },
+          "platform": "linux",
+          "arch": "x64",
+          "node": "v24.22.0",
+          "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+          "registry_integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+          "installations": [
+            {
+              "selector": "3.1.1",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            },
+            {
+              "selector": "latest",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            }
+          ]
+        },
+        {
+          "artifact_name": "public-downloads-ubuntu-24.04-22.x",
+          "artifact_id": 12145006535,
+          "artifact_sha256": "448ad583d14b2d1b62431170033b719eea6e3aca849b899b929faad2f898060b",
+          "status": "pass",
+          "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "verifier_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "tag": "v3.1.1",
+          "channel": "stable",
+          "dist_tags": {
+            "beta": "3.0.0-beta.1",
+            "latest": "3.1.1"
+          },
+          "platform": "linux",
+          "arch": "x64",
+          "node": "v22.23.3",
+          "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+          "registry_integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+          "installations": [
+            {
+              "selector": "3.1.1",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            },
+            {
+              "selector": "latest",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            }
+          ]
+        },
+        {
+          "artifact_name": "public-downloads-macos-15-22.x",
+          "artifact_id": 12144626960,
+          "artifact_sha256": "681df428e8996962bd7d5fe78b40f946e495de08ee637d6a08ce0e7f57c6672b",
+          "status": "pass",
+          "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "verifier_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "tag": "v3.1.1",
+          "channel": "stable",
+          "dist_tags": {
+            "beta": "3.0.0-beta.1",
+            "latest": "3.1.1"
+          },
+          "platform": "darwin",
+          "arch": "arm64",
+          "node": "v22.23.3",
+          "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+          "registry_integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+          "installations": [
+            {
+              "selector": "3.1.1",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            },
+            {
+              "selector": "latest",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            }
+          ]
+        },
+        {
+          "artifact_name": "public-downloads-macos-15-24.x",
+          "artifact_id": 12144403910,
+          "artifact_sha256": "c8e8369b19212cee363db924b7fa86fca72160036b3ea46eeed94c57035eec12",
+          "status": "pass",
+          "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "verifier_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "tag": "v3.1.1",
+          "channel": "stable",
+          "dist_tags": {
+            "beta": "3.0.0-beta.1",
+            "latest": "3.1.1"
+          },
+          "platform": "darwin",
+          "arch": "arm64",
+          "node": "v24.22.0",
+          "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+          "registry_integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+          "installations": [
+            {
+              "selector": "3.1.1",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            },
+            {
+              "selector": "latest",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            }
+          ]
+        },
+        {
+          "artifact_name": "public-downloads-windows-2025-22.x",
+          "artifact_id": 12144349147,
+          "artifact_sha256": "55a2988604cd7a1f1c444bf8be262b4041ffd23e42490c088a299b46f579b66a",
+          "status": "pass",
+          "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "verifier_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "tag": "v3.1.1",
+          "channel": "stable",
+          "dist_tags": {
+            "beta": "3.0.0-beta.1",
+            "latest": "3.1.1"
+          },
+          "platform": "win32",
+          "arch": "x64",
+          "node": "v22.23.3",
+          "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+          "registry_integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+          "installations": [
+            {
+              "selector": "3.1.1",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            },
+            {
+              "selector": "latest",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            }
+          ]
+        },
+        {
+          "artifact_name": "public-downloads-windows-2025-24.x",
+          "artifact_id": 12144244779,
+          "artifact_sha256": "1b12d2fc550e94b5ab68dc399bc3fcde55d69ff1b4e1e60a02af0d4c953fd2ba",
+          "status": "pass",
+          "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "verifier_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+          "tag": "v3.1.1",
+          "channel": "stable",
+          "dist_tags": {
+            "beta": "3.0.0-beta.1",
+            "latest": "3.1.1"
+          },
+          "platform": "win32",
+          "arch": "x64",
+          "node": "v24.22.0",
+          "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+          "registry_integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+          "installations": [
+            {
+              "selector": "3.1.1",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            },
+            {
+              "selector": "latest",
+              "status": "pass",
+              "initially_empty_cache": true,
+              "lifecycle_scripts": false
+            }
+          ]
+        }
+      ]
+    },
+    "local_public_downloads": {
+      "status": "pass",
+      "commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "verifier_commit": "b484dc9acc87bc55a2833904dd332827307603ca",
+      "tag": "v3.1.1",
+      "channel": "stable",
+      "dist_tags": {
+        "beta": "3.0.0-beta.1",
+        "latest": "3.1.1"
+      },
+      "platform": "linux",
+      "arch": "x64",
+      "node": "v24.21.0",
+      "tarball_sha256": "364a0c7fb3c8e7d1715fe5c8d0d5a77e65926bcb3dd6f1c00b3035fb6a73e609",
+      "registry_integrity": "sha512-u6f1IdIBOImlz9be/X+kGsMzT061TPpRXqDSYD572HoxGs87mPZMKs76CHAqPWNnu5KydhzgU8D3cq0bfreZ8A==",
+      "installations": [
+        {
+          "selector": "3.1.1",
+          "status": "pass",
+          "initially_empty_cache": true,
+          "lifecycle_scripts": false
+        },
+        {
+          "selector": "latest",
+          "status": "pass",
+          "initially_empty_cache": true,
+          "lifecycle_scripts": false
+        }
+      ]
+    }
+  },
+  "gallery": {
+    "path": "docs/images/typescript/v3.1.1/provenance.json",
+    "sha256": "d6cc71e63046cac3ea8bfbe40b89d4a45ee30c8467beac32ee421ef0ee0c5b4d",
+    "images": 50,
+    "captured_frames": 252,
+    "all_selected_image_sizes_and_hashes_checked": true,
+    "raw_capture_output_ignored": true
+  }
+}
