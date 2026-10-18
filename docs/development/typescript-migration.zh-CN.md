@@ -13,6 +13,8 @@ TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾�
 
 独立的 v3.1.1 外部 TUI 呈现修复后续工作为 **DONE**：npm latest、GitHub stable／Latest 和 Gitee stable 均交付一致产物，六项公开 Node 22／24 安装作业通过；保留六语言发布、接受缺口边界及已公开 Python 参考。[实现、验收与交付](external-tui-parity.zh-CN.md)。
 
+后续独立审查确认的六项回归及 v3.1.2 修复使用[单独实现与交付记录](external-tui-regressions.zh-CN.md)，历史迁移及 v3.1.1 结果继续保留。
+
 ## 当前决策：2026-10-15
 
 先完成 TS-01～TS-06，再进行后续性能优化。维护者已批准 [D06 适用范围修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)：完整 D06 测量及性能预算达标不再阻塞 TS-03～TS-06，包括预览与正式交付。独立 [PERF-01](performance/perf-01.zh-CN.md) 在 TS-06 后执行，当前保持 **NOT_STARTED**。

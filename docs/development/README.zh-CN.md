@@ -10,6 +10,8 @@
 
 ## 技术文档导航
 
+- [外部 TUI 回归修复](external-tui-regressions.zh-CN.md)：v3.1.2 目录说明、文字、导航、颜色和通知修复。
+
 - [外部 TUI 呈现修复](external-tui-parity.zh-CN.md)：v3.1.1 绘制、上下文操作与源码绑定验收。
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [TypeScript 重构计划与进度](typescript-migration.zh-CN.md)：当前状态、范围、阶段、决策、验收及会话交接。

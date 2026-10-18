@@ -3,6 +3,12 @@
 **English** | [简体中文](RELEASING.zh-CN.md)
 
 
+## v3.1.2 external-TUI regression delivery
+
+Use the existing stable procedure with the [v3.1.2-only approval](releases/approvals/v3.1.2.json), exact per-version approval date and unchanged functional gates. Require final-head/merge/tag full CI, eight installed targets, 32 Node cases and thirteen hosts, reproducible builds/source rebuild, extended installed PTY evidence and identical verified attachments before npm/GitHub/Gitee publication. [Release notes](releases/v3.1.2.md) · [Repair and delivery evidence](development/external-tui-regressions.md).
+
+Ordinary documentation-only PR/push changes use a strict Markdown allowlist and necessary docs/whitespace checks. Version, approval JSON, generated resources, workflows, unknown paths, tags and manual runs require full CI. The existing aggregate gate remains required and fails closed; documentation runs produce no releasable acceptance receipts. Approval is version-limited and never waives failed automated evidence.
+
 ## Current external-TUI stable delivery
 
 v3.1.1 retains the existing Node 22/24 matrix, eight installation targets, thirteen hosts and OIDC publication workflow. Its [version-specific approval](releases/approvals/v3.1.1.json) accepts the same six disclosed gaps without waiving new failures. Require final-head, merge and tag CI, identical independent builds/source rebuild, installed extended TUI capture and verified draft attachments before publication. Preserve all existing selectors except advancing npm `latest` and GitHub Latest to this stable release. [Release notes](releases/v3.1.1.md) · [Implementation and evidence](development/external-tui-parity.md).

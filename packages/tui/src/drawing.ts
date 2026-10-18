@@ -38,7 +38,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     state.ensureVisible(size.listHeight);
     canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : ''))]);
     const description = e.detail
-        ? tr('ui.drawing.edit_item_format') + e.instanceLabel(e.detail.scope, e.detail.id, state.language)
+        ? tr('ui.drawing.edit_item_format') + state.detailLabel
         : tr('ui.drawing.' + (e.page === 'layout' ? 'set_explicit_rows_priorities_and_widths'
             : e.page === 'main' ? 'choose_main_status_line_items_and_their'
                 : e.page === 'subagents' ? 'choose_subagent_row_items_and_their_order'

@@ -3,6 +3,12 @@
 [English](RELEASING.md) | **简体中文**
 
 
+## v3.1.2 外部 TUI 回归交付
+
+沿用既有正式流程，使用 [v3.1.2 专属批准](releases/approvals/v3.1.2.json)和逐版本精确批准日期，功能门槛保持原样。发布 npm／GitHub／Gitee 前要求最终 head／合并／标签完整 CI、八安装目标、32 项 Node、十三宿主、可复现构建／源码重建、安装包扩展 PTY 及相同字节的已核验附件。[发布说明](releases/v3.1.2.md#简体中文) · [修复与交付证据](development/external-tui-regressions.zh-CN.md)。
+
+普通纯文档 PR／push 使用严格 Markdown 允许清单，仅运行必要文档／空白校验。版本、批准 JSON、生成资源、工作流、未知路径、标签和手动运行仍要求完整 CI；既有汇总门槛继续必需并按失败关闭，纯文档不产生可用于发布的验收回执。批准逐版本限定，不豁免自动化失败。
+
 ## 当前外部 TUI 正式交付
 
 v3.1.1 保留既有 Node 22／24 矩阵、八安装目标、十三宿主及 OIDC 发布流程。[本版批准](releases/approvals/v3.1.1.json) 接受相同六项已披露缺口，不豁免新增失败。发布前必须通过最终 head、合并及标签 CI、独立构建／源码重建一致、安装包扩展 TUI 捕获与草稿附件核验；除推进 npm `latest` 和 GitHub Latest 到本稳定版外，保留既有选择器。[发布说明](releases/v3.1.1.md#简体中文) · [实现与证据](development/external-tui-parity.zh-CN.md)。

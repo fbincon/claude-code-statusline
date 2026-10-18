@@ -20,11 +20,11 @@ export const outcome = (kind: Outcome['outcome'], language: Language, exit_code 
     outcome: kind, exit_code, message: detail ?? t({ updated: 'ui.session.status_line_configuration_updated', 'already-current': 'ui.session.status_line_configuration_already_current', cancelled: 'ui.session.status_line_configuration_unchanged', interrupted: 'ui.session.interactive_status_line_configuration_interrupted_no_changes', 'timed-out': 'ui.session.interactive_status_line_configuration_timed_out_no', error: 'ui.session.cannot_initialize_terminal_for_configure' }[kind], language),
 });
 export function colorCapacity(env: NodeJS.ProcessEnv = process.env): number {
-    if (env.NO_COLOR !== undefined || env.TERM === 'dumb')
+    if (env.NO_COLOR !== undefined || /^(?:dumb|vt100|vt220|xterm-mono)$/u.test(env.TERM ?? ''))
         return 0;
     if (/256color|direct/u.test(env.TERM ?? '') || /truecolor|24bit/u.test(env.COLORTERM ?? ''))
         return 256;
-    return /^(?:vt100|vt220|linux)$/u.test(env.TERM ?? '') ? 8 : 16;
+    return env.TERM === 'linux' ? 8 : 16;
 }
 export class Session {
     private previewKey = '';

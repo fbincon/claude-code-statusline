@@ -1,5 +1,5 @@
 /** Application identity. Internal workspaces are private implementation packages. */
-export const VERSION = '3.1.1';
+export const VERSION = '3.1.2';
 export const PACKAGE_NAME = '@fbincon/claude-code-statusline';
 export const REPOSITORY_URL = 'https://github.com/fbincon/claude-code-statusline';
 

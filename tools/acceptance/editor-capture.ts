@@ -25,6 +25,7 @@ assert.deepEqual(artifact.source.source_hashes, sourceHashes(), 'Capture tools d
 const output = resolve(values.output), fonts = values.font.map(path => resolve(path));
 fs.mkdirSync(output);
 const installed = installCandidate(values.artifact, values.commit), captures: Record<string, unknown>[] = [];
+const monochrome: Record<string, unknown>[] = [];
 const columns = 120, rows = 32;
 try {
     const config = installed.env.CLAUDE_CONFIG_DIR;
@@ -98,6 +99,35 @@ try {
             }
             if (values.extended) {
                 await key('\t');
+                // Exercise catalog guidance and semantic text focus through installed keys.
+                for (const scope of ['main', 'subagent'] as const) {
+                    const type = scope === 'main' ? 'task-active-timer' : 'status';
+                    await key('\x01');
+                    await key('/');
+                    for (const character of type) await key(character);
+                    await key('\r');
+                    await key('\x05', t('guidance.title', language));
+                    const guidance = capture('picker-guidance-' + scope);
+                    assert(guidance[1]!.includes(t(`items.${scope}.${type}.label`, language)));
+                    await key('\x1b');
+                    await key('\x1b');
+                    await key('\x01');
+                    await key('/');
+                    for (const character of 'text') await key(character);
+                    await key('\r');
+                    await key('\r');
+                    await key('\x05');
+                    await key('\r');
+                    await key('\x15');
+                    const literal = '中文 日本語 한글 é 👩🏽‍💻';
+                    await key(literal, '👩🏽‍💻');
+                    await key('\r');
+                    const body = capture('text-body-' + scope);
+                    const preview = dimensions(columns, rows).preview;
+                    assert(body.slice(preview.innerY, preview.innerY + preview.innerHeight).some(line => line.includes(literal)), 'Text body did not reach production preview');
+                    await key('\x07');
+                    await key(scope === 'main' ? '\t' : '\x1b[Z');
+                }
                 await key('\x06');
                 assert(capture('category')[3]!.includes(t('catalog.search.choose_category', language)));
                 await key('\x1b');
@@ -141,6 +171,14 @@ try {
                 await key('\r');
                 capture('review-expanded');
                 await key('\x1b');
+                await key('\x1b[H');
+                for (let index = 0; index < 15; index++) await key('\x1b[B');
+                const selected = capture('settings-focus').find(line => line.includes('› '));
+                await key('\t');
+                await key('\x1b[F');
+                capture('layout-focus');
+                await key('\x1b[Z');
+                assert.equal(capture('settings-restored').find(line => line.includes('› ')), selected);
                 await key('\t');
                 await key('\t');
                 for (const [width, height] of [[32, 12], [64, 18], [64, 19], [64, 20], [80, 24], [120, 30], [80, 48]]) {
@@ -159,11 +197,32 @@ try {
             assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), display, 'Capture changed display configuration');
         } finally { await pty.close(); }
     }
+    if (values.extended) {
+        const config = installed.env.CLAUDE_CONFIG_DIR;
+        const display = fs.readFileSync(join(config, 'claude-statusline.json'));
+        for (const TERM of ['vt100', 'vt220', 'xterm-mono', 'dumb']) {
+            const pty = openPty(config, 80, 24, { ...installed.env, TERM, COLORTERM: 'truecolor', NO_COLOR: undefined }, 'en',
+                { executable: installed.node, args: [installed.entry, '--language', 'en', 'configure'], cwd: installed.temporary });
+            try {
+                const supported = TERM !== 'dumb';
+                await pty.wait(text => text.includes(supported ? '\x1b[24;1H' : 'Interactive configuration requires an ANSI/VT terminal'));
+                const raw = pty.captured();
+                assert(!/\x1b\[(?:3[0-9]|4[0-9]|9[0-7]|10[0-7])(?:;|m)/u.test(raw.toString('utf8')), TERM + ' emitted explicit colors');
+                fs.writeFileSync(join(output, TERM + '.ansi'), raw);
+                monochrome.push({ TERM, COLORTERM: 'truecolor', supported, explicit_colors: false, ansi_sha256: sha256(raw) });
+                if (supported) pty.send('\x1b');
+                await pty.exited();
+                assert.equal(pty.child.exitCode, supported ? 0 : 2);
+                assert.deepEqual(pty.attributes(), pty.before);
+                assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), display);
+            } finally { await pty.close(); }
+        }
+    }
     const report = { status: 'pass', kind: 'installed PTY terminal-cell reconstruction; not an OS screenshot', commit: values.commit, tarball_sha256: artifact.sha256,
         application_version: artifact.source.application_version, platform: process.platform, arch: process.arch, os_release: release(), node: process.version,
         collector_sha256: artifact.source.source_hashes['tools/acceptance/editor-capture.ts'], model_calls: 0, terminal_restored: true, extended: values.extended === true,
         sample_configuration: { directory_style: 'home', statusline_language: 'matches the interface language', data: 'fixed production preview samples' },
-        font_sha256: Object.fromEntries(fonts.map(path => [basename(path), sha256(fs.readFileSync(path))])), captures };
+        font_sha256: Object.fromEntries(fonts.map(path => [basename(path), sha256(fs.readFileSync(path))])), captures, monochrome };
     fs.writeFileSync(join(output, 'editor-capture.json'), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify({ status: 'pass', captures: captures.length, commit: values.commit, tarball_sha256: artifact.sha256 }));
 } finally { installed.cleanup(); }

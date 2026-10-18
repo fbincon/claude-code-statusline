@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.1.2",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-19",
+  "authority": "The maintainer selected stable v3.1.2 delivery with a separate version-limited acceptance and honest disclosure of the same six existing gaps, then explicitly instructed implementation of the external-TUI six-regression repair and npm/GitHub/Gitee release plan. New functional or automated failures are not waived.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

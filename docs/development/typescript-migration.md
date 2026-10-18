@@ -13,6 +13,8 @@ TS-01–TS-06 remain DONE. The separate Node 22/24 compatibility and Taiwan/Hong
 
 The separate v3.1.1 external-TUI parity follow-up is **DONE**: npm latest, GitHub stable/Latest and Gitee stable are delivered with matching artifacts and six passing public Node 22/24 installation jobs. The six-language release, accepted-gap boundaries and published Python reference are preserved. [Implementation, acceptance and delivery](external-tui-parity.md).
 
+The subsequent independent six-regression review and v3.1.2 repairs have a [separate implementation and delivery record](external-tui-regressions.md). Historical migration and v3.1.1 results remain intact.
+
 ## Current decision, 2026-10-15
 
 Complete TS-01–TS-06 before further performance optimization. The maintainer approved the [D06 applicability amendment](typescript-migration/ts-02/D06.md#applicability-amendment-2026-10-15): full D06 measurement and passing performance budgets no longer block TS-03–TS-06, including preview and stable delivery. The independent [PERF-01](performance/perf-01.md) follows TS-06 and remains **NOT_STARTED**.

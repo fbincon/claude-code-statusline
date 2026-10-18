@@ -3,6 +3,15 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.1.2 — 2026-10-19
+
+- Fix picker guidance crashes and catalog/instance ID collisions in both external-editor scopes.
+- Start text components at their body; preserve Unicode through preview, cancel, save and reopen.
+- Retain independent Settings/Layout focus and scroll, and account for group headings during form paging.
+- Honor monochrome TERM capabilities and remove resolved form errors while retaining unrelated notices.
+- Add product/protocol/installed-terminal regressions, conservative documentation-only CI routing and version-specific release approval dates.
+- [Release notes](docs/releases/v3.1.2.md) · [Implementation and validation](docs/development/external-tui-regressions.md).
+
 ## 3.1.1 — 2026-10-18
 
 - Render complete external-TUI group separators in bold cyan; retain terminal-default frames, full-row selection and six-language support.

@@ -20,7 +20,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
         const review = e.review;
         const capacity = Math.max(1, panel.innerHeight - 1);
         const values = review ? reviewRows(review, state.language, width)
-            : guidanceLines(e.definition(e.detail!.scope, e.detail!.id)!, state.language, width)
+            : (state.detailItem ? guidanceLines(state.detailItem, state.language, width) : [])
                 .map(text => ({ text, heading: false, section: '' }));
         const start = Math.min(review?.scroll ?? e.guidanceScroll ?? 0, Math.max(0, values.length - capacity));
         if (review) {

@@ -8,6 +8,7 @@ Start here to set up a development environment, run checks and build the package
 
 ## Technical documentation
 
+- [External TUI regression repairs](external-tui-regressions.md): v3.1.2 catalog guidance, text, navigation, color and notice fixes.
 - [External TUI parity follow-up](external-tui-parity.md): v3.1.1 rendering, contextual controls and source-bound validation.
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [TypeScript migration plan and progress](typescript-migration.md): current state, scope, stages, decisions, acceptance and session handoffs.
