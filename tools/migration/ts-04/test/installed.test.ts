@@ -48,8 +48,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 11, operation, payload })));
-    assert.equal(result.protocol_version, 11);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 12, operation, payload })));
+    assert.equal(result.protocol_version, 12);
     assert.ok(result.result);
     return result.result;
 }
@@ -194,7 +194,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     ui(config, 'apply', { draft: current.draft, expected_revision: current.revision });
     assert.equal(ui(config, 'read').draft.host.padding, 4);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 11, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 12, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');

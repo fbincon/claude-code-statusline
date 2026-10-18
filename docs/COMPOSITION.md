@@ -28,7 +28,7 @@ instances of the same type; it follows their current order.
 | Move the selected instance | Left / Right |
 | Search / choose category | `/` / Ctrl+F |
 
-The picker searches names, descriptions and categories in all five supported
+The picker searches names, descriptions and categories in all supported
 languages. Enter adds the selected type after the previously selected instance;
 Ctrl+E shows its sources and requirements before adding. Ctrl+G returns from the
 guidance or cancels the picker. Accepting an addition clears the old list filter
@@ -130,7 +130,7 @@ Unique type-based enable/disable commands preserve existing positions in explici
 
 ## Migration, transfer and recovery
 
-Display schema 8 stores ordered instances; editor protocol 11 requires matching
+Display schema 8 stores ordered instances; editor protocol 12 requires matching
 Python and bundled native resources. The portable envelope remains version 1,
 UI preferences version 1, and runtime observation protocol version 2.
 

@@ -27,9 +27,9 @@ test('tests.i18n.test_translation.TranslationTests.test_resources_are_json_strin
   assert.equal(JSON.parse(JSON.stringify(text('cli.language', { language: 'en' }).fallback)), 'UI language: en');
 });
 test('registered language autonyms and real translations retain their order', () => {
-  assert.deepEqual([...LANGUAGES], ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko']);
-  assert.deepEqual(LANGUAGES.map(code => LANGUAGE_NAMES[code]), ['English', '简体中文', '繁體中文', '日本語', '한국어']);
-  for (const [language, expected] of [['zh-Hant', '界面語言：日本語'], ['ja', 'UI 言語: 日本語'], ['ko', 'UI 언어: 日本語']] as const) assert.equal(t('cli.language', language, { language: '日本語' }), expected);
+  assert.deepEqual([...LANGUAGES], ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko']);
+  assert.deepEqual(LANGUAGES.map(code => LANGUAGE_NAMES[code]), ['English', '简体中文', '繁體中文（台灣）', '繁體中文（香港）', '日本語', '한국어']);
+  for (const [language, expected] of [['zh-TW', '介面語言：日本語'], ['ja', 'UI 言語: 日本語'], ['ko', 'UI 언어: 日本語']] as const) assert.equal(t('cli.language', language, { language: '日本語' }), expected);
 });
 test('fixed decimal formatting uses binary64 ties-to-even and preserves negative zero', () => {
   assert.equal(fixed(2.675, 2), '2.67'); assert.equal(fixed(3.125, 2), '3.12'); assert.equal(fixed(3.135, 2), '3.13');

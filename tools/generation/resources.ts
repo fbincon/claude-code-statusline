@@ -71,7 +71,12 @@ export function languageOutputs(root = ROOT): Map<string, string> {
   const { registry, data } = languages(directory);
   const names = Object.fromEntries(registry.map(entry => [entry.code, entry.name]));
   const outputs = new Map<string, string>();
-  const registryText = header + 'export const LANGUAGES = ' + json(registry.map(entry => entry.code)) + ' as const;\nexport type Language = typeof LANGUAGES[number];\nexport const LANGUAGE_NAMES: Record<Language, string> = ' + json(names, undefined, false) + ';\n';
+  const aliases = registry.some(entry => entry.code === 'zh-TW') ? { 'zh-Hant': 'zh-TW' } : {};
+  const registryText = header + 'export const LANGUAGES = ' + json(registry.map(entry => entry.code)) + ' as const;\nexport type Language = typeof LANGUAGES[number];\nexport const LANGUAGE_NAMES: Record<Language, string> = ' + json(names, undefined, false) + ';\n'
+    + 'export const LANGUAGE_ALIASES: Readonly<Record<string, Language>> = ' + json(aliases) + ';\n'
+    + 'export function resolveLanguage(value: unknown): Language | null {\n'
+    + '  const code = typeof value === "string" && Object.hasOwn(LANGUAGE_ALIASES, value) ? LANGUAGE_ALIASES[value] : value;\n'
+    + '  return typeof code === "string" && (LANGUAGES as readonly string[]).includes(code) ? code as Language : null;\n}\n';
   const all = registryText + 'export const LOCALES = ' + json(data, 2, false) + ' as const;\nexport type MessageKey = keyof typeof LOCALES.en;\n';
   outputs.set('packages/core/src/i18n/registry.ts', registryText);
   outputs.set('packages/core/src/i18n/generated-locales.ts', all);

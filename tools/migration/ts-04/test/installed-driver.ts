@@ -61,11 +61,11 @@ else if (operation === 'official' || operation === 'prepare-host') {
                 throw new Error('Installed official binding differs');
         }
         const ui = (operation: string, payload: unknown = {}) => {
-            const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', config!], { env: process.env, input: JSON.stringify({ protocol_version: 11, operation, payload }), encoding: 'utf8', timeout: 15000 });
+            const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', config!], { env: process.env, input: JSON.stringify({ protocol_version: 12, operation, payload }), encoding: 'utf8', timeout: 15000 });
             if (result.status !== 0)
                 throw new Error(result.stderr + result.stdout);
             const value = JSON.parse(result.stdout);
-            if (value.protocol_version !== 11 || !value.result)
+            if (value.protocol_version !== 12 || !value.result)
                 throw new Error('Installed UI protocol mismatch');
             return value.result;
         };

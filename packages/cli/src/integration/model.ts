@@ -1,6 +1,7 @@
 import type { LaunchSpec } from '@fbincon/statusline-platform/launch';
 import type { Storage } from '../config/storage.js';
 import type { LocalizedText } from '@fbincon/statusline-core/i18n/messages';
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 export const OWNER = 'claude-code-statusline';
 export const OWNER_FILE = '.claude-statusline-owner.json';
 export const HOOKS = ['SessionStart', 'UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd'] as const;
@@ -17,7 +18,7 @@ export interface ModSpec {
 function spec(name: string, marketplace: string, minimum: readonly number[], protocol: number): ModSpec {
     return { name, marketplace, minimum, protocol, plugin: name + '@' + marketplace };
 }
-export const NATIVE = spec('statusline-native', 'claude-statusline-local', [2, 1, 287], 11);
+export const NATIVE = spec('statusline-native', 'claude-statusline-local', [2, 1, 287], PROTOCOL_VERSION);
 export const RUNTIME = spec('statusline-runtime', 'claude-statusline-runtime-local', [2, 1, 289], 2);
 export interface Host {
     run(args: readonly string[], values?: Record<string, string>, json?: boolean): unknown;

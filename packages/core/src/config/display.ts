@@ -1,6 +1,6 @@
 import type { DisplayDraft, SubagentDraft, InstanceDraft, ItemOptionsDraft, Scope, MetricsDraft } from '../contracts/ui.js';
 import { integer as jsonInteger, canonical, scalarCompare, isLosslessNumber, pythonFloat } from '../json.js';
-import { LANGUAGES } from '../i18n/registry.js';
+import { LANGUAGES, resolveLanguage } from '../i18n/registry.js';
 import { DEFAULT_DISPLAY, DEFAULT_SUBAGENTS, DEFAULT_ITEM, DEFAULT_FORMATTING } from './defaults.js';
 import { BY_SCOPE, canonicalItem, conflicts } from './catalog.js';
 import { object, exact, fail, clone, choice, nullableInteger, ConfigError } from './validation.js';
@@ -120,7 +120,7 @@ function scalars(data: Record<string, unknown>, version: number) {
     directory_style: choice(data.directory_style, ['full', 'home', 'project-relative', 'basename'] as const, 'directory_style'),
     separator_style: choice(data.separator_style, ['classic', 'compact', 'powerline'] as const, 'separator_style'),
     scope_labels: version === 1 ? 'when-subagents' as const : choice(data.scope_labels, ['off', 'when-subagents', 'always'] as const, 'scope_labels'),
-    statusline_language: version >= 6 ? choice(data.statusline_language, LANGUAGES, 'statusline_language') : 'en' as const,
+    statusline_language: version >= 6 ? choice(resolveLanguage(data.statusline_language) ?? data.statusline_language, LANGUAGES, 'statusline_language') : 'en' as const,
     theme: version >= 7 ? choice(data.theme, ['classic', 'dark', 'light', 'terminal'] as const, 'theme') : 'classic' as const,
     powerline_glyph: version >= 7 ? choice(data.powerline_glyph, ['ascii', 'powerline'] as const, 'powerline_glyph') : 'ascii' as const,
     formatting: version >= 3 ? options.formatting(data.formatting) : clone(DEFAULT_FORMATTING),

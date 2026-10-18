@@ -2,14 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { assessEvidence, INSTALL_TARGETS, HOST_TARGETS } from '../prepare.js';
 import { assessStableApproval, ACCEPTED_GAPS } from '../approval.js';
+import { NODE_RUNTIME_CASES } from '@fbincon/statusline-core/node-runtime';
 const commit = 'a'.repeat(40), hash = 'b'.repeat(64);
 function receipts(): any[] {
     const base = { status: 'pass', commit, tarball_sha256: hash };
-    return [...INSTALL_TARGETS.map(target => ({ ...base, target, offline_install: true, initially_empty_npm_cache: true, lifecycle_scripts: false, outside_checkout: true, path_excludes_python_and_compilers: true, powershell_setup: target.startsWith('windows-') ? { status: 'pass', candidate_invoked: false, receipt: { status: 0, timeout_ms: 60000, error: null } } : null, checks: Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i, true])) })),
+    const installations = INSTALL_TARGETS.map(target => ({ ...base, target, offline_install: true, initially_empty_npm_cache: true, lifecycle_scripts: false, outside_checkout: true, path_excludes_python_and_compilers: true, powershell_setup: target.startsWith('windows-') ? { status: 'pass', candidate_invoked: false, receipt: { status: 0, timeout_ms: 60000, error: null } } : null, checks: Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i, true])) }));
+    return [...installations,
+        ...installations.flatMap(receipt => NODE_RUNTIME_CASES.map(runtime_case => ({ ...receipt, kind: 'node-runtime', runtime_case, runtime_tests: true, node: 'v' + runtime_case.replace('x', '25.0'), node_sha256: hash }))),
         ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), installed: { ...base, source: { commit } } }; })];
 }
 test('tests.integration.test_publish_package.AcceptanceTests.test_completed_matrix_is_required', () => {
     assert.equal(assessEvidence(receipts(), commit, hash).hosts, 13);
+    assert.equal(assessEvidence(receipts(), commit, hash).runtime_installations, 32);
     assert.equal(assessEvidence(receipts(), commit, hash).type_declarations_unavailable.length, 6);
     assert.throws(() => assessEvidence(receipts().slice(1), commit, hash), /Incomplete/);
 });
@@ -25,9 +29,19 @@ test('tests.integration.test_publish_package.AcceptanceTests.test_other_commits_
 test('stable approval is explicit, scoped to v3.0.0 and retains the exact unverified gaps', () => {
     const approval = { schema_version: 1, version: '3.0.0', decision: 'accept-known-gaps', approved_by: 'fbincon', approved_on: '2026-10-18', authority: 'Maintainer confirmation', reference: 'https://github.com/fbincon/claude-code-statusline/issues/96', accepted_gaps: ACCEPTED_GAPS };
     assert.equal(assessStableApproval(approval, '3.0.0').decision, 'accept-known-gaps');
+    assert.equal(assessStableApproval({ ...approval, version: '3.1.0' }, '3.1.0').decision, 'accept-known-gaps');
+    assert.throws(() => assessStableApproval(approval, '3.1.0'));
     for (const version of ['3.0.0-beta.1', '3.0.1', '4.0.0']) assert.throws(() => assessStableApproval(approval, version));
     for (const value of [null, {}, { ...approval, version: '3.0.1' }, { ...approval, decision: 'all-passed' }, { ...approval, accepted_gaps: [] }, { ...approval, accepted_gaps: [...ACCEPTED_GAPS, 'failed-ci'] }])
         assert.throws(() => assessStableApproval(value, '3.0.0'));
     const failed = receipts(); failed[0].status = 'fail';
     assert.throws(() => assessEvidence(failed, commit, hash), /Failed/);
+});
+
+test('every runtime case must include the correct Node and passing product tests', () => {
+    for (const change of [{ node: 'v26.0.0' }, { node: 'v24.0.0' }, { runtime_case: 'latest' }, { runtime_tests: false }, { node_sha256: '' }, { status: 'skipped' }]) {
+        const rows = receipts(); Object.assign(rows.find(row => row.kind === 'node-runtime'), change);
+        assert.throws(() => assessEvidence(rows, commit, hash));
+    }
+    assert.throws(() => assessEvidence(receipts().filter(row => row.kind !== 'node-runtime'), commit, hash), /Incomplete/);
 });

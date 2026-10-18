@@ -6,6 +6,11 @@
 
 将 Python 实现迁移到 TypeScript，保留状态栏行为、既有用户配置及受支持的使用流程。本计划记录范围、依赖、技术决策、验收门槛和交接方式，供后续会话与维护者持续更新。中英文版本随仓库维护；机器私有记录和原始验收数据不写入受版本管理的文档。
 
+
+## 迁移后后续工作
+
+TS-01–TS-06 继续保持 DONE。Node 22／24 成品兼容和台湾／香港繁体语言拆分作为独立后续任务，见[实施与验收记录](node-regional-languages.zh-CN.md)；不改写历史阶段结果，也不启动 PERF-01。
+
 ## 当前决策：2026-10-15
 
 先完成 TS-01～TS-06，再进行后续性能优化。维护者已批准 [D06 适用范围修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)：完整 D06 测量及性能预算达标不再阻塞 TS-03～TS-06，包括预览与正式交付。独立 [PERF-01](performance/perf-01.zh-CN.md) 在 TS-06 后执行，当前保持 **NOT_STARTED**。

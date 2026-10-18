@@ -31,7 +31,9 @@ async function protocol(): Promise<ConfigurationProtocol> {
   return new ConfigurationProtocol(new ConfigurationService({ configDir: join(process.cwd(), 'config'), launch: { executable: '/ts01/claude-statusline', args: [] }, hostVersion: () => [2, 1, 294] }, createStorage(() => new Date('2033-05-18T03:33:20Z'))), await previewAdapter('/ts01/home'));
 }
 function call(protocol: ConfigurationProtocol, raw: string): { response: unknown; exit_code: number } {
-  const result = protocol.handle(raw);
+  // Adapt the historical request version without rewriting frozen fixtures.
+  const input = raw.replace(/("protocol_version"\s*:\s*)11\b/u, '$112');
+  const result = protocol.handle(input);
   return { response: result.response, exit_code: result.status };
 }
 
@@ -71,9 +73,11 @@ export const handlers: Readonly<Record<string, Handler>> = {
     });
     return { exit_code, stdout, stderr };
   },
-  ui: async fixture => call(await protocol(), fixture.input.raw as string),
+  ui: async fixture => call(await protocol(), fixture.id === 'ui-wrong-version'
+    ? (fixture.input.raw as string).replace(/("protocol_version"\s*:\s*)12\b/u, '$113')
+    : fixture.input.raw as string),
   transaction: async fixture => {
-    const p = await protocol(), request = (operation: string, payload: unknown) => call(p, pythonJson({ protocol_version: 11, operation, payload }));
+    const p = await protocol(), request = (operation: string, payload: unknown) => call(p, pythonJson({ protocol_version: 12, operation, payload }));
     const initial = request('read', {}) as { response: { result: { revision: string; draft: unknown } }; exit_code: number };
     const revision = initial.response.result.revision;
     const first = request('apply', { draft: fixture.input.draft, expected_revision: revision }), after = snapshot(process.cwd());
@@ -85,7 +89,7 @@ export const handlers: Readonly<Record<string, Handler>> = {
     for (const operation of ['export', 'import', 'review_import']) {
       const payload: Record<string, unknown> = { draft: fixture.input.draft, path: target };
       if (operation === 'export') payload.overwrite = false;
-      responses.push({ operation, ...call(p, pythonJson({ protocol_version: 11, operation, payload })) });
+      responses.push({ operation, ...call(p, pythonJson({ protocol_version: 12, operation, payload })) });
     }
     return { responses, portable: fs.readFileSync(target, 'utf8') };
   },

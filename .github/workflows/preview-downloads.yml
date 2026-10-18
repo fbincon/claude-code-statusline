@@ -8,7 +8,7 @@ on:
       tag:
         description: Published release tag
         required: true
-        default: v3.0.0
+        default: v3.1.0
 
 permissions:
   contents: read
@@ -20,6 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2025, macos-15]
+        node: ['22.x', '24.x']
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -34,16 +35,20 @@ jobs:
           node-version: '24.21.0'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
       - name: Verify published bytes and fixed-version/channel installations
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
         run: |
           release_commit=$(git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}")
-          npm run release:downloads -- --tag "$RELEASE_TAG" --commit "$release_commit" --verifier-commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/public-downloads"
+          node dist/typescript/tools/release/downloads.js --tag "$RELEASE_TAG" --commit "$release_commit" --verifier-commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/public-downloads"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: public-downloads-${{ matrix.os }}
+          name: public-downloads-${{ matrix.os }}-${{ matrix.node }}
           path: ${{ runner.temp }}/public-downloads/public-downloads.json
           if-no-files-found: error

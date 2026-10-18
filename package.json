@@ -47,7 +47,8 @@
     "test:mods": "npm run build && node dist/typescript/tools/acceptance/mods.js",
     "release:build": "npm run build && node dist/typescript/tools/build/candidate.js --channel public",
     "release:verify": "npm run build && node dist/typescript/tools/build/verify.js --release",
-    "release:downloads": "npm run build && node dist/typescript/tools/release/downloads.js"
+    "release:downloads": "npm run build && node dist/typescript/tools/release/downloads.js",
+    "test:runtime": "node tools/typescript/test.mjs --runtime"
   },
   "devDependencies": {
     "@resvg/resvg-js": "2.6.2",

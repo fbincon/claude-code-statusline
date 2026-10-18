@@ -5,6 +5,7 @@ import { defaultItem, validateDisplay } from './display.js';
 import { find, scoped, updateDisplay, updateSubagents, editedOptions, edit } from './instances.js';
 import { FORMAT_CHOICES, VISIBILITY_ITEMS, layout } from './formatting.js';
 import { clone, fail, integer } from './validation.js';
+import { resolveLanguage } from '../i18n/registry.js';
 
 export function itemFields(scope: Scope, typeId: string): EditorField[] {
   if (typeId === 'spacer') return [];
@@ -31,6 +32,7 @@ export function editLayout(config: DisplayDraft, mode: string, rows?: string[][]
   return updateDisplay(config, { layout: layout({ mode, rows: mapped }, mode === 'explicit' ? mapped.flat() : []) });
 }
 export function parseField(spec: EditorField, raw: unknown): unknown {
+  if (spec.key === 'statusline_language') raw = resolveLanguage(raw) ?? raw;
   if (spec.kind === 'boolean') {
     if (typeof raw === 'boolean') return raw;
     if (raw !== 'on' && raw !== 'off') fail('errors.editor_fields.expected_on_off');

@@ -5,6 +5,7 @@ import { chooseLauncher } from '@fbincon/statusline-platform/terminal/launchers'
 import { text } from '@fbincon/statusline-core/i18n/messages';
 import { ConfigError, object } from '@fbincon/statusline-core/config/validation';
 import { safeInteger } from '@fbincon/statusline-core/json';
+import { supportedNode, NODE_RUNTIME_RANGE } from '@fbincon/statusline-core/node-runtime';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { CONFIG_FILENAME, SCHEMA_VERSION } from '@fbincon/statusline-core/config/display';
 import { FEATURE_FILENAME } from '@fbincon/statusline-core/config/backend-preferences';
@@ -55,7 +56,7 @@ export function doctor(context: InstallContext): Diagnostic[] {
             add('ERROR', 'recovery.pending', { id: journal.id, phase: journal.phase });
         }
     });
-    rows.push({ level: process.versions.node.startsWith('24.') ? 'OK' : 'ERROR', message: `Node runtime: ${process.versions.node}; ${process.platform}/${process.arch}` }, ...pathCollisions(context));
+    rows.push({ level: supportedNode(process.versions.node) ? 'OK' : 'ERROR', message: `Node runtime: ${process.versions.node}; supported ${NODE_RUNTIME_RANGE}; ${process.platform}/${process.arch}` }, ...pathCollisions(context));
     capture(() => { fs.accessSync(launch.executable, process.platform === 'win32' ? fs.constants.F_OK : fs.constants.X_OK); add('OK', 'doctor.doctor.executable', { executable: launch.executable }); });
     let settings: Record<string, unknown> = {};
     capture(() => { [settings] = readSettings(configDir, io); });

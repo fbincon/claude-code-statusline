@@ -2,13 +2,13 @@
 
 [English](architecture.md) | **简体中文**
 
-Python 包保留现有 CLI、配置格式和存储位置。实现按职责组织，并在原 Python 路径保留延迟加载的兼容模块。
+当前生产包使用 TypeScript，保留已有 CLI、配置格式及存储位置；纯规则、平台副作用、应用服务和终端界面分层。Python 参考冻结在 `archive/python`，下方 Python 专属章节保留历史架构说明。
 
 ## TypeScript 迁移 workspace
 
-TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode、渲染与运行规则）、`packages/platform`（Node／原生 I/O）和 `packages/cli`（应用服务）。TS-04 新增 `packages/tui`、安装集成与持久恢复。workspace 和验收归档保持私有，维护者现用安装不变。下方 Python 布局继续用于当前已发布实现及隔离对照参考。
+TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode、渲染与运行规则）、`packages/platform`（Node／原生 I/O）和 `packages/cli`（应用服务）。TS-04 新增 `packages/tui`、安装集成与持久恢复。workspace 是打包到公开 npm 成品中的私有实现包；下方 Python 布局作为归档对照参考保留。
 
-规范目录为 TypeScript 数据，项目 ID 和预设说明由其派生，不在前端契约中重复手改。规范语言资源位于 `packages/core/resources/i18n`，TypeScript 统一生成 Node、Mod 和 Python 兼容资源。Mod 副本只包含受支持的纯模块，宿主操作保留在原有入口。参见 [TS-03 实施与验收](typescript-migration/ts-03/README.zh-CN.md)。
+规范目录为 TypeScript 数据，项目 ID 和预设说明由其派生，不在前端契约中重复手改。规范语言资源位于 `packages/core/resources/i18n`，TypeScript 统一生成 Node 和 Mod 资源，不再重新生成 Python 归档。Mod 副本只包含受支持的纯模块，宿主操作保留在原有入口。参见 [TS-03 实施与验收](typescript-migration/ts-03/README.zh-CN.md)。
 
 已迁移的运行逻辑分布在 `core/runtime/{tasks,live}`、`core/timing` 和纯用量／Git 解析模块，由 `cli/runtime` 编排。明确的 `RuntimeContext`、`RuntimeIO`、`CommandRunner` 边界提供时钟、进程身份、私有文件发布及 Git argv 执行。任务历史保留生命周期 schema 4 和 schema-1 兼容镜像；live 写入先取 live 锁再取 task 锁，用量写入先取 cache 锁再取 task 锁，任务写入不反向获取 live／cache 锁。完整 UTF-8 字节游标、有界历史和冻结结果兼容混合版本磁盘访问；开发用 `runtime`／`hook` 入口不切换已安装命令或 Mod 绑定。
 
@@ -182,7 +182,7 @@ Client 的 `ui/layout.ts` 按终端尺寸计算内容、Preview 和两行操作�
 
 ## 独立的状态栏语言
 
-显示 schema v8 与配置协议 v11 将 `statusline_language` 保留在完整草稿、revision、预览和可移植文件中。`i18n.statusline` 读取同一套 JSON 资源生成的 Python 子集，正常渲染不读 UI 偏好或解析 UI JSON。格式化边界翻译完整短语和已知值，采集存储继续保留原代码；按项目定义的前缀元数据区分标签与用户数据。共享编辑描述加入留在显示草稿中的选择，UI 语言继续是立即保存的偏好。
+显示 schema v8 与配置协议 v12 将 `statusline_language` 保留在完整草稿、revision、预览和可移植文件中。`i18n.statusline` 读取同一套 JSON 资源生成的 Python 子集，正常渲染不读 UI 偏好或解析 UI JSON。格式化边界翻译完整短语和已知值，采集存储继续保留原代码；按项目定义的前缀元数据区分标签与用户数据。共享编辑描述加入留在显示草稿中的选择，UI 语言继续是立即保存的偏好。
 
 ## 组件实例与布局
 

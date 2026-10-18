@@ -1,4 +1,7 @@
 import { VERSION, REPOSITORY_URL } from '@fbincon/statusline-core/release';
+import { NODE_RUNTIME_RANGE } from '@fbincon/statusline-core/node-runtime';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import * as fs from 'node:fs';
 import { resolve, basename, dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -18,6 +21,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     assert.equal(source.version, product.version); assert.equal(manifest.version, source.version);
     assert.equal(manifest.private, product.private); assert.equal(manifest.scripts, undefined);
     assert.equal(manifest.devDependencies, undefined);
+    assert.deepEqual(manifest.engines, { node: NODE_RUNTIME_RANGE });
     if (kind !== 'candidate') {
         assert.deepEqual(manifest.publishConfig, { registry: 'https://registry.npmjs.org/', access: 'public', tag: kind === 'stable' ? 'latest' : 'beta' });
         assert.deepEqual(manifest.repository, { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' });
@@ -51,20 +55,20 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
         for (const file of entries.keys()) if (file.startsWith(root + '/') && file !== root + '/package.json') {
             const path = file.slice(root.length + 1);
             const compiled = /^dist\/src\/.+\.(?:js|d\.ts)(?:\.map)?$/u.test(path);
-            const language = short === 'core' && /^resources\/i18n\/(?:languages\.json|locales\/(?:en|zh-CN|zh-Hant|ja|ko)\.json)$/u.test(path);
+            const language = short === 'core' && (path === 'resources/i18n/languages.json' || LANGUAGES.some(code => path === `resources/i18n/locales/${code}.json`));
             const cliResource = short === 'cli' && /^resources\/statusline-(?:native\/|runtime\/|config\/SKILL\.md$|configure\/SKILL\.md$)/u.test(path);
             assert(compiled || language || cliResource, 'Unexpected business resource: ' + path);
         }
     }
     assert(entries.has('node_modules/@fbincon/statusline-cli/dist/src/entry.js'));
     const languages = read('node_modules/@fbincon/statusline-core/resources/i18n/languages.json').map((row: any) => row.code);
-    assert.deepEqual(languages, ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko']);
+    assert.deepEqual(languages, [...LANGUAGES]);
     for (const code of languages) assert(entries.has('node_modules/@fbincon/statusline-core/resources/i18n/locales/' + code + '.json'), 'Missing language pack');
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const root = 'node_modules/@fbincon/statusline-cli/resources/' + name;
         const owned = read(root + '/resource-manifest.json');
         assert.equal(owned.backend_version, VERSION); assert.equal(owned.mod_version, VERSION);
-        assert.equal(owned.protocol_version, name === 'statusline-native' ? 11 : 2);
+        assert.equal(owned.protocol_version, name === 'statusline-native' ? PROTOCOL_VERSION : 2);
         assert.equal(read(root + '/.claude-plugin/plugin.json').version, VERSION);
         const mapping = owned.files;
         assert(mapping && typeof mapping === 'object', 'Missing ownership map');

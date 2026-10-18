@@ -6,6 +6,11 @@ Updated: **2026-10-18** (Asia/Shanghai). Reference implementation: **v2.0.0**, c
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
+
+## Post-migration follow-up
+
+TS-01–TS-06 remain DONE. Node 22/24 product compatibility and Taiwan/Hong Kong Traditional Chinese are tracked as a separate [implementation and acceptance task](node-regional-languages.md). Historical stage results are retained; PERF-01 is not started by this work.
+
 ## Current decision, 2026-10-15
 
 Complete TS-01–TS-06 before further performance optimization. The maintainer approved the [D06 applicability amendment](typescript-migration/ts-02/D06.md#applicability-amendment-2026-10-15): full D06 measurement and passing performance budgets no longer block TS-03–TS-06, including preview and stable delivery. The independent [PERF-01](performance/perf-01.md) follows TS-06 and remains **NOT_STARTED**.

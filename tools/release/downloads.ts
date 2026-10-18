@@ -41,7 +41,7 @@ const metadata: any = await (await response('https://registry.npmjs.org/' + enco
 const distTag = kind === 'stable' ? 'latest' : 'beta';
 assert.equal(metadata['dist-tags']?.[distTag], VERSION);
 if (kind === 'preview') assert.notEqual(metadata['dist-tags']?.latest, VERSION, 'Preview must not be latest');
-if (VERSION === '3.0.0') assert.equal(metadata['dist-tags']?.beta, '3.0.0-beta.1', 'Stable delivery must preserve the existing beta selector');
+if (kind === 'stable') assert.equal(metadata['dist-tags']?.beta, '3.0.0-beta.1', 'Stable delivery must preserve the existing beta selector');
 const published = metadata.versions?.[VERSION];
 assert.equal(published?.name, PACKAGE_NAME); assert.equal(published?.version, VERSION);
 const url = new URL(published.dist.tarball);

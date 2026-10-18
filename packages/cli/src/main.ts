@@ -60,15 +60,15 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     const { readPreferences } = await import('./config/preferences.js');
     const { ConfigError } = await import('@fbincon/statusline-core/config/validation');
     const { t } = await import('@fbincon/statusline-core/i18n/messages');
-    const { LANGUAGES } = await import('@fbincon/statusline-core/i18n/registry');
+    const { resolveLanguage } = await import('@fbincon/statusline-core/i18n/registry');
     const { localizedError } = await import('./errors.js');
     let selectedLanguage: string | undefined;
     let language: Language = 'en';
     try {
         if (args[0] === '--language' || args[0]?.startsWith('--language=')) {
             const flag = args.shift()!;
-            selectedLanguage = flag.includes('=') ? flag.slice(11) : args.shift();
-            if (!(LANGUAGES as readonly unknown[]).includes(selectedLanguage))
+            selectedLanguage = resolveLanguage(flag.includes('=') ? flag.slice(11) : args.shift()) ?? undefined;
+            if (selectedLanguage === undefined)
                 throw new ArgumentError('unsupported --language');
         }
         // Resolve preferences without creating files, including before help/parser errors.
@@ -174,7 +174,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
                 raw = stdin();
             }
             catch (error) {
-                stdout(pythonJson({ protocol_version: 11, error: { code: 'invalid_request', message: error instanceof Error ? error.message : String(error), localization: null } }, { ensureAscii: false }) + '\n');
+                stdout(pythonJson({ protocol_version: 12, error: { code: 'invalid_request', message: error instanceof Error ? error.message : String(error), localization: null } }, { ensureAscii: false }) + '\n');
                 return 2;
             }
             const { response, status } = protocol.handle(raw, error => stderr(String(error) + '\n'));

@@ -1,3 +1,4 @@
+import { traced } from './final-cli-support.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -148,11 +149,7 @@ function hotpath(command: string, payload: string, t: import('node:test').TestCo
     const root = mkdtempSync(join(tmpdir(), 'ts03-imports-'));
     t.after(() => rmSync(root, { recursive: true, force: true }));
     writeFileSync(join(root, CONFIG_FILENAME), JSON.stringify(config(['model'])));
-    const main = new URL('../src/main.js', import.meta.url).href;
-    const script = `import {registerHooks} from 'node:module'; const modules=[]; registerHooks({load(url,context,next){modules.push(url);return next(url,context);}}); const {main}=await import(${JSON.stringify(main)}); await main([${JSON.stringify(command)}],{stdin:()=>${JSON.stringify(payload)}}); process.stderr.write(JSON.stringify(modules));`;
-    const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: root } });
-    assert.equal(result.status, 0, result.stderr);
-    return JSON.parse(result.stderr);
+    return traced(root, [command], payload).modules;
 }
 test('tests.rendering.test_graphemes.GraphemeTests.test_model_only_render_does_not_initialize_unselected_collectors', t => {
     const modules = hotpath('render', '{"model":{"id":"ASCII"}}', t);

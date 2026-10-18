@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import { join, dirname, relative, isAbsolute } from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
-import { atomicWrite, durableUnlink, privateDirectory, syncDirectory, isLinkOrReparse } from '@fbincon/statusline-platform/files';
+import { atomicWrite, durableUnlink, privateDirectory, syncDirectory, isLinkOrReparse, sameFileIdentity, fileIdentity } from '@fbincon/statusline-platform/files';
 import { processToken, processMatches } from '@fbincon/statusline-platform/processes';
 import { decode } from '@fbincon/statusline-core/json';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
@@ -121,13 +121,14 @@ export function assertClear(directory: string, allowRefresh = false): void { if 
     throw new RecoveryRequired(); }
 export function active(journal: Base): boolean { return journal.process.pid !== process.pid && processMatches(journal.process.pid, journal.process.token); }
 export function readRegular(path: string, maximum = 32 * 1024 * 1024): Buffer {
-    const stat = fs.lstatSync(path);
-    if (!stat.isFile() || isLinkOrReparse(path) || stat.size > maximum || process.platform !== 'win32' && (stat.mode & 0o077) !== 0)
+    const stat = fs.lstatSync(path, { bigint: true });
+    if (!stat.isFile() || isLinkOrReparse(path) || stat.size > BigInt(maximum) || process.platform !== 'win32' && (stat.mode & 0o077n) !== 0n)
         throw new RecoveryRequired('Unsafe, non-private or oversized recovery artifact: ' + path);
+    const identity = fileIdentity(path, stat);
     const fd = fs.openSync(path, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
     try {
-        const opened = fs.fstatSync(fd);
-        if (opened.ino !== stat.ino || opened.dev !== stat.dev || !opened.isFile())
+        const opened = fs.fstatSync(fd, { bigint: true });
+        if (!sameFileIdentity(opened, identity) || !opened.isFile())
             throw new RecoveryRequired('Recovery artifact changed while opening');
         const bytes = fs.readFileSync(fd);
         if (bytes.length > maximum)

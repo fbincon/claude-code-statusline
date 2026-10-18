@@ -65,7 +65,7 @@ export async function prepareBundle(selectionFile: string, evidence: string, out
         '--artifact', artifact, '--commit', selection.commit, '--evidence', evidence, '--report', join(output, 'acceptance.json')], { stdio: 'pipe' });
     const acceptance = JSON.parse(fs.readFileSync(join(output, 'acceptance.json'), 'utf8'));
     const ciAcceptance = JSON.parse(fs.readFileSync(join(evidence, 'ts06-acceptance', 'candidate-acceptance.json'), 'utf8'));
-    for (const field of ['status', 'commit', 'tarball_sha256', 'channel', 'preview_ready', 'stable_ready'])
+    for (const field of ['status', 'commit', 'tarball_sha256', 'channel', 'preview_ready', 'stable_ready', 'runtime_installations'])
         assert.equal(ciAcceptance[field], acceptance[field], 'CI acceptance differs: ' + field);
     assert.equal(acceptance[selection.channel === 'stable' ? 'stable_ready' : 'preview_ready'], true);
     const plan: PublishPlan = { schema_version: 1, tag: selection.tag, commit: selection.commit, version: VERSION,

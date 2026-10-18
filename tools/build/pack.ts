@@ -11,6 +11,7 @@ import { repoRoot, sourceHashes } from '../migration/ts-03/common.js';
 import { files, sha256, npmEntry, readTar, extractFiles } from './files.js';
 import { BUSINESS, NATIVE, TARGETS, identity, channel, type Channel, type Candidate } from './model.js';
 import { REPOSITORY_URL } from '@fbincon/statusline-core/release';
+import { NODE_RUNTIME_RANGE } from '@fbincon/statusline-core/node-runtime';
 import { rewriteLinks, localDestination, packageReadme } from '../release/markdown.js';
 import { verifyContents } from './verify.js';
 
@@ -63,7 +64,7 @@ export async function packCandidate(destination: string, commit: string, kind: C
         fs.mkdirSync(join(stage, 'bin'));
         fs.writeFileSync(join(stage, 'bin/claude-statusline.js'), '#!/usr/bin/env node\nimport "../node_modules/@fbincon/statusline-cli/dist/src/entry.js";\n', { mode: 0o755 });
         const business = BUSINESS.map(short => '@fbincon/statusline-' + short);
-        const manifest = { ...product, type: 'module', description: 'Configurable Claude Code statusline and terminal editors', license: 'MIT AND Unicode-3.0', engines: { node: '>=24.21.0 <25' },
+        const manifest = { ...product, type: 'module', description: 'Configurable Claude Code statusline and terminal editors', license: 'MIT AND Unicode-3.0', engines: { node: NODE_RUNTIME_RANGE },
             ...(kind !== 'candidate' ? { repository: { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' }, homepage: REPOSITORY_URL, bugs: { url: REPOSITORY_URL + '/issues' }, publishConfig: { registry: 'https://registry.npmjs.org/', access: 'public', tag: kind === 'stable' ? 'latest' : 'beta' } } : {}),
             bin: { 'claude-statusline': 'bin/claude-statusline.js' }, dependencies: { ...Object.fromEntries(business.map(name => [name, '0.0.0'])), koffi: '3.3.3', 'lossless-json': '4.3.1' },
             optionalDependencies: Object.fromEntries(NATIVE.map(name => [name, '3.3.3'])), bundleDependencies: [...business, 'koffi', 'lossless-json', ...NATIVE], files: ['bin', 'candidate.json', 'LICENSE*', ...(kind !== 'candidate' ? ['README.md'] : [])] };
