@@ -30,6 +30,8 @@ packages/
     resources/                     规范技能模板
   tui/
     src/                           外部编辑器状态、布局、绘制及会话
+    src/drawing/                   有界画布／ANSI、呈现、快捷键及页面绘制
+    test/                          纯外部编辑器产品回归测试
 tools/migration/ts-04/
   package.ts                       私有安装验收归档
   installed.ts                     八目标入口／编辑器／恢复验收

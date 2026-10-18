@@ -10,11 +10,13 @@ import { verifyDelivery } from '../build/verify.js';
 import { sha256 } from '../build/files.js';
 import { sourceHashes } from '../migration/ts-03/common.js';
 import { openPty } from '../migration/ts-04/test/pty.js';
-import { Capture } from '../migration/ts-04/capture.js';
+import { Capture, TERMINAL_THEMES, verifyColors } from '../migration/ts-04/capture.js';
 import { renderCapture } from './render-capture.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
+import { t } from '@fbincon/statusline-core/i18n/messages';
+import { dimensions } from '@fbincon/statusline-tui/layout';
 
-const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' }, font: { type: 'string', multiple: true } } });
+const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' }, font: { type: 'string', multiple: true }, extended: { type: 'boolean' } } });
 if (!values.artifact || !values.commit || !values.output || !values.font?.length)
     throw new Error('Require --artifact TGZ --commit FULL_SHA --output NEW_DIRECTORY --font FILE [--font FILE]');
 if (process.platform === 'win32') throw new Error('POSIX PTY capture; Windows requires its console acceptance');
@@ -36,22 +38,117 @@ try {
         const pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });
         try {
             await pty.wait(text => text.includes(`\x1b[${rows};1H`));
-            for (const page of ['main', 'subagents', 'settings', 'layout']) {
-                const raw = pty.captured(), screen = new Capture(columns, rows);
-                screen.feed(raw);
-                const cells = { columns, rows, cells: screen.buffer, terminal_foreground: '#dedee7', terminal_background: '#17191e' };
+            const key = async (value: string, contains?: string) => {
+                const length = pty.captured().length;
+                pty.send(value);
+                await pty.wait(text => Buffer.byteLength(text) > length &&
+                    text.slice(text.lastIndexOf('\x1b[H')).includes(`\x1b[${rows};1H`) &&
+                    (!contains || text.slice(text.lastIndexOf('\x1b[H')).includes(contains)));
+            };
+            const capture = (page: string, width = columns, height = rows) => {
+                const raw = pty.captured();
+                const screen = new Capture(width, height);
+                screen.feed(raw.subarray(raw.lastIndexOf(Buffer.from('\x1b[H'))));
                 const directory = join(output, language);
                 fs.mkdirSync(directory, { recursive: true });
                 fs.writeFileSync(join(directory, page + '.ansi'), raw);
-                const json = JSON.stringify(cells);
-                fs.writeFileSync(join(directory, page + '.json'), json);
-                const image = renderCapture(cells, [0, 0, columns, rows], fonts);
-                fs.writeFileSync(join(directory, page + '.png'), image.png);
-                captures.push({ language, page, columns, rows, ansi_sha256: sha256(raw), cells_sha256: sha256(json), png_sha256: sha256(image.png), width: image.width, height: image.height });
+                if (width >= 64 && height >= 18) {
+                    for (const [foreground, background] of Object.values(TERMINAL_THEMES)) {
+                        verifyColors(screen.buffer, width, height, foreground, background);
+                    }
+                    const panel = dimensions(width, height).content;
+                    for (const line of screen.buffer.slice(panel.innerY, panel.innerY + panel.innerHeight)) {
+                        if (line[panel.innerX]?.data !== '─' || line[panel.innerX + 1]?.data !== ' ') continue;
+                        assert(line.slice(panel.innerX, panel.innerX + panel.innerWidth)
+                            .every(cell => cell.fg === 'cyan' && cell.bold), 'A group separator lost its heading style');
+                    }
+                }
+                for (const [theme, [foreground, background]] of Object.entries(TERMINAL_THEMES)) {
+                    if (!values.extended && theme !== 'dark') continue;
+                    const cells = { columns: width, rows: height, cells: screen.buffer,
+                        terminal_foreground: foreground, terminal_background: background };
+                    const name = page + (theme === 'light' ? '-light' : '');
+                    const json = JSON.stringify(cells);
+                    fs.writeFileSync(join(directory, name + '.json'), json);
+                    const image = renderCapture(cells, [0, 0, width, height], fonts);
+                    fs.writeFileSync(join(directory, name + '.png'), image.png);
+                    captures.push({ language, page, theme, columns: width, rows: height,
+                        ansi_sha256: sha256(raw), cells_sha256: sha256(json), png_sha256: sha256(image.png),
+                        width: image.width, height: image.height });
+                }
+                return screen.buffer.map(row => row.map(cell => cell.data).join(''));
+            };
+            const selectSetting = async (name: string) => {
+                await key('\x1b[H');
+                for (let index = 0; index < 64; index++) {
+                    const raw = pty.captured();
+                    const screen = new Capture(columns, rows);
+                    screen.feed(raw.subarray(raw.lastIndexOf(Buffer.from('\x1b[H'))));
+                    if (screen.buffer.some(row => row.some(cell => cell.reverse) &&
+                        row.map(cell => cell.data).join('').includes(t('settings.' + name, language)))) return;
+                    await key('\x1b[B');
+                }
+                throw new Error('Setting not found in installed editor: ' + name);
+            };
+            for (const page of ['main', 'subagents', 'settings', 'layout']) {
+                capture(page);
                 if (page !== 'layout') {
-                    const length = raw.length;
-                    pty.send('\t');
-                    await pty.wait(text => Buffer.byteLength(text) > length && text.slice(text.lastIndexOf('\x1b[H')).includes(`\x1b[${rows};1H`));
+                    await key('\t');
+                }
+            }
+            if (values.extended) {
+                await key('\t');
+                await key('\x06');
+                assert(capture('category')[3]!.includes(t('catalog.search.choose_category', language)));
+                await key('\x1b');
+                await key('\x01');
+                assert(capture('picker').at(-2)!.includes(t('composition.add', language)));
+                await key('/');
+                for (const character of 'git') await key(character);
+                await key('\r');
+                capture('search');
+                await key('\x1b');
+                await key('\x05');
+                const detail = capture('detail');
+                assert.equal(detail.find(line => line.includes(t('settings.item-guidance', language)))?.match(/Enter/gu)?.length, 1);
+                await key('\r');
+                await key('\x15');
+                await key('中文 é 👩🏽‍💻', '👩🏽‍💻');
+                assert(capture('text-edit')[0]!.includes('*'));
+                await key('\x1b');
+                await key('\x1b[H');
+                await key('\r');
+                capture('guidance');
+                await key('\x1b');
+                await key('\x07');
+                await key('\t');
+                await key('\t');
+                await selectSetting('padding');
+                await key('9');
+                assert(capture('numeric').some(line => line.includes('[9_]')));
+                await key('9');
+                capture('numeric-error');
+                await key('\x1b');
+                run(['config', 'export', 'statusline.json', '--overwrite']);
+                const portablePath = join(installed.temporary, 'statusline.json');
+                const portable = JSON.parse(fs.readFileSync(portablePath, 'utf8'));
+                portable.draft.host.padding = 2;
+                fs.writeFileSync(portablePath, JSON.stringify(portable));
+                await selectSetting('import-file');
+                await key('\r');
+                await key('\r', t('review.intro', language));
+                capture('review');
+                await key('\r');
+                capture('review-expanded');
+                await key('\x1b');
+                await key('\t');
+                await key('\t');
+                for (const [width, height] of [[32, 12], [64, 18], [64, 19], [64, 20], [80, 24], [120, 30], [80, 48]]) {
+                    const length = pty.captured().length;
+                    pty.resize(width!, height!);
+                    await pty.wait(text => Buffer.byteLength(text) > length &&
+                        text.slice(text.lastIndexOf('\x1b[H')).includes(`\x1b[${height};1H`));
+                    capture(`boundary-${width}x${height}`, width, height);
                 }
             }
             pty.send('\x1b');
@@ -64,7 +161,7 @@ try {
     }
     const report = { status: 'pass', kind: 'installed PTY terminal-cell reconstruction; not an OS screenshot', commit: values.commit, tarball_sha256: artifact.sha256,
         application_version: artifact.source.application_version, platform: process.platform, arch: process.arch, os_release: release(), node: process.version,
-        collector_sha256: artifact.source.source_hashes['tools/acceptance/editor-capture.ts'], model_calls: 0, terminal_restored: true,
+        collector_sha256: artifact.source.source_hashes['tools/acceptance/editor-capture.ts'], model_calls: 0, terminal_restored: true, extended: values.extended === true,
         sample_configuration: { directory_style: 'home', statusline_language: 'matches the interface language', data: 'fixed production preview samples' },
         font_sha256: Object.fromEntries(fonts.map(path => [basename(path), sha256(fs.readFileSync(path))])), captures };
     fs.writeFileSync(join(output, 'editor-capture.json'), JSON.stringify(report, null, 2) + '\n');

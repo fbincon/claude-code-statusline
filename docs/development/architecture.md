@@ -30,6 +30,8 @@ packages/
     resources/                     Canonical skill templates
   tui/
     src/                           External editor state, layout, drawing and session
+    src/drawing/                   Bounded canvas/ANSI, presentation, shortcuts and pages
+    test/                          Pure external-editor product regressions
 tools/migration/ts-04/
   package.ts                       Private installed acceptance archive
   installed.ts                     Eight-target installed entry/editor/recovery gate

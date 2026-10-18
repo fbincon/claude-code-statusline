@@ -1373,7 +1373,12 @@ export const LOCALES = {
     "recovery.none": "No unfinished transactions.",
     "recovery.preview": "Recovery preview: {id}: {outcome}",
     "recovery.result": "Recovery completed: {id}: {outcome}",
-    "recovery.required": "Recovery required: {detail}"
+    "recovery.required": "Recovery required: {detail}",
+    "ui.actions.item-guidance": "read guidance",
+    "ui.actions.preset-apply": "replace draft; save later",
+    "ui.actions.import-file": "file path; save later",
+    "ui.actions.export-file": "new path (may be unsaved)",
+    "ui.hints.add_copy_remove_short": "add/copy/rm"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -2740,7 +2745,12 @@ export const LOCALES = {
     "recovery.none": "没有未完成的事务。",
     "recovery.preview": "恢复预览：{id}：{outcome}",
     "recovery.result": "恢复完成：{id}：{outcome}",
-    "recovery.required": "需要恢复：{detail}"
+    "recovery.required": "需要恢复：{detail}",
+    "ui.actions.item-guidance": "查看说明",
+    "ui.actions.preset-apply": "替换草稿；稍后保存",
+    "ui.actions.import-file": "输入路径；稍后保存",
+    "ui.actions.export-file": "输入新路径（可能尚未保存）",
+    "ui.hints.add_copy_remove_short": "增/复/删"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -4107,7 +4117,12 @@ export const LOCALES = {
     "recovery.none": "沒有未完成的交易。",
     "recovery.preview": "恢復預覽：{id}：{outcome}",
     "recovery.result": "恢復完成：{id}：{outcome}",
-    "recovery.required": "需要恢復：{detail}"
+    "recovery.required": "需要恢復：{detail}",
+    "ui.actions.item-guidance": "檢視說明",
+    "ui.actions.preset-apply": "取代草稿；稍後儲存",
+    "ui.actions.import-file": "輸入路徑；稍後儲存",
+    "ui.actions.export-file": "輸入新路徑（可能尚未儲存）",
+    "ui.hints.add_copy_remove_short": "增/複/刪"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5474,7 +5489,12 @@ export const LOCALES = {
     "recovery.none": "沒有未完成的交易。",
     "recovery.preview": "恢復預覽：{id}：{outcome}",
     "recovery.result": "恢復完成：{id}：{outcome}",
-    "recovery.required": "需要恢復：{detail}"
+    "recovery.required": "需要恢復：{detail}",
+    "ui.actions.item-guidance": "查看說明",
+    "ui.actions.preset-apply": "取代草稿；稍後儲存",
+    "ui.actions.import-file": "輸入路徑；稍後儲存",
+    "ui.actions.export-file": "輸入新路徑（可能尚未儲存）",
+    "ui.hints.add_copy_remove_short": "增/複/刪"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -6841,7 +6861,12 @@ export const LOCALES = {
     "recovery.none": "未完了のトランザクションはありません。",
     "recovery.preview": "復旧プレビュー：{id}：{outcome}",
     "recovery.result": "復旧完了：{id}：{outcome}",
-    "recovery.required": "復旧が必要です：{detail}"
+    "recovery.required": "復旧が必要です：{detail}",
+    "ui.actions.item-guidance": "説明を読む",
+    "ui.actions.preset-apply": "下書きを置換；後で保存",
+    "ui.actions.import-file": "パスを入力；後で保存",
+    "ui.actions.export-file": "新しいパスを入力（未保存の場合あり）",
+    "ui.hints.add_copy_remove_short": "追加/複製/削除"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -8208,7 +8233,12 @@ export const LOCALES = {
     "recovery.none": "미완료 트랜잭션이 없습니다.",
     "recovery.preview": "복구 미리 보기: {id}: {outcome}",
     "recovery.result": "복구 완료: {id}: {outcome}",
-    "recovery.required": "복구가 필요합니다: {detail}"
+    "recovery.required": "복구가 필요합니다: {detail}",
+    "ui.actions.item-guidance": "설명 읽기",
+    "ui.actions.preset-apply": "초안 교체; 나중에 저장",
+    "ui.actions.import-file": "경로 입력; 나중에 저장",
+    "ui.actions.export-file": "새 경로 입력(저장 전일 수 있음)",
+    "ui.hints.add_copy_remove_short": "추가/복제/삭제"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

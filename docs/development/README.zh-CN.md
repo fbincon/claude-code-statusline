@@ -10,6 +10,7 @@
 
 ## 技术文档导航
 
+- [外部 TUI 呈现修复](external-tui-parity.zh-CN.md)：v3.1.1 绘制、上下文操作与源码绑定验收。
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [TypeScript 重构计划与进度](typescript-migration.zh-CN.md)：当前状态、范围、阶段、决策、验收及会话交接。
 - [PERF-01 迁移后性能专项](performance/perf-01.zh-CN.md)：TS-06 后的独立工作、保留的 D06 目标及历史证据；尚未开始。

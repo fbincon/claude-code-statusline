@@ -11,6 +11,8 @@
 
 TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾／香港繁体语言后续工作已 **DONE**，v3.1.0 已交付 npm、GitHub 和 Gitee，见[实现、界面捕获及交付证据](node-regional-languages.zh-CN.md)。下方历史阶段结果保留；D06 继续 FAIL，PERF-01 继续 NOT_STARTED。
 
+独立的 v3.1.1 外部 TUI 呈现修复后续工作为 **IN_PROGRESS**，保留六语言发布及已公开 Python 参考。[实现、验收与交付](external-tui-parity.zh-CN.md)。
+
 ## 当前决策：2026-10-15
 
 先完成 TS-01～TS-06，再进行后续性能优化。维护者已批准 [D06 适用范围修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)：完整 D06 测量及性能预算达标不再阻塞 TS-03～TS-06，包括预览与正式交付。独立 [PERF-01](performance/perf-01.zh-CN.md) 在 TS-06 后执行，当前保持 **NOT_STARTED**。

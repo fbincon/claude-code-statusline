@@ -108,7 +108,8 @@ test('tests.ui.test_layout.DrawingTests.test_shortcut_keys_and_labels_have_indep
         f.e.page = page;
         const rows = bounded(f.state, 120, 30).rows;
         const action = rows[28]!;
-        assert.ok(action.some(s => s.text === 'Ctrl+S' && s.bold && !s.reverse));
+        const save = page === 'main' || page === 'subagents' ? 'Enter/Ctrl+S' : 'Ctrl+S';
+        assert.ok(action.some(s => s.text === save && s.bold && !s.reverse));
         assert.ok(action.some(s => s.text.includes('save') && !s.reverse));
     }
 });

@@ -3,6 +3,14 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.1.1 — 2026-10-18
+
+- Render complete external-TUI group separators in bold cyan; retain terminal-default frames, full-row selection and six-language support.
+- Restore external field labels, contextual shortcuts, search highlights and match snippets; fix duplicate action keys, inheritance localization, double ellipses and preview plurals.
+- Show pending configuration text edits accurately, preserve literal user text, and keep size information and exit controls visible in small terminals.
+- Separate terminal drawing responsibilities and add product regressions for styles, input contexts, Unicode and color capabilities without changing public commands or protocol formats.
+- [Release notes](docs/releases/v3.1.1.md) · [Validation and delivery](docs/development/external-tui-parity.md).
+
 ## 3.1.0 — 2026-10-18
 
 - Support product runtimes Node 22 and 24 while retaining the reproducible development/build toolchain; require 32 additional runtime installation cases.

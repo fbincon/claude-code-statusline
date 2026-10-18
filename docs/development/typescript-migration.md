@@ -11,6 +11,8 @@ Migrate the Python implementation to TypeScript while retaining the statusline's
 
 TS-01–TS-06 remain DONE. The separate Node 22/24 compatibility and Taiwan/Hong Kong Traditional Chinese follow-up is **DONE**, delivered as v3.1.0 on npm, GitHub and Gitee. [Implementation, capture and delivery evidence](node-regional-languages.md). Historical stage results below are retained; D06 remains FAIL and PERF-01 remains NOT_STARTED.
 
+The separate v3.1.1 external-TUI parity follow-up is **IN_PROGRESS**, preserving the six-language release and published Python reference. [Implementation, acceptance and delivery](external-tui-parity.md).
+
 ## Current decision, 2026-10-15
 
 Complete TS-01–TS-06 before further performance optimization. The maintainer approved the [D06 applicability amendment](typescript-migration/ts-02/D06.md#applicability-amendment-2026-10-15): full D06 measurement and passing performance budgets no longer block TS-03–TS-06, including preview and stable delivery. The independent [PERF-01](performance/perf-01.md) follows TS-06 and remains **NOT_STARTED**.

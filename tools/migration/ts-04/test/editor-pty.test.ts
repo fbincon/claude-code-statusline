@@ -2,7 +2,7 @@ import test from 'node:test';
 import { fixture, assert, fs, join } from './support.js';
 import { openPty } from './pty.js';
 const posix = { skip: process.platform === 'win32' ? 'POSIX PTY; Windows uses separate console acceptance' : false, timeout: 15000 };
-for (const [width, height] of [[64, 18], [64, 20], [80, 24], [120, 30], [80, 48]])
+for (const [width, height] of [[64, 18], [64, 19], [64, 20], [80, 24], [120, 30], [80, 48]])
     test(`real external TS editor save and full terminal restoration at ${width}x${height}`, posix, async (t) => {
         const f = await fixture(t), pty = openPty(f.root, width, height);
         try {
