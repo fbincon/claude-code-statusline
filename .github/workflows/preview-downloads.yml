@@ -39,6 +39,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+          check-latest: true
       - name: Verify published bytes and fixed-version/channel installations
         env:
           GH_TOKEN: ${{ github.token }}
