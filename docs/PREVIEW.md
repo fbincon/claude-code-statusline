@@ -4,6 +4,8 @@
 
 The preview is **v3.0.0-beta.1**, distributed as `@fbincon/claude-code-statusline@beta` and identical GitHub/Gitee Release attachments. It is for testing before stable delivery. [Release notes](releases/v3.0.0-beta.1.md) · [Validation tracker](https://github.com/fbincon/claude-code-statusline/issues/96).
 
+Use `@beta` or an exact preview version in every npm installation. There is no npm stable product release yet; an unqualified install or `@latest` resolves to a registry placeholder, not the statusline. The stable product remains Python v2.0.0.
+
 ## Requirements and validation limits
 
 Use Node **24.21.0** with npm **11.19.0**. Supported package targets are Linux/WSL x64, Windows x64, macOS x64 and ARM64. Windows ARM testing uses **x64 Node under emulation**. A native Windows ARM or 32-bit runtime is not provided. No Python or native compiler is needed to install the preview.

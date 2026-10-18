@@ -23,12 +23,12 @@
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01～TS-05 DONE**；[TS-05 关闭记录](typescript-migration/ts-05/README.zh-CN.md#closure-2026-10-16) |
-| 当前任务范围 | TS-06 IN_PROGRESS：首个公开预览；PERF-01 保持 NOT_STARTED |
+| 当前任务范围 | TS-06 IN_PROGRESS：首个预览已交付，正式版验收待补；PERF-01 保持 NOT_STARTED |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位；D01–D06 DECIDED；保留明确的[发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md#已批准的阶段与发布门槛) |
-| 目标版本与工期 | v3.0.0-beta.1，GitHub/Gitee 与 npm beta；正式版等待缺失验收与反馈 |
-| 下一项实施工作 | 完成预览发布与下载产物验收；[TS-06 记录](typescript-migration/ts-06/README.zh-CN.md) |
+| 目标版本与工期 | v3.0.0-beta.1 已交付 GitHub/Gitee 与 npm beta；正式版等待缺失验收与反馈 |
+| 下一项实施工作 | 收集预览反馈与缺失正式版验收；[交付证据](typescript-migration/ts-06/preview-release.zh-CN.md) |
 
-维护者已批准 TS-05 实施，安装验收使用隔离环境，恢复采用显式命令，保留现用 Python 安装。[TS-05 记录](typescript-migration/ts-05/README.zh-CN.md)跟踪全部五批，本阶段不发布。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
+维护者已批准 TS-06 预览交付，验收使用隔离环境和显式恢复，现用 Python 安装保持不变。[TS-06 记录](typescript-migration/ts-06/README.zh-CN.md)跟踪已交付预览证据与正式版剩余门槛。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 
 TS-03 覆盖全部 161 个固定案例，保留原三项已批准的 CLI 文案差异；516 项清单已审计：471 项迁移、45 项完整测试交接 TS-04，另保留八项混合测试中的剩余断言。最新本地 TS 验证为 556/557 通过、1 项平台跳过；[PR #85](https://github.com/fbincon/claude-code-statusline/pull/85) 最终 head 的 43 项 CI 和八份源码回执通过后合并为 `7eae7c4`。这些 TS-03 历史结果与 TS-04 的安装验收分别保留。[关闭依据与证据](typescript-migration/ts-03/README.zh-CN.md#closure-2026-10-15)。
 
@@ -247,6 +247,7 @@ TS-05 已使用 TypeScript 文档检查器；独立 Python 参考已归档。已
 
 | 日期 | 工作 | 结果与下一步 |
 | --- | --- | --- |
+| 2026-10-18 | TS-06 首个预览，[实现 PR #97](https://github.com/fbincon/claude-code-statusline/pull/97) | v3.0.0-beta.1 已发布至 GitHub/Gitee/npm beta，安装包一致，三轮 23 项源码矩阵及修正后的三系统公开安装检查通过。[发布证据](typescript-migration/ts-06/preview-release.zh-CN.md)。TS-06 继续 IN_PROGRESS，等待正式门槛；PERF-01 NOT_STARTED。 |
 | 2026-10-16 | TS-05 工具链、共享候选 CI 与归档；PR #92～#94 及[收尾 PR #95](https://github.com/fbincon/claude-code-statusline/pull/95) | 五批完成，856 方法/62 工具闭环；PR/main 的 23 项候选 CI 与独立历史验证通过。[证据及源码/制品身份](typescript-migration/ts-05/README.zh-CN.md#closure-2026-10-16)。TS-06 与 PERF-01 保持 NOT_STARTED，不公开发布、不切换现用安装。 |
 | 2026-10-15 | TS-04 双编辑器、安装与恢复，[PR #91](https://github.com/fbincon/claude-code-statusline/pull/91) | 04-A～04-E 完成；265 项责任清零待办；43 项 CI、八目标安装验收及 13 宿主回执通过，全部 380 个源码哈希一致。文档收口与同步记录见 PR；不切换现用安装、不发布。 |
 | 2026-10-15 | 批准迁移优先、性能后移；`fbincon/ts-migration-plan-performance-deferral` | D06 数值策略及证据不变，性能达标不再阻塞 TS-03～TS-06。依据 PR #85 既有证据关闭 TS-03／03-F；TS-04～TS-06、独立 PERF-01 均为 NOT_STARTED。本次仅调整文档与状态。 |
