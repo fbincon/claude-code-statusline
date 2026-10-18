@@ -1,9 +1,10 @@
+import { VERSION } from '@fbincon/statusline-core/release';
 import test from 'node:test';
 import { setup, assert, join, existsSync, readdirSync, readFileSync, selected } from './final-support.js';
 import { subprocess, traced } from './final-cli-support.js';
 test('tests.integration.test_cli.CliTests.test_version', t => {
     const f = setup(t);
-    assert.deepEqual(subprocess(f.root, ['--version']), { status: 0, stdout: 'claude-statusline 2.0.0\n', stderr: '' });
+    assert.deepEqual(subprocess(f.root, ['--version']), { status: 0, stdout: `claude-statusline ${VERSION}\n`, stderr: '' });
 });
 test('tests.integration.test_cli.CliTests.test_help_lists_public_commands', t => {
     const f = setup(t), result = subprocess(f.root, ['--help']);

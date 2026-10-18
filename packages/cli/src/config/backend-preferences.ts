@@ -1,3 +1,4 @@
+import { VERSION } from '@fbincon/statusline-core/release';
 import { join } from 'node:path';
 import { DEFAULT_RUNTIME, FEATURE_FILENAME, NATIVE_FILENAME, RUNTIME_FILENAME, enabledByDefault, parseFeature, parseNative, parseRuntime, type RuntimePreferences } from '@fbincon/statusline-core/config/backend-preferences';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
@@ -18,7 +19,7 @@ export function loadRuntime(directory: string, io: Storage = createStorage(), li
     }
     return { ...base, native_timing: nativeTiming ?? base.native_timing };
 }
-export function loadNative(directory: string, explicit?: boolean, version = '2.0.0', io: Storage = createStorage()): boolean {
+export function loadNative(directory: string, explicit?: boolean, version = VERSION, io: Storage = createStorage()): boolean {
     if (explicit !== undefined)
         return explicit;
     const raw = optional(join(directory, NATIVE_FILENAME), io);
@@ -28,7 +29,7 @@ export function loadNative(directory: string, explicit?: boolean, version = '2.0
         throw new ConfigError('errors.native.invalid', { FILENAME: NATIVE_FILENAME, exc: errorDetail(exc) });
     }
 }
-export function loadFeature(directory: string, version = '2.0.0', io: Storage = createStorage()): boolean {
+export function loadFeature(directory: string, version = VERSION, io: Storage = createStorage()): boolean {
     const path = join(directory, FEATURE_FILENAME);
     let raw: Buffer | null;
     try {

@@ -9,7 +9,7 @@ import { decode } from '@fbincon/statusline-core/json';
 import { compare, type Difference } from '../compare.js';
 import { fixtures, repoRoot } from '../common.js';
 
-test('implemented frozen cases replay independently with only the three approved CLI wording differences', { skip: process.platform !== 'linux' }, t => {
+test('implemented frozen cases replay independently with three approved CLI wording differences and bounded release identity changes', { skip: process.platform !== 'linux' }, t => {
   const root = mkdtempSync(join(tmpdir(), 'ts03-replay-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const output = join(root, 'capture');

@@ -2,6 +2,7 @@ import { readJson } from '../json-read.js';
 import { integer, isLosslessNumber, scalarCompare } from '../json.js';
 import { isSchema } from './display.js';
 import { ConfigError, fail, object } from './validation.js';
+import { editorsEnabledByDefault } from '../release.js';
 export const RUNTIME_FILENAME = 'claude-statusline-runtime.json';
 export const NATIVE_FILENAME = 'claude-statusline-native.json';
 export const FEATURE_FILENAME = 'claude-statusline-features.json';
@@ -11,7 +12,7 @@ export interface RuntimePreferences {
     live_metrics: boolean;
 }
 export const DEFAULT_RUNTIME: RuntimePreferences = { schema_version: 2, native_timing: true, live_metrics: false };
-export function enabledByDefault(version: string): boolean { return !/(?:a|b|rc|dev)\d/u.test(version); }
+export const enabledByDefault = editorsEnabledByDefault;
 function detail(error: unknown): unknown { return error instanceof ConfigError ? error : error instanceof Error ? error.message : String(error); }
 export function parseRuntime(raw: string): RuntimePreferences {
     try {

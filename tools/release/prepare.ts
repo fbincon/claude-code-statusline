@@ -51,10 +51,14 @@ export function evidenceFiles(root: string): any[] {
     });
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, evidence: { type: 'string' }, report: { type: 'string' } } });
+    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, evidence: { type: 'string' }, report: { type: 'string' }, preview: { type: 'boolean' } } });
     if (!values.artifact || !values.commit || !values.evidence || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --evidence DIRECTORY --report NEW_FILE');
     const candidate = verifyDelivery(resolve(values.artifact), values.commit);
     const result = assessEvidence(evidenceFiles(resolve(values.evidence)), values.commit, candidate.sha256);
-    fs.writeFileSync(resolve(values.report), JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
-    console.log(JSON.stringify(result));
+    if (values.preview) assert.equal(candidate.source.channel, 'preview', 'Preview gate requires the public package');
+    const report = { ...result, application_version: candidate.source.application_version, channel: candidate.source.channel ?? 'candidate',
+        preview_ready: values.preview === true, stable_ready: false,
+        deferred_to_stable: ['physical-macos-sleep', 'macos-14-intel-desktop-power', 'windows-10-desktop', 'wsl-desktop-popup', 'remaining-target-power-and-human-visual'] };
+    fs.writeFileSync(resolve(values.report), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+    console.log(JSON.stringify(report));
 }

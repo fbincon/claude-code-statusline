@@ -1,3 +1,4 @@
+import { VERSION } from '@fbincon/statusline-core/release';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,7 +29,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     const stdin = environment.stdin ?? (() => decodeUtf8(readFileSync(0)));
     const args = [...argv];
     if (args.length === 1 && args[0] === '--version') {
-        stdout('claude-statusline 2.0.0\n');
+        stdout(`claude-statusline ${VERSION}\n`);
         return 0;
     }
     if (args.length === 1 && args[0] === 'hook') {

@@ -7,10 +7,11 @@ import { pathToFileURL } from 'node:url';
 import * as tar from 'tar';
 import { repoRoot } from '../migration/ts-03/common.js';
 import { files, sha256, npmEntry, readTar, extractFiles } from './files.js';
-import { version } from './model.js';
+import { identity, sourceFilename, channel, type Channel } from './model.js';
 import { verifyCandidate } from './verify.js';
 
-export async function buildCandidate(commit: string, output: string, sourceArchive?: string) {
+export async function buildCandidate(commit: string, output: string, sourceArchive?: string, kind: Channel = 'candidate') {
+    const product = identity(commit, kind);
     if (!/^[a-f0-9]{40}$/u.test(commit)) throw new Error('Use an immutable full 40-character commit SHA');
     if (fs.existsSync(output)) throw new Error('Candidate output directory must be new');
     const temporary = fs.mkdtempSync(join(tmpdir(), 'ts05 independent builds '));
@@ -29,7 +30,7 @@ export async function buildCandidate(commit: string, output: string, sourceArchi
         if (source.commit !== commit || source.schema_version !== 1) throw new Error('Source archive identity differs');
         if (JSON.stringify(Object.keys(source.files).sort()) !== JSON.stringify([...original.keys()].filter(name => name !== '.candidate-source.json').sort())) throw new Error('Source archive inventory differs');
         for (const [name, hash] of Object.entries(source.files)) if (sha256(original.get(name)!) !== hash) throw new Error('Source archive hash mismatch');
-        const sourceName = `statusline-ts05-source-${commit.slice(0, 12)}.tgz`, sourceRoot = join(temporary, 'source');
+        const sourceName = sourceFilename(commit, kind), sourceRoot = join(temporary, 'source');
         fs.mkdirSync(sourceRoot); extractFiles(original, sourceRoot);
         tar.c({ cwd: sourceRoot, file: join(output, sourceName), sync: true, gzip: true, portable: true, noMtime: true, prefix: 'statusline-source', noDirRecurse: true }, files(sourceRoot));
         for (const round of [1, 2]) {
@@ -39,14 +40,14 @@ export async function buildCandidate(commit: string, output: string, sourceArchi
             const run = (args: string[]) => execFileSync(process.execPath, args, { cwd: root, env, encoding: 'utf8', timeout: 600000, maxBuffer: 16 * 1024 * 1024 });
             const log = run([npmEntry(), 'ci', '--ignore-scripts', '--no-audit', '--no-fund']) + run([npmEntry(), 'run', 'build']) + run(['dist/typescript/tools/generation/resources.js', '--check']);
             fs.writeFileSync(join(output, `build-${round}.log`), log);
-            const result = JSON.parse(run(['dist/typescript/tools/build/pack.js', '--output', artifacts, '--commit', commit]).trim());
+            const result = JSON.parse(run(['dist/typescript/tools/build/pack.js', '--output', artifacts, '--commit', commit, '--channel', kind]).trim());
             const bytes = fs.readFileSync(result.tarball);
             if (round === 1) fs.copyFileSync(result.tarball, join(output, basename(result.tarball)));
             else if (!bytes.equals(fs.readFileSync(join(output, basename(result.tarball))))) throw new Error('Independent builds differ byte for byte');
             builds.push({ round, sha256: sha256(bytes), bytes: bytes.length, node_sha256: sha256(fs.readFileSync(process.execPath)) });
         }
-        const artifact = fs.readdirSync(output).find(name => name.startsWith('fbincon-statusline-ts05-candidate-') && name.endsWith('.tgz'))!;
-        const manifest = { schema_version: 1, commit, candidate_version: version(commit), candidate: { file: artifact, sha256: builds[0].sha256 }, source: { file: sourceName, sha256: sha256(fs.readFileSync(join(output, sourceName))) }, byte_identical: true, builds };
+        const artifact = fs.readdirSync(output).find(name => name === product.name.replace('@', '').replace('/', '-') + '-' + product.version + '.tgz' && name.endsWith('.tgz'))!;
+        const manifest = { schema_version: 1, commit, channel: kind, candidate_version: product.version, candidate: { file: artifact, sha256: builds[0].sha256 }, source: { file: sourceName, sha256: sha256(fs.readFileSync(join(output, sourceName))) }, byte_identical: true, builds };
         fs.writeFileSync(join(output, 'build-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
         const named = [artifact, sourceName, 'build-manifest.json'];
         fs.writeFileSync(join(output, 'SHA256SUMS'), named.map(name => sha256(fs.readFileSync(join(output, name))) + '  ' + name).join('\n') + '\n');
@@ -56,7 +57,7 @@ export async function buildCandidate(commit: string, output: string, sourceArchi
     } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values } = parseArgs({ options: { commit: { type: 'string' }, output: { type: 'string' }, source: { type: 'string' } } });
+    const { values } = parseArgs({ options: { commit: { type: 'string' }, output: { type: 'string' }, source: { type: 'string' }, channel: { type: 'string', default: 'candidate' } } });
     if (!values.commit || !values.output) throw new Error('Usage: candidate:build -- --commit FULL_SHA --output NEW_DIRECTORY [--source SOURCE_TGZ]');
-    console.log(JSON.stringify(await buildCandidate(values.commit, resolve(values.output), values.source && resolve(values.source))));
+    console.log(JSON.stringify(await buildCandidate(values.commit, resolve(values.output), values.source && resolve(values.source), channel(values.channel))));
 }

@@ -2,6 +2,14 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+## 3.0.0-beta.1 — 2026-10-18
+
+- First TypeScript preview with a reproducible offline npm package, source archive and verified GitHub/Gitee delivery.
+- Unified application/Mod version identity; both compatible editors default on while retaining opt-outs.
+- Preserve configuration/protocol formats, explicit recovery and Python v2.0.0 rollback; document physical/desktop validation still required for stable.
+- Add preview feedback and source/artifact-bound acceptance. D06 FAIL remains disclosed; PERF-01 is separate.
+- [Release notes](docs/releases/v3.0.0-beta.1.md) · [Preview guide](docs/PREVIEW.md).
+
 ## Unreleased
 
 - Move daily tools, frozen-reference tests, candidate builds and CI to TypeScript while preserving the Python implementation and independent historical checks.

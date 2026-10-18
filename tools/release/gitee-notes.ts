@@ -51,8 +51,12 @@ export function renderGitee(tag: string, source: Release, targets: Release[]): s
         const suffix = `-${tag.slice(1)}-py3-none-any.whl`, prefix = wheels[0]!.endsWith(suffix) ? wheels[0]!.slice(0, -suffix.length) : '';
         require(['claude_code_statusline', 'fbincon_claude_code_statusline'].includes(prefix) && names.includes(`${prefix}-${tag.slice(1)}.tar.gz`), 'Package asset identity differs');
     }
-    else
-        require(wheels.length === 0 && npm.length === 1 && /^fbincon-statusline-[a-z0-9.-]+\.tgz$/u.test(npm[0]!), 'Expected one verified npm package');
+    else {
+        const version = tag.slice(1);
+        require(wheels.length === 0 && npm.length === 1 && npm[0] === `fbincon-claude-code-statusline-${version}.tgz`, 'Expected one verified npm package');
+        require(names.length === 4 && names.includes(`claude-code-statusline-${version}-source.tar.gz`) && names.includes('build-manifest.json'), 'Incomplete TypeScript delivery');
+        require(source.prerelease === version.includes('-'), 'Release channel and version differ');
+    }
     for (const name of names)
         require(catalog.has(tag + '/' + name), 'Missing matching Gitee asset: ' + tag + '/' + name);
     const packageName = (legacy ? wheels[0] : npm[0])!, local = './' + packageName;
@@ -93,8 +97,10 @@ export function renderGitee(tag: string, source: Release, targets: Release[]): s
     const original = `${GITHUB}/releases/tag/${tag}`;
     require(source.html_url === original, 'Original GitHub Release URL differs');
     require(typeof source.published_at === 'string' && source.published_at.length > 0 && !/[\r\n]/u.test(source.published_at), 'Missing original publication time');
-    const command = legacy ? `pipx install --force "${local}"` : `npm install --global --offline --ignore-scripts "${local}"`;
-    return body.trimEnd() + `\n\n## Gitee installation and downloads / Gitee 安装与下载\n\nDownload the package and SHA256SUMS, verify the checksum, then install from the download directory. / 下载包和 SHA256SUMS，核验后在下载目录安装。\n\n\`\`\`text\n${command}\nclaude-statusline install --dry-run\nclaude-statusline install\nclaude-statusline doctor\n\`\`\`\n\n${names.map(name => `[${name}](${catalog.get(tag + '/' + name)})`).join('\n')}\n\n## Original publication / 原始发布信息\n\n[Original GitHub Release / GitHub 原始发行版](${original})\n\nOriginal GitHub publication time / GitHub 原始发布时间: ${source.published_at}\n`;
+    const command = legacy ? `pipx install --force "${local}"` : `npm install --prefix ./statusline-preview --offline --ignore-scripts "${local}"`;
+    const entry = legacy ? 'claude-statusline' : 'node ./statusline-preview/node_modules/@fbincon/claude-code-statusline/bin/claude-statusline.js';
+    const config = legacy ? '' : ' --config-dir ./statusline-preview/test-config';
+    return body.trimEnd() + `\n\n## Gitee installation and downloads / Gitee 安装与下载\n\nDownload the package and SHA256SUMS, verify the checksum, then install from the download directory. / 下载包和 SHA256SUMS，核验后在下载目录安装。\n\n\`\`\`text\n${command}\n${entry} install${config} --dry-run\n${entry} install${config}\n${entry} doctor${config}\n\`\`\`\n\n${names.map(name => `[${name}](${catalog.get(tag + '/' + name)})`).join('\n')}\n\n## Original publication / 原始发布信息\n\n[Original GitHub Release / GitHub 原始发行版](${original})\n\nOriginal GitHub publication time / GitHub 原始发布时间: ${source.published_at}\n`;
 }
 export function writeNotes(tag: string, source: string, targets: string, output: string): void {
     const body = renderGitee(tag, JSON.parse(readFileSync(source, 'utf8')), JSON.parse(readFileSync(targets, 'utf8')));

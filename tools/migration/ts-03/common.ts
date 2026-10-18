@@ -72,7 +72,7 @@ export function sourceHashes(): Record<string, string> {
         const manifest = root + '/.claude-plugin/plugin.json';
         hashes[manifest] = sha256(readFileSync(join(repoRoot, manifest)));
     }
-    for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.base.json', 'tsconfig.tools.json', '.node-version', '.gitattributes', '.github/workflows/ci.yml', '.github/workflows/reference.yml',
+    for (const path of ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.base.json', 'tsconfig.tools.json', '.node-version', '.gitattributes', '.github/workflows/ci.yml', '.github/workflows/reference.yml', '.github/workflows/preview-downloads.yml',
         'archive/python/manifest.json', 'archive/python/manifest.sha256', 'tools/unicode/UNICODE-LICENSE.txt', 'tools/unicode/WCWIDTH-LICENSE.txt', 'mods/statusline-native/lib/generated-unicode.ts', 'mods/statusline-native/lib/unicode.ts'])
         hashes[path] = sha256(readFileSync(join(repoRoot, path)));
     return Object.fromEntries(Object.entries(hashes).sort());

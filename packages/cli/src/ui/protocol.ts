@@ -1,3 +1,4 @@
+import { VERSION } from '@fbincon/statusline-core/release';
 import { randomUUID } from 'node:crypto';
 import * as contracts from '@fbincon/statusline-core/contracts/ui';
 import type { Draft } from '@fbincon/statusline-core/contracts/ui';
@@ -15,7 +16,7 @@ import { readPreferences, setLanguage } from '../config/preferences.js';
 import { importFile, exportFile } from '../config/transfer.js';
 import { localizedError } from '../errors.js';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
-export const BACKEND_VERSION = '2.0.0';
+export const BACKEND_VERSION = VERSION;
 export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import'] as const;
 export type Preview = (draft: Draft, width: number) => unknown;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {

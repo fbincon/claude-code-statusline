@@ -6,7 +6,7 @@ export const OWNER_FILE = '.claude-statusline-owner.json';
 export const HOOKS = ['SessionStart', 'UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd'] as const;
 export const SUBAGENT_HOOKS = ['SubagentStart', 'SubagentStop'] as const;
 export const SKILL = 'statusline-config', EXTERNAL = 'statusline-configure';
-export const VERSION = '2.0.0';
+export { VERSION } from '@fbincon/statusline-core/release';
 export interface ModSpec {
     name: string;
     marketplace: string;

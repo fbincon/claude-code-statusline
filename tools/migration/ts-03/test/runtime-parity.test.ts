@@ -1,3 +1,4 @@
+import { VERSION } from '@fbincon/statusline-core/release';
 import { oracle, referenceDirectory as exportReference } from '@fbincon/statusline-test-support/oracle';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -80,7 +81,11 @@ test('runtime action traces match frozen Python task, live and duration state in
         else
             value = protocol.dispatch(action.payload);
         results.push(decode(encode(value)));
-        assert.equal(canonical(results.at(-1)), canonical((expected.results as unknown[])[results.length - 1]), `action ${results.length - 1}: ${encode(action)}`);
+        const historical = (expected.results as unknown[])[results.length - 1];
+        // Only protocol response identity changes; persisted files/numeric kinds remain exact.
+        const released = action.kind === 'protocol' && object(historical) && historical.backend_version === '2.0.0'
+            ? { ...historical, backend_version: VERSION } : historical;
+        assert.equal(canonical(results.at(-1)), canonical(released), `action ${results.length - 1}: ${encode(action)}`);
     }
     const files: Data = {};
     for (const path of fs.readdirSync(tsRoot, { recursive: true }).map(String).sort())

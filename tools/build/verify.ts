@@ -1,23 +1,31 @@
+import { VERSION, REPOSITORY_URL } from '@fbincon/statusline-core/release';
 import * as fs from 'node:fs';
 import { resolve, basename, dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { readTar, sha256, sums, verifyChecksums } from './files.js';
-import { BUSINESS, NATIVE, TARGETS, PACKAGE, version, type Candidate } from './model.js';
+import { BUSINESS, NATIVE, TARGETS, identity, sourceFilename, channel, type Candidate } from './model.js';
 export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     const read = (name: string) => { const bytes = entries.get(name); if (!bytes) throw new Error('Missing candidate resource: ' + name); return JSON.parse(bytes.toString('utf8')); };
     const source = read('candidate.json') as Candidate, manifest = read('package.json');
     assert.match(commit, /^[a-f0-9]{40}$/u, 'Fixed source SHA required');
     assert.equal(source.commit, commit, 'Wrong source commit');
     assert.equal(source.schema_version, 1); assert.equal(source.dirty, false);
-    assert.equal(source.name, PACKAGE); assert.equal(manifest.name, PACKAGE);
-    assert.equal(source.version, version(commit)); assert.equal(manifest.version, source.version);
-    assert.equal(manifest.private, true); assert.equal(manifest.scripts, undefined);
+    const kind = channel(source.channel ?? 'candidate'), product = identity(commit, kind);
+    assert.equal(source.name, product.name); assert.equal(manifest.name, product.name);
+    assert.equal(source.version, product.version); assert.equal(manifest.version, source.version);
+    assert.equal(manifest.private, product.private); assert.equal(manifest.scripts, undefined);
     assert.equal(manifest.devDependencies, undefined);
+    if (kind === 'preview') {
+        assert.deepEqual(manifest.publishConfig, { registry: 'https://registry.npmjs.org/', access: 'public', tag: 'beta' });
+        assert.deepEqual(manifest.repository, { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' });
+        assert.equal(manifest.bugs?.url, REPOSITORY_URL + '/issues');
+        assert(entries.get('README.md')?.length, 'Missing npm installation guide');
+    }
     assert.deepEqual(manifest.bin, { 'claude-statusline': 'bin/claude-statusline.js' });
     assert.equal(source.node, 'v24.21.0'); assert.equal(source.npm, '11.19.0'); assert.equal(source.typescript, '5.9.3');
-    assert.equal(source.application_version, '2.0.0');
+    assert.equal(source.application_version, VERSION);
     assert.deepEqual(source.targets, TARGETS);
     const dependencies = [...BUSINESS.map(name => '@fbincon/statusline-' + name), 'koffi', 'lossless-json', ...NATIVE];
     assert.deepEqual([...manifest.bundleDependencies].sort(), [...dependencies].sort());
@@ -32,7 +40,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     for (const [name, hash] of Object.entries(source.files)) {
         assert.match(hash, /^[a-f0-9]{64}$/u); assert.equal(sha256(entries.get(name)!), hash, 'Changed candidate file: ' + name);
         if (/(?:^|\/)(?:\.git|\.env[^/]*|node_modules\/\.cache|test|tests|__pycache__|validation|archive|\.claude-plugin\/types)(?:\/|$)/u.test(name) || /\.(?:py|pyc|tsbuildinfo|log)$/u.test(name)) throw new Error('Forbidden candidate file: ' + name);
-        if (!['bin/claude-statusline.js', 'package.json'].includes(name) && !/^LICENSE[^/]*$/u.test(name) && !dependencies.some(dep => name.startsWith('node_modules/' + dep + '/'))) throw new Error('Unexpected candidate file: ' + name);
+        if (!['bin/claude-statusline.js', 'package.json', ...(kind === 'preview' ? ['README.md'] : [])].includes(name) && !/^LICENSE[^/]*$/u.test(name) && !dependencies.some(dep => name.startsWith('node_modules/' + dep + '/'))) throw new Error('Unexpected candidate file: ' + name);
     }
     for (const name of ['LICENSE', 'LICENSE-Unicode.txt', 'LICENSE-Wcwidth.txt']) assert(entries.get(name)?.length, 'Missing license');
     for (const short of BUSINESS) {
@@ -54,6 +62,9 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const root = 'node_modules/@fbincon/statusline-cli/resources/' + name;
         const owned = read(root + '/resource-manifest.json');
+        assert.equal(owned.backend_version, VERSION); assert.equal(owned.mod_version, VERSION);
+        assert.equal(owned.protocol_version, name === 'statusline-native' ? 11 : 2);
+        assert.equal(read(root + '/.claude-plugin/plugin.json').version, VERSION);
         const mapping = owned.files;
         assert(mapping && typeof mapping === 'object', 'Missing ownership map');
         for (const [path, hash] of Object.entries(mapping)) assert.equal(sha256(entries.get(root + '/' + path) ?? Buffer.alloc(0)), hash, 'Missing/changed owned resource: ' + path);
@@ -79,7 +90,7 @@ export function verifyCandidate(path: string, commit: string, checksumFile = joi
     return { tarball: resolve(path), sha256: expected, ...verifyContents(readTar(path), commit) };
 }
 export function verifyDelivery(path: string, commit: string) {
-    const candidate = verifyCandidate(path, commit), directory = dirname(path), sourceName = `statusline-ts05-source-${commit.slice(0, 12)}.tgz`;
+    const candidate = verifyCandidate(path, commit), directory = dirname(path), sourceName = sourceFilename(commit, candidate.source.channel ?? 'candidate');
     verifyChecksums(directory, [basename(path), sourceName, 'build-manifest.json']);
     const manifest = JSON.parse(fs.readFileSync(join(directory, 'build-manifest.json'), 'utf8'));
     assert.equal(manifest.commit, commit); assert.equal(manifest.candidate.file, basename(path));
@@ -95,9 +106,10 @@ export function verifyDelivery(path: string, commit: string) {
     return candidate;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, checksums: { type: 'string' }, report: { type: 'string' } } });
+    const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, checksums: { type: 'string' }, report: { type: 'string' }, release: { type: 'boolean' } } });
     if (!values.artifact || !values.commit) throw new Error('Require --artifact TGZ --commit FULL_SHA [--checksums FILE]');
     const result = values.checksums ? verifyCandidate(resolve(values.artifact), values.commit, resolve(values.checksums)) : verifyDelivery(resolve(values.artifact), values.commit);
+    if (values.release) assert.equal(result.source.channel, 'preview', 'A public preview package is required');
     const report = { status: 'pass', commit: result.source.commit, tarball_sha256: result.sha256, files: result.entries.length, targets: result.source.targets };
     if (values.report) fs.writeFileSync(resolve(values.report), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify(report));

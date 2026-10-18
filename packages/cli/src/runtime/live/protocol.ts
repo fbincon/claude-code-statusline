@@ -1,3 +1,4 @@
+import { VERSION } from '@fbincon/statusline-core/release';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
@@ -36,7 +37,7 @@ export class RuntimeProtocol {
             exact(payload, ['observations'], 'payload');
             const rows = validateBatch(payload.observations);
             const counts = enabled ? this.store.observe(rows, { timing: modes.native_timing, completeTiming: version === BigInt(PROTOCOL_VERSION), advanced: modes.live_metrics }) : { accepted: 0, ignored: rows.length };
-            return { backend_version: '2.0.0', enabled, native_timing: modes.native_timing, live_metrics: modes.live_metrics, ...counts };
+            return { backend_version: VERSION, enabled, native_timing: modes.native_timing, live_metrics: modes.live_metrics, ...counts };
         }
         if (request.operation === 'read') {
             exact(payload, ['session_id', 'prompt_id'], 'payload');
@@ -45,7 +46,7 @@ export class RuntimeProtocol {
             const reason = !enabled ? 'runtime_disabled' : state === null ? 'not_observed' : truth(state.invalidated) ? state.invalidated : live ? null : 'stale';
             const metrics: Data = resolveMetrics(state, state ? this.store.history(session) : null, prompt, now, modes.live_metrics);
             metrics['task-active-timer'] = this.activePoint(session, prompt);
-            return { native_timing: modes.native_timing, live_metrics: modes.live_metrics, backend_version: '2.0.0', session_id: session,
+            return { native_timing: modes.native_timing, live_metrics: modes.live_metrics, backend_version: VERSION, session_id: session,
                 prompt_id: prompt || state?.current_prompt_id || null, enabled, fresh: live, reason, observed_at_ms: state?.heartbeat_at_ms ?? null, state, metrics };
         }
         throw new ObservationError('unsupported runtime operation');

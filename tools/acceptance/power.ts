@@ -11,6 +11,8 @@ import { architecture } from '@fbincon/statusline-platform/architecture';
 import { decode, encode } from '@fbincon/statusline-core/json';
 import { sourceHashes } from '../migration/ts-03/common.js';
 import { linuxPower, macPower, windowsPower, replay } from './power-evidence.js';
+import { artifactOptions, artifactEvidence } from './artifact.js';
+import assert from 'node:assert/strict';
 const sha = (raw: Buffer) => createHash('sha256').update(raw).digest('hex');
 function command(executable: string, args: string[], input = '') {
     const result = spawnSync(executable, args, { input, encoding: 'utf8', timeout: 60000, maxBuffer: 32 * 1024 * 1024, env: { ...process.env, LC_ALL: 'C', TZ: 'UTC' }, windowsHide: true });
@@ -74,19 +76,20 @@ export function collectPowerEvents(platform: string, start: string): Record<stri
 }
 function write(path: string, value: unknown) { fs.writeFileSync(path, encode(value) + '\n', { flag: 'wx', mode: 0o600 }); }
 export function powerMain(args = process.argv.slice(2)) {
-    const { values, positionals } = parseArgs({ args, allowPositionals: true, options: { output: { type: 'string' }, kind: { type: 'string' }, 'human-confirmed': { type: 'boolean' } } });
+    const { values, positionals } = parseArgs({ args, allowPositionals: true, options: { ...artifactOptions, output: { type: 'string' }, kind: { type: 'string' }, 'human-confirmed': { type: 'boolean' } } });
     if (positionals.length !== 1 || !['before', 'after'].includes(positionals[0]!) || !values.output)
         throw new Error('Usage: power before|after --output DIRECTORY [--kind suspend|reboot] [--human-confirmed]');
     const output = resolve(values.output);
     if (positionals[0] === 'before') {
-        const record = capturePower(values.kind ?? '');
+        const record = { ...capturePower(values.kind ?? ''), installed_artifact: artifactEvidence(values) };
         fs.mkdirSync(output, { mode: 0o700 });
         write(join(output, 'before.json'), record);
         write(join(output, 'before-events.json'), collectPowerEvents(record.platform, record.captured_utc));
         console.log('Captured before snapshot; no power action performed: ' + output);
         return;
     }
-    const before = decode(fs.readFileSync(join(output, 'before.json'), 'utf8')) as any, after = capturePower(before.kind);
+    const before = decode(fs.readFileSync(join(output, 'before.json'), 'utf8')) as any, after = { ...capturePower(before.kind), installed_artifact: artifactEvidence(values) };
+    assert.equal(encode(before.installed_artifact ?? null), encode(after.installed_artifact), 'Installed artifact changed across the power event');
     if (before.platform !== after.platform)
         throw new Error('Power evidence platform changed');
     write(join(output, 'after.json'), after);

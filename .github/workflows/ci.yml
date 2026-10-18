@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v3.0.0-beta.*']
   pull_request:
   workflow_dispatch:
 
@@ -10,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ts05-${{ github.workflow }}-${{ github.ref }}
+  group: ts06-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -19,7 +20,7 @@ defaults:
 
 jobs:
   candidate:
-    name: Reproducible universal candidate
+    name: Reproducible preview package
     runs-on: ubuntu-24.04
     outputs:
       commit: ${{ steps.identity.outputs.commit }}
@@ -36,8 +37,17 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Python-free development checks and complete responsibility ledger
         run: npm run check
+      - name: Require version tags to match application identity
+        if: github.ref_type == 'tag'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module <<'JS'
+          import { VERSION } from './packages/core/dist/src/release.js';
+          if (process.env.RELEASE_TAG !== 'v' + VERSION) throw new Error('Release tag/version mismatch');
+          JS
       - name: Two independent builds from one immutable commit
-        run: npm run candidate:build -- --commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/candidate"
+        run: npm run release:build -- --commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/candidate"
       - id: identity
         name: Record immutable artifact identity
         run: |
@@ -48,7 +58,7 @@ jobs:
           JS
       - uses: actions/upload-artifact@v4
         with:
-          name: ts05-candidate
+          name: ts06-candidate
           path: ${{ runner.temp }}/candidate/
           if-no-files-found: error
           retention-days: 30
@@ -85,7 +95,7 @@ jobs:
           cache: npm
       - uses: actions/download-artifact@v4
         with:
-          name: ts05-candidate
+          name: ts06-candidate
           path: ${{ runner.temp }}/candidate
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install the shared artifact offline with empty cache and scripts disabled
@@ -97,7 +107,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ts05-installed-${{ matrix.os }}-${{ matrix.arch }}
+          name: ts06-installed-${{ matrix.os }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
 
@@ -136,7 +146,7 @@ jobs:
           cache: npm
       - uses: actions/download-artifact@v4
         with:
-          name: ts05-candidate
+          name: ts06-candidate
           path: ${{ runner.temp }}/candidate
       - name: Install the fixed host and development dependencies
         run: |
@@ -154,7 +164,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ts05-mods-${{ matrix.os }}-${{ matrix.claude }}
+          name: ts06-mods-${{ matrix.os }}-${{ matrix.claude }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
 
@@ -172,13 +182,13 @@ jobs:
           cache: npm
       - uses: actions/download-artifact@v4
         with:
-          pattern: ts05-*
+          pattern: ts06-*
           path: ${{ runner.temp }}/evidence
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Require all eight targets and thirteen hosts to match the same artifact
-        run: npm run release:prepare -- --artifact "$RUNNER_TEMP/evidence/ts05-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
+        run: npm run release:prepare -- --preview --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
       - uses: actions/upload-artifact@v4
         with:
-          name: ts05-acceptance
+          name: ts06-acceptance
           path: ${{ runner.temp }}/candidate-acceptance.json
           if-no-files-found: error

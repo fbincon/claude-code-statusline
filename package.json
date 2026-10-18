@@ -43,7 +43,10 @@
     "benchmark:compare": "npm run build && node dist/typescript/tools/benchmarks/compare.js",
     "acceptance:terminal": "npm run build && node dist/typescript/tools/acceptance/terminal.js",
     "test:installed": "npm run build && node dist/typescript/tools/acceptance/installed.js",
-    "test:mods": "npm run build && node dist/typescript/tools/acceptance/mods.js"
+    "test:mods": "npm run build && node dist/typescript/tools/acceptance/mods.js",
+    "release:build": "npm run build && node dist/typescript/tools/build/candidate.js --channel preview",
+    "release:verify": "npm run build && node dist/typescript/tools/build/verify.js --release",
+    "release:downloads": "npm run build && node dist/typescript/tools/release/downloads.js"
   },
   "devDependencies": {
     "@resvg/resvg-js": "2.6.2",

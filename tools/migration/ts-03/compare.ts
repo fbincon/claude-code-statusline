@@ -4,6 +4,26 @@ import { pathToFileURL } from 'node:url';
 import { canonical, decode, isLosslessNumber } from '@fbincon/statusline-core/json';
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import { checkBaseline, fixtures, repoRoot } from './common.js';
+import { VERSION } from '@fbincon/statusline-core/release';
+
+// TS-06 release metadata only. Frozen fixtures and the three wording exceptions stay intact.
+const versionFields = new Set([
+  'ui-read/value/response/result/backend_version', 'ui-describe/value/response/result/backend_version',
+  ...['initial', 'first_save', 'reopen'].map(step => `transaction-save-conflict-backup/value/${step}/response/result/backend_version`),
+]);
+const runtimeOutputs = new Set([
+  ...['runtime-v1-dedup-order', 'runtime-v2-dedup-order'].flatMap(id => [0, 1].map(i => `${id}/value/${i}/stdout`)),
+  'runtime-null-prompt/value/0/stdout', 'runtime-opt-out-no-write/value/0/stdout',
+]);
+export function releaseMetadataDifference(id: string, path: string, before: unknown, after: unknown): boolean {
+  const key = id + path;
+  if (versionFields.has(key)) return before === '2.0.0' && after === VERSION;
+  if (key === 'cli-version/value/stdout') return before === 'claude-statusline 2.0.0\n' && after === `claude-statusline ${VERSION}\n`;
+  if (!runtimeOutputs.has(key) || typeof before !== 'string' || typeof after !== 'string') return false;
+  const field = /"backend_version":( ?)"2\.0\.0"/gu;
+  if ([...before.matchAll(field)].length !== 1) return false;
+  return before.replace(field, (_match, space: string) => '"backend_version":' + space + JSON.stringify(VERSION)) === after;
+}
 
 export interface Difference { case: string; path: string; before_sha256: string; after_sha256: string; reason: string }
 export function compare(expected: unknown, actual: unknown, differences: readonly Difference[] = []): string[] {
@@ -15,6 +35,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
   }
   function walk(a: unknown, b: unknown, path: string, id: string) {
     if (canonical(a) === canonical(b)) return;
+    if (releaseMetadataDifference(id, path, a, b)) return;
     const allowed = differences.find(x => x.case === id && x.path === path);
     if (allowed && typeof a === 'string' && typeof b === 'string' && sha256(a) === allowed.before_sha256 && sha256(b) === allowed.after_sha256) { used.add(allowed); return; }
     if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {

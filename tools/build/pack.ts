@@ -9,7 +9,9 @@ import { NATIVE as EDITOR, RUNTIME, VERSION } from '@fbincon/statusline-cli/inte
 import { bundledFiles } from '@fbincon/statusline-cli/integration/resources';
 import { repoRoot, sourceHashes } from '../migration/ts-03/common.js';
 import { files, sha256, npmEntry, readTar, extractFiles } from './files.js';
-import { BUSINESS, NATIVE, TARGETS, PACKAGE, version, type Candidate } from './model.js';
+import { BUSINESS, NATIVE, TARGETS, identity, channel, type Channel, type Candidate } from './model.js';
+import { REPOSITORY_URL } from '@fbincon/statusline-core/release';
+import { rewriteLinks, localDestination } from '../release/markdown.js';
 import { verifyContents } from './verify.js';
 
 export function runtimeFile(name: string, path: string): boolean {
@@ -34,7 +36,8 @@ export async function dependency(name: string, lock: any, destination: string, t
     return { version: record.version as string, integrity: record.integrity as string,
         files: Object.fromEntries([...selected].sort(([a], [b]) => a < b ? -1 : 1).map(([path, bytes]) => [path, sha256(bytes)])) };
 }
-export async function packCandidate(destination: string, commit: string) {
+export async function packCandidate(destination: string, commit: string, kind: Channel = 'candidate') {
+    const product = identity(commit, kind);
     const temporary = fs.mkdtempSync(join(tmpdir(), 'ts05 package ')), stage = join(temporary, 'package');
     fs.mkdirSync(stage); fs.mkdirSync(destination, { recursive: true });
     try {
@@ -60,10 +63,19 @@ export async function packCandidate(destination: string, commit: string) {
         fs.mkdirSync(join(stage, 'bin'));
         fs.writeFileSync(join(stage, 'bin/claude-statusline.js'), '#!/usr/bin/env node\nimport "../node_modules/@fbincon/statusline-cli/dist/src/entry.js";\n', { mode: 0o755 });
         const business = BUSINESS.map(short => '@fbincon/statusline-' + short);
-        const manifest = { name: PACKAGE, version: version(commit), private: true, type: 'module', description: 'TS-05 engineering candidate; public delivery belongs to TS-06', license: 'MIT AND Unicode-3.0', engines: { node: '>=24.21.0 <25' },
+        const manifest = { ...product, type: 'module', description: 'Configurable Claude Code statusline and terminal editors', license: 'MIT AND Unicode-3.0', engines: { node: '>=24.21.0 <25' },
+            ...(kind === 'preview' ? { repository: { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' }, homepage: REPOSITORY_URL, bugs: { url: REPOSITORY_URL + '/issues' }, publishConfig: { registry: 'https://registry.npmjs.org/', access: 'public', tag: 'beta' } } : {}),
             bin: { 'claude-statusline': 'bin/claude-statusline.js' }, dependencies: { ...Object.fromEntries(business.map(name => [name, '0.0.0'])), koffi: '3.3.3', 'lossless-json': '4.3.1' },
-            optionalDependencies: Object.fromEntries(NATIVE.map(name => [name, '3.3.3'])), bundleDependencies: [...business, 'koffi', 'lossless-json', ...NATIVE], files: ['bin', 'candidate.json', 'LICENSE*'] };
+            optionalDependencies: Object.fromEntries(NATIVE.map(name => [name, '3.3.3'])), bundleDependencies: [...business, 'koffi', 'lossless-json', ...NATIVE], files: ['bin', 'candidate.json', 'LICENSE*', ...(kind === 'preview' ? ['README.md'] : [])] };
         fs.writeFileSync(join(stage, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
+        if (kind === 'preview') {
+            const readme = rewriteLinks(fs.readFileSync(join(repoRoot, 'docs/PREVIEW.md'), 'utf8'), target => {
+                if (!target || target.startsWith('#') || /^[a-zA-Z][\w+.-]*:/u.test(target)) return target;
+                const [path, suffix] = localDestination(target, 'docs/PREVIEW.md');
+                return `${REPOSITORY_URL}/blob/v${VERSION}/${path}${suffix}`;
+            });
+            fs.writeFileSync(join(stage, 'README.md'), readme);
+        }
         for (const name of ['LICENSE']) fs.copyFileSync(join(repoRoot, name), join(stage, name));
         fs.copyFileSync(join(repoRoot, 'tools/unicode/UNICODE-LICENSE.txt'), join(stage, 'LICENSE-Unicode.txt'));
         fs.copyFileSync(join(repoRoot, 'tools/unicode/WCWIDTH-LICENSE.txt'), join(stage, 'LICENSE-Wcwidth.txt'));
@@ -71,7 +83,7 @@ export async function packCandidate(destination: string, commit: string) {
         const pack = (dry = false) => JSON.parse(execFileSync(process.execPath, [npmEntry(), 'pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', resolve(destination), ...(dry ? ['--dry-run'] : [])], { cwd: stage, encoding: 'utf8', timeout: 120000, maxBuffer: 16 * 1024 * 1024 }))[0];
         const intended = files(stage), listed: string[] = pack(true).files.map((row: any) => row.path);
         if (JSON.stringify([...listed].sort()) !== JSON.stringify([...intended].sort())) throw new Error('npm omitted staged runtime files: ' + intended.filter(name => !listed.includes(name)).join(', '));
-        const source: Candidate = { schema_version: 1, name: PACKAGE, version: version(commit), application_version: VERSION, commit, dirty: false, node: process.version, npm, typescript: '5.9.3',
+        const source: Candidate = { schema_version: 1, channel: kind, name: product.name, version: product.version, application_version: VERSION, commit, dirty: false, node: process.version, npm, typescript: '5.9.3',
             lock_sha256: sha256(lockBytes), source_manifest_sha256: sha256(sourceBytes), source_hashes: sourceHashes(), targets: TARGETS, dependencies,
             files: Object.fromEntries([...listed].sort().map(name => [name, sha256(fs.readFileSync(join(stage, name)))])) };
         fs.writeFileSync(join(stage, 'candidate.json'), JSON.stringify(source, null, 2) + '\n');
@@ -81,8 +93,8 @@ export async function packCandidate(destination: string, commit: string) {
     } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values } = parseArgs({ options: { output: { type: 'string' }, commit: { type: 'string' } } });
+    const { values } = parseArgs({ options: { output: { type: 'string' }, commit: { type: 'string' }, channel: { type: 'string', default: 'candidate' } } });
     if (!values.output || !values.commit) throw new Error('Internal pack worker requires --output and --commit');
-    const result = await packCandidate(resolve(values.output), values.commit);
+    const result = await packCandidate(resolve(values.output), values.commit, channel(values.channel));
     console.log(JSON.stringify({ tarball: result.tarball, sha256: result.sha256, files: result.entries.length }));
 }

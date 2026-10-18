@@ -1,0 +1,67 @@
+name: TypeScript preview feedback / TS 预览反馈
+description: Report a preview issue or platform validation result / 提交预览问题或平台验收结果
+title: '[TS preview] '
+body:
+  - type: markdown
+    attributes:
+      value: 'Coverage tracker / 覆盖跟踪: https://github.com/fbincon/claude-code-statusline/issues/96. Share sanitized evidence only; omit credentials and private transcripts. 只提交脱敏证据，不含凭据或私密对话。'
+  - type: input
+    id: version
+    attributes:
+      label: Version, source SHA, tarball SHA-256 / 版本、源码与安装包身份
+      description: Copy from --version, build-manifest.json and SHA256SUMS; state unknown rather than guessing / 不确定时填写未知
+    validations:
+      required: true
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Installation channel / 安装渠道
+      options:
+        - npm beta
+        - npm exact version / 固定版本
+        - GitHub attachment / 附件
+        - Gitee attachment / 附件
+        - Source build / 源码构建
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: OS/build, physical or virtual, host/Node architecture, Node/npm, Claude Code, terminal/version, shell; WSL distro and Windows host if applicable / 系统构建、实机或虚拟机、架构、各组件版本及 WSL 宿主
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence
+    attributes:
+      label: Evidence type / 证据类型
+      options:
+        - Human desktop/editor / 真人桌面与编辑器
+        - Physical suspend or reboot / 实体休眠或重启
+        - Automated or CI / 自动化或 CI
+        - PTY or reconstructed image / PTY 或重建图像
+        - Not yet tested / 尚未测试
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result / 结果
+      options:
+        - Failed / 失败
+        - Passed described steps / 所述步骤通过
+        - Inconclusive or skipped / 无法判定或跳过
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps, expected and actual result / 步骤、预期与实际结果
+      description: Include editor entry, configuration isolation, saved opt-outs and recovery/rollback outcomes where relevant / 说明编辑入口、隔离配置、停用偏好及恢复回退结果
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized evidence and limitations / 脱敏证据与限制
+      description: Attach logs or screenshots and identify untested steps. Screenshots do not establish physical power acceptance. / 附日志或截图，明确未测试项；截图不算实体电源验收。
