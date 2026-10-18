@@ -104,7 +104,7 @@ claude-statusline config layout --by-instance explicit model-with-effort,git,spa
 
 ## 迁移、导入导出与恢复
 
-显示 schema 8 保存有序实例；编辑器协议 11 要求 Python 和原生资源版本匹配。
+显示 schema 8 保存有序实例；编辑器协议 12 要求 Python 和原生资源版本匹配。
 Portable 外层格式仍为 v1、界面偏好仍为 v1、runtime 观测协议仍为 v2。
 
 显示 schema 1–7 在内存中规范化，每个作用域内的规范类型 ID 作为确定性迁移身份。

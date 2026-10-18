@@ -2,6 +2,8 @@
 
 **English** | [简体中文](testing.zh-CN.md)
 
+Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
+
 ## Current TypeScript checks
 
 Daily entries are `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/thirteen-host evidence and the manual historical entry.

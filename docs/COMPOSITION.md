@@ -130,7 +130,7 @@ Unique type-based enable/disable commands preserve existing positions in explici
 
 ## Migration, transfer and recovery
 
-Display schema 8 stores ordered instances; editor protocol 11 requires matching
+Display schema 8 stores ordered instances; editor protocol 12 requires matching
 Python and bundled native resources. The portable envelope remains version 1,
 UI preferences version 1, and runtime observation protocol version 2.
 

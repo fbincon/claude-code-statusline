@@ -215,9 +215,9 @@ Earlier screenshots and terminal reconstructions remain in the [archive](docs/im
 
 | Platform | Supported environment |
 | --- | --- |
-| Linux / WSL | Node 24.21.0, x64 |
-| Windows 10/11 | Node 24.21.0, x64 |
-| macOS 14+ | Node 24.21.0, Intel / Apple Silicon |
+| Linux / WSL | Node 22.x or 24.x, x64 |
+| Windows 10/11 | Node 22.x or 24.x, x64 |
+| macOS 14+ | Node 22.x or 24.x, Intel / Apple Silicon |
 
 Windows ARM devices use x64 Node under emulation; native Windows ARM64 and 32-bit runtimes are outside the current support contract. Git information requires `git`.
 
@@ -239,7 +239,7 @@ Claude Code feature requirements: subagent rows 2.1.205+; local argument-based c
 
 ## Quick installation
 
-Install Node 24.21.0 with npm and Claude Code CLI. One npm package includes the supported native dependencies and needs no Python or compiler. [Existing Python installation and rollback](docs/USER_GUIDE.md#upgrading).
+Install Node 22.x or 24.x with npm and Claude Code CLI. One npm package includes the supported native dependencies and needs no Python or compiler. [Existing Python installation and rollback](docs/USER_GUIDE.md#upgrading).
 
 ### Install the package
 
@@ -290,7 +290,7 @@ Download checksums and platform-specific instructions are in the [installation g
 
 ### Interface language
 
-Both editors have **Interface language (saved immediately)** in Settings, with choices **English / 简体中文 / 繁體中文 / 日本語 / 한국어**. The default is English. Switching keeps your page, selection, search and unsaved display edits; cancelling display changes keeps the language choice. Other open windows read it when reopened or reloaded.
+Both editors have **Interface language (saved immediately)** in Settings, with choices **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**. The default is English. Switching keeps your page, selection, search and unsaved display edits; cancelling display changes keeps the language choice. Other open windows read it when reopened or reloaded.
 
 ```text
 claude-statusline config language set ja
@@ -299,14 +299,14 @@ claude-statusline config language reset
 claude-statusline --language en --help
 ```
 
-`--language en|zh-CN|zh-Hant|ja|ko` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values and custom text retain their values. Interface language does not change output language. See [language settings](docs/USER_GUIDE.md#interface-language).
+`--language en|zh-CN|zh-TW|zh-HK|ja|ko` precedes the command and affects only that invocation; for `configure` it sets the initial language. Commands, IDs, configuration values and custom text retain their values. Interface language does not change output language. See [language settings](docs/USER_GUIDE.md#interface-language).
 
 ### Statusline language
 
-Choose **Statusline language (save with display settings)** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어** in either editor. Preview switches immediately; Save changes the actual main and subagent output on the next refresh, while Cancel discards the draft. English is the default.
+Choose **Statusline language (save with display settings)** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어** in either editor. Preview switches immediately; Save changes the actual main and subagent output on the next refresh, while Cancel discards the draft. English is the default.
 
 ```text
-claude-statusline config set statusline-language zh-Hant
+claude-statusline config set statusline-language zh-TW
 claude-statusline config set statusline-language en
 ```
 

@@ -2,6 +2,8 @@
 
 [English](testing.md) | **简体中文**
 
+成品运行环境支持 Node 22／24，开发和构建仍固定 Node 24.21.0/npm 11.19.0。`npm run build` 后可在受支持 Node 下运行 `npm run test:runtime`，该命令只测试已编译产品，不重新构建。发布还要求八目标 × 四个 Node 案例共 32 项回执，见[运行环境与地区语言后续工作](node-regional-languages.zh-CN.md)。
+
 ## 当前 TypeScript 检查
 
 日常入口为 `npm run check`、`docs:check`、`candidate:build`、`candidate:verify`、`test:installed` 和 `test:mods`。完整命令、离线安装、八目标/十三主机证据及手动历史入口见[工程候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。

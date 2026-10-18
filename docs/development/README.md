@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
+
 Start here to set up a development environment, run checks and build the package. User-facing workflows are in the [user guide](../USER_GUIDE.md); public commands are in the [CLI reference](../reference/cli.md).
 
 ## Technical documentation
@@ -55,7 +57,7 @@ Development is independent of the installed pipx product. Normal workflows need 
 ### Run checks
 
 `npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and complete responsibility ledgers.
-`tools/generation/` maintains five languages, two Mods and skill templates; it never regenerates the Python archive.
+`tools/generation/` maintains six languages, two Mods and skill templates; it never regenerates the Python archive.
 Eight installations and thirteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately.
 
 <a id="从源码构建与安装"></a>

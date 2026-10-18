@@ -2,6 +2,11 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+
+## Current regional-language and Node stable delivery
+
+v3.1.0 uses the fixed build toolchain and existing OIDC publication workflow. In addition to eight installed targets and thirteen hosts, require all 32 Node runtime receipts; public downloads cover latest 22.x/24.x on three operating systems. Stable readiness reads the [version-specific approval](releases/approvals/v3.1.0.json); the v3.0.0 decision and historical procedures below are retained. Require every final-head, merge and tag CI check, then publish the identical verified package to npm latest, GitHub stable/Latest and Gitee while retaining beta. See [implementation/delivery evidence](development/node-regional-languages.md) and [release notes](releases/v3.1.0.md).
+
 ## npm trusted publishing with GitHub Actions
 
 [Publish npm with OIDC](../.github/workflows/npm-publish.yml) replaces interactive npm authentication for future releases. Codex can dispatch it after release preparation, without an npm password, OTP or persistent publishing token. It does not create versions, move Git tags or publish GitHub/Gitee Releases. Keep the release gates below.
@@ -29,7 +34,7 @@ The default is a read-only dry-run. Check the existing stable release from `main
 
 ```bash
 gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
-  --ref main --field tag=v3.0.0 --field dry_run=true
+  --ref main --field tag=v3.1.0 --field dry_run=true
 ```
 
 For a new release, finish PR review, main CI, annotated-tag CI, readiness and draft-asset verification first. The tag must contain this workflow and its verifier. Dispatch **from that same tag**, selecting it in GitHub's “Use workflow from” menu and entering the identical `tag` input. After setting `RELEASE_TAG` to the actual approved release tag:

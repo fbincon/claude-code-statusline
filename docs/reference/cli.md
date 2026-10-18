@@ -2,6 +2,9 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
+The compatibility alias `zh-Hant` resolves to `zh-TW` in every language argument and old configuration. Reads do not rewrite files; explicit saves/exports use canonical codes. Regional choices are `zh-TW` (Taiwan) and `zh-HK` (Hong Kong).
+
+
 Complete command syntax, supported options, display fields and configuration files. For installation and step-by-step workflows, read the [user guide](../USER_GUIDE.md). Values and examples below describe the current package, not historical release announcements.
 
 ## Contents
@@ -23,7 +26,7 @@ Complete command syntax, supported options, display fields and configuration fil
 ## CLI overview
 
 ```text
-claude-statusline [--language en|zh-CN|zh-Hant|ja|ko] COMMAND ...
+claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko] COMMAND ...
 claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
@@ -44,7 +47,7 @@ claude-statusline config [--config-dir PATH] export PATH [--overwrite]
 claude-statusline config [--config-dir PATH] item main|subagent ID OPTION VALUE
 claude-statusline config [--config-dir PATH] layout auto|explicit [ROW...]
 claude-statusline config [--config-dir PATH] language show [--json]
-claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-Hant|ja|ko
+claude-statusline config [--config-dir PATH] language set en|zh-CN|zh-TW|zh-HK|ja|ko
 claude-statusline config [--config-dir PATH] language reset
 claude-statusline config [--config-dir PATH] reset
 claude-statusline install [--dry-run] [--force]
@@ -83,13 +86,13 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 ## Interface language
 
-`config language show [--json]` reads the shared preference; JSON is `{"schema_version":1,"ui_language":"en"}`, with `ui_language` set to a supported code. `set en|zh-CN|zh-Hant|ja|ko` and `reset` save explicitly; reset selects English. The root `--language en|zh-CN|zh-Hant|ja|ko` option goes before the command and takes precedence for that invocation without changing storage. With `configure` it controls the initial editor language.
+`config language show [--json]` reads the shared preference; JSON is `{"schema_version":1,"ui_language":"en"}`, with `ui_language` set to a supported code. `set en|zh-CN|zh-TW|zh-HK|ja|ko` and `reset` save explicitly; reset selects English. The root `--language en|zh-CN|zh-TW|zh-HK|ja|ko` option goes before the command and takes precedence for that invocation without changing storage. With `configure` it controls the initial editor language.
 
 Help text/groups, argparse errors and administrative output use the selected language. Command names, argument values, exit codes, catalog JSON remain stable; actual output uses the separate display language. `/statusline-config language show|set|reset` also executes locally on supported hosts. See [language behavior and recovery](../USER_GUIDE.md#interface-language).
 
 ## Statusline language
 
-`config set statusline-language en|zh-CN|zh-Hant|ja|ko` persists the display language. `config apply --statusline-language en|zh-CN|zh-Hant|ja|ko` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
+`config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` persists the display language. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
 
 Display schema v7 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
 
@@ -816,7 +819,7 @@ If display configuration is corrupted:
 {"schema_version": 1, "ui_language": "zh-CN"}
 ```
 
-Accepted codes are `en`, `zh-CN`, `zh-Hant`, `ja` and `ko`. Missing/invalid reads return English and may report a warning without repair. Explicit set/reset locks, backs up and atomically writes; a future schema refuses overwrite and write failures preserve the previous effective choice. This file is independent of display revisions, installation preferences, presets and portable files, and survives ordinary uninstall.
+Accepted codes are `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja` and `ko`. Missing/invalid reads return English and may report a warning without repair. Explicit set/reset locks, backs up and atomically writes; a future schema refuses overwrite and write failures preserve the previous effective choice. This file is independent of display revisions, installation preferences, presets and portable files, and survives ordinary uninstall.
 
 ### Editor enablement preferences
 

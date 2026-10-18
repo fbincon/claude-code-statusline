@@ -19,8 +19,8 @@
 - **自由组合状态栏：** 在两种编辑器中新增、复制和排列独立组件，插入纯文本及左右对齐留白。详见[组件组合指南](docs/COMPOSITION.zh-CN.md)。
 
 - **条件显示与外观：** 隐藏确认的空闲／干净状态，设置用量阈值、逐项前景／背景色和主题，按需启用基础 [Powerline](docs/APPEARANCE.zh-CN.md)。
-- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文 / 日本語 / 한국어；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/languages/README.zh-CN.md)。
-- **查找显示项目：** 60 个主栏指标和 14 个子代理指标，以及文本与弹性留白组件，支持五种语言的分级搜索、分类筛选及来源／启用条件说明。
+- **独立选择语言：** 界面和实际状态栏均支持 English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어；界面语言立即保存，状态栏语言随显示设置保存。 参见[多语言图像](docs/images/languages/README.zh-CN.md)。
+- **查找显示项目：** 60 个主栏指标和 14 个子代理指标，以及文本与弹性留白组件，支持六种语言的分级搜索、分类筛选及来源／启用条件说明。
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
 - **保留完整字符：** 组合 emoji、组合字符和 CJK 文本在换行、裁切和预览中保持完整。
@@ -214,9 +214,9 @@ Linux 终端采集展示共享语言选项与中文界面。图片由真实 PTY 
 
 | 平台 | 支持环境 |
 | --- | --- |
-| Linux / WSL | Node 24.21.0，x64 |
-| Windows 10/11 | Node 24.21.0，x64 |
-| macOS 14+ | Node 24.21.0，Intel / Apple Silicon |
+| Linux / WSL | Node 22.x 或 24.x，x64 |
+| Windows 10/11 | Node 22.x 或 24.x，x64 |
+| macOS 14+ | Node 22.x 或 24.x，Intel / Apple Silicon |
 
 Windows ARM 设备使用模拟 x64 Node；原生 Windows ARM64 与 32 位运行时暂不在支持范围。Git 信息需要系统中存在 `git`。
 
@@ -228,7 +228,7 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 
 ## 快速安装
 
-先准备 Node 24.21.0、npm 与 Claude Code CLI。通用 npm 包已包含受支持的原生依赖，无需 Python 或编译器。[已有 Python 安装的迁移与回退](docs/USER_GUIDE.zh-CN.md#升级)。
+先准备 Node 22.x 或 24.x、npm 与 Claude Code CLI。通用 npm 包已包含受支持的原生依赖，无需 Python 或编译器。[已有 Python 安装的迁移与回退](docs/USER_GUIDE.zh-CN.md#升级)。
 
 ### 安装软件包
 
@@ -279,7 +279,7 @@ Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后的 JavaScri
 
 ### 界面语言
 
-两个编辑器的设置页均提供**界面语言（立即保存）**，选项始终显示 **English / 简体中文 / 繁體中文 / 日本語 / 한국어**；默认英文。切换保留当前页面、选中项、搜索与未保存显示修改，取消显示修改也保留语言选择。其他已打开窗口在重开或重新加载时读取新偏好。
+两个编辑器的设置页均提供**界面语言（立即保存）**，选项始终显示 **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**；默认英文。切换保留当前页面、选中项、搜索与未保存显示修改，取消显示修改也保留语言选择。其他已打开窗口在重开或重新加载时读取新偏好。
 
 ```text
 claude-statusline config language set ja
@@ -288,14 +288,14 @@ claude-statusline config language reset
 claude-statusline --language en --help
 ```
 
-`--language en|zh-CN|zh-Hant|ja|ko` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值和自定义文字保持原值；界面语言不改变状态栏语言。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
+`--language en|zh-CN|zh-TW|zh-HK|ja|ko` 放在子命令前，只影响本次调用；用于 `configure` 时设置初始语言。命令、ID、配置值和自定义文字保持原值；界面语言不改变状态栏语言。详见[语言设置](docs/USER_GUIDE.zh-CN.md#界面语言)。
 
 ### 状态栏语言
 
-在任一编辑器选择**状态栏语言（随显示设置保存）** → **English / 简体中文 / 繁體中文 / 日本語 / 한국어**。预览立即切换，保存后主状态栏与子代理行在下次刷新时生效，取消则放弃草稿。默认英文。
+在任一编辑器选择**状态栏语言（随显示设置保存）** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**。预览立即切换，保存后主状态栏与子代理行在下次刷新时生效，取消则放弃草稿。默认英文。
 
 ```text
-claude-statusline config set statusline-language zh-Hant
+claude-statusline config set statusline-language zh-TW
 claude-statusline config set statusline-language en
 ```
 
@@ -360,7 +360,7 @@ claude-code-statusline/
 │   └── reference.yml             # 手动 Python 历史验证
 ├── packages/                     # 四个业务包
 │   ├── core/src/                 # 配置、协议、纯状态、渲染与 Unicode
-│   │   └── i18n/                 # 五种语言的生成模块；资源在 core/resources
+│   │   └── i18n/                 # 六种语言的生成模块；资源在 core/resources
 │   ├── platform/src/             # 文件、锁、进程、时钟及终端适配
 │   ├── cli/                      # 命令、集成、运行时与恢复
 │   │   ├── src/                  # 安装与编辑器协议实现

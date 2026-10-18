@@ -2,6 +2,15 @@
 
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
+
+## 3.1.0 — 2026-10-18
+
+- Support product runtimes Node 22 and 24 while retaining the reproducible development/build toolchain; require 32 additional runtime installation cases.
+- Split Traditional Chinese into Taiwan `zh-TW` and Hong Kong `zh-HK`; retain `zh-Hant` as a Taiwan compatibility alias without read-time writes.
+- Cover CLI, both editors, previews, search and statuslines in six languages; upgrade editor protocol to 12 while retaining persisted formats and transactional backup protection.
+- Record a separate version-specific decision for the six existing acceptance gaps; all new automated checks remain required.
+- [Release notes](docs/releases/v3.1.0.md) · [Implementation and validation](docs/development/node-regional-languages.md).
+
 ## 3.0.0 — 2026-10-18
 
 - Ship the TypeScript implementation as the stable npm distribution, with bundled native dependencies, reproducible builds and identical GitHub/Gitee assets.

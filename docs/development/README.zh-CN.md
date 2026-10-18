@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+成品运行环境支持 Node 22／24，开发和构建仍固定 Node 24.21.0/npm 11.19.0。`npm run build` 后可在受支持 Node 下运行 `npm run test:runtime`，该命令只测试已编译产品，不重新构建。发布还要求八目标 × 四个 Node 案例共 32 项回执，见[运行环境与地区语言后续工作](node-regional-languages.zh-CN.md)。
+
 本页说明开发环境、检查、构建和内部实现。日常使用见[使用指南](../USER_GUIDE.zh-CN.md)，公开命令见[CLI 参考](../reference/cli.zh-CN.md)。
 
 私有 TS-03 workspace 使用固定 Node 24.21.0／npm 11.19.0，在仓库根目录运行 `npm ci --ignore-scripts`、`npm test` 和 `npm run generate:check`。Python 3.14.4 继续作为隔离对照解释器，参见 [TS-03 记录](typescript-migration/ts-03/README.zh-CN.md)。
@@ -50,7 +52,7 @@ npm run check
 ### 运行检查
 
 `npm run check` 运行真实 Node 并发、故障、终端、冻结案例、生成资源、文档与完整责任台账检查。
-五种语言、两个 Mod 和技能模板由 `tools/generation/` 维护，归档 Python 副本不再生成。
+六种语言、两个 Mod 和技能模板由 `tools/generation/` 维护，归档 Python 副本不再生成。
 八目标安装和十三个固定主机组合都使用同一个通用候选 tgz。2.1.296 的声明缺失单独记录。
 
 ### 从源码构建与安装

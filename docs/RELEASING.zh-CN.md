@@ -2,6 +2,11 @@
 
 [English](RELEASING.md) | **简体中文**
 
+
+## 当前地区语言与 Node 正式版流程
+
+v3.1.0 使用固定构建工具链和现有 OIDC 发布流程。除八目标和十三宿主外，还必须收齐 32 项 Node 运行环境回执；公开下载工作流覆盖三平台的最新 22.x／24.x。正式版读取[本版本批准](releases/approvals/v3.1.0.json)，原 v3.0.0 决定与下方历史记录保留。PR 最终提交、合并提交及版本标签的全部 CI 均须通过，复用同一已验证包发布到 npm latest、GitHub stable/Latest 和 Gitee，保留 beta。具体见[实现及交付记录](development/node-regional-languages.zh-CN.md)与[发布说明](releases/v3.1.0.md)。
+
 ## 通过 GitHub Actions 可信发布 npm
 
 [Publish npm with OIDC](../.github/workflows/npm-publish.yml) 为后续版本替代交互式 npm 发布认证。Codex 完成准备后即可触发，无需 npm 密码、验证码或长期发布令牌。工作流不创建新版本、不移动 Git 标签，也不发布 GitHub/Gitee Release；下文发布门槛仍须完成。
@@ -29,7 +34,7 @@
 
 ```bash
 gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
-  --ref main --field tag=v3.0.0 --field dry_run=true
+  --ref main --field tag=v3.1.0 --field dry_run=true
 ```
 
 新版本须先完成 PR 审查、主分支 CI、注释标签 CI、就绪及草稿附件核验。标签必须包含本工作流及其校验工具。**从同一个版本标签触发**，网页操作时在 “Use workflow from” 中选择该标签，`tag` 输入也填该标签。将 `RELEASE_TAG` 设置为本次实际批准的发布标签后执行：
