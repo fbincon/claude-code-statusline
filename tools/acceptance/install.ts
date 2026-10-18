@@ -11,6 +11,9 @@ export function installCandidate(artifact = process.env.TS05_CANDIDATE_ARTIFACT,
     if (!artifact || !commit) throw new Error("Require a previously built TS-05 artifact and fixed commit; acceptance never repacks");
     const packed = verifyCandidate(resolve(artifact), commit);
     const temporary = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'ts05 installed 中文 $` & '))), directory = join(temporary, 'prefix'), nodeDir = join(temporary, 'node-bin');
+    // Windows may briefly report a non-empty directory after child cleanup.
+    // Retry only the native removal errors supported by Node; exhaustion fails.
+    const cleanup = () => fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
     fs.mkdirSync(directory);
     fs.mkdirSync(nodeDir);
     const node = join(nodeDir, process.platform === 'win32' ? 'node.exe' : 'node');
@@ -24,7 +27,7 @@ export function installCandidate(artifact = process.env.TS05_CANDIDATE_ARTIFACT,
     const installed = spawnSync(node, [npmEntry(), 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', packed.tarball], { cwd: directory, env, encoding: 'utf8', timeout: 180000, maxBuffer: 8 * 1024 * 1024 });
     fs.writeFileSync(join(temporary, 'install.log'), installed.stdout + installed.stderr);
     if (installed.error || installed.status !== 0) {
-        fs.rmSync(temporary, { recursive: true, force: true });
+        cleanup();
         throw new Error('Isolated candidate installation failed: ' + installed.stderr);
     }
     const root = join(directory, 'node_modules', packed.source.name), modules = join(root, 'node_modules/@fbincon'), entry = join(modules, 'statusline-cli/dist/src/entry.js'), bin = join(directory, 'node_modules/.bin/claude-statusline');
@@ -33,7 +36,7 @@ export function installCandidate(artifact = process.env.TS05_CANDIDATE_ARTIFACT,
     // result. Canonicalize both prefixes before checking same-drive ancestry.
     if (!isAbsolute(outside) && outside !== '..' && !outside.startsWith('..' + sep))
         throw new Error('Candidate must be installed outside the checkout');
-    return { temporary, directory, nodeDir, node, env, root, modules, entry, bin, packed, cleanup: () => fs.rmSync(temporary, { recursive: true, force: true }) };
+    return { temporary, directory, nodeDir, node, env, root, modules, entry, bin, packed, cleanup };
 }
 /** The official macOS host uses the OS security utility when loading plugin
  * options, including non-sensitive inputs. Keep that system capability without

@@ -24,12 +24,13 @@ before(() => {
     report.powershell_setup = JSON.parse(process.env.TS05_POWERSHELL_SETUP ?? 'null');
 });
 after(() => {
+    // Do not publish a passing receipt if teardown itself fails.
+    installed?.cleanup();
     const path = process.env.TS04_INSTALLED_REPORT;
     if (path) {
         fs.mkdirSync(dirname(path), { recursive: true });
         fs.writeFileSync(path, JSON.stringify({ ...report, status: Object.values(checks).every(Boolean) ? 'pass' : 'fail', checks, shell_receipts: shellReceipts }, null, 2) + '\n');
     }
-    installed?.cleanup();
 });
 function invoke(args: string[], config: string, input = '', environment: NodeJS.ProcessEnv = {}) {
     return spawnSync(installed.node, [installed.entry, ...args], { cwd: installed.directory, env: { ...installed.env, CLAUDE_CONFIG_DIR: config, ...environment }, input, encoding: 'utf8', timeout: 30000 });
