@@ -50,7 +50,7 @@ Linux 终端采集展示共享语言选项与中文界面。图片由真实 PTY 
 
 ![简体中文原生语言选项](docs/images/tui/native/linux/languages/settings-zh-CN.png)
 
-![简体中文外部语言选项](docs/images/tui/external/linux/languages/settings-zh-CN.png)
+![简体中文外部语言选项](docs/images/typescript/external/linux/zh-CN/settings.png)
 
 </details>
 
@@ -150,19 +150,19 @@ Linux 终端采集展示共享语言选项与中文界面。图片由真实 PTY 
 
 **Main：选择主状态栏条目并调整顺序。**
 
-![Linux 外部 TUI Main 配置页与样例预览](docs/images/tui/external/linux/main.png)
+![Linux 外部 TUI Main 配置页与样例预览](docs/images/typescript/external/linux/zh-CN/main.png)
 
 **Subagents：选择子 Agent 行的条目与顺序。**
 
-![Linux 外部 TUI Subagents 配置页与样例预览](docs/images/tui/external/linux/subagents.png)
+![Linux 外部 TUI Subagents 配置页与样例预览](docs/images/typescript/external/linux/zh-CN/subagents.png)
 
 **Settings：调整外观、刷新行为和格式。**
 
-![Linux 外部 TUI Settings 配置页与样例预览](docs/images/tui/external/linux/settings.png)
+![Linux 外部 TUI Settings 配置页与样例预览](docs/images/typescript/external/linux/zh-CN/settings.png)
 
 **Layout：设置分行、逐项优先级与最大宽度。**
 
-![Linux 外部 TUI Layout 配置页与样例预览](docs/images/tui/external/linux/layout.png)
+![Linux 外部 TUI Layout 配置页与样例预览](docs/images/typescript/external/linux/zh-CN/layout.png)
 
 </details>
 

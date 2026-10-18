@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+[Current installed TypeScript external pages](typescript/README.md) include English/Chinese Main, Subagents, Settings and Layout, with source/artifact provenance. The original Python gallery below is preserved.
+
 See the [component editor captures](composition/README.md) for the current instance interface. Original cross-platform galleries remain documented below.
 
 See the [multilingual installed-terminal captures](languages/README.md) for Traditional Chinese, Japanese and Korean.

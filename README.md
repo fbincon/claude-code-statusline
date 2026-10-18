@@ -51,7 +51,7 @@ Linux terminal captures show the shared language selector and Chinese interface.
 
 ![简体中文 native language selector](docs/images/tui/native/linux/languages/settings-zh-CN.png)
 
-![简体中文 external language selector](docs/images/tui/external/linux/languages/settings-zh-CN.png)
+![简体中文 external language selector](docs/images/typescript/external/linux/zh-CN/settings.png)
 
 </details>
 
@@ -151,19 +151,19 @@ Previews use the current terminal background and selected palette. Compare `ansi
 
 **Main: select and reorder main status line items.**
 
-![Linux external TUI Main page with sample preview](docs/images/tui/external/linux/main.png)
+![Linux external TUI Main page with sample preview](docs/images/typescript/external/linux/en/main.png)
 
 **Subagents: choose items and ordering for individual agent rows.**
 
-![Linux external TUI Subagents page with sample preview](docs/images/tui/external/linux/subagents.png)
+![Linux external TUI Subagents page with sample preview](docs/images/typescript/external/linux/en/subagents.png)
 
 **Settings: adjust appearance, refresh behavior and formatting.**
 
-![Linux external TUI Settings page with sample preview](docs/images/tui/external/linux/settings.png)
+![Linux external TUI Settings page with sample preview](docs/images/typescript/external/linux/en/settings.png)
 
 **Layout: set rows, item priorities and maximum widths.**
 
-![Linux external TUI Layout page with sample preview](docs/images/tui/external/linux/layout.png)
+![Linux external TUI Layout page with sample preview](docs/images/typescript/external/linux/en/layout.png)
 
 </details>
 
