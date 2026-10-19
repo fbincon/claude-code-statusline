@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { which, ownedCommand, resolvedPath } from '@fbincon/statusline-platform/commands';
+import { which, ownedCommand, resolvedPath, sameLaunchEntry } from '@fbincon/statusline-platform/commands';
 import { chooseLauncher } from '@fbincon/statusline-platform/terminal/launchers';
 import { text } from '@fbincon/statusline-core/i18n/messages';
 import { ConfigError, object } from '@fbincon/statusline-core/config/validation';
@@ -10,18 +11,20 @@ import { readJson } from '@fbincon/statusline-core/json-read';
 import { CONFIG_FILENAME, SCHEMA_VERSION } from '@fbincon/statusline-core/config/display';
 import { FEATURE_FILENAME } from '@fbincon/statusline-core/config/backend-preferences';
 import { atLeast } from '../config/service.js';
+import { hostFromSettings } from '../config/host.js';
+import { safeTarget } from './paths.js';
 import { readDisplay, readSettings, decodeUtf8 } from '../config/storage.js';
 import { loadFeature, loadNative, loadRuntime } from '../config/backend-preferences.js';
 import { localizedError } from '../errors.js';
 import { SKILL, EXTERNAL, OWNER_FILE, HOOKS, SUBAGENT_HOOKS, NATIVE, RUNTIME, VERSION, type InstallContext, type Diagnostic, type ModSpec } from './model.js';
 import { skillOwned } from './ownership.js';
 import { owner, registered, cacheOwned } from './mod-ownership.js';
-import { bundledFiles } from './resources.js';
+import { bundledFiles, renderSkill } from './resources.js';
 import { bindingValues, bindingMatches, commandPreflight } from './mods.js';
 import { pending, readJournal, refreshIntents } from '../recovery/journal.js';
 export function pathCollisions(context: InstallContext, environment: NodeJS.ProcessEnv = process.env): Diagnostic[] {
     const path = which('claude-statusline', environment);
-    if (!path || context.launch.args.some(arg => resolvedPath(arg) === resolvedPath(path)))
+    if (!path || sameLaunchEntry(path, context.launch))
         return [];
     let python = false;
     try {
@@ -60,8 +63,24 @@ export function doctor(context: InstallContext): Diagnostic[] {
     capture(() => { fs.accessSync(launch.executable, process.platform === 'win32' ? fs.constants.F_OK : fs.constants.X_OK); add('OK', 'doctor.doctor.executable', { executable: launch.executable }); });
     let settings: Record<string, unknown> = {};
     capture(() => { [settings] = readSettings(configDir, io); });
-    const line = settings.statusLine;
-    rows.push({ level: object(line) && ownedCommand(line.command, 'render', launch) ? 'OK' : 'ERROR', message: object(line) && ownedCommand(line.command, 'render', launch) ? 'statusLine: enabled and owned' : 'statusLine: missing or bound to another installation' });
+    capture(() => {
+        const { installed } = hostFromSettings(settings, launch);
+        add(installed ? 'OK' : 'ERROR', installed ? 'doctor.doctor.statusline_command_and_host_options' : 'doctor.doctor.statusline_is_not_configured_for_this_executable');
+    });
+    capture(() => {
+        const runtime = join(configDir, 'statusline_runtime'), probe = join(runtime, '.doctor-' + randomUUID());
+        let created = false;
+        try {
+            safeTarget(configDir, probe);
+            if (!fs.lstatSync(runtime).isDirectory()) throw new Error('Not a directory');
+            const fd = fs.openSync(probe, 'wx', 0o600);
+            created = true;
+            try { fs.writeFileSync(fd, ''); } finally { fs.closeSync(fd); }
+            add('OK', 'doctor.doctor.runtime_directory', { runtime_dir: runtime });
+        } catch {
+            add('ERROR', 'doctor.doctor.runtime_directory_is_not_writable', { runtime_dir: runtime });
+        } finally { if (created) fs.unlinkSync(probe); }
+    });
     function actions(event: string): Record<string, unknown>[] {
         const groups = object(settings.hooks) ? settings.hooks[event] : [];
         return Array.isArray(groups) ? groups.flatMap(group => object(group) && Array.isArray(group.hooks) ? group.hooks.filter(object) : []) : [];
@@ -85,7 +104,7 @@ export function doctor(context: InstallContext): Diagnostic[] {
             add(owned ? 'ERROR' : 'OK', owned ? 'doctor.doctor.subagentstatusline_is_disabled_but_an_owned_setting' : 'doctor.doctor.subagentstatusline_disabled', { value0: '' });
     });
     const primary = join(configDir, 'skills', SKILL);
-    capture(() => { const valid = io.read(join(primary, 'SKILL.md')) !== null && skillOwned(io.read(join(primary, OWNER_FILE))); add(valid ? 'OK' : 'ERROR', valid ? 'doctor.doctor.skill' : 'doctor.doctor.skill_is_missing_or_not_owned', { SLASH_COMMAND_NAME: SKILL }); });
+    capture(() => { const valid = io.read(join(primary, 'SKILL.md'))?.equals(renderSkill(launch)) === true && skillOwned(io.read(join(primary, OWNER_FILE))); add(valid ? 'OK' : 'ERROR', valid ? 'doctor.doctor.skill' : 'doctor.doctor.skill_is_missing_or_not_owned', { SLASH_COMMAND_NAME: SKILL }); });
     capture(() => {
         const enabled = loadFeature(configDir, VERSION, io), supported = atLeast(version, [2, 1, 258]), preferencePath = join(configDir, FEATURE_FILENAME), raw = io.read(preferencePath);
         if (raw !== null && process.platform !== 'win32' && (fs.statSync(preferencePath).mode & 0o777) !== 0o600)
@@ -101,7 +120,8 @@ export function doctor(context: InstallContext): Diagnostic[] {
         if (!enabled || !supported)
             add(owned || count ? 'ERROR' : enabled ? 'WARN' : 'OK', owned || count ? enabled ? 'doctor.doctor.is_suspended_but_owned_artifacts_remain_rerun' : 'doctor.doctor.is_disabled_but_owned_artifacts_remain_rerun' : enabled ? 'doctor.doctor.suspended_on_claude_code_requires_2_1' : 'doctor.doctor.disabled', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL, version_text: version?.join('.') ?? 'unknown' });
         else {
-            add(owned && io.read(join(root, 'SKILL.md')) !== null ? 'OK' : 'ERROR', owned ? 'doctor.doctor.skill_and_owner_marker' : 'doctor.doctor.skill_is_missing_or_not_owned_2', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL });
+            const valid = owned && io.read(join(root, 'SKILL.md'))?.equals(renderSkill(launch, true)) === true;
+            add(valid ? 'OK' : 'ERROR', valid ? 'doctor.doctor.skill_and_owner_marker' : 'doctor.doctor.skill_is_missing_or_not_owned_2', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL });
             add(count === 1 && matching.length === 1 ? 'OK' : 'ERROR', count === 1 && matching.length === 1 ? 'doctor.doctor.hook_exactly_one_600s' : 'doctor.doctor.hook_expected_one_600s_hook_in_exactly', { EXPERIMENTAL_SLASH_COMMAND_NAME: EXTERNAL });
             if (!chooseLauncher(process.env))
                 add('WARN', 'doctor.doctor.no_supported_interactive_launcher_is_installed_install');

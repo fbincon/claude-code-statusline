@@ -7,12 +7,23 @@ import { join, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { repoRoot } from '../common.js';
-import { canonical, decode, encode } from '@fbincon/statusline-core/json';
+import { canonical, decode, encode, isLosslessNumber } from '@fbincon/statusline-core/json';
 import { object, int, type Data } from '@fbincon/statusline-core/runtime/values';
 import { runtimeContext } from '@fbincon/statusline-cli/runtime/context';
 import { RuntimeProtocol } from '@fbincon/statusline-cli/runtime/live/protocol';
 import { AgentDurations } from '@fbincon/statusline-cli/runtime/live/durations';
 import { TaskService } from '@fbincon/statusline-cli/runtime/tasks/service';
+// v3.1.3 adds internal start provenance. This trace has a real start for
+// every turn: assert it before omitting only that additional internal field.
+function historicalShape(value: unknown): unknown {
+    if (isLosslessNumber(value)) return value;
+    if (Array.isArray(value)) return value.map(historicalShape);
+    if (!object(value)) return value;
+    return Object.fromEntries(Object.entries(value).filter(([key, item]) => {
+        if (key !== 'start_observed') return true;
+        assert.equal(item, true); return false;
+    }).map(([key, item]) => [key, historicalShape(item)]));
+}
 test('runtime action traces match frozen Python task, live and duration state including numeric JSON kinds', { skip: process.platform !== 'linux' }, t => {
     const reference = exportReference(), root = fs.mkdtempSync(join(tmpdir(), 'ts03-runtime-parity-'));
     t.after(() => { fs.rmSync(reference, { recursive: true, force: true }); fs.rmSync(root, { recursive: true, force: true }); });
@@ -85,7 +96,7 @@ test('runtime action traces match frozen Python task, live and duration state in
         // Only protocol response identity changes; persisted files/numeric kinds remain exact.
         const released = action.kind === 'protocol' && object(historical) && historical.backend_version === '2.0.0'
             ? { ...historical, backend_version: VERSION } : historical;
-        assert.equal(canonical(results.at(-1)), canonical(released), `action ${results.length - 1}: ${encode(action)}`);
+        assert.equal(canonical(historicalShape(results.at(-1))), canonical(released), `action ${results.length - 1}: ${encode(action)}`);
     }
     const files: Data = {};
     for (const path of fs.readdirSync(tsRoot, { recursive: true }).map(String).sort())
@@ -93,5 +104,5 @@ test('runtime action traces match frozen Python task, live and duration state in
             const raw = fs.readFileSync(join(tsRoot, path), 'utf8');
             files[path.split('\\').join('/')] = raw ? decode(raw) : raw;
         }
-    assert.equal(canonical(files), canonical(expected.files));
+    assert.equal(canonical(historicalShape(files)), canonical(expected.files));
 });

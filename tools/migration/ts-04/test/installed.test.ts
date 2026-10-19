@@ -2,7 +2,7 @@ import { VERSION } from '@fbincon/statusline-core/release';
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, delimiter } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { installCandidate, PACKAGE } from '../package.js';
@@ -48,8 +48,8 @@ function setup(name: string): string {
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     return config;
 }
-function ui(config: string, operation: string, payload: unknown = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 12, operation, payload })));
+function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 12, operation, payload }), environment));
     assert.equal(result.protocol_version, 12);
     assert.ok(result.result);
     return result.result;
@@ -185,15 +185,25 @@ process.on('exit', code => record('exit:' + code));
 });
 test('installed native-editor protocol supports describe, preview, revision-bound save and portable export', () => {
     const config = setup('native-protocol');
+    const pathEnv = { PATH: dirname(installed.bin) + delimiter + installed.env.PATH };
+    const settingsPath = join(config, 'settings.json'), settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    settings.statusLine.command = 'claude-statusline render';
+    if (settings.subagentStatusLine) settings.subagentStatusLine.command = 'claude-statusline render-subagents';
+    fs.writeFileSync(settingsPath, JSON.stringify(settings));
+    const diagnostic = invoke(['doctor', '--config-dir', config], config, '', pathEnv);
+    assert.equal(diagnostic.status, 0, diagnostic.stdout + diagnostic.stderr);
+    assert.ok(!diagnostic.stdout.includes('PATH selects another entry'));
     const described = ui(config, 'describe');
     assert.equal(described.backend_version, VERSION);
-    const current = ui(config, 'read');
+    const current = ui(config, 'read', {}, pathEnv);
     current.draft.display.use_colors = false;
     current.draft.host.padding = 4;
     const preview = ui(config, 'preview', { draft: current.draft, width: 80 });
     assert.ok(preview);
-    ui(config, 'apply', { draft: current.draft, expected_revision: current.revision });
-    assert.equal(ui(config, 'read').draft.host.padding, 4);
+    ui(config, 'apply', { draft: current.draft, expected_revision: current.revision }, pathEnv);
+    assert.equal(ui(config, 'read', {}, pathEnv).draft.host.padding, 4);
+    // Return to the explicit binding for the remaining independent assertions.
+    run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
     const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 12, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
@@ -205,11 +215,18 @@ test('installed native-editor protocol supports describe, preview, revision-boun
 });
 test('installed external editor saves and cancels in a real native terminal', { timeout: 45000 }, async () => {
     const config = setup('external-editor');
+    const settingsPath = join(config, 'settings.json'), settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    settings.statusLine.command = 'claude-statusline render';
+    fs.writeFileSync(settingsPath, JSON.stringify(settings));
+    const pathEnv = { ...installed.env, PATH: dirname(installed.bin) + delimiter + installed.env.PATH };
     for (const choice of ['save', 'cancel']) {
         const path = join(config, 'claude-statusline.json'), before = fs.existsSync(path) ? fs.readFileSync(path) : null;
         let output: string, columns = 100, rows = 30;
         if (process.platform === 'win32') {
-            const receipt = join(installed.temporary, 'console-' + choice + '.json'), child = startWindows([installed.node, driver, installed.modules, 'windows-editor', config, receipt, choice], installed.directory, installed.env);
+            const bridge = await import(pathToFileURL(join(installed.modules, 'statusline-platform/dist/src/terminal/bridge.js')).href);
+            const invocation = bridge.prepare(config, { executable: installed.node, args: [installed.entry] }, installed.directory);
+            const env = { ...pathEnv, [bridge.REQUEST_ENV]: invocation.path, [bridge.NONCE_ENV]: invocation.request.nonce, [bridge.RESULT_ENV]: invocation.result, [bridge.DEADLINE_ENV]: '30' };
+            const receipt = join(installed.temporary, 'console-' + choice + '.json'), child = startWindows([installed.node, driver, installed.modules, 'windows-editor', config, receipt, choice], installed.directory, env);
             try {
                 const stop = performance.now() + 16000;
                 while (child.code() === null && performance.now() < stop)
@@ -221,13 +238,17 @@ test('installed external editor saves and cancels in a real native terminal', { 
                 output = saved.output;
                 columns = saved.columns;
                 rows = saved.rows;
+                assert.equal(bridge.started(invocation.directory, config, invocation.request.nonce).pid > 0, true);
+                assert.equal(bridge.readResult(invocation.result, config).outcome, choice === 'save' ? 'updated' : 'cancelled');
+                report.windows_bridge = { request: true, started: true, result: true, save: true, cancel: true };
             }
             finally {
                 child.close();
+                bridge.cleanup(invocation.directory);
             }
         }
         else {
-            const p = openPty(config, 100, 30, installed.env, 'en', { executable: installed.node, args: [installed.entry, '--language', 'en', 'configure', '--config-dir', config] });
+            const p = openPty(config, 100, 30, pathEnv, 'en', { executable: installed.node, args: [installed.entry, '--language', 'en', 'configure', '--config-dir', config] });
             try {
                 await p.wait(value => value.includes('Preview (sample data)'));
                 p.send(choice === 'save' ? ' \x13' : ' \x1b');

@@ -8,7 +8,8 @@ import { ITEMS, point, requestMetrics, type Point } from './requests.js';
 export const LIVE_ITEMS = ['run-state', 'permission-mode', 'active-agents', 'task-progress', 'last-tool', ...ITEMS];
 function latest(rows: Data[], field: string): Data { return rows.reduce((best, row) => numeric(row[field])! > numeric(best[field])! ? row : best); }
 export function unavailable(reason: string): Record<string, Point> { return Object.fromEntries(LIVE_ITEMS.map(item => [item, point(null, reason)])); }
-export function resolveMetrics(state: LiveState | null, history: TaskStore | null, promptId: string | null, nowMs: number, enabled = true): Record<string, Point> {
+export function resolveMetrics(state: LiveState | null, history: TaskStore | null, promptId: unknown, nowMs: number, enabled = true): Record<string, Point> {
+    if (promptId != null && typeof promptId !== 'string') return unavailable('ambiguous_owner');
     let reason = !enabled ? 'runtime_disabled' : state === null ? 'not_observed' : truth(state.invalidated) ? state.invalidated as string : fresh(state, nowMs) ? null : 'stale';
     let result = unavailable(reason ?? 'not_observed');
     if (state === null || !enabled)

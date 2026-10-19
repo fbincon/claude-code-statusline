@@ -235,7 +235,7 @@ test('tests.runtime.test_statusline_state.TokenStateConcurrencyTests.test_parall
     for (let i = 0; i < 6; i++)
         writeLines(join(f.root, `session-${i}.jsonl`), [{ type: 'assistant', message: { id: 'message-' + i, usage: { input_tokens: i + 1, output_tokens: i + 2, cache_creation_input_tokens: i + 3, cache_read_input_tokens: i + 4 } } }]);
     await writers(f.root, 'usage', 6);
-    const state = JSON.parse(fs.readFileSync(join(f.root, 'statusline_state.json'), 'utf8'));
+    const state = JSON.parse(fs.readFileSync(join(f.root, 'statusline_usage_v2/state.json'), 'utf8'));
     assert.deepEqual(Object.keys(state.sessions).sort(), Array.from({ length: 6 }, (_, i) => 'session-' + i));
     assert.deepEqual(fs.readdirSync(f.root).filter(name => name.endsWith('.tmp')), []);
 });

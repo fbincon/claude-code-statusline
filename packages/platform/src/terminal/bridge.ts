@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { atomicWrite, durableUnlink, isLinkOrReparse, privateDirectory } from '../files.js';
+import { atomicWrite, durableUnlink, isLinkOrReparse, privateDirectory, fileIdentity, sameFileIdentity } from '../files.js';
 import { processToken, processMatches } from '../processes.js';
 import { decodeUtf8 } from '../utf8.js';
 import { decode, isLosslessNumber, safeInteger } from '@fbincon/statusline-core/json';
@@ -56,15 +56,16 @@ export function resultPath(configDir: string, raw: string): string {
 }
 export function readPrivate(path: string, configDir: string): Buffer {
     resultPath(configDir, join(dirname(path), 'result.json'));
-    const before = fs.lstatSync(path);
+    const before = fs.lstatSync(path, { bigint: true });
     if (!before.isFile() || isLinkOrReparse(path) || before.size > RESULT_LIMIT)
         throw new Error('Invalid or oversized invocation file');
-    if (process.platform !== 'win32' && (before.mode & 0o777) !== 0o600)
+    if (process.platform !== 'win32' && (before.mode & 0o777n) !== 0o600n)
         throw new Error('Invocation file is not private');
+    const identity = fileIdentity(path, before);
     const fd = fs.openSync(path, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
     try {
-        const after = fs.fstatSync(fd);
-        if (!after.isFile() || before.dev !== after.dev || before.ino !== after.ino || after.size > RESULT_LIMIT)
+        const after = fs.fstatSync(fd, { bigint: true });
+        if (!after.isFile() || !sameFileIdentity(identity, after) || after.size > RESULT_LIMIT)
             throw new Error('Invocation file changed while opening');
         const buffer = Buffer.alloc(RESULT_LIMIT + 1);
         let count = 0, read = 0;

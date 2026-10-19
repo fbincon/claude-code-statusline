@@ -80,6 +80,7 @@ export function observeNative(history: TaskStore, state: LiveState, capture: () 
         if (Object.values(record.native_turns).some(loop => loop.epoch !== epoch))
             record.active_coverage = 'incomplete';
         const previous = own(record.native_turns, key), started = roundedInteger(numeric(turn.started_at_ms)! * 1e6), agent = turn.agent_id;
+        if (turn.start_observed !== true) record.active_coverage = 'incomplete';
         if (!previous && agent === null && record.status === 'completed' && record.end_source === 'native_turn_end' && started > (int(record.ended_wall_ns) || started) && record.report_aliases.length && history.current_prompt_id === record.prompt_id) {
             Object.assign(record, { status: 'running', ended_wall_ns: null, ended_boot_ns: null, duration_ns: null, end_source: null, end_reason: null, phase: 'main' });
         }
@@ -132,7 +133,7 @@ export function observeNative(history: TaskStore, state: LiveState, capture: () 
         let timer = StatusTimer.load(record.active_clock);
         if (!timer)
             continue;
-        const token = key + ':' + observation.request_id, now = nativeSample(roundedInteger(numeric(observation.observed_at_ms)! * 1e6), capture, record, true);
+        const token = key + ':' + observation.request_id, now = nativeSample(roundedInteger(numeric(observation.observed_at_ms)! * 1e6), capture);
         if (observation.kind === 'wait_start') {
             if (truth(record.active_agents))
                 record.active_coverage = 'incomplete';

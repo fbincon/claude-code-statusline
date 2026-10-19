@@ -93,10 +93,40 @@ export function commandFor(launch: LaunchSpec, operation: string): string {
         return `claude-statusline.exe ${operation}`;
     return [...[launch.executable, ...launch.args].map(quoteArgument), operation].join(' ');
 }
+/** Resolve only the shipped npm bootstrap and npm's literal relative shim
+ * targets. Do not execute PATH programs or trust a matching basename/version. */
+export function sameLaunchEntry(path: string, launch: LaunchSpec): boolean {
+    const same = (left: string, right: string) => normalizedPath(resolvedPath(left)) === normalizedPath(resolvedPath(right));
+    if (!launch.args.length) return same(path, launch.executable);
+    if (launch.args.length !== 1) return false;
+    const entry = launch.args[0]!;
+    if (same(path, entry)) return true;
+    for (let root = dirname(resolvedPath(entry)), depth = 0; depth < 7; depth++, root = dirname(root)) {
+        try {
+            const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+            if (!['@fbincon/claude-code-statusline', '@fbincon/statusline-ts05-candidate'].includes(manifest.name)
+                || manifest.bin?.['claude-statusline'] !== 'bin/claude-statusline.js'
+                || !same(entry, join(root, 'node_modules/@fbincon/statusline-cli/dist/src/entry.js'))) continue;
+            const bootstrap = join(root, 'bin/claude-statusline.js');
+            if (readFileSync(bootstrap, 'utf8').replaceAll('\r\n', '\n') !== '#!/usr/bin/env node\nimport "../node_modules/@fbincon/statusline-cli/dist/src/entry.js";\n') return false;
+            if (same(path, bootstrap)) return true;
+            if (process.platform !== 'win32') return false;
+            const shim = readFileSync(path, 'utf8');
+            return [...shim.matchAll(/(?:%dp0%|\$basedir)[/\\]([^"'\r\n]+?\/bin\/claude-statusline\.js|[^"'\r\n]+?\\bin\\claude-statusline\.js)/gu)]
+                .some(match => same(resolve(dirname(path), match[1]!.replaceAll('\\', '/')), bootstrap));
+        } catch { /* Continue to the containing distribution manifest. */ }
+    }
+    return false;
+}
 export function ownedCommand(command: unknown, operation: string, launch: LaunchSpec): boolean {
     const argv = splitCommand(command);
-    if (!argv || argv.length !== launch.args.length + 2 || argv.at(-1) !== operation)
+    if (!argv || argv.at(-1) !== operation)
         return false;
+    if (argv.length === 2 && /^(?:claude-statusline|claude-statusline\.exe|claude-statusline\.cmd)$/iu.test(argv[0]!)) {
+        const path = which(argv[0]!);
+        if (path && sameLaunchEntry(path, launch)) return true;
+    }
+    if (argv.length !== launch.args.length + 2) return false;
     if (JSON.stringify(argv) === JSON.stringify(splitCommand(commandFor(launch, operation))))
         return true;
     if (argv.slice(1, -1).some((arg, index) => arg !== launch.args[index]))

@@ -1,7 +1,7 @@
 import { resolveMetrics, unavailable } from '@fbincon/statusline-core/runtime/live/snapshot';
 import { loadRuntime } from '../../config/backend-preferences.js';
 import { LiveStore } from './store.js';
-export function collectMetrics(store: LiveStore, session: unknown, prompt: string | null = null, nowMs = store.context.nowMs()) {
+export function collectMetrics(store: LiveStore, session: unknown, prompt: unknown = null, nowMs = store.context.nowMs()) {
     if (typeof session !== 'string' || !session)
         return unavailable('not_observed');
     try {
