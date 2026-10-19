@@ -20,6 +20,7 @@ else if (operation === 'crash') {
     service.apply({ display: before.display, host: before.host }, before.revision);
 }
 else if (operation === 'official' || operation === 'prepare-host') {
+    const { PROTOCOL_VERSION } = await load('core', 'contracts/ui');
     const { installContext, install, uninstall } = await load('cli', 'integration/install');
     const { doctor } = await load('cli', 'integration/doctor');
     const { NATIVE, RUNTIME } = await load('cli', 'integration/model');
@@ -61,11 +62,11 @@ else if (operation === 'official' || operation === 'prepare-host') {
                 throw new Error('Installed official binding differs');
         }
         const ui = (operation: string, payload: unknown = {}) => {
-            const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', config!], { env: process.env, input: JSON.stringify({ protocol_version: 13, operation, payload }), encoding: 'utf8', timeout: 15000 });
+            const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', config!], { env: process.env, input: JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation, payload }), encoding: 'utf8', timeout: 15000 });
             if (result.status !== 0)
                 throw new Error(result.stderr + result.stdout);
             const value = JSON.parse(result.stdout);
-            if (value.protocol_version !== 12 || !value.result)
+            if (value.protocol_version !== PROTOCOL_VERSION || !value.result)
                 throw new Error('Installed UI protocol mismatch');
             return value.result;
         };
@@ -73,6 +74,9 @@ else if (operation === 'official' || operation === 'prepare-host') {
         const current = ui('read');
         current.draft.display.use_colors = false;
         ui('preview', { draft: current.draft, width: 80 });
+        const explanation = ui('explain', { draft: current.draft, scope: 'main', width: 80 });
+        if (!explanation.sample || explanation.actual_availability !== 'not_observed' || !Array.isArray(explanation.instances))
+            throw new Error('Installed explanation contract mismatch');
         ui('apply', { draft: current.draft, expected_revision: current.revision });
         host.run(['disable', NATIVE.plugin, '--scope', 'user', '--json']);
         const disabled = install(context);
