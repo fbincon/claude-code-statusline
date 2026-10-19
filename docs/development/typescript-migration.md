@@ -7,7 +7,7 @@ Updated: **2026-10-18** (Asia/Shanghai). Reference implementation: **v2.0.0**, c
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
 
-The post-migration correctness and installation repairs have a [separate v3.1.3 record](post-migration-fixes.md); original migration and performance states remain unchanged.
+The post-migration correctness and installation follow-up is **DONE**: all eleven confirmed findings and five documentation categories are repaired, with stable v3.1.3 delivered on npm, GitHub and Gitee. See the [source-bound validation and delivery record](post-migration-fixes.md); original migration and performance states remain unchanged.
 
 ## Post-migration follow-up
 
