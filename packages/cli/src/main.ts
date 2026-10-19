@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -182,7 +183,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
                 raw = stdin();
             }
             catch (error) {
-                stdout(pythonJson({ protocol_version: 12, error: { code: 'invalid_request', message: error instanceof Error ? error.message : String(error), localization: null } }, { ensureAscii: false }) + '\n');
+                stdout(pythonJson({ protocol_version: PROTOCOL_VERSION, error: { code: 'invalid_request', message: error instanceof Error ? error.message : String(error), localization: null } }, { ensureAscii: false }) + '\n');
                 return 2;
             }
             const { response, status } = protocol.handle(raw, error => stderr(String(error) + '\n'));

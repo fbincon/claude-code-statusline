@@ -1,3 +1,4 @@
+import type { QuickSetup } from './quick-setup.js';
 import { t, type Language } from '../i18n/messages.js';
 import { nodes, newInstance, reconcileRows } from './instances.js';
 import { isDraft } from './backend.js';
@@ -38,6 +39,7 @@ export class Editor {
   detail: { scope: Scope; id: string } | null = null;
   guidanceScroll: number | null = null;
   review: ReviewState | null = null;
+  quick: QuickSetup | null = null;
   preset = 'minimal';
   path = 'statusline.json';
   pendingTransfer: 'import' | 'export' | 'preset' | null = null;

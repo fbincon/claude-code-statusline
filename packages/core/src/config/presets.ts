@@ -11,6 +11,11 @@ export const ROWS = {
   monitoring: [['context-used', 'five-hour-limit', 'weekly-limit', 'spend-limit'], ['five-hour-reset', 'weekly-reset', 'cache-state', 'cache-expires'], ['session-cost', 'session-duration', 'api-duration', 'api-requests', 'cache-misses']],
   'multi-agent': [['model-with-effort', 'current-dir', 'git'], ['context-remaining', 'tokens', 'task-timer']],
 } as const;
+/** Ordered presentation metadata extends the existing preset registry. */
+export const PRESET_PRESENTATION = ['developer', 'minimal', 'monitoring', 'multi-agent', 'left-right', 'repeated-metrics'].map(id => ({
+  id, purpose_key: 'quick.purpose.' + id, requirements_key: 'quick.requirements.' + id,
+  example: id === 'left-right' || id === 'repeated-metrics',
+}));
 export function applyPreset(config: DisplayDraft, name: string, nextId: () => string): DisplayDraft {
   if (!Object.hasOwn(ROWS, name)) fail('errors.presets.unknown_preset_choose', { value0: Object.keys(ROWS).join(', ') });
   const nodes: InstanceDraft[] = [];

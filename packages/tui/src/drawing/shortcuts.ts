@@ -30,6 +30,10 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
         key, t('ui.hints.' + label, state.language),
         short ? t('ui.hints.' + short, state.language) : undefined,
     ];
+    if (e.quick) return {
+        actions: [hint('Enter','accept'),hint('Backspace','back'),hint('Esc/Ctrl+G','cancel')],
+        help: [hint('↑↓','select'),hint('←→','adjust'),hint('Tab','preview'),hint('PgUp/PgDn','scroll')],
+    };
     if (e.review) {
         return {
             actions: [hint('A', 'accept_draft'), hint('Esc/Ctrl+G', 'cancel_review')],
@@ -66,7 +70,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
             help: [hint('↑↓', 'select'), hint('/', 'search'), hint('Ctrl+F', 'category')],
         };
     }
-    const actions = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt')];
+    const actions: Hint[] = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt'), ['Ctrl+P', t('quick.title',state.language)]];
     if (e.detail) {
         return { actions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
     }
@@ -86,6 +90,7 @@ export function notice(state: State, width: number): Paint[] {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
     const message = renderMessage(state.localized.message ?? state.message, state.language);
+    if (e.quick) return [paint(t('quick.sample',state.language))];
     if (message) return [paint(message, true)];
     if (e.review) return [paint(tr('review.intro'))];
     if (state.input?.kind === 'category') return [paint(tr('catalog.search.choose_category'))];

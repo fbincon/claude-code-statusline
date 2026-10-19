@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import * as fs from 'node:fs';
 import { join, relative, isAbsolute, dirname } from 'node:path';
 import { isLosslessNumber } from '@fbincon/statusline-core/json';
@@ -32,7 +33,7 @@ async function protocol(): Promise<ConfigurationProtocol> {
 }
 function call(protocol: ConfigurationProtocol, raw: string): { response: unknown; exit_code: number } {
   // Adapt the historical request version without rewriting frozen fixtures.
-  const input = raw.replace(/("protocol_version"\s*:\s*)11\b/u, '$112');
+  const input = raw.replace(/("protocol_version"\s*:\s*)11\b/u, (_match,prefix:string) => prefix + PROTOCOL_VERSION);
   const result = protocol.handle(input);
   return { response: result.response, exit_code: result.status };
 }
@@ -73,11 +74,9 @@ export const handlers: Readonly<Record<string, Handler>> = {
     });
     return { exit_code, stdout, stderr };
   },
-  ui: async fixture => call(await protocol(), fixture.id === 'ui-wrong-version'
-    ? (fixture.input.raw as string).replace(/("protocol_version"\s*:\s*)12\b/u, '$113')
-    : fixture.input.raw as string),
+  ui: async fixture => call(await protocol(), fixture.input.raw as string),
   transaction: async fixture => {
-    const p = await protocol(), request = (operation: string, payload: unknown) => call(p, pythonJson({ protocol_version: 12, operation, payload }));
+    const p = await protocol(), request = (operation: string, payload: unknown) => call(p, pythonJson({ protocol_version: 13, operation, payload }));
     const initial = request('read', {}) as { response: { result: { revision: string; draft: unknown } }; exit_code: number };
     const revision = initial.response.result.revision;
     const first = request('apply', { draft: fixture.input.draft, expected_revision: revision }), after = snapshot(process.cwd());
@@ -89,7 +88,7 @@ export const handlers: Readonly<Record<string, Handler>> = {
     for (const operation of ['export', 'import', 'review_import']) {
       const payload: Record<string, unknown> = { draft: fixture.input.draft, path: target };
       if (operation === 'export') payload.overwrite = false;
-      responses.push({ operation, ...call(p, pythonJson({ protocol_version: 12, operation, payload })) });
+      responses.push({ operation, ...call(p, pythonJson({ protocol_version: 13, operation, payload })) });
     }
     return { responses, portable: fs.readFileSync(target, 'utf8') };
   },

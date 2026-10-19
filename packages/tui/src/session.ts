@@ -1,3 +1,4 @@
+import { receivePreset } from '@fbincon/statusline-core/editor/quick-setup';
 import type { Operation, ResultFor } from '@fbincon/statusline-core/contracts/ui';
 import { createReview } from '@fbincon/statusline-core/editor/import-review';
 import { text, t, type Language } from '@fbincon/statusline-core/i18n/messages';
@@ -41,7 +42,7 @@ export class Session {
         return new Session(state, backend, guard);
     }
     async preview(columns: number, rows: number): Promise<void> {
-        const e = this.state.editor, width = Math.max(2, dimensions(columns, rows).preview.innerWidth), draft = e.review?.result.draft ?? e.draft;
+        const e = this.state.editor, width = Math.max(2, dimensions(columns, rows).preview.innerWidth), draft = e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
         const key = JSON.stringify([draft, width]);
         if (key === this.previewKey)
             return;
@@ -65,7 +66,8 @@ export class Session {
             }
             else if (effect === 'transfer') {
                 if (e.pendingTransfer === 'preset') {
-                    e.replaceDraft((await this.backend.request('preset', { draft: e.draft, preset: e.preset })).draft);
+                    const result = await this.backend.request('preset', { draft: e.quick?.base ?? e.draft, preset: e.preset });
+                    if (e.quick) receivePreset(e.quick,result.draft); else e.replaceDraft(result.draft);
                     state.notice(text('ui.session.preset_expanded_ctrl_s_saves_esc_discards'));
                 }
                 else if (e.pendingTransfer === 'import') {

@@ -1,3 +1,4 @@
+import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
 import { Editor, copyDraft, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
@@ -82,7 +83,7 @@ export class State {
             row('scope-labels', 'Scope labels', d.scope_labels, 'Appearance'), row('custom-subagent-rows', 'Custom subagent rows', d.subagents.enabled ? 'on' : 'off', 'Refresh / behavior'),
             ...fields,
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
-            ...['preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
+            ...['quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
             row('ui-language', 'Interface language (saved immediately)', LANGUAGE_NAMES[this.language], 'Interface', 'choice'),
         ];
         return result.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group));
@@ -190,6 +191,11 @@ export class State {
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
         if (event.paste && (!this.input || this.input.kind === 'category')) return null;
+        if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
+        if (ctrl && k.toLowerCase() === 'p' && !this.input && !e.detail && !e.adding && !e.review) {
+            if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); }
+            return null;
+        }
         if (e.review) {
             if (cancel || (!ctrl && k.toLowerCase() === 'q')) {
                 e.review = null;
@@ -326,7 +332,8 @@ export class State {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';
             const row = this.selectedRow();
-            if (row.key === 'item-guidance')
+            if (row.key === 'quick-setup') { if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); } }
+            else if (row.key === 'item-guidance')
                 e.guidanceScroll = 0;
             else if (row.key === 'preset-apply') {
                 e.pendingTransfer = 'preset';

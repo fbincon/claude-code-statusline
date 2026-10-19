@@ -6,7 +6,7 @@ import { decode } from '@fbincon/statusline-core/json';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { fixed } from '@fbincon/statusline-core/numbers';
 import { catalogData } from '@fbincon/statusline-core/config/catalog-data';
-import { ROWS } from '@fbincon/statusline-core/config/presets';
+import { ROWS, PRESET_PRESENTATION } from '@fbincon/statusline-core/config/presets';
 import { ITEM_DEFAULTS, FORMAT_CHOICES, FORMAT_DEFAULTS, VISIBILITY_ITEMS } from '@fbincon/statusline-core/contracts/ui';
 import { VERSION } from '@fbincon/statusline-core/release';
 
@@ -148,7 +148,7 @@ export function outputs(root = ROOT): Map<string, string> {
   const codes = languages(join(root, 'packages/core/resources/i18n')).registry.map(entry => entry.code);
   const mainIds = catalogData.filter(item => item.scope === 'main').map(item => item.id);
   const subagentIds = catalogData.filter(item => item.scope === 'subagent').map(item => item.id);
-  const presets = Object.entries(ROWS).map(([id, rows]) => ({ id, label: id.replaceAll('-', ' ').replace(/\b\w/gu, letter => letter.toUpperCase()), rows, layout_mode: id === 'minimal' ? 'auto' : 'explicit' }));
+  const presets = PRESET_PRESENTATION.map(meta => ({ ...meta, label: meta.id.replaceAll('-', ' ').replace(/\b\w/gu, letter => letter.toUpperCase()), rows: ROWS[meta.id as keyof typeof ROWS], layout_mode: meta.id === 'minimal' ? 'auto' : 'explicit' }));
   const generatedCatalog = { MAIN_ITEM_IDS: mainIds, SUBAGENT_ITEM_IDS: subagentIds, PRESETS: presets };
   result.set('packages/core/src/contracts/generated-catalog.ts', header + Object.entries(generatedCatalog).map(([name, value]) => 'export const ' + name + ' = ' + json(value) + ' as const;\n').join(''));
   for (const [source, destination] of [['ui', 'mods/statusline-native/lib/generated-contracts.ts'], ['runtime', 'mods/statusline-runtime/lib/generated-contracts.ts']]) {

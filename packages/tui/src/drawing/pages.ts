@@ -1,3 +1,4 @@
+import { quickView } from '@fbincon/statusline-core/editor/quick-setup';
 /** Page content, using one bounded canvas and shared terminal geometry. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { guidanceLines } from '@fbincon/statusline-core/editor/guidance';
@@ -16,6 +17,10 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
 
+    if (e.quick) {
+        quickView(e.quick,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        return tr('quick.steps');
+    }
     if (e.review || e.guidanceScroll !== null) {
         const review = e.review;
         const capacity = Math.max(1, panel.innerHeight - 1);

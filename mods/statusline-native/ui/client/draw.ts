@@ -1,3 +1,4 @@
+import { quickView } from '../../lib/editor/quick-setup.ts';
 import { inputView, textInput } from '../../lib/editor/text-input.ts';
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
 import type { View } from '../../lib/session.ts';
@@ -53,7 +54,10 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if (e.review) {
+  if (e.quick) {
+    title=tr('quick.title')+' · '+tr('quick.'+e.quick.step);
+    content.push(...quickView(e.quick,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
+  } else if (e.review) {
     title = tr('review.title');
     const review = e.review, lines = reviewRows(review, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
     const start = Math.min(review.scroll, Math.max(0, lines.length - capacity));
@@ -129,7 +133,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + (current.type_id ?? current.id) + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.enabled", {page: window.page, pages: window.pages, length: e.items(scope).length}), styles.muted));
   }
-  const subagentPreview = e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
+  const subagentPreview = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
   const sample = view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
   const shown = sample.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
@@ -155,7 +159,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
         : line(tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
-      section(ui, 'preview-region', e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle(e.draft.display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
+      section(ui, 'preview-region', e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({
         key: 'shortcut-region', width: columns, height: layout.footerRows,
         backgroundColor: styles.text.backgroundColor,

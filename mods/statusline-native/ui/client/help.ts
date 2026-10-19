@@ -17,6 +17,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     { key: 'Q', label: 'close (blocked)', short: 'blocked' },
     focus,
   ]];
+  if (e.quick) return [[{key:'Enter',label:'accept'},{key:'Backspace',label:'back'},{key:'Ctrl+G',label:'cancel'},focus],[{key:'↑↓',label:'select'},{key:'←→',label:'adjust'},{key:'Tab',label:'preview'},{key:'PgUp/PgDn',label:'scroll'}]];
   if (e.review) return [
     [{key:'A', label:'accept draft', short:'accept'}, {key:'Q', label:'cancel review', short:'cancel'}],
     [{key:'Enter', label:'details'}, {key:'↑↓', label:'section'}],
@@ -42,6 +43,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     focus,
   ];
   const contextual: Shortcut[] = [{ key: 'Tab', label: 'page' }];
+  if(!e.detail) contextual.push({key:'Ctrl+P',label:'quick setup'});
   if (!e.detail && (e.page === 'main' || e.page === 'subagents')) {
     contextual.push(
       { key: 'A/D/X', label: 'add/copy/remove', short:'add/copy/remove' },

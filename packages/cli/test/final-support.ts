@@ -19,7 +19,7 @@ export function setup(t: TestContext, installed = false) {
     if (installed)
         writeFileSync(settingsPath, jsonBytes({ statusLine: { type: 'command', command: commandFor(launch, 'render'), refreshInterval: 1 }, subagentStatusLine: { type: 'command', command: commandFor(launch, 'render-subagents') }, permissions: { allow: ['Read'] } }));
     const service = new ConfigurationService(context, io), protocol = new ConfigurationProtocol(service, preview);
-    const call = (operation: string, payload: unknown = {}, custom = protocol) => { const reply = custom.handle(JSON.stringify({ protocol_version: 12, operation, payload }), error => assert.fail(String(error))); return { status: reply.status, response: reply.response as any }; };
+    const call = (operation: string, payload: unknown = {}, custom = protocol) => { const reply = custom.handle(JSON.stringify({ protocol_version: 13, operation, payload }), error => assert.fail(String(error))); return { status: reply.status, response: reply.response as any }; };
     const read = () => { const result = call('read'); assert.equal(result.status, 0); return result.response.result; };
     return { root, launch, context, io, service, protocol, settingsPath, displayPath, call, read,
         save: (current: any) => call('apply', { draft: current.draft, expected_revision: current.revision }),

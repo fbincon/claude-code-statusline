@@ -58,10 +58,10 @@ test('broad and stale comparison exemptions are rejected', () => {
 });
 
 test('regional comparison exceptions are restricted to known protocol and language-choice fields', () => {
-  assert(regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 12));
-  assert(!regionalLanguageDifference('ui-unknown-case', '/value/response/protocol_version', 11, 12));
-  assert(!regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 13));
-  assert(!regionalLanguageDifference('ui-read', '/value/response/result/value', 11, 12));
+  assert(regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 13));
+  assert(!regionalLanguageDifference('ui-unknown-case', '/value/response/protocol_version', 11, 13));
+  assert(!regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 14));
+  assert(!regionalLanguageDifference('ui-read', '/value/response/result/value', 11, 13));
   const before = ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko'], after = ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko'];
   assert(regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, after));
   assert(!regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, [...after, 'fr']));

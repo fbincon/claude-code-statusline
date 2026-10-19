@@ -107,7 +107,7 @@ export function inputFor(spec: BenchmarkCase, root: string, dimensions: readonly
         command = 'render-subagents';
     }
     if (spec.operation === 'preview') {
-        payload = { protocol_version: 12, operation: 'preview', payload: { draft: { display, host: DEFAULT_HOST }, width: 80 } };
+        payload = { protocol_version: 13, operation: 'preview', payload: { draft: { display, host: DEFAULT_HOST }, width: 80 } };
         command = 'ui';
     }
     if (spec.operation === 'hook') {

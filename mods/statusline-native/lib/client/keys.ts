@@ -1,3 +1,4 @@
+import { openQuick, controlQuick } from '../editor/quick-setup.ts';
 import { inputKey } from '../editor/text-input.ts';
 import type { NativeKeyEvent } from './messages.ts';
 import { graphemes } from '../unicode.ts';
@@ -35,6 +36,10 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
   if (event.text && (!view.input || view.input.kind === 'category')) return null;
+  if (e.quick) return controlQuick(e,event.ctrl && key.toLowerCase()==='g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
+  if (event.ctrl && key.toLowerCase()==='p' && !view.input && !e.detail && !e.adding && !e.review && !view.uncertain) {
+    if(e.acceptNumeric()) e.quick=openQuick(e.draft); return null;
+  }
   if (event.ctrl && key.toLowerCase() === 'g') { const reviewing = !!e.review; cancelInput(view); return reviewing ? 'reviewPreview' : null; }
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
   if (e.review) {
@@ -186,6 +191,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",localizedText("composition.invalid")); }
+    else if (e.setting === 'quick-setup') { if (e.acceptNumeric()) e.quick=openQuick(e.draft); }
     else if (e.setting === 'item-guidance') e.guidanceScroll = 0;
     else if (e.setting === 'preset-apply') { e.pendingTransfer = 'preset'; return 'transfer'; }
     else if (e.setting === 'import-file' || e.setting === 'export-file') {

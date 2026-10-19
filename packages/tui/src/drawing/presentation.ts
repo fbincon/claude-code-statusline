@@ -45,6 +45,7 @@ export function fieldValue(row: Row, state: State): string {
 export function contentTitle(state: State): string {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
+    if (e.quick) return tr('quick.title') + ' · ' + tr('quick.'+e.quick.step);
     if (e.review) return tr('review.title');
     if (e.guidanceScroll !== null) return tr('guidance.title');
     if (state.input?.kind === 'category') return tr('catalog.search.categories');

@@ -1,3 +1,4 @@
+import { receivePreset } from '../lib/editor/quick-setup.ts';
 import type {
   Register,
   EngineInterface,
@@ -343,14 +344,14 @@ async function transferDraft($: EngineInterface, state: Session, options: Plugin
       return;
     }
     if (!e.acceptNumeric()) { setMessage(state.view, "message", localizedText("native.hooks.register.correct_numeric_fields_first")); return; }
-    const payload = action === 'preset' ? { draft: copyDraft(e.draft), preset: e.preset } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
+    const payload = action === 'preset' ? { draft: copyDraft(e.quick?.base ?? e.draft), preset: e.preset } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
     if (action === 'export') {
       const result = await callBackend($, options, action, payload);
       if (state.epoch === epoch) setMessage(state.view, "message", localizedText("native.hooks.register.exported_current_draft_may_be_unsaved", {path: result.path}));
     } else {
       const result = await callBackend($, options, action, payload);
       if (state.epoch === epoch) {
-        e.replaceDraft(result.draft);
+        if (e.quick) receivePreset(e.quick,result.draft); else e.replaceDraft(result.draft);
         setMessage(state.view, "message", localizedText("native.hooks.register.draft_replaced_review_preview_and_save_or_discard"));
         state.previewKey = '';
       }
@@ -670,7 +671,7 @@ export const register: Register = (on, options) => {
     state.columns = width;
     state.rows = height;
     const editor = state.view.editor;
-    const previewDraft = editor?.review?.result.draft ?? editor?.draft;
+    const previewDraft = editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
     const previewColumns = contentColumns(width, height);
     const key = `${state.epoch}:${previewColumns}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
     if (

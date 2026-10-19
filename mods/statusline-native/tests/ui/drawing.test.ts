@@ -170,8 +170,8 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     else e.page = page as typeof e.page;
     const groups = editorShortcuts(state);
     const expected = page === 'main' || page === 'subagents'
-      ? ['Tab', 'A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
-      : page === 'settings' ? ['Tab', '↑↓', '←→', 'Enter', 'H', 'R']
+      ? ['Tab', 'Ctrl+P', 'A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
+      : page === 'settings' ? ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter', 'H', 'R']
       : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', '↑↓', '←→', 'Enter'];
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);
     expect(groups.flat().every((hint) => hint.label === hint.label.toLowerCase())).toBe(true);
@@ -197,7 +197,7 @@ test('preferences, search, input, busy and uncertain states advertise their avai
   expect(editorShortcuts(state).flat().find((hint) => hint.key === 'H')!.label).toBe('show preferences');
   expect(editorShortcuts(state).flat().some((hint) => hint.key === 'A')).toBe(false);
   e.advanced = true;
-  expect(editorShortcuts(state)[1]!.map((hint) => hint.key)).toEqual(['Tab', '↑↓', '←→', 'Enter', 'H', 'A', 'R']);
+  expect(editorShortcuts(state)[1]!.map((hint) => hint.key)).toEqual(['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter', 'H', 'A', 'R']);
   expect(editorShortcuts(state).flat().find((hint) => hint.key === 'H')!.label).toBe('hide preferences');
   for (const page of ['main', 'subagents', 'layout']) {
     e.page = page as typeof e.page;

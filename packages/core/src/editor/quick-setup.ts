@@ -1,0 +1,81 @@
+import type { Editor } from './draft.js';
+import type { Draft, Scope } from '../contracts/ui.js';
+import { THEME_VALUES, PALETTE_VALUES, SEPARATORSTYLE_VALUES, PRESETS } from '../contracts/ui.js';
+import { copyDraft } from './draft.js';
+import { t, type Language } from '../i18n/messages.js';
+import { wrapText } from './text.js';
+
+export interface QuickSetup {
+  base: Draft;
+  candidate: Draft;
+  step: 'scenario' | 'appearance' | 'review';
+  selected: number;
+  preset: string;
+  previewScope: Scope;
+  detailScroll: number;
+}
+export function openQuick(draft: Draft): QuickSetup {
+  return {base:copyDraft(draft),candidate:copyDraft(draft),step:'scenario',selected:0,preset:'developer',previewScope:'main',detailScroll:0};
+}
+export function receivePreset(quick: QuickSetup, draft: Draft): void {
+  quick.candidate = copyDraft(draft); quick.step = 'appearance'; quick.selected = 0; quick.detailScroll = 0;
+}
+export function quickKey(quick: QuickSetup, key: string): 'preset' | 'accept' | 'save' | 'cancel' | null {
+  const count = quick.step === 'scenario' ? PRESETS.length : quick.step === 'appearance' ? 5 : 3;
+  if (key === 'escape' || key === 'cancel') return 'cancel';
+  if (key === 'pageup' || key === 'pagedown') { quick.detailScroll = Math.max(0, quick.detailScroll + (key === 'pageup' ? -1 : 1)); return null; }
+  if (key === 'tab') { quick.previewScope = quick.previewScope === 'main' ? 'subagent' : 'main'; return null; }
+  if (key === 'backspace' || quick.step === 'review' && quick.selected === 2 && key === 'return') {
+    if (quick.step === 'scenario') return 'cancel';
+    quick.step = quick.step === 'review' ? 'appearance' : 'scenario';
+    quick.selected = quick.step === 'scenario' ? Math.max(0, PRESETS.findIndex(p => p.id === quick.preset)) : 0;
+    quick.detailScroll = 0; return null;
+  }
+  if (key === 'up' || key === 'down' || key === 'home' || key === 'end') {
+    quick.selected = key === 'home' ? 0 : key === 'end' ? count - 1 : Math.max(0,Math.min(count-1,quick.selected+(key==='up'?-1:1)));
+    quick.detailScroll = 0; return null;
+  }
+  if (quick.step === 'scenario' && key === 'return') { quick.preset = PRESETS[quick.selected]!.id; return 'preset'; }
+  if (quick.step === 'review' && key === 'return') return quick.selected === 0 ? 'accept' : 'save';
+  if (quick.step !== 'appearance' || !['left','right','return'].includes(key)) return null;
+  const d = quick.candidate.display, delta = key === 'left' ? -1 : 1;
+  const cycle = <T>(values: readonly T[], value: T): T => values[(values.indexOf(value)+delta+values.length)%values.length]!;
+  if (quick.selected === 0) d.theme = cycle(THEME_VALUES,d.theme);
+  if (quick.selected === 1) d.use_colors = !d.use_colors;
+  if (quick.selected === 2) d.palette = cycle(PALETTE_VALUES,d.palette);
+  if (quick.selected === 3) d.separator_style = cycle(SEPARATORSTYLE_VALUES,d.separator_style);
+  if (quick.selected === 4 && key === 'return') { quick.step='review'; quick.selected=0; quick.detailScroll=0; }
+  return null;
+}
+/** Both adapters use the same menu, selection window and scrollable requirement text. */
+export function quickView(quick: QuickSetup, language: Language, width: number, height: number): {text:string;selected:boolean}[] {
+  const tr = (key:string,params:Record<string,unknown>={}) => t(key,language,params);
+  const preset = PRESETS.find(p=>p.id === (quick.step === 'scenario' ? PRESETS[quick.selected]!.id : quick.preset))!;
+  const d=quick.candidate.display;
+  const rows = quick.step === 'scenario' ? PRESETS.map(p=>(p.example ? tr('quick.example')+': ' : '')+tr('quick.purpose.'+p.id))
+    : quick.step === 'appearance' ? [
+      tr('fields.global.theme.label')+': '+tr('values.'+d.theme),
+      tr('settings.colors')+': '+tr('values.'+(d.use_colors?'on':'off')),
+      tr('settings.palette')+': '+d.palette,
+      tr('settings.separator-style')+': '+tr('values.'+d.separator_style), tr('quick.next'),
+    ] : [tr('quick.fine_tune'),tr('quick.save'),tr('quick.back')];
+  const paragraphs=[tr(preset.requirements_key),tr('quick.sample'),
+    ...(!d.subagents.enabled && preset.id==='multi-agent' ? [tr('quick.subagents_off')] : []),
+    ...(quick.step==='review' ? [tr('quick.replace')] : [])];
+  const detail=wrapText(paragraphs,width), menuHeight=Math.max(1, Math.min(rows.length,Math.floor(height/2)));
+  const start=Math.max(0, Math.min(quick.selected,rows.length-menuHeight,quick.selected-menuHeight+1));
+  const result=rows.slice(start,start+menuHeight).map((text,index)=>({text:(start+index===quick.selected?'› ':'  ')+text,selected:start+index===quick.selected}));
+  const capacity=Math.max(0,height-result.length), offset=Math.min(quick.detailScroll,Math.max(0,detail.length-capacity));
+  result.push(...detail.slice(offset,offset+capacity).map(text=>({text,selected:false})));
+  return result;
+}
+
+export function controlQuick(editor: Editor, key: string): 'transfer' | 'save' | null {
+  const quick = editor.quick;
+  if (!quick) return null;
+  const effect = quickKey(quick,key);
+  if (effect === 'cancel') editor.quick = null;
+  if (effect === 'preset') { editor.preset=quick.preset; editor.pendingTransfer='preset'; return 'transfer'; }
+  if (effect === 'accept' || effect === 'save') { editor.replaceDraft(quick.candidate); editor.quick=null; return effect === 'save' ? 'save' : null; }
+  return null;
+}
