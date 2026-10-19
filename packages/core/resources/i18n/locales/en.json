@@ -1368,5 +1368,9 @@
   "ui.actions.preset-apply": "replace draft; save later",
   "ui.actions.import-file": "file path; save later",
   "ui.actions.export-file": "new path (may be unsaved)",
-  "ui.hints.add_copy_remove_short": "add/copy/rm"
+  "ui.hints.add_copy_remove_short": "add/copy/rm",
+  "input.limit": "Input exceeds {limit} characters; insertion rejected.",
+  "input.invalid": "Enter single-line text without control characters.",
+  "input.overflow": "Input queue is full or text is too large; retry the rejected input.",
+  "ui.hints.move_cursor": "cursor"
 }

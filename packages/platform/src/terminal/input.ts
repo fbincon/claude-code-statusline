@@ -13,18 +13,22 @@ export class KeyDecoder {
     private decoder = new StringDecoder('utf8');
     private buffer = '';
     private pasting = false;
+    private paste = '';
+    private overflow = false;
     get pendingEscape(): boolean { return !this.pasting && this.buffer.startsWith('\x1b'); }
     push(chunk: Uint8Array | string): Key[] {
         this.buffer += typeof chunk === 'string' ? chunk : this.decoder.write(Buffer.from(chunk));
         const result: Key[] = [];
         while (this.buffer) {
-            if (this.buffer.startsWith('\x1b[200~')) {
-                this.pasting = true;
+            if (!this.pasting && this.buffer.startsWith('\x1b[200~')) {
+                this.pasting = true; this.paste = ''; this.overflow = false;
                 this.buffer = this.buffer.slice(6);
                 continue;
             }
             if (this.buffer.startsWith('\x1b[201~')) {
                 this.pasting = false;
+                result.push(this.overflow ? {key: 'input-overflow', overflow: true} : {key: this.paste, paste: true});
+                this.paste = '';
                 this.buffer = this.buffer.slice(6);
                 continue;
             }
@@ -33,8 +37,8 @@ export class KeyDecoder {
                     break;
                 const c = [...this.buffer][0]!;
                 this.buffer = this.buffer.slice(c.length);
-                if (!/[\p{Cc}\p{Cs}]/u.test(c))
-                    result.push({ key: c, paste: true });
+                if (this.paste.length + c.length <= 16384) this.paste += c;
+                else this.overflow = true;
                 continue;
             }
             if (this.buffer[0] === '\x1b') {

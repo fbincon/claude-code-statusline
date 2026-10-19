@@ -54,14 +54,19 @@ export default function StatuslineClient(
           ...(event.ctrl ? { ctrl: true } : {}),
           ...(event.shift ? { shift: true } : {}),
           ...(event.meta ? { meta: true } : {}),
+          ...(event.text ? { text: true } : {}),
+          ...(event.overflow ? { overflow: true } : {}),
         },
       })),
     });
   };
   surface.onKey((event) => {
-    if (active.latest.view.busy || active.pending.length >= MAX_PENDING) return;
+    if (active.latest.view.busy) return;
+    if (active.pending.length >= MAX_PENDING) {
+      if (!active.pending.some(item => item.event.overflow)) active.pending.push({seq: active.next++, event: {key: 'input-overflow', overflow: true}});
+      post(); return;
+    }
     for (const key of keyEvents(event)) {
-      if (active.pending.length >= MAX_PENDING) break;
       active.pending.push({ seq: active.next++, event: key });
     }
     post();

@@ -1378,7 +1378,11 @@ export const LOCALES = {
     "ui.actions.preset-apply": "replace draft; save later",
     "ui.actions.import-file": "file path; save later",
     "ui.actions.export-file": "new path (may be unsaved)",
-    "ui.hints.add_copy_remove_short": "add/copy/rm"
+    "ui.hints.add_copy_remove_short": "add/copy/rm",
+    "input.limit": "Input exceeds {limit} characters; insertion rejected.",
+    "input.invalid": "Enter single-line text without control characters.",
+    "input.overflow": "Input queue is full or text is too large; retry the rejected input.",
+    "ui.hints.move_cursor": "cursor"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -2750,7 +2754,11 @@ export const LOCALES = {
     "ui.actions.preset-apply": "替换草稿；稍后保存",
     "ui.actions.import-file": "输入路径；稍后保存",
     "ui.actions.export-file": "输入新路径（可能尚未保存）",
-    "ui.hints.add_copy_remove_short": "增/复/删"
+    "ui.hints.add_copy_remove_short": "增/复/删",
+    "input.limit": "输入超过 {limit} 个字符，已拒绝此次插入。",
+    "input.invalid": "请输入不含控制字符的单行文本。",
+    "input.overflow": "输入队列已满或文本过长，请重试未接收的输入。",
+    "ui.hints.move_cursor": "移动光标"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -4122,7 +4130,11 @@ export const LOCALES = {
     "ui.actions.preset-apply": "取代草稿；稍後儲存",
     "ui.actions.import-file": "輸入路徑；稍後儲存",
     "ui.actions.export-file": "輸入新路徑（可能尚未儲存）",
-    "ui.hints.add_copy_remove_short": "增/複/刪"
+    "ui.hints.add_copy_remove_short": "增/複/刪",
+    "input.limit": "輸入超過 {limit} 個字元，已拒絕此次插入。",
+    "input.invalid": "請輸入不含控制字元的單行文字。",
+    "input.overflow": "輸入佇列已滿或文字過長，請重試未接收的輸入。",
+    "ui.hints.move_cursor": "移動游標"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5494,7 +5506,11 @@ export const LOCALES = {
     "ui.actions.preset-apply": "取代草稿；稍後儲存",
     "ui.actions.import-file": "輸入路徑；稍後儲存",
     "ui.actions.export-file": "輸入新路徑（可能尚未儲存）",
-    "ui.hints.add_copy_remove_short": "增/複/刪"
+    "ui.hints.add_copy_remove_short": "增/複/刪",
+    "input.limit": "輸入超過 {limit} 個字元，已拒絕此次插入。",
+    "input.invalid": "請輸入不含控制字元的單行文字。",
+    "input.overflow": "輸入佇列已滿或文字過長，請重試未接收的輸入。",
+    "ui.hints.move_cursor": "移動游標"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -6866,7 +6882,11 @@ export const LOCALES = {
     "ui.actions.preset-apply": "下書きを置換；後で保存",
     "ui.actions.import-file": "パスを入力；後で保存",
     "ui.actions.export-file": "新しいパスを入力（未保存の場合あり）",
-    "ui.hints.add_copy_remove_short": "追加/複製/削除"
+    "ui.hints.add_copy_remove_short": "追加/複製/削除",
+    "input.limit": "入力は {limit} 文字までです。挿入しませんでした。",
+    "input.invalid": "制御文字を含まない1行のテキストを入力してください。",
+    "input.overflow": "入力待ちが多いかテキストが長すぎます。未入力の部分を再入力してください。",
+    "ui.hints.move_cursor": "カーソル"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -8238,7 +8258,11 @@ export const LOCALES = {
     "ui.actions.preset-apply": "초안 교체; 나중에 저장",
     "ui.actions.import-file": "경로 입력; 나중에 저장",
     "ui.actions.export-file": "새 경로 입력(저장 전일 수 있음)",
-    "ui.hints.add_copy_remove_short": "추가/복제/삭제"
+    "ui.hints.add_copy_remove_short": "추가/복제/삭제",
+    "input.limit": "입력은 {limit}자까지입니다. 삽입하지 않았습니다.",
+    "input.invalid": "제어 문자가 없는 한 줄 텍스트를 입력하세요.",
+    "input.overflow": "입력 대기열이 가득 찼거나 텍스트가 너무 깁니다. 거부된 입력을 다시 시도하세요.",
+    "ui.hints.move_cursor": "커서"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

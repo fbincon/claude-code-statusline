@@ -207,7 +207,7 @@ test('preferences, search, input, busy and uncertain states advertise their avai
   }
   e.page = 'main';
   state.input = { kind: 'search', scope: 'main', original: '', selected: e.selected.main };
-  expect(editorShortcuts(state).flat().map((hint) => hint.key)).toEqual(['Enter', 'Ctrl+G', 'Ctrl+U', 'Backspace', 'Esc']);
+  expect(editorShortcuts(state).flat().map((hint) => hint.key)).toEqual(['Enter', 'Ctrl+G', 'Ctrl+U', 'Backspace/Delete', '←→ Home/End', 'Esc']);
   const tree = draw(elements, state, 120, 30) as unknown as Node;
   expect(text(tree.children[3]!)).toContain('/ search');
   expect(text(tree.children[5]!)).not.toContain('/ search');

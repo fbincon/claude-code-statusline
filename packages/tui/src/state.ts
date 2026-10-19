@@ -1,3 +1,4 @@
+import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
 import { Editor, copyDraft, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
 import { navigateReview } from '@fbincon/statusline-core/editor/import-review';
@@ -8,7 +9,7 @@ import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
 export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | null;
-type Input = {
+type Input = ({
     kind: 'search';
     original: string;
     selected: string;
@@ -25,7 +26,7 @@ type Input = {
     field: 'padding' | 'refresh_interval';
     before: number | 'event';
     buffer: string;
-};
+}) & { edit?: TextInput };
 export interface Row extends SettingRow {
     kind: 'legacy' | 'action' | 'choice' | 'integer' | 'text' | 'boolean';
     form?: FormRow;
@@ -104,7 +105,17 @@ export class State {
                 this.scroll[slot] = index - height + 1;
         }
     }
-    search(value: string): void { this.editor.filter(this.scope, [...value].slice(0, 256).join('')); }
+    search(value: string): void {
+        if ([...value].length > 256) { this.notice(text('input.limit', {limit:256})); return; }
+        this.editor.filter(this.scope, value);
+    }
+    inputDisplay(width: number): string {
+        const input = this.input;
+        if (!input || input.kind === 'category') return '';
+        const value = input.kind === 'search' ? this.editor.search[this.scope] : input.buffer;
+        if (input.edit?.value !== value) input.edit = textInput(value);
+        return inputView(input.edit, width);
+    }
     adjust(delta: -1 | 1): Effect {
         const e = this.editor, row = this.selectedRow(), d = e.draft.display;
         if (row.form) {
@@ -171,14 +182,14 @@ export class State {
             this.notice(e.fieldErrorMessages[field] ?? e.fieldErrors[field] ?? '');
     }
     key(event: Key, columns = 80, rows = 24): Effect {
-        const e = this.editor, k = event.key, ctrl = event.ctrl === true, cancel = k === 'escape' || (ctrl && k === 'g');
+        const e = this.editor, k = event.key, ctrl = event.ctrl === true, cancel = !event.paste && !event.text && (k === 'escape' || (ctrl && k === 'g'));
         const size = dimensions(columns, rows), height = size.listHeight;
         if (ctrl && k === 'c')
             return 'interrupt';
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
-        if (event.paste && !this.input && this.form)
-            return null;
+        if (event.overflow) { this.notice(text('input.overflow')); return null; }
+        if (event.paste && (!this.input || this.input.kind === 'category')) return null;
         if (e.review) {
             if (cancel || (!ctrl && k.toLowerCase() === 'q')) {
                 e.review = null;
@@ -235,50 +246,32 @@ export class State {
                 else if (['up', 'left', 'down', 'right', 'home', 'pageup', 'end', 'pagedown'].includes(k))
                     input.selected = categories[k === 'home' || k === 'pageup' ? 0 : k === 'end' || k === 'pagedown' ? categories.length - 1 : Math.max(0, Math.min(categories.length - 1, index + (k === 'up' || k === 'left' ? -1 : 1)))]!;
             }
-            else if (input.kind === 'search') {
-                if (k === 'return')
-                    this.input = null;
-                else if (ctrl && k === 'u')
-                    this.search('');
-                else if (k === 'backspace')
-                    this.search(backspace(e.search[this.scope]));
-                else if (printable(event))
-                    this.search(e.search[this.scope] + k);
-            }
-            else if (input.kind === 'numeric') {
-                if (k === 'return' && e.acceptNumeric(input.field)) {
-                    this.input = null;
-                    this.notice('');
-                }
-                else if (k === 'backspace')
-                    this.numeric(input.field, input.buffer.slice(0, -1));
-                else if (!ctrl && /^\d$/u.test(k) && input.buffer.length < 32)
-                    this.numeric(input.field, input.buffer + k);
-            }
             else {
-                if (ctrl && k === 'u')
-                    input.buffer = '';
-                else if (k === 'backspace' || k === 'delete')
-                    input.buffer = backspace(input.buffer);
-                else if (k === 'return') {
-                    if (input.kind === 'path') {
-                        if (!input.buffer.trim()) {
-                            this.notice(text('native.lib.client.keys.enter_a_file_path'));
-                            return null;
-                        }
-                        e.path = input.buffer;
-                        e.pendingTransfer = input.key === 'import-file' ? 'import' : 'export';
-                        this.input = null;
-                        return 'transfer';
+                if (!event.paste && !event.text && k === 'return') {
+                    if (input.kind === 'search') this.input = null;
+                    else if (input.kind === 'numeric') {
+                        if (e.acceptNumeric(input.field)) { this.input = null; this.notice(''); }
+                    } else if (input.kind === 'path') {
+                        if (!input.buffer.trim()) { this.notice(text('native.lib.client.keys.enter_a_file_path')); return null; }
+                        e.path = input.buffer; e.pendingTransfer = input.key === 'import-file' ? 'import' : 'export';
+                        this.input = null; return 'transfer';
+                    } else {
+                        const field = this.rows().find(row => row.key === input.key)?.form;
+                        if (field && setFormValue(this, field, input.buffer)) { this.input = null; this.notice(''); }
                     }
-                    const field = this.rows().find(row => row.key === input.key)?.form;
-                    if (field && setFormValue(this, field, input.buffer)) {
-                        this.input = null;
+                } else {
+                    const value = input.kind === 'search' ? e.search[this.scope] : input.buffer;
+                    const limit = input.kind === 'path' ? 4096 : input.kind === 'numeric' ? 32 : 256;
+                    const result = inputKey(value, input.edit, event, limit);
+                    input.edit = result.state;
+                    if (result.error) this.notice(text('input.' + result.error, {limit}));
+                    else {
                         this.notice('');
+                        if (input.kind === 'search') this.search(result.state.value);
+                        else if (input.kind === 'numeric') this.numeric(input.field, result.state.value);
+                        else input.buffer = result.state.value;
                     }
                 }
-                else if (printable(event) && [...input.buffer].length < 4096)
-                    input.buffer += k;
             }
             this.ensureVisible(height);
             return null;

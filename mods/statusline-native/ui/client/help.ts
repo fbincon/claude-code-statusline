@@ -28,7 +28,8 @@ export function editorShortcuts(view: View): Shortcut[][] {
     { key: 'Enter', label: 'accept' },
     { key: 'Ctrl+G', label: 'cancel editing', short: 'cancel' },
     { key: 'Ctrl+U', label: 'clear' },
-    { key: 'Backspace', label: 'delete', short: 'del' },
+    { key: 'Backspace/Delete', label: 'delete', short: 'del' },
+    { key: '←→ Home/End', label: 'edit' },
     focus,
   ]];
   if(e.adding)return [[{key:'Enter',label:'add'},{key:'Ctrl+G',label:'back'},focus],[{key:'↑↓',label:'select'},{key:'/',label:'search'},{key:'Ctrl+F',label:'category'},{key:'Ctrl+E',label:'details'}]];
@@ -75,7 +76,7 @@ export function editorLayout(view: View, columns: number, rows: number) {
   const limit = Math.max(1, rows - (framed ? 10 : 8));
   let footer = shortcutRows(groups, columns);
   if (footer.length > limit) footer = shortcutRows(groups, columns, true);
-  for (const key of ['V', 'R', 'Esc', '↑↓', '←→', '/']) {
+  for (const key of ['V', 'R', 'Esc', '↑↓', '←→', '/', '←→ Home/End', 'Ctrl+U']) {
     if (footer.length <= limit) break;
     groups = groups.map((group) => group.filter((hint) => hint.key !== key));
     footer = shortcutRows(groups, columns, true);

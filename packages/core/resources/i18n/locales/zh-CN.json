@@ -1368,5 +1368,9 @@
   "ui.actions.preset-apply": "替换草稿；稍后保存",
   "ui.actions.import-file": "输入路径；稍后保存",
   "ui.actions.export-file": "输入新路径（可能尚未保存）",
-  "ui.hints.add_copy_remove_short": "增/复/删"
+  "ui.hints.add_copy_remove_short": "增/复/删",
+  "input.limit": "输入超过 {limit} 个字符，已拒绝此次插入。",
+  "input.invalid": "请输入不含控制字符的单行文本。",
+  "input.overflow": "输入队列已满或文本过长，请重试未接收的输入。",
+  "ui.hints.move_cursor": "移动光标"
 }

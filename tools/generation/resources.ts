@@ -134,7 +134,7 @@ export function outputs(root = ROOT): Map<string, string> {
     const backend = source.endsWith('/backend.ts'), text = source.endsWith('/text.ts');
     body = body.replaceAll('../contracts/ui.js', backend ? './generated-contracts.ts' : '../generated-contracts.ts')
       .replaceAll('../i18n/messages.js', backend ? './i18n/index.ts' : '../i18n/index.ts')
-      .replaceAll('../unicode/index.js', '../lib/unicode.ts');
+      .replaceAll('../unicode/index.js', text ? '../lib/unicode.ts' : '../unicode.ts');
     if (backend) body = body.replaceAll('./appearance.js', './editor/appearance.ts');
     if (!backend && !text) body = body.replaceAll('./backend.js', '../backend.ts').replaceAll('./text.js', '../../ui/text.ts');
     body = body.replace(/(from ['"][^'"]+)\.js(['"])/gu, '$1.ts$2');

@@ -1,3 +1,4 @@
+import { inputView, textInput } from '../../lib/editor/text-input.ts';
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
 import type { View } from '../../lib/session.ts';
 import { preferenceChanged } from '../../lib/preferences.ts';
@@ -33,7 +34,14 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
         shortcuts(ui, [{ key: 'Q', label: tr("native.ui.client.draw.close") }], columns, ''),
       ],
     });
-  const pending = e.modified || view.preferences.some(preferenceChanged);
+  const inputDisplay = (width: number) => {
+    const input = view.input;
+    if (!input || input.kind === 'category') return '';
+    const value = input.kind === 'search' ? e.search[input.scope] : input.kind === 'numeric' ? e.buffers[input.field] : input.buffer;
+    const edit = input.edit?.value === value ? {...input.edit} : textInput(value);
+    return inputView(edit, width);
+  };
+  const pending = (view.input?.kind === 'field') || e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
   const notice = e.review ? tr('review.intro') :
     Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
@@ -91,7 +99,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       const label = `${e.setting === row.key ? '›' : ' '} ${column(row.label + ':', labelWidth)} `;
       const spans: TextSpan[] = [
         { text: label },
-        { text: displayed + (editing ? ' _' : '') + (preference && preferenceChanged(preference) ? ' *' : '') },
+        { text: (editing ? inputDisplay(Math.max(1, inner - displayWidth(label))) : displayed) + (preference && preferenceChanged(preference) ? ' *' : '') },
       ];
       content.push(ui.Box({
         key: 'setting-' + row.key, flexShrink: 0,
@@ -108,7 +116,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     content.push(shortcuts(ui, [
       {key: 'Ctrl+F', label: tr('catalog.categories.' + e.category[scope]), short: e.category[scope] === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + e.category[scope]), 8)},
       {key: '/', label: tr('native.ui.client.draw.search')},
-    ], inner, tr('native.ui.client.draw.filter') + e.search[scope] + (view.input?.kind === 'search' ? ' _' : '') + '  '));
+    ], inner, view.input?.kind === 'search' ? tr('native.ui.client.draw.filter') + inputDisplay(Math.max(1, inner - displayWidth(tr('native.ui.client.draw.filter')))) : tr('native.ui.client.draw.filter') + e.search[scope] + '  '));
     if (layout.tableHeading) content.push(line(tr("native.ui.client.draw.on_item"), { ...styles.muted, bold: true }));
     const window = pageWindow(visible.map((item) => item.id), e.selected[scope], layout.itemCapacity);
     for (const {item, match} of matches.slice(window.start, window.end))

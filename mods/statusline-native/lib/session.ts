@@ -1,3 +1,4 @@
+import type { TextInput } from './editor/text-input.ts';
 import { Editor } from './editor/draft.ts';
 import type { Scope, PreviewResult } from './generated-contracts.ts';
 import type { Preference } from './preferences.ts';
@@ -5,13 +6,13 @@ import type { PreviewBackground } from './preview-preferences.ts';
 import type { Language, LocalizedText } from './i18n/index.ts';
 import type { MessageSlot } from './i18n/messages.ts';
 
-export type InputMode =
+export type InputMode = (
   | { kind: 'search'; scope: Scope; original: string; selected: string }
   | { kind: 'category'; scope: Scope; selected: string }
   | { kind: 'field'; key: string; buffer: string }
   | { kind: 'path'; action: 'import' | 'export'; buffer: string }
   | { kind: 'numeric'; field: 'padding' | 'refresh_interval' }
-  | null;
+) & { edit?: TextInput } | null;
 
 export interface View {
   language?: Language;

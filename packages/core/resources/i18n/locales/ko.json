@@ -1368,5 +1368,9 @@
   "ui.actions.preset-apply": "초안 교체; 나중에 저장",
   "ui.actions.import-file": "경로 입력; 나중에 저장",
   "ui.actions.export-file": "새 경로 입력(저장 전일 수 있음)",
-  "ui.hints.add_copy_remove_short": "추가/복제/삭제"
+  "ui.hints.add_copy_remove_short": "추가/복제/삭제",
+  "input.limit": "입력은 {limit}자까지입니다. 삽입하지 않았습니다.",
+  "input.invalid": "제어 문자가 없는 한 줄 텍스트를 입력하세요.",
+  "input.overflow": "입력 대기열이 가득 찼거나 텍스트가 너무 깁니다. 거부된 입력을 다시 시도하세요.",
+  "ui.hints.move_cursor": "커서"
 }

@@ -51,13 +51,13 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     if (state.input?.kind === 'numeric') {
         return {
             actions: [hint('Enter', 'accept'), hint('Ctrl+G/Esc', 'restore')],
-            help: [hint('Digits', 'edit'), hint('Backspace', 'delete')],
+            help: [hint('←→ Home/End', 'move_cursor'), hint('Backspace/Delete', 'delete')],
         };
     }
     if (state.input) {
         return {
             actions: [hint('Enter', 'accept'), hint('Ctrl+G/Esc', state.input.kind === 'search' ? 'cancel' : 'restore')],
-            help: [hint('Ctrl+U', 'clear'), hint('Backspace', 'delete')],
+            help: [hint('←→ Home/End', 'move_cursor'), hint('Ctrl+U', 'clear'), hint('Backspace/Delete', 'delete')],
         };
     }
     if (e.adding) {
@@ -89,6 +89,7 @@ export function notice(state: State, width: number): Paint[] {
     if (message) return [paint(message, true)];
     if (e.review) return [paint(tr('review.intro'))];
     if (state.input?.kind === 'category') return [paint(tr('catalog.search.choose_category'))];
+    if (state.input?.kind === 'search') return [paint(state.inputDisplay(width))];
     if (e.detail) {
         const prefix = tr('ui.drawing.item_format');
         return [paint(prefix), ...shortcuts([['Ctrl+G', tr('ui.hints.back')]], width - displayWidth(prefix))];
@@ -99,6 +100,5 @@ export function notice(state: State, width: number): Paint[] {
         return [paint(prefix), ...shortcuts([['Enter', tr('ui.hints.edits_new_fields'), tr('ui.hints.edit')]], width - displayWidth(prefix))];
     }
     return [paint('Ctrl+F', true), paint(' ' + tr('catalog.categories.' + e.category[state.scope]) + ' · '),
-        paint('/', true), paint(' ' + tr('ui.drawing.type_to_search') + e.search[state.scope] +
-            (state.input?.kind === 'search' ? ' _' : ''))];
+        paint('/', true), paint(' ' + tr('ui.drawing.type_to_search') + e.search[state.scope])];
 }

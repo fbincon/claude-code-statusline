@@ -65,7 +65,8 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
             const row = values[entry.index]!;
             const selected = row.key === e.setting;
             const prefix = (selected ? '› ' : '  ') + column(fieldLabel(row, state) + ':', labelWidth) + '  ';
-            const value = fieldValue(row, state);
+            const isInput = state.input && (state.input.kind === 'numeric' ? state.input.field === row.key : (state.input.kind === 'field' || state.input.kind === 'path') && state.input.key === row.key);
+            const value = isInput ? state.inputDisplay(Math.max(1, width - displayWidth(prefix))) : fieldValue(row, state);
             const editing = state.input && (state.input.kind === 'field' || state.input.kind === 'path') && state.input.key === row.key;
             const spans = row.kind === 'action' && !editing
                 ? [paint(prefix, false, selected), paint('Enter', true, selected), paint(' ' + value, false, selected)]

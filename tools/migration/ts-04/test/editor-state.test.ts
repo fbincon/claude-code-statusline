@@ -232,7 +232,9 @@ test('tests.ui.test_search.SearchTests.test_explicit_search_accepts_spaces_witho
 });
 test('tests.ui.test_search.SearchTests.test_search_length_counts_original_unicode_codepoints', async (t) => {
     const f = await fixture(t);
+    f.state.search('😀'.repeat(255) + '界');
     f.state.search('😀'.repeat(255) + '界x');
+    assert.equal(f.state.localized.message?.key, 'input.limit');
     assert.equal([...f.e.search.main].length, 256);
     assert.ok(f.e.search.main.endsWith('界'));
 });

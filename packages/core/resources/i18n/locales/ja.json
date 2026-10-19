@@ -1368,5 +1368,9 @@
   "ui.actions.preset-apply": "下書きを置換；後で保存",
   "ui.actions.import-file": "パスを入力；後で保存",
   "ui.actions.export-file": "新しいパスを入力（未保存の場合あり）",
-  "ui.hints.add_copy_remove_short": "追加/複製/削除"
+  "ui.hints.add_copy_remove_short": "追加/複製/削除",
+  "input.limit": "入力は {limit} 文字までです。挿入しませんでした。",
+  "input.invalid": "制御文字を含まない1行のテキストを入力してください。",
+  "input.overflow": "入力待ちが多いかテキストが長すぎます。未入力の部分を再入力してください。",
+  "ui.hints.move_cursor": "カーソル"
 }

@@ -1368,5 +1368,9 @@
   "ui.actions.preset-apply": "取代草稿；稍後儲存",
   "ui.actions.import-file": "輸入路徑；稍後儲存",
   "ui.actions.export-file": "輸入新路徑（可能尚未儲存）",
-  "ui.hints.add_copy_remove_short": "增/複/刪"
+  "ui.hints.add_copy_remove_short": "增/複/刪",
+  "input.limit": "輸入超過 {limit} 個字元，已拒絕此次插入。",
+  "input.invalid": "請輸入不含控制字元的單行文字。",
+  "input.overflow": "輸入佇列已滿或文字過長，請重試未接收的輸入。",
+  "ui.hints.move_cursor": "移動游標"
 }

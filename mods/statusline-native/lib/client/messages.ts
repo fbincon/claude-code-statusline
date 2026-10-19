@@ -1,10 +1,12 @@
 import type { ClientKeyEvent } from 'claude-code';
 
+export type NativeKeyEvent = ClientKeyEvent & { text?: true; overflow?: true };
+
 export const MAX_BATCH = 128;
 export const MAX_PENDING = 512;
 export interface KeyMessage {
   seq: number;
-  event: ClientKeyEvent;
+  event: NativeKeyEvent;
 }
 export interface Batch {
   epoch: number;
@@ -39,17 +41,16 @@ const SPECIAL_KEYS = new Set([
 ]);
 
 /** The terminal may deliver a fast printable run as a single input chunk. */
-export function keyEvents(event: ClientKeyEvent): ClientKeyEvent[] {
+export function keyEvents(event: ClientKeyEvent): NativeKeyEvent[] {
   if (
     event.ctrl ||
     event.meta ||
     [...event.key].length <= 1 ||
     SPECIAL_KEYS.has(event.key) ||
-    /^f\d{1,2}$/i.test(event.key) ||
-    /[\x00-\x1f\x7f]/.test(event.key)
+    /^f\d{1,2}$/i.test(event.key)
   )
     return [event];
-  return [...event.key].map((key) => ({ ...event, key }));
+  return event.key.length > 16384 ? [{ key: 'input-overflow', overflow: true }] : [{ ...event, text: true }];
 }
 
 /** Posts are input, including when our own module is their usual sender. */
@@ -87,11 +88,13 @@ export function parseBatch(value: unknown): Batch | null {
       Array.isArray(e) ||
       typeof e.key !== 'string' ||
       !e.key.length ||
-      e.key.length > 64 ||
-      /[\x00-\x1f\x7f]/.test(e.key) ||
+      e.key.length > (e.text ? 16384 : 64) ||
+      (!e.text && /[\x00-\x1f\x7f]/.test(e.key)) ||
+      (e.text && (e.ctrl || e.meta || e.overflow)) ||
+      (e.overflow && e.key !== 'input-overflow') ||
       Object.keys(e).some(
         (key) =>
-          !['key', 'ctrl', 'shift', 'meta'].includes(key) ||
+          !['key', 'ctrl', 'shift', 'meta', 'text', 'overflow'].includes(key) ||
           (key !== 'key' && e[key] !== true),
       )
     )

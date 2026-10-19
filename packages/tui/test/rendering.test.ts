@@ -174,11 +174,11 @@ test('footers follow actual category, numeric, filtered and add actions', () => 
     state.editor.page = 'settings';
     state.editor.setting = 'padding';
     state.key({ key: '9' });
-    assert.ok(plain(state).join('\n').includes('[9_]'));
-    assert.ok(plain(state).at(-1)!.includes('Digits'));
+    assert.ok(plain(state).join('\n').includes('9▏'));
+    assert.ok(plain(state).at(-1)!.includes('Home/End'));
     assert.ok(!plain(state).at(-1)!.includes('Ctrl+U'));
     state.key({ key: 'backspace' });
-    assert.ok(plain(state).join('\n').includes('[_]'));
+    assert.ok(plain(state).join('\n').includes('▏'));
     state.key({ key: 'escape' });
     assert.equal(state.editor.draft.host.padding, 0);
 });

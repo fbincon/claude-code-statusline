@@ -1,3 +1,5 @@
+import { inputKey } from '../editor/text-input.ts';
+import type { NativeKeyEvent } from './messages.ts';
 import { graphemes } from '../unicode.ts';
 import { setMessage, failureMessage } from '../i18n/messages.ts';
 import { text as localizedText } from '../i18n/index.ts';
@@ -27,10 +29,12 @@ export function cancelInput(view: View): void {
 }
 
 /** All transitions are pure; persistence remains in the host hooks module. */
-export function handleKey(view: View, event: ClientKeyEvent, columns: number, rows: number): Effect {
+export function handleKey(view: View, event: NativeKeyEvent, columns: number, rows: number): Effect {
   const e = view.editor, key = event.key === 'space' ? ' ' : event.key;
   const shortcut = /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
   if (!e || view.busy) return null;
+  if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
+  if (event.text && (!view.input || view.input.kind === 'category')) return null;
   if (event.ctrl && key.toLowerCase() === 'g') { const reviewing = !!e.review; cancelInput(view); return reviewing ? 'reviewPreview' : null; }
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
   if (e.review) {
@@ -72,8 +76,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     return null;
   }
   if (input?.kind === 'field' || input?.kind === 'path') {
-    if (event.ctrl && key.toLowerCase() === 'u') input.buffer = '';
-    else if (key === 'return') {
+    if (!event.text && key === 'return') {
       if (input.kind === 'path') {
         if (!input.buffer.trim()) { setMessage(view, "message", localizedText("native.lib.client.keys.enter_a_file_path")); return null; }
         e.path = input.buffer; e.pendingTransfer = input.action; view.input = null; return 'transfer';
@@ -91,22 +94,28 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
         p.result = '';
       }
       view.input = null;
-    } else if (key === 'backspace' || key === 'delete') input.buffer = graphemes(input.buffer).slice(0, -1).join('');
-    else if (!event.ctrl && !event.meta && [...key].length === 1 && [...input.buffer].length < (input.kind === 'path' ? 4096 : 256)) input.buffer += key;
+    } else {
+      const limit = input.kind === 'path' ? 4096 : 256;
+      const result = inputKey(input.buffer, input.edit, {...event,key}, limit);
+      input.edit = result.state; input.buffer = result.state.value;
+      if (result.error) setMessage(view, 'message', localizedText('input.' + result.error, {limit}));
+      else { view.message = ''; if (view.localized) delete view.localized.message; }
+    }
     return null;
   }
   if (input) {
     if (input.kind === 'search') view.message = '';
-    if (event.ctrl && key.toLowerCase() === 'u') {
-      if (input.kind === 'search') e.filter(input.scope, ''); else e.setBuffer(input.field, '');
-    } else if (key === 'return') {
+    if (!event.text && key === 'return') {
       if (input.kind === 'search' || e.acceptNumeric(input.field)) view.input = null;
-    } else if (key === 'backspace' || key === 'delete') {
-      if (input.kind === 'search') e.filter(input.scope, graphemes(e.search[input.scope]).slice(0, -1).join(''));
-      else e.setBuffer(input.field, graphemes(e.buffers[input.field]).slice(0, -1).join(''));
-    } else if (!event.ctrl && !event.meta && [...key].length === 1) {
-      if (input.kind === 'search') { if ([...e.search[input.scope]].length < 256) e.filter(input.scope, e.search[input.scope] + key); }
-      else if (e.buffers[input.field].length < 32) e.setBuffer(input.field, e.buffers[input.field] + key);
+    } else {
+      const value = input.kind === 'search' ? e.search[input.scope] : e.buffers[input.field];
+      const limit = input.kind === 'search' ? 256 : 32;
+      const result = inputKey(value, input.edit, {...event,key}, limit);
+      input.edit = result.state;
+      if (input.kind === 'search') e.filter(input.scope, result.state.value);
+      else e.setBuffer(input.field, result.state.value);
+      if (result.error) setMessage(view, 'message', localizedText('input.' + result.error, {limit}));
+      else { view.message = ''; if (view.localized) delete view.localized.message; }
     }
     return null;
   }
