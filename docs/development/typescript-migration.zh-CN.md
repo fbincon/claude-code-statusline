@@ -9,7 +9,7 @@
 
 迁移后正确性与安装问题后续工作已 **DONE**：十一项确认问题和五类文档冲突均已修复，正式 v3.1.3 已交付 npm、GitHub 和 Gitee。参见[源码绑定的验证与交付记录](post-migration-fixes.zh-CN.md)，历史迁移及性能状态保持不变。
 
-**2026-10-19 PERF-01 更新：** 维护者已启动独立[性能尝试](performance/perf-01.zh-CN.md)，以功能正确为硬门槛，不要求最低提速或优于 Python。当前从已发布 v3.1.3 开始，状态 IN_PROGRESS；下方历史 NOT_STARTED 条目保留其原交接日期。
+**2026-10-19 PERF-01 关闭：** 独立[性能尝试与交付](performance/perf-01.zh-CN.md#delivery-v314)已 **DONE**。两轮有界实现、10,800 次计时操作及源码绑定功能门槛完成，v3.1.4 已交付 npm、GitHub、Gitee。功能正确继续为硬门槛，不要求最低提速或优于 Python；D06 继续 FAIL，下方带日期的历史 NOT_STARTED 记录保留原交接状态。
 
 ## 迁移后后续工作
 
@@ -21,7 +21,7 @@ TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾�
 
 ## 当前决策：2026-10-15
 
-先完成 TS-01～TS-06，再进行后续性能优化。维护者已批准 [D06 适用范围修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)：完整 D06 测量及性能预算达标不再阻塞 TS-03～TS-06，包括预览与正式交付。独立 [PERF-01](performance/perf-01.zh-CN.md) 在 TS-06 后执行，当前保持 **NOT_STARTED**。
+先完成 TS-01～TS-06，再进行后续性能优化。维护者已批准 [D06 适用范围修订](typescript-migration/ts-02/D06.zh-CN.md#applicability-amendment-2026-10-15)：完整 D06 测量及性能预算达标不再阻塞 TS-03～TS-06，包括预览与正式交付。在当时的 2026-10-15 交接中，独立 [PERF-01](performance/perf-01.zh-CN.md) 在 TS-06 后执行，状态为 **NOT_STARTED**；当前关闭记录见上文。
 
 **TS-03／03-F 按修订后的非性能标准为 DONE。** 最新 D06 测量仍为 **FAIL：104 通过／60 失败／28 不确定**。保留[两轮优化评审](typescript-migration/ts-03/PERFORMANCE-OPTIMIZATION.zh-CN.md)、数值策略及全部原始证据；阶段门槛调整不将失败测量改记为通过。
 
@@ -38,10 +38,10 @@ TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾�
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01～TS-06 DONE**；[TS-06 关闭记录](typescript-migration/ts-06/README.zh-CN.md#关闭记录2026-10-18) |
-| 当前任务范围 | 迁移及 v3.1.3 后续工作已交付；PERF-01 按正确性优先修订 IN_PROGRESS；接受的缺口仍为未验证 |
+| 当前任务范围 | 迁移及 v3.1.4 后续工作已交付；PERF-01 按正确性优先修订 DONE；接受的缺口仍为未验证 |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位，D01–D06 DECIDED；保留[限定版本批准及未验证范围](typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18) |
 | 目标版本与工期 | v3.0.0 已交付 npm latest、GitHub 正式版/Latest 与 Gitee 正式版，保留 beta.1 及 Python 回退资产 |
-| 下一项实施工作 | 对照已发布 v3.1.3 验证有界 PERF-01 候选；[方法与证据](performance/perf-01.zh-CN.md) |
+| 下一项实施工作 | PERF-01 已关闭；保留[全部测量、代价及交付证据](performance/perf-01.zh-CN.md)，后续优化另定范围 |
 
 维护者批准预览及限定版本正式交付，验收使用隔离环境和显式恢复，个人现用 Python 安装保持不变。[TS-06 记录](typescript-migration/ts-06/README.zh-CN.md)跟踪正式交付、历史预览证据及接受的未验证项。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 
@@ -128,7 +128,7 @@ UTF-8 字节偏移不等于 JavaScript 字符串长度；规范 revision 哈希�
 | TS-05 | 完整工具链、CI 与工程候选 | TS-04 | DONE | Codex；`fbincon/ts-05-closure`；[PR #94](https://github.com/fbincon/claude-code-statusline/pull/94)，已验证合并 `e438a45`；[关闭记录](typescript-migration/ts-05/README.zh-CN.md#closure-2026-10-16) |
 | TS-06 | 预览验收与正式交付 | TS-05 | DONE | v3.0.0；源码 `d3c8709`；[PR #99](https://github.com/fbincon/claude-code-statusline/pull/99)；[交付及接受缺项](typescript-migration/ts-06/stable-release.zh-CN.md) |
 
-独立后续专项：**PERF-01 — NOT_STARTED**，依赖 TS-06 DONE。[专项计划](performance/perf-01.zh-CN.md)记录未来工作与证据，不新增 TS-07，也不使已完成迁移重新处于未完成状态。
+独立后续专项：**PERF-01 — DONE**，TS-06 完成后已作为 v3.1.4 交付。[方法、全部结果及交付](performance/perf-01.zh-CN.md)关闭 2026-10-19 有界尝试，不新增 TS-07；D06 继续 FAIL。
 
 ### TS-01 固定基线与行为清单
 
@@ -264,6 +264,7 @@ TS-05 已使用 TypeScript 文档检查器；独立 Python 参考已归档。已
 
 | 日期 | 工作 | 结果与下一步 |
 | --- | --- | --- |
+| 2026-10-19 | PERF-01 有界尝试及 v3.1.4，[PR #111](https://github.com/fbincon/claude-code-statusline/pull/111) | 两轮运行实现、10,800 次计时操作、三组源码绑定完整 CI 及同字节 npm／GitHub／Gitee 交付完成；[最终报告](performance/perf-01.zh-CN.md#delivery-v314)披露代价及标签 Windows 定向重跑。PERF-01 DONE，保留 D06 FAIL 及六项未验证缺口。 |
 | 2026-10-18 | TS-06 正式版修复与交付，[PR #99](https://github.com/fbincon/claude-code-statusline/pull/99) | v3.0.0 已发布 npm latest、GitHub 正式版/Latest 及 Gitee 正式版；三轮 23 项源码矩阵、四文件独立构建/源码重建、草稿下载和三系统公开安装检查通过。[最终证据](typescript-migration/ts-06/stable-release.zh-CN.md)。限定版本批准下 TS-06 DONE，缺失实体/类型检查仍未验证，PERF-01 NOT_STARTED。 |
 | 2026-10-18 | TS-06 首个预览，[实现 PR #97](https://github.com/fbincon/claude-code-statusline/pull/97) | v3.0.0-beta.1 已发布至 GitHub/Gitee/npm beta，安装包一致，三轮 23 项源码矩阵及修正后的三系统公开安装检查通过。[发布证据](typescript-migration/ts-06/preview-release.zh-CN.md)。TS-06 继续 IN_PROGRESS，等待正式门槛；PERF-01 NOT_STARTED。 |
 | 2026-10-16 | TS-05 工具链、共享候选 CI 与归档；PR #92～#94 及[收尾 PR #95](https://github.com/fbincon/claude-code-statusline/pull/95) | 五批完成，856 方法/62 工具闭环；PR/main 的 23 项候选 CI 与独立历史验证通过。[证据及源码/制品身份](typescript-migration/ts-05/README.zh-CN.md#closure-2026-10-16)。TS-06 与 PERF-01 保持 NOT_STARTED，不公开发布、不切换现用安装。 |
