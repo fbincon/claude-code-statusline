@@ -76,7 +76,7 @@ Each condition below was introduced separately into healthy installations and co
 
 ## Python baseline defects and shared risks
 
-These five findings are also pending, with their existing classification retained rather than being called new migration regressions.
+These five findings were also pending at the review baseline, with their existing classification retained rather than being called new migration regressions. Their current repair and delivery state is recorded in the [v3.1.3 follow-up](post-migration-fixes.md).
 
 | ID | Original priority | Finding and user impact | Source |
 | --- | --- | --- | --- |
