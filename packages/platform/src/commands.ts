@@ -111,6 +111,7 @@ export function sameLaunchEntry(path: string, launch: LaunchSpec): boolean {
             if (readFileSync(bootstrap, 'utf8').replaceAll('\r\n', '\n') !== '#!/usr/bin/env node\nimport "../node_modules/@fbincon/statusline-cli/dist/src/entry.js";\n') return false;
             if (same(path, bootstrap)) return true;
             if (process.platform !== 'win32') return false;
+            if (statSync(path).size > 65536) return false;
             const shim = readFileSync(path, 'utf8');
             return [...shim.matchAll(/(?:%dp0%|\$basedir)[/\\]([^"'\r\n]+?\/bin\/claude-statusline\.js|[^"'\r\n]+?\\bin\\claude-statusline\.js)/gu)]
                 .some(match => same(resolve(dirname(path), match[1]!.replaceAll('\\', '/')), bootstrap));
@@ -122,7 +123,7 @@ export function ownedCommand(command: unknown, operation: string, launch: Launch
     const argv = splitCommand(command);
     if (!argv || argv.at(-1) !== operation)
         return false;
-    if (argv.length === 2 && /^(?:claude-statusline|claude-statusline\.exe|claude-statusline\.cmd)$/iu.test(argv[0]!)) {
+    if (argv.length === 2 && (isAbsolute(argv[0]!) || /^(?:claude-statusline|claude-statusline\.exe|claude-statusline\.cmd)$/iu.test(argv[0]!))) {
         const path = which(argv[0]!);
         if (path && sameLaunchEntry(path, launch)) return true;
     }

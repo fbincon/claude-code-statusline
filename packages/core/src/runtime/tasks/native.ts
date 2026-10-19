@@ -6,13 +6,7 @@ import type { LiveState } from '../live/state.js';
 import { findTurn, rememberId, type TaskStore, type Turn } from './model.js';
 import { applyPrompt, finishRecord } from './transitions.js';
 import { startSubagent, stopSubagent } from './agents.js';
-export function nativeSample(wall: bigint, capture: () => Sample, record: Turn | null = null, starting = false): Sample {
-    const boot = record ? int(record.started_boot_ns) : null, started = record ? int(record.started_wall_ns) : null;
-    if (starting && record && boot !== null && started !== null) {
-        const offset = wall - started;
-        if (offset >= 0n && truth(record.boot_id))
-            return { wall_ns: wall, boot_ns: boot + offset, boot_id: record.boot_id as string };
-    }
+export function nativeSample(wall: bigint, capture: () => Sample): Sample {
     const captured = capture(), delay = captured.wall_ns - wall;
     return captured.boot_id && captured.boot_ns !== null && delay >= 0n && delay <= 2000000000n ? { wall_ns: wall, boot_ns: captured.boot_ns - delay, boot_id: captured.boot_id } : { wall_ns: wall, boot_ns: null, boot_id: null };
 }
@@ -91,7 +85,7 @@ export function observeNative(history: TaskStore, state: LiveState, capture: () 
                 record.phase = 'main';
             }
             if (record.active_clock == null)
-                record.active_clock = StatusTimer.start(nativeSample(started, capture, record, true)).toDict();
+                record.active_clock = StatusTimer.start(nativeSample(started, capture)).toDict();
             else {
                 const timer = StatusTimer.load(record.active_clock);
                 if (timer)

@@ -39,6 +39,12 @@ test('B02 a continuous sequence without turn_start cannot certify zero execution
     const point = plain(new RuntimeProtocol(f.context).activePoint('s', 'p'));
     assert.equal(point.value, null); assert.equal(point.reason, 'incomplete');
 });
+test('B01 a clock jump before execution cannot synthesize its boot start from prompt wall time', t => {
+    const f = setup(t); f.preferences(false, true); f.event('UserPromptSubmit', 1);
+    const rows = [o('heartbeat', 0, 0, { payload: { host_version: '2.1.289', loaded_at_ms: 0 } }), o('prompt', 1, 1000, { prompt: 'p' }), o('turn_start', 2, 12000, { prompt: 'p', turn_id: 't' }), o('turn_end', 3, 30000, { turn_id: 't', payload: { status: 'completed', duration_ms: 1500, wait_coverage: true } })];
+    for (const [i, row] of rows.entries()) { f.clock(BigInt(Number(row.observed_at_ms) * 1e6), [0n, 1n, 2n, 20n][i]! * 1000000000n); f.store.observe([row], { timing: true }); }
+    assert.equal(plain(f.protocol.activePoint('s', 'p')).value, 18);
+});
 test('R04 invalid prompt types do not borrow current-task metrics through render', async t => {
     const f = setup(t); f.preferences(true);
     f.clock(2000000000n);

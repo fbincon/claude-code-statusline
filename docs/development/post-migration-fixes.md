@@ -29,7 +29,7 @@ Public display schema 8, configuration protocol 12, runtime protocol 2 and lifec
 
 ## Validation and release gates
 
-Local development validation passed 1,000 tests: 996 passed and four native-platform skips; generated resources, bilingual docs, archive integrity and all three responsibility ledgers pass. The final source matrices and delivery receipts below are still required.
+Local development validation passed 1,001 tests: 997 passed and four native-platform skips; generated resources, bilingual docs, archive integrity and all three responsibility ledgers pass. The final source matrices and delivery receipts below are still required.
 
 Required: local `npm run check`, final PR-head/main/tag CI, eight installed targets, 32 Node runtime cases and thirteen official hosts. The installed Windows bridge must pass on Node 24.0.0 as well as the other selected runtimes. Linux injection and PTYs do not establish Windows desktop or human acceptance.
 

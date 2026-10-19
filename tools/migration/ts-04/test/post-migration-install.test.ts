@@ -36,6 +36,8 @@ test('R02 and R06 only recognize the same npm distribution, including outer boot
     fs.writeFileSync(entry, ''); fs.writeFileSync(bin, '#!/usr/bin/env node\nimport "../node_modules/@fbincon/statusline-cli/dist/src/entry.js";\n', { mode: 0o755 });
     const launch = { executable: process.execPath, args: [entry] };
     assert.equal(sameLaunchEntry(bin, launch), true);
+    assert.equal(ownedCommand(`"${bin}" render`, 'render', launch), true);
+    assert.equal(ownedCommand(`"${bin}.other" render`, 'render', launch), false);
     assert.equal(sameLaunchEntry(bin, { ...launch, args: [entry + '.other'] }), false);
     if (process.platform !== 'win32') {
         const command = join(root, 'bin/claude-statusline'); fs.symlinkSync(bin, command);

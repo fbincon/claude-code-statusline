@@ -9,6 +9,7 @@ import { installCandidate, PACKAGE } from '../package.js';
 import { repoRoot, sourceHashes } from '../../ts-03/common.js';
 import { openPty } from './pty.js';
 import { startWindows } from '@fbincon/statusline-platform/terminal/launchers';
+import * as bridge from '@fbincon/statusline-platform/terminal/bridge';
 import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
@@ -223,7 +224,6 @@ test('installed external editor saves and cancels in a real native terminal', { 
         const path = join(config, 'claude-statusline.json'), before = fs.existsSync(path) ? fs.readFileSync(path) : null;
         let output: string, columns = 100, rows = 30;
         if (process.platform === 'win32') {
-            const bridge = await import(pathToFileURL(join(installed.modules, 'statusline-platform/dist/src/terminal/bridge.js')).href);
             const invocation = bridge.prepare(config, { executable: installed.node, args: [installed.entry] }, installed.directory);
             const env = { ...pathEnv, [bridge.REQUEST_ENV]: invocation.path, [bridge.NONCE_ENV]: invocation.request.nonce, [bridge.RESULT_ENV]: invocation.result, [bridge.DEADLINE_ENV]: '30' };
             const receipt = join(installed.temporary, 'console-' + choice + '.json'), child = startWindows([installed.node, driver, installed.modules, 'windows-editor', config, receipt, choice], installed.directory, env);
