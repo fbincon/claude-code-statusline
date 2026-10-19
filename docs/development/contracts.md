@@ -6,7 +6,7 @@ Protocol v13 is the internal interface for the bundled/source native frontend. D
 
 ## Catalog
 
-`claude_statusline.config.catalog` defines the 62 main and 16 subagent types (60/14 metrics plus text and spacer in each scope) by `(scope, id)`. Definitions carry labels, descriptions, groups, sources, examples, default positions, format options, exclusions and unavailable-reason codes. Legacy catalog dictionaries and default tuples are derived views; existing IDs, descriptions, default selections and ordering are preserved. CLI JSON listings add metadata without removing their existing enabled/position fields. Curses and the installed wizard consume the same definitions and exclusions.
+`packages/core/src/config/catalog.ts` defines the 62 main and 16 subagent types (60/14 metrics plus text and spacer in each scope) by `(scope, id)`. Definitions carry labels, descriptions, groups, sources, examples, default positions, format options, exclusions and unavailable-reason codes. Legacy catalog dictionaries and default tuples are derived views; existing IDs, descriptions, default selections and ordering are preserved. CLI JSON listings add metadata without removing their existing enabled/position fields. The external TUI and the installed wizard consume the same definitions and exclusions.
 
 Minimum versions are verified only where evidence exists. The 2.1.205 subagent minimum denotes row support, not every optional field: effort requires 2.1.214. Independent agent effort declares 2.1.214. New independent metrics are opt-in and can coexist with compounds; see [display definitions](../DISPLAY_ITEMS.md). Cache metrics declare 2.1.251; optional gateway dollar/period metrics declare 2.1.284 on both host and gateway. Unverified main-field minima remain `null`/`unknown` instead of guessed dates. `not_observed` means the interface has not inspected live data, `unsupported_host` means a verified version boundary, `unknown_host_version` means detection failed, `source_unavailable` means a source cannot be read, and `condition_not_met` covers items such as Git outside a repository or fast mode while inactive. These are definitions of possible reasons; opening configuration does not collect live field availability or disable selections for missing observations.
 
@@ -14,14 +14,14 @@ Minimum versions are verified only where evidence exists. The 2.1.205 subagent m
 
 Catalog entries also expose a `guidance` object containing source-kind codes,
 measurement scope, requirement codes and setup/diagnostic commands. These are
-static definitions from Python, with shared multilingual messages and generated
+static definitions from `packages/core`, with shared multilingual messages and generated
 TypeScript vocabulary. Inspecting an item's Sources and requirements page does
 not query live data, enable collectors or change its selection. Known minimum
 host versions remain separate from actual observations; unknown minima stay
 unknown. Possible unavailable reasons are explanations, not diagnoses of the
 current session. `config list-items --json` exposes the same additive metadata.
 
-Run `claude-statusline ui --config-dir PATH` (Windows: `claude-statusline.exe`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
+Run `claude-statusline ui --config-dir PATH` (Windows npm shim: `claude-statusline.cmd`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
 {"protocol_version":13,"operation":"read","payload":{}}
@@ -41,18 +41,20 @@ Success is `{"protocol_version":13,"result":{...}}`; failure is `{"protocol_vers
 | `import` | `{draft,path}` | Validated imported `{draft}` |
 | `review_import` | `{draft,path}` | Validated candidate `{draft,changes}` compared with the supplied unsaved draft |
 | `export` | `{draft,path,overwrite}` | Export destination `{path}` |
+| `review_import` | `{draft,path}` | A validated candidate and per-field differences, without saving |
+| `explain` | `{draft,scope,width}` | Configuration reasons and per-instance sample outcomes, with `actual_availability:"not_observed"` |
 
 `draft` has exactly `display` (the effective schema-v8 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading a supported display v1–v7 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete schema-v8 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
 
 `read` acquires the existing installation lock for a coherent snapshot and may create its runtime lock directory. `describe` does not create configuration files. `preview` never reads settings, detects the host, collects Git/transcripts or writes caches/locks; it uses production formatting/layout and fixed samples. Missing observations are not zero. Each span has `text`, `bold`, `foreground` and `background` (`null`, `{"kind":"rgb","value":"#rrggbb"}` or `{"kind":"ansi","value":0..255}`). There are no raw ANSI escapes. Both main and subagent rows are returned; an empty selection/disabled subagent display stays empty.
 
-Capabilities report the detected host version separately from observed Mod loading. `native_mod` is `unsupported`, `unknown` or `unverified`; `native_mod_loaded` is `null` because a Python process cannot prove what a session loaded. Successful actual Mod callbacks/PTY interactions provide that evidence.
+Capabilities report the detected host version separately from observed Mod loading. `native_mod` is `unsupported`, `unknown` or `unverified`; `native_mod_loaded` is `null` because a backend process cannot prove what a session loaded. Successful actual Mod callbacks/PTY interactions provide that evidence.
 
 ## Revision and frontend generation
 
 The opaque SHA-256 revision covers canonical effective display and host configuration plus normalized `type`/command identities and ownership classifications of `statusLine` and `subagentStatusLine`. Array order is meaningful. Whitespace/key order and unrelated settings do not conflict. Installation commands are tokenized/normalized, never executed while computing the revision.
 
-Apply validates the full draft and a 64-character lowercase hexadecimal revision before acquiring the shared installation lock. Under the lock, the configuration service rereads both files, compares the revision, checks ownership, then uses the existing backup, atomic-write and rollback transaction. Curses passes its opening snapshot to the same service and uses the same revision check. The returned revision is computed from the committed snapshot within the lock; apply does not perform a separate unlocked read.
+Apply validates the full draft and a 64-character lowercase hexadecimal revision before acquiring the shared installation lock. Under the lock, the configuration service rereads both files, compares the revision, checks ownership, then uses the existing backup, atomic-write and rollback transaction. The external TUI passes its opening snapshot to the same service and uses the same revision check. The returned revision is computed from the committed snapshot within the lock; apply does not perform a separate unlocked read.
 
 An explicitly configured absolute renderer path must match the selected backend. Canonical PATH commands remain compatible with Windows and older installations; the resolved command identity participates in the revision. JSON invocation through a bound console-script path uses that entry's identity even if PATH contains another installation. A foreign main or subagent renderer is refused, including a same-named executable in another directory or a non-command setting. An absent subagent renderer is permitted. Apply edits display selections and the owned main renderer's host options; it does not install a renderer or take over a foreign one.
 
@@ -68,9 +70,9 @@ Unrelated settings are merged from the latest locked snapshot. A write failure r
 | `io_error` | A file operation failed; examine the message and any rollback diagnostic |
 | `internal_error` | An unexpected backend failure; inspect stderr |
 
-TS-03 moves canonical protocol types, catalog and resource generation to `packages/core` and `tools/generation/resources.ts`. Run `npm run generate` to regenerate and `npm run generate:check` to reject drift. The Python declarations and read-only `tools/generate_ui_contracts.py --check` remain comparison evidence during migration. Do not maintain another catalog or edit generated Mod types. The Mod uses `$.process.run` with argument arrays and JSON stdin; set `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` to an absolute backend executable if PATH is unsuitable. `CLAUDE_CONFIG_DIR` is passed explicitly when present. No shell interpolation is used.
+Canonical protocol types, catalog and resource generation live in `packages/core` and `tools/generation/resources.ts`. Run `npm run generate` to regenerate and `npm run generate:check` to reject drift. The Python declarations and generator remain frozen comparison evidence under `archive/python`. Do not maintain another catalog or edit generated Mod types. The Mod uses `$.process.run` with argument arrays and JSON stdin; set `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` to an absolute backend executable if PATH is unsuitable. `CLAUDE_CONFIG_DIR` is passed explicitly when present. No shell interpolation is used.
 
-The development TS backend now serves runtime protocol 2 with v1 compatibility through `node packages/cli/dist/src/entry.js runtime --config-dir PATH`. It validates a whole observation batch before writing and emits one JSON response on stdout, with status 2 for invalid observations or unavailable state. Its 1 MiB input limit, duplicate-field rejection, non-finite rejection and preference semantics match the Python boundary. `hook` keeps silent success semantics. Runtime reads never persist binding repair; task/live schemas remain unchanged. TS-04 installation binds both Mods through the shared executable/argv contract.
+The TypeScript backend serves runtime protocol 2 with v1 compatibility through `node packages/cli/dist/src/entry.js runtime --config-dir PATH`. It validates a whole observation batch before writing and emits one JSON response on stdout, with status 2 for invalid observations or unavailable state. Its 1 MiB input limit, duplicate-field rejection, non-finite rejection and preference semantics match the Python boundary. `hook` keeps silent success semantics. Runtime reads never persist binding repair; task/live schemas remain unchanged. TS-04 installation binds both Mods through the shared executable/argv contract.
 
 The bridge rejects malformed or truncated responses, protocol mismatches and nonzero exits, preserving structured backend errors such as conflicts. Process start/refusal errors use `backend_process`; timeout errors use `backend_timeout`. The host process call has a 30-second timeout. The editor displays failures and offers a preview retry; reopening reloads configuration after an opening failure.
 
@@ -83,7 +85,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 
 ## Structured formatting
 
-Protocol v13 returns complete schema-v8 drafts. `formatting` contains shared choices and thresholds, each `instances` entry owns its scoped options, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v8 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
+Protocol v13 returns complete schema-v8 drafts. `formatting` contains shared choices and thresholds, each `instances` entry owns its scoped options, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares core definitions with generated frontend constants. Missing v8 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/TUI saves preserve the new fields under the existing revision and transaction.
 
 ## Draft transfer operations
 
@@ -105,13 +107,13 @@ No generic merge or selective field application is performed. The original `impo
 operation remains available to matching protocol clients. Protocol v13 and display
 schema v8 evolve independently; reinstall matching frontend/backend resources.
 
-`preset`: payload `{draft,preset}` returns `{draft}` expanded by Python. `import`: payload `{draft,path}` returns a validated `{draft}` without saving; current host options supply defaults for display-only files. `export`: payload `{draft,path,overwrite}` writes a portable file and returns `{path}`. Export is an explicit file action independent of settings Save. These operations do not change installation or the opening revision; subsequent apply uses the original revision. `describe.presets` is generated from the canonical Python presets.
+`preset`: payload `{draft,preset}` returns `{draft}` expanded by the shared core. `import`: payload `{draft,path}` returns a validated `{draft}` without saving; current host options supply defaults for display-only files. `export`: payload `{draft,path,overwrite}` writes a portable file and returns `{path}`. Export is an explicit file action independent of settings Save. These operations do not change installation or the opening revision; subsequent apply uses the original revision. `describe.presets` is generated from the canonical core presets.
 
 ## Shared editor forms and host preferences
 
-`config.editor_fields` defines global and scoped form descriptors, including kind, choices, bounds and nullable behavior. `describe.editor_fields` and generated `EDITOR_FIELDS` share these definitions. Client changes are validated locally before production preview/apply; Python remains the final validator. Curses uses the same descriptors and pure edits. Import/preset replaces only the draft; export can include unsaved edits. Neither changes the opening revision or applies Claude preferences.
+`packages/core/src/config/editor-fields.ts` defines global and scoped form descriptors, including kind, choices, bounds and nullable behavior. `describe.editor_fields` and generated `EDITOR_FIELDS` share these definitions. Client changes are validated locally before production preview/apply; the backend remains the final validator. The external TUI uses the same descriptors and pure edits. Import/preset replaces only the draft; export can include unsaved edits. Neither changes the opening revision or applies Claude preferences.
 
-Native file operations are effects handled by the hooks module through Python, with argument arrays and JSON stdin. Client modules do not access files. Pending transfer/apply blocks edits and ordinary close; epochs reject late results. Text input reserves printable shortcuts. Ctrl+G cancels an input or leaves the item form; curses uses raw terminal input so Ctrl+S reaches its save handler.
+Native file operations are effects handled by the hooks module through the Node backend, with argument arrays and JSON stdin. Client modules do not access files. Pending transfer/apply blocks edits and ordinary close; epochs reject late results. Text input reserves printable shortcuts. Ctrl+G cancels an input or leaves the item form; the external TUI uses raw terminal input so Ctrl+S reaches its save handler.
 
 `lib/preferences.ts` maps supported preference concepts to actual menu row IDs, such as `turnDuration`, `reduceMotion`, `tips`, `progressBar` and `notifChannel`. Runtime values, kinds, choices, providers and locks come from `$.config.list()`. Separate Apply rechecks each row before calling `$.config.set()`, retains partial results beside the corresponding row and refuses changed kinds/owners/values or invalid choices. Missing/locked/unsupported rows show official entry guidance. Model/effort/thinking/fast behavior is grouped separately from tool display formats. No persisted Claude key is written directly.
 
@@ -131,11 +133,11 @@ See [translation architecture and contribution rules](i18n.md).
 
 Display schema v8 includes required `statusline_language` (`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v13 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v2 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
 
-Protocol v13 adds an independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display v7, portable v1, interface preferences v1 and runtime v2 remain independent; no persisted display migration is needed.
+Protocol v13 retains the independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display v8, portable v1, interface preferences v1 and runtime v2 remain independent; no persisted display migration is needed.
 
 ## Appearance contract
 
-Schema 7 carries the fields documented in [appearance](../APPEARANCE.md). `ItemOptions` and the scoped visibility registry are canonical Python definitions; generated defaults, types and shared validation fixtures drive the native editor. CLI and both forms reject unsupported scoped rules. Production and fixed previews use the same visibility, style and block composition; observations and collectors remain separate. Portable v1 and runtime v2 are unchanged.
+Schema 8 carries the fields documented in [appearance](../APPEARANCE.md). `ItemOptions` and the scoped visibility registry are canonical core definitions; generated defaults, types and shared validation fixtures drive the native editor. CLI and both forms reject unsupported scoped rules. Production and fixed previews use the same visibility, style and block composition; observations and collectors remain separate. Portable v1 and runtime v2 are unchanged.
 
 ## Instance identities and drafts
 
@@ -143,11 +145,11 @@ Display schema 8 replaces wire `items`/`item_options` with ordered `instances`. 
 
 Reading v1–v7 maps canonical type IDs deterministically and retains disabled overrides. Import review compares instance IDs for additions, removals, enablement, retained ordering, options and text. Applying a complete schema-8 draft bypasses legacy type-selection projections.
 
-TS configuration services use the unchanged installation lock and display schema 8, UI protocol 12, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
+TS configuration services use the unchanged installation lock and display schema 8, UI protocol 13, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
 
-## TypeScript backend binding during migration
+## TypeScript backend binding
 
-The private compiled ESM backend now implements every UI v13 operation, including preview spans, plus runtime v2/v1, `config`, `render`, `render-subagents`, `hook` and `slash-hook`. Schemas and stdout/stderr roles are unchanged. UI previews and dry-runs do not rewrite live configuration. Direct slash mutations use the same locked configuration service and localize the final block decision in the stored interface language.
+The bundled compiled ESM backend implements every UI v13 operation, including preview spans, plus runtime v2/v1, `config`, `render`, `render-subagents`, `hook` and `slash-hook`. Schemas and stdout/stderr roles are unchanged. UI previews and dry-runs do not rewrite live configuration. Direct slash mutations use the same locked configuration service and localize the final block decision in the stored interface language.
 
 For `/statusline-configure`, the application passes `{configDir, backend: LaunchSpec, cwd}` to an injected editor launcher. Results cover updated, already-current, cancelled, interrupted, timed-out and error; recognized commands always block model expansion. Result text is bounded by Unicode characters. TS-04 selects the native terminal launcher and binds a private result lease to the parent identity, backend argv, configuration and nonce. The save guard is rechecked under the configuration lock after waiting. Tests cover real isolated PTYs, tmux popups and Windows consoles as well as injected launchers.
 

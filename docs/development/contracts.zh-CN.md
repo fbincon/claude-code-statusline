@@ -6,18 +6,18 @@
 
 ## 共享目录
 
-`claude_statusline.config.catalog` 以 `(scope, id)` 定义 62 个主栏类型和 16 个子代理类型（分别为 60／14 个指标及文本、留白），提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；curses 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
+`packages/core/src/config/catalog.ts` 以 `(scope, id)` 定义 62 个主栏类型和 16 个子代理类型（分别为 60／14 个指标及文本、留白），提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；外部 TUI 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 最低版本只在有证据时声明。子 Agent 的 2.1.205 门槛表示行支持，不保证所有可选字段；effort 需要 2.1.214。缓存指标声明最低 2.1.251；网关金额／周期要求宿主和网关均至少 2.1.284。尚未证实的主字段最低版本使用 `null`/`unknown`，不猜测日期。`not_observed` 表示接口尚未观察实时数据，`unsupported_host` 表示已证实的版本边界，`unknown_host_version` 表示版本检测失败，`source_unavailable` 表示来源无法读取，`condition_not_met` 涵盖非 Git 仓库或未启用 fast mode 等条件。这些是可能原因的定义；打开配置不采集实时字段，也不因尚未观察到数据而禁用选择。
 
 ## 传输与操作
 
 目录项目同时提供 `guidance` 对象，包含来源类型代码、统计范围、启用条件代码和设置／诊断命令。
-这些静态定义由 Python 维护，共用多语言消息和生成的 TypeScript 词汇表。查看项目的“来源与启用条件”页
+这些静态定义由 `packages/core` 维护，共用多语言消息和生成的 TypeScript 词汇表。查看项目的“来源与启用条件”页
 不查询实时数据、不开启采集、不改变选择。已知最低宿主版本与实际数据观测分开；未知最低版本继续保持未知。
 不可用原因说明的是可能情况，不是当前会话诊断。`config list-items --json` 提供相同的增补元数据。
 
-执行 `claude-statusline ui --config-dir PATH`（Windows 使用 `claude-statusline.exe`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
+执行 `claude-statusline ui --config-dir PATH`（Windows npm 入口使用 `claude-statusline.cmd`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
 {"protocol_version":13,"operation":"read","payload":{}}
@@ -36,18 +36,20 @@
 | `preset` | `{draft,preset}` | 校验并展开后的 `{draft}` |
 | `import` | `{draft,path}` | 校验导入后的 `{draft}` |
 | `export` | `{draft,path,overwrite}` | 导出目标 `{path}` |
+| `review_import` | `{draft,path}` | 校验后的候选草稿与逐字段差异，不保存 |
+| `explain` | `{draft,scope,width}` | 配置原因与逐实例样例结果，`actual_availability:"not_observed"` |
 
 `draft` 仅包含 `display`（有效 schema v8 显示配置）和 `host`（`padding`、`refresh_interval`、`hide_vim_mode_indicator`），每个字段均为必填。JSON 宿主布尔/数值严格校验：padding 为 0–32 的整数，refresh 为 1–3600 的整数或 `"event"`；拒绝 `"off"` 等字符串及小数。读取兼容显示 v1–v7 文件时只在内存中规范化，不迁移原文件；预览也接受完整的 v1 显示对象。apply 必须使用 read 返回的完整 schema v8 草稿，避免旧输入静默覆盖新设置。预览宽度为 2–10000 的整数。
 
 `read` 使用现有安装锁获取一致快照，可能创建运行锁目录；`describe` 不创建配置文件。`preview` 不读取设置、检测宿主、采集 Git/transcript 或写缓存/锁，只使用生产格式和布局及固定样例。尚未观察到的数据不是零。每个 span 包含 `text`、`bold`、`foreground`、`background`，两个颜色通道分别为 `null`、`{"kind":"rgb","value":"#rrggbb"}` 或 `{"kind":"ansi","value":0..255}`，没有原始 ANSI 转义。返回主行和子 Agent 行；空选择和关闭子 Agent 显示仍返回空行列表。
 
-能力将宿主版本与实际 Mod 加载情况区分开。`native_mod` 为 `unsupported`、`unknown` 或 `unverified`；`native_mod_loaded` 为 `null`，Python 进程无法证明当前会话加载了什么。实际 Mod 回调及 PTY 交互提供加载证据。
+能力将宿主版本与实际 Mod 加载情况区分开。`native_mod` 为 `unsupported`、`unknown` 或 `unverified`；`native_mod_loaded` 为 `null`，后端进程无法证明当前会话加载了什么。实际 Mod 回调及 PTY 交互提供加载证据。
 
 ## Revision 与前端生成
 
 不透明 SHA-256 revision 覆盖规范化的有效显示/宿主配置，以及 `statusLine`、`subagentStatusLine` 的 type、命令身份和归属分类。数组顺序有意义；JSON 空白/键顺序与无关设置不触发冲突。命令只解析和规范化，不执行。
 
-apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进制 revision。配置服务取得锁后重读两个文件，比较 revision、检查归属，再复用现有备份、原子写入和回滚事务。curses 将打开时的快照传给同一服务，使用同一 revision 检查。返回 revision 在锁内根据提交后的快照计算，不另做无锁读取。
+apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进制 revision。配置服务取得锁后重读两个文件，比较 revision、检查归属，再复用现有备份、原子写入和回滚事务。外部 TUI 将打开时的快照传给同一服务，使用同一 revision 检查。返回 revision 在锁内根据提交后的快照计算，不另做无锁读取。
 
 显式设置的 renderer 绝对路径必须与选定后端匹配；保留 Windows 和旧安装使用的规范 PATH 命令兼容性，解析后的命令身份参与 revision。通过绑定的 console-script 路径调用 JSON 接口时，使用该入口的身份，即使 PATH 中存在另一安装。拒绝外部主或子 Agent renderer，包括其他目录下的同名可执行文件和非 command 类型设置；允许子 Agent renderer 尚未安装。apply 只编辑显示选择和本工具主 renderer 的宿主选项，不安装 renderer、不接管外部归属。
 
@@ -63,9 +65,9 @@ apply 在取得共享安装锁之前校验完整草稿和 64 位小写十六进�
 | `io_error` | 文件操作失败，检查消息及回滚诊断 |
 | `internal_error` | 意外后端故障，检查 stderr |
 
-TS-03 将规范协议类型、目录与资源生成迁入 `packages/core` 和 `tools/generation/resources.ts`。运行 `npm run generate` 重新生成，以 `npm run generate:check` 检查漂移。迁移期保留 Python 声明和只读的 `tools/generate_ui_contracts.py --check` 作为对照证据；不维护另一份目录，不手改生成的 Mod 类型。Mod 使用 `$.process.run` 参数数组与 JSON stdin；PATH 不合适时通过 `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` 指定后端绝对路径，存在 `CLAUDE_CONFIG_DIR` 时显式传递。不会进行 shell 插值。
+规范协议类型、目录与资源生成位于 `packages/core` 和 `tools/generation/resources.ts`。运行 `npm run generate` 重新生成，以 `npm run generate:check` 检查漂移。Python 声明与生成器作为冻结对照证据保留在 `archive/python`；不维护另一份目录，不手改生成的 Mod 类型。Mod 使用 `$.process.run` 参数数组与 JSON stdin；PATH 不合适时通过 `CLAUDE_STATUSLINE_NATIVE_EXECUTABLE` 指定后端绝对路径，存在 `CLAUDE_CONFIG_DIR` 时显式传递。不会进行 shell 插值。
 
-开发用 TS 后端现通过 `node packages/cli/dist/src/entry.js runtime --config-dir PATH` 提供运行协议 2，并兼容 v1。整批观察在写入前完整校验，stdout 只输出一个 JSON 响应，非法观察或状态不可用时返回 2。1 MiB 输入上限、重复字段／非有限数值拒绝及偏好语义与 Python 边界一致；`hook` 保持静默成功。运行读取不持久化身份修复，任务／live schema 保持现状；TS-04 安装通过共享 executable／argv 契约绑定两个 Mod。
+TypeScript 后端通过 `node packages/cli/dist/src/entry.js runtime --config-dir PATH` 提供运行协议 2，并兼容 v1。整批观察在写入前完整校验，stdout 只输出一个 JSON 响应，非法观察或状态不可用时返回 2。1 MiB 输入上限、重复字段／非有限数值拒绝及偏好语义与 Python 边界一致；`hook` 保持静默成功。运行读取不持久化身份修复，任务／live schema 保持现状；TS-04 安装通过共享 executable／argv 契约绑定两个 Mod。
 
 桥接拒绝非法或截断响应、协议版本不匹配及非零退出，保留冲突等结构化后端错误。进程启动/拒绝错误使用 `backend_process`，超时错误使用 `backend_timeout`；宿主进程调用的超时为 30 秒。验证入口显示故障并提供预览重试；打开失败后重新打开会重读配置。
 
@@ -78,7 +80,7 @@ v1.3.0 保持 JSON 协议 v1 与显示 schema。外部 curses 与 Client 使用�
 
 ## 结构化格式
 
-协议 v13 返回完整 schema v8 草稿。`formatting` 包含共享格式与阈值，实例的 `options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 Python 定义。缺失 v8 字段和旧协议均拒绝，并提示重装匹配资源。Client／curses 完整保存通过原有 revision 检查和事务保留新增字段。
+协议 v13 返回完整 schema v8 草稿。`formatting` 包含共享格式与阈值，实例的 `options` 包含分作用域覆盖、标签／图标、优先级和最大列宽，`layout` 包含自动／显式行。子 Agent 草稿另含显示条件、隐藏完成行、行数与任务宽度限制。`describe.formatting_options` 与生成前端常量来自同一 core 定义。缺失 v8 字段和旧协议均拒绝，并提示重装匹配资源。Client／TUI 完整保存通过原有 revision 检查和事务保留新增字段。
 
 ## 草稿传输操作
 
@@ -92,13 +94,13 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 界面偏好、独立宿主偏好及采集开关不属于便携文件。不进行通用合并或逐字段选择应用。
 原有 `import` 操作继续供匹配协议的客户端使用。协议 v13 与显示 schema v8 独立演进；前后端资源需匹配重装。
 
-`preset` 接收 `{draft,preset}`，返回 Python 展开的 `{draft}`；`import` 接收 `{draft,path}`，返回验证后的 `{draft}`，不保存，仅显示文件从当前草稿保留刷新选项；`export` 接收 `{draft,path,overwrite}`，写入可移植文件并返回 `{path}`。导出是独立于设置 Save 的显式文件操作。三者不改变安装或打开时 revision，随后 apply 仍使用原 revision。`describe.presets` 由 Python 唯一预设定义生成。
+`preset` 接收 `{draft,preset}`，返回共享 core 展开的 `{draft}`；`import` 接收 `{draft,path}`，返回验证后的 `{draft}`，不保存，仅显示文件从当前草稿保留刷新选项；`export` 接收 `{draft,path,overwrite}`，写入可移植文件并返回 `{path}`。导出是独立于设置 Save 的显式文件操作。三者不改变安装或打开时 revision，随后 apply 仍使用原 revision。`describe.presets` 由 core 唯一预设定义生成。
 
 ## 共享编辑表单与宿主偏好
 
-`config.editor_fields` 定义全局与逐项字段的类型、选项、范围及空值行为，生成 `describe.editor_fields` 和 TypeScript `EDITOR_FIELDS`。Client 本地验证后调用生产预览／保存，Python 最终验证；curses 使用同一描述及纯编辑函数。Import／Preset 只替换草稿，Export 可包含未保存修改，都不改变打开时的 revision 或应用 Claude 偏好。
+`packages/core/src/config/editor-fields.ts` 定义全局与逐项字段的类型、选项、范围及空值行为，生成 `describe.editor_fields` 和 TypeScript `EDITOR_FIELDS`。Client 本地验证后调用生产预览／保存，后端最终验证；外部 TUI 使用同一描述及纯编辑函数。Import／Preset 只替换草稿，Export 可包含未保存修改，都不改变打开时的 revision 或应用 Claude 偏好。
 
-文件操作由宿主 hooks 通过参数数组／JSON stdin 调用 Python，Client 不访问文件。传输／保存期间阻止编辑与普通关闭，epoch 拒绝迟到结果；文本输入保留普通快捷键字符。Ctrl+G 取消输入或返回项目列表，curses 使用 raw 输入模式确保 Ctrl+S 不被终端流控吞掉。
+文件操作由宿主 hooks 通过参数数组／JSON stdin 调用 Node 后端，Client 不访问文件。传输／保存期间阻止编辑与普通关闭，epoch 拒绝迟到结果；文本输入保留普通快捷键字符。Ctrl+G 取消输入或返回项目列表，外部 TUI 使用 raw 输入模式确保 Ctrl+S 不被终端流控吞掉。
 
 `lib/preferences.ts` 将偏好映射到实际菜单行，例如 `turnDuration`、`reduceMotion`、`tips`、`progressBar`、`notifChannel`。值、类型、选项、提供方和锁来自 `$.config.list()`。独立 Apply 逐项重读后调用 `$.config.set()`，对应行保留部分成功／拒绝等结果；类型／提供方／值变化或选项失效时不写入。缺失／锁定／不支持行给出官方入口，模型／effort／thinking／fast 行为与工具显示格式分组。不得直接写 Claude 持久化键。
 
@@ -118,11 +120,11 @@ A 将内存候选接受到草稿；取消保留原草稿。接受不重新读取
 
 显示 schema v8 包含必需的 `statusline_language`（`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko`）。读取或导入 v1–v5 时补为英文；读取不改写文件，显式保存先备份再迁移。配置协议 v13 要求完整当前草稿，语言参与 revision、预览和可移植导出。UI 偏好 schema v1 与运行协议 v2 独立。预设保留语言，显示 reset 恢复英文；`config apply --statusline-language` 可选，省略时保留当前值。
 
-协议 v13 保留独立背景通道。空前景／背景分别恢复终端或预览底色的默认值。完整字符簇的样式和裁切遵循[渲染契约](rendering.zh-CN.md)。显示 v7、便携格式 v1、界面偏好 v1、运行协议 v2 独立保持，不需要显示配置迁移。
+协议 v13 保留独立背景通道。空前景／背景分别恢复终端或预览底色的默认值。完整字符簇的样式和裁切遵循[渲染契约](rendering.zh-CN.md)。显示 v8、便携格式 v1、界面偏好 v1、运行协议 v2 独立保持，不需要显示配置迁移。
 
 ## 外观契约
 
-schema 8 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。Python 的 `ItemOptions` 与作用域规则表是规范定义，生成默认值、类型和共享验证样例供原生编辑器使用。CLI 与两端表单拒绝不适用的规则。生产和固定预览复用条件、样式和色块组合，观测及采集保持分离；portable v1 与 runtime v2 不变。
+schema 8 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。core 的 `ItemOptions` 与作用域规则表是规范定义，生成默认值、类型和共享验证样例供原生编辑器使用。CLI 与两端表单拒绝不适用的规则。生产和固定预览复用条件、样式和色块组合，观测及采集保持分离；portable v1 与 runtime v2 不变。
 
 ## 实例身份与草稿
 
@@ -130,11 +132,11 @@ schema 8 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。Python 的 `
 
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 8 草稿时不经过旧类型选择投影。
 
-TS 配置服务沿用安装锁、显示 schema 8、UI protocol 12、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
+TS 配置服务沿用安装锁、显示 schema 8、UI protocol 13、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
 
-## 迁移期间的 TypeScript 后端绑定
+## TypeScript 后端绑定
 
-私有编译 ESM 后端已实现全部 UI v13 操作（含预览 span）、runtime v2／v1，以及 `config`、`render`、`render-subagents`、`hook`、`slash-hook`。schema 与 stdout／stderr 分工保持兼容，UI 预览和 dry-run 不重写活动配置。直接 slash 修改调用同一加锁配置服务，并按已保存的界面语言呈现最终 block 决策。
+随包编译的 ESM 后端已实现全部 UI v13 操作（含预览 span）、runtime v2／v1，以及 `config`、`render`、`render-subagents`、`hook`、`slash-hook`。schema 与 stdout／stderr 分工保持兼容，UI 预览和 dry-run 不重写活动配置。直接 slash 修改调用同一加锁配置服务，并按已保存的界面语言呈现最终 block 决策。
 
 `/statusline-configure` 将 `{configDir, backend: LaunchSpec, cwd}` 传入可注入的编辑器启动器。结果涵盖 updated、already-current、cancelled、interrupted、timed-out、error；识别出的命令始终阻止模型扩展，结果文字按 Unicode 字符数限长。TS-04 选择原生终端启动器，将私有结果租约与父进程身份、后端 argv、配置及 nonce 绑定；等待配置锁后在锁内再次检查保存许可。测试同时覆盖隔离的真实 PTY、tmux 弹窗、Windows 控制台与注入启动器。
 
