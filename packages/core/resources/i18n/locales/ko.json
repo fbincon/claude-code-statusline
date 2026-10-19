@@ -1384,7 +1384,7 @@
   "quick.save": "후보 설정 저장",
   "quick.back": "모양으로 돌아가기",
   "quick.sample": "예시 데이터입니다. Tab으로 메인/에이전트 전환, PgUp/PgDn으로 설명 스크롤.",
-  "quick.replace": "적용하면 표시 초안이 바뀝니다. 저장 시 기존 버전 충돌 검사를 수행합니다.",
+  "quick.replace": "편집을 계속하면 보류 중인 표시 변경이 바뀝니다. 저장할 때 다른 곳에서 변경되었는지 확인합니다.",
   "quick.subagents_off": "에이전트 행이 꺼져 있습니다. 적용 후 설정에서 켤 수 있으며 설치는 별도입니다.",
   "quick.purpose.developer": "일상 개발",
   "quick.purpose.minimal": "간결한 표시",

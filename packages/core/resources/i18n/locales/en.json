@@ -1384,7 +1384,7 @@
   "quick.save": "Save this draft",
   "quick.back": "Back to appearance",
   "quick.sample": "Sample data only. Tab switches main/agents; PgUp/PgDn scrolls details.",
-  "quick.replace": "Accept replaces the pending display draft. Save uses the existing revision check.",
+  "quick.replace": "Continue editing replaces your pending display changes. Save checks for changes made elsewhere.",
   "quick.subagents_off": "Custom agent rows are off. Enable them in Settings after accepting; installation is separate.",
   "quick.purpose.developer": "Daily development",
   "quick.purpose.minimal": "Compact display",

@@ -1384,7 +1384,7 @@
   "quick.save": "儲存候選設定",
   "quick.back": "返回外觀",
   "quick.sample": "僅為範例資料。Tab 切換主列/子代理；PgUp/PgDn 捲動說明。",
-  "quick.replace": "接受後取代待儲存的顯示草稿。儲存仍進行版本衝突檢查。",
+  "quick.replace": "繼續微調會取代待儲存的顯示變更。儲存時會檢查其他位置是否已修改設定。",
   "quick.subagents_off": "自訂子代理列已關閉。接受後可在設定中開啟；安裝需另行操作。",
   "quick.purpose.developer": "日常開發",
   "quick.purpose.minimal": "精簡顯示",

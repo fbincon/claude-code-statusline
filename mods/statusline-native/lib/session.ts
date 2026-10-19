@@ -9,7 +9,7 @@ import type { MessageSlot } from './i18n/messages.ts';
 export type InputMode = (
   | { kind: 'search'; scope: Scope; original: string; selected: string }
   | { kind: 'category'; scope: Scope; selected: string }
-  | { kind: 'field'; key: string; buffer: string }
+  | { kind: 'field'; key: string; buffer: string; original?: string }
   | { kind: 'path'; action: 'import' | 'export'; buffer: string }
   | { kind: 'numeric'; field: 'padding' | 'refresh_interval' }
 ) & { edit?: TextInput } | null;

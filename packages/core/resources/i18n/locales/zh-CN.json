@@ -1384,7 +1384,7 @@
   "quick.save": "保存候选配置",
   "quick.back": "返回外观",
   "quick.sample": "仅为示例数据。Tab 切换主行/子代理；PgUp/PgDn 滚动说明。",
-  "quick.replace": "接受后替换待保存的显示草稿。保存仍进行版本冲突检查。",
+  "quick.replace": "继续微调会替换待保存的显示更改。保存时会检查其他位置是否已修改配置。",
   "quick.subagents_off": "自定义子代理行已关闭。接受后可在设置中开启；安装需另行操作。",
   "quick.purpose.developer": "日常开发",
   "quick.purpose.minimal": "紧凑显示",

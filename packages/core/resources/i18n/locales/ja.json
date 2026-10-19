@@ -1384,7 +1384,7 @@
   "quick.save": "候補を保存",
   "quick.back": "外観に戻る",
   "quick.sample": "サンプルデータです。Tab でメイン/エージェント切替、PgUp/PgDn で説明をスクロール。",
-  "quick.replace": "受け入れると表示の下書きを置き換えます。保存時は競合を確認します。",
+  "quick.replace": "編集を続けると保留中の表示変更を置き換えます。保存時に別の場所での変更を確認します。",
   "quick.subagents_off": "エージェント行はオフです。受け入れ後に設定で変更できます。インストールは別操作です。",
   "quick.purpose.developer": "日常の開発",
   "quick.purpose.minimal": "コンパクト表示",

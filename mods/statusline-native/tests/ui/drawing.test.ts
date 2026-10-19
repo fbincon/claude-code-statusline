@@ -320,3 +320,14 @@ test('copied instance detail uses the type description in every interface langua
     expect(body).not.toContain('items.main.i-');
   }
 });
+
+
+test('opening a native field stays clean until text changes and cancellation restores the clean marker', () => {
+  const state=view();
+  handleKey(state,{key:'e',ctrl:true},80,24);handleKey(state,{key:'return'},80,24);
+  expect(text(draw(elements,state,80,24) as unknown as Node)).not.toContain('Configure Status Line *');
+  handleKey(state,{key:'字'},80,24);
+  expect(text(draw(elements,state,80,24) as unknown as Node)).toContain('Configure Status Line *');
+  handleKey(state,{key:'g',ctrl:true},80,24);
+  expect(text(draw(elements,state,80,24) as unknown as Node)).not.toContain('Configure Status Line *');
+});

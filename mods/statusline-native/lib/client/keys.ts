@@ -202,8 +202,8 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     } else {
       const field = formRows(view).find((row) => row.key === e.setting);
       const p = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
-      if (field && (field.spec.kind === 'integer' || field.spec.kind === 'text')) view.input = {kind:'field',key:field.key,buffer:field.value};
-      else if (p && canEdit(p) && (p.row.kind === 'text' || p.row.kind === 'number')) view.input = {kind:'field',key:e.setting,buffer:String(p.value)};
+      if (field && (field.spec.kind === 'integer' || field.spec.kind === 'text')) view.input = {kind:'field',key:field.key,buffer:field.value,original:field.value};
+      else if (p && canEdit(p) && (p.row.kind === 'text' || p.row.kind === 'number')) view.input = {kind:'field',key:e.setting,buffer:String(p.value),original:String(p.value)};
       else adjustSetting(view, 1);
     }
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
