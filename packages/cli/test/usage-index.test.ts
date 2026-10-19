@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { basename } from 'node:path';
 import { setup, fs, join, assert, writeLines, allFiles } from './runtime-support.js';
 import { UsageIndex } from '../src/runtime/usage-index.js';
 import { UsageCollector } from '../src/runtime/usage.js';
@@ -19,8 +20,8 @@ test('one index transaction publishes only the final page and manifest while ret
     index.merge({ a: { ...counters(2n), o: 7n } }, state);
     assert.equal(writes.length, 0);
     const reference = index.publish();
-    assert.equal(writes.filter(path => /\/b-/u.test(path)).length, 1);
-    assert.equal(writes.filter(path => /\/m-/u.test(path)).length, 1);
+    assert.equal(writes.filter(path => basename(path).startsWith('b-')).length, 1);
+    assert.equal(writes.filter(path => basename(path).startsWith('m-')).length, 1);
     const reloaded = new UsageIndex(directory, f.root, io, reference);
     state.base.i = 3n; delete state.ids.a;
     reloaded.merge({ a: counters(4n) }, state);
@@ -62,9 +63,9 @@ test('multi-agent cold collection writes each final identity page once and prese
     for (let i = 0; i < 8; i++) writeLines(join(f.root, 'session/subagents', `agent-${i}.jsonl`), Array.from({ length: 10 }, (_, n) => assistant(`agent-${i}-${n}`)));
     const data = { session_id: 's', transcript_path: path }, collector = new UsageCollector(f.context, io);
     assert.equal(sessionTokenCounts(collector.collect(data)![4])!.input_tokens, 5081n);
-    const pages = writes.filter(target => /\/b-[a-f0-9]{64}\.json$/u.test(target));
+    const pages = writes.filter(target => /^b-[a-f0-9]{64}\.json$/u.test(basename(target)));
     assert.equal(pages.length, new Set(pages).size);
-    assert.equal(writes.filter(target => /\/m-[a-f0-9]{64}\.json$/u.test(target)).length, 1);
+    assert.equal(writes.filter(target => /^m-[a-f0-9]{64}\.json$/u.test(basename(target))).length, 1);
     assert.equal(fs.readdirSync(join(f.root, 'statusline_usage_v2'), { recursive: true }).map(String).filter(name => /b-[a-f0-9]{64}\.json$/u.test(name)).length, pages.length);
     writeLines(path, [assistant('main-0'), assistant('main-0', 2)], true);
     assert.equal(sessionTokenCounts(new UsageCollector(f.context).collect(data)![4])!.input_tokens, 5082n);
