@@ -2,16 +2,18 @@
 
 [English](typescript-migration.md) | **简体中文**
 
-更新日期：**2026-10-18**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
+更新日期：**2026-10-19**（Asia/Shanghai）。参考实现：**v2.0.0**，提交 `9b6d2fab4bf165be280d428a874521bfbf02c7e1`。
 
 将 Python 实现迁移到 TypeScript，保留状态栏行为、既有用户配置及受支持的使用流程。本计划记录范围、依赖、技术决策、验收门槛和交接方式，供后续会话与维护者持续更新。中英文版本随仓库维护；机器私有记录和原始验收数据不写入受版本管理的文档。
 
 
 迁移后正确性与安装问题后续工作已 **DONE**：十一项确认问题和五类文档冲突均已修复，正式 v3.1.3 已交付 npm、GitHub 和 Gitee。参见[源码绑定的验证与交付记录](post-migration-fixes.zh-CN.md)，历史迁移及性能状态保持不变。
 
+**2026-10-19 PERF-01 更新：** 维护者已启动独立[性能尝试](performance/perf-01.zh-CN.md)，以功能正确为硬门槛，不要求最低提速或优于 Python。当前从已发布 v3.1.3 开始，状态 IN_PROGRESS；下方历史 NOT_STARTED 条目保留其原交接日期。
+
 ## 迁移后后续工作
 
-TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾／香港繁体语言后续工作已 **DONE**，v3.1.0 已交付 npm、GitHub 和 Gitee，见[实现、界面捕获及交付证据](node-regional-languages.zh-CN.md)。下方历史阶段结果保留；D06 继续 FAIL，PERF-01 继续 NOT_STARTED。
+TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾／香港繁体语言后续工作已 **DONE**，v3.1.0 已交付 npm、GitHub 和 Gitee，见[实现、界面捕获及交付证据](node-regional-languages.zh-CN.md)。下方历史阶段结果保留；D06 继续 FAIL，当前 PERF-01 工作单独跟踪。
 
 独立的 v3.1.1 外部 TUI 呈现修复后续工作为 **DONE**：npm latest、GitHub stable／Latest 和 Gitee stable 均交付一致产物，六项公开 Node 22／24 安装作业通过；保留六语言发布、接受缺口边界及已公开 Python 参考。[实现、验收与交付](external-tui-parity.zh-CN.md)。
 
@@ -36,10 +38,10 @@ TS-01–TS-06 继续保持 DONE。独立的 Node 22／24 成品兼容及台湾�
 | 可行性分析 | 已完成源码、测试结构和工作流检查 |
 | 规划文档 | 已建立；文档校验结果记录在进展日志 |
 | 实现进度 | **TS-01～TS-06 DONE**；[TS-06 关闭记录](typescript-migration/ts-06/README.zh-CN.md#关闭记录2026-10-18) |
-| 当前任务范围 | v3.0.0 修复与三渠道正式交付完成，接受的缺项仍为未验证；PERF-01 保持 NOT_STARTED |
+| 当前任务范围 | 迁移及 v3.1.3 后续工作已交付；PERF-01 按正确性优先修订 IN_PROGRESS；接受的缺口仍为未验证 |
 | 运行时与分发 | 已选定 Node 24.21.0／npm／64 位，D01–D06 DECIDED；保留[限定版本批准及未验证范围](typescript-migration/ts-06/README.zh-CN.md#正式版决定2026-10-18) |
 | 目标版本与工期 | v3.0.0 已交付 npm latest、GitHub 正式版/Latest 与 Gitee 正式版，保留 beta.1 及 Python 回退资产 |
-| 下一项实施工作 | 等待后续任务启动 PERF-01，以[正式源码、摘要和交付证据](typescript-migration/ts-06/stable-release.zh-CN.md)为基线 |
+| 下一项实施工作 | 对照已发布 v3.1.3 验证有界 PERF-01 候选；[方法与证据](performance/perf-01.zh-CN.md) |
 
 维护者批准预览及限定版本正式交付，验收使用隔离环境和显式恢复，个人现用 Python 安装保持不变。[TS-06 记录](typescript-migration/ts-06/README.zh-CN.md)跟踪正式交付、历史预览证据及接受的未验证项。提交、PR、合并和任务驱动的 Gitee 同步适用既有仓库授权。
 

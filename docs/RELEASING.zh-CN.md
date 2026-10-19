@@ -3,6 +3,13 @@
 [English](RELEASING.md) | **简体中文**
 
 
+## v3.1.4 性能后续工作
+
+使用 [v3.1.4 专属决定](releases/approvals/v3.1.4.json)及未放宽的功能门槛。
+性能改善不是发布条件；保留的改动仍须通过最终 PR／main／tag 完整矩阵、相同独立构建／
+源码重建、草稿附件校验、OIDC npm 发布及公开下载验证。原有六项接受缺口继续为未验证。
+[发布说明](releases/v3.1.4.md) · [PERF-01 方法、实现与证据](development/performance/perf-01.zh-CN.md)。
+
 ## v3.1.3 迁移后修复
 
 采用 [v3.1.3 专属决定](releases/approvals/v3.1.3.json)，保留功能门禁，要求 Windows 安装包 request／started／result 桥接通过 Node 24.0.0。最终 head／main／tag 全矩阵、相同重建、草稿附件及公开下载均须通过。[发布说明](releases/v3.1.3.md) · [证据](development/post-migration-fixes.zh-CN.md)。

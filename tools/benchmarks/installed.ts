@@ -38,6 +38,14 @@ interface Measurement {
 }
 interface Run { round: number; side: string; records: Measurement[] }
 
+export function verifyPair(before: Pick<Measurement, 'case' | 'diagnostic'>, after: Pick<Measurement, 'case' | 'diagnostic'>): void {
+    assert.equal(after.case, before.case, 'Mismatched comparison case');
+    assert.equal(after.diagnostic.output_sha256, before.diagnostic.output_sha256, 'Baseline/candidate output differs: ' + before.case);
+    for (const key of ['usage_calls', 'transcript_reads', 'git_calls']) {
+        assert.equal(after.diagnostic.counts[key], before.diagnostic.counts[key], 'Collector count differs: ' + before.case + '/' + key);
+    }
+}
+
 export function unpackArtifact(path: string, root: string): Artifact {
     const entries = readTar(path), source = JSON.parse(entries.get('candidate.json')!.toString('utf8'));
     assert.equal(source.schema_version, 1, 'Unknown artifact manifest');
@@ -176,6 +184,7 @@ function measureCase(artifact: Artifact, work: string, snapshotRoot: string, spe
             assert(Number.isFinite(sample.ms) && sample.ms >= 0 && Number.isFinite(sample.peak_rss_bytes) && sample.peak_rss_bytes > 0, 'Invalid measurement');
             assert.equal(sample.output_sha256, diagnostic!.output_sha256, 'Measured output differs from diagnostic');
             samples.push(sample);
+            fs.writeFileSync(join(work, 'sample-progress.json'), JSON.stringify({ case: spec.name, sample: index + 1, samples: count }) + '\n');
         } finally { cleanup(); }
     }
     return { case: spec.name, mode: spec.mode, samples, ...summarize(samples), diagnostic: diagnostic! };
@@ -229,11 +238,14 @@ export function compareInstalled(baselinePath: string, candidatePath: string, ou
     for (let round = 0; round < 3; round++) {
         const order = round % 2 ? ['candidate', 'baseline'] as const : ['baseline', 'candidate'] as const;
         const records = { baseline: [] as Measurement[], candidate: [] as Measurement[] };
-        for (const spec of INSTALLED_CASES.filter(spec => profiles.includes(spec.profile))) for (const side of order) {
-            const value = measureCase(artifacts[side], report.work, join(output, 'snapshot'), spec, samples);
-            records[side].push(value);
-            console.log(JSON.stringify({ round, side, case: spec.name, p50_ms: value.p50_ms }));
-            fs.writeFileSync(join(output, 'progress.json'), JSON.stringify({ round, side, case: spec.name }) + '\n');
+        for (const spec of INSTALLED_CASES.filter(spec => profiles.includes(spec.profile))) {
+            for (const side of order) {
+                const value = measureCase(artifacts[side], report.work, join(output, 'snapshot'), spec, samples);
+                records[side].push(value);
+                console.log(JSON.stringify({ round, side, case: spec.name, p50_ms: value.p50_ms }));
+                fs.writeFileSync(join(output, 'progress.json'), JSON.stringify({ round, side, case: spec.name }) + '\n');
+            }
+            verifyPair(records.baseline.at(-1)!, records.candidate.at(-1)!);
         }
         for (const side of order) runs.push({ round, side, records: records[side] });
         fs.writeFileSync(join(output, `round-${round}.json`), JSON.stringify(records, null, 2) + '\n');

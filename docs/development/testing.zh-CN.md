@@ -4,6 +4,13 @@
 
 成品运行环境支持 Node 22／24，开发和构建仍固定 Node 24.21.0/npm 11.19.0。`npm run build` 后可在受支持 Node 下运行 `npm run test:runtime`，该命令只测试已编译产品，不重新构建。发布还要求八目标 × 四个 Node 案例共 32 项回执，见[运行环境与地区语言后续工作](node-regional-languages.zh-CN.md)。
 
+## 安装包性能尝试
+
+[PERF-01](performance/perf-01.zh-CN.md)维护具有独立身份的已安装 TS→TS 测量方法。
+使用安装包模式的 `benchmark`／`benchmark:compare`；旧工作区 worker 仅为描述性诊断，
+不能作为安装命令耗时。采集次数与计时分离；冷读／追加准备恢复完整用量索引。
+Linux GNU time 记录新子进程峰值 RSS。功能正确是硬门槛，本轮不要求最低提速或通过 Python 预算。
+
 ## 外部 TUI 产品回归
 
 TUI 包维护不依赖 CLI 的纯绘制／状态回归测试，检查完整分组线样式、字段名称与用户原始值、上下文按键提示、Unicode 截断和待确认修改标记，覆盖六语言、七种尺寸及四种色阶。既有迁移命名的后端／PTY 测试保留职责台账；安装包捕获及交付证据另记于[外部 TUI 后续工作](external-tui-parity.zh-CN.md)，终端单元重建不等同于人工桌面或电源验收。

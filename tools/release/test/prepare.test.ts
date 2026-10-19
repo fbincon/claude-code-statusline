@@ -33,6 +33,11 @@ test('stable approval is explicit, scoped to v3.0.0 and retains the exact unveri
     assert.equal(assessStableApproval({ ...approval, version: '3.1.1' }, '3.1.1').decision, 'accept-known-gaps');
     const patch = { ...approval, version: '3.1.2', approved_on: '2026-10-19' };
     assert.equal(assessStableApproval(patch, '3.1.2').decision, 'accept-known-gaps');
+    const performance = { ...patch, version: '3.1.4' };
+    assert.equal(assessStableApproval(performance, '3.1.4').decision, 'accept-known-gaps');
+    assert.throws(() => assessStableApproval({ ...performance, approved_on: '2026-10-18' }, '3.1.4'));
+    assert.throws(() => assessStableApproval(patch, '3.1.4'));
+    assert.throws(() => assessStableApproval({ ...performance, accepted_gaps: [...ACCEPTED_GAPS, 'failed-ci'] }, '3.1.4'));
     assert.throws(() => assessStableApproval({ ...patch, approved_on: '2026-10-18' }, '3.1.2'));
     assert.throws(() => assessStableApproval({ ...approval, approved_on: '2026-10-19' }, '3.0.0'));
     assert.throws(() => assessStableApproval(patch, '3.1.1'));

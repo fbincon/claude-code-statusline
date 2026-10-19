@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import * as tar from 'tar';
 import { CacheSnapshot, refreshGitCache } from '../installed-state.js';
-import { benchmarkInstalled, commandSignature, summarize, verifyInstalled, INSTALLED_CASES } from '../installed.js';
+import { benchmarkInstalled, commandSignature, summarize, verifyInstalled, verifyPair, INSTALLED_CASES } from '../installed.js';
 import { sha256 } from '../../build/files.js';
 
 test('installed benchmark restores the complete immutable index and removes later pages', t => {
@@ -44,6 +44,15 @@ test('Git timestamp refresh preserves exact integer bytes and does not warm an e
 test('benchmark summaries retain p95 outliers and peak RSS rather than heap or the last sample', () => {
     const rows = [1, 2, 3, 4, 100].map((ms, index) => ({ ms, peak_rss_bytes: index === 1 ? 99 : 10, output_sha256: 'same' }));
     assert.deepEqual(summarize(rows), { p50_ms: 3, p95_ms: 100, peak_rss_bytes: 99 });
+});
+
+test('paired comparison rejects output or collector regressions while permitting fewer internal I/O operations', () => {
+    const row = (output_sha256: string, usage_calls = 1, reads = 100) => ({ case: 'render', diagnostic: {
+        output_sha256, counts: { usage_calls, transcript_reads: 0, git_calls: 0, reads },
+    } });
+    verifyPair(row('same'), row('same', 1, 2));
+    assert.throws(() => verifyPair(row('before'), row('different')), /output differs/u);
+    assert.throws(() => verifyPair(row('same'), row('same', 2)), /Collector count/u);
 });
 
 test('command comparison normalizes backend version only and rejects lost hook state', t => {

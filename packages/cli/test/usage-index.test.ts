@@ -42,6 +42,19 @@ test('staging overflow flushes durable pages without changing the manifest, coun
     assert.equal(next.ids.a!.i, 9007199254740994n);
 });
 
+test('buffered and immediate durable publication retain byte-identical page and manifest formats', t => {
+    const f = setup(t);
+    const run = (name: string, bound: number) => {
+        const directory = join(f.root, name), index = new UsageIndex(directory, f.root, runtimeIO(), null, bound), state = entry();
+        index.merge(Object.fromEntries(Array.from({ length: 5001 }, (_, i) => ['m-' + i, counters(BigInt(i))])), state);
+        index.merge(Object.fromEntries(Array.from({ length: 100 }, (_, i) => ['m-' + i, counters(BigInt(i + 10))])), state);
+        const reference = index.publish();
+        index.prune();
+        return { reference, files: allFiles(directory), state };
+    };
+    assert.deepEqual(run('buffered', 32 * 1024 * 1024), run('immediate', 0));
+});
+
 test('multi-agent cold collection writes each final identity page once and preserves restart/replay totals', t => {
     const f = setup(t), path = join(f.root, 'session.jsonl'), io = runtimeIO(), writes: string[] = [], write = io.write;
     io.write = (target, bytes) => { writes.push(target); write(target, bytes); };

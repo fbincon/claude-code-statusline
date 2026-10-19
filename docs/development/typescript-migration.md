@@ -2,16 +2,18 @@
 
 **English** | [简体中文](typescript-migration.zh-CN.md)
 
-Updated: **2026-10-18** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
+Updated: **2026-10-19** (Asia/Shanghai). Reference implementation: **v2.0.0**, commit `9b6d2fab4bf165be280d428a874521bfbf02c7e1`.
 
 Migrate the Python implementation to TypeScript while retaining the statusline's behavior, existing user configuration and supported workflows. This plan records scope, dependencies, decisions, acceptance gates and handoffs for later sessions and maintainers. Both language versions belong in the repository; private machine records and raw acceptance data remain outside tracked documentation.
 
 
 The post-migration correctness and installation follow-up is **DONE**: all eleven confirmed findings and five documentation categories are repaired, with stable v3.1.3 delivered on npm, GitHub and Gitee. See the [source-bound validation and delivery record](post-migration-fixes.md); original migration and performance states remain unchanged.
 
+**2026-10-19 PERF-01 update:** the maintainer started the independent [performance experiment](performance/perf-01.md), with correctness mandatory and no minimum speedup or Python comparison requirement. It is IN_PROGRESS from published v3.1.3; historical NOT_STARTED entries below retain their original handoff dates.
+
 ## Post-migration follow-up
 
-TS-01–TS-06 remain DONE. The separate Node 22/24 compatibility and Taiwan/Hong Kong Traditional Chinese follow-up is **DONE**, delivered as v3.1.0 on npm, GitHub and Gitee. [Implementation, capture and delivery evidence](node-regional-languages.md). Historical stage results below are retained; D06 remains FAIL and PERF-01 remains NOT_STARTED.
+TS-01–TS-06 remain DONE. The separate Node 22/24 compatibility and Taiwan/Hong Kong Traditional Chinese follow-up is **DONE**, delivered as v3.1.0 on npm, GitHub and Gitee. [Implementation, capture and delivery evidence](node-regional-languages.md). Historical stage results below are retained; D06 remains FAIL. Current PERF-01 work is tracked separately.
 
 The separate v3.1.1 external-TUI parity follow-up is **DONE**: npm latest, GitHub stable/Latest and Gitee stable are delivered with matching artifacts and six passing public Node 22/24 installation jobs. The six-language release, accepted-gap boundaries and published Python reference are preserved. [Implementation, acceptance and delivery](external-tui-parity.md).
 
@@ -36,10 +38,10 @@ Relative latency/RSS regression may be deferred. Functional or stability failure
 | Feasibility review | Completed by source, test-structure and workflow inspection |
 | Planning documentation | Established; documentation validation is recorded in the activity log |
 | Implementation | **TS-01–TS-06 DONE**; [TS-06 closure](typescript-migration/ts-06/README.md#closure-2026-10-18) |
-| Current task scope | v3.0.0 fixes and three-channel stable delivery complete; accepted gaps stay unverified; PERF-01 remains NOT_STARTED |
+| Current task scope | Migration and v3.1.3 follow-up delivered; PERF-01 IN_PROGRESS under its correctness-first amendment; accepted gaps stay unverified |
 | Runtime and distribution | Node 24.21.0/npm/64-bit selected; D01–D06 DECIDED; [version-limited approval and unverified scope](typescript-migration/ts-06/README.md#stable-decision-2026-10-18) retained |
 | Target release and schedule | v3.0.0 delivered on npm latest, GitHub stable/Latest and Gitee stable; beta.1 and Python rollback artifacts preserved |
-| Next implementation work | Await a subsequent task to start PERF-01; [stable source, checksums and delivery evidence](typescript-migration/ts-06/stable-release.md) are its baseline |
+| Next implementation work | Validate the bounded PERF-01 candidate against the published v3.1.3 baseline; [method and evidence](performance/perf-01.md) |
 
 The maintainer approved preview delivery and the version-limited stable decision with isolated acceptance and explicit recovery. The personal Python installation remains intact. The [TS-06 record](typescript-migration/ts-06/README.md) tracks completed stable delivery, historical preview evidence and accepted unverified checks. Existing repository authorization governs commits, PRs, merging and task-driven Gitee synchronization.
 

@@ -5,6 +5,7 @@ const APPROVALS: Readonly<Record<string, { path: string; approvedOn: string }>> 
     '3.1.0': { path: 'docs/releases/approvals/v3.1.0.json', approvedOn: '2026-10-18' },
     '3.1.1': { path: 'docs/releases/approvals/v3.1.1.json', approvedOn: '2026-10-18' },
     '3.1.3': { path: 'docs/releases/approvals/v3.1.3.json', approvedOn: '2026-10-19' },
+    '3.1.4': { path: 'docs/releases/approvals/v3.1.4.json', approvedOn: '2026-10-19' },
     '3.1.2': { path: 'docs/releases/approvals/v3.1.2.json', approvedOn: '2026-10-19' },
 };
 export function stableApprovalPath(version: string): string {

@@ -3,6 +3,14 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.1.4 — 2026-10-19
+
+- Keep bare runtime observations and read-only runtime preferences outside management, display and interface-language initialization.
+- Coalesce immutable usage-index page publication under the existing cache lock, with bounded serialized staging, durable writes and exact replay accounting.
+- Add verified installed-package benchmarks with complete cache snapshots, separate diagnostics and fresh-process peak RSS; retain the historical D06 results.
+- Preserve Node 22/24, public commands, disk formats and all existing functional release gates.
+- [Release notes](docs/releases/v3.1.4.md) · [Performance work and evidence](docs/development/performance/perf-01.md).
+
 ## 3.1.3 — 2026-10-19
 
 - Repair Windows private editor bridging and current npm/PATH entry ownership without accepting foreign installations.

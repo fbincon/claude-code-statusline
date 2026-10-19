@@ -4,6 +4,15 @@
 
 Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
 
+## Installed performance experiments
+
+[PERF-01](performance/perf-01.md) owns the separately identified installed TS-to-TS
+method. Use artifact-mode `benchmark`/`benchmark:compare`; the legacy workspace
+worker remains descriptive and is not installed-command timing. Counters run
+separately from timed samples; cold/append preparation restores the whole usage
+index. Linux GNU time records fresh-child peak RSS. Product correctness is the
+hard gate; no minimum speedup or Python budget pass is required by this task.
+
 ## External TUI product regressions
 
 The TUI package owns pure rendering/state regressions without importing the CLI. Tests assert complete separator styling, exact labels and literal values, context-specific key hints, Unicode clipping and pending-edit markers across six languages, seven sizes and four color depths. Existing migration-named backend/PTY tests retain their responsibility ledger. Installed captures and delivery evidence are recorded separately in [the external TUI follow-up](external-tui-parity.md); reconstructed cells do not establish human desktop or power acceptance.
