@@ -34,5 +34,6 @@ export function samplePreviewData(home: string): Data {
 export function previewRows(config: DisplayDraft, width: number, env: RenderEnvironment, home: string, padding = 0): string[] {
     width = Math.max(2, Math.trunc(width));
     padding = Math.min(Math.max(0, Math.trunc(padding)), width - 2);
+    env.trace?.begin('main','main');
     return configuredRows(samplePreviewData(home), config, width - padding, env, (...args) => new SampleRenderState(...args)).map(row => ' '.repeat(padding) + row);
 }

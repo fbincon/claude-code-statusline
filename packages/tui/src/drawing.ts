@@ -53,20 +53,20 @@ export function frame(state: State, columns: number, rows: number): Frame {
     canvas.put(3, 0, notice(state, canvas.columns));
     canvas.panel(size.content, contentTitle(state));
     const summary = drawPage(canvas, state, size);
-    const summaryHints = state.form && !e.review && e.guidanceScroll === null
+    const summaryHints = state.form && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
         ? shortcuts([['↑↓', tr('ui.hints.select')]], size.content.innerWidth - displayWidth(summary + ' · '))
         : [];
     canvas.content(size.content, size.content.innerHeight - 1, [
         paint(summary + (summaryHints.length ? ' · ' : '')), ...summaryHints,
     ]);
 
-    const draft = e.review?.result.draft ?? e.draft;
+    const draft = e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
     const previewTitle = e.review
         ? tr('review.preview', { scope: tr('review.sections.' + e.review.previewScope) })
         : tr('ui.drawing.preview_sample_data') + (draft.display.use_colors
             ? tr('ui.drawing.palette') + draft.display.palette : tr('ui.drawing.colors_off'));
     canvas.panel(size.preview, previewTitle);
-    const subagents = e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
+    const subagents = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
     const sample = state.preview ? subagents ? state.preview.subagents : state.preview.main : [];
     const capacity = size.preview.innerHeight;
     const overflow = sample.length > capacity;

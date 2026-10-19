@@ -2,6 +2,8 @@
 
 [English](architecture.md) | **简体中文**
 
+共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](configuration-experience.zh-CN.md)。
+
 当前计时证据、精确重放去重及缓存兼容见[迁移后修复](post-migration-fixes.zh-CN.md)。
 
 当前生产包使用 TypeScript，保留已有 CLI、配置格式及存储位置；纯规则、平台副作用、应用服务和终端界面分层。Python 参考冻结在 `archive/python`，下方 Python 专属章节保留历史架构说明。

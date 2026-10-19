@@ -3,6 +3,10 @@
 **English** | [简体中文](RELEASING.zh-CN.md)
 
 
+## v3.2.0 configuration experience delivery
+
+Use the [v3.2.0-only decision](releases/approvals/v3.2.0.json) with unchanged functional gates. Require full final-PR, merge and annotated-tag CI: eight installations, 32 Node runtime cases and thirteen fixed hosts. Verify independent builds, a source rebuild, installed extended six-language PTYs, four draft attachments, OIDC npm publication and public downloads. Record identities and acceptance in [configuration experience](development/configuration-experience.md). The six historical gaps remain unverified; no new failure is waived.
+
 ## v3.1.4 performance follow-up
 
 Use the [v3.1.4-only decision](releases/approvals/v3.1.4.json) and unchanged

@@ -1,3 +1,4 @@
+import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { randomUUID } from 'node:crypto';
 import type { Draft, Scope } from '@fbincon/statusline-core/contracts/ui';
 import { DEFAULT_HOST } from '@fbincon/statusline-core/config/draft';
@@ -103,7 +104,7 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
             payload.path = args.path;
         if (action === 'export')
             payload.overwrite = Boolean(flags.overwrite);
-        const transformed = protocol.dispatch({ protocol_version: 12, operation: action, payload }) as {
+        const transformed = protocol.dispatch({ protocol_version: PROTOCOL_VERSION, operation: action, payload }) as {
             draft: Draft;
             path: string;
         };

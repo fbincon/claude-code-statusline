@@ -2,7 +2,7 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
-Protocol v12 is the internal interface for the bundled/source native frontend. Display persistence uses schema v8, including in-memory v1–v7 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
+Protocol v13 is the internal interface for the bundled/source native frontend. Display persistence uses schema v8, including in-memory v1–v7 migration; it evolves independently from the protocol. Use frontend and backend resources from the same package version.
 
 ## Catalog
 
@@ -24,10 +24,10 @@ current session. `config list-items --json` exposes the same additive metadata.
 Run `claude-statusline ui --config-dir PATH` (Windows: `claude-statusline.exe`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":12,"operation":"read","payload":{}}
+{"protocol_version":13,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":12,"result":{...}}`; failure is `{"protocol_version":12,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":13,"result":{...}}`; failure is `{"protocol_version":13,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ v1.3.0 retains JSON protocol v1 and the display schema. External curses and Clie
 
 ## Structured formatting
 
-Protocol v12 returns complete schema-v8 drafts. `formatting` contains shared choices and thresholds, each `instances` entry owns its scoped options, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v8 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
+Protocol v13 returns complete schema-v8 drafts. `formatting` contains shared choices and thresholds, each `instances` entry owns its scoped options, label/icon, priority and maximum width, and `layout` contains auto/explicit rows. Subagent drafts include visibility, completed hiding, row limit and task width. `describe.formatting_options` shares Python definitions with generated frontend constants. Missing v8 fields and old protocol requests are refused; reinstall matching frontend/backend resources. Complete Client/curses saves preserve the new fields under the existing revision and transaction.
 
 ## Draft transfer operations
 
@@ -102,7 +102,7 @@ previous draft. Acceptance does not reread the file or change the opening revisi
 Saving remains a separate revision-checked transaction. Interface preferences,
 independent host preferences and collection switches are outside portable files.
 No generic merge or selective field application is performed. The original `import`
-operation remains available to matching protocol clients. Protocol v12 and display
+operation remains available to matching protocol clients. Protocol v13 and display
 schema v8 evolve independently; reinstall matching frontend/backend resources.
 
 `preset`: payload `{draft,preset}` returns `{draft}` expanded by Python. `import`: payload `{draft,path}` returns a validated `{draft}` without saving; current host options supply defaults for display-only files. `export`: payload `{draft,path,overwrite}` writes a portable file and returns `{path}`. Export is an explicit file action independent of settings Save. These operations do not change installation or the opening revision; subsequent apply uses the original revision. `describe.presets` is generated from the canonical Python presets.
@@ -117,21 +117,21 @@ Native file operations are effects handled by the hooks module through Python, w
 
 ## Phase 5 metric migration
 
-Display schema v8 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v12 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4/v5 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
+Display schema v8 preserves nullable `metrics.branch_diff_base_ref`; configuration protocol v13 preserves it across both editors, conflicts, previews and portable files. V1/v2/v3/v4/v5 reads have no write effects; a real save backs up and migrates. Runtime observation protocol uses v2 and accepts v1 without execution coverage. Committed branch comparisons and frozen ended-agent durations are documented in [metric definitions](../DISPLAY_ITEMS.md).
 
 ## UI preference and message operations
 
 `read_ui_preferences` accepts `{}` and returns `schema_version:1`, `ui_language` (a registered language code) and `warning` (`null` or a localized message). Missing/invalid reads fall back to English without repairing bytes. `set_ui_language` accepts exactly `{ui_language}` with a supported code, saves under the existing lock with backup/atomic write and returns the same shape with a null warning. Future preference schemas refuse overwrite. These operations do not change display/host drafts, revisions or installation.
 
-Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v12; UI preference schema v1 and runtime protocol v2 remain independent.
+Errors retain stable `code` and English `message`; `localization` is null or `{key,params,fallback}`. Parameters can contain nested message objects as well as scalar values. Frontends validate this shape and render in their current language; external program details stay unchanged. Decisions use codes/keys instead of translated text. `describe` and existing machine-readable catalogs retain English baseline metadata. Generated contracts, strict TypeScript validation and the bundled resource inventory all use configuration protocol v13; UI preference schema v1 and runtime protocol v2 remain independent.
 
 See [translation architecture and contribution rules](i18n.md).
 
 ## Statusline language
 
-Display schema v8 includes required `statusline_language` (`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v12 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v2 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
+Display schema v8 includes required `statusline_language` (`en` / `zh-CN` / `zh-TW` / `zh-HK` / `ja` / `ko`), defaulting to English for reads/imports of v1–v5. Reads do not migrate bytes; explicit saves back up and migrate. Configuration protocol v13 requires complete current drafts and includes the language in revisions, previews and portable exports. UI preference schema v1 and runtime protocol v2 remain independent. Presets retain the language, reset restores English, and `config apply --statusline-language` is optional and preserves the current value when omitted.
 
-Protocol v12 adds an independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display v7, portable v1, interface preferences v1 and runtime v2 remain independent; no persisted display migration is needed.
+Protocol v13 adds an independent background channel. Null foreground/background restore the respective terminal or preview-surface defaults. Complete graphemes are styled and clipped as described in [rendering contracts](rendering.md). Display v7, portable v1, interface preferences v1 and runtime v2 remain independent; no persisted display migration is needed.
 
 ## Appearance contract
 
@@ -147,7 +147,7 @@ TS configuration services use the unchanged installation lock and display schema
 
 ## TypeScript backend binding during migration
 
-The private compiled ESM backend now implements every UI v12 operation, including preview spans, plus runtime v2/v1, `config`, `render`, `render-subagents`, `hook` and `slash-hook`. Schemas and stdout/stderr roles are unchanged. UI previews and dry-runs do not rewrite live configuration. Direct slash mutations use the same locked configuration service and localize the final block decision in the stored interface language.
+The private compiled ESM backend now implements every UI v13 operation, including preview spans, plus runtime v2/v1, `config`, `render`, `render-subagents`, `hook` and `slash-hook`. Schemas and stdout/stderr roles are unchanged. UI previews and dry-runs do not rewrite live configuration. Direct slash mutations use the same locked configuration service and localize the final block decision in the stored interface language.
 
 For `/statusline-configure`, the application passes `{configDir, backend: LaunchSpec, cwd}` to an injected editor launcher. Results cover updated, already-current, cancelled, interrupted, timed-out and error; recognized commands always block model expansion. Result text is bounded by Unicode characters. TS-04 selects the native terminal launcher and binds a private result lease to the parent identity, backend argv, configuration and nonce. The save guard is rechecked under the configuration lock after waiting. Tests cover real isolated PTYs, tmux popups and Windows consoles as well as injected launchers.
 
@@ -166,3 +166,12 @@ and argv binding; recovery never blindly replays recorded mutating arguments.
 The durable refresh intent preserves an explicitly disabled plugin across the
 uninstall/reinstall gap. These artifacts do not change display/UI/runtime wire
 schemas. See the [candidate recovery contract](typescript-migration/ts-04/recovery.md).
+
+
+## Configuration and sample explanation protocol
+
+`explain` accepts `{draft, scope, width}`; scope is `main` or `subagent` and width is an integer from 2 through 10000. It returns `sample:true`, scope, width, `actual_availability:"not_observed"`, the same `preview` as the preview operation, and `instances` keyed by instance ID. Each instance has its type, enablement, reasons with origins and per-sample-row outcomes. `truncated` records clipping separately; final outcomes distinguish visible, condition-hidden, priority-omitted, width-omitted, empty, hidden-agent-row and spacer. Sample outcomes are always synthetic evidence, never live observations.
+
+`reasons.origin` distinguishes draft configuration, local configuration, known host capability and unknown evidence. Unreadable ownership/runtime preferences remain unknown; normally absent runtime preferences retain their existing disabled default. `explain` takes no installation lock, creates no directories and repairs no files. It never reads transcripts, task/usage caches or Git. Existing `read` still locks its coherent snapshot and may create the lock directory; `preview` remains independent of settings and host detection.
+
+`describe.presets` adds `purpose_key`, `requirements_key` and `example`, presenting four use cases before two examples. Preset IDs and expansion semantics remain compatible. Protocol 13 requires matching frontend/backend resources; display schema 8, runtime protocol 2, portable 1 and UI preferences 1 remain independent.

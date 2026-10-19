@@ -30,13 +30,17 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
         key, t('ui.hints.' + label, state.language),
         short ? t('ui.hints.' + short, state.language) : undefined,
     ];
+    if (e.quick) return {
+        actions: [hint('Enter','accept'),hint('Backspace','back'),hint('Esc/Ctrl+G','cancel')],
+        help: [hint('↑↓','select'),hint('←→','adjust'),hint('Tab','preview'),hint('PgUp/PgDn','scroll')],
+    };
     if (e.review) {
         return {
             actions: [hint('A', 'accept_draft'), hint('Esc/Ctrl+G', 'cancel_review')],
             help: [hint('Enter', 'details'), hint('↑↓', 'section'), hint('PgUp/PgDn', 'scroll'), hint('Tab', 'preview')],
         };
     }
-    if (e.guidanceScroll !== null) {
+    if (e.guidanceScroll !== null || e.explanation) {
         return {
             actions: [hint('Ctrl+G/Esc', 'back')],
             help: [hint('↑↓', 'scroll'), hint('PgUp/PgDn', 'page'), hint('Home/End', 'scroll')],
@@ -51,13 +55,13 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
     if (state.input?.kind === 'numeric') {
         return {
             actions: [hint('Enter', 'accept'), hint('Ctrl+G/Esc', 'restore')],
-            help: [hint('Digits', 'edit'), hint('Backspace', 'delete')],
+            help: [hint('←→ Home/End', 'move_cursor'), hint('Backspace/Delete', 'delete')],
         };
     }
     if (state.input) {
         return {
             actions: [hint('Enter', 'accept'), hint('Ctrl+G/Esc', state.input.kind === 'search' ? 'cancel' : 'restore')],
-            help: [hint('Ctrl+U', 'clear'), hint('Backspace', 'delete')],
+            help: [hint('←→ Home/End', 'move_cursor'), hint('Ctrl+U', 'clear'), hint('Backspace/Delete', 'delete')],
         };
     }
     if (e.adding) {
@@ -66,7 +70,8 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
             help: [hint('↑↓', 'select'), hint('/', 'search'), hint('Ctrl+F', 'category')],
         };
     }
-    const actions = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt')];
+    const actions: Hint[] = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt')];
+    if(!e.detail) actions.push(['Ctrl+P',t('quick.title',state.language)]);
     if (e.detail) {
         return { actions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
     }
@@ -86,9 +91,11 @@ export function notice(state: State, width: number): Paint[] {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
     const message = renderMessage(state.localized.message ?? state.message, state.language);
+    if (e.quick) return [paint(t('quick.sample',state.language))];
     if (message) return [paint(message, true)];
     if (e.review) return [paint(tr('review.intro'))];
     if (state.input?.kind === 'category') return [paint(tr('catalog.search.choose_category'))];
+    if (state.input?.kind === 'search') return [paint(state.inputDisplay(width))];
     if (e.detail) {
         const prefix = tr('ui.drawing.item_format');
         return [paint(prefix), ...shortcuts([['Ctrl+G', tr('ui.hints.back')]], width - displayWidth(prefix))];
@@ -99,6 +106,5 @@ export function notice(state: State, width: number): Paint[] {
         return [paint(prefix), ...shortcuts([['Enter', tr('ui.hints.edits_new_fields'), tr('ui.hints.edit')]], width - displayWidth(prefix))];
     }
     return [paint('Ctrl+F', true), paint(' ' + tr('catalog.categories.' + e.category[state.scope]) + ' · '),
-        paint('/', true), paint(' ' + tr('ui.drawing.type_to_search') + e.search[state.scope] +
-            (state.input?.kind === 'search' ? ' _' : ''))];
+        paint('/', true), paint(' ' + tr('ui.drawing.type_to_search') + e.search[state.scope])];
 }

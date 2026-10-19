@@ -1,7 +1,9 @@
+import type { FitObserver } from './trace.js';
 import type { DisplayDraft } from '../contracts/ui.js';
 import * as styles from './styles.js';
 import * as layout from './layout.js';
 export interface Block {
+    id?: string;
     text: string;
     priority?: number;
     prefer_slash_breaks?: boolean;
@@ -32,7 +34,7 @@ export function row(blocks: readonly Block[], config: DisplayDraft, padding = 1,
         result.push(separator(blocks.at(-1)!.text, '', config));
     return layout.ensureReset(result.join(''), config.use_colors ? styles.RESET : '');
 }
-export function fit(values: readonly Block[], columns: number, config: DisplayDraft): string {
+export function fit(values: readonly Block[], columns: number, config: DisplayDraft, observe?: FitObserver): string {
     const blocks = [...values];
     if (!blocks.length || columns < 1)
         return '';
@@ -46,10 +48,13 @@ export function fit(values: readonly Block[], columns: number, config: DisplayDr
         for (let i = 1; i < blocks.length; i++)
             if ((blocks[i]!.priority ?? 50) <= (blocks[victim]!.priority ?? 50))
                 victim = i;
+        if (blocks[victim]!.id) observe?.(blocks[victim]!.id!,'sample_priority_omitted');
         blocks.splice(victim, 1);
     }
-    if (width(blocks, padding, cap) > columns)
+    if (width(blocks, padding, cap) > columns) {
+        if (blocks[0]!.id) observe?.(blocks[0]!.id!,'sample_truncated');
         blocks[0] = { ...blocks[0]!, text: layout.truncateStyled(blocks[0]!.text, columns) };
+    }
     return row(blocks, config, padding, cap);
 }
 export function wrap(blocks: readonly Block[], columns: number, config: DisplayDraft): string[] {

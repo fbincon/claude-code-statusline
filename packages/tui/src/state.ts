@@ -1,14 +1,17 @@
+import { graphemes } from '@fbincon/statusline-core/unicode/index';
+import { openExplanation, explanationKey } from '@fbincon/statusline-core/editor/explanation';
+import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
+import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
 import { Editor, copyDraft, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
 import { navigateReview } from '@fbincon/statusline-core/editor/import-review';
-import { graphemes } from '@fbincon/statusline-core/unicode/index';
 import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/statusline-core/contracts/ui';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
-export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | null;
-type Input = {
+export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | null;
+type Input = ({
     kind: 'search';
     original: string;
     selected: string;
@@ -25,15 +28,15 @@ type Input = {
     field: 'padding' | 'refresh_interval';
     before: number | 'event';
     buffer: string;
-};
+}) & { edit?: TextInput };
 export interface Row extends SettingRow {
     kind: 'legacy' | 'action' | 'choice' | 'integer' | 'text' | 'boolean';
     form?: FormRow;
 }
-const pages = ['main', 'subagents', 'settings', 'layout'] as const;
-const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Interface'];
 const backspace = (value: string) => graphemes(value).slice(0, -1).join('');
 const printable = (key: Key) => !key.ctrl && !key.meta && [...key.key].length === 1 && !/[\p{Cc}\p{Cs}]/u.test(key.key);
+const pages = ['main', 'subagents', 'settings', 'layout'] as const;
+const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Interface'];
 /** External-editor navigation and drafts. All persistence is supplied by Session. */
 export class State {
     editor: Editor;
@@ -70,7 +73,7 @@ export class State {
         const fields = (e.adding && e.detail ? [] : formRows(this)).map(form => ({ ...form, key: form.key === 'layout.mode' ? 'layout-mode' : form.key, form, kind: form.spec.kind }));
         const row = (key: string, label: string, value: string, group: string, kind: Row['kind'] = 'legacy'): Row => ({ key, label, value, group, kind, editable: true });
         if (e.detail)
-            return [row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'), ...fields];
+            return [...(!e.adding ? [row('item-explain','Configuration and sample explanation','','Item format','action')] : []), row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'), ...fields];
         if (e.page === 'layout')
             return fields;
         const result: Row[] = [
@@ -81,7 +84,7 @@ export class State {
             row('scope-labels', 'Scope labels', d.scope_labels, 'Appearance'), row('custom-subagent-rows', 'Custom subagent rows', d.subagents.enabled ? 'on' : 'off', 'Refresh / behavior'),
             ...fields,
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
-            ...['preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
+            ...['quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
             row('ui-language', 'Interface language (saved immediately)', LANGUAGE_NAMES[this.language], 'Interface', 'choice'),
         ];
         return result.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group));
@@ -104,7 +107,17 @@ export class State {
                 this.scroll[slot] = index - height + 1;
         }
     }
-    search(value: string): void { this.editor.filter(this.scope, [...value].slice(0, 256).join('')); }
+    search(value: string): void {
+        if ([...value].length > 256) { this.notice(text('input.limit', {limit:256})); return; }
+        this.editor.filter(this.scope, value);
+    }
+    inputDisplay(width: number): string {
+        const input = this.input;
+        if (!input || input.kind === 'category') return '';
+        const value = input.kind === 'search' ? this.editor.search[this.scope] : input.buffer;
+        if (input.edit?.value !== value) input.edit = textInput(value);
+        return inputView(input.edit, width);
+    }
     adjust(delta: -1 | 1): Effect {
         const e = this.editor, row = this.selectedRow(), d = e.draft.display;
         if (row.form) {
@@ -171,14 +184,20 @@ export class State {
             this.notice(e.fieldErrorMessages[field] ?? e.fieldErrors[field] ?? '');
     }
     key(event: Key, columns = 80, rows = 24): Effect {
-        const e = this.editor, k = event.key, ctrl = event.ctrl === true, cancel = k === 'escape' || (ctrl && k === 'g');
+        const e = this.editor, k = event.key, ctrl = event.ctrl === true, cancel = !event.paste && !event.text && (k === 'escape' || (ctrl && k === 'g'));
         const size = dimensions(columns, rows), height = size.listHeight;
         if (ctrl && k === 'c')
             return 'interrupt';
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
-        if (event.paste && !this.input && this.form)
+        if (event.overflow) { this.notice(text('input.overflow')); return null; }
+        if (event.paste && (!this.input || this.input.kind === 'category')) return null;
+        if (e.explanation) { if(!explanationKey(e.explanation,cancel?'cancel':ctrl||event.meta?'':k,height)) e.explanation=null; return null; }
+        if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
+        if (ctrl && k.toLowerCase() === 'p' && !this.input && !e.detail && !e.adding && !e.review && !e.explanation) {
+            if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); }
             return null;
+        }
         if (e.review) {
             if (cancel || (!ctrl && k.toLowerCase() === 'q')) {
                 e.review = null;
@@ -235,50 +254,32 @@ export class State {
                 else if (['up', 'left', 'down', 'right', 'home', 'pageup', 'end', 'pagedown'].includes(k))
                     input.selected = categories[k === 'home' || k === 'pageup' ? 0 : k === 'end' || k === 'pagedown' ? categories.length - 1 : Math.max(0, Math.min(categories.length - 1, index + (k === 'up' || k === 'left' ? -1 : 1)))]!;
             }
-            else if (input.kind === 'search') {
-                if (k === 'return')
-                    this.input = null;
-                else if (ctrl && k === 'u')
-                    this.search('');
-                else if (k === 'backspace')
-                    this.search(backspace(e.search[this.scope]));
-                else if (printable(event))
-                    this.search(e.search[this.scope] + k);
-            }
-            else if (input.kind === 'numeric') {
-                if (k === 'return' && e.acceptNumeric(input.field)) {
-                    this.input = null;
-                    this.notice('');
-                }
-                else if (k === 'backspace')
-                    this.numeric(input.field, input.buffer.slice(0, -1));
-                else if (!ctrl && /^\d$/u.test(k) && input.buffer.length < 32)
-                    this.numeric(input.field, input.buffer + k);
-            }
             else {
-                if (ctrl && k === 'u')
-                    input.buffer = '';
-                else if (k === 'backspace' || k === 'delete')
-                    input.buffer = backspace(input.buffer);
-                else if (k === 'return') {
-                    if (input.kind === 'path') {
-                        if (!input.buffer.trim()) {
-                            this.notice(text('native.lib.client.keys.enter_a_file_path'));
-                            return null;
-                        }
-                        e.path = input.buffer;
-                        e.pendingTransfer = input.key === 'import-file' ? 'import' : 'export';
-                        this.input = null;
-                        return 'transfer';
+                if (!event.paste && !event.text && k === 'return') {
+                    if (input.kind === 'search') this.input = null;
+                    else if (input.kind === 'numeric') {
+                        if (e.acceptNumeric(input.field)) { this.input = null; this.notice(''); }
+                    } else if (input.kind === 'path') {
+                        if (!input.buffer.trim()) { this.notice(text('native.lib.client.keys.enter_a_file_path')); return null; }
+                        e.path = input.buffer; e.pendingTransfer = input.key === 'import-file' ? 'import' : 'export';
+                        this.input = null; return 'transfer';
+                    } else {
+                        const field = this.rows().find(row => row.key === input.key)?.form;
+                        if (field && setFormValue(this, field, input.buffer)) { this.input = null; this.notice(''); }
                     }
-                    const field = this.rows().find(row => row.key === input.key)?.form;
-                    if (field && setFormValue(this, field, input.buffer)) {
-                        this.input = null;
+                } else {
+                    const value = input.kind === 'search' ? e.search[this.scope] : input.buffer;
+                    const limit = input.kind === 'path' ? 4096 : input.kind === 'numeric' ? 32 : 256;
+                    const result = inputKey(value, input.edit, event, limit);
+                    input.edit = result.state;
+                    if (result.error) this.notice(text('input.' + result.error, {limit}));
+                    else {
                         this.notice('');
+                        if (input.kind === 'search') this.search(result.state.value);
+                        else if (input.kind === 'numeric') this.numeric(input.field, result.state.value);
+                        else input.buffer = result.state.value;
                     }
                 }
-                else if (printable(event) && [...input.buffer].length < 4096)
-                    input.buffer += k;
             }
             this.ensureVisible(height);
             return null;
@@ -333,7 +334,9 @@ export class State {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';
             const row = this.selectedRow();
-            if (row.key === 'item-guidance')
+            if (row.key === 'quick-setup') { if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); } }
+            else if (row.key === 'item-explain' && e.detail) { e.explanation=openExplanation(e.detail.scope,e.detail.id); return 'explain'; }
+            else if (row.key === 'item-guidance')
                 e.guidanceScroll = 0;
             else if (row.key === 'preset-apply') {
                 e.pendingTransfer = 'preset';

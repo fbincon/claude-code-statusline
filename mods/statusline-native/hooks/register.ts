@@ -1,3 +1,4 @@
+import { receivePreset } from '../lib/editor/quick-setup.ts';
 import type {
   Register,
   EngineInterface,
@@ -343,14 +344,14 @@ async function transferDraft($: EngineInterface, state: Session, options: Plugin
       return;
     }
     if (!e.acceptNumeric()) { setMessage(state.view, "message", localizedText("native.hooks.register.correct_numeric_fields_first")); return; }
-    const payload = action === 'preset' ? { draft: copyDraft(e.draft), preset: e.preset } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
+    const payload = action === 'preset' ? { draft: copyDraft(e.quick?.base ?? e.draft), preset: e.preset } : { draft: copyDraft(e.draft), path: e.path, overwrite: false };
     if (action === 'export') {
       const result = await callBackend($, options, action, payload);
       if (state.epoch === epoch) setMessage(state.view, "message", localizedText("native.hooks.register.exported_current_draft_may_be_unsaved", {path: result.path}));
     } else {
       const result = await callBackend($, options, action, payload);
       if (state.epoch === epoch) {
-        e.replaceDraft(result.draft);
+        if (e.quick) receivePreset(e.quick,result.draft); else e.replaceDraft(result.draft);
         setMessage(state.view, "message", localizedText("native.hooks.register.draft_replaced_review_preview_and_save_or_discard"));
         state.previewKey = '';
       }
@@ -604,7 +605,7 @@ export const register: Register = (on, options) => {
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);
         else if (effect === 'retry') state.previewKey = '';
-        else if (effect === 'reviewPreview') {
+        else if (effect === 'reviewPreview' || effect === 'explain') {
           state.previewTimer?.cancel();
           state.previewKey = '';
           state.view.preview = null;
@@ -670,9 +671,10 @@ export const register: Register = (on, options) => {
     state.columns = width;
     state.rows = height;
     const editor = state.view.editor;
-    const previewDraft = editor?.review?.result.draft ?? editor?.draft;
+    const previewDraft = editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
     const previewColumns = contentColumns(width, height);
-    const key = `${state.epoch}:${previewColumns}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
+    const explanation=editor?.explanation;
+    const key = `${state.epoch}:${previewColumns}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
     if (
       editor &&
       width >= MIN_COLUMNS &&
@@ -687,16 +689,17 @@ export const register: Register = (on, options) => {
       state.view.previewBusy = true;
       state.previewTimer = $.clock.after(0, async () => {
         try {
-          const preview = await callBackend($, options, 'preview', {
-            draft,
-            width: previewColumns,
-          });
+          const explained=explanation ? await callBackend($,options,'explain',{draft,scope:explanation.scope,width:previewColumns}) : null;
+          if(explained && (explained.scope!==explanation!.scope || explained.width!==previewColumns)) throw new Error('Explanation response does not match the request');
+          const preview=explained?.preview ?? await callBackend($, options, 'preview', {draft,width:previewColumns});
           if (state.epoch === requestedEpoch && state.previewKey === key) {
+            if(explanation && explained) { explanation.result=explained;explanation.error=''; }
             state.view.preview = preview;
             state.view.previewError = '';
           }
         } catch (failure) {
           if (state.epoch === requestedEpoch && state.previewKey === key) {
+            if(explanation) explanation.error=failureMessage(failure).fallback;
             state.view.preview = null;
             setMessage(state.view, "previewError", failureMessage(failure));
           }

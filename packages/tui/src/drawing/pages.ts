@@ -1,3 +1,5 @@
+import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
+import { quickView } from '@fbincon/statusline-core/editor/quick-setup';
 /** Page content, using one bounded canvas and shared terminal geometry. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { guidanceLines } from '@fbincon/statusline-core/editor/guidance';
@@ -16,6 +18,16 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
 
+    if(e.explanation) {
+        const lines=explanationLines(e,state.language,width), count=Math.max(1,panel.innerHeight-1);
+        const start=Math.min(e.explanation.scroll,Math.max(0,lines.length-count));e.explanation.scroll=start;
+        lines.slice(start,start+count).forEach((text,index)=>canvas.content(panel,index,[paint(text)]));
+        return `${start+1}–${Math.min(lines.length,start+count)}/${lines.length}`;
+    }
+    if (e.quick) {
+        quickView(e.quick,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        return tr('quick.steps');
+    }
     if (e.review || e.guidanceScroll !== null) {
         const review = e.review;
         const capacity = Math.max(1, panel.innerHeight - 1);
@@ -65,7 +77,8 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
             const row = values[entry.index]!;
             const selected = row.key === e.setting;
             const prefix = (selected ? '› ' : '  ') + column(fieldLabel(row, state) + ':', labelWidth) + '  ';
-            const value = fieldValue(row, state);
+            const isInput = state.input && (state.input.kind === 'numeric' ? state.input.field === row.key : (state.input.kind === 'field' || state.input.kind === 'path') && state.input.key === row.key);
+            const value = isInput ? state.inputDisplay(Math.max(1, width - displayWidth(prefix))) : fieldValue(row, state);
             const editing = state.input && (state.input.kind === 'field' || state.input.kind === 'path') && state.input.key === row.key;
             const spans = row.kind === 'action' && !editing
                 ? [paint(prefix, false, selected), paint('Enter', true, selected), paint(' ' + value, false, selected)]

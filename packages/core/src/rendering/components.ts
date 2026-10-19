@@ -1,3 +1,4 @@
+import type { FitObserver } from './trace.js';
 import type { DisplayDraft, InstanceDraft, Scope } from '../contracts/ui.js';
 import * as layout from './layout.js';
 import * as appearance from './appearance.js';
@@ -10,7 +11,7 @@ export interface Cell<T = unknown> {
     spacer?: boolean;
     payload?: T;
 }
-export function literal(node: InstanceDraft, config: DisplayDraft, scope: Scope = 'main'): string {
+export function literal(node: InstanceDraft, config: DisplayDraft, scope: Scope = 'main', truncated?: () => void): string {
     let text = node.text || '';
     if (!text)
         return '';
@@ -21,11 +22,13 @@ export function literal(node: InstanceDraft, config: DisplayDraft, scope: Scope 
         text = options.label + ' ' + text;
     if (config.use_colors)
         text = appearance.apply(text, config, 'text', options, scope);
-    if (options.max_width !== null)
+    if (options.max_width !== null) {
+        if (layout.displayWidth(text) > options.max_width) truncated?.();
         text = layout.truncateStyled(text, options.max_width);
+    }
     return text;
 }
-export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: DisplayDraft, join: (side: Cell<T>[]) => string, measure: (text: string) => number = layout.displayWidth): string {
+export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: DisplayDraft, join: (side: Cell<T>[]) => string, measure: (text: string) => number = layout.displayWidth, observe?: FitObserver): string {
     if (columns < 1)
         return '';
     const divider = cells.findIndex(cell => cell.spacer), left = (divider < 0 ? cells : cells.slice(0, divider)).filter(cell => cell.text), right = divider < 0 ? [] : cells.slice(divider + 1).filter(cell => cell.text);
@@ -45,10 +48,12 @@ export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: Di
             if (ordered[i]!.cell.priority <= ordered[victim]!.cell.priority)
                 victim = i;
         const row = ordered[victim]!;
+        observe?.(row.cell.id,'sample_priority_omitted');
         row.side.splice(row.index, 1);
     }
     if (occupied() > columns) {
         const side = left.length ? left : right;
+        observe?.(side[0]!.id,'sample_truncated');
         side[0] = { ...side[0]!, text: layout.truncateStyled(side[0]!.text, columns) };
     }
     const a = text(left), b = text(right), gap = divider < 0 ? 0 : Math.max(0, columns - measure(a) - measure(b)), reset = config.use_colors ? styles.RESET : '';

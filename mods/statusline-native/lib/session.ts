@@ -1,3 +1,4 @@
+import type { TextInput } from './editor/text-input.ts';
 import { Editor } from './editor/draft.ts';
 import type { Scope, PreviewResult } from './generated-contracts.ts';
 import type { Preference } from './preferences.ts';
@@ -5,13 +6,13 @@ import type { PreviewBackground } from './preview-preferences.ts';
 import type { Language, LocalizedText } from './i18n/index.ts';
 import type { MessageSlot } from './i18n/messages.ts';
 
-export type InputMode =
+export type InputMode = (
   | { kind: 'search'; scope: Scope; original: string; selected: string }
   | { kind: 'category'; scope: Scope; selected: string }
-  | { kind: 'field'; key: string; buffer: string }
+  | { kind: 'field'; key: string; buffer: string; original?: string }
   | { kind: 'path'; action: 'import' | 'export'; buffer: string }
   | { kind: 'numeric'; field: 'padding' | 'refresh_interval' }
-  | null;
+) & { edit?: TextInput } | null;
 
 export interface View {
   language?: Language;
@@ -41,6 +42,8 @@ type EditorData = Pick<
   | 'pickerSaved'
   | 'detail'
   | 'guidanceScroll'
+  | 'explanation'
+  | 'quick'
   | 'review'
   | 'preset'
   | 'path'
@@ -95,7 +98,7 @@ export function clientProps(
               pickerSaved: e.pickerSaved,
               detail: e.detail, preset: e.preset, path: e.path, pendingTransfer: e.pendingTransfer,
               guidanceScroll: e.guidanceScroll,
-              review: e.review,
+              review: e.review, quick: e.quick, explanation:e.explanation,
               setting: e.setting,
               activeNumeric: e.activeNumeric,
               selected: e.selected,

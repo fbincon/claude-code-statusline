@@ -4,4 +4,6 @@ export interface Key {
     shift?: boolean;
     meta?: boolean;
     paste?: boolean;
+    text?: boolean;
+    overflow?: boolean;
 }

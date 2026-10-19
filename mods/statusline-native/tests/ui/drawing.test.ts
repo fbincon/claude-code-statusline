@@ -102,6 +102,8 @@ test('static guidance scrolls and returns to the item form without applying chan
     handleKey(state, {key:'e', ctrl:true}, columns!, rows!);
     expect(e.setting).toBe('item:label');
     handleKey(state, {key:'home'}, columns!, rows!);
+    expect(e.setting).toBe('item-explain');
+    handleKey(state, {key:'down'}, columns!, rows!);
     expect(e.setting).toBe('item-guidance');
     handleKey(state, {key:'return'}, columns!, rows!);
     expect(e.guidanceScroll).toBe(0);
@@ -170,9 +172,9 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     else e.page = page as typeof e.page;
     const groups = editorShortcuts(state);
     const expected = page === 'main' || page === 'subagents'
-      ? ['Tab', 'A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
-      : page === 'settings' ? ['Tab', '↑↓', '←→', 'Enter', 'H', 'R']
-      : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', '↑↓', '←→', 'Enter'];
+      ? ['Tab', 'Ctrl+P', 'A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
+      : page === 'settings' ? ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter', 'H', 'R']
+      : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter'];
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);
     expect(groups.flat().every((hint) => hint.label === hint.label.toLowerCase())).toBe(true);
     const tree = draw(elements, state, 120, 30) as unknown as Node;
@@ -197,7 +199,7 @@ test('preferences, search, input, busy and uncertain states advertise their avai
   expect(editorShortcuts(state).flat().find((hint) => hint.key === 'H')!.label).toBe('show preferences');
   expect(editorShortcuts(state).flat().some((hint) => hint.key === 'A')).toBe(false);
   e.advanced = true;
-  expect(editorShortcuts(state)[1]!.map((hint) => hint.key)).toEqual(['Tab', '↑↓', '←→', 'Enter', 'H', 'A', 'R']);
+  expect(editorShortcuts(state)[1]!.map((hint) => hint.key)).toEqual(['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter', 'H', 'A', 'R']);
   expect(editorShortcuts(state).flat().find((hint) => hint.key === 'H')!.label).toBe('hide preferences');
   for (const page of ['main', 'subagents', 'layout']) {
     e.page = page as typeof e.page;
@@ -207,7 +209,7 @@ test('preferences, search, input, busy and uncertain states advertise their avai
   }
   e.page = 'main';
   state.input = { kind: 'search', scope: 'main', original: '', selected: e.selected.main };
-  expect(editorShortcuts(state).flat().map((hint) => hint.key)).toEqual(['Enter', 'Ctrl+G', 'Ctrl+U', 'Backspace', 'Esc']);
+  expect(editorShortcuts(state).flat().map((hint) => hint.key)).toEqual(['Enter', 'Ctrl+G', 'Ctrl+U', 'Backspace/Delete', '←→ Home/End', 'Esc']);
   const tree = draw(elements, state, 120, 30) as unknown as Node;
   expect(text(tree.children[3]!)).toContain('/ search');
   expect(text(tree.children[5]!)).not.toContain('/ search');
@@ -317,4 +319,15 @@ test('copied instance detail uses the type description in every interface langua
     expect(body).toContain(t('items.main.model-with-effort.description', language));
     expect(body).not.toContain('items.main.i-');
   }
+});
+
+
+test('opening a native field stays clean until text changes and cancellation restores the clean marker', () => {
+  const state=view();
+  handleKey(state,{key:'e',ctrl:true},80,24);handleKey(state,{key:'return'},80,24);
+  expect(text(draw(elements,state,80,24) as unknown as Node)).not.toContain('Configure Status Line *');
+  handleKey(state,{key:'字'},80,24);
+  expect(text(draw(elements,state,80,24) as unknown as Node)).toContain('Configure Status Line *');
+  handleKey(state,{key:'g',ctrl:true},80,24);
+  expect(text(draw(elements,state,80,24) as unknown as Node)).not.toContain('Configure Status Line *');
 });

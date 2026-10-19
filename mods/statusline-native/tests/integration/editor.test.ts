@@ -19,7 +19,7 @@ const REGION = 'statusline-client';
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 12,
+      protocol_version: 13,
       error: { code, message: 'Test save refused.' },
     }),
     2,
@@ -31,7 +31,7 @@ test('search and categories use local state without preview processes or writes'
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
   const count = fixture.calls.length;
-  await keys(ui, '/git', 'return', {key:'f', ctrl:true}, 'end', 'return', 'left');
+  await keys(ui, '/', 'git', 'return', {key:'f', ctrl:true}, 'end', 'return', 'left');
   expect(fixture.calls.length).toBe(count);
   expect(fixture.configCalls).toEqual([]);
   await keys(ui, 'q');
@@ -152,7 +152,7 @@ test('search reserves ordinary shortcuts; Ctrl+G restores filter and numeric edi
   });
   await ui.redraw();
   expect(
-    await ui.find({ in: REGION, type: 'Text', text: '9 _' }),
+    await ui.find({ in: REGION, type: 'Text', text: '9▏' }),
   ).toBeDefined();
   await keys(ui, { key: 'g', ctrl: true }, 's');
   expect(fixture.store.draft.host.padding).toBe(0);
@@ -507,7 +507,7 @@ test('a fast printable terminal chunk enters search and retains all characters',
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  await keys(ui, '/git');
+  await keys(ui, '/', 'git');
   expect(
     await ui.find({ in: REGION, type: 'Text', text: 'Filter: git' }),
   ).toBeDefined();

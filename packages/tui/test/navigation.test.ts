@@ -88,7 +88,7 @@ test('form paging counts fields in Layout and item details while list paging cou
     state.key({ key: 'pagedown' }, 64, 18);
     assert.equal(e.setting, state.rows()[5]!.key); // One heading and five fields.
     state.key({ key: 'pageup' }, 64, 18);
-    assert.equal(e.setting, 'item-guidance');
+    assert.equal(e.setting, 'item-explain');
     state.key({ key: 'g', ctrl: true }, 64, 18);
     state.key({ key: 'home' }, 64, 18);
     state.key({ key: 'pagedown' }, 64, 18);

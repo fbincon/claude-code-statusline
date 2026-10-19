@@ -1,3 +1,4 @@
+import type { FitObserver } from './trace.js';
 import type { DisplayDraft, InstanceDraft } from '../contracts/ui.js';
 import { int, numeric, object, own, type Data } from '../runtime/values.js';
 import { divideIntegers } from '../numbers.js';
@@ -32,19 +33,21 @@ interface Prepared {
     options: Map<string, ReturnType<typeof preferences.optionsFor>>;
     enabled: InstanceDraft[];
     literals: Map<InstanceDraft, string>;
+    literalTruncated?: Set<InstanceDraft>;
     legacyFitting: boolean;
     measure: (text: string) => number;
 }
-function prepare(config: DisplayDraft): Prepared {
+function prepare(config: DisplayDraft, tracing = false): Prepared {
     const nodes = new Map<string, InstanceDraft>(), options = new Map<string, ReturnType<typeof preferences.optionsFor>>();
     const enabled = config.subagents.enabled ? config.subagents.instances.filter(node => node.enabled) : [];
+    const literalTruncated = tracing ? new Set<InstanceDraft>() : undefined;
     const literals = new Map<InstanceDraft, string>(), widths = new Map<string, number>();
     for (const node of config.subagents.instances) {
         nodes.set(node.id, node);
         if (!options.has(node.id)) options.set(node.id, [{ ...config.formatting, ...node.options.formatting }, node.options]);
     }
-    for (const node of enabled) if (node.type_id === 'text') literals.set(node, literal(node, config, 'subagent'));
-    return { palette: paletteFor(config), nodes, options, enabled, literals,
+    for (const node of enabled) if (node.type_id === 'text') literals.set(node, literal(node, config, 'subagent', literalTruncated ? () => literalTruncated.add(node) : undefined));
+    return { palette: paletteFor(config), nodes, options, enabled, literals, literalTruncated,
         legacyFitting: preferences.legacyFitting(config.subagents.instances.map(node => node.options)),
         measure(text) {
             let width = widths.get(text);
@@ -109,11 +112,14 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
     for (const node of prepared.enabled) {
         const item = node.type_id;
         if (item === 'spacer') {
+            env.trace?.mark('subagent',node.id,'sample_spacer');
             result.push({ item: node.id, text: '', style: '', used: null, type: item });
             continue;
         }
         if (item === 'text') {
             const value = prepared.literals.get(node)!;
+            if(value) env.trace?.mark('subagent',node.id,'sample_visible');
+            if(prepared.literalTruncated?.has(node)) env.trace?.mark('subagent',node.id,'sample_truncated');
             if (value) result.push({ item: node.id, text: value, style: '', used: null, type: item });
             continue;
         }
@@ -153,15 +159,19 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
         let risk: number | null = null;
         if (options.visibility !== 'always') {
             risk = visibility.usedPercentage(task, item, 0, 'subagent');
-            if (!visibility.visible(options, item, risk))
-                continue;
+            if (!visibility.visible(options, item, risk)) {
+                env.trace?.mark('subagent',node.id,'sample_condition_hidden'); continue;
+            }
         }
         value = preferences.decorate(value, item, 'subagent', fmt, options, language);
         let maximum = options.max_width;
         if (item === 'task' && config.subagents.task_max_width !== null)
             maximum = maximum ? Math.min(maximum, config.subagents.task_max_width) : config.subagents.task_max_width;
-        if (maximum !== null)
+        if (maximum !== null) {
+            if(prepared.measure(value)>maximum) env.trace?.mark('subagent',node.id,'sample_truncated');
             value = formatters.truncateText(value, maximum);
+        }
+        if(value) env.trace?.mark('subagent',node.id,'sample_visible');
         if (item === 'context-used' || item === 'context-remaining') {
             const count = metrics.tokenCount(task.tokenCount), capacity = metrics.tokenCount(task.contextWindowSize);
             risk = count !== null && capacity ? divideIntegers(count, capacity) * 100 : null;
@@ -174,11 +184,11 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
     return result;
 }
 function plain(parts: readonly Part[]): string { return parts.map((part, i) => (i ? parts[i - 1]!.item === 'status' && part.item === 'name' ? ' ' : ' · ' : '') + part.text).join(''); }
-function fit(parts: Part[], columns: number, measure: Prepared['measure']): Part[] {
+function fit(parts: Part[], columns: number, measure: Prepared['measure'], observe?: FitObserver): Part[] {
     let measured: number | undefined;
-    const width = () => measured ??= measure(plain(parts)), remove = (item: string) => { parts = parts.filter(part => part.item !== item); measured = undefined; };
+    const width = () => measured ??= measure(plain(parts)), remove = (item: string) => { if(parts.some(p=>p.item===item)) observe?.(item,'sample_width_omitted'); parts = parts.filter(part => part.item !== item); measured = undefined; };
     const shorten = (item: string) => { const part = parts.find(p => p.item === item); if (!part)
-        return; const text = formatters.truncateText(part.text, Math.max(0, measure(part.text) - (width() - columns))); parts = text ? parts.map(p => p.item === item ? { ...p, text } : p) : parts.filter(p => p.item !== item); measured = undefined; };
+        return; const text = formatters.truncateText(part.text, Math.max(0, measure(part.text) - (width() - columns))); if(text!==part.text) observe?.(item,text?'sample_truncated':'sample_width_omitted'); parts = text ? parts.map(p => p.item === item ? { ...p, text } : p) : parts.filter(p => p.item !== item); measured = undefined; };
     if (width() <= columns)
         return parts;
     shorten('task');
@@ -199,12 +209,13 @@ function fit(parts: Part[], columns: number, measure: Prepared['measure']): Part
         remove([...parts].reverse().find(p => !['status', 'status-elapsed'].includes(p.item))?.item ?? parts.at(-1)!.item);
     if (parts.length && width() > columns) {
         const text = formatters.truncateText(parts[0]!.text, columns, '');
+        observe?.(parts[0]!.item,text?'sample_truncated':'sample_width_omitted');
         parts = text ? [{ ...parts[0]!, text }] : [];
     }
     return parts;
 }
 export function renderTask(task: Data, config: DisplayDraft, env: RenderEnvironment, columns = DEFAULT_COLUMNS, nowMs = env.now() * 1000): string {
-    return renderPrepared(task, config, env, columns, nowMs, prepare(config));
+    return renderPrepared(task, config, env, columns, nowMs, prepare(config, !!env.trace));
 }
 function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment, columns: number, nowMs: number, prepared: Prepared): string {
     if (!prepared.enabled.length) return '';
@@ -214,10 +225,10 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
         const nodes = prepared.nodes;
         const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
-        return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + cell.text).join(''), prepared.measure);
+        return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + cell.text).join(''), prepared.measure, env.trace?.fit('subagent'));
     }
     if (config.separator_style === 'powerline')
-        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), priority: options.priority }; }), columns, config);
+        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { id: part.item, text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), priority: options.priority }; }), columns, config, env.trace?.fit('subagent'));
     if (prepared.legacyFitting)
         while (parts.length > 1 && prepared.measure(plain(parts)) > columns) {
             const priority = (i: number) => prepared.options.get(parts[i]!.item)![1].priority;
@@ -225,9 +236,10 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
             for (let i = 1; i < parts.length; i++)
                 if (priority(i) <= priority(victim))
                     victim = i;
+            env.trace?.mark('subagent',parts[victim]!.item,'sample_priority_omitted');
             parts.splice(victim, 1);
         }
-    parts = fit(parts, columns, prepared.measure);
+    parts = fit(parts, columns, prepared.measure, env.trace?.fit('subagent'));
     const content = parts.map((part, i) => {
         const options = prepared.options.get(part.item)![1];
         const value = config.theme !== 'classic' || options.foreground !== null || options.background !== null ? appearance.apply(styled(part), config, part.type, options, 'subagent', part.used) : styled(part);
@@ -248,7 +260,9 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
             continue;
         const id = task.id;
         seen.add(id);
+        env.trace?.begin('subagent',id);
         const hidden = config.subagents.visibility === 'running' && task.status !== 'running' || config.subagents.hide_completed && task.status === 'completed' || config.subagents.row_limit !== null && visible >= config.subagents.row_limit;
+        if(hidden) for(const node of config.subagents.instances) if(node.enabled) env.trace?.mark('subagent',node.id,'sample_row_hidden');
         let content = '';
         try {
             if (['completed', 'failed', 'killed', 'interrupted'].includes(task.status as string) && !Object.hasOwn(task, '_frozen_duration_ms') && typeof data.session_id === 'string' && data.session_id) {
@@ -258,7 +272,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
                     task = { ...task, _frozen_duration_ms: end - start };
             }
             if (!hidden)
-                content = renderPrepared(task, config, env, columns, nowMs === undefined ? env.now() * 1000 : nowMs, prepared ??= prepare(config));
+                content = renderPrepared(task, config, env, columns, nowMs === undefined ? env.now() * 1000 : nowMs, prepared ??= prepare(config, !!env.trace));
         }
         catch { /* A malformed task must not break the remaining NDJSON records. */ }
         if (content)

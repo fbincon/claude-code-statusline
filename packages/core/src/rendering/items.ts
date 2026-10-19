@@ -279,14 +279,16 @@ export class RenderState {
             return null;
         const item = node?.type_id ?? id;
         if (item === 'text') {
-            const text = literal(node!, this.config);
+            const text = literal(node!, this.config, 'main', this.env.trace ? () => this.env.trace!.mark('main',id,'sample_truncated') : undefined);
+            if(text) this.env.trace?.mark('main',id,'sample_visible');
             return text ? { text } : null;
         }
         let used: number | null = null;
         if (options.visibility !== 'always' || fmt.thresholds.enabled) {
             used = visibility.usedPercentage(this.data, item, Object.hasOwn(RATE_LIMIT_ITEMS, item) ? this.now() : 0);
-            if (!visibility.visible(options, item, used, options.visibility === 'git-dirty' ? this.gitData() : null, options.visibility === 'nonzero' ? this.liveData()[item] : null))
-                return null;
+            if (!visibility.visible(options, item, used, options.visibility === 'git-dirty' ? this.gitData() : null, options.visibility === 'nonzero' ? this.liveData()[item] : null)) {
+                this.env.trace?.mark('main',id,'sample_condition_hidden'); return null;
+            }
         }
         const rendered = this.renderType(item);
         if (!rendered)
@@ -295,8 +297,11 @@ export class RenderState {
         text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
         if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null)
             text = appearance.apply(text, this.config, item, options, 'main', used);
-        if (options.max_width !== null)
+        if (options.max_width !== null) {
+            if(layout.displayWidth(text)>options.max_width) this.env.trace?.mark('main',id,'sample_truncated');
             text = layout.truncateStyled(text, options.max_width);
+        }
+        if(text) this.env.trace?.mark('main',id,'sample_visible');
         return { ...rendered, text };
     }
 }
@@ -330,8 +335,10 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
                 const node = nodes.get(id)!;
                 if (!node.enabled)
                     continue;
-                if (node.type_id === 'spacer')
+                if (node.type_id === 'spacer') {
+                    env.trace?.mark('main',id,'sample_spacer');
                     cells.push({ id, text: '', priority: 50, spacer: true });
+                }
                 else {
                     const item = state.render(id);
                     if (item?.text)
@@ -344,7 +351,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
                 const item = label();
                 cells.unshift({ id: 'scope', text: item.text, priority: -1, payload: item });
             }
-            const value = fitRow(cells, Math.max(2, width), config, side => coalesce(side.map(c => ({ ...c.payload!, text: c.text })), inner).map(segment => segment.text).join(outer));
+            const value = fitRow(cells, Math.max(2, width), config, side => coalesce(side.map(c => ({ ...c.payload!, text: c.text })), inner).map(segment => segment.text).join(outer), layout.displayWidth, env.trace?.fit('main'));
             if (value)
                 rows.push(value);
         }
@@ -357,13 +364,13 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
             for (const id of ids) {
                 const rendered = state.render(id);
                 if (rendered?.text)
-                    blocks.push({ ...rendered, priority: preferences.optionsFor(config, id)[1].priority });
+                    blocks.push({ ...rendered, id, priority: preferences.optionsFor(config, id)[1].priority });
             }
             if (!blocks.length)
                 continue;
             if (showScope && !rows.length)
                 blocks.unshift({ text: appearance.apply(env.language.text('scope.main'), config, '', DEFAULT_ITEM), priority: -1 });
-            rows.push(...(config.layout.mode === 'auto' ? powerline.wrap(blocks, width, config) : [powerline.fit(blocks, Math.max(2, width), config)]));
+            rows.push(...(config.layout.mode === 'auto' ? powerline.wrap(blocks, width, config) : [powerline.fit(blocks, Math.max(2, width), config, env.trace?.fit('main'))]));
         }
         return rows;
     }
@@ -392,9 +399,11 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
             for (let i = 1; i < selected.length; i++)
                 if (priority(i) <= priority(victim))
                     victim = i;
+            if(selected[victim]!.id) env.trace?.mark('main',selected[victim]!.id!,'sample_priority_omitted');
             selected.splice(victim, 1);
             text = joined();
         }
+        if(layout.displayWidth(text)>width && selected[0]?.id) env.trace?.mark('main',selected[0].id,'sample_truncated');
         rows.push(layout.ensureReset(layout.truncateStyled(text, width), palette.reset));
     }
     return rows;

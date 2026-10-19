@@ -1073,3 +1073,20 @@ Before downgrading, run `claude-statusline install --no-native-timing --no-live-
 Wrapping, truncation and editor previews keep extended grapheme clusters together, including combining accents and joined emoji. Ambiguous characters use one column; ordinary CJK and emoji clusters use two. The layout policy is fixed across supported runtimes and editors. Actual glyph appearance still depends on your terminal and fonts.
 
 On ANSI/VT-capable terminals, the external editor paints complete text runs. Older backends use a width-preserving placeholder for clusters they cannot safely draw; saved labels, icons and paths remain intact. Backspace removes a complete text cluster. Palette changes still belong to the display draft; the native light/dark preview background remains an independent UI preference.
+
+
+<a id="quick-setup-and-explanation"></a>
+
+## Quick setup, text editing and explanation
+
+In `/statusline-configure-native` or `claude-statusline configure`, press **Ctrl+P** or choose **Settings → Quick setup**. Choose a use case, appearance and sample: daily development, compact display, usage observation, multi-agent work, plus left/right and repeated-metric examples. Select with arrows and Enter; adjust appearance with Left/Right. Tab switches main/agent samples; PgUp/PgDn scrolls requirement details.
+
+**Continue editing** accepts the candidate as the current draft. **Save** uses the existing revision check, backup and transaction. Backspace returns one step; Ctrl+G cancels the flow, as does Esc in the external editor. Cancellation preserves the previously pending draft. Presets do not install integrations or enable collectors, and preserve existing agent-row disablement. Interface language saves immediately; output language saves with display settings; Claude preferences retain separate Apply.
+
+Text, search, numeric and file-path inputs support Left/Right, Home/End, insertion, Backspace and forward Delete, with horizontal scrolling. `▏` marks the caret. Grapheme deletion preserves combining sequences and complete emoji. Ctrl+U clears, Enter accepts, Ctrl+G cancels; native Esc returns focus to the host. Text/search allow 256 codepoints, paths 4096 and numeric edit buffers 32. Oversized or control-containing insertions are rejected with a message rather than truncating the original value.
+
+External bracketed paste and recognizable native multi-character text cannot execute shortcuts. The native Client single-key API has no paste-origin flag: host-split single-character paste cannot reliably be distinguished from typing. Enter a field before pasting; this release does not claim to remove that host limitation.
+
+Select a configured component, press Ctrl+E, then choose **Configuration and sample explanation**. The view separates draft enablement, known local installation/collector requirements and sample condition hiding, clipping or width omission. Repeated types resolve by instance ID; agent sample rows have separate outcomes. Actual session input is not read, so live PR, cache, task and field availability remain unknown. Preview-panel overflow is distinct from renderer omission. Scroll with arrows or PgUp/PgDn and return with Ctrl+G.
+
+Explanation does not write files, create locks, scan transcripts or start collection. Save conflicts and write failures keep the editor and draft open for inspection or cancellation; they never automatically overwrite another editor's changes.

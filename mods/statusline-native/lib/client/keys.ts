@@ -1,7 +1,9 @@
-import { graphemes } from '../unicode.ts';
+import { openExplanation, explanationKey } from '../editor/explanation.ts';
+import { openQuick, controlQuick } from '../editor/quick-setup.ts';
+import { inputKey } from '../editor/text-input.ts';
+import type { NativeKeyEvent } from './messages.ts';
 import { setMessage, failureMessage } from '../i18n/messages.ts';
 import { text as localizedText } from '../i18n/index.ts';
-import type { ClientKeyEvent } from 'claude-code';
 import type { View } from '../session.ts';
 import { settingRows, adjustSetting } from './settings.ts';
 import { formRows, setFormValue } from './forms.ts';
@@ -11,7 +13,7 @@ import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
 import { navigateReview } from '../editor/import-review.ts';
 
-export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | null;
+export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -27,10 +29,17 @@ export function cancelInput(view: View): void {
 }
 
 /** All transitions are pure; persistence remains in the host hooks module. */
-export function handleKey(view: View, event: ClientKeyEvent, columns: number, rows: number): Effect {
+export function handleKey(view: View, event: NativeKeyEvent, columns: number, rows: number): Effect {
   const e = view.editor, key = event.key === 'space' ? ' ' : event.key;
   const shortcut = /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
   if (!e || view.busy) return null;
+  if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
+  if (event.text && (!view.input || view.input.kind === 'category')) return null;
+  if(e.explanation) { if(!explanationKey(e.explanation,event.ctrl && key.toLowerCase()==='g'?'cancel':event.ctrl||event.meta?'':key,Math.max(1,rows-10))) e.explanation=null; return null; }
+  if (e.quick) return controlQuick(e,event.ctrl && key.toLowerCase()==='g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
+  if (event.ctrl && key.toLowerCase()==='p' && !view.input && !e.detail && !e.adding && !e.review && !view.uncertain) {
+    if(e.acceptNumeric()) e.quick=openQuick(e.draft); return null;
+  }
   if (event.ctrl && key.toLowerCase() === 'g') { const reviewing = !!e.review; cancelInput(view); return reviewing ? 'reviewPreview' : null; }
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
   if (e.review) {
@@ -72,8 +81,7 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     return null;
   }
   if (input?.kind === 'field' || input?.kind === 'path') {
-    if (event.ctrl && key.toLowerCase() === 'u') input.buffer = '';
-    else if (key === 'return') {
+    if (!event.text && key === 'return') {
       if (input.kind === 'path') {
         if (!input.buffer.trim()) { setMessage(view, "message", localizedText("native.lib.client.keys.enter_a_file_path")); return null; }
         e.path = input.buffer; e.pendingTransfer = input.action; view.input = null; return 'transfer';
@@ -91,22 +99,28 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
         p.result = '';
       }
       view.input = null;
-    } else if (key === 'backspace' || key === 'delete') input.buffer = graphemes(input.buffer).slice(0, -1).join('');
-    else if (!event.ctrl && !event.meta && [...key].length === 1 && [...input.buffer].length < (input.kind === 'path' ? 4096 : 256)) input.buffer += key;
+    } else {
+      const limit = input.kind === 'path' ? 4096 : 256;
+      const result = inputKey(input.buffer, input.edit, {...event,key}, limit);
+      input.edit = result.state; input.buffer = result.state.value;
+      if (result.error) setMessage(view, 'message', localizedText('input.' + result.error, {limit}));
+      else { view.message = ''; if (view.localized) delete view.localized.message; }
+    }
     return null;
   }
   if (input) {
     if (input.kind === 'search') view.message = '';
-    if (event.ctrl && key.toLowerCase() === 'u') {
-      if (input.kind === 'search') e.filter(input.scope, ''); else e.setBuffer(input.field, '');
-    } else if (key === 'return') {
+    if (!event.text && key === 'return') {
       if (input.kind === 'search' || e.acceptNumeric(input.field)) view.input = null;
-    } else if (key === 'backspace' || key === 'delete') {
-      if (input.kind === 'search') e.filter(input.scope, graphemes(e.search[input.scope]).slice(0, -1).join(''));
-      else e.setBuffer(input.field, graphemes(e.buffers[input.field]).slice(0, -1).join(''));
-    } else if (!event.ctrl && !event.meta && [...key].length === 1) {
-      if (input.kind === 'search') { if ([...e.search[input.scope]].length < 256) e.filter(input.scope, e.search[input.scope] + key); }
-      else if (e.buffers[input.field].length < 32) e.setBuffer(input.field, e.buffers[input.field] + key);
+    } else {
+      const value = input.kind === 'search' ? e.search[input.scope] : e.buffers[input.field];
+      const limit = input.kind === 'search' ? 256 : 32;
+      const result = inputKey(value, input.edit, {...event,key}, limit);
+      input.edit = result.state;
+      if (input.kind === 'search') e.filter(input.scope, result.state.value);
+      else e.setBuffer(input.field, result.state.value);
+      if (result.error) setMessage(view, 'message', localizedText('input.' + result.error, {limit}));
+      else { view.message = ''; if (view.localized) delete view.localized.message; }
     }
     return null;
   }
@@ -177,6 +191,8 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",localizedText("composition.invalid")); }
+    else if (e.setting === 'quick-setup') { if (e.acceptNumeric()) e.quick=openQuick(e.draft); }
+    else if(e.setting==='item-explain' && e.detail) { e.explanation=openExplanation(e.detail.scope,e.detail.id); return 'explain'; }
     else if (e.setting === 'item-guidance') e.guidanceScroll = 0;
     else if (e.setting === 'preset-apply') { e.pendingTransfer = 'preset'; return 'transfer'; }
     else if (e.setting === 'import-file' || e.setting === 'export-file') {
@@ -186,8 +202,8 @@ export function handleKey(view: View, event: ClientKeyEvent, columns: number, ro
     } else {
       const field = formRows(view).find((row) => row.key === e.setting);
       const p = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
-      if (field && (field.spec.kind === 'integer' || field.spec.kind === 'text')) view.input = {kind:'field',key:field.key,buffer:field.value};
-      else if (p && canEdit(p) && (p.row.kind === 'text' || p.row.kind === 'number')) view.input = {kind:'field',key:e.setting,buffer:String(p.value)};
+      if (field && (field.spec.kind === 'integer' || field.spec.kind === 'text')) view.input = {kind:'field',key:field.key,buffer:field.value,original:field.value};
+      else if (p && canEdit(p) && (p.row.kind === 'text' || p.row.kind === 'number')) view.input = {kind:'field',key:e.setting,buffer:String(p.value),original:String(p.value)};
       else adjustSetting(view, 1);
     }
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;

@@ -15,7 +15,7 @@ export interface SettingRow {
 
 export function settingRows(view: View): SettingRow[] {
   const e = view.editor!;
-  if (e.detail) return [{key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true}, ...formRows(view)];
+  if (e.detail) return [...(!e.adding ? [{key:'item-explain',label:'Configuration and sample explanation',group:'Item format',value:'Enter',editable:true}] : []), {key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true}, ...formRows(view)];
   if (e.page === 'layout') return formRows(view);
   const d = e.draft.display;
   const h = e.draft.host;
@@ -97,6 +97,7 @@ export function settingRows(view: View): SettingRow[] {
   rows.push(...fields.filter(row => row.group !== 'Appearance'));
   rows.push(
     { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
+    { key: 'quick-setup', label: 'Quick setup', group: 'Presets / portable files', value: 'Enter', editable: true },
     { key: 'preset-select', label: 'Preset', group: 'Presets / portable files', value: e.preset, editable: true },
     { key: 'preset-apply', label: 'Expand selected preset', group: 'Presets / portable files', value: 'replace draft; save later', editable: true },
     { key: 'import-file', label: 'Import file', group: 'Presets / portable files', value: 'file path; save later', editable: true },

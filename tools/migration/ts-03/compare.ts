@@ -5,7 +5,7 @@ import { canonical, decode, isLosslessNumber } from '@fbincon/statusline-core/js
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import { checkBaseline, fixtures, repoRoot } from './common.js';
 import { VERSION } from '@fbincon/statusline-core/release';
-import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { PROTOCOL_VERSION, PRESETS } from '@fbincon/statusline-core/contracts/ui';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 
 // TS-06 release metadata only. Frozen fixtures and the three wording exceptions stay intact.
@@ -66,6 +66,15 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (releaseMetadataDifference(id, path, a, b)) return;
     if (runtimeDefaultDifference(id, path, a, b)) return;
     if (regionalLanguageDifference(id, path, a, b)) return;
+    if (id==='ui-describe' && path==='/value/response/result/operations') {
+      const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];
+      if(canonical(a)===canonical(old) && canonical(b)===canonical([...old,'explain'])) return;
+    }
+    if (id === 'ui-describe' && path === '/value/response/result/presets') {
+      const order=['left-right','repeated-metrics','minimal','developer','monitoring','multi-agent'];
+      const old=order.map(id=> { const p=PRESETS.find(p=>p.id===id)!; return {id:p.id,label:p.label,rows:p.rows,layout_mode:p.layout_mode}; });
+      if (canonical(a)===canonical(old) && canonical(b)===canonical(PRESETS)) return;
+    }
     const allowed = differences.find(x => x.case === id && x.path === path);
     if (allowed && typeof a === 'string' && typeof b === 'string' && sha256(a) === allowed.before_sha256 && sha256(b) === allowed.after_sha256) { used.add(allowed); return; }
     if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {

@@ -1,3 +1,6 @@
+import { explanationLines } from '../../lib/editor/explanation.ts';
+import { quickView } from '../../lib/editor/quick-setup.ts';
+import { inputView, textInput } from '../../lib/editor/text-input.ts';
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
 import type { View } from '../../lib/session.ts';
 import { preferenceChanged } from '../../lib/preferences.ts';
@@ -33,7 +36,14 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
         shortcuts(ui, [{ key: 'Q', label: tr("native.ui.client.draw.close") }], columns, ''),
       ],
     });
-  const pending = e.modified || view.preferences.some(preferenceChanged);
+  const inputDisplay = (width: number) => {
+    const input = view.input;
+    if (!input || input.kind === 'category') return '';
+    const value = input.kind === 'search' ? e.search[input.scope] : input.kind === 'numeric' ? e.buffers[input.field] : input.buffer;
+    const edit = input.edit?.value === value ? {...input.edit} : textInput(value);
+    return inputView(edit, width);
+  };
+  const pending = (view.input?.kind === 'field' && view.input.original !== undefined && view.input.buffer !== view.input.original) || e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
   const notice = e.review ? tr('review.intro') :
     Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
@@ -45,7 +55,16 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if (e.review) {
+  if(e.explanation) {
+    title=tr('explain.title');
+    const lines=explanationLines(e,view.language ?? 'en',inner), capacity=Math.max(1,layout.bodyRows-1);
+    const start=Math.min(e.explanation.scroll,Math.max(0,lines.length-capacity));
+    content.push(...lines.slice(start,start+capacity).map(text=>line(text)));
+    content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
+  } else if (e.quick) {
+    title=tr('quick.title')+' · '+tr('quick.'+e.quick.step);
+    content.push(...quickView(e.quick,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
+  } else if (e.review) {
     title = tr('review.title');
     const review = e.review, lines = reviewRows(review, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);
     const start = Math.min(review.scroll, Math.max(0, lines.length - capacity));
@@ -91,7 +110,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       const label = `${e.setting === row.key ? '›' : ' '} ${column(row.label + ':', labelWidth)} `;
       const spans: TextSpan[] = [
         { text: label },
-        { text: displayed + (editing ? ' _' : '') + (preference && preferenceChanged(preference) ? ' *' : '') },
+        { text: (editing ? inputDisplay(Math.max(1, inner - displayWidth(label))) : displayed) + (preference && preferenceChanged(preference) ? ' *' : '') },
       ];
       content.push(ui.Box({
         key: 'setting-' + row.key, flexShrink: 0,
@@ -108,7 +127,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     content.push(shortcuts(ui, [
       {key: 'Ctrl+F', label: tr('catalog.categories.' + e.category[scope]), short: e.category[scope] === 'all' ? tr('values.all') : clip(tr('catalog.categories.' + e.category[scope]), 8)},
       {key: '/', label: tr('native.ui.client.draw.search')},
-    ], inner, tr('native.ui.client.draw.filter') + e.search[scope] + (view.input?.kind === 'search' ? ' _' : '') + '  '));
+    ], inner, view.input?.kind === 'search' ? tr('native.ui.client.draw.filter') + inputDisplay(Math.max(1, inner - displayWidth(tr('native.ui.client.draw.filter')))) : tr('native.ui.client.draw.filter') + e.search[scope] + '  '));
     if (layout.tableHeading) content.push(line(tr("native.ui.client.draw.on_item"), { ...styles.muted, bold: true }));
     const window = pageWindow(visible.map((item) => item.id), e.selected[scope], layout.itemCapacity);
     for (const {item, match} of matches.slice(window.start, window.end))
@@ -121,7 +140,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + (current.type_id ?? current.id) + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.enabled", {page: window.page, pages: window.pages, length: e.items(scope).length}), styles.muted));
   }
-  const subagentPreview = e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
+  const subagentPreview = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
   const sample = view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
   const shown = sample.slice(0, overflow ? layout.previewRows - 1 : layout.previewRows);
@@ -147,7 +166,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
         : line(tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
-      section(ui, 'preview-region', e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle(e.draft.display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
+      section(ui, 'preview-region', e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({
         key: 'shortcut-region', width: columns, height: layout.footerRows,
         backgroundColor: styles.text.backgroundColor,

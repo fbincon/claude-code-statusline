@@ -264,6 +264,8 @@ Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后的 JavaScri
 
 ## 常用配置
 
+两套编辑器均可用 **Ctrl+P** 或设置页的“快速配置”选择用途、外观并检查示例，然后微调或保存。文本输入支持字素光标移动与插入；组件详情中的“配置与示例说明”解释开关、条件及宽度处理。见[快速配置与说明](docs/USER_GUIDE.zh-CN.md#quick-setup-and-explanation)。
+
 [查找项目、了解来源条件与审阅导入](docs/USER_GUIDE.zh-CN.md#item-discovery-import-review)。
 
 
@@ -360,6 +362,9 @@ claude-code-statusline/
 │   └── reference.yml             # 手动 Python 历史验证
 ├── packages/                     # 四个业务包
 │   ├── core/src/                 # 配置、协议、纯状态、渲染与 Unicode
+│   │   ├── editor/               # 共享草稿、字素输入、快速配置和说明视图
+│   │   ├── rendering/            # 渲染、布局及按需解释记录
+│   │   ├── contracts/            # 独立版本的编辑器/运行协议
 │   │   └── i18n/                 # 六种语言的生成模块；资源在 core/resources
 │   ├── platform/src/             # 文件、锁、进程、时钟及终端适配
 │   ├── cli/                      # 命令、集成、运行时与恢复

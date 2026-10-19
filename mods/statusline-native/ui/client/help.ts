@@ -17,18 +17,20 @@ export function editorShortcuts(view: View): Shortcut[][] {
     { key: 'Q', label: 'close (blocked)', short: 'blocked' },
     focus,
   ]];
+  if (e.quick) return [[{key:'Enter',label:'accept'},{key:'Backspace',label:'back'},{key:'Ctrl+G',label:'cancel'},focus],[{key:'↑↓',label:'select'},{key:'←→',label:'adjust'},{key:'Tab',label:'preview'},{key:'PgUp/PgDn',label:'scroll'}]];
   if (e.review) return [
     [{key:'A', label:'accept draft', short:'accept'}, {key:'Q', label:'cancel review', short:'cancel'}],
     [{key:'Enter', label:'details'}, {key:'↑↓', label:'section'}],
     [{key:'PgUp/PgDn', label:'scroll'}, {key:'Tab', label:'preview'}], [focus],
   ];
   if (view.input?.kind === 'category') return [[{key: 'Enter', label: 'accept'}, {key: 'Ctrl+G', label: 'cancel'}, focus], [{key: '↑↓', label: 'select'}]];
-  if (e.guidanceScroll !== null) return [[{key:'Ctrl+G', label:'back'}, focus], [{key:'↑↓', label:'scroll'}, {key:'PgUp/PgDn', label:'page'}]];
+  if (e.guidanceScroll !== null || e.explanation) return [[{key:'Ctrl+G', label:'back'}, focus], [{key:'↑↓', label:'scroll'}, {key:'PgUp/PgDn', label:'page'}]];
   if (view.input) return [[
     { key: 'Enter', label: 'accept' },
     { key: 'Ctrl+G', label: 'cancel editing', short: 'cancel' },
     { key: 'Ctrl+U', label: 'clear' },
-    { key: 'Backspace', label: 'delete', short: 'del' },
+    { key: 'Backspace/Delete', label: 'delete', short: 'del' },
+    { key: '←→ Home/End', label: 'edit' },
     focus,
   ]];
   if(e.adding)return [[{key:'Enter',label:'add'},{key:'Ctrl+G',label:'back'},focus],[{key:'↑↓',label:'select'},{key:'/',label:'search'},{key:'Ctrl+F',label:'category'},{key:'Ctrl+E',label:'details'}]];
@@ -41,6 +43,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     focus,
   ];
   const contextual: Shortcut[] = [{ key: 'Tab', label: 'page' }];
+  if(!e.detail) contextual.push({key:'Ctrl+P',label:'quick setup'});
   if (!e.detail && (e.page === 'main' || e.page === 'subagents')) {
     contextual.push(
       { key: 'A/D/X', label: 'add/copy/remove', short:'add/copy/remove' },
@@ -75,7 +78,7 @@ export function editorLayout(view: View, columns: number, rows: number) {
   const limit = Math.max(1, rows - (framed ? 10 : 8));
   let footer = shortcutRows(groups, columns);
   if (footer.length > limit) footer = shortcutRows(groups, columns, true);
-  for (const key of ['V', 'R', 'Esc', '↑↓', '←→', '/']) {
+  for (const key of ['V', 'R', 'Esc', '↑↓', '←→', '/', '←→ Home/End', 'Ctrl+U']) {
     if (footer.length <= limit) break;
     groups = groups.map((group) => group.filter((hint) => hint.key !== key));
     footer = shortcutRows(groups, columns, true);

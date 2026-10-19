@@ -161,5 +161,5 @@ test('terminal decoder preserves every UTF-8 and escape chunk boundary and treat
     const decoder = new KeyDecoder();
     assert.deepEqual(decoder.push('\x1b'), []);
     assert.deepEqual(decoder.flushEscape(), [{ key: 'escape' }]);
-    assert.deepEqual(decoder.push('\x1b[200~hello\x13\x1b[201~'), [...'hello'].map(key => ({ key, paste: true })));
+    assert.deepEqual(decoder.push('\x1b[200~hello\x13\x1b[201~'), [{ key: 'hello\x13', paste: true }]);
 });

@@ -23,24 +23,12 @@ function view(): View {
   };
 }
 
-test('printable chunks split without treating named or modified keys as text', () => {
-  expect(keyEvents({ key: '/git' }).map((event) => event.key)).toEqual([
-    '/',
-    'g',
-    'i',
-    't',
-  ]);
-  expect(keyEvents({ key: '中文😀' }).map((event) => event.key)).toEqual([
-    '中',
-    '文',
-    '😀',
-  ]);
-  for (const key of ['return', 'pageup', 'f12', 'escape']) {
-    expect(keyEvents({ key })).toEqual([{ key }]);
-  }
-  expect(keyEvents({ key: 'u', ctrl: true })).toEqual([
-    { key: 'u', ctrl: true },
-  ]);
+test('printable chunks remain atomic text without becoming commands', () => {
+  expect(keyEvents({key:'/git'})).toEqual([{key:'/git',text:true}]);
+  expect(keyEvents({key:'中文😀'})).toEqual([{key:'中文😀',text:true}]);
+  expect(keyEvents({key:'S1Q'})).toEqual([{key:'S1Q',text:true}]);
+  for (const key of ['return','pageup','f12','escape']) expect(keyEvents({key})).toEqual([{key}]);
+  expect(keyEvents({key:'u',ctrl:true})).toEqual([{key:'u',ctrl:true}]);
 });
 
 test('port snapshots can be deeply frozen without freezing the live draft', () => {
@@ -139,4 +127,9 @@ test('same-frame coalescing keeps every pending key; acknowledgements send the n
   listener({ key: 's' });
   expect(sent[sent.length - 1].epoch).toBe(2);
   expect(sent[sent.length - 1].events[1].seq).toBe(2);
+  for(let i=0;i<8;i++) listener({key:'界'.repeat(12000)});
+  const large=sent[sent.length-1];
+  expect(JSON.stringify(large).length<50000).toBe(true);
+  expect(large.events.filter((item:any)=>item.event.overflow)).toHaveLength(1);
+  expect(parseBatch(large)).not.toBeNull();
 });
