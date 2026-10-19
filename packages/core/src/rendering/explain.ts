@@ -1,4 +1,4 @@
-import type { Draft, Scope, PreviewResult, ExplainResult, ExplainReason } from '../contracts/ui.js';
+import type { Draft, Scope, PreviewResult, ExplainResult, ExplainReason, InstanceDraft } from '../contracts/ui.js';
 import { BY_SCOPE } from '../config/catalog.js';
 import type { RenderTrace } from './trace.js';
 
@@ -15,6 +15,15 @@ function atLeast(actual: readonly number[], required: string): boolean {
 export function explain(draft: Draft, scope: Scope, width: number, preview: PreviewResult, trace: RenderTrace, facts: ExplanationFacts): ExplainResult {
   return {sample:true,scope,width,actual_availability:'not_observed',preview,
     instances:(scope==='main'?draft.display.instances:draft.display.subagents.instances).map(node=>{
+      const reasons=configurationReasons(draft,scope,node,facts);
+      const add=(code:string,origin:ExplainReason['origin'])=>reasons.push({code,origin});
+      if(!['text','spacer'].includes(node.type_id)) add('actual_not_observed','unknown');
+      return {id:node.id,type_id:node.type_id,enabled:node.enabled,reasons,samples:trace.samples(scope,node.id)};
+    }),
+  };
+}
+
+export function configurationReasons(draft: Draft, scope: Scope, node: InstanceDraft, facts: ExplanationFacts): ExplainReason[] {
       const reasons: ExplainReason[]=[];
       const add=(code:string,origin:ExplainReason['origin'])=>reasons.push({code,origin});
       add(node.enabled?'configured_on':'configured_off','configuration');
@@ -29,8 +38,5 @@ export function explain(draft: Draft, scope: Scope, width: number, preview: Prev
         if(!requirements.includes(requirement)) continue;
         add(facts.runtime===null?'collector_unknown':facts.runtime[field]?field+'_on':field+'_off',facts.runtime===null?'unknown':'local_configuration');
       }
-      if(!['text','spacer'].includes(node.type_id)) add('actual_not_observed','unknown');
-      return {id:node.id,type_id:node.type_id,enabled:node.enabled,reasons,samples:trace.samples(scope,node.id)};
-    }),
-  };
+      return reasons;
 }

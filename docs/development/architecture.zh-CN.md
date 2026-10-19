@@ -2,6 +2,8 @@
 
 [English](architecture.md) | **简体中文**
 
+显式真实输入诊断及缓存原因显示见[诊断指南](../DIAGNOSTICS.zh-CN.md)，实现边界与验收见[诊断开发说明](real-input-diagnostics.zh-CN.md)。
+
 共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](configuration-experience.zh-CN.md)。
 
 当前计时证据、精确重放去重及缓存兼容见[迁移后修复](post-migration-fixes.zh-CN.md)。

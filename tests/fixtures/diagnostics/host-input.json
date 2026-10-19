@@ -1,0 +1,87 @@
+{
+  "source": "https://code.claude.com/docs/en/statusline",
+  "verified_on": "2026-10-19",
+  "note": "Synthetic payloads derived from the official field definitions; no user session data.",
+  "cases": [
+    {
+      "id": "linked-worktree",
+      "input": {
+        "version": "2.1.296",
+        "workspace": {
+          "git_worktree": "feature-linked"
+        }
+      }
+    },
+    {
+      "id": "claude-worktree",
+      "input": {
+        "version": "2.1.296",
+        "worktree": {
+          "name": "feature-session"
+        }
+      }
+    },
+    {
+      "id": "both-worktrees",
+      "input": {
+        "version": "2.1.296",
+        "workspace": {
+          "git_worktree": "feature-linked"
+        },
+        "worktree": {
+          "name": "feature-session"
+        }
+      }
+    },
+    {
+      "id": "cache-tools",
+      "input": {
+        "version": "2.1.296",
+        "session_id": "example-session",
+        "prompt_id": "example-prompt",
+        "prompt_cache": {
+          "hit_ratio": 0.91,
+          "cache_write_tokens": 352000,
+          "misses": 2,
+          "last_miss_at": 1788400060,
+          "last_miss_cause": {
+            "causes": [
+              "tools_changed"
+            ],
+            "tools_added": 2,
+            "tools_removed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "unknown-cause",
+      "input": {
+        "prompt_cache": {
+          "misses": 1,
+          "last_miss_cause": {
+            "causes": [
+              "future_host_cause"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "no-cache-misses",
+      "input": {
+        "prompt_cache": {
+          "misses": 0,
+          "last_miss_cause": null,
+          "last_miss_at": null
+        }
+      }
+    },
+    {
+      "id": "older-host",
+      "input": {
+        "version": "2.1.200"
+      }
+    }
+  ]
+}

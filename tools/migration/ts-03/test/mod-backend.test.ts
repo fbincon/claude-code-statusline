@@ -30,7 +30,7 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     const call = (operation: string, payload = {}) => { operations.add(operation); return backend.parseResponse(operation, f.run('ui', backend.requestText(operation, payload))); };
     const description = call('describe');
     assert.equal(description.backend_version, VERSION);
-    assert.equal(description.catalog.length, 78);
+    assert.equal(description.catalog.length, 79);
     const baseline = call('read');
     assert.equal(baseline.installed, true);
     assert.equal(baseline.installation.statusLine.state, 'owned');
@@ -70,6 +70,8 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     assert.equal(response.exitCode, 2);
     assert.throws(() => backend.parseResponse('read', response), (error: any) => error.code === 'unsupported_protocol');
     assert.throws(() => backend.parseResponse('read', { ...f.run('ui', backend.requestText('read')), isStdoutTruncated: true }), (error: any) => error.code === 'backend_output_truncated');
+    const diagnosis = call('diagnose', { draft: baseline.draft, scope: 'main', width: 80, input: { model: { id: 'diagnostic-model' } }, include_local: false });
+    assert.equal(diagnosis.sample, false);
     assert.deepEqual([...operations].sort(), description.operations.toSorted());
     const rendered = f.run('render', '{"model":{"id":"Python-free"},"context_window":{"remaining_percentage":50}}');
     assert.equal(rendered.exitCode, 0);

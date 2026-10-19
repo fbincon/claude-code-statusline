@@ -7,6 +7,7 @@ import { paletteFor, separators } from './palette.js';
 import { deepGet, sanitizePayloadText, formatDuration, humanizeApiTokens } from './formatters.js';
 import { renderTaskTimer } from './timer.js';
 import * as metrics from './metrics.js';
+import { worktreeEvidence, cacheMissText } from './host-fields.js';
 import * as preferences from './preferences.js';
 import * as visibility from './visibility.js';
 import * as git from './git.js';
@@ -78,9 +79,8 @@ export class RenderState {
     hostname(): RenderedItem | null { const name = sanitizePayloadText(this.env.hostname()); return this.styled(name ? this.text('host', { value: name }) : null, this.palette.directory, 'location'); }
     promptTimer(): RenderedItem | null {
         const totals = this.totals();
-        if (!totals)
-            return null;
-        const observation = this.taskValue ??= this.env.task(this.data, totals);
+        const observation = this.taskValue ??= this.env.taskSnapshot ?? (totals ? this.env.task(this.data, totals) : undefined);
+        if (!observation) return null;
         const text = renderTaskTimer(observation.state, observation.sample, (key, params) => this.text(key.replace(/^statusline\./u, ''), params), this.palette);
         return text ? { text } : null;
     }
@@ -231,6 +231,7 @@ export class RenderState {
                 parts.push(p.percentage + `+${added}/-${removed}` + p.reset);
             return { text: parts.join(this.inner) };
         }
+        if (item === 'cache-miss-reason') return this.styled(cacheMissText(data.prompt_cache, env.language), p.tokens, 'usage');
         if (item === 'prompt-cache') {
             const cache = data.prompt_cache;
             if (!object(cache))
@@ -262,8 +263,8 @@ export class RenderState {
             return { text: text + p.reset, group: 'repo' };
         }
         if (item === 'worktree') {
-            const value = deepGet(data, ['worktree', 'name']);
-            return typeof value === 'string' && value ? this.styled(this.text('worktree', { value }), p.branch) : null;
+            const evidence = worktreeEvidence(data), value = evidence.session_name ?? evidence.git_name;
+            return value ? this.styled(this.text(evidence.session_name ? 'worktree' : 'git_worktree', { value }), p.branch) : null;
         }
         if (item === 'repo') {
             const repo = deepGet(data, ['workspace', 'repo']);
@@ -279,15 +280,15 @@ export class RenderState {
             return null;
         const item = node?.type_id ?? id;
         if (item === 'text') {
-            const text = literal(node!, this.config, 'main', this.env.trace ? () => this.env.trace!.mark('main',id,'sample_truncated') : undefined);
-            if(text) this.env.trace?.mark('main',id,'sample_visible');
+            const text = literal(node!, this.config, 'main', this.env.trace ? () => this.env.trace!.mark('main',id,'truncated') : undefined);
+            if(text) this.env.trace?.mark('main',id,'visible');
             return text ? { text } : null;
         }
         let used: number | null = null;
         if (options.visibility !== 'always' || fmt.thresholds.enabled) {
             used = visibility.usedPercentage(this.data, item, Object.hasOwn(RATE_LIMIT_ITEMS, item) ? this.now() : 0);
             if (!visibility.visible(options, item, used, options.visibility === 'git-dirty' ? this.gitData() : null, options.visibility === 'nonzero' ? this.liveData()[item] : null)) {
-                this.env.trace?.mark('main',id,'sample_condition_hidden'); return null;
+                this.env.trace?.mark('main',id,'condition_hidden'); return null;
             }
         }
         const rendered = this.renderType(item);
@@ -298,10 +299,10 @@ export class RenderState {
         if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null)
             text = appearance.apply(text, this.config, item, options, 'main', used);
         if (options.max_width !== null) {
-            if(layout.displayWidth(text)>options.max_width) this.env.trace?.mark('main',id,'sample_truncated');
+            if(layout.displayWidth(text)>options.max_width) this.env.trace?.mark('main',id,'truncated');
             text = layout.truncateStyled(text, options.max_width);
         }
-        if(text) this.env.trace?.mark('main',id,'sample_visible');
+        if(text) this.env.trace?.mark('main',id,'visible');
         return { ...rendered, text };
     }
 }
@@ -336,7 +337,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
                 if (!node.enabled)
                     continue;
                 if (node.type_id === 'spacer') {
-                    env.trace?.mark('main',id,'sample_spacer');
+                    env.trace?.mark('main',id,'spacer');
                     cells.push({ id, text: '', priority: 50, spacer: true });
                 }
                 else {
@@ -399,11 +400,11 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
             for (let i = 1; i < selected.length; i++)
                 if (priority(i) <= priority(victim))
                     victim = i;
-            if(selected[victim]!.id) env.trace?.mark('main',selected[victim]!.id!,'sample_priority_omitted');
+            if(selected[victim]!.id) env.trace?.mark('main',selected[victim]!.id!,'priority_omitted');
             selected.splice(victim, 1);
             text = joined();
         }
-        if(layout.displayWidth(text)>width && selected[0]?.id) env.trace?.mark('main',selected[0].id,'sample_truncated');
+        if(layout.displayWidth(text)>width && selected[0]?.id) env.trace?.mark('main',selected[0].id,'truncated');
         rows.push(layout.ensureReset(layout.truncateStyled(text, width), palette.reset));
     }
     return rows;

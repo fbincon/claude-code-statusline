@@ -48,12 +48,12 @@ export function fitRow<T>(cells: readonly Cell<T>[], columns: number, config: Di
             if (ordered[i]!.cell.priority <= ordered[victim]!.cell.priority)
                 victim = i;
         const row = ordered[victim]!;
-        observe?.(row.cell.id,'sample_priority_omitted');
+        observe?.(row.cell.id,'priority_omitted');
         row.side.splice(row.index, 1);
     }
     if (occupied() > columns) {
         const side = left.length ? left : right;
-        observe?.(side[0]!.id,'sample_truncated');
+        observe?.(side[0]!.id,'truncated');
         side[0] = { ...side[0]!, text: layout.truncateStyled(side[0]!.text, columns) };
     }
     const a = text(left), b = text(right), gap = divider < 0 ? 0 : Math.max(0, columns - measure(a) - measure(b)), reset = config.use_colors ? styles.RESET : '';

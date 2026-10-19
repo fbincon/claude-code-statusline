@@ -4,7 +4,7 @@
 
 当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/post-migration-fixes.zh-CN.md)。
 
-当前目录包含 60 个主栏项、14 个子 Agent 项，默认分别启用 10 项和 5 项。下表介绍独立指标和任务计时，默认选择与配置入口见[使用指南](USER_GUIDE.zh-CN.md#可配置显示项)。`prompt-timer` 是 `task-timer` 的兼容别名，不另计为目录项。主栏组合项可与其独立项并存；子 Agent 的 `status-elapsed` 与独立 `status`、`elapsed` 互斥。
+当前目录包含 61 个主栏项、14 个子 Agent 项，默认分别启用 10 项和 5 项。下表介绍独立指标和任务计时，默认选择与配置入口见[使用指南](USER_GUIDE.zh-CN.md#可配置显示项)。`prompt-timer` 是 `task-timer` 的兼容别名，不另计为目录项。主栏组合项可与其独立项并存；子 Agent 的 `status-elapsed` 与独立 `status`、`elapsed` 互斥。
 
 下列样例采用英文输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
 
@@ -26,6 +26,8 @@
 | `cache-state` | `Cache warm` | 主对话官方 `prompt_cache.warm`、`caching_observed`、`expires_at`：只有期限内显示 warm，过期为 cold，未观测缓存单独表示。 |
 | `cache-expires` | `Cache TTL 4m 20s` | 仅在已观测主对话缓存仍 warm 时显示 TTL，需有效的未来 `expires_at`。 |
 | `cache-misses` | `Cache miss 2` | 官方 `prompt_cache.misses`，不把压缩或清理后的 `expected_rebuilds` 当成 miss。 |
+| `cache-miss-reason` | `缓存可能原因 工具变化` | 默认关闭；读取 `prompt_cache.last_miss_cause.causes`，表示宿主判断的最近一次主会话缓存未命中的可能原因。需要 2.1.260+；未知原因码安全保留，详细数量和时间见[诊断](DIAGNOSTICS.zh-CN.md)。 |
+| `worktree` | `Git 工作树 feature-x` | 优先 `worktree.name`（Claude 工作树会话），缺失时取 `workspace.git_worktree`（当前 linked Git worktree）。 |
 | `api-requests` | `API requests 14` | 官方主对话 `prompt_cache.requests`，不包含子 Agent 请求。 |
 | `session-name` | `Session demo-session` | 已观测的 `session_name`，不以 ID 兜底。 |
 | `session-id` | `ID demo-session` | 完整的 `session_id`。 |
@@ -117,6 +119,6 @@ Claude Code 2.1.289 headless 路径可能缺失 prompt 身份事件。只有唯�
 ## 布局组件
 
 两个作用域均新增 `text`（用户原文）和 `spacer`（填充剩余行宽），目录因此包含
-62 种主状态栏类型和 16 种子代理类型；原有 60／14 种观测类型及默认展示保持不变。
+62 种主状态栏类型和 16 种子代理类型；原有 61／14 种观测类型及默认展示保持不变。
 可在实例编辑器中添加，或执行 `config instance main add text --text "项目"`。
 主状态栏留白需要显式分行；每个主行和子代理模板最多一个留白。

@@ -83,7 +83,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         // Only the command's own directory option selects storage. A literal
         // item value after -- must never redirect a configuration write.
         const administrative = ['install', 'uninstall', 'doctor', 'recover'].includes(args[0] ?? '');
-        const directoryIndex = administrative ? args.findIndex(arg => arg === '--config-dir' || arg.startsWith('--config-dir=')) : 1;
+        const directoryIndex = administrative || args[0] === 'diagnose' ? args.findIndex(arg => arg === '--config-dir' || arg.startsWith('--config-dir=')) : 1;
         const directoryFlag = args[directoryIndex];
         const requestedDirectory = directoryFlag === '--config-dir' ? args[directoryIndex + 1] : directoryFlag?.startsWith('--config-dir=') ? directoryFlag.slice(13) : undefined;
         const rawDirectory = requestedDirectory ?? environment.configDir ?? process.env.CLAUDE_CONFIG_DIR;
@@ -91,11 +91,11 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         if (isLinkOrReparse(configDir)) configDir = resolvedPath(configDir);
         const preferences = readPreferences(configDir, createStorage(environment.now));
         language = (selectedLanguage ?? preferences.ui_language) as Language;
-        if (['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
+        if (['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
             const command = args[0];
-            if (command && !command.startsWith('-') && !['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command && !command.startsWith('-') && !['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
             if (command === 'config') {
                 const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
                 validateConfigHelp(args.slice(offset));
@@ -105,7 +105,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return 0;
         }
         const command = args.shift();
-        if (!['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
+        if (!['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
         if (administrative) {
             const { parseAdministration } = await import('./integration/arguments.js');
@@ -137,6 +137,12 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             if (args.length)
                 throw new ArgumentError(`${command} takes no arguments`);
             return renderer(command!);
+        }
+        if (command === 'diagnose') {
+            const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
+            const service = new ConfigurationService({ configDir, launch, hostVersion: () => null }, createStorage(environment.now));
+            const { diagnosticCommand } = await import('./diagnostics/command.js');
+            return diagnosticCommand(args, service, language, stdout, stderr, { stdin: environment.stdin, runtime: environment.runtime, now: environment.now ? () => environment.now!().getTime() : undefined });
         }
         let explicit: string | undefined;
         if (args[0] === '--config-dir' || args[0]?.startsWith('--config-dir=')) {
@@ -177,7 +183,8 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { ConfigurationProtocol } = await import('./ui/protocol.js');
             const { pythonJson } = await import('@fbincon/statusline-core/json-text');
             const { previewAdapter } = await import('./rendering/preview.js');
-            const protocol = new ConfigurationProtocol(service, await previewAdapter(), environment.nextId);
+            const { diagnosisAdapter } = await import('./diagnostics/service.js');
+            const protocol = new ConfigurationProtocol(service, await previewAdapter(), environment.nextId, await diagnosisAdapter(service, { runtime: environment.runtime, now: environment.now ? () => environment.now!().getTime() : undefined }));
             let raw: string;
             try {
                 raw = stdin();

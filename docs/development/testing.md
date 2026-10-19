@@ -2,6 +2,8 @@
 
 **English** | [简体中文](testing.zh-CN.md)
 
+For explicit real-input diagnosis and cache causes, see [input diagnosis](../DIAGNOSTICS.md) and [implementation and acceptance](real-input-diagnostics.md).
+
 Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](configuration-experience.md).
 
 Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).

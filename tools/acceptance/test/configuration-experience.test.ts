@@ -1,7 +1,23 @@
 import test from 'node:test';
-import { fixture, assert, fs } from '../../migration/ts-04/test/support.js';
+import { fixture, assert, fs, Session } from '../../migration/ts-04/test/support.js';
 import { openPty } from '../../migration/ts-04/test/pty.js';
 import { LANGUAGES, t as tr } from '@fbincon/statusline-core/i18n/messages';
+
+test('external editor adds, previews, saves and reopens the optional cache cause component', async t => {
+  const f = await fixture(t);
+  assert.ok(!f.e.draft.display.instances.some(i => i.type_id === 'cache-miss-reason' && i.enabled));
+  await f.session.key({key:'a',ctrl:true});
+  await f.session.key({key:'/'});
+  await f.session.key({key:'cache-miss-reason',text:true});
+  await f.session.key({key:'return'});
+  await f.session.key({key:'return'});
+  assert.ok(f.e.draft.display.instances.some(i => i.type_id === 'cache-miss-reason' && i.enabled));
+  assert.ok(f.state.preview!.main.flat().map(s => s.text).join('').includes('tools changed'));
+  assert.equal(await f.session.key({key:'s',ctrl:true}), 'save');
+  await f.session.save();
+  const reopen = await Session.open(f.backend, 'en');
+  assert.ok(reopen.state.editor.draft.display.instances.some(i => i.type_id === 'cache-miss-reason' && i.enabled));
+});
 
 test('external explanation uses the selected instance and never applies or changes files', async t=>{
   const f=await fixture(t), before=f.bytes();

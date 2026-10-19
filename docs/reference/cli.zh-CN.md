@@ -2,6 +2,8 @@
 
 [English](cli.md) | **简体中文**
 
+显式 `diagnose --input FILE|-`、只读观测边界、文本与 JSON 输出见[输入诊断](../DIAGNOSTICS.zh-CN.md)。
+
 共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](../development/configuration-experience.zh-CN.md)。
 
 兼容别名 `zh-Hant` 在所有语言参数与旧配置中映射为 `zh-TW`；读取不改写文件，显式保存／导出使用规范代码。地区选项为 `zh-TW`（台湾）和 `zh-HK`（香港）。
@@ -427,7 +429,7 @@ claude-statusline config reset
 
 ## 可配置显示项
 
-主栏目录共有 60 项，下表列出默认项和常用可选项。完整 ID 使用 `config list-items --json` 查询，独立指标与实时项见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
+主栏目录共有 61 个指标（含文本和留白共 63 种类型），下表列出默认项和常用可选项。完整 ID 使用 `config list-items --json` 查询，独立指标与实时项见[指标定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 默认启用以下全部条目，表格顺序也是首次使用时的默认显示顺序：
 
@@ -454,12 +456,13 @@ claude-statusline config reset
 | `session` | `Session ` 前缀 + 会话名称（`/rename` 设置后），否则会话 ID 前 8 位，如 `Session explain prompt-cache` | 没有会话 ID 时省略 |
 | `cost` | 会话金额、会话运行时间与增删行数，例如 `Total $0.12 · 12m 30s · +156/-23`；金额恒显示（无数据时为 `Total $0.00`），时长为 0 或增删行均为 0 时省略对应部分 | 没有 cost 字段时省略 |
 | `prompt-cache` | 缓存命中率与写入 token，例如 `cache 91% · 352K w` | 没有 prompt_cache 字段时省略（首次 API 响应前不存在）；命中率越界时只显示 token 部分 |
+| `cache-miss-reason` | 宿主判断的可能原因 | 默认关闭；需要 `prompt_cache.last_miss_cause`；未知码保留原文 |
 | `fast-mode` | fast mode 开启时显示 `fast` | 未开启时省略 |
 | `agent` | `--agent` 会话的 agent 名称，例如 `Agent orchestrator` | 没有 agent 字段时省略 |
 | `vim-mode` | vim mode 开启时的当前模式，例如 `vim NORMAL` | 没有 vim 字段时省略 |
 | `thinking` | 扩展思考启用时显示 `thinking` | 未启用时省略 |
 | `pr` | 当前分支的 open PR/MR，例如 `PR #1234 · approved`；GitLab 合并请求显示为 `MR !1234` | 当前分支没有 open PR/MR 时省略 |
-| `worktree` | `--worktree` 会话的 worktree 名称，例如 `Worktree feat-x` | 没有 worktree 字段时省略 |
+| `worktree` | Claude 工作树会话名，缺失时使用当前 linked Git worktree 名称 | `worktree.name` 和 `workspace.git_worktree` 均缺失时省略 |
 | `repo` | `Repo ` 前缀 + origin remote 的仓库，例如 `Repo acme/widget` | 没有 remote 身份时省略 |
 
 `cost` 的金额来自 Claude Code 的 `total_cost_usd`；在第三方 API 端点（例如 DeepSeek 代理）下该值为按默认模型费率的估算，仅作参考。`prompt-cache` 与 `tokens` 的统计口径不同：前者来自 statusline payload 且不含 subagent 流量，后者从 transcript 累计并包含可发现的 subagent transcript。

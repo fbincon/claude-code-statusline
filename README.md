@@ -19,7 +19,8 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Compose your statusline:** add, copy and arrange independent components, literal text and left/right alignment in either editor. [Composition guide](docs/COMPOSITION.md).
 - **Control visibility and appearance:** hide confirmed empty/clean states, set usage thresholds, choose per-item foreground/background colors and themes, and opt into basic [Powerline](docs/APPEARANCE.md).
 - **Choose your languages:** English, 简体中文, 繁體中文, 日本語 and 한국어 for interfaces and actual statusline output, independently; interface changes save immediately, output language saves with display settings. See [language examples](docs/images/languages/README.md).
-- **Find what to show:** 60 main metrics and 14 subagent metrics, plus text and flexible spacers, with ranked multilingual search, category filters and source/requirement guidance.
+- **Diagnose supplied input:** inspect real statusline JSON and matching saved observations without collecting or writing. See [input diagnosis](docs/DIAGNOSTICS.md).
+- **Find what to show:** 61 main metrics and 14 subagent metrics, plus text and flexible spacers, with ranked multilingual search, category filters and source/requirement guidance.
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
 - **Keep Unicode intact:** joined emoji, combining marks and CJK text stay together when rows wrap, clip or appear in previews.

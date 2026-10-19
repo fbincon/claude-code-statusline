@@ -112,14 +112,14 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
     for (const node of prepared.enabled) {
         const item = node.type_id;
         if (item === 'spacer') {
-            env.trace?.mark('subagent',node.id,'sample_spacer');
+            env.trace?.mark('subagent',node.id,'spacer');
             result.push({ item: node.id, text: '', style: '', used: null, type: item });
             continue;
         }
         if (item === 'text') {
             const value = prepared.literals.get(node)!;
-            if(value) env.trace?.mark('subagent',node.id,'sample_visible');
-            if(prepared.literalTruncated?.has(node)) env.trace?.mark('subagent',node.id,'sample_truncated');
+            if(value) env.trace?.mark('subagent',node.id,'visible');
+            if(prepared.literalTruncated?.has(node)) env.trace?.mark('subagent',node.id,'truncated');
             if (value) result.push({ item: node.id, text: value, style: '', used: null, type: item });
             continue;
         }
@@ -160,7 +160,7 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
         if (options.visibility !== 'always') {
             risk = visibility.usedPercentage(task, item, 0, 'subagent');
             if (!visibility.visible(options, item, risk)) {
-                env.trace?.mark('subagent',node.id,'sample_condition_hidden'); continue;
+                env.trace?.mark('subagent',node.id,'condition_hidden'); continue;
             }
         }
         value = preferences.decorate(value, item, 'subagent', fmt, options, language);
@@ -168,10 +168,10 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
         if (item === 'task' && config.subagents.task_max_width !== null)
             maximum = maximum ? Math.min(maximum, config.subagents.task_max_width) : config.subagents.task_max_width;
         if (maximum !== null) {
-            if(prepared.measure(value)>maximum) env.trace?.mark('subagent',node.id,'sample_truncated');
+            if(prepared.measure(value)>maximum) env.trace?.mark('subagent',node.id,'truncated');
             value = formatters.truncateText(value, maximum);
         }
-        if(value) env.trace?.mark('subagent',node.id,'sample_visible');
+        if(value) env.trace?.mark('subagent',node.id,'visible');
         if (item === 'context-used' || item === 'context-remaining') {
             const count = metrics.tokenCount(task.tokenCount), capacity = metrics.tokenCount(task.contextWindowSize);
             risk = count !== null && capacity ? divideIntegers(count, capacity) * 100 : null;
@@ -186,9 +186,9 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
 function plain(parts: readonly Part[]): string { return parts.map((part, i) => (i ? parts[i - 1]!.item === 'status' && part.item === 'name' ? ' ' : ' · ' : '') + part.text).join(''); }
 function fit(parts: Part[], columns: number, measure: Prepared['measure'], observe?: FitObserver): Part[] {
     let measured: number | undefined;
-    const width = () => measured ??= measure(plain(parts)), remove = (item: string) => { if(parts.some(p=>p.item===item)) observe?.(item,'sample_width_omitted'); parts = parts.filter(part => part.item !== item); measured = undefined; };
+    const width = () => measured ??= measure(plain(parts)), remove = (item: string) => { if(parts.some(p=>p.item===item)) observe?.(item,'width_omitted'); parts = parts.filter(part => part.item !== item); measured = undefined; };
     const shorten = (item: string) => { const part = parts.find(p => p.item === item); if (!part)
-        return; const text = formatters.truncateText(part.text, Math.max(0, measure(part.text) - (width() - columns))); if(text!==part.text) observe?.(item,text?'sample_truncated':'sample_width_omitted'); parts = text ? parts.map(p => p.item === item ? { ...p, text } : p) : parts.filter(p => p.item !== item); measured = undefined; };
+        return; const text = formatters.truncateText(part.text, Math.max(0, measure(part.text) - (width() - columns))); if(text!==part.text) observe?.(item,text?'truncated':'width_omitted'); parts = text ? parts.map(p => p.item === item ? { ...p, text } : p) : parts.filter(p => p.item !== item); measured = undefined; };
     if (width() <= columns)
         return parts;
     shorten('task');
@@ -209,7 +209,7 @@ function fit(parts: Part[], columns: number, measure: Prepared['measure'], obser
         remove([...parts].reverse().find(p => !['status', 'status-elapsed'].includes(p.item))?.item ?? parts.at(-1)!.item);
     if (parts.length && width() > columns) {
         const text = formatters.truncateText(parts[0]!.text, columns, '');
-        observe?.(parts[0]!.item,text?'sample_truncated':'sample_width_omitted');
+        observe?.(parts[0]!.item,text?'truncated':'width_omitted');
         parts = text ? [{ ...parts[0]!, text }] : [];
     }
     return parts;
@@ -236,7 +236,7 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
             for (let i = 1; i < parts.length; i++)
                 if (priority(i) <= priority(victim))
                     victim = i;
-            env.trace?.mark('subagent',parts[victim]!.item,'sample_priority_omitted');
+            env.trace?.mark('subagent',parts[victim]!.item,'priority_omitted');
             parts.splice(victim, 1);
         }
     parts = fit(parts, columns, prepared.measure, env.trace?.fit('subagent'));
@@ -262,7 +262,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
         seen.add(id);
         env.trace?.begin('subagent',id);
         const hidden = config.subagents.visibility === 'running' && task.status !== 'running' || config.subagents.hide_completed && task.status === 'completed' || config.subagents.row_limit !== null && visible >= config.subagents.row_limit;
-        if(hidden) for(const node of config.subagents.instances) if(node.enabled) env.trace?.mark('subagent',node.id,'sample_row_hidden');
+        if(hidden) for(const node of config.subagents.instances) if(node.enabled) env.trace?.mark('subagent',node.id,'row_hidden');
         let content = '';
         try {
             if (['completed', 'failed', 'killed', 'interrupted'].includes(task.status as string) && !Object.hasOwn(task, '_frozen_duration_ms') && typeof data.session_id === 'string' && data.session_id) {

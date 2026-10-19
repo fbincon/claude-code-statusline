@@ -48,7 +48,7 @@ function setup(t: TestContext, installed = true) {
     if (installed)
         fs.writeFileSync(settingsPath, jsonBytes({ statusLine: { type: 'command', command: commandFor(launch, 'render'), refreshInterval: 1 }, subagentStatusLine: { type: 'command', command: commandFor(launch, 'render-subagents') }, permissions: { allow: ['Read'] } }));
     const service = new ConfigurationService(context, io), protocol = new ConfigurationProtocol(service);
-    function call(operation: string, payload: unknown = {}, custom = protocol) { const reply = custom.handle(JSON.stringify({ protocol_version: 13, operation, payload }), error => assert.fail(String(error))); return { status: reply.status, response: reply.response as Reply }; }
+    function call(operation: string, payload: unknown = {}, custom = protocol) { const reply = custom.handle(JSON.stringify({ protocol_version: 14, operation, payload }), error => assert.fail(String(error))); return { status: reply.status, response: reply.response as Reply }; }
     const read = () => { const reply = call('read'); assert.equal(reply.status, 0, JSON.stringify(reply.response)); return reply.response.result; };
     const save = (current: ReturnType<typeof read>) => call('apply', { draft: current.draft, expected_revision: current.revision });
     return { root, context, io, service, protocol, call, read, save, settingsPath, displayPath, launch };
@@ -206,7 +206,7 @@ test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_actual_cli_read_apply
     settings.subagentStatusLine.command = commandFor(launch, 'render-subagents');
     fs.writeFileSync(f.settingsPath, JSON.stringify(settings));
     function invoke(operation: string, payload: unknown) {
-        const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', f.root], { input: JSON.stringify({ protocol_version: 13, operation, payload }), encoding: 'utf8', timeout: 30000, env: { ...process.env, PATH: '' } });
+        const result = spawnSync(process.execPath, [entry, 'ui', '--config-dir', f.root], { input: JSON.stringify({ protocol_version: 14, operation, payload }), encoding: 'utf8', timeout: 30000, env: { ...process.env, PATH: '' } });
         assert.equal(result.stderr, '');
         return { status: result.status, response: JSON.parse(result.stdout) as Reply };
     }
@@ -483,7 +483,7 @@ test('tests.config.test_config_commands.ParserAndFormattingTests.test_show_and_l
     const f = setup(t, false), shown = JSON.parse(configCommand(['show', '--json'], f.service));
     assert.equal(shown.display.schema_version, 8);
     assert.deepEqual(Object.keys(shown.subagent_statusline), ['enabled', 'installed', 'state']);
-    for (const [args, count] of [[['list-items', '--json'], 62], [['subagents', 'list-items', '--json'], 16]] as const)
+    for (const [args, count] of [[['list-items', '--json'], 63], [['subagents', 'list-items', '--json'], 16]] as const)
         assert.equal(JSON.parse(configCommand(args, f.service)).length, count);
 });
 test('tests.config.test_config_commands.ParserAndFormattingTests.test_slash_parser_accepts_all_subagent_commands', () => {
@@ -604,17 +604,17 @@ test('tests.config.test_transfer.TransferTests.test_invalid_imports_are_rejected
 });
 test('tests.ui.test_protocol.ProtocolTests.test_invalid_envelopes_and_json_do_not_create_paths', t => {
     const f = setup(t, false), absent = join(f.root, 'absent'), p = new ConfigurationProtocol(new ConfigurationService({ ...f.context, configDir: absent }, f.io));
-    for (const raw of ['', '[]', '{', '{"x":1,"x":2}', '{"x":NaN}', '{"protocol_version":13,"operation":"unknown","payload":{}}', '{"protocol_version":true,"operation":"read","payload":{}}', '{"protocol_version":13,"operation":"read","payload":{},"extra":1}'])
+    for (const raw of ['', '[]', '{', '{"x":1,"x":2}', '{"x":NaN}', '{"protocol_version":14,"operation":"unknown","payload":{}}', '{"protocol_version":true,"operation":"read","payload":{}}', '{"protocol_version":14,"operation":"read","payload":{},"extra":1}'])
         assert.equal(p.handle(raw).status, 2);
     assert.equal(fs.existsSync(absent), false);
 });
 test('tests.ui.test_protocol.ProtocolTests.test_describe_and_missing_observations_are_not_host_support', t => {
     const f = setup(t, false), absent = join(f.root, 'absent'), p = new ConfigurationProtocol(new ConfigurationService({ ...f.context, configDir: absent, hostVersion: () => null }, f.io));
-    const result = p.dispatch({ protocol_version: 13, operation: 'describe', payload: {} }) as {
+    const result = p.dispatch({ protocol_version: 14, operation: 'describe', payload: {} }) as {
         catalog: unknown[];
         capabilities: Record<string, unknown>;
     };
-    assert.equal(result.catalog.length, 78);
+    assert.equal(result.catalog.length, 79);
     assert.equal(result.capabilities.native_mod, 'unknown');
     assert.equal(result.capabilities.data_observation, 'not_observed');
     assert.equal(result.capabilities.native_mod_loaded, null);

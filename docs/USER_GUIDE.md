@@ -2,6 +2,8 @@
 
 **English** | [简体中文](USER_GUIDE.zh-CN.md)
 
+For explicit real-input diagnosis and cache causes, see [input diagnosis](DIAGNOSTICS.md) and [implementation and acceptance](development/real-input-diagnostics.md).
+
 This guide walks through installation, editor use, common configuration, optional live metrics, and recovery. Complete command and file details are in the [CLI reference](reference/cli.md); development and build instructions are in the [development guide](development/README.md).
 
 Settings apply to the current user's Claude Code projects. Rendering reads Claude input, local Git, transcripts, and state without network requests or model tokens. The question-and-answer wizard uses model turns.
@@ -44,7 +46,7 @@ The current distribution is the TypeScript npm package. Python installations can
 
 [Conditional visibility, item colors, themes and Powerline](APPEARANCE.md) explains the shared controls, raw-observation rules and migration recovery.
 
-Choose from 60 main metrics and 14 subagent metrics, plus text and flexible spacers in both scopes. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, six editable presets, and portable JSON files.
+Choose from 61 main metrics and 14 subagent metrics, plus text and flexible spacers in both scopes. Defaults enable 10 main items and five subagent items. Both editors provide Main, Subagents, Settings, and Layout pages, fixed sample previews, formatting, six editable presets, and portable JSON files.
 
 The main line reports main/session data; each subagent row reports its own task. Task timing includes subagent work and main-agent wrap-up. [Display definitions](DISPLAY_ITEMS.md) explain sources, scope, missing observations, and metric limits.
 

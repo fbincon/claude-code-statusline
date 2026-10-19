@@ -3,7 +3,6 @@ import { object, own, int, string, truth, dictionary, type Data } from '@fbincon
 import * as usage from '@fbincon/statusline-core/runtime/usage';
 import { applyTurnMetadata, TurnAccumulator, type TurnEvents } from '@fbincon/statusline-core/runtime/transcript';
 import { equalSettings } from '@fbincon/statusline-core/json-equality';
-import { divideIntegers, fixed } from '@fbincon/statusline-core/numbers';
 import { scalarCompare } from '@fbincon/statusline-core/json';
 import { sha256 } from '@fbincon/statusline-platform/hash';
 import type { RuntimeContext } from './context.js';
@@ -14,13 +13,7 @@ import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { orderedDataRecord, recordEntries } from '@fbincon/statusline-core/ordered-record';
 import { UsageIndex } from './usage-index.js';
 import { safeTarget } from '../integration/paths.js';
-export function humanizeTokens(value: bigint): string {
-    if (value >= 1000000n)
-        return fixed(divideIntegers(value, 1000000n), 2).replace(/0+$/u, '').replace(/\.$/u, '') + 'M';
-    if (value >= 1000n)
-        return fixed(divideIntegers(value, 1000n), 1) + 'K';
-    return String(value > 0n ? value : 0n);
-}
+export const humanizeTokens = usage.usageTokenText;
 export type UsageResult = [
     string,
     string,

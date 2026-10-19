@@ -2,7 +2,7 @@
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 13 as const;
+export const PROTOCOL_VERSION = 14 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation"]} as const;
@@ -33,7 +33,7 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = LANGUAGES;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export type Operation = "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain";
+export type Operation = "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain" | "diagnose";
 export interface ItemGuidance {
   source_kinds: string[];
   measurement_scope: string;
@@ -196,6 +196,43 @@ export interface ExplainResult {
   preview: PreviewResult;
   instances: ExplainInstance[];
 }
+export const LAYOUT_REASONS = ['visible','empty','condition_hidden','priority_omitted','width_omitted','row_hidden','spacer'] as const;
+export type LayoutReason = typeof LAYOUT_REASONS[number];
+export interface InstanceLayout { row_id: string; outcome: LayoutReason; truncated: boolean; }
+export const EVIDENCE_STATUSES = ['observed','not_observed','invalid_field','source_unavailable','association_unavailable','session_mismatch','prompt_mismatch','stale','partial','collector_off','input_only','newer_than_input','unsupported_host','no_misses','unidentified'] as const;
+export type EvidenceStatus = typeof EVIDENCE_STATUSES[number];
+export interface DiagnosticEvidence {
+  source: string;
+  scope: string;
+  status: EvidenceStatus;
+  observed_at: string | null;
+  freshness: 'current' | 'stale' | 'unknown' | 'newer_than_input';
+  fields: { path: string; status: 'observed' | 'not_observed' | 'invalid_field' }[];
+}
+export interface DiagnoseInstance {
+  id: string; type_id: string; enabled: boolean;
+  reasons: ExplainReason[];
+  evidence: DiagnosticEvidence[];
+  rows: InstanceLayout[];
+}
+export interface DiagnoseResult {
+  sample: false;
+  scope: Scope;
+  width: number;
+  source: string;
+  observed_at: string | null;
+  diagnosed_at: string;
+  session_id: string | null;
+  prompt_id: string | null;
+  host_version: string | null;
+  include_local: boolean;
+  output: { id: string; spans: Span[] }[];
+  instances: DiagnoseInstance[];
+  host_fields: {
+    worktree: { session_name: string | null; git_name: string | null; selected_source: string | null };
+    cache_miss: { status: string; causes: string[]; last_miss_at: number | null; tools_added: number | null; tools_removed: number | null; system_char_delta: number | null };
+  };
+}
 export interface LocalizedMessage {
   key: string;
   params: Record<string, unknown>;
@@ -283,6 +320,7 @@ export interface ResultMap {
   read: ReadResult;
   preview: PreviewResult;
   explain: ExplainResult;
+  diagnose: DiagnoseResult;
   apply: ApplyResult;
   import: TransferResult;
   review_import: ImportReviewResult;
@@ -297,5 +335,5 @@ export interface Request {
   operation: Operation;
   payload: unknown;
 }
-export type Result = ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult;
+export type Result = DiagnoseResult | ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult;
 export type Response = { protocol_version: typeof PROTOCOL_VERSION; result: Result } | { protocol_version: typeof PROTOCOL_VERSION; error: ProtocolError };

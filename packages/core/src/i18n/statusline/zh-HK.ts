@@ -219,5 +219,14 @@ export const MESSAGES = {
   "statusline.short.subagent.elapsed": "經過時間",
   "statusline.short.subagent.task": "任務標籤",
   "statusline.short.subagent.tokens": "代理令牌",
-  "statusline.short.subagent.current-dir": "目錄"
+  "statusline.short.subagent.current-dir": "目錄",
+  "statusline.git_worktree": "Git 工作樹 {value}",
+  "statusline.cache.miss_reason": "快取可能原因 {value}",
+  "statusline.cache.cause.tools_changed": "工具變更",
+  "statusline.cache.cause.system_prompt_changed": "系統提示變更",
+  "statusline.cache.cause.ttl_expired_5m": "5 分鐘快取已到期",
+  "statusline.cache.cause.likely_server_side": "可能由伺服器端導致",
+  "statusline.cache.cause.unknown": "未知（{value}）",
+  "statusline.prefix.main.cache-miss-reason": "快取可能原因",
+  "statusline.short.main.cache-miss-reason": "可能原因"
 } as const;

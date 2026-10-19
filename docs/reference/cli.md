@@ -2,6 +2,8 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
+For `diagnose --input FILE|-`, read-only observation rules, and text/JSON output, see [input diagnosis](../DIAGNOSTICS.md).
+
 Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](../development/configuration-experience.md).
 
 The compatibility alias `zh-Hant` resolves to `zh-TW` in every language argument and old configuration. Reads do not rewrite files; explicit saves/exports use canonical codes. Regional choices are `zh-TW` (Taiwan) and `zh-HK` (Hong Kong).
@@ -460,12 +462,13 @@ The following items come from the public status-line payload in Claude Code 2.1.
 | `session` | `Session ` plus the session name set with `/rename`, otherwise the first 8 characters of its ID, such as `Session explain prompt-cache` | Omitted without a session ID |
 | `cost` | Session cost, session runtime, and added/deleted lines, such as `Total $0.12 · 12m 30s · +156/-23`; cost always appears (`Total $0.00` without data), while zero duration or both zero line counts are omitted | Omitted without the cost field |
 | `prompt-cache` | Cache hit rate and written tokens, such as `cache 91% · 352K w` | Omitted without prompt_cache, which is absent before the first API response; out-of-range hit rates leave only tokens |
+| `cache-miss-reason` | Host-reported likely cause | Off by default; reads `prompt_cache.last_miss_cause`, preserving unknown codes |
 | `fast-mode` | `fast` when fast mode is enabled | Omitted when disabled |
 | `agent` | Agent name in a `--agent` session, such as `Agent orchestrator` | Omitted without the agent field |
 | `vim-mode` | Current mode when vim mode is enabled, such as `vim NORMAL` | Omitted without the vim field |
 | `thinking` | `thinking` when extended thinking is enabled | Omitted when disabled |
 | `pr` | Current branch's open PR/MR, such as `PR #1234 · approved`; GitLab merge requests appear as `MR !1234` | Omitted without an open PR/MR on the current branch |
-| `worktree` | Worktree name in a `--worktree` session, such as `Worktree feat-x` | Omitted without the worktree field |
+| `worktree` | Claude worktree session name or current linked Git worktree, such as `Worktree feat-x` | Omitted without both `worktree.name` and `workspace.git_worktree` |
 | `repo` | `Repo ` plus the origin remote repository, such as `Repo acme/widget` | Omitted without a remote identity |
 
 The `cost` amount comes from Claude Code's `total_cost_usd`; with third-party API endpoints, such as a DeepSeek proxy, it is an estimate using default model rates and is for reference only. `prompt-cache` and `tokens` measure different usage: the former comes from the status-line payload and excludes subagent traffic; the latter aggregates transcripts, including discoverable subagent transcripts.

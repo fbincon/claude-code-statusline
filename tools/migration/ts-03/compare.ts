@@ -6,6 +6,7 @@ import { sha256 } from '@fbincon/statusline-platform/hash';
 import { checkBaseline, fixtures, repoRoot } from './common.js';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { PROTOCOL_VERSION, PRESETS } from '@fbincon/statusline-core/contracts/ui';
+import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 
 // TS-06 release metadata only. Frozen fixtures and the three wording exceptions stay intact.
@@ -68,7 +69,15 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (regionalLanguageDifference(id, path, a, b)) return;
     if (id==='ui-describe' && path==='/value/response/result/operations') {
       const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];
-      if(canonical(a)===canonical(old) && canonical(b)===canonical([...old,'explain'])) return;
+      if(canonical(a)===canonical(old) && canonical(b)===canonical([...old,'explain','diagnose'])) return;
+    }
+    if (id === 'ui-describe' && path === '/value/response/result/catalog' && Array.isArray(a) && Array.isArray(b)) {
+      const cause = b.filter(item => item.id === 'cache-miss-reason');
+      const worktree = b.find(item => item.scope === 'main' && item.id === 'worktree');
+      const expectedTree = ITEMS.find(item => item.scope === 'main' && item.id === 'worktree');
+      const original = b.filter(item => item.id !== 'cache-miss-reason').map(item => item.scope === 'main' && item.id === 'worktree'
+        ? { ...item, description: 'Worktree name in --worktree sessions', sources: ['worktree.name'], guidance: { ...item.guidance, requirements: ['observed_field', 'worktree_session'] } } : item);
+      if (canonical(worktree) === canonical(expectedTree) && cause.length === 1 && canonical(cause[0]) === canonical(ITEMS.find(item => item.id === 'cache-miss-reason')) && canonical(a) === canonical(original)) return;
     }
     if (id === 'ui-describe' && path === '/value/response/result/presets') {
       const order=['left-right','repeated-metrics','minimal','developer','monitoring','multi-agent'];
