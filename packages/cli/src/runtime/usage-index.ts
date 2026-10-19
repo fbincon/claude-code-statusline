@@ -26,7 +26,11 @@ export class UsageIndex {
     private pages: Record<string, string> = Object.create(null);
     private reference: string | null;
     private dirty = false;
-    constructor(readonly directory: string, readonly boundary: string, readonly io: RuntimeIO, reference: unknown) {
+    private staged = new Map<string, Buffer>();
+    private stagedBytes = 0;
+    constructor(readonly directory: string, readonly boundary: string, readonly io: RuntimeIO, reference: unknown,
+        private readonly maxStagedBytes = 32 * 1024 * 1024) {
+        if (!Number.isSafeInteger(maxStagedBytes) || maxStagedBytes < 0) throw new Error('Invalid usage index staging bound');
         this.reference = digest(reference) ? reference : null;
         if (reference != null && !this.reference) throw new Error('Invalid usage index reference');
         if (this.reference) {
@@ -39,18 +43,42 @@ export class UsageIndex {
     private read(kind: string, hash: string): unknown {
         const path = join(this.directory, `${kind}-${hash}.json`);
         safeTarget(this.boundary, path);
-        const bytes = this.io.read(path);
+        const bytes = (kind === 'b' ? this.staged.get(hash) : undefined) ?? this.io.read(path);
         if (!bytes || sha256(bytes) !== hash) throw new Error('Missing or damaged usage index page');
         return readDataJson(bytes.toString('utf8'));
     }
     private write(kind: string, value: unknown): string {
-        const bytes = Buffer.from(dumpDataJson(value)), hash = sha256(bytes), path = join(this.directory, `${kind}-${hash}.json`);
+        const bytes = Buffer.from(dumpDataJson(value)), hash = sha256(bytes);
+        if (kind === 'b') {
+            if (!this.staged.has(hash)) {
+                this.staged.set(hash, bytes);
+                this.stagedBytes += bytes.length;
+            }
+            // Keep only a bounded serialized overlay for this locked collection.
+            // Overflow uses the same durable publication as the final flush.
+            while (this.stagedBytes > this.maxStagedBytes) {
+                const [oldest, raw] = this.staged.entries().next().value!;
+                this.writeBytes('b', oldest, raw);
+                this.unstage(oldest);
+            }
+        } else this.writeBytes(kind, hash, bytes);
+        return hash;
+    }
+    private unstage(hash: string | undefined): void {
+        if (hash === undefined) return;
+        const raw = this.staged.get(hash);
+        if (raw) {
+            this.staged.delete(hash);
+            this.stagedBytes -= raw.length;
+        }
+    }
+    private writeBytes(kind: string, hash: string, bytes: Buffer): void {
+        const path = join(this.directory, `${kind}-${hash}.json`);
         safeTarget(this.boundary, path);
         this.io.privateDirectory(this.directory);
         const existing = this.io.read(path);
         if (existing === null) this.io.write(path, bytes);
         else if (sha256(existing) !== hash) throw new Error('Damaged usage index page');
-        return hash;
     }
     merge(incoming: Page, entry: UsageEntry): void {
         const visit = (prefix: string, rows: [string, Counters][]): void => {
@@ -83,6 +111,7 @@ export class UsageIndex {
                 entry.ids[id] = next;
                 page[id] = next;
             }
+            this.unstage(this.pages[prefix]);
             delete this.pages[prefix];
             const persist = (key: string, values: [string, Counters][]): void => {
                 if (values.length <= MAX_IDS) { this.pages[key] = this.write('b', Object.fromEntries(values)); return; }
@@ -101,6 +130,11 @@ export class UsageIndex {
         visit('', recordEntries(incoming));
     }
     publish(): string {
+        // Durably publish final pages before the manifest. Intermediate versions
+        // of the same page never need disk publication while the lock is held.
+        for (const [hash, bytes] of this.staged) this.writeBytes('b', hash, bytes);
+        this.staged.clear();
+        this.stagedBytes = 0;
         if (!this.reference || this.dirty) this.reference = this.write('m', { schema_version: 1, pages: this.pages });
         this.dirty = false;
         return this.reference;

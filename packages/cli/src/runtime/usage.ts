@@ -98,7 +98,6 @@ export class UsageCollector {
                 }
             }
             this.index.merge(scan.ids, entry);
-            entry.usage_index = this.index.publish();
         }
         if (scan.turns && session) this.metadata(entry, scan.turns, session);
         if (cost) usage.stageParsedCostSnapshot(entry, scan.snapshot, force);
@@ -173,6 +172,7 @@ export class UsageCollector {
         }
     }
     private activeSession = '';
+    private publishIndex(entry: usage.UsageEntry): void { if (this.index) entry.usage_index = this.index.publish(); }
     private pruneIndex(): void { this.index?.prune(); }
     private locked(session: string, path: string): UsageResult | null {
         this.index = null;
@@ -224,6 +224,7 @@ export class UsageCollector {
                 if (scan?.count) this.applyScan(entry, scan, null, false);
             }
         }
+        this.publishIndex(entry);
         while (usage.collapseIds(entry))
             changed = true;
         const visible = usage.visibleTotals(entry);
