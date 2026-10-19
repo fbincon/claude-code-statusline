@@ -2,6 +2,8 @@
 
 [English](cli.md) | **简体中文**
 
+共享光标编辑、场景化快速配置和只读 `explain` 操作见[配置体验实现与验收](../development/configuration-experience.zh-CN.md)。
+
 兼容别名 `zh-Hant` 在所有语言参数与旧配置中映射为 `zh-TW`；读取不改写文件，显式保存／导出使用规范代码。地区选项为 `zh-TW`（台湾）和 `zh-HK`（香港）。
 
 

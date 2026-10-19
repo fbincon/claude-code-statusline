@@ -2,6 +2,8 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
+Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](../development/configuration-experience.md).
+
 The compatibility alias `zh-Hant` resolves to `zh-TW` in every language argument and old configuration. Reads do not rewrite files; explicit saves/exports use canonical codes. Regional choices are `zh-TW` (Taiwan) and `zh-HK` (Hong Kong).
 
 

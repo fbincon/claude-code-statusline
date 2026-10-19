@@ -275,6 +275,8 @@ Download checksums and platform-specific instructions are in the [installation g
 
 ## Common configuration
 
+In either editor, use **Ctrl+P** or **Settings → Quick setup** to choose a use case, appearance and sample before editing or saving. Text fields support grapheme cursor editing. Item details explain configuration, requirements and sample fitting. See [quick setup and explanation](docs/USER_GUIDE.md#quick-setup-and-explanation).
+
 [Find items, understand their sources, and review imports](docs/USER_GUIDE.md#item-discovery-import-review).
 
 
@@ -371,6 +373,9 @@ claude-code-statusline/
 │   └── reference.yml             # Manual historical Python verification
 ├── packages/                     # Four business packages
 │   ├── core/src/                 # Configuration, protocols, pure state, rendering and Unicode
+│   │   ├── editor/               # Shared drafts, cursor input, quick setup and explanations
+│   │   ├── rendering/            # Rendering, fitting and optional explanation records
+│   │   ├── contracts/            # Independently versioned editor/runtime interfaces
 │   │   └── i18n/                 # Registry-generated languages; sources in core/resources
 │   ├── platform/src/             # Files, locks, processes, clocks and terminal adapters
 │   ├── cli/                      # Commands, integration, runtime and recovery

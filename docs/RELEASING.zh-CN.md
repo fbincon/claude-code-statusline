@@ -3,6 +3,10 @@
 [English](RELEASING.md) | **简体中文**
 
 
+## v3.2.0 配置体验发布
+
+使用 [v3.2.0 专属缺项决定](releases/approvals/v3.2.0.json)，保留所有功能门槛。最终 PR、合并提交和附注标签均需完整 CI：八安装目标、32 个 Node 运行用例、十三固定宿主。验证独立构建、源码重建、已安装包六语言扩展 PTY、草稿四附件、OIDC npm 发布及公开下载。发布身份与验收见[配置体验记录](development/configuration-experience.zh-CN.md)。六项历史缺项保持未验证，新增失败不豁免。
+
 ## v3.1.4 性能后续工作
 
 使用 [v3.1.4 专属决定](releases/approvals/v3.1.4.json)及未放宽的功能门槛。

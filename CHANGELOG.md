@@ -3,6 +3,14 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.2.0 — 2026-10-19
+
+- Share grapheme cursor editing, insertion, forward/backward deletion and horizontal scrolling across both editors; report rejected input and queue overflow.
+- Add explicit Quick setup from use case through appearance/sample to draft editing or transactional Save; cancellation retains the previous draft.
+- Explain configuration and sample visibility per instance, separating local requirements from rendering outcomes and unobserved live availability.
+- Advance editor protocol to 13 while retaining display schema 8, runtime protocol 2 and portable 1; keep external drafts open after save failures.
+- [Release notes](docs/releases/v3.2.0.md) · [Implementation and validation](docs/development/configuration-experience.md).
+
 ## 3.1.4 — 2026-10-19
 
 - Keep bare runtime observations and read-only runtime preferences outside management, display and interface-language initialization.
