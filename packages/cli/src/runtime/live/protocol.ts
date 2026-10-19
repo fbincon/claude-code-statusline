@@ -8,7 +8,7 @@ import { fresh } from '@fbincon/statusline-core/runtime/live/state';
 import { resolveMetrics } from '@fbincon/statusline-core/runtime/live/snapshot';
 import { activePoint } from '@fbincon/statusline-core/runtime/tasks/view';
 import { decodeUtf8Sig } from '@fbincon/statusline-platform/utf8';
-import { loadRuntime } from '../../config/backend-preferences.js';
+import { loadRuntime } from '../../config/runtime-preferences.js';
 import type { RuntimeContext } from '../context.js';
 import { runtimeIO, type RuntimeIO } from '../io.js';
 import { LiveStore } from './store.js';

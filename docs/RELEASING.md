@@ -3,6 +3,15 @@
 **English** | [简体中文](RELEASING.zh-CN.md)
 
 
+## v3.1.4 performance follow-up
+
+Use the [v3.1.4-only decision](releases/approvals/v3.1.4.json) and unchanged
+functional gates. Performance improvement is not a release requirement; retained
+changes still require final-head/main/tag full matrices, identical builds/source
+rebuild, verified draft assets, OIDC npm publication and public-download checks.
+The same six accepted gaps remain unverified. [Release notes](releases/v3.1.4.md) ·
+[PERF-01 method, implementation and evidence](development/performance/perf-01.md).
+
 ## v3.1.3 post-migration repairs
 
 Use the [v3.1.3-only decision](releases/approvals/v3.1.3.json) and unchanged functional gates, including the installed Windows request/started/result bridge on Node 24.0.0. Require final-head/main/tag full matrices, identical rebuilds, verified draft attachments and public downloads. [Release notes](releases/v3.1.3.md) · [Evidence](development/post-migration-fixes.md).

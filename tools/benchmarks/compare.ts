@@ -34,8 +34,15 @@ export async function compareBenchmarks(baseline: string, candidate: string, out
     return report;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values } = parseArgs({ options: { baseline: { type: 'string' }, candidate: { type: 'string' }, output: { type: 'string' }, samples: { type: 'string', default: '30' }, profiles: { type: 'string', default: 'small,medium,large' } } });
-    if (!values.baseline || !values.candidate || !values.output) throw new Error('Require --baseline BUILT_CHECKOUT --candidate BUILT_CHECKOUT --output NEW_DIRECTORY');
-    const result = await compareBenchmarks(resolve(values.baseline), resolve(values.candidate), resolve(values.output), Number(values.samples), values.profiles!);
+    const { values } = parseArgs({ options: { baseline: { type: 'string' }, candidate: { type: 'string' }, 'baseline-artifact': { type: 'string' }, 'candidate-artifact': { type: 'string' }, output: { type: 'string' }, samples: { type: 'string', default: '30' }, profiles: { type: 'string', default: 'small,medium,large' }, validate: { type: 'boolean' } } });
+    if (!values.output) throw new Error('Require --output NEW_DIRECTORY');
+    let result;
+    if (values['baseline-artifact'] || values['candidate-artifact']) {
+        if (!values['baseline-artifact'] || !values['candidate-artifact'] || values.baseline || values.candidate) throw new Error('Supply both artifact paths without checkout options');
+        result = (await import('./installed.js')).compareInstalled(values['baseline-artifact'], values['candidate-artifact'], resolve(values.output), values.profiles!.split(','), Number(values.samples), values.validate === true);
+    } else {
+        if (!values.baseline || !values.candidate) throw new Error('Require --baseline BUILT_CHECKOUT --candidate BUILT_CHECKOUT or both --baseline-artifact/--candidate-artifact');
+        result = await compareBenchmarks(resolve(values.baseline), resolve(values.candidate), resolve(values.output), Number(values.samples), values.profiles!);
+    }
     console.log(JSON.stringify({ cases: result.comparisons.length, performance_gate: false }));
 }

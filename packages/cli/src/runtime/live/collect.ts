@@ -1,5 +1,5 @@
 import { resolveMetrics, unavailable } from '@fbincon/statusline-core/runtime/live/snapshot';
-import { loadRuntime } from '../../config/backend-preferences.js';
+import { loadRuntime } from '../../config/runtime-preferences.js';
 import { LiveStore } from './store.js';
 export function collectMetrics(store: LiveStore, session: unknown, prompt: unknown = null, nowMs = store.context.nowMs()) {
     if (typeof session !== 'string' || !session)

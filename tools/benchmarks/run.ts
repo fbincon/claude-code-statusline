@@ -63,9 +63,11 @@ export function benchmark(output: string, profiles = ['small'], samples = 1, val
     return report;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    const { values } = parseArgs({ options: { output: { type: 'string' }, profiles: { type: 'string', default: 'small' }, samples: { type: 'string', default: '1' }, validate: { type: 'boolean' }, case: { type: 'string' } } });
+    const { values } = parseArgs({ options: { artifact: { type: 'string' }, output: { type: 'string' }, profiles: { type: 'string', default: 'small' }, samples: { type: 'string', default: '1' }, validate: { type: 'boolean' }, case: { type: 'string' } } });
     if (!values.output)
         throw new Error('Require --output NEW_DIRECTORY');
-    const result = benchmark(resolve(values.output), values.profiles!.split(','), Number(values.samples), values.validate === true, values.case);
+    const result = values.artifact
+        ? (await import('./installed.js')).benchmarkInstalled(values.artifact, resolve(values.output), values.profiles!.split(','), Number(values.samples), values.validate === true, values.case)
+        : benchmark(resolve(values.output), values.profiles!.split(','), Number(values.samples), values.validate === true, values.case);
     console.log(JSON.stringify({ kind: result.kind, cases: result.records.length, performance_gate: false }));
 }

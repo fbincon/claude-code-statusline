@@ -16,6 +16,12 @@ TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode、渲染
 
 TypeScript 结构将复用规则、系统操作及应用编排分开：
 
+
+常见 runtime 协议分发通过只读偏好适配器，避免加载管理存储、显示规则和界面语言数据。
+用量索引在一次缓存锁内保留最多 32 MiB 序列化暂存，先持久化最终页，再发布 manifest
+及原子状态；超出上限仍使用相同持久化适配器，清理仍在状态提交成功后进行。
+磁盘格式及精确重放统计不变，见 [PERF-01](performance/perf-01.zh-CN.md)。
+
 ```text
 packages/
   core/

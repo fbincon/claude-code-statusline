@@ -16,6 +16,14 @@ The migrated runtime uses `core/runtime/{tasks,live}`, `core/timing` and pure us
 
 The TypeScript layout separates reusable rules, OS effects and application work:
 
+
+Bare runtime protocol dispatch uses a read-only preference adapter without loading
+management storage, display rules or UI locale data. Usage indexing retains an
+at-most-32-MiB serialized overlay within one cache lock. Final pages are durably
+published before the manifest and atomic state; overflow flushes use the same
+publication adapter. Cleanup remains after the successful state commit. Persisted
+formats and exact replay accounting are unchanged. See [PERF-01](performance/perf-01.md).
+
 ```text
 packages/
   core/

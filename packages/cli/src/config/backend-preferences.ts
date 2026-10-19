@@ -1,23 +1,12 @@
 import { VERSION } from '@fbincon/statusline-core/release';
 import { join } from 'node:path';
-import { DEFAULT_RUNTIME, FEATURE_FILENAME, NATIVE_FILENAME, RUNTIME_FILENAME, enabledByDefault, parseFeature, parseNative, parseRuntime, type RuntimePreferences } from '@fbincon/statusline-core/config/backend-preferences';
+import { FEATURE_FILENAME, NATIVE_FILENAME, enabledByDefault, parseFeature, parseNative } from '@fbincon/statusline-core/config/backend-preferences';
+export { loadRuntime } from './runtime-preferences.js';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { createStorage, decodeUtf8, jsonBytes, errorDetail, type Storage } from './storage.js';
 function optional(path: string, io: Storage): Buffer | null {
     try { return io.read(path); }
     catch (exc) { throw new ConfigError('errors.storage.cannot_read_2', { path, exc: errorDetail(exc) }); }
-}
-export function loadRuntime(directory: string, io: Storage = createStorage(), liveMetrics?: boolean, nativeTiming?: boolean): RuntimePreferences {
-    if (liveMetrics !== undefined)
-        return { schema_version: 2, native_timing: nativeTiming ?? liveMetrics, live_metrics: liveMetrics };
-    const raw = optional(join(directory, RUNTIME_FILENAME), io);
-    let base: RuntimePreferences;
-    try { base = raw === null ? { ...DEFAULT_RUNTIME } : parseRuntime(decodeUtf8(raw)); }
-    catch (error) {
-        if (error instanceof ConfigError) throw error;
-        throw new ConfigError('errors.runtime.invalid', { FILENAME: RUNTIME_FILENAME, error: errorDetail(error) });
-    }
-    return { ...base, native_timing: nativeTiming ?? base.native_timing };
 }
 export function loadNative(directory: string, explicit?: boolean, version = VERSION, io: Storage = createStorage()): boolean {
     if (explicit !== undefined)
