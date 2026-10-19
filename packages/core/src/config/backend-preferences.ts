@@ -1,7 +1,6 @@
 import { readJson } from '../json-read.js';
 import { integer, isLosslessNumber, scalarCompare } from '../json.js';
-import { isSchema } from './display.js';
-import { ConfigError, fail, object } from './validation.js';
+import { ConfigError, fail, object, isSchema } from './validation.js';
 import { editorsEnabledByDefault } from '../release.js';
 export const RUNTIME_FILENAME = 'claude-statusline-runtime.json';
 export const NATIVE_FILENAME = 'claude-statusline-native.json';

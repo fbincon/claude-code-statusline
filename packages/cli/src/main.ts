@@ -51,6 +51,10 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
     }
     if (args.length === 1 && ['render', 'render-subagents', 'slash-hook'].includes(args[0]!))
         return renderer(args[0]!);
+    if (args.length === 1 && args[0] === 'runtime') {
+        const { runtimeCommand } = await import('./runtime/command.js');
+        return runtimeCommand(environment, stdout, stderr);
+    }
     // Management translations and storage stay outside the rendering hot path.
     const { ArgumentError, parseConfig, validateConfigHelp, optionToken } = await import('./config/arguments.js');
     const { expandUser, detectClaudeVersion, resolvedPath } = await import('@fbincon/statusline-platform/commands');

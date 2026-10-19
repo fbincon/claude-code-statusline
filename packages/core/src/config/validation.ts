@@ -1,4 +1,4 @@
-import { safeInteger, isLosslessNumber, scalarCompare } from '../json.js';
+import { safeInteger, isLosslessNumber, scalarCompare, integer as jsonInteger } from '../json.js';
 import { isOrderedRecord, orderedRecord, recordEntries } from '../ordered-record.js';
 /** Keep error construction independent of interface-language resources. */
 export class ConfigError extends Error {
@@ -7,6 +7,9 @@ export class ConfigError extends Error {
     }
 }
 export function fail(key: string, params: Record<string, unknown> = {}): never { throw new ConfigError(key, params); }
+export function isSchema(value: unknown, version: number): boolean {
+    try { return jsonInteger(value) === BigInt(version); } catch { return false; }
+}
 export function object(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === 'object' && !Array.isArray(value) && !isLosslessNumber(value);
 }

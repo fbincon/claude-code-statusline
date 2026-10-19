@@ -3,7 +3,8 @@ import { integer as jsonInteger, canonical, scalarCompare, isLosslessNumber, pyt
 import { LANGUAGES, resolveLanguage } from '../i18n/registry.js';
 import { DEFAULT_DISPLAY, DEFAULT_SUBAGENTS, DEFAULT_ITEM, DEFAULT_FORMATTING } from './defaults.js';
 import { BY_SCOPE, canonicalItem, conflicts } from './catalog.js';
-import { object, exact, fail, clone, choice, nullableInteger, ConfigError } from './validation.js';
+import { object, exact, fail, clone, choice, nullableInteger, ConfigError, isSchema } from './validation.js';
+export { isSchema } from './validation.js';
 import * as options from './formatting.js';
 
 export const SCHEMA_VERSION = 8;
@@ -20,9 +21,6 @@ const subagentKeys = ['enabled', 'items', 'item_options', 'visibility', 'hide_co
 export function defaultDisplay(): DisplayDraft { return clone(DEFAULT_DISPLAY); }
 export function defaultSubagents(): SubagentDraft { return clone(DEFAULT_SUBAGENTS); }
 export function defaultItem(): ItemOptionsDraft { return clone(DEFAULT_ITEM); }
-export function isSchema(value: unknown, version: number): boolean {
-  try { return jsonInteger(value) === BigInt(version); } catch { return false; }
-}
 function repr(value: unknown): string {
   if (value == null) return 'None';
   if (value === true) return 'True';
