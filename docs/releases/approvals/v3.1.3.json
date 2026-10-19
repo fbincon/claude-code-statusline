@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.1.3",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-19",
+  "authority": "On 2026-10-19 the maintainer selected all R01\u2013R06 and B01\u2013B05 repairs, stable v3.1.3 delivery, exact disk-backed deduplication and version-limited acceptance of the same six existing gaps; then explicitly instructed implementation of the proposed npm/GitHub/Gitee release plan. All new functional and automated failures remain blocking.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}
