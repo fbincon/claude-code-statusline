@@ -2,6 +2,8 @@
 
 **English** | [简体中文](timer.zh-CN.md)
 
+Current timing provenance, exact replay deduplication and cache compatibility are documented in [post-migration repairs](post-migration-fixes.md).
+
 `task-timer` measures the latest human task from its earliest trusted submission through queueing, agent work and main-agent wrap-up. `prompt-timer` remains an input alias. `task-active-timer` is optional and measures execution after it starts, excluding verified user waits. Native turn duration, session runtime and cumulative API duration are separate quantities.
 
 ## Structure

@@ -698,7 +698,7 @@ Actual installation, removal, and configuration changes create backups in:
 claude-statusline doctor
 ```
 
-Doctor checks platform/Node, PATH, configuration validity, command ownership, hooks, editor preferences/resources, host compatibility, launch prerequisites, runtime collection, and writable state. It does not rewrite configuration or open editor windows; macOS may check parent-directory synchronization capability. Passing diagnostics does not independently verify GUI focus or human interaction.
+Doctor checks platform/Node, PATH, configuration validity, command ownership, hooks, editor preferences/resources, host compatibility, launch prerequisites, runtime collection, and writable state. Skill checks compare the complete installed body with the current bundled template; host checks validate padding, refresh interval and Vim-indicator types/ranges. Runtime writability uses a private temporary probe that is removed immediately. It does not rewrite configuration or open editor windows; macOS may check parent-directory synchronization capability. Passing diagnostics does not independently verify GUI focus or human interaction.
 
 `[OK]` passes; `[WARN]` describes degradation and still allows exit 0; any `[ERROR]` makes exit 1. For stale integration, run `install`, rerun `doctor`, then restart Claude Code. Resolve ownership conflicts before using `--force`.
 
@@ -790,11 +790,11 @@ GNOME requires `DISPLAY` or `WAYLAND_DISPLAY`, executable `gnome-terminal`, and 
 claude-statusline configure
 ```
 
-Windows hosts `CREATE_NEW_CONSOLE` in the system default terminal. Closing the window, abnormal child exit, or absence of a trusted result immediately returns an error to the original conversation. Diagnose directly with `claude-statusline.cmd configure` in PowerShell. Confirm that `windows-curses backend` and `Windows system new-console launcher` are both OK in `doctor`.
+Windows hosts `CREATE_NEW_CONSOLE` in the system default terminal. Closing the window, abnormal child exit, or absence of a trusted result immediately returns an error to the original conversation. Diagnose directly with `claude-statusline.cmd configure` in PowerShell. The editor uses Node raw TTY/VT input and output. Check that the installed entry runs in a real console and that `doctor` reports valid resources, bindings and a writable runtime directory; it does not print the retired curses diagnostic rows.
 
 When the hook ends after 600 seconds, the TUI should normally already have timed out at 570 seconds. When inspecting `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/`, do not manually follow or delete unknown symbolic links. Automatic cleanup handles only remnants older than 24 hours that match this tool's naming prefix and contain no symbolic links.
 
-With `disableAllHooks`, the local launcher does not run. The fallback skill explains this and prohibits launching curses through Bash/PowerShell; this exception may use a very short model turn. Reenable hooks and try a new session.
+With `disableAllHooks`, the local launcher does not run. The fallback skill explains this and prohibits launching the interactive editor through Bash/PowerShell; this exception may use a very short model turn. Reenable hooks and try a new session.
 
 <a id="带参数的-slash-命令仍进入模型"></a>
 

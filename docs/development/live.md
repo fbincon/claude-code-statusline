@@ -2,6 +2,8 @@
 
 **English** | [简体中文](live.zh-CN.md)
 
+Current timing provenance, exact replay deduplication and cache compatibility are documented in [post-migration repairs](post-migration-fixes.md).
+
 The bundled `statusline-runtime` Mod supports verified Claude Code 2.1.289+ hosts. Native task timing and advanced live metrics both require explicit opt-in. These preferences are independent of the editor and of the visible item selection.
 
 `claude-statusline-runtime.json` uses schema 2: `native_timing` and `live_metrics` both default to false. A schema-1 explicit false keeps both disabled; explicit true keeps both enabled. Reinstall retains saved choices. `install --native-timing` / `--no-native-timing` controls timing; `--live-metrics` enables complete observations and `--no-live-metrics` preserves the old all-off behavior. An explicit timing switch in the same command controls timing separately. Unsupported/unknown hosts suspend the Mod without changing preferences.

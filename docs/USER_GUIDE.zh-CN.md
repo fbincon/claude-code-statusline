@@ -684,7 +684,7 @@ Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后 JavaScript 
 claude-statusline doctor
 ```
 
-Doctor 检查平台与 Node、PATH、配置有效性、命令归属、hooks、编辑器偏好及资源、宿主兼容、启动条件、实时采集和状态目录。它不重写配置、不打开编辑器窗口；macOS 可检查父目录同步能力。诊断通过不另行证明 GUI 焦点或人工交互有效。
+Doctor 检查平台与 Node、PATH、配置有效性、命令归属、hooks、编辑器偏好及资源、宿主兼容、启动条件、实时采集和状态目录写入能力。Skill 检查比较完整正文与当前内置模板，宿主检查校验 padding、刷新间隔及 Vim 指示器的类型／范围；运行目录用私有临时文件探测写入能力并立即清理。它不重写配置、不打开编辑器窗口；macOS 可检查父目录同步能力。诊断通过不另行证明 GUI 焦点或人工交互有效。
 
 `[OK]` 表示通过，`[WARN]` 表示降级但仍可返回 0，存在 `[ERROR]` 时返回 1。接入过时先运行 `install`、再次 `doctor`，然后重启 Claude Code。归属冲突先检查具体目标，再决定是否使用 `--force`。
 
@@ -764,11 +764,11 @@ GNOME 路径要求 `DISPLAY` 或 `WAYLAND_DISPLAY`、可执行的 `gnome-termina
 claude-statusline configure
 ```
 
-Windows 使用系统默认终端承载 `CREATE_NEW_CONSOLE`。若关窗、子进程异常退出或未生成可信结果，原对话会立即收到错误；直接排查时在 PowerShell 中运行 `claude-statusline.cmd configure`。确认 `doctor` 的 `windows-curses backend` 与 `Windows system new-console launcher` 均为 OK。
+Windows 使用系统默认终端承载 `CREATE_NEW_CONSOLE`。若关窗、子进程异常退出或未生成可信结果，原对话会立即收到错误；直接排查时在 PowerShell 中运行 `claude-statusline.cmd configure`。编辑器使用 Node raw TTY／VT 输入输出。检查已安装入口是否运行在真实控制台，以及 `doctor` 报告的资源、绑定和运行目录写入能力；当前不会输出已退役的 curses 诊断行。
 
 若 hook 在 600 秒结束，TUI 通常应已在 570 秒自行超时。检查 `<CLAUDE_CONFIG_DIR>/statusline_runtime/slash_tui/` 时，不要手工跟随或删除不明符号链接；工具只自动清理超过 24 小时、符合自身命名前缀且不含符号链接的残留。
 
-若启用了 `disableAllHooks`，本地启动器不会运行。回退 skill 会提示这一点，并禁止 Bash/PowerShell 自行启动 curses；该例外可能产生一个极短模型回合。重新启用 hooks 后新开会话再试。
+若启用了 `disableAllHooks`，本地启动器不会运行。回退 skill 会提示这一点，并禁止 Bash/PowerShell 自行启动交互编辑器；该例外可能产生一个极短模型回合。重新启用 hooks 后新开会话再试。
 
 ### 带参数的 slash 命令仍进入模型
 

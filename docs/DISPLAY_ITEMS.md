@@ -2,6 +2,8 @@
 
 **English** | [简体中文](DISPLAY_ITEMS.zh-CN.md)
 
+Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/post-migration-fixes.md).
+
 The current catalog contains 60 main and 14 subagent items, with 10 and five enabled by default. The tables highlight independent metrics and task timers; the [user guide](USER_GUIDE.md#configurable-display-items) lists default selections and configuration entry points. `prompt-timer` is an alias of `task-timer`, not an additional catalog item. Main-line compounds can coexist with their individual components; subagent `status-elapsed` excludes separate `status` and `elapsed`.
 
 Examples below use English output. `statusline-language=zh-CN` localizes built-in phrases and known values without changing metric definitions, IDs, raw observations, numbers or technical units. User text and unknown values remain intact. See [output language](USER_GUIDE.md#statusline-language).
@@ -99,11 +101,11 @@ claude-statusline config set-items model effort current-dir context-tokens five-
 ```
 
 The shared catalog is returned by CLI listings and JSON `describe`. Both TUI
-editors and the installed wizard consume it. Display schema v5 and JSON protocol
-v4 remain the current contracts; minimum-version metadata describes verified boundaries, not
+editors and the installed wizard consume it. Display schema v8 and JSON protocol
+v12 remain the current contracts; minimum-version metadata describes verified boundaries, not
 whether live data has arrived. Unverified field minima remain unknown.
 
-Older packages do not recognize newly selected IDs and may not read schema v5. Before downgrading, use the newer package to remove new IDs from both
+Older packages do not recognize newly selected IDs and may not read schema v8. Before downgrading, use the newer package to remove new IDs from both
 scopes or restore a compatible configuration backup. Follow the existing
 [native integration downgrade procedure](USER_GUIDE.md#upgrading) separately.
 
@@ -113,7 +115,7 @@ The five Phase 5 items default unselected. Collection uses the independent `inst
 
 ## Branch base and ended agents
 
-Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1/v2/v3/v4 normalize in memory; actual saves back up and migrate to v5, with configuration protocol v4. Restore an older configuration backup before a package downgrade.
+Use `config set branch-diff-base auto` or `config set branch-diff-base REF`; both editors expose the same nullable Metrics field. Missing refs/merge-base, shallow missing history and timeout display `Diff —`. Reads of display v1–v7 normalize in memory; actual saves back up and migrate to v8, with configuration protocol v12. Restore an older configuration backup before a package downgrade.
 
 Running subagent elapsed values grow. Completed/failed/killed rows freeze at reliable native or existing lifecycle-hook end evidence; if it is absent, retain the status marker without an invented duration. End history works with live collection disabled. Task timing uses the lifecycle evidence described in [timer contracts](development/timer.md).
 

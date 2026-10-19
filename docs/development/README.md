@@ -8,6 +8,8 @@ Start here to set up a development environment, run checks and build the package
 
 ## Technical documentation
 
+- [Post-migration repairs and delivery](post-migration-fixes.md): all eleven findings, exact usage identities and v3.1.3 evidence.
+- [Post-migration findings and documentation updates](post-migration-review.md): four-session consolidation of six migration findings, five baseline defects or shared risks, and five documentation conflict categories.
 - [External TUI regression repairs](external-tui-regressions.md): v3.1.2 catalog guidance, text, navigation, color and notice fixes.
 - [External TUI parity follow-up](external-tui-parity.md): v3.1.1 rendering, contextual controls and source-bound validation.
 - [Architecture](architecture.md) and [shared contracts](contracts.md).

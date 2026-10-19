@@ -2,6 +2,8 @@
 
 **English** | [简体中文](architecture.zh-CN.md)
 
+Current timing provenance, exact replay deduplication and cache compatibility are documented in [post-migration repairs](post-migration-fixes.md).
+
 The production package is TypeScript, retaining the existing CLI, configuration formats and storage locations. Implementation separates pure rules, platform effects, application services and terminal UI. The Python reference is frozen under `archive/python`; Python-specific sections below preserve historical architecture.
 
 ## TypeScript migration workspace

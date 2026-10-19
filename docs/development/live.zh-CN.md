@@ -2,6 +2,8 @@
 
 [English](live.md) | **简体中文**
 
+当前计时证据、精确重放去重及缓存兼容见[迁移后修复](post-migration-fixes.zh-CN.md)。
+
 随包 `statusline-runtime` Mod 支持已核验的 Claude Code 2.1.289+ 宿主。原生任务计时与高级实时指标均需显式启用；偏好与编辑器及显示项选择独立。
 
 `claude-statusline-runtime.json` 使用 schema 2：缺省 `native_timing=false`、`live_metrics=false`。旧 schema 1 的显式 false 保留为两者关闭，true 保留为两者启用；重装保留选择。`install --native-timing`／`--no-native-timing` 控制原生计时，`--live-metrics` 开启完整观测，`--no-live-metrics` 保留原先的全部关闭行为；同一命令明确给出的计时选项独立控制计时。不兼容或未知宿主暂挂 Mod，不改写偏好。

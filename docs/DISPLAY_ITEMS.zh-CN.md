@@ -2,6 +2,8 @@
 
 [English](DISPLAY_ITEMS.md) | **简体中文**
 
+当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/post-migration-fixes.zh-CN.md)。
+
 当前目录包含 60 个主栏项、14 个子 Agent 项，默认分别启用 10 项和 5 项。下表介绍独立指标和任务计时，默认选择与配置入口见[使用指南](USER_GUIDE.zh-CN.md#可配置显示项)。`prompt-timer` 是 `task-timer` 的兼容别名，不另计为目录项。主栏组合项可与其独立项并存；子 Agent 的 `status-elapsed` 与独立 `status`、`elapsed` 互斥。
 
 下列样例采用英文输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
@@ -90,10 +92,10 @@
 claude-statusline config set-items model effort current-dir context-tokens five-hour-reset session-cost api-duration task-timer
 ```
 
-CLI 列表与 JSON `describe` 返回共享目录；两个 TUI 和安装的向导统一消费它。显示 schema v5 与
-JSON 协议 v4 为当前契约。最低版本元数据表示已验证的功能边界，不表示实时数据已经到达；缺少证据的最低版本保持未知。
+CLI 列表与 JSON `describe` 返回共享目录；两个 TUI 和安装的向导统一消费它。显示 schema v8 与
+JSON 协议 v12 为当前契约。最低版本元数据表示已验证的功能边界，不表示实时数据已经到达；缺少证据的最低版本保持未知。
 
-旧包可能无法读取 schema v5，也不认识新增 ID。降级前应使用新版本从两个作用域中移除新 ID，或恢复兼容的配置备份。
+旧包可能无法读取 schema v8，也不认识新增 ID。降级前应使用新版本从两个作用域中移除新 ID，或恢复兼容的配置备份。
 另行遵循[原生接入降级步骤](USER_GUIDE.zh-CN.md#升级)。
 
 ## 实时状态项
@@ -102,7 +104,7 @@ JSON 协议 v4 为当前契约。最低版本元数据表示已验证的功能�
 
 ## 分支基准与已结束代理
 
-使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`，两个编辑器提供同一个可空 Metrics 字段。缺失 ref/merge-base、浅克隆缺历史和超时显示 `Diff —`。显示 v1/v2/v3/v4 只在内存补默认值，实际保存才备份并迁移到 v5，配置协议为 v4；包降级前恢复旧版配置备份。
+使用 `config set branch-diff-base auto` 或 `config set branch-diff-base REF`，两个编辑器提供同一个可空 Metrics 字段。缺失 ref/merge-base、浅克隆缺历史和超时显示 `Diff —`。显示 v1–v7 只在内存补默认值，实际保存才备份并迁移到 v8，配置协议为 v12；包降级前恢复旧版配置备份。
 
 运行中的代理时长递增；已完成、失败或终止行从可靠 native 或已有生命周期 hook 的结束证据冻结。没有结束证据时保留状态标记，不虚构时长。结束历史在关闭实时采集时仍可用；任务计时完成证据见[计时契约](development/timer.zh-CN.md)。
 
