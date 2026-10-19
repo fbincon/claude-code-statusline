@@ -127,4 +127,9 @@ test('same-frame coalescing keeps every pending key; acknowledgements send the n
   listener({ key: 's' });
   expect(sent[sent.length - 1].epoch).toBe(2);
   expect(sent[sent.length - 1].events[1].seq).toBe(2);
+  for(let i=0;i<8;i++) listener({key:'界'.repeat(12000)});
+  const large=sent[sent.length-1];
+  expect(JSON.stringify(large).length<50000).toBe(true);
+  expect(large.events.filter((item:any)=>item.event.overflow)).toHaveLength(1);
+  expect(parseBatch(large)).toBeDefined();
 });

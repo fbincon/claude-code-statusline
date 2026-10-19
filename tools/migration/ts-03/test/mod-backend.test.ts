@@ -48,6 +48,11 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
         const result = call('preview', { draft: changed, width });
         assert.equal(result.sample, true);
         assert.ok(result.main.length);
+        for(const scope of ['main','subagent']) {
+            const explained=call('explain',{draft:changed,scope,width});
+            assert.deepEqual(explained.preview,result);
+            assert.equal(explained.actual_availability,'not_observed');
+        }
     }
     const saved = call('apply', { draft: changed, expected_revision: baseline.revision });
     assert.equal(saved.changed, true);

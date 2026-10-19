@@ -1,3 +1,4 @@
+import { SAMPLE_REASONS, EXPLAIN_REASONS } from '../contracts/ui.js';
 import { text as localizedText } from '../i18n/messages.js';
 /** Protocol parsing only. Host calls stay in the hooks entry for static analysis. */
 import {
@@ -464,6 +465,19 @@ export function parseResponse<O extends Operation>(
     if (!isDraft(result.draft)) fail();
   } else if (operation === 'export') {
     if (!text(result.path) || !result.path) fail();
+  } else if (operation === 'explain') {
+    if (!exact(result,['sample','scope','width','actual_availability','preview','instances']) || result.sample!==true ||
+        !['main','subagent'].includes(String(result.scope)) || !Number.isInteger(result.width) || Number(result.width)<2 || Number(result.width)>10000 || result.actual_availability!=='not_observed' ||
+        !object(result.preview) || result.preview.sample!==true || !Array.isArray(result.preview.main) || !Array.isArray(result.preview.subagents) ||
+        ![...result.preview.main,...result.preview.subagents].every(row=>Array.isArray(row)&&row.every(isSpan)) ||
+        !Array.isArray(result.instances) || result.instances.length>10000) fail();
+    const ids=new Set<string>();
+    for(const item of result.instances as unknown[]) {
+      if(!object(item)||!exact(item,['id','type_id','enabled','reasons','samples'])||!text(item.id)||ids.has(item.id)||!text(item.type_id)||typeof item.enabled!=='boolean'||!Array.isArray(item.reasons)||!Array.isArray(item.samples)) fail();
+      ids.add(item.id as string);
+      if(!item.reasons.every((reason:unknown)=>object(reason)&&exact(reason,['code','origin'])&&EXPLAIN_REASONS.includes(reason.code as typeof EXPLAIN_REASONS[number])&&['configuration','local_configuration','host_capability','unknown'].includes(String(reason.origin)))) fail();
+      if(!item.samples.every((row:unknown)=>object(row)&&exact(row,['row_id','outcome','truncated'])&&text(row.row_id)&&SAMPLE_REASONS.includes(row.outcome as typeof SAMPLE_REASONS[number])&&typeof row.truncated==='boolean')) fail();
+    }
   } else if (operation === 'preview') {
     if (
       result.sample !== true ||
@@ -480,8 +494,8 @@ export function parseResponse<O extends Operation>(
       !result.backend_version ||
       !isOptions(result.options) ||
       !isCapabilities(result.capabilities) ||
-      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import']) ||
-      result.operations.length !== 10 ||
+      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain']) ||
+      result.operations.length !== 11 ||
       JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
       JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
       !object(result.formatting_options) ||

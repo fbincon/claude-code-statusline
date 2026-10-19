@@ -40,7 +40,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
             help: [hint('Enter', 'details'), hint('↑↓', 'section'), hint('PgUp/PgDn', 'scroll'), hint('Tab', 'preview')],
         };
     }
-    if (e.guidanceScroll !== null) {
+    if (e.guidanceScroll !== null || e.explanation) {
         return {
             actions: [hint('Ctrl+G/Esc', 'back')],
             help: [hint('↑↓', 'scroll'), hint('PgUp/PgDn', 'page'), hint('Home/End', 'scroll')],

@@ -1,3 +1,6 @@
+import { RenderTrace } from '@fbincon/statusline-core/rendering/trace';
+import { explain } from '@fbincon/statusline-core/rendering/explain';
+import { explanationFacts } from './explain.js';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { randomUUID } from 'node:crypto';
 import * as contracts from '@fbincon/statusline-core/contracts/ui';
@@ -17,8 +20,8 @@ import { importFile, exportFile } from '../config/transfer.js';
 import { localizedError } from '../errors.js';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
 export const BACKEND_VERSION = VERSION;
-export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import'] as const;
-export type Preview = (draft: Draft, width: number) => unknown;
+export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain'] as const;
+export type Preview = (draft: Draft, width: number, trace?: RenderTrace) => contracts.PreviewResult;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {
     return {
         host_version: version?.join('.') ?? null,
@@ -88,7 +91,8 @@ export class ConfigurationProtocol {
             const result = this.service.apply(parsed, revision);
             return { ...this.readResult(result.effective), changed: result.changed, backup_dir: result.backup_dir };
         }
-        requestObject(payload, ['draft', 'width'], 'payload');
+        requestObject(payload, operation==='explain'?['draft','scope','width']:['draft', 'width'], 'payload');
+        if (operation==='explain' && payload.scope!=='main' && payload.scope!=='subagent') throw new ConfigError('explain.invalid_scope',{},'invalid_request');
         const parsed = validateDraft(payload.draft);
         let width: number;
         try {
@@ -99,6 +103,11 @@ export class ConfigurationProtocol {
         }
         if (!this.preview)
             throw new Error('Preview adapter has not been bound');
+        if(operation==='explain') {
+            const trace=new RenderTrace(parsed.display);
+            const preview=this.preview(parsed,width,trace);
+            return explain(parsed,payload.scope as contracts.Scope,width,preview,trace,explanationFacts(this.service));
+        }
         return this.preview(parsed, width);
     }
     handle(raw: string, diagnostics: (error: unknown) => void = error => console.error(error)): {

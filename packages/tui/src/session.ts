@@ -29,6 +29,7 @@ export function colorCapacity(env: NodeJS.ProcessEnv = process.env): number {
 }
 export class Session {
     private previewKey = '';
+    private explanationKey = '';
     constructor(public readonly state: State, public readonly backend: Backend, public readonly guard: () => void = () => { }) { }
     static async open(backend: Backend, language?: Language, guard?: () => void): Promise<Session> {
         const description = await backend.request('describe'), current = await backend.request('read'), preference = await backend.request('read_ui_preferences');
@@ -44,6 +45,15 @@ export class Session {
     async preview(columns: number, rows: number): Promise<void> {
         const e = this.state.editor, width = Math.max(2, dimensions(columns, rows).preview.innerWidth), draft = e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
         const key = JSON.stringify([draft, width]);
+        if(e.explanation) {
+            const view=e.explanation, identity=JSON.stringify([key,view.scope,view.id]);
+            if(identity!==this.explanationKey || !view.result) {
+                const result=await this.backend.request('explain',{draft,scope:view.scope,width});
+                if(result.scope!==view.scope || result.width!==width) throw new Error('Explanation response does not match the request');
+                view.result=result;view.error='';this.state.preview=result.preview;this.explanationKey=identity;
+            }
+            this.previewKey=key;return;
+        }
         if (key === this.previewKey)
             return;
         this.state.preview = await this.backend.request('preview', { draft, width });
@@ -86,6 +96,7 @@ export class Session {
             state.pendingLanguage = null;
             e.pendingTransfer = null;
             this.failure(error);
+            if(this.state.editor.explanation) this.state.editor.explanation.error=this.state.message;
         }
         return null;
     }
@@ -109,7 +120,15 @@ export class Session {
         try {
             result = await terminal<'save' | Outcome>({
                 draw: (columns, rows) => ansiFrame(frame(this.state, columns, rows), colors),
-                key: (key, columns, rows) => this.key(key, columns, rows),
+                key: async (key, columns, rows) => {
+                    const action=await this.key(key,columns,rows);
+                    if(action!=='save') return action;
+                    try { return await this.save(); }
+                    catch(error) {
+                        if(error instanceof EditorRevoked) throw error;
+                        this.failure(error);return null;
+                    }
+                },
                 guard: this.guard,
                 interrupted: signal => outcome('interrupted', this.state.language, ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129, SIGBREAK: 131 } as Partial<Record<NodeJS.Signals, number>>)[signal] ?? 130),
                 timeout: () => outcome('timed-out', this.state.language),
@@ -124,6 +143,7 @@ export class Session {
             if (error instanceof EditorRevoked)
                 return outcome('interrupted', this.state.language, 130);
             this.failure(error);
+            if(this.state.editor.explanation) this.state.editor.explanation.error=this.state.message;
             return outcome('error', this.state.language, 2, this.state.message);
         }
     }

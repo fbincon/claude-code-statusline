@@ -1,3 +1,4 @@
+import { openExplanation, explanationKey } from '../editor/explanation.ts';
 import { openQuick, controlQuick } from '../editor/quick-setup.ts';
 import { inputKey } from '../editor/text-input.ts';
 import type { NativeKeyEvent } from './messages.ts';
@@ -14,7 +15,7 @@ import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
 import { navigateReview } from '../editor/import-review.ts';
 
-export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | null;
+export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -36,6 +37,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
   if (event.text && (!view.input || view.input.kind === 'category')) return null;
+  if(e.explanation) { if(!explanationKey(e.explanation,event.ctrl && key.toLowerCase()==='g'?'cancel':event.ctrl||event.meta?'':key,Math.max(1,rows-10))) e.explanation=null; return null; }
   if (e.quick) return controlQuick(e,event.ctrl && key.toLowerCase()==='g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
   if (event.ctrl && key.toLowerCase()==='p' && !view.input && !e.detail && !e.adding && !e.review && !view.uncertain) {
     if(e.acceptNumeric()) e.quick=openQuick(e.draft); return null;
@@ -192,6 +194,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",localizedText("composition.invalid")); }
     else if (e.setting === 'quick-setup') { if (e.acceptNumeric()) e.quick=openQuick(e.draft); }
+    else if(e.setting==='item-explain' && e.detail) { e.explanation=openExplanation(e.detail.scope,e.detail.id); return 'explain'; }
     else if (e.setting === 'item-guidance') e.guidanceScroll = 0;
     else if (e.setting === 'preset-apply') { e.pendingTransfer = 'preset'; return 'transfer'; }
     else if (e.setting === 'import-file' || e.setting === 'export-file') {

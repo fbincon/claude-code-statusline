@@ -24,7 +24,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     [{key:'PgUp/PgDn', label:'scroll'}, {key:'Tab', label:'preview'}], [focus],
   ];
   if (view.input?.kind === 'category') return [[{key: 'Enter', label: 'accept'}, {key: 'Ctrl+G', label: 'cancel'}, focus], [{key: '↑↓', label: 'select'}]];
-  if (e.guidanceScroll !== null) return [[{key:'Ctrl+G', label:'back'}, focus], [{key:'↑↓', label:'scroll'}, {key:'PgUp/PgDn', label:'page'}]];
+  if (e.guidanceScroll !== null || e.explanation) return [[{key:'Ctrl+G', label:'back'}, focus], [{key:'↑↓', label:'scroll'}, {key:'PgUp/PgDn', label:'page'}]];
   if (view.input) return [[
     { key: 'Enter', label: 'accept' },
     { key: 'Ctrl+G', label: 'cancel editing', short: 'cancel' },

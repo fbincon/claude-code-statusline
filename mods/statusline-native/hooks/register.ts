@@ -605,7 +605,7 @@ export const register: Register = (on, options) => {
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);
         else if (effect === 'retry') state.previewKey = '';
-        else if (effect === 'reviewPreview') {
+        else if (effect === 'reviewPreview' || effect === 'explain') {
           state.previewTimer?.cancel();
           state.previewKey = '';
           state.view.preview = null;
@@ -673,7 +673,8 @@ export const register: Register = (on, options) => {
     const editor = state.view.editor;
     const previewDraft = editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
     const previewColumns = contentColumns(width, height);
-    const key = `${state.epoch}:${previewColumns}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
+    const explanation=editor?.explanation;
+    const key = `${state.epoch}:${previewColumns}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;
     if (
       editor &&
       width >= MIN_COLUMNS &&
@@ -688,16 +689,17 @@ export const register: Register = (on, options) => {
       state.view.previewBusy = true;
       state.previewTimer = $.clock.after(0, async () => {
         try {
-          const preview = await callBackend($, options, 'preview', {
-            draft,
-            width: previewColumns,
-          });
+          const explained=explanation ? await callBackend($,options,'explain',{draft,scope:explanation.scope,width:previewColumns}) : null;
+          if(explained && (explained.scope!==explanation!.scope || explained.width!==previewColumns)) throw new Error('Explanation response does not match the request');
+          const preview=explained?.preview ?? await callBackend($, options, 'preview', {draft,width:previewColumns});
           if (state.epoch === requestedEpoch && state.previewKey === key) {
+            if(explanation && explained) { explanation.result=explained;explanation.error=''; }
             state.view.preview = preview;
             state.view.previewError = '';
           }
         } catch (failure) {
           if (state.epoch === requestedEpoch && state.previewKey === key) {
+            if(explanation) explanation.error=failureMessage(failure).fallback;
             state.view.preview = null;
             setMessage(state.view, "previewError", failureMessage(failure));
           }

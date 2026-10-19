@@ -6,6 +6,7 @@ import {
   keyEvents,
   MAX_BATCH,
   MAX_PENDING,
+  MAX_PENDING_TEXT,
 } from '../../lib/client/messages.ts';
 import type { KeyMessage } from '../../lib/client/messages.ts';
 import { draw } from './draw.ts';
@@ -43,11 +44,18 @@ export default function StatuslineClient(
   );
   const post = () => {
     if (!active.pending.length) return;
+    let budget=48000;
+    const batch: KeyMessage[]=[];
+    for(const item of active.pending.slice(0,MAX_BATCH)) {
+      const size=JSON.stringify(item).length;
+      if(size>budget) break;
+      budget-=size;batch.push(item);
+    }
     surface.post({
       epoch: active.epoch,
       columns: surface.columns || active.latest.columns,
       rows: surface.rows || active.latest.rows,
-      events: active.pending.slice(0, MAX_BATCH).map(({ seq, event }) => ({
+      events: batch.map(({ seq, event }) => ({
         seq,
         event: {
           key: event.key,
@@ -62,7 +70,7 @@ export default function StatuslineClient(
   };
   surface.onKey((event) => {
     if (active.latest.view.busy) return;
-    if (active.pending.length >= MAX_PENDING) {
+    if (active.pending.length >= MAX_PENDING || active.pending.reduce((sum,item)=>sum+item.event.key.length,0)+event.key.length>MAX_PENDING_TEXT) {
       if (!active.pending.some(item => item.event.overflow)) active.pending.push({seq: active.next++, event: {key: 'input-overflow', overflow: true}});
       post(); return;
     }

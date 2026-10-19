@@ -15,7 +15,7 @@ export interface SettingRow {
 
 export function settingRows(view: View): SettingRow[] {
   const e = view.editor!;
-  if (e.detail) return [{key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true}, ...formRows(view)];
+  if (e.detail) return [...(!e.adding ? [{key:'item-explain',label:'Configuration and sample explanation',group:'Item format',value:'Enter',editable:true}] : []), {key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true}, ...formRows(view)];
   if (e.page === 'layout') return formRows(view);
   const d = e.draft.display;
   const h = e.draft.host;

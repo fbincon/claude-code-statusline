@@ -4,6 +4,7 @@ export type NativeKeyEvent = ClientKeyEvent & { text?: true; overflow?: true };
 
 export const MAX_BATCH = 128;
 export const MAX_PENDING = 512;
+export const MAX_PENDING_TEXT = 32768;
 export interface KeyMessage {
   seq: number;
   event: NativeKeyEvent;
@@ -50,7 +51,7 @@ export function keyEvents(event: ClientKeyEvent): NativeKeyEvent[] {
     /^f\d{1,2}$/i.test(event.key)
   )
     return [event];
-  return event.key.length > 16384 ? [{ key: 'input-overflow', overflow: true }] : [{ ...event, text: true }];
+  return event.key.length > 16384 || JSON.stringify(event.key).length > 32768 ? [{ key: 'input-overflow', overflow: true }] : [{ ...event, text: true }];
 }
 
 /** Posts are input, including when our own module is their usual sender. */

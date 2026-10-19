@@ -99,6 +99,13 @@ try {
             }
             if (values.extended) {
                 await key('\t');
+                await key('\x10',t('quick.title',language));
+                capture('quick-scenario');
+                await key('\r',t('quick.appearance',language));
+                capture('quick-appearance');
+                await key('\x1b[F\r',t('quick.review',language));
+                capture('quick-review');
+                await key('\x07');
                 // Exercise catalog guidance and semantic text focus through installed keys.
                 for (const scope of ['main', 'subagent'] as const) {
                     const type = scope === 'main' ? 'task-active-timer' : 'status';
@@ -145,9 +152,15 @@ try {
                 await key('\x15');
                 await key('中文 é 👩🏽‍💻', '👩🏽‍💻');
                 assert(capture('text-edit')[0]!.includes('*'));
+                await key('\x1b[H\x1b[C');
+                await key('标','中标▏文');
+                capture('text-cursor');
                 await key('\x1b');
                 await key('\x1b[H');
-                await key('\r');
+                await key('\r',t('explain.title',language));
+                capture('explanation');
+                await key('\x07');
+                await key('\x1b[B\r',t('guidance.title',language));
                 capture('guidance');
                 await key('\x1b');
                 await key('\x07');
@@ -155,7 +168,7 @@ try {
                 await key('\t');
                 await selectSetting('padding');
                 await key('9');
-                assert(capture('numeric').some(line => line.includes('[9_]')));
+                assert(capture('numeric').some(line => line.includes('9▏')));
                 await key('9');
                 capture('numeric-error');
                 await key('\x1b');

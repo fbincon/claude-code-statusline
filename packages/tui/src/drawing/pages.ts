@@ -1,3 +1,4 @@
+import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
 import { quickView } from '@fbincon/statusline-core/editor/quick-setup';
 /** Page content, using one bounded canvas and shared terminal geometry. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
@@ -17,6 +18,12 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
 
+    if(e.explanation) {
+        const lines=explanationLines(e,state.language,width), count=Math.max(1,panel.innerHeight-1);
+        const start=Math.min(e.explanation.scroll,Math.max(0,lines.length-count));e.explanation.scroll=start;
+        lines.slice(start,start+count).forEach((text,index)=>canvas.content(panel,index,[paint(text)]));
+        return `${start+1}–${Math.min(lines.length,start+count)}/${lines.length}`;
+    }
     if (e.quick) {
         quickView(e.quick,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
         return tr('quick.steps');

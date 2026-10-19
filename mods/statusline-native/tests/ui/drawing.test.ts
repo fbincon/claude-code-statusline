@@ -102,6 +102,8 @@ test('static guidance scrolls and returns to the item form without applying chan
     handleKey(state, {key:'e', ctrl:true}, columns!, rows!);
     expect(e.setting).toBe('item:label');
     handleKey(state, {key:'home'}, columns!, rows!);
+    expect(e.setting).toBe('item-explain');
+    handleKey(state, {key:'down'}, columns!, rows!);
     expect(e.setting).toBe('item-guidance');
     handleKey(state, {key:'return'}, columns!, rows!);
     expect(e.guidanceScroll).toBe(0);
@@ -172,7 +174,7 @@ test('the theme accent heading and footer keep page controls ordered and out of 
     const expected = page === 'main' || page === 'subagents'
       ? ['Tab', 'Ctrl+P', 'A/D/X', 'Space', '↑↓', '←→', 'Ctrl+E', '/']
       : page === 'settings' ? ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter', 'H', 'R']
-      : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', '↑↓', '←→', 'Enter'];
+      : page === 'detail' ? ['Tab', '↑↓', '←→', 'Enter', 'Ctrl+G'] : ['Tab', 'Ctrl+P', '↑↓', '←→', 'Enter'];
     expect(groups[1]!.map((hint) => hint.key)).toEqual(expected);
     expect(groups.flat().every((hint) => hint.label === hint.label.toLowerCase())).toBe(true);
     const tree = draw(elements, state, 120, 30) as unknown as Node;

@@ -66,6 +66,10 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (releaseMetadataDifference(id, path, a, b)) return;
     if (runtimeDefaultDifference(id, path, a, b)) return;
     if (regionalLanguageDifference(id, path, a, b)) return;
+    if (id==='ui-describe' && path==='/value/response/result/operations') {
+      const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];
+      if(canonical(a)===canonical(old) && canonical(b)===canonical([...old,'explain'])) return;
+    }
     if (id === 'ui-describe' && path === '/value/response/result/presets') {
       const order=['left-right','repeated-metrics','minimal','developer','monitoring','multi-agent'];
       const old=order.map(id=> { const p=PRESETS.find(p=>p.id===id)!; return {id:p.id,label:p.label,rows:p.rows,layout_mode:p.layout_mode}; });

@@ -267,7 +267,8 @@ test('tests.platforms.test_macos_terminal.CommitGuardTests.test_parent_ending_af
         await ready(p);
         release = lock(join(f.root, 'statusline_runtime/install.lock'));
         p.send(' \x13');
-        await p.wait(o => o.includes('\x1b[?1049l'));
+        // Save now keeps the screen open until commit succeeds. The held lock
+        // prevents publication while the parent invocation is revoked.
         await new Promise(r => setTimeout(r, 50));
         fs.unlinkSync(i.path);
         release();

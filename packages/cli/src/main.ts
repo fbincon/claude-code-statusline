@@ -1,4 +1,3 @@
-import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -172,6 +171,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return configure(service, language, stdout, stderr);
         }
         if (command === 'ui') {
+            const { PROTOCOL_VERSION } = await import('@fbincon/statusline-core/contracts/ui');
             if (args.length)
                 throw new ArgumentError('ui takes no positional arguments');
             const { ConfigurationProtocol } = await import('./ui/protocol.js');

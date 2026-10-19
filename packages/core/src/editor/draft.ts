@@ -1,3 +1,4 @@
+import type { ExplanationView } from './explanation.js';
 import type { QuickSetup } from './quick-setup.js';
 import { t, type Language } from '../i18n/messages.js';
 import { nodes, newInstance, reconcileRows } from './instances.js';
@@ -40,6 +41,7 @@ export class Editor {
   guidanceScroll: number | null = null;
   review: ReviewState | null = null;
   quick: QuickSetup | null = null;
+  explanation: ExplanationView | null = null;
   preset = 'minimal';
   path = 'statusline.json';
   pendingTransfer: 'import' | 'export' | 'preset' | null = null;
@@ -84,6 +86,7 @@ export class Editor {
     this.activeNumeric = null;
     this.detail = null;
     this.guidanceScroll = null;
+    this.explanation = null;
     this.review = null;
   }
 

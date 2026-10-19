@@ -1,3 +1,4 @@
+import type { RenderTrace } from './trace.js';
 import type { Data } from '../runtime/values.js';
 import type { Sample } from '../timing/sample.js';
 import type { SessionTokenCounts } from '../runtime/usage.js';
@@ -18,6 +19,7 @@ export interface TaskObservation {
 }
 /** The renderer calls only selected sources; providers own all platform effects. */
 export interface RenderEnvironment {
+    trace?: RenderTrace;
     language: Presentation;
     compactStaged: boolean;
     now(): number;

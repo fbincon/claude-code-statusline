@@ -1,3 +1,4 @@
+import { openExplanation, explanationKey } from '@fbincon/statusline-core/editor/explanation';
 import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
 import { Editor, copyDraft, type Page } from '@fbincon/statusline-core/editor/draft';
@@ -9,7 +10,7 @@ import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
-export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | null;
+export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | null;
 type Input = ({
     kind: 'search';
     original: string;
@@ -72,7 +73,7 @@ export class State {
         const fields = (e.adding && e.detail ? [] : formRows(this)).map(form => ({ ...form, key: form.key === 'layout.mode' ? 'layout-mode' : form.key, form, kind: form.spec.kind }));
         const row = (key: string, label: string, value: string, group: string, kind: Row['kind'] = 'legacy'): Row => ({ key, label, value, group, kind, editable: true });
         if (e.detail)
-            return [row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'), ...fields];
+            return [...(!e.adding ? [row('item-explain','Configuration and sample explanation','','Item format','action')] : []), row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'), ...fields];
         if (e.page === 'layout')
             return fields;
         const result: Row[] = [
@@ -191,8 +192,9 @@ export class State {
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
         if (event.paste && (!this.input || this.input.kind === 'category')) return null;
+        if (e.explanation) { if(!explanationKey(e.explanation,cancel?'cancel':ctrl||event.meta?'':k,height)) e.explanation=null; return null; }
         if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
-        if (ctrl && k.toLowerCase() === 'p' && !this.input && !e.detail && !e.adding && !e.review) {
+        if (ctrl && k.toLowerCase() === 'p' && !this.input && !e.detail && !e.adding && !e.review && !e.explanation) {
             if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); }
             return null;
         }
@@ -333,6 +335,7 @@ export class State {
                 return 'save';
             const row = this.selectedRow();
             if (row.key === 'quick-setup') { if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); } }
+            else if (row.key === 'item-explain' && e.detail) { e.explanation=openExplanation(e.detail.scope,e.detail.id); return 'explain'; }
             else if (row.key === 'item-guidance')
                 e.guidanceScroll = 0;
             else if (row.key === 'preset-apply') {

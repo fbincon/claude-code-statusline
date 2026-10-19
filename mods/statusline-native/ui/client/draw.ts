@@ -1,3 +1,4 @@
+import { explanationLines } from '../../lib/editor/explanation.ts';
 import { quickView } from '../../lib/editor/quick-setup.ts';
 import { inputView, textInput } from '../../lib/editor/text-input.ts';
 import type { ClientElements, RenderElement, TextProps } from 'claude-code';
@@ -54,7 +55,13 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if (e.quick) {
+  if(e.explanation) {
+    title=tr('explain.title');
+    const lines=explanationLines(e,view.language ?? 'en',inner), capacity=Math.max(1,layout.bodyRows-1);
+    const start=Math.min(e.explanation.scroll,Math.max(0,lines.length-capacity));
+    content.push(...lines.slice(start,start+capacity).map(text=>line(text)));
+    content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
+  } else if (e.quick) {
     title=tr('quick.title')+' · '+tr('quick.'+e.quick.step);
     content.push(...quickView(e.quick,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
   } else if (e.review) {

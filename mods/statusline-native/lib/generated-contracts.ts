@@ -30,7 +30,7 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = ["en", "zh-CN", "zh-TW", "zh-HK", "ja", "ko"] as const;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export type Operation = "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import";
+export type Operation = "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain";
 export interface ItemGuidance {
   source_kinds: string[];
   measurement_scope: string;
@@ -175,6 +175,24 @@ export interface PreviewResult {
   main: Span[][];
   subagents: Span[][];
 }
+export const SAMPLE_REASONS = ['sample_visible','sample_empty','sample_condition_hidden','sample_truncated','sample_priority_omitted','sample_width_omitted','sample_row_hidden','sample_spacer'] as const;
+export type SampleReason = typeof SAMPLE_REASONS[number];
+export const EXPLAIN_REASONS = ['configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
+export interface ExplainReason { code: string; origin: 'configuration' | 'local_configuration' | 'host_capability' | 'unknown'; }
+export interface InstanceSample { row_id: string; outcome: SampleReason; truncated: boolean; }
+export interface ExplainInstance {
+  id: string; type_id: string; enabled: boolean;
+  reasons: ExplainReason[];
+  samples: InstanceSample[];
+}
+export interface ExplainResult {
+  sample: true;
+  scope: Scope;
+  width: number;
+  actual_availability: 'not_observed';
+  preview: PreviewResult;
+  instances: ExplainInstance[];
+}
 export interface LocalizedMessage {
   key: string;
   params: Record<string, unknown>;
@@ -261,6 +279,7 @@ export interface ResultMap {
   describe: DescribeResult;
   read: ReadResult;
   preview: PreviewResult;
+  explain: ExplainResult;
   apply: ApplyResult;
   import: TransferResult;
   review_import: ImportReviewResult;
@@ -275,5 +294,5 @@ export interface Request {
   operation: Operation;
   payload: unknown;
 }
-export type Result = PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult;
+export type Result = ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult;
 export type Response = { protocol_version: typeof PROTOCOL_VERSION; result: Result } | { protocol_version: typeof PROTOCOL_VERSION; error: ProtocolError };
