@@ -3,6 +3,10 @@
 [English](RELEASING.md) | **简体中文**
 
 
+## v3.1.3 迁移后修复
+
+采用 [v3.1.3 专属决定](releases/approvals/v3.1.3.json)，保留功能门禁，要求 Windows 安装包 request／started／result 桥接通过 Node 24.0.0。最终 head／main／tag 全矩阵、相同重建、草稿附件及公开下载均须通过。[发布说明](releases/v3.1.3.md) · [证据](development/post-migration-fixes.zh-CN.md)。
+
 ## v3.1.2 外部 TUI 回归交付
 
 沿用既有正式流程，使用 [v3.1.2 专属批准](releases/approvals/v3.1.2.json)和逐版本精确批准日期，功能门槛保持原样。发布 npm／GitHub／Gitee 前要求最终 head／合并／标签完整 CI、八安装目标、32 项 Node、十三宿主、可复现构建／源码重建、安装包扩展 PTY 及相同字节的已核验附件。[发布说明](releases/v3.1.2.md#简体中文) · [修复与交付证据](development/external-tui-regressions.zh-CN.md)。

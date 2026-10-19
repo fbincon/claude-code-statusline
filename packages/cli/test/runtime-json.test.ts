@@ -77,7 +77,7 @@ test('cache serialization exactly matches Python layout, Unicode escapes and num
 });
 test('usage cache restores mutable session/message order before new integer IDs arrive', t => {
     const f = setup(t), source = new UsageCollector(f.context), ids = dictionary([['letter', { i: 1, o: 2, cc: 3, cr: 4 }]]);
-    fs.mkdirSync(f.context.cacheRoot, { recursive: true });
+    fs.mkdirSync(join(f.context.cacheRoot, 'statusline_usage_v2'), { recursive: true });
     fs.writeFileSync(source.path(), pythonJson({ sessions: { original: { files: {}, ids, base: { i: 0, o: 0, cc: 0, cr: 0 }, future: { unknown: 1.5 } } } }));
     const loaded = source.load().state;
     loaded.sessions['9'] = loaded.sessions.original!;

@@ -12,6 +12,8 @@ import { TaskService } from './tasks/service.js';
 import { readDataJson, dumpDataJson } from './json-data.js';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { orderedDataRecord, recordEntries } from '@fbincon/statusline-core/ordered-record';
+import { UsageIndex } from './usage-index.js';
+import { safeTarget } from '../integration/paths.js';
 export function humanizeTokens(value: bigint): string {
     if (value >= 1000000n)
         return fixed(divideIntegers(value, 1000000n), 2).replace(/0+$/u, '').replace(/\.$/u, '') + 'M';
@@ -28,8 +30,9 @@ export type UsageResult = [
 ];
 export class UsageCollector {
     readonly tasks: TaskService;
+    private index: UsageIndex | null = null;
     constructor(public readonly context: RuntimeContext, public readonly io: RuntimeIO = runtimeIO()) { this.tasks = new TaskService(context, io); }
-    path(): string { return join(this.context.cacheRoot, 'statusline_state.json'); }
+    path(): string { return join(this.context.cacheRoot, 'statusline_usage_v2/state.json'); }
     load(): {
         state: Data & {
             sessions: Record<string, usage.UsageEntry>;
@@ -37,7 +40,7 @@ export class UsageCollector {
         dropped: boolean;
     } {
         try {
-            const bytes = this.io.read(this.path());
+            const current = this.io.read(this.path()), bytes = current ?? this.io.read(join(this.context.cacheRoot, 'statusline_state.json'));
             const raw = bytes === null ? null : readDataJson(decodeUtf8(bytes));
             if (object(raw) && object(raw.sessions)) {
                 const sessions = orderedDataRecord(raw.sessions);
@@ -52,10 +55,11 @@ export class UsageCollector {
                     else {
                         entry.ids = orderedDataRecord(entry.ids);
                         Object.setPrototypeOf(entry.ids, null);
+                        if (current === null && object(entry.base) && Object.values(entry.base).some(value => usage.usageInt(value) > 0n)) entry.usage_incomplete = true;
                     }
                 return { state: raw as Data & {
                         sessions: Record<string, usage.UsageEntry>;
-                    }, dropped };
+                    }, dropped: dropped || current === null };
             }
         }
         catch { /* A corrupt cache is rebuilt from transcript evidence. */ }
@@ -85,7 +89,17 @@ export class UsageCollector {
     }
     private applyScan(entry: usage.UsageEntry, scan: NonNullable<ReturnType<UsageCollector['scan']>>, session: string | null, cost: boolean, force = false): void {
         if (scan.observed && entry.token_observed) Object.assign(entry.token_observed, scan.observed);
-        if (scan.ids) usage.mergeIds(entry.ids, scan.ids);
+        if (scan.ids) {
+            if (!this.index) {
+                this.index = new UsageIndex(join(this.context.cacheRoot, 'statusline_usage_v2', sha256(session ?? this.activeSession)), this.context.cacheRoot, this.io, entry.usage_index);
+                if (entry.usage_index == null) {
+                    // Seed exact retained identities without changing their totals.
+                    this.index.merge(entry.ids, { ids: dictionary(), base: { ...usage.BASE }, files: dictionary() });
+                }
+            }
+            this.index.merge(scan.ids, entry);
+            entry.usage_index = this.index.publish();
+        }
         if (scan.turns && session) this.metadata(entry, scan.turns, session);
         if (cost) usage.stageParsedCostSnapshot(entry, scan.snapshot, force);
         else if (scan.post && object(entry._pending_api_snapshot)) {
@@ -94,27 +108,29 @@ export class UsageCollector {
         }
     }
     updateFile(entry: usage.UsageEntry, path: string, session: string | null = null, trackPrompts = false, trackCost = false): boolean {
-        let size: bigint, mtime: bigint;
+        let size: bigint, mtime: bigint, identity: bigint[];
         try {
             const stat = this.io.stat(path);
             size = stat.size;
             mtime = stat.mtimeNs;
+            identity = [stat.dev, stat.ino];
         }
         catch {
             return false;
         }
         const previous = own(entry.files, path), recorded = previous ? int(previous.size)! : 0n;
-        const reset = !previous || size < recorded || size === recorded && mtime !== int(previous.mtime_ns);
+        const reset = !previous || !equalSettings(previous.identity, identity) || size < recorded || size === recorded && mtime !== int(previous.mtime_ns);
         if (!reset && size <= recorded)
             return false;
         const scan = this.scan(entry, path, reset ? 0n : recorded, 'merge', trackPrompts && Boolean(session), trackCost, reset);
         if (!scan?.count)
             return false;
         if (!previous)
-            entry.files[path] = { size: scan.cursor, mtime_ns: mtime };
+            entry.files[path] = { size: scan.cursor, mtime_ns: mtime, identity };
         else {
             previous.size = scan.cursor;
             previous.mtime_ns = mtime;
+            previous.identity = identity;
         }
         this.applyScan(entry, scan, session, trackCost);
         return true;
@@ -147,6 +163,7 @@ export class UsageCollector {
         // to the renderer's existing boundary and are never mistaken for valid totals.
         let entered = false;
         try {
+            safeTarget(this.context.cacheRoot, this.path());
             return this.io.lock(this.path() + '.lock', () => { entered = true; return this.locked(session, path); });
         }
         catch (error) {
@@ -155,7 +172,11 @@ export class UsageCollector {
             return null;
         }
     }
-    private locked(session: string, path: string): UsageResult {
+    private activeSession = '';
+    private pruneIndex(): void { this.index?.prune(); }
+    private locked(session: string, path: string): UsageResult | null {
+        this.index = null;
+        this.activeSession = session;
         const { state, dropped } = this.load();
         const entry = state.sessions[session] ??= { files: dictionary(), ids: dictionary(), base: { ...usage.BASE } };
         let changed = dropped, rescan = false;
@@ -203,7 +224,7 @@ export class UsageCollector {
                 if (scan?.count) this.applyScan(entry, scan, null, false);
             }
         }
-        if (usage.collapseIds(entry))
+        while (usage.collapseIds(entry))
             changed = true;
         const visible = usage.visibleTotals(entry);
         if (usage.acceptPending(entry, visible))
@@ -215,10 +236,13 @@ export class UsageCollector {
                 delete state.sessions[Object.keys(state.sessions)[0]!];
             try {
                 this.io.write(this.path(), Buffer.from(dumpDataJson(state)));
+                this.pruneIndex();
+                UsageIndex.pruneSessions(join(this.context.cacheRoot, 'statusline_usage_v2'), this.context.cacheRoot, Object.keys(state.sessions), this.io);
             }
             catch { /* Retain this result even if the cache cannot be saved. */ }
         }
         const displayed = usage.displayTotals(entry, visible);
+        if (entry.usage_incomplete === true) return null;
         return [humanizeTokens(displayed.hit), humanizeTokens(displayed.miss), humanizeTokens(displayed.out), entry.last_pt ?? null, { ...entry, _raw_token_counts: displayed }];
     }
 }

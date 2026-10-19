@@ -2,6 +2,8 @@
 
 [English](timer.md) | **简体中文**
 
+当前计时证据、精确重放去重及缓存兼容见[迁移后修复](post-migration-fixes.zh-CN.md)。
+
 `task-timer` 从最早可信的人类提交开始，覆盖排队、Agent 工作与主 Agent 收尾。`prompt-timer` 保留为输入兼容别名。可选的 `task-active-timer` 从执行开始计时，扣除已核验的用户等待。原生单轮耗时、会话运行时间和累计 API 耗时分别保存。
 
 ## 职责结构

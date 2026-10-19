@@ -71,6 +71,10 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             if (selectedLanguage === undefined)
                 throw new ArgumentError('unsupported --language');
         }
+        if (args.length === 1 && args[0] === '--version') {
+            stdout(`claude-statusline ${VERSION}\n`);
+            return 0;
+        }
         // Resolve preferences without creating files, including before help/parser errors.
         // Only the command's own directory option selects storage. A literal
         // item value after -- must never redirect a configuration write.

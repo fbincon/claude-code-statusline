@@ -3,6 +3,10 @@
 **English** | [简体中文](RELEASING.zh-CN.md)
 
 
+## v3.1.3 post-migration repairs
+
+Use the [v3.1.3-only decision](releases/approvals/v3.1.3.json) and unchanged functional gates, including the installed Windows request/started/result bridge on Node 24.0.0. Require final-head/main/tag full matrices, identical rebuilds, verified draft attachments and public downloads. [Release notes](releases/v3.1.3.md) · [Evidence](development/post-migration-fixes.md).
+
 ## v3.1.2 external-TUI regression delivery
 
 Use the existing stable procedure with the [v3.1.2-only approval](releases/approvals/v3.1.2.json), exact per-version approval date and unchanged functional gates. Require final-head/merge/tag full CI, eight installed targets, 32 Node cases and thirteen hosts, reproducible builds/source rebuild, extended installed PTY evidence and identical verified attachments before npm/GitHub/Gitee publication. [Release notes](releases/v3.1.2.md) · [Repair and delivery evidence](development/external-tui-regressions.md).

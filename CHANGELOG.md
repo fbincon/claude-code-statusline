@@ -3,6 +3,15 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.1.3 — 2026-10-19
+
+- Repair Windows private editor bridging and current npm/PATH entry ownership without accepting foreign installations.
+- Restore doctor checks for complete skill bodies, runtime write permission and valid host options; preserve language/version queries and task ownership.
+- Correct execution-clock trust after wall adjustments and missing starts, transcript replacement and replay after message-ID compaction.
+- Retain exact disk-backed usage identities with a bounded hot cache and atomic commits; preserve legacy caches and expose irrecoverable coverage as unavailable.
+- Reject unsafe backup ancestors before writing; update current bilingual development, metric and troubleshooting guidance.
+- [Release notes](docs/releases/v3.1.3.md) · [Implementation and validation](docs/development/post-migration-fixes.md).
+
 ## 3.1.2 — 2026-10-19
 
 - Fix picker guidance crashes and catalog/instance ID collisions in both external-editor scopes.

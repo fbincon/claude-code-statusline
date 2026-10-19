@@ -110,12 +110,16 @@ export function applyObservation(state: LiveState, o: model.Observation, metadat
             let target = owner(state, o);
             if (target === null && o.agent_id === null)
                 target = pendingOwner(state, epoch);
-            turn = { prompt_id: target, agent_id: o.agent_id, started_at_ms: stamp, ended_at_ms: null, status: 'running', updated_at_ms: stamp, epoch };
+            turn = { prompt_id: target, agent_id: o.agent_id, started_at_ms: stamp, start_observed: kind === 'turn_start', ended_at_ms: null, status: 'running', updated_at_ms: stamp, epoch };
             state.turns[key] = turn;
             if (current && o.agent_id === null) {
                 state.current_main_turn_id = key;
                 state.active_prompt_id = target;
             }
+        }
+        if (kind === 'turn_start') {
+            turn.start_observed = true;
+            turn.started_at_ms = minNumber(turn.started_at_ms, stamp);
         }
         if (kind === 'turn_end' && turn.ended_at_ms === null && numeric(stamp)! >= numeric(turn.started_at_ms)!) {
             Object.assign(turn, { ended_at_ms: stamp, status: o.payload.status, updated_at_ms: stamp });

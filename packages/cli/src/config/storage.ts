@@ -3,6 +3,7 @@ import { basename, dirname, join } from 'node:path';
 import { atomicWrite, durableUnlink, withLock, privateDirectory, syncDirectory } from '@fbincon/statusline-platform/files';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
+import { safeTarget } from '../integration/paths.js';
 export { decodeUtf8 };
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
@@ -45,12 +46,14 @@ export function createStorage(now: () => Date = () => new Date()): Storage {
         backup(directory, action, artifacts) {
             try {
                 const root = join(directory, 'backups/statusline');
+                safeTarget(directory, root);
                 privateDirectory(root);
                 const stamp = timestamp(now()).slice(0, 19).replaceAll('-', '').replaceAll(':', '').replace('T', '-');
                 const base = join(root, `cli-${action}-${stamp}`);
                 let path = base, suffix = 1;
                 for (;;) {
                     try {
+                        safeTarget(directory, path);
                         fs.mkdirSync(path, { mode: 0o700 });
                         break;
                     }
@@ -61,6 +64,7 @@ export function createStorage(now: () => Date = () => new Date()): Storage {
                     }
                 }
                 function snapshot(target: string, bytes: Buffer): void {
+                    safeTarget(directory, target);
                     const fd = fs.openSync(target, 'wx', 0o600);
                     try { fs.writeFileSync(fd, bytes); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
                     for (let parent = dirname(target); parent.startsWith(directory) && parent !== dirname(directory); parent = dirname(parent)) syncDirectory(join(parent, 'snapshot'));
@@ -68,6 +72,7 @@ export function createStorage(now: () => Date = () => new Date()): Storage {
                 const recorded = artifacts.map(artifact => {
                     const state = artifact.raw === null ? 'absent' : 'before';
                     const target = join(path, `${artifact.name}.${state}`);
+                    safeTarget(directory, target);
                     privateDirectory(dirname(target));
                     snapshot(target, artifact.raw ?? Buffer.alloc(0));
                     return { path: artifact.path, state };

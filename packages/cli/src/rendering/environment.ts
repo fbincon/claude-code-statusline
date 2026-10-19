@@ -74,7 +74,7 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
     if (sid && has('run-state', 'permission-mode', 'active-agents', 'task-progress', 'last-tool', 'ttft', 'output-rate', 'prompt-input-tokens', 'prompt-output-tokens', 'prompt-cost') && !overrides.live) {
         const [{ LiveStore }, { collectMetrics }] = await Promise.all([import('../runtime/live/store.js'), import('../runtime/live/collect.js')]);
         const store = new LiveStore(await runtime());
-        env.live = (value, now) => { const data = object(value) ? value : {}; return collectMetrics(store, data.session_id, typeof data.prompt_id === 'string' ? data.prompt_id : null, now); };
+        env.live = (value, now) => { const data = object(value) ? value : {}; return collectMetrics(store, data.session_id, data.prompt_id, now); };
     }
     if (sid && has('task-active-timer') && !overrides.activePoint) {
         const [{ LiveStore }, { loadRuntime }, { activePoint }, { fresh }] = await Promise.all([import('../runtime/live/store.js'), import('../config/backend-preferences.js'), import('@fbincon/statusline-core/runtime/tasks/view'), import('@fbincon/statusline-core/runtime/live/state')]);

@@ -10,6 +10,8 @@
 
 ## 技术文档导航
 
+- [迁移后修复与交付](post-migration-fixes.zh-CN.md)：全部十一项问题、精确用量身份及 v3.1.3 证据。
+- [迁移后审查问题与文档更新清单](post-migration-review.zh-CN.md)：四个 session 的六项迁移问题、五项基线问题或共同风险，以及五类文档冲突。
 - [外部 TUI 回归修复](external-tui-regressions.zh-CN.md)：v3.1.2 目录说明、文字、导航、颜色和通知修复。
 
 - [外部 TUI 呈现修复](external-tui-parity.zh-CN.md)：v3.1.1 绘制、上下文操作与源码绑定验收。

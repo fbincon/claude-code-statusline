@@ -12,16 +12,17 @@
 
 32×12 下先缩短说明，再省略 V/R/Esc 等次要提示；详情／计数行让出空间，保留当前操作、选中项及一行实际样例预览。缩放保留状态，绘制与导航使用同一预算重新计算。本次展示改动不改变协议或配置 schema。
 
-开发使用 Node.js 22、匹配的后端和固定宿主。每个宿主重新生成官方声明，不能复用其他版本类型。CI 检查 Linux 2.1.287/2.1.288/2.1.289/2.1.294，以及 Windows/macOS 2.1.288/2.1.289/2.1.294。
+开发使用 Node.js 24.21.0／npm 11.19.0、匹配的后端和固定宿主。每个宿主重新生成官方声明，不能复用其他版本类型。CI 检查 Linux 2.1.287/2.1.288/2.1.289/2.1.294，以及 Windows/macOS 2.1.288/2.1.289/2.1.294。
 
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
-.venv/bin/python tools/prepare_mod_types.py
+npm run mods:prepare -- --plugin mods/statusline-native
 claude plugin validate --strict mods/statusline-native
 claude plugin test mods/statusline-native
 npm run --prefix mods/statusline-native typecheck
-CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --plugin-dir ./mods/statusline-native
 ```
+
+源码后端先运行 `npm run build`，将插件的 `backendExecutable` 设为 Node 绝对路径，`backendArgs` 设为包含已编译 `packages/cli/dist/src/entry.js` 绝对路径的 JSON 数组；持久安装的 `install` 自动写入绑定。
 
 源码直接加载只提供 `/statusline-configure-native`。依赖、宿主生成声明和原始验证记录不进入运行资源；普通检查不调用模型。
 
@@ -54,7 +55,7 @@ CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --
 | H / A | 折叠或展开 Claude 偏好 / 单独应用 |
 | R / K / V | 丢弃重载 / 核对结果不明的保存 / 重试样例预览 |
 
-搜索及数值编辑时，s/f/q 等普通字符作为输入；确认或 Ctrl+G 后恢复快捷键。刷新值支持数字或 `event`。保存校验所有数值缓冲。启用与未启用条目都能排序；筛选后移动相邻可见条目，隐藏条目的相对顺序保留，仅保存启用项顺序。子 Agent 互斥规则来自共享 catalog。
+搜索及数值编辑时，s/f/q 等普通字符作为输入；确认或 Ctrl+G 后恢复快捷键。刷新值支持数字或 `event`。保存校验所有数值缓冲。启用与未启用条目都能排序；搜索或分类筛选生效时禁止排序，清除筛选后恢复，仅保存启用项顺序。子 Agent 互斥规则来自共享 catalog。
 
 请求面板正文 72 列×24 行，实际空间和位置由宿主决定；最小正文为 32×12。≥64×20 时内容及预览使用分组边框；紧凑空间用带标题分隔线。导航、选择、说明、样例预览和操作提示区域分明。Settings 分为 Appearance、Refresh / behavior、Git metrics、Formatting、Risk colors、Subagent visibility、Presets / portable files 和默认折叠的 Claude preferences。空间不足保留草稿并提示调整尺寸或关闭；内嵌布局可能需要增加终端高度或使用宿主调整面板的快捷键。
 
@@ -81,10 +82,13 @@ claude-statusline doctor
 
 ## Linux 验收
 
-自动 Linux 运行器使用隔离配置，仅发送本地斜杠命令，记录终端单元格、版本及源码状态；图像是实际终端输出重建，不是系统像素截图或真人验收。持久模式使用私有 tmux server，验证 Client 和既有外部 popup，并核实两者读取对方保存结果。
+自动 Linux 运行器使用隔离配置，仅发送本地斜杠命令，记录终端单元格、版本及源码状态；图像是实际终端输出重建，不是系统像素截图或真人验收。安装验收覆盖终端保存／取消和共享协议持久化；Mod 验收验证实际支持宿主和绑定，不代表人工焦点或同一对话中的桌面行为。
+
+先将 `ARTIFACT` 和 `SOURCE_COMMIT` 设为构建包及其不可变提交。
 
 ```bash
-.venv/bin/python tools/native_mod_acceptance.py --persistent --report-dir dist/validation/client-stable-local
+npm run test:installed -- --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --report dist/validation/native/installed.json
+npm run test:mods -- --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --report dist/validation/native/mods.json
 ```
 
 固定候选需核实实际加载、首次点击、Space/Enter、切页/排序/搜索、数值 Ctrl+G、保存/完成/取消、Esc 焦点及关闭、窄窗/CJK、偏好、冲突和继续同一 session。Windows/macOS 真人检查与 CI 分开记录。

@@ -14,6 +14,8 @@ export function activePoint(record: Turn | null, enabled: boolean, fresh: boolea
     const reason = truth(record.active_coverage) ? record.active_coverage : 'not_observed';
     if (reason !== 'complete')
         return { ...result, reason };
+    if (Object.values(record.native_turns).some(turn => turn.start_observed !== true))
+        return { ...result, reason: 'incomplete' };
     if (record.status === 'running' && !fresh)
         return { ...result, reason: 'stale' };
     const timer = StatusTimer.load(record.active_clock);

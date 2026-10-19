@@ -12,18 +12,19 @@ Since v1.3.0, the project provides Client TUI inside the current Claude Code ter
 
 At 32×12, shorten hints and omit secondary V/R/Esc help before sacrificing current controls. Auxiliary detail/count rows yield space to the footer; the selected row and one actual sample row remain visible. Resizing retains state and recomputes both rendering and navigation from the same budget. These presentation changes do not modify protocol or configuration schemas.
 
-Use Node.js 22, the matching development backend, and the fixed host builds in CI. Regenerate official declarations for each actual host; never reuse declarations from another build. The matrix checks Linux 2.1.287/2.1.288/2.1.289/2.1.294 and Windows/macOS 2.1.288/2.1.289/2.1.294.
+Use Node.js 24.21.0/npm 11.19.0, the matching development backend, and the fixed host builds in CI. Regenerate official declarations for each actual host; never reuse declarations from another build. The matrix checks Linux 2.1.287/2.1.288/2.1.289/2.1.294 and Windows/macOS 2.1.288/2.1.289/2.1.294.
 
 ```bash
 npm ci --prefix mods/statusline-native --ignore-scripts --no-audit --no-fund
-.venv/bin/python tools/prepare_mod_types.py
+npm run mods:prepare -- --plugin mods/statusline-native
 claude plugin validate --strict mods/statusline-native
 claude plugin test mods/statusline-native
 npm run --prefix mods/statusline-native typecheck
-CLAUDE_STATUSLINE_NATIVE_EXECUTABLE="$PWD/.venv/bin/claude-statusline" claude --plugin-dir ./mods/statusline-native
 ```
 
 Source loading exposes only `/statusline-configure-native`. Dependencies, generated host declarations and raw validation reports are excluded from runtime packages. No model call is required by ordinary checks.
+
+For a source backend, first run `npm run build`. Set plugin `backendExecutable` to the absolute Node path and `backendArgs` to a JSON array containing the absolute compiled `packages/cli/dist/src/entry.js` path. Persistent `install` writes these bindings automatically.
 
 ## Theme rendering
 
@@ -54,7 +55,7 @@ Click the Client region once after opening, then use the keyboard. Opening with 
 | H / A | Fold/unfold Claude preferences / apply them separately |
 | R / K / V | Discard and reload / check an unknown save / retry sample preview |
 
-During search/numeric editing, ordinary characters are input, including s/f/q; shortcuts resume after acceptance or Ctrl+G. Refresh accepts a number or `event`. Saving validates every numeric buffer. Enabled and disabled rows can move; filtered movement uses adjacent visible rows and preserves hidden rows' relative order. Only enabled item order is persisted. Subagent exclusions come from the shared catalog.
+During search/numeric editing, ordinary characters are input, including s/f/q; shortcuts resume after acceptance or Ctrl+G. Refresh accepts a number or `event`. Saving validates every numeric buffer. Enabled and disabled rows can move; search/category filters disable reordering until cleared. Only enabled item order is persisted. Subagent exclusions come from the shared catalog.
 
 The pane requests 72 columns and 24 body rows; actual placement/space belongs to the host. Minimum usable body is 32×12. At 64×20 or larger, the content and preview have group borders. Compact panes use titled separators. Navigation, selected row, details, sample preview and action hints have distinct visual regions. Settings groups Appearance, Refresh / behavior, Git metrics, Formatting, Risk colors, Subagent visibility, Presets / portable files, and folded Claude preferences. Small panes retain the draft and offer resize/close. Increasing terminal height or the host's pane-resize chord may be necessary for inline placement.
 
@@ -81,10 +82,11 @@ On older/unrecognized hosts, a verified owned native plugin is suspended under t
 
 ## Linux acceptance
 
-The automated Linux runner uses isolated configuration and sends only local slash commands. It records terminal cells, versions and source state; captures are reconstructions of actual terminal output, not OS screenshots or human acceptance. Persistent mode runs in a private tmux server, exercises Client and the original external popup, and verifies they read each other's saved configuration.
+Set `ARTIFACT` and `SOURCE_COMMIT` to the built package and its immutable commit. The current automated Linux runner uses isolated configuration and sends only local slash commands. It records terminal cells, versions and source state; captures are reconstructions of actual terminal output, not OS screenshots or human acceptance. Installed acceptance checks terminal save/cancel and shared protocol persistence; Mod acceptance validates the actual supported host and binding. These commands do not establish human focus or same-conversation desktop behavior.
 
 ```bash
-.venv/bin/python tools/native_mod_acceptance.py --persistent --report-dir dist/validation/client-stable-local
+npm run test:installed -- --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --report dist/validation/native/installed.json
+npm run test:mods -- --artifact "$ARTIFACT" --commit "$SOURCE_COMMIT" --report dist/validation/native/mods.json
 ```
 
 Record each fixed candidate's real loading, initial click, Space/Enter, page/order/search, numeric Ctrl+G, save/finish/cancel, Esc focus/close, narrow/CJK layout, preferences, conflicts and return to the same session. Windows/macOS human checks remain separate from CI.
