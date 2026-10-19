@@ -131,5 +131,5 @@ test('same-frame coalescing keeps every pending key; acknowledgements send the n
   const large=sent[sent.length-1];
   expect(JSON.stringify(large).length<50000).toBe(true);
   expect(large.events.filter((item:any)=>item.event.overflow)).toHaveLength(1);
-  expect(parseBatch(large)).toBeDefined();
+  expect(parseBatch(large)).not.toBeNull();
 });

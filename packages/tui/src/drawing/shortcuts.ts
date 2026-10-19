@@ -70,7 +70,8 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
             help: [hint('↑↓', 'select'), hint('/', 'search'), hint('Ctrl+F', 'category')],
         };
     }
-    const actions: Hint[] = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt'), ['Ctrl+P', t('quick.title',state.language)]];
+    const actions: Hint[] = [hint(state.form ? 'Ctrl+S' : 'Enter/Ctrl+S', 'save'), hint('Esc', 'cancel'), hint('Ctrl+C', 'interrupt')];
+    if(!e.detail) actions.push(['Ctrl+P',t('quick.title',state.language)]);
     if (e.detail) {
         return { actions, help: [hint('↑↓', 'select'), hint('←→', 'adjust'), hint('Enter', 'edit'), hint('Ctrl+G', 'back')] };
     }

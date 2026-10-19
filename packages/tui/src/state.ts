@@ -4,7 +4,6 @@ import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusl
 import { Editor, copyDraft, type Page } from '@fbincon/statusline-core/editor/draft';
 import { formRows, setFormValue, adjustForm, type FormRow, type SettingRow } from '@fbincon/statusline-core/editor/forms';
 import { navigateReview } from '@fbincon/statusline-core/editor/import-review';
-import { graphemes } from '@fbincon/statusline-core/unicode/index';
 import { LANGUAGES, LANGUAGE_NAMES, text, t, type Language, type LocalizedText } from '@fbincon/statusline-core/i18n/messages';
 import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/statusline-core/contracts/ui';
 import type { Key } from '@fbincon/statusline-core/terminal/key';
@@ -35,8 +34,6 @@ export interface Row extends SettingRow {
 }
 const pages = ['main', 'subagents', 'settings', 'layout'] as const;
 const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Interface'];
-const backspace = (value: string) => graphemes(value).slice(0, -1).join('');
-const printable = (key: Key) => !key.ctrl && !key.meta && [...key.key].length === 1 && !/[\p{Cc}\p{Cs}]/u.test(key.key);
 /** External-editor navigation and drafts. All persistence is supplied by Session. */
 export class State {
     editor: Editor;
