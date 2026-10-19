@@ -1,3 +1,4 @@
+import { graphemes } from '@fbincon/statusline-core/unicode/index';
 import { openExplanation, explanationKey } from '@fbincon/statusline-core/editor/explanation';
 import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
@@ -32,6 +33,8 @@ export interface Row extends SettingRow {
     kind: 'legacy' | 'action' | 'choice' | 'integer' | 'text' | 'boolean';
     form?: FormRow;
 }
+const backspace = (value: string) => graphemes(value).slice(0, -1).join('');
+const printable = (key: Key) => !key.ctrl && !key.meta && [...key.key].length === 1 && !/[\p{Cc}\p{Cs}]/u.test(key.key);
 const pages = ['main', 'subagents', 'settings', 'layout'] as const;
 const groups = ['Appearance', 'Refresh / behavior', 'Git metrics', 'Formatting', 'Risk colors', 'Subagent visibility', 'Presets / portable files', 'Interface'];
 /** External-editor navigation and drafts. All persistence is supplied by Session. */
