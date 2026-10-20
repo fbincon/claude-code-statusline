@@ -62,7 +62,8 @@ try {
             manager = true;
         }
         if (manager && !saved && records.some(row => row.operation === 'profiles_read' && row.phase === 'complete' && row.status === 0)) {
-            p.send('\x1b');
+            // Escape releases the native Client focus; Ctrl+G closes its overlay.
+            p.send('\x07');
             await new Promise(resolve => setTimeout(resolve, 200));
             p.send(' ');
             await new Promise(resolve => setTimeout(resolve, 200));
