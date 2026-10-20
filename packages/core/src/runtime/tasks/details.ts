@@ -25,6 +25,8 @@ export interface DetailSources {
 const iso = (value: number | null) => value !== null && Number.isFinite(value) && value >= 0 && value <= 8640000000000000 ? new Date(value).toISOString() : null;
 export function taskDetails(s: DetailSources): TaskDetails {
     const evidence = [{ ...s.taskEvidence }, { ...s.liveEvidence }], limitations = ['independent_snapshots'];
+    const freshness = (stamp: number | null): TaskEvidence['freshness'] => stamp === null || stamp < 0 ? 'unknown' :
+        stamp > s.now ? 'newer_than_input' : s.now - stamp <= STALE_MS ? 'current' : 'stale';
     let prompt = s.prompt ?? s.history?.current_prompt_id ?? s.live?.active_prompt_id ?? s.live?.current_prompt_id ?? null;
     const result: TaskDetails = { version: 1, session_id: s.session, prompt_id: prompt, captured_at: new Date(s.now).toISOString(),
         status: null, phase: null, elapsed_seconds: null, active_seconds: null, progress: null, agents: [], evidence, limitations };
@@ -44,34 +46,47 @@ export function taskDetails(s: DetailSources): TaskDetails {
     let turn: Turn | null = matches[0] ?? null;
     const updated = turn ? int(turn.updated_wall_ns) : null, updatedMs = updated === null ? null : Number(updated / 1000000n);
     if (updatedMs !== null && updatedMs > s.now) { turn = null; evidence[0] = { ...evidence[0]!, status: 'newer_than_input', freshness: 'newer_than_input' }; }
-    const selected = canonical(prompt), liveFresh = selected !== null && fresh(s.live, s.now) && canonical(liveCurrent ?? null) === selected;
+    const selected = canonical(prompt), liveFresh = selected !== null && fresh(s.live, s.now);
+    const nativeRows = selected && s.live ? [
+        { source: 'native.prompt', row: own(s.live.prompts, selected) },
+        ...Object.values(s.live.turns).filter(row => row.prompt_id === selected && row.agent_id === null)
+            .map(row => ({ source: 'native.turn', row })),
+    ] : [];
+    const futureNative = nativeRows.filter(({ row }) => row && (numeric(row.updated_at_ms) ?? 0) > s.now);
+    for (const { source, row } of futureNative) evidence.push({ source, scope: 'task', status: 'newer_than_input',
+        observed_at: iso(numeric(row!.updated_at_ms)), freshness: 'newer_than_input' });
+    const taskFresh = liveFresh && !futureNative.length && canonical(liveCurrent ?? null) === selected;
     if (turn) {
         prompt = turn.prompt_id; result.prompt_id = prompt; result.status = turn.status; result.phase = turn.phase;
         evidence[0] = { ...evidence[0]!, observed_at: iso(updatedMs), status: turn.status === 'running' ? 'partial' : 'observed',
-            freshness: updatedMs === null ? 'unknown' : turn.status !== 'running' || liveFresh || s.now - updatedMs <= STALE_MS ? 'current' : 'stale' };
+            freshness: updatedMs === null ? 'unknown' : turn.status !== 'running' || taskFresh || s.now - updatedMs <= STALE_MS ? 'current' : 'stale' };
         if (turn.status !== 'running' || evidence[0]!.freshness === 'current') {
             const elapsed = taskElapsed(turn, s.sample);
             const seconds = elapsed === null ? null : Number(elapsed) / 1e9;
             result.elapsed_seconds = seconds !== null && Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
         }
         if (result.elapsed_seconds === null) limitations.push(updatedMs === null ? 'missing_start' : 'elapsed_unavailable');
-        const point = activePoint(turn, s.nativeTiming, liveFresh, () => s.sample);
+        const point = activePoint(turn, s.nativeTiming, taskFresh, () => s.sample);
         result.active_seconds = numeric(point.value);
         evidence.push({ source: 'native_task_timing', scope: 'task', status: String(point.reason ?? 'observed'),
-            observed_at: iso(numeric(point.observed_at_ms)), freshness: turn.status === 'running' ? liveFresh ? 'current' : 'unknown' : 'current' });
+            observed_at: iso(numeric(point.observed_at_ms)), freshness: turn.status === 'running' ? taskFresh ? 'current' : 'unknown' : 'current' });
         if (point.reason) limitations.push(String(point.reason));
     } else limitations.push('task_not_observed');
     if (s.live) {
         const history = turn && s.history ? { ...s.history, current_prompt_id: turn.prompt_id, turns: [turn] } : null;
         const points = selected ? snapshotMetrics(s.live, history, selected, s.now, s.liveMetrics) : unavailable('ambiguous_owner');
-        const progress = points['task-progress']!;
-        if (object(progress.value)) {
+        const progress = points['task-progress']!, progressStamp = numeric(progress.observed_at_ms), progressFreshness = freshness(progressStamp);
+        if (progressFreshness !== 'newer_than_input' && object(progress.value)) {
             const completed = numeric(progress.value.completed), total = numeric(progress.value.total);
             if (completed !== null && total !== null) result.progress = { completed, total };
         }
-        evidence.push({ source: 'native.checklist', scope: 'task', status: String(progress.reason ?? 'observed'),
-            observed_at: iso(numeric(progress.observed_at_ms)), freshness: liveFresh ? 'current' : 'unknown' });
-        if (result.status === null && typeof points['run-state']!.value === 'string') result.status = points['run-state']!.value as string;
+        evidence.push({ source: 'native.checklist', scope: 'task', status: progressFreshness === 'newer_than_input' ? 'newer_than_input' : String(progress.reason ?? 'observed'),
+            observed_at: iso(progressStamp), freshness: progressFreshness });
+        const run = points['run-state']!.value;
+        if (result.status === null && !futureNative.length && typeof run === 'string') {
+            if (taskFresh || ['completed', 'failed', 'interrupted', 'unknown'].includes(run)) result.status = run;
+            else limitations.push('stale');
+        }
     }
     if (!s.liveMetrics) limitations.push('runtime_disabled');
     const ids = new Set(turn?.agent_ids ?? []);
@@ -81,20 +96,23 @@ export function taskDetails(s: DetailSources): TaskDetails {
     for (const id of ids) {
         const owned = s.live ? own(s.live.agents, id) : null;
         const attributable = owned && selected !== null && owned.prompt_id === selected && numeric(owned.updated_at_ms) !== null && numeric(owned.updated_at_ms)! <= s.now;
-        const snapshot = s.live?.agent_snapshot;
-        const observed = snapshot && numeric(snapshot.observed_at_ms) !== null && numeric(snapshot.observed_at_ms)! <= s.now &&
+        const snapshot = s.live?.agent_snapshot, snapshotStamp = snapshot ? numeric(snapshot.observed_at_ms) : null;
+        const observed = snapshot && snapshotStamp !== null && snapshotStamp <= s.now &&
             Array.isArray(snapshot.agents) ? (snapshot.agents as Data[]).find(a => a.id === id && a.local === true) : null;
         const agent: TaskAgentDetail = { id, parent_id: null, name: null, status: attributable && typeof owned.status === 'string' ? owned.status : null,
             evidence: [{ source: attributable ? 'live_store' : 'task_store', scope: 'subagent:' + id,
-                status: attributable ? 'observed' : 'partial', observed_at: iso(attributable ? numeric(owned.updated_at_ms) : updatedMs), freshness: liveFresh ? 'current' : 'unknown' }] };
+                status: attributable ? 'observed' : 'partial', observed_at: iso(attributable ? numeric(owned.updated_at_ms) : updatedMs),
+                freshness: freshness(attributable ? numeric(owned.updated_at_ms) : updatedMs) }] };
         if (attributable) {
             const parent = owned.parent_agent_id;
             if (typeof parent === 'string' && ids.has(parent) && parent !== id) agent.parent_id = parent;
             else if (parent != null) limitations.push('parent_not_observed');
-            if (observed && typeof observed.status === 'string') {
+            const terminal = ['completed', 'failed', 'killed', 'interrupted'];
+            if (observed && typeof observed.status === 'string' && owned.epoch === s.live!.epoch &&
+                snapshotStamp! >= numeric(owned.updated_at_ms)! && !terminal.includes(agent.status ?? '')) {
                 agent.status = observed.status;
                 agent.evidence.push({ source: 'native.agent.list', scope: 'subagent:' + id, status: 'observed',
-                    observed_at: iso(numeric(snapshot!.observed_at_ms)), freshness: liveFresh ? 'current' : 'stale' });
+                    observed_at: iso(snapshotStamp), freshness: freshness(snapshotStamp) });
             }
         }
         const host = s.hostAgents?.observed_at !== undefined && s.hostAgents.observed_at <= s.now ? s.hostAgents.agents.find(a => a.id === id) : null;

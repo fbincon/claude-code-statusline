@@ -24,6 +24,8 @@ Session and prompt IDs come from your supplied statusline input or existing sess
 
 The native pane may read current agent names from the host on demand. Those names are joined only to already-attributed IDs, are identified as a supplied snapshot, and are not persisted. The CLI may therefore display IDs where the pane displays names. Stale states remain visibly stale; a heartbeat for another task does not refresh an older running record or advance its elapsed time. Completed tasks retain their frozen durations. A terminal state does not prove that all historical events were observed.
 
+Heartbeats are labelled with session scope. Agent and checklist evidence retain their own timestamps and ages; future checklist counts are unavailable. Future native prompt or turn observations cannot supply current status or refresh task timing. Independently valid frozen history remains available. An observed terminal lifecycle event takes precedence over agent-list snapshots.
+
 The response is a version-1 read model over existing task and live stores. Source files are independent snapshots, so this is neither an atomic cross-file snapshot nor a complete task history. Data pruned from the existing bounded stores cannot be reconstructed here.
 
 ## Boundaries and troubleshooting

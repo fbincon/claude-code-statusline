@@ -21,7 +21,7 @@ export function detailService(payload: unknown, context: RuntimeContext, files: 
         throw new ConfigError('task.error.input', {}, 'invalid_request');
     const session = payload.session_id, now = context.nowMs(), sample = context.sample(), evidence = (source: string): TaskEvidence =>
         ({ source, scope: 'task', status: 'not_observed', observed_at: null, freshness: 'unknown' });
-    const taskEvidence = evidence('task_store'), liveEvidence = evidence('live_store');
+    const taskEvidence = evidence('task_store'), liveEvidence = { ...evidence('live_store'), scope: 'session' };
     const read = (folder: string, result: TaskEvidence) => {
         try {
             const raw = files.read(join(context.runtimeRoot, folder, sha256(session) + '.json'));
