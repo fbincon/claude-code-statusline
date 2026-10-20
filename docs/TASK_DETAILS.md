@@ -22,7 +22,7 @@ Session and prompt IDs come from your supplied statusline input or existing sess
 - **Agents** includes only identities attributable to the selected task. Known parent relationships are shown; unknown parents and inconsistent cycles are disclosed.
 - **Evidence** identifies each source, scope, observation time and freshness. The pane's read time is not substituted for a source observation time.
 
-The native pane may read current agent names from the host on demand. Those names are joined only to already-attributed IDs, are identified as a supplied snapshot, and are not persisted. The CLI may therefore display IDs where the pane displays names. Stale states remain visibly stale; a terminal state does not prove that all historical events were observed.
+The native pane may read current agent names from the host on demand. Those names are joined only to already-attributed IDs, are identified as a supplied snapshot, and are not persisted. The CLI may therefore display IDs where the pane displays names. Stale states remain visibly stale; a heartbeat for another task does not refresh an older running record or advance its elapsed time. Completed tasks retain their frozen durations. A terminal state does not prove that all historical events were observed.
 
 The response is a version-1 read model over existing task and live stores. Source files are independent snapshots, so this is neither an atomic cross-file snapshot nor a complete task history. Data pruned from the existing bounded stores cannot be reconstructed here.
 

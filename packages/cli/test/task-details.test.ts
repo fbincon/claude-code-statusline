@@ -92,3 +92,24 @@ test('conflicting current pointers and duplicate supplied agent identities canno
     assert.throws(()=>detailService({session_id:'s',host_agents:{observed_at:1000,agents:[{id:'a',name:'One'},{id:'a',name:'Two'}]}},f.context));
     assert.deepEqual(allFiles(f.root),before);
 });
+
+test('a fresh heartbeat for another task cannot refresh an old unfinished task or advance its elapsed time', t => {
+    const f=setup(t);f.preferences(true);f.clock(500_000_000_000n);
+    f.apply(observation('heartbeat',0,499000),observation('prompt',1,499001,{prompt:'old'}),
+        observation('prompt',2,499002,{prompt:'new'}));
+    const old=newRecord('old',{wall_ns:1_000_000_000n,boot_ns:1_000_000_000n,boot_id:'test'});
+    const current=newRecord('new',{wall_ns:499_000_000_000n,boot_ns:499_000_000_000n,boot_id:'test'});
+    const history:TaskStore={schema:4,session_id:'s',current_prompt_id:'new',turns:[old,current],updated_wall_ns:499_000_000_000n};
+    mkdirSync(join(f.context.runtimeRoot,'turns'),{recursive:true});
+    writeFileSync(join(f.context.runtimeRoot,'turns',sha256('s')+'.json'),pythonJson(mirrorState('s',history)));
+    const before=allFiles(f.root),result=detailService({session_id:'s',prompt_id:'old'},f.context);
+    assert.equal(result.prompt_id,'old');assert.equal(result.elapsed_seconds,null);assert.equal(result.active_seconds,null);
+    assert.equal(result.evidence[0]!.freshness,'stale');
+    assert.equal(detailService({session_id:'s'},f.context).elapsed_seconds,1);
+    assert.deepEqual(allFiles(f.root),before);
+    Object.assign(old,{status:'completed',duration_ns:2_000_000_000n});
+    writeFileSync(join(f.context.runtimeRoot,'turns',sha256('s')+'.json'),pythonJson(mirrorState('s',history)));
+    const frozen=allFiles(f.root);
+    assert.equal(detailService({session_id:'s',prompt_id:'old'},f.context).elapsed_seconds,2);
+    assert.deepEqual(allFiles(f.root),frozen);
+});

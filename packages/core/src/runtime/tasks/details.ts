@@ -44,7 +44,7 @@ export function taskDetails(s: DetailSources): TaskDetails {
     let turn: Turn | null = matches[0] ?? null;
     const updated = turn ? int(turn.updated_wall_ns) : null, updatedMs = updated === null ? null : Number(updated / 1000000n);
     if (updatedMs !== null && updatedMs > s.now) { turn = null; evidence[0] = { ...evidence[0]!, status: 'newer_than_input', freshness: 'newer_than_input' }; }
-    const selected = canonical(prompt), liveFresh = selected !== null && fresh(s.live, s.now);
+    const selected = canonical(prompt), liveFresh = selected !== null && fresh(s.live, s.now) && canonical(liveCurrent ?? null) === selected;
     if (turn) {
         prompt = turn.prompt_id; result.prompt_id = prompt; result.status = turn.status; result.phase = turn.phase;
         evidence[0] = { ...evidence[0]!, observed_at: iso(updatedMs), status: turn.status === 'running' ? 'partial' : 'observed',
