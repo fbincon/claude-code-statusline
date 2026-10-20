@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
 import { installCandidate, officialEnvironment } from './package.js';
 import { openPty } from './test/pty.js';
+import { Capture } from './capture.js';
 if (process.platform === 'win32')
     throw new Error('This local host interaction probe uses the POSIX PTY; Windows has native console acceptance');
 const reportPath = resolve(process.argv[2] ?? 'dist/validation/typescript-migration/ts-04/04-e/host-smoke.json');
@@ -31,7 +32,9 @@ try {
     if (prepared.status !== 0)
         throw new Error(prepared.stderr);
     p = openPty(config, 120, 36, env, 'en', { executable: host.executable, args: [...host.args, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'], cwd: project });
-    let offset = 0, confirmed = false, sent = false, manager = false, saved = false, taskOpened = false;
+    let offset = 0, confirmed = false, sent = false, manager = false, saved = false, taskOpened = false, taskRendered = false;
+    const screen = new Capture(120, 36);
+    let byteOffset = 0;
     const start = Date.now();
     let records: {
         argv: string[];
@@ -40,7 +43,9 @@ try {
         status?: number;
     }[] = [];
     while (Date.now() - start < 40000 && p.child.exitCode === null) {
-        const output = p.captured().toString('utf8'), next = output.slice(offset);
+        const bytes = p.captured(), output = bytes.toString('utf8'), next = output.slice(offset);
+        screen.feed(bytes.subarray(byteOffset)); byteOffset = bytes.length;
+        const visible = screen.buffer.map(row => row.map(cell => cell.data).join('')).join('\n');
         offset = output.length;
         if (next.includes('\x1b[6n'))
             p.send('\x1b[1;1R');
@@ -67,24 +72,27 @@ try {
             await new Promise(resolve => setTimeout(resolve, 200));
             p.send(' ');
             await new Promise(resolve => setTimeout(resolve, 200));
-            p.send('s');
+            p.send('f');
             saved = true;
         }
-        if (!taskOpened && records.some(row => row.operation === 'apply' && row.phase === 'complete' && row.status === 0)) {
-            p.send('q');
-            await new Promise(resolve => setTimeout(resolve, 400));
+        if (saved && !taskOpened && !visible.includes('Configure Status Line') &&
+            records.some(row => row.operation === 'apply' && row.phase === 'complete' && row.status === 0)) {
             p.send('/statusline-task\r');
             taskOpened = true;
         }
-        if (records.some(row => row.argv[0] === 'runtime') && records.some(row => row.operation === 'task_details' && row.phase === 'complete' && row.status === 0))
+        // Native redraws reuse cells; raw escape output need not contain whole words.
+        taskRendered = taskOpened && visible.includes('Read-only') && visible.includes('Session:');
+        if (taskRendered && records.some(row => row.argv[0] === 'runtime') && records.some(row => row.operation === 'task_details' && row.phase === 'complete' && row.status === 0))
             break;
         await new Promise(resolve => setTimeout(resolve, 50));
     }
     const commands = [...new Set(records.map(row => row.argv[0]))], operations = [...new Set(records.filter(row => row.argv[0] === 'ui').map(row => row.operation))];
     const display = join(config, 'claude-statusline.json');
     const completed = (operation: string) => records.some(row => row.operation === operation && row.phase === 'complete' && row.status === 0);
-    report = { status: commands.includes('runtime') && ['apply','profiles_read','task_details'].every(completed) && fs.existsSync(display) ? 'pass' : 'unverified', host: version, source: f.packed.source, tarball_sha256: f.packed.sha256, installed_resources: true, real_host_commands: commands, native_operations: operations, display_saved: fs.existsSync(display), model_calls: 0, credentials: 'synthetic key and unreachable loopback API', physical_visual_acceptance: false };
+    report = { status: taskRendered && commands.includes('runtime') && ['apply','profiles_read','task_details'].every(completed) && fs.existsSync(display) ? 'pass' : 'unverified', host: version, source: f.packed.source, tarball_sha256: f.packed.sha256, installed_resources: true, real_host_commands: commands, native_operations: operations, display_saved: fs.existsSync(display), task_pane_rendered: taskRendered, model_calls: 0, credentials: 'synthetic key and unreachable loopback API', physical_visual_acceptance: false };
     fs.writeFileSync(reportPath.replace(/\.json$/u, '.terminal.bin'), p.captured());
+    fs.writeFileSync(reportPath.replace(/\.json$/u, '.cells.json'), JSON.stringify({ columns: 120, rows: 36, cells: screen.buffer,
+        terminal_foreground: '#d8dee9', terminal_background: '#171a1f' }) + '\n');
     if (report.status !== 'pass')
         throw new Error('Installed host interaction is unverified; inspect private terminal capture');
 }
