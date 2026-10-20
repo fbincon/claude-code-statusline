@@ -156,6 +156,8 @@ export class Capture {
         }
         else if (op === 'H' || op === 'f')
             this.cursor = { x: Math.max(0, Math.min(this.columns - 1, (values[1] || 1) - 1)), y: Math.max(0, Math.min(this.rows - 1, (values[0] || 1) - 1)) };
+        else if (op === 'G')
+            this.cursor.x = Math.max(0, Math.min(this.columns - 1, (values[0] || 1) - 1));
         else if (op === 'J' && values[0] === 2)
             this.buffer = this.blank();
         else if (op === 'K') {

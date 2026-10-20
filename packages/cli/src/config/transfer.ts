@@ -48,10 +48,13 @@ export function importFile(path: string, current: Draft): Draft {
 }
 export function exportFile(path: string, draft: Draft, directory: string, overwrite = false): string {
     const raw = Buffer.from(exportText(draft));
+    return exportBytes(path, raw, directory, overwrite);
+}
+export function exportBytes(path: string, raw: Buffer, directory: string, overwrite = false): string {
     path = resolve(expandUser(path));
     const target = resolvedPath(path), root = resolvedPath(directory);
     const same = (left: string, right: string) => process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
-    const protectedFile = ['settings.json', 'claude-statusline.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline-ui.json'].some(name => same(target, join(root, name)));
+    const protectedFile = ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline-ui.json'].some(name => same(target, join(root, name)));
     const ownedDirectory = ['statusline-native', 'statusline-runtime', 'statusline_runtime'].some(name => {
         const rel = relative(join(root, name), target);
         return rel !== '' && rel !== '..' && !rel.startsWith('..' + (process.platform === 'win32' ? '\\' : '/')) && !isAbsolute(rel);

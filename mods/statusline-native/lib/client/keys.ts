@@ -1,5 +1,6 @@
 import { openExplanation, explanationKey } from '../editor/explanation.ts';
 import { openQuick, controlQuick } from '../editor/quick-setup.ts';
+import { openProfiles, profilesKey } from '../editor/profile-manager.ts';
 import { inputKey } from '../editor/text-input.ts';
 import type { NativeKeyEvent } from './messages.ts';
 import { setMessage, failureMessage } from '../i18n/messages.ts';
@@ -13,7 +14,7 @@ import { formSelection, pageSelection } from '../editor/navigation.ts';
 import { guidanceLines } from '../editor/guidance.ts';
 import { navigateReview } from '../editor/import-review.ts';
 
-export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | null;
+export type Effect = 'save' | 'finish' | 'close' | 'reload' | 'reconcile' | 'retry' | 'applyPreferences' | 'transfer' | 'previewBackground' | 'uiLanguage' | 'reviewPreview' | 'explain' | 'profiles' | null;
 
 export function cancelInput(view: View): void {
   const input = view.input, e = view.editor;
@@ -34,6 +35,11 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   const shortcut = /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
+  if (e.profiles) return profilesKey(e, { ...event, key: key === 'return' ? 'enter' : key });
+  if (event.ctrl && key.toLowerCase() === 'o' && !view.input && !e.detail && !e.adding && !e.review && !e.quick && !e.explanation && !view.uncertain) {
+    if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
+    return null;
+  }
   if (event.text && (!view.input || view.input.kind === 'category')) return null;
   if(e.explanation) { if(!explanationKey(e.explanation,event.ctrl && key.toLowerCase()==='g'?'cancel':event.ctrl||event.meta?'':key,Math.max(1,rows-10))) e.explanation=null; return null; }
   if (e.quick) return controlQuick(e,event.ctrl && key.toLowerCase()==='g' ? 'cancel' : event.ctrl || event.meta ? '' : key);
@@ -191,6 +197,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",localizedText("composition.invalid")); }
+    else if (e.setting === 'profiles') { if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; } }
     else if (e.setting === 'quick-setup') { if (e.acceptNumeric()) e.quick=openQuick(e.draft); }
     else if(e.setting==='item-explain' && e.detail) { e.explanation=openExplanation(e.detail.scope,e.detail.id); return 'explain'; }
     else if (e.setting === 'item-guidance') e.guidanceScroll = 0;

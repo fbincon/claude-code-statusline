@@ -2,6 +2,8 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
+For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
+
 For `diagnose --input FILE|-`, read-only observation rules, and text/JSON output, see [input diagnosis](../DIAGNOSTICS.md).
 
 Shared cursor editing, scenario-based quick setup and the read-only `explain` operation are documented in [configuration experience and validation](../development/configuration-experience.md).

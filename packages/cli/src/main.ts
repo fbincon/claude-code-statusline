@@ -83,7 +83,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         // Only the command's own directory option selects storage. A literal
         // item value after -- must never redirect a configuration write.
         const administrative = ['install', 'uninstall', 'doctor', 'recover'].includes(args[0] ?? '');
-        const directoryIndex = administrative || args[0] === 'diagnose' ? args.findIndex(arg => arg === '--config-dir' || arg.startsWith('--config-dir=')) : 1;
+        const directoryIndex = administrative || args[0] === 'diagnose' || args[0] === 'task' ? args.findIndex(arg => arg === '--config-dir' || arg.startsWith('--config-dir=')) : 1;
         const directoryFlag = args[directoryIndex];
         const requestedDirectory = directoryFlag === '--config-dir' ? args[directoryIndex + 1] : directoryFlag?.startsWith('--config-dir=') ? directoryFlag.slice(13) : undefined;
         const rawDirectory = requestedDirectory ?? environment.configDir ?? process.env.CLAUDE_CONFIG_DIR;
@@ -91,21 +91,21 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         if (isLinkOrReparse(configDir)) configDir = resolvedPath(configDir);
         const preferences = readPreferences(configDir, createStorage(environment.now));
         language = (selectedLanguage ?? preferences.ui_language) as Language;
-        if (['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
+        if (['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
             const command = args[0];
-            if (command && !command.startsWith('-') && !['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command && !command.startsWith('-') && !['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
             if (command === 'config') {
                 const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
-                validateConfigHelp(args.slice(offset));
+                if (!['profile','project'].includes(args[offset] ?? '')) validateConfigHelp(args.slice(offset));
             }
             const { helpText } = await import('./help.js');
             stdout(helpText(args[0], language));
             return 0;
         }
         const command = args.shift();
-        if (!['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
+        if (!['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
         if (administrative) {
             const { parseAdministration } = await import('./integration/arguments.js');
@@ -137,6 +137,20 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             if (args.length)
                 throw new ArgumentError(`${command} takes no arguments`);
             return renderer(command!);
+        }
+        if (command === 'task') {
+            const { taskCommand } = await import('./tasks/command.js');
+            const { runtimeContext } = await import('./runtime/context.js');
+            try {
+                stdout(taskCommand(args, environment.runtime ?? runtimeContext(configDir), language) + '\n');
+                return 0;
+            } catch (error) {
+                if (!args.includes('--json')) throw error;
+                const localization = error instanceof ConfigError ? localizedError(error) : null;
+                const message = localization ? t(localization.key, language, localization.params) : errorDescription(error);
+                stdout(JSON.stringify({error:{code:error instanceof ConfigError ? error.code : 'invalid_request',message,localization}})+'\n');
+                return 2;
+            }
         }
         if (command === 'diagnose') {
             const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
@@ -172,9 +186,10 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
         const service = new ConfigurationService({ configDir, launch, hostVersion: environment.hostVersion ?? detectClaudeVersion }, createStorage(environment.now));
         if (command === 'configure') {
-            if (args.length) throw new ArgumentError('configure takes no positional arguments');
             const { configure } = await import('./integration/configure.js');
-            return configure(service, language, stdout, stderr);
+            const { ProfileService } = await import('./config/profiles.js');
+            const { editorTarget } = await import('./config/profile-command.js');
+            return configure(service, language, stdout, stderr, process.env, editorTarget(args, new ProfileService(service), process.cwd()));
         }
         if (command === 'ui') {
             const { PROTOCOL_VERSION } = await import('@fbincon/statusline-core/contracts/ui');
@@ -196,6 +211,11 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { response, status } = protocol.handle(raw, error => stderr(String(error) + '\n'));
             stdout(pythonJson(response, { ensureAscii: false }) + '\n');
             return status;
+        }
+        if (command === 'config' && ['profile', 'project'].includes(args[0] ?? '')) {
+            const { profileCommand } = await import('./config/profile-command.js');
+            stdout(await profileCommand(args, service, language) + '\n');
+            return 0;
         }
         const parsed = parseConfig(args);
         if (preferences.warning)

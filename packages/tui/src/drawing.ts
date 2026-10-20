@@ -1,5 +1,6 @@
 /** External-editor frame composition. Existing drawing exports remain stable. */
 import { displayWidth } from '@fbincon/statusline-core/unicode/index';
+import { targetLabel } from '@fbincon/statusline-core/editor/profile-manager';
 import { wrapText } from '@fbincon/statusline-core/editor/text';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 import type { State } from './state.js';
@@ -36,7 +37,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     }
 
     state.ensureVisible(size.listHeight);
-    canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : ''))]);
+    canvas.put(0, 0, [heading(tr('ui.drawing.configure_status_line') + (state.modified ? ' *' : '') + ' · ' + targetLabel(e, state.language))]);
     const description = e.detail
         ? tr('ui.drawing.edit_item_format') + state.detailLabel
         : tr('ui.drawing.' + (e.page === 'layout' ? 'set_explicit_rows_priorities_and_widths'
@@ -53,7 +54,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     canvas.put(3, 0, notice(state, canvas.columns));
     canvas.panel(size.content, contentTitle(state));
     const summary = drawPage(canvas, state, size);
-    const summaryHints = state.form && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
+    const summaryHints = state.form && !e.profiles && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
         ? shortcuts([['↑↓', tr('ui.hints.select')]], size.content.innerWidth - displayWidth(summary + ' · '))
         : [];
     canvas.content(size.content, size.content.innerHeight - 1, [

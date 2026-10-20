@@ -45,6 +45,7 @@ export function fieldValue(row: Row, state: State): string {
 export function contentTitle(state: State): string {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
+    if (e.profiles) return tr('profiles.title');
     if (e.explanation) return tr('explain.title');
     if (e.quick) return tr('quick.title') + ' · ' + tr('quick.'+e.quick.step);
     if (e.review) return tr('review.title');

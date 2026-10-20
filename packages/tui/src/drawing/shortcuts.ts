@@ -30,6 +30,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
         key, t('ui.hints.' + label, state.language),
         short ? t('ui.hints.' + short, state.language) : undefined,
     ];
+    if (e.profiles) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help:[hint('↑↓','select'),['R',t('profiles.refresh',state.language)]] };
     if (e.quick) return {
         actions: [hint('Enter','accept'),hint('Backspace','back'),hint('Esc/Ctrl+G','cancel')],
         help: [hint('↑↓','select'),hint('←→','adjust'),hint('Tab','preview'),hint('PgUp/PgDn','scroll')],

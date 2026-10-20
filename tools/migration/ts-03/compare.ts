@@ -69,7 +69,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (regionalLanguageDifference(id, path, a, b)) return;
     if (id==='ui-describe' && path==='/value/response/result/operations') {
       const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];
-      if(canonical(a)===canonical(old) && canonical(b)===canonical([...old,'explain','diagnose'])) return;
+      if(canonical(a)===canonical(old) && canonical(b)===canonical([...old,'explain','diagnose','profiles_read','profiles_apply','profile_import','profile_export','task_details'])) return;
     }
     if (id === 'ui-describe' && path === '/value/response/result/catalog' && Array.isArray(a) && Array.isArray(b)) {
       const cause = b.filter(item => item.id === 'cache-miss-reason');

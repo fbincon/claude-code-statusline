@@ -5,6 +5,15 @@ import { ansiFrame } from '@fbincon/statusline-tui/drawing';
 import { colorCapacity } from '@fbincon/statusline-tui/session';
 import { dimensions } from '@fbincon/statusline-tui/layout';
 import { KeyDecoder } from '@fbincon/statusline-platform/terminal/input';
+test('native incremental redraws retain reused cells across horizontal absolute positioning', () => {
+    const screen = new Capture(24, 4);
+    screen.feed('Loading…\x1b[2;1HLoading…');
+    screen.feed('\x1b[1;1HRe\x1b[4Gd-only\x1b[2;1HSess\x1b[6Gon:');
+    assert.equal(screen.buffer[0]!.map(c=>c.data).join('').trimEnd(),'Read-only');
+    assert.equal(screen.buffer[1]!.map(c=>c.data).join('').trimEnd(),'Session:');
+    screen.feed('\x1b[GX');
+    assert.equal(screen.buffer[1]![0]!.data,'X');
+});
 test('tests.integration.test_terminal_capture.CaptureTests.test_every_byte_chunking_preserves_clusters_and_base_style', async (t) => {
     const value = Buffer.from('\x1b[31;44m👩\x1b[1m🏽‍💻\x1b[49mX');
     for (const step of [1, 2, 3, value.length]) {

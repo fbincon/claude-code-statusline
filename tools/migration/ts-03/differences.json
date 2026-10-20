@@ -3,8 +3,8 @@
     "case": "cli-help",
     "path": "/value/stdout",
     "before_sha256": "0b0a5acd2ab97f4f7bb0a8a59de0ed0311edbda3e281b33a755667cce6fff1ea",
-    "after_sha256": "21ea3e80e9c8a1b160c6b8c13135e9613a5569d617a09d30fde55793f7884a10",
-    "reason": "TypeScript command help includes the explicitly supplied, read-only diagnose entry in addition to the existing recovery command."
+    "after_sha256": "f43d557eea57769082d992787462563d81354b94a4f39f05285fea630dd5f8bc",
+    "reason": "The TypeScript CLI documents its shipped commands, including explicit input diagnosis and read-only task details; this exact help-text hash is the only accepted output change."
   },
   {
     "case": "cli-config-refused",

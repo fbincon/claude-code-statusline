@@ -2,7 +2,7 @@
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 14 as const;
+export const PROTOCOL_VERSION = 15 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation"]} as const;
@@ -33,7 +33,7 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = LANGUAGES;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export type Operation = "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain" | "diagnose";
+export type Operation = "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain" | "diagnose" | "profiles_read" | "profiles_apply" | "profile_import" | "profile_export" | "task_details";
 export interface ItemGuidance {
   source_kinds: string[];
   measurement_scope: string;
@@ -226,6 +226,7 @@ export interface DiagnoseResult {
   prompt_id: string | null;
   host_version: string | null;
   include_local: boolean;
+  configuration?: ResolvedConfiguration;
   output: { id: string; spans: Span[] }[];
   instances: DiagnoseInstance[];
   host_fields: {
@@ -255,6 +256,49 @@ export interface ReadResult {
   installation: Record<string, unknown>;
   capabilities: Capabilities;
   backend_version: string;
+  configuration?: ResolvedConfiguration;
+}
+export type ConfigTarget = { kind: "user" } | { kind: "profile"; id: string } | { kind: "project"; path: string };
+export interface DisplayProfile { id: string; name: string; display: DisplayDraft }
+export interface ProjectBinding { root: string; profile_id: string }
+export interface ProfileCollection { version: 1; profiles: DisplayProfile[]; bindings: ProjectBinding[] }
+export interface ResolvedConfiguration {
+  target: ConfigTarget;
+  profile_id: string | null;
+  profile_name: string | null;
+  project_root: string | null;
+  reason: string;
+  shared_projects: string[];
+}
+export interface ProfilesResult extends ProfileCollection { revision: string; changed?: boolean; backup_dir?: string | null }
+export interface ProfileImportResult { name: string; display: DisplayDraft }
+export interface TaskEvidence {
+  source: string;
+  scope: string;
+  status: string;
+  observed_at: string | null;
+  freshness: "current" | "stale" | "unknown" | "newer_than_input";
+}
+export interface TaskAgentDetail {
+  id: string;
+  parent_id: string | null;
+  name: string | null;
+  status: string | null;
+  evidence: TaskEvidence[];
+}
+export interface TaskDetails {
+  version: 1;
+  session_id: string;
+  prompt_id: string | null;
+  captured_at: string;
+  status: string | null;
+  phase: string | null;
+  elapsed_seconds: number | null;
+  active_seconds: number | null;
+  progress: { completed: number; total: number } | null;
+  agents: TaskAgentDetail[];
+  evidence: TaskEvidence[];
+  limitations: string[];
 }
 export interface EditorField {
   key: string;
@@ -314,6 +358,7 @@ export interface ApplyResult {
   backend_version: string;
   changed: boolean;
   backup_dir: string | null;
+  configuration?: ResolvedConfiguration;
 }
 export interface ResultMap {
   describe: DescribeResult;
@@ -328,6 +373,11 @@ export interface ResultMap {
   preset: TransferResult;
   read_ui_preferences: UiPreferencesResult;
   set_ui_language: UiPreferencesResult;
+  profiles_read: ProfilesResult;
+  profiles_apply: ProfilesResult;
+  profile_import: ProfileImportResult;
+  profile_export: ExportResult;
+  task_details: TaskDetails;
 }
 export type ResultFor<O extends Operation> = ResultMap[O];
 export interface Request {
@@ -335,5 +385,5 @@ export interface Request {
   operation: Operation;
   payload: unknown;
 }
-export type Result = DiagnoseResult | ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult;
+export type Result = DiagnoseResult | ExplainResult | PreviewResult | UiPreferencesResult | ReadResult | TransferResult | ImportReviewResult | ExportResult | DescribeResult | ApplyResult | ProfilesResult | ProfileImportResult | TaskDetails;
 export type Response = { protocol_version: typeof PROTOCOL_VERSION; result: Result } | { protocol_version: typeof PROTOCOL_VERSION; error: ProtocolError };

@@ -11,6 +11,8 @@ import { hostFromSettings, installationIdentity, settingsWithHost } from './host
 import { artifact, createStorage, errorDetail, jsonBytes, readDisplay, readSettings, type Storage } from './storage.js';
 import { commit } from '../recovery/files.js';
 import { assertClear } from '../recovery/journal.js';
+import { readProfiles } from '../rendering/configuration.js';
+import { profileRowsSettings } from './profiles.js';
 export interface ConfigurationContext {
     configDir: string;
     launch: LaunchSpec;
@@ -81,7 +83,11 @@ export class ConfigurationService {
             const [display, displayRaw] = readDisplay(configDir, this.io, tolerateInvalidDisplay);
             const [settings, settingsRaw] = readSettings(configDir, this.io);
             const { host, installed } = hostFromSettings(settings, launch);
-            const [newDisplay, newSettings] = mutation(display, settings, host, installed);
+            const [newDisplay, proposedSettings] = mutation(display, settings, host, installed);
+            const [collection, collectionRaw] = readProfiles(configDir, this.io);
+            const newSettings = collectionRaw === null ? proposedSettings : profileRowsSettings(this,
+                proposedSettings === UNCHANGED ? settings : proposedSettings,
+                newDisplay === DELETE ? defaultDisplay() : newDisplay === UNCHANGED ? display : newDisplay, collection);
             const displayBytes = newDisplay === DELETE ? null : newDisplay === UNCHANGED ? displayRaw : jsonBytes(validateDisplay(newDisplay));
             const displayChanged = newDisplay !== UNCHANGED && (displayBytes === null ? displayRaw !== null : !displayRaw?.equals(displayBytes));
             // Settings use semantic comparison, retaining unrelated values and their original bytes on a no-op.

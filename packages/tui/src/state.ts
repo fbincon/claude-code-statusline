@@ -1,4 +1,5 @@
 import { graphemes } from '@fbincon/statusline-core/unicode/index';
+import { openProfiles, profilesKey } from '@fbincon/statusline-core/editor/profile-manager';
 import { openExplanation, explanationKey } from '@fbincon/statusline-core/editor/explanation';
 import { openQuick, controlQuick } from '@fbincon/statusline-core/editor/quick-setup';
 import { inputKey, inputView, textInput, type TextInput } from '@fbincon/statusline-core/editor/text-input';
@@ -10,7 +11,7 @@ import type { DescribeResult, ReadResult, PreviewResult, Scope } from '@fbincon/
 import type { Key } from '@fbincon/statusline-core/terminal/key';
 import { dimensions, formWindow } from './layout.js';
 import { formPageIndex } from './navigation.js';
-export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | null;
+export type Effect = 'save' | 'cancel' | 'interrupt' | 'language' | 'transfer' | 'explain' | 'profiles' | null;
 type Input = ({
     kind: 'search';
     original: string;
@@ -84,7 +85,7 @@ export class State {
             row('scope-labels', 'Scope labels', d.scope_labels, 'Appearance'), row('custom-subagent-rows', 'Custom subagent rows', d.subagents.enabled ? 'on' : 'off', 'Refresh / behavior'),
             ...fields,
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
-            ...['quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
+            ...['profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
             row('ui-language', 'Interface language (saved immediately)', LANGUAGE_NAMES[this.language], 'Interface', 'choice'),
         ];
         return result.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group));
@@ -191,6 +192,11 @@ export class State {
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
+        if (e.profiles) return profilesKey(e, event);
+        if (ctrl && k.toLowerCase() === 'o' && !this.input && !e.detail && !e.adding && !e.review && !e.quick && !e.explanation) {
+            if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; }
+            return null;
+        }
         if (event.paste && (!this.input || this.input.kind === 'category')) return null;
         if (e.explanation) { if(!explanationKey(e.explanation,cancel?'cancel':ctrl||event.meta?'':k,height)) e.explanation=null; return null; }
         if (e.quick) return controlQuick(e, cancel ? 'cancel' : ctrl || event.meta ? '' : k);
@@ -334,7 +340,8 @@ export class State {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';
             const row = this.selectedRow();
-            if (row.key === 'quick-setup') { if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); } }
+            if (row.key === 'profiles') { if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; } }
+            else if (row.key === 'quick-setup') { if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); } }
             else if (row.key === 'item-explain' && e.detail) { e.explanation=openExplanation(e.detail.scope,e.detail.id); return 'explain'; }
             else if (row.key === 'item-guidance')
                 e.guidanceScroll = 0;

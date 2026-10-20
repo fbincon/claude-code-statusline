@@ -11,7 +11,7 @@ import { MAX_DIAGNOSTIC_BYTES, readDiagnosticFile } from '@fbincon/statusline-pl
 import { localizedError } from '../errors.js';
 import type { ConfigurationService } from '../config/service.js';
 import type { RuntimeContext } from '../runtime/context.js';
-import { diagnosisAdapter, diagnosticDraft } from './service.js';
+import { diagnosisAdapter, diagnosticSnapshot } from './service.js';
 
 function argumentsFor(args: readonly string[]) {
     const values: Record<string, string | boolean> = {};
@@ -46,6 +46,9 @@ export function diagnosticText(result: DiagnoseResult, language: Language): stri
         for (const row of item.rows) lines.push('  ' + row.row_id + ': ' + tr('layout.' + row.outcome) + (row.truncated ? ' · ' + tr('layout.truncated') : ''));
     }
     const tree = result.host_fields.worktree, miss = result.host_fields.cache_miss;
+    if (result.configuration) lines.push(t('profiles.resolution', language, {
+        name: result.configuration.profile_name ?? t('profiles.user', language), root: result.configuration.project_root ?? '—',
+        reason: t('profiles.reason.' + result.configuration.reason, language) }));
     lines.push('', tr('worktree', { session: tree.session_name ?? tr('unknown'), git: tree.git_name ?? tr('unknown'), selected: tree.selected_source ?? tr('unknown') }));
     lines.push(tr('cache', { status: tr('status.' + miss.status), time: miss.last_miss_at === null ? tr('unknown') : String(miss.last_miss_at) }));
     for (const cause of miss.causes) lines.push('  ' + ((CACHE_CAUSES as readonly string[]).includes(cause) ? t('statusline.cache.cause.' + cause, language) : t('statusline.cache.cause.unknown', language, { value: cause })));
@@ -70,8 +73,10 @@ export async function diagnosticCommand(args: readonly string[], service: Config
         const adapter = await diagnosisAdapter(service, options);
         const width = values['--width'];
         if (typeof width === 'string' && !/^\d+$/u.test(width)) throw new ConfigError('errors.protocol.width_must_be_an_integer_from_2', {}, 'invalid_request');
-        const result = adapter({ draft: diagnosticDraft(service), input, scope: values['--scope'] ?? 'main', width: width === undefined ? 120 : Number(width),
+        const selected = diagnosticSnapshot(service, input);
+        const result = adapter({ draft: selected.draft, input, scope: values['--scope'] ?? 'main', width: width === undefined ? 120 : Number(width),
             source: path === '-' ? 'stdin' : resolve(path), observed_at: values['--observed-at'] ?? null, include_local: values['--input-only'] !== true });
+        result.configuration = selected.configuration;
         output(json ? pythonJson(result, { ensureAscii: false, indent: 2 }) + '\n' : diagnosticText(result, language));
         return 0;
     } catch (error) {

@@ -3,6 +3,21 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.4.0 — 2026-10-20
+
+- Add named display schemes and shared management in both editors, preserving an independent user-default snapshot.
+- Bind user-owned project/worktree roots with most-specific selection, attributable fallback and revision protection.
+- Add `/statusline-task` and text/JSON CLI inspection of attributable task and agent evidence without collection or repair.
+- Advance editor protocol to 15; retain display schema 8, runtime 2, lifecycle 4, portable 1 and UI preferences 1.
+- [Release notes](docs/releases/v3.4.0.md) · [Implementation and validation](docs/development/profiles-projects-tasks.md).
+
+## 3.3.0 — 2026-10-20
+
+- Add read-only real-input diagnosis with attributable evidence, per-instance visibility and width outcomes.
+- Support linked-worktree metadata and an optional cache-miss explanation component while retaining unknown evidence explicitly.
+- Advance editor protocol to 14 with unchanged display and runtime schemas.
+- [Release notes](docs/releases/v3.3.0.md) · [Implementation and validation](docs/development/real-input-diagnostics.md).
+
 ## 3.2.0 — 2026-10-19
 
 - Share grapheme cursor editing, insertion, forward/backward deletion and horizontal scrolling across both editors; report rejected input and queue overflow.

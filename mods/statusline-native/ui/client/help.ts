@@ -17,6 +17,7 @@ export function editorShortcuts(view: View): Shortcut[][] {
     { key: 'Q', label: 'close (blocked)', short: 'blocked' },
     focus,
   ]];
+  if (e.profiles) return [[{key:'Enter',label:'accept'},{key:'Ctrl+G',label:'back'},focus],[{key:'↑↓',label:'select'},{key:'R',label:'reload'}]];
   if (e.quick) return [[{key:'Enter',label:'accept'},{key:'Backspace',label:'back'},{key:'Ctrl+G',label:'cancel'},focus],[{key:'↑↓',label:'select'},{key:'←→',label:'adjust'},{key:'Tab',label:'preview'},{key:'PgUp/PgDn',label:'scroll'}]];
   if (e.review) return [
     [{key:'A', label:'accept draft', short:'accept'}, {key:'Q', label:'cancel review', short:'cancel'}],

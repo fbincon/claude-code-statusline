@@ -10,7 +10,8 @@ import { previewAdapter } from '../rendering/preview.js';
 import { localizedError } from '../errors.js';
 import { ConfigError } from '@fbincon/statusline-core/config/validation';
 import { renderMessage } from '@fbincon/statusline-core/i18n/messages';
-export async function configure(service: ConfigurationService, language: Language, stdout: (value: string) => void, stderr: (value: string) => void, env: NodeJS.ProcessEnv = process.env): Promise<number> {
+import type { ConfigTarget } from '@fbincon/statusline-core/contracts/ui';
+export async function configure(service: ConfigurationService, language: Language, stdout: (value: string) => void, stderr: (value: string) => void, env: NodeJS.ProcessEnv = process.env, target?: ConfigTarget): Promise<number> {
     const configDir = service.context.configDir, rawResult = env[RESULT_ENV];
     let path: string | undefined;
     if (rawResult !== undefined) {
@@ -36,6 +37,7 @@ export async function configure(service: ConfigurationService, language: Languag
         const guarded = new ConfigurationService(service.context, { ...io, lock(directory, action) { return io.lock(directory, () => { guard(); return action(); }); } });
         const protocol = new ConfigurationProtocol(guarded, await previewAdapter());
         const backend: Backend = { request(operation, payload = {}) {
+                if (operation === 'read' && Object.keys(payload as object).length === 0 && target) payload = { target };
                 const response = protocol.handle(requestText(operation, payload), error => { throw error; });
                 return parseResponse(operation, { exitCode: response.status, stdout: pythonJson(response.response), stderr: '' });
             } };
