@@ -10,6 +10,17 @@ import { runtimeDefaultDifference } from '../compare.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fixtures } from '../common.js';
+import { ITEMS } from '@fbincon/statusline-core/config/catalog';
+
+test('host coverage comparison permits only the exact additive catalog change', () => {
+  const old=JSON.parse(readFileSync(join(fixtures,'expected.json'),'utf8'))['ui-describe'].value.response.result.catalog;
+  const wrap=(catalog:unknown)=>({'ui-describe':{value:{response:{result:{catalog}}}}});
+  assert.deepEqual(compare(wrap(old),wrap(ITEMS)),[]);
+  const changed=JSON.parse(JSON.stringify(ITEMS));changed.find((i:any)=>i.id==='worktree').sources=['workspace.wrong_field'];
+  assert.ok(compare(wrap(old),wrap(changed)).length);
+  changed.find((i:any)=>i.id==='cache-miss-reason').default_enabled=true;
+  assert.ok(compare(wrap(old),wrap(changed)).length);
+});
 
 test('approved default-collection difference is bound to one frozen stdout and rejects other changes', () => {
   const before = JSON.parse(readFileSync(join(fixtures, 'expected.json'), 'utf8'))['runtime-null-prompt'].value[0].stdout as string;
@@ -58,10 +69,10 @@ test('broad and stale comparison exemptions are rejected', () => {
 });
 
 test('regional comparison exceptions are restricted to known protocol and language-choice fields', () => {
-  assert(regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 13));
-  assert(!regionalLanguageDifference('ui-unknown-case', '/value/response/protocol_version', 11, 13));
-  assert(!regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 14));
-  assert(!regionalLanguageDifference('ui-read', '/value/response/result/value', 11, 13));
+  assert(regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 14));
+  assert(!regionalLanguageDifference('ui-unknown-case', '/value/response/protocol_version', 11, 14));
+  assert(!regionalLanguageDifference('ui-read', '/value/response/protocol_version', 11, 15));
+  assert(!regionalLanguageDifference('ui-read', '/value/response/result/value', 11, 14));
   const before = ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko'], after = ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko'];
   assert(regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, after));
   assert(!regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, [...after, 'fr']));

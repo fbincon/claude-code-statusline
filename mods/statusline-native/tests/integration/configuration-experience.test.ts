@@ -2,6 +2,17 @@ import { expect, test } from 'claude-code/testing';
 import { START, RUN, PANE, setup, keys, reply, sample, selectSetting } from '../fixtures.ts';
 import { copyDraft } from '../../lib/editor/draft.ts';
 
+test('native editor adds and saves the optional cache cause component and retains it on reopening', {timeoutMs:20000}, async ($,on) => {
+  const f=setup(on);
+  await $.session.start(START);await $.command.run(RUN);const ui=await $.ui.mount(PANE);
+  await keys(ui,{key:'a',ctrl:true},'/', 'cache-miss-reason','return','return','s');
+  expect(f.store.draft.display.instances.some(i=>i.type_id==='cache-miss-reason'&&i.enabled)).toBe(true);
+  expect(f.calls.some(c=>c.operation==='apply')).toBe(true);
+  await ui.unmount();await $.command.run(RUN);const reopened=await $.ui.mount(PANE);
+  expect(f.calls.filter(c=>c.operation==='preview').at(-1)!.payload.draft.display.instances.some((i:any)=>i.type_id==='cache-miss-reason'&&i.enabled)).toBe(true);
+  await reopened.unmount();
+});
+
 test('quick setup preserves a dirty draft on cancel, previews its candidate and saves with the opening revision', {timeoutMs:20000}, async ($,on) => {
   const f=setup(on);
   f.behavior.process=(request,next)=>request.operation==='preset'

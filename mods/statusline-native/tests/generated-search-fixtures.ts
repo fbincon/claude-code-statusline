@@ -1210,10 +1210,11 @@ export const SEARCH_CATALOG = [
     "scope": "main",
     "id": "worktree",
     "label": "Worktree",
-    "description": "Worktree name in --worktree sessions",
+    "description": "Claude worktree session name, falling back to the current linked Git worktree",
     "group": "repository",
     "sources": [
-      "worktree.name"
+      "worktree.name",
+      "workspace.git_worktree"
     ],
     "examples": [
       "Worktree feature"
@@ -1241,8 +1242,7 @@ export const SEARCH_CATALOG = [
       ],
       "measurement_scope": "repository",
       "requirements": [
-        "observed_field",
-        "worktree_session"
+        "observed_field"
       ],
       "setup": [
         "claude-statusline doctor"
@@ -2008,6 +2008,48 @@ export const SEARCH_CATALOG = [
     ],
     "default_position": null,
     "minimum_version": "2.1.251",
+    "format_options": [
+      "colors",
+      "palette",
+      "separator-style"
+    ],
+    "excludes": [],
+    "unavailable_reasons": [
+      "not_observed",
+      "unsupported_host",
+      "unknown_host_version",
+      "source_unavailable",
+      "condition_not_met"
+    ],
+    "default_enabled": false,
+    "minimum_version_status": "verified",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "main",
+      "requirements": [
+        "observed_field"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    }
+  },
+  {
+    "scope": "main",
+    "id": "cache-miss-reason",
+    "label": "Cache miss reason",
+    "description": "Host-reported likely cause of the latest main-conversation cache miss",
+    "group": "usage",
+    "sources": [
+      "prompt_cache.last_miss_cause"
+    ],
+    "examples": [
+      "Cache cause? tools changed"
+    ],
+    "default_position": null,
+    "minimum_version": "2.1.260",
     "format_options": [
       "colors",
       "palette",

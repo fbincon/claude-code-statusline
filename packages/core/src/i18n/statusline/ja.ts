@@ -219,5 +219,14 @@ export const MESSAGES = {
   "statusline.short.subagent.elapsed": "経過時間",
   "statusline.short.subagent.task": "タスクラベル",
   "statusline.short.subagent.tokens": "エージェントのトークン",
-  "statusline.short.subagent.current-dir": "エージェントのディレクトリ"
+  "statusline.short.subagent.current-dir": "エージェントのディレクトリ",
+  "statusline.git_worktree": "Git ワークツリー {value}",
+  "statusline.cache.miss_reason": "キャッシュ推定原因 {value}",
+  "statusline.cache.cause.tools_changed": "ツールの変更",
+  "statusline.cache.cause.system_prompt_changed": "システムプロンプトの変更",
+  "statusline.cache.cause.ttl_expired_5m": "5分の TTL が満了",
+  "statusline.cache.cause.likely_server_side": "サーバー側の可能性",
+  "statusline.cache.cause.unknown": "不明（{value}）",
+  "statusline.prefix.main.cache-miss-reason": "キャッシュ推定原因",
+  "statusline.short.main.cache-miss-reason": "推定原因"
 } as const;

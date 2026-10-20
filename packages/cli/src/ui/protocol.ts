@@ -1,6 +1,7 @@
 import { RenderTrace } from '@fbincon/statusline-core/rendering/trace';
 import { explain } from '@fbincon/statusline-core/rendering/explain';
 import { explanationFacts } from './explain.js';
+import type { Diagnose } from '../diagnostics/service.js';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { randomUUID } from 'node:crypto';
 import * as contracts from '@fbincon/statusline-core/contracts/ui';
@@ -20,7 +21,7 @@ import { importFile, exportFile } from '../config/transfer.js';
 import { localizedError } from '../errors.js';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
 export const BACKEND_VERSION = VERSION;
-export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain'] as const;
+export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose'] as const;
 export type Preview = (draft: Draft, width: number, trace?: RenderTrace) => contracts.PreviewResult;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {
     return {
@@ -40,7 +41,7 @@ export function configurationOptions(): contracts.ConfigurationOptions {
     };
 }
 export class ConfigurationProtocol {
-    constructor(public readonly service: ConfigurationService, public readonly preview?: Preview, public readonly nextId: () => string = () => randomUUID().replaceAll('-', '')) { }
+    constructor(public readonly service: ConfigurationService, public readonly preview?: Preview, public readonly nextId: () => string = () => randomUUID().replaceAll('-', ''), public readonly diagnose?: Diagnose) { }
     readResult(effective: EffectiveConfig): Record<string, unknown> {
         return { draft: draft(effective), revision: effective.revision, installed: effective.installed, installation: effective.installation, capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION };
     }
@@ -90,6 +91,10 @@ export class ConfigurationProtocol {
                 throw new ConfigError('errors.protocol.expected_revision_must_be_the_revision_returned', {}, 'invalid_request');
             const result = this.service.apply(parsed, revision);
             return { ...this.readResult(result.effective), changed: result.changed, backup_dir: result.backup_dir };
+        }
+        if (operation === 'diagnose') {
+            if (!this.diagnose) throw new Error('Diagnosis adapter has not been bound');
+            return this.diagnose(payload);
         }
         requestObject(payload, operation==='explain'?['draft','scope','width']:['draft', 'width'], 'payload');
         if (operation==='explain' && payload.scope!=='main' && payload.scope!=='subagent') throw new ConfigError('explain.invalid_scope',{},'invalid_request');

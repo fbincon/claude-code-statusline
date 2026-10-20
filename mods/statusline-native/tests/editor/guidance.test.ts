@@ -17,7 +17,7 @@ test('all canonical item explanations are translated and fit terminal cells', ()
 
 test('catalog guidance rejects missing and unknown source/scope/condition metadata', () => {
   const valid = {...description(), catalog: SEARCH_CATALOG as CatalogItem[]};
-  expect(parseResponse('describe', reply(valid)).catalog.length).toBe(78);
+  expect(parseResponse('describe', reply(valid)).catalog.length).toBe(79);
   for (const guide of [null, {}, {source_kinds:['future'],measurement_scope:'main',requirements:[],setup:[]},
     {source_kinds:['official_input'],measurement_scope:'future',requirements:[],setup:[]},
     {source_kinds:['official_input'],measurement_scope:'main',requirements:['future'],setup:[]}]) {

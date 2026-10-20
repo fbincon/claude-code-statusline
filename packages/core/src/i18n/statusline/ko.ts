@@ -219,5 +219,14 @@ export const MESSAGES = {
   "statusline.short.subagent.elapsed": "경과 시간",
   "statusline.short.subagent.task": "작업 레이블",
   "statusline.short.subagent.tokens": "에이전트 토큰",
-  "statusline.short.subagent.current-dir": "에이전트 디렉터리"
+  "statusline.short.subagent.current-dir": "에이전트 디렉터리",
+  "statusline.git_worktree": "Git 워크트리 {value}",
+  "statusline.cache.miss_reason": "캐시 추정 원인 {value}",
+  "statusline.cache.cause.tools_changed": "도구 변경",
+  "statusline.cache.cause.system_prompt_changed": "시스템 프롬프트 변경",
+  "statusline.cache.cause.ttl_expired_5m": "5분 TTL 만료",
+  "statusline.cache.cause.likely_server_side": "서버 측 원인으로 추정",
+  "statusline.cache.cause.unknown": "알 수 없음 ({value})",
+  "statusline.prefix.main.cache-miss-reason": "캐시 추정 원인",
+  "statusline.short.main.cache-miss-reason": "추정 원인"
 } as const;

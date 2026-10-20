@@ -4,7 +4,7 @@
 
 Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/post-migration-fixes.md).
 
-The current catalog contains 60 main and 14 subagent items, with 10 and five enabled by default. The tables highlight independent metrics and task timers; the [user guide](USER_GUIDE.md#configurable-display-items) lists default selections and configuration entry points. `prompt-timer` is an alias of `task-timer`, not an additional catalog item. Main-line compounds can coexist with their individual components; subagent `status-elapsed` excludes separate `status` and `elapsed`.
+The current catalog contains 61 main and 14 subagent items, with 10 and five enabled by default. The tables highlight independent metrics and task timers; the [user guide](USER_GUIDE.md#configurable-display-items) lists default selections and configuration entry points. `prompt-timer` is an alias of `task-timer`, not an additional catalog item. Main-line compounds can coexist with their individual components; subagent `status-elapsed` excludes separate `status` and `elapsed`.
 
 Examples below use English output. `statusline-language=zh-CN` localizes built-in phrases and known values without changing metric definitions, IDs, raw observations, numbers or technical units. User text and unknown values remain intact. See [output language](USER_GUIDE.md#statusline-language).
 
@@ -26,6 +26,8 @@ Examples below use English output. `statusline-language=zh-CN` localizes built-i
 | `cache-state` | `Cache warm` | Official main-conversation `prompt_cache.warm`, `caching_observed` and `expires_at`: warm only before expiry; cold after expiry; unobserved caching is distinct. |
 | `cache-expires` | `Cache TTL 4m 20s` | Remaining TTL only while the observed main cache is warm. Requires a valid future `expires_at`. |
 | `cache-misses` | `Cache miss 2` | Official `prompt_cache.misses`, excluding `expected_rebuilds` after compaction or clearing. |
+| `cache-miss-reason` | `Cache cause? tools changed` | Off by default. Host-reported likely causes of the latest main-conversation miss, from `prompt_cache.last_miss_cause.causes`; requires 2.1.260+. Unknown codes remain readable. Counts and timing are in [diagnosis](DIAGNOSTICS.md). |
+| `worktree` | `Git worktree feature-x` | Prefers `worktree.name` for Claude worktree sessions; otherwise `workspace.git_worktree` identifies the current linked Git worktree. |
 | `api-requests` | `API requests 14` | Official main-conversation `prompt_cache.requests`; excludes subagent calls. |
 | `session-name` | `Session demo-session` | Observed `session_name`, without an ID fallback. |
 | `session-id` | `ID demo-session` | Full observed `session_id`. |
@@ -128,7 +130,7 @@ Claude Code 2.1.289 headless paths may omit prompt identity events. Only one com
 ## Composition components
 
 Both scopes also offer `text` (literal user text) and `spacer` (remaining row width).
-These two composition types bring the catalog to 62 main and 16 subagent types;
-the 60 main and 14 subagent observation types and existing defaults are retained.
+These two composition types bring the catalog to 63 main and 16 subagent types;
+the 61 main and 14 subagent observation types and existing defaults are retained.
 Add them with the instance controls or `config instance main add text --text "Project"`.
 Main spacers require explicit rows; each main row and subagent template accepts one spacer.

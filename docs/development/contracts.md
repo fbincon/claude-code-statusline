@@ -6,7 +6,7 @@ Protocol v13 is the internal interface for the bundled/source native frontend. D
 
 ## Catalog
 
-`packages/core/src/config/catalog.ts` defines the 62 main and 16 subagent types (60/14 metrics plus text and spacer in each scope) by `(scope, id)`. Definitions carry labels, descriptions, groups, sources, examples, default positions, format options, exclusions and unavailable-reason codes. Legacy catalog dictionaries and default tuples are derived views; existing IDs, descriptions, default selections and ordering are preserved. CLI JSON listings add metadata without removing their existing enabled/position fields. The external TUI and the installed wizard consume the same definitions and exclusions.
+`packages/core/src/config/catalog.ts` defines the 63 main and 16 subagent types (61/14 metrics plus text and spacer in each scope) by `(scope, id)`. Definitions carry labels, descriptions, groups, sources, examples, default positions, format options, exclusions and unavailable-reason codes. Legacy catalog dictionaries and default tuples are derived views; existing IDs, descriptions, default selections and ordering are preserved. CLI JSON listings add metadata without removing their existing enabled/position fields. The external TUI and the installed wizard consume the same definitions and exclusions.
 
 Minimum versions are verified only where evidence exists. The 2.1.205 subagent minimum denotes row support, not every optional field: effort requires 2.1.214. Independent agent effort declares 2.1.214. New independent metrics are opt-in and can coexist with compounds; see [display definitions](../DISPLAY_ITEMS.md). Cache metrics declare 2.1.251; optional gateway dollar/period metrics declare 2.1.284 on both host and gateway. Unverified main-field minima remain `null`/`unknown` instead of guessed dates. `not_observed` means the interface has not inspected live data, `unsupported_host` means a verified version boundary, `unknown_host_version` means detection failed, `source_unavailable` means a source cannot be read, and `condition_not_met` covers items such as Git outside a repository or fast mode while inactive. These are definitions of possible reasons; opening configuration does not collect live field availability or disable selections for missing observations.
 
@@ -24,10 +24,10 @@ current session. `config list-items --json` exposes the same additive metadata.
 Run `claude-statusline ui --config-dir PATH` (Windows npm shim: `claude-statusline.cmd`). One process reads one UTF-8 JSON object to EOF and writes exactly one JSON response and a newline. Stdout is reserved for the envelope; unexpected failures are diagnosed on stderr. Success exits 0 and rejected requests exit 2.
 
 ```json
-{"protocol_version":13,"operation":"read","payload":{}}
+{"protocol_version":14,"operation":"read","payload":{}}
 ```
 
-Success is `{"protocol_version":13,"result":{...}}`; failure is `{"protocol_version":13,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
+Success is `{"protocol_version":14,"result":{...}}`; failure is `{"protocol_version":14,"error":{"code":"...","message":"...","localization":null}}`. Envelope and payload keys are checked. Duplicate JSON keys, non-finite constants, wrong versions/types, unknown operations and invalid drafts are refused.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
@@ -43,6 +43,7 @@ Success is `{"protocol_version":13,"result":{...}}`; failure is `{"protocol_vers
 | `export` | `{draft,path,overwrite}` | Export destination `{path}` |
 | `review_import` | `{draft,path}` | A validated candidate and per-field differences, without saving |
 | `explain` | `{draft,scope,width}` | Configuration reasons and per-instance sample outcomes, with `actual_availability:"not_observed"` |
+| `diagnose` | `{draft,input,scope,width,source?,observed_at?,include_local?}` | Real input, attributable evidence and fitted per-instance outcomes; `sample:false`, no writes or collection |
 
 `draft` has exactly `display` (the effective schema-v8 display object) and `host` (`padding`, `refresh_interval`, `hide_vim_mode_indicator`); every field is required. JSON host booleans/numbers are strict: padding 0–32, refresh 1–3600 or `"event"`; strings such as `"off"` and fractional numbers are rejected. Reading a supported display v1–v7 file normalizes it in memory without migrating its file. Preview also accepts a complete v1 display object. Apply requires the complete schema-v8 draft returned by read, so legacy input cannot silently replace newer settings. Preview width is an integer 2–10000.
 
@@ -145,7 +146,7 @@ Display schema 8 replaces wire `items`/`item_options` with ordered `instances`. 
 
 Reading v1–v7 maps canonical type IDs deterministically and retains disabled overrides. Import review compares instance IDs for additions, removals, enablement, retained ordering, options and text. Applying a complete schema-8 draft bypasses legacy type-selection projections.
 
-TS configuration services use the unchanged installation lock and display schema 8, UI protocol 13, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
+TS configuration services use the unchanged installation lock and display schema 8, UI protocol 14, semantic revision version 1 and independent preference files. Saves re-read and check ownership/revision under lock; no-op saves do not back up. JSON/UTF-8 diagnostics and integer-like object member ordering are compared with Python 3.14.4. Both editors use the production preview pipeline. Explicit installation records the selected Node/JS binding; ordinary protocol reads do not rewrite it.
 
 ## TypeScript backend binding
 
@@ -176,4 +177,4 @@ schemas. See the [candidate recovery contract](typescript-migration/ts-04/recove
 
 `reasons.origin` distinguishes draft configuration, local configuration, known host capability and unknown evidence. Unreadable ownership/runtime preferences remain unknown; normally absent runtime preferences retain their existing disabled default. `explain` takes no installation lock, creates no directories and repairs no files. It never reads transcripts, task/usage caches or Git. Existing `read` still locks its coherent snapshot and may create the lock directory; `preview` remains independent of settings and host detection.
 
-`describe.presets` adds `purpose_key`, `requirements_key` and `example`, presenting four use cases before two examples. Preset IDs and expansion semantics remain compatible. Protocol 13 requires matching frontend/backend resources; display schema 8, runtime protocol 2, portable 1 and UI preferences 1 remain independent.
+`describe.presets` adds `purpose_key`, `requirements_key` and `example`, presenting four use cases before two examples. Preset IDs and expansion semantics remain compatible. Protocol 14 requires matching frontend/backend resources; display schema 8, runtime protocol 2, portable 1 and UI preferences 1 remain independent.

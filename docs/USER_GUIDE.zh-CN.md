@@ -2,6 +2,8 @@
 
 [English](USER_GUIDE.md) | **简体中文**
 
+显式真实输入诊断及缓存原因显示见[诊断指南](DIAGNOSTICS.zh-CN.md)，实现边界与验收见[诊断开发说明](development/real-input-diagnostics.zh-CN.md)。
+
 本指南说明安装、编辑器操作、常用配置、可选实时指标和恢复流程。完整命令及配置文件说明见 [CLI 参考](reference/cli.zh-CN.md)，开发与构建步骤见[开发指南](development/README.zh-CN.md)。
 
 配置对当前用户的 Claude Code 项目生效。状态栏渲染读取 Claude 输入、本地 Git、transcript 和状态文件，不自行发起网络请求或使用模型 token；问答向导使用模型回合。
@@ -44,7 +46,7 @@
 
 [条件显示、逐项颜色、主题与 Powerline](APPEARANCE.zh-CN.md)说明共享设置、原始观测规则和迁移恢复。
 
-主栏支持 60 个指标，子 Agent 行支持 14 个指标，两个作用域均支持文本和弹性留白，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、六种可编辑预设及可移植 JSON 文件。
+主栏支持 61 个指标，子 Agent 行支持 14 个指标，两个作用域均支持文本和弹性留白，默认分别启用 10 项和 5 项。两种编辑器均提供 Main、Subagents、Settings、Layout 四页、固定样例预览、格式设置、六种可编辑预设及可移植 JSON 文件。
 
 主栏显示主会话数据，各子 Agent 行显示自己的任务数据；任务计时包含子 Agent 工作和主 Agent 收尾。[显示项与指标定义](DISPLAY_ITEMS.zh-CN.md)说明数据来源、作用域、缺失观测和指标边界。
 
@@ -532,7 +534,7 @@ claude-statusline config list-items
 claude-statusline config subagents list-items
 ```
 
-主栏目录含 60 个指标及两个布局组件，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
+主栏目录含 61 个指标及两个布局组件，默认启用十项：`model-with-effort`、`current-dir`、`git`、`context-remaining`、`context-window-size`、`five-hour-limit`、`weekly-limit`、`spend-limit`、`tokens`、`task-timer`。
 
 常用可选项按下表分组，通过 ID 启用或在编辑器中选择。
 

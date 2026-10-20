@@ -50,8 +50,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 13, operation, payload }), environment));
-    assert.equal(result.protocol_version, 13);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 14, operation, payload }), environment));
+    assert.equal(result.protocol_version, 14);
     assert.ok(result.result);
     return result.result;
 }
@@ -91,6 +91,34 @@ test('tests.integration.test_compatibility.CompatibilityTests.test_legacy_render
     }
     assert.ok(cases.length >= 10);
     report.render_cases = cases.length;
+    const diagnosticConfig = join(installed.temporary, 'diagnostic readonly');
+    const payload = { version: '2.1.296', session_id: 'synthetic-session', prompt_id: 'synthetic-prompt', workspace: { git_worktree: 'feature-linked' },
+        prompt_cache: { misses: 2, hit_ratio: 0.91, cache_write_tokens: 352000, last_miss_cause: { causes: ['tools_changed', 'future_cause'], tools_added: 0, tools_removed: 2, system_char_delta: -12 } } };
+    assert.equal(JSON.parse(run(['diagnose', '--input', '-', '--input-only', '--json'], diagnosticConfig, JSON.stringify(payload))).sample, false);
+    assert.equal(fs.existsSync(diagnosticConfig), false);
+    run(['config', 'set-items', 'worktree', 'cache-miss-reason', 'prompt-cache'], diagnosticConfig);
+    const inputPath = join(installed.temporary, '输入 snapshot.json');
+    fs.writeFileSync(inputPath, JSON.stringify(payload));
+    const snapshot = () => Object.fromEntries(fs.readdirSync(diagnosticConfig, { recursive: true }).map(String)
+        .filter(name => fs.statSync(join(diagnosticConfig, name)).isFile()).sort().map(name => [name, fs.readFileSync(join(diagnosticConfig, name)).toString('hex')]));
+    for (const language of ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko']) {
+        run(['config', 'set', 'statusline-language', language], diagnosticConfig);
+        const before = snapshot();
+        for (const width of [40, 80, 120]) {
+            const args = ['--language', language, 'diagnose', '--input', inputPath, '--width', String(width)];
+            const diagnosis = JSON.parse(run([...args, '--json'], diagnosticConfig));
+            assert.equal(diagnosis.sample, false);
+            assert.equal(diagnosis.host_fields.worktree.selected_source, 'workspace.git_worktree');
+            assert.equal(diagnosis.host_fields.cache_miss.tools_added, 0);
+            assert.ok(diagnosis.output.length > 0);
+            assert.ok(!JSON.stringify(diagnosis.output).includes('statusline.'));
+            assert.ok(!run(args, diagnosticConfig).includes('diagnose.'));
+        }
+        assert.deepEqual(snapshot(), before);
+    }
+    const before = snapshot(), invalid = invoke(['diagnose', '--input', '-', '--json'], diagnosticConfig, '{');
+    assert.equal(invalid.status, 2); assert.ok(JSON.parse(invalid.stdout).error); assert.deepEqual(snapshot(), before);
+    report.diagnostic_cases = 20;
     checks.rendering = true;
 });
 test('tests.integration.test_compatibility.CompatibilityTests.test_legacy_terminal_entry_point_preserves_error_exit_code', () => {
@@ -206,7 +234,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 13, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 14, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');

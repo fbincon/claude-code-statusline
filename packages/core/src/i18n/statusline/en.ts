@@ -219,5 +219,14 @@ export const MESSAGES = {
   "statusline.short.subagent.elapsed": "Elapsed",
   "statusline.short.subagent.task": "Task label",
   "statusline.short.subagent.tokens": "Agent tokens",
-  "statusline.short.subagent.current-dir": "Agent directory"
+  "statusline.short.subagent.current-dir": "Agent directory",
+  "statusline.git_worktree": "Git worktree {value}",
+  "statusline.cache.miss_reason": "Cache cause? {value}",
+  "statusline.cache.cause.tools_changed": "tools changed",
+  "statusline.cache.cause.system_prompt_changed": "system prompt changed",
+  "statusline.cache.cause.ttl_expired_5m": "5m TTL expired",
+  "statusline.cache.cause.likely_server_side": "likely server-side",
+  "statusline.cache.cause.unknown": "unknown ({value})",
+  "statusline.prefix.main.cache-miss-reason": "Cache cause?",
+  "statusline.short.main.cache-miss-reason": "Cause?"
 } as const;

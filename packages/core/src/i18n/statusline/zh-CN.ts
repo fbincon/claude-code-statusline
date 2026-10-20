@@ -219,5 +219,14 @@ export const MESSAGES = {
   "statusline.short.subagent.elapsed": "经过时间",
   "statusline.short.subagent.task": "任务标签",
   "statusline.short.subagent.tokens": "代理令牌",
-  "statusline.short.subagent.current-dir": "目录"
+  "statusline.short.subagent.current-dir": "目录",
+  "statusline.git_worktree": "Git 工作树 {value}",
+  "statusline.cache.miss_reason": "缓存可能原因 {value}",
+  "statusline.cache.cause.tools_changed": "工具变化",
+  "statusline.cache.cause.system_prompt_changed": "系统提示变化",
+  "statusline.cache.cause.ttl_expired_5m": "5 分钟缓存已过期",
+  "statusline.cache.cause.likely_server_side": "可能由服务端导致",
+  "statusline.cache.cause.unknown": "未知（{value}）",
+  "statusline.prefix.main.cache-miss-reason": "缓存可能原因",
+  "statusline.short.main.cache-miss-reason": "可能原因"
 } as const;

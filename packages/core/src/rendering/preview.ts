@@ -25,7 +25,7 @@ export function samplePreviewData(home: string): Data {
         pr: { number: 42, review_state: 'approved' }, worktree: { name: 'statusline-tui' },
         context_window: { remaining_percentage: 73, used_percentage: 27, context_window_size: 200000, total_input_tokens: 54000, current_usage: { input_tokens: 35000, cache_creation_input_tokens: 12000, cache_read_input_tokens: 7000, output_tokens: 2000 } },
         rate_limits: { five_hour: { used_percentage: 18, resets_at: SAMPLE_NOW + 7980 }, seven_day: { used_percentage: 36, resets_at: SAMPLE_NOW + 525600 }, spend_limit: { used_percentage: 9, resets_at: SAMPLE_NOW + 864000, used_usd: 31.50, limit_usd: 350, period: 'monthly' } },
-        prompt_cache: { hit_ratio: 0.91, cache_write_tokens: 352000, warm: true, caching_observed: true, expires_at: SAMPLE_NOW + 260, misses: 2, requests: 14 },
+        prompt_cache: { hit_ratio: 0.91, cache_write_tokens: 352000, warm: true, caching_observed: true, expires_at: SAMPLE_NOW + 260, misses: 2, requests: 14, last_miss_at: SAMPLE_NOW - 60, last_miss_cause: { causes: ['tools_changed'], tools_added: 2, tools_removed: 0 } },
         output_style: { name: 'Default' }, version: '2.1.289', session_name: 'demo-session', session_id: 'demo-session',
         cost: { total_cost_usd: 0.12, total_duration_ms: 750000, total_api_duration_ms: 75000, total_lines_added: 156, total_lines_removed: 23 },
         agent: { name: 'reviewer' }, vim: { mode: 'NORMAL' },

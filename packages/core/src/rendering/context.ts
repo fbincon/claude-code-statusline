@@ -6,9 +6,9 @@ import type { DirectoryStyle } from '../contracts/ui.js';
 import type { Presentation } from './language.js';
 import type { DateFormatter } from './preferences.js';
 export interface UsageObservation {
-    hit: string;
-    miss: string;
-    out: string;
+    hit: string | null;
+    miss: string | null;
+    out: string | null;
     last_prompt: unknown;
     entry: Data;
     counts: SessionTokenCounts | null;
@@ -20,6 +20,8 @@ export interface TaskObservation {
 /** The renderer calls only selected sources; providers own all platform effects. */
 export interface RenderEnvironment {
     trace?: RenderTrace;
+    /** Already-attributed task evidence for read-only views; no transcript collection. */
+    taskSnapshot?: TaskObservation;
     language: Presentation;
     compactStaged: boolean;
     now(): number;

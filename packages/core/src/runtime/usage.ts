@@ -1,3 +1,4 @@
+import { divideIntegers, fixed } from '../numbers.js';
 import { forEachRecord, recordEntries, recordKeys, recordValues } from '../ordered-record.js';
 import { object, int, numeric, own, dictionary, string, type Data } from './values.js';
 import { timestamp, float } from './transcript.js';
@@ -258,4 +259,11 @@ export function sessionTokenCounts(entry: unknown): SessionTokenCounts | null {
         return null;
     const hit = observed.input ? usageInt(raw.hit) : null, miss = observed.input ? usageInt(raw.miss) : null, out = observed.output ? usageInt(raw.out) : null;
     return { hit, miss, out, input_tokens: hit === null || miss === null ? null : hit + miss };
+}
+
+/** Legacy session-usage labels shared by collectors and read-only snapshots. */
+export function usageTokenText(value: bigint): string {
+    if (value >= 1000000n) return fixed(divideIntegers(value, 1000000n), 2).replace(/0+$/u, '').replace(/\.$/u, '') + 'M';
+    if (value >= 1000n) return fixed(divideIntegers(value, 1000n), 1) + 'K';
+    return String(value > 0n ? value : 0n);
 }

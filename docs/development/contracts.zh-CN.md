@@ -6,7 +6,7 @@
 
 ## 共享目录
 
-`packages/core/src/config/catalog.ts` 以 `(scope, id)` 定义 62 个主栏类型和 16 个子代理类型（分别为 60／14 个指标及文本、留白），提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；外部 TUI 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
+`packages/core/src/config/catalog.ts` 以 `(scope, id)` 定义 63 个主栏类型和 16 个子代理类型（分别为 61／14 个指标及文本、留白），提供名称、说明、分类、来源、示例、默认位置、格式选项、互斥关系和不可用原因。原有目录字典和默认元组是派生视图，保留项目 ID、说明、默认选择与顺序。CLI JSON 列表增加元数据，保留 enabled/position 字段；外部 TUI 和安装后的向导使用同一份定义及互斥关系。新增独立项默认关闭，可与组合项并存；见[显示项定义](../DISPLAY_ITEMS.zh-CN.md)。
 
 最低版本只在有证据时声明。子 Agent 的 2.1.205 门槛表示行支持，不保证所有可选字段；effort 需要 2.1.214。缓存指标声明最低 2.1.251；网关金额／周期要求宿主和网关均至少 2.1.284。尚未证实的主字段最低版本使用 `null`/`unknown`，不猜测日期。`not_observed` 表示接口尚未观察实时数据，`unsupported_host` 表示已证实的版本边界，`unknown_host_version` 表示版本检测失败，`source_unavailable` 表示来源无法读取，`condition_not_met` 涵盖非 Git 仓库或未启用 fast mode 等条件。这些是可能原因的定义；打开配置不采集实时字段，也不因尚未观察到数据而禁用选择。
 
@@ -20,10 +20,10 @@
 执行 `claude-statusline ui --config-dir PATH`（Windows npm 入口使用 `claude-statusline.cmd`）。单进程从 stdin 读取一个 UTF-8 JSON 对象直到 EOF，stdout 只输出一个 JSON 响应及换行；意外故障诊断写 stderr。成功退出码为 0，拒绝请求为 2。
 
 ```json
-{"protocol_version":13,"operation":"read","payload":{}}
+{"protocol_version":14,"operation":"read","payload":{}}
 ```
 
-成功响应为 `{"protocol_version":13,"result":{...}}`；失败为 `{"protocol_version":13,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
+成功响应为 `{"protocol_version":14,"result":{...}}`；失败为 `{"protocol_version":14,"error":{"code":"...","message":"...","localization":null}}`。校验封装和 payload 字段，拒绝重复 JSON 键、非有限常量、错误版本/类型、未知操作及非法草稿。
 
 | 操作 | Payload | 结果 |
 | --- | --- | --- |
@@ -38,6 +38,7 @@
 | `export` | `{draft,path,overwrite}` | 导出目标 `{path}` |
 | `review_import` | `{draft,path}` | 校验后的候选草稿与逐字段差异，不保存 |
 | `explain` | `{draft,scope,width}` | 配置原因与逐实例样例结果，`actual_availability:"not_observed"` |
+| `diagnose` | `{draft,input,scope,width,source?,observed_at?,include_local?}` | 真实输入、证据来源及逐实例拟合结果；`sample:false`，无写入或采集 |
 
 `draft` 仅包含 `display`（有效 schema v8 显示配置）和 `host`（`padding`、`refresh_interval`、`hide_vim_mode_indicator`），每个字段均为必填。JSON 宿主布尔/数值严格校验：padding 为 0–32 的整数，refresh 为 1–3600 的整数或 `"event"`；拒绝 `"off"` 等字符串及小数。读取兼容显示 v1–v7 文件时只在内存中规范化，不迁移原文件；预览也接受完整的 v1 显示对象。apply 必须使用 read 返回的完整 schema v8 草稿，避免旧输入静默覆盖新设置。预览宽度为 2–10000 的整数。
 
@@ -132,7 +133,7 @@ schema 8 保存[外观说明](../APPEARANCE.zh-CN.md)中的字段。core 的 `It
 
 读取 v1–v7 时按 canonical 类型 ID 确定性映射，保留禁用项自定义值。审阅差异按实例 ID 区分新增、删除、启用、禁用、重新排序及选项／文本变更。保存完整 schema 8 草稿时不经过旧类型选择投影。
 
-TS 配置服务沿用安装锁、显示 schema 8、UI protocol 13、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
+TS 配置服务沿用安装锁、显示 schema 8、UI protocol 14、语义修订版本 1 与独立偏好文件。保存在锁内重读并验证所有权／修订，无变化时不备份。JSON／UTF-8 诊断与数字形式对象键的顺序按 Python 3.14.4 对照；两个编辑器使用生产预览流水线；显式安装记录选定 Node／JS 绑定，普通协议读取不改写绑定。
 
 ## TypeScript 后端绑定
 
@@ -160,4 +161,4 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 
 `reasons.origin` 区分草稿配置、本地配置、已知宿主能力和未知证据。安装归属和运行偏好读取失败时返回未知；正常读取缺失的偏好使用既有默认关闭语义。`explain` 不获取安装锁、不创建目录或修复文件，不读取转录、任务/用量缓存或 Git。既有 `read` 仍使用安装锁保护快照，可能创建锁目录；`preview` 继续完全不读取配置或检测宿主。
 
-`describe.presets` 增加 `purpose_key`、`requirements_key` 和 `example`；展示顺序优先四种用途，再列两个示例，预设 ID 和扩展语义不变。协议 13 要求匹配的前后端资源；显示 schema 8、运行协议 2、portable 1 和 UI preferences 1 独立保持兼容。
+`describe.presets` 增加 `purpose_key`、`requirements_key` 和 `example`；展示顺序优先四种用途，再列两个示例，预设 ID 和扩展语义不变。协议 14 要求匹配的前后端资源；显示 schema 8、运行协议 2、portable 1 和 UI preferences 1 独立保持兼容。

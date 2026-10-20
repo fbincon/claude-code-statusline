@@ -4,6 +4,7 @@ const COMMANDS: Readonly<Record<string, string>> = {
     install: 'configure_claude_code_to_use_this_status_line',
     uninstall: 'remove_only_this_tool_s_claude_code_configuration',
     doctor: 'diagnose_the_installation_without_changing_files',
+    diagnose: 'diagnose_supplied_input',
     configure: 'open_the_interactive_status_line_configuration_editor',
     config: 'view_or_change_status_line_display_settings',
     ui: 'serve_one_internal_json_configuration_request',
@@ -43,7 +44,7 @@ export function helpText(command: string | undefined, language: Language): strin
         '  -h, --help          ' + t('cli.help.help', language),
         '  --language LANGUAGE ' + t('cli.help.language_override', language),
     ];
-    if (config || ['ui', 'runtime', 'configure', 'install', 'uninstall', 'doctor', 'recover'].includes(command ?? ''))
+    if (config || ['ui', 'runtime', 'configure', 'install', 'uninstall', 'doctor', 'recover', 'diagnose'].includes(command ?? ''))
         lines.push('  --config-dir PATH   ' + t('cli.help.claude_configuration_directory_default_claude_config_dir_or', language));
     if (command === 'install' || command === 'uninstall' || command === 'recover') lines.push('  --dry-run           ' + t('cli.help.report_whether_settings_would_change', language));
     if (command === 'install') {
@@ -60,5 +61,6 @@ export function helpText(command: string | undefined, language: Language): strin
         };
         for (const [flag, key] of Object.entries(options)) lines.push('  --' + flag.padEnd(25) + t('cli.help.' + key, language));
     }
+    if (command === 'diagnose') lines.push('', '  --input FILE|- [--scope main|subagent] [--width 120]', '  --json [--input-only] [--observed-at ISO_TIME]', '  ' + t('diagnose.help', language));
     return lines.join('\n') + '\n';
 }

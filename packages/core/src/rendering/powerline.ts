@@ -48,11 +48,11 @@ export function fit(values: readonly Block[], columns: number, config: DisplayDr
         for (let i = 1; i < blocks.length; i++)
             if ((blocks[i]!.priority ?? 50) <= (blocks[victim]!.priority ?? 50))
                 victim = i;
-        if (blocks[victim]!.id) observe?.(blocks[victim]!.id!,'sample_priority_omitted');
+        if (blocks[victim]!.id) observe?.(blocks[victim]!.id!,'priority_omitted');
         blocks.splice(victim, 1);
     }
     if (width(blocks, padding, cap) > columns) {
-        if (blocks[0]!.id) observe?.(blocks[0]!.id!,'sample_truncated');
+        if (blocks[0]!.id) observe?.(blocks[0]!.id!,'truncated');
         blocks[0] = { ...blocks[0]!, text: layout.truncateStyled(blocks[0]!.text, columns) };
     }
     return row(blocks, config, padding, cap);

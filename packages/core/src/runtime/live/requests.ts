@@ -112,6 +112,10 @@ export function sumNumbers(values: readonly unknown[]): bigint | LosslessNumber 
 }
 export function requestMetrics(state: LiveState, selected: string | null, live: boolean, terminal: boolean): Record<string, Point> {
     reconcileCosts(state);
+    return snapshotRequestMetrics(state, selected, live, terminal);
+}
+/** Read published request/cost joins without performing reconciliation. */
+export function snapshotRequestMetrics(state: LiveState, selected: string | null, live: boolean, terminal: boolean): Record<string, Point> {
     const points: Record<string, Point> = Object.fromEntries(ITEMS.map(item => [item, point(null, 'not_observed')]));
     if (selected === null || !live && !terminal)
         return points;

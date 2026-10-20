@@ -4,18 +4,23 @@ import { canonicalPrompt } from './ownership.js';
 import { reconcileBindings } from './bindings.js';
 import { fresh, type LiveState } from './state.js';
 import { STALE_MS } from './model.js';
-import { ITEMS, point, requestMetrics, type Point } from './requests.js';
+import { ITEMS, point, requestMetrics, snapshotRequestMetrics, type Point } from './requests.js';
 export const LIVE_ITEMS = ['run-state', 'permission-mode', 'active-agents', 'task-progress', 'last-tool', ...ITEMS];
 function latest(rows: Data[], field: string): Data { return rows.reduce((best, row) => numeric(row[field])! > numeric(best[field])! ? row : best); }
 export function unavailable(reason: string): Record<string, Point> { return Object.fromEntries(LIVE_ITEMS.map(item => [item, point(null, reason)])); }
 export function resolveMetrics(state: LiveState | null, history: TaskStore | null, promptId: unknown, nowMs: number, enabled = true): Record<string, Point> {
     if (promptId != null && typeof promptId !== 'string') return unavailable('ambiguous_owner');
+    if (state !== null && enabled) reconcileBindings(state, history);
+    return snapshotMetrics(state, history, promptId || state?.active_prompt_id || state?.current_prompt_id, nowMs, enabled, requestMetrics);
+}
+/** Resolve already-published observations without reconciling bindings or mutating stores. */
+export function snapshotMetrics(state: LiveState | null, history: TaskStore | null, promptId: unknown, nowMs: number, enabled = true, requests = snapshotRequestMetrics): Record<string, Point> {
+    if (promptId != null && typeof promptId !== 'string') return unavailable('ambiguous_owner');
     let reason = !enabled ? 'runtime_disabled' : state === null ? 'not_observed' : truth(state.invalidated) ? state.invalidated as string : fresh(state, nowMs) ? null : 'stale';
     let result = unavailable(reason ?? 'not_observed');
     if (state === null || !enabled)
         return result;
-    reconcileBindings(state, history);
-    const selected = canonicalPrompt(state, promptId || state.active_prompt_id || state.current_prompt_id), prompt = own(state.prompts, selected);
+    const selected = canonicalPrompt(state, promptId), prompt = own(state.prompts, selected);
     if (prompt && prompt.epoch !== state.epoch && !truth(prompt.terminal)) {
         reason = 'incomplete';
         result = unavailable(reason);
@@ -53,7 +58,7 @@ export function resolveMetrics(state: LiveState | null, history: TaskStore | nul
         result['active-agents'] = point(count, incomplete ? 'ambiguous_owner' : null, { source: 'native.agent.list', at: snapshot.observed_at_ms, partial: incomplete });
     }
     const lists = Object.values(state.checklists).filter(row => row.prompt_id === selected), historical = turn !== null && ['completed', 'failed', 'interrupted'].includes(turn.status as string);
-    Object.assign(result, requestMetrics(state, selected, reason === null, Boolean(prompt && truth(prompt.terminal))));
+    Object.assign(result, requests(state, selected, reason === null, Boolean(prompt && truth(prompt.terminal))));
     if (lists.length && (reason === null || historical)) {
         const complete = lists.filter(row => truth(row.complete)), checklist = latest(complete.length ? complete : lists, 'updated_at_ms'), tasks = checklist.tasks as Data;
         const counts = { completed: Object.values(tasks).filter(status => status === 'completed').length, total: Object.keys(tasks).length };
