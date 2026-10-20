@@ -20,7 +20,7 @@ Synthetic [host fixtures](../../tests/fixtures/diagnostics/host-input.json) bind
 
 Tests cover CLI/file/stdin/backend transport, six languages, repeated instances and fitting, missing/invalid/zero values, session and prompt isolation, stale/future evidence, and read-only before/after store equality. Sample and real output use the same fitting implementation. Separate tests exercise generated Mod protocol parsing and generic editor saving of the added component.
 
-Known limits: source snapshots are not globally atomic; usage caches lack capture times; no transcript refresh or historical reconstruction occurs; absent commit-pair identity prevents branch-diff lookup. Existing physical/desktop/exact-host gaps in [#96](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified. Prior release approvals do not approve another version.
+Known limits: source snapshots are not globally atomic; usage caches lack capture times; no transcript refresh or historical reconstruction occurs; absent commit-pair identity prevents branch-diff lookup. Existing physical/desktop/exact-host gaps in [#96](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified. The [2026-10-20 decision](../releases/approvals/v3.3.0.json) accepts only those six gaps for v3.3.0; all new functional and automated failures remain blocking.
 
 ## Validation record
 
