@@ -172,6 +172,29 @@ test('strict session identity, cache-only usage and missing stores never trigger
     assert.deepEqual(readdirSync(f.root), []);
 });
 
+test('historical run state excludes a later task snapshot and reports each source time', async t => {
+    const f = runtimeSetup(t); f.preferences(true); f.clock(4000000000n);
+    f.apply(observation(), observation('prompt', 1, 1100, { prompt: 'p' }));
+    const directory = join(f.context.runtimeRoot, 'turns'); mkdirSync(directory, { recursive: true });
+    writeFileSync(join(directory, sha256('s') + '.json'), JSON.stringify({
+        schema: 1, session_id: 's', prompt_id: 'p', status: 'completed',
+        started_wall_ns: 1000000000, ended_wall_ns: 3000000000,
+        duration_ns: 2000000000, updated_wall_ns: 3000000000,
+    }));
+    const service = new ConfigurationService({ configDir: f.root, launch: { executable: process.execPath, args: [] }, hostVersion: fail });
+    const adapter = await diagnosisAdapter(service, { runtime: f.context });
+    const payload = { draft: draft(['run-state', 'task-timer']), scope: 'main', width: 120, input: { session_id: 's', prompt_id: 'p' } };
+    const before = allFiles(f.root), historical = adapter({ ...payload, observed_at: '1970-01-01T00:00:02Z' });
+    assert.ok(!output(historical).includes('completed'), output(historical));
+    assert.ok(output(historical).includes('queued'), output(historical));
+    assert.equal(historical.instances[1]!.evidence[0]!.status, 'newer_than_input');
+    const source = historical.instances[0]!.evidence.find(e => e.source === 'task_store')!;
+    assert.equal(source.status, 'newer_than_input');
+    assert.equal(source.observed_at, '1970-01-01T00:00:03.000Z');
+    assert.ok(output(adapter(payload)).includes('completed'));
+    assert.deepEqual(allFiles(f.root), before);
+});
+
 test('task snapshot is attributable without transcript scanning, and no prompt means no latest-task fallback', async t => {
     const f = runtimeSetup(t); f.event('UserPromptSubmit', 1); f.event('Stop', 3); f.clock(4000000000n);
     const service = new ConfigurationService({ configDir: f.root, launch: { executable: process.execPath, args: [] }, hostVersion: fail });

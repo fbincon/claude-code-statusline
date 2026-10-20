@@ -107,7 +107,10 @@ export function observations(draft: Draft, scope: Scope, input: Data, context: R
         const switched = disabled(facts.runtime?.live_metrics);
         const matched = live && prompt ? canonicalPrompt(live, prompt) : null;
         // No inferred current prompt. Session-scoped permission remains independently usable.
-        const points = live && !switched ? snapshotMetrics(live, history, prompt ?? '', at) : unavailable(switched ?? liveStatus);
+        // Only the unique, time-eligible task may contribute to lifecycle state.
+        // Passing the original history would reintroduce excluded future or ambiguous turns.
+        const matchedHistory = history && turn ? { ...history, turns: [turn], current_prompt_id: turn.prompt_id } : null;
+        const points = live && !switched ? snapshotMetrics(live, matchedHistory, prompt ?? '', at) : unavailable(switched ?? liveStatus);
         for (const id of LIVE_ITEMS) {
             let point = points[id]!;
             let status: Status = switched ?? (live ? id !== 'permission-mode' && !prompt ? 'association_unavailable' : id !== 'permission-mode' && !matched ? 'prompt_mismatch' : point.reason === 'stale' ? 'stale' : point.partial ? 'partial' : point.value != null ? 'observed' : point.reason === 'not_observed' ? 'not_observed' : 'source_unavailable' : liveStatus);
@@ -115,6 +118,7 @@ export function observations(draft: Draft, scope: Scope, input: Data, context: R
             if (!['observed', 'partial'].includes(status)) points[id] = { ...point, value: null, reason: status };
             put([id], report(typeof point.source === 'string' ? point.source : 'live_store', id === 'permission-mode' ? 'session' : 'task', status, point.observed_at_ms ?? liveTime, fresh(live, at)));
         }
+        if (selected.has('run-state')) result.get('run-state')!.push(report('task_store', 'task', taskStatus, taskTime));
         env.live = () => points;
         if (selected.has('task-active-timer')) {
             const off = disabled(facts.runtime?.native_timing);
