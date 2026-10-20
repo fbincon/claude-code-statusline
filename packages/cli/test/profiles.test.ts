@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, symlinkSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, symlinkSync, readFileSync, writeFileSync, existsSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { PROFILES_FILENAME } from '@fbincon/statusline-core/config/profiles';
@@ -77,6 +77,39 @@ test('project edits protect against concurrent rebindings and save-as plus bindi
     current.display.statusline_language='ko';
     assert.throws(()=>p.applyTarget({display:current.display,host:current.host},current.revision,{kind:'project',path:f.root}),/profiles.error.conflict/u);
     assert.equal(p.read().profiles.find(v=>v.id===a.id)!.display.statusline_language,'en');
+});
+
+test('independent worktree roots, directory moves and native case rules preserve explicit binding identity', t => {
+    const f=setup(t),p=new ProfileService(f.service);
+    const primary=join(f.root,'Primary'),worktree=join(f.root,'Worktree'),moved=join(f.root,'Moved');
+    mkdirSync(primary);mkdirSync(worktree);
+    writeFileSync(join(worktree,'.git'),'gitdir: ../Primary/.git/worktrees/feature\n');
+    const save=(name:string,path:string,language:'ja'|'ko')=>{
+        const display=defaultDisplay();display.statusline_language=language;
+        return p.mutate({action:'save',name,display,bind_path:path,expected_revision:p.read().revision}).profiles.find(v=>v.name===name)!.id;
+    };
+    const first=save('primary',primary,'ja'),second=save('worktree',worktree,'ko');
+    assert.equal(p.readTarget({kind:'project',path:primary}).configuration.profile_id,first);
+    assert.equal(p.readTarget({kind:'project',path:worktree}).configuration.profile_id,second);
+    const oldRoot=p.readTarget({kind:'project',path:worktree}).configuration.project_root;
+    const alias=join(f.root,'WORKTREE');
+    if(existsSync(alias)) {
+        assert.equal(p.readTarget({kind:'project',path:alias}).configuration.profile_id,second);
+        assert.throws(()=>p.mutate({action:'bind',id:first,path:alias,expected_revision:p.read().revision}),/profiles.error.bound/u);
+    } else {
+        mkdirSync(alias);
+        p.mutate({action:'bind',id:first,path:alias,expected_revision:p.read().revision});
+        assert.equal(p.readTarget({kind:'project',path:alias}).configuration.profile_id,first);
+        assert.equal(p.readTarget({kind:'project',path:worktree}).configuration.profile_id,second);
+    }
+    renameSync(worktree,moved);
+    const before=allFiles(f.root);
+    assert.equal(p.readTarget({kind:'project',path:worktree}).configuration.reason,'path_unavailable');
+    assert.equal(p.readTarget({kind:'project',path:moved}).configuration.reason,'unbound');
+    assert.deepEqual(allFiles(f.root),before);
+    p.mutate({action:'bind',id:second,path:moved,expected_revision:p.read().revision});
+    assert.equal(p.readTarget({kind:'project',path:moved}).display.statusline_language,'ko');
+    assert(p.read().bindings.some(b=>b.root===oldRoot),'Read-only resolution must not prune the old root');
 });
 
 test('scoped saves preserve installation ownership and malformed imports have a stable error', t => {
