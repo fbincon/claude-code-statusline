@@ -22,7 +22,9 @@ export const projectPaths: ProjectPaths = {
             const wanted = statSync(root, { bigint: true });
             for (let current = directory;; current = dirname(current)) {
                 const actual = statSync(current, { bigint: true });
-                if (current === root || wanted.ino !== 0n && wanted.ino === actual.ino && wanted.dev === actual.dev) return true;
+                // Some supported Windows/libuv versions report an unknown volume as zero.
+                // Such file IDs cannot establish that two differently named paths are aliases.
+                if (current === root || wanted.dev !== 0n && wanted.ino !== 0n && wanted.ino === actual.ino && wanted.dev === actual.dev) return true;
                 if (dirname(current) === current) return false;
             }
         } catch { return false; }
