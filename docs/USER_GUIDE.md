@@ -2,6 +2,8 @@
 
 **English** | [简体中文](USER_GUIDE.zh-CN.md)
 
+For named display schemes, user-side project bindings and read-only task inspection, see [profiles](PROFILES.md) and [task details](TASK_DETAILS.md).
+
 For explicit real-input diagnosis and cache causes, see [input diagnosis](DIAGNOSTICS.md) and [implementation and acceptance](development/real-input-diagnostics.md).
 
 This guide walks through installation, editor use, common configuration, optional live metrics, and recovery. Complete command and file details are in the [CLI reference](reference/cli.md); development and build instructions are in the [development guide](development/README.md).

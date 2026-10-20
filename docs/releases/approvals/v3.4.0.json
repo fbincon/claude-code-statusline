@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.4.0",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-20",
+  "authority": "On 2026-10-20 fbincon accepted the six existing disclosed gaps in issue #96 for the PROFILE-01, PROJECT-01 and TASK-01 delivery, selected one v3.4.0 release, and approved implementation and npm/GitHub/Gitee publication after all final PR, main and tag automated gates pass. This decision does not mark those observations as verified and does not waive any new functional or automated failure.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

@@ -50,8 +50,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 14, operation, payload }), environment));
-    assert.equal(result.protocol_version, 14);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 15, operation, payload }), environment));
+    assert.equal(result.protocol_version, 15);
     assert.ok(result.result);
     return result.result;
 }
@@ -234,12 +234,33 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 14, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 15, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
     run(['config', '--config-dir', config, 'export', exported], config);
     assert.ok(fs.statSync(exported).size > 0);
+    const project = join(installed.temporary, 'bound project 中文'), nested = join(project, 'nested'), outside = join(installed.temporary, 'unbound project');
+    fs.mkdirSync(nested, { recursive: true }); fs.mkdirSync(outside);
+    const library = ui(config, 'profiles_read'), candidate = structuredClone(ui(config, 'read').draft.display);
+    candidate.statusline_language = 'ko';
+    const created = ui(config, 'profiles_apply', { action: 'save', name: 'Installed scheme', display: candidate, bind_path: project, expected_revision: library.revision });
+    const scoped = ui(config, 'read', { target: { kind: 'project', path: nested } });
+    assert.equal(scoped.configuration.profile_name, 'Installed scheme'); assert.equal(scoped.draft.display.statusline_language, 'ko');
+    assert.notEqual(ui(config, 'read').draft.display.statusline_language, 'ko');
+    assert.equal(JSON.parse(run(['config','project','resolve',outside,'--json'],config)).reason, 'unbound');
+    scoped.draft.display.statusline_language = 'ja';
+    ui(config,'apply',{draft:scoped.draft,expected_revision:scoped.revision,target:{kind:'project',path:nested}});
+    assert.equal(ui(config,'profiles_read').profiles[0].display.statusline_language,'ja');
+    const schemeFile=join(installed.temporary,'scheme export.json');
+    run(['config','profile','export','Installed scheme',schemeFile],config);
+    assert.equal(JSON.parse(run(['config','profile','import',schemeFile,'--dry-run'],config)).display.statusline_language,'ja');
+    const diagnosis=JSON.parse(run(['diagnose','--input','-','--input-only','--json'],config,JSON.stringify({cwd:nested,model:{id:'installed'}})));
+    assert.equal(diagnosis.configuration.profile_id,created.profiles[0].id);
+    const missingTasks=join(installed.temporary,'task readonly missing');
+    const task=JSON.parse(run(['task','show','--session-id','synthetic-session','--json'],missingTasks));
+    assert.equal(task.prompt_id,null); assert.equal(task.version,1); assert.equal(fs.existsSync(missingTasks),false);
+    report.profile_project_task_cases = 8;
     checks.native_protocol = true;
 });
 test('installed external editor saves and cancels in a real native terminal', { timeout: 45000 }, async () => {

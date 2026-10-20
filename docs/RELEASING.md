@@ -3,6 +3,10 @@
 **English** | [简体中文](RELEASING.zh-CN.md)
 
 
+## v3.4.0 schemes, projects and task details
+
+Use the [v3.4.0-only decision](releases/approvals/v3.4.0.json), approved on 2026-10-20. Require full final-PR, merged-main and annotated-tag CI: eight installations, 32 Node runtime cases and thirteen fixed hosts. Verify independent builds and a delivered-source rebuild, extended six-language installed PTYs including scheme management, four draft attachments, OIDC npm publication and public downloads. Installed checks cover named schemes, nested project selection, scoped saves, exports and read-only task inspection. Record source/artifact identities and actual results in [implementation and validation](development/profiles-projects-tasks.md). Only the same six historical gaps are accepted; every new failed or missing automated gate remains blocking.
+
 ## v3.3.0 input diagnosis delivery
 
 Use the [v3.3.0-only decision](releases/approvals/v3.3.0.json), approved on 2026-10-20, with unchanged functional gates. Require full final-PR, merge and annotated-tag CI: eight installations, 32 Node runtime cases and thirteen fixed hosts. Verify independent builds, a source rebuild, installed extended six-language PTYs, four draft attachments, OIDC npm publication and public downloads. The installed checks include real-input diagnosis and read-only file preservation. Record identities and acceptance in [real-input diagnostics](development/real-input-diagnostics.md). The six historical gaps remain unverified; no new failure is waived.

@@ -19,7 +19,7 @@ const REGION = 'statusline-client';
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 14,
+      protocol_version: 15,
       error: { code, message: 'Test save refused.' },
     }),
     2,
@@ -42,7 +42,7 @@ test('search and categories use local state without preview processes or writes'
 test('Client owns only native command, edits three pages and saves a full revision-bound draft', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
   await $.session.start(START);
-  expect(fixture.registrations).toEqual(['statusline-configure-native']);
+  expect(fixture.registrations.toSorted()).toEqual(['statusline-configure-native', 'statusline-task']);
   expect(
     (await $.command.run({ ...RUN, command: 'statusline-configure' })).text,
   ).toBe('foreign command');

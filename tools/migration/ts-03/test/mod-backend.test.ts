@@ -72,6 +72,14 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     assert.throws(() => backend.parseResponse('read', { ...f.run('ui', backend.requestText('read')), isStdoutTruncated: true }), (error: any) => error.code === 'backend_output_truncated');
     const diagnosis = call('diagnose', { draft: baseline.draft, scope: 'main', width: 80, input: { model: { id: 'diagnostic-model' } }, include_local: false });
     assert.equal(diagnosis.sample, false);
+    const library = call('profiles_read');
+    const profiles = call('profiles_apply', { action: 'save', name: 'scheme', display: changed.display, expected_revision: library.revision });
+    assert.equal(profiles.profiles.length, 1);
+    const profileFile = join(f.root, 'scheme.json');
+    call('profile_export', { path: profileFile, name: 'scheme', display: changed.display, overwrite: false });
+    assert.deepEqual(call('profile_import', { path: profileFile }).display, changed.display);
+    const detail = call('task_details', { session_id: 'isolated' });
+    assert.equal(detail.prompt_id, null);
     assert.deepEqual([...operations].sort(), description.operations.toSorted());
     const rendered = f.run('render', '{"model":{"id":"Python-free"},"context_window":{"remaining_percentage":50}}');
     assert.equal(rendered.exitCode, 0);

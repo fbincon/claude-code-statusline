@@ -1,4 +1,5 @@
 import { receivePreset } from '@fbincon/statusline-core/editor/quick-setup';
+import { performProfileAction } from '@fbincon/statusline-core/editor/profile-manager';
 import type { Operation, ResultFor } from '@fbincon/statusline-core/contracts/ui';
 import { createReview } from '@fbincon/statusline-core/editor/import-review';
 import { text, t, type Language } from '@fbincon/statusline-core/i18n/messages';
@@ -43,7 +44,7 @@ export class Session {
         return new Session(state, backend, guard);
     }
     async preview(columns: number, rows: number): Promise<void> {
-        const e = this.state.editor, width = Math.max(2, dimensions(columns, rows).preview.innerWidth), draft = e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
+        const e = this.state.editor, width = Math.max(2, dimensions(columns, rows).preview.innerWidth), draft = e.profiles?.candidate ? { ...e.draft, display: e.profiles.candidate } : e.quick?.candidate ?? e.review?.result.draft ?? e.draft;
         const key = JSON.stringify([draft, width]);
         if(e.explanation) {
             const view=e.explanation, identity=JSON.stringify([key,view.scope,view.id]);
@@ -68,7 +69,8 @@ export class Session {
             return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0);
         try {
             this.guard();
-            if (effect === 'language') {
+            if (effect === 'profiles') await performProfileAction(e, this.backend);
+            else if (effect === 'language') {
                 const result = await this.backend.request('set_ui_language', { ui_language: state.pendingLanguage });
                 state.language = result.ui_language;
                 state.pendingLanguage = null;
@@ -106,7 +108,8 @@ export class Session {
         this.guard();
         if (!e.acceptNumeric())
             throw new BackendError('invalid_draft', Object.values(e.fieldErrors).join('; '));
-        const result = await this.backend.request('apply', { draft: e.draft, expected_revision: e.baseline.revision });
+        const result = await this.backend.request('apply', { draft: e.draft, expected_revision: e.baseline.revision,
+            ...(e.baseline.configuration ? { target: e.baseline.configuration.target } : {}) });
         e.committed(result);
         const value = outcome(result.changed ? 'updated' : 'already-current', this.state.language);
         if (result.backup_dir)

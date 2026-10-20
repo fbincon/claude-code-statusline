@@ -20,8 +20,10 @@ import { readPreferences, setLanguage } from '../config/preferences.js';
 import { importFile, exportFile } from '../config/transfer.js';
 import { localizedError } from '../errors.js';
 import { errorDescription } from '@fbincon/statusline-platform/errors';
+import { ProfileService } from '../config/profiles.js';
+import { taskAdapter } from '../tasks/service.js';
 export const BACKEND_VERSION = VERSION;
-export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose'] as const;
+export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
 export type Preview = (draft: Draft, width: number, trace?: RenderTrace) => contracts.PreviewResult;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {
     return {
@@ -42,8 +44,9 @@ export function configurationOptions(): contracts.ConfigurationOptions {
 }
 export class ConfigurationProtocol {
     constructor(public readonly service: ConfigurationService, public readonly preview?: Preview, public readonly nextId: () => string = () => randomUUID().replaceAll('-', ''), public readonly diagnose?: Diagnose) { }
-    readResult(effective: EffectiveConfig): Record<string, unknown> {
-        return { draft: draft(effective), revision: effective.revision, installed: effective.installed, installation: effective.installation, capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION };
+    readResult(effective: EffectiveConfig & { configuration?: contracts.ResolvedConfiguration }): Record<string, unknown> {
+        return { draft: draft(effective), revision: effective.revision, installed: effective.installed, installation: effective.installation, capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION,
+            ...(effective.configuration ? { configuration: effective.configuration } : {}) };
     }
     dispatch(request: unknown): unknown {
         requestObject(request, ['protocol_version', 'operation', 'payload'], 'request');
@@ -53,6 +56,19 @@ export class ConfigurationProtocol {
         if (typeof operation !== 'string' || !(OPERATIONS as readonly string[]).includes(operation))
             throw new ConfigError('errors.protocol.unsupported_configuration_operation', {}, 'unsupported_operation');
         const payload = request.payload;
+        if (operation === 'task_details') return taskAdapter(this.service.context.configDir)(payload);
+        if (operation === 'profiles_read' || operation === 'profiles_apply' || operation === 'profile_import' || operation === 'profile_export') {
+            const profiles = new ProfileService(this.service, this.nextId);
+            if (operation === 'profiles_read') { requestObject(payload, [], 'payload'); return profiles.read(); }
+            if (operation === 'profiles_apply') return profiles.mutate(payload);
+            requestObject(payload, operation === 'profile_import' ? ['path'] : ['path', 'name', 'display', 'overwrite'], 'payload');
+            if (typeof payload.path !== 'string' || !payload.path.trim() || payload.path.includes('\0'))
+                throw new ConfigError('errors.protocol.path_must_be_nonempty_text_without_nul', {}, 'invalid_request');
+            if (operation === 'profile_import') return profiles.import(payload.path);
+            if (typeof payload.name !== 'string' || typeof payload.overwrite !== 'boolean')
+                throw new ConfigError('profiles.error.invalid', { value: '' }, 'invalid_request');
+            return profiles.export(payload.path, payload.name, payload.display, payload.overwrite);
+        }
         if (operation === 'read_ui_preferences' || operation === 'set_ui_language') {
             requestObject(payload, operation === 'read_ui_preferences' ? [] : ['ui_language'], 'payload');
             return operation === 'read_ui_preferences' ? readPreferences(this.service.context.configDir, this.service.io) : setLanguage(this.service.context.configDir, payload.ui_language, this.service.io);
@@ -79,17 +95,20 @@ export class ConfigurationProtocol {
             return { path: exportFile(path, current, this.service.context.configDir, payload.overwrite) };
         }
         if (operation === 'describe' || operation === 'read')
-            requestObject(payload, [], 'payload');
+            requestObject(payload, operation === 'read' && object(payload) && Object.hasOwn(payload, 'target') ? ['target'] : [], 'payload');
         if (operation === 'describe')
             return { presets: contracts.PRESETS, editor_fields: contracts.EDITOR_FIELDS, catalog: ITEMS, options: configurationOptions(), capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION, operations: [...OPERATIONS], formatting_options: contracts.FORMAT_CHOICES };
-        if (operation === 'read')
-            return this.readResult(this.service.read());
+        if (operation === 'read') {
+            const scoped = object(payload) && Object.hasOwn(payload, 'target');
+            return this.readResult(scoped ? new ProfileService(this.service).readTarget(payload.target) : this.service.read());
+        }
         if (operation === 'apply') {
-            requestObject(payload, ['draft', 'expected_revision'], 'payload');
+            const scoped = object(payload) && Object.hasOwn(payload, 'target');
+            requestObject(payload, ['draft', 'expected_revision', ...(scoped ? ['target'] : [])], 'payload');
             const parsed = validateDraft(payload.draft, true), revision = payload.expected_revision;
             if (typeof revision !== 'string' || !/^[0-9a-f]{64}$/u.test(revision))
                 throw new ConfigError('errors.protocol.expected_revision_must_be_the_revision_returned', {}, 'invalid_request');
-            const result = this.service.apply(parsed, revision);
+            const result = scoped ? new ProfileService(this.service).applyTarget(parsed, revision, payload.target) : this.service.apply(parsed, revision);
             return { ...this.readResult(result.effective), changed: result.changed, backup_dir: result.backup_dir };
         }
         if (operation === 'diagnose') {

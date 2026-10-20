@@ -12,6 +12,8 @@ import { readDisplay, readSettings } from '../config/storage.js';
 import { hostFromSettings } from '../config/host.js';
 import { runtimeContext, type RuntimeContext } from '../runtime/context.js';
 import { observations } from './observations.js';
+import { resolvedDisplay } from '../rendering/configuration.js';
+import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
 
 export type Diagnose = (payload: unknown) => DiagnoseResult;
 export function observedTime(value: unknown): string | null {
@@ -25,11 +27,12 @@ export function observedTime(value: unknown): string | null {
         throw new ConfigError('diagnose.error.time', {}, 'invalid_request');
     return new Date(value).toISOString();
 }
-export function diagnosticDraft(service: ConfigurationService): Draft {
+export function diagnosticSnapshot(service: ConfigurationService, input: unknown) {
     // ConfigurationService.read takes a lock; diagnosis must not create that lock or its directory.
-    const [display] = readDisplay(service.context.configDir, service.io);
+    const [fallback] = readDisplay(service.context.configDir, service.io), directory = liveDirectory(input);
+    const { display, configuration } = resolvedDisplay(service.context.configDir, service.io, fallback, directory ? { kind: 'project', path: directory } : { kind: 'user' });
     const [settings] = readSettings(service.context.configDir, service.io);
-    return { display, host: hostFromSettings(settings, service.context.launch).host };
+    return { draft: { display, host: hostFromSettings(settings, service.context.launch).host } satisfies Draft, configuration };
 }
 export async function diagnosisAdapter(service: ConfigurationService, options: { files?: DiagnosticFiles; runtime?: RuntimeContext; now?: () => number } = {}): Promise<Diagnose> {
     const languages = new Map(await Promise.all(LANGUAGES.map(async language => [language, await presentation(language)] as const)));

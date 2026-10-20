@@ -2,6 +2,8 @@
 
 [English](DIAGNOSTICS.md) | **简体中文**
 
+命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](PROFILES.zh-CN.md)和[任务详情](TASK_DETAILS.zh-CN.md)。
+
 `doctor` 检查安装，`diagnose` 解释你显式提供的状态栏 JSON，使用已保存的显示配置，并默认补充匹配的已有本地观测。命令只输出报告，不保存或采集数据。两个编辑器的 Explain 面板仍解释**示例**，不代表实时会话。
 
 ## 运行诊断

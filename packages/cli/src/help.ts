@@ -5,6 +5,7 @@ const COMMANDS: Readonly<Record<string, string>> = {
     uninstall: 'remove_only_this_tool_s_claude_code_configuration',
     doctor: 'diagnose_the_installation_without_changing_files',
     diagnose: 'diagnose_supplied_input',
+    task: 'task_details',
     configure: 'open_the_interactive_status_line_configuration_editor',
     config: 'view_or_change_status_line_display_settings',
     ui: 'serve_one_internal_json_configuration_request',
@@ -32,6 +33,8 @@ const CONFIG: Readonly<Record<string, string>> = {
     instance: 'set_one_scoped_item_format_priority_width',
     reset: 'restore_display_and_host_defaults',
     language: 'language',
+    profile: 'display_profiles',
+    project: 'project_bindings',
 };
 /** Human help is localized; command and option identifiers remain stable. */
 export function helpText(command: string | undefined, language: Language): string {
@@ -62,5 +65,8 @@ export function helpText(command: string | undefined, language: Language): strin
         for (const [flag, key] of Object.entries(options)) lines.push('  --' + flag.padEnd(25) + t('cli.help.' + key, language));
     }
     if (command === 'diagnose') lines.push('', '  --input FILE|- [--scope main|subagent] [--width 120]', '  --json [--input-only] [--observed-at ISO_TIME]', '  ' + t('diagnose.help', language));
+    if (command === 'task') lines.push('', '  show --session-id ID [--prompt-id ID] [--json] [--config-dir PATH]', '  ' + t('task.help',language));
+    if (command === 'configure') lines.push('', '  [--user | --profile NAME | --project PATH]', '  Ctrl+O  ' + t('profiles.title',language));
+    if (config) lines.push('', '  profile list|save|rename|delete|preview|activate|import|export', '  project list|bind|unbind|resolve', '  ' + t('profiles.help',language));
     return lines.join('\n') + '\n';
 }

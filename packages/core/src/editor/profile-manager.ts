@@ -1,0 +1,238 @@
+import type { ConfigTarget, DisplayDraft, Operation, ProfilesResult, ResultFor } from '../contracts/ui.js';
+import { t, text, type Language, type LocalizedText } from '../i18n/messages.js';
+import type { Editor } from './draft.js';
+import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.js';
+import { wrapText } from './text.js';
+import { BackendError } from './backend.js';
+
+type Action = 'edit' | 'activate' | 'save' | 'save_bind' | 'rename' | 'delete' | 'bind' | 'unbind' | 'import' | 'export';
+type Switch = { target: ConfigTarget; display?: DisplayDraft };
+type Effect = { kind: 'load' } | { kind: 'switch'; next: Switch; save: boolean } |
+    { kind: 'mutation'; payload: Record<string, unknown> } | { kind: 'import'; path: string } |
+    { kind: 'export'; path: string; name: string; display: DisplayDraft; overwrite: boolean };
+export interface ProfileManager {
+    library: ProfilesResult | null;
+    page: 'list' | 'actions' | 'form' | 'confirm' | 'dirty';
+    selected: string | null;
+    projectRoot: string | null;
+    cursor: number;
+    action: Action | null;
+    fields: { key: 'name' | 'path'; input: TextInput }[];
+    field: number;
+    candidate: DisplayDraft | null;
+    confirmation: Effect | null;
+    next: Switch | null;
+    effect: Effect | null;
+    message: LocalizedText | null;
+    uncertain: boolean;
+}
+export interface ProfileBackend { request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>> }
+export function openProfiles(editor: Editor): void {
+    editor.profiles = { library: null, page: 'list', selected: null, projectRoot: null, cursor: 0, action: null, fields: [], field: 0, candidate: null,
+        confirmation: null, next: null, effect: { kind: 'load' }, message: null, uncertain: false };
+}
+export function targetLabel(editor: Editor, language: Language): string {
+    const c = editor.baseline.configuration;
+    if (!c) return t('profiles.user', language);
+    return t('profiles.target', language, { name: c.profile_name ?? t('profiles.user', language),
+        root: c.project_root ?? '—', count: c.shared_projects.length });
+}
+function entries(m: ProfileManager): { key: string; label: string; raw?: boolean }[] {
+    if (m.page === 'actions') return ['edit','activate','rename','delete','bind','export'].map(key => ({ key, label: 'profiles.action.' + key }));
+    return [{ key: 'user', label: 'profiles.user' }, ...(m.library?.profiles ?? []).map(p => ({ key: p.id, label: p.name, raw: true })),
+        ...(m.library?.bindings ?? []).map(b=>({key:'binding:'+b.root,label:b.root+' → '+(m.library!.profiles.find(p=>p.id===b.profile_id)?.name ?? b.profile_id),raw:true})),
+        ...['save','save_bind','import','unbind'].map(key => ({ key: 'action:' + key, label: 'profiles.action.' + key }))];
+}
+function startForm(e: Editor, action: Action): void {
+    const m = e.profiles!, profile = m.library?.profiles.find(p => p.id === m.selected), project = e.baseline.configuration;
+    const path = m.projectRoot ?? (project?.target.kind === 'project' ? project.target.path : project?.project_root ?? '');
+    m.action = action; m.page = 'form'; m.field = 0; m.message = null;
+    const keys = ['save','rename'].includes(action) ? ['name'] : action === 'save_bind' ? ['name','path'] : ['path'];
+    m.fields = keys.map(key => ({ key: key as 'name' | 'path', input: textInput(key === 'name' ? action === 'rename' ? profile?.name ?? '' : '' : ['bind','unbind','save_bind'].includes(action) ? path : 'profile.json') }));
+}
+function switching(e: Editor, next: Switch): void {
+    const m = e.profiles!;
+    if (e.modified) { m.next = next; m.page = 'dirty'; m.cursor = 0; }
+    else m.effect = { kind: 'switch', next, save: false };
+}
+function submitForm(e: Editor): void {
+    const m = e.profiles!, values = Object.fromEntries(m.fields.map(f => [f.key, f.input.value]));
+    const profile = m.library?.profiles.find(p => p.id === m.selected);
+    if (m.fields.some(f => !f.input.value.trim())) { m.message = text('profiles.required'); return; }
+    if (m.action === 'import') { m.effect = { kind: 'import', path: values.path! }; return; }
+    if (m.action === 'export' && profile) {
+        m.confirmation = { kind: 'export', path: values.path!, name: profile.name, display: profile.display, overwrite: false };
+    } else {
+        const payload: Record<string, unknown> = { action: m.action === 'save_bind' ? 'save' : m.action, expected_revision: m.library!.revision, overwrite: false };
+        if (m.action === 'save' || m.action === 'save_bind') Object.assign(payload, { name: values.name, display: m.candidate ?? e.draft.display, ...(m.action === 'save_bind' ? { bind_path: values.path } : {}) });
+        if (m.action === 'rename') Object.assign(payload, { id: m.selected, name: values.name });
+        if (m.action === 'bind') Object.assign(payload, { id: m.selected, path: values.path });
+        if (m.action === 'unbind') payload.path = values.path;
+        m.confirmation = { kind: 'mutation', payload };
+    }
+    m.page = 'confirm'; m.cursor = 0;
+}
+/** One reducer supplies both editors; text never dispatches shortcuts. */
+export function profilesKey(e: Editor, event: TextKey): 'profiles' | null {
+    const m = e.profiles;
+    if (!m) return null;
+    const key = event.key === 'return' ? 'enter' : event.key, plain = !event.ctrl && !event.meta && !event.text && !event.paste;
+    const cancel = !event.text && !event.paste && (key === 'escape' || event.ctrl && key.toLowerCase() === 'g');
+    if (event.overflow) { m.message = text('input.overflow'); return null; }
+    if (cancel) {
+        if (m.uncertain) { m.message = text('profiles.uncertain'); return null; }
+        if (m.page === 'list') e.profiles = null;
+        else { m.page = 'list'; m.cursor = 0; m.candidate = null; m.confirmation = null; }
+        return null;
+    }
+    if (m.page === 'form') {
+        if (plain && key === 'enter') {
+            if (m.field + 1 < m.fields.length) m.field++;
+            else submitForm(e);
+        } else if (plain && key === 'tab') m.field = (m.field + 1) % m.fields.length;
+        else {
+            const field = m.fields[m.field]!, edited = inputKey(field.input.value, field.input, event, field.key === 'name' ? 128 : 4096);
+            field.input = edited.state;
+            m.message = edited.error ? text('input.' + edited.error, { limit: field.key === 'name' ? 128 : 4096 }) : null;
+        }
+        return m.effect ? 'profiles' : null;
+    }
+    if (!plain) return null;
+    if (key.toLowerCase() === 'r') { m.effect = { kind: 'load' }; return 'profiles'; }
+    if (m.uncertain) { m.message = text('profiles.uncertain'); return null; }
+    if (m.page === 'dirty') {
+        const choices = ['save','discard','cancel'];
+        if (key === 'up') m.cursor = Math.max(0, m.cursor - 1);
+        if (key === 'down') m.cursor = Math.min(2, m.cursor + 1);
+        if (key === 'enter') {
+            if (choices[m.cursor] === 'cancel') { m.page = 'list'; m.cursor = 0; }
+            else m.effect = { kind: 'switch', next: m.next!, save: m.cursor === 0 };
+        }
+        return m.effect ? 'profiles' : null;
+    }
+    if (m.page === 'confirm') {
+        if (key === 'up' || key === 'down') m.cursor = 1 - m.cursor;
+        if (key === 'enter') {
+            if (m.cursor === 1) { m.page = 'list'; m.cursor = 0; m.confirmation = null; }
+            else { m.effect = m.confirmation; return 'profiles'; }
+        }
+        return null;
+    }
+    const rows = entries(m);
+    if (key === 'up') m.cursor = Math.max(0, m.cursor - 1);
+    if (key === 'down') m.cursor = Math.min(rows.length - 1, m.cursor + 1);
+    if (key === 'home') m.cursor = 0;
+    if (key === 'end') m.cursor = rows.length - 1;
+    if (key === 'pageup') m.cursor = Math.max(0, m.cursor - 5);
+    if (key === 'pagedown') m.cursor = Math.min(rows.length - 1, m.cursor + 5);
+    if (key === 'enter') {
+        const row = rows[m.cursor]!;
+        if (m.page === 'list') {
+            if (row.key === 'user') switching(e, { target: { kind: 'user' } });
+            else if (row.key.startsWith('action:')) { m.candidate = null; startForm(e, row.key.slice(7) as Action); }
+            else {
+                m.projectRoot = row.key.startsWith('binding:') ? row.key.slice(8) : null;
+                m.selected = m.projectRoot ? m.library!.bindings.find(b=>b.root===m.projectRoot)!.profile_id : row.key;
+                const selected = m.library!.profiles.find(p=>p.id===m.selected);
+                if (!selected) { m.message=text('profiles.error.missing',{value:m.selected}); return null; }
+                m.candidate=selected.display; m.page='actions';m.cursor=0;
+            }
+        } else if (row.key === 'edit') switching(e, { target: m.projectRoot ? {kind:'project',path:m.projectRoot} : { kind: 'profile', id: m.selected! } });
+        else if (row.key === 'activate') switching(e, { target: { kind: 'user' }, display: m.candidate! });
+        else if (row.key === 'delete') {
+            m.action = 'delete'; m.confirmation = { kind: 'mutation', payload: { action: 'delete', id: m.selected, expected_revision: m.library!.revision } };
+            m.page = 'confirm'; m.cursor = 1;
+        } else startForm(e, row.key as Action);
+    }
+    return m.effect ? 'profiles' : null;
+}
+export async function performProfileAction(e: Editor, backend: ProfileBackend): Promise<void> {
+    const m = e.profiles, effect = m?.effect;
+    if (!m || !effect) return;
+    m.effect = null;
+    let writing = false;
+    try {
+        if (effect.kind === 'load') {
+            m.library = await backend.request('profiles_read'); m.page = 'list'; m.cursor = 0;
+            m.message = m.uncertain ? text('profiles.review_saved') : null; m.uncertain = false; return;
+        }
+        if (effect.kind === 'switch') {
+            if (effect.save) {
+                if (!e.acceptNumeric()) throw new BackendError('invalid_draft', text('profiles.invalid_draft'));
+                writing = true;
+                const saved = await backend.request('apply', { draft: e.draft, expected_revision: e.baseline.revision,
+                    ...(e.baseline.configuration ? { target: e.baseline.configuration.target } : {}) });
+                e.committed(saved); writing = false;
+            }
+            const current = await backend.request('read', { target: effect.next.target });
+            e.committed(current);
+            e.replaceDraft(current.draft);
+            if (effect.next.display) e.replaceDraft({ ...current.draft, display: JSON.parse(JSON.stringify(effect.next.display)) as DisplayDraft });
+            e.profiles = null; return;
+        }
+        if (effect.kind === 'import') {
+            const result = await backend.request('profile_import', { path: effect.path });
+            m.candidate = result.display; startForm(e, 'save'); m.fields[0]!.input = textInput(result.name);
+            m.message = text('profiles.import_review'); return;
+        }
+        writing = true;
+        if (effect.kind === 'export') {
+            await backend.request('profile_export', { path: effect.path, name: effect.name, display: effect.display, overwrite: effect.overwrite });
+        } else {
+            m.library = await backend.request('profiles_apply', effect.payload);
+            writing = false;
+            if (effect.payload.bind_path && typeof effect.payload.bind_path === 'string') {
+                const host = e.draft.host;
+                const current = await backend.request('read', { target: { kind: 'project', path: effect.payload.bind_path } });
+                e.committed(current); e.replaceDraft({ ...current.draft, host });
+            } else if (e.baseline.configuration && (e.baseline.configuration.target.kind !== 'profile' ||
+                m.library.profiles.some(p=>p.id===e.baseline.configuration!.profile_id))) {
+                const current = await backend.request('read', { target: e.baseline.configuration.target });
+                if (current.configuration?.profile_id === e.baseline.configuration.profile_id &&
+                    JSON.stringify(current.draft) === JSON.stringify(e.baseline.draft)) e.baseline = current;
+            }
+        }
+        m.page = 'list'; m.cursor = 0; m.candidate = null; m.confirmation = null; m.message = text('profiles.saved');
+    } catch (error) {
+        const code = error instanceof BackendError ? error.code : '';
+        if (code === 'profile_duplicate' || code === 'profile_bound' || effect.kind === 'export' && code === 'io_error' && /EEXIST/u.test(String(error))) {
+            m.confirmation = effect.kind === 'mutation' ? { ...effect, payload: { ...effect.payload, overwrite: true } }
+                : effect.kind === 'export' ? { ...effect, overwrite: true } : null;
+            m.page = 'confirm'; m.cursor = 1; m.message = text('profiles.overwrite');
+        } else {
+            m.uncertain = writing && !['profile_conflict','profile_referenced','profile_invalid','profile_name','profile_path','ownership_mismatch','configuration_conflict','invalid_request','profile_size'].includes(code);
+            m.message = error instanceof BackendError && error.localization ? error.localization : text('profiles.failed', { value: error instanceof Error ? error.message : String(error) });
+        }
+    }
+}
+export function profilesView(e: Editor, language: Language, width: number, height: number): { text: string; selected: boolean }[] {
+    const m = e.profiles!;
+    const tr = (key: string) => t(key, language);
+    const lines: { text: string; selected: boolean }[] = [];
+    const add = (value: string, selected = false) => lines.push({ text: value, selected });
+    if (m.message) for (const line of wrapText([t(m.message.key, language, m.message.params)], width)) add(line);
+    if (m.uncertain) add(tr('profiles.uncertain'));
+    if (!m.library) { add(tr('profiles.loading')); return lines.slice(0, height); }
+    if (m.page === 'form') {
+        add(tr('profiles.action.' + m.action));
+        m.fields.forEach((f,i) => add(tr('profiles.field.' + f.key) + ': ' + inputView({ ...f.input }, Math.max(1, width - 12)), i === m.field));
+        add(tr('profiles.form_help')); return lines.slice(0, height);
+    }
+    const rows = m.page === 'confirm' ? [{ key:'confirm',label:'profiles.confirm' },{ key:'cancel',label:'profiles.cancel' }] :
+        m.page === 'dirty' ? ['save','discard','cancel'].map(key => ({ key, label:'profiles.'+key })) : entries(m);
+    if (m.page === 'dirty') add(tr('profiles.dirty'));
+    if (m.page === 'confirm') {
+        const value = m.confirmation;
+        add(tr('profiles.action.' + (m.action ?? 'export')));
+        if (value?.kind === 'mutation') add(String(value.payload.name ?? value.payload.path ?? m.library.profiles.find(p=>p.id===value.payload.id)?.name ?? ''));
+        if (value?.kind === 'export') add(value.path);
+    }
+    if (m.page === 'actions') {
+        add(m.library.profiles.find(p => p.id === m.selected)?.name ?? '');
+        add(t('profiles.shared', language, { count: m.library.bindings.filter(b => b.profile_id === m.selected).length }));
+    }
+    const capacity = Math.max(1, height - lines.length - 1), start = Math.max(0, Math.min(m.cursor, rows.length - capacity));
+    rows.slice(start,start+capacity).forEach((row,i) => add(('raw' in row && row.raw ? row.label : tr(row.label)), start+i === m.cursor));
+    add(tr('profiles.navigation'));
+    return lines.slice(0,height);
+}

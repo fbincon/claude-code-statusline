@@ -1,6 +1,9 @@
+import { taskDetailLines } from '../lib/editor/task-detail.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
+import { performProfileAction } from '../lib/editor/profile-manager.ts';
 import type {
   Register,
+  On,
   EngineInterface,
   PluginOptions,
   Timer,
@@ -16,6 +19,7 @@ import { createReview } from '../lib/editor/import-review.ts';
 import { canEdit, validPreferenceValue, preferences, preferenceChanged } from '../lib/preferences.ts';
 import type {
   Draft,
+  TaskDetails,
   Operation,
   ResultFor,
 } from '../lib/generated-contracts.ts';
@@ -152,7 +156,7 @@ async function load(
   $.ui.invalidate('ui.render');
   try {
     const description = await callBackend($, options, 'describe');
-    const current = await callBackend($, options, 'read');
+    const current = await callBackend($, options, 'read', { target: { kind: 'project', path: await $.session.cwd() } });
     if (state.epoch !== opening) return;
     if (description.backend_version !== current.backend_version) {
       throw new BackendError(
@@ -217,7 +221,7 @@ async function reconcile(
   setMessage(state.view, "busy", localizedText("native.hooks.register.checking_saved_configuration"));
   $.ui.invalidate('ui.render');
   try {
-    const current = await callBackend($, options, 'read');
+    const current = await callBackend($, options, 'read', editor.baseline.configuration ? { target: editor.baseline.configuration.target } : {});
     if (state.epoch !== saving) return;
     if (
       sameDraft(current.draft, submitted.draft) &&
@@ -278,6 +282,7 @@ async function save(
     const result = await callBackend($, options, 'apply', {
       draft: submitted.draft,
       expected_revision: submitted.revision,
+      ...(editor.baseline.configuration ? { target: editor.baseline.configuration.target } : {}),
     });
     if (state.epoch !== saving) return;
     editor.committed(result);
@@ -482,7 +487,82 @@ async function openEditor(
   return {};
 }
 
+/** Task host calls stay in this statically inspected entry; presentation is shared in core. */
+const TASK_COMMAND = 'statusline-task', TASK_PANE = 'statusline-task-details';
+export interface TaskPaneState {
+  owned: boolean; loading: boolean; generation: number; offset: number;
+  language: Language; report: TaskDetails | null; error: string;
+}
+export function taskPaneState(): TaskPaneState {
+  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:'' };
+}
+export async function startTaskDetails($: EngineInterface, state: TaskPaneState): Promise<void> {
+  state.generation++; state.loading=false; state.report=null; state.error=''; state.offset=0; state.owned=false;
+  const commands=await $.command.list();
+  if(!commands.some(c=>c.name===TASK_COMMAND && c.plugin!=='statusline-native')) {
+    await $.command.register({name:TASK_COMMAND,description:t('task.title',state.language)}); state.owned=true;
+  }
+}
+async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState): Promise<void> {
+  if (state.loading) return;
+  state.loading=true; state.error=''; const epoch=state.generation;
+  $.ui.invalidate('ui.render');
+  try {
+    const launch=binding(options,await $.env.get('CLAUDE_STATUSLINE_NATIVE_EXECUTABLE') || undefined);
+    const directory=await $.env.get('CLAUDE_CONFIG_DIR') || (typeof options.configDir==='string' ? options.configDir : '');
+    const argv=[launch.executable,...launch.args,'ui',...(directory ? ['--config-dir',directory] : [])];
+    const session=await $.session.id();
+    let host_agents: { observed_at:number; agents:{id:string;name:string|null}[] } | undefined;
+    try {
+      const agents=await $.agent.list();
+      host_agents={observed_at:await $.clock.now(),agents:agents.slice(0,256).map(a=>({id:a.id,name:[...(a.name ?? a.description ?? '').replace(/[\p{Cc}\p{Cs}]/gu,'')].slice(0,256).join('') || null}))};
+    } catch { /* Published evidence remains usable without a host snapshot. */ }
+    const preference=parseResponse('read_ui_preferences',await $.process.run(argv,{stdin:requestText('read_ui_preferences',{}),timeoutMs:30000}));
+    const result=parseResponse('task_details',await $.process.run(argv,{stdin:requestText('task_details',{session_id:session,...(host_agents ? {host_agents} : {})}),timeoutMs:30000}));
+    if(result.session_id!==session)throw new Error(t('task.error.input',state.language));
+    if(state.generation!==epoch)return;
+    state.report=result;state.language=preference.ui_language;state.offset=0;
+  } catch(failure) {
+    if(state.generation===epoch)state.error=failure instanceof Error ? failure.message : String(failure);
+  } finally {
+    if(state.generation===epoch){state.loading=false;$.ui.invalidate('ui.render');}
+  }
+}
+export function registerTaskDetails(on: On, options: PluginOptions, state: TaskPaneState): void {
+  const tr=(key:string)=>t(key,state.language);
+  on('command.run',{command:'statusline-task'},async($,e,next)=>{
+    if(!state.owned)return next(e);
+    const opened=await $.ui.open({id:TASK_PANE,title:tr('task.title'),focus:true,closeOnEscape:true,rows:24,columns:88});
+    if(!opened.isPlaced)return {text:tr('task.fallback')};
+    await refreshTaskDetails($,options,state);return {};
+  });
+  on('ui.close',{id:'statusline-task-details'},async($,e,next)=>{
+    state.generation++;state.loading=false;state.report=null;state.error='';return next(e);
+  });
+  on('ui.render',{component:'Pane',requestId:'statusline-task-details'},async($,e,next)=>{
+    if(!state.owned)return next(e);
+    const {Box,Text,Button}=$.ui.resolve(e);
+    if(e.surface!=='terminal')return Text({...styles.text,children:[tr('task.fallback')]});
+    const width=Math.max(2,e.props.bodyColumns),height=Math.max(4,e.props.scroll.bodyRows),capacity=Math.max(1,height-3);
+    const lines=state.report ? taskDetailLines(state.report,state.language,Math.max(2,width-2)) : [tr(state.loading?'profiles.loading':'task.unknown')];
+    state.offset=Math.max(0,Math.min(state.offset,Math.max(0,lines.length-capacity)));
+    return Box({width,height,flexDirection:'column',children:[
+      Text({...styles.accent,bold:true,wrap:'truncate',children:[tr('task.title')+' · '+(state.loading?tr('profiles.loading'):tr('task.readonly'))]}),
+      ...lines.slice(state.offset,state.offset+capacity).map(line=>Text({...styles.text,wrap:'truncate',children:[line]})),
+      ...(state.error?[Text({...styles.error,wrap:'truncate',children:[state.error.replace(/[\p{Cc}\p{Cs}]/gu,'')]} )]:[]),
+      Box({flexDirection:'row',columnGap:1,children:[
+        Button({...recoveryButton,key:'task-up',label:'↑',hotkey:'k',onPress:()=>{state.offset=Math.max(0,state.offset-capacity);$.ui.invalidate('ui.render');}}),
+        Button({...recoveryButton,key:'task-down',label:'↓',hotkey:'j',onPress:()=>{state.offset=Math.min(Math.max(0,lines.length-capacity),state.offset+capacity);$.ui.invalidate('ui.render');}}),
+        Button({...recoveryButton,key:'task-refresh',label:tr('profiles.refresh'),hotkey:'r',onPress:()=>refreshTaskDetails($,options,state)}),
+        Button({...recoveryButton,key:'task-close',label:tr('task.close'),hotkey:'q',onPress:()=>$.ui.close({id:TASK_PANE})}),
+      ]}),
+    ]});
+  });
+}
+
 export const register: Register = (on, options) => {
+  const taskDetails = taskPaneState();
+  registerTaskDetails(on, options, taskDetails);
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.view.language ?? 'en', params);
 
   const state: Session = {
@@ -505,6 +585,7 @@ export const register: Register = (on, options) => {
   };
 
   on('session.start', async ($, e, next) => {
+    await startTaskDetails($, taskDetails);
     state.ownsCommand = false;
     discard(state);
     const open = await $.ui.panes();
@@ -602,6 +683,11 @@ export const register: Register = (on, options) => {
           state.placed = true;
         } else if (effect === 'reconcile') await reconcile($, state, options);
         else if (effect === 'transfer') await transferDraft($, state, options);
+        else if (effect === 'profiles' && state.view.editor) {
+          state.writing = true;
+          try { await performProfileAction(state.view.editor, { request: (operation, payload) => callBackend($, options, operation, payload) }); }
+          finally { state.writing = false; state.previewKey = ''; }
+        }
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);
         else if (effect === 'retry') state.previewKey = '';
@@ -671,7 +757,7 @@ export const register: Register = (on, options) => {
     state.columns = width;
     state.rows = height;
     const editor = state.view.editor;
-    const previewDraft = editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
+    const previewDraft = editor?.profiles?.candidate ? { ...editor.draft, display: editor.profiles.candidate } : editor?.quick?.candidate ?? editor?.review?.result.draft ?? editor?.draft;
     const previewColumns = contentColumns(width, height);
     const explanation=editor?.explanation;
     const key = `${state.epoch}:${previewColumns}:${explanation ? explanation.scope+':'+explanation.id : ''}:${previewDraft ? JSON.stringify(previewDraft) : ''}`;

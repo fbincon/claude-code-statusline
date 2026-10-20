@@ -97,6 +97,7 @@ export function settingRows(view: View): SettingRow[] {
   rows.push(...fields.filter(row => row.group !== 'Appearance'));
   rows.push(
     { key: 'ui-language', label: 'Interface language (saved immediately)', group: 'Interface', value: LANGUAGE_NAMES[view.language ?? 'en'], editable: true },
+    { key: 'profiles', label: 'Display schemes and projects', group: 'Presets / portable files', value: 'Enter', editable: true },
     { key: 'quick-setup', label: 'Quick setup', group: 'Presets / portable files', value: 'Enter', editable: true },
     { key: 'preset-select', label: 'Preset', group: 'Presets / portable files', value: e.preset, editable: true },
     { key: 'preset-apply', label: 'Expand selected preset', group: 'Presets / portable files', value: 'replace draft; save later', editable: true },

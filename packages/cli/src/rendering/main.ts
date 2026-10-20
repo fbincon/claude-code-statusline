@@ -5,10 +5,11 @@ import { CONFIG_FILENAME, defaultDisplay, validateDisplay } from '@fbincon/statu
 import { decode } from '@fbincon/statusline-core/json';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
-import { configuredRows } from '@fbincon/statusline-core/rendering/items';
+import { configuredRows, liveDirectory } from '@fbincon/statusline-core/rendering/items';
 import { coercedInteger } from '@fbincon/statusline-core/rendering/formatters';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { renderEnvironment, type EnvironmentOptions } from './environment.js';
+import { resolvedDisplay } from './configuration.js';
 export function configDirectory(value?: string): string { value ??= process.env.CLAUDE_CONFIG_DIR ?? '~/.claude'; return resolve(value === '~' ? homedir() : value.startsWith('~/') || value.startsWith('~\\') ? join(homedir(), value.slice(2)) : value); }
 export function readDisplay(directory: string) { try {
     return validateDisplay(decode(decodeUtf8(readFileSync(join(directory, CONFIG_FILENAME)))));
@@ -35,7 +36,12 @@ export async function render(read: () => string | Uint8Array, options: Environme
     catch {
         return '';
     }
-    const configDir = configDirectory(options.configDir), config = readDisplay(configDir), env = await renderEnvironment(config, data, { ...options, configDir }, subagents);
+    const configDir = configDirectory(options.configDir), directory = liveDirectory(data);
+    const config = resolvedDisplay(configDir, { read(path) { try { return readFileSync(path); } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; } } },
+        readDisplay(configDir), directory ? { kind: 'project', path: directory } : { kind: 'user' }).display;
+    // An omitted override preserves the host's default agent rows.
+    if (subagents && !config.subagents.enabled) return '';
+    const env = await renderEnvironment(config, data, { ...options, configDir }, subagents);
     if (subagents) {
         const { renderPayload } = await import('@fbincon/statusline-core/rendering/subagents');
         return renderPayload(data, config, env).map(item => pythonJson(item, { ensureAscii: false, compact: true }) + '\n').join('');

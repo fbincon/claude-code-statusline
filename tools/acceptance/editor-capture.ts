@@ -35,7 +35,9 @@ try {
     const settings = fs.readFileSync(join(config, 'settings.json'));
     for (const language of LANGUAGES) {
         run(['config', 'set', 'statusline-language', language]);
+        run(['config', 'profile', 'save', 'Capture scheme', '--overwrite']);
         const display = fs.readFileSync(join(config, 'claude-statusline.json'));
+        const profiles = fs.readFileSync(join(config, 'claude-statusline-profiles.json'));
         const pty = openPty(config, columns, rows, installed.env, language, { executable: installed.node, args: [installed.entry, '--language', language, 'configure'], cwd: installed.temporary });
         try {
             await pty.wait(text => text.includes(`\x1b[${rows};1H`));
@@ -106,6 +108,18 @@ try {
                 await key('\x1b[F\r',t('quick.review',language));
                 capture('quick-review');
                 await key('\x07');
+                await key('\x0f',t('profiles.title',language));
+                capture('profiles-list');
+                await key('\x1b[B\r',t('profiles.action.edit',language));
+                capture('profiles-actions');
+                await key('\x1b[B\x1b[B\r',t('profiles.field.name',language));
+                capture('profiles-rename');
+                await key('\x07'); await key('\x07');
+                await key(' ');
+                await key('\x0f',t('profiles.title',language));
+                await key('\r',t('profiles.dirty',language));
+                capture('profiles-dirty-switch');
+                await key('\x07'); await key('\x07'); await key(' ');
                 // Exercise catalog guidance and semantic text focus through installed keys.
                 for (const scope of ['main', 'subagent'] as const) {
                     const type = scope === 'main' ? 'task-active-timer' : 'status';
@@ -208,6 +222,7 @@ try {
             assert.deepEqual(pty.attributes(), pty.before, 'Terminal attributes were not restored');
             assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settings, 'Capture changed configuration');
             assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), display, 'Capture changed display configuration');
+            assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline-profiles.json')), profiles, 'Capture changed scheme collection');
         } finally { await pty.close(); }
     }
     if (values.extended) {

@@ -118,7 +118,7 @@ export function description(): DescribeResult {
     editor_fields: JSON.parse(JSON.stringify(EDITOR_FIELDS)),
     presets: JSON.parse(JSON.stringify(PRESETS)),
     formatting_options: JSON.parse(JSON.stringify(FORMAT_CHOICES)),
-    operations: ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose'],
+    operations: ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'],
     capabilities: capabilities(),
     options: {
       colors: { choices: [true, false] },
@@ -171,7 +171,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 14, result }));
+  return output(JSON.stringify({ protocol_version: 15, result }));
 }
 
 export function sample(text: string) {
@@ -238,6 +238,8 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
     registered: false,
   };
   on('session.start', () => ({ cwd: '/work' }));
+  on('session.cwd', () => ({ value: '/work' }));
+  on('session.id', () => ({ value: 'session-test' }));
   on('command.list', () => ({ value: fixture.commands }));
   on('command.register', ($, e) => {
     fixture.registrations.push(e.name);

@@ -3,6 +3,21 @@
 [English](CHANGELOG.md) | **简体中文**
 
 
+## 3.4.0 — 2026-10-20
+
+- 新增命名显示方案及双编辑器共享管理流程，保留独立用户默认快照。
+- 新增用户侧项目／worktree 根目录绑定、最深匹配解析、可解释回退及 revision 保护。
+- 新增 `/statusline-task` 与文本／JSON CLI，只读展示可归属任务和代理证据。
+- 编辑器协议升级为 15；显示 schema 8、运行协议 2、生命周期 schema 4、portable 1 和 UI 偏好 1 不变。
+- [发布说明](docs/releases/v3.4.0.md) · [实现与验收](docs/development/profiles-projects-tasks.zh-CN.md)。
+
+## 3.3.0 — 2026-10-20
+
+- 新增只读真实输入诊断，提供可归属证据、逐实例可见性及宽度结果。
+- 支持关联 worktree 元数据和可选缓存未命中解释组件，明确保留未知证据。
+- 编辑器协议升至 14，显示与运行 schema 保持兼容。
+- [发布说明](docs/releases/v3.3.0.md) · [实现与验证](docs/development/real-input-diagnostics.zh-CN.md)。
+
 ## 3.2.0 — 2026-10-19
 
 - 两套编辑器共享完整字素光标、插入、双向删除与水平滚动，输入超限和队列溢出明确提示。

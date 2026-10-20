@@ -19,6 +19,7 @@ import { settingPresentation, preferenceLabel } from '../../lib/i18n/presentatio
 import { itemSpans } from '../components/catalog.ts';
 import { guidanceLines } from '../../lib/editor/guidance.ts';
 import { reviewRows } from '../../lib/editor/import-review.ts';
+import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
 
 export function draw(ui: ClientElements, view: View, columns: number, rows: number): RenderElement {
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
@@ -55,7 +56,10 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if(e.explanation) {
+  if(e.profiles) {
+    title = tr('profiles.title');
+    content.push(...profilesView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
+  } else if(e.explanation) {
     title=tr('explain.title');
     const lines=explanationLines(e,view.language ?? 'en',inner), capacity=Math.max(1,layout.bodyRows-1);
     const start=Math.min(e.explanation.scroll,Math.max(0,lines.length-capacity));
@@ -161,7 +165,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   return ui.Box({
     width: columns, height: rows, flexDirection: 'column', overflow: 'hidden',
     children: [
-      chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : ''), { ...styles.accent, bold: true }), columns),
+      chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }), columns),
       chromeRow(ui, spanLine(ui, tabs, columns), columns),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
         : line(tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),

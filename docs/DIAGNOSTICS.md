@@ -2,6 +2,8 @@
 
 **English** | [简体中文](DIAGNOSTICS.zh-CN.md)
 
+For named display schemes, user-side project bindings and read-only task inspection, see [profiles](PROFILES.md) and [task details](TASK_DETAILS.md).
+
 `doctor` checks installation. `diagnose` explains a statusline JSON object that you explicitly supply, using your saved display configuration and, by default, matching existing local observations. It prints a report and does not save or collect anything. The editors' Explain panels continue to explain **samples**, not a live session.
 
 ## Run a diagnosis

@@ -442,6 +442,7 @@ export function parseResponse<O extends Operation>(
         !STATUSLINELANGUAGE_VALUES.some(language => language === result.ui_language) ||
         !(result.warning === null || isLocalizedText(result.warning))) fail();
   } else if (operation === 'read' || operation === 'apply') {
+    if (result.configuration !== undefined && !isConfiguration(result.configuration)) fail();
     if (
       !isDraft(result.draft) ||
       typeof result.revision !== 'string' ||
@@ -463,7 +464,13 @@ export function parseResponse<O extends Operation>(
     if (!exact(result, ['draft','changes']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange)) fail();
   } else if (operation === 'import' || operation === 'preset') {
     if (!isDraft(result.draft)) fail();
-  } else if (operation === 'export') {
+  } else if (operation === 'profiles_read' || operation === 'profiles_apply') {
+    if (!isProfiles(result) || operation === 'profiles_apply' && (typeof result.changed !== 'boolean' || !(result.backup_dir === null || text(result.backup_dir)))) fail();
+  } else if (operation === 'profile_import') {
+    if (!exact(result, ['name','display']) || !text(result.name) || !displayDraft(result.display)) fail();
+  } else if (operation === 'task_details') {
+    if (!isTaskDetails(result)) fail();
+  } else if (operation === 'export' || operation === 'profile_export') {
     if (!text(result.path) || !result.path) fail();
   } else if (operation === 'explain') {
     if (!exact(result,['sample','scope','width','actual_availability','preview','instances']) || result.sample!==true ||
@@ -496,8 +503,8 @@ export function parseResponse<O extends Operation>(
       !result.backend_version ||
       !isOptions(result.options) ||
       !isCapabilities(result.capabilities) ||
-      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose']) ||
-      result.operations.length !== 12 ||
+      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details']) ||
+      result.operations.length !== 17 ||
       JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
       JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
       !object(result.formatting_options) ||
@@ -509,10 +516,53 @@ export function parseResponse<O extends Operation>(
   return result as unknown as ResultFor<O>;
 }
 
+function displayDraft(display: unknown): boolean {
+  return isDraft({ display, host: { padding: 0, refresh_interval: 'event', hide_vim_mode_indicator: false } });
+}
+function isConfiguration(value: unknown): boolean {
+  if (!object(value) || !exact(value, ['target','profile_id','profile_name','project_root','reason','shared_projects']) || !object(value.target)) return false;
+  const target = value.target;
+  return (target.kind === 'user' && exact(target,['kind']) || target.kind === 'profile' && exact(target,['kind','id']) && text(target.id) ||
+    target.kind === 'project' && exact(target,['kind','path']) && text(target.path)) &&
+    ['profile_id','profile_name','project_root'].every(k => value[k] === null || text(value[k])) && text(value.reason) && strings(value.shared_projects);
+}
+function isProfiles(value: Record<string, unknown>): boolean {
+  if (value.version !== 1 || !text(value.revision) || !/^[a-f0-9]{64}$/u.test(value.revision) ||
+      !Array.isArray(value.profiles) || !Array.isArray(value.bindings) || value.profiles.length > 128 || value.bindings.length > 512) return false;
+  const ids = new Set<string>(), names = new Set<string>(), roots = new Set<string>();
+  return value.profiles.every(p => {
+    if (!object(p) || !exact(p,['id','name','display']) || !text(p.id) || !text(p.name) || ids.has(p.id) || names.has(p.name) || !displayDraft(p.display)) return false;
+    ids.add(p.id); names.add(p.name); return true;
+  }) && value.bindings.every(b => {
+    if (!object(b) || !exact(b,['root','profile_id']) || !text(b.root) || !text(b.profile_id) || roots.has(b.root)) return false;
+    roots.add(b.root); return true;
+  });
+}
+function isTaskDetails(value: Record<string, unknown>): boolean {
+  const nullable = (v: unknown) => v === null || text(v);
+  const count = (v: unknown) => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0;
+  const stamp = (v: unknown) => v === null || text(v) && Number.isFinite(Date.parse(v));
+  const evidence = (v: unknown) => object(v) && exact(v,['source','scope','status','observed_at','freshness']) && text(v.source) &&
+    text(v.scope) && text(v.status) && stamp(v.observed_at) && ['current','stale','unknown','newer_than_input'].includes(String(v.freshness));
+  if (!exact(value,['version','session_id','prompt_id','captured_at','status','phase','elapsed_seconds','active_seconds','progress','agents','evidence','limitations']) ||
+      value.version !== 1 || !text(value.session_id) || !nullable(value.prompt_id) || !text(value.captured_at) || !stamp(value.captured_at) ||
+      !nullable(value.status) || !nullable(value.phase) || !count(value.elapsed_seconds) || !count(value.active_seconds) ||
+      !Array.isArray(value.evidence) || !value.evidence.every(evidence) || !strings(value.limitations) || !Array.isArray(value.agents)) return false;
+  if (value.progress !== null && (!object(value.progress) || !exact(value.progress,['completed','total']) || !range(value.progress.completed,0,100000) ||
+      !range(value.progress.total,0,100000) || Number(value.progress.completed) > Number(value.progress.total))) return false;
+  const ids = new Set<string>();
+  return value.agents.every(agent => {
+    if (!object(agent) || !exact(agent,['id','parent_id','name','status','evidence']) || !text(agent.id) || ids.has(agent.id) ||
+        !nullable(agent.parent_id) || !nullable(agent.name) || !nullable(agent.status) || !Array.isArray(agent.evidence) || !agent.evidence.every(evidence)) return false;
+    ids.add(agent.id); return true;
+  });
+}
+
 function isDiagnosis(value: Record<string, unknown>): boolean {
   const nullable = (v: unknown) => v === null || text(v);
   const stamp = (v: unknown) => v === null || typeof v === 'string' && Number.isFinite(Date.parse(v));
-  if (!exact(value, ['sample','scope','width','source','observed_at','diagnosed_at','session_id','prompt_id','host_version','include_local','output','instances','host_fields']) ||
+  if (!exact(value, ['sample','scope','width','source','observed_at','diagnosed_at','session_id','prompt_id','host_version','include_local','output','instances','host_fields', ...(value.configuration !== undefined ? ['configuration'] : [])]) ||
+      value.configuration !== undefined && !isConfiguration(value.configuration) ||
       value.sample !== false || !['main','subagent'].includes(String(value.scope)) || !range(value.width,2,10000) || !text(value.source) ||
       !stamp(value.observed_at) || value.diagnosed_at === null || !stamp(value.diagnosed_at) || !nullable(value.session_id) || !nullable(value.prompt_id) ||
       !nullable(value.host_version) || typeof value.include_local !== 'boolean' || !Array.isArray(value.output) || !Array.isArray(value.instances) || !object(value.host_fields)) return false;

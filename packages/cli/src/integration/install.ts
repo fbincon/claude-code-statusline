@@ -18,6 +18,7 @@ import { settingsPlan } from './plan.js';
 import { commandPreflight, integrate } from './mods.js';
 import { commit, safeTarget, type Change } from './transaction.js';
 import { administration } from '../recovery/service.js';
+import { readProfiles } from '../rendering/configuration.js';
 export function installContext(configDir: string, launch: LaunchSpec, version: readonly number[] | null, io: Storage = createStorage(), host: (spec: ModSpec) => Host = () => new PluginHost(configDir)): InstallContext {
     return { configDir, launch, version, io, host };
 }
@@ -47,7 +48,9 @@ function prepare(context: InstallContext, options: InstallOptions, uninstall: bo
                 throw error;
         }
     }
-    const updated = settingsPlan(settings, { directory: configDir, launch, previous, force: options.force ?? false, fast: atLeast(version, [2, 1, 258]), external: active, subagents: atLeast(version, [2, 1, 205]), rows: display.subagents.enabled }, uninstall);
+    const library = uninstall ? null : readProfiles(configDir, io)[0];
+    const rows = display.subagents.enabled || Boolean(library?.bindings.some(b => library.profiles.some(p => p.id === b.profile_id && p.display.subagents.enabled)));
+    const updated = settingsPlan(settings, { directory: configDir, launch, previous, force: options.force ?? false, fast: atLeast(version, [2, 1, 258]), external: active, subagents: atLeast(version, [2, 1, 205]), rows }, uninstall);
     if (!equalSettings(settings, updated))
         add('settings.json', jsonBytes(updated), false, settingsRaw);
     for (const name of [SKILL, EXTERNAL]) {
