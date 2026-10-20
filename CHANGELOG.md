@@ -3,7 +3,7 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
-## 3.4.0 — 2026-10-20
+## 3.4.0 — 2026-10-21
 
 - Add named display schemes and shared management in both editors, preserving an independent user-default snapshot.
 - Bind user-owned project/worktree roots with most-specific selection, attributable fallback and revision protection.
