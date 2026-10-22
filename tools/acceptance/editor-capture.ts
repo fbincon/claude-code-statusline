@@ -89,7 +89,7 @@ try {
                     const screen = new Capture(columns, rows);
                     screen.feed(raw.subarray(raw.lastIndexOf(Buffer.from('\x1b[H'))));
                     if (screen.buffer.some(row => row.some(cell => cell.reverse) &&
-                        row.map(cell => cell.data).join('').includes(t(name.startsWith('fields.') ? name : 'settings.' + name, language)))) return;
+                        row.map(cell => cell.data).join('').includes('› ' + t(name.startsWith('fields.') ? name : 'settings.' + name, language)))) return;
                     await key('\x1b[B');
                 }
                 throw new Error('Setting not found in installed editor: ' + name);
