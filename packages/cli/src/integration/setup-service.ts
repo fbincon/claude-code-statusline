@@ -92,12 +92,15 @@ export function inspectSetup(context: InstallContext, project = process.cwd()): 
         facts.notes.push(text('setup.plugins', { native: text('setup.value.' + (planned.nativeState ?? 'unknown')) }));
         facts.checks.push({ level: 'OK', message: text('setup.ownership') });
     });
-    const paths = new Set([CONFIG_FILENAME, 'settings.json', PROFILES_FILENAME, FEATURE_FILENAME, NATIVE_FILENAME, RUNTIME_FILENAME, BINDING_FILE,
+    const displayPaths = new Set([CONFIG_FILENAME, 'settings.json', PROFILES_FILENAME].map(path => join(context.configDir, path)));
+    const paths = new Set([FEATURE_FILENAME, NATIVE_FILENAME, RUNTIME_FILENAME, BINDING_FILE,
         ...[SKILL, EXTERNAL].flatMap(name => ['skills/' + name + '/SKILL.md', 'skills/' + name + '/' + OWNER_FILE]),
         ...[NATIVE, RUNTIME].flatMap(spec => [spec.name, spec.name + '/' + OWNER_FILE])].map(path => join(context.configDir, path)));
     for (const path of ownedArtifacts) paths.add(path);
     for (const path of facts.resources) paths.add(path);
-    check(() => { for (const path of paths) facts.fingerprints[path] = fingerprint(context, path); }, true);
+    // Foreign integration paths can block integration without blocking a safe display save.
+    for (const path of displayPaths) check(() => { facts.fingerprints[path] = fingerprint(context, path); }, true);
+    for (const path of paths) if (!displayPaths.has(path)) check(() => { facts.fingerprints[path] = fingerprint(context, path); });
     facts.canSave &&= facts.draft !== null;
     facts.canIntegrate &&= facts.canSave;
     return facts;

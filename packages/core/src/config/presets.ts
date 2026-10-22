@@ -31,7 +31,11 @@ export function applyPreset(config: DisplayDraft, name: string, nextId: () => st
     if (type_id !== 'spacer') options.priority = 100 - nodes.length;
     if (name === 'repeated-metrics') options.formatting = { number_format: nodes.length ? 'compact' : 'full' };
     if (complete) {
-      options.max_width = type_id === 'current-dir' ? 24 : type_id === 'git' ? 32 : null;
+      options.max_width = type_id === 'current-dir' ? 16 : type_id === 'git' ? (name === 'daily-development' ? 20 : 32) : null;
+      // Keep essential source labels; omit redundant catalog descriptions.
+      if (['five-hour-limit','weekly-limit','five-hour-reset','weekly-reset','spend-limit','session-cost','cache-state','cache-expires','run-state','task-progress','active-agents'].includes(type_id))
+        options.formatting.labels = 'legacy';
+      if (type_id === 'git') options.icon = 'G';
       if (type_id === 'task-timer') options.priority = 100;
       if (type_id.startsWith('context-')) options.priority = 99;
       if (type_id === 'five-hour-limit') options.priority = 100;
@@ -54,7 +58,7 @@ export function applyPreset(config: DisplayDraft, name: string, nextId: () => st
       powerline_glyph: 'ascii', powerline: { ...DEFAULT_POWERLINE }, use_colors: true } : {}),
     layout: { mode: name === 'minimal' ? 'auto' : 'explicit', rows: name === 'minimal' ? [] : rows },
     formatting: { ...config.formatting, model_name: 'short', number_format: 'compact',
-      ...(complete ? { labels: 'short', icons: 'ascii', allowance: 'remaining', reset_format: 'countdown',
+      ...(complete ? { labels: 'off', icons: 'ascii', allowance: 'remaining', reset_format: 'countdown',
         reset_timezone: 'local', thresholds: { enabled: true, warning: 70, critical: 90 } } : {}) },
   });
 }

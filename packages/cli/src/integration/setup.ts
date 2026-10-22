@@ -43,7 +43,11 @@ export async function setup(context: InstallContext, dryRun: boolean, language: 
     for (const row of applied.checks) stdout('[' + row.level + '] ' + renderMessage(row.message, language) + '\n');
     for (const message of applied.installed?.messages ?? []) stdout(renderMessage(message, language) + '\n');
     if (applied.error) {
-        stderr(renderMessage(applied.error, language) + '\n' + t('setup.partial', language, { stage: t('setup.stage_' + applied.stage, language) }) + '\n'); return 2;
+        stderr(renderMessage(applied.error, language) + '\n' + t('setup.partial', language, { stage: t('setup.stage_' + applied.stage, language) }) + '\n'
+            + executable + ' doctor --config-dir ' + directory + '\n'
+            + executable + ' recover --config-dir ' + directory + ' --dry-run\n'
+            + executable + ' recover --config-dir ' + directory + '\n'
+            + executable + ' setup --config-dir ' + directory + '\n'); return 2;
     }
     stdout(t(action === 'integrate' ? 'setup.success' : 'setup.saved_only', language) + '\n' + commands.join('\n') + '\n');
     return 0;

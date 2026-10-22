@@ -133,7 +133,7 @@
     "formatting": {
       "model_name": "short",
       "number_format": "compact",
-      "labels": "short",
+      "labels": "off",
       "icons": "ascii",
       "allowance": "remaining",
       "reset_format": "countdown",
@@ -203,7 +203,7 @@
         "enabled": true,
         "options": {
           "label": null,
-          "icon": null,
+          "icon": "G",
           "priority": 98,
           "max_width": 32,
           "formatting": {},
@@ -223,7 +223,9 @@
           "icon": null,
           "priority": 97,
           "max_width": null,
-          "formatting": {},
+          "formatting": {
+            "labels": "legacy"
+          },
           "foreground": null,
           "background": null,
           "visibility": "always",
@@ -240,7 +242,9 @@
           "icon": null,
           "priority": 96,
           "max_width": null,
-          "formatting": {},
+          "formatting": {
+            "labels": "legacy"
+          },
           "foreground": null,
           "background": null,
           "visibility": "always",
@@ -257,7 +261,9 @@
           "icon": null,
           "priority": 95,
           "max_width": null,
-          "formatting": {},
+          "formatting": {
+            "labels": "legacy"
+          },
           "foreground": null,
           "background": null,
           "visibility": "always",

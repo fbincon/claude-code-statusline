@@ -77,6 +77,36 @@ test('setup checks do not migrate schema 8; explicit save backs up original byte
     assert.equal(saved.error,null);assert.deepEqual(fs.readFileSync(join(saved.saved!.backup_dir!,'claude-statusline.json.before')),raw);
     assert.equal(JSON.parse(fs.readFileSync(join(f.config,'claude-statusline.json'),'utf8')).schema_version,9);
 });
+test('foreign linked integration resources permit saving display without following or modifying the link', t => {
+    const f = fixture(t), foreign = join(f.root, 'foreign');
+    fs.mkdirSync(foreign);
+    fs.writeFileSync(join(foreign, 'preserve.txt'), 'foreign bytes');
+    fs.symlinkSync(foreign, join(f.config, 'statusline-native'), process.platform === 'win32' ? 'junction' : 'dir');
+    const inspected = inspectSetup(f.context);
+    assert(inspected.canSave); assert(!inspected.canIntegrate);
+    const saved = applySetup(f.context, inspected, inspected.draft!, false);
+    assert.equal(saved.error, null); assert.equal(saved.stage, 'display');
+    assert.deepEqual(fs.readdirSync(foreign), ['preserve.txt']);
+    assert.equal(fs.readFileSync(join(foreign, 'preserve.txt'), 'utf8'), 'foreign bytes');
+    assert(fs.lstatSync(join(f.config, 'statusline-native')).isSymbolicLink());
+});
+test('official plugin failure retains the saved display and reports the committed integration stage', t => {
+    const f = fixture(t), calls: string[][] = [];
+    fs.rmSync(join(f.config, 'claude-statusline-native.json'));
+    f.context.version = [2, 1, 294];
+    f.context.host = () => ({
+        listing: () => [[], []],
+        run: args => { calls.push([...args]); throw new Error('injected official validation failure'); },
+    });
+    const inspected = inspectSetup(f.context);
+    assert(inspected.canIntegrate); assert.equal(calls.length, 0);
+    const result = applySetup(f.context, inspected, inspected.draft!, true);
+    assert.equal(result.stage, 'integration'); assert(result.error); assert(result.installed!.failed);
+    assert(calls.some(args => args[0] === 'validate'));
+    assert(fs.existsSync(join(f.config, 'claude-statusline.json')));
+    assert(fs.existsSync(join(f.config, 'settings.json')));
+    assert(result.installed!.messages.length);
+});
 test('setup protects damaged configurations and rejects unowned local Mod resources before integration', t => {
     const f=fixture(t);
     fs.mkdirSync(join(f.config,'statusline-native'));

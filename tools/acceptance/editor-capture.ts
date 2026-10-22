@@ -15,6 +15,7 @@ import { renderCapture } from './render-capture.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 import { dimensions } from '@fbincon/statusline-tui/layout';
+import { PRESETS } from '@fbincon/statusline-core/contracts/ui';
 
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' }, font: { type: 'string', multiple: true }, extended: { type: 'boolean' } } });
 if (!values.artifact || !values.commit || !values.output || !values.font?.length)
@@ -88,7 +89,7 @@ try {
                     const screen = new Capture(columns, rows);
                     screen.feed(raw.subarray(raw.lastIndexOf(Buffer.from('\x1b[H'))));
                     if (screen.buffer.some(row => row.some(cell => cell.reverse) &&
-                        row.map(cell => cell.data).join('').includes(t('settings.' + name, language)))) return;
+                        row.map(cell => cell.data).join('').includes(t(name.startsWith('fields.') ? name : 'settings.' + name, language)))) return;
                     await key('\x1b[B');
                 }
                 throw new Error('Setting not found in installed editor: ' + name);
@@ -101,6 +102,17 @@ try {
             }
             if (values.extended) {
                 await key('\t');
+                for (const id of ['daily-development', 'agent-focus', 'quota-watch']) {
+                    await key('\x10', t('quick.title', language));
+                    await key('\x1b[H');
+                    for (let index = 0; index < PRESETS.findIndex(preset => preset.id === id); index++) await key('\x1b[B');
+                    await key('\r', t('quick.appearance', language));
+                    capture('scheme-' + id);
+                    await key('\x1b[F\r', t('quick.review', language));
+                    await key('\x1b[B\x1b[B\r', t('profiles.field.name', language));
+                    capture('scheme-copy-' + id);
+                    await key('\x07'); await key('\x07');
+                }
                 await key('\x10',t('quick.title',language));
                 capture('quick-scenario');
                 await key('\r',t('quick.appearance',language));
@@ -180,6 +192,11 @@ try {
                 await key('\x07');
                 await key('\t');
                 await key('\t');
+                for (const option of ['padding', 'separator', 'start_cap', 'end_cap', 'color_mode']) {
+                    await selectSetting('fields.global.powerline.' + option + '.label');
+                    await key('\x1b[C');
+                }
+                capture('powerline-controls');
                 await selectSetting('padding');
                 await key('9');
                 assert(capture('numeric').some(line => line.includes('9▏')));
