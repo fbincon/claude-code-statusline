@@ -1,3 +1,4 @@
+import { POWERLINE_OPTIONS } from '@fbincon/statusline-core/contracts/ui';
 /** Pure product fixtures: no CLI imports, storage, installation or host effects. */
 import { defaultDisplay } from '@fbincon/statusline-core/config/display';
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
@@ -23,6 +24,7 @@ export function fixture(language: Language = 'en'): State {
             colors: { choices: [true, false] }, palette: { choices: ['default', 'ansi'] },
             theme: { choices: ['classic', 'dark', 'light', 'terminal'] },
             'powerline-glyph': { choices: ['ascii', 'powerline'] },
+            ...POWERLINE_OPTIONS,
             'directory-style': { choices: ['full', 'home', 'project-relative', 'basename'] },
             'separator-style': { choices: ['classic', 'compact', 'powerline'] },
             'scope-labels': { choices: ['off', 'when-subagents', 'always'] },

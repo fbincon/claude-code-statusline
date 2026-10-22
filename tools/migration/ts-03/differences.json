@@ -3,8 +3,8 @@
     "case": "cli-help",
     "path": "/value/stdout",
     "before_sha256": "0b0a5acd2ab97f4f7bb0a8a59de0ed0311edbda3e281b33a755667cce6fff1ea",
-    "after_sha256": "f43d557eea57769082d992787462563d81354b94a4f39f05285fea630dd5f8bc",
-    "reason": "The TypeScript CLI documents its shipped commands, including explicit input diagnosis and read-only task details; this exact help-text hash is the only accepted output change."
+    "after_sha256": "12bd0ae1359c38cf39aea0d6e87418e9af142565385ef56cf00a84d7bdb7fa99",
+    "reason": "The TypeScript CLI documents its shipped commands, including the v3.5.0 setup wizard, explicit input diagnosis and task details; only this exact help-text hash is accepted."
   },
   {
     "case": "cli-config-refused",

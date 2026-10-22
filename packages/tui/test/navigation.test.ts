@@ -7,10 +7,10 @@ test('Settings and Layout retain independent selection and scroll across round t
     const state = fixture(), e = state.editor;
     e.page = 'settings';
     state.key({ key: 'home' });
-    for (let i = 0; i < 15; i++) state.key({ key: 'down' });
+    for (let i = 0; i < 20; i++) state.key({ key: 'down' });
     assert.equal(e.setting, 'field:formatting.labels');
     const settingsScroll = state.scroll.settings;
-    assert.equal(settingsScroll, 10);
+    assert.equal(settingsScroll, 15);
     state.key({ key: 'tab' });
     state.key({ key: 'end' });
     const layoutField = e.setting, layoutScroll = state.scroll.layout;
@@ -62,8 +62,8 @@ test('resizing preserves focus and pending input; removed layout fields safely f
     assert.equal(state.scroll.layout, 0);
 });
 
-test('Settings page-down selects Python v2.0.0 targets after accounting for group headings', () => {
-    for (const [columns, rows, target] of [[64, 18, 'field:theme'], [80, 24, 'padding'], [120, 30, 'custom-subagent-rows']] as const) {
+test('Settings page-down accounts for appearance controls and group headings', () => {
+    for (const [columns, rows, target] of [[64, 18, 'field:theme'], [80, 24, 'field:powerline.separator'], [120, 30, 'field:statusline_language']] as const) {
         const state = fixture();
         state.editor.page = 'settings';
         state.key({ key: 'home' }, columns, rows);

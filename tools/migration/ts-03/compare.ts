@@ -8,6 +8,7 @@ import { VERSION } from '@fbincon/statusline-core/release';
 import { PROTOCOL_VERSION, PRESETS } from '@fbincon/statusline-core/contracts/ui';
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
+import { appearanceBaseline } from './appearance-compatibility.js';
 
 // TS-06 release metadata only. Frozen fixtures and the three wording exceptions stay intact.
 const versionFields = new Set([
@@ -64,6 +65,8 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
   }
   function walk(a: unknown, b: unknown, path: string, id: string) {
     if (canonical(a) === canonical(b)) return;
+    const migrated = appearanceBaseline(id, path, a);
+    if (migrated !== a) { walk(migrated, b, path, id); return; }
     if (releaseMetadataDifference(id, path, a, b)) return;
     if (runtimeDefaultDifference(id, path, a, b)) return;
     if (regionalLanguageDifference(id, path, a, b)) return;

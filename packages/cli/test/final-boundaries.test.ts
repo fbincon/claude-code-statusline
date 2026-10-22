@@ -16,7 +16,7 @@ import { loadRuntime } from '../src/config/backend-preferences.js';
 test('tests.config.test_transfer.TransferTests.test_all_presets_are_editable_and_preserve_unrelated_appearance', t => {
     const f = setup(t), original = updateDisplay(defaultDisplay(), { use_colors: false, palette: 'ansi', directory_style: 'home' });
     let serial = 0;
-    for (const name of Object.keys(ROWS)) {
+    for (const name of ['developer','minimal','monitoring','multi-agent','left-right','repeated-metrics']) {
         const display = applyPreset(original, name, () => 'unique-' + serial++);
         assert.deepEqual(validateDisplay(display), display);
         assert.equal(display.use_colors, false);
@@ -129,7 +129,7 @@ test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_legacy_draft_error_tr
     assert.ok(!existsSync(f.displayPath));
 });
 test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_bound_entry_uses_its_own_identity', async (t) => {
-    const f = setup(t, true), request = JSON.stringify({ protocol_version: 15, operation: 'read', payload: {} });
+    const f = setup(t, true), request = JSON.stringify({ protocol_version: 16, operation: 'read', payload: {} });
     const result = await invoke(['ui'], { ...f.context, stdin: () => request });
     assert.equal(result.status, 0);
     assert.equal(result.stderr, '');

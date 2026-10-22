@@ -14,7 +14,7 @@ import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -50,8 +50,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 15, operation, payload }), environment));
-    assert.equal(result.protocol_version, 15);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 16, operation, payload }), environment));
+    assert.equal(result.protocol_version, 16);
     assert.ok(result.result);
     return result.result;
 }
@@ -234,7 +234,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 15, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 16, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -262,6 +262,55 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     assert.equal(task.prompt_id,null); assert.equal(task.version,1); assert.equal(fs.existsSync(missingTasks),false);
     report.profile_project_task_cases = 8;
     checks.native_protocol = true;
+});
+test('installed setup checks, previews, cancels, saves and integrates in a real terminal', { timeout: 90000 }, async () => {
+    const readonly = join(installed.temporary, 'setup readonly');
+    const dry = invoke(['setup', '--dry-run'], readonly);
+    assert([0,1].includes(dry.status!), dry.stdout + dry.stderr);
+    assert.equal(fs.existsSync(readonly), false);
+    assert.equal(invoke(['setup'], readonly).status, 2);
+    assert.equal(fs.existsSync(readonly), false);
+    for (const choice of ['cancel','save','integrate']) {
+        const config = join(installed.temporary, 'setup ' + choice);
+        fs.mkdirSync(config);
+        fs.writeFileSync(join(config,'claude-statusline-native.json'),'{"schema_version":1,"native_editor":false}');
+        fs.writeFileSync(join(config,'claude-statusline-features.json'),'{"schema_version":1,"experimental_slash_tui":false}');
+        if (process.platform === 'win32') {
+            const receipt=join(installed.temporary,'setup-console-'+choice+'.json');
+            const child=startWindows([installed.node,driver,installed.modules,'windows-setup',config,receipt,choice],installed.directory,installed.env);
+            try {
+                const stop=performance.now()+20000;
+                while(child.code()===null && performance.now()<stop) await new Promise(resolve=>setTimeout(resolve,20));
+                assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):'No setup console receipt');
+                const result=JSON.parse(fs.readFileSync(receipt,'utf8'));
+                assert.equal(result.status,0);assert.equal(result.before_mode,result.after_mode);assert.equal(result.before_output_mode,result.after_output_mode);
+            } finally { child.close(); }
+        } else {
+            const pty=openPty(config,100,30,installed.env,'en',{executable:installed.node,args:[driver,installed.modules,'setup-console',config],cwd:installed.directory});
+            try {
+                await pty.wait(text=>text.includes('Environment and configuration checks'));
+                if(choice==='cancel') pty.send('\x1b');
+                else {
+                    pty.send('\r');await pty.wait(text=>text.includes('2. Choose a display'));
+                    pty.send('\r');await pty.wait(text=>text.includes('Daily development'));
+                    pty.send('\r');await pty.wait(text=>text.includes('Statusline theme'));
+                    pty.send('\x1b[F\r');await pty.wait(text=>text.includes('4. Review before applying'));
+                    pty.send((choice==='save'?'\x1b[B':'')+'\r');
+                }
+                await pty.exited();assert.equal(pty.child.exitCode,0,pty.captured().toString('utf8').slice(-3000));
+                assert.deepEqual(pty.attributes(),pty.before);
+            } finally { pty.close(); }
+        }
+        const displayPath=join(config,'claude-statusline.json');
+        assert.equal(fs.existsSync(displayPath),choice!=='cancel');
+        assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
+        if(choice!=='cancel') {
+            const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
+            assert.equal(display.schema_version,9);assert.equal(display.theme,'terminal');
+            assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
+        }
+    }
+    report.setup_cases=3;report.setup_host_version='synthetic 2.1.258; file integration and terminal journey';checks.setup=true;
 });
 test('installed external editor saves and cancels in a real native terminal', { timeout: 45000 }, async () => {
     const config = setup('external-editor');

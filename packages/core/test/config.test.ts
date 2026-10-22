@@ -28,7 +28,7 @@ test('all eight frozen schemas and 84 render configurations normalize without al
     const raw = fixture.files['config/claude-statusline.json'];
     const input = decode(raw), before = canonical(input);
     const actual = validateDisplay(input);
-    assert.equal(pythonJson(actual, { indent: 2, ensureAscii: false }), pythonJson(expected[fixture.id].value.effective, { indent: 2, ensureAscii: false }), fixture.id);
+    assert.equal(canonical(actual), canonical({ ...expected[fixture.id].value.effective, schema_version: 9, powerline: { padding: 'both', separator: 'arrow', start_cap: false, end_cap: true, color_mode: 'semantic' } }), fixture.id);
     assert.equal(canonical(input), before);
   }
   for (const value of Object.values(corpus.configs)) assert.deepEqual(validateDisplay(validateDisplay(value)), validateDisplay(value));
@@ -92,7 +92,7 @@ test('tests.config.test_instances.InstanceTests.test_insertions_grow_the_current
   const copied = edit(cfg, 'main', { action: 'copy', id: 'context-used' }, id); cfg = copied.config;
   assert.deepEqual(cfg.layout.rows[1], ['context-used', copied.selected]);
   assert.deepEqual(validateDisplay(cfg), cfg);
-  for (const schema_version of [decode('8.0'), true, 9]) assert.throws(() => validateDisplay({ ...cfg, schema_version }));
+  for (const schema_version of [decode('9.0'), true, 10]) assert.throws(() => validateDisplay({ ...cfg, schema_version }));
 });
 
 test('tests.config.test_instances.InstanceTests.test_type_resolution_cannot_confuse_imported_ids_with_type_names', () => {

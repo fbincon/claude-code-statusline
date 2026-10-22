@@ -31,7 +31,7 @@ test('tests.config.test_config_commands.DisplayMutationTests.test_concurrent_ena
     await Promise.all(items.map(item => processResult(process.execPath, [join(repoRoot, 'packages/cli/dist/src/entry.js'), 'config', '--config-dir', root, 'enable', item], env)));
     assert.deepEqual(new Set(service.read().display.instances.filter(node => node.enabled).map(node => node.id)), new Set(items));
     const stored = JSON.parse(readFileSync(join(root, 'claude-statusline.json'), 'utf8'));
-    assert.equal(stored.schema_version, 8);
+    assert.equal(stored.schema_version, 9);
 });
 test('tests.config.test_ui_preferences.UiPreferenceTests.test_concurrent_writers_publish_valid_complete_preferences', async (t) => {
     const root = mkdtempSync(join(tmpdir(), 'ts03-language-concurrency-'));
