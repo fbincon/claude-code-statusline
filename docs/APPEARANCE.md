@@ -43,7 +43,7 @@ claude-statusline config item main model background inherit
 
 Colors accept `inherit`, `default`, `ansi:N` (0–255), or six-digit `#RRGGBB`; quote hex values in shells. `inherit` uses the item's theme/semantic color. `default` explicitly restores the terminal foreground or background, including inside a Powerline block. JSON stores inheritance as `null`; other values are strings. RGB text is normalized to lowercase.
 
-If threshold colors are enabled, warning/critical foregrounds override an explicit foreground while retaining its background. The existing `threshold-colors`, `warning-threshold` and `critical-threshold` settings control this behavior. Turning colors off removes both channels. `palette ansi` quantizes custom RGB/extended colors to basic ANSI slots; the terminal chooses the actual slot colors. Curses further adapts to available 0/8/16/256 colors and falls back to terminal-default text when pairs cannot be allocated.
+If threshold colors are enabled, warning/critical foregrounds override an explicit foreground while retaining its background. The existing `threshold-colors`, `warning-threshold` and `critical-threshold` settings control this behavior. Turning colors off removes both channels. `palette ansi` quantizes custom RGB/extended colors to basic ANSI slots; the terminal chooses the actual slot colors. The external editor adapts its preview to the reported terminal color capacity.
 
 ## Basic Powerline
 
@@ -58,11 +58,38 @@ Powerline is opt-in and uses `>` by default. The `powerline` glyph option uses U
 
 Each visible item is a block; compound item content stays together. One cell of padding on each side and boundary glyphs count toward row width. Narrow explicit/subagent rows remove decoration before priority fitting and grapheme-safe clipping. Automatic rows wrap complete blocks or whole graphemes in long blocks. Row ends reset style, and default backgrounds never leak into following content. Existing automatic/explicit layout and item width controls still apply.
 
+## Block controls and line colors
+
+Use the same Settings fields in either editor or these CLI options. These are global Powerline **block** controls; Claude host `padding` remains a separate option.
+
+| CLI option | Choices | Default |
+| --- | --- | --- |
+| `powerline-padding` | `none`, `left`, `right`, `both`; one space on each selected side | `both` |
+| `powerline-separator` | `arrow`, `slash`, `bar`, `none` | `arrow` |
+| `powerline-start-cap` | `on`, `off` | `off` |
+| `powerline-end-cap` | `on`, `off` | `on` |
+| `powerline-color-mode` | `semantic`, `continuous`, `restart` | `semantic` |
+
+```sh
+claude-statusline config set separator-style powerline
+claude-statusline config set powerline-padding left
+claude-statusline config set powerline-separator slash
+claude-statusline config set powerline-start-cap on
+claude-statusline config set powerline-end-cap off
+claude-statusline config set powerline-color-mode continuous
+```
+
+`semantic` retains the existing component-role colors. `continuous` advances the six theme colors through visible blocks across physical rows; `restart` starts from the first color on each physical row. Main and subagent rendering have independent cursors. Hidden components, scope labels and spacers consume no colors; repeated instances are separate blocks. A spacer's two sides share one row sequence. Explicit per-item colors and threshold-color precedence survive theme changes. If a rotating inherited background equals the retained foreground (for example an ANSI warning on yellow), it uses a neutral background so the text remains visible; explicit backgrounds remain unchanged.
+
+Start/end decorations follow the separator shape, with a reversed start. ASCII uses `>`/`<`, `/`/`\`, `|`, or no glyph. Powerline mode uses the arrow/slanted glyph only with a suitable colored boundary; otherwise it uses the ASCII shape. No-color output uses ASCII without ANSI escapes. Font support is selected explicitly; it is not automatically detected.
+
+Padding, separators and both ends count toward width. Fitting first removes padding, then end decorations, then drops low-priority blocks or truncates a remaining block at grapheme boundaries. Automatic rows wrap using the same measured geometry. Empty lines produce no decoration, and each colored row restores terminal style.
+
 ## Configuration compatibility and recovery
 
-Display schema **7** adds global `theme` / `powerline_glyph` and per-item `foreground`, `background`, `visibility`, `visibility_threshold`. Editor protocol **9** carries the complete draft; portable envelope version **1**, interface preferences **1**, and runtime protocol **2** are independent.
+Display schema **9** adds `powerline` with `padding`, `separator`, `start_cap`, `end_cap`, and `color_mode`. Editor protocol **16** carries the complete draft. Runtime **2**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
 
-Versions 1–7 are read without rewriting files. Reading, previewing and `install --dry-run` preserve the original bytes. An actual configuration save or `install` backs up those bytes and writes schema 8 with classic theme, ASCII glyph, inherited colors and `always` rules where older files have no settings. Import review includes the new fields and only replaces the draft on acceptance. Future schemas, malformed colors and rules unsupported by a scoped item are rejected, including during installation with `--force`. Uninstall remains available for recovery when the display file cannot be read.
+Schemas 1–8 are read without rewriting files. Reading, previewing, `setup --dry-run` and `install --dry-run` preserve original bytes. Explicit display save or installation backs up the old bytes and writes schema 9. Migrated defaults are both-side padding, arrow separator, no start cap, an end cap and semantic colors, preserving existing Powerline output. Invalid controls and future schemas are rejected. Import review includes the new fields. The ASCII status representation also preserves task/agent state instead of replacing every state with the same generic icon.
 
 For downgrade, preserve/export the current configuration, remove the native editor with the newer package if required by the [release guide](RELEASING.md), install the older package and restore its compatible pre-migration display backup. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
 

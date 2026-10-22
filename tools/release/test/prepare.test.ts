@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { assessEvidence, INSTALL_TARGETS, HOST_TARGETS } from '../prepare.js';
-import { assessStableApproval, ACCEPTED_GAPS } from '../approval.js';
+import { assessStableApproval, stableApprovalPath, ACCEPTED_GAPS } from '../approval.js';
 import { NODE_RUNTIME_CASES } from '@fbincon/statusline-core/node-runtime';
+import { VERSION, isPrerelease } from '@fbincon/statusline-core/release';
+import { repoRoot } from '../../migration/ts-03/common.js';
 const commit = 'a'.repeat(40), hash = 'b'.repeat(64);
 function receipts(): any[] {
     const base = { status: 'pass', commit, tarball_sha256: hash };
-    const installations = INSTALL_TARGETS.map(target => ({ ...base, target, offline_install: true, initially_empty_npm_cache: true, lifecycle_scripts: false, outside_checkout: true, path_excludes_python_and_compilers: true, powershell_setup: target.startsWith('windows-') ? { status: 'pass', candidate_invoked: false, receipt: { status: 0, timeout_ms: 60000, error: null } } : null, checks: Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i, true])) }));
+    const installations = INSTALL_TARGETS.map(target => ({ ...base, target, offline_install: true, initially_empty_npm_cache: true, lifecycle_scripts: false, outside_checkout: true, path_excludes_python_and_compilers: true, powershell_setup: target.startsWith('windows-') ? { status: 'pass', candidate_invoked: false, receipt: { status: 0, timeout_ms: 60000, error: null } } : null, setup_cases: 3, checks: { ...Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i, true])), setup: true } }));
     return [...installations,
         ...installations.flatMap(receipt => NODE_RUNTIME_CASES.map(runtime_case => ({ ...receipt, kind: 'node-runtime', runtime_case, runtime_tests: true, node: 'v' + runtime_case.replace('x', '25.0'), node_sha256: hash }))),
         ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), installed: { ...base, source: { commit } } }; })];
@@ -16,6 +20,12 @@ test('tests.integration.test_publish_package.AcceptanceTests.test_completed_matr
     assert.equal(assessEvidence(receipts(), commit, hash).runtime_installations, 32);
     assert.equal(assessEvidence(receipts(), commit, hash).type_declarations_unavailable.length, 6);
     assert.throws(() => assessEvidence(receipts().slice(1), commit, hash), /Incomplete/);
+});
+test('the current stable application has a registered and version-scoped maintainer decision', { skip: isPrerelease(VERSION) }, () => {
+    const record = JSON.parse(readFileSync(join(repoRoot, stableApprovalPath(VERSION)), 'utf8'));
+    assert.equal(assessStableApproval(record, VERSION).version, VERSION);
+    assert.throws(() => assessStableApproval({ ...record, version: '0.0.0' }, VERSION));
+    assert.throws(() => assessStableApproval({ ...record, accepted_gaps: [...ACCEPTED_GAPS, 'failed-ci'] }, VERSION));
 });
 test('tests.integration.test_publish_package.AcceptanceTests.test_other_commits_refs_events_and_skipped_jobs_do_not_pass', () => {
     for (const field of ['commit', 'tarball_sha256', 'status', 'target']) { const rows = receipts(); rows[0][field] = field === 'status' ? 'skipped' : 'different'; assert.throws(() => assessEvidence(rows, commit, hash)); }

@@ -6,6 +6,9 @@ import { isDraft } from '../../lib/backend.ts';
 import { EDITOR_FIELDS } from '../../lib/generated-contracts.ts';
 import { itemFields, normalizeColor } from '../../lib/editor/appearance.ts';
 import { APPEARANCE_CASES } from '../generated-search-fixtures.ts';
+import { Editor } from '../../lib/editor/draft.ts';
+import { description, readResult } from '../fixtures.ts';
+import { formRows, setFormValue } from '../../lib/editor/forms.ts';
 
 test('shared scoped appearance cases have the same acceptance as Python', () => {
   for (const c of APPEARANCE_CASES) {
@@ -29,7 +32,7 @@ test('scoped forms expose only meaningful conditions and canonicalize colors', (
 });
 
 test('future, partial, invalid global appearances are rejected', () => {
-  for (const patch of [{schema_version: 9}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
+  for (const patch of [{schema_version: 10}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
     const draft = copyDraft(BASE);
     Object.assign(draft.display, patch);
     expect(isDraft(draft)).toBe(false);
@@ -37,4 +40,17 @@ test('future, partial, invalid global appearances are rejected', () => {
   const draft = copyDraft(BASE);
   delete (draft.display as unknown as Record<string, unknown>).theme;
   expect(isDraft(draft)).toBe(false);
+});
+test('new Powerline controls share native forms and strict validation', () => {
+  const editor=new Editor(description(),readResult());editor.page='settings';
+  const view={editor,message:''};
+  for(const [key,value] of [['padding','left'],['separator','slash'],['start_cap',true],['end_cap',false],['color_mode','continuous']] as const) {
+    const field=formRows(view).find(row=>row.spec.key==='powerline.'+key)!;
+    expect(setFormValue(view,field,value)).toBe(true);
+    expect(editor.draft.display.powerline[key]).toBe(value);
+  }
+  expect(isDraft(editor.draft)).toBe(true);
+  expect(description().presets.filter(p=>['daily-development','agent-focus','quota-watch'].includes(p.id)).length).toBe(3);
+  const field=formRows(view).find(row=>row.spec.key==='powerline.padding')!;
+  expect(setFormValue(view,field,'unknown')).toBe(false);
 });

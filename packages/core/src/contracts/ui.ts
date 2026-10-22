@@ -2,11 +2,490 @@
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 15 as const;
+export const PROTOCOL_VERSION = 16 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation"]} as const;
-export const EDITOR_FIELDS = {"global": [{"key": "theme", "label": "Statusline theme", "group": "Appearance", "kind": "choice", "choices": ["classic", "dark", "light", "terminal"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "powerline_glyph", "label": "Powerline separator", "group": "Appearance", "kind": "choice", "choices": ["ascii", "powerline"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "statusline_language", "label": "Statusline language (save with display settings)", "group": "Appearance", "kind": "choice", "choices": LANGUAGES, "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "metrics.branch_diff_base_ref", "label": "Branch diff base (inherit = auto)", "group": "Git metrics", "kind": "text", "choices": [], "minimum": 0, "maximum": 10000, "nullable": true}, {"key": "formatting.model_name", "label": "Model Name", "group": "Formatting", "kind": "choice", "choices": ["original", "short"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "formatting.number_format", "label": "Number Format", "group": "Formatting", "kind": "choice", "choices": ["legacy", "compact", "full", "grouped"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "formatting.labels", "label": "Labels", "group": "Formatting", "kind": "choice", "choices": ["legacy", "short", "off"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "formatting.icons", "label": "Icons", "group": "Formatting", "kind": "choice", "choices": ["legacy", "unicode", "ascii", "off"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "formatting.allowance", "label": "Allowance", "group": "Formatting", "kind": "choice", "choices": ["remaining", "used"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "formatting.reset_format", "label": "Reset Format", "group": "Formatting", "kind": "choice", "choices": ["countdown", "time", "datetime"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "formatting.reset_timezone", "label": "Reset Timezone", "group": "Formatting", "kind": "choice", "choices": ["local", "UTC"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "formatting.thresholds.enabled", "label": "Threshold colors", "group": "Risk colors", "kind": "boolean", "choices": [], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "formatting.thresholds.warning", "label": "Warning (%)", "group": "Risk colors", "kind": "integer", "choices": [], "minimum": 0, "maximum": 100, "nullable": false}, {"key": "formatting.thresholds.critical", "label": "Critical (%)", "group": "Risk colors", "kind": "integer", "choices": [], "minimum": 0, "maximum": 100, "nullable": false}, {"key": "subagents.visibility", "label": "Visible agents", "group": "Subagent visibility", "kind": "choice", "choices": ["all", "running"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "subagents.hide_completed", "label": "Hide completed", "group": "Subagent visibility", "kind": "boolean", "choices": [], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "subagents.row_limit", "label": "Agent row limit", "group": "Subagent visibility", "kind": "integer", "choices": [], "minimum": 0, "maximum": 10000, "nullable": true}, {"key": "subagents.task_max_width", "label": "Task text width", "group": "Subagent visibility", "kind": "integer", "choices": [], "minimum": 2, "maximum": 10000, "nullable": true}], "item": [{"key": "foreground", "label": "Foreground (inherit/default/ansi:N/#RRGGBB)", "group": "Item colors", "kind": "text", "choices": [], "minimum": 0, "maximum": 10000, "nullable": true}, {"key": "background", "label": "Background (inherit/default/ansi:N/#RRGGBB)", "group": "Item colors", "kind": "text", "choices": [], "minimum": 0, "maximum": 10000, "nullable": true}, {"key": "visibility", "label": "Visibility rule", "group": "Conditional visibility", "kind": "choice", "choices": ["always", "git-dirty", "nonzero", "used-at-least"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "visibility_threshold", "label": "Minimum used (%)", "group": "Conditional visibility", "kind": "integer", "choices": [], "minimum": 0, "maximum": 100, "nullable": false}, {"key": "label", "label": "Label (inherit = default)", "group": "Item format", "kind": "text", "choices": [], "minimum": 0, "maximum": 10000, "nullable": true}, {"key": "icon", "label": "Icon (inherit = default)", "group": "Item format", "kind": "text", "choices": [], "minimum": 0, "maximum": 10000, "nullable": true}, {"key": "priority", "label": "Priority", "group": "Item fitting", "kind": "integer", "choices": [], "minimum": 0, "maximum": 100, "nullable": false}, {"key": "max_width", "label": "Maximum width", "group": "Item fitting", "kind": "integer", "choices": [], "minimum": 2, "maximum": 10000, "nullable": true}, {"key": "model_name", "label": "Model Name", "group": "Item format", "kind": "choice", "choices": ["inherit", "original", "short"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "number_format", "label": "Number Format", "group": "Item format", "kind": "choice", "choices": ["inherit", "legacy", "compact", "full", "grouped"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "labels", "label": "Labels", "group": "Item format", "kind": "choice", "choices": ["inherit", "legacy", "short", "off"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "icons", "label": "Icons", "group": "Item format", "kind": "choice", "choices": ["inherit", "legacy", "unicode", "ascii", "off"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "allowance", "label": "Allowance", "group": "Item format", "kind": "choice", "choices": ["inherit", "remaining", "used"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "reset_format", "label": "Reset Format", "group": "Item format", "kind": "choice", "choices": ["inherit", "countdown", "time", "datetime"], "minimum": 0, "maximum": 10000, "nullable": false}, {"key": "reset_timezone", "label": "Reset Timezone", "group": "Item format", "kind": "choice", "choices": ["inherit", "local", "UTC"], "minimum": 0, "maximum": 10000, "nullable": false}]} as const;
+export const POWERLINE_FIELDS = [
+  {
+    "key": "powerline.padding",
+    "label": "Block padding",
+    "group": "Appearance",
+    "kind": "choice",
+    "choices": [
+      "none",
+      "left",
+      "right",
+      "both"
+    ],
+    "minimum": 0,
+    "maximum": 10000,
+    "nullable": false
+  },
+  {
+    "key": "powerline.separator",
+    "label": "Block separator",
+    "group": "Appearance",
+    "kind": "choice",
+    "choices": [
+      "arrow",
+      "slash",
+      "bar",
+      "none"
+    ],
+    "minimum": 0,
+    "maximum": 10000,
+    "nullable": false
+  },
+  {
+    "key": "powerline.start_cap",
+    "label": "Start decoration",
+    "group": "Appearance",
+    "kind": "boolean",
+    "choices": [],
+    "minimum": 0,
+    "maximum": 10000,
+    "nullable": false
+  },
+  {
+    "key": "powerline.end_cap",
+    "label": "End decoration",
+    "group": "Appearance",
+    "kind": "boolean",
+    "choices": [],
+    "minimum": 0,
+    "maximum": 10000,
+    "nullable": false
+  },
+  {
+    "key": "powerline.color_mode",
+    "label": "Block colors across lines",
+    "group": "Appearance",
+    "kind": "choice",
+    "choices": [
+      "semantic",
+      "continuous",
+      "restart"
+    ],
+    "minimum": 0,
+    "maximum": 10000,
+    "nullable": false
+  }
+] as const;
+export const EDITOR_FIELDS = {
+  "global": [
+    {
+      "key": "theme",
+      "label": "Statusline theme",
+      "group": "Appearance",
+      "kind": "choice",
+      "choices": [
+        "classic",
+        "dark",
+        "light",
+        "terminal"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "powerline_glyph",
+      "label": "Powerline separator",
+      "group": "Appearance",
+      "kind": "choice",
+      "choices": [
+        "ascii",
+        "powerline"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    ...POWERLINE_FIELDS,
+    {
+      "key": "statusline_language",
+      "label": "Statusline language (save with display settings)",
+      "group": "Appearance",
+      "kind": "choice",
+      "choices": LANGUAGES,
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "metrics.branch_diff_base_ref",
+      "label": "Branch diff base (inherit = auto)",
+      "group": "Git metrics",
+      "kind": "text",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": true
+    },
+    {
+      "key": "formatting.model_name",
+      "label": "Model Name",
+      "group": "Formatting",
+      "kind": "choice",
+      "choices": [
+        "original",
+        "short"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "formatting.number_format",
+      "label": "Number Format",
+      "group": "Formatting",
+      "kind": "choice",
+      "choices": [
+        "legacy",
+        "compact",
+        "full",
+        "grouped"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "formatting.labels",
+      "label": "Labels",
+      "group": "Formatting",
+      "kind": "choice",
+      "choices": [
+        "legacy",
+        "short",
+        "off"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "formatting.icons",
+      "label": "Icons",
+      "group": "Formatting",
+      "kind": "choice",
+      "choices": [
+        "legacy",
+        "unicode",
+        "ascii",
+        "off"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "formatting.allowance",
+      "label": "Allowance",
+      "group": "Formatting",
+      "kind": "choice",
+      "choices": [
+        "remaining",
+        "used"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "formatting.reset_format",
+      "label": "Reset Format",
+      "group": "Formatting",
+      "kind": "choice",
+      "choices": [
+        "countdown",
+        "time",
+        "datetime"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "formatting.reset_timezone",
+      "label": "Reset Timezone",
+      "group": "Formatting",
+      "kind": "choice",
+      "choices": [
+        "local",
+        "UTC"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "formatting.thresholds.enabled",
+      "label": "Threshold colors",
+      "group": "Risk colors",
+      "kind": "boolean",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "formatting.thresholds.warning",
+      "label": "Warning (%)",
+      "group": "Risk colors",
+      "kind": "integer",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 100,
+      "nullable": false
+    },
+    {
+      "key": "formatting.thresholds.critical",
+      "label": "Critical (%)",
+      "group": "Risk colors",
+      "kind": "integer",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 100,
+      "nullable": false
+    },
+    {
+      "key": "subagents.visibility",
+      "label": "Visible agents",
+      "group": "Subagent visibility",
+      "kind": "choice",
+      "choices": [
+        "all",
+        "running"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "subagents.hide_completed",
+      "label": "Hide completed",
+      "group": "Subagent visibility",
+      "kind": "boolean",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "subagents.row_limit",
+      "label": "Agent row limit",
+      "group": "Subagent visibility",
+      "kind": "integer",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": true
+    },
+    {
+      "key": "subagents.task_max_width",
+      "label": "Task text width",
+      "group": "Subagent visibility",
+      "kind": "integer",
+      "choices": [],
+      "minimum": 2,
+      "maximum": 10000,
+      "nullable": true
+    }
+  ],
+  "item": [
+    {
+      "key": "foreground",
+      "label": "Foreground (inherit/default/ansi:N/#RRGGBB)",
+      "group": "Item colors",
+      "kind": "text",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": true
+    },
+    {
+      "key": "background",
+      "label": "Background (inherit/default/ansi:N/#RRGGBB)",
+      "group": "Item colors",
+      "kind": "text",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": true
+    },
+    {
+      "key": "visibility",
+      "label": "Visibility rule",
+      "group": "Conditional visibility",
+      "kind": "choice",
+      "choices": [
+        "always",
+        "git-dirty",
+        "nonzero",
+        "used-at-least"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "visibility_threshold",
+      "label": "Minimum used (%)",
+      "group": "Conditional visibility",
+      "kind": "integer",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 100,
+      "nullable": false
+    },
+    {
+      "key": "label",
+      "label": "Label (inherit = default)",
+      "group": "Item format",
+      "kind": "text",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": true
+    },
+    {
+      "key": "icon",
+      "label": "Icon (inherit = default)",
+      "group": "Item format",
+      "kind": "text",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": true
+    },
+    {
+      "key": "priority",
+      "label": "Priority",
+      "group": "Item fitting",
+      "kind": "integer",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 100,
+      "nullable": false
+    },
+    {
+      "key": "max_width",
+      "label": "Maximum width",
+      "group": "Item fitting",
+      "kind": "integer",
+      "choices": [],
+      "minimum": 2,
+      "maximum": 10000,
+      "nullable": true
+    },
+    {
+      "key": "model_name",
+      "label": "Model Name",
+      "group": "Item format",
+      "kind": "choice",
+      "choices": [
+        "inherit",
+        "original",
+        "short"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "number_format",
+      "label": "Number Format",
+      "group": "Item format",
+      "kind": "choice",
+      "choices": [
+        "inherit",
+        "legacy",
+        "compact",
+        "full",
+        "grouped"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "labels",
+      "label": "Labels",
+      "group": "Item format",
+      "kind": "choice",
+      "choices": [
+        "inherit",
+        "legacy",
+        "short",
+        "off"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "icons",
+      "label": "Icons",
+      "group": "Item format",
+      "kind": "choice",
+      "choices": [
+        "inherit",
+        "legacy",
+        "unicode",
+        "ascii",
+        "off"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "allowance",
+      "label": "Allowance",
+      "group": "Item format",
+      "kind": "choice",
+      "choices": [
+        "inherit",
+        "remaining",
+        "used"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "reset_format",
+      "label": "Reset Format",
+      "group": "Item format",
+      "kind": "choice",
+      "choices": [
+        "inherit",
+        "countdown",
+        "time",
+        "datetime"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    },
+    {
+      "key": "reset_timezone",
+      "label": "Reset Timezone",
+      "group": "Item format",
+      "kind": "choice",
+      "choices": [
+        "inherit",
+        "local",
+        "UTC"
+      ],
+      "minimum": 0,
+      "maximum": 10000,
+      "nullable": false
+    }
+  ]
+} as const;
 export const PRESETS = generatedPRESETS;
 export const FORMAT_CHOICES = {"model_name": ["original", "short"], "number_format": ["legacy", "compact", "full", "grouped"], "labels": ["legacy", "short", "off"], "icons": ["legacy", "unicode", "ascii", "off"], "allowance": ["remaining", "used"], "reset_format": ["countdown", "time", "datetime"], "reset_timezone": ["local", "UTC"]} as const;
 export const FORMAT_DEFAULTS = {"model_name": "original", "number_format": "legacy", "labels": "legacy", "icons": "legacy", "allowance": "remaining", "reset_format": "countdown", "reset_timezone": "local", "thresholds": {"enabled": false, "warning": 70, "critical": 90}} as const;
@@ -74,6 +553,11 @@ export interface ConfigurationOptions {
   palette: ChoiceOptions;
   theme: ChoiceOptions;
   "powerline-glyph": ChoiceOptions;
+  "powerline-padding": ChoiceOptions;
+  "powerline-separator": ChoiceOptions;
+  "powerline-start-cap": ChoiceOptions;
+  "powerline-end-cap": ChoiceOptions;
+  "powerline-color-mode": ChoiceOptions;
   "directory-style": ChoiceOptions;
   "separator-style": ChoiceOptions;
   "scope-labels": ChoiceOptions;
@@ -83,6 +567,10 @@ export interface ConfigurationOptions {
   "refresh-interval": RefreshOptions;
   "hide-vim-mode-indicator": ChoiceOptions;
 }
+export const POWERLINE_OPTIONS = Object.fromEntries(POWERLINE_FIELDS.map(field => [
+  field.key.replaceAll('.', '-').replaceAll('_', '-'),
+  { choices: field.kind === 'boolean' ? [true, false] : [...field.choices] },
+])) as Pick<ConfigurationOptions, 'powerline-padding' | 'powerline-separator' | 'powerline-start-cap' | 'powerline-end-cap' | 'powerline-color-mode'>;
 export interface Capabilities {
   host_version: string | null;
   subagent_rows: "unknown" | "supported" | "unsupported";
@@ -138,14 +626,22 @@ export interface SubagentDraft {
 export interface MetricsDraft {
   branch_diff_base_ref: string | null;
 }
+export interface PowerlineDraft {
+  padding: "none" | "left" | "right" | "both";
+  separator: "arrow" | "slash" | "bar" | "none";
+  start_cap: boolean;
+  end_cap: boolean;
+  color_mode: "semantic" | "continuous" | "restart";
+}
 export interface DisplayDraft {
-  schema_version: 8;
+  schema_version: 9;
   statusline_language: StatuslineLanguage;
   instances: InstanceDraft[];
   use_colors: boolean;
   palette: Palette;
   theme: Theme;
   powerline_glyph: PowerlineGlyph;
+  powerline: PowerlineDraft;
   directory_style: DirectoryStyle;
   separator_style: SeparatorStyle;
   scope_labels: ScopeLabels;

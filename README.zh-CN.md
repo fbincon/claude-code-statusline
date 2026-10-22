@@ -28,7 +28,7 @@
 - **区分统计范围：** 提供会话累计 token、各子 Agent 任务行，以及包含排队、子 Agent 和主 Agent 收尾的任务总耗时；可选执行耗时排除已核实的用户等待。
 - **调整显示样式：** 支持模型与数字格式、标签、内置图标、颜色、目录样式，以及带优先级和宽度限制的自动或显式分行。
 - **保留完整字符：** 组合 emoji、组合字符和 CJK 文本在换行、裁切和预览中保持完整。
-- **审阅配置改动：** 六种预设可展开编辑，支持可移植 JSON；导入时先查看差异和候选预览，再接受草稿并单独保存。
+- **审阅配置改动：** 三套完整方案与六种原有预设可展开编辑，支持可移植 JSON；导入时先查看差异和候选预览，再接受草稿并单独保存。
 - **选择配置界面：** Main、Subagents、Settings、Layout 四页共享同一配置；Claude 外观及行为偏好使用独立 Apply 操作。
 - **跟随 Claude 主题：** 会话内编辑器按实际主题显示文字、快捷键与选中行；样例预览在单独选择的浅色／深色底色上保留生产配色。
 - **适配终端配色：** 外部 TUI 文字与粗体快捷键使用终端默认色，标题使用青色，预览在当前终端背景上显示所选配色。
@@ -248,14 +248,14 @@ npm install --global --ignore-scripts @fbincon/claude-code-statusline
 
 ```text
 claude-statusline --version
-claude-statusline install --dry-run
-claude-statusline install
+claude-statusline setup --dry-run
+claude-statusline setup
 claude-statusline doctor
 ```
 
 Windows 使用 `claude-statusline.cmd`，或用 Node 调用安装后的 JavaScript 入口。接入后在受信任终端重启 Claude Code。
 
-两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；兼容宿主的原生计时和高级实时指标均需显式启用，保留已保存偏好。软件包安装与 Claude 接入是两个步骤，`install` 不会打开编辑器。已有冲突资源需按[冲突处理说明](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
+两个编辑器在兼容宿主默认启用，保留已保存的关闭偏好；兼容宿主的原生计时和高级实时指标均需显式启用，保留已保存偏好。软件包安装与 Claude 接入是两个步骤；`setup` 串联检查、方案预览与接入审阅，`install` 保留为直接接入命令。已有冲突资源需按[冲突处理说明](docs/USER_GUIDE.zh-CN.md#处理已有-statusline-或同名-skill)操作。
 
 <details>
 <summary>其他安装方式</summary>
@@ -391,6 +391,7 @@ claude-code-statusline/
 │   ├── typescript/               # 运行时约束与测试入口
 │   └── unicode/                  # 固定数据、来源及许可证
 ├── archive/python/               # 冻结 Python 实现、测试、工具及旧发布工作流
+├── examples/schemes/             # 可分享的内置完整方案
 ├── docs/                         # 使用、开发、迁移和历史发布文档
 │   ├── reference/                # CLI 与配置参考
 │   ├── development/              # 架构、测试与阶段记录
@@ -405,6 +406,7 @@ claude-code-statusline/
 
 ## 文档与帮助
 
+- [首次设置](docs/SETUP.zh-CN.md) · [三套完整方案](docs/SCHEMES.zh-CN.md) · [外观控制](docs/APPEARANCE.zh-CN.md)。
 - [使用指南](docs/USER_GUIDE.zh-CN.md)：安装、编辑器、配方、升级与排障。
 - [CLI 参考](docs/reference/cli.zh-CN.md)：命令、选项、字段、文件和退出码。
 - [显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)：作用域、数据来源和可用条件。

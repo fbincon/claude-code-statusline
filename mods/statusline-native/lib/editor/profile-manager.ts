@@ -17,6 +17,7 @@ export interface ProfileManager {
     selected: string | null;
     projectRoot: string | null;
     cursor: number;
+    detailScroll: number;
     action: Action | null;
     fields: { key: 'name' | 'path'; input: TextInput }[];
     field: number;
@@ -29,8 +30,14 @@ export interface ProfileManager {
 }
 export interface ProfileBackend { request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>> }
 export function openProfiles(editor: Editor): void {
-    editor.profiles = { library: null, page: 'list', selected: null, projectRoot: null, cursor: 0, action: null, fields: [], field: 0, candidate: null,
+    editor.profiles = { library: null, page: 'list', selected: null, projectRoot: null, cursor: 0, detailScroll: 0, action: null, fields: [], field: 0, candidate: null,
         confirmation: null, next: null, effect: { kind: 'load' }, message: null, uncertain: false };
+}
+/** Open Save as without replacing the caller's unsaved draft. */
+export function saveProfileCopy(editor: Editor, display: DisplayDraft): void {
+    openProfiles(editor);
+    editor.profiles!.candidate = JSON.parse(JSON.stringify(display)) as DisplayDraft;
+    editor.profiles!.action = 'save';
 }
 export function targetLabel(editor: Editor, language: Language): string {
     const c = editor.baseline.configuration;
@@ -71,7 +78,7 @@ function submitForm(e: Editor): void {
         if (m.action === 'unbind') payload.path = values.path;
         m.confirmation = { kind: 'mutation', payload };
     }
-    m.page = 'confirm'; m.cursor = 0;
+    m.page = 'confirm'; m.cursor = 0; m.detailScroll = 0;
 }
 /** One reducer supplies both editors; text never dispatches shortcuts. */
 export function profilesKey(e: Editor, event: TextKey): 'profiles' | null {
@@ -112,6 +119,7 @@ export function profilesKey(e: Editor, event: TextKey): 'profiles' | null {
         return m.effect ? 'profiles' : null;
     }
     if (m.page === 'confirm') {
+        if (key === 'pageup' || key === 'pagedown') { m.detailScroll = Math.max(0, m.detailScroll + (key === 'pageup' ? -1 : 1)); return null; }
         if (key === 'up' || key === 'down') m.cursor = 1 - m.cursor;
         if (key === 'enter') {
             if (m.cursor === 1) { m.page = 'list'; m.cursor = 0; m.confirmation = null; }
@@ -154,7 +162,9 @@ export async function performProfileAction(e: Editor, backend: ProfileBackend): 
     let writing = false;
     try {
         if (effect.kind === 'load') {
+            const copy = m.action === 'save' && m.candidate !== null;
             m.library = await backend.request('profiles_read'); m.page = 'list'; m.cursor = 0;
+            if (copy) startForm(e, 'save');
             m.message = m.uncertain ? text('profiles.review_saved') : null; m.uncertain = false; return;
         }
         if (effect.kind === 'switch') {
@@ -227,6 +237,15 @@ export function profilesView(e: Editor, language: Language, width: number, heigh
         add(tr('profiles.action.' + (m.action ?? 'export')));
         if (value?.kind === 'mutation') add(String(value.payload.name ?? value.payload.path ?? m.library.profiles.find(p=>p.id===value.payload.id)?.name ?? ''));
         if (value?.kind === 'export') add(value.path);
+        if (value?.kind === 'mutation' && value.payload.action === 'save' && typeof value.payload.name === 'string') {
+            const profile = m.library.profiles.find(profile => profile.name === (value.payload.name as string).trim().normalize('NFC'));
+            const roots = m.library.bindings.filter(binding => binding.profile_id === profile?.id).map(binding => binding.root);
+            if (roots.length) for (const line of wrapText([t('profiles.shared', language, { count: roots.length }), ...roots], width)) add(line);
+        }
+        // Keep both confirmation actions reachable even with many bound projects.
+        const capacity = Math.max(0, height - 3), start = Math.min(m.detailScroll, Math.max(0, lines.length - capacity));
+        return [...lines.slice(start, start + capacity), ...rows.map((row, index) => ({ text: tr(row.label), selected: index === m.cursor })),
+            { text: tr('profiles.navigation'), selected: false }].slice(0, height);
     }
     if (m.page === 'actions') {
         add(m.library.profiles.find(p => p.id === m.selected)?.name ?? '');

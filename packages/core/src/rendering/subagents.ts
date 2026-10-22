@@ -28,6 +28,7 @@ interface Part {
 }
 function paletteFor(config: DisplayDraft): Palette { return !config.use_colors ? EMPTY : appearance.themedPalette(config.palette === 'ansi' ? ANSI : DEFAULT, config, true); }
 interface Prepared {
+    colors: powerline.ColorCursor;
     palette: Palette;
     nodes: Map<string, InstanceDraft>;
     options: Map<string, ReturnType<typeof preferences.optionsFor>>;
@@ -47,7 +48,7 @@ function prepare(config: DisplayDraft, tracing = false): Prepared {
         if (!options.has(node.id)) options.set(node.id, [{ ...config.formatting, ...node.options.formatting }, node.options]);
     }
     for (const node of enabled) if (node.type_id === 'text') literals.set(node, literal(node, config, 'subagent', literalTruncated ? () => literalTruncated.add(node) : undefined));
-    return { palette: paletteFor(config), nodes, options, enabled, literals, literalTruncated,
+    return { colors: powerline.cursor('subagent'), palette: paletteFor(config), nodes, options, enabled, literals, literalTruncated,
         legacyFitting: preferences.legacyFitting(config.subagents.instances.map(node => node.options)),
         measure(text) {
             let width = widths.get(text);
@@ -225,10 +226,10 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
         const nodes = prepared.nodes;
         const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
-        return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + cell.text).join(''), prepared.measure, env.trace?.fit('subagent'));
+        return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + cell.text).join(''), prepared.measure, env.trace?.fit('subagent'), prepared.colors);
     }
     if (config.separator_style === 'powerline')
-        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { id: part.item, text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), priority: options.priority }; }), columns, config, env.trace?.fit('subagent'));
+        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { id: part.item, text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), priority: options.priority }; }), columns, config, env.trace?.fit('subagent'), prepared.colors);
     if (prepared.legacyFitting)
         while (parts.length > 1 && prepared.measure(plain(parts)) > columns) {
             const priority = (i: number) => prepared.options.get(parts[i]!.item)![1].priority;

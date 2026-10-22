@@ -41,6 +41,8 @@ export interface InstallOptions {
     native?: boolean;
     liveMetrics?: boolean;
     nativeTiming?: boolean;
+    /** Internal review guard, evaluated under the file transaction lock. */
+    beforeCommit?: () => void;
 }
 export interface ModResult {
     state: 'installed' | 'disabled' | 'plugin-disabled' | 'suspended' | 'blocked';

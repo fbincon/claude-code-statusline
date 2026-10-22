@@ -1,5 +1,6 @@
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 const COMMANDS: Readonly<Record<string, string>> = {
+    setup: 'guided_setup',
     recover: 'recover_installation',
     install: 'configure_claude_code_to_use_this_status_line',
     uninstall: 'remove_only_this_tool_s_claude_code_configuration',
@@ -47,9 +48,9 @@ export function helpText(command: string | undefined, language: Language): strin
         '  -h, --help          ' + t('cli.help.help', language),
         '  --language LANGUAGE ' + t('cli.help.language_override', language),
     ];
-    if (config || ['ui', 'runtime', 'configure', 'install', 'uninstall', 'doctor', 'recover', 'diagnose'].includes(command ?? ''))
+    if (config || ['setup', 'ui', 'runtime', 'configure', 'install', 'uninstall', 'doctor', 'recover', 'diagnose'].includes(command ?? ''))
         lines.push('  --config-dir PATH   ' + t('cli.help.claude_configuration_directory_default_claude_config_dir_or', language));
-    if (command === 'install' || command === 'uninstall' || command === 'recover') lines.push('  --dry-run           ' + t('cli.help.report_whether_settings_would_change', language));
+    if (command === 'setup' || command === 'install' || command === 'uninstall' || command === 'recover') lines.push('  --dry-run           ' + t('cli.help.report_whether_settings_would_change', language));
     if (command === 'install') {
         const options = {
             force: 'replace_conflicting_statusline_and_subagentstatusline_settings_or_unrelated',
@@ -67,6 +68,7 @@ export function helpText(command: string | undefined, language: Language): strin
     if (command === 'diagnose') lines.push('', '  --input FILE|- [--scope main|subagent] [--width 120]', '  --json [--input-only] [--observed-at ISO_TIME]', '  ' + t('diagnose.help', language));
     if (command === 'task') lines.push('', '  show --session-id ID [--prompt-id ID] [--json] [--config-dir PATH]', '  ' + t('task.help',language));
     if (command === 'configure') lines.push('', '  [--user | --profile NAME | --project PATH]', '  Ctrl+O  ' + t('profiles.title',language));
+    if (command === 'setup') lines.push('', '  ' + t('setup.steps', language));
     if (config) lines.push('', '  profile list|save|rename|delete|preview|activate|import|export', '  project list|bind|unbind|resolve', '  ' + t('profiles.help',language));
     return lines.join('\n') + '\n';
 }

@@ -82,7 +82,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         // Resolve preferences without creating files, including before help/parser errors.
         // Only the command's own directory option selects storage. A literal
         // item value after -- must never redirect a configuration write.
-        const administrative = ['install', 'uninstall', 'doctor', 'recover'].includes(args[0] ?? '');
+        const administrative = ['setup', 'install', 'uninstall', 'doctor', 'recover'].includes(args[0] ?? '');
         const directoryIndex = administrative || args[0] === 'diagnose' || args[0] === 'task' ? args.findIndex(arg => arg === '--config-dir' || arg.startsWith('--config-dir=')) : 1;
         const directoryFlag = args[directoryIndex];
         const requestedDirectory = directoryFlag === '--config-dir' ? args[directoryIndex + 1] : directoryFlag?.startsWith('--config-dir=') ? directoryFlag.slice(13) : undefined;
@@ -91,11 +91,11 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         if (isLinkOrReparse(configDir)) configDir = resolvedPath(configDir);
         const preferences = readPreferences(configDir, createStorage(environment.now));
         language = (selectedLanguage ?? preferences.ui_language) as Language;
-        if (['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
+        if (['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
             const command = args[0];
-            if (command && !command.startsWith('-') && !['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command && !command.startsWith('-') && !['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
             if (command === 'config') {
                 const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
                 if (!['profile','project'].includes(args[offset] ?? '')) validateConfigHelp(args.slice(offset));
@@ -105,7 +105,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return 0;
         }
         const command = args.shift();
-        if (!['install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
+        if (!['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
         if (administrative) {
             const { parseAdministration } = await import('./integration/arguments.js');
@@ -114,6 +114,10 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             const { renderMessage } = await import('@fbincon/statusline-core/i18n/messages');
             const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
             const context = installContext(configDir, launch, (environment.hostVersion ?? detectClaudeVersion)(), environment.installation?.io, environment.installation?.host);
+            if (command === 'setup') {
+                const { setup } = await import('./integration/setup.js');
+                return setup(context, options.dryRun ?? false, language, stdout, stderr);
+            }
             if (command === 'recover') {
                 const { recover } = await import('./recovery/service.js');
                 const result = recover(context, options.dryRun);

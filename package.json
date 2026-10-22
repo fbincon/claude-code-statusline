@@ -20,6 +20,7 @@
     "acceptance:power": "npm run build && node dist/typescript/tools/acceptance/power.js",
     "capture:render": "npm run build && node dist/typescript/tools/acceptance/render-capture.js",
     "capture:editor": "npm run build && node dist/typescript/tools/acceptance/editor-capture.js",
+    "capture:setup-appearance": "npm run build && node dist/typescript/tools/acceptance/setup-appearance-capture.js",
     "release:gitee-notes": "npm run build && node dist/typescript/tools/release/gitee-notes.js",
     "benchmark": "npm run build && node dist/typescript/tools/benchmarks/run.js",
     "generate": "npm run build && node dist/typescript/tools/generation/resources.js",

@@ -90,7 +90,11 @@ else if (operation === 'official' || operation === 'prepare-host') {
         fs.writeFileSync(receipt!, JSON.stringify({ host_version: request.version, installed_mods: specs.map((spec: any) => spec.name), idempotent: true, bindings: true, native_protocol_save: true, user_disabled_preserved: true, removed_owned_only: true, pending: 0, model_calls: 0 }));
     }
 }
-else if (operation === 'windows-editor') {
+else if (operation === 'setup-console') {
+    const { main } = await load('cli', 'main');
+    process.exitCode = await main(['--language', 'en', 'setup', '--config-dir', config!], { hostVersion: () => [2, 1, 258] });
+}
+else if (operation === 'windows-editor' || operation === 'windows-setup') {
     const { library, nativeApi } = await load('platform', 'native'), k = library('kernel32.dll');
     const input = k.func('void *CreateFileW(const char16_t *name, uint32_t access, uint32_t share, void *security, uint32_t disposition, uint32_t flags, void *template)')('CONIN$', 0xc0000000, 3, null, 3, 0, null);
     if (!input || nativeApi().address(input) === 0xffffffffffffffffn)
@@ -109,10 +113,12 @@ else if (operation === 'windows-editor') {
     (process.stdout.write as any) = (chunk: any, ...args: any[]) => {
         const value = Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
         chunks.push(value);
-        if (!scheduled && chunks.join('').includes('Preview (sample data)')) {
+        if (!scheduled && chunks.join('').includes(operation === 'windows-setup' ? 'Environment and configuration checks' : 'Preview (sample data)')) {
             scheduled = true;
             setTimeout(() => {
-                const keys = choice === 'save' ? ' \x13' : ' \x1b', records = Buffer.alloc(keys.length * 40);
+                const keys = operation === 'windows-setup' ? choice === 'cancel' ? '\x1b' : '\r\r\r\x1b[F\r' + (choice === 'save' ? '\x1b[B' : '') + '\r'
+                    : choice === 'save' ? ' \x13' : ' \x1b';
+                const records = Buffer.alloc(keys.length * 40);
                 for (let i = 0; i < keys.length; i++)
                     for (let down = 0; down < 2; down++) {
                         const offset = i * 40 + down * 20, code = keys.charCodeAt(i);
@@ -133,7 +139,8 @@ else if (operation === 'windows-editor') {
     timer = setTimeout(() => { fs.writeFileSync(receipt!, JSON.stringify({ error: 'Editor console timed out', output: chunks.join('').slice(-2000) })); process.exit(1); }, 10000);
     try {
         const { main } = await load('cli', 'main');
-        const status = await main(['--language', 'en', 'configure', '--config-dir', config!]);
+        const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],
+            operation === 'windows-setup' ? { hostVersion: () => [2, 1, 258] } : {});
         fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), columns, rows, output: chunks.join('') }));
         process.exitCode = status;
     }

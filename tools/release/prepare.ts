@@ -37,7 +37,8 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
-            assert.equal(Object.keys(report.checks).length, 10); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(Object.keys(report.checks).length, 11); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(report.checks.setup, true); assert.equal(report.setup_cases, 3);
         } else {
             assert(HOST_TARGETS.includes(report.target), 'Unexpected host target');
             assert.equal(report.target, report.platform + '-' + report.host);

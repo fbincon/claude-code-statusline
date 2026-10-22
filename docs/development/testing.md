@@ -2,6 +2,8 @@
 
 **English** | [简体中文](testing.zh-CN.md)
 
+[Setup and complete appearance implementation](setup-appearance.md) covers first use, built-in schemes, schema 9, protocol 16 and their acceptance.
+
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
 
 For explicit real-input diagnosis and cache causes, see [input diagnosis](../DIAGNOSTICS.md) and [implementation and acceptance](real-input-diagnostics.md).

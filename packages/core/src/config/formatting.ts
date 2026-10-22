@@ -1,3 +1,4 @@
+import { POWERLINE_FIELDS, type PowerlineDraft } from '../contracts/ui.js';
 import type { FormattingDraft, ItemOptionsDraft, LayoutDraft, Scope, VisibilityRule } from '../contracts/ui.js';
 import { DEFAULT_ITEM } from './defaults.js';
 import { exact, integer, nullableInteger, safeText, object, fail, clone } from './validation.js';
@@ -74,4 +75,15 @@ export function reorderedLayout(value: LayoutDraft, ids: readonly string[]): Lay
   }
   if (remaining.length) { if (rows.length) rows.at(-1)!.push(...remaining); else rows.push(remaining); }
   return { mode: 'explicit', rows };
+}
+
+/** Closed, shared appearance controls; no arbitrary glyph templates. */
+export function powerline(value: unknown): PowerlineDraft {
+  exact(value, POWERLINE_FIELDS.map(field => field.key.slice(10)), 'powerline');
+  for (const field of POWERLINE_FIELDS) {
+    const key = field.key.slice(10), raw = value[key];
+    if (field.kind === 'boolean' ? typeof raw !== 'boolean' : !(field.choices as readonly unknown[]).includes(raw))
+      fail('errors.powerline.value', { field: key });
+  }
+  return clone(value) as unknown as PowerlineDraft;
 }

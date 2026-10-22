@@ -94,6 +94,7 @@ function prepare(context: InstallContext, options: InstallOptions, uninstall: bo
 function changeFiles(context: InstallContext, options: InstallOptions, uninstall: boolean): ChangeResult {
     const action = uninstall ? 'uninstall' : 'install', { configDir, io } = context;
     function run(): ChangeResult {
+        if (!options.dryRun) options.beforeCommit?.();
         const changes = prepare(context, options, uninstall), backupDir = options.dryRun ? null : commit(configDir, action, changes, io);
         if (!options.dryRun)
             for (const name of [SKILL, EXTERNAL]) {

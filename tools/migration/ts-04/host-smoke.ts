@@ -32,7 +32,7 @@ try {
     if (prepared.status !== 0)
         throw new Error(prepared.stderr);
     p = openPty(config, 120, 36, env, 'en', { executable: host.executable, args: [...host.args, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'], cwd: project });
-    let offset = 0, confirmed = false, sent = false, manager = false, saved = false, taskOpened = false, taskRendered = false;
+    let offset = 0, confirmed = false, sent = false, manager = false, quickOpened = false, saved = false, taskOpened = false, taskRendered = false;
     const screen = new Capture(120, 36);
     let byteOffset = 0;
     const start = Date.now();
@@ -66,11 +66,21 @@ try {
             p.send('\x0f');
             manager = true;
         }
-        if (manager && !saved && records.some(row => row.operation === 'profiles_read' && row.phase === 'complete' && row.status === 0)) {
+        if (manager && !quickOpened && records.some(row => row.operation === 'profiles_read' && row.phase === 'complete' && row.status === 0)) {
             // Escape releases the native Client focus; Ctrl+G closes its overlay.
             p.send('\x07');
             await new Promise(resolve => setTimeout(resolve, 200));
-            p.send(' ');
+            p.send('\x10');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            p.send('\x1b[F\r');
+            quickOpened = true;
+        }
+        if (quickOpened && !saved && records.some(row => row.operation === 'preset' && row.phase === 'complete' && row.status === 0)) {
+            // The last stable preset is quota-watch. Review, continue editing, save/close.
+            await new Promise(resolve => setTimeout(resolve, 200));
+            p.send('\x1b[F\r');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            p.send('\r');
             await new Promise(resolve => setTimeout(resolve, 200));
             p.send('f');
             saved = true;
@@ -89,7 +99,10 @@ try {
     const commands = [...new Set(records.map(row => row.argv[0]))], operations = [...new Set(records.filter(row => row.argv[0] === 'ui').map(row => row.operation))];
     const display = join(config, 'claude-statusline.json');
     const completed = (operation: string) => records.some(row => row.operation === operation && row.phase === 'complete' && row.status === 0);
-    report = { status: taskRendered && commands.includes('runtime') && ['apply','profiles_read','task_details'].every(completed) && fs.existsSync(display) ? 'pass' : 'unverified', host: version, source: f.packed.source, tarball_sha256: f.packed.sha256, installed_resources: true, real_host_commands: commands, native_operations: operations, display_saved: fs.existsSync(display), task_pane_rendered: taskRendered, model_calls: 0, credentials: 'synthetic key and unreachable loopback API', physical_visual_acceptance: false };
+    const savedDisplay = fs.existsSync(display) ? JSON.parse(fs.readFileSync(display, 'utf8')) : null;
+    const completeSchemeSaved = savedDisplay?.schema_version === 9 && savedDisplay.theme === 'terminal'
+        && JSON.stringify(savedDisplay.layout.rows[0]) === JSON.stringify(['context-used', 'five-hour-limit', 'weekly-limit']);
+    report = { status: taskRendered && commands.includes('runtime') && ['apply','profiles_read','preset','task_details'].every(completed) && completeSchemeSaved ? 'pass' : 'unverified', host: version, source: f.packed.source, tarball_sha256: f.packed.sha256, installed_resources: true, real_host_commands: commands, native_operations: operations, display_saved: fs.existsSync(display), complete_scheme_saved: completeSchemeSaved, task_pane_rendered: taskRendered, model_calls: 0, credentials: 'synthetic key and unreachable loopback API', physical_visual_acceptance: false };
     fs.writeFileSync(reportPath.replace(/\.json$/u, '.terminal.bin'), p.captured());
     fs.writeFileSync(reportPath.replace(/\.json$/u, '.cells.json'), JSON.stringify({ columns: 120, rows: 36, cells: screen.buffer,
         terminal_foreground: '#d8dee9', terminal_background: '#171a1f' }) + '\n');

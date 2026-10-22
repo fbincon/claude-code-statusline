@@ -78,3 +78,8 @@ __CLAUDE_STATUSLINE_ITEM_GROUPS__
    `/statusline-config subagents order ITEM...`.
 
 The guided form preserves the saved theme, Powerline glyph, item colors and visibility rules. For appearance changes, the user can open either editor or invoke `/statusline-config set theme classic|dark|light|terminal`, `/statusline-config set powerline-glyph ascii|powerline`, or `/statusline-config item main|subagent ID OPTION VALUE`. Item appearance options are `foreground`, `background`, `visibility`, and `visibility-threshold`. Colors accept `inherit`, `default`, `ansi:0`–`ansi:255`, or a quoted six-digit hex value. Use only the visibility rule supported by the scoped item; usage thresholds are independent of warning colors.
+
+
+For first integration, recommend `__CLAUDE_STATUSLINE_COMMAND__ setup` in an interactive terminal, or `setup --dry-run` for read-only checks. It preserves existing display/profile/binding and collection choices until explicitly applied. Its review separates display save from integration and reports partial success; do not claim that a sample verifies a restarted Claude session.
+
+Quick setup in either editor includes complete `daily-development`, `agent-focus`, and `quota-watch` schemes, plus the six existing presets. Users preview before saving the current target or saving a named copy. Scheme selection never enables collection. Powerline controls are `config set powerline-padding none|left|right|both`, `powerline-separator arrow|slash|bar|none`, `powerline-start-cap on|off`, `powerline-end-cap on|off`, and `powerline-color-mode semantic|continuous|restart`. Block padding is separate from host padding. These are terminal CLI options; follow the supported slash-parser entry points rather than forwarding arbitrary terminal arguments.

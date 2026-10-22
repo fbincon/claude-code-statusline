@@ -2,6 +2,8 @@
 
 **English** | [简体中文](cli.zh-CN.md)
 
+[First-use setup](../SETUP.md) and [complete schemes](../SCHEMES.md).
+
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](../PROFILES.md) and [task details](../TASK_DETAILS.md).
 
 For `diagnose --input FILE|-`, read-only observation rules, and text/JSON output, see [input diagnosis](../DIAGNOSTICS.md).
@@ -33,6 +35,7 @@ Complete command syntax, supported options, display fields and configuration fil
 
 ```text
 claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko] COMMAND ...
+claude-statusline setup [--config-dir PATH] [--dry-run]
 claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
@@ -100,7 +103,7 @@ Help text/groups, argparse errors and administrative output use the selected lan
 
 `config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` persists the display language. `config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` saves it atomically with other answers, preserving the current value when omitted. Both editors preview draft changes immediately; Save/Cancel governs output language. `config language` and root `--language` control interfaces only.
 
-Display schema v7 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
+Display schema v9 includes required `statusline_language`. Historical v1–v5 reads/imports default to English; presets retain it, export includes it, reset selects English. The legacy wizard reads the current UI preference and maps localized answers to stable codes before one apply. See [usage and downgrade recovery](../USER_GUIDE.md#statusline-language).
 
 ## Installation and diagnostics
 
@@ -437,7 +440,7 @@ This command:
 
 ## Configurable display items
 
-The main catalog has 60 metrics plus `text` and `spacer`. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
+The main catalog has 61 metrics plus `text` and `spacer`. The tables below cover defaults and common optional fields. Use `config list-items --json` for all IDs; [metric definitions](../DISPLAY_ITEMS.md) cover independent and live fields.
 
 All the following items are enabled by default; table order is also the initial display order:
 
@@ -716,11 +719,11 @@ Display items and styles are saved in:
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-This complete schema-8 example keeps one main model instance and one subagent name instance. Use `config export PATH` for your complete configuration. Defaults still enable ten main metrics and five subagent metrics.
+This complete schema-9 example keeps one main model instance and one subagent name instance. Use `config export PATH` for your complete configuration. Defaults still enable ten main metrics and five subagent metrics.
 
 ```json
 {
-  "schema_version": 8,
+  "schema_version": 9,
   "use_colors": true,
   "palette": "default",
   "directory_style": "full",
@@ -729,6 +732,7 @@ This complete schema-8 example keeps one main model instance and one subagent na
   "statusline_language": "en",
   "theme": "classic",
   "powerline_glyph": "ascii",
+  "powerline": {"padding": "both", "separator": "arrow", "start_cap": false, "end_cap": true, "color_mode": "semantic"},
   "subagents": {
     "enabled": true,
     "visibility": "all",
@@ -929,3 +933,9 @@ Use `config set theme classic|dark|light|terminal`, `config set separator-style 
 Legacy item/enable/disable commands resolve a type only when unique. Legacy bulk selection/order/layout operations reject repeated types, text and spacers without choosing the first match or deleting instances. Type-catalog JSON adds `instance_ids`, `enabled_instance_ids`, and `instance_only`. See [composition](../COMPOSITION.md) for complete examples.
 
 When a unique metric is toggled in an explicit layout or a composition, its position and spacer side are retained. Historical append-on-enable order applies to simple automatic type selections. Use `config instance ... enable|disable` to preserve positions consistently.
+
+## First-use setup and complete schemes
+
+`setup` connects checks, candidate preview and explicit display/integration commits. `--dry-run` is read-only and works without a TTY; normal non-TTY use exits 2. See [setup](../SETUP.md). The three additional complete presets are `daily-development`, `agent-focus`, and `quota-watch`; their global appearance is intentional, while the original six presets preserve their existing expansion behavior. See [scheme files and sharing](../SCHEMES.md).
+
+`config set powerline-padding none|left|right|both`, `powerline-separator arrow|slash|bar|none`, `powerline-start-cap on|off`, `powerline-end-cap on|off`, and `powerline-color-mode semantic|continuous|restart` use shared validation. These affect Powerline blocks, independently of host padding. [Appearance controls](../APPEARANCE.md).
