@@ -2,6 +2,10 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.5.0 setup and complete appearances
+
+Use the [v3.5.0-only decision](releases/approvals/v3.5.0.json), approved on 2026-10-23. Require all final-PR, main and annotated-tag checks: eight installation targets, 32 Node cases and thirteen fixed hosts. Installed receipts now also require setup cancellation, display-only save and integration terminal journeys; independent builds/source rebuild, extended six-language PTYs, verified draft attachments, OIDC npm and public downloads remain required. Only the same six historical gaps are accepted. Record evidence in [setup and appearance delivery](development/setup-appearance.md).
+
 
 ## v3.4.0 schemes, projects and task details
 

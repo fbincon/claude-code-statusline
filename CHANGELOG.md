@@ -3,6 +3,14 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.5.0 — 2026-10-23
+
+- Add `setup`: read-only checks, scheme preview, explicit display/integration commits and truthful partial-failure recovery.
+- Add three complete schemes and shared Quick setup Save as, retaining existing presets, profiles, project bindings and opt-outs.
+- Add configurable Powerline padding, separators, end decorations and cross-line colors; preserve ASCII task/agent state markers.
+- Advance display schema to 9 and editor protocol to 16, with read-only legacy migration and backed-up explicit writes.
+- [Release notes](docs/releases/v3.5.0.md) · [Implementation and validation](docs/development/setup-appearance.md).
+
 ## 3.4.0 — 2026-10-21
 
 - Add named display schemes and shared management in both editors, preserving an independent user-default snapshot.

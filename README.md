@@ -27,7 +27,7 @@ A Claude Code status line for Linux, WSL, Windows, and macOS. See model and reas
 - **Track the right scope:** session token totals, per-task subagent rows, and total task time covering queueing, agents and main-agent wrap-up; optional execution time excludes verified user waits.
 - **Adjust presentation:** model and number formats, labels, built-in icons, colors, directory styles, and automatic or explicit rows with priorities and width limits.
 - **Keep Unicode intact:** joined emoji, combining marks and CJK text stay together when rows wrap, clip or appear in previews.
-- **Review configuration changes:** six editable presets and portable JSON, with import differences and candidate previews before accepting a draft and saving.
+- **Review configuration changes:** three complete display schemes, six existing presets and portable JSON, with import differences and candidate previews before accepting a draft and saving.
 - **Choose an editor:** Main, Subagents, Settings, and Layout pages share the same configuration. Claude appearance and behavior preferences use a separate Apply action.
 - **Follow Claude themes:** the in-session editor adapts text, keys and selection to the applied theme; sample previews retain production colors on a separately chosen light/dark background.
 - **Follow terminal colors:** external TUI text and bold keys use terminal defaults, with cyan headings; previews show the selected palette on the current terminal background.
@@ -259,14 +259,14 @@ Ensure the npm command directory is on PATH, then run:
 
 ```text
 claude-statusline --version
-claude-statusline install --dry-run
-claude-statusline install
+claude-statusline setup --dry-run
+claude-statusline setup
 claude-statusline doctor
 ```
 
 On Windows, use `claude-statusline.cmd`, or invoke the installed JavaScript entry with Node. Restart Claude Code in a trusted terminal after integration.
 
-Both editors default on for compatible hosts, respecting saved disablement preferences. Native timing and advanced live metrics both require explicit opt-in on compatible hosts; saved choices are preserved. Package installation and Claude integration are separate steps; `install` does not open an editor. Existing conflicting resources require [explicit handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
+Both editors default on for compatible hosts, respecting saved disablement preferences. Native timing and advanced live metrics both require explicit opt-in on compatible hosts; saved choices are preserved. Package installation and Claude integration are separate steps. `setup` connects checks, scheme preview and integration review; `install` remains the direct integration command. Existing conflicting resources require [explicit handling](docs/USER_GUIDE.md#handle-an-existing-status-line-or-skill-with-the-same-name).
 
 <details>
 <summary>Other installation methods</summary>
@@ -402,6 +402,7 @@ claude-code-statusline/
 │   ├── typescript/               # Runtime constraints and test entry points
 │   └── unicode/                  # Pinned data, provenance and licenses
 ├── archive/python/               # Frozen Python implementation, tests, tools and publishing workflows
+├── examples/schemes/             # Shareable built-in complete schemes
 ├── docs/                         # Usage, development, migration and historical releases
 │   ├── reference/                # CLI and configuration reference
 │   ├── development/              # Architecture, testing and stage records
@@ -416,6 +417,7 @@ claude-code-statusline/
 
 ## Documentation and help
 
+- [First-use setup](docs/SETUP.md) · [Three complete schemes](docs/SCHEMES.md) · [Appearance controls](docs/APPEARANCE.md).
 - [User guide](docs/USER_GUIDE.md): installation, editors, recipes, upgrades, and troubleshooting.
 - [CLI reference](docs/reference/cli.md): commands, options, fields, files, and exit codes.
 - [Display items and metric definitions](docs/DISPLAY_ITEMS.md): scope, sources, and availability.

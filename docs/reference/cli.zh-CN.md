@@ -2,6 +2,8 @@
 
 [English](cli.md) | **简体中文**
 
+[首次设置](../SETUP.zh-CN.md)与[完整方案](../SCHEMES.zh-CN.md)。
+
 命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。
 
 显式 `diagnose --input FILE|-`、只读观测边界、文本与 JSON 输出见[输入诊断](../DIAGNOSTICS.zh-CN.md)。
@@ -31,6 +33,7 @@
 
 ```text
 claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko] COMMAND ...
+claude-statusline setup [--config-dir PATH] [--dry-run]
 claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
 claude-statusline config [--config-dir PATH] list-items [--json]
@@ -686,11 +689,11 @@ claude-statusline config set refresh-interval event
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 8 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
+以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 9 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
 
 ```json
 {
-  "schema_version": 8,
+  "schema_version": 9,
   "use_colors": true,
   "palette": "default",
   "directory_style": "full",
@@ -699,6 +702,7 @@ claude-statusline config set refresh-interval event
   "statusline_language": "en",
   "theme": "classic",
   "powerline_glyph": "ascii",
+  "powerline": {"padding": "both", "separator": "arrow", "start_cap": false, "end_cap": true, "color_mode": "semantic"},
   "subagents": {
     "enabled": true,
     "visibility": "all",
@@ -891,3 +895,9 @@ claude-statusline.cmd config show
 旧 `item`／启禁用命令仅在类型唯一时解析；旧批量选择、排序及布局操作遇到重复类型、文本或留白时拒绝，不选择首个匹配项，不删除实例。类型目录 JSON 增加 `instance_ids`、`enabled_instance_ids`、`instance_only`。完整示例见[组件与布局](../COMPOSITION.zh-CN.md)。
 
 在显式布局或组件组合中切换唯一指标时，保留其位置及留白左右关系。简单自动布局的旧类型选择仍保留启用时追加到末尾的行为；使用 `config instance ... enable|disable` 可始终保留位置。
+
+## 首次设置与完整方案
+
+`setup` 串联检查、候选预览与明确的显示／接入提交。`--dry-run` 为只读且无需 TTY，普通非 TTY 调用退出码为 2，详见[设置向导](../SETUP.zh-CN.md)。新增三套完整预设 `daily-development`、`agent-focus`、`quota-watch`，有意定义完整全局外观；原六种预设保留原有展开行为。参见[方案文件与分享](../SCHEMES.zh-CN.md)。
+
+`config set powerline-padding none|left|right|both`、`powerline-separator arrow|slash|bar|none`、`powerline-start-cap on|off`、`powerline-end-cap on|off`、`powerline-color-mode semantic|continuous|restart` 共用校验规则，控制 Powerline 色块，与宿主 padding 独立。[外观控制](../APPEARANCE.zh-CN.md)。

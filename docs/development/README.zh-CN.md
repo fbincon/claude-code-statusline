@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+[首次设置与完整外观实现](setup-appearance.zh-CN.md)记录首次使用、内置方案、schema 9、协议 16 及对应验收。
+
 命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。
 
 显式真实输入诊断及缓存原因显示见[诊断指南](../DIAGNOSTICS.zh-CN.md)，实现边界与验收见[诊断开发说明](real-input-diagnostics.zh-CN.md)。

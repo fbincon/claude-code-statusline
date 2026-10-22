@@ -58,11 +58,38 @@ Powerline 默认关闭，开启后默认使用 `>`。选择 `powerline` 字形�
 
 每个可见显示项形成一个色块，复合项目保留内部内容。左右各一格内边距及分隔字符计入宽度；窄的显式行／子代理行先减少装饰，再按优先级适配和完整字素裁剪。自动行按色块换行，过长色块仅在完整字素边界拆分。行尾恢复样式，默认背景不会泄漏到后续内容。原有自动／显式布局和逐项宽度设置继续适用。
 
+## 色块控制与跨行配色
+
+两种编辑器的设置页与 CLI 共用以下选项。这些是 Powerline 的全局**色块内部**设置，Claude 宿主整体 `padding` 仍然独立。
+
+| CLI 选项 | 可选值 | 默认 |
+| --- | --- | --- |
+| `powerline-padding` | `none`、`left`、`right`、`both`；选中侧各一个空格 | `both` |
+| `powerline-separator` | `arrow`、`slash`、`bar`、`none` | `arrow` |
+| `powerline-start-cap` | `on`、`off` | `off` |
+| `powerline-end-cap` | `on`、`off` | `on` |
+| `powerline-color-mode` | `semantic`、`continuous`、`restart` | `semantic` |
+
+```sh
+claude-statusline config set separator-style powerline
+claude-statusline config set powerline-padding left
+claude-statusline config set powerline-separator slash
+claude-statusline config set powerline-start-cap on
+claude-statusline config set powerline-end-cap off
+claude-statusline config set powerline-color-mode continuous
+```
+
+`semantic` 保留按组件含义配色；`continuous` 将主题的六种颜色按可见色块跨实际输出行连续轮换；`restart` 每个实际输出行从第一种颜色重新开始。主栏与子代理栏独立计算。隐藏组件、范围标签和 spacer 不占颜色位置，重复实例各自算一个色块；spacer 两侧共享同一行序列。更改主题保留逐项颜色覆盖及阈值颜色优先级。
+
+首尾装饰跟随分隔形状，首端反向。ASCII 使用 `>`／`<`、`/`／`\`、`|` 或无字形；Powerline 仅在合适的彩色边界使用箭头／斜线字形，否则用对应 ASCII。无色输出使用 ASCII 且不包含 ANSI 转义。字体支持由用户明确选择，不自动检测。
+
+留白、分隔符与首尾装饰全部计入宽度。窄行先去掉留白，再去掉端饰，再按优先级移除组件或在完整字素边界截断剩余色块。自动换行使用同一套宽度计算。空行不输出装饰，彩色行末恢复终端样式。
+
 ## 配置兼容与恢复
 
-显示 schema **7** 新增全局 `theme`／`powerline_glyph` 和逐项 `foreground`、`background`、`visibility`、`visibility_threshold`。编辑器协议 **9** 传输完整草稿；可移植封装版本 **1**、界面偏好 **1** 与运行协议 **2** 独立演进。
+显示 schema **9** 新增 `powerline` 对象，包含 `padding`、`separator`、`start_cap`、`end_cap`、`color_mode`。编辑器协议 **16** 传输完整草稿；运行协议 **2**、生命周期 **4**、portable 封装 **1**、UI 偏好 **1**、方案集合／导出 **1** 仍独立演进。
 
-读取版本 1–7、预览与 `install --dry-run` 时不改写文件；实际配置保存或执行 `install` 时先备份原始字节，再写入 schema 8。旧文件缺失的设置采用经典主题、ASCII 字形、继承颜色与 `always`。导入审阅包含新增字段，接受时仅替换草稿；未来 schema、非法颜色和不适用于该作用域显示项的规则会被拒绝，安装时使用 `--force` 也不能绕过。显示文件无法读取时仍可卸载，方便恢复。
+schema 1–8 只在内存中迁移；读取、预览、`setup --dry-run` 和 `install --dry-run` 保留原始字节。明确保存显示或安装时先备份再写入 schema 9。旧值映射为两侧留白、箭头分隔、无首饰、有尾饰和语义配色，保留原有 Powerline 输出。非法控制值与未来 schema 会被拒绝，导入审阅包含新字段。ASCII 状态表示也会保留任务／代理状态，不再将所有状态替换成相同通用图标。
 
 降级前保存／导出当前配置，按[发布指南](RELEASING.zh-CN.md)的要求使用新版软件移除原生编辑器，安装旧版后恢复迁移前的兼容显示配置备份。不要只修改 schema 数字，也不要期望旧软件保留新字段。恢复操作见[用户指南](USER_GUIDE.zh-CN.md)。
 
