@@ -60,9 +60,15 @@ export function sequence(text: string, config: DisplayDraft, id: string, scope: 
     const previous = baseStyle(config, node.type_id, scope), next = baseStyle(config, node.type_id, scope, index);
     return layout.renderStyledUnits(layout.styledUnits(text).map(unit => {
         const state = styles.parse(unit.style);
+        const foreground = node.options.foreground === null && styles.sameColor(state.foreground, previous.foreground) ? next.foreground : state.foreground;
+        let background = node.options.background === null ? next.background : state.background;
+        // ANSI warning/red thresholds can match a rotating yellow/red block.
+        // Keep threshold and explicit foreground colors; only adjust inherited backgrounds.
+        if (node.options.background === null && foreground !== null && styles.sameColor(foreground, background))
+            background = config.palette === 'ansi' || config.theme === 'terminal' ? ['ansi', 0]
+                : ['rgb', config.theme === 'light' ? '#ffffff' : '#000000'];
         return { ...unit, style: styles.serialize({ ...state,
-            foreground: node.options.foreground === null && styles.sameColor(state.foreground, previous.foreground) ? next.foreground : state.foreground,
-            background: node.options.background === null ? next.background : state.background,
+            foreground, background,
         }) };
     }));
 }

@@ -43,7 +43,7 @@ claude-statusline config item main model background inherit
 
 颜色支持 `inherit`、`default`、`ansi:N`（0–255）和六位 `#RRGGBB`；在 shell 中为十六进制颜色加引号。`inherit` 继承显示项的主题／语义色，`default` 明确恢复终端前景／背景，包括 Powerline 色块内部。JSON 用 `null` 保存继承，其余值为字符串；RGB 文本统一转成小写。
 
-启用阈值变色时，警告／危险前景色覆盖逐项前景色，逐项背景保持。沿用 `threshold-colors`、`warning-threshold` 和 `critical-threshold` 控制这一行为。关闭颜色会同时关闭前景与背景；`palette ansi` 将自定义 RGB／扩展色量化为基础 ANSI 色槽，实际色槽颜色由终端决定。curses 继续适配 0／8／16／256 色能力，颜色对无法分配时回退到终端默认文字。
+启用阈值变色时，警告／危险前景色覆盖逐项前景色，逐项背景保持。沿用 `threshold-colors`、`warning-threshold` 和 `critical-threshold` 控制这一行为。关闭颜色会同时关闭前景与背景；`palette ansi` 将自定义 RGB／扩展色量化为基础 ANSI 色槽，实际色槽颜色由终端决定。外部编辑器按终端报告的颜色能力适配预览。
 
 ## 基础 Powerline
 
@@ -79,7 +79,7 @@ claude-statusline config set powerline-end-cap off
 claude-statusline config set powerline-color-mode continuous
 ```
 
-`semantic` 保留按组件含义配色；`continuous` 将主题的六种颜色按可见色块跨实际输出行连续轮换；`restart` 每个实际输出行从第一种颜色重新开始。主栏与子代理栏独立计算。隐藏组件、范围标签和 spacer 不占颜色位置，重复实例各自算一个色块；spacer 两侧共享同一行序列。更改主题保留逐项颜色覆盖及阈值颜色优先级。
+`semantic` 保留按组件含义配色；`continuous` 将主题的六种颜色按可见色块跨实际输出行连续轮换；`restart` 每个实际输出行从第一种颜色重新开始。主栏与子代理栏独立计算。隐藏组件、范围标签和 spacer 不占颜色位置，重复实例各自算一个色块；spacer 两侧共享同一行序列。更改主题保留逐项颜色覆盖及阈值颜色优先级。如果轮换的继承背景与保留的前景相同（例如 ANSI 警告色碰到黄色背景），改用中性背景以保证文字可见；显式背景不变。
 
 首尾装饰跟随分隔形状，首端反向。ASCII 使用 `>`／`<`、`/`／`\`、`|` 或无字形；Powerline 仅在合适的彩色边界使用箭头／斜线字形，否则用对应 ASCII。无色输出使用 ASCII 且不包含 ANSI 转义。字体支持由用户明确选择，不自动检测。
 

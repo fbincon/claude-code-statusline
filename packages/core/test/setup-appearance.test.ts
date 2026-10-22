@@ -94,6 +94,21 @@ test('automatic wrapped fragments keep one continuous color slot per component',
     const backgrounds=rows.flatMap(line=>styledUnits(line).filter(unit=>unit.text==='a').map(unit=>JSON.stringify(parse(unit.style).background)));
     assert.equal(new Set(backgrounds).size,1);assert.equal(colors.index,2);
 });
+test('ANSI sequence colors cannot conceal warning and critical text on an equal inherited background', () => {
+    for (const [position, used, foreground] of [[3, 75, 3], [4, 95, 1]]) {
+        const d = defaultDisplay(); d.separator_style = 'powerline'; d.theme = 'terminal';
+        d.powerline.color_mode = 'continuous'; d.formatting.thresholds.enabled = true;
+        d.instances = [{id:'risk',type_id:'context-used',enabled:true,text:null,options:defaultItem()}];
+        const colors = cursor(); colors.index = position!;
+        const rendered = fit([{id:'risk',text:apply('R',d,'context-used',d.instances[0]!.options,'main',used)}],20,d,undefined,colors);
+        const style = parse(styledUnits(rendered).find(unit=>unit.text==='R')!.style);
+        assert.deepEqual(style.foreground, ['ansi', foreground]);
+        assert.deepEqual(style.background, ['ansi', 0]);
+        d.instances[0]!.options.background = 'ansi:' + foreground;
+        const explicit = fit([{id:'risk',text:apply('R',d,'context-used',d.instances[0]!.options,'main',used)}],20,d);
+        assert.deepEqual(parse(styledUnits(explicit).find(unit=>unit.text==='R')!.style).background, ['ansi', foreground]);
+    }
+});
 test('setup cancels drafts, defaults existing users to keep, and blocks unavailable integration', () => {
     const facts: SetupFacts = { checks: [], resources: [], notes: [], draft: { display: defaultDisplay(), host: DEFAULT_HOST }, hasDisplay: true, canSave: true, canIntegrate: false };
     const original = JSON.stringify(facts.draft), state = new SetupState(facts, 'en');

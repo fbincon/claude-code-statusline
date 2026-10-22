@@ -43,7 +43,7 @@ claude-statusline config item main model background inherit
 
 Colors accept `inherit`, `default`, `ansi:N` (0–255), or six-digit `#RRGGBB`; quote hex values in shells. `inherit` uses the item's theme/semantic color. `default` explicitly restores the terminal foreground or background, including inside a Powerline block. JSON stores inheritance as `null`; other values are strings. RGB text is normalized to lowercase.
 
-If threshold colors are enabled, warning/critical foregrounds override an explicit foreground while retaining its background. The existing `threshold-colors`, `warning-threshold` and `critical-threshold` settings control this behavior. Turning colors off removes both channels. `palette ansi` quantizes custom RGB/extended colors to basic ANSI slots; the terminal chooses the actual slot colors. Curses further adapts to available 0/8/16/256 colors and falls back to terminal-default text when pairs cannot be allocated.
+If threshold colors are enabled, warning/critical foregrounds override an explicit foreground while retaining its background. The existing `threshold-colors`, `warning-threshold` and `critical-threshold` settings control this behavior. Turning colors off removes both channels. `palette ansi` quantizes custom RGB/extended colors to basic ANSI slots; the terminal chooses the actual slot colors. The external editor adapts its preview to the reported terminal color capacity.
 
 ## Basic Powerline
 
@@ -79,7 +79,7 @@ claude-statusline config set powerline-end-cap off
 claude-statusline config set powerline-color-mode continuous
 ```
 
-`semantic` retains the existing component-role colors. `continuous` advances the six theme colors through visible blocks across physical rows; `restart` starts from the first color on each physical row. Main and subagent rendering have independent cursors. Hidden components, scope labels and spacers consume no colors; repeated instances are separate blocks. A spacer's two sides share one row sequence. Explicit per-item colors and threshold-color precedence survive theme changes.
+`semantic` retains the existing component-role colors. `continuous` advances the six theme colors through visible blocks across physical rows; `restart` starts from the first color on each physical row. Main and subagent rendering have independent cursors. Hidden components, scope labels and spacers consume no colors; repeated instances are separate blocks. A spacer's two sides share one row sequence. Explicit per-item colors and threshold-color precedence survive theme changes. If a rotating inherited background equals the retained foreground (for example an ANSI warning on yellow), it uses a neutral background so the text remains visible; explicit backgrounds remain unchanged.
 
 Start/end decorations follow the separator shape, with a reversed start. ASCII uses `>`/`<`, `/`/`\`, `|`, or no glyph. Powerline mode uses the arrow/slanted glyph only with a suitable colored boundary; otherwise it uses the ASCII shape. No-color output uses ASCII without ANSI escapes. Font support is selected explicitly; it is not automatically detected.
 
