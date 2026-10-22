@@ -28,9 +28,14 @@ The TUI package owns pure rendering/state regressions without importing the CLI.
 Daily entries are `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/thirteen-host evidence and the manual historical entry.
 Normal workflows do not launch Python. All 161 frozen cases and the three approved text differences remain; real Node contention, atomic writes, process termination and terminal restoration still run. Missing 2.1.296 declarations are not a typecheck pass. Full D06 measurement belongs to PERF-01; its historical FAIL remains.
 
+Cleanup regressions use isolated temporary directories to verify previews, complete removal, repeated execution, symbolic-link boundaries, and preservation of source and historical records. Before a clean rebuild, use `npm run clean -- --dry-run` and `npm run clean`; see the [development guide](README.md#clean-compiled-outputs) for their scope.
+
 ## Historical Python and migration-stage records
 
 The following preserves original conclusions, commands and limitations from the [pre-archive source](https://github.com/fbincon/claude-code-statusline/tree/38ff85b75c936201764c64f80b8fff96f091e176). Python paths now live under archive/python and are not daily commands for current main. `reference:verify` reconstructs the original layout without refreshing data or resetting the paid ledger.
+
+<details>
+<summary>Expand historical commands, stage conclusions and acceptance limitations</summary>
 
 Run all ordinary validation with temporary Claude configuration. The tests do not install into a user's real settings or call models.
 
@@ -422,3 +427,5 @@ editor saving and runtime calls in the real host, using synthetic credentials
 and no model request. It is separate from physical/desktop/visual acceptance
 already deferred until before release. Source and process-interruption tests do
 not claim hardware power-loss validation. PERF-01 remains the performance follow-up.
+
+</details>

@@ -12,7 +12,9 @@
 
 当前生产包使用 TypeScript，保留已有 CLI、配置格式及存储位置；纯规则、平台副作用、应用服务和终端界面分层。Python 参考冻结在 `archive/python`，下方 Python 专属章节保留历史架构说明。
 
-## TypeScript 迁移 workspace
+<a id="typescript-迁移-workspace"></a>
+
+## 当前 TypeScript workspace
 
 TS-03 新增 `packages/core`（纯配置、协议、多语言、Unicode、渲染与运行规则）、`packages/platform`（Node／原生 I/O）和 `packages/cli`（应用服务）。TS-04 新增 `packages/tui`、安装集成与持久恢复。workspace 是打包到公开 npm 成品中的私有实现包；下方 Python 布局作为归档对照参考保留。
 
@@ -58,6 +60,23 @@ tools/migration/ts-04/
 管理锁串行化官方集成各阶段。显式恢复核验所有记录状态，核对不明确的宿主结果并
 保留插件禁用偏好。参见[恢复流程](typescript-migration/ts-04/recovery.zh-CN.md)和
 [安装验收](typescript-migration/ts-04/candidate.zh-CN.md)。
+
+## 当前应用服务
+
+开发 CLI 通过 `ConfigurationService`／`Storage` 绑定文件事务与宿主身份；私有 ESM 入口为 `packages/cli/src/entry.ts`，配置与协议代码位于 `config/`、`ui/`。`render`、`render-subagents`、`hook`、`slash-hook` 的快速分发位于管理资源导入之前，完整 `LaunchSpec` 前缀区分 TS 开发后端与已安装渲染器。
+
+`core/rendering` 负责主／子行组合、格式、样式、Powerline 和确定性预览。`RenderEnvironment` 提供选定语言与同步观测接口；`cli/rendering/environment.ts` 按组件需要导入采集器并连接运行服务。每帧缓存各来源和原始任务快照，重复实例分别格式化；`platform/presentation.ts` 提供词法路径、本地／UTC 日期和主机名。预览替换所有观测，不采集或写入运行证据。`packages/tui` 在共享编辑核心及可注入协议后端上实现外部编辑器；`platform/terminal` 负责 raw mode、增量 UTF-8／VT 输入、有界输出、启动器及私有请求／结果文件；`cli/integration` 连接适配层并在配置锁内复核请求撤销。详见 [TS-04](typescript-migration/ts-04/README.zh-CN.md)。
+
+内部用量／transcript JSON 路径保留数值词法，遇到有序数字键或旧非有限常量时回到精确解析器。可变 ID 字典以有界删除开销保持 Python 插入顺序；原生缓存序列化保持 Python 空格、ASCII 转义及数值拼写。公开配置／协议仍使用严格解析，不改变磁盘 schema。
+
+`cli/recovery` 维护带版本的文件与官方操作日志。配置和安装服务先发布不可覆盖的原始快照，再进行写入；未完成日志阻止配置写入，直到显式恢复。插件刷新意图跨卸载／重装保留手动禁用；doctor 仅检查。详见[候选实现恢复](typescript-migration/ts-04/recovery.zh-CN.md)。
+
+## 历史 Python 架构
+
+原布局和下列实现说明来自 [Python 归档](../../archive/python/README.zh-CN.md)，保留为历史对照。Python 路径和迁移阶段描述不代表当前 main 的开发步骤。
+
+<details>
+<summary>展开历史布局与实现说明</summary>
 
 ```text
 src/claude_statusline/
@@ -204,10 +223,4 @@ Client 的 `ui/layout.ts` 按终端尺寸计算内容、Preview 和两行操作�
 
 `config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，共享协议由 TypeScript 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
 
-开发 CLI 通过 `ConfigurationService`／`Storage` 绑定文件事务与宿主身份；私有 ESM 入口为 `packages/cli/src/entry.ts`，配置与协议代码位于 `config/`、`ui/`。`render`、`render-subagents`、`hook`、`slash-hook` 的快速分发位于管理资源导入之前，完整 `LaunchSpec` 前缀区分 TS 开发后端与已安装渲染器。
-
-`core/rendering` 负责主／子行组合、格式、样式、Powerline 和确定性预览。`RenderEnvironment` 提供选定语言与同步观测接口；`cli/rendering/environment.ts` 按组件需要导入采集器并连接运行服务。每帧缓存各来源和原始任务快照，重复实例分别格式化；`platform/presentation.ts` 提供词法路径、本地／UTC 日期和主机名。预览替换所有观测，不采集或写入运行证据。`packages/tui` 在共享编辑核心及可注入协议后端上实现外部编辑器；`platform/terminal` 负责 raw mode、增量 UTF-8／VT 输入、有界输出、启动器及私有请求／结果文件；`cli/integration` 连接适配层并在配置锁内复核请求撤销。详见 [TS-04](typescript-migration/ts-04/README.zh-CN.md)。
-
-内部用量／transcript JSON 路径保留数值词法，遇到有序数字键或旧非有限常量时回到精确解析器。可变 ID 字典以有界删除开销保持 Python 插入顺序；原生缓存序列化保持 Python 空格、ASCII 转义及数值拼写。公开配置／协议仍使用严格解析，不改变磁盘 schema。
-
-`cli/recovery` 维护带版本的文件与官方操作日志。配置和安装服务先发布不可覆盖的原始快照，再进行写入；未完成日志阻止配置写入，直到显式恢复。插件刷新意图跨卸载／重装保留手动禁用；doctor 仅检查。详见[候选实现恢复](typescript-migration/ts-04/recovery.zh-CN.md)。
+</details>

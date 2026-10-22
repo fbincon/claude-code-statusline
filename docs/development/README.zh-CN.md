@@ -12,32 +12,35 @@
 
 本页说明开发环境、检查、构建和内部实现。日常使用见[使用指南](../USER_GUIDE.zh-CN.md)，公开命令见[CLI 参考](../reference/cli.zh-CN.md)。
 
-私有 TS-03 workspace 使用固定 Node 24.21.0／npm 11.19.0，在仓库根目录运行 `npm ci --ignore-scripts`、`npm test` 和 `npm run generate:check`。Python 3.14.4 继续作为隔离对照解释器，参见 [TS-03 记录](typescript-migration/ts-03/README.zh-CN.md)。
+当前 TypeScript workspace 使用 Node 24.21.0/npm 11.19.0。日常开发不需要 Python；冻结的 Python 参考通过独立的手动入口验证。
 
 ## 技术文档导航
+
+### 当前开发
+
+- [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
+- [翻译贡献指南](i18n.zh-CN.md)。
+- [测试与验收](testing.zh-CN.md)。
+- [原生编辑器接入](native.zh-CN.md)。
+- [任务计时](timer.zh-CN.md)与[实时指标](live.zh-CN.md)。
+- [发布流程](../RELEASING.zh-CN.md)。
+
+### 迁移与交付记录
 
 - [迁移后修复与交付](post-migration-fixes.zh-CN.md)：全部十一项问题、精确用量身份及 v3.1.3 证据。
 - [迁移后审查问题与文档更新清单](post-migration-review.zh-CN.md)：四个 session 的六项迁移问题、五项基线问题或共同风险，以及五类文档冲突。
 - [外部 TUI 回归修复](external-tui-regressions.zh-CN.md)：v3.1.2 目录说明、文字、导航、颜色和通知修复。
-
 - [外部 TUI 呈现修复](external-tui-parity.zh-CN.md)：v3.1.1 绘制、上下文操作与源码绑定验收。
-- [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [TypeScript 重构计划与进度](typescript-migration.zh-CN.md)：当前状态、范围、阶段、决策、验收及会话交接。
-- [PERF-01 迁移后性能专项](performance/perf-01.zh-CN.md)：TS-06 后的独立工作、保留的 D06 目标及历史证据；尚未开始。
+- [PERF-01 迁移后性能专项](performance/perf-01.zh-CN.md)：2026-10-19 已完成；保留独立 TS 对照与原 D06 失败证据。
 - [TS-01 固定参考与清单](typescript-migration/ts-01/README.zh-CN.md)：可复现样例、核验工具及验证证据。
 - [TS-02 平台探针与决策](typescript-migration/ts-02/README.zh-CN.md)：原生适配、安装实验、性能策略及剩余门槛。
 - [TS-03 共享核心与后端](typescript-migration/ts-03/README.zh-CN.md)：workspace、六批实施、兼容差异与验收。
 - [TS-04 双编辑器、安装与恢复](typescript-migration/ts-04/README.zh-CN.md)：[安装候选验收](typescript-migration/ts-04/candidate.zh-CN.md)与[显式恢复](typescript-migration/ts-04/recovery.zh-CN.md)。
 - [Linux 整合、实体机验收及已批准的发布前补验](typescript-migration/ts-02/LINUX-20261014.zh-CN.md).
-- [翻译贡献指南](i18n.zh-CN.md)。
-- [测试与验收](testing.zh-CN.md)。
 - [v1.13.0 多语言性能](performance-v1.13.0.zh-CN.md)：按需语言加载、预建搜索与 2/5/10 语言资源对照。
 - [v1.12.0 性能对照](performance-v1.12.0.zh-CN.md)：默认路径复测、保留的小幅开销与开启外观功能的成本。
 - [v1.11.0 性能对照](performance-v1.11.0.zh-CN.md)：完整场景、原始数据来源与补充复查。
-- [原生编辑器接入](native.zh-CN.md)。
-- [任务计时](timer.zh-CN.md)与[实时指标](live.zh-CN.md)。
-- [发布流程](../RELEASING.zh-CN.md)。
-
 
 ## 文档导航
 
@@ -65,6 +68,20 @@ npm run check
 `npm run check` 运行真实 Node 并发、故障、终端、冻结案例、生成资源、文档与完整责任台账检查。
 六种语言、两个 Mod 和技能模板由 `tools/generation/` 维护，归档 Python 副本不再生成。
 八目标安装和十三个固定主机组合都使用同一个通用候选 tgz。2.1.296 的声明缺失单独记录。
+
+### 清理编译输出
+
+删除或移动源码后，可以先预览，再清理旧编译文件并重新构建：
+
+```bash
+npm run clean -- --dry-run
+npm run clean
+npm run build
+```
+
+清理固定的六个输出目录：四个产品包 `packages/{core,platform,cli,tui}/dist`、测试支持包 `tools/testing/dist` 和工具目录 `dist/typescript`，包括其中的构建缓存。命令直接使用 Node，无需先构建；目录缺失时可重复执行。任何输出目录或其仓库内父目录为符号链接时，命令会在删除前拒绝执行。
+
+源码、Node 依赖、归档、发布包和验收记录保留，根目录其余 `dist` 内容也保留。普通 `npm run build` 继续使用增量构建。
 
 ### 从源码构建与安装
 
@@ -104,7 +121,7 @@ printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace
 Windows PowerShell：
 
 ```powershell
-'{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"C:\\demo"}}' | claude-statusline.exe render
+'{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"C:\\demo"}}' | claude-statusline.cmd render
 ```
 
 这些示例会读取当前配置目录中的 `claude-statusline.json`，输出取决于当前启用项。自动化检查应将 `CLAUDE_CONFIG_DIR` 指向临时目录。
@@ -123,7 +140,7 @@ printf '%s\n' '{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"loca
 Windows PowerShell：
 
 ```powershell
-'{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' | claude-statusline.exe render-subagents
+'{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' | claude-statusline.cmd render-subagents
 ```
 
 ### `hook`
@@ -142,7 +159,12 @@ Windows PowerShell：
 
 ## 实现说明
 
-以下为已发布 Python 产品的历史实现说明。当前 TypeScript 的绝对 Node/JS argv、原生锁、恢复与布局见[候选指南](typescript-migration/ts-05/candidate.zh-CN.md)和[TS-04 记录](typescript-migration/ts-04/README.zh-CN.md)。
+当前 TypeScript 实现使用绝对 Node/JS argv、原生文件锁及独立的平台适配器。应用服务、终端桥和恢复事务见[当前架构](architecture.zh-CN.md)、[候选指南](typescript-migration/ts-05/candidate.zh-CN.md)和[TS-04 记录](typescript-migration/ts-04/README.zh-CN.md)。
+
+<details>
+<summary>历史 Python 实现说明</summary>
+
+以下保留已发布 Python 产品的实现说明与原有锚点，源码冻结在 [Python 归档](../../archive/python/README.zh-CN.md)。其中的 Python 路径、锁实现和 Windows `.exe` 命令仅适用于历史版本。
 
 ### 平台执行与文件安全
 
@@ -204,6 +226,8 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 ## 组件实例与布局
 
 `config/instances.py` 负责实例身份、旧配置映射和纯草稿编辑；`instance_commands.py` 提供确定性 CLI。`rendering/components.py` 统一主／子行的文本和单一 spacer 拟合；观察值在当前帧复用，各副本分别格式化。原生纯编辑位于 `lib/editor/instances.ts`，协议由 Python 生成。详见[组件组合](../COMPOSITION.zh-CN.md)与[共享契约](contracts.zh-CN.md)。
+
+</details>
 
 ## 公开包交付
 

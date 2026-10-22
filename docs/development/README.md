@@ -12,31 +12,35 @@ Product runtimes support Node 22/24; development and builds retain Node 24.21.0/
 
 Start here to set up a development environment, run checks and build the package. User-facing workflows are in the [user guide](../USER_GUIDE.md); public commands are in the [CLI reference](../reference/cli.md).
 
+The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows require no Python; the frozen Python reference has a separate manual entry.
+
 ## Technical documentation
+
+### Current development
+
+- [Architecture](architecture.md) and [shared contracts](contracts.md).
+- [Translation contribution guide](i18n.md).
+- [Testing and acceptance](testing.md).
+- [Native editor integration](native.md).
+- [Task timing](timer.md) and [live metrics](live.md).
+- [Release process](../RELEASING.md).
+
+### Migration and delivery records
 
 - [Post-migration repairs and delivery](post-migration-fixes.md): all eleven findings, exact usage identities and v3.1.3 evidence.
 - [Post-migration findings and documentation updates](post-migration-review.md): four-session consolidation of six migration findings, five baseline defects or shared risks, and five documentation conflict categories.
 - [External TUI regression repairs](external-tui-regressions.md): v3.1.2 catalog guidance, text, navigation, color and notice fixes.
 - [External TUI parity follow-up](external-tui-parity.md): v3.1.1 rendering, contextual controls and source-bound validation.
-- [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [TypeScript migration plan and progress](typescript-migration.md): current state, scope, stages, decisions, acceptance and session handoffs.
-- [PERF-01 post-migration performance plan](performance/perf-01.md): independent work after TS-06, preserved D06 targets and historical evidence; not started.
+- [PERF-01 post-migration performance plan](performance/perf-01.md): completed on 2026-10-19; independent TS controls and the original D06 failure evidence are preserved.
 - [TS-01 frozen reference and inventory](typescript-migration/ts-01/README.md): reproducible cases, tooling and validation evidence.
 - [TS-02 platform probes and decisions](typescript-migration/ts-02/README.md): native adapters, installation experiments, performance policy and remaining gates.
 - [TS-03 shared core and backend](typescript-migration/ts-03/README.md): workspace, six implementation batches, compatibility differences and acceptance.
 - [TS-04 editors, installation and recovery](typescript-migration/ts-04/README.md): [installed candidate acceptance](typescript-migration/ts-04/candidate.md) and [explicit recovery](typescript-migration/ts-04/recovery.md).
 - [Linux integration, physical acceptance and approved release deferrals](typescript-migration/ts-02/LINUX-20261014.md).
-- [Translation contribution guide](i18n.md).
-- [Testing and acceptance](testing.md).
 - [v1.13.0 language performance](performance-v1.13.0.md): isolated language loading, prepared search and 2/5/10-language resource controls.
 - [v1.12.0 performance comparison](performance-v1.12.0.md): default-path controls, retained small costs and opt-in appearance measurements.
 - [v1.11.0 performance comparison](performance-v1.11.0.md): complete scenarios, raw-data provenance and follow-up controls.
-- [Native editor integration](native.md).
-- [Task timing](timer.md) and [live metrics](live.md).
-- [Release process](../RELEASING.md).
-
-
-The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows require no Python; the frozen Python reference has a separate manual entry.
 
 ## Contents
 
@@ -69,6 +73,20 @@ Development is independent of the installed pipx product. Normal workflows need 
 `npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and complete responsibility ledgers.
 `tools/generation/` maintains six languages, two Mods and skill templates; it never regenerates the Python archive.
 Eight installations and thirteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately.
+
+### Clean compiled outputs
+
+After deleting or moving source files, preview the cleanup, remove stale compiled files and rebuild:
+
+```bash
+npm run clean -- --dry-run
+npm run clean
+npm run build
+```
+
+Cleanup targets six fixed output directories: the four product packages' `packages/{core,platform,cli,tui}/dist`, test support's `tools/testing/dist` and tools' `dist/typescript`, including their build caches. The command runs directly with Node and needs no prior build; missing directories are harmless on repeated runs. A linked output directory or parent inside the checkout is rejected before any deletion.
+
+Source, Node dependencies, archives, release packages and acceptance records remain, including all other root `dist` contents. Ordinary `npm run build` continues to build incrementally.
 
 <a id="从源码构建与安装"></a>
 
@@ -112,7 +130,7 @@ printf '%s\n' '{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace
 Windows PowerShell:
 
 ```powershell
-'{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"C:\\demo"}}' | claude-statusline.exe render
+'{"model":{"id":"test-model"},"effort":{"level":"high"},"workspace":{"current_dir":"C:\\demo"}}' | claude-statusline.cmd render
 ```
 
 These examples read `claude-statusline.json` from the current configuration directory, so output depends on enabled items. Automated checks should point `CLAUDE_CONFIG_DIR` to a temporary directory.
@@ -131,7 +149,7 @@ printf '%s\n' '{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"loca
 Windows PowerShell:
 
 ```powershell
-'{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' | claude-statusline.exe render-subagents
+'{"columns":80,"tasks":[{"id":"demo","name":"Explore","type":"local_agent","status":"running","startTime":1788400000000,"model":"claude-sonnet-5","tokenCount":84000,"contextWindowSize":200000}]}' | claude-statusline.cmd render-subagents
 ```
 
 ### `hook`
@@ -151,7 +169,12 @@ Read `UserPromptExpansion` events from stdin. Handle local `statusline-config` s
 
 ## Implementation notes
 
-The following details describe the published Python implementation. Current TypeScript absolute Node/JS argv, native locks, recovery and layout are documented in the [candidate guide](typescript-migration/ts-05/candidate.md) and [TS-04 record](typescript-migration/ts-04/README.md).
+The current TypeScript implementation uses absolute Node/JS argv, native file locks and dedicated platform adapters. Application services, terminal bridging and recovery transactions are documented in the [current architecture](architecture.md), [candidate guide](typescript-migration/ts-05/candidate.md) and [TS-04 record](typescript-migration/ts-04/README.md).
+
+<details>
+<summary>Historical Python implementation notes</summary>
+
+The following preserves the released Python implementation notes and existing anchors. Source is frozen in the [Python archive](../../archive/python/README.md). Python paths, lock implementations and Windows `.exe` commands here apply only to historical versions.
 
 <a id="平台执行与文件安全"></a>
 
@@ -219,6 +242,8 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 ## Component instances and layout
 
 `config/instances.py` owns identity, legacy mapping and pure draft edits; `instance_commands.py` provides the CLI. `rendering/components.py` fits text and one flexible spacer in main/subagent rows. Raw observations are reused within the frame and copies format independently. Native pure edits live in `lib/editor/instances.ts`; Python generates the protocol. See [composition](../COMPOSITION.md) and [shared contracts](contracts.md).
+
+</details>
 
 ## Public package delivery
 

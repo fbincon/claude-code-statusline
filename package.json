@@ -12,6 +12,7 @@
   },
   "packageManager": "npm@11.19.0",
   "scripts": {
+    "clean": "node tools/typescript/clean.mjs",
     "build": "node tools/typescript/check-runtime.mjs && tsc -b",
     "typecheck": "npm run build",
     "docs:check": "npm run build && node dist/typescript/tools/checks/docs.js",
