@@ -10,6 +10,8 @@ These images come from an isolated installation of the v3.5.0 acceptance candida
 - Coverage: six languages, 80/120 columns, light/dark/terminal themes, three schemes and state samples. Wizard PTYs explicitly inject synthetic Claude 2.1.258 detection, cancel, and verify unchanged files.
 - Fonts: DejaVu Sans Mono and Noto Sans CJK. Icons default to ASCII. Optional Powerline samples use ASCII slashes and continuous colors, without claiming automatic special-font detection.
 
+Final-release revalidation used source `7723c540c3e16644b5601b94ce538dcd4ed37d68` and package SHA-256 `dc3dd446ec43075c017199c0fc631d89fe46ba7b17d8757917696f3ba22d945b`. All 258 captures passed again; the final receipt SHA-256 is `107148bcda3bfd19377a54ddda994991d1faa7533228ff31149d5001074c5daa`. All 27 committed gallery PNGs matched the regenerated files byte for byte. The initial candidate identities above retain the images' original provenance.
+
 ## Three schemes: 80 / 120 columns
 
 ### `daily-development`
