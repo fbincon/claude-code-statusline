@@ -76,6 +76,20 @@ export class ConfigurationService {
             return this.snapshot(display, settings);
         });
     }
+    /** Setup can save a display before integration; this never applies host preferences. */
+    saveDisplay(value: unknown, expectedRevision: string, beforeCommit: () => void = () => {}): MutationResult {
+        const parsed = validateDisplay(value), { configDir } = this.context;
+        return this.io.lock(configDir, () => {
+            assertClear(configDir);
+            const [display, raw] = readDisplay(configDir, this.io), [settings] = readSettings(configDir, this.io);
+            if (this.snapshot(display, settings).revision !== expectedRevision)
+                throw new ConfigError('errors.service.status_line_configuration_changed_while_the_editor', {}, 'configuration_conflict');
+            beforeCommit();
+            const desired = jsonBytes(parsed), path = join(configDir, CONFIG_FILENAME);
+            const backup = raw?.equals(desired) ? null : commit(configDir, 'setup-display', [{ ...artifact(path, raw), desired }], this.io);
+            return { changed: backup !== null, effective: this.snapshot(parsed, settings), backup_dir: backup };
+        });
+    }
     mutate(action: string, mutation: Mutation, tolerateInvalidDisplay = false): MutationResult {
         const { configDir, launch } = this.context;
         return this.io.lock(configDir, () => {

@@ -21,7 +21,7 @@ export function parseAdministration(command: string, args: readonly string[]): I
             result.directory = value;
             continue;
         }
-        if (arg === '--dry-run' && ['install', 'uninstall', 'recover'].includes(command)) {
+        if (arg === '--dry-run' && ['setup', 'install', 'uninstall', 'recover'].includes(command)) {
             result.dryRun = true;
             continue;
         }
