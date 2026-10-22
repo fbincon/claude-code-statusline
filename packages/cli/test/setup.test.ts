@@ -92,16 +92,16 @@ test('foreign linked integration resources permit saving display without followi
 });
 test('official plugin failure retains the saved display and reports the committed integration stage', t => {
     const f = fixture(t), calls: string[][] = [];
-    fs.rmSync(join(f.config, 'claude-statusline-native.json'));
-    f.context.version = [2, 1, 294];
-    f.context.host = () => ({
-        listing: () => [[], []],
-        run: args => { calls.push([...args]); throw new Error('injected official validation failure'); },
-    });
-    const inspected = inspectSetup(f.context);
-    assert(inspected.canIntegrate); assert.equal(calls.length, 0);
-    const result = applySetup(f.context, inspected, inspected.draft!, true);
-    assert.equal(result.stage, 'integration'); assert(result.error); assert(result.installed!.failed);
+    fs.writeFileSync(join(f.config, 'claude-statusline-native.json'), jsonBytes({schema_version:1,native_editor:true}));
+    const context = { ...f.context, version: [2, 1, 294], host: () => ({
+        listing: (): [Record<string, unknown>[], Record<string, unknown>[]] => [[], []],
+        run: (args: readonly string[]) => { calls.push([...args]); throw new Error('injected official validation failure'); },
+    }) };
+    const inspected = inspectSetup(context);
+    assert(inspected.canIntegrate, JSON.stringify(inspected)); assert.equal(calls.length, 0);
+    assert(inspected.notes.some(note => note.key === 'setup.plugins' && (note.params.native as {key:string}).key === 'setup.value.requested'), JSON.stringify(inspected.notes));
+    const result = applySetup(context, inspected, inspected.draft!, true);
+    assert.equal(result.stage, 'integration', JSON.stringify({result,calls})); assert(result.error); assert(result.installed!.failed);
     assert(calls.some(args => args[0] === 'validate'));
     assert(fs.existsSync(join(f.config, 'claude-statusline.json')));
     assert(fs.existsSync(join(f.config, 'settings.json')));
