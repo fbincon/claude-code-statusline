@@ -1,3 +1,5 @@
+import { POWERLINE_FIELDS } from '@fbincon/statusline-core/contracts/ui';
+import { setField } from '@fbincon/statusline-core/config/editor-fields';
 import type { DisplayDraft, Scope } from '@fbincon/statusline-core/contracts/ui';
 import { validateItems, defaultItem } from '@fbincon/statusline-core/config/display';
 import { FORMAT_CHOICES } from '@fbincon/statusline-core/config/formatting';
@@ -6,6 +8,7 @@ import { legacyId, scoped, updateDisplay, updateSubagents } from '@fbincon/statu
 import { hostOption, settingsWithHost, toggle } from './host.js';
 import { ConfigurationService, UNCHANGED, type MutationResult } from './service.js';
 export const DISPLAY_OPTIONS = [
+    ...POWERLINE_FIELDS.map(f => f.key.replaceAll('.', '-').replaceAll('_', '-')),
     'statusline-language', 'branch-diff-base', 'colors', 'palette', 'theme', 'powerline-glyph', 'directory-style', 'separator-style', 'scope-labels', 'subagent-statusline',
     ...Object.keys(FORMAT_CHOICES).map(key => key.replaceAll('_', '-')), 'threshold-colors', 'warning-threshold', 'critical-threshold',
     'subagent-visibility', 'subagent-hide-completed', 'subagent-row-limit', 'subagent-task-max-width',
@@ -60,6 +63,8 @@ function commandInteger(value: unknown, key: string): number {
     return fail(key);
 }
 export function displayOption(config: DisplayDraft, option: string, value: unknown): DisplayDraft {
+    if (option.startsWith('powerline-') && option !== 'powerline-glyph')
+        return setField(config, 'powerline.' + option.slice(10).replaceAll('-', '_'), value);
     if (option === 'branch-diff-base')
         return updateDisplay(config, { metrics: { branch_diff_base_ref: value === 'auto' ? null : value as string } });
     if (option.startsWith('subagent-') && option !== 'subagent-statusline') {

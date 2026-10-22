@@ -35,8 +35,8 @@ export function itemRole(item: string, scope: Scope): string {
     const roles: Record<string, string> = { model: 'model', location: 'directory', repo: 'branch', context: 'percentage', limits: 'percentage', usage: 'tokens', cache: 'tokens', requests: 'tokens' };
     return roles[group] ?? 'timer';
 }
-export function baseStyle(config: DisplayDraft, item: string, scope: Scope): styles.Style {
-    const role = itemRole(item, scope), index = ROLES.indexOf(role);
+export function baseStyle(config: DisplayDraft, item: string, scope: Scope, position?: number): styles.Style {
+    const role = itemRole(item, scope), index = position === undefined ? ROLES.indexOf(role) : position % ROLES.length;
     if (config.separator_style === 'powerline') {
         let foreground: styles.Color, background: styles.Color;
         if (config.palette === 'ansi' || config.theme === 'terminal') {
@@ -51,6 +51,20 @@ export function baseStyle(config: DisplayDraft, item: string, scope: Scope): sty
         return { bold: true, foreground, background };
     }
     return styles.parse(themeStyles(config.theme, config.palette === 'ansi')[role]!);
+}
+/** Recolor inherited block channels after fitting; explicit overrides and risk colors survive. */
+export function sequence(text: string, config: DisplayDraft, id: string, scope: Scope, index: number): string {
+    if (!config.use_colors || config.powerline.color_mode === 'semantic') return text;
+    const node = (scope === 'main' ? config.instances : config.subagents.instances).find(node => node.id === id);
+    if (!node || node.type_id === 'spacer') return text;
+    const previous = baseStyle(config, node.type_id, scope), next = baseStyle(config, node.type_id, scope, index);
+    return layout.renderStyledUnits(layout.styledUnits(text).map(unit => {
+        const state = styles.parse(unit.style);
+        return { ...unit, style: styles.serialize({ ...state,
+            foreground: node.options.foreground === null && styles.sameColor(state.foreground, previous.foreground) ? next.foreground : state.foreground,
+            background: node.options.background === null ? next.background : state.background,
+        }) };
+    }));
 }
 export function riskColor(used: number | null, config: DisplayDraft): styles.Color | null {
     const limits = config.formatting.thresholds;

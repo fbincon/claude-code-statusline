@@ -12,7 +12,7 @@ import {
   SCOPELABELS_VALUES,
   STATUSLINELANGUAGE_VALUES,
   UNAVAILABLEREASON_VALUES,
-  FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, GUIDANCE_KEYS, ITEM_DEFAULTS,
+  FORMAT_CHOICES, PRESETS, EDITOR_FIELDS, POWERLINE_FIELDS, GUIDANCE_KEYS, ITEM_DEFAULTS,
 } from './generated-contracts.ts';
 import type {
   Capabilities,
@@ -158,7 +158,7 @@ export function isDraft(value: unknown): value is Draft {
       'statusline_language',
       'instances',
       'use_colors',
-      'palette', 'theme', 'powerline_glyph',
+      'palette', 'theme', 'powerline_glyph', 'powerline',
       'directory_style',
       'separator_style',
       'scope_labels',
@@ -169,7 +169,10 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 8 ||
+    d.schema_version !== 9 ||
+    !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.map(f => f.key.slice(10))) ||
+    !POWERLINE_FIELDS.every(f => f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
+      (f.choices as readonly unknown[]).includes((d.powerline as Record<string, unknown>)[f.key.slice(10)])) ||
     !THEME_VALUES.some(x => x === d.theme) || !POWERLINEGLYPH_VALUES.some(x => x === d.powerline_glyph) ||
     !STATUSLINELANGUAGE_VALUES.some((x) => x === d.statusline_language) ||
     !object(d.metrics) || !exact(d.metrics, ['branch_diff_base_ref']) ||
@@ -332,6 +335,7 @@ function isOptions(value: unknown): value is ConfigurationOptions {
     palette: PALETTE_VALUES,
     theme: THEME_VALUES,
     "powerline-glyph": POWERLINEGLYPH_VALUES,
+    ...Object.fromEntries(POWERLINE_FIELDS.map(f => [f.key.replaceAll('.', '-').replaceAll('_', '-'), f.kind === 'boolean' ? [true, false] : f.choices])),
     'directory-style': DIRECTORYSTYLE_VALUES,
     'separator-style': SEPARATORSTYLE_VALUES,
     'scope-labels': SCOPELABELS_VALUES,

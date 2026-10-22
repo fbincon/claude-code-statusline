@@ -54,6 +54,11 @@ export function decorate(text: string, item: string, scope: Scope, fmt: Formatti
     const getIcon = () => {
         if (options.icon !== null)
             return options.icon;
+        // ASCII is a representation choice, not permission to erase task/agent state.
+        if (ownsIcon && fmt.icons === 'ascii') {
+            const state = { '✓': 'ok', '⏱': 'run', '✗': 'fail', '■': 'stop', '…': 'pending', '⏳': 'wait' }[layout.strip(text)[0] ?? ''];
+            if (state) return state;
+        }
         if (fmt.icons === 'unicode' || fmt.icons === 'ascii')
             return (ICONS[BY_SCOPE[scope].get(item)!.group] ?? ['·', ':'])[fmt.icons === 'ascii' ? 1 : 0];
         return null;

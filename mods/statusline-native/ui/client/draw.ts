@@ -67,7 +67,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     content.push(line(`${start+1}–${Math.min(lines.length,start+capacity)}/${lines.length}`,styles.muted));
   } else if (e.quick) {
     title=tr('quick.title')+' · '+tr('quick.'+e.quick.step);
-    content.push(...quickView(e.quick,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
+    content.push(...quickView(e.quick,view.language ?? 'en',inner,layout.bodyRows,e.baseline.configuration?.shared_projects).map(row=>line(row.text,rowStyle(row.selected))));
   } else if (e.review) {
     title = tr('review.title');
     const review = e.review, lines = reviewRows(review, view.language ?? 'en', inner), capacity = Math.max(1, layout.bodyRows - 1);

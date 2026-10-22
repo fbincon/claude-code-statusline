@@ -327,7 +327,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
     const palette = paletteFor(config), [outer, inner] = separators(config, palette), state = factory(data, config, palette, inner, env), rows: string[] = [];
     const scope = () => config.scope_labels === 'always' || config.scope_labels === 'when-subagents' && state.hadSubagents();
     const label = () => ({ text: palette.timer + env.language.text('scope.main') + palette.reset });
-    const nodes = new Map(config.instances.map(node => [node.id, node]));
+    const nodes = new Map(config.instances.map(node => [node.id, node])), colors = powerline.cursor();
     if (config.instances.some(node => node.enabled && node.type_id === 'spacer')) {
         const showScope = scope();
         for (const row of config.layout.rows) {
@@ -350,9 +350,9 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
                 continue;
             if (showScope && !rows.length) {
                 const item = label();
-                cells.unshift({ id: 'scope', text: item.text, priority: -1, payload: item });
+                cells.unshift({ id: 'scope', sequence: false, text: item.text, priority: -1, payload: item });
             }
-            const value = fitRow(cells, Math.max(2, width), config, side => coalesce(side.map(c => ({ ...c.payload!, text: c.text })), inner).map(segment => segment.text).join(outer), layout.displayWidth, env.trace?.fit('main'));
+            const value = fitRow(cells, Math.max(2, width), config, side => coalesce(side.map(c => ({ ...c.payload!, text: c.text })), inner).map(segment => segment.text).join(outer), layout.displayWidth, env.trace?.fit('main'), colors);
             if (value)
                 rows.push(value);
         }
@@ -371,7 +371,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
                 continue;
             if (showScope && !rows.length)
                 blocks.unshift({ text: appearance.apply(env.language.text('scope.main'), config, '', DEFAULT_ITEM), priority: -1 });
-            rows.push(...(config.layout.mode === 'auto' ? powerline.wrap(blocks, width, config) : [powerline.fit(blocks, Math.max(2, width), config, env.trace?.fit('main'))]));
+            rows.push(...(config.layout.mode === 'auto' ? powerline.wrap(blocks, width, config, colors) : [powerline.fit(blocks, Math.max(2, width), config, env.trace?.fit('main'), colors)]));
         }
         return rows;
     }

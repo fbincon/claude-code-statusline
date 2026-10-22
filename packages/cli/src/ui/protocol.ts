@@ -39,6 +39,7 @@ export function configurationOptions(): contracts.ConfigurationOptions {
         'powerline-glyph': { choices: [...contracts.POWERLINEGLYPH_VALUES] }, 'directory-style': { choices: [...contracts.DIRECTORYSTYLE_VALUES] },
         'separator-style': { choices: [...contracts.SEPARATORSTYLE_VALUES] }, 'scope-labels': { choices: [...contracts.SCOPELABELS_VALUES] },
         'statusline-language': { choices: [...contracts.STATUSLINELANGUAGE_VALUES] }, 'subagent-statusline': { choices: [true, false] },
+        ...contracts.POWERLINE_OPTIONS,
         padding: { minimum: 0, maximum: 32 }, 'refresh-interval': { minimum: 1, maximum: 3600, special: 'event' }, 'hide-vim-mode-indicator': { choices: [true, false] },
     };
 }

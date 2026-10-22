@@ -1,0 +1,309 @@
+{
+  "format": "claude-code-statusline-profile",
+  "version": 1,
+  "name": "quota-watch",
+  "display": {
+    "schema_version": 9,
+    "use_colors": true,
+    "palette": "default",
+    "directory_style": "project-relative",
+    "separator_style": "compact",
+    "scope_labels": "when-subagents",
+    "statusline_language": "en",
+    "theme": "terminal",
+    "powerline_glyph": "ascii",
+    "powerline": {
+      "padding": "both",
+      "separator": "arrow",
+      "start_cap": false,
+      "end_cap": true,
+      "color_mode": "semantic"
+    },
+    "subagents": {
+      "enabled": true,
+      "visibility": "all",
+      "hide_completed": false,
+      "row_limit": null,
+      "task_max_width": null,
+      "instances": [
+        {
+          "id": "status-elapsed",
+          "type_id": "status-elapsed",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 50,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "name",
+          "type_id": "name",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 50,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "model-with-effort",
+          "type_id": "model-with-effort",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 50,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "context-remaining",
+          "type_id": "context-remaining",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 50,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "task",
+          "type_id": "task",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 50,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        }
+      ]
+    },
+    "formatting": {
+      "model_name": "short",
+      "number_format": "compact",
+      "labels": "short",
+      "icons": "ascii",
+      "allowance": "remaining",
+      "reset_format": "countdown",
+      "reset_timezone": "local",
+      "thresholds": {
+        "enabled": true,
+        "warning": 70,
+        "critical": 90
+      }
+    },
+    "layout": {
+      "mode": "explicit",
+      "rows": [
+        [
+          "context-used",
+          "five-hour-limit",
+          "weekly-limit"
+        ],
+        [
+          "five-hour-reset",
+          "weekly-reset"
+        ],
+        [
+          "session-cost",
+          "spend-limit",
+          "cache-state",
+          "cache-expires"
+        ]
+      ]
+    },
+    "metrics": {
+      "branch_diff_base_ref": null
+    },
+    "instances": [
+      {
+        "id": "context-used",
+        "type_id": "context-used",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 99,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "five-hour-limit",
+        "type_id": "five-hour-limit",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 100,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "weekly-limit",
+        "type_id": "weekly-limit",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 98,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "five-hour-reset",
+        "type_id": "five-hour-reset",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 97,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "weekly-reset",
+        "type_id": "weekly-reset",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 96,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "session-cost",
+        "type_id": "session-cost",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 95,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "spend-limit",
+        "type_id": "spend-limit",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 94,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "cache-state",
+        "type_id": "cache-state",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 93,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "cache-expires",
+        "type_id": "cache-expires",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 92,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      }
+    ]
+  }
+}

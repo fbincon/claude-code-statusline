@@ -30,7 +30,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
         return `${start+1}–${Math.min(lines.length,start+count)}/${lines.length}`;
     }
     if (e.quick) {
-        quickView(e.quick,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        quickView(e.quick,state.language,width,panel.innerHeight-1,e.baseline.configuration?.shared_projects).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
         return tr('quick.steps');
     }
     if (e.review || e.guidanceScroll !== null) {

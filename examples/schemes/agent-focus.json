@@ -1,0 +1,270 @@
+{
+  "format": "claude-code-statusline-profile",
+  "version": 1,
+  "name": "agent-focus",
+  "display": {
+    "schema_version": 9,
+    "use_colors": true,
+    "palette": "default",
+    "directory_style": "project-relative",
+    "separator_style": "compact",
+    "scope_labels": "when-subagents",
+    "statusline_language": "en",
+    "theme": "terminal",
+    "powerline_glyph": "ascii",
+    "powerline": {
+      "padding": "both",
+      "separator": "arrow",
+      "start_cap": false,
+      "end_cap": true,
+      "color_mode": "semantic"
+    },
+    "subagents": {
+      "enabled": true,
+      "visibility": "all",
+      "hide_completed": true,
+      "row_limit": null,
+      "task_max_width": 48,
+      "instances": [
+        {
+          "id": "status",
+          "type_id": "status",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 100,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "name",
+          "type_id": "name",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 95,
+            "max_width": 24,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "model-with-effort",
+          "type_id": "model-with-effort",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 90,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "context-remaining",
+          "type_id": "context-remaining",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 85,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "elapsed",
+          "type_id": "elapsed",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 80,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        },
+        {
+          "id": "task",
+          "type_id": "task",
+          "enabled": true,
+          "options": {
+            "label": null,
+            "icon": null,
+            "priority": 75,
+            "max_width": null,
+            "formatting": {},
+            "foreground": null,
+            "background": null,
+            "visibility": "always",
+            "visibility_threshold": 70
+          },
+          "text": null
+        }
+      ]
+    },
+    "formatting": {
+      "model_name": "short",
+      "number_format": "compact",
+      "labels": "short",
+      "icons": "ascii",
+      "allowance": "remaining",
+      "reset_format": "countdown",
+      "reset_timezone": "local",
+      "thresholds": {
+        "enabled": true,
+        "warning": 70,
+        "critical": 90
+      }
+    },
+    "layout": {
+      "mode": "explicit",
+      "rows": [
+        [
+          "task-timer",
+          "context-remaining",
+          "git"
+        ],
+        [
+          "run-state",
+          "task-progress",
+          "active-agents"
+        ]
+      ]
+    },
+    "metrics": {
+      "branch_diff_base_ref": null
+    },
+    "instances": [
+      {
+        "id": "task-timer",
+        "type_id": "task-timer",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 100,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "context-remaining",
+        "type_id": "context-remaining",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 99,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "git",
+        "type_id": "git",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 98,
+          "max_width": 32,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "run-state",
+        "type_id": "run-state",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 97,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "task-progress",
+        "type_id": "task-progress",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 96,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      },
+      {
+        "id": "active-agents",
+        "type_id": "active-agents",
+        "enabled": true,
+        "options": {
+          "label": null,
+          "icon": null,
+          "priority": 95,
+          "max_width": null,
+          "formatting": {},
+          "foreground": null,
+          "background": null,
+          "visibility": "always",
+          "visibility_threshold": 70
+        },
+        "text": null
+      }
+    ]
+  }
+}
