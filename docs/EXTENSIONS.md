@@ -138,7 +138,8 @@ Use `kind: "command"` with settings such as:
 ```
 
 The executable is resolved when saving. Execution uses literal arguments without
-a Shell. For scripts, specify their interpreter explicitly; Windows `.cmd`/`.bat`
+a Shell. Unrecognized executable text fails instead of implicitly entering a Shell.
+For scripts, specify their interpreter explicitly; Windows `.cmd`/`.bat`
 files are not silently executed through `cmd.exe`. Review changes to executables,
 arguments, paths or inputs before re-enabling.
 

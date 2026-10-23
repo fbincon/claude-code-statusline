@@ -19,6 +19,9 @@ See the [user guide](../EXTENSIONS.md) for configuration and examples.
   and a Windows kill-on-close Job Object terminate descendants; Windows creates
   the tool suspended and assigns it before resuming. The static supervisor never
   interpolates arguments into Shell source.
+  POSIX uses an `execve` handoff so an unrecognized executable cannot trigger
+  the implicit `/bin/sh` fallback of `execvp`, even on older Node runtimes
+  ([exec family contract](https://man7.org/linux/man-pages/man3/exec.3.html)).
   Windows supervisor bootstrap reads only OS folder variables from the loaded
   profile and explicitly loads system PowerShell modules. The command receives
   its separately serialized minimum environment, including the caller's HOME;

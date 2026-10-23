@@ -97,7 +97,7 @@ claude-statusline source diagnose forge --project /absolute/project --json
 }
 ```
 
-保存时解析可执行程序位置，执行时使用字面参数，不经过 Shell。脚本需明确指定解释器；Windows `.cmd`/`.bat` 不会自动经 `cmd.exe` 执行。更改程序、参数、路径或输入后必须重新审查启用。
+保存时解析可执行程序位置，执行时使用字面参数，不经过 Shell。无法识别可执行格式的文本会失败，不会隐式转入 Shell。脚本需明确指定解释器；Windows `.cmd`/`.bat` 不会自动经 `cmd.exe` 执行。更改程序、参数、路径或输入后必须重新审查启用。
 
 stdin 是仅包含选定映射的 JSON 对象。可用字段为 `project`、`session`、`agent`、`branch`、`head`，例如 `{"working_project":"project"}`；默认对象为空。子进程只继承必要系统环境，不自动接收模型或托管平台凭据。命令以当前用户权限运行，这不是操作系统沙箱。
 

@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { which } from './commands.js';
 import { windowsJobScript } from './windows-source-job.js';
 import { windowsSourceEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
@@ -31,19 +32,27 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
     return new Promise(resolve => {
         const started = performance.now(), windows = process.platform === 'win32', commandEnvironment = { ...(options.environment ?? sourceEnvironment()) };
         let environment = commandEnvironment;
-        let executable = options.executable, args = [...options.args];
+        const lookupEnvironment = windows ? Object.fromEntries(Object.entries(commandEnvironment).map(([key, value]) => [key.toUpperCase(), value])) : commandEnvironment;
+        const found = which(options.executable, lookupEnvironment);
+        if (!found) {
+            resolve({ code: null, stdout: '', reason: 'missing_program' });
+            return;
+        }
+        let executable = found, args = [...options.args];
         if (windows) {
-            const found = which(executable);
-            if (!found) {
-                resolve({ code: null, stdout: '', reason: 'missing_program' });
-                return;
-            }
-            executable = found;
             try { environment = windowsSourceEnvironment(commandEnvironment); }
             catch { resolve({ code: null, stdout: '', reason: 'io_error' }); return; }
             environment.STATUSLINE_SOURCE_LAUNCH = JSON.stringify({ executable, args, cwd: options.cwd, environment: commandEnvironment });
             executable = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
             args = ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(windowsJobScript, 'utf16le').toString('base64')];
+        } else {
+            // Node/libuv uses execvp, whose ENOEXEC fallback can run plain text
+            // in /bin/sh even with shell:false. Hand off through execve instead.
+            // Bootstrap Node without applying target-only NODE_OPTIONS/LD_*.
+            environment = sourceEnvironment(commandEnvironment);
+            environment.STATUSLINE_SOURCE_LAUNCH = JSON.stringify({ executable, args, environment: commandEnvironment });
+            executable = process.execPath;
+            args = [fileURLToPath(new URL('./posix-source-exec.js', import.meta.url))];
         }
         const child = spawn(executable, args, { cwd: options.cwd, env: environment, shell: false, detached: !windows, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
         let reason: SourceProcessResult['reason'] = 'completed', code: number | null = null, bytes = 0, done = false;

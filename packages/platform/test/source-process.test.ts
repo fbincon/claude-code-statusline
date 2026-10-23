@@ -1,6 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runSourceProcess, sourceEnvironment } from '../src/source-process.js';
+test('POSIX executable text cannot silently fall back to a shell',{skip:process.platform==='win32'},async t=>{
+    const {mkdtempSync,writeFileSync,rmSync}=await import('node:fs');
+    const {tmpdir}=await import('node:os'),{join}=await import('node:path');
+    const root=mkdtempSync(join(tmpdir(),'source interpreter '));t.after(()=>rmSync(root,{recursive:true,force:true}));
+    const file=join(root,'plain executable');writeFileSync(file,"printf 'explicit interpreter only'\n",{mode:0o700});
+    const options={executable:file,args:[],cwd:root,input:'',timeoutMs:5000};
+    const rejected=await runSourceProcess(options);assert.equal(rejected.reason,'exit');assert.equal(rejected.stdout,'');
+    const explicit=await runSourceProcess({...options,executable:'/bin/sh',args:[file],environment:{...sourceEnvironment(),NODE_OPTIONS:'--not-a-node-flag'}});
+    assert.equal(explicit.reason,'completed');assert.equal(explicit.stdout,'explicit interpreter only');
+});
+test('source lookup uses the selected PATH including Windows mixed-case names',async()=>{
+    const {basename,dirname}=await import('node:path');
+    const environment=Object.fromEntries(Object.entries(sourceEnvironment()).filter(([key])=>key.toUpperCase()!=='PATH'));
+    environment[process.platform==='win32'?'Path':'PATH']=dirname(process.execPath);
+    const result=await runSourceProcess({executable:basename(process.execPath),args:['-p','String(42)'],cwd:process.cwd(),input:'',timeoutMs:15000,environment});
+    assert.equal(result.reason,'completed');assert.equal(result.stdout.trim(),'42');
+});
 test('source processes pass literal Unicode arguments and omit credential environments',async()=>{
     const values=['中文 path','a"b','$(no execution)','`literal`','a&b','trailing\\'];
     const result=await runSourceProcess({executable:process.execPath,args:['-e','process.stdout.write(JSON.stringify({args:process.argv.slice(1),token:process.env.ANTHROPIC_API_KEY,home:process.env.HOME,profile:process.env.USERPROFILE,input:require("fs").readFileSync(0,"utf8")}))',...values],cwd:process.cwd(),input:'{"project":"中文"}\n',timeoutMs:15000,environment:sourceEnvironment({...process.env,ANTHROPIC_API_KEY:'must-not-pass',HOME:'literal isolated home',USERPROFILE:'literal isolated profile'})});
