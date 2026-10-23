@@ -254,5 +254,9 @@ export const MESSAGES = {
   "statusline.prefix.main.github-pr": "GitHub PR",
   "statusline.short.main.github-pr": "GitHub PR",
   "statusline.prefix.main.github-ci": "GitHub CI",
-  "statusline.short.main.github-ci": "GitHub CI"
+  "statusline.short.main.github-ci": "GitHub CI",
+  "statusline.cost.rate_session": "费用速率 ~${value}/会话小时",
+  "statusline.cost.rate_api": "费用速率 ~${value}/API 小时",
+  "statusline.prefix.main.session-cost-rate": "费用速率",
+  "statusline.short.main.session-cost-rate": "费用速率"
 } as const;

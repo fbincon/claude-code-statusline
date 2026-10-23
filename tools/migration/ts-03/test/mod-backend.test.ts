@@ -30,7 +30,7 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     const call = (operation: string, payload = {}) => { operations.add(operation); return backend.parseResponse(operation, f.run('ui', backend.requestText(operation, payload))); };
     const description = call('describe');
     assert.equal(description.backend_version, VERSION);
-    assert.equal(description.catalog.length, 83);
+    assert.equal(description.catalog.length, 84);
     const baseline = call('read');
     assert.equal(baseline.installed, true);
     assert.equal(baseline.installation.statusLine.state, 'owned');

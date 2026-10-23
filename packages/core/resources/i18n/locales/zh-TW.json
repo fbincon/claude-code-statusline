@@ -1860,5 +1860,17 @@
   "sources.automatic_off": "自動重新整理：關",
   "sources.automatic_review": "審核此來源，允許在支援的使用中工作階段定期查詢 GitHub PR/CI。Enter 儲存本機策略；←/→ 調整間隔。",
   "sources.interval": "重新整理間隔",
-  "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。"
+  "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。",
+  "items.main.session-cost-rate.label": "會話費用速率",
+  "items.main.session-cost-rate.description": "由官方會話費用與所選會話／API 時長推導的每小時估算速率",
+  "fields.item.cost_rate_basis.label": "費用速率分母",
+  "cost_rate.basis.session": "會話時長",
+  "cost_rate.basis.api": "累計 API 時長",
+  "statusline.cost.rate_session": "費用速率 ~${value}/會話小時",
+  "statusline.cost.rate_api": "費用速率 ~${value}/API 小時",
+  "statusline.prefix.main.session-cost-rate": "費用速率",
+  "statusline.short.main.session-cost-rate": "費用速率",
+  "explain.reason.cost_rate_session": "以官方會話時長為分母，至少需要 60 秒。",
+  "explain.reason.cost_rate_api": "以官方累計 API 時長為分母，與任務活躍時長獨立。",
+  "guidance.requirements.cost_rate": "推導估算值：費用除以所選官方時長（小時），要求至少 60 秒。費用為零有效；缺失、負數或非有限值不可用，不代表帳單或未來消費預測。"
 }

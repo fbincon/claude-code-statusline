@@ -2672,6 +2672,66 @@ export const SEARCH_CATALOG = [
   },
   {
     "scope": "main",
+    "id": "session-cost-rate",
+    "label": "Session cost rate",
+    "description": "Estimated hourly rate from official session cost and the selected session/API duration",
+    "group": "usage",
+    "sources": [
+      "cost.total_cost_usd",
+      "cost.total_duration_ms",
+      "cost.total_api_duration_ms"
+    ],
+    "examples": [
+      "Rate $0.58/h (session)",
+      "Rate $5.76/h (API)"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [
+      "colors",
+      "palette",
+      "separator-style"
+    ],
+    "excludes": [],
+    "unavailable_reasons": [
+      "not_observed",
+      "unsupported_host",
+      "unknown_host_version",
+      "source_unavailable",
+      "condition_not_met"
+    ],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "official_input"
+      ],
+      "measurement_scope": "session",
+      "requirements": [
+        "observed_field",
+        "cost_rate"
+      ],
+      "setup": [
+        "claude-statusline doctor"
+      ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons",
+        "number_format"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": false,
+      "source": "none",
+      "preview": "session-cost-rate",
+      "explanation": "cost-rate"
+    }
+  },
+  {
+    "scope": "main",
     "id": "session-duration",
     "label": "Session runtime",
     "description": "Official cumulative session runtime, distinct from task duration",

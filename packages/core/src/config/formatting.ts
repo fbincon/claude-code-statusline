@@ -1,3 +1,4 @@
+import { validCostRateOptions } from '../editor/cost-rate.js';
 import { INDICATOR_KEYS, validIndicatorOptions } from '../editor/indicators.js';
 import { POWERLINE_FIELDS, type PowerlineDraft } from '../contracts/ui.js';
 import type { FormattingDraft, ItemOptionsDraft, LayoutDraft, Scope, VisibilityRule } from '../contracts/ui.js';
@@ -42,12 +43,13 @@ export function formatting(value: unknown): FormattingDraft {
   return { ...Object.fromEntries(Object.keys(FORMAT_CHOICES).map(key => [key, choices[key]])), thresholds: { enabled: thresholds.enabled, warning, critical } } as unknown as FormattingDraft;
 }
 export function itemOptions(value: unknown): ItemOptionsDraft {
-  exact(value, [...Object.keys(DEFAULT_ITEM), ...(object(value) && Object.hasOwn(value, 'link') ? ['link'] : []), ...INDICATOR_KEYS.filter(key => object(value) && Object.hasOwn(value, key))], 'item options');
+  exact(value, [...Object.keys(DEFAULT_ITEM), ...(object(value) && Object.hasOwn(value, 'link') ? ['link'] : []), ...INDICATOR_KEYS.filter(key => object(value) && Object.hasOwn(value, key)), ...(object(value) && Object.hasOwn(value, 'cost_rate_basis') ? ['cost_rate_basis'] : [])], 'item options');
   if (value.link !== undefined && !['off', 'auto', 'on'].includes(value.link as string)) fail('errors.advanced.unknown_item_option');
   const indicator = Object.fromEntries(INDICATOR_KEYS.filter(key => Object.hasOwn(value, key)).map(key => [key, key === 'bar_width' ? integer(value[key], 4, 20, key) : value[key]]));
-  if (!validIndicatorOptions(indicator)) fail('errors.advanced.unknown_item_option');
+  if (!validIndicatorOptions(indicator) || !validCostRateOptions(value)) fail('errors.advanced.unknown_item_option');
   return {
     ...indicator,
+    ...(value.cost_rate_basis === undefined ? {} : { cost_rate_basis: value.cost_rate_basis as 'session' | 'api' }),
     ...(value.link !== undefined ? { link: value.link as 'off' | 'auto' | 'on' } : {}),
     label: safeText(value.label, 'label'), icon: safeText(value.icon, 'icon'),
     priority: integer(value.priority, 0, 100, 'priority'), max_width: nullableInteger(value.max_width, 2, 10000, 'max_width'),

@@ -4,7 +4,7 @@
 
 更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`2bdf429d3356796232efff926235617cdab4f430`**
 
-本计划定义工作包范围、依赖、实施切片及验收意图，产品优先级与当前状态由[路线图](roadmap.zh-CN.md)维护。产品顺序为 APPEARANCE-03 → COMPOSITION-02 → WORKFLOW-02 → METRICS-01 → SHOWCASE-01，GIT-01 作为独立维护。六项工作均为 **IN_PROGRESS**，尚未指定版本或交付日期；CI-01 保持 **DONE**。本次文档更新不启动功能实施、不发布产品版本。
+本计划定义工作包范围、依赖与验收意图，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已按批准的 v3.7.0 交付范围实现并进入验证，尚未发布。SHOWCASE-01 与 GIT-01 保持 NOT_STARTED，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
 
 已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.6.0 专项决定](../releases/approvals/v3.6.0.json)记录该版本对这些缺口的接受。
 
@@ -19,10 +19,10 @@
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
 | 独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | NOT_STARTED |
-| M4 | [APPEARANCE-03](#appearance-03) | 既有上下文／额度观测、格式与布局 | NOT_STARTED |
-| M5 | [COMPOSITION-02](#composition-02) | 既有实例、条件与 Powerline；不依赖 M4 | NOT_STARTED |
-| M6 | [WORKFLOW-02](#workflow-02) | 已交付 EXTENSIONS-01、WORKFLOW-01；仅 GitHub | IN_PROGRESS |
-| M7 | [METRICS-01](#metrics-01) | 既有会话费用与耗时字段；不依赖 M6 | NOT_STARTED |
+| M4 | [APPEARANCE-03](#appearance-03) | 既有上下文／额度观测、格式与布局 | VALIDATING |
+| M5 | [COMPOSITION-02](#composition-02) | 既有实例、条件与 Powerline；不依赖 M4 | VALIDATING |
+| M6 | [WORKFLOW-02](#workflow-02) | 已交付 EXTENSIONS-01、WORKFLOW-01；仅 GitHub | VALIDATING |
+| M7 | [METRICS-01](#metrics-01) | 既有会话费用与耗时字段；不依赖 M6 | VALIDATING |
 | M8 | [SHOWCASE-01](#showcase-01) | 已验收功能及匹配安装包；保留原有 ID | NOT_STARTED |
 
 M4 → M5 → M6 → M7 → M8 表示产品优先级，不额外增加技术前置条件。实施前选定工作包与有界切片。GIT-01 包含核查及必要防护工作，本文不认定已存在漏洞。主线之外的条目见[候选池](roadmap.zh-CN.md#candidates)。
@@ -101,7 +101,7 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 ## COMPOSITION-02 组件分组与联动隐藏
 
-**状态：IN_PROGRESS。** 产品顺序第二项，不依赖 APPEARANCE-03。
+**状态：VALIDATING。** 产品顺序第二项，不依赖 APPEARANCE-03。
 
 **问题与目标。** 指标消失后不留下孤立文字／图标，让相关实例可共享 Powerline 色块，同时保持各自数据范围。
 
@@ -119,7 +119,7 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 ## WORKFLOW-02 可选 GitHub PR／CI 自动刷新
 
-**状态：NOT_STARTED。** 产品顺序第三项，依赖已交付 EXTENSIONS-01、WORKFLOW-01。
+**状态：VALIDATING。** 产品顺序第三项，依赖已交付 EXTENSIONS-01、WORKFLOW-01。
 
 **问题与目标。** 活跃会话中保持已启用 GitHub 来源的结果更新，减少重复打开手动刷新的操作。
 
@@ -137,7 +137,7 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 ## METRICS-01 会话费用速率
 
-**状态：NOT_STARTED。** 产品顺序第四项，不依赖自动刷新。
+**状态：VALIDATING。** 产品顺序第四项，不依赖自动刷新。
 
 **问题与目标。** 用明确的分母将现有会话费用表达为每小时速率，不虚构账单或任务测量。
 

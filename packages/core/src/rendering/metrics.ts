@@ -88,3 +88,16 @@ export function spendMetric(window: unknown, item: string, fmt: FormattingDraft,
     const used = finiteNumber(window.used_usd), limit = finiteNumber(window.limit_usd);
     return used === null || limit === null ? null : language.text('spend.amount', { used: preferences.money(used, fmt), limit: preferences.money(limit, fmt) });
 }
+
+/** A derived hourly estimate, with no pricing assumptions or additional observations. */
+export function costRateValue(cost: unknown, basis: 'session' | 'api'): number | null {
+    if (!object(cost)) return null;
+    const usd = finiteNumber(cost.total_cost_usd), duration = finiteNumber(cost[basis === 'api' ? 'total_api_duration_ms' : 'total_duration_ms']);
+    if (usd === null || duration === null || duration < 60000) return null;
+    const rate = usd * (3600000 / duration);
+    return Number.isFinite(rate) ? rate : null;
+}
+export function costRate(cost: unknown, basis: 'session' | 'api', fmt: FormattingDraft, language: Presentation): string | null {
+    const rate = costRateValue(cost, basis);
+    return rate === null ? null : language.text('cost.rate_' + basis, { value: preferences.money(rate, fmt) });
+}

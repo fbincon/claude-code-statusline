@@ -28,7 +28,7 @@ test('all eight frozen schemas and 84 render configurations normalize without al
     const raw = fixture.files['config/claude-statusline.json'];
     const input = decode(raw), before = canonical(input);
     const actual = validateDisplay(input);
-    assert.equal(canonical(actual), canonical({ ...expected[fixture.id].value.effective, schema_version: 12, groups: [], subagents: { ...expected[fixture.id].value.effective.subagents, groups: [] }, powerline: { padding: 'both', separator: 'arrow', start_cap: false, end_cap: true, color_mode: 'semantic' } }), fixture.id);
+    assert.equal(canonical(actual), canonical({ ...expected[fixture.id].value.effective, schema_version: 13, groups: [], subagents: { ...expected[fixture.id].value.effective.subagents, groups: [] }, powerline: { padding: 'both', separator: 'arrow', start_cap: false, end_cap: true, color_mode: 'semantic' } }), fixture.id);
     assert.equal(canonical(input), before);
   }
   for (const value of Object.values(corpus.configs)) assert.deepEqual(validateDisplay(validateDisplay(value)), validateDisplay(value));

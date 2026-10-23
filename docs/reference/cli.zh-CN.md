@@ -778,7 +778,7 @@ claude-statusline config set refresh-interval event
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
 
-当前显示 schema 为 v8；历史 v1–v7 可读取，首次实际配置保存时备份并写为 v8。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前显示 schema 为 v13；历史 v1–v12 可读取，首次实际配置保存时备份并写为 v13。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 
@@ -931,3 +931,5 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ## 分组操作
 
 `config group main|subagent list|create|set|copy|move|ungroup` 管理连续实例分组。创建要求 `ID --members ID,ID --primary ID`，可选 `--linked on|off` 与 `--powerline on|off`。移动要求 `--before ID` 或 `--after ID` 二选一。[示例与约束](../COMPOSITION.zh-CN.md#组件分组)。
+
+可选 `session-cost-rate` 组件支持 `config instance main set INSTANCE cost-rate-basis session|api`。省略使用会话时长，两种分母均至少要求一分钟。详见[费用速率定义](../DISPLAY_ITEMS.zh-CN.md#会话费用速率)。

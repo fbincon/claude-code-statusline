@@ -671,9 +671,9 @@ Restart Claude Code. Installation synchronizes command paths, skill templates, h
 
 ### Version compatibility
 
-Display schema 9 stores instance IDs in ordering and rows. Reading v1–v8 converts only in memory; saving/installing backs up before migration. Downgrade requires a compatible backup: editing the schema number cannot losslessly reverse repeated instances or flexible layouts. See [migration and recovery](COMPOSITION.md#migration-transfer-and-recovery).
+Display schema 13 stores instance IDs in ordering and rows. Reading v1–v12 converts only in memory; saving/installing backs up before migration. Downgrade requires a compatible backup: editing the schema number cannot losslessly reverse repeated instances or flexible layouts. See [migration and recovery](COMPOSITION.md#migration-transfer-and-recovery).
 
-Current display schema v9, configuration protocol v16, and independent runtime protocol v2 require matching resources and backend. Supported display v1–v8 files are read without rewriting; an actual save backs up the old bytes and migrates to v9. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
+Current display schema v13, configuration protocol v21, and independent runtime protocol v3 require matching resources and backend. Supported display v1–v12 files are read without rewriting; an actual save backs up the old bytes and migrates to v13. Unsupported newer schemas or invalid content are rejected. Older packages cannot necessarily understand newer schemas or item IDs.
 
 Before downgrading, use the newer package to disable/remove integrations that the older package cannot manage, including live collection and the native editor as applicable. Restore a compatible display backup using its `metadata.json`, or remove unsupported item IDs where schema compatibility permits. Then install the old package, run `install` and `doctor`, and restart Claude Code. A portable export can separately retain current display choices for later reuse.
 
@@ -714,7 +714,7 @@ Doctor checks platform/Node, PATH, configuration validity, command ownership, ho
 For an existing display configuration file, the schema check reports the supported version, currently `[OK] display config schema: v9`. A valid older file instead reports, for example:
 
 ```text
-[WARN] display config schema v4 is valid and will migrate to v8 on the next configuration save
+[WARN] display config schema v4 is valid and will migrate to v13 on the next configuration save
 ```
 
 This warning does not migrate the file: diagnosis and reads preserve its bytes; an actual configuration save backs up and migrates it. The display schema is independent of configuration protocol v16 and runtime protocol v2.

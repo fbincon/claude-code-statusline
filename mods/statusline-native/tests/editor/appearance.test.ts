@@ -71,3 +71,13 @@ test('new Powerline controls share native forms and strict validation', () => {
   const field=formRows(view).find(row=>row.spec.key==='powerline.padding')!;
   expect(setFormValue(view,field,'unknown')).toBe(false);
 });
+
+test('native rate forms retain the selected denominator and reject unrelated options', () => {
+  const current = readResult(); current.draft.display.instances = [component('session-cost-rate')];
+  const editor = new Editor(description(), current); editor.detail = { scope: 'main', id: 'session-cost-rate' };
+  const view = { editor, message: '' }, row = formRows(view).find(row => row.spec.key === 'cost_rate_basis')!;
+  expect(row.valueRaw).toBe('session'); expect(setFormValue(view, row, 'api')).toBe(true);
+  expect(isDraft(editor.draft)).toBe(true); expect(editor.draft.display.instances[0]!.options.cost_rate_basis).toBe('api');
+  expect(setFormValue(view, row, 'active')).toBe(false);
+  expect(current.draft.display.instances[0]!.options.cost_rate_basis).toBe(undefined);
+});

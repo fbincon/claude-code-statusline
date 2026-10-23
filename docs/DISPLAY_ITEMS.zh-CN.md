@@ -4,7 +4,7 @@
 
 当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/post-migration-fixes.zh-CN.md)。
 
-当前目录包含 64 个主栏指标、15 个子 Agent 指标，默认分别启用 10 项和 5 项。下表介绍独立指标和任务计时，默认选择与配置入口见[使用指南](USER_GUIDE.zh-CN.md#可配置显示项)。`prompt-timer` 是 `task-timer` 的兼容别名，不另计为目录项。主栏组合项可与其独立项并存；子 Agent 的 `status-elapsed` 与独立 `status`、`elapsed` 互斥。
+当前目录包含 65 个主栏指标、15 个子 Agent 指标，默认分别启用 10 项和 5 项。下表介绍独立指标和任务计时，默认选择与配置入口见[使用指南](USER_GUIDE.zh-CN.md#可配置显示项)。`prompt-timer` 是 `task-timer` 的兼容别名，不另计为目录项。主栏组合项可与其独立项并存；子 Agent 的 `status-elapsed` 与独立 `status`、`elapsed` 互斥。
 
 下列样例采用英文输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
 
@@ -19,6 +19,7 @@
 | `context-tokens` | `Context 54K / 200K` | `context_window.current_usage` 中普通输入、缓存写入和缓存读取之和／窗口容量，不含输出。若分项对象不存在，可用官方 `total_input_tokens`；压缩后明确为 null 时仍视为不可用。 |
 | `five-hour-reset` | `5h reset 2h 13m` | 按 `rate_limits.five_hour.resets_at` 倒计时。 |
 | `weekly-reset` | `weekly reset 6d 2h` | 按 `rate_limits.seven_day.resets_at` 倒计时。 |
+| `session-cost-rate` | `费用速率 ~$0.58/会话小时` | 官方费用与所选会话／API 时长推导的每小时估算速率，详见下文。 |
 | `session-cost` | `Cost $0.12` | 官方会话累计费用 `cost.total_cost_usd`。 |
 | `session-duration` | `Session 12m 30s` | 官方会话累计运行时间 `cost.total_duration_ms`。 |
 | `api-duration` | `API 1m 15s` | 官方累计 API 请求耗时 `cost.total_api_duration_ms`。 |
@@ -132,3 +133,16 @@ Claude Code 2.1.289 headless 路径可能缺失 prompt 身份事件。只有唯�
 | `external-value` | 主状态栏 / 子代理 | 明确绑定的 JSON 或命令数据源标量，包含新鲜度与失败标记。 |
 | `github-pr` | 主状态栏 | 显式刷新的 GitHub PR，与宿主 `pr` 分开。 |
 | `github-ci` | 主状态栏 | GitHub 检查摘要；无检查或结果未知不表示通过。 |
+
+## 会话费用速率
+
+`session-cost-rate` 默认不选中。在任一编辑器的详情中选择“费用速率分母”：会话时长（默认）或累计 API 时长。CLI 示例：
+
+```bash
+claude-statusline config enable session-cost-rate
+claude-statusline config instance main set session-cost-rate cost-rate-basis api
+```
+
+通过新增／复制创建的实例使用实际返回的实例 ID；每个副本独立保存分母。公式为 `total_cost_usd / (duration_ms / 3600000)`，时长分别取 `cost.total_duration_ms` 或 `cost.total_api_duration_ms`。所选时长至少达到 60,000 ms 才显示。缺失、负数、非有限值、零时长或不足一分钟均隐藏速率；足够时长内已观测的零费用显示零，另一种时长无需存在。
+
+费用 $2、会话一小时、API 十分钟，分别得到 `~$2.00/会话小时` 和 `~$12.00/API 小时`。关闭标签后，估算标记与分母仍保留在值中。API 时长为累计请求耗时，与 `task-active-timer` 独立。这是由会话字段推导的估算值，不是账单或未来消费预测，无需新增采集器、价目表或网络来源。预览使用固定样例；保存、复制、方案及便携导出均保留所选分母。

@@ -1,3 +1,4 @@
+import { validCostRateOptions } from '../editor/cost-rate.js';
 import { validGroups } from '../editor/groups.js';
 import { validIndicatorOptions } from '../editor/indicators.js';
 import type { DisplayDraft, SubagentDraft, InstanceDraft, ItemOptionsDraft, Scope, MetricsDraft } from '../contracts/ui.js';
@@ -10,7 +11,7 @@ export { isSchema } from './validation.js';
 import * as options from './formatting.js';
 import { reference, SOURCE_TYPES } from '../extensions/model.js';
 
-export const SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = 13;
 export const CONFIG_FILENAME = 'claude-statusline.json';
 const v1 = ['schema_version', 'items', 'use_colors', 'palette', 'directory_style', 'separator_style'];
 const v2 = [...v1, 'scope_labels', 'subagents'];
@@ -76,7 +77,7 @@ export function validateInstances(value: unknown, scope: Scope): InstanceDraft[]
     if (typeof type_id !== 'string' || !BY_SCOPE[scope].has(type_id)) fail('composition.errors.unknown_type');
     if (typeof enabled !== 'boolean') fail('composition.errors.enabled');
     const parsed = options.itemOptions(raw.options);
-    if (!validIndicatorOptions(parsed as unknown as Record<string, unknown>, scope, type_id)) fail('composition.errors.node_options');
+    if (!validIndicatorOptions(parsed as unknown as Record<string, unknown>, scope, type_id) || !validCostRateOptions(parsed as unknown as Record<string, unknown>, scope, type_id)) fail('composition.errors.node_options');
     const capability = BY_SCOPE[scope].get(type_id)?.capabilities;
     if (parsed.link !== undefined && !capability?.link || SOURCE_TYPES.includes(type_id) && Object.keys(parsed.formatting).some(key=>!capability?.formats.includes(key))) fail('composition.errors.node_options');
     if (type_id === 'text' || type_id === 'spacer') {
@@ -124,7 +125,7 @@ function legacySubagents(value: unknown, legacy: boolean): SubagentDraft {
 function scalars(data: Record<string, unknown>, version: number) {
   if (typeof data.use_colors !== 'boolean') fail('errors.display.use_colors_must_be_true_or_false');
   return {
-    schema_version: 12 as const, groups: [], use_colors: data.use_colors,
+    schema_version: 13 as const, groups: [], use_colors: data.use_colors,
     palette: choice(data.palette, ['default', 'ansi'] as const, 'palette'),
     directory_style: choice(data.directory_style, ['full', 'home', 'project-relative', 'basename'] as const, 'directory_style'),
     separator_style: choice(data.separator_style, ['classic', 'compact', 'powerline'] as const, 'separator_style'),
@@ -142,7 +143,7 @@ export function validateDisplay(value: unknown): DisplayDraft {
   let version: bigint;
   try { version = jsonInteger(value.schema_version); }
   catch { return fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) }); }
-  if (version > 12n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
+  if (version > 13n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
   if (version < 1n) fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) });
   if (version >= 8n) {
     exact(value, version === 8n ? v8 : [...current, ...(version >= 12n ? ['groups'] : [])], 'display');
@@ -187,7 +188,7 @@ export function validateDisplay(value: unknown): DisplayDraft {
 }
 
 function orderedDisplay(value: DisplayDraft): DisplayDraft {
-  return { schema_version: 12, groups: value.groups, use_colors: value.use_colors, palette: value.palette,
+  return { schema_version: 13, groups: value.groups, use_colors: value.use_colors, palette: value.palette,
     directory_style: value.directory_style, separator_style: value.separator_style,
     scope_labels: value.scope_labels, statusline_language: value.statusline_language,
     theme: value.theme, powerline_glyph: value.powerline_glyph, powerline: value.powerline, subagents: value.subagents,

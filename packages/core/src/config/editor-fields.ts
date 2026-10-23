@@ -1,3 +1,4 @@
+import { COST_RATE_DEFAULTS } from '../editor/cost-rate.js';
 import { INDICATOR_DEFAULTS } from '../editor/indicators.js';
 import { itemFields as capabilityFields } from '../editor/appearance.js';
 import type { DisplayDraft, EditorField, Scope } from '../contracts/ui.js';
@@ -49,6 +50,7 @@ export function fieldValue(config: DisplayDraft, key: string, scope?: Scope, ide
     const node = find(config, scope, identifier!);
     if (key === 'text') return node?.text;
     if (Object.hasOwn(INDICATOR_DEFAULTS, key)) return node?.options[key as keyof typeof INDICATOR_DEFAULTS] ?? INDICATOR_DEFAULTS[key as keyof typeof INDICATOR_DEFAULTS];
+    if (key === 'cost_rate_basis') return node?.options.cost_rate_basis ?? COST_RATE_DEFAULTS.cost_rate_basis;
     if (key === 'link') return node?.options.link ?? 'off';
     const options = node?.options ?? defaultItem();
     return Object.hasOwn(FORMAT_CHOICES, key) ? options.formatting[key] ?? 'inherit' : options[key as keyof typeof options];

@@ -1,3 +1,4 @@
+import { validCostRateOptions } from './cost-rate.js';
 import { validGroups } from './groups.js';
 import { INDICATOR_KEYS, validIndicatorOptions } from './indicators.js';
 import { SAMPLE_REASONS, EXPLAIN_REASONS, LAYOUT_REASONS, EVIDENCE_STATUSES } from '../contracts/ui.js';
@@ -106,10 +107,10 @@ function formatOverrides(value: unknown): boolean {
 function itemOptions(value: unknown, ids: readonly string[], scope: "main" | "subagent"): boolean {
   if (!object(value)) return false;
   return Object.entries(value).every(([id, option]) => ids.includes(id) && object(option) &&
-    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold', ...(option.link !== undefined ? ['link'] : []), ...INDICATOR_KEYS.filter(key => Object.hasOwn(option, key))]) && (option.link === undefined || ['off','auto','on'].includes(String(option.link))) &&
+    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold', ...(option.link !== undefined ? ['link'] : []), ...INDICATOR_KEYS.filter(key => Object.hasOwn(option, key)), ...(Object.hasOwn(option, 'cost_rate_basis') ? ['cost_rate_basis'] : [])]) && (option.link === undefined || ['off','auto','on'].includes(String(option.link))) &&
     (option.label === null || (text(option.label) && [...option.label].length <= 256)) &&
     (option.icon === null || (text(option.icon) && [...option.icon].length <= 256)) &&
-    validIndicatorOptions(option, scope, id) && range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
+    validIndicatorOptions(option, scope, id) && validCostRateOptions(option, scope, id) && range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
     formatOverrides(option.formatting) && validColor(option.foreground) && validColor(option.background) &&
     typeof option.visibility === "string" && visibilityChoices(scope, id).includes(option.visibility) &&
     range(option.visibility_threshold, 0, 100));
@@ -171,7 +172,7 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 12 ||
+    d.schema_version !== 13 ||
     !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.map(f => f.key.slice(10))) ||
     !POWERLINE_FIELDS.every(f => f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
       (f.choices as readonly unknown[]).includes((d.powerline as Record<string, unknown>)[f.key.slice(10)])) ||

@@ -1860,5 +1860,17 @@
   "sources.automatic_off": "자동 새로 고침: 꺼짐",
   "sources.automatic_review": "지원되는 활성 세션에서 GitHub PR/CI를 주기적으로 조회할 소스를 검토합니다. Enter로 로컬 정책을 저장하고 ←/→로 간격을 변경합니다.",
   "sources.interval": "새로 고침 간격",
-  "sources.automatic_saved": "자동 정책을 저장했습니다. 런타임 Mod가 설치 또는 설정되지 않았다면 호스트 통합을 적용하고 세션을 다시 시작하세요."
+  "sources.automatic_saved": "자동 정책을 저장했습니다. 런타임 Mod가 설치 또는 설정되지 않았다면 호스트 통합을 적용하고 세션을 다시 시작하세요.",
+  "items.main.session-cost-rate.label": "세션 비용 비율",
+  "items.main.session-cost-rate.description": "공식 세션 비용과 선택한 세션/API 시간으로 계산한 시간당 추정 비용",
+  "fields.item.cost_rate_basis.label": "비용 비율 분모",
+  "cost_rate.basis.session": "세션 시간",
+  "cost_rate.basis.api": "누적 API 시간",
+  "statusline.cost.rate_session": "비용 비율 ~${value}/세션 시간",
+  "statusline.cost.rate_api": "비용 비율 ~${value}/API 시간",
+  "statusline.prefix.main.session-cost-rate": "비용 비율",
+  "statusline.short.main.session-cost-rate": "비용 비율",
+  "explain.reason.cost_rate_session": "공식 세션 시간을 분모로 사용하며 60초 이상 필요합니다.",
+  "explain.reason.cost_rate_api": "공식 누적 API 시간을 분모로 사용하며 작업 활성 시간과 독립적입니다.",
+  "guidance.requirements.cost_rate": "비용을 선택한 공식 시간(시간 단위)으로 나눈 추정값으로 최소 60초가 필요합니다. 비용 0은 유효하며 누락, 음수, 유한하지 않은 값은 사용할 수 없습니다. 청구 금액이나 향후 지출 예측이 아닙니다."
 }
