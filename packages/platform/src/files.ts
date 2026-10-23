@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { library, nativeApi, nativeFunction, winError } from './native.js';
 
 export class FileChangedError extends Error {
-  constructor() { super('file_changed'); this.name = 'FileChangedError'; }
+  constructor(message = 'file_changed') { super(message); this.name = 'FileChangedError'; }
 }
 
 /** Older Windows libuv reports a 64-bit path volume serial but a 32-bit fd
@@ -32,7 +32,7 @@ export function fileIdentity(path: string, stat: Pick<fs.BigIntStats, 'dev' | 'i
     const attributes = info.readUInt32LE(0), dev = BigInt(info.readUInt32LE(28));
     const ino = BigInt(info.readUInt32LE(44)) << 32n | BigInt(info.readUInt32LE(48));
     if (attributes & (0x400 | 0x10)) throw new Error('File became a reparse point or directory while checking identity');
-    if (ino !== stat.ino) throw new FileChangedError();
+    if (ino !== stat.ino) throw new FileChangedError('File changed while checking identity');
     return { dev, ino };
   } finally { k.func('bool CloseHandle(void *handle)')(h); }
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
-import { sameFileIdentity, fileIdentity } from '@fbincon/statusline-platform/files';
+import { sameFileIdentity, fileIdentity, FileChangedError } from '@fbincon/statusline-platform/files';
 import { readRegular } from '../src/recovery/journal.js';
 import { setup, writeFileSync, join } from './final-support.js';
 
@@ -31,5 +31,5 @@ test('Windows native path identity supplies a real volume and rejects replacemen
   finally { fs.closeSync(fd); }
   fs.renameSync(path, path + '.before');
   writeFileSync(path, '{}', { mode: 0o600 });
-  assert.throws(() => fileIdentity(path, stat), /File changed/);
+  assert.throws(() => fileIdentity(path, stat), error => error instanceof FileChangedError && /File changed/.test(error.message));
 });
