@@ -2,9 +2,9 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`95206119dab6f931f320277d25889fea8da49528`**
+Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`8a6a081426f463157df308f6ef1d15a15b5901aa`**
 
-This plan defines work-package scope, dependencies, implementation slices and acceptance intent. The [roadmap](roadmap.md) owns product priority and current status. SHOWCASE-01 remains **NOT_STARTED**, without an assigned version or delivery date. CI-01 is **VALIDATING** as repository maintenance without a product release.
+This plan defines work-package scope, dependencies, implementation slices and acceptance intent. The [roadmap](roadmap.md) owns product priority and current status. SHOWCASE-01 remains **NOT_STARTED**, without an assigned version or delivery date. CI-01 is **DONE** as repository maintenance without a product release.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.6.0 decision](../releases/approvals/v3.6.0.json) records their acceptance for that release.
 
@@ -25,7 +25,7 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 | M3 | [WORKFLOW-01](#workflow-01) | EXTENSIONS-01; LINKS-01 is optional | DONE |
 | M3 | [COMMAND-01](#command-01) | EXTENSIONS-01; can ship independently of WORKFLOW-01 | DONE |
 | As needed | [CAPABILITIES-01](#capabilities-01) | Include when related features expose specific duplicate or inconsistent metadata | DONE |
-| Maintenance | [CI-01](#ci-01) | Independent maintenance; does not block M1/M2/M3 | VALIDATING |
+| Maintenance | [CI-01](#ci-01) | Independent maintenance; does not block M1/M2/M3 | DONE |
 
 M1 → M2 → M3 records the original product priority. Stages can ship in bounded portions: complete schemes need not wait for all new controls; demonstrations cover accepted functionality; network and command support are independent. Documentation updates do not change these statuses. CI-01 includes weekly Dependabot proposals for same-major Actions updates. See [implementation and validation](ci-maintenance.md).
 
@@ -257,7 +257,7 @@ M1 → M2 → M3 records the original product priority. Stages can ship in bound
 
 ## CI-01 Pin Actions references
 
-**Status: VALIDATING.** Baseline: `95206119dab6f931f320277d25889fea8da49528`. This task retains product v3.6.0 without a new tag, npm publication or Release. See [CI maintenance and validation](ci-maintenance.md).
+**Status: DONE.** Baseline: `95206119dab6f931f320277d25889fea8da49528`. This task retains product v3.6.0 without a new tag, npm publication or Release. See [CI maintenance and validation](ci-maintenance.md).
 
 **Problem and goal.** Replace mutable Action tags with explicit, reviewable dependency identities and catch future omissions.
 
@@ -269,7 +269,7 @@ M1 → M2 → M3 records the original product priority. Stages can ship in bound
 2. Pin references, add regression checks and same-major weekly Actions-only Dependabot proposals (one grouped PR, Monday 09:00 Asia/Shanghai).
 3. Validate final PR/main matrices and affected manual workflows; record update/revert guidance and synchronize validated main to Gitee.
 
-**Functional acceptance.** All external references are immutable, version comments have verified upstream provenance, omissions fail the gate, and local references remain usable. The final PR/main retain eight installed targets, 32 Node cases and thirteen hosts. Historical Python, v3.6.0 public downloads and npm dry-run pass on main. The npm dry-run does not claim real OIDC publication. Record actual results before marking DONE; the six existing #96 gaps remain unverified.
+**Functional acceptance.** All external references are immutable, version comments have verified upstream provenance, omissions fail the gate, and local references remain usable. The final PR/main retain eight installed targets, 32 Node cases and thirteen hosts. Historical Python, v3.6.0 public downloads and npm dry-run pass on main. The npm dry-run does not claim real OIDC publication. Final source identities and passed gates are recorded in [CI maintenance](ci-maintenance.md); the six existing #96 gaps remain unverified.
 
 <a id="acceptance-matrix"></a>
 
