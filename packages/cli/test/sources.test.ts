@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ConfigurationService } from '../src/config/service.js';
@@ -11,28 +11,38 @@ import { checkSummary, refreshGithub, refreshCommand } from '../src/sources/prov
 import { definition } from '@fbincon/statusline-core/extensions/model';
 import { fileURLToPath } from 'node:url';
 test('manual workers publish observations, reject concurrent refreshes and cancel late commands',async t=>{
-    const root=mkdtempSync(join(tmpdir(),'source worker '));t.after(()=>rmSync(root,{recursive:true,force:true}));
-    const configuration=new ConfigurationService({configDir:join(root,'config'),launch:{executable:process.execPath,args:[fileURLToPath(new URL('../src/entry.js',import.meta.url))]},hostVersion:()=>null},createStorage());
+    const root=mkdtempSync(join(tmpdir(),'source worker ')), workerEntry=join(root,'worker.mjs'), workers:string[]=[];
+    // Cancellation is acknowledged before the detached worker has finished its
+    // cleanup. Keep the fixture alive until each actual CLI invocation returns.
+    writeFileSync(workerEntry,`import { writeFileSync } from 'node:fs';\nimport { join } from 'node:path';\ntry { await import(${JSON.stringify(new URL('../src/entry.js',import.meta.url).href)}); }\nfinally { writeFileSync(join(${JSON.stringify(root)},process.argv.at(-1)+'.done'),''); }\n`);
+    t.after(async()=>{
+        const end=Date.now()+10000;
+        while(workers.some(id=>!existsSync(join(root,id+'.done')))&&Date.now()<end)await new Promise(r=>setTimeout(r,50));
+        assert(workers.every(id=>existsSync(join(root,id+'.done'))),'Every detached worker must finish before fixture removal');
+        rmSync(root,{recursive:true,force:true,maxRetries:5,retryDelay:100});
+    });
+    const configuration=new ConfigurationService({configDir:join(root,'config'),launch:{executable:process.execPath,args:[workerEntry]},hostVersion:()=>null},createStorage());
     const service=new SourceService(configuration), context=contextFor(root);
+    const start=()=>{const job=service.start('cmd',context,'test');workers.push(job.id);return job;};
     const change=(action:string,fields={})=>service.mutate({action,id:'cmd',expected_revision:service.read().revision,...fields});
     const spec=(script:string)=>({name:'Command',kind:'command',scope:{project:root,session:null,agent:null},ttl_seconds:300,settings:{executable:process.execPath,args:['-e',script],cwd:root,input:{project:'project'},output:'text',timeout_ms:15000}});
     change('add',{source:spec('process.stdout.write("zero: 0")')});change('enable',{review_revision:service.review('cmd').review_revision});
     const binding=change('bind').binding!;
     assert.equal(service.view(binding,context).reason,'not_refreshed');
-    let job=service.start('cmd',context,'test');assert.throws(()=>service.start('cmd',context,'another'));
+    let job=start();assert.throws(()=>service.start('cmd',context,'another'));
     const end=Date.now()+20000;
     while(job.state==='running'&&Date.now()<end){await new Promise(r=>setTimeout(r,100));job=service.job(job.id);}
     assert.equal(job.state,'completed',JSON.stringify(job));assert.equal(service.view(binding,context).value,'zero: 0');
     assert.equal(service.view(binding,{...context,session:'another-session',agent:'child'}).value,'zero: 0');
     assert.equal(service.view(binding,{...context,project:join(root,'elsewhere')}).state,'mismatch');
     change('edit',{source:spec('setTimeout(()=>process.stdout.write("late"),10000)')});change('enable',{review_revision:service.review('cmd').review_revision});
-    job=service.start('cmd',context,'test');await new Promise(r=>setTimeout(r,200));service.cancel(job.id);await new Promise(r=>setTimeout(r,800));
+    job=start();await new Promise(r=>setTimeout(r,200));service.cancel(job.id);await new Promise(r=>setTimeout(r,800));
     assert.equal(service.job(job.id).state,'cancelled');assert.notEqual(service.view(binding,context).value,'late');
-    job=service.start('cmd',context,'test');change('disable');
+    job=start();change('disable');
     assert.equal(service.job(job.id).state,'cancelled');
     assert.equal(service.view(binding,context).state,'disabled');
     change('enable',{review_revision:service.review('cmd').review_revision});
-    job=service.start('cmd',context,'test');change('remove');
+    job=start();change('remove');
     await new Promise(r=>setTimeout(r,200));
     assert.equal(service.job(job.id).state,'cancelled');
     assert.equal(service.view(binding,context).state,'unbound');
