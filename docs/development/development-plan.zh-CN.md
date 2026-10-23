@@ -2,9 +2,9 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`95206119dab6f931f320277d25889fea8da49528`**
+更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`8a6a081426f463157df308f6ef1d15a15b5901aa`**
 
-本计划定义工作包范围、依赖、实施切片及验收意图，产品优先级与当前状态由[路线图](roadmap.zh-CN.md)维护。SHOWCASE-01 继续为 **NOT_STARTED**，尚未指定版本或交付日期；CI-01 为 **VALIDATING**，作为仓库维护实施，本次不发布产品版本。
+本计划定义工作包范围、依赖、实施切片及验收意图，产品优先级与当前状态由[路线图](roadmap.zh-CN.md)维护。SHOWCASE-01 继续为 **NOT_STARTED**，尚未指定版本或交付日期；CI-01 为 **DONE**，作为仓库维护实施，本次不发布产品版本。
 
 已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.6.0 专项决定](../releases/approvals/v3.6.0.json)记录该版本对这些缺口的接受。
 
@@ -25,7 +25,7 @@
 | M3 | [WORKFLOW-01](#workflow-01) | EXTENSIONS-01；LINKS-01 可选 | DONE |
 | M3 | [COMMAND-01](#command-01) | EXTENSIONS-01；可与 WORKFLOW-01 独立交付 | DONE |
 | 按需 | [CAPABILITIES-01](#capabilities-01) | 相关功能出现具体元数据重复或不一致时拆入 | DONE |
-| 维护 | [CI-01](#ci-01) | 独立维护，不阻塞 M1／M2／M3 | VALIDATING |
+| 维护 | [CI-01](#ci-01) | 独立维护，不阻塞 M1／M2／M3 | DONE |
 
 M1 → M2 → M3 记录原有产品优先顺序。阶段可分成小范围交付：完整方案不等待全部新控件，展示只覆盖已验收功能，联网与命令互不成为必需依赖。仅文档更新不会改变这些状态。CI-01 包括 Dependabot 每周同主版本 Actions 更新提议，见[实现与验证](ci-maintenance.zh-CN.md)。
 
@@ -257,7 +257,7 @@ M1 → M2 → M3 记录原有产品优先顺序。阶段可分成小范围交付
 
 ## CI-01 Actions 引用固定
 
-**状态：VALIDATING。** 基线：`95206119dab6f931f320277d25889fea8da49528`。本任务保持产品 v3.6.0，不创建新标签、npm 发布或 Release。见 [CI 维护与验证](ci-maintenance.zh-CN.md)。
+**状态：DONE。** 基线：`95206119dab6f931f320277d25889fea8da49528`。本任务保持产品 v3.6.0，不创建新标签、npm 发布或 Release。见 [CI 维护与验证](ci-maintenance.zh-CN.md)。
 
 **问题与目标。** 将可变 Actions 标签替换为明确、可核查的依赖身份，并发现后续遗漏。
 
@@ -269,7 +269,7 @@ M1 → M2 → M3 记录原有产品优先顺序。阶段可分成小范围交付
 2. 固定引用、添加回归检查，并启用仅 Actions、同主版本的每周 Dependabot 提议（单个分组 PR，Asia/Shanghai 每周一 09:00）。
 3. 验证最终 PR／main 矩阵和受影响手动工作流；记录更新／回退方法，并同步已验证 main 至 Gitee。
 
-**功能验收。** 所有外部引用均不可变，版本注释具有核实的上游来源，遗漏导致门禁失败，本地引用正常。最终 PR／main 保留八安装目标、32 项 Node 用例及十三宿主；main 上历史 Python、v3.6.0 公开下载和 npm dry-run 均通过。npm dry-run 不代表真实 OIDC 发布。记录实际结果后再标记 DONE；#96 六项既有缺口继续未验证。
+**功能验收。** 所有外部引用均不可变，版本注释具有核实的上游来源，遗漏导致门禁失败，本地引用正常。最终 PR／main 保留八安装目标、32 项 Node 用例及十三宿主；main 上历史 Python、v3.6.0 公开下载和 npm dry-run 均通过。npm dry-run 不代表真实 OIDC 发布。实际源码身份与已通过门禁记录在 [CI 维护](ci-maintenance.zh-CN.md)；#96 六项既有缺口继续未验证。
 
 <a id="acceptance-matrix"></a>
 
