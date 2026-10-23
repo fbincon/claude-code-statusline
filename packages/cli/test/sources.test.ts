@@ -78,3 +78,19 @@ test('real Git discovery distinguishes branch names, object IDs and detached HEA
     git(['checkout','--detach']);
     assert.equal(contextFor(root).branch,null);assert.equal(contextFor(root).head,context.head);
 });
+
+test('GitHub no-checks exit is distinct from authentication, permissions and transport failure',async()=>{
+    const context={project:process.cwd(),session:null,agent:null,branch:'main',head:'a'.repeat(40)};
+    const source=definition({id:'forge',name:'Forge',kind:'github',scope:{project:process.cwd(),session:null,agent:null},ttl_seconds:300,settings:{repository:'owner/repo',branch:'main',account:'owner'},enabled:true,revision:'r1'});
+    const result=await refreshGithub(source,context,new AbortController().signal,async options=>{
+        const args=options.args;
+        if(args[0]==='api')return {code:0,reason:'completed',stdout:'{"login":"owner"}'};
+        if(args[1]==='checks')return {code:1,reason:'exit',stdout:'',errorKind:'no_checks'};
+        return {code:0,reason:'completed',stdout:JSON.stringify(args[1]==='list'?[{number:2,url:'https://github.com/owner/repo/pull/2',headRefName:'main',headRefOid:context.head}]:{headRefOid:context.head})};
+    });
+    assert.equal(result.state,'valid');assert.equal(result.fields?.ci,'no_checks');
+    for(const errorKind of ['authentication','permission','network'] as const){
+        const failed=await refreshGithub(source,context,new AbortController().signal,async()=>({code:1,reason:'exit',stdout:'',errorKind}));
+        assert.equal(failed.reason,errorKind);assert.equal(failed.value,null);
+    }
+});

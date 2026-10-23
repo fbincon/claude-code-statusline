@@ -68,6 +68,9 @@ export async function refreshGithub(source: SourceDefinition, context: SourceCon
             sourceError('timeout');
         const response = await run({ executable: 'gh', args, cwd: context.project!, input: '', timeoutMs: remaining, signal,
             environment: { ...process.env, GH_PROMPT_DISABLED: '1', GH_PAGER: 'cat', GIT_TERMINAL_PROMPT: '0', GH_BROWSER: '' } });
+        // gh reports absence on stderr with exit 1, even when JSON is requested.
+        if (checks && response.reason === 'exit' && response.code === 1 && response.errorKind === 'no_checks')
+            return [];
         if (response.reason !== 'completed' && !(checks && response.reason === 'exit' && [1, 8].includes(response.code ?? -1) && !response.errorKind))
             sourceError(response.errorKind ?? (response.reason === 'exit' ? 'lookup_failed' : response.reason));
         try {
@@ -100,6 +103,8 @@ export async function refreshGithub(source: SourceDefinition, context: SourceCon
         if (pr.url !== url)
             sourceError('identity');
         const checks = await invoke(['pr', 'checks', String(pr.number), '--repo', repo, '--json', 'bucket,name,link,state'], true);
+        if (!Array.isArray(checks))
+            sourceError('invalid_output');
         const after = await invoke(['pr', 'view', String(pr.number), '--repo', repo, '--json', 'headRefOid']);
         if (!object(after) || after.headRefOid !== context.head || authRevision() !== fingerprint)
             sourceError('identity');
