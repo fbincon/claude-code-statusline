@@ -71,7 +71,7 @@ Keep the original project and authors credited when discussing these references.
 
 M4 → M5 → M6 → M7 → M8 is the selected product order. Scheduling does not create technical dependencies: grouping does not require graphical indicators, and cost rates do not require automatic refresh. Each package may ship in bounded slices. SHOWCASE-01 retains its existing ID and moves after the functional work; demonstrations use accepted functionality and do not require every future candidate to be implemented. GIT-01 runs independently. The static comparison identified a protection difference to investigate, not a confirmed vulnerability; investigation and any necessary correction belong to that future task.
 
-This update records plans only. It implements no feature, changes no runtime/configuration interface and publishes no product version. Later development starts from the then-current `main` and records the selected scope and interface decisions before implementation.
+The approved M4–M7 implementation targets v3.7.0 through separate feature PRs and a final release PR. [Implementation and validation](m4-m7-delivery.md) records the starting commits, interface decisions and actual evidence; package completion and publication remain separate.
 
 ### Delivered stages
 

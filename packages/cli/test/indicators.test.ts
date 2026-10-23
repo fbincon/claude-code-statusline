@@ -78,6 +78,26 @@ test('shared editor forms preview, cancel, save and reopen indicator choices in 
   }
 });
 
+test('bars fit explicit spacer rows and Powerline without exceeding cell bounds', () => {
+  for (const separator_style of ['classic', 'compact', 'powerline'] as const)
+    for (const use_colors of [false, true]) {
+      let cfg = config(['context-used', 'spacer', 'context-remaining'], {
+        separator_style, use_colors, theme: 'dark',
+        layout: { mode: 'explicit', rows: [['context-used', 'spacer', 'context-remaining']] },
+      });
+      for (const id of ['context-used', 'context-remaining']) {
+        cfg = setField(cfg, 'presentation', 'bar', 'main', id);
+        cfg = setField(cfg, 'bar_width', 20, 'main', id);
+        cfg = setField(cfg, 'label', '中文👩‍💻', 'main', id);
+      }
+      for (const width of [4, 12, 40, 80, 120]) {
+        const value = rendered({ context_window: { used_percentage: 50, remaining_percentage: 50 } }, cfg, {}, width);
+        assert(value.split('\n').every(row => displayWidth(row) <= width));
+        assert(!value.includes('\uFFFD'));
+      }
+    }
+});
+
 test('bars retain semantics with labels off, ASCII/no color, narrow rows and independent agents', async () => {
   let cfg = config(['context-used'], { layout: { mode: 'explicit', rows: [['context-used']] } });
   for (const [key, value] of [['presentation', 'bar'], ['labels', 'off'], ['icons', 'ascii'], ['label', '界👩‍💻']] as const)

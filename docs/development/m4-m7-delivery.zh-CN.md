@@ -20,3 +20,5 @@
 ## 后续交付
 
 按路线顺序实现分组、自动刷新及费用速率。自动刷新在本机保留至主动关闭，只在支持的活跃会话中运行，不启用指标采样。最终交付包含固定源码构建、完整矩阵、安装产物终端验证、npm OIDC、GitHub/Gitee 附件及公开下载验收。README 仅介绍功能，版本说明写入 releases。
+
+M4 候选源码 `abb2192f337d8fc985c1b2c304a97deaae31937f` 两次构建 SHA-256 均为 `559e6e185990cce24d71b34b920c121c7e41b1103625288137ae57464e709163`；13 项隔离 Linux 安装验收全部通过，包含三项必需图形场景。五项定向测试还覆盖 Powerline/spacer 至四格窄行。本地收据不替代最终 head CI 或正式产物。[功能 PR #129](https://github.com/fbincon/claude-code-statusline/pull/129)。

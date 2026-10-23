@@ -20,3 +20,5 @@ Local `npm run check` passed (1,135 tests, five platform skips); generated resou
 ## Remaining delivery
 
 Implement grouping, automatic refresh and rates in roadmap order. Automatic refresh is remembered locally until disabled and runs only in supported active sessions; it does not enable metric sampling. Final delivery includes immutable builds, full matrices, installed terminal verification, npm OIDC, GitHub/Gitee assets and public download checks. README changes remain feature introductions, with version notes in releases.
+
+M4 candidate `abb2192f337d8fc985c1b2c304a97deaae31937f` built twice with identical SHA-256 `559e6e185990cce24d71b34b920c121c7e41b1103625288137ae57464e709163`; all 13 isolated Linux installation cases passed, including the three required indicator scenarios. Five focused indicator tests additionally cover Powerline/spacers down to four cells. These local receipts do not replace final-head CI or release artifacts. [Feature PR #129](https://github.com/fbincon/claude-code-statusline/pull/129).
