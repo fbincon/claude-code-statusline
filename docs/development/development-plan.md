@@ -2,9 +2,9 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`aa4ae982747feed476cca9d81a8df9a967b92400`**
+Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`95206119dab6f931f320277d25889fea8da49528`**
 
-This plan defines work-package scope, dependencies, implementation slices and acceptance intent. The [roadmap](roadmap.md) owns product priority and current status. SHOWCASE-01 and CI-01 remain **NOT_STARTED**, without assigned versions or delivery dates; publishing this plan does not begin their implementation.
+This plan defines work-package scope, dependencies, implementation slices and acceptance intent. The [roadmap](roadmap.md) owns product priority and current status. SHOWCASE-01 remains **NOT_STARTED**, without an assigned version or delivery date. CI-01 is **VALIDATING** as repository maintenance without a product release.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.6.0 decision](../releases/approvals/v3.6.0.json) records their acceptance for that release.
 
@@ -25,9 +25,9 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 | M3 | [WORKFLOW-01](#workflow-01) | EXTENSIONS-01; LINKS-01 is optional | DONE |
 | M3 | [COMMAND-01](#command-01) | EXTENSIONS-01; can ship independently of WORKFLOW-01 | DONE |
 | As needed | [CAPABILITIES-01](#capabilities-01) | Include when related features expose specific duplicate or inconsistent metadata | DONE |
-| Candidate | [CI-01](#ci-01) | Independent maintenance; does not block M1/M2/M3 | NOT_STARTED |
+| Maintenance | [CI-01](#ci-01) | Independent maintenance; does not block M1/M2/M3 | VALIDATING |
 
-M1 → M2 → M3 records the original product priority. Stages can ship in bounded portions: complete schemes need not wait for all new controls; demonstrations cover accepted functionality; network and command support are independent. Documentation updates do not change these statuses. Automatic dependency updates, including Dependabot, remain an unstarted candidate to evaluate within CI-01.
+M1 → M2 → M3 records the original product priority. Stages can ship in bounded portions: complete schemes need not wait for all new controls; demonstrations cover accepted functionality; network and command support are independent. Documentation updates do not change these statuses. CI-01 includes weekly Dependabot proposals for same-major Actions updates. See [implementation and validation](ci-maintenance.md).
 
 <a id="design-rules"></a>
 
@@ -257,19 +257,19 @@ M1 → M2 → M3 records the original product priority. Stages can ship in bound
 
 ## CI-01 Pin Actions references
 
-**Status: NOT_STARTED.**
+**Status: VALIDATING.** Baseline: `95206119dab6f931f320277d25889fea8da49528`. This task retains product v3.6.0 without a new tag, npm publication or Release. See [CI maintenance and validation](ci-maintenance.md).
 
-**Problem and goal.** Current workflows use tags such as `actions/checkout@v4`. Provide explicit, reviewable dependency identities as an independent maintenance candidate.
+**Problem and goal.** Replace mutable Action tags with explicit, reviewable dependency identities and catch future omissions.
 
-**Scope and modules.** Later inventory third-party Actions in [.github/workflows](../../.github/workflows), resolve currently selected versions to full commit SHAs, retain version comments and add omission checks and update guidance. Decide whether to add automatic dependency-update configuration within that maintenance task. Avoid combining this with wholesale major-version upgrades or changing existing permissions, platform matrices, OIDC or release conditions.
+**Scope and modules.** Pin all 39 external references in the four existing workflows to the verified commits of their currently selected majors, with exact version comments. Add the YAML-based offline `actions:check` under the existing checks tooling, covering reusable workflows and reachable local composite Actions. Integrate it into the scope gate and ordinary checks. Preserve permissions, platform/host matrices, OIDC, release conditions and documentation/product routing.
 
 **Implementation slices.**
 
-1. Verify each version and commit source.
-2. Pin references and add checks.
-3. Run validation appropriate to affected workflows and record the update procedure.
+1. Verify official version tags and full commits; retain provenance in the implementation record.
+2. Pin references, add regression checks and same-major weekly Actions-only Dependabot proposals (one grouped PR, Monday 09:00 Asia/Shanghai).
+3. Validate final PR/main matrices and affected manual workflows; record update/revert guidance and synchronize validated main to Gitee.
 
-**Functional acceptance.** All third-party references are pinned, comments match actual versions, the checker catches omissions and local action references still work. Affected CI passes with documentation/product routing and release constraints intact. Evidence includes the reference inventory, commit provenance and workflow results. The current planning task does not edit workflows.
+**Functional acceptance.** All external references are immutable, version comments have verified upstream provenance, omissions fail the gate, and local references remain usable. The final PR/main retain eight installed targets, 32 Node cases and thirteen hosts. Historical Python, v3.6.0 public downloads and npm dry-run pass on main. The npm dry-run does not claim real OIDC publication. Record actual results before marking DONE; the six existing #96 gaps remain unverified.
 
 <a id="acceptance-matrix"></a>
 

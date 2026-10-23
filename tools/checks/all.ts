@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { repoRoot } from '../migration/ts-03/common.js';
 const env = { ...process.env, NODE_OPTIONS: '--import=' + pathToFileURL(join(repoRoot, 'tools/testing/no-python.mjs')).href };
 for (const args of [
+    ['dist/typescript/tools/checks/actions.js'],
     ['tools/typescript/test.mjs'],
     ['dist/typescript/tools/generation/resources.js', '--check'],
     ['dist/typescript/tools/checks/docs.js'],

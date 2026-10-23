@@ -2,6 +2,8 @@
 
 [English](testing.md) | **简体中文**
 
+[CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。
+
 
 [扩展实现与验收](extensions.zh-CN.md)覆盖本地 JSON、GitHub、命令、链接和共享组件能力。
 
