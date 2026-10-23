@@ -33,6 +33,13 @@ test('shared source editor completes creation, review, enable, bind, save and re
         assert.equal(editor.sources!.library!.sources[0]!.enabled,false);
         sourcesKey(editor,{key:'enter'});editor.sources!.effect='review';await performSourceAction(editor,backend);
         const view=sourcesView(editor,language,80,20).map(row=>row.text).join('\n');assert(view.includes('queue'));
+        const mutable = editor.sources!;
+        const freeze = (value: unknown): void => { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } };
+        for (const page of ['form','review','diagnose'] as const) {
+            editor.sources = structuredClone({...mutable,page}); freeze(editor.sources);
+            for (const width of [40,64,80,120]) assert.doesNotThrow(() => sourcesView(editor,language,width,18));
+        }
+        editor.sources = mutable;
         sourcesKey(editor,{key:'enter'});await performSourceAction(editor,backend);
         assert.equal(editor.sources!.library!.sources[0]!.enabled,true);
         sourcesKey(editor,{key:'enter'});editor.sources!.target={scope:'main',id:node.id};editor.sources!.effect='bind';await performSourceAction(editor,backend);

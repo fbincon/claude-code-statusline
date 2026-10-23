@@ -274,7 +274,7 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     else if (m.page === 'form') {
         m.fields.forEach((field, i) => {
             const label = tr('field.' + field.key) + ': ', space = Math.max(2, width - label.length);
-            const view = inputView(field.input, space);
+            const view = inputView({ ...field.input }, space);
             add(label + view, m.cursor === i);
         });
         add(tr('form_help'));
@@ -291,8 +291,8 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
         const lines = m.page === 'review' ? [tr('enable_review'), ...JSON.stringify(m.review?.source, null, 2).split('\n')] : m.details;
         const wrapped = lines.flatMap(line => wrapText([line], width));
         const capacity = Math.max(1, height - rows.length);
-        m.scroll = Math.min(m.scroll, Math.max(0, wrapped.length - capacity));
-        wrapped.slice(m.scroll, m.scroll + capacity).forEach(line => add(line));
+        const start = Math.min(m.scroll, Math.max(0, wrapped.length - capacity));
+        wrapped.slice(start, start + capacity).forEach(line => add(line));
         return rows;
     }
     const fixed = rows.slice(0, 1 + Number(!!m.message)), entries = rows.slice(fixed.length), capacity = Math.max(1, height - fixed.length);
