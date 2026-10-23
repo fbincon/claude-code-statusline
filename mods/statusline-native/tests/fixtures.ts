@@ -29,7 +29,7 @@ export function component(type_id: string, enabled = true): import('../lib/gener
 
 export const BASE: Draft = {
   display: {
-    schema_version: 11,
+    schema_version: 12, groups: [],
     theme: "classic",
     powerline_glyph: "ascii",
     powerline: { padding: "both", separator: "arrow", start_cap: false, end_cap: true, color_mode: "semantic" },
@@ -41,7 +41,7 @@ export const BASE: Draft = {
     directory_style: 'full',
     separator_style: 'classic',
     scope_labels: 'when-subagents',
-    subagents: { enabled: true, instances: [component('status-elapsed'),component('name')], visibility: 'all', hide_completed: false, row_limit: null, task_max_width: null },
+    subagents: { groups: [], enabled: true, instances: [component('status-elapsed'),component('name')], visibility: 'all', hide_completed: false, row_limit: null, task_max_width: null },
     formatting: JSON.parse(JSON.stringify(FORMAT_DEFAULTS)),
     layout: { mode: 'auto', rows: [] },
   },
@@ -173,7 +173,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 18, result }));
+  return output(JSON.stringify({ protocol_version: 19, result }));
 }
 
 export function sample(text: string) {

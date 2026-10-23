@@ -26,7 +26,7 @@ test('skill templates preserve literal replacement syntax and placeholder-lookin
 });
 function service(f: ReturnType<typeof fresh>) { return new ConfigurationService({ configDir: f.root, launch: f.launch, hostVersion: () => f.context.version }, f.io); }
 function legacy(version: number) {
-    const d = defaultDisplay(), { instances: _instances, ...subagents } = d.subagents;
+    const d = defaultDisplay(), { instances: _instances, groups: _groups, ...subagents } = d.subagents;
     return { schema_version: version, items: ['model'], use_colors: true, palette: 'default', directory_style: 'home', separator_style: 'classic', ...(version >= 2 ? { scope_labels: d.scope_labels, subagents: version === 2 ? { enabled: true, items: ['name'] } : { ...subagents, items: ['name'], item_options: {} } } : {}), ...(version >= 3 ? { formatting: d.formatting, item_options: {}, layout: d.layout } : {}), ...(version >= 4 ? { metrics: d.metrics } : {}) };
 }
 test('tests.config.test_catalog.CatalogTests.test_wizard_uses_generated_groups_and_constraints', t => { const f = fresh(t); f.install(simple); const value = f.read('skills/statusline-config/SKILL.md').toString(); assert.ok(value.includes(wizardGroups())); assert.equal(wizardGroups().includes('`spacer`'), false); assert.ok(value.includes('Do not collapse copies')); assert.equal(conflicts('subagent', ['status-elapsed', 'elapsed']), true); assert.equal(conflicts('subagent', ['status', 'elapsed']), false); });

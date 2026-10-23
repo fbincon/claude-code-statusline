@@ -14,7 +14,7 @@ import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -50,11 +50,29 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 18, operation, payload }), environment));
-    assert.equal(result.protocol_version, 18);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 19, operation, payload }), environment));
+    assert.equal(result.protocol_version, 19);
     assert.ok(result.result);
     return result.result;
 }
+test('installed groups retain linked visibility, remapped copies and portable references', () => {
+    const config = setup('groups');
+    run(['config', 'set-items', 'context-used', 'session-cost'], config);
+    run(['config', 'set', 'colors', 'off'], config);
+    const current = ui(config, 'read'), metric = current.draft.display.instances.find((n: any) => n.id === 'context-used');
+    current.draft.display.instances.unshift({ ...metric, id: 'decoration', type_id: 'text', text: 'DECOR', options: { ...metric.options } });
+    ui(config, 'apply', { draft: current.draft, expected_revision: current.revision });
+    run(['config', 'group', 'main', 'create', 'group', '--members', 'decoration,context-used', '--primary', 'context-used', '--powerline', 'on'], config);
+    assert(run(['render'], config, JSON.stringify({ context_window: { used_percentage: 50 } })).includes('DECOR'));
+    assert(!run(['render'], config, JSON.stringify({ cost: { total_cost_usd: 0 } })).includes('DECOR'));
+    run(['config', 'group', 'main', 'copy', 'group'], config);
+    const groups = JSON.parse(run(['config', 'group', 'main', 'list', '--json'], config));
+    assert.equal(groups.length, 2); assert.notEqual(groups[1].primary_id, groups[0].primary_id);
+    const portable = join(installed.temporary, 'groups-portable.json'); run(['config', 'export', portable], config);
+    run(['config', 'group', 'main', 'ungroup', 'group'], config); run(['config', 'import', portable], config);
+    assert.deepEqual(JSON.parse(run(['config', 'group', 'main', 'list', '--json'], config)), groups);
+    report.group_cases = 4; checks.groups = true;
+});
 test('installed indicators retain defaults, independent agent values and portable options', () => {
     const config = setup('indicators');
     run(['config', 'set-items', 'context-used'], config);
@@ -290,7 +308,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 18, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 19, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -362,7 +380,7 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
         assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
         if(choice!=='cancel') {
             const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
-            assert.equal(display.schema_version,11);assert.equal(display.theme,'terminal');
+            assert.equal(display.schema_version,12);assert.equal(display.theme,'terminal');
             assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
         }
     }

@@ -49,7 +49,7 @@ test('indicator fields survive native form changes and draft validation', () => 
 });
 
 test('future, partial, invalid global appearances are rejected', () => {
-  for (const patch of [{schema_version: 12}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
+  for (const patch of [{schema_version: BASE.display.schema_version + 1}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
     const draft = copyDraft(BASE);
     Object.assign(draft.display, patch);
     expect(isDraft(draft)).toBe(false);

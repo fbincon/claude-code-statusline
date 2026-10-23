@@ -117,3 +117,22 @@ Portable 外层格式仍为 v1、界面偏好仍为 v1、runtime 观测协议仍
 降级前先用当前软件移除不兼容的原生编辑器资源，再恢复升级前的兼容配置备份，安装旧软件和
 匹配资源。如果计划再次升级，请另行保留当前配置。重复实例和弹性布局无法无损转换为旧格式，
 请勿手改 schema 数字。具体步骤见[升级指南](USER_GUIDE.zh-CN.md#升级)。
+
+## 组件分组
+
+在任一编辑器的设置中打开**组件分组**，或按 **Ctrl+B**。选择主行或子代理模板，设置首个、末尾成员及主指标。方向键选择和调整，在**应用到草稿**上按 Enter 预览；关闭面板后使用原有显示保存操作。取消表单保留之前的草稿。
+
+分组至少包含同一作用域、同一显式行内的两个连续实例，不能重叠、嵌套或包含 spacer。装饰默认跟随主指标的最终可见性（含布局省略）；其他指标保留自身条件。关闭联动后装饰独立显示。自动布局将组保留在同一行，先缩减装饰和次要指标再处理主指标。整组的省略优先级取自主指标。
+
+共享 Powerline 使用主指标背景形成一个色块，各成员前景和阈值色保留。成员背景配置继续保存，关闭共享后恢复。普通分组成员之间以空格连接。操作包括编辑、整组移动、分配新 ID 的整组复制及解组。删除主指标会解组并保留其他实例；单项复制在原组之后插入独立副本。非法移动保留草稿。
+
+```bash
+claude-statusline config group main list --json
+claude-statusline config group main create cost-block --members LABEL_ID,COST_ID --primary COST_ID --powerline on
+claude-statusline config group main set cost-block linked on
+claude-statusline config group main copy cost-block
+claude-statusline config group main move cost-block --before OTHER_ID
+claude-statusline config group main ungroup cost-block
+```
+
+将大写占位符替换为 `config instance main list` 中的实例 ID；`subagent` 使用同样操作。`set` 支持 `primary`、逗号分隔的 `members`、`linked on|off`、`powerline on|off`。方案保存/复制及导入导出保留分组，不授予来源访问或自动刷新权限。[实现与验收](development/m4-m7-delivery.zh-CN.md)。

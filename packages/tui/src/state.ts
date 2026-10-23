@@ -1,3 +1,4 @@
+import { openGroups, groupsKey } from '@fbincon/statusline-core/editor/group-manager';
 import { openSources, sourcesKey } from '@fbincon/statusline-core/editor/source-manager';
 import { graphemes } from '@fbincon/statusline-core/unicode/index';
 import { openProfiles, profilesKey } from '@fbincon/statusline-core/editor/profile-manager';
@@ -86,7 +87,7 @@ export class State {
             row('scope-labels', 'Scope labels', d.scope_labels, 'Appearance'), row('custom-subagent-rows', 'Custom subagent rows', d.subagents.enabled ? 'on' : 'off', 'Refresh / behavior'),
             ...fields,
             row('preset-select', 'Preset', e.preset, 'Presets / portable files', 'choice'),
-            ...['sources', 'profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
+            ...['component-groups', 'sources', 'profiles', 'quick-setup', 'preset-apply', 'import-file', 'export-file'].map(key => row(key, key, '', 'Presets / portable files', 'action')),
             row('ui-language', 'Interface language (saved immediately)', LANGUAGE_NAMES[this.language], 'Interface', 'choice'),
         ];
         return result.sort((a, b) => groups.indexOf(a.group) - groups.indexOf(b.group));
@@ -193,6 +194,8 @@ export class State {
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
+        if (e.groupManager) return groupsKey(e, event);
+        if (ctrl && k.toLowerCase() === 'b' && !this.input && !e.sources && !e.profiles && !e.review && !e.quick && !e.explanation && !event.text && !event.paste) { openGroups(e); return null; }
         if (e.sources) return sourcesKey(e,event);
         if (ctrl && k.toLowerCase()==='y' && !this.input && !e.review && !e.quick && !e.explanation) { openSources(e); return 'sources'; }
         if (e.profiles) return profilesKey(e, event);
@@ -343,6 +346,7 @@ export class State {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';
             const row = this.selectedRow();
+            if (row.key === 'component-groups') { openGroups(e); return null; }
             if (row.key === 'sources') { openSources(e); return 'sources'; }
             if (row.key === 'profiles') { if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; } }
             else if (row.key === 'quick-setup') { if (e.acceptNumeric()) { e.quick=openQuick(e.draft); this.notice(''); } }

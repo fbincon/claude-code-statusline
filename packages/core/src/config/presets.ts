@@ -53,7 +53,7 @@ export function applyPreset(config: DisplayDraft, name: string, nextId: () => st
       options: { ...defaultItem(), priority: 100 - index * 5, max_width: id === 'name' ? 24 : null },
     }));
   }
-  return updateDisplay(config, { instances: nodes, subagents,
+  return updateDisplay(config, { instances: nodes, subagents, groups: [],
     ...(complete ? { theme: 'terminal', palette: 'default', separator_style: 'compact', directory_style: 'project-relative',
       powerline_glyph: 'ascii', powerline: { ...DEFAULT_POWERLINE }, use_colors: true } : {}),
     layout: { mode: name === 'minimal' ? 'auto' : 'explicit', rows: name === 'minimal' ? [] : rows },

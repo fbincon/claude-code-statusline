@@ -1,3 +1,4 @@
+import { groupedRows, SCOPE_LABEL_ID } from './groups.js';
 import { indicator } from './indicators.js';
 import { externalPresentation } from './extensions.js';
 import { fileLink, safeLink } from '../terminal/links.js';
@@ -334,6 +335,14 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
     const scope = () => config.scope_labels === 'always' || config.scope_labels === 'when-subagents' && state.hadSubagents();
     const label = () => ({ text: palette.timer + env.language.text('scope.main') + palette.reset });
     const nodes = new Map(config.instances.map(node => [node.id, node])), colors = powerline.cursor();
+    if (config.groups.length) {
+        for (const ids of config.layout.mode === 'auto' ? [config.instances.map(n => n.id)] : config.layout.rows) {
+            const cells: Cell[] = ids.map(id => { const node = nodes.get(id)!; return { id, text: node.enabled ? state.render(id)?.text ?? '' : '', priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled }; });
+            if (cells.some(c => c.text) && scope() && !rows.length) cells.unshift({ id: SCOPE_LABEL_ID, text: label().text, priority: -1, sequence: false });
+            rows.push(...groupedRows(cells, config.groups, config, 'main', width, outer, config.layout.mode === 'auto', env.trace?.fit('main'), colors));
+        }
+        return rows;
+    }
     if (config.instances.some(node => node.enabled && node.type_id === 'spacer')) {
         const showScope = scope();
         for (const row of config.layout.rows) {

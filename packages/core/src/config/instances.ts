@@ -1,3 +1,4 @@
+import { reconcileGroups, insertionAfter } from '../editor/groups.js';
 import type { DisplayDraft, InstanceDraft, Scope, LayoutDraft, ItemOptionsDraft, SubagentDraft } from '../contracts/ui.js';
 import { BY_SCOPE, canonicalItem } from './catalog.js';
 import { defaultItem, validateDisplay, validateSubagents } from './display.js';
@@ -66,11 +67,12 @@ export function updateDisplay(config: DisplayDraft, updates: Partial<DisplayDraf
   if (rest.layout && layout.mode === 'explicit' && JSON.stringify(layout.rows.flat()) === JSON.stringify(nodes.filter(node => node.enabled).map(node => node.id))) {
     layout = reorderedLayout(layout, nodes.map(node => node.id));
   }
-  return validateDisplay({ ...config, ...rest, instances: nodes, layout });
+  return validateDisplay({ ...config, ...rest, instances: nodes, layout, groups: reconcileGroups(rest.groups ?? config.groups, nodes) });
 }
 export function updateSubagents(config: SubagentDraft, updates: Partial<SubagentDraft> & { items?: readonly string[]; item_options?: Record<string, ItemOptionsDraft> }): SubagentDraft {
   const { items, item_options, ...rest } = updates;
-  return validateSubagents({ ...config, ...rest, instances: updateProjection(rest.instances ?? config.instances, 'subagent', items, item_options) });
+  const nodes = updateProjection(rest.instances ?? config.instances, 'subagent', items, item_options);
+  return validateSubagents({ ...config, ...rest, instances: nodes, groups: reconcileGroups(rest.groups ?? config.groups, nodes) });
 }
 export function editedOptions(current: ItemOptionsDraft, option: string, value: unknown): ItemOptionsDraft {
   const data = clone(current), key = option.replaceAll('-', '_');
@@ -100,8 +102,8 @@ export function edit(config: DisplayDraft, scope: Scope, request: Edit, nextId: 
     selected = nextId();
     const added: InstanceDraft = action === 'copy' ? { ...clone(node!), id: selected } : { id: selected, type_id: type_id!, enabled: true, options: defaultItem(), text: type_id === 'text' ? text ?? '' : null };
     const anchor = after ?? (action === 'copy' ? id : undefined);
-    const index = anchor === undefined ? nodes.length : nodes.findIndex(item => item.id === anchor) + 1;
-    if (anchor !== undefined && index === 0) fail('composition.errors.anchor');
+    if (anchor !== undefined && !nodes.some(node => node.id === anchor)) fail('composition.errors.anchor');
+    const index = insertionAfter(nodes, scoped(config, scope).groups, anchor);
     nodes.splice(index, 0, added);
   } else if (action === 'remove') {
     const index = nodes.indexOf(node!); nodes.splice(index, 1);

@@ -7,7 +7,7 @@ The maintainer approved four sequential feature PRs and one v3.7.0 release PR. R
 | Package | State | Interface decision |
 | --- | --- | --- |
 | APPEARANCE-03 | VALIDATING | Display 11, editor 18; optional per-instance presentation/width/characters |
-| COMPOSITION-02 | NOT_STARTED | Planned display 12, editor 19; single-level groups |
+| COMPOSITION-02 | VALIDATING | Planned display 12, editor 19; single-level groups |
 | WORKFLOW-02 | NOT_STARTED | Planned editor 20, source registry/jobs 2, runtime 3; persistent local opt-in |
 | METRICS-01 | NOT_STARTED | Planned display 13, editor 21; session/API cost-rate denominator |
 
@@ -24,3 +24,13 @@ Implement grouping, automatic refresh and rates in roadmap order. Automatic refr
 M4 candidate `abb2192f337d8fc985c1b2c304a97deaae31937f` built twice with identical SHA-256 `559e6e185990cce24d71b34b920c121c7e41b1103625288137ae57464e709163`; all 13 isolated Linux installation cases passed, including the three required indicator scenarios. Five focused indicator tests additionally cover Powerline/spacers down to four cells. These local receipts do not replace final-head CI or release artifacts. [Feature PR #129](https://github.com/fbincon/claude-code-statusline/pull/129).
 
 PR run `39964870238` retained Windows ARM system-shell readiness timeouts before candidate invocation, and command-source timeouts at the fixture’s 15-second budget. A failed-job retry passed the Node 24.0 case but reproduced the command timeout on Node 22.x. The installed functional fixture now explicitly selects the already-supported 30-second command budget; production defaults, deadline enforcement and short cancellation tests are unchanged. Final-head validation remains required.
+
+## COMPOSITION-02
+
+Preparation starts from M4 head `74f70eb9f85af44a2b80b462a3f6f9755374aef9` in an isolated worktree; the feature PR will use validated M4 main as its base. Group rules and editor transitions live in shared core modules, with a separate group renderer to retain ungrouped output. Tests cover linked omission, unknown/absent values, layout, colors, remapped copies, deletion, rejected edits, both editors and persistence. Installed acceptance adds four group scenarios; validation is in progress.
+
+M5 local full checks passed (1,143 tests, five platform skips), with eight focused grouping cases after the final anchor validation fix. Native Mod tests passed 131/131 and exact Claude 2.1.294 TypeScript checking passed. Immutable package and PR matrices remain pending.
+
+M5 candidate `e6d63cda7940de1058c2f314af53c56819a0644b` built twice with identical SHA-256 `544f1f94e6ce2ca8ad71041bf84e02c7994c9163aefc0a1bc373d1cdb3c6de00`; all 14 isolated Linux installed checks passed, including four group cases. PR/main gates remain pending.
+
+M4 [PR #129](https://github.com/fbincon/claude-code-statusline/pull/129) merged as `48697f1056b1452c20f9b0877c8f6b334dbd28db`. [PR CI 39999672680](https://github.com/fbincon/claude-code-statusline/actions/runs/39999672680) passed all 56 applicable jobs; the documentation-only job was correctly skipped. One macOS Node installation stalled before product tests; normal/force cancellation and a targeted unchanged-source retry completed the final job and aggregate. The [main run](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) is pending. M5 now bases its feature PR on this M4 merge.

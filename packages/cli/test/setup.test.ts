@@ -67,7 +67,8 @@ test('foreign integration allows display-only save and protects profile bindings
     assert.deepEqual(fs.readFileSync(join(f.config,'claude-statusline-profiles.json')),profiles);
 });
 test('setup checks do not migrate schema 8; explicit save backs up original bytes and detects stale reviews', t => {
-    const f=fixture(t), {powerline:_,...display}=defaultDisplay(), raw=jsonBytes({...display,schema_version:8});
+    const f=fixture(t), {powerline:_,groups,subagents,...display}=defaultDisplay();
+    const {groups:agentGroups,...oldAgents}=subagents, raw=jsonBytes({...display,subagents:oldAgents,schema_version:8});
     fs.writeFileSync(join(f.config,'claude-statusline.json'),raw);
     const inspected=inspectSetup(f.context);assert.deepEqual(fs.readFileSync(join(f.config,'claude-statusline.json')),raw);
     fs.writeFileSync(join(f.config,'settings.json'),'{}');
@@ -75,7 +76,7 @@ test('setup checks do not migrate schema 8; explicit save backs up original byte
     assert.deepEqual(fs.readFileSync(join(f.config,'claude-statusline.json')),raw);
     const next=inspectSetup(f.context),saved=applySetup(f.context,next,next.draft!,false);
     assert.equal(saved.error,null);assert.deepEqual(fs.readFileSync(join(saved.saved!.backup_dir!,'claude-statusline.json.before')),raw);
-    assert.equal(JSON.parse(fs.readFileSync(join(f.config,'claude-statusline.json'),'utf8')).schema_version,11);
+    assert.equal(JSON.parse(fs.readFileSync(join(f.config,'claude-statusline.json'),'utf8')).schema_version,12);
 });
 test('foreign linked integration resources permit saving display without following or modifying the link', t => {
     const f = fixture(t), foreign = join(f.root, 'foreign');

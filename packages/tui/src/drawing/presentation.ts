@@ -46,6 +46,7 @@ export function fieldValue(row: Row, state: State): string {
 export function contentTitle(state: State): string {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
+    if (e.groupManager) return tr('composition.groups.title');
     if (e.sources) return tr('sources.title');
     if (e.profiles) return tr('profiles.title');
     if (e.explanation) return tr('explain.title');

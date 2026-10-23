@@ -925,3 +925,7 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ## 图形指标
 
 对支持的实例使用 `config instance main|subagent set ID presentation numeric|bar`、`bar-width 4..20`、`bar-style auto|unicode|ascii`。[指南](../APPEARANCE.zh-CN.md#图形指标)。
+
+## 分组操作
+
+`config group main|subagent list|create|set|copy|move|ungroup` 管理连续实例分组。创建要求 `ID --members ID,ID --primary ID`，可选 `--linked on|off` 与 `--powerline on|off`。移动要求 `--before ID` 或 `--after ID` 二选一。[示例与约束](../COMPOSITION.zh-CN.md#组件分组)。

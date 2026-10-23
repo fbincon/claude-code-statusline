@@ -1,10 +1,11 @@
+import { editGroup, groupScope, type GroupEdit } from '@fbincon/statusline-core/editor/groups';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { randomUUID } from 'node:crypto';
 import type { Draft, Scope } from '@fbincon/statusline-core/contracts/ui';
 import { DEFAULT_HOST } from '@fbincon/statusline-core/config/draft';
 import { BY_SCOPE } from '@fbincon/statusline-core/config/catalog';
 import { clone, ConfigError } from '@fbincon/statusline-core/config/validation';
-import { validateItems } from '@fbincon/statusline-core/config/display';
+import { validateItems, validateDisplay } from '@fbincon/statusline-core/config/display';
 import { edit, legacyId, scoped } from '@fbincon/statusline-core/config/instances';
 import { editItem, editLayout } from '@fbincon/statusline-core/config/editor-fields';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
@@ -75,6 +76,31 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
     if (action === 'list-items' || action === 'subagents' && args.subaction === 'list-items') {
         const scope = action === 'subagents' ? 'subagent' : 'main', listing = itemListing(scope, service.read());
         return flags.json ? pretty(listing) : listing.map(item => `${item.enabled ? '[x]' : '[ ]'} ${item.id}: ` + t(`items.${scope}.${item.id}.description`, language)).join('\n');
+    }
+    if (action === 'group') {
+        const scope = args.scope!;
+        if (args.subaction === 'list') return pretty(groupScope(service.read().display, scope).groups);
+        const bool = (value: unknown): boolean => { if (value !== 'on' && value !== 'off') throw new ConfigError('composition.groups.invalid'); return value === 'on'; };
+        const request: GroupEdit = { action: args.subaction as GroupEdit['action'], id: args.id };
+        if (args.subaction === 'create') {
+            request.member_ids = typeof flags.members === 'string' ? flags.members.split(',') : [];
+            request.primary_id = typeof flags.primary === 'string' ? flags.primary : '';
+            if (flags.linked !== undefined) request.link_visibility = bool(flags.linked);
+            if (flags.powerline !== undefined) request.shared_powerline = bool(flags.powerline);
+        } else if (args.subaction === 'set') {
+            if (args.option === 'primary') request.primary_id = args.value;
+            else if (args.option === 'members') request.member_ids = args.value!.split(',');
+            else if (args.option === 'linked') request.link_visibility = bool(args.value);
+            else if (args.option === 'powerline') request.shared_powerline = bool(args.value);
+            else throw new ConfigError('composition.groups.invalid');
+        } else if (args.subaction === 'move') {
+            request.before = flags.before as string | undefined; request.after = flags.after as string | undefined;
+        }
+        const result = service.mutate('config-group-' + args.subaction, config => {
+            try { return [validateDisplay(editGroup(config, scope, request, nextId)), UNCHANGED]; }
+            catch { throw new ConfigError('composition.groups.invalid'); }
+        });
+        return formatMutation(result, language);
     }
     if (action === 'instance') {
         if (args.subaction === 'list') {

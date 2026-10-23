@@ -3,7 +3,8 @@
   "version": 1,
   "name": "agent-focus",
   "display": {
-    "schema_version": 11,
+    "schema_version": 12,
+    "groups": [],
     "use_colors": true,
     "palette": "default",
     "directory_style": "project-relative",
@@ -128,7 +129,8 @@
           },
           "text": null
         }
-      ]
+      ],
+      "groups": []
     },
     "formatting": {
       "model_name": "short",

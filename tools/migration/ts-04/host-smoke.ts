@@ -117,7 +117,7 @@ try {
     const display = join(config, 'claude-statusline.json');
     const completed = (operation: string) => records.some(row => row.operation === operation && row.phase === 'complete' && row.status === 0);
     const savedDisplay = fs.existsSync(display) ? JSON.parse(fs.readFileSync(display, 'utf8')) : null;
-    const completeSchemeSaved = savedDisplay?.schema_version === 11 && savedDisplay.theme === 'terminal'
+    const completeSchemeSaved = savedDisplay?.schema_version === 12 && savedDisplay.theme === 'terminal'
         && JSON.stringify(savedDisplay.layout.rows[0]) === JSON.stringify(['context-used', 'five-hour-limit', 'weekly-limit']);
     report = { status: taskRendered && commands.includes('runtime') && ['apply','profiles_read','preset','task_details','sources_read','source_review'].every(completed) && completeSchemeSaved ? 'pass' : 'unverified', host: version, source: f.packed.source, tarball_sha256: f.packed.sha256, installed_resources: true, real_host_commands: commands, native_operations: operations, display_saved: fs.existsSync(display), complete_scheme_saved: completeSchemeSaved, task_pane_rendered: taskRendered, model_calls: 0, credentials: 'synthetic key and unreachable loopback API', physical_visual_acceptance: false };
     fs.writeFileSync(reportPath.replace(/\.json$/u, '.terminal.bin'), p.captured());

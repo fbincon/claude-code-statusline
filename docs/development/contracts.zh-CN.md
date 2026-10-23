@@ -191,3 +191,7 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 ## 图形指标契约
 
 显示 schema 11 / 编辑器协议 18 为适用实例增加可选 `presentation`、`bar_width`、`bar_style`。省略时为数字、8 格、自动字符。后端与双编辑器共用能力与校验，不支持的类型拒绝这些字段。版本 1–10 只读迁移，实际保存沿用备份及修订事务。runtime 2、lifecycle 4、portable 1、来源注册表/观察 1 不变。[交付记录](m4-m7-delivery.zh-CN.md)。
+
+## 分组契约
+
+显示 schema 12 / 编辑器协议 19 在主显示与子代理模板中增加 `groups`。每组包含 `id`、有序 `member_ids`、`primary_id`、`link_visibility`、`shared_powerline`。旧格式只读迁移为空组。共用规则拒绝重叠、spacer、不连续引用及跨显式行。复制重新映射成员，删除主指标解除分组。`group_hidden` 为明确的布局/样例原因；其他接口版本不变。

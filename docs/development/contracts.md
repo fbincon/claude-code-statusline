@@ -206,3 +206,7 @@ The new `display.powerline` object has closed choices and legacy defaults; schem
 ## Indicator contract
 
 Display schema 11 / editor protocol 18 adds optional `presentation`, `bar_width`, and `bar_style` on eligible instances. Omission means numeric, 8 cells and auto. Backend and both editors share eligibility and validation; unsupported types reject these fields. Versions 1–10 read without rewriting files; the next save uses the existing backup/revision transaction. Runtime 2, lifecycle 4, portable 1 and source registry/observations 1 are unchanged. [Delivery record](m4-m7-delivery.md).
+
+## Group contract
+
+Display schema 12 / editor protocol 19 adds `groups` to the main display and subagent template. Each group has `id`, ordered `member_ids`, `primary_id`, `link_visibility` and `shared_powerline`. Old schemas migrate to empty groups without writes. Shared rules reject overlaps, spacers, noncontinuous references and explicit-row crossings. Copy remaps members; deleting a primary dissolves its group. `group_hidden` is an explicit layout/sample reason. Other interface versions remain unchanged.

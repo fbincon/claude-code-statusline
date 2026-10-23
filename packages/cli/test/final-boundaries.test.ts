@@ -129,7 +129,7 @@ test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_legacy_draft_error_tr
     assert.ok(!existsSync(f.displayPath));
 });
 test('tests.ui.test_apply_protocol.ApplyProtocolTests.test_bound_entry_uses_its_own_identity', async (t) => {
-    const f = setup(t, true), request = JSON.stringify({ protocol_version: 18, operation: 'read', payload: {} });
+    const f = setup(t, true), request = JSON.stringify({ protocol_version: 19, operation: 'read', payload: {} });
     const result = await invoke(['ui'], { ...f.context, stdin: () => request });
     assert.equal(result.status, 0);
     assert.equal(result.stderr, '');
