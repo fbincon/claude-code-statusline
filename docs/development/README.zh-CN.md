@@ -2,7 +2,6 @@
 
 [English](README.md) | **简体中文**
 
-
 [扩展实现与验收](extensions.zh-CN.md)覆盖本地 JSON、GitHub、命令、链接和共享组件能力。
 
 [首次设置与完整外观实现](setup-appearance.zh-CN.md)记录首次使用、内置方案、schema 9、协议 16 及对应验收。
@@ -23,6 +22,7 @@
 
 ### 当前开发
 
+- [产品路线图](roadmap.zh-CN.md)与[工作包开发计划](development-plan.zh-CN.md)：方向、状态、依赖、范围及验收。
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [翻译贡献指南](i18n.zh-CN.md)。
 - [测试与验收](testing.zh-CN.md)。
