@@ -28,6 +28,15 @@ test('all maintained workflows have complete, commented Action identities', () =
     assert(result.references.every(reference => reference.version));
 });
 
+test('checkout aliases use the same canonical boundary as their workflow files', t => {
+    const f = fixture(t);
+    f.workflow(`      - uses: ${PIN} # v1.2.3`);
+    const alias = join(f.root, 'checkout alias');
+    fs.symlinkSync(f.root, alias, process.platform === 'win32' ? 'junction' : 'dir');
+    assert.deepEqual(checkActions(alias), f.check());
+    assert.deepEqual(checkActions(alias).errors, []);
+});
+
 test('step subpaths and remote reusable workflows use the same pin policy', t => {
     const f = fixture(t);
     f.write('.github/workflows/reuse.yaml', `on: workflow_call\njobs:\n  call:\n    uses: owner/repo/.github/workflows/test.yml@${SHA} # v2.3.4\n`);

@@ -59,7 +59,9 @@ CI scope 任务在变更分类之前执行检查，`npm run check` 在普通测�
 
 ## 验证与完成证据
 
-本地验证通过：`actions:check` 检查四个文件、39 处引用且零错误；检查器及分流专项 16 项通过；`npm run check` 的 1,135 项测试中 1,130 项通过、5 项平台相关跳过，生成资源、文档、归档及完整责任清单通过。四个工作流与实施基线的 YAML 结构对比确认，除引用替换及 scope 校验接入外，其余结构一致；`git diff --check` 通过。
+本地验证通过：`actions:check` 检查四个文件、39 处引用且零错误；检查器及分流专项 17 项通过；`npm run check` 的 1,136 项测试中 1,131 项通过、5 项平台相关跳过，生成资源、文档、归档及完整责任清单通过。四个工作流与实施基线的 YAML 结构对比确认，除引用替换及 scope 校验接入外，其余结构一致；`git diff --check` 通过。
+
+[首次 PR 运行](https://github.com/fbincon/claude-code-statusline/actions/runs/39941449719)发现 macOS 14／15 临时目录的 `/var` → `/private/var` 别名会使检查器误判仓库边界。已先解析检出根目录的真实路径，并增加目录别名回归测试；旧运行取消后，最终 head 必须重新通过完整矩阵。
 
 线上验证待完成。完成条件为最终 PR 与合并后 main 的产品矩阵（八安装目标、32 项 Node 用例、十三固定宿主），以及 main 上的历史 Python 工作流、v3.6.0 公开下载工作流和 `dry_run=true` 的 npm 发布工作流。npm dry-run 验证已有发布输入与准备过程，不申请 npm 发布凭据，也不验证真实 OIDC 发布。
 

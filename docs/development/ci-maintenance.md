@@ -59,7 +59,9 @@ If an update regresses a workflow, revert the specific update through a PR to re
 
 ## Validation and completion evidence
 
-Local validation passed: `actions:check` checked four files and 39 references with zero errors; the checker/scope suite passed all 16 tests; `npm run check` passed 1,130 of 1,135 tests with five platform-specific skips, plus generated resources, documentation, archive integrity and complete responsibility ledgers. A parsed-YAML comparison with the implementation baseline confirmed identical workflow structure after normalizing the pins and removing the added scope check. `git diff --check` passed.
+Local validation passed: `actions:check` checked four files and 39 references with zero errors; the checker/scope suite passed all 17 tests; `npm run check` passed 1,131 of 1,136 tests with five platform-specific skips, plus generated resources, documentation, archive integrity and complete responsibility ledgers. A parsed-YAML comparison with the implementation baseline confirmed identical workflow structure after normalizing the pins and removing the added scope check. `git diff --check` passed.
+
+The [first PR attempt](https://github.com/fbincon/claude-code-statusline/actions/runs/39941449719) exposed a checker boundary error with macOS 14/15 temporary roots aliased from `/var` to `/private/var`. The checker now canonicalizes the checkout root first, with a directory-alias regression. That attempt was cancelled; the corrected final head must pass the complete matrix.
 
 Online validation is pending. Completion requires the final PR and merged-main product matrices (eight installed targets, 32 Node cases and thirteen fixed hosts), plus the historical Python workflow, v3.6.0 public-download workflow and `npm-publish` with `dry_run=true` on main. The npm dry run checks existing release inputs and preparation; it does not request npm publishing credentials or verify a real OIDC publication.
 

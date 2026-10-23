@@ -21,8 +21,12 @@ const REMOTE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*@[a-f0-9]
 const VERSION = /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z.-]+)?(?=\s|$)/u;
 
 export function checkActions(directory: string): ActionsCheck {
-    const root = resolve(directory), visited = new Set<string>();
+    let root = resolve(directory);
+    const visited = new Set<string>();
     const result: ActionsCheck = { files: 0, references: [], errors: [] };
+    // macOS exposes /var temporary roots through /private/var; compare canonical paths on both sides.
+    try { root = fs.realpathSync(root); }
+    catch (error) { result.errors.push(`.github/workflows:1: Cannot resolve checkout: ${String(error)}`); return result; }
     const nameOf = (path: string) => relative(root, path).split(sep).join('/');
     const inside = (path: string) => {
         const name = relative(root, path);
