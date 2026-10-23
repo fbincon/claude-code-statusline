@@ -64,9 +64,9 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | --- | --- | --- | --- | --- |
 | 独立维护 | [GIT-01](development-plan.zh-CN.md#git-01) | 核实 Git 调用行为及必要防护 | 既有 Git 采集、来源身份与进程适配 | NOT_STARTED |
 | M4 图形指标 | [APPEARANCE-03](development-plan.zh-CN.md#appearance-03) | 上下文／额度可选短进度条及可读文字回退 | 既有已观测百分比、组件选项和布局 | VALIDATING |
-| M5 组件分组 | [COMPOSITION-02](development-plan.zh-CN.md#composition-02) | 装饰随指标隐藏，可合并 Powerline 色块 | 既有实例、条件显示与 Powerline | IN_PROGRESS |
-| M6 GitHub 刷新 | [WORKFLOW-02](development-plan.zh-CN.md#workflow-02) | 独立启用的 PR／CI 自动刷新，状态及停止操作明确 | 已交付 EXTENSIONS-01、WORKFLOW-01 | IN_PROGRESS |
-| M7 派生指标 | [METRICS-01](development-plan.zh-CN.md#metrics-01) | 明确按会话／API 时间折算的每小时费用 | 既有已观测会话费用与耗时字段 | NOT_STARTED |
+| M5 组件分组 | [COMPOSITION-02](development-plan.zh-CN.md#composition-02) | 装饰随指标隐藏，可合并 Powerline 色块 | 既有实例、条件显示与 Powerline | VALIDATING |
+| M6 GitHub 刷新 | [WORKFLOW-02](development-plan.zh-CN.md#workflow-02) | 独立启用的 PR／CI 自动刷新，状态及停止操作明确 | 已交付 EXTENSIONS-01、WORKFLOW-01 | VALIDATING |
+| M7 派生指标 | [METRICS-01](development-plan.zh-CN.md#metrics-01) | 明确按会话／API 时间折算的每小时费用 | 既有已观测会话费用与耗时字段 | VALIDATING |
 | M8 演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 精简首页、方案展示及可复现的使用演示 | 已验收功能及其匹配安装包 | NOT_STARTED |
 
 M4 → M5 → M6 → M7 → M8 是选定的产品顺序。排期不额外制造技术依赖：组件分组不依赖图形指标，费用速率不依赖自动刷新，各工作包可拆成有界切片交付。SHOWCASE-01 保留原有 ID，安排在功能工作之后；演示使用已验收功能，不要求实现全部未来候选。GIT-01 独立推进；静态比较发现的是待核查的防护差异，不是已确认漏洞，核查及必要修正属于后续开发任务。

@@ -1870,7 +1870,19 @@ export const LOCALES = {
     "sources.automatic_off": "Automatic: off",
     "sources.automatic_review": "Review this source for recurring GitHub PR/CI queries during supported active sessions. Enter saves the local policy; ←/→ changes the interval.",
     "sources.interval": "Refresh interval",
-    "sources.automatic_saved": "Automatic policy saved. Apply host integration and restart the session when the runtime Mod is not installed or configured."
+    "sources.automatic_saved": "Automatic policy saved. Apply host integration and restart the session when the runtime Mod is not installed or configured.",
+    "items.main.session-cost-rate.label": "Session cost rate",
+    "items.main.session-cost-rate.description": "Estimated hourly rate from official session cost and the selected session/API duration",
+    "fields.item.cost_rate_basis.label": "Cost rate denominator",
+    "cost_rate.basis.session": "Session time",
+    "cost_rate.basis.api": "Cumulative API time",
+    "statusline.cost.rate_session": "Rate ~${value}/h (session)",
+    "statusline.cost.rate_api": "Rate ~${value}/h (API)",
+    "statusline.prefix.main.session-cost-rate": "Rate",
+    "statusline.short.main.session-cost-rate": "Cost rate",
+    "explain.reason.cost_rate_session": "Uses official session duration; at least 60 seconds are required.",
+    "explain.reason.cost_rate_api": "Uses official cumulative API duration; this is independent of active task time.",
+    "guidance.requirements.cost_rate": "Derived estimate: cost divided by the selected official duration in hours, after at least 60 seconds. Zero cost is valid; missing, negative or nonfinite values are unavailable. It is neither an invoice nor a spending forecast."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3734,7 +3746,19 @@ export const LOCALES = {
     "sources.automatic_off": "自动刷新：关",
     "sources.automatic_review": "审核此来源，允许在支持的活跃会话中定期查询 GitHub PR/CI。回车保存本机策略；←/→ 调整间隔。",
     "sources.interval": "刷新间隔",
-    "sources.automatic_saved": "自动策略已保存。若运行时 Mod 尚未安装或配置，请应用宿主集成并重启会话。"
+    "sources.automatic_saved": "自动策略已保存。若运行时 Mod 尚未安装或配置，请应用宿主集成并重启会话。",
+    "items.main.session-cost-rate.label": "会话费用速率",
+    "items.main.session-cost-rate.description": "由官方会话费用与所选会话／API 时长推导的每小时估算速率",
+    "fields.item.cost_rate_basis.label": "费用速率分母",
+    "cost_rate.basis.session": "会话时长",
+    "cost_rate.basis.api": "累计 API 时长",
+    "statusline.cost.rate_session": "费用速率 ~${value}/会话小时",
+    "statusline.cost.rate_api": "费用速率 ~${value}/API 小时",
+    "statusline.prefix.main.session-cost-rate": "费用速率",
+    "statusline.short.main.session-cost-rate": "费用速率",
+    "explain.reason.cost_rate_session": "以官方会话时长为分母，至少需要 60 秒。",
+    "explain.reason.cost_rate_api": "以官方累计 API 时长为分母，与任务活跃时长独立。",
+    "guidance.requirements.cost_rate": "推导估算值：费用除以所选官方时长（小时），要求至少 60 秒。费用为零有效；缺失、负数或非有限值不可用，不代表账单或未来消费预测。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5598,7 +5622,19 @@ export const LOCALES = {
     "sources.automatic_off": "自動重新整理：關",
     "sources.automatic_review": "審核此來源，允許在支援的使用中工作階段定期查詢 GitHub PR/CI。Enter 儲存本機策略；←/→ 調整間隔。",
     "sources.interval": "重新整理間隔",
-    "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。"
+    "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。",
+    "items.main.session-cost-rate.label": "會話費用速率",
+    "items.main.session-cost-rate.description": "由官方會話費用與所選會話／API 時長推導的每小時估算速率",
+    "fields.item.cost_rate_basis.label": "費用速率分母",
+    "cost_rate.basis.session": "會話時長",
+    "cost_rate.basis.api": "累計 API 時長",
+    "statusline.cost.rate_session": "費用速率 ~${value}/會話小時",
+    "statusline.cost.rate_api": "費用速率 ~${value}/API 小時",
+    "statusline.prefix.main.session-cost-rate": "費用速率",
+    "statusline.short.main.session-cost-rate": "費用速率",
+    "explain.reason.cost_rate_session": "以官方會話時長為分母，至少需要 60 秒。",
+    "explain.reason.cost_rate_api": "以官方累計 API 時長為分母，與任務活躍時長獨立。",
+    "guidance.requirements.cost_rate": "推導估算值：費用除以所選官方時長（小時），要求至少 60 秒。費用為零有效；缺失、負數或非有限值不可用，不代表帳單或未來消費預測。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7462,7 +7498,19 @@ export const LOCALES = {
     "sources.automatic_off": "自動重新整理：關",
     "sources.automatic_review": "審核此來源，允許在支援的使用中工作階段定期查詢 GitHub PR/CI。Enter 儲存本機策略；←/→ 調整間隔。",
     "sources.interval": "重新整理間隔",
-    "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。"
+    "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。",
+    "items.main.session-cost-rate.label": "會話費用速率",
+    "items.main.session-cost-rate.description": "由官方會話費用與所選會話／API 時長推導的每小時估算速率",
+    "fields.item.cost_rate_basis.label": "費用速率分母",
+    "cost_rate.basis.session": "會話時長",
+    "cost_rate.basis.api": "累計 API 時長",
+    "statusline.cost.rate_session": "費用速率 ~${value}/會話小時",
+    "statusline.cost.rate_api": "費用速率 ~${value}/API 小時",
+    "statusline.prefix.main.session-cost-rate": "費用速率",
+    "statusline.short.main.session-cost-rate": "費用速率",
+    "explain.reason.cost_rate_session": "以官方會話時長為分母，至少需要 60 秒。",
+    "explain.reason.cost_rate_api": "以官方累計 API 時長為分母，與任務活躍時長獨立。",
+    "guidance.requirements.cost_rate": "推導估算值：費用除以所選官方時長（小時），要求至少 60 秒。費用為零有效；缺失、負數或非有限值不可用，不代表賬單或未來消費預測。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9326,7 +9374,19 @@ export const LOCALES = {
     "sources.automatic_off": "自動更新：オフ",
     "sources.automatic_review": "対応するアクティブなセッション中に GitHub PR/CI を定期取得するソースを確認します。Enter でローカル設定を保存し、←/→ で間隔を変更します。",
     "sources.interval": "更新間隔",
-    "sources.automatic_saved": "自動更新設定を保存しました。ランタイム Mod が未導入または未設定の場合はホスト統合を適用し、セッションを再起動してください。"
+    "sources.automatic_saved": "自動更新設定を保存しました。ランタイム Mod が未導入または未設定の場合はホスト統合を適用し、セッションを再起動してください。",
+    "items.main.session-cost-rate.label": "セッション費用レート",
+    "items.main.session-cost-rate.description": "公式セッション費用と選択したセッション／API 時間から求める時間当たりの推定値",
+    "fields.item.cost_rate_basis.label": "費用レートの分母",
+    "cost_rate.basis.session": "セッション時間",
+    "cost_rate.basis.api": "累計 API 時間",
+    "statusline.cost.rate_session": "費用レート ~${value}/セッション時間",
+    "statusline.cost.rate_api": "費用レート ~${value}/API 時間",
+    "statusline.prefix.main.session-cost-rate": "費用レート",
+    "statusline.short.main.session-cost-rate": "費用レート",
+    "explain.reason.cost_rate_session": "公式セッション時間を分母に使います。60 秒以上必要です。",
+    "explain.reason.cost_rate_api": "公式の累計 API 時間を分母に使います。タスクの稼働時間とは独立しています。",
+    "guidance.requirements.cost_rate": "費用を選択した公式時間（時間単位）で割る推定値です。60 秒以上が必要です。費用ゼロは有効ですが、欠損・負数・非有限値は使用できません。請求額や将来の支出予測ではありません。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11190,7 +11250,19 @@ export const LOCALES = {
     "sources.automatic_off": "자동 새로 고침: 꺼짐",
     "sources.automatic_review": "지원되는 활성 세션에서 GitHub PR/CI를 주기적으로 조회할 소스를 검토합니다. Enter로 로컬 정책을 저장하고 ←/→로 간격을 변경합니다.",
     "sources.interval": "새로 고침 간격",
-    "sources.automatic_saved": "자동 정책을 저장했습니다. 런타임 Mod가 설치 또는 설정되지 않았다면 호스트 통합을 적용하고 세션을 다시 시작하세요."
+    "sources.automatic_saved": "자동 정책을 저장했습니다. 런타임 Mod가 설치 또는 설정되지 않았다면 호스트 통합을 적용하고 세션을 다시 시작하세요.",
+    "items.main.session-cost-rate.label": "세션 비용 비율",
+    "items.main.session-cost-rate.description": "공식 세션 비용과 선택한 세션/API 시간으로 계산한 시간당 추정 비용",
+    "fields.item.cost_rate_basis.label": "비용 비율 분모",
+    "cost_rate.basis.session": "세션 시간",
+    "cost_rate.basis.api": "누적 API 시간",
+    "statusline.cost.rate_session": "비용 비율 ~${value}/세션 시간",
+    "statusline.cost.rate_api": "비용 비율 ~${value}/API 시간",
+    "statusline.prefix.main.session-cost-rate": "비용 비율",
+    "statusline.short.main.session-cost-rate": "비용 비율",
+    "explain.reason.cost_rate_session": "공식 세션 시간을 분모로 사용하며 60초 이상 필요합니다.",
+    "explain.reason.cost_rate_api": "공식 누적 API 시간을 분모로 사용하며 작업 활성 시간과 독립적입니다.",
+    "guidance.requirements.cost_rate": "비용을 선택한 공식 시간(시간 단위)으로 나눈 추정값으로 최소 60초가 필요합니다. 비용 0은 유효하며 누락, 음수, 유한하지 않은 값은 사용할 수 없습니다. 청구 금액이나 향후 지출 예측이 아닙니다."
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

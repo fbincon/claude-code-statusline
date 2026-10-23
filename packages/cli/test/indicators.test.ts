@@ -57,7 +57,7 @@ test('indicator configuration has identical CLI/editor validation and portable i
   assert.equal(isDraft({ display: invalid, host: DEFAULT_HOST }), false);
   const { groups, subagents, ...old } = defaultDisplay();
   const { groups: agentGroups, ...oldAgents } = subagents;
-  assert.equal(validateDisplay({ ...old, subagents: oldAgents, schema_version: 10 }).schema_version, 12);
+  assert.equal(validateDisplay({ ...old, subagents: oldAgents, schema_version: 10 }).schema_version, 13);
 });
 
 test('shared editor forms preview, cancel, save and reopen indicator choices in all languages', t => {

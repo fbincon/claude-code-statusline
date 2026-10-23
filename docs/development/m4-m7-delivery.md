@@ -7,9 +7,9 @@ The maintainer approved four sequential feature PRs and one v3.7.0 release PR. R
 | Package | State | Interface decision |
 | --- | --- | --- |
 | APPEARANCE-03 | VALIDATING | Display 11, editor 18; optional per-instance presentation/width/characters |
-| COMPOSITION-02 | VALIDATING | Planned display 12, editor 19; single-level groups |
-| WORKFLOW-02 | IN_PROGRESS | Planned editor 20, source registry/jobs 2, runtime 3; persistent local opt-in |
-| METRICS-01 | NOT_STARTED | Planned display 13, editor 21; session/API cost-rate denominator |
+| COMPOSITION-02 | VALIDATING | Display 12, editor 19; single-level groups |
+| WORKFLOW-02 | VALIDATING | Editor 20, source registry/jobs 2, runtime 3; persistent local opt-in |
+| METRICS-01 | VALIDATING | Display 13, editor 21; session/API cost-rate denominator |
 
 ## APPEARANCE-03
 
@@ -42,3 +42,9 @@ M6 local full checks passed (1,152 tests, five platform skips), including seven 
 M6 candidate `cc8d0d4790edbea00f2c60994394570e0ba50502` built twice with identical SHA-256 `5b98410377c121d224d1cc78d075d5151af0839f851d0d23afb15bc0a9475f2b`; all 15 isolated Linux installation checks passed, including four automatic policy/lifecycle cases. PR/main gates remain pending.
 
 The M4 main matrix exposed a source snapshot race on macOS Intel/Node 22.x: an atomic job-file replacement between path metadata and descriptor acquisition raised `file_size_or_type`. WORKFLOW-02 now retries only explicit identity/content-change errors, at most three complete snapshots; every attempt retains no-follow, type, size and descriptor checks. Deterministic replacement, bounded exhaustion and symlink-swap regressions pass with the existing source/automatic tests (18 cases). The [failed run](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) and raw evidence are retained; this is a corrected defect, not an additional #96 waiver.
+
+## METRICS-01
+
+M7 local full checks passed (1,156 tests, five platform skips); four focused rate cases cover both denominators, finite input boundaries, zero, six-language units, shared editor forms, portable persistence and project schemes. Native Mod tests passed 132/132 and exact Claude 2.1.294 TypeScript checking passed. Installed acceptance adds four rate scenarios. README describes capabilities only; current schema/protocol guidance is synchronized without claiming publication.
+
+M7 candidate `67d43f97d46737398f7867b9532efe695096dae4` built twice with identical SHA-256 `46f85070f2d7a7cfb62870ad73de11a827d859e0d96b73fdac0880dfbb21bc9f`; all 16 isolated Linux installed checks passed, including four rate scenarios. PR/main gates remain pending.

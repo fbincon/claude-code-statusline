@@ -26,6 +26,7 @@ export function explain(draft: Draft, scope: Scope, width: number, preview: Prev
 export function configurationReasons(draft: Draft, scope: Scope, node: InstanceDraft, facts: ExplanationFacts): ExplainReason[] {
       const reasons: ExplainReason[]=[];
       const add=(code:string,origin:ExplainReason['origin'])=>reasons.push({code,origin});
+      if (node.type_id === 'session-cost-rate') add('cost_rate_' + (node.options.cost_rate_basis ?? 'session'), 'configuration');
       if (node.options.presentation === 'bar') add('indicator_bar', 'configuration');
       add(node.enabled?'configured_on':'configured_off','configuration');
       if (['external-value','github-pr','github-ci'].includes(node.type_id)) add(node.source?.binding ? 'source_bound' : 'source_unbound','configuration');

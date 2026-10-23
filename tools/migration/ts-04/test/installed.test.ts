@@ -14,7 +14,7 @@ import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -50,8 +50,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 20, operation, payload }), environment));
-    assert.equal(result.protocol_version, 20);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 21, operation, payload }), environment));
+    assert.equal(result.protocol_version, 21);
     assert.ok(result.result);
     return result.result;
 }
@@ -94,6 +94,18 @@ test('installed indicators retain defaults, independent agent values and portabl
     run(['config', 'import', portable], config);
     assert(run(['render'], config, payload).includes('[####----]'));
     report.indicator_cases = 3; checks.indicators = true;
+});
+test('installed derived rates retain denominators, the observation window and portable choices', () => {
+    const config = setup('cost-rates'); run(['config', 'set-items', 'session-cost-rate'], config);
+    const data = { cost: { total_cost_usd: 2, total_duration_ms: 3600000, total_api_duration_ms: 600000 } };
+    const session = run(['render'], config, JSON.stringify(data)); assert(session.includes('2.00') && session.includes('session'));
+    run(['config', 'instance', 'main', 'set', 'session-cost-rate', 'cost-rate-basis', 'api'], config);
+    const api = run(['render'], config, JSON.stringify(data)); assert(api.includes('12.00') && api.includes('API'));
+    assert(run(['render'], config, JSON.stringify({ cost: { total_cost_usd: 0, total_api_duration_ms: 60000 } })).includes('0.00'));
+    assert.equal(run(['render'], config, JSON.stringify({ cost: { total_cost_usd: 1, total_api_duration_ms: 59999 } })).trim(), '');
+    const file = join(installed.temporary, 'cost-rate-portable.json'); run(['config', 'export', file], config);
+    assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).draft.display.instances.find((n: any) => n.type_id === 'session-cost-rate').options.cost_rate_basis, 'api');
+    report.cost_rate_cases = 4; checks.cost_rates = true;
 });
 test('installed automatic policies remain separate from display and unsupported lifecycle work', () => {
     const config = setup('automatic-refresh'), project = join(installed.temporary, 'automatic project');
@@ -331,7 +343,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 20, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 21, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -403,7 +415,7 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
         assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
         if(choice!=='cancel') {
             const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
-            assert.equal(display.schema_version,12);assert.equal(display.theme,'terminal');
+            assert.equal(display.schema_version,13);assert.equal(display.theme,'terminal');
             assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
         }
     }

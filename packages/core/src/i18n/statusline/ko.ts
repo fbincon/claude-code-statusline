@@ -254,5 +254,9 @@ export const MESSAGES = {
   "statusline.prefix.main.github-pr": "GitHub PR",
   "statusline.short.main.github-pr": "GitHub PR",
   "statusline.prefix.main.github-ci": "GitHub CI",
-  "statusline.short.main.github-ci": "GitHub CI"
+  "statusline.short.main.github-ci": "GitHub CI",
+  "statusline.cost.rate_session": "비용 비율 ~${value}/세션 시간",
+  "statusline.cost.rate_api": "비용 비율 ~${value}/API 시간",
+  "statusline.prefix.main.session-cost-rate": "비용 비율",
+  "statusline.short.main.session-cost-rate": "비용 비율"
 } as const;

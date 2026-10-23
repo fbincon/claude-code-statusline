@@ -82,7 +82,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
       if(canonical(a)===canonical(old) && canonical(b)===canonical(['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose',...old,'explain','diagnose','profiles_read','profiles_apply','profile_import','profile_export','task_details'])) return;
     }
     if (id === 'ui-describe' && path === '/value/response/result/catalog' && Array.isArray(a) && Array.isArray(b)) {
-      const extensionIds = ['external-value','github-pr','github-ci'];
+      const extensionIds = ['external-value','github-pr','github-ci','session-cost-rate'];
       const extensions = b.filter(item => extensionIds.includes(item.id));
       const supported = b.filter(item => item.capabilities && !extensionIds.includes(item.id));
       if (canonical(extensions) !== canonical(ITEMS.filter(item => extensionIds.includes(item.id))) ||

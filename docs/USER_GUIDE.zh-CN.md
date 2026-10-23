@@ -657,9 +657,9 @@ claude-statusline config show
 
 ### 版本兼容
 
-显示 schema 9 以实例 ID 保存顺序与行边界。旧配置 v1–v7 只在内存转换；真实保存／安装先备份再迁移。降级须恢复旧版兼容备份，不能仅修改 schema 数字；重复实例与弹性布局无法无损回退。详见[迁移与恢复](COMPOSITION.zh-CN.md#迁移导入导出与恢复)。
+显示 schema 13 以实例 ID 保存顺序与行边界。旧配置 v1–v12 只在内存转换；真实保存／安装先备份再迁移。降级须恢复旧版兼容备份，不能仅修改 schema 数字；重复实例与弹性布局无法无损回退。详见[迁移与恢复](COMPOSITION.zh-CN.md#迁移导入导出与恢复)。
 
-当前显示 schema v9、配置协议 v16、独立运行协议 v2 要求前后端资源匹配。兼容的显示 v1–v7 文件读取时不重写，实际保存才备份原字节并迁移为 v8；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
+当前显示 schema v13、配置协议 v21、独立运行协议 v3 要求前后端资源匹配。兼容的显示 v1–v12 文件读取时不重写，实际保存才备份原字节并迁移为 v13；更高版本或错误内容拒绝。旧包不一定识别新 schema 或新显示项 ID。
 
 降级前使用新版关闭或移除旧版无法管理的接入，包括适用的实时采集和原生编辑器。根据备份 `metadata.json` 恢复兼容显示文件，或在 schema 兼容时移除不支持的条目 ID。随后安装旧包、运行 `install` 和 `doctor`，并重启 Claude Code。可移植导出可另行保留当前显示选择，供以后恢复。
 
@@ -700,7 +700,7 @@ Doctor 检查平台与 Node、PATH、配置有效性、命令归属、hooks、�
 已有显示配置文件时，schema 检查报告程序支持的版本，当前为 `[OK] display config schema: v9`。有效旧文件改为提示，例如：
 
 ```text
-[WARN] display config schema v4 is valid and will migrate to v8 on the next configuration save
+[WARN] display config schema v4 is valid and will migrate to v13 on the next configuration save
 ```
 
 此警告不会迁移文件：诊断与读取保留原字节，实际配置保存才备份并迁移。显示 schema 与配置协议 v16、运行协议 v2 分别管理版本。

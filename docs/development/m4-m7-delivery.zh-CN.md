@@ -7,9 +7,9 @@
 | 工作包 | 状态 | 接口决定 |
 | --- | --- | --- |
 | APPEARANCE-03 | VALIDATING | 显示 11、编辑器 18；实例显示方式、宽度和字符选项 |
-| COMPOSITION-02 | VALIDATING | 计划显示 12、编辑器 19；单层分组 |
-| WORKFLOW-02 | IN_PROGRESS | 计划编辑器 20、来源注册表/任务 2、runtime 3；本机持久启用 |
-| METRICS-01 | NOT_STARTED | 计划显示 13、编辑器 21；会话/API 费用速率分母 |
+| COMPOSITION-02 | VALIDATING | 显示 12、编辑器 19；单层分组 |
+| WORKFLOW-02 | VALIDATING | 编辑器 20、来源注册表/任务 2、runtime 3；本机持久启用 |
+| METRICS-01 | VALIDATING | 显示 13、编辑器 21；会话/API 费用速率分母 |
 
 ## APPEARANCE-03
 
@@ -42,3 +42,9 @@ M6 本地完整检查通过（1,152 项通过、五项按平台跳过），包�
 M6 候选源码 `cc8d0d4790edbea00f2c60994394570e0ba50502` 两次构建 SHA-256 均为 `5b98410377c121d224d1cc78d075d5151af0839f851d0d23afb15bc0a9475f2b`；15 项隔离 Linux 安装检查全部通过，包含四项自动策略／生命周期场景。PR/main 门禁仍待完成。
 
 M4 main 矩阵在 macOS Intel／Node 22.x 暴露来源快照竞态：路径元数据检查与文件描述符打开之间，任务文件被原子替换，产生 `file_size_or_type`。WORKFLOW-02 现仅对明确的身份／内容变化做最多三次完整快照重读，每次继续保留不跟随链接、类型、大小和描述符校验。确定性替换、重试耗尽、链接替换回归与既有来源／自动刷新测试共 18 项通过。[失败运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972)及原始证据保留；这是已修复缺陷，不是新增 #96 豁免。
+
+## METRICS-01
+
+M7 本地完整检查通过（1,156 项通过、五项按平台跳过）；四项速率定向测试覆盖两种分母、有限输入边界、零值、六语言单位、双编辑器共用表单、便携持久化及项目方案。原生 Mod 132/132 和精确 Claude 2.1.294 TypeScript 检查通过。安装验收新增四项速率场景。README 仅介绍功能，同步当前 schema／协议说明，尚不宣称发布。
+
+M7 候选源码 `67d43f97d46737398f7867b9532efe695096dae4` 两次构建 SHA-256 均为 `46f85070f2d7a7cfb62870ad73de11a827d859e0d96b73fdac0880dfbb21bc9f`；16 项隔离 Linux 安装检查全部通过，包含四项速率场景。PR/main 门禁仍待完成。

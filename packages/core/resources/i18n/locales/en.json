@@ -1860,5 +1860,17 @@
   "sources.automatic_off": "Automatic: off",
   "sources.automatic_review": "Review this source for recurring GitHub PR/CI queries during supported active sessions. Enter saves the local policy; ←/→ changes the interval.",
   "sources.interval": "Refresh interval",
-  "sources.automatic_saved": "Automatic policy saved. Apply host integration and restart the session when the runtime Mod is not installed or configured."
+  "sources.automatic_saved": "Automatic policy saved. Apply host integration and restart the session when the runtime Mod is not installed or configured.",
+  "items.main.session-cost-rate.label": "Session cost rate",
+  "items.main.session-cost-rate.description": "Estimated hourly rate from official session cost and the selected session/API duration",
+  "fields.item.cost_rate_basis.label": "Cost rate denominator",
+  "cost_rate.basis.session": "Session time",
+  "cost_rate.basis.api": "Cumulative API time",
+  "statusline.cost.rate_session": "Rate ~${value}/h (session)",
+  "statusline.cost.rate_api": "Rate ~${value}/h (API)",
+  "statusline.prefix.main.session-cost-rate": "Rate",
+  "statusline.short.main.session-cost-rate": "Cost rate",
+  "explain.reason.cost_rate_session": "Uses official session duration; at least 60 seconds are required.",
+  "explain.reason.cost_rate_api": "Uses official cumulative API duration; this is independent of active task time.",
+  "guidance.requirements.cost_rate": "Derived estimate: cost divided by the selected official duration in hours, after at least 60 seconds. Zero cost is valid; missing, negative or nonfinite values are unavailable. It is neither an invoice nor a spending forecast."
 }

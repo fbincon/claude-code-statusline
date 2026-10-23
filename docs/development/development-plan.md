@@ -4,7 +4,7 @@
 
 Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`2bdf429d3356796232efff926235617cdab4f430`**
 
-This plan defines work-package scope, dependencies, implementation slices and acceptance intent. The [roadmap](roadmap.md) owns product priority and current status. The selected product order is APPEARANCE-03 → COMPOSITION-02 → WORKFLOW-02 → METRICS-01 → SHOWCASE-01, with GIT-01 as independent maintenance. These six packages are **IN_PROGRESS**, without assigned versions or delivery dates. CI-01 remains **DONE**. This documentation update starts no implementation and publishes no product version.
+This plan defines work-package scope, dependencies and acceptance intent. The [roadmap](roadmap.md) owns product priority and current status. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are implemented for the approved v3.7.0 delivery and are validating; no release is claimed yet. SHOWCASE-01 and GIT-01 remain NOT_STARTED. CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.6.0 decision](../releases/approvals/v3.6.0.json) records their acceptance for that release.
 
@@ -19,10 +19,10 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 | Stage | Work package | Dependencies and scheduling | Status |
 | --- | --- | --- | --- |
 | Independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | NOT_STARTED |
-| M4 | [APPEARANCE-03](#appearance-03) | Existing context/quota observations, formatting and layout | NOT_STARTED |
-| M5 | [COMPOSITION-02](#composition-02) | Existing instances, visibility and Powerline; independent of M4 | NOT_STARTED |
-| M6 | [WORKFLOW-02](#workflow-02) | Delivered EXTENSIONS-01 and WORKFLOW-01; GitHub only | IN_PROGRESS |
-| M7 | [METRICS-01](#metrics-01) | Existing session cost and duration fields; independent of M6 | NOT_STARTED |
+| M4 | [APPEARANCE-03](#appearance-03) | Existing context/quota observations, formatting and layout | VALIDATING |
+| M5 | [COMPOSITION-02](#composition-02) | Existing instances, visibility and Powerline; independent of M4 | VALIDATING |
+| M6 | [WORKFLOW-02](#workflow-02) | Delivered EXTENSIONS-01 and WORKFLOW-01; GitHub only | VALIDATING |
+| M7 | [METRICS-01](#metrics-01) | Existing session cost and duration fields; independent of M6 | VALIDATING |
 | M8 | [SHOWCASE-01](#showcase-01) | Accepted features and a matching installed artifact; retain the existing ID | NOT_STARTED |
 
 M4 → M5 → M6 → M7 → M8 expresses product priority, not additional technical prerequisites. Select a package and bounded slices before implementing it. GIT-01 is an investigation and any necessary protection work; this plan does not establish a vulnerability. See the [candidate pool](roadmap.md#candidates) for items outside the mainline.
@@ -101,7 +101,7 @@ These sections describe planned behavior, not available commands or completed ch
 
 ## COMPOSITION-02 Component groups and linked visibility
 
-**Status: IN_PROGRESS.** Second in product order; independent of APPEARANCE-03.
+**Status: VALIDATING.** Second in product order; independent of APPEARANCE-03.
 
 **Problem and goal.** Avoid orphaned decorative text/icons when a metric disappears, and let related instances share one Powerline block without changing their data scope.
 
@@ -119,7 +119,7 @@ These sections describe planned behavior, not available commands or completed ch
 
 ## WORKFLOW-02 Opt-in automatic GitHub PR/CI refresh
 
-**Status: NOT_STARTED.** Third in product order; depends on delivered EXTENSIONS-01 and WORKFLOW-01.
+**Status: VALIDATING.** Third in product order; depends on delivered EXTENSIONS-01 and WORKFLOW-01.
 
 **Problem and goal.** Keep an enabled GitHub source current during an active session without repeatedly opening manual refresh.
 
@@ -137,7 +137,7 @@ These sections describe planned behavior, not available commands or completed ch
 
 ## METRICS-01 Session cost rate
 
-**Status: NOT_STARTED.** Fourth in product order; independent of automatic refresh.
+**Status: VALIDATING.** Fourth in product order; independent of automatic refresh.
 
 **Problem and goal.** Explain existing session spending as an hourly rate with an explicit denominator, without inventing billing or task measurements.
 

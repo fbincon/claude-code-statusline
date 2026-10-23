@@ -1860,5 +1860,17 @@
   "sources.automatic_off": "自动刷新：关",
   "sources.automatic_review": "审核此来源，允许在支持的活跃会话中定期查询 GitHub PR/CI。回车保存本机策略；←/→ 调整间隔。",
   "sources.interval": "刷新间隔",
-  "sources.automatic_saved": "自动策略已保存。若运行时 Mod 尚未安装或配置，请应用宿主集成并重启会话。"
+  "sources.automatic_saved": "自动策略已保存。若运行时 Mod 尚未安装或配置，请应用宿主集成并重启会话。",
+  "items.main.session-cost-rate.label": "会话费用速率",
+  "items.main.session-cost-rate.description": "由官方会话费用与所选会话／API 时长推导的每小时估算速率",
+  "fields.item.cost_rate_basis.label": "费用速率分母",
+  "cost_rate.basis.session": "会话时长",
+  "cost_rate.basis.api": "累计 API 时长",
+  "statusline.cost.rate_session": "费用速率 ~${value}/会话小时",
+  "statusline.cost.rate_api": "费用速率 ~${value}/API 小时",
+  "statusline.prefix.main.session-cost-rate": "费用速率",
+  "statusline.short.main.session-cost-rate": "费用速率",
+  "explain.reason.cost_rate_session": "以官方会话时长为分母，至少需要 60 秒。",
+  "explain.reason.cost_rate_api": "以官方累计 API 时长为分母，与任务活跃时长独立。",
+  "guidance.requirements.cost_rate": "推导估算值：费用除以所选官方时长（小时），要求至少 60 秒。费用为零有效；缺失、负数或非有限值不可用，不代表账单或未来消费预测。"
 }

@@ -296,7 +296,7 @@ export class RenderState {
             }
         }
         const external = node && ['external-value','github-pr','github-ci'].includes(item) ? externalPresentation(node, this.env.source?.(node, this.data), this.env, fmt) : null;
-        const rendered = external ? { text: external.text } : options.presentation === 'bar' ? this.styled(indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage) : this.renderType(item);
+        const rendered = external ? { text: external.text } : item === 'session-cost-rate' ? this.styled(metrics.costRate(this.data.cost, options.cost_rate_basis ?? 'session', fmt, this.env.language), this.palette.percentage, 'usage') : options.presentation === 'bar' ? this.styled(indicator(this.data, item, 'main', options, fmt, this.env.language, this.now()), this.palette.percentage) : this.renderType(item);
         if (!rendered)
             return null;
         let text = preferences.threshold(rendered.text, used, fmt, this.config, this.palette.percentage);

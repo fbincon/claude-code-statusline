@@ -1,9 +1,10 @@
-import type { Draft, Scope, DiagnoseResult, DiagnosticEvidence } from '../contracts/ui.js';
+import type { Draft, Scope, DiagnoseResult, DiagnosticEvidence, ItemOptionsDraft } from '../contracts/ui.js';
 import { BY_SCOPE } from '../config/catalog.js';
 import { object, numeric, type Data } from '../runtime/values.js';
 import { sanitizePayloadText } from './formatters.js';
 import { configurationReasons, type ExplanationFacts } from './explain.js';
 import { cacheMissEvidence, worktreeEvidence } from './host-fields.js';
+import { costRateValue } from './metrics.js';
 import { configuredRows } from './items.js';
 import { renderPayload } from './subagents.js';
 import { RenderTrace } from './trace.js';
@@ -48,11 +49,11 @@ function fieldStatus(input: unknown, path: string): 'observed' | 'not_observed' 
         /context_window\.(used|remaining)_percentage/u.test(path) && n > 100) return 'invalid_field';
     return 'observed';
 }
-export function inputEvidence(input: Data, scope: Scope, type: string, observedAt: string | null): DiagnosticEvidence[] {
+export function inputEvidence(input: Data, scope: Scope, type: string, observedAt: string | null, options?: ItemOptionsDraft): DiagnosticEvidence[] {
     const definition = BY_SCOPE[scope].get(type);
     if (!definition?.guidance.source_kinds.includes('official_input')) return [];
     const roots = new Set(['model','effort','fast_mode','thinking','workspace','cwd','worktree','pr','context_window','rate_limits','prompt_cache','session_id','session_name','version','output_style','cost','agent','vim','tasks']);
-    const sources = definition.sources.filter(path => roots.has(path.split('.')[0]!));
+    const sources = definition.sources.filter(path => roots.has(path.split('.')[0]!) && (type !== 'session-cost-rate' || path === 'cost.total_cost_usd' || path === (options?.cost_rate_basis === 'api' ? 'cost.total_api_duration_ms' : 'cost.total_duration_ms')));
     if (!sources.length) return [];
     if (scope === 'main') {
         if (type === 'model-with-effort' && !sources.includes('model.display_name')) sources.push('model.display_name');
@@ -60,6 +61,7 @@ export function inputEvidence(input: Data, scope: Scope, type: string, observedA
         const result = evidence('supplied_input', definition.guidance.measurement_scope, 'not_observed', observedAt);
         result.fields = sources.map(path => ({ path, status: fieldStatus(input, path) }));
         result.status = result.fields.some(f => f.status === 'invalid_field') ? 'invalid_field' : result.fields.some(f => f.status === 'observed') ? 'observed' : 'not_observed';
+        if (type === 'session-cost-rate' && result.status === 'observed' && costRateValue(input.cost, options?.cost_rate_basis ?? 'session') === null) result.status = 'partial';
         if (type === 'cache-miss-reason') result.status = cacheMissEvidence(input.prompt_cache).status;
         return [result];
     }
@@ -94,7 +96,7 @@ export function diagnose(draft: Draft, scope: Scope, width: number, input: Data,
         instances: (scope === 'main' ? draft.display.instances : draft.display.subagents.instances).map(node => ({
             id: node.id, type_id: node.type_id, enabled: node.enabled,
             reasons: configurationReasons(draft, scope, node, observedFacts),
-            evidence: [...inputEvidence(input, scope, node.type_id, options.observedAt), ...(local.get(node.id) ?? local.get(node.type_id) ?? [])],
+            evidence: [...inputEvidence(input, scope, node.type_id, options.observedAt, node.options), ...(local.get(node.id) ?? local.get(node.type_id) ?? [])],
             rows: trace.layouts(scope, node.id),
         })),
         host_fields: { worktree: worktreeEvidence(input), cache_miss: cacheMissEvidence(input.prompt_cache) },

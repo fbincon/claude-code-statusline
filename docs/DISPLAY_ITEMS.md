@@ -4,7 +4,7 @@
 
 Current timing provenance, transcript replacement, exact replay deduplication and legacy-cache availability are documented in [post-migration repairs](development/post-migration-fixes.md).
 
-The current catalog contains 64 main and 15 subagent items, with 10 and five enabled by default. The tables highlight independent metrics and task timers; the [user guide](USER_GUIDE.md#configurable-display-items) lists default selections and configuration entry points. `prompt-timer` is an alias of `task-timer`, not an additional catalog item. Main-line compounds can coexist with their individual components; subagent `status-elapsed` excludes separate `status` and `elapsed`.
+The current catalog contains 65 main and 15 subagent items, with 10 and five enabled by default. The tables highlight independent metrics and task timers; the [user guide](USER_GUIDE.md#configurable-display-items) lists default selections and configuration entry points. `prompt-timer` is an alias of `task-timer`, not an additional catalog item. Main-line compounds can coexist with their individual components; subagent `status-elapsed` excludes separate `status` and `elapsed`.
 
 Examples below use English output. `statusline-language=zh-CN` localizes built-in phrases and known values without changing metric definitions, IDs, raw observations, numbers or technical units. User text and unknown values remain intact. See [output language](USER_GUIDE.md#statusline-language).
 
@@ -19,6 +19,7 @@ Examples below use English output. `statusline-language=zh-CN` localizes built-i
 | `context-tokens` | `Context 54K / 200K` | Current input plus cache creation/read tokens from `context_window.current_usage`, divided by window capacity. Output tokens are excluded. If the component object is absent, use the official `total_input_tokens`; an explicit null after compaction remains unavailable. |
 | `five-hour-reset` | `5h reset 2h 13m` | Countdown from `rate_limits.five_hour.resets_at`. |
 | `weekly-reset` | `weekly reset 6d 2h` | Countdown from `rate_limits.seven_day.resets_at`. |
+| `session-cost-rate` | `Rate ~$0.58/h (session)` | Derived hourly estimate from official cost and selected session/API time; details below. |
 | `session-cost` | `Cost $0.12` | Official cumulative `cost.total_cost_usd`. |
 | `session-duration` | `Session 12m 30s` | Official `cost.total_duration_ms`, the cumulative session runtime. |
 | `api-duration` | `API 1m 15s` | Official `cost.total_api_duration_ms`, the cumulative API request duration. |
@@ -131,7 +132,7 @@ Claude Code 2.1.289 headless paths may omit prompt identity events. Only one com
 
 Both scopes also offer `text` (literal user text) and `spacer` (remaining row width).
 These two composition types bring the catalog to 66 main and 17 subagent types;
-the 64 main and 15 subagent observation types and existing defaults are retained.
+the 65 main and 15 subagent observation types and existing defaults are retained.
 Add them with the instance controls or `config instance main add text --text "Project"`.
 Main spacers require explicit rows; each main row and subagent template accepts one spacer.
 
@@ -144,3 +145,16 @@ Register and enable sources locally using the [extensions guide](EXTENSIONS.md).
 | `external-value` | Main / subagent | Scalar from an explicitly bound JSON or command source, with freshness and failure markers. |
 | `github-pr` | Main | Explicitly refreshed GitHub PR; separate from host `pr`. |
 | `github-ci` | Main | GitHub check summary; no checks or unknown results do not mean success. |
+
+## Session cost rate
+
+`session-cost-rate` is optional and unselected by default. Choose its **Cost rate denominator** in either editor: session time (default) or cumulative API time. The CLI uses:
+
+```bash
+claude-statusline config enable session-cost-rate
+claude-statusline config instance main set session-cost-rate cost-rate-basis api
+```
+
+For an instance created with Add/Copy, substitute its returned instance ID. Each copy retains its own denominator. The formula is `total_cost_usd / (duration_ms / 3600000)`, using `cost.total_duration_ms` or `cost.total_api_duration_ms`. The chosen duration must be at least 60,000 ms. Missing, negative, nonfinite values, zero duration and shorter windows hide the rate; zero observed cost over sufficient time displays zero. Only the chosen duration is required.
+
+For $2 over one session hour or ten API minutes, the respective estimates are `~$2.00/h (session)` and `~$12.00/h (API)`. The estimate marker and denominator remain in the value when labels are disabled. API time is cumulative request duration, independent of `task-active-timer`. This is a derived session estimate, not an invoice or prediction. It needs no additional collector, price table or network source. Preview uses fixed observations; saves, copies, profiles and portable exports retain the selected basis.
