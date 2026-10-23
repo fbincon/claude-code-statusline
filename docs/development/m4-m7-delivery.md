@@ -2,49 +2,49 @@
 
 **English** | [简体中文](m4-m7-delivery.zh-CN.md)
 
-The maintainer approved four sequential feature PRs and one v3.7.0 release PR. Research baseline: `a882bd1942d0a59e24e1536779fa283fd1f63c1b`. Publication requires the final PR/main/tag automated gates. Only the six existing [#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) are accepted; they remain unverified. New failures are not waived.
+APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are delivered in **v3.7.0**. The maintainer approved four feature PRs and one release PR, persistent local opt-in for automatic refresh, and publication after the final PR/main/tag automated gates. Research baseline: `a882bd1942d0a59e24e1536779fa283fd1f63c1b`. Only the six existing [#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) are accepted; they remain unverified. SHOWCASE-01 and GIT-01 are outside this delivery.
 
-| Package | State | Interface decision |
+## Implemented behavior
+
+| Package | Result | Interface |
 | --- | --- | --- |
-| APPEARANCE-03 | VALIDATING | Display 11, editor 18; optional per-instance presentation/width/characters |
-| COMPOSITION-02 | VALIDATING | Display 12, editor 19; single-level groups |
-| WORKFLOW-02 | VALIDATING | Editor 20, source registry/jobs 2, runtime 3; persistent local opt-in |
-| METRICS-01 | VALIDATING | Display 13, editor 21; session/API cost-rate denominator |
+| APPEARANCE-03 | Optional per-instance percentage bars for eligible main/subagent context and quota items; numeric defaults, raw thresholds and missing/stale semantics retained | Display 11 / editor 18 |
+| COMPOSITION-02 | Contiguous single-level groups, primary-linked text visibility, optional shared Powerline background, atomic fitting, remapped copies and explicit editing | Display 12 / editor 19 |
+| WORKFLOW-02 | Reviewed local GitHub-only refresh policy, active-session leases, identity-aware coalescing, manual ownership, backoff, pause and stop controls | Source registry/jobs 2 / editor 20 / runtime 3 |
+| METRICS-01 | Optional hourly cost estimate with independent session/API denominator, one-minute minimum, valid zero and explicit estimate/unit markers in six languages | Display 13 / editor 21 |
 
-## APPEARANCE-03
+Shared core controls govern both editors, CLI validation, portable persistence and project schemes. Generated Mod copies follow the canonical source. Old display files migrate in memory until explicitly saved; runtime v1/v2 observe/read remain compatible. Portable imports cannot authorize source execution. Automatic refresh is separate from display Save, host integration and both metric collectors. It requires Claude 2.1.289+ and configured runtime integration, renews leases every five seconds and expires them after 15 seconds. Render/preview/import do not dispatch it; JSON and command sources remain manual.
 
-Canonical controls live in core/editor; generated Mod copies are never edited independently. Rendering is pure and numeric defaults retain their existing path. Bars preserve observed percentage/direction, missing and stale semantics, raw visibility thresholds and Unicode cell boundaries. The core catalog advertises eligible components; both editors, CLI, imports and profile persistence use the same options.
+## Source and automated gates
 
-Local `npm run check` passed (1,135 tests, five platform skips); generated resources, docs and responsibility inventories passed. Claude 2.1.294 native Mod tests passed 130/130 and exact-host TypeScript checking passed. A follow-up focused check also passed after preserving the legacy subagent half-percentage rounding. PR/main installation and host matrices remain pending. Source tests cover boundaries, repeated instances, six output languages, both editor shared forms, independent agent values and old configurations. Installed receipts additionally require three indicator cases (default/opt-in, subagents, portable round trip). No release or platform acceptance is claimed by this record yet.
+Feature PRs: [M4 #129](https://github.com/fbincon/claude-code-statusline/pull/129), [M5 #131](https://github.com/fbincon/claude-code-statusline/pull/131), [M6 #132](https://github.com/fbincon/claude-code-statusline/pull/132), [M7 #133](https://github.com/fbincon/claude-code-statusline/pull/133). [Release PR #134](https://github.com/fbincon/claude-code-statusline/pull/134).
 
-## Remaining delivery
+- Final release source: `3edd719525635eedb6a909eee23bb96a4fcab393`; annotated `v3.7.0` object: `601ea862730d13d2d5feac022deedf927b62c291`.
+- [Final PR CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40013222675), [merged-main CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40025287730) and [tag CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40029428803): each passed all 56 applicable jobs, with only the documentation-only job skipped. Each round requires eight installation targets, 32 Node runtime cases and thirteen fixed Claude hosts.
+- Integrated local check: 1,160 tests passed, five platform skips; generated resources, documentation links, frozen archive and responsibility inventories passed. Native Mod tests passed 132/132 on Claude 2.1.294; runtime Mod tests passed 16/16 and exact-host typechecking passed on both 2.1.289 and 2.1.294. Final CI independently validates the full required host matrix.
+- Installed acceptance requires all 16 checks, including three indicator, four group, four automatic-policy/lifecycle and four cost-rate scenarios. Final stable readiness rejects missing, failed, duplicate or foreign-identity receipts.
 
-Implement grouping, automatic refresh and rates in roadmap order. Automatic refresh is remembered locally until disabled and runs only in supported active sessions; it does not enable metric sampling. Final delivery includes immutable builds, full matrices, installed terminal verification, npm OIDC, GitHub/Gitee assets and public download checks. README changes remain feature introductions, with version notes in releases.
+The M4 merged-main run [40006647972](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) exposed an atomic source-file replacement race on macOS Intel/Node 22.x. M6 fixes it with at most three complete snapshot attempts, retaining no-follow, type, size and descriptor checks. Deterministic replacement, exhaustion and link-swap tests cover the repair. A Windows-only assertion in [40011934863](https://github.com/fbincon/claude-code-statusline/actions/runs/40011934863) then identified changed error text; the follow-up preserves the Windows message and verifies the dedicated error type. Failed/superseded runs remain evidence, not waivers. Earlier Windows ARM command-fixture timeouts were addressed by selecting the existing supported 30-second test budget; production defaults and cancellation/deadline tests did not change. M4's isolated setup-node stall passed on an unchanged-source targeted retry.
 
-M4 candidate `abb2192f337d8fc985c1b2c304a97deaae31937f` built twice with identical SHA-256 `559e6e185990cce24d71b34b920c121c7e41b1103625288137ae57464e709163`; all 13 isolated Linux installation cases passed, including the three required indicator scenarios. Five focused indicator tests additionally cover Powerline/spacers down to four cells. These local receipts do not replace final-head CI or release artifacts. [Feature PR #129](https://github.com/fbincon/claude-code-statusline/pull/129).
+The final PR's first attempt also stopped one macOS Intel/Node 22.0.0 configuration write because the existing bounded `/bin/ps` identity probe returned no verifiable token. Its underlying error was not logged, so a specific timeout cause is not claimed. The original job log and failed receipt were retained. One unchanged-source targeted retry passed all 16 installed checks, runtime tests and the aggregate gate; no identity protection or process-probe deadline was relaxed.
 
-PR run `39964870238` retained Windows ARM system-shell readiness timeouts before candidate invocation, and command-source timeouts at the fixture’s 15-second budget. A failed-job retry passed the Node 24.0 case but reproduced the command timeout on Node 22.x. The installed functional fixture now explicitly selects the already-supported 30-second command budget; production defaults, deadline enforcement and short cancellation tests are unchanged. Final-head validation remains required.
+The first tag attempt's macOS 26 Intel/Node 24.0.0 job remained in its product-test step beyond the two ten-minute subprocess budgets and did not respond to normal cancellation. It was force-cancelled; GitHub returned `BlobNotFound` for its log even after completion, so only live job metadata and the cancellation annotation are retained and the underlying cause is unknown. An unchanged-source targeted retry and the aggregate gate passed. No test was waived, and the package/tag source was not changed.
 
-## COMPOSITION-02
+## Reproducibility and terminal verification
 
-Preparation starts from M4 head `74f70eb9f85af44a2b80b462a3f6f9755374aef9` in an isolated worktree; the feature PR will use validated M4 main as its base. Group rules and editor transitions live in shared core modules, with a separate group renderer to retain ungrouped output. Tests cover linked omission, unknown/absent values, layout, colors, remapped copies, deletion, rejected edits, both editors and persistence. Installed acceptance adds four group scenarios; validation is in progress.
+Two independent builds and a delivered-source rebuild produced identical delivery bytes. The four downloaded draft assets were verified before publication; the final installed package passed smoke and extended terminal checks. Final Linux PTY evidence contains **684** dark/light captures across English, Simplified Chinese, Taiwan/Hong Kong Traditional Chinese, Japanese and Korean, plus monochrome/dumb-terminal checks. Group editing, bar and cost-rate controls, automatic review/interval cancellation, terminal restoration and unchanged configuration are covered. These are terminal-cell reconstructions, not OS screenshots or human acceptance.
 
-M5 local full checks passed (1,143 tests, five platform skips), with eight focused grouping cases after the final anchor validation fix. Native Mod tests passed 131/131 and exact Claude 2.1.294 TypeScript checking passed. Immutable package and PR matrices remain pending.
+A controlled real GitHub read using a synthetic active-session lease passed before release: PR/CI observations were fetched, automatic work stopped when disabled, and the configured source/cache remained available. It used an isolated configuration and made no model calls; it is not an actual user-session or physical-platform acceptance claim.
 
-M5 candidate `e6d63cda7940de1058c2f314af53c56819a0644b` built twice with identical SHA-256 `544f1f94e6ce2ca8ad71041bf84e02c7994c9163aefc0a1bc373d1cdb3c6de00`; all 14 isolated Linux installed checks passed, including four group cases. PR/main gates remain pending.
+| Public asset | SHA-256 |
+| --- | --- |
+| `fbincon-claude-code-statusline-3.7.0.tgz` | `b1afec4a234368ab0ef2e23f728b8204122c86e17213af32738b6f3d84363e95` |
+| `claude-code-statusline-3.7.0-source.tar.gz` | `818498d739df808bbd442f2006febd0dedef581ac4f4ecc28eb5ee50ca716152` |
+| `build-manifest.json` | `f9a2ceb15c355b881e10534438e07560eb8784b0f3e5abad14eeabfe6ceaaf4b` |
+| `SHA256SUMS` | `01e63a201758a5999ca182afeddde4a56a6271da89db6b3c785479ca2c5e5660` |
 
-M4 [PR #129](https://github.com/fbincon/claude-code-statusline/pull/129) merged as `48697f1056b1452c20f9b0877c8f6b334dbd28db`. [PR CI 39999672680](https://github.com/fbincon/claude-code-statusline/actions/runs/39999672680) passed all 56 applicable jobs; the documentation-only job was correctly skipped. One macOS Node installation stalled before product tests; normal/force cancellation and a targeted unchanged-source retry completed the final job and aggregate. The [main run](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) is pending. M5 now bases its feature PR on this M4 merge.
+## Public channels
 
-## WORKFLOW-02
+[npm 3.7.0](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.7.0), [GitHub stable/Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.7.0) and [Gitee stable](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.7.0) are published and download-verified. [OIDC dry-run](https://github.com/fbincon/claude-code-statusline/actions/runs/40036511985) and [publication](https://github.com/fbincon/claude-code-statusline/actions/runs/40036648946) verified exact package bytes and integrity; `latest=3.7.0`, with `beta=3.0.0-beta.1` unchanged. [Public-download CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40037013526) passed exact-version and latest installations on Linux, Windows and macOS. GitHub/Gitee each expose the same four verified files. Validated main and the exact annotated tag were synchronized to Gitee with explicit refspecs; GitHub remains primary.
 
-M6 local full checks passed (1,152 tests, five platform skips), including seven scheduling/editor cases. Claude 2.1.294 runtime Mod tests passed 16/16 and native editor tests passed 131/131; both exact-host TypeScript checks passed. Runtime v1/v2 observation compatibility and all 161 frozen cases passed with the narrowly bounded v3 malformed-input envelope migration. Installed acceptance adds four policy/lifecycle cases. The scheduler retains at most 64 session leases and 512 schedules under the private 1 MiB state limit; ordinary render and preview do not schedule work.
-
-M6 candidate `cc8d0d4790edbea00f2c60994394570e0ba50502` built twice with identical SHA-256 `5b98410377c121d224d1cc78d075d5151af0839f851d0d23afb15bc0a9475f2b`; all 15 isolated Linux installation checks passed, including four automatic policy/lifecycle cases. PR/main gates remain pending.
-
-The M4 main matrix exposed a source snapshot race on macOS Intel/Node 22.x: an atomic job-file replacement between path metadata and descriptor acquisition raised `file_size_or_type`. WORKFLOW-02 now retries only explicit identity/content-change errors, at most three complete snapshots; every attempt retains no-follow, type, size and descriptor checks. Deterministic replacement, bounded exhaustion and symlink-swap regressions pass with the existing source/automatic tests (18 cases). The [failed run](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) and raw evidence are retained; this is a corrected defect, not an additional #96 waiver.
-
-## METRICS-01
-
-M7 local full checks passed (1,156 tests, five platform skips); four focused rate cases cover both denominators, finite input boundaries, zero, six-language units, shared editor forms, portable persistence and project schemes. Native Mod tests passed 132/132 and exact Claude 2.1.294 TypeScript checking passed. Installed acceptance adds four rate scenarios. README describes capabilities only; current schema/protocol guidance is synchronized without claiming publication.
-
-M7 candidate `67d43f97d46737398f7867b9532efe695096dae4` built twice with identical SHA-256 `46f85070f2d7a7cfb62870ad73de11a827d859e0d96b73fdac0880dfbb21bc9f`; all 16 isolated Linux installed checks passed, including four rate scenarios. PR/main gates remain pending.
+The [v3.7.0 approval](../releases/approvals/v3.7.0.json) does not verify physical macOS sleep, macOS 14 Intel desktop/power, Windows 10 desktop, WSL desktop popup, remaining target power/human visuals or unavailable Claude 2.1.296 exact declarations. Those six gaps remain open in #96. Raw logs, receipts and machine-local captures are retained under ignored validation directories; README contains feature introductions rather than release history.

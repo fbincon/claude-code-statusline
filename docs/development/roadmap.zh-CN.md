@@ -2,9 +2,9 @@
 
 [English](roadmap.md) | **简体中文**
 
-更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`2bdf429d3356796232efff926235617cdab4f430`**
+更新：**2026-10-24**（Asia/Shanghai）· 产品基线：**v3.7.0** · 规划基线：**`3edd719525635eedb6a909eee23bb96a4fcab393`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案和显式启用的扩展已交付。后续产品顺序为图形指标 → 组件分组 → GitHub 自动刷新 → 费用速率 → 首页演示，Git 调用核查作为独立维护工作。M4–M7 已选定纳入 v3.7.0，M4 为 VALIDATING；其他未启动工作保持原范围，CI-01 保持已完成。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案、显式启用的扩展及 M4–M7 已交付。v3.7.0 新增图形指标、组件分组、GitHub 自动刷新和费用速率。下一项产品工作为首页演示（M8／SHOWCASE-01），Git 调用核查独立推进；两者保持 NOT_STARTED，CI-01 保持 DONE。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
@@ -17,20 +17,20 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 方面 | 已交付能力 | 后续规划依据 |
 | --- | --- | --- |
 | 配置入口 | 首次设置向导、会话内编辑器、外部 TUI、CLI、对话指南及 Quick setup | 在演示中复用已交付的配置流程 |
-| 显示组合 | 六种既有预设、三套完整方案、组件实例、复制／排序、文字、spacer、导入审阅、颜色及五项 Powerline 控制 | 展示已有方案，按具体需求扩展 |
+| 显示组合 | 六种既有预设、三套完整方案、组件实例、复制／排序、文字、spacer、导入审阅、颜色、五项 Powerline 控制、可选百分比短条及联动分组 | 展示已有方案，按具体需求扩展 |
 | 任务与项目 | 任务计时、子代理独立行、只读任务详情、命名方案和项目根目录绑定 | 将任务与多代理场景作为主要特色 |
 | 语言 | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`；界面语言与输出语言独立 | 新交互和说明保持六语言覆盖 |
-| 显示目录 | 主栏 64 个指标、子代理 15 个指标；加上文字与留白后为 66／17 个类型 | 新增显示项时保留现有 ID 与指标口径 |
+| 显示目录 | 主栏 65 个指标、子代理 15 个指标；加上文字与留白后为 67／17 个类型 | 新增显示项时保留现有 ID 与指标口径 |
 | 已有数据 | 宿主 `pr` 编号／评审状态、linked worktree 回退、缓存原因诊断与显示 | 清楚区分宿主指标与外部观测 |
-| 扩展数据 | 本机 JSON、手动刷新的 GitHub PR／CI、明确命令源；双编辑器及 CLI 管理；可选 OSC 8 链接 | 授权与显示方案分离，导入时移除本机绑定 |
-| 接口 | 显示 schema 10、编辑器协议 17、来源注册表／观测 1、runtime 2、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
+| 扩展数据 | 本机 JSON、可独立审核自动刷新的 GitHub PR／CI、明确命令源；双编辑器及 CLI 管理；可选 OSC 8 链接 | 授权与显示方案分离，导入时移除本机绑定 |
+| 接口 | 显示 schema 13、编辑器协议 21、来源注册表／任务 2、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
 | 支持边界 | Linux／WSL、Windows、macOS；产品运行时 Node 22／24 | 保留支持范围，记录实际验证结果 |
 
-依据：[v3.6.0 发布记录](../releases/v3.6.0.md)、[扩展交付](extensions.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。规划基线包含发行源码之后的交付文档；准确的发行身份由交付记录维护。
+依据：[v3.7.0 发布记录](../releases/v3.7.0.md)、[M4–M7 交付](m4-m7-delivery.zh-CN.md)、[扩展交付](extensions.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。规划基线为已验证的 v3.7.0 源码；发布身份与验证限制由交付记录维护。
 
 默认能力使用 Claude 输入与本地状态。联网查询和自定义命令分别显式启用，导入显示方案、绑定项目或选择预设不会启用这些能力。
 
-[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 记录的六项既有缺口继续为**未验证**。包括 [v3.6.0 专项决定](../releases/approvals/v3.6.0.json)在内的限定版本接受，记录的是允许带这些缺口发布，不代表缺失检查已通过，也不豁免新增失败。
+[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 记录的六项既有缺口继续为**未验证**。包括 [v3.7.0 专项决定](../releases/approvals/v3.7.0.json)在内的限定版本接受，记录的是允许带这些缺口发布，不代表缺失检查已通过，也不豁免新增失败。
 
 <a id="reference"></a>
 
@@ -63,15 +63,11 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 优先级 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
 | 独立维护 | [GIT-01](development-plan.zh-CN.md#git-01) | 核实 Git 调用行为及必要防护 | 既有 Git 采集、来源身份与进程适配 | NOT_STARTED |
-| M4 图形指标 | [APPEARANCE-03](development-plan.zh-CN.md#appearance-03) | 上下文／额度可选短进度条及可读文字回退 | 既有已观测百分比、组件选项和布局 | VALIDATING |
-| M5 组件分组 | [COMPOSITION-02](development-plan.zh-CN.md#composition-02) | 装饰随指标隐藏，可合并 Powerline 色块 | 既有实例、条件显示与 Powerline | VALIDATING |
-| M6 GitHub 刷新 | [WORKFLOW-02](development-plan.zh-CN.md#workflow-02) | 独立启用的 PR／CI 自动刷新，状态及停止操作明确 | 已交付 EXTENSIONS-01、WORKFLOW-01 | VALIDATING |
-| M7 派生指标 | [METRICS-01](development-plan.zh-CN.md#metrics-01) | 明确按会话／API 时间折算的每小时费用 | 既有已观测会话费用与耗时字段 | VALIDATING |
 | M8 演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 精简首页、方案展示及可复现的使用演示 | 已验收功能及其匹配安装包 | NOT_STARTED |
 
 M4 → M5 → M6 → M7 → M8 是选定的产品顺序。排期不额外制造技术依赖：组件分组不依赖图形指标，费用速率不依赖自动刷新，各工作包可拆成有界切片交付。SHOWCASE-01 保留原有 ID，安排在功能工作之后；演示使用已验收功能，不要求实现全部未来候选。GIT-01 独立推进；静态比较发现的是待核查的防护差异，不是已确认漏洞，核查及必要修正属于后续开发任务。
 
-已批准的 M4–M7 实现通过独立功能 PR 和最终发布 PR 统一交付 v3.7.0。[实现与验收记录](m4-m7-delivery.zh-CN.md)保存起始提交、接口决定及实际证据；工作包完成与版本发布分别记录。
+M4–M7 已通过四个独立功能 PR 和最终发布 PR 随 v3.7.0 交付。[实现与验收记录](m4-m7-delivery.zh-CN.md)保存起始提交、接口决定及实际证据；工作包完成与版本发布分别记录。
 
 ### 已交付阶段
 
@@ -84,10 +80,14 @@ M4 → M5 → M6 → M7 → M8 是选定的产品顺序。排期不额外制造�
 | M3 扩展 | [LINKS-01](development-plan.zh-CN.md#links-01) | 可点击 PR／目录等文本及普通文本回退 | 既有文本和布局规则 | DONE |
 | M3 扩展 | [WORKFLOW-01](development-plan.zh-CN.md#workflow-01) | 可选 GitHub PR 查询与 CI 状态 | EXTENSIONS-01；LINKS-01 可选 | DONE |
 | M3 扩展 | [COMMAND-01](development-plan.zh-CN.md#command-01) | 用户明确配置的外部命令组件 | EXTENSIONS-01 | DONE |
+| M4 图形指标 | [APPEARANCE-03](development-plan.zh-CN.md#appearance-03) | 上下文／额度可选短进度条及可读文字回退 | 既有已观测百分比、组件选项和布局 | DONE |
+| M5 组件分组 | [COMPOSITION-02](development-plan.zh-CN.md#composition-02) | 装饰随指标隐藏，可合并 Powerline 色块 | 既有实例、条件显示与 Powerline | DONE |
+| M6 GitHub 刷新 | [WORKFLOW-02](development-plan.zh-CN.md#workflow-02) | 独立启用的 PR／CI 自动刷新，状态及停止操作明确 | 已交付 EXTENSIONS-01、WORKFLOW-01 | DONE |
+| M7 派生指标 | [METRICS-01](development-plan.zh-CN.md#metrics-01) | 明确按会话／API 时间折算的每小时费用 | 既有已观测会话费用与耗时字段 | DONE |
 | 按需工程支持 | [CAPABILITIES-01](development-plan.zh-CN.md#capabilities-01) | 组件支持选项与说明一致 | 外观或扩展暴露的具体元数据需求 | DONE |
 | 独立维护 | [CI-01](development-plan.zh-CN.md#ci-01) | Actions 引用固定、可核查更新 | 当前工作流清单 | DONE |
 
-M1 → M2 → M3 记录历史交付顺序，保留已完成 ID 及证据。SHOWCASE-01 原列于 M2，现仍未启动，按新顺序安排在 M8。CI-01 已作为独立维护完成，其 Dependabot 每周更新提议及验证记录在 [CI 维护](ci-maintenance.zh-CN.md)。
+M1 → M2 → M3 → M4–M7 记录历史交付顺序，保留已完成 ID 及证据。SHOWCASE-01 原列于 M2，现仍未启动，按新顺序安排在 M8。CI-01 已作为独立维护完成，其 Dependabot 每周更新提议及验证记录在 [CI 维护](ci-maintenance.zh-CN.md)。
 
 <a id="candidates"></a>
 
@@ -137,6 +137,7 @@ M1 → M2 → M3 记录历史交付顺序，保留已完成 ID 及证据。SHOWC
 | v3.4.0 | PROFILE-01、PROJECT-01、TASK-01 | DONE | [方案、项目与任务详情](profiles-projects-tasks.zh-CN.md) |
 | v3.5.0 | SETUP-01、APPEARANCE-01、APPEARANCE-02 | DONE | [首次设置与完整外观](setup-appearance.zh-CN.md) |
 | v3.6.0 | EXTENSIONS-01、LINKS-01、WORKFLOW-01、COMMAND-01、CAPABILITIES-01 | DONE | [扩展与工作流](extensions.zh-CN.md) |
+| v3.7.0 | APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 | DONE | [图形、分组、刷新与速率](m4-m7-delivery.zh-CN.md) |
 
 链接的记录保留源码／标签身份、校验值、CI 结果、渠道验证、恢复经过及交付时的限制。历史记录中对后续候选的表述保留原有语境；本页更新时的规划状态以上述阶段表为准。早期迁移里程碑由 [TypeScript 重构计划](typescript-migration.zh-CN.md)维护，发布说明在 [releases](../releases) 目录维护。
 

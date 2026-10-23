@@ -1,50 +1,50 @@
-# M4–M7 实现与交付
+# M4–M7 实施与交付
 
 [English](m4-m7-delivery.md) | **简体中文**
 
-维护者已批准四个依次实施的功能 PR 和一个 v3.7.0 发布 PR。调研基线为 `a882bd1942d0a59e24e1536779fa283fd1f63c1b`。发布要求最终 PR/main/tag 自动化门禁通过；仅接受 [#96](https://github.com/fbincon/claude-code-statusline/issues/96) 的六项既有缺口，仍标为未验证，不豁免新增失败。
+APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已通过 **v3.7.0** 交付。维护者批准四个功能 PR 和一个发布 PR，选择自动刷新在本机明确开启后持续保留，并要求最终 PR/main/tag 自动门禁全部通过后发布。调研基线为 `a882bd1942d0a59e24e1536779fa283fd1f63c1b`。仅接受 [#96](https://github.com/fbincon/claude-code-statusline/issues/96) 既有六项缺口，仍标记为未验证。SHOWCASE-01、GIT-01 不在本次范围内。
 
-| 工作包 | 状态 | 接口决定 |
+## 已实现行为
+
+| 工作包 | 结果 | 接口 |
 | --- | --- | --- |
-| APPEARANCE-03 | VALIDATING | 显示 11、编辑器 18；实例显示方式、宽度和字符选项 |
-| COMPOSITION-02 | VALIDATING | 显示 12、编辑器 19；单层分组 |
-| WORKFLOW-02 | VALIDATING | 编辑器 20、来源注册表/任务 2、runtime 3；本机持久启用 |
-| METRICS-01 | VALIDATING | 显示 13、编辑器 21；会话/API 费用速率分母 |
+| APPEARANCE-03 | 为符合条件的主栏／子代理上下文及配额项提供逐实例可选百分比短条；保留数字默认、原始阈值和缺失／过期语义 | Display 11／editor 18 |
+| COMPOSITION-02 | 连续单层分组、装饰文字随主指标显示、可选共享 Powerline 背景、整体拟合、复制重映射及明确编辑操作 | Display 12／editor 19 |
+| WORKFLOW-02 | 经过审核的本机 GitHub 自动刷新策略、活跃会话租约、按身份合并任务、手动接管、退避、暂停与停止控件 | 来源注册表／任务 2、editor 20、runtime 3 |
+| METRICS-01 | 可选每小时费用估算，逐实例选择会话／API 分母，至少观察一分钟，保留合法零值及六语言估算／单位标记 | Display 13／editor 21 |
 
-## APPEARANCE-03
+共用 core 控件统一双编辑器、CLI 校验、便携持久化及项目方案行为，Mod 副本由权威源码生成。旧显示文件在内存中迁移，仅明确保存后写入；继续兼容 runtime v1/v2 observe/read。便携导入不授予来源执行权限。自动刷新独立于显示保存、宿主集成和两个指标采集器，要求 Claude 2.1.289+ 及已配置的运行时集成，每五秒续租，十五秒未续租即过期。渲染／预览／导入不发起刷新，JSON 和命令来源保持手动。
 
-共用控件位于 core/editor，Mod 副本由生成器更新。渲染为纯计算，默认数字保留既有路径。短条保留观测百分比、方向、缺失及过期语义、原始可见性阈值和 Unicode 单元边界。核心目录声明适用组件，双编辑器、CLI、导入与配置方案持久化使用同一组选项。
+## 源码与自动门禁
 
-本地 `npm run check` 通过（1,135 项通过、五项按平台跳过），生成资源、文档与责任清单校验通过。Claude 2.1.294 原生 Mod 测试 130/130 及精确宿主 TypeScript 检查通过。保留子代理半百分比的既有取整规则后，定向测试再次通过。PR/main 安装及宿主矩阵待完成。源码测试覆盖边界、重复实例、六种输出语言、双编辑器共用表单、独立子代理值和旧配置。安装收据新增三项图形验收（默认/启用、子代理、导入导出）。本记录尚不宣称发布或平台验收完成。
+功能 PR：[M4 #129](https://github.com/fbincon/claude-code-statusline/pull/129)、[M5 #131](https://github.com/fbincon/claude-code-statusline/pull/131)、[M6 #132](https://github.com/fbincon/claude-code-statusline/pull/132)、[M7 #133](https://github.com/fbincon/claude-code-statusline/pull/133)。[发布 PR #134](https://github.com/fbincon/claude-code-statusline/pull/134)。
 
-## 后续交付
+- 最终发布源码：`3edd719525635eedb6a909eee23bb96a4fcab393`；附注标签 `v3.7.0` 对象：`601ea862730d13d2d5feac022deedf927b62c291`。
+- [最终 PR CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40013222675)、[合并后 main CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40025287730)、[标签 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40029428803) 各有 56 项适用作业通过，仅按设计跳过纯文档作业。每轮要求八个安装目标、32 个 Node 运行时场景及十三个固定 Claude 宿主。
+- 集成本地检查：1,160 项测试通过，五项按平台跳过；生成资源、文档链接、冻结归档及职责清单全部通过。Claude 2.1.294 原生 Mod 132/132 通过；runtime Mod 16/16 及精确类型检查在 2.1.289、2.1.294 均通过。最终 CI 独立验证完整宿主矩阵。
+- 安装验收要求全部 16 项检查，包含三项短条、四项分组、四项自动策略／生命周期及四项费用速率场景。正式发布就绪检查拒绝缺失、失败、重复或身份不匹配的证据。
 
-按路线顺序实现分组、自动刷新及费用速率。自动刷新在本机保留至主动关闭，只在支持的活跃会话中运行，不启用指标采样。最终交付包含固定源码构建、完整矩阵、安装产物终端验证、npm OIDC、GitHub/Gitee 附件及公开下载验收。README 仅介绍功能，版本说明写入 releases。
+M4 合并后 main [运行 40006647972](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) 在 macOS Intel／Node 22.x 暴露来源文件原子替换竞态。M6 通过最多三次完整快照重读修复，继续保留不跟随链接、类型、大小和描述符检查；确定性替换、重试耗尽及链接替换测试覆盖此修复。[运行 40011934863](https://github.com/fbincon/claude-code-statusline/actions/runs/40011934863) 随后发现 Windows 专用断言仍依赖旧错误文字，后续修复保留 Windows 提示并同时校验专用异常类型。失败及被新提交替代的运行保留为证据，不作为豁免。此前 Windows ARM 命令夹具超时通过显式选择已支持的 30 秒测试预算解决，生产默认及取消／截止时间测试未改变。M4 一次独立的 setup-node 停滞经相同源码定向重跑通过。
 
-M4 候选源码 `abb2192f337d8fc985c1b2c304a97deaae31937f` 两次构建 SHA-256 均为 `559e6e185990cce24d71b34b920c121c7e41b1103625288137ae57464e709163`；13 项隔离 Linux 安装验收全部通过，包含三项必需图形场景。五项定向测试还覆盖 Powerline/spacer 至四格窄行。本地收据不替代最终 head CI 或正式产物。[功能 PR #129](https://github.com/fbincon/claude-code-statusline/pull/129)。
+最终 PR 的首轮检查中，macOS Intel／Node 22.0.0 一次配置写入因既有、有截止时间的 `/bin/ps` 身份查询未取得可验证令牌而停止。底层错误未记录，因此不宣称已证实具体超时原因。原作业日志和失败回执已保留；一次相同源码定向重验通过全部 16 项安装检查、运行时测试及汇总门禁，未放宽身份保护或进程查询截止时间。
 
-PR 运行 `39964870238` 保留了候选调用前 Windows ARM 系统 Shell 准备超时，以及命令源在测试配置的 15 秒预算下超时。失败任务重跑后 Node 24.0 通过，Node 22.x 再现命令超时。安装功能场景现明确选择既有支持的 30 秒命令预算；产品默认值、截止执行和短时取消测试保持原要求，仍需最终 head 验证。
+标签首轮的 macOS 26 Intel／Node 24.0.0 作业在产品测试阶段超过两个十分钟子进程预算，普通取消也未生效，随后被强制取消。GitHub 在作业结束后仍对日志返回 `BlobNotFound`，因此仅保留运行时作业元数据和取消注释，底层原因未知。相同源码的定向重验及汇总门禁随后通过，未豁免任何测试，也未更换安装包或标签源码。
 
-## COMPOSITION-02
+## 可重现性与终端验证
 
-在隔离工作区从 M4 head `74f70eb9f85af44a2b80b462a3f6f9755374aef9` 开始准备，功能 PR 将以已验证的 M4 main 为基线。分组规则与编辑器状态共用 core 模块；独立分组渲染器保留未分组输出。测试覆盖联动省略、未知/缺失值、布局、颜色、复制身份、删除、非法编辑、双编辑器和持久化。安装验收新增四项分组场景，验证进行中。
+两个独立构建及交付源码归档重建得到相同字节。发布前已下载核验四个草稿附件，最终安装包通过冒烟和扩展终端检查。最终 Linux PTY 证据包括 **684** 张英文、简体中文、台湾／香港繁体中文、日文和韩文的深／浅色画面，以及单色／dumb 终端检查；覆盖分组编辑、短条与费用速率控件、自动刷新审核／间隔取消、终端恢复及配置不变。这些是终端单元格重建，不是操作系统截图或人工验收。
 
-M5 本地完整检查通过（1,143 项通过、五项按平台跳过）；最终锚点校验修复后，八项分组定向测试通过。原生 Mod 测试 131/131 及精确 Claude 2.1.294 TypeScript 检查通过。固定源码打包及 PR 矩阵待完成。
+发布前的受控真实 GitHub 读取使用合成活跃会话租约：成功读取 PR/CI 观察，关闭后停止自动工作并保留来源配置和缓存。使用隔离配置且无模型调用，不宣称完成真实用户会话或实体平台验收。
 
-M5 候选源码 `e6d63cda7940de1058c2f314af53c56819a0644b` 两次构建 SHA-256 均为 `544f1f94e6ce2ca8ad71041bf84e02c7994c9163aefc0a1bc373d1cdb3c6de00`；14 项隔离 Linux 安装检查全部通过，包含四项分组场景。PR/main 门禁仍待完成。
+| 公开附件 | SHA-256 |
+| --- | --- |
+| `fbincon-claude-code-statusline-3.7.0.tgz` | `b1afec4a234368ab0ef2e23f728b8204122c86e17213af32738b6f3d84363e95` |
+| `claude-code-statusline-3.7.0-source.tar.gz` | `818498d739df808bbd442f2006febd0dedef581ac4f4ecc28eb5ee50ca716152` |
+| `build-manifest.json` | `f9a2ceb15c355b881e10534438e07560eb8784b0f3e5abad14eeabfe6ceaaf4b` |
+| `SHA256SUMS` | `01e63a201758a5999ca182afeddde4a56a6271da89db6b3c785479ca2c5e5660` |
 
-M4 [PR #129](https://github.com/fbincon/claude-code-statusline/pull/129) 已合并为 `48697f1056b1452c20f9b0877c8f6b334dbd28db`。[PR CI 39999672680](https://github.com/fbincon/claude-code-statusline/actions/runs/39999672680) 的 56 项适用任务全部通过，纯文档任务按规则跳过。一个 macOS Node 安装步骤在产品测试前停滞，普通／强制取消后定向原样重跑，最终任务及汇总门禁通过。[main 运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) 尚在进行。M5 功能 PR 现以该 M4 合并提交为基线。
+## 公开渠道
 
-## WORKFLOW-02
+[npm 3.7.0](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.7.0)、[GitHub 正式版／Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.7.0)、[Gitee 正式版](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.7.0) 均已发布并核验公开下载。[OIDC 试运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40036511985)及[正式发布](https://github.com/fbincon/claude-code-statusline/actions/runs/40036648946) 核验包的精确字节与完整性；`latest=3.7.0`，保留 `beta=3.0.0-beta.1`。[公开下载 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40037013526) 通过 Linux、Windows、macOS 上的精确版本及 latest 安装验收。GitHub／Gitee 均提供相同四个已验证文件；使用明确 refspec 向 Gitee 同步已验证 main 和精确附注标签，GitHub 保持主仓库。
 
-M6 本地完整检查通过（1,152 项通过、五项按平台跳过），包含七项调度及编辑器测试。Claude 2.1.294 运行时 Mod 16/16、原生编辑器 131/131，双方精确宿主 TypeScript 检查通过。runtime v1/v2 观测兼容及 161 个冻结样例通过；仅对无法解析请求版本的错误响应做限定范围的 v3 封装迁移。安装验收新增四项策略／生命周期场景。调度状态最多保留 64 个会话租约及 512 个调度条目，私有文件限制为 1 MiB；普通渲染和预览不派发任务。
-
-M6 候选源码 `cc8d0d4790edbea00f2c60994394570e0ba50502` 两次构建 SHA-256 均为 `5b98410377c121d224d1cc78d075d5151af0839f851d0d23afb15bc0a9475f2b`；15 项隔离 Linux 安装检查全部通过，包含四项自动策略／生命周期场景。PR/main 门禁仍待完成。
-
-M4 main 矩阵在 macOS Intel／Node 22.x 暴露来源快照竞态：路径元数据检查与文件描述符打开之间，任务文件被原子替换，产生 `file_size_or_type`。WORKFLOW-02 现仅对明确的身份／内容变化做最多三次完整快照重读，每次继续保留不跟随链接、类型、大小和描述符校验。确定性替换、重试耗尽、链接替换回归与既有来源／自动刷新测试共 18 项通过。[失败运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972)及原始证据保留；这是已修复缺陷，不是新增 #96 豁免。
-
-## METRICS-01
-
-M7 本地完整检查通过（1,156 项通过、五项按平台跳过）；四项速率定向测试覆盖两种分母、有限输入边界、零值、六语言单位、双编辑器共用表单、便携持久化及项目方案。原生 Mod 132/132 和精确 Claude 2.1.294 TypeScript 检查通过。安装验收新增四项速率场景。README 仅介绍功能，同步当前 schema／协议说明，尚不宣称发布。
-
-M7 候选源码 `67d43f97d46737398f7867b9532efe695096dae4` 两次构建 SHA-256 均为 `46f85070f2d7a7cfb62870ad73de11a827d859e0d96b73fdac0880dfbb21bc9f`；16 项隔离 Linux 安装检查全部通过，包含四项速率场景。PR/main 门禁仍待完成。
+[v3.7.0 批准](../releases/approvals/v3.7.0.json) 不意味着完成 macOS 实机休眠、macOS 14 Intel 桌面／电源、Windows 10 桌面、WSL 桌面弹窗、其他平台电源／人工视觉或缺失的 Claude 2.1.296 精确声明验证。这六项继续在 #96 保持未验证。原始日志、回执及本机画面保存在忽略的验证目录；README 保留功能介绍，不加入版本更新历史。
