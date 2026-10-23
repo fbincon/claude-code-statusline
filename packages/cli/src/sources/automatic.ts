@@ -22,7 +22,7 @@ export class AutomaticRefresh {
         const actual = event === 'tick' && supported ? this.context(project, session, null) : null;
         const requests: { source: string; context: SourceContext; key: string }[] = [];
         const enabled = this.sources.configuration.io.lock(directory, () => {
-            const registry = this.sources.read(), state = readAutomatic(directory);
+            const registry = this.sources.read(), state = readAutomatic(directory), allJobs = this.sources.jobs();
             let lease = state.leases.find(l => l.id === id);
             if (lease && (lease.closed || seq <= lease.seq)) return registry.automatic.some(p => p.enabled);
             if (!lease) {
@@ -41,7 +41,7 @@ export class AutomaticRefresh {
                     schedule = { key, source_id: source.id, job_id: null, processed: null, next: now, failures: 0, paused: null, last_attempt: null, last_success: null };
                     state.schedules.push(schedule);
                 }
-                const jobs = this.sources.jobs().filter(j => j.identity === key).sort((a, b) => Date.parse(b.started_at) - Date.parse(a.started_at));
+                const jobs = allJobs.filter(j => j.identity === key).sort((a, b) => Date.parse(b.started_at) - Date.parse(a.started_at));
                 const latest = jobs[0];
                 if (latest && latest.state !== 'running' && latest.id !== schedule.processed) {
                     schedule.processed = latest.id; schedule.last_attempt = latest.started_at;

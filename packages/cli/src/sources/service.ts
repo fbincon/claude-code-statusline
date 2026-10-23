@@ -339,8 +339,8 @@ export class SourceService {
         const abort = new AbortController();
         const watcher = setInterval(() => {
             try {
-                const source = this.source(job.source_id);
-                if (this.job(id).state !== 'running' || source.revision !== job.source_revision || !source.enabled || !automaticJobActive(this.configuration.context.configDir, this.job(id), this.now()))
+                const source = this.source(job.source_id), current = this.job(id);
+                if (current.state !== 'running' || source.revision !== job.source_revision || !source.enabled || !automaticJobActive(this.configuration.context.configDir, current, this.now()))
                     abort.abort();
             }
             catch {
