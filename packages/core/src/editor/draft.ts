@@ -1,4 +1,5 @@
 import type { ExplanationView } from './explanation.js';
+import type { SourceManager } from './source-manager.js';
 import type { ProfileManager } from './profile-manager.js';
 import type { QuickSetup } from './quick-setup.js';
 import { t, type Language } from '../i18n/messages.js';
@@ -44,6 +45,7 @@ export class Editor {
   quick: QuickSetup | null = null;
   explanation: ExplanationView | null = null;
   profiles: ProfileManager | null = null;
+  sources: SourceManager | null = null;
   preset = 'minimal';
   path = 'statusline.json';
   pendingTransfer: 'import' | 'export' | 'preset' | null = null;

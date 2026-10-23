@@ -815,6 +815,19 @@ export const SEARCH_CATALOG = [
       "setup": [
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": true,
+      "source": "none",
+      "preview": "current-dir",
+      "explanation": "current-dir"
     }
   },
   {
@@ -857,6 +870,19 @@ export const SEARCH_CATALOG = [
       "setup": [
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": true,
+      "source": "none",
+      "preview": "project-name",
+      "explanation": "project-name"
     }
   },
   {
@@ -1161,6 +1187,19 @@ export const SEARCH_CATALOG = [
       "setup": [
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": true,
+      "source": "none",
+      "preview": "pr",
+      "explanation": "pr"
     }
   },
   {
@@ -3935,6 +3974,19 @@ export const SEARCH_CATALOG = [
         "claude-statusline config set subagent-statusline on",
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": true,
+      "source": "none",
+      "preview": "current-dir",
+      "explanation": "current-dir"
     }
   },
   {
@@ -4055,6 +4107,204 @@ export const SEARCH_CATALOG = [
       "measurement_scope": "local",
       "requirements": [],
       "setup": []
+    }
+  },
+  {
+    "scope": "main",
+    "id": "external-value",
+    "label": "External value",
+    "description": "An explicitly bound local source value",
+    "group": "extensions",
+    "sources": [
+      "local_source_observation"
+    ],
+    "examples": [
+      "42"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [
+      "colors",
+      "palette",
+      "separator-style"
+    ],
+    "excludes": [],
+    "unavailable_reasons": [
+      "source_unavailable"
+    ],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_state"
+      ],
+      "measurement_scope": "local",
+      "requirements": [],
+      "setup": [
+        "claude-statusline source list"
+      ]
+    },
+    "capabilities": {
+      "formats": [
+        "number_format",
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": false,
+      "source": "external",
+      "preview": "external-value",
+      "explanation": "external-value"
+    }
+  },
+  {
+    "scope": "subagent",
+    "id": "external-value",
+    "label": "External value",
+    "description": "An explicitly bound value for this agent",
+    "group": "extensions",
+    "sources": [
+      "local_source_observation"
+    ],
+    "examples": [
+      "42"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [
+      "colors",
+      "palette",
+      "separator-style"
+    ],
+    "excludes": [],
+    "unavailable_reasons": [
+      "source_unavailable"
+    ],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_state"
+      ],
+      "measurement_scope": "subagent",
+      "requirements": [],
+      "setup": [
+        "claude-statusline source list"
+      ]
+    },
+    "capabilities": {
+      "formats": [
+        "number_format",
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": false,
+      "source": "external",
+      "preview": "external-value",
+      "explanation": "external-value"
+    }
+  },
+  {
+    "scope": "main",
+    "id": "github-pr",
+    "label": "GitHub PR",
+    "description": "Explicitly refreshed GitHub pull request",
+    "group": "extensions",
+    "sources": [
+      "local_source_observation"
+    ],
+    "examples": [
+      "42"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [
+      "colors",
+      "palette",
+      "separator-style"
+    ],
+    "excludes": [],
+    "unavailable_reasons": [
+      "source_unavailable"
+    ],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_state"
+      ],
+      "measurement_scope": "local",
+      "requirements": [],
+      "setup": [
+        "claude-statusline source list"
+      ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": true,
+      "source": "github",
+      "preview": "github-pr",
+      "explanation": "github-pr"
+    }
+  },
+  {
+    "scope": "main",
+    "id": "github-ci",
+    "label": "GitHub CI",
+    "description": "Explicitly refreshed GitHub checks",
+    "group": "extensions",
+    "sources": [
+      "local_source_observation"
+    ],
+    "examples": [
+      "42"
+    ],
+    "default_position": null,
+    "minimum_version": null,
+    "format_options": [
+      "colors",
+      "palette",
+      "separator-style"
+    ],
+    "excludes": [],
+    "unavailable_reasons": [
+      "source_unavailable"
+    ],
+    "default_enabled": false,
+    "minimum_version_status": "unknown",
+    "guidance": {
+      "source_kinds": [
+        "local_state"
+      ],
+      "measurement_scope": "local",
+      "requirements": [],
+      "setup": [
+        "claude-statusline source list"
+      ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always"
+      ],
+      "link": true,
+      "source": "github",
+      "preview": "github-ci",
+      "explanation": "github-ci"
     }
   }
 ];

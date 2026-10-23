@@ -2,6 +2,9 @@
 
 **English** | [简体中文](USER_GUIDE.zh-CN.md)
 
+
+For external source registration, authorization, refresh, diagnosis and sharing boundaries, see the [extensions guide](EXTENSIONS.md).
+
 [First-use setup](SETUP.md) and [complete schemes](SCHEMES.md).
 
 For named display schemes, user-side project bindings and read-only task inspection, see [profiles](PROFILES.md) and [task details](TASK_DETAILS.md).

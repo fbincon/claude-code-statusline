@@ -1,4 +1,5 @@
 import type { RenderTrace } from './trace.js';
+import type { InstanceDraft, SourceView } from '../contracts/ui.js';
 import type { Data } from '../runtime/values.js';
 import type { Sample } from '../timing/sample.js';
 import type { SessionTokenCounts } from '../runtime/usage.js';
@@ -19,6 +20,8 @@ export interface TaskObservation {
 }
 /** The renderer calls only selected sources; providers own all platform effects. */
 export interface RenderEnvironment {
+    links?: boolean;
+    source?(node: InstanceDraft, input: unknown, agent?: string): SourceView;
     trace?: RenderTrace;
     /** Already-attributed task evidence for read-only views; no transcript collection. */
     taskSnapshot?: TaskObservation;

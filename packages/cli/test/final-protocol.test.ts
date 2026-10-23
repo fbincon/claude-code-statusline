@@ -14,11 +14,11 @@ import { previewAdapter } from '@fbincon/statusline-cli/rendering/preview';
 import { legacy } from './final-support.js';
 test('tests.config.test_catalog.CatalogTests.test_scopes_defaults_and_legacy_descriptions', () => {
     const expected = JSON.parse(readFileSync(join(repo, 'tests/fixtures/migration/ts-01/expected.json'), 'utf8'))['ui-describe'].value.response.result.catalog;
-    const original = ITEMS.filter(item => item.id !== 'cache-miss-reason').map(item => item.scope === 'main' && item.id === 'worktree'
+    const original = ITEMS.filter(item => !['cache-miss-reason','external-value','github-pr','github-ci'].includes(item.id)).map(({ capabilities, ...item }) => item).map(item => item.scope === 'main' && item.id === 'worktree'
         ? { ...item, description: 'Worktree name in --worktree sessions', sources: ['worktree.name'], guidance: { ...item.guidance, requirements: ['observed_field', 'worktree_session'] } } : item);
     assert.deepEqual(original, expected);
-    assert.equal(BY_SCOPE.main.size, 63);
-    assert.equal(BY_SCOPE.subagent.size, 16);
+    assert.equal(BY_SCOPE.main.size, 66);
+    assert.equal(BY_SCOPE.subagent.size, 17);
     assert.deepEqual(ITEMS.filter(item => item.scope === 'main' && item.default_position !== null).sort((a, b) => a.default_position! - b.default_position!).map(item => item.id), defaultItems('main'));
 });
 test('tests.ui.test_protocol.ProtocolTests.test_preview_reuses_production_formatting_without_live_sources', async (t) => {
@@ -78,11 +78,11 @@ test('tests.ui.test_protocol.ProtocolTests.test_legacy_draft_empty_rows_and_mutu
     assert.deepEqual(readdirSync(f.root), []);
 });
 test('tests.ui.test_protocol.ProtocolTests.test_actual_cli_preview_and_utf8_errors_are_json_only', t => {
-    const f = setup(t), directory = join(f.root, 'not created'), raw = Buffer.from(JSON.stringify({ protocol_version: 16, operation: 'preview', payload: { draft: { display: defaultDisplay(), host: { ...DEFAULT_HOST } }, width: 80 } }));
+    const f = setup(t), directory = join(f.root, 'not created'), raw = Buffer.from(JSON.stringify({ protocol_version: 17, operation: 'preview', payload: { draft: { display: defaultDisplay(), host: { ...DEFAULT_HOST } }, width: 80 } }));
     for (const [input, status] of [[raw, 0], [Buffer.from([255]), 2], [Buffer.from('{'), 2]] as const) {
         const result = spawnSync(process.execPath, [join(repo, 'packages/cli/dist/src/entry.js'), 'ui', '--config-dir', directory], { input, encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: directory }, timeout: 10000 });
         assert.equal(result.status, status, result.stderr);
-        assert.equal(JSON.parse(result.stdout).protocol_version, 16);
+        assert.equal(JSON.parse(result.stdout).protocol_version, 17);
         assert.equal(result.stderr, '');
     }
     assert.ok(!existsSync(directory));

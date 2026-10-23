@@ -41,8 +41,10 @@ export function formatting(value: unknown): FormattingDraft {
   return { ...Object.fromEntries(Object.keys(FORMAT_CHOICES).map(key => [key, choices[key]])), thresholds: { enabled: thresholds.enabled, warning, critical } } as unknown as FormattingDraft;
 }
 export function itemOptions(value: unknown): ItemOptionsDraft {
-  exact(value, Object.keys(DEFAULT_ITEM), 'item options');
+  exact(value, [...Object.keys(DEFAULT_ITEM), ...(object(value) && Object.hasOwn(value, 'link') ? ['link'] : [])], 'item options');
+  if (value.link !== undefined && !['off', 'auto', 'on'].includes(value.link as string)) fail('errors.advanced.unknown_item_option');
   return {
+    ...(value.link !== undefined ? { link: value.link as 'off' | 'auto' | 'on' } : {}),
     label: safeText(value.label, 'label'), icon: safeText(value.icon, 'icon'),
     priority: integer(value.priority, 0, 100, 'priority'), max_width: nullableInteger(value.max_width, 2, 10000, 'max_width'),
     formatting: overrides(value.formatting), foreground: color(value.foreground), background: color(value.background),

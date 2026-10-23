@@ -1,3 +1,4 @@
+import { unboundDisplay } from '../extensions/portable.js';
 import type { ConfigTarget, DisplayProfile, ProfileCollection } from '../contracts/ui.js';
 import { validateDisplay, isSchema } from './display.js';
 import { ConfigError, object } from './validation.js';
@@ -56,5 +57,5 @@ export function findProfile(collection: ProfileCollection, nameOrId: string): Di
 export function importProfile(value: unknown): { name: string; display: DisplayProfile['display'] } {
     if (!object(value) || Object.keys(value).sort().join(',') !== 'display,format,name,version' ||
         value.format !== PROFILE_FORMAT || !isSchema(value.version, PROFILE_VERSION)) return profileError('format');
-    return { name: profileName(value.name), display: validateDisplay(value.display) };
+    return { name: profileName(value.name), display: unboundDisplay(validateDisplay(value.display)) };
 }

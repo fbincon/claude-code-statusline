@@ -22,9 +22,13 @@ function run(args: string[]): void {
     if (result.error) throw result.error;
     assert.equal(result.status, 0, 'Runtime acceptance failed');
 }
-run(['tools/typescript/test.mjs', '--runtime']);
 const installation = join(dirname(report), 'runtime-installation.json');
+// Installed acceptance first records the same bounded system-shell readiness
+// phase used by the platform matrix. Fresh ARM Windows images can otherwise
+// spend the first source job's deadline initializing PowerShell, before any
+// candidate script runs. Product deadlines and assertions stay unchanged.
 run([fileURLToPath(new URL('./installed.js', import.meta.url)), '--artifact', resolve(values.artifact), '--commit', values.commit, '--report', installation]);
 const receipt = JSON.parse(fs.readFileSync(installation, 'utf8'));
 assert.equal(receipt.status, 'pass'); assert.equal(receipt.node, process.version);
+run(['tools/typescript/test.mjs', '--runtime']);
 fs.writeFileSync(report, JSON.stringify({ ...receipt, kind: 'node-runtime', runtime_case: values.case, runtime_tests: true }, null, 2) + '\n', { flag: 'wx' });

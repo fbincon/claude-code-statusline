@@ -33,6 +33,9 @@ try {
     const run = (args: string[]) => execFileSync(installed.node, [installed.entry, ...args], { cwd: installed.temporary, env: installed.env, timeout: 30000 });
     run(['install', '--no-native-editor', '--no-experimental-slash-tui', '--no-live-metrics']);
     run(['config', 'set', 'directory-style', 'home']);
+    const sourceSpec = join(installed.temporary, 'capture-source.json');
+    fs.writeFileSync(sourceSpec, JSON.stringify({ name: 'Sample JSON · 中文 日本語 한글', kind: 'json', settings: { path: join(installed.temporary, 'explicit-source.json') } }));
+    run(['source', 'add', 'capture', '--file', sourceSpec]);
     const settings = fs.readFileSync(join(config, 'settings.json'));
     for (const language of LANGUAGES) {
         run(['config', 'set', 'statusline-language', language]);
@@ -102,6 +105,20 @@ try {
             }
             if (values.extended) {
                 await key('\t');
+                await key('\x19', t('sources.title', language));
+                capture('sources-list');
+                await key('\r');
+                capture('sources-actions');
+                await key('\x1b[B\r', t('sources.enable_review', language));
+                capture('sources-review');
+                await key('\x1b[6~');
+                capture('sources-review-details');
+                await key('\x07');
+                await key('\x1b[B\r');
+                capture('sources-kinds');
+                await key('\x1b[B\x1b[B\r');
+                capture('sources-command');
+                await key('\x07'); await key('\x07');
                 for (const id of ['daily-development', 'agent-focus', 'quota-watch']) {
                     await key('\x10', t('quick.title', language));
                     await key('\x1b[H');

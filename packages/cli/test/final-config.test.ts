@@ -39,7 +39,7 @@ test('tests.config.test_display_config.DisplayConfigTests.test_round_trip_preser
 test('tests.config.test_display_config.DisplayConfigTests.test_strict_schema_rejects_missing_unknown_duplicate_and_invalid_values', () => {
     const missing: any = defaultDisplay();
     delete missing.palette;
-    const invalid: unknown[] = [missing, { ...defaultDisplay(), extra: true }, { ...defaultDisplay(), schema_version: 10 }, { ...defaultDisplay(), use_colors: 1 }, { ...defaultDisplay(), palette: 'theme' }, { ...defaultDisplay(), scope_labels: 'sometimes' }];
+    const invalid: unknown[] = [missing, { ...defaultDisplay(), extra: true }, { ...defaultDisplay(), schema_version: 11 }, { ...defaultDisplay(), use_colors: 1 }, { ...defaultDisplay(), palette: 'theme' }, { ...defaultDisplay(), scope_labels: 'sometimes' }];
     for (const ids of [['git', 'git'], ['clock']])
         invalid.push({ ...defaultDisplay(), items: ids });
     for (const subagents of [{ enabled: true }, { enabled: true, items: ['status', 'status'] }, { enabled: true, items: ['history'] }, { enabled: true, items: ['status-elapsed', 'status'] }, { enabled: true, items: ['elapsed', 'status-elapsed', 'name'] }])
@@ -56,7 +56,7 @@ test('tests.config.test_display_config.DisplayConfigTests.test_schema_one_loads_
     const f = setup(t), data = { ...legacy(1), items: ['git', 'model-with-effort'], use_colors: false, palette: 'ansi', directory_style: 'home', separator_style: 'compact' }, raw = jsonBytes(data);
     writeFileSync(f.displayPath, raw);
     const cfg = f.display();
-    assert.equal(cfg.schema_version, 9);
+    assert.equal(cfg.schema_version, 10);
     assert.deepEqual(selected(cfg), ['git', 'model-with-effort']);
     assert.equal(cfg.use_colors, false);
     assert.equal(cfg.scope_labels, 'when-subagents');
@@ -111,7 +111,7 @@ test('tests.config.test_formatting.FormattingTests.test_v2_normalizes_without_to
     const raw = jsonBytes(data);
     writeFileSync(f.displayPath, raw);
     const cfg = f.display();
-    assert.equal(cfg.schema_version, 9);
+    assert.equal(cfg.schema_version, 10);
     assert.deepEqual(cfg.formatting, DEFAULT_FORMATTING);
     assert.equal(cfg.subagents.enabled, false);
     assert.deepEqual(readFileSync(f.displayPath), raw);
@@ -173,7 +173,7 @@ test('tests.config.test_metrics.MetricsConfigTests.test_v3_read_preserves_source
     const raw = jsonBytes(data);
     writeFileSync(f.displayPath, raw);
     const cfg = f.display();
-    assert.equal(cfg.schema_version, 9);
+    assert.equal(cfg.schema_version, 10);
     assert.equal(cfg.metrics.branch_diff_base_ref, null);
     assert.equal(cfg.formatting.number_format, 'grouped');
     assert.deepEqual(readFileSync(f.displayPath), raw);
@@ -193,7 +193,7 @@ test('tests.config.test_appearance.AppearanceConfigTests.test_v6_read_migrate_ba
     const raw = jsonBytes(data);
     writeFileSync(f.displayPath, raw);
     const cfg = f.display();
-    assert.equal(cfg.schema_version, 9);
+    assert.equal(cfg.schema_version, 10);
     assert.equal(cfg.instances.find(n => n.id === 'model')!.options.visibility, 'always');
     assert.deepEqual(readFileSync(f.displayPath), raw);
     assert.deepEqual(readdirSync(f.root), ['claude-statusline.json']);

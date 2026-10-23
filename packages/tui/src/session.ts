@@ -1,3 +1,4 @@
+import { performSourceAction, closeSources } from '@fbincon/statusline-core/editor/source-manager';
 import { receivePreset } from '@fbincon/statusline-core/editor/quick-setup';
 import { performProfileAction } from '@fbincon/statusline-core/editor/profile-manager';
 import type { Operation, ResultFor } from '@fbincon/statusline-core/contracts/ui';
@@ -69,6 +70,7 @@ export class Session {
             return outcome(effect === 'cancel' ? 'cancelled' : 'interrupted', state.language, effect === 'interrupt' ? 130 : 0);
         try {
             this.guard();
+            if (effect === 'sources') await performSourceAction(e,this.backend);
             if (effect === 'profiles') await performProfileAction(e, this.backend);
             else if (effect === 'language') {
                 const result = await this.backend.request('set_ui_language', { ui_language: state.pendingLanguage });
@@ -148,6 +150,6 @@ export class Session {
             this.failure(error);
             if(this.state.editor.explanation) this.state.editor.explanation.error=this.state.message;
             return outcome('error', this.state.language, 2, this.state.message);
-        }
+        } finally { await closeSources(this.state.editor,this.backend); }
     }
 }

@@ -14,6 +14,8 @@ import { runtimeContext, type RuntimeContext } from '../runtime/context.js';
 import { observations } from './observations.js';
 import { resolvedDisplay } from '../rendering/configuration.js';
 import { liveDirectory } from '@fbincon/statusline-core/rendering/items';
+import { SourceService } from '../sources/service.js';
+import { contextFor } from '../sources/context.js';
 
 export type Diagnose = (payload: unknown) => DiagnoseResult;
 export function observedTime(value: unknown): string | null {
@@ -55,6 +57,24 @@ export async function diagnosisAdapter(service: ConfigurationService, options: {
         const facts = explanationFacts(new ConfigurationService({ ...service.context, hostVersion: () => null }, service.io));
         const env = baseEnvironment(languages.get(draft.display.statusline_language)!, { now: () => (observedAt === null ? now : Date.parse(observedAt)) / 1000 });
         const local = observations(draft, payload.scope as Scope, payload.input, context, options.files ?? diagnosticFiles, facts, includeLocal, observedAt, env);
+        const sourceNodes = (payload.scope === 'main' ? draft.display.instances : draft.display.subagents.instances).filter(node => node.enabled && ['external-value','github-pr','github-ci'].includes(node.type_id));
+        if (sourceNodes.length && includeLocal) {
+            const serviceSources = new SourceService(service, () => now);
+            const cache = new Map<string, import('@fbincon/statusline-core/contracts/ui').SourceView>();
+            const supplied = payload.input;
+            env.source = (node, input, agent) => {
+                const key = (node.source?.binding ?? '') + ':' + (agent ?? '');
+                let view = cache.get(key);
+                if (!view) {
+                    try { view = serviceSources.view(node.source, contextFor(liveDirectory(input) ?? liveDirectory(supplied), typeof supplied.session_id === 'string' ? supplied.session_id : null, agent ?? null), false); }
+                    catch { view = {source_id:null,name:node.source?.hint??'',state:'error',reason:'invalid',observed_at:null,freshness:'unknown',value:null,unit:null}; }
+                    cache.set(key,view);
+                }
+                const status = view.state === 'valid' ? view.freshness === 'stale' ? 'stale' : 'observed' : view.state === 'disabled' ? 'collector_off' : view.state === 'mismatch' ? 'session_mismatch' : view.state === 'partial' ? 'partial' : view.state === 'missing' || view.state === 'unbound' ? 'not_observed' : 'source_unavailable';
+                local.set(node.id,[{source:'extension:'+(view.source_id ?? 'unbound'),scope:agent ? 'subagent:'+agent : 'local',status,observed_at:view.observed_at,freshness:view.freshness,fields:[{path:'value',status:view.value===null?'not_observed':'observed'}]}]);
+                return view;
+            };
+        }
         return diagnose(draft, payload.scope, width, payload.input, env, facts, local, { source, observedAt, diagnosedAt: new Date(now).toISOString(), includeLocal });
     };
 }

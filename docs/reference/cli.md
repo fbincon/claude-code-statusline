@@ -939,3 +939,23 @@ When a unique metric is toggled in an explicit layout or a composition, its posi
 `setup` connects checks, candidate preview and explicit display/integration commits. `--dry-run` is read-only and works without a TTY; normal non-TTY use exits 2. See [setup](../SETUP.md). The three additional complete presets are `daily-development`, `agent-focus`, and `quota-watch`; their global appearance is intentional, while the original six presets preserve their existing expansion behavior. See [scheme files and sharing](../SCHEMES.md).
 
 `config set powerline-padding none|left|right|both`, `powerline-separator arrow|slash|bar|none`, `powerline-start-cap on|off`, `powerline-end-cap on|off`, and `powerline-color-mode semantic|continuous|restart` use shared validation. These affect Powerline blocks, independently of host padding. [Appearance controls](../APPEARANCE.md).
+
+## Source management
+
+See the [extensions guide](../EXTENSIONS.md) for complete examples.
+
+```text
+claude-statusline source [--config-dir PATH] list [--json]
+claude-statusline source add|edit ID --file DEFINITION.json [--json]
+claude-statusline source review ID [--json]
+claude-statusline source enable ID --review REVIEW_REVISION [--json]
+claude-statusline source disable|remove ID [--json]
+claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--profile NAME | --project PATH] [--json]
+claude-statusline source unbind ID --binding BINDING_ID [--json]
+claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
+claude-statusline source status|cancel JOB_ID [--json]
+claude-statusline source diagnose ID [--project PATH] [--session ID] [--agent ID] [--json]
+claude-statusline config instance main set INSTANCE link off|auto|on
+```
+
+Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.

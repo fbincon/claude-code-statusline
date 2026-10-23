@@ -1,3 +1,4 @@
+import { sourcesView } from '@fbincon/statusline-core/editor/source-manager';
 import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
 import { profilesView } from '@fbincon/statusline-core/editor/profile-manager';
 import { quickView } from '@fbincon/statusline-core/editor/quick-setup';
@@ -18,6 +19,10 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const panel = size.content;
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
+    if (e.sources) {
+        sourcesView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        return tr('sources.help');
+    }
     if (e.profiles) {
         profilesView(e, state.language, width, panel.innerHeight - 1).forEach((row,index) => canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
         return tr('profiles.sample');

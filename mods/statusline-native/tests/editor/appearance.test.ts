@@ -32,7 +32,7 @@ test('scoped forms expose only meaningful conditions and canonicalize colors', (
 });
 
 test('future, partial, invalid global appearances are rejected', () => {
-  for (const patch of [{schema_version: 10}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
+  for (const patch of [{schema_version: 11}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
     const draft = copyDraft(BASE);
     Object.assign(draft.display, patch);
     expect(isDraft(draft)).toBe(false);

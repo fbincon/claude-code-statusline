@@ -83,7 +83,7 @@ export function riskColor(used: number | null, config: DisplayDraft): styles.Col
 }
 export function apply(text: string, config: DisplayDraft, item: string, options: ItemOptionsDraft, scope: Scope = 'main', used: number | null = null): string {
     if (!config.use_colors)
-        return layout.strip(text);
+        return layout.withoutColors(text);
     const block = config.separator_style === 'powerline', risk = riskColor(used, config);
     if (config.theme === 'classic' && !block && options.foreground === null && options.background === null && risk === null)
         return text;

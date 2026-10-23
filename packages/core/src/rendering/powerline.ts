@@ -49,7 +49,7 @@ export function row(blocks: readonly Block[], config: DisplayDraft, padding = tr
         if (previous !== null) result.push(separator(previous, text, config));
         else if (caps && config.powerline.start_cap) result.push(separator('', text, config, true));
         if (left) result.push((config.use_colors ? styles.serialize(edge(text)) : '') + ' ' + (config.use_colors ? styles.RESET : ''));
-        result.push(config.use_colors ? text : layout.strip(text));
+        result.push(config.use_colors ? text : layout.withoutColors(text));
         if (right) result.push((config.use_colors ? styles.serialize(edge(text, true)) : '') + ' ' + (config.use_colors ? styles.RESET : ''));
         previous = text;
     }

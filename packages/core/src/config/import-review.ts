@@ -7,6 +7,7 @@ export const SECTIONS = ['main', 'subagent', 'formatting', 'layout', 'language',
 export const KINDS = ['add', 'remove', 'enable', 'disable', 'reorder', 'change'] as const;
 
 function fieldMessage(path: string[]) {
+  if (path.includes('source')) return text('sources.title');
   let key: string;
   if (path.includes('options')) {
     const tail = path.slice(path.indexOf('options') + 1), name = tail.at(-1) ?? 'overrides';
@@ -48,7 +49,7 @@ export function differences(before: Draft, after: Draft): ImportChange[] {
       const path = [...root, 'instances', id];
       if (!previous || !following) { add(scope, following ? 'add' : 'remove', scope, id, path, previous ?? null, following ?? null, node.type_id); continue; }
       if (previous.enabled !== following.enabled) add(scope, following.enabled ? 'enable' : 'disable', scope, id, [...path, 'enabled'], previous.enabled, following.enabled, node.type_id);
-      for (const key of ['type_id', 'options', 'text'] as const) walk(previous[key], following[key], [...path, key], key === 'options' ? 'formatting' : scope, scope, id, node.type_id);
+      for (const key of ['type_id', 'options', 'text', 'source'] as const) walk(previous[key] ?? null, following[key] ?? null, [...path, key], key === 'options' ? 'formatting' : scope, scope, id, node.type_id);
     }
     const leftOrder = [...a.keys()].filter(id => b.has(id)), rightOrder = [...b.keys()].filter(id => a.has(id));
     if (canonical(leftOrder) !== canonical(rightOrder)) add(scope, 'reorder', scope, null, [...root, 'instances'], leftOrder, rightOrder);

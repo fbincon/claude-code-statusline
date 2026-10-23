@@ -1,3 +1,6 @@
+import { externalPresentation, sampleSource } from './extensions.js';
+import { fileLink } from '../terminal/links.js';
+import { withLink } from './layout.js';
 import type { FitObserver } from './trace.js';
 import type { DisplayDraft, InstanceDraft } from '../contracts/ui.js';
 import { int, numeric, object, own, type Data } from '../runtime/values.js';
@@ -127,6 +130,7 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
         const [fmt, options] = prepared.options.get(node.id)!;
         let value: string | null, style: string;
         switch (item) {
+            case 'external-value': value = externalPresentation(node, env.source?.(node, task, typeof task.id === 'string' ? task.id : undefined), env, fmt).text; style = p.task; break;
             case 'status': value = status(); style = p.status; break;
             case 'status-elapsed': { const duration = taskElapsed(); value = status() + (duration ? ' ' + duration : ''); style = p.elapsed; break; }
             case 'name': value = name(); style = p.name; break;
@@ -164,7 +168,7 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
                 env.trace?.mark('subagent',node.id,'condition_hidden'); continue;
             }
         }
-        value = preferences.decorate(value, item, 'subagent', fmt, options, language);
+        if (item !== 'external-value') value = preferences.decorate(value, item, 'subagent', fmt, options, language);
         let maximum = options.max_width;
         if (item === 'task' && config.subagents.task_max_width !== null)
             maximum = maximum ? Math.min(maximum, config.subagents.task_max_width) : config.subagents.task_max_width;
@@ -180,6 +184,7 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
             if (value)
                 style = styled.slice(0, -value.length);
         }
+        if (item === 'current-dir') value = withLink(value, fileLink(task.cwd), options.link, env.links);
         result.push({ item: node.id, text: value, style, used: risk, type: item });
     }
     return result;
@@ -283,6 +288,7 @@ export function renderPayload(data: unknown, config: DisplayDraft, env: RenderEn
     return result;
 }
 export function previewRows(config: DisplayDraft, columns: number, env: RenderEnvironment): string[] {
+    env = { ...env, source: sampleSource, links: true };
     const now = 1788400120000;
     return renderPayload({ columns, tasks: [
             { id: 'preview-running', name: 'Explore', type: 'local_agent', status: 'running', label: 'searching auth flow', startTime: now - 78000, model: 'claude-sonnet-5', effort: 'high', contextWindowSize: 200000, tokenCount: 84000, cwd: '/project/src' },

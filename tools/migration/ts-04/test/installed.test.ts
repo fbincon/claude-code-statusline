@@ -14,7 +14,7 @@ import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -50,11 +50,42 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 16, operation, payload }), environment));
-    assert.equal(result.protocol_version, 16);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 17, operation, payload }), environment));
+    assert.equal(result.protocol_version, 17);
     assert.ok(result.result);
     return result.result;
 }
+test('installed sources preserve opt-in, literal commands, portable isolation and OSC8 output',()=>{
+    const config=setup('extensions'), directory=installed.temporary, data=join(directory,'source 中文.json');fs.writeFileSync(data,'{"value":0}');
+    const mutation=(action:string,id:string,extra={})=>ui(config,'sources_apply',{action,id,expected_revision:ui(config,'sources_read').revision,...extra});
+    mutation('add','queue',{source:{name:'Queue',kind:'json',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{path:data}}});
+    run(['config','set-items','external-value'],config);
+    run(['source','bind','queue','--instance','external-value','--json'],config);
+    const payload=JSON.stringify({cwd:directory,session_id:'extension-test'});
+    assert(!run(['render'],config,payload).includes('Queue: 0'));
+    mutation('enable','queue',{review_revision:ui(config,'source_review',{id:'queue'}).review_revision});
+    assert(run(['render'],config,payload).includes('Queue: 0'));
+    run(['config','subagents','set-items','external-value'],config);
+    run(['source','bind','queue','--instance','external-value','--scope','subagent','--json'],config);
+    for(const columns of [40,80,120]) {
+        const narrow={cwd:directory,session_id:'extension-test',columns,tasks:[{id:'child',cwd:directory,status:'running'}]};
+        assert(run(['render'],config,JSON.stringify(narrow)).includes('Queue: 0'));
+        assert(run(['render-subagents'],config,JSON.stringify(narrow)).includes('Queue: 0'));
+    }
+    const portable=join(directory,'extension-portable.json');run(['config','export',portable],config);
+    const shared=JSON.parse(fs.readFileSync(portable,'utf8'));assert.equal(shared.draft.display.instances.find((node:any)=>node.type_id==='external-value').source.binding,null);
+    assert(!fs.readFileSync(portable,'utf8').includes(data));
+    mutation('disable','queue');assert(!run(['render'],config,payload).includes('Queue: 0'));
+    mutation('add','command',{source:{name:'Command',kind:'command',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{executable:installed.node,args:['-p','String(42)'],cwd:directory,input:{},output:'text',timeout_ms:15000}}});
+    mutation('enable','command',{review_revision:ui(config,'source_review',{id:'command'}).review_revision});
+    run(['source','bind','command','--instance','external-value','--json'],config);
+    const refreshed=JSON.parse(run(['source','refresh','command','--project',directory,'--json'],config));assert.equal(refreshed.state,'completed');
+    assert(run(['render'],config,payload).includes('Command: 42'));
+    run(['config','set-items','current-dir'],config);run(['config','instance','main','set','current-dir','link','on'],config);
+    const linked=run(['render'],config,payload);assert(linked.includes('\x1b]8;;file:///'));assert(linked.includes('\x1b]8;;\x1b\\'));
+    run(['config','instance','main','set','current-dir','link','off'],config);assert(!run(['render'],config,payload).includes('\x1b]8;'));
+    report.extension_cases=4;checks.extensions=true;
+});
 test('private packed candidate contains only compiled business entry points and complete owned resources', () => {
     const manifest = JSON.parse(fs.readFileSync(join(installed.root, 'package.json'), 'utf8'));
     assert.equal(manifest.name, installed.packed.source.name);
@@ -234,7 +265,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 16, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 17, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -306,7 +337,7 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
         assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
         if(choice!=='cancel') {
             const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
-            assert.equal(display.schema_version,9);assert.equal(display.theme,'terminal');
+            assert.equal(display.schema_version,10);assert.equal(display.theme,'terminal');
             assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
         }
     }

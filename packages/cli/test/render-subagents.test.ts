@@ -72,7 +72,7 @@ test('tests.rendering.test_subagent_statusline.RendererTests.test_context_remain
     assert.ok(rows[1]!.includes('Context 91% left'));
 });
 test('tests.rendering.test_subagent_statusline.RendererTests.test_invalid_optional_fields_are_omitted', () => {
-    const cfg = agentConfig([...BY_SCOPE.subagent.keys()].filter(id => !['status', 'elapsed', 'text', 'spacer'].includes(id)));
+    const cfg = agentConfig([...BY_SCOPE.subagent.keys()].filter(id => !['status', 'elapsed', 'text', 'spacer', 'external-value'].includes(id)));
     assert.equal(renderTask(task({ model: { broken: true }, effort: NaN, tokenCount: -1, contextWindowSize: 0, startTime: 'yesterday', cwd: ['not', 'a', 'path'] }), cfg, env, 100), '⏱ · Explore · searching auth flow');
 });
 test('tests.rendering.test_subagent_statusline.RendererTests.test_name_type_and_task_fallbacks', () => {
@@ -98,7 +98,7 @@ test('tests.rendering.test_subagent_statusline.RendererTests.test_preview_is_det
 });
 test('tests.rendering.test_subagent_statusline.WidthAndSanitizationTests.test_every_path_is_single_line_and_within_columns', () => {
     const value = task({ name: '探索器👩🏽‍💻é'.repeat(5), label: '第一行\n第二行\t\x1b[31m注入'.repeat(8), cwd: '/项目/' + '很长目录/'.repeat(10) });
-    const cfg = agentConfig([...BY_SCOPE.subagent.keys()].filter(id => !['status', 'elapsed', 'text', 'spacer'].includes(id)), {}, { use_colors: true });
+    const cfg = agentConfig([...BY_SCOPE.subagent.keys()].filter(id => !['status', 'elapsed', 'text', 'spacer', 'external-value'].includes(id)), {}, { use_colors: true });
     for (const columns of [100, 50, 30, 20, 10, 5, 2, 1]) {
         const content = renderPayload({ columns, tasks: [value] }, cfg, env, NOW)[0]!.content;
         assert.ok(displayWidth(content) <= columns);

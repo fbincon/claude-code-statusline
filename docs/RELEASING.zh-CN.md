@@ -2,6 +2,10 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## v3.6.0 扩展交付
+
+采用[v3.6.0 专属批准](releases/approvals/v3.6.0.json)，仍需最终 PR/main/tag 全矩阵。八安装目标的回执另需四个扩展场景：JSON 启用、命令刷新、导出解绑和链接输出；32 个 Node 场景、十三宿主、可重现构建、安装产物终端、OIDC 和公开下载核验保持必需。证据记录于[扩展验收](development/extensions.zh-CN.md)。CI-01 不属于本次交付。
+
 ## v3.5.0 首次设置与完整外观
 
 使用 2026-10-23 批准、[仅适用于 v3.5.0 的决定](releases/approvals/v3.5.0.json)。要求最终 PR、main、注释标签全部检查通过，覆盖八安装目标、32 个 Node 案例、十三固定宿主。安装回执额外要求真实终端中的设置取消、仅保存显示及接入流程；独立构建／源码重建、扩展六语言 PTY、草稿附件校验、OIDC npm 与公开下载仍为必需。仅接受原有六项历史缺项。证据记录于[首次设置与外观交付](development/setup-appearance.zh-CN.md)。

@@ -1,0 +1,44 @@
+/** Strict response validation shared by the native and external source managers. */
+const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
+const text = (v: unknown): v is string => typeof v === 'string' && v.length <= 16384 && !/[\p{Cc}\p{Cs}]/u.test(v);
+const nullable = (v: unknown) => v === null || text(v);
+const scalar = (v: unknown) => v === null || text(v) || typeof v === 'boolean' || typeof v === 'number' && Number.isFinite(v);
+const fields = (v: unknown, keys: string[]): v is Record<string, unknown> => object(v) && Object.keys(v).length === keys.length && keys.every(key => Object.hasOwn(v, key));
+const id = (v: unknown) => text(v) && /^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(v);
+const scope = (v: unknown) => fields(v, ['project', 'session', 'agent']) && Object.values(v).every(nullable) && (v.agent === null || v.session !== null);
+export const isSourceContext = (v: unknown) => fields(v, ['project', 'session', 'agent', 'branch', 'head']) && Object.values(v).every(nullable);
+function definition(v: unknown): boolean {
+    if (!fields(v, ['id', 'name', 'kind', 'scope', 'ttl_seconds', 'settings', 'enabled', 'revision']) || !id(v.id) || !text(v.name) || !['json', 'github', 'command'].includes(String(v.kind)) || !scope(v.scope) || !id(v.revision) || typeof v.enabled !== 'boolean' || typeof v.ttl_seconds !== 'number' || !Number.isInteger(v.ttl_seconds) || v.ttl_seconds < 1 || v.ttl_seconds > 86400 || !object(v.settings))
+        return false;
+    const s = v.settings;
+    if (v.kind === 'json')
+        return fields(s, ['path', 'pointer', 'observed_at_pointer', 'unit']) && Object.values(s).every(text);
+    if (v.kind === 'github')
+        return fields(s, ['host', 'repository', 'branch', 'account', 'pr']) && ['host', 'repository', 'branch', 'account'].every(key => text(s[key])) && (s.pr === null || typeof s.pr === 'number' && Number.isSafeInteger(s.pr) && s.pr > 0);
+    return fields(s, ['executable', 'args', 'cwd', 'input', 'output', 'timeout_ms']) && text(s.executable) && text(s.cwd) && Array.isArray(s.args) && s.args.length <= 128 && s.args.every(arg => typeof arg === 'string' && arg.length <= 8192 && !arg.includes('\0')) && object(s.input) && Object.entries(s.input).every(([key, value]) => /^[A-Za-z][A-Za-z0-9_]{0,63}$/u.test(key) && ['project', 'session', 'agent', 'branch', 'head'].includes(String(value))) && ['json', 'text'].includes(String(s.output)) && typeof s.timeout_ms === 'number' && Number.isInteger(s.timeout_ms) && s.timeout_ms >= 100 && s.timeout_ms <= 30000;
+}
+function job(v: unknown): boolean {
+    return fields(v, ['version', 'id', 'source_id', 'source_revision', 'owner', 'context', 'started_at', 'deadline_at', 'state', 'reason']) && v.version === 1 && ['id', 'source_id', 'source_revision', 'owner'].every(key => id(v[key])) && isSourceContext(v.context) && text(v.started_at) && Number.isFinite(Date.parse(v.started_at)) && text(v.deadline_at) && Number.isFinite(Date.parse(v.deadline_at)) && ['running', 'completed', 'failed', 'cancelled'].includes(String(v.state)) && text(v.reason);
+}
+function view(v: unknown): boolean {
+    return object(v) && nullable(v.source_id) && text(v.name) && ['valid', 'missing', 'partial', 'error', 'unsupported', 'disabled', 'unbound', 'mismatch'].includes(String(v.state)) && text(v.reason) && nullable(v.observed_at) && ['current', 'stale', 'unknown'].includes(String(v.freshness)) && scalar(v.value) && nullable(v.unit) && (v.fields === undefined || object(v.fields) && Object.values(v.fields).every(scalar));
+}
+export function isSourceResult(operation: string, value: unknown): boolean {
+    if (!object(value))
+        return false;
+    if (operation === 'source_context')
+        return isSourceContext(value);
+    if (operation === 'source_review')
+        return fields(value, ['source', 'review_revision']) && definition(value.source) && object(value.source) && value.review_revision === value.source.revision;
+    if (['source_refresh', 'source_status', 'source_cancel'].includes(operation))
+        return job(value);
+    if (operation === 'source_diagnose')
+        return fields(value, ['source', 'view', 'jobs']) && definition(value.source) && view(value.view) && Array.isArray(value.jobs) && value.jobs.every(job);
+    if (!['sources_read', 'sources_apply'].includes(operation) || !fields(value, ['version', 'sources', 'bindings', 'revision', ...(operation === 'sources_apply' ? ['backup_dir', ...(Object.hasOwn(value, 'binding') ? ['binding'] : [])] : [])]))
+        return false;
+    if (value.version !== 1 || !text(value.revision) || !Array.isArray(value.sources) || value.sources.length > 128 || !value.sources.every(definition) || !Array.isArray(value.bindings) || value.bindings.length > 4096)
+        return false;
+    if (!value.bindings.every(b => fields(b, ['id', 'source_id']) && id(b.id) && id(b.source_id)))
+        return false;
+    return operation === 'sources_read' || nullable(value.backup_dir) && (value.binding === undefined || fields(value.binding, ['binding', 'hint']) && id(value.binding.binding) && text(value.binding.hint));
+}

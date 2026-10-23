@@ -72,13 +72,20 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (regionalLanguageDifference(id, path, a, b)) return;
     if (id==='ui-describe' && path==='/value/response/result/operations') {
       const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];
-      if(canonical(a)===canonical(old) && canonical(b)===canonical([...old,'explain','diagnose','profiles_read','profiles_apply','profile_import','profile_export','task_details'])) return;
+      if(canonical(a)===canonical(old) && canonical(b)===canonical(['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose',...old,'explain','diagnose','profiles_read','profiles_apply','profile_import','profile_export','task_details'])) return;
     }
     if (id === 'ui-describe' && path === '/value/response/result/catalog' && Array.isArray(a) && Array.isArray(b)) {
+      const extensionIds = ['external-value','github-pr','github-ci'];
+      const extensions = b.filter(item => extensionIds.includes(item.id));
+      const supported = b.filter(item => item.capabilities && !extensionIds.includes(item.id));
+      if (canonical(extensions) !== canonical(ITEMS.filter(item => extensionIds.includes(item.id))) ||
+          canonical(supported) !== canonical(ITEMS.filter(item => item.capabilities && !extensionIds.includes(item.id)))) {
+        errors.push('ui-describe/catalog: unexpected extension capabilities'); return;
+      }
       const cause = b.filter(item => item.id === 'cache-miss-reason');
       const worktree = b.find(item => item.scope === 'main' && item.id === 'worktree');
       const expectedTree = ITEMS.find(item => item.scope === 'main' && item.id === 'worktree');
-      const original = b.filter(item => item.id !== 'cache-miss-reason').map(item => item.scope === 'main' && item.id === 'worktree'
+      const original = b.filter(item => !['cache-miss-reason',...extensionIds].includes(item.id)).map(({capabilities,...item})=>item).map(item => item.scope === 'main' && item.id === 'worktree'
         ? { ...item, description: 'Worktree name in --worktree sessions', sources: ['worktree.name'], guidance: { ...item.guidance, requirements: ['observed_field', 'worktree_session'] } } : item);
       if (canonical(worktree) === canonical(expectedTree) && cause.length === 1 && canonical(cause[0]) === canonical(ITEMS.find(item => item.id === 'cache-miss-reason')) && canonical(a) === canonical(original)) return;
     }

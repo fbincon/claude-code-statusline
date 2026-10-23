@@ -10,7 +10,7 @@ const defaults = { padding: 'both', separator: 'arrow', start_cap: false, end_ca
 function display(value: unknown): unknown {
     if (!object(value) || canonical(value.schema_version) !== canonical(8) || !Array.isArray(value.instances) || Object.hasOwn(value, 'powerline')) return value;
     return Object.fromEntries(Object.entries(value).flatMap(([key, item]) => key === 'powerline_glyph'
-        ? [[key, item], ['powerline', defaults]] : [[key, key === 'schema_version' ? 9 : item]]));
+        ? [[key, item], ['powerline', defaults]] : [[key, key === 'schema_version' ? 10 : item]]));
 }
 export function appearanceBaseline(id: string, path: string, value: unknown): unknown {
     if (/^display-v[1-8]-read$/u.test(id) && path === '/value/effective') return display(value);

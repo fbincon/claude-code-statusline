@@ -1,3 +1,4 @@
+import { performSourceAction, closeSources } from '../lib/editor/source-manager.ts';
 import { taskDetailLines } from '../lib/editor/task-detail.ts';
 import { receivePreset } from '../lib/editor/quick-setup.ts';
 import { performProfileAction } from '../lib/editor/profile-manager.ts';
@@ -150,6 +151,7 @@ async function load(
   state: Session,
   options: PluginOptions,
 ) {
+  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
   discard(state);
   const opening = state.epoch;
   setMessage(state.view, "busy", localizedText("native.hooks.register.loading_configuration"));
@@ -319,7 +321,7 @@ async function save(
         'host-' + state.view.preferences.find(preferenceChanged)!.row.key;
       setMessage(state.view, "message", localizedText("native.hooks.register.tool_configuration_saved_host_changes_pending_a_apply"));
       $.ui.invalidate('ui.render');
-    } else await close($, state);
+    } else await close($, state, options);
   }
 }
 
@@ -441,7 +443,8 @@ async function applyPreferences(
   }
 }
 
-async function close($: EngineInterface, state: Session) {
+async function close($: EngineInterface, state: Session, options: PluginOptions) {
+  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
   // A plugin's own API calls skip its hooks; guard programmatic close here too.
   if (state.writing || state.view.uncertain) {
     setMessage(state.view, "error", (state.writing ? localizedText("native.hooks.register.wait_for_the_apply_result_before_closing") : localizedText("native.hooks.register.check_the_saved_state_before_closing_the_save")));
@@ -587,6 +590,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await startTaskDetails($, taskDetails);
     state.ownsCommand = false;
+    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     discard(state);
     const open = await $.ui.panes();
     if (open.some((p) => p.id === PANE)) {
@@ -624,6 +628,7 @@ export const register: Register = (on, options) => {
       $.ui.invalidate('ui.render');
       return { deny: state.view.error };
     }
+    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     const result = await next(e);
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
@@ -677,12 +682,17 @@ export const register: Register = (on, options) => {
         );
         if (effect === 'save' || effect === 'finish') {
           await save($, state, options, effect === 'finish');
-        } else if (effect === 'close') await close($, state);
+        } else if (effect === 'close') await close($, state, options);
         else if (effect === 'reload') {
           await load($, state, options);
           state.placed = true;
         } else if (effect === 'reconcile') await reconcile($, state, options);
         else if (effect === 'transfer') await transferDraft($, state, options);
+        else if (effect === 'sources' && state.view.editor) {
+          state.writing=true;
+          try { await performSourceAction(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)}); }
+          finally {state.writing=false;state.previewKey='';}
+        }
         else if (effect === 'profiles' && state.view.editor) {
           state.writing = true;
           try { await performProfileAction(state.view.editor, { request: (operation, payload) => callBackend($, options, operation, payload) }); }
@@ -842,7 +852,7 @@ export const register: Register = (on, options) => {
                 ...recoveryButton,
                 key: 'close',
                 label: tr("native.hooks.register.close"),
-                onPress: () => close($, state),
+                onPress: () => close($, state, options),
               }),
             ],
           }),
@@ -901,7 +911,7 @@ export const register: Register = (on, options) => {
           key: 'close',
           label: tr("native.hooks.register.discard_pending_close"),
           hotkey: 'q',
-          onPress: () => close($, state),
+          onPress: () => close($, state, options),
         }),
       ],
     });

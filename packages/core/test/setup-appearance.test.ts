@@ -20,7 +20,7 @@ test('schema 8 migrates in memory to strict schema 9 with legacy appearance defa
     const { powerline: _, ...old } = defaultDisplay(), legacy = { ...old, schema_version: 8 }, original = JSON.stringify(legacy);
     const current = validateDisplay(legacy);
     assert.deepEqual(current.powerline, DEFAULT_POWERLINE);
-    assert.equal(current.schema_version, 9);
+    assert.equal(current.schema_version, 10);
     assert.equal(JSON.stringify(legacy), original);
     assert(isDraft({ display: current, host: DEFAULT_HOST }));
     for (const invalid of [{ ...current.powerline, padding: 'center' }, { ...current.powerline, arbitrary: 'x' }, { ...current.powerline, start_cap: 1 }]) {

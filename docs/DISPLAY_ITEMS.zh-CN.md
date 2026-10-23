@@ -4,7 +4,7 @@
 
 当前计时证据、转录替换、精确重放去重及旧缓存可用性见[迁移后修复](development/post-migration-fixes.zh-CN.md)。
 
-当前目录包含 61 个主栏项、14 个子 Agent 项，默认分别启用 10 项和 5 项。下表介绍独立指标和任务计时，默认选择与配置入口见[使用指南](USER_GUIDE.zh-CN.md#可配置显示项)。`prompt-timer` 是 `task-timer` 的兼容别名，不另计为目录项。主栏组合项可与其独立项并存；子 Agent 的 `status-elapsed` 与独立 `status`、`elapsed` 互斥。
+当前目录包含 64 个主栏指标、15 个子 Agent 指标，默认分别启用 10 项和 5 项。下表介绍独立指标和任务计时，默认选择与配置入口见[使用指南](USER_GUIDE.zh-CN.md#可配置显示项)。`prompt-timer` 是 `task-timer` 的兼容别名，不另计为目录项。主栏组合项可与其独立项并存；子 Agent 的 `status-elapsed` 与独立 `status`、`elapsed` 互斥。
 
 下列样例采用英文输出。`statusline-language=zh-CN` 翻译内置短语和已知值，不改变指标定义、ID、原始观测、数字或技术单位。用户文字和未知值保留原文。见[状态栏语言](USER_GUIDE.zh-CN.md#状态栏语言)。
 
@@ -119,6 +119,16 @@ Claude Code 2.1.289 headless 路径可能缺失 prompt 身份事件。只有唯�
 ## 布局组件
 
 两个作用域均新增 `text`（用户原文）和 `spacer`（填充剩余行宽），目录因此包含
-62 种主状态栏类型和 16 种子代理类型；原有 61／14 种观测类型及默认展示保持不变。
+66 种主状态栏类型和 17 种子代理类型；原有 61／14 种观测类型及默认展示保持不变。
 可在实例编辑器中添加，或执行 `config instance main add text --text "项目"`。
 主状态栏留白需要显式分行；每个主行和子代理模板最多一个留白。
+
+## 可选外部组件
+
+按照[扩展指南](EXTENSIONS.zh-CN.md)在本机注册并启用数据源。新增项默认不选中。
+
+| ID | 范围 | 含义 |
+| --- | --- | --- |
+| `external-value` | 主状态栏 / 子代理 | 明确绑定的 JSON 或命令数据源标量，包含新鲜度与失败标记。 |
+| `github-pr` | 主状态栏 | 显式刷新的 GitHub PR，与宿主 `pr` 分开。 |
+| `github-ci` | 主状态栏 | GitHub 检查摘要；无检查或结果未知不表示通过。 |

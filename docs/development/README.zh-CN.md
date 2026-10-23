@@ -2,6 +2,9 @@
 
 [English](README.md) | **简体中文**
 
+
+[扩展实现与验收](extensions.zh-CN.md)覆盖本地 JSON、GitHub、命令、链接和共享组件能力。
+
 [首次设置与完整外观实现](setup-appearance.zh-CN.md)记录首次使用、内置方案、schema 9、协议 16 及对应验收。
 
 命名显示方案、用户侧项目绑定和只读任务详情，分别参见[方案管理](../PROFILES.zh-CN.md)和[任务详情](../TASK_DETAILS.zh-CN.md)。
