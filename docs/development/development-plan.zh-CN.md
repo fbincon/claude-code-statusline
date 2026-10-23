@@ -101,7 +101,7 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 ## COMPOSITION-02 组件分组与联动隐藏
 
-**状态：NOT_STARTED。** 产品顺序第二项，不依赖 APPEARANCE-03。
+**状态：IN_PROGRESS。** 产品顺序第二项，不依赖 APPEARANCE-03。
 
 **问题与目标。** 指标消失后不留下孤立文字／图标，让相关实例可共享 Powerline 色块，同时保持各自数据范围。
 

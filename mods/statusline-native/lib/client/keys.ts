@@ -1,3 +1,4 @@
+import { openGroups, groupsKey } from '../editor/group-manager.ts';
 import { openSources, sourcesKey } from '../editor/source-manager.ts';
 import { openExplanation, explanationKey } from '../editor/explanation.ts';
 import { openQuick, controlQuick } from '../editor/quick-setup.ts';
@@ -36,6 +37,8 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   const shortcut = /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
+  if (e.groupManager) return groupsKey(e, event);
+  if (event.ctrl && key.toLowerCase() === 'b' && !view.input && !view.uncertain && !e.sources && !e.profiles && !e.review && !e.quick && !e.explanation && !event.text) { openGroups(e); return null; }
   if (e.sources) return sourcesKey(e,event);
   if (event.ctrl && key.toLowerCase()==='y' && !view.input && !e.review && !e.quick && !e.explanation) {openSources(e);return 'sources';}
   if (e.profiles) return profilesKey(e, { ...event, key: key === 'return' ? 'enter' : key });
@@ -200,6 +203,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
     if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",localizedText("composition.invalid")); }
+    else if (e.setting === 'component-groups') { openGroups(e); return null; }
     else if (e.setting === 'sources') {openSources(e);return 'sources';}
     else if (e.setting === 'profiles') { if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; } }
     else if (e.setting === 'quick-setup') { if (e.acceptNumeric()) e.quick=openQuick(e.draft); }

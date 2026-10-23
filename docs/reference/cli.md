@@ -963,3 +963,7 @@ Add/edit save a disabled source; enable requires the exact reviewed revision. Re
 ## Graphical indicators
 
 Use `config instance main|subagent set ID presentation numeric|bar`, `bar-width 4..20`, and `bar-style auto|unicode|ascii` for eligible instances. [Guide](../APPEARANCE.md#graphical-indicators).
+
+## Group operations
+
+`config group main|subagent list|create|set|copy|move|ungroup` manages continuous instance groups. Create requires `ID --members ID,ID --primary ID`; optional `--linked on|off` and `--powerline on|off` select presentation. Move requires one of `--before ID` or `--after ID`. [Examples and invariants](../COMPOSITION.md#component-groups).

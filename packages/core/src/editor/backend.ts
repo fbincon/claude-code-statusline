@@ -1,3 +1,4 @@
+import { validGroups } from './groups.js';
 import { INDICATOR_KEYS, validIndicatorOptions } from './indicators.js';
 import { SAMPLE_REASONS, EXPLAIN_REASONS, LAYOUT_REASONS, EVIDENCE_STATUSES } from '../contracts/ui.js';
 import { text as localizedText } from '../i18n/messages.js';
@@ -155,7 +156,7 @@ export function isDraft(value: unknown): value is Draft {
   const h = value.host;
   if (
     !exact(d, [
-      'schema_version',
+      'schema_version', 'groups',
       'statusline_language',
       'instances',
       'use_colors',
@@ -170,7 +171,7 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 11 ||
+    d.schema_version !== 12 ||
     !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.map(f => f.key.slice(10))) ||
     !POWERLINE_FIELDS.every(f => f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
       (f.choices as readonly unknown[]).includes((d.powerline as Record<string, unknown>)[f.key.slice(10)])) ||
@@ -191,7 +192,7 @@ export function isDraft(value: unknown): value is Draft {
   const sub = d.subagents;
   if (
     !object(sub) ||
-    !exact(sub, ['enabled', 'instances', 'visibility', 'hide_completed', 'row_limit', 'task_max_width']) ||
+    !exact(sub, ['enabled', 'instances', 'groups', 'visibility', 'hide_completed', 'row_limit', 'task_max_width']) ||
     !['all', 'running'].includes(String(sub.visibility)) ||
     typeof sub.hide_completed !== 'boolean' || !range(sub.row_limit, 0, 10000, true) ||
     !range(sub.task_max_width, 2, 10000, true) ||
@@ -210,6 +211,7 @@ export function isDraft(value: unknown): value is Draft {
       !layout.rows.every((r) => selection(r, ids) && r.length > 0 && r.filter(id => spacers.has(id)).length <= 1) ||
       (layout.mode === 'auto' ? layout.rows.length !== 0 || spacers.size > 0 :
         JSON.stringify(layout.rows.flat()) !== JSON.stringify(ids))) return false;
+  if (!validGroups(d.groups, d.instances, layout as unknown as import('../contracts/ui.js').LayoutDraft) || !validGroups(sub.groups, sub.instances)) return false;
   // Exclusions come from describe; the backend remains the final draft validator.
   return (
     typeof h.padding === 'number' &&

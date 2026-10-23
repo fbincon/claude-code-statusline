@@ -9,13 +9,13 @@ function instance(id: string): InstanceDraft {
 }
 export const DEFAULT_SUBAGENTS: SubagentDraft = {
   enabled: true, visibility: 'all', hide_completed: false, row_limit: null, task_max_width: null,
-  instances: defaultItems('subagent').map(instance),
+  instances: defaultItems('subagent').map(instance), groups: [],
 };
 export const DEFAULT_POWERLINE: DisplayDraft['powerline'] = {
   padding: 'both', separator: 'arrow', start_cap: false, end_cap: true, color_mode: 'semantic',
 };
 export const DEFAULT_DISPLAY: DisplayDraft = {
-  schema_version: 11, use_colors: true, palette: 'default', directory_style: 'full', separator_style: 'classic',
+  schema_version: 12, groups: [], use_colors: true, palette: 'default', directory_style: 'full', separator_style: 'classic',
   scope_labels: 'when-subagents', statusline_language: 'en', theme: 'classic', powerline_glyph: 'ascii', powerline: DEFAULT_POWERLINE,
   subagents: DEFAULT_SUBAGENTS, formatting: DEFAULT_FORMATTING,
   layout: { mode: 'auto', rows: [] }, metrics: { branch_diff_base_ref: null },

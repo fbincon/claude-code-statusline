@@ -7,6 +7,7 @@ export const SECTIONS = ['main', 'subagent', 'formatting', 'layout', 'language',
 export const KINDS = ['add', 'remove', 'enable', 'disable', 'reorder', 'change'] as const;
 
 function fieldMessage(path: string[]) {
+  if (path.includes('groups')) return text('composition.groups.title');
   if (path.includes('source')) return text('sources.title');
   let key: string;
   if (path.includes('options')) {

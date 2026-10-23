@@ -1,3 +1,4 @@
+import { validGroups } from '../editor/groups.js';
 import { validIndicatorOptions } from '../editor/indicators.js';
 import type { DisplayDraft, SubagentDraft, InstanceDraft, ItemOptionsDraft, Scope, MetricsDraft } from '../contracts/ui.js';
 import { integer as jsonInteger, canonical, scalarCompare, isLosslessNumber, pythonFloat } from '../json.js';
@@ -9,7 +10,7 @@ export { isSchema } from './validation.js';
 import * as options from './formatting.js';
 import { reference, SOURCE_TYPES } from '../extensions/model.js';
 
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = 12;
 export const CONFIG_FILENAME = 'claude-statusline.json';
 const v1 = ['schema_version', 'items', 'use_colors', 'palette', 'directory_style', 'separator_style'];
 const v2 = [...v1, 'scope_labels', 'subagents'];
@@ -94,7 +95,7 @@ export function validateInstances(value: unknown, scope: Scope): InstanceDraft[]
   if (scope === 'subagent' && nodes.filter(node => node.type_id === 'spacer').length > 1) fail('composition.errors.subagent_spacer');
   return nodes;
 }
-function subagentScalars(value: Record<string, unknown>): Omit<SubagentDraft, 'instances'> {
+function subagentScalars(value: Record<string, unknown>): Omit<SubagentDraft, 'instances' | 'groups'> {
   if (typeof value.enabled !== 'boolean') fail('errors.display.subagents_enabled_must_be_true_or_false');
   if (!['all', 'running'].includes(value.visibility as string) || typeof value.hide_completed !== 'boolean') {
     throw new ConfigError('subagent visibility must be all/running and hide_completed a boolean');
@@ -102,10 +103,12 @@ function subagentScalars(value: Record<string, unknown>): Omit<SubagentDraft, 'i
   return { enabled: value.enabled, visibility: value.visibility as SubagentDraft['visibility'], hide_completed: value.hide_completed,
     row_limit: nullableInteger(value.row_limit, 0, 10000, 'row_limit'), task_max_width: nullableInteger(value.task_max_width, 2, 10000, 'task_max_width') };
 }
-export function validateSubagents(value: unknown): SubagentDraft {
-  exact(value, [...subagentKeys.filter(key => !['items', 'item_options'].includes(key)), 'instances'], 'subagents');
+export function validateSubagents(value: unknown, grouped = true): SubagentDraft {
+  exact(value, [...subagentKeys.filter(key => !['items', 'item_options'].includes(key)), 'instances', ...(grouped ? ['groups'] : [])], 'subagents');
   const instances = validateInstances(value.instances, 'subagent');
-  return { ...subagentScalars(value), instances };
+  const groups = grouped ? value.groups : [];
+  if (!validGroups(groups, instances)) fail('composition.groups.invalid');
+  return { ...subagentScalars(value), instances, groups };
 }
 function legacySubagents(value: unknown, legacy: boolean): SubagentDraft {
   if (!object(value)) fail('errors.display.subagents_must_contain_a_json_object');
@@ -116,12 +119,12 @@ function legacySubagents(value: unknown, legacy: boolean): SubagentDraft {
   const scalars = subagentScalars(value);
   const items = validateItems(value.items, 'subagent');
   const fields = options.legacyOptions(value.item_options, [...BY_SCOPE.subagent.keys()].filter(id => !['text', 'spacer'].includes(id)), 'subagent', legacy);
-  return { ...scalars, instances: legacyInstances('subagent', items, fields) };
+  return { ...scalars, groups: [], instances: legacyInstances('subagent', items, fields) };
 }
 function scalars(data: Record<string, unknown>, version: number) {
   if (typeof data.use_colors !== 'boolean') fail('errors.display.use_colors_must_be_true_or_false');
   return {
-    schema_version: 11 as const, use_colors: data.use_colors,
+    schema_version: 12 as const, groups: [], use_colors: data.use_colors,
     palette: choice(data.palette, ['default', 'ansi'] as const, 'palette'),
     directory_style: choice(data.directory_style, ['full', 'home', 'project-relative', 'basename'] as const, 'directory_style'),
     separator_style: choice(data.separator_style, ['classic', 'compact', 'powerline'] as const, 'separator_style'),
@@ -139,17 +142,18 @@ export function validateDisplay(value: unknown): DisplayDraft {
   let version: bigint;
   try { version = jsonInteger(value.schema_version); }
   catch { return fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) }); }
-  if (version > 11n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
+  if (version > 12n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
   if (version < 1n) fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) });
   if (version >= 8n) {
-    exact(value, version === 8n ? v8 : current, 'display');
+    exact(value, version === 8n ? v8 : [...current, ...(version >= 12n ? ['groups'] : [])], 'display');
     const nodes = validateInstances(value.instances, 'main');
     const layout = options.layout(value.layout, nodes.map(node => node.id));
     if (layout.mode === 'auto' && nodes.some(node => node.type_id === 'spacer')) fail('composition.errors.main_spacer');
     const byId = new Map(nodes.map(node => [node.id, node]));
     if (layout.rows.some(row => row.filter(id => byId.get(id)!.type_id === 'spacer').length > 1)) fail('composition.errors.row_spacer');
-    const subagents = validateSubagents(value.subagents);
-    return orderedDisplay({ ...scalars(value, Number(version)), subagents, layout, instances: nodes });
+    const subagents = validateSubagents(value.subagents, version >= 12n), groups = version >= 12n ? value.groups : [];
+    if (!validGroups(groups, nodes, layout)) fail('composition.groups.invalid');
+    return orderedDisplay({ ...scalars(value, Number(version)), subagents, layout, instances: nodes, groups });
   }
   const n = Number(version), keys = n === 1 ? v1 : n === 2 ? v2 : n === 3 ? v3 : n <= 5 ? v5 : n === 6 ? v6 : v7;
   const unknown = Object.keys(value).filter(key => !keys.includes(key)).sort(scalarCompare);
@@ -174,7 +178,7 @@ export function validateDisplay(value: unknown): DisplayDraft {
   const requestedLayout = n >= 3 ? options.layout(data.layout, items) : { mode: 'auto' as const, rows: [] };
   if (n === 2) {
     if (!object(data.subagents) || Object.keys(data.subagents).length !== 2 || !Object.hasOwn(data.subagents, 'enabled') || !Object.hasOwn(data.subagents, 'items')) fail('errors.display.v2_subagents_requires_exactly_enabled_and_items');
-    const { instances: _instances, ...defaults } = defaultSubagents();
+    const { instances: _instances, groups: _groups, ...defaults } = defaultSubagents();
     data.subagents = { ...defaults, item_options: {}, ...data.subagents };
   }
   return orderedDisplay({ ...scalars(data, n), instances: nodes,
@@ -183,7 +187,7 @@ export function validateDisplay(value: unknown): DisplayDraft {
 }
 
 function orderedDisplay(value: DisplayDraft): DisplayDraft {
-  return { schema_version: 11, use_colors: value.use_colors, palette: value.palette,
+  return { schema_version: 12, groups: value.groups, use_colors: value.use_colors, palette: value.palette,
     directory_style: value.directory_style, separator_style: value.separator_style,
     scope_labels: value.scope_labels, statusline_language: value.statusline_language,
     theme: value.theme, powerline_glyph: value.powerline_glyph, powerline: value.powerline, subagents: value.subagents,

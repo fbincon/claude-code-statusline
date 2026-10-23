@@ -101,7 +101,7 @@ These sections describe planned behavior, not available commands or completed ch
 
 ## COMPOSITION-02 Component groups and linked visibility
 
-**Status: NOT_STARTED.** Second in product order; independent of APPEARANCE-03.
+**Status: IN_PROGRESS.** Second in product order; independent of APPEARANCE-03.
 
 **Problem and goal.** Avoid orphaned decorative text/icons when a metric disappears, and let related instances share one Powerline block without changing their data scope.
 

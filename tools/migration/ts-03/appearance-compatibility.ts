@@ -1,4 +1,5 @@
 /** Schema 9's explicit, bounded baseline translation. Frozen files remain immutable. */
+import { SCHEMA_VERSION } from '@fbincon/statusline-core/config/display';
 import { canonical, decode } from '@fbincon/statusline-core/json';
 import { pythonJson } from '@fbincon/statusline-core/json-text';
 import { POWERLINE_FIELDS, POWERLINE_OPTIONS } from '@fbincon/statusline-core/contracts/ui';
@@ -10,7 +11,7 @@ const defaults = { padding: 'both', separator: 'arrow', start_cap: false, end_ca
 function display(value: unknown): unknown {
     if (!object(value) || canonical(value.schema_version) !== canonical(8) || !Array.isArray(value.instances) || Object.hasOwn(value, 'powerline')) return value;
     return Object.fromEntries(Object.entries(value).flatMap(([key, item]) => key === 'powerline_glyph'
-        ? [[key, item], ['powerline', defaults]] : [[key, key === 'schema_version' ? 11 : item]]));
+        ? [[key, item], ['powerline', defaults]] : key === 'schema_version' ? [[key, SCHEMA_VERSION], ['groups', []]] : [[key, key === 'subagents' && object(item) ? { ...item, groups: [] } : item]]));
 }
 export function appearanceBaseline(id: string, path: string, value: unknown): unknown {
     if (/^display-v[1-8]-read$/u.test(id) && path === '/value/effective') return display(value);

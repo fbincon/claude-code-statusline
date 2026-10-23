@@ -1,3 +1,4 @@
+import { groupedRows } from './groups.js';
 import { indicator } from './indicators.js';
 import { externalPresentation, sampleSource } from './extensions.js';
 import { fileLink } from '../terminal/links.js';
@@ -229,6 +230,14 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
     let parts = partsFor(task, config, nowMs, env, prepared);
     const p = prepared.palette, separator = p.separator ? p.separator + ' · ' + p.reset : ' · ';
     const styled = (part: Part) => part.style + part.text + (part.style ? p.reset : '');
+    if (config.subagents.groups.length) {
+        const byId = new Map(parts.map(part => [part.item, part]));
+        const cells: Cell[] = config.subagents.instances.map(node => {
+            const part = byId.get(node.id);
+            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used) : '', priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
+        });
+        return groupedRows(cells, config.subagents.groups, config, 'subagent', columns, separator, false, env.trace?.fit('subagent'), prepared.colors).join('');
+    }
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
         const nodes = prepared.nodes;
         const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });

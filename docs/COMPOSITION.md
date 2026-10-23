@@ -151,3 +151,22 @@ install the older package and its matching resources. Preserve the current
 configuration separately if you intend to upgrade again. Repeated instances and
 flexible layouts cannot be converted losslessly to an older schema; changing the
 schema number by hand is not a migration. See the [upgrade guide](USER_GUIDE.md#upgrading).
+
+## Component groups
+
+Open **Component groups** in Settings or press **Ctrl+B** in either editor. Select the main line or subagent template, then create a group by choosing its first/last members and primary metric. Arrows select/adjust; Enter on **Apply to draft** previews the change. Close the panel and use the usual display Save. Canceling a form leaves its previous draft intact.
+
+Groups contain at least two consecutive instances in one scope and one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
+
+Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances. Copying an individual member inserts a standalone copy after its group. Invalid moves retain the draft.
+
+```bash
+claude-statusline config group main list --json
+claude-statusline config group main create cost-block --members LABEL_ID,COST_ID --primary COST_ID --powerline on
+claude-statusline config group main set cost-block linked on
+claude-statusline config group main copy cost-block
+claude-statusline config group main move cost-block --before OTHER_ID
+claude-statusline config group main ungroup cost-block
+```
+
+Replace uppercase placeholders with IDs from `config instance main list`. `subagent` uses the same operations. `set` supports `primary`, comma-separated `members`, `linked on|off`, and `powerline on|off`. Profile saves/copies and portable export preserve groups; no source access or automatic refresh is granted. [Implementation and acceptance](development/m4-m7-delivery.md).

@@ -1,6 +1,6 @@
 import type { DisplayDraft, Scope, SampleReason, InstanceSample, LayoutReason, InstanceLayout } from '../contracts/ui.js';
 
-export type FitObserver = (id: string, reason: 'priority_omitted' | 'width_omitted' | 'truncated') => void;
+export type FitObserver = (id: string, reason: 'group_hidden' | 'priority_omitted' | 'width_omitted' | 'truncated') => void;
 /** Opt-in evidence from actual rendering decisions; never collects observations. */
 export class RenderTrace {
   private rows = new Map<string, InstanceLayout[]>();
