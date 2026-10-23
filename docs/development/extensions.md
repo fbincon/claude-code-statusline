@@ -19,6 +19,10 @@ See the [user guide](../EXTENSIONS.md) for configuration and examples.
   and a Windows kill-on-close Job Object terminate descendants; Windows creates
   the tool suspended and assigns it before resuming. The static supervisor never
   interpolates arguments into Shell source.
+  Windows supervisor bootstrap reads only OS folder variables from the loaded
+  profile and explicitly loads system PowerShell modules. The command receives
+  its separately serialized minimum environment, including the caller's HOME;
+  bootstrap folder recovery does not grant it the host's full environment.
 - CLI source services own the separate registry transaction, short-lived refresh
   jobs, revision checks, observation cache and GitHub provider. Jobs have one
   exclusive execution claim, a deadline, cancellation state and a source revision.

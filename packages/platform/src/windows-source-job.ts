@@ -2,8 +2,12 @@
  * Values cross JSON/argv boundaries, never PowerShell source interpolation. */
 export const windowsJobScript = String.raw `
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+$PSModuleAutoLoadingPreference = 'None'
+Import-Module ($PSHOME + '\Modules\Microsoft.PowerShell.Management\Microsoft.PowerShell.Management.psd1') -ErrorAction Stop
+Import-Module ($PSHOME + '\Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1') -ErrorAction Stop
 $spec = $env:STATUSLINE_SOURCE_LAUNCH | ConvertFrom-Json
-Remove-Item Env:STATUSLINE_SOURCE_LAUNCH
+$env:STATUSLINE_SOURCE_LAUNCH = $null
 Add-Type -TypeDefinition @'
 using System;
 using System.Text;
@@ -30,8 +34,9 @@ public static class StatuslineSourceJob {
   foreach(char c in value) { if(c=='\\') { slashes++; continue; } if(c=='"') b.Append('\\',slashes*2+1); else b.Append('\\',slashes); b.Append(c); slashes=0; }
   return b.Append('\\',slashes*2).Append('"').ToString();
  }
- public static int Run(string exe,string[] args,string cwd) {
+ public static int Run(string exe,string[] args,string cwd,string[] environment) {
   IntPtr job=CreateJobObject(IntPtr.Zero,null); ProcessInfo info=new ProcessInfo();
+  IntPtr block=IntPtr.Zero;
   try {
    if(job==IntPtr.Zero) return 125;
    Limits limits=new Limits(); limits.basic.flags=0x2000;
@@ -40,13 +45,16 @@ public static class StatuslineSourceJob {
    s.input=GetStdHandle(-10); s.output=GetStdHandle(-11); s.error=GetStdHandle(-12);
    SetHandleInformation(s.input,1,1); SetHandleInformation(s.output,1,1); SetHandleInformation(s.error,1,1);
    var line=new StringBuilder(Quote(exe)); foreach(string arg in args) line.Append(' ').Append(Quote(arg));
-   if(!CreateProcess(exe,line,IntPtr.Zero,IntPtr.Zero,true,0x08000004,IntPtr.Zero,cwd,ref s,out info)) return 126;
+   Array.Sort(environment,StringComparer.OrdinalIgnoreCase);
+   block=Marshal.StringToHGlobalUni(String.Join("\0",environment)+"\0\0");
+   if(!CreateProcess(exe,line,IntPtr.Zero,IntPtr.Zero,true,0x08000404,block,cwd,ref s,out info)) return 126;
    if(!AssignProcessToJobObject(job,info.process)) { TerminateProcess(info.process,125); return 125; }
    if(ResumeThread(info.thread)==0xffffffff) { TerminateProcess(info.process,125); return 125; }
    WaitForSingleObject(info.process,0xffffffff); uint code; GetExitCodeProcess(info.process,out code); return unchecked((int)code);
-  } finally { if(job!=IntPtr.Zero) CloseHandle(job); if(info.thread!=IntPtr.Zero) CloseHandle(info.thread); if(info.process!=IntPtr.Zero) CloseHandle(info.process); }
+  } finally { if(block!=IntPtr.Zero) Marshal.FreeHGlobal(block); if(job!=IntPtr.Zero) CloseHandle(job); if(info.thread!=IntPtr.Zero) CloseHandle(info.thread); if(info.process!=IntPtr.Zero) CloseHandle(info.process); }
  }
 }
 '@
-exit [StatuslineSourceJob]::Run([string]$spec.executable,[string[]]$spec.args,[string]$spec.cwd)
+$environment = @($spec.environment.PSObject.Properties | ForEach-Object { $_.Name + '=' + [string]$_.Value })
+exit [StatuslineSourceJob]::Run([string]$spec.executable,[string[]]$spec.args,[string]$spec.cwd,[string[]]$environment)
 `;

@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { which } from './commands.js';
 import { windowsJobScript } from './windows-source-job.js';
+import { windowsSourceEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
 export interface SourceProcessOptions {
     executable: string;
     args: readonly string[];
@@ -19,7 +20,7 @@ export interface SourceProcessResult {
 }
 /** User commands inherit only the OS essentials, never model/forge credentials. */
 export function sourceEnvironment(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
-    const allowed = new Set(['PATH', 'HOME', 'USER', 'LOGNAME', 'USERPROFILE', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', 'TEMP', 'TMP', 'TMPDIR', 'LANG', 'LC_ALL', 'LC_CTYPE']);
+    const allowed = new Set(['PATH', 'HOME', 'USER', 'LOGNAME', 'USERPROFILE', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', 'TEMP', 'TMP', 'TMPDIR', 'LANG', 'LC_ALL', 'LC_CTYPE', ...(process.platform === 'win32' ? WINDOWS_RUNTIME_FOLDERS : [])]);
     return Object.fromEntries(Object.entries(env).filter(([key]) => allowed.has(key.toUpperCase())));
 }
 /** Bound the entire tree, both output streams and the final pipe drain. No shell. */
@@ -27,7 +28,8 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
     if (options.signal?.aborted)
         return Promise.resolve({ code: null, stdout: '', reason: 'cancelled' });
     return new Promise(resolve => {
-        const windows = process.platform === 'win32', environment = { ...(options.environment ?? sourceEnvironment()) };
+        const started = performance.now(), windows = process.platform === 'win32', commandEnvironment = { ...(options.environment ?? sourceEnvironment()) };
+        let environment = commandEnvironment;
         let executable = options.executable, args = [...options.args];
         if (windows) {
             const found = which(executable);
@@ -36,7 +38,9 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
                 return;
             }
             executable = found;
-            environment.STATUSLINE_SOURCE_LAUNCH = JSON.stringify({ executable, args, cwd: options.cwd });
+            try { environment = windowsSourceEnvironment(commandEnvironment); }
+            catch { resolve({ code: null, stdout: '', reason: 'io_error' }); return; }
+            environment.STATUSLINE_SOURCE_LAUNCH = JSON.stringify({ executable, args, cwd: options.cwd, environment: commandEnvironment });
             executable = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
             args = ['-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(windowsJobScript, 'utf16le').toString('base64')];
         }
@@ -76,7 +80,7 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
             drain = setTimeout(finish, 500);
         };
         const cancel = () => stop('cancelled');
-        const timer = setTimeout(() => stop('timeout'), Math.max(1, options.timeoutMs));
+        const timer = setTimeout(() => stop('timeout'), Math.max(1, options.timeoutMs - (performance.now() - started)));
         options.signal?.addEventListener('abort', cancel, { once: true });
         const output = (data: Buffer, stdout: boolean) => {
             bytes += data.length;
