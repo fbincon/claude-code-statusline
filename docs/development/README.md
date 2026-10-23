@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+[Future functional roadmap](roadmap.md#milestones) and [development work packages](development-plan.md#future-work) define graphical indicators, component groups, GitHub automatic refresh and cost rates before homepage demonstrations, with independent Git invocation review. All six packages remain NOT_STARTED; candidates have separate entry conditions. These are plans without assigned versions or dates, not available features or implementation evidence.
+
 [CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
 
 [Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
@@ -24,7 +26,7 @@ The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows 
 
 ### Current development
 
-- [Product roadmap](roadmap.md) and [work-package plan](development-plan.md): direction, status, dependencies, scope and acceptance.
+- [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): product order, independent maintenance, scope, dependencies, compatibility and functional acceptance; delivered designs/evidence remain separate.
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
