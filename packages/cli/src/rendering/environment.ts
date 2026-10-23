@@ -1,3 +1,5 @@
+import { supportsLinks } from '@fbincon/statusline-core/terminal/links';
+import { matchesScope, observationContext } from '@fbincon/statusline-core/extensions/model';
 import { homedir, release } from 'node:os';
 import type { DisplayDraft } from '@fbincon/statusline-core/contracts/ui';
 import type { RenderEnvironment } from '@fbincon/statusline-core/rendering/context';
@@ -24,7 +26,7 @@ export async function presentation(language: string): Promise<Presentation> {
 }
 export function baseEnvironment(language: Presentation, options: EnvironmentOptions = {}): RenderEnvironment {
     const absent = () => { throw new Error('Unselected rendering source was requested'); };
-    return { language, compactStaged: process.platform === 'win32' || process.platform === 'linux' && Boolean(process.env.WSL_INTEROP || process.env.WSL_DISTRO_NAME || release().toLowerCase().includes('microsoft')), now: options.now ?? (() => Date.now() / 1000),
+    return { language, links: supportsLinks(process.env), compactStaged: process.platform === 'win32' || process.platform === 'linux' && Boolean(process.env.WSL_INTEROP || process.env.WSL_DISTRO_NAME || release().toLowerCase().includes('microsoft')), now: options.now ?? (() => Date.now() / 1000),
         directory: (value, style, project) => directory(value, style, project, options.home ?? homedir()), basename: pathName, formatDate, hostname: hostName,
         git: absent, branchDiff: absent, usage: () => null, task: absent, activePoint: () => ({ value: null }), hadSubagents: () => false,
         live: () => unavailable('not_observed'), agentEndings: () => ({}), ...options.observations };
@@ -35,6 +37,36 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
     const has = (...types: string[]) => types.some(type => selected.has(type)), payload = object(data) ? data : {}, sid = truth(payload.session_id), overrides = options.observations ?? {};
     let context = options.runtime;
     const runtime = async () => context ??= (await import('../runtime/context.js')).runtimeContext(options.configDir);
+    const sourceNodes = (subagents ? config.subagents.instances : config.instances).filter(node => node.enabled && ['external-value','github-pr','github-ci'].includes(node.type_id));
+    if (sourceNodes.length && !overrides.source) {
+        const [{ SourceService }, { contextFor }, { ConfigurationService }, { createStorage }] = await Promise.all([import('../sources/service.js'), import('../sources/context.js'), import('../config/service.js'), import('../config/storage.js')]);
+        const sourceService = new SourceService(new ConfigurationService({ configDir: (await runtime()).configDir, launch: {executable:process.execPath,args:[]}, hostVersion:()=>null }, createStorage()));
+        const views = new Map<string, import('@fbincon/statusline-core/contracts/ui').SourceView>();
+        const contexts = new Map<string, ReturnType<typeof contextFor>>();
+        let registry: ReturnType<typeof sourceService.read> | null;
+        try { registry = sourceService.read(); } catch { registry = null; }
+        env.source = (node, input, agent) => {
+            const broken = (): import('@fbincon/statusline-core/contracts/ui').SourceView => ({source_id:null,name:node.source?.hint??'',state:'error',reason:'invalid',observed_at:null,freshness:'unknown',value:null,unit:null});
+            if (!registry) return broken();
+            const binding = registry.bindings.find(binding => binding.id === node.source?.binding), source = registry.sources.find(source => source.id === binding?.source_id);
+            const cwd = liveDirectory(input) ?? liveDirectory(payload), session = typeof payload.session_id === 'string' ? payload.session_id : null;
+            const contextKey = JSON.stringify([cwd, session]);
+            let context = contexts.get(contextKey);
+            if (!context) {
+                context = !source?.enabled ? {project:null,session:null,agent:null,branch:null,head:null} : contextFor(cwd, session);
+                if (source?.enabled) contexts.set(contextKey, context);
+            }
+            context = {...context, agent:agent ?? null};
+            const key = (source?.id ?? node.source?.binding ?? '') + ':' + JSON.stringify(source && matchesScope(source.scope, context) ? observationContext(source, context) : context);
+            let view = views.get(key);
+            if (!view) {
+                try { view = sourceService.view(node.source, context); } catch { view = broken(); }
+                if (node.type_id.startsWith('github-') && source && source.kind !== 'github') view = {...broken(),state:'unsupported',reason:'binding'};
+                views.set(key, view);
+            }
+            return view;
+        };
+    }
     if (subagents) {
         if (typeof payload.session_id === 'string' && payload.session_id && !overrides.agentEndings && Array.isArray(payload.tasks) && payload.tasks.some(task => object(task) && ['completed', 'failed', 'killed', 'interrupted'].includes(task.status as string) && !Object.hasOwn(task, '_frozen_duration_ms'))) {
             const { AgentDurations } = await import('../runtime/live/durations.js'), source = new AgentDurations(await runtime());

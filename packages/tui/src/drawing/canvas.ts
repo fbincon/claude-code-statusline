@@ -1,3 +1,4 @@
+import { safeLink, linkSequence, CLOSE_LINK } from '@fbincon/statusline-core/terminal/links';
 /** Bounded terminal cells and ANSI serialization, independent of editor state. */
 import { clip, clusterWidth, displayWidth } from '@fbincon/statusline-core/unicode/index';
 import { clipSpans, clusterSpans } from '@fbincon/statusline-core/terminal/spans';
@@ -85,7 +86,7 @@ export class Canvas {
                         continue;
                     }
                     const last = spans.at(-1);
-                    if (last && last.bold === cell.bold && last.reverse === cell.reverse &&
+                    if (last && last.link === cell.link && last.bold === cell.bold && last.reverse === cell.reverse &&
                         last.foreground === cell.foreground && last.background === cell.background) {
                         last.text += cell.text;
                     } else {
@@ -126,7 +127,7 @@ export function ansiFrame(value: Frame, colors = 256): string {
                 typeof foreground.value === 'number' && foreground.value >= 8 && foreground.value < 16;
             output += '\x1b[0m' + (span.bold || bright ? '\x1b[1m' : '') +
                 (span.reverse ? '\x1b[7m' : '') + color(foreground, false) +
-                color(span.background, true) + safe(span.text);
+                color(span.background, true) + (safeLink(span.link) ? linkSequence(safeLink(span.link)!) : '') + safe(span.text) + (safeLink(span.link) ? CLOSE_LINK : '');
         }
     }
     return output + '\x1b[0m';

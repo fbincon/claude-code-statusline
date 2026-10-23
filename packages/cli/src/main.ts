@@ -91,11 +91,11 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         if (isLinkOrReparse(configDir)) configDir = resolvedPath(configDir);
         const preferences = readPreferences(configDir, createStorage(environment.now));
         language = (selectedLanguage ?? preferences.ui_language) as Language;
-        if (['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
+        if (['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'source'].includes(args[0] ?? '') && directoryFlag === '--config-dir' && (requestedDirectory === undefined || optionToken(requestedDirectory))) throw new ArgumentError('--config-dir requires a path');
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
             const command = args[0];
-            if (command && !command.startsWith('-') && !['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command && !command.startsWith('-') && !['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'source', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
             if (command === 'config') {
                 const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
                 if (!['profile','project'].includes(args[offset] ?? '')) validateConfigHelp(args.slice(offset));
@@ -105,7 +105,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             return 0;
         }
         const command = args.shift();
-        if (!['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
+        if (!['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'source', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);
         if (administrative) {
             const { parseAdministration } = await import('./integration/arguments.js');
@@ -189,6 +189,16 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         }
         const launch = environment.launch ?? { executable: process.execPath, args: [fileURLToPath(new URL('./entry.js', import.meta.url))] };
         const service = new ConfigurationService({ configDir, launch, hostVersion: environment.hostVersion ?? detectClaudeVersion }, createStorage(environment.now));
+        if (command === 'source') {
+            const { sourceCommand } = await import('./sources/command.js');
+            try { const result = await sourceCommand(args, service, language); if (result) stdout(result + '\n');
+                const job = ['refresh','status','cancel'].includes(args[0] ?? '') && result ? JSON.parse(result) : null;
+                return job && ['failed','cancelled'].includes(job.state) ? 2 : 0; }
+            catch(error) {
+                if (!args.includes('--json')) throw error;
+                stdout(JSON.stringify({error:{code:error instanceof ConfigError ? error.code : 'io_error',message:error instanceof ConfigError ? t(error.key,language,error.params) : 'Source operation failed'}})+'\n');return 2;
+            }
+        }
         if (command === 'configure') {
             const { configure } = await import('./integration/configure.js');
             const { ProfileService } = await import('./config/profiles.js');

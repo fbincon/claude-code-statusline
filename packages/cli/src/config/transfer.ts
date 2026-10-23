@@ -1,3 +1,4 @@
+import { unboundDisplay } from '@fbincon/statusline-core/extensions/portable';
 import * as fs from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -39,12 +40,12 @@ export function importFile(path: string, current: Draft): Draft {
         return fail('errors.transfer.invalid_import_json', { exc: errorDetail(exc) });
     }
     if (object(data) && Object.hasOwn(data, 'schema_version'))
-        return validateDraft({ display: data, host: current.host });
+        return { ...validateDraft({ display: data, host: current.host }), display: unboundDisplay(validateDraft({ display: data, host: current.host }).display) };
     if (!object(data) || Object.keys(data).length !== 3 || !['format', 'version', 'draft'].every(key => Object.hasOwn(data, key)))
         fail('errors.transfer.import_requires_a_portable_envelope_or_a');
     if (data.format !== FORMAT || !isSchema(data.version, VERSION))
         fail('errors.transfer.unsupported_portable_configuration_format_version');
-    return validateDraft(data.draft);
+    const parsed = validateDraft(data.draft); return { ...parsed, display: unboundDisplay(parsed.display) };
 }
 export function exportFile(path: string, draft: Draft, directory: string, overwrite = false): string {
     const raw = Buffer.from(exportText(draft));
@@ -54,7 +55,7 @@ export function exportBytes(path: string, raw: Buffer, directory: string, overwr
     path = resolve(expandUser(path));
     const target = resolvedPath(path), root = resolvedPath(directory);
     const same = (left: string, right: string) => process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
-    const protectedFile = ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline-ui.json'].some(name => same(target, join(root, name)));
+    const protectedFile = ['settings.json', 'claude-statusline.json', 'claude-statusline-profiles.json', 'claude-statusline-sources.json', 'claude-statusline-features.json', 'claude-statusline-native.json', 'claude-statusline-runtime.json', 'statusline-ui.json'].some(name => same(target, join(root, name)));
     const ownedDirectory = ['statusline-native', 'statusline-runtime', 'statusline_runtime'].some(name => {
         const rel = relative(join(root, name), target);
         return rel !== '' && rel !== '..' && !rel.startsWith('..' + (process.platform === 'win32' ? '\\' : '/')) && !isAbsolute(rel);

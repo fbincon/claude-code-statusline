@@ -1,3 +1,4 @@
+import { unboundDisplay } from '@fbincon/statusline-core/extensions/portable';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { ConfigTarget, DisplayDraft, ProfileCollection, ProfilesResult } from '@fbincon/statusline-core/contracts/ui';
@@ -157,6 +158,6 @@ export class ProfileService {
         }
     }
     export(path: string, name: string, display: unknown, overwrite = false) {
-        return { path: exportBytes(path, jsonBytes({ format: PROFILE_FORMAT, version: PROFILE_VERSION, name: profileName(name), display: validateDisplay(display) }), this.service.context.configDir, overwrite) };
+        return { path: exportBytes(path, jsonBytes({ format: PROFILE_FORMAT, version: PROFILE_VERSION, name: profileName(name), display: unboundDisplay(validateDisplay(display)) }), this.service.context.configDir, overwrite) };
     }
 }

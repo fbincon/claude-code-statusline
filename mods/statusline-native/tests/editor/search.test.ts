@@ -20,8 +20,8 @@ test('shared Unicode codepoint matches and stable search tiers', () => {
 test('add discovery searches all languages without changing configured instances', () => {
   const editor=new Editor({...description(),catalog:SEARCH_CATALOG as CatalogItem[]},readResult());
   const order=[...editor.order.main];
-  expect(editor.categories('main').length).toBe(12);
-  expect(editor.categories('subagent')).toEqual(['all','task','model','context','location','layout']);
+  expect(editor.categories('main').length).toBe(13);
+  expect(editor.categories('subagent')).toEqual(['all','task','model','context','location','layout','extensions']);
   editor.openPicker('main');
   for(const query of ['mwe','推理','仓库','Repository']){
     editor.filter('main',query);expect(editor.visible('main').length>0).toBe(true);

@@ -30,7 +30,7 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     const call = (operation: string, payload = {}) => { operations.add(operation); return backend.parseResponse(operation, f.run('ui', backend.requestText(operation, payload))); };
     const description = call('describe');
     assert.equal(description.backend_version, VERSION);
-    assert.equal(description.catalog.length, 79);
+    assert.equal(description.catalog.length, 83);
     const baseline = call('read');
     assert.equal(baseline.installed, true);
     assert.equal(baseline.installation.statusLine.state, 'owned');
@@ -80,6 +80,18 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
     assert.deepEqual(call('profile_import', { path: profileFile }).display, changed.display);
     const detail = call('task_details', { session_id: 'isolated' });
     assert.equal(detail.prompt_id, null);
+    const sourceFile = join(f.root,'external.json');writeFileSync(sourceFile,'{"value":0}');
+    const sourceLibrary = call('sources_read');
+    const added = call('sources_apply',{action:'add',id:'external',expected_revision:sourceLibrary.revision,source:{name:'External',kind:'json',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{path:sourceFile}}});
+    const sourceReview = call('source_review',{id:'external'});
+    call('sources_apply',{action:'enable',id:'external',expected_revision:added.revision,review_revision:sourceReview.review_revision});
+    const sourceContext = call('source_context',{project:f.root,session:null,agent:null});
+    let job = call('source_refresh',{id:'external',context:sourceContext,owner:'mod-test'});
+    const deadline=Date.now()+15000;
+    while(job.state==='running'&&Date.now()<deadline){await new Promise(resolve=>setTimeout(resolve,100));job=call('source_status',{id:job.id});}
+    assert.equal(job.state,'completed');
+    assert.equal(call('source_cancel',{id:job.id}).state,'completed');
+    assert.equal(call('source_diagnose',{id:'external',context:sourceContext}).view.value,0);
     assert.deepEqual([...operations].sort(), description.operations.toSorted());
     const rendered = f.run('render', '{"model":{"id":"Python-free"},"context_window":{"remaining_percentage":50}}');
     assert.equal(rendered.exitCode, 0);

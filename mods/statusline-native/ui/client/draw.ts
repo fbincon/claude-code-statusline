@@ -1,3 +1,4 @@
+import { sourcesView } from '../../lib/editor/source-manager.ts';
 import { explanationLines } from '../../lib/editor/explanation.ts';
 import { quickView } from '../../lib/editor/quick-setup.ts';
 import { inputView, textInput } from '../../lib/editor/text-input.ts';
@@ -56,7 +57,10 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if(e.profiles) {
+  if(e.sources) {
+    title=tr('sources.title');
+    content.push(...sourcesView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
+  } else if(e.profiles) {
     title = tr('profiles.title');
     content.push(...profilesView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected))));
   } else if(e.explanation) {

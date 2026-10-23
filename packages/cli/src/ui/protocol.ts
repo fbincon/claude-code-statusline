@@ -1,3 +1,6 @@
+import { SourceService } from '../sources/service.js';
+import { contextFor } from '../sources/context.js';
+import { sourceContext } from '@fbincon/statusline-core/extensions/model';
 import { RenderTrace } from '@fbincon/statusline-core/rendering/trace';
 import { explain } from '@fbincon/statusline-core/rendering/explain';
 import { explanationFacts } from './explain.js';
@@ -23,7 +26,7 @@ import { errorDescription } from '@fbincon/statusline-platform/errors';
 import { ProfileService } from '../config/profiles.js';
 import { taskAdapter } from '../tasks/service.js';
 export const BACKEND_VERSION = VERSION;
-export const OPERATIONS = ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
+export const OPERATIONS = ['sources_read', 'sources_apply', 'source_review', 'source_context', 'source_refresh', 'source_status', 'source_cancel', 'source_diagnose', 'describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details'] as const;
 export type Preview = (draft: Draft, width: number, trace?: RenderTrace) => contracts.PreviewResult;
 export function capabilities(version: readonly number[] | null): contracts.Capabilities {
     return {
@@ -57,6 +60,23 @@ export class ConfigurationProtocol {
         if (typeof operation !== 'string' || !(OPERATIONS as readonly string[]).includes(operation))
             throw new ConfigError('errors.protocol.unsupported_configuration_operation', {}, 'unsupported_operation');
         const payload = request.payload;
+        if (operation.startsWith('source')) {
+            const sources = new SourceService(this.service);
+            if (operation === 'sources_read') { requestObject(payload, [], 'payload'); return sources.read(); }
+            if (operation === 'sources_apply') return sources.mutate(payload);
+            if (operation === 'source_context') {
+                requestObject(payload, ['project','session','agent'], 'payload');
+                for (const key of ['project','session','agent']) if (payload[key] !== null && typeof payload[key] !== 'string') throw new ConfigError('sources.error.invalid');
+                return contextFor(payload.project as string | null ?? process.cwd(), payload.session as string | null, payload.agent as string | null);
+            }
+            requestObject(payload, operation === 'source_refresh' ? ['id','context','owner'] : operation === 'source_diagnose' ? ['id','context'] : ['id'], 'payload');
+            if (operation === 'source_review') return sources.review(payload.id);
+            if (operation === 'source_status') return sources.job(payload.id);
+            if (operation === 'source_cancel') return sources.cancel(payload.id);
+            if (operation === 'source_diagnose') return sources.diagnose(payload.id, sourceContext(payload.context));
+            return sources.start(payload.id, payload.context, payload.owner);
+        }
+
         if (operation === 'task_details') return taskAdapter(this.service.context.configDir)(payload);
         if (operation === 'profiles_read' || operation === 'profiles_apply' || operation === 'profile_import' || operation === 'profile_export') {
             const profiles = new ProfileService(this.service, this.nextId);

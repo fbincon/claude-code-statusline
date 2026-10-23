@@ -31,8 +31,12 @@ try {
     const prepared = spawnSync(f.node, [driver, f.modules, 'prepare-host', config, join(f.temporary, 'prepared.json'), request], { cwd: project, env, encoding: 'utf8', timeout: 180000 });
     if (prepared.status !== 0)
         throw new Error(prepared.stderr);
+    const sourceSpec = join(f.temporary, 'source-spec.json');
+    fs.writeFileSync(sourceSpec, JSON.stringify({name:'Sample local source',kind:'json',settings:{path:join(project,'explicit.json')}}));
+    const added = spawnSync(f.node,[shim,'source','add','sample','--file',sourceSpec],{cwd:project,env,encoding:'utf8',timeout:30000});
+    if (added.status !== 0) throw new Error('Source fixture creation failed: '+added.stderr);
     p = openPty(config, 120, 36, env, 'en', { executable: host.executable, args: [...host.args, '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'], cwd: project });
-    let offset = 0, confirmed = false, sent = false, manager = false, quickOpened = false, saved = false, taskOpened = false, taskRendered = false;
+    let offset = 0, confirmed = false, sent = false, manager = false, sourcesOpened = false, sourceReviewed = false, quickOpened = false, saved = false, taskOpened = false, taskRendered = false;
     const screen = new Capture(120, 36);
     let byteOffset = 0;
     const start = Date.now();
@@ -58,13 +62,26 @@ try {
             sent = true;
         }
         records = fs.existsSync(receipt) ? fs.readFileSync(receipt, 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
-        if (!manager && records.some(row => row.argv[0] === 'ui' && row.operation === 'preview') && output.includes('Click')) {
+        if (!sourcesOpened && records.some(row => row.argv[0] === 'ui' && row.operation === 'preview') && output.includes('Click')) {
             // In this captured 120x36 frame the Client occupies columns 49-120;
             // its first item is on row 8. Focus that observed Client region.
             p.send('\x1b[<0;65;8M\x1b[<0;65;8m');
             await new Promise(resolve => setTimeout(resolve, 200));
-            p.send('\x0f');
-            manager = true;
+            p.send('\x19');
+            sourcesOpened = true;
+        }
+        if (sourcesOpened && !sourceReviewed && records.some(row => row.operation === 'sources_read' && row.phase === 'complete' && row.status === 0)) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+            p.send('\r\x1b[B\r');
+            sourceReviewed = true;
+        }
+        if (sourceReviewed && !manager && records.some(row => row.operation === 'source_review' && row.phase === 'complete' && row.status === 0)) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            const sourceScreen = new Capture(120,36); sourceScreen.feed(p.captured());
+            fs.writeFileSync(reportPath.replace(/\.json$/u,'.sources.cells.json'),JSON.stringify({columns:120,rows:36,cells:sourceScreen.buffer,terminal_foreground:'#d8dee9',terminal_background:'#171a1f'}));
+            p.send('\x07'); await new Promise(resolve => setTimeout(resolve, 150));
+            p.send('\x07'); await new Promise(resolve => setTimeout(resolve, 150));
+            p.send('\x0f'); manager = true;
         }
         if (manager && !quickOpened && records.some(row => row.operation === 'profiles_read' && row.phase === 'complete' && row.status === 0)) {
             // Escape releases the native Client focus; Ctrl+G closes its overlay.
@@ -100,9 +117,9 @@ try {
     const display = join(config, 'claude-statusline.json');
     const completed = (operation: string) => records.some(row => row.operation === operation && row.phase === 'complete' && row.status === 0);
     const savedDisplay = fs.existsSync(display) ? JSON.parse(fs.readFileSync(display, 'utf8')) : null;
-    const completeSchemeSaved = savedDisplay?.schema_version === 9 && savedDisplay.theme === 'terminal'
+    const completeSchemeSaved = savedDisplay?.schema_version === 10 && savedDisplay.theme === 'terminal'
         && JSON.stringify(savedDisplay.layout.rows[0]) === JSON.stringify(['context-used', 'five-hour-limit', 'weekly-limit']);
-    report = { status: taskRendered && commands.includes('runtime') && ['apply','profiles_read','preset','task_details'].every(completed) && completeSchemeSaved ? 'pass' : 'unverified', host: version, source: f.packed.source, tarball_sha256: f.packed.sha256, installed_resources: true, real_host_commands: commands, native_operations: operations, display_saved: fs.existsSync(display), complete_scheme_saved: completeSchemeSaved, task_pane_rendered: taskRendered, model_calls: 0, credentials: 'synthetic key and unreachable loopback API', physical_visual_acceptance: false };
+    report = { status: taskRendered && commands.includes('runtime') && ['apply','profiles_read','preset','task_details','sources_read','source_review'].every(completed) && completeSchemeSaved ? 'pass' : 'unverified', host: version, source: f.packed.source, tarball_sha256: f.packed.sha256, installed_resources: true, real_host_commands: commands, native_operations: operations, display_saved: fs.existsSync(display), complete_scheme_saved: completeSchemeSaved, task_pane_rendered: taskRendered, model_calls: 0, credentials: 'synthetic key and unreachable loopback API', physical_visual_acceptance: false };
     fs.writeFileSync(reportPath.replace(/\.json$/u, '.terminal.bin'), p.captured());
     fs.writeFileSync(reportPath.replace(/\.json$/u, '.cells.json'), JSON.stringify({ columns: 120, rows: 36, cells: screen.buffer,
         terminal_foreground: '#d8dee9', terminal_background: '#171a1f' }) + '\n');
