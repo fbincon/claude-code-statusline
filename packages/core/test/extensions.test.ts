@@ -27,6 +27,9 @@ test('freshness, errors and identities cannot turn old observations into live su
     assert.equal(sourceView(source,context,good,good,now).freshness,'stale');
     const failed=sourceView(source,context,emptyObservation(source,context,'read_error'),good,now);
     assert.equal(failed.value,0);assert.equal(failed.state,'error');
+    const rejected = parseObservation({value:999,state:'error'},source,context);
+    assert.equal(sourceView(source,context,rejected,good,now).value,0);
+    assert.equal(sourceView(source,context,rejected,null,now).value,null);
     const mismatch=sourceView(source,{...context,head:'b'.repeat(40)},good,good,now);
     assert.equal(mismatch.value,null);assert.equal(mismatch.state,'mismatch');
     assert.equal(sourceView({...source,enabled:false},context,good,good,now).value,null);

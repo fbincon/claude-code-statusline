@@ -222,7 +222,7 @@ export function sourceView(source: SourceDefinition | undefined, context: Source
         return { ...result, state: 'missing', reason: 'not_refreshed' };
     if (['scope','identity','account'].includes(current.reason))
         return { ...result, state: 'mismatch', reason: current.reason };
-    const latest = current.value !== null ? current : valid(good) ? good! : current;
+    const latest = current.value !== null && ['valid', 'partial'].includes(current.state) ? current : valid(good) ? good! : { ...current, value: null, unit: null, fields: undefined };
     const time = latest.observed_at === null ? null : Date.parse(latest.observed_at), age = time === null ? null : now - time;
     return { ...result, state: current.state, reason: current.reason, value: latest.value, unit: latest.unit, observed_at: latest.observed_at,
         freshness: age === null || age < 0 ? 'unknown' : age > source.ttl_seconds * 1000 ? 'stale' : 'current', ...(latest.fields ? { fields: latest.fields } : {}) };
