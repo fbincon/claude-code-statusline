@@ -38,3 +38,5 @@ M4 [PR #129](https://github.com/fbincon/claude-code-statusline/pull/129) merged 
 ## WORKFLOW-02
 
 M6 local full checks passed (1,152 tests, five platform skips), including seven scheduling/editor cases. Claude 2.1.294 runtime Mod tests passed 16/16 and native editor tests passed 131/131; both exact-host TypeScript checks passed. Runtime v1/v2 observation compatibility and all 161 frozen cases passed with the narrowly bounded v3 malformed-input envelope migration. Installed acceptance adds four policy/lifecycle cases. The scheduler retains at most 64 session leases and 512 schedules under the private 1 MiB state limit; ordinary render and preview do not schedule work.
+
+M6 candidate `cc8d0d4790edbea00f2c60994394570e0ba50502` built twice with identical SHA-256 `5b98410377c121d224d1cc78d075d5151af0839f851d0d23afb15bc0a9475f2b`; all 15 isolated Linux installation checks passed, including four automatic policy/lifecycle cases. PR/main gates remain pending.
