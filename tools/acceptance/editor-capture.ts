@@ -137,7 +137,7 @@ try {
                 capture('sources-review-details');
                 await key('\x07');
                 await key('\x1b[B\r');
-                await key('\x1b[B'.repeat(10) + '\r', t('sources.automatic_review', language));
+                await key('\x1b[B'.repeat(10) + '\r', t('sources.interval', language));
                 capture('automatic-review');
                 await key('\x1b[C'); capture('automatic-interval');
                 await key('\x07');
