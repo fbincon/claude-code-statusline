@@ -1,4 +1,5 @@
 import { nativeApi, nativeFunction, winError } from './native.js';
+import { join } from 'node:path';
 
 export const WINDOWS_RUNTIME_FOLDERS = ['USERPROFILE', 'HOME', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA', 'SYSTEMDRIVE', 'PROGRAMDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)', 'PROGRAMW6432', 'COMMONPROGRAMFILES', 'COMMONPROGRAMFILES(X86)', 'COMMONPROGRAMW6432'];
 
@@ -8,6 +9,11 @@ export const WINDOWS_RUNTIME_FOLDERS = ['USERPROFILE', 'HOME', 'HOMEDRIVE', 'HOM
  */
 function operatingSystemFolders(): Record<string, string> {
     const api = nativeApi(), tokenBytes = Buffer.alloc(api.sizeof('void *'));
+    const directory = Buffer.alloc(65536);
+    const length = nativeFunction('kernel32.dll', 'uint32_t GetSystemDirectoryW(_Out_ void *buffer, uint32_t size)')(directory, directory.length / 2) as number;
+    if (!length || length >= directory.length / 2) throw winError('GetSystemDirectoryW');
+    // Never resolve this newly loaded DLL relative to a project directory.
+    const userenv = join(directory.toString('utf16le', 0, length * 2), 'userenv.dll');
     const current = nativeFunction('kernel32.dll', 'void *GetCurrentProcess()')();
     if (!nativeFunction('advapi32.dll', 'bool OpenProcessToken(void *process, uint32_t access, _Out_ void *token)')(current, 0x000a, tokenBytes))
         throw winError('OpenProcessToken');
@@ -15,7 +21,7 @@ function operatingSystemFolders(): Record<string, string> {
     let block: unknown;
     try {
         const pointer = Buffer.alloc(api.sizeof('void *'));
-        if (!nativeFunction('userenv.dll', 'bool CreateEnvironmentBlock(_Out_ void *environment, void *token, bool inherit)')(pointer, token, false))
+        if (!nativeFunction(userenv, 'bool CreateEnvironmentBlock(_Out_ void *environment, void *token, bool inherit)')(pointer, token, false))
             throw winError('CreateEnvironmentBlock');
         block = api.decode(pointer, 'void *');
         const result: Record<string, string> = {};
@@ -30,7 +36,7 @@ function operatingSystemFolders(): Record<string, string> {
         }
         throw new Error('Windows environment block exceeds its bound');
     } finally {
-        if (block) nativeFunction('userenv.dll', 'bool DestroyEnvironmentBlock(void *environment)')(block);
+        if (block) nativeFunction(userenv, 'bool DestroyEnvironmentBlock(void *environment)')(block);
         nativeFunction('kernel32.dll', 'bool CloseHandle(void *handle)')(token);
     }
 }
