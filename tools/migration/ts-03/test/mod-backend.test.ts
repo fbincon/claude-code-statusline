@@ -107,8 +107,8 @@ test('unmodified native Mod request/parser accepts every TS UI v11 operation wit
 test('unmodified runtime Mod queue confirms TS acknowledgements, retries and v1 compatibility without Python', async (t) => {
     const f = await fixture(t), { Queue, confirmedResponse } = f.runtime, queue = new Queue(true, true), now = Date.now();
     const preferences = (timing: boolean, metrics: boolean) => writeFileSync(join(f.config, 'claude-statusline-runtime.json'), JSON.stringify({ schema_version: 2, native_timing: timing, live_metrics: metrics }));
-    const observe = (rows: unknown[], version = 2) => f.run('runtime', JSON.stringify({ protocol_version: version, operation: 'observe', payload: { observations: rows } }));
-    const read = (version = 2) => f.run('runtime', JSON.stringify({ protocol_version: version, operation: 'read', payload: { session_id: 'session', prompt_id: 'p' } }));
+    const observe = (rows: unknown[], version = 3) => f.run('runtime', JSON.stringify({ protocol_version: version, operation: 'observe', payload: { observations: rows } }));
+    const read = (version = 3) => f.run('runtime', JSON.stringify({ protocol_version: version, operation: 'read', payload: { session_id: 'session', prompt_id: 'p' } }));
     preferences(true, true);
     queue.bind('session', now);
     queue.push('heartbeat', { host_version: '2.1.296', loaded_at_ms: now }, now);
@@ -125,7 +125,7 @@ test('unmodified runtime Mod queue confirms TS acknowledgements, retries and v1 
     assert.equal(JSON.parse(duplicate.stdout).result.ignored, 3);
     queue.acknowledge(batch);
     assert.equal(queue.pending.length, 0);
-    for (const version of [1, 2]) {
+    for (const version of [1, 2, 3]) {
         const result = read(version);
         assert.equal(result.exitCode, 0);
         const response = JSON.parse(result.stdout);

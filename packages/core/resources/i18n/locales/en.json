@@ -1853,5 +1853,12 @@
   "settings.component-groups": "Component groups",
   "native.settings.component-groups": "Component groups",
   "cli.help.component_groups": "Component groups",
-  "ui.actions.component-groups": "Edit group"
+  "ui.actions.component-groups": "Edit group",
+  "sources.auto-review": "Review automatic refresh",
+  "sources.auto-off": "Disable automatic refresh",
+  "sources.automatic_on": "Automatic: on",
+  "sources.automatic_off": "Automatic: off",
+  "sources.automatic_review": "Review this source for recurring GitHub PR/CI queries during supported active sessions. Enter saves the local policy; ←/→ changes the interval.",
+  "sources.interval": "Refresh interval",
+  "sources.automatic_saved": "Automatic policy saved. Apply host integration and restart the session when the runtime Mod is not installed or configured."
 }

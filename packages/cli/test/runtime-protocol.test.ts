@@ -39,7 +39,7 @@ test('tests.runtime.live.test_protocol.RuntimeProtocolTests.test_json_stdout_err
         const result = await run({ executable: process.execPath, args: [fileURLToPath(new URL('../src/entry.js', import.meta.url))] }, ['runtime', '--config-dir', config], input, 30000, { ...process.env, CLAUDE_STATUSLINE_RUNTIME_DIR: f.context.runtimeRoot });
         assert.equal(result.code, index === 3 ? 0 : 2, result.stdout + result.stderr);
         assert.equal(result.stderr, '');
-        assert.equal(JSON.parse(result.stdout).protocol_version, index === 1 || index === 2 ? 2 : 1);
+        assert.equal(JSON.parse(result.stdout).protocol_version, index === 1 || index === 2 ? 3 : 1);
     }
 });
 test('tests.runtime.live.test_protocol.RuntimeProtocolTests.test_corrupt_state_is_unavailable_and_read_does_not_repair', t => {

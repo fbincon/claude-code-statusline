@@ -1853,5 +1853,12 @@
   "settings.component-groups": "コンポーネントのグループ",
   "native.settings.component-groups": "コンポーネントのグループ",
   "cli.help.component_groups": "コンポーネントのグループ",
-  "ui.actions.component-groups": "グループを編集"
+  "ui.actions.component-groups": "グループを編集",
+  "sources.auto-review": "自動更新を確認",
+  "sources.auto-off": "自動更新を無効化",
+  "sources.automatic_on": "自動更新：オン",
+  "sources.automatic_off": "自動更新：オフ",
+  "sources.automatic_review": "対応するアクティブなセッション中に GitHub PR/CI を定期取得するソースを確認します。Enter でローカル設定を保存し、←/→ で間隔を変更します。",
+  "sources.interval": "更新間隔",
+  "sources.automatic_saved": "自動更新設定を保存しました。ランタイム Mod が未導入または未設定の場合はホスト統合を適用し、セッションを再起動してください。"
 }

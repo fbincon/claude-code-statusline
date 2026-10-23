@@ -4,7 +4,7 @@
 
 Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`2bdf429d3356796232efff926235617cdab4f430`**
 
-This plan defines work-package scope, dependencies, implementation slices and acceptance intent. The [roadmap](roadmap.md) owns product priority and current status. The selected product order is APPEARANCE-03 → COMPOSITION-02 → WORKFLOW-02 → METRICS-01 → SHOWCASE-01, with GIT-01 as independent maintenance. These six packages are **NOT_STARTED**, without assigned versions or delivery dates. CI-01 remains **DONE**. This documentation update starts no implementation and publishes no product version.
+This plan defines work-package scope, dependencies, implementation slices and acceptance intent. The [roadmap](roadmap.md) owns product priority and current status. The selected product order is APPEARANCE-03 → COMPOSITION-02 → WORKFLOW-02 → METRICS-01 → SHOWCASE-01, with GIT-01 as independent maintenance. These six packages are **IN_PROGRESS**, without assigned versions or delivery dates. CI-01 remains **DONE**. This documentation update starts no implementation and publishes no product version.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.6.0 decision](../releases/approvals/v3.6.0.json) records their acceptance for that release.
 
@@ -21,7 +21,7 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 | Independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | NOT_STARTED |
 | M4 | [APPEARANCE-03](#appearance-03) | Existing context/quota observations, formatting and layout | NOT_STARTED |
 | M5 | [COMPOSITION-02](#composition-02) | Existing instances, visibility and Powerline; independent of M4 | NOT_STARTED |
-| M6 | [WORKFLOW-02](#workflow-02) | Delivered EXTENSIONS-01 and WORKFLOW-01; GitHub only | NOT_STARTED |
+| M6 | [WORKFLOW-02](#workflow-02) | Delivered EXTENSIONS-01 and WORKFLOW-01; GitHub only | IN_PROGRESS |
 | M7 | [METRICS-01](#metrics-01) | Existing session cost and duration fields; independent of M6 | NOT_STARTED |
 | M8 | [SHOWCASE-01](#showcase-01) | Accepted features and a matching installed artifact; retain the existing ID | NOT_STARTED |
 

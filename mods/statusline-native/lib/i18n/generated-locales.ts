@@ -1863,7 +1863,14 @@ export const LOCALES = {
     "settings.component-groups": "Component groups",
     "native.settings.component-groups": "Component groups",
     "cli.help.component_groups": "Component groups",
-    "ui.actions.component-groups": "Edit group"
+    "ui.actions.component-groups": "Edit group",
+    "sources.auto-review": "Review automatic refresh",
+    "sources.auto-off": "Disable automatic refresh",
+    "sources.automatic_on": "Automatic: on",
+    "sources.automatic_off": "Automatic: off",
+    "sources.automatic_review": "Review this source for recurring GitHub PR/CI queries during supported active sessions. Enter saves the local policy; ←/→ changes the interval.",
+    "sources.interval": "Refresh interval",
+    "sources.automatic_saved": "Automatic policy saved. Apply host integration and restart the session when the runtime Mod is not installed or configured."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3720,7 +3727,14 @@ export const LOCALES = {
     "settings.component-groups": "组件分组",
     "native.settings.component-groups": "组件分组",
     "cli.help.component_groups": "组件分组",
-    "ui.actions.component-groups": "编辑分组"
+    "ui.actions.component-groups": "编辑分组",
+    "sources.auto-review": "审核自动刷新",
+    "sources.auto-off": "关闭自动刷新",
+    "sources.automatic_on": "自动刷新：开",
+    "sources.automatic_off": "自动刷新：关",
+    "sources.automatic_review": "审核此来源，允许在支持的活跃会话中定期查询 GitHub PR/CI。回车保存本机策略；←/→ 调整间隔。",
+    "sources.interval": "刷新间隔",
+    "sources.automatic_saved": "自动策略已保存。若运行时 Mod 尚未安装或配置，请应用宿主集成并重启会话。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5577,7 +5591,14 @@ export const LOCALES = {
     "settings.component-groups": "元件分組",
     "native.settings.component-groups": "元件分組",
     "cli.help.component_groups": "元件分組",
-    "ui.actions.component-groups": "編輯分組"
+    "ui.actions.component-groups": "編輯分組",
+    "sources.auto-review": "審核自動重新整理",
+    "sources.auto-off": "關閉自動重新整理",
+    "sources.automatic_on": "自動重新整理：開",
+    "sources.automatic_off": "自動重新整理：關",
+    "sources.automatic_review": "審核此來源，允許在支援的使用中工作階段定期查詢 GitHub PR/CI。Enter 儲存本機策略；←/→ 調整間隔。",
+    "sources.interval": "重新整理間隔",
+    "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7434,7 +7455,14 @@ export const LOCALES = {
     "settings.component-groups": "元件分組",
     "native.settings.component-groups": "元件分組",
     "cli.help.component_groups": "元件分組",
-    "ui.actions.component-groups": "編輯分組"
+    "ui.actions.component-groups": "編輯分組",
+    "sources.auto-review": "審核自動重新整理",
+    "sources.auto-off": "關閉自動重新整理",
+    "sources.automatic_on": "自動重新整理：開",
+    "sources.automatic_off": "自動重新整理：關",
+    "sources.automatic_review": "審核此來源，允許在支援的使用中工作階段定期查詢 GitHub PR/CI。Enter 儲存本機策略；←/→ 調整間隔。",
+    "sources.interval": "重新整理間隔",
+    "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9291,7 +9319,14 @@ export const LOCALES = {
     "settings.component-groups": "コンポーネントのグループ",
     "native.settings.component-groups": "コンポーネントのグループ",
     "cli.help.component_groups": "コンポーネントのグループ",
-    "ui.actions.component-groups": "グループを編集"
+    "ui.actions.component-groups": "グループを編集",
+    "sources.auto-review": "自動更新を確認",
+    "sources.auto-off": "自動更新を無効化",
+    "sources.automatic_on": "自動更新：オン",
+    "sources.automatic_off": "自動更新：オフ",
+    "sources.automatic_review": "対応するアクティブなセッション中に GitHub PR/CI を定期取得するソースを確認します。Enter でローカル設定を保存し、←/→ で間隔を変更します。",
+    "sources.interval": "更新間隔",
+    "sources.automatic_saved": "自動更新設定を保存しました。ランタイム Mod が未導入または未設定の場合はホスト統合を適用し、セッションを再起動してください。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11148,7 +11183,14 @@ export const LOCALES = {
     "settings.component-groups": "구성 요소 그룹",
     "native.settings.component-groups": "구성 요소 그룹",
     "cli.help.component_groups": "구성 요소 그룹",
-    "ui.actions.component-groups": "그룹 편집"
+    "ui.actions.component-groups": "그룹 편집",
+    "sources.auto-review": "자동 새로 고침 검토",
+    "sources.auto-off": "자동 새로 고침 끄기",
+    "sources.automatic_on": "자동 새로 고침: 켜짐",
+    "sources.automatic_off": "자동 새로 고침: 꺼짐",
+    "sources.automatic_review": "지원되는 활성 세션에서 GitHub PR/CI를 주기적으로 조회할 소스를 검토합니다. Enter로 로컬 정책을 저장하고 ←/→로 간격을 변경합니다.",
+    "sources.interval": "새로 고침 간격",
+    "sources.automatic_saved": "자동 정책을 저장했습니다. 런타임 Mod가 설치 또는 설정되지 않았다면 호스트 통합을 적용하고 세션을 다시 시작하세요."
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

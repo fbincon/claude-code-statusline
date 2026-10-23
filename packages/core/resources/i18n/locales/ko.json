@@ -1853,5 +1853,12 @@
   "settings.component-groups": "구성 요소 그룹",
   "native.settings.component-groups": "구성 요소 그룹",
   "cli.help.component_groups": "구성 요소 그룹",
-  "ui.actions.component-groups": "그룹 편집"
+  "ui.actions.component-groups": "그룹 편집",
+  "sources.auto-review": "자동 새로 고침 검토",
+  "sources.auto-off": "자동 새로 고침 끄기",
+  "sources.automatic_on": "자동 새로 고침: 켜짐",
+  "sources.automatic_off": "자동 새로 고침: 꺼짐",
+  "sources.automatic_review": "지원되는 활성 세션에서 GitHub PR/CI를 주기적으로 조회할 소스를 검토합니다. Enter로 로컬 정책을 저장하고 ←/→로 간격을 변경합니다.",
+  "sources.interval": "새로 고침 간격",
+  "sources.automatic_saved": "자동 정책을 저장했습니다. 런타임 Mod가 설치 또는 설정되지 않았다면 호스트 통합을 적용하고 세션을 다시 시작하세요."
 }

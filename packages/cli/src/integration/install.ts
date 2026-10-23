@@ -1,3 +1,4 @@
+import { automaticRequested } from '../sources/automatic-state.js';
 import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { PluginHost } from '@fbincon/statusline-platform/plugin-host';
@@ -109,7 +110,7 @@ function changeFiles(context: InstallContext, options: InstallOptions, uninstall
 }
 function installImpl(context: InstallContext, options: InstallOptions): ChangeResult {
     const { configDir, version, io } = context;
-    const requested = loadNative(configDir, options.native, VERSION, io), modes = loadRuntime(configDir, io, options.liveMetrics, options.nativeTiming), runtime = modes.native_timing || modes.live_metrics;
+    const requested = loadNative(configDir, options.native, VERSION, io), modes = loadRuntime(configDir, io, options.liveMetrics, options.nativeTiming), runtime = modes.native_timing || modes.live_metrics || automaticRequested(configDir);
     const external = options.external ?? loadFeature(configDir, VERSION, io), compatible = atLeast(version, NATIVE.minimum);
     if (requested && compatible)
         commandPreflight(configDir, NATIVE);

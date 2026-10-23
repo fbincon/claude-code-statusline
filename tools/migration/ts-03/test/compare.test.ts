@@ -7,7 +7,7 @@ import { inventory } from '../inventory.js';
 import { decode } from '@fbincon/statusline-core/json';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { releaseMetadataDifference } from '../compare.js';
-import { runtimeDefaultDifference } from '../compare.js';
+import { runtimeProtocolDifference, runtimeDefaultDifference } from '../compare.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fixtures } from '../common.js';
@@ -77,4 +77,12 @@ test('regional comparison exceptions are restricted to known protocol and langua
   const before = ['en', 'zh-CN', 'zh-Hant', 'ja', 'ko'], after = ['en', 'zh-CN', 'zh-TW', 'zh-HK', 'ja', 'ko'];
   assert(regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, after));
   assert(!regionalLanguageDifference('ui-describe', '/value/response/result/options/statusline-language/choices', before, [...after, 'fr']));
+});
+
+test('runtime v3 changes only the fallback envelope version for malformed frozen requests', () => {
+  const before = '{"protocol_version": 2, "error": {"message": "invalid"}}\n';
+  const after = before.replace(': 2,', ': 3,');
+  assert(runtimeProtocolDifference('runtime-invalid', '/value/0/stdout', before, after));
+  assert(!runtimeProtocolDifference('runtime-v2-dedup-order', '/value/0/stdout', before, after));
+  assert(!runtimeProtocolDifference('runtime-invalid', '/value/0/stdout', before, after.replace('invalid', 'changed')));
 });

@@ -1853,5 +1853,12 @@
   "settings.component-groups": "组件分组",
   "native.settings.component-groups": "组件分组",
   "cli.help.component_groups": "组件分组",
-  "ui.actions.component-groups": "编辑分组"
+  "ui.actions.component-groups": "编辑分组",
+  "sources.auto-review": "审核自动刷新",
+  "sources.auto-off": "关闭自动刷新",
+  "sources.automatic_on": "自动刷新：开",
+  "sources.automatic_off": "自动刷新：关",
+  "sources.automatic_review": "审核此来源，允许在支持的活跃会话中定期查询 GitHub PR/CI。回车保存本机策略；←/→ 调整间隔。",
+  "sources.interval": "刷新间隔",
+  "sources.automatic_saved": "自动策略已保存。若运行时 Mod 尚未安装或配置，请应用宿主集成并重启会话。"
 }

@@ -39,6 +39,12 @@ export function runtimeDefaultDifference(id: string, path: string, before: unkno
     .replace('"task-active-timer": {"value": null, "reason": "not_observed"', '"task-active-timer": {"value": null, "reason": "native_timing_disabled"') === after;
 }
 
+/** Only malformed-input envelopes with no usable request version adopt runtime v3. */
+export function runtimeProtocolDifference(id: string, path: string, before: unknown, after: unknown): boolean {
+  return ['runtime-invalid', 'runtime-duplicate', 'runtime-nonfinite'].includes(id) && path === '/value/0/stdout' && typeof before === 'string' && typeof after === 'string'
+    && before.startsWith('{"protocol_version": 2, "error":') && before.replace(/^\{"protocol_version": 2,/u, '{"protocol_version": 3,') === after;
+}
+
 export interface Difference { case: string; path: string; before_sha256: string; after_sha256: string; reason: string }
 const UI_CASES = new Set(['ui-read', 'ui-describe', 'ui-preview', 'ui-read-ui-preferences', 'ui-invalid', 'ui-duplicate', 'ui-nonfinite', 'ui-wrong-version', 'ui-unknown-operation', 'ui-null-draft', 'ui-zero-width']);
 /** v3.1.0's explicit protocol/registry changes, bounded to known frozen fields. */
@@ -69,6 +75,7 @@ export function compare(expected: unknown, actual: unknown, differences: readonl
     if (migrated !== a) { walk(migrated, b, path, id); return; }
     if (releaseMetadataDifference(id, path, a, b)) return;
     if (runtimeDefaultDifference(id, path, a, b)) return;
+    if (runtimeProtocolDifference(id, path, a, b)) return;
     if (regionalLanguageDifference(id, path, a, b)) return;
     if (id==='ui-describe' && path==='/value/response/result/operations') {
       const old=['describe','read','preview','apply','import','export','preset','read_ui_preferences','set_ui_language','review_import'];

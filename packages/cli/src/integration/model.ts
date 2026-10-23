@@ -19,7 +19,7 @@ function spec(name: string, marketplace: string, minimum: readonly number[], pro
     return { name, marketplace, minimum, protocol, plugin: name + '@' + marketplace };
 }
 export const NATIVE = spec('statusline-native', 'claude-statusline-local', [2, 1, 287], PROTOCOL_VERSION);
-export const RUNTIME = spec('statusline-runtime', 'claude-statusline-runtime-local', [2, 1, 289], 2);
+export const RUNTIME = spec('statusline-runtime', 'claude-statusline-runtime-local', [2, 1, 289], 3);
 export interface Host {
     run(args: readonly string[], values?: Record<string, string>, json?: boolean): unknown;
     listing(): [

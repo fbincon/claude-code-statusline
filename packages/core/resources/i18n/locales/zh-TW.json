@@ -1853,5 +1853,12 @@
   "settings.component-groups": "元件分組",
   "native.settings.component-groups": "元件分組",
   "cli.help.component_groups": "元件分組",
-  "ui.actions.component-groups": "編輯分組"
+  "ui.actions.component-groups": "編輯分組",
+  "sources.auto-review": "審核自動重新整理",
+  "sources.auto-off": "關閉自動重新整理",
+  "sources.automatic_on": "自動重新整理：開",
+  "sources.automatic_off": "自動重新整理：關",
+  "sources.automatic_review": "審核此來源，允許在支援的使用中工作階段定期查詢 GitHub PR/CI。Enter 儲存本機策略；←/→ 調整間隔。",
+  "sources.interval": "重新整理間隔",
+  "sources.automatic_saved": "自動策略已儲存。若執行時 Mod 尚未安裝或設定，請套用主機整合並重新啟動工作階段。"
 }

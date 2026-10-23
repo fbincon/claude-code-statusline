@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | APPEARANCE-03 | VALIDATING | 显示 11、编辑器 18；实例显示方式、宽度和字符选项 |
 | COMPOSITION-02 | VALIDATING | 计划显示 12、编辑器 19；单层分组 |
-| WORKFLOW-02 | NOT_STARTED | 计划编辑器 20、来源注册表/任务 2、runtime 3；本机持久启用 |
+| WORKFLOW-02 | IN_PROGRESS | 计划编辑器 20、来源注册表/任务 2、runtime 3；本机持久启用 |
 | METRICS-01 | NOT_STARTED | 计划显示 13、编辑器 21；会话/API 费用速率分母 |
 
 ## APPEARANCE-03
@@ -34,3 +34,7 @@ M5 本地完整检查通过（1,143 项通过、五项按平台跳过）；最�
 M5 候选源码 `e6d63cda7940de1058c2f314af53c56819a0644b` 两次构建 SHA-256 均为 `544f1f94e6ce2ca8ad71041bf84e02c7994c9163aefc0a1bc373d1cdb3c6de00`；14 项隔离 Linux 安装检查全部通过，包含四项分组场景。PR/main 门禁仍待完成。
 
 M4 [PR #129](https://github.com/fbincon/claude-code-statusline/pull/129) 已合并为 `48697f1056b1452c20f9b0877c8f6b334dbd28db`。[PR CI 39999672680](https://github.com/fbincon/claude-code-statusline/actions/runs/39999672680) 的 56 项适用任务全部通过，纯文档任务按规则跳过。一个 macOS Node 安装步骤在产品测试前停滞，普通／强制取消后定向原样重跑，最终任务及汇总门禁通过。[main 运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) 尚在进行。M5 功能 PR 现以该 M4 合并提交为基线。
+
+## WORKFLOW-02
+
+M6 本地完整检查通过（1,152 项通过、五项按平台跳过），包含七项调度及编辑器测试。Claude 2.1.294 运行时 Mod 16/16、原生编辑器 131/131，双方精确宿主 TypeScript 检查通过。runtime v1/v2 观测兼容及 161 个冻结样例通过；仅对无法解析请求版本的错误响应做限定范围的 v3 封装迁移。安装验收新增四项策略／生命周期场景。调度状态最多保留 64 个会话租约及 512 个调度条目，私有文件限制为 1 MiB；普通渲染和预览不派发任务。

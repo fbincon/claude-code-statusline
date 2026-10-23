@@ -68,7 +68,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
         const root = 'node_modules/@fbincon/statusline-cli/resources/' + name;
         const owned = read(root + '/resource-manifest.json');
         assert.equal(owned.backend_version, VERSION); assert.equal(owned.mod_version, VERSION);
-        assert.equal(owned.protocol_version, name === 'statusline-native' ? PROTOCOL_VERSION : 2);
+        assert.equal(owned.protocol_version, name === 'statusline-native' ? PROTOCOL_VERSION : 3);
         assert.equal(read(root + '/.claude-plugin/plugin.json').version, VERSION);
         const mapping = owned.files;
         assert(mapping && typeof mapping === 'object', 'Missing ownership map');

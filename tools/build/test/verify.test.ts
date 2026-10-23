@@ -23,7 +23,7 @@ function fixture(kind: Channel = 'candidate') {
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const root = 'node_modules/@fbincon/statusline-cli/resources/' + name;
         put(root + '/.claude-plugin/plugin.json', { name, version: VERSION });
-        put(root + '/resource-manifest.json', { backend_version: VERSION, mod_version: VERSION, protocol_version: name === 'statusline-native' ? PROTOCOL_VERSION : 2, files: { '.claude-plugin/plugin.json': sha256(entries.get(root + '/.claude-plugin/plugin.json')!) } });
+        put(root + '/resource-manifest.json', { backend_version: VERSION, mod_version: VERSION, protocol_version: name === 'statusline-native' ? PROTOCOL_VERSION : 3, files: { '.claude-plugin/plugin.json': sha256(entries.get(root + '/.claude-plugin/plugin.json')!) } });
     }
     for (const name of ['statusline-config', 'statusline-configure']) put(`node_modules/@fbincon/statusline-cli/resources/${name}/SKILL.md`, 'template');
     const external: Record<string, any> = {};

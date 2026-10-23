@@ -5,12 +5,12 @@ import type {SourcesResult,SourceJob} from '../../lib/generated-contracts.ts';
 test('native source management refreshes only explicitly and cancels owned jobs on close',async($,on)=>{
   const f=setup(on),before=JSON.stringify(f.store.draft);
   const context={project:null,session:null,agent:null,branch:null,head:null};
-  const library:SourcesResult={version:1,revision:'1'.repeat(64),bindings:[],sources:[{id:'command',name:'Command',kind:'command',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{executable:'/node',args:['-p','42'],cwd:'/project',input:{},output:'text',timeout_ms:5000},enabled:true,revision:'r1'}]};
-  const job:SourceJob={version:1,id:'job',source_id:'command',source_revision:'r1',owner:'editor',context,started_at:'2026-10-23T00:00:00Z',deadline_at:'2026-10-23T00:00:05Z',state:'running',reason:'running'};
+  const library:SourcesResult={version:2,automatic:[],revision:'1'.repeat(64),bindings:[],sources:[{id:'command',name:'Command',kind:'command',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{executable:'/node',args:['-p','42'],cwd:'/project',input:{},output:'text',timeout_ms:5000},enabled:true,revision:'r1'}]};
+  const job:SourceJob={version:2,trigger:'manual',identity:'a'.repeat(64),id:'job',source_id:'command',source_revision:'r1',owner:'editor',context,started_at:'2026-10-23T00:00:00Z',deadline_at:'2026-10-23T00:00:05Z',state:'running',reason:'running'};
   f.behavior.process=(request,next)=>{
     if(request.operation==='sources_read')return {value:reply(library)};
     if(request.operation==='source_context')return {value:reply(context)};
-    if(request.operation==='source_refresh')return {value:reply(job)};
+    if(request.operation==='source_refresh'){job.owner=String((request.payload as {owner:string}).owner);return {value:reply(job)};}
     if(request.operation==='source_cancel')return {value:reply({...job,state:'cancelled',reason:'cancelled'})};
     return next();
   };
