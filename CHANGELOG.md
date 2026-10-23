@@ -3,6 +3,14 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## 3.6.0 — 2026-10-23
+
+- Add separately registered, explicitly enabled JSON, GitHub PR/CI and command sources with complete shared editor/CLI management.
+- Separate manual refresh from rendering; mark stale/failed results and isolate project, session, account, branch and HEAD identities.
+- Add optional OSC 8 links and shared component capability descriptions while preserving existing defaults, instances and profiles.
+- Advance display schema to 10 and editor protocol to 17; portable transfers clear machine source bindings, and old files migrate only on explicit save.
+- [Release notes](docs/releases/v3.6.0.md) · [Implementation and validation](docs/development/extensions.md).
+
 ## 3.5.0 — 2026-10-23
 
 - Add `setup`: read-only checks, scheme preview, explicit display/integration commits and truthful partial-failure recovery.

@@ -901,3 +901,23 @@ claude-statusline.cmd config show
 `setup` 串联检查、候选预览与明确的显示／接入提交。`--dry-run` 为只读且无需 TTY，普通非 TTY 调用退出码为 2，详见[设置向导](../SETUP.zh-CN.md)。新增三套完整预设 `daily-development`、`agent-focus`、`quota-watch`，有意定义完整全局外观；原六种预设保留原有展开行为。参见[方案文件与分享](../SCHEMES.zh-CN.md)。
 
 `config set powerline-padding none|left|right|both`、`powerline-separator arrow|slash|bar|none`、`powerline-start-cap on|off`、`powerline-end-cap on|off`、`powerline-color-mode semantic|continuous|restart` 共用校验规则，控制 Powerline 色块，与宿主 padding 独立。[外观控制](../APPEARANCE.zh-CN.md)。
+
+## 数据源管理
+
+详细示例见[扩展指南](../EXTENSIONS.zh-CN.md)。
+
+```text
+claude-statusline source [--config-dir PATH] list [--json]
+claude-statusline source add|edit ID --file DEFINITION.json [--json]
+claude-statusline source review ID [--json]
+claude-statusline source enable ID --review REVIEW_REVISION [--json]
+claude-statusline source disable|remove ID [--json]
+claude-statusline source bind ID --instance INSTANCE --scope main|subagent [--profile NAME | --project PATH] [--json]
+claude-statusline source unbind ID --binding BINDING_ID [--json]
+claude-statusline source refresh ID [--project PATH] [--session ID] [--agent ID] [--no-wait] [--json]
+claude-statusline source status|cancel JOB_ID [--json]
+claude-statusline source diagnose ID [--project PATH] [--session ID] [--agent ID] [--json]
+claude-statusline config instance main set INSTANCE link off|auto|on
+```
+
+创建与编辑均保存为停用状态；启用需要所审查的精确修订。刷新默认等待，失败或取消返回退出码 2。导入不能授权或自动绑定本机数据源。

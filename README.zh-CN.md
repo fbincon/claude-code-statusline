@@ -16,6 +16,7 @@
 
 ## 功能概览
 
+- **按需扩展状态栏：** 在双编辑器或 CLI 管理本地 JSON、GitHub 检查和命令数据源，明确审查启用，支持可选目录/PR 链接。[扩展指南](docs/EXTENSIONS.zh-CN.md)。
 - **管理显示方案和项目：**保存、预览和复用命名方案，按项目根目录选择整套显示配置。[方案管理](docs/PROFILES.zh-CN.md)。
 - **查看任务证据：**通过 `/statusline-task` 或 CLI 按需查看任务、代理、计时来源及覆盖限制。[任务详情](docs/TASK_DETAILS.zh-CN.md)。
 

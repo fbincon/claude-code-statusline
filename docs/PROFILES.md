@@ -2,6 +2,9 @@
 
 **English** | [简体中文](PROFILES.zh-CN.md)
 
+
+For external source registration, authorization, refresh, diagnosis and sharing boundaries, see the [extensions guide](EXTENSIONS.md).
+
 Save a named collection of complete display settings and reuse it across projects. Open either configuration editor and choose **Settings → Display schemes and projects**, or press **Ctrl+O**. The sample preview never changes saved settings.
 
 ## Choose an editing target
