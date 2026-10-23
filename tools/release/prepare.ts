@@ -37,7 +37,8 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
-            assert.equal(Object.keys(report.checks).length, 12); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(Object.keys(report.checks).length, 13); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(report.checks.indicators, true); assert.equal(report.indicator_cases, 3);
             assert.equal(report.checks.setup, true); assert.equal(report.setup_cases, 3);
             assert.equal(report.checks.extensions, true); assert.equal(report.extension_cases, 4);
         } else {

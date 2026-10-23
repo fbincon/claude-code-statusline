@@ -959,3 +959,7 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ```
 
 Add/edit save a disabled source; enable requires the exact reviewed revision. Refresh waits by default; failed or cancelled jobs return exit code 2. Imports cannot authorize or automatically bind local sources.
+
+## Graphical indicators
+
+Use `config instance main|subagent set ID presentation numeric|bar`, `bar-width 4..20`, and `bar-style auto|unicode|ascii` for eligible instances. [Guide](../APPEARANCE.md#graphical-indicators).

@@ -1825,5 +1825,11 @@
   "statusline.prefix.main.github-ci": "GitHub CI",
   "statusline.short.main.github-ci": "GitHub CI",
   "explain.reason.source_bound": "已綁定本機資料來源；啟用狀態與實際可用性須另外檢查。",
-  "explain.reason.source_unbound": "請明確綁定本機資料來源；範例不代表實際資料。"
+  "explain.reason.source_unbound": "請明確綁定本機資料來源；範例不代表實際資料。",
+  "fields.item.presentation.label": "指標顯示方式",
+  "fields.item.bar_width.label": "短條寬度（4–20 格）",
+  "fields.item.bar_style.label": "短條字元",
+  "indicators.presentation.numeric": "數字",
+  "indicators.presentation.bar": "短條",
+  "explain.reason.indicator_bar": "短條表示觀測百分比，不表示經過時間或預測。"
 }

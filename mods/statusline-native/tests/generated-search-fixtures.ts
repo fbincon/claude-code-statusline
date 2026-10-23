@@ -1329,6 +1329,21 @@ export const SEARCH_CATALOG = [
       "setup": [
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always",
+        "used-at-least"
+      ],
+      "link": false,
+      "source": "none",
+      "preview": "context-remaining",
+      "explanation": "context-remaining",
+      "indicator": true
     }
   },
   {
@@ -1373,6 +1388,21 @@ export const SEARCH_CATALOG = [
       "setup": [
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always",
+        "used-at-least"
+      ],
+      "link": false,
+      "source": "none",
+      "preview": "context-used",
+      "explanation": "context-used",
+      "indicator": true
     }
   },
   {
@@ -1504,6 +1534,22 @@ export const SEARCH_CATALOG = [
       "setup": [
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons",
+        "allowance"
+      ],
+      "visibility": [
+        "always",
+        "used-at-least"
+      ],
+      "link": false,
+      "source": "none",
+      "preview": "five-hour-limit",
+      "explanation": "five-hour-limit",
+      "indicator": true
     }
   },
   {
@@ -1590,6 +1636,22 @@ export const SEARCH_CATALOG = [
       "setup": [
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons",
+        "allowance"
+      ],
+      "visibility": [
+        "always",
+        "used-at-least"
+      ],
+      "link": false,
+      "source": "none",
+      "preview": "weekly-limit",
+      "explanation": "weekly-limit",
+      "indicator": true
     }
   },
   {
@@ -1677,6 +1739,22 @@ export const SEARCH_CATALOG = [
       "setup": [
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons",
+        "allowance"
+      ],
+      "visibility": [
+        "always",
+        "used-at-least"
+      ],
+      "link": false,
+      "source": "none",
+      "preview": "spend-limit",
+      "explanation": "spend-limit",
+      "indicator": true
     }
   },
   {
@@ -3650,6 +3728,21 @@ export const SEARCH_CATALOG = [
         "claude-statusline config set subagent-statusline on",
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always",
+        "used-at-least"
+      ],
+      "link": false,
+      "source": "none",
+      "preview": "context-remaining",
+      "explanation": "context-remaining",
+      "indicator": true
     }
   },
   {
@@ -3697,6 +3790,21 @@ export const SEARCH_CATALOG = [
         "claude-statusline config set subagent-statusline on",
         "claude-statusline doctor"
       ]
+    },
+    "capabilities": {
+      "formats": [
+        "labels",
+        "icons"
+      ],
+      "visibility": [
+        "always",
+        "used-at-least"
+      ],
+      "link": false,
+      "source": "none",
+      "preview": "context-used",
+      "explanation": "context-used",
+      "indicator": true
     }
   },
   {

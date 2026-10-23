@@ -21,6 +21,7 @@ export function fieldValue(row: Row, state: State): string {
     if (input && (input.kind === 'field' || input.kind === 'path') && input.key === row.key) {
         return input.buffer + ' _';
     }
+    if (row.key === 'item:presentation') return t('indicators.presentation.' + row.value, language);
     if (row.key === 'field:statusline_language') {
         return LANGUAGE_NAMES[editor.draft.display.statusline_language];
     }

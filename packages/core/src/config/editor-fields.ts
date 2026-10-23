@@ -1,3 +1,4 @@
+import { INDICATOR_DEFAULTS } from '../editor/indicators.js';
 import { itemFields as capabilityFields } from '../editor/appearance.js';
 import type { DisplayDraft, EditorField, Scope } from '../contracts/ui.js';
 import { EDITOR_FIELDS } from '../contracts/ui.js';
@@ -47,6 +48,7 @@ export function fieldValue(config: DisplayDraft, key: string, scope?: Scope, ide
   if (scope !== undefined) {
     const node = find(config, scope, identifier!);
     if (key === 'text') return node?.text;
+    if (Object.hasOwn(INDICATOR_DEFAULTS, key)) return node?.options[key as keyof typeof INDICATOR_DEFAULTS] ?? INDICATOR_DEFAULTS[key as keyof typeof INDICATOR_DEFAULTS];
     if (key === 'link') return node?.options.link ?? 'off';
     const options = node?.options ?? defaultItem();
     return Object.hasOwn(FORMAT_CHOICES, key) ? options.formatting[key] ?? 'inherit' : options[key as keyof typeof options];

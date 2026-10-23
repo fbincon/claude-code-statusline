@@ -1,3 +1,4 @@
+import { supportsIndicator, INDICATOR_FIELDS } from './indicators.js';
 /** Pure controls/validation from Python's scoped visibility capabilities. */
 import { VISIBILITY_ITEMS, FORMAT_CHOICES } from '../contracts/ui.js';
 import type { Scope, EditorField, ItemCapability } from '../contracts/ui.js';
@@ -30,7 +31,7 @@ export function itemFields(fields: EditorField[], scope: Scope, id: string, capa
   const links: EditorField[] = capability?.link ? [{key:'link',label:'Links',group:'Item format',kind:'choice',choices:['off','auto','on'],minimum:0,maximum:0,nullable:false}] : [];
   const formats = supportedFormats(scope, id, capability);
   fields = fields.filter(field => !Object.hasOwn(FORMAT_CHOICES,field.key) || formats.includes(field.key));
-  return [...links, ...fields.filter(spec => (spec.key !== 'visibility' || choices.length > 1) &&
+  return [...(supportsIndicator(scope, id) ? INDICATOR_FIELDS : []), ...links, ...fields.filter(spec => (spec.key !== 'visibility' || choices.length > 1) &&
     (spec.key !== 'visibility_threshold' || choices.includes('used-at-least')))
     .map(spec => spec.key === 'visibility' ? {...spec, choices} : spec)];
 }

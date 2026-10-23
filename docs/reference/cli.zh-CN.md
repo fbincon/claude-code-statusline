@@ -921,3 +921,7 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ```
 
 创建与编辑均保存为停用状态；启用需要所审查的精确修订。刷新默认等待，失败或取消返回退出码 2。导入不能授权或自动绑定本机数据源。
+
+## 图形指标
+
+对支持的实例使用 `config instance main|subagent set ID presentation numeric|bar`、`bar-width 4..20`、`bar-style auto|unicode|ascii`。[指南](../APPEARANCE.zh-CN.md#图形指标)。

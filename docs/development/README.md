@@ -257,3 +257,5 @@ If global `disableAllHooks` or similar settings prevent the local hook, the fall
 ## Public package delivery
 
 See [TS-06](typescript-migration/ts-06/README.md), the [installation guide](../USER_GUIDE.md#installation-and-integration) and [release process](../RELEASING.md). Engineering candidate and public package identities remain distinct.
+
+[M4–M7 implementation and delivery](m4-m7-delivery.md).

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import { setup, assert, join, writeFileSync, readFileSync, jsonBytes, legacy, selected } from './final-support.js';
-import { defaultDisplay, validateDisplay } from '@fbincon/statusline-core/config/display';
+import { SCHEMA_VERSION, defaultDisplay, validateDisplay } from '@fbincon/statusline-core/config/display';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { DEFAULT_HOST } from '@fbincon/statusline-core/config/draft';
 import { BY_SCOPE, defaultItems } from '@fbincon/statusline-core/config/catalog';
@@ -19,7 +19,7 @@ test('tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_o
         writeFileSync(f.displayPath, raw);
         const cfg = f.display();
         assert.equal(cfg.statusline_language, 'en');
-        assert.equal(cfg.schema_version, 10);
+        assert.equal(cfg.schema_version, 11);
         assert.deepEqual(readFileSync(f.displayPath), raw);
     }
     const result = setOption(f.service, 'statusline-language', 'zh-CN');
@@ -33,7 +33,7 @@ test('tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_v
     const value: any = defaultDisplay();
     delete value.statusline_language;
     assert.throws(() => validateDisplay(value));
-    assert.throws(() => validateDisplay({ ...defaultDisplay(), schema_version: 11 }));
+    assert.throws(() => validateDisplay({ ...defaultDisplay(), schema_version: SCHEMA_VERSION + 1 }));
 });
 test('tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_language_changes_revision_but_ui_language_does_not', t => {
     const f = setup(t), before = f.service.read().revision;
@@ -62,7 +62,7 @@ test('tests.config.test_statusline_language.StatuslineLanguageConfigTests.test_f
             throw Error('refused'); f.io.write(path, bytes); } };
     assert.throws(() => setOption(new ConfigurationService(f.context, io), 'statusline-language', 'en'));
     assert.deepEqual(readFileSync(f.displayPath), raw);
-    const future = jsonBytes({ ...defaultDisplay(), schema_version: 11 });
+    const future = jsonBytes({ ...defaultDisplay(), schema_version: SCHEMA_VERSION + 1 });
     writeFileSync(f.displayPath, future);
     assert.throws(() => setOption(f.service, 'statusline-language', 'en'));
     assert.deepEqual(readFileSync(f.displayPath), future);

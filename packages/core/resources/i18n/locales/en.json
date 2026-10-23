@@ -1825,5 +1825,11 @@
   "statusline.prefix.main.github-ci": "GitHub CI",
   "statusline.short.main.github-ci": "GitHub CI",
   "explain.reason.source_bound": "A local source is bound; enablement and live availability are checked separately.",
-  "explain.reason.source_unbound": "Bind a local source explicitly. Samples do not indicate live data."
+  "explain.reason.source_unbound": "Bind a local source explicitly. Samples do not indicate live data.",
+  "fields.item.presentation.label": "Indicator presentation",
+  "fields.item.bar_width.label": "Bar width (4–20 cells)",
+  "fields.item.bar_style.label": "Bar characters",
+  "indicators.presentation.numeric": "Number",
+  "indicators.presentation.bar": "Short bar",
+  "explain.reason.indicator_bar": "The bar shows the observed percentage, not elapsed time or a forecast."
 }

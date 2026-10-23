@@ -1825,5 +1825,11 @@
   "statusline.prefix.main.github-ci": "GitHub CI",
   "statusline.short.main.github-ci": "GitHub CI",
   "explain.reason.source_bound": "已绑定本地数据源；启用状态与实际可用性需另行检查。",
-  "explain.reason.source_unbound": "请主动绑定本地数据源；样例不代表真实数据。"
+  "explain.reason.source_unbound": "请主动绑定本地数据源；样例不代表真实数据。",
+  "fields.item.presentation.label": "指标显示方式",
+  "fields.item.bar_width.label": "短条宽度（4–20 格）",
+  "fields.item.bar_style.label": "短条字符",
+  "indicators.presentation.numeric": "数字",
+  "indicators.presentation.bar": "短条",
+  "explain.reason.indicator_bar": "短条表示观测百分比，不表示经过时间或预测。"
 }

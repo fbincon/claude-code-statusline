@@ -187,3 +187,7 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 ## 数据源协议
 
 `sources_read`, `sources_apply`, `source_review`, `source_context`, `source_refresh`, `source_status`, `source_cancel`, `source_diagnose` 提供注册管理、独立审查与可取消刷新；`sources_apply` 使用注册表修订检查并单独提交。`source_refresh` 返回任务而不等待命令执行。显示引用不包含程序或文件路径，便携传输清除绑定 ID。
+
+## 图形指标契约
+
+显示 schema 11 / 编辑器协议 18 为适用实例增加可选 `presentation`、`bar_width`、`bar_style`。省略时为数字、8 格、自动字符。后端与双编辑器共用能力与校验，不支持的类型拒绝这些字段。版本 1–10 只读迁移，实际保存沿用备份及修订事务。runtime 2、lifecycle 4、portable 1、来源注册表/观察 1 不变。[交付记录](m4-m7-delivery.zh-CN.md)。

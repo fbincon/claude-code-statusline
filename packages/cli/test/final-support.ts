@@ -20,7 +20,7 @@ export function setup(t: TestContext, installed = false) {
     if (installed)
         writeFileSync(settingsPath, jsonBytes({ statusLine: { type: 'command', command: commandFor(launch, 'render'), refreshInterval: 1 }, subagentStatusLine: { type: 'command', command: commandFor(launch, 'render-subagents') }, permissions: { allow: ['Read'] } }));
     const service = new ConfigurationService(context, io), protocol = new ConfigurationProtocol(service, preview);
-    const call = (operation: string, payload: unknown = {}, custom = protocol) => { const reply = custom.handle(JSON.stringify({ protocol_version: 17, operation, payload }), error => assert.fail(String(error))); return { status: reply.status, response: reply.response as any }; };
+    const call = (operation: string, payload: unknown = {}, custom = protocol) => { const reply = custom.handle(JSON.stringify({ protocol_version: 18, operation, payload }), error => assert.fail(String(error))); return { status: reply.status, response: reply.response as any }; };
     const read = () => { const result = call('read'); assert.equal(result.status, 0); return result.response.result; };
     return { root, launch, context, io, service, protocol, settingsPath, displayPath, call, read,
         save: (current: any) => call('apply', { draft: current.draft, expected_revision: current.revision }),
@@ -33,7 +33,7 @@ export const selected = (value: {
     }[];
 }) => value.instances.filter(n => n.enabled).map(n => n.id);
 export function legacy(version: number): any {
-    if (version === 9) return { ...defaultDisplay(), schema_version: 9 };
+    if (version >= 9) return { ...defaultDisplay(), schema_version: version };
     const corpus = JSON.parse(readFileSync(join(repo, 'tests/fixtures/migration/ts-01/cases.json'), 'utf8'));
     return JSON.parse(corpus.cases.find((row: any) => row.id === `display-v${version}-read`).files['config/claude-statusline.json']);
 }

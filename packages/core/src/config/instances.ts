@@ -77,8 +77,8 @@ export function editedOptions(current: ItemOptionsDraft, option: string, value: 
   if (Object.hasOwn(FORMAT_CHOICES, key)) {
     if (value === 'inherit') delete data.formatting[key];
     else data.formatting[key] = value as string;
-  } else if (['label', 'icon', 'priority', 'max_width', 'foreground', 'background', 'visibility', 'visibility_threshold', 'link'].includes(key)) {
-    if (['priority', 'max_width', 'visibility_threshold'].includes(key)) {
+  } else if (['label', 'icon', 'priority', 'max_width', 'foreground', 'background', 'visibility', 'visibility_threshold', 'link', 'presentation', 'bar_width', 'bar_style'].includes(key)) {
+    if (['priority', 'max_width', 'visibility_threshold', 'bar_width'].includes(key)) {
       if (value === null || value === 'none') value = null;
       else if (typeof value === 'string' && /^[+-]?\d+$/u.test(value.trim())) value = Number(value);
       else if (typeof value !== 'number' || !Number.isFinite(value)) fail('errors.advanced.width_priority_must_be_an_integer_or');
