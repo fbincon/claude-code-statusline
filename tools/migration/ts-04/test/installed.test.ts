@@ -98,7 +98,10 @@ test('installed sources preserve opt-in, literal commands, portable isolation an
     const shared=JSON.parse(fs.readFileSync(portable,'utf8'));assert.equal(shared.draft.display.instances.find((node:any)=>node.type_id==='external-value').source.binding,null);
     assert(!fs.readFileSync(portable,'utf8').includes(data));
     mutation('disable','queue');assert(!run(['render'],config,payload).includes('Queue: 0'));
-    mutation('add','command',{source:{name:'Command',kind:'command',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{executable:installed.node,args:['-p','String(42)'],cwd:directory,input:{},output:'text',timeout_ms:15000}}});
+    // Functional installation smoke uses the existing maximum command budget.
+    // Windows ARM emulation also starts the bounded PowerShell Job supervisor;
+    // deadline/cancellation tests retain their separate short budgets.
+    mutation('add','command',{source:{name:'Command',kind:'command',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{executable:installed.node,args:['-p','String(42)'],cwd:directory,input:{},output:'text',timeout_ms:30000}}});
     mutation('enable','command',{review_revision:ui(config,'source_review',{id:'command'}).review_revision});
     run(['source','bind','command','--instance','external-value','--json'],config);
     const refreshed=JSON.parse(run(['source','refresh','command','--project',directory,'--json'],config));assert.equal(refreshed.state,'completed');
