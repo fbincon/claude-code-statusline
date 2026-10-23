@@ -28,7 +28,7 @@ test('shared source editor completes creation, review, enable, bind, save and re
         const node=newInstance('external-value',editor.draft.display.instances);editor.draft.display.instances.push(node);
         openSources(editor);await performSourceAction(editor,backend);
         sourcesKey(editor,{key:'enter'});sourcesKey(editor,{key:'enter'});
-        for(const field of editor.sources!.fields)if(field.key==='id'||field.key==='name')field.input=textInput('queue');else if(field.key==='path')field.input=textInput(sourceFile);
+        for(const field of editor.sources!.fields)if(field.key==='id'||field.key==='name')field.input=textInput('queue');else if(field.key==='path')field.input=textInput(sourceFile);else if(field.key==='project')field.input=textInput('');
         sourcesKey(editor,{key:'s',ctrl:true});await performSourceAction(editor,backend);
         assert.equal(editor.sources!.library!.sources[0]!.enabled,false);
         sourcesKey(editor,{key:'enter'});editor.sources!.effect='review';await performSourceAction(editor,backend);
@@ -48,6 +48,8 @@ test('shared source editor completes creation, review, enable, bind, save and re
         backend.request('preview',{draft:editor.draft,width:80});assert.deepEqual(readFileSync(join(configDir,'claude-statusline-sources.json')),before);
         const saved=backend.request('apply',{draft:editor.draft,expected_revision:editor.baseline.revision});assert.equal(saved.draft.display.instances.at(-1)?.source?.binding,node.source?.binding);
         const reopened=backend.request('read');assert.equal(reopened.draft.display.instances.at(-1)?.source?.binding,node.source?.binding);
+        sourcesKey(editor,{key:'enter'}); sourcesKey(editor,{key:'enter'});
+        assert.equal(editor.sources!.fields.find(field=>field.key==='project')?.input.value,'');
         editor.sources!.effect='close';await performSourceAction(editor,backend);assert.equal(editor.sources,null);
     }
 });

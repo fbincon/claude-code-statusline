@@ -46,7 +46,7 @@ function targets(editor: Editor) {
 }
 function form(editor: Editor, kind: SourceDefinition['kind'], editing = false): void {
     const m = editor.sources!, s = editing ? source(editor) : undefined, settings = s?.settings ?? {};
-    const common: Record<string, unknown> = { id: s?.id ?? '', name: s?.name ?? '', project: s?.scope.project ?? m.context?.project ?? '', session: s?.scope.session ?? '', agent: s?.scope.agent ?? '', ttl_seconds: s?.ttl_seconds ?? 300 };
+    const common: Record<string, unknown> = { id: s?.id ?? '', name: s?.name ?? '', project: s ? s.scope.project ?? '' : m.context?.project ?? '', session: s?.scope.session ?? '', agent: s?.scope.agent ?? '', ttl_seconds: s?.ttl_seconds ?? 300 };
     const extra = kind === 'json' ? { path: settings.path ?? '', pointer: settings.pointer ?? '/value', observed_at_pointer: settings.observed_at_pointer ?? '/observed_at', unit: settings.unit ?? '' }
         : kind === 'github' ? { host: settings.host ?? 'github.com', repository: settings.repository ?? '', branch: settings.branch ?? m.context?.branch ?? '', account: settings.account ?? '', pr: settings.pr ?? '' }
             : { executable: settings.executable ?? '', args: JSON.stringify(settings.args ?? []), cwd: settings.cwd ?? m.context?.project ?? '', input: JSON.stringify(settings.input ?? {}), output: settings.output ?? 'json', timeout_ms: settings.timeout_ms ?? 5000 };
