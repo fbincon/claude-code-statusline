@@ -8,6 +8,15 @@
 - 将 GitHub Actions 固定至已核实提交，新增离线身份检查及每周同主版本 Actions 更新提议。
 - [CI 维护与验证](docs/development/ci-maintenance.zh-CN.md)。
 
+## 3.7.0 — 2026-10-24
+
+- 上下文和配额指标新增可选百分比短条，保留默认数字与观测语义。
+- 双编辑器及 CLI 新增组件联动分组、主指标优先拟合及可选共享 Powerline 背景。
+- 新增独立审核、持续保留的 GitHub 自动刷新策略，受活跃会话租约、身份校验、去重、取消及退避约束。
+- 新增 `session-cost-rate`，支持会话／API 分母，至少观察一分钟，明确显示估算单位。
+- 显示／编辑器接口升至 13／21，来源注册表／任务升至 2，runtime 升至 3；保留旧观测兼容和显示文件只读迁移。
+- [发布说明](docs/releases/v3.7.0.md) · [实现与验收](docs/development/m4-m7-delivery.zh-CN.md)。
+
 ## 3.6.0 — 2026-10-23
 
 - 新增独立注册和明确启用的本地 JSON、GitHub PR/CI 与命令数据源，以及双编辑器/CLI 管理。

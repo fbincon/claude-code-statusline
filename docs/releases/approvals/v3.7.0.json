@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.7.0",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-24",
+  "authority": "The maintainer authorized implementation and continuation of the approved M4 APPEARANCE-03, M5 COMPOSITION-02, M6 WORKFLOW-02 and M7 METRICS-01 plan as v3.7.0, through four feature PRs and a release PR. Commits, pushes, PR merges, npm/GitHub/Gitee releases and task-driven Gitee synchronization are authorized after all final PR, main and tag automated gates pass. The persistent local automatic-refresh policy is an explicit opt-in. Only the six existing gaps disclosed in issue #96 are accepted for this version and remain unverified; no new failed or missing automated gate is waived. SHOWCASE-01 and GIT-01 remain outside this delivery.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}
