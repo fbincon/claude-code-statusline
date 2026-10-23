@@ -276,4 +276,4 @@ TS-05 已使用 TypeScript 文档检查器；独立 Python 参考已归档。已
 | 2026-10-11 | TS-01 实施与隔离参考验证 | 完成源码/测试/工具清单、161 个固定案例、受保护的采集/核验命令及专用 CI 门槛。参考测试 807 通过、8 项原生平台跳过；两种固定宿主 Mod 及安装产物 PTY 通过。仅修正旧验收脚本的展示标签断言。状态 VALIDATING，等待 CI/PR。[证据](typescript-migration/ts-01/README.zh-CN.md)。 |
 | 2026-10-11 | TS-01 退出门槛完成 | 两次独立的 161 案例采集一致，12 项核验回归通过。实现提交 `ddc9dde` 通过全部 14 项 [CI](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166591) 和 13 项 [Mod](https://github.com/fbincon/claude-code-statusline/actions/runs/38152166593) 检查。标准诊断文本回放固定 Python 3.14.4，支持矩阵保留。阶段 DONE；[PR #75](https://github.com/fbincon/claude-code-statusline/pull/75)记录最终合并/同步。下一步 TS-02，D01–D06 保持 OPEN。 |
 
-此处仅记录里程碑和决策，详细执行证据通过结果文档／PR 链接查看。本地路线图可以指向本计划，不另建一套重构进度台账。
+此处仅记录里程碑和决策，详细执行证据通过结果文档／PR 链接查看。[产品路线图](roadmap.zh-CN.md)链接到本页查看迁移历史；迁移阶段状态继续由本计划维护，路线图不重复维护一套重构进度台账。

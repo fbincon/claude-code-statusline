@@ -2,7 +2,6 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-
 [Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
 
 [Setup and complete appearance implementation](setup-appearance.md) covers first use, built-in schemes, schema 9, protocol 16 and their acceptance.
@@ -23,6 +22,7 @@ The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows 
 
 ### Current development
 
+- [Product roadmap](roadmap.md) and [work-package plan](development-plan.md): direction, status, dependencies, scope and acceptance.
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).

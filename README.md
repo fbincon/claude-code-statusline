@@ -422,6 +422,7 @@ claude-code-statusline/
 - [User guide](docs/USER_GUIDE.md): installation, editors, recipes, upgrades, and troubleshooting.
 - [CLI reference](docs/reference/cli.md): commands, options, fields, files, and exit codes.
 - [Display items and metric definitions](docs/DISPLAY_ITEMS.md): scope, sources, and availability.
+- [Development roadmap](docs/development/roadmap.md) · [Work-package plan](docs/development/development-plan.md).
 - [Development guide](docs/development/README.md) · [Release process](docs/RELEASING.md).
 - [Changelog](CHANGELOG.md) · [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases).
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include versions, reproduction steps, and diagnostic results; remove private paths and session content.

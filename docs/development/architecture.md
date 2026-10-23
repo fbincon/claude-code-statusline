@@ -167,7 +167,7 @@ Resources continue to load through `importlib.resources` from `claude_statusline
 
 Current display schema v8 evolves independently from feature schema v1, the schema-1 runtime mirror and lifecycle schema v4; historical display v1–v7 is normalized in memory until saving. Optional `duration_source` distinguishes frozen task elapsed time from legacy native evidence; new native turn duration is stored separately. Optional agent history, continuation prompt aliases and pending reports preserve a human task across host-generated result notifications. They remain bounded and do not change configuration formats. Timing transcript scan version 6 rechecks old caches without resetting cumulative usage.
 
-Keep local ROADMAP files and raw acceptance records out of distributions. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
+Keep local planning archives and raw acceptance records out of distributions. Public planning documents are maintained under `docs/development/`. Release archives originate from a fixed verified commit; package inspection checks all canonical Python modules, compatibility entry points, resources, tests, tools and bilingual documents.
 
 See [testing](testing.md), the [timer contract](timer.md) and the [release guide](../RELEASING.md).
 

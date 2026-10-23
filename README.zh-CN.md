@@ -411,6 +411,7 @@ claude-code-statusline/
 - [使用指南](docs/USER_GUIDE.zh-CN.md)：安装、编辑器、配方、升级与排障。
 - [CLI 参考](docs/reference/cli.zh-CN.md)：命令、选项、字段、文件和退出码。
 - [显示项与指标定义](docs/DISPLAY_ITEMS.zh-CN.md)：作用域、数据来源和可用条件。
+- [开发路线](docs/development/roadmap.zh-CN.md) · [工作包开发计划](docs/development/development-plan.zh-CN.md)。
 - [开发指南](docs/development/README.zh-CN.md) · [发布流程](docs/RELEASING.zh-CN.md)。
 - [变更记录](CHANGELOG.zh-CN.md) · [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases)。
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：附版本、复现步骤与诊断结果，移除私有路径和会话内容。
