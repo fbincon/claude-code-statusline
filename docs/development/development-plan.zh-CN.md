@@ -2,13 +2,13 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`2bdf429d3356796232efff926235617cdab4f430`**
+更新：**2026-10-24**（Asia/Shanghai）· 产品基线：**v3.7.0** · 规划基线：**`3edd719525635eedb6a909eee23bb96a4fcab393`**
 
-本计划定义工作包范围、依赖与验收意图，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已按批准的 v3.7.0 交付范围实现并进入验证，尚未发布。SHOWCASE-01 与 GIT-01 保持 NOT_STARTED，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
+本计划定义工作包范围、依赖与验收意图，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 发布并标为 DONE，最终 PR/main/tag 门禁及全部公开渠道已验证。SHOWCASE-01 与 GIT-01 保持 NOT_STARTED，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
 
-已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.6.0 专项决定](../releases/approvals/v3.6.0.json)记录该版本对这些缺口的接受。
+已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.7.0 专项决定](../releases/approvals/v3.7.0.json)记录该版本对这些缺口的接受。
 
-**导航：** [索引](#work-index) · [共同设计](#design-rules) · [未来工作包](#future-work) · [Git 核查](#git-01) · [图形指标](#appearance-03) · [组件分组](#composition-02) · [自动刷新](#workflow-02) · [费用速率](#metrics-01) · [演示](#showcase-01) · [候选边界](#candidate-boundaries) · [既有设计](#delivered-designs) · [首次使用](#setup-01) · [完整方案](#appearance-01) · [外观控制](#appearance-02) · [本地数据](#extensions-01) · [链接](#links-01) · [PR 与 CI](#workflow-01) · [命令组件](#command-01) · [组件能力](#capabilities-01) · [CI 维护](#ci-01) · [验收矩阵](#acceptance-matrix) · [交接](#handoff)
+**导航：** [索引](#work-index) · [共同设计](#design-rules) · [主线工作包](#future-work) · [Git 核查](#git-01) · [图形指标](#appearance-03) · [组件分组](#composition-02) · [自动刷新](#workflow-02) · [费用速率](#metrics-01) · [演示](#showcase-01) · [候选边界](#candidate-boundaries) · [既有设计](#delivered-designs) · [首次使用](#setup-01) · [完整方案](#appearance-01) · [外观控制](#appearance-02) · [本地数据](#extensions-01) · [链接](#links-01) · [PR 与 CI](#workflow-01) · [命令组件](#command-01) · [组件能力](#capabilities-01) · [CI 维护](#ci-01) · [验收矩阵](#acceptance-matrix) · [交接](#handoff)
 
 <a id="work-index"></a>
 
@@ -19,10 +19,6 @@
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
 | 独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | NOT_STARTED |
-| M4 | [APPEARANCE-03](#appearance-03) | 既有上下文／额度观测、格式与布局 | VALIDATING |
-| M5 | [COMPOSITION-02](#composition-02) | 既有实例、条件与 Powerline；不依赖 M4 | VALIDATING |
-| M6 | [WORKFLOW-02](#workflow-02) | 已交付 EXTENSIONS-01、WORKFLOW-01；仅 GitHub | VALIDATING |
-| M7 | [METRICS-01](#metrics-01) | 既有会话费用与耗时字段；不依赖 M6 | VALIDATING |
 | M8 | [SHOWCASE-01](#showcase-01) | 已验收功能及匹配安装包；保留原有 ID | NOT_STARTED |
 
 M4 → M5 → M6 → M7 → M8 表示产品优先级，不额外增加技术前置条件。实施前选定工作包与有界切片。GIT-01 包含核查及必要防护工作，本文不认定已存在漏洞。主线之外的条目见[候选池](roadmap.zh-CN.md#candidates)。
@@ -38,10 +34,14 @@ M4 → M5 → M6 → M7 → M8 表示产品优先级，不额外增加技术前�
 | M3 | [LINKS-01](#links-01) | 既有文本与布局规则；不依赖联网 | DONE |
 | M3 | [WORKFLOW-01](#workflow-01) | EXTENSIONS-01；LINKS-01 可选 | DONE |
 | M3 | [COMMAND-01](#command-01) | EXTENSIONS-01；可与 WORKFLOW-01 独立交付 | DONE |
+| M4 | [APPEARANCE-03](#appearance-03) | 既有上下文／额度观测、格式与布局 | DONE |
+| M5 | [COMPOSITION-02](#composition-02) | 既有实例、条件与 Powerline；不依赖 M4 | DONE |
+| M6 | [WORKFLOW-02](#workflow-02) | 已交付 EXTENSIONS-01、WORKFLOW-01；仅 GitHub | DONE |
+| M7 | [METRICS-01](#metrics-01) | 既有会话费用与耗时字段；不依赖 M6 | DONE |
 | 按需 | [CAPABILITIES-01](#capabilities-01) | 相关功能出现具体元数据重复或不一致时拆入 | DONE |
 | 维护 | [CI-01](#ci-01) | 独立维护，不阻塞 M1／M2／M3 | DONE |
 
-M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍未启动，按 M8 排期。文档更新不会推进功能状态。CI-01 包括 Dependabot 每周同主版本 Actions 更新提议，见[实现与验证](ci-maintenance.zh-CN.md)。
+M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍未启动，按 M8 排期。文档更新不会推进功能状态。CI-01 包括 Dependabot 每周同主版本 Actions 更新提议，见[实现与验证](ci-maintenance.zh-CN.md)。
 
 <a id="design-rules"></a>
 
@@ -57,9 +57,9 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 <a id="future-work"></a>
 
-## 未来工作包
+## 主线产品与维护工作包
 
-以下描述规划行为，不表示命令已经可用或检查已经完成。后续每次实施记录起始 `main`、接口决定及首个可交付切片，结合工作包专项标准与共同[验收矩阵](#acceptance-matrix)验收。
+未启动章节描述规划行为；已完成章节保留原始设计和验收意图，实际能力及检查由链接的交付记录确认。后续每次实施记录起始 `main`、接口决定及首个可交付切片，结合工作包专项标准与共同[验收矩阵](#acceptance-matrix)验收。
 
 <a id="git-01"></a>
 
@@ -83,7 +83,7 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 ## APPEARANCE-03 上下文与额度图形指标
 
-**状态：VALIDATING。** 产品顺序第一项；复用既有观测，不开启采集。
+**状态：DONE（v3.7.0）。** [实现与交付](m4-m7-delivery.zh-CN.md)。产品顺序第一项；复用既有观测，不开启采集。
 
 **问题与目标。** 让用户直观看到上下文与额度水平，保留原有数字显示及指标定义。
 
@@ -101,7 +101,7 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 ## COMPOSITION-02 组件分组与联动隐藏
 
-**状态：VALIDATING。** 产品顺序第二项，不依赖 APPEARANCE-03。
+**状态：DONE（v3.7.0）。** [实现与交付](m4-m7-delivery.zh-CN.md)。产品顺序第二项，不依赖 APPEARANCE-03。
 
 **问题与目标。** 指标消失后不留下孤立文字／图标，让相关实例可共享 Powerline 色块，同时保持各自数据范围。
 
@@ -119,7 +119,7 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 ## WORKFLOW-02 可选 GitHub PR／CI 自动刷新
 
-**状态：VALIDATING。** 产品顺序第三项，依赖已交付 EXTENSIONS-01、WORKFLOW-01。
+**状态：DONE（v3.7.0）。** [实现与交付](m4-m7-delivery.zh-CN.md)。产品顺序第三项，依赖已交付 EXTENSIONS-01、WORKFLOW-01。
 
 **问题与目标。** 活跃会话中保持已启用 GitHub 来源的结果更新，减少重复打开手动刷新的操作。
 
@@ -137,7 +137,7 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 
 ## METRICS-01 会话费用速率
 
-**状态：VALIDATING。** 产品顺序第四项，不依赖自动刷新。
+**状态：DONE（v3.7.0）。** [实现与交付](m4-m7-delivery.zh-CN.md)。产品顺序第四项，不依赖自动刷新。
 
 **问题与目标。** 用明确的分母将现有会话费用表达为每小时速率，不虚构账单或任务测量。
 
@@ -408,12 +408,12 @@ M1 → M2 → M3 记录历史交付顺序。SHOWCASE-01 原安排在 M2，现仍
 | 数据来源 | 扩展、任务与诊断 | 样例／真实、来源／作用域、零／缺失／过期／部分／错误分别可辨 |
 | 保存与恢复 | 安装和持久配置 | 旧配置、实例身份、项目绑定、并发 revision、迁移备份、取消及故障恢复 |
 | 外部能力 | EXTENSIONS-01／WORKFLOW-01／COMMAND-01 | 默认关闭、显式启用、可独立停用；导入与预览不会执行或联网 |
-| 后续图形／分组／速率 | APPEARANCE-03／COMPOSITION-02／METRICS-01 | 默认不变、逐实例明确选择、数据含义可信、联动隐藏及有效配置往返 |
-| 后续生命周期与 Git 策略 | WORKFLOW-02／GIT-01 | 自动能力单独启用、停止／失败明确、身份隔离及已验证的调用兼容性 |
+| 图形／分组／速率 | APPEARANCE-03／COMPOSITION-02／METRICS-01 | 默认不变、逐实例明确选择、数据含义可信、联动隐藏及有效配置往返 |
+| 自动生命周期与后续 Git 策略 | WORKFLOW-02／GIT-01 | 自动能力单独启用、停止／失败明确、身份隔离及已验证的调用兼容性 |
 | 平台与宿主 | 有平台／宿主影响的功能 | 沿用 Node 22／24、既有支持平台和适用宿主验证；缺口按原状态披露 |
 | 成品与展示 | 功能交付和 SHOWCASE-01 | 最终安装包行为可复现，展示来源、版本及输入明确 |
 
-功能测试使用隔离目录与合成或已脱敏输入，不读写使用者真实配置；联网验证及实际工具执行遵循对应开发任务的明确范围。采用当时适用的[测试指南](testing.zh-CN.md)与[发布流程](../RELEASING.zh-CN.md)。自动检查、PTY 重建、代理画面观察和真人验收分别记录。#96 的六项既有缺口继续保留，包括 v3.6.0 在内的限定接受不视为未来版本已验证。
+功能测试使用隔离目录与合成或已脱敏输入，不读写使用者真实配置；联网验证及实际工具执行遵循对应开发任务的明确范围。采用当时适用的[测试指南](testing.zh-CN.md)与[发布流程](../RELEASING.zh-CN.md)。自动检查、PTY 重建、代理画面观察和真人验收分别记录。#96 的六项既有缺口继续保留，包括 v3.7.0 在内的限定接受不视为未来版本已验证。
 
 <a id="handoff"></a>
 

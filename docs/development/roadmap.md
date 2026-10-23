@@ -2,9 +2,9 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`2bdf429d3356796232efff926235617cdab4f430`**
+Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`3edd719525635eedb6a909eee23bb96a4fcab393`**
 
-Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes and explicitly enabled extensions are delivered. The next product sequence is graphical indicators → component groups → GitHub automatic refresh → cost rates → homepage demonstrations. Git invocation review is an independent maintenance package. M4–M7 are selected for v3.7.0; M4 is VALIDATING. Other unstarted work retains its scope; CI-01 remains complete.
+Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. v3.7.0 adds graphical indicators, component groups, GitHub automatic refresh and cost rates. Homepage demonstrations (M8/SHOWCASE-01) remain next in product order; Git invocation review is independent maintenance. Both remain NOT_STARTED, and CI-01 remains DONE.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -17,20 +17,20 @@ This page owns product direction, priorities and work-package status. The [devel
 | Area | Delivered capability | Planning implication |
 | --- | --- | --- |
 | Configuration entry points | First-use setup wizard, in-session editor, external TUI, CLI, conversational guide and Quick setup | Reuse delivered configuration journeys in demonstrations |
-| Display composition | Six existing presets, three complete schemes, component instances, duplication/reordering, text, spacers, import review, colors and five Powerline controls | Demonstrate existing schemes and extend them for concrete needs |
+| Display composition | Six existing presets, three complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, five Powerline controls, optional percentage bars and linked groups | Demonstrate existing schemes and extend them for concrete needs |
 | Tasks and projects | Task timing, separate subagent rows, read-only task details, named profiles and project-root bindings | Make task and multi-agent scenarios prominent |
 | Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`; independent UI and output languages | Maintain six-language coverage for new interactions and guidance |
-| Display catalog | 64 main metrics and 15 subagent metrics; 66/17 types including text and spacers | Preserve IDs and metric definitions when adding items |
+| Display catalog | 65 main metrics and 15 subagent metrics; 67/17 types including text and spacers | Preserve IDs and metric definitions when adding items |
 | Existing data | Host `pr` number/review state, linked-worktree fallback and cache-cause diagnosis/display | Keep host metrics and external observations distinguishable |
-| Extension data | Local JSON, manually refreshed GitHub PR/CI and explicit command sources; both editors and CLI; optional OSC 8 links | Keep authorization separate from display schemes and remove local bindings on import |
-| Interfaces | Display schema 10, editor protocol 17, source registry/observation 1, runtime 2, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
+| Extension data | Local JSON, GitHub PR/CI with separately reviewed automatic refresh, and explicit command sources; both editors and CLI; optional OSC 8 links | Keep authorization separate from display schemes and remove local bindings on import |
+| Interfaces | Display schema 13, editor protocol 21, source registry/jobs 2, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
-Sources: [v3.6.0 release](../releases/v3.6.0.md), [extension delivery](extensions.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The planning baseline includes delivery documentation after the release source; exact release identities belong in the delivery record.
+Sources: [v3.7.0 release](../releases/v3.7.0.md), [M4–M7 delivery](m4-m7-delivery.md), [extension delivery](extensions.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The planning baseline is the verified v3.7.0 source; publication identities and validation limits are preserved in the delivery record.
 
 Default capabilities use Claude input and local state. Network lookup and custom commands require separate enablement; importing a scheme, binding a project or selecting a preset cannot enable them.
 
-The six historical gaps tracked in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) remain **unverified**. Version-specific acceptance, including the [v3.6.0 decision](../releases/approvals/v3.6.0.json), records permission to release with those gaps; it does not establish that the missing checks passed or waive new failures.
+The six historical gaps tracked in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) remain **unverified**. Version-specific acceptance, including the [v3.7.0 decision](../releases/approvals/v3.7.0.json), records permission to release with those gaps; it does not establish that the missing checks passed or waive new failures.
 
 <a id="reference"></a>
 
@@ -63,15 +63,11 @@ Keep the original project and authors credited when discussing these references.
 | Priority | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
 | Independent maintenance | [GIT-01](development-plan.md#git-01) | Verified Git invocation behavior and any necessary protections | Existing Git collectors, source identity and process adapters | NOT_STARTED |
-| M4 Graphical indicators | [APPEARANCE-03](development-plan.md#appearance-03) | Optional short bars for context and quotas, with readable text fallback | Existing observed percentages, component options and layout | VALIDATING |
-| M5 Component groups | [COMPOSITION-02](development-plan.md#composition-02) | Decorations hide with their metric; groups can share a Powerline block | Existing instances, visibility and Powerline | VALIDATING |
-| M6 GitHub refresh | [WORKFLOW-02](development-plan.md#workflow-02) | Separately enabled automatic PR/CI refresh with visible state and stop controls | Delivered EXTENSIONS-01 and WORKFLOW-01 | VALIDATING |
-| M7 Derived metrics | [METRICS-01](development-plan.md#metrics-01) | Hourly cost with an explicit session-time or API-time denominator | Existing observed session cost and duration fields | VALIDATING |
 | M8 Demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Focused homepage, scheme gallery and reproducible usage demonstrations | Accepted functionality and its matching installed artifact | NOT_STARTED |
 
 M4 → M5 → M6 → M7 → M8 is the selected product order. Scheduling does not create technical dependencies: grouping does not require graphical indicators, and cost rates do not require automatic refresh. Each package may ship in bounded slices. SHOWCASE-01 retains its existing ID and moves after the functional work; demonstrations use accepted functionality and do not require every future candidate to be implemented. GIT-01 runs independently. The static comparison identified a protection difference to investigate, not a confirmed vulnerability; investigation and any necessary correction belong to that future task.
 
-The approved M4–M7 implementation targets v3.7.0 through separate feature PRs and a final release PR. [Implementation and validation](m4-m7-delivery.md) records the starting commits, interface decisions and actual evidence; package completion and publication remain separate.
+M4–M7 shipped in v3.7.0 through four feature PRs and a final release PR. [Implementation and validation](m4-m7-delivery.md) records the starting commits, interface decisions and actual evidence; package completion and publication remain separate.
 
 ### Delivered stages
 
@@ -84,10 +80,14 @@ The approved M4–M7 implementation targets v3.7.0 through separate feature PRs 
 | M3 Extensions | [LINKS-01](development-plan.md#links-01) | Clickable PR/directory text with plain-text fallback | Existing text and layout rules | DONE |
 | M3 Extensions | [WORKFLOW-01](development-plan.md#workflow-01) | Optional GitHub PR lookup and CI status | EXTENSIONS-01; LINKS-01 is optional | DONE |
 | M3 Extensions | [COMMAND-01](development-plan.md#command-01) | Explicitly configured external command components | EXTENSIONS-01 | DONE |
+| M4 Graphical indicators | [APPEARANCE-03](development-plan.md#appearance-03) | Optional short bars for context and quotas, with readable text fallback | Existing observed percentages, component options and layout | DONE |
+| M5 Component groups | [COMPOSITION-02](development-plan.md#composition-02) | Decorations hide with their metric; groups can share a Powerline block | Existing instances, visibility and Powerline | DONE |
+| M6 GitHub refresh | [WORKFLOW-02](development-plan.md#workflow-02) | Separately enabled automatic PR/CI refresh with visible state and stop controls | Delivered EXTENSIONS-01 and WORKFLOW-01 | DONE |
+| M7 Derived metrics | [METRICS-01](development-plan.md#metrics-01) | Hourly cost with an explicit session-time or API-time denominator | Existing observed session cost and duration fields | DONE |
 | Engineering as needed | [CAPABILITIES-01](development-plan.md#capabilities-01) | Consistent supported options and explanations for components | Specific metadata needs exposed by appearance or extensions | DONE |
 | Independent maintenance | [CI-01](development-plan.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | DONE |
 
-M1 → M2 → M3 records the historical delivery sequence, retaining completed IDs and evidence. SHOWCASE-01 was originally listed with M2 and remains unstarted under the new M8 scheduling. CI-01 is complete as independent maintenance; its weekly Dependabot proposals and validation are tracked in [CI maintenance](ci-maintenance.md).
+M1 → M2 → M3 → M4–M7 records the historical delivery sequence, retaining completed IDs and evidence. SHOWCASE-01 was originally listed with M2 and remains unstarted under the new M8 scheduling. CI-01 is complete as independent maintenance; its weekly Dependabot proposals and validation are tracked in [CI maintenance](ci-maintenance.md).
 
 <a id="candidates"></a>
 
@@ -137,6 +137,7 @@ See the [acceptance matrix](development-plan.md#acceptance-matrix), [testing gui
 | v3.4.0 | PROFILE-01, PROJECT-01, TASK-01 | DONE | [Profiles, projects and task details](profiles-projects-tasks.md) |
 | v3.5.0 | SETUP-01, APPEARANCE-01, APPEARANCE-02 | DONE | [Setup and complete appearances](setup-appearance.md) |
 | v3.6.0 | EXTENSIONS-01, LINKS-01, WORKFLOW-01, COMMAND-01, CAPABILITIES-01 | DONE | [Extensions and workflows](extensions.md) |
+| v3.7.0 | APPEARANCE-03, COMPOSITION-02, WORKFLOW-02, METRICS-01 | DONE | [Indicators, groups, refresh and rates](m4-m7-delivery.md) |
 
 The linked records retain source/tag identities, checksums, CI results, channel verification, recovery details and delivery-time limitations. Historical statements about future candidates retain their original context; the stage table above gives their planning status at this page's update date. Earlier migration milestones remain in the [TypeScript migration plan](typescript-migration.md). Release notes are maintained under [releases](../releases).
 
