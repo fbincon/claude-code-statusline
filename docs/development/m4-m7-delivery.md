@@ -30,3 +30,5 @@ PR run `39964870238` retained Windows ARM system-shell readiness timeouts before
 Preparation starts from M4 head `74f70eb9f85af44a2b80b462a3f6f9755374aef9` in an isolated worktree; the feature PR will use validated M4 main as its base. Group rules and editor transitions live in shared core modules, with a separate group renderer to retain ungrouped output. Tests cover linked omission, unknown/absent values, layout, colors, remapped copies, deletion, rejected edits, both editors and persistence. Installed acceptance adds four group scenarios; validation is in progress.
 
 M5 local full checks passed (1,143 tests, five platform skips), with eight focused grouping cases after the final anchor validation fix. Native Mod tests passed 131/131 and exact Claude 2.1.294 TypeScript checking passed. Immutable package and PR matrices remain pending.
+
+M5 candidate `e6d63cda7940de1058c2f314af53c56819a0644b` built twice with identical SHA-256 `544f1f94e6ce2ca8ad71041bf84e02c7994c9163aefc0a1bc373d1cdb3c6de00`; all 14 isolated Linux installed checks passed, including four group cases. PR/main gates remain pending.
