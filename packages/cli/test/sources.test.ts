@@ -22,7 +22,7 @@ test('manual workers publish observations, reject concurrent refreshes and cance
     let job=service.start('cmd',context,'test');assert.throws(()=>service.start('cmd',context,'another'));
     const end=Date.now()+20000;
     while(job.state==='running'&&Date.now()<end){await new Promise(r=>setTimeout(r,100));job=service.job(job.id);}
-    assert.equal(job.state,'completed');assert.equal(service.view(binding,context).value,'zero: 0');
+    assert.equal(job.state,'completed',JSON.stringify(job));assert.equal(service.view(binding,context).value,'zero: 0');
     assert.equal(service.view(binding,{...context,session:'another-session',agent:'child'}).value,'zero: 0');
     assert.equal(service.view(binding,{...context,project:join(root,'elsewhere')}).state,'mismatch');
     change('edit',{source:spec('setTimeout(()=>process.stdout.write("late"),10000)')});change('enable',{review_revision:service.review('cmd').review_revision});
