@@ -10,11 +10,12 @@ export function contextFor(project: string | null, session: string | null = null
     if (!context.project)
         return context;
     try {
-        const lines = execFileSync('git', ['-C', context.project, 'rev-parse', '--show-toplevel', '--abbrev-ref', 'HEAD', 'HEAD'], { encoding: 'utf8', timeout: 1000, maxBuffer: 65536, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'], env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } }).trim().split(/\r?\n/u);
-        if (lines.length === 3 && /^[a-f0-9]{40,64}$/u.test(lines[2]!)) {
+        const git = (args: string[]) => execFileSync('git', ['-C', context.project!, 'rev-parse', ...args], { encoding: 'utf8', timeout: 1000, maxBuffer: 65536, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'], env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } }).trim();
+        const lines = git(['--show-toplevel', '--abbrev-ref', 'HEAD']).split(/\r?\n/u), head = git(['--verify', 'HEAD']);
+        if (lines.length === 2 && /^[a-f0-9]{40,64}$/u.test(head)) {
             context.project = projectPaths.canonical(lines[0]!) ?? context.project;
             context.branch = lines[1] === 'HEAD' ? null : lines[1]!;
-            context.head = lines[2]!;
+            context.head = head;
         }
     }
     catch { /* A local source does not require a Git repository. */ }

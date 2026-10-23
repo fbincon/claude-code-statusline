@@ -66,3 +66,15 @@ test('GitHub provider binds every query to repository, branch, account and HEAD'
     assert.equal(observation.state,'valid');assert.equal(observation.fields?.ci,'pending');assert(calls.slice(1).every(args=>args.includes('github.com/owner/repo')));
     const wrong=await refreshGithub(source,context,new AbortController().signal,async()=>({code:0,stdout:'{"login":"other"}',reason:'completed'}));assert.equal(wrong.reason,'account');assert.equal(wrong.value,null);
 });
+
+test('real Git discovery distinguishes branch names, object IDs and detached HEAD',async t=>{
+    const {execFileSync}=await import('node:child_process');
+    const root=mkdtempSync(join(tmpdir(),'source git 中文 '));t.after(()=>rmSync(root,{recursive:true,force:true}));
+    const git=(args:string[])=>execFileSync('git',['-C',root,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+    git(['init','--initial-branch=main']);
+    git(['-c','user.name=Source Test','-c','user.email=source@example.invalid','commit','--allow-empty','-m','fixture']);
+    const context=contextFor(root,'session');
+    assert.equal(context.branch,'main');assert.equal(context.head,git(['rev-parse','HEAD']));
+    git(['checkout','--detach']);
+    assert.equal(contextFor(root).branch,null);assert.equal(contextFor(root).head,context.head);
+});
