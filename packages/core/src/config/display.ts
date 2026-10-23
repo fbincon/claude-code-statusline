@@ -6,8 +6,9 @@ import { BY_SCOPE, canonicalItem, conflicts } from './catalog.js';
 import { object, exact, fail, clone, choice, nullableInteger, ConfigError, isSchema } from './validation.js';
 export { isSchema } from './validation.js';
 import * as options from './formatting.js';
+import { reference, SOURCE_TYPES } from '../extensions/model.js';
 
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 export const CONFIG_FILENAME = 'claude-statusline.json';
 const v1 = ['schema_version', 'items', 'use_colors', 'palette', 'directory_style', 'separator_style'];
 const v2 = [...v1, 'scope_labels', 'subagents'];
@@ -65,12 +66,16 @@ export function legacyInstances(scope: Scope, items: readonly string[], values: 
 export function validateInstances(value: unknown, scope: Scope): InstanceDraft[] {
   if (!Array.isArray(value)) fail('composition.errors.array');
   const nodes = value.map(raw => {
-    exact(raw, ['id', 'type_id', 'enabled', 'options', 'text'], 'instance');
+    exact(raw, ['id', 'type_id', 'enabled', 'options', 'text', ...(object(raw) && Object.hasOwn(raw, 'source') ? ['source'] : [])], 'instance');
+    const source = Object.hasOwn(raw, 'source') ? reference(raw.source) : undefined;
+    if (source && !SOURCE_TYPES.includes(raw.type_id as string)) fail('composition.errors.node_options');
     const { id, type_id, enabled, text } = raw;
     if (typeof id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/u.test(id)) fail('composition.errors.id');
     if (typeof type_id !== 'string' || !BY_SCOPE[scope].has(type_id)) fail('composition.errors.unknown_type');
     if (typeof enabled !== 'boolean') fail('composition.errors.enabled');
     const parsed = options.itemOptions(raw.options);
+    const capability = BY_SCOPE[scope].get(type_id)?.capabilities;
+    if (parsed.link !== undefined && !capability?.link || SOURCE_TYPES.includes(type_id) && Object.keys(parsed.formatting).some(key=>!capability?.formats.includes(key))) fail('composition.errors.node_options');
     if (type_id === 'text' || type_id === 'spacer') {
       if (parsed.visibility !== 'always' || Object.keys(parsed.formatting).length) fail('composition.errors.node_options');
       if (type_id === 'spacer' && canonical(parsed) !== canonical(DEFAULT_ITEM)) fail('composition.errors.spacer_options');
@@ -80,7 +85,7 @@ export function validateInstances(value: unknown, scope: Scope): InstanceDraft[]
       // Item text and labels share the Python codepoint/control constraints.
       if ([...text].length > 256 || /[\p{Cc}\p{Cs}]/u.test(text)) fail('errors.formatting.must_be_null_or_text_without_control', { name: 'text' });
     } else if (text !== null) fail('composition.errors.only_text');
-    return { id, type_id, enabled, options: parsed, text: text as string | null };
+    return { id, type_id, enabled, options: parsed, text: text as string | null, ...(source ? { source } : {}) };
   });
   if (new Set(nodes.map(node => node.id)).size !== nodes.length) fail('composition.errors.duplicate');
   if (conflicts(scope, nodes.filter(node => node.enabled && !['text', 'spacer'].includes(node.type_id)).map(node => node.type_id))) fail('composition.errors.conflict');
@@ -114,7 +119,7 @@ function legacySubagents(value: unknown, legacy: boolean): SubagentDraft {
 function scalars(data: Record<string, unknown>, version: number) {
   if (typeof data.use_colors !== 'boolean') fail('errors.display.use_colors_must_be_true_or_false');
   return {
-    schema_version: 9 as const, use_colors: data.use_colors,
+    schema_version: 10 as const, use_colors: data.use_colors,
     palette: choice(data.palette, ['default', 'ansi'] as const, 'palette'),
     directory_style: choice(data.directory_style, ['full', 'home', 'project-relative', 'basename'] as const, 'directory_style'),
     separator_style: choice(data.separator_style, ['classic', 'compact', 'powerline'] as const, 'separator_style'),
@@ -132,7 +137,7 @@ export function validateDisplay(value: unknown): DisplayDraft {
   let version: bigint;
   try { version = jsonInteger(value.schema_version); }
   catch { return fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) }); }
-  if (version > 9n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
+  if (version > 10n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
   if (version < 1n) fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) });
   if (version >= 8n) {
     exact(value, version === 8n ? v8 : current, 'display');
@@ -176,7 +181,7 @@ export function validateDisplay(value: unknown): DisplayDraft {
 }
 
 function orderedDisplay(value: DisplayDraft): DisplayDraft {
-  return { schema_version: 9, use_colors: value.use_colors, palette: value.palette,
+  return { schema_version: 10, use_colors: value.use_colors, palette: value.palette,
     directory_style: value.directory_style, separator_style: value.separator_style,
     scope_labels: value.scope_labels, statusline_language: value.statusline_language,
     theme: value.theme, powerline_glyph: value.powerline_glyph, powerline: value.powerline, subagents: value.subagents,

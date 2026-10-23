@@ -1,3 +1,4 @@
+import { itemFields as capabilityFields } from '../editor/appearance.js';
 import type { DisplayDraft, EditorField, Scope } from '../contracts/ui.js';
 import { EDITOR_FIELDS } from '../contracts/ui.js';
 import { BY_SCOPE, canonicalItem } from './catalog.js';
@@ -8,18 +9,13 @@ import { clone, fail, integer } from './validation.js';
 import { resolveLanguage } from '../i18n/registry.js';
 
 export function itemFields(scope: Scope, typeId: string): EditorField[] {
-  if (typeId === 'spacer') return [];
-  const fields = EDITOR_FIELDS.item as unknown as readonly EditorField[];
-  if (typeId === 'text') return [{ key: 'text', label: 'Literal text', group: 'Item format', kind: 'text', choices: [], minimum: 0, maximum: 10000, nullable: false },
-    ...fields.filter(field => ['label', 'icon', 'foreground', 'background', 'priority', 'max_width'].includes(field.key)).map(clone)];
-  const rule = Object.hasOwn(VISIBILITY_ITEMS[scope], typeId) ? VISIBILITY_ITEMS[scope][typeId] : undefined;
-  return fields.filter(field => (field.key !== 'visibility' || rule !== undefined) && (field.key !== 'visibility_threshold' || rule === 'used-at-least'))
-    .map(field => field.key === 'visibility' ? { ...field, choices: ['always', rule!] } : clone(field));
+  return capabilityFields(EDITOR_FIELDS.item as unknown as EditorField[], scope, typeId, BY_SCOPE[scope].get(typeId)?.capabilities);
 }
 export function editItem(config: DisplayDraft, scope: Scope, identifier: string, option: string, value: unknown): DisplayDraft {
   let node = find(config, scope, identifier);
   if (!node && scope === 'main') { identifier = canonicalItem(identifier); node = find(config, scope, identifier); }
   if (!node && !BY_SCOPE[scope].has(identifier)) fail('errors.advanced.unknown_scoped_item');
+  if (!itemFields(scope,node?.type_id ?? identifier).some(field=>field.key===option.replaceAll('-','_'))) fail('errors.advanced.unknown_item_option');
   const nodes = scoped(config, scope).instances;
   const values = Object.fromEntries(nodes.map(item => [item.id, clone(item.options)]));
   values[identifier] = editedOptions(node?.options ?? defaultItem(), option, value);
@@ -51,6 +47,7 @@ export function fieldValue(config: DisplayDraft, key: string, scope?: Scope, ide
   if (scope !== undefined) {
     const node = find(config, scope, identifier!);
     if (key === 'text') return node?.text;
+    if (key === 'link') return node?.options.link ?? 'off';
     const options = node?.options ?? defaultItem();
     return Object.hasOwn(FORMAT_CHOICES, key) ? options.formatting[key] ?? 'inherit' : options[key as keyof typeof options];
   }

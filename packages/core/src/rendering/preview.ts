@@ -1,3 +1,4 @@
+import { sampleSource } from './extensions.js';
 import type { DisplayDraft } from '../contracts/ui.js';
 import type { Data } from '../runtime/values.js';
 import type { RenderEnvironment } from './context.js';
@@ -22,7 +23,7 @@ export function samplePreviewData(home: string): Data {
     return {
         model: { id: 'claude-opus' }, effort: { level: 'high' }, fast_mode: true, thinking: { enabled: true },
         workspace: { current_dir: project + '/src', project_dir: project, repo: { owner: 'example', name: 'claude-code-statusline' } },
-        pr: { number: 42, review_state: 'approved' }, worktree: { name: 'statusline-tui' },
+        pr: { number: 42, review_state: 'approved', url: 'https://github.com/example/project/pull/42' }, worktree: { name: 'statusline-tui' },
         context_window: { remaining_percentage: 73, used_percentage: 27, context_window_size: 200000, total_input_tokens: 54000, current_usage: { input_tokens: 35000, cache_creation_input_tokens: 12000, cache_read_input_tokens: 7000, output_tokens: 2000 } },
         rate_limits: { five_hour: { used_percentage: 18, resets_at: SAMPLE_NOW + 7980 }, seven_day: { used_percentage: 36, resets_at: SAMPLE_NOW + 525600 }, spend_limit: { used_percentage: 9, resets_at: SAMPLE_NOW + 864000, used_usd: 31.50, limit_usd: 350, period: 'monthly' } },
         prompt_cache: { hit_ratio: 0.91, cache_write_tokens: 352000, warm: true, caching_observed: true, expires_at: SAMPLE_NOW + 260, misses: 2, requests: 14, last_miss_at: SAMPLE_NOW - 60, last_miss_cause: { causes: ['tools_changed'], tools_added: 2, tools_removed: 0 } },
@@ -32,6 +33,7 @@ export function samplePreviewData(home: string): Data {
     };
 }
 export function previewRows(config: DisplayDraft, width: number, env: RenderEnvironment, home: string, padding = 0): string[] {
+    env = { ...env, source: sampleSource, links: true };
     width = Math.max(2, Math.trunc(width));
     padding = Math.min(Math.max(0, Math.trunc(padding)), width - 2);
     env.trace?.begin('main','main');

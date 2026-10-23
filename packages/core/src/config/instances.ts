@@ -77,7 +77,7 @@ export function editedOptions(current: ItemOptionsDraft, option: string, value: 
   if (Object.hasOwn(FORMAT_CHOICES, key)) {
     if (value === 'inherit') delete data.formatting[key];
     else data.formatting[key] = value as string;
-  } else if (['label', 'icon', 'priority', 'max_width', 'foreground', 'background', 'visibility', 'visibility_threshold'].includes(key)) {
+  } else if (['label', 'icon', 'priority', 'max_width', 'foreground', 'background', 'visibility', 'visibility_threshold', 'link'].includes(key)) {
     if (['priority', 'max_width', 'visibility_threshold'].includes(key)) {
       if (value === null || value === 'none') value = null;
       else if (typeof value === 'string' && /^[+-]?\d+$/u.test(value.trim())) value = Number(value);
@@ -117,7 +117,12 @@ export function edit(config: DisplayDraft, scope: Scope, request: Edit, nextId: 
   } else if (action === 'enable' || action === 'disable') node!.enabled = action === 'enable';
   else if (action === 'set') {
     if (option === 'text') node!.text = value as string;
-    else node!.options = editedOptions(node!.options, option!, value);
+    else {
+      const capability = BY_SCOPE[scope].get(node!.type_id)?.capabilities, key = option!.replaceAll('-','_');
+      if (Object.hasOwn(FORMAT_CHOICES,key) && !supportedFormats(scope,node!.type_id,capability).includes(key) || key === 'link' && !capability?.link) fail('errors.advanced.unknown_item_option');
+      node!.options = editedOptions(node!.options, option!, value);
+    }
   } else fail('composition.errors.action');
   return { config: scope === 'main' ? updateDisplay(config, { instances: nodes }) : updateDisplay(config, { subagents: updateSubagents(config.subagents, { instances: nodes }) }), selected };
 }
+import { supportedFormats } from '../editor/appearance.js';

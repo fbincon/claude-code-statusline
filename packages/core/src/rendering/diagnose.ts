@@ -94,7 +94,7 @@ export function diagnose(draft: Draft, scope: Scope, width: number, input: Data,
         instances: (scope === 'main' ? draft.display.instances : draft.display.subagents.instances).map(node => ({
             id: node.id, type_id: node.type_id, enabled: node.enabled,
             reasons: configurationReasons(draft, scope, node, observedFacts),
-            evidence: [...inputEvidence(input, scope, node.type_id, options.observedAt), ...(local.get(node.type_id) ?? [])],
+            evidence: [...inputEvidence(input, scope, node.type_id, options.observedAt), ...(local.get(node.id) ?? local.get(node.type_id) ?? [])],
             rows: trace.layouts(scope, node.id),
         })),
         host_fields: { worktree: worktreeEvidence(input), cache_miss: cacheMissEvidence(input.prompt_cache) },

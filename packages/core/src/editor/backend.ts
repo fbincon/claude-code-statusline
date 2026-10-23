@@ -23,6 +23,7 @@ import type {
   Span,
 } from '../contracts/ui.js';
 import { validColor, visibilityChoices } from './appearance.js';
+import { isSourceResult } from './source-validation.js';
 import { isLocalizedText } from '../i18n/messages.js';
 import type { LocalizedText } from '../i18n/messages.js';
 
@@ -103,7 +104,7 @@ function formatOverrides(value: unknown): boolean {
 function itemOptions(value: unknown, ids: readonly string[], scope: "main" | "subagent"): boolean {
   if (!object(value)) return false;
   return Object.entries(value).every(([id, option]) => ids.includes(id) && object(option) &&
-    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold']) &&
+    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold', ...(option.link !== undefined ? ['link'] : [])]) && (option.link === undefined || ['off','auto','on'].includes(String(option.link))) &&
     (option.label === null || (text(option.label) && [...option.label].length <= 256)) &&
     (option.icon === null || (text(option.icon) && [...option.icon].length <= 256)) &&
     range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
@@ -125,7 +126,7 @@ function instanceList(value: unknown, ids: readonly string[], scope: "main" | "s
   if (!Array.isArray(value)) return false;
   const seen = new Set<string>();
   return value.every(node => {
-    if (!object(node) || !exact(node,['id','type_id','enabled','options','text']) ||
+    if (!object(node) || !exact(node,['id','type_id','enabled','options','text', ...(node.source !== undefined ? ['source'] : [])]) || node.source !== undefined && (!object(node.source) || !exact(node.source,['binding','hint']) || !(node.source.binding === null || text(node.source.binding)) || !text(node.source.hint)) ||
         typeof node.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(node.id) || seen.has(node.id) ||
         typeof node.type_id !== 'string' || !ids.includes(node.type_id) || typeof node.enabled !== 'boolean' ||
         !itemOptions({[node.type_id]: node.options},ids,scope)) return false;
@@ -168,7 +169,7 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 9 ||
+    d.schema_version !== 10 ||
     !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.map(f => f.key.slice(10))) ||
     !POWERLINE_FIELDS.every(f => f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
       (f.choices as readonly unknown[]).includes((d.powerline as Record<string, unknown>)[f.key.slice(10)])) ||
@@ -468,6 +469,8 @@ export function parseResponse<O extends Operation>(
     if (!exact(result, ['draft','changes']) || !isDraft(result.draft) || !Array.isArray(result.changes) || !result.changes.every(isImportChange)) fail();
   } else if (operation === 'import' || operation === 'preset') {
     if (!isDraft(result.draft)) fail();
+  } else if (operation.startsWith('source')) {
+    if (!isSourceResult(operation,result)) fail();
   } else if (operation === 'profiles_read' || operation === 'profiles_apply') {
     if (!isProfiles(result) || operation === 'profiles_apply' && (typeof result.changed !== 'boolean' || !(result.backup_dir === null || text(result.backup_dir)))) fail();
   } else if (operation === 'profile_import') {
@@ -507,8 +510,8 @@ export function parseResponse<O extends Operation>(
       !result.backend_version ||
       !isOptions(result.options) ||
       !isCapabilities(result.capabilities) ||
-      !selection(result.operations, ['describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details']) ||
-      result.operations.length !== 17 ||
+      !selection(result.operations, ['sources_read','sources_apply','source_review','source_context','source_refresh','source_status','source_cancel','source_diagnose','describe', 'read', 'preview', 'apply', 'import', 'export', 'preset', 'read_ui_preferences', 'set_ui_language', 'review_import', 'explain', 'diagnose', 'profiles_read', 'profiles_apply', 'profile_import', 'profile_export', 'task_details']) ||
+      result.operations.length !== 25 ||
       JSON.stringify(result.editor_fields) !== JSON.stringify(EDITOR_FIELDS) ||
       JSON.stringify(result.presets) !== JSON.stringify(PRESETS) ||
       !object(result.formatting_options) ||

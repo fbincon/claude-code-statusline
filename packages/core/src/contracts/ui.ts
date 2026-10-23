@@ -2,7 +2,7 @@
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 16 as const;
+export const PROTOCOL_VERSION = 17 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation"]} as const;
@@ -512,7 +512,7 @@ export const SEPARATORSTYLE_VALUES = ["classic", "compact", "powerline"] as cons
 export const SCOPELABELS_VALUES = ["off", "when-subagents", "always"] as const;
 export const STATUSLINELANGUAGE_VALUES = LANGUAGES;
 export const UNAVAILABLEREASON_VALUES = ["not_observed", "unsupported_host", "unknown_host_version", "source_unavailable", "condition_not_met", "runtime_disabled", "native_timing_disabled", "wait_coverage_missing", "stale", "incomplete", "ambiguous_owner", "observed_only", "missing_stream", "synthetic_response", "abnormal_clock", "inconsistent_request", "request_join_unavailable"] as const;
-export type Operation = "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain" | "diagnose" | "profiles_read" | "profiles_apply" | "profile_import" | "profile_export" | "task_details";
+export type Operation = "sources_read" | "sources_apply" | "source_review" | "source_context" | "source_refresh" | "source_status" | "source_cancel" | "source_diagnose" | "describe" | "read" | "preview" | "apply" | "import" | "export" | "preset" | "read_ui_preferences" | "set_ui_language" | "review_import" | "explain" | "diagnose" | "profiles_read" | "profiles_apply" | "profile_import" | "profile_export" | "task_details";
 export interface ItemGuidance {
   source_kinds: string[];
   measurement_scope: string;
@@ -535,6 +535,15 @@ export interface CatalogItem {
   default_enabled: boolean;
   minimum_version_status: "verified" | "unknown";
   guidance: ItemGuidance;
+  capabilities?: ItemCapability;
+}
+export interface ItemCapability {
+  formats: string[];
+  visibility: string[];
+  link: boolean;
+  source: 'none' | 'external' | 'github';
+  preview: string;
+  explanation: string;
 }
 export interface ChoiceOptions {
   choices: (string | boolean)[];
@@ -594,6 +603,7 @@ export interface FormattingDraft {
   thresholds: ThresholdDraft;
 }
 export interface ItemOptionsDraft {
+  link?: 'off' | 'auto' | 'on';
   label: string | null;
   icon: string | null;
   priority: number;
@@ -605,6 +615,7 @@ export interface ItemOptionsDraft {
   visibility_threshold: number;
 }
 export interface InstanceDraft {
+  source?: SourceReference;
   id: string;
   type_id: string;
   enabled: boolean;
@@ -634,7 +645,7 @@ export interface PowerlineDraft {
   color_mode: "semantic" | "continuous" | "restart";
 }
 export interface DisplayDraft {
-  schema_version: 9;
+  schema_version: 10;
   statusline_language: StatuslineLanguage;
   instances: InstanceDraft[];
   use_colors: boolean;
@@ -664,11 +675,63 @@ export interface Foreground {
   value: string | number;
 }
 export interface Span {
+  link?: string;
   text: string;
   bold: boolean;
   foreground: Foreground | null;
   background: Foreground | null;
 }
+
+/** Machine-local source authorization is never part of a portable display. */
+export interface SourceReference { binding: string | null; hint: string }
+export type SourceKind = 'json' | 'github' | 'command';
+export interface SourceScope { project: string | null; session: string | null; agent: string | null }
+export interface SourceContext extends SourceScope { branch: string | null; head: string | null }
+export interface SourceSettings {
+  path?: string;
+  pointer?: string;
+  observed_at_pointer?: string;
+  unit?: string;
+  executable?: string;
+  args?: string[];
+  cwd?: string;
+  input?: Record<string, string>;
+  output?: 'json' | 'text';
+  timeout_ms?: number;
+  host?: string;
+  repository?: string;
+  branch?: string;
+  account?: string;
+  pr?: number | null;
+}
+export interface SourceDefinition {
+  id: string; name: string; kind: SourceKind; scope: SourceScope;
+  ttl_seconds: number; settings: SourceSettings; enabled: boolean; revision: string;
+}
+export interface SourceBinding { id: string; source_id: string }
+export interface SourceRegistry { version: 1; sources: SourceDefinition[]; bindings: SourceBinding[] }
+export interface SourcesResult extends SourceRegistry { revision: string }
+export type SourceState = 'valid' | 'missing' | 'partial' | 'error' | 'unsupported';
+export interface SourceObservation {
+  version: 1; source_id: string; source_revision: string; context: SourceContext;
+  observed_at: string | null; state: SourceState; reason: string;
+  value: string | number | boolean | null; unit: string | null;
+  fields?: Record<string, string | number | boolean | null>;
+  identity?: { host: string; repository: string; account: string; auth_revision: string };
+}
+export interface SourceView {
+  source_id: string | null; name: string; state: SourceState | 'disabled' | 'unbound' | 'mismatch';
+  reason: string; observed_at: string | null; freshness: 'current' | 'stale' | 'unknown';
+  value: string | number | boolean | null; unit: string | null;
+  fields?: Record<string, string | number | boolean | null>;
+}
+export interface SourceJob {
+  version: 1; id: string; source_id: string; source_revision: string; owner: string;
+  context: SourceContext; started_at: string; deadline_at: string;
+  state: 'running' | 'completed' | 'failed' | 'cancelled'; reason: string;
+}
+export interface SourceReview { source: SourceDefinition; review_revision: string }
+export interface SourceMutationResult extends SourcesResult { binding?: SourceReference; backup_dir: string | null }
 export interface PreviewResult {
   sample: true;
   main: Span[][];
@@ -676,7 +739,7 @@ export interface PreviewResult {
 }
 export const SAMPLE_REASONS = ['sample_visible','sample_empty','sample_condition_hidden','sample_truncated','sample_priority_omitted','sample_width_omitted','sample_row_hidden','sample_spacer'] as const;
 export type SampleReason = typeof SAMPLE_REASONS[number];
-export const EXPLAIN_REASONS = ['configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
+export const EXPLAIN_REASONS = ['source_bound','source_unbound','configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
 export interface ExplainReason { code: string; origin: 'configuration' | 'local_configuration' | 'host_capability' | 'unknown'; }
 export interface InstanceSample { row_id: string; outcome: SampleReason; truncated: boolean; }
 export interface ExplainInstance {
@@ -857,6 +920,14 @@ export interface ApplyResult {
   configuration?: ResolvedConfiguration;
 }
 export interface ResultMap {
+  sources_read: SourcesResult;
+  sources_apply: SourceMutationResult;
+  source_review: SourceReview;
+  source_context: SourceContext;
+  source_refresh: SourceJob;
+  source_status: SourceJob;
+  source_cancel: SourceJob;
+  source_diagnose: { source: SourceDefinition; view: SourceView; jobs: SourceJob[] };
   describe: DescribeResult;
   read: ReadResult;
   preview: PreviewResult;

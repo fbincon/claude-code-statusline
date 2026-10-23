@@ -27,6 +27,7 @@ export function configurationReasons(draft: Draft, scope: Scope, node: InstanceD
       const reasons: ExplainReason[]=[];
       const add=(code:string,origin:ExplainReason['origin'])=>reasons.push({code,origin});
       add(node.enabled?'configured_on':'configured_off','configuration');
+      if (['external-value','github-pr','github-ci'].includes(node.type_id)) add(node.source?.binding ? 'source_bound' : 'source_unbound','configuration');
       if(scope==='subagent'&&!draft.display.subagents.enabled) add('scope_disabled','configuration');
       add('installation_'+facts.installation[scope],facts.installation[scope]==='unknown'?'unknown':'local_configuration');
       const definition=BY_SCOPE[scope].get(node.type_id), requirements=definition?.guidance.requirements ?? [];

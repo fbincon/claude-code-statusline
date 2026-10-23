@@ -1,3 +1,5 @@
+import { externalPresentation } from './extensions.js';
+import { fileLink, safeLink } from '../terminal/links.js';
 import type { DisplayDraft, FormattingDraft, InstanceDraft } from '../contracts/ui.js';
 import { int, numeric, truth, string, object, own, type Data } from '../runtime/values.js';
 import { roundedInteger } from '../runtime/transcript.js';
@@ -291,17 +293,20 @@ export class RenderState {
                 this.env.trace?.mark('main',id,'condition_hidden'); return null;
             }
         }
-        const rendered = this.renderType(item);
+        const external = node && ['external-value','github-pr','github-ci'].includes(item) ? externalPresentation(node, this.env.source?.(node, this.data), this.env, fmt) : null;
+        const rendered = external ? { text: external.text } : this.renderType(item);
         if (!rendered)
             return null;
         let text = preferences.threshold(rendered.text, used, fmt, this.config, this.palette.percentage);
-        text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
+        if (!external) text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
         if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null)
             text = appearance.apply(text, this.config, item, options, 'main', used);
         if (options.max_width !== null) {
             if(layout.displayWidth(text)>options.max_width) this.env.trace?.mark('main',id,'truncated');
             text = layout.truncateStyled(text, options.max_width);
         }
+        const target = external?.target ?? (item === 'current-dir' ? fileLink(this.liveDir) : item === 'project-name' ? fileLink(deepGet(this.data, ['workspace','project_dir'])) : item === 'pr' ? safeLink(deepGet(this.data, ['pr','url'])) : null);
+        text = layout.withLink(text, target, options.link, this.env.links);
         if(text) this.env.trace?.mark('main',id,'visible');
         return { ...rendered, text };
     }
