@@ -1825,5 +1825,11 @@
   "statusline.prefix.main.github-ci": "GitHub CI",
   "statusline.short.main.github-ci": "GitHub CI",
   "explain.reason.source_bound": "ローカルソースが関連付けられています。有効化と実際の取得状態は別途確認します。",
-  "explain.reason.source_unbound": "ローカルソースを関連付けてください。サンプルは実データではありません。"
+  "explain.reason.source_unbound": "ローカルソースを関連付けてください。サンプルは実データではありません。",
+  "fields.item.presentation.label": "指標の表示形式",
+  "fields.item.bar_width.label": "バーの幅（4～20 セル）",
+  "fields.item.bar_style.label": "バーの文字",
+  "indicators.presentation.numeric": "数値",
+  "indicators.presentation.bar": "短いバー",
+  "explain.reason.indicator_bar": "バーは観測した割合を示し、経過時間や予測ではありません。"
 }

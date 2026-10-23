@@ -4,7 +4,7 @@
 
 Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`2bdf429d3356796232efff926235617cdab4f430`**
 
-Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes and explicitly enabled extensions are delivered. The next product sequence is graphical indicators → component groups → GitHub automatic refresh → cost rates → homepage demonstrations. Git invocation review is an independent maintenance package. All six future packages are **NOT_STARTED**, without assigned versions or delivery dates; CI-01 remains complete.
+Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes and explicitly enabled extensions are delivered. The next product sequence is graphical indicators → component groups → GitHub automatic refresh → cost rates → homepage demonstrations. Git invocation review is an independent maintenance package. M4–M7 are selected for v3.7.0; M4 is VALIDATING. Other unstarted work retains its scope; CI-01 remains complete.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -63,7 +63,7 @@ Keep the original project and authors credited when discussing these references.
 | Priority | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
 | Independent maintenance | [GIT-01](development-plan.md#git-01) | Verified Git invocation behavior and any necessary protections | Existing Git collectors, source identity and process adapters | NOT_STARTED |
-| M4 Graphical indicators | [APPEARANCE-03](development-plan.md#appearance-03) | Optional short bars for context and quotas, with readable text fallback | Existing observed percentages, component options and layout | NOT_STARTED |
+| M4 Graphical indicators | [APPEARANCE-03](development-plan.md#appearance-03) | Optional short bars for context and quotas, with readable text fallback | Existing observed percentages, component options and layout | VALIDATING |
 | M5 Component groups | [COMPOSITION-02](development-plan.md#composition-02) | Decorations hide with their metric; groups can share a Powerline block | Existing instances, visibility and Powerline | NOT_STARTED |
 | M6 GitHub refresh | [WORKFLOW-02](development-plan.md#workflow-02) | Separately enabled automatic PR/CI refresh with visible state and stop controls | Delivered EXTENSIONS-01 and WORKFLOW-01 | NOT_STARTED |
 | M7 Derived metrics | [METRICS-01](development-plan.md#metrics-01) | Hourly cost with an explicit session-time or API-time denominator | Existing observed session cost and duration fields | NOT_STARTED |

@@ -31,8 +31,25 @@ test('scoped forms expose only meaningful conditions and canonicalize colors', (
   expect(normalizeColor('ansi:001')).toBe('ansi:1');
 });
 
+test('indicator fields survive native form changes and draft validation', () => {
+  const current = readResult();
+  current.draft.display.instances = [component('context-used')];
+  const editor = new Editor(description(), current);
+  editor.detail = { scope: 'main', id: 'context-used' };
+  const view = { editor, message: '' };
+  for (const [key, value] of [['presentation', 'bar'], ['bar_width', '12'], ['bar_style', 'ascii']] as const) {
+    const field = formRows(view).find(row => row.spec.key === key)!;
+    expect(setFormValue(view, field, value)).toBe(true);
+  }
+  expect(isDraft(editor.draft)).toBe(true);
+  expect(editor.draft.display.instances[0]!.options.bar_width).toBe(12);
+  const width = formRows(view).find(row => row.spec.key === 'bar_width')!;
+  expect(setFormValue(view, width, '21')).toBe(false);
+  expect(editor.draft.display.instances[0]!.options.bar_width).toBe(12);
+});
+
 test('future, partial, invalid global appearances are rejected', () => {
-  for (const patch of [{schema_version: 11}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
+  for (const patch of [{schema_version: 12}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
     const draft = copyDraft(BASE);
     Object.assign(draft.display, patch);
     expect(isDraft(draft)).toBe(false);

@@ -1825,5 +1825,11 @@
   "statusline.prefix.main.github-ci": "GitHub CI",
   "statusline.short.main.github-ci": "GitHub CI",
   "explain.reason.source_bound": "로컬 소스가 연결되었습니다. 활성화 및 실제 관측 상태는 별도로 확인합니다。",
-  "explain.reason.source_unbound": "로컬 소스를 명시적으로 연결하세요. 샘플은 실제 데이터가 아닙니다."
+  "explain.reason.source_unbound": "로컬 소스를 명시적으로 연결하세요. 샘플은 실제 데이터가 아닙니다.",
+  "fields.item.presentation.label": "지표 표시 방식",
+  "fields.item.bar_width.label": "막대 너비(4–20칸)",
+  "fields.item.bar_style.label": "막대 문자",
+  "indicators.presentation.numeric": "숫자",
+  "indicators.presentation.bar": "짧은 막대",
+  "explain.reason.indicator_bar": "막대는 관측된 비율이며 경과 시간이나 예측을 의미하지 않습니다."
 }

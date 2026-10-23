@@ -1,3 +1,4 @@
+import { INDICATOR_KEYS, validIndicatorOptions } from './indicators.js';
 import { SAMPLE_REASONS, EXPLAIN_REASONS, LAYOUT_REASONS, EVIDENCE_STATUSES } from '../contracts/ui.js';
 import { text as localizedText } from '../i18n/messages.js';
 /** Protocol parsing only. Host calls stay in the hooks entry for static analysis. */
@@ -104,10 +105,10 @@ function formatOverrides(value: unknown): boolean {
 function itemOptions(value: unknown, ids: readonly string[], scope: "main" | "subagent"): boolean {
   if (!object(value)) return false;
   return Object.entries(value).every(([id, option]) => ids.includes(id) && object(option) &&
-    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold', ...(option.link !== undefined ? ['link'] : [])]) && (option.link === undefined || ['off','auto','on'].includes(String(option.link))) &&
+    exact(option, ['label', 'icon', 'priority', 'max_width', 'formatting', 'foreground', 'background', 'visibility', 'visibility_threshold', ...(option.link !== undefined ? ['link'] : []), ...INDICATOR_KEYS.filter(key => Object.hasOwn(option, key))]) && (option.link === undefined || ['off','auto','on'].includes(String(option.link))) &&
     (option.label === null || (text(option.label) && [...option.label].length <= 256)) &&
     (option.icon === null || (text(option.icon) && [...option.icon].length <= 256)) &&
-    range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
+    validIndicatorOptions(option, scope, id) && range(option.priority, 0, 100) && range(option.max_width, 2, 10000, true) &&
     formatOverrides(option.formatting) && validColor(option.foreground) && validColor(option.background) &&
     typeof option.visibility === "string" && visibilityChoices(scope, id).includes(option.visibility) &&
     range(option.visibility_threshold, 0, 100));
@@ -169,7 +170,7 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 10 ||
+    d.schema_version !== 11 ||
     !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.map(f => f.key.slice(10))) ||
     !POWERLINE_FIELDS.every(f => f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
       (f.choices as readonly unknown[]).includes((d.powerline as Record<string, unknown>)[f.key.slice(10)])) ||

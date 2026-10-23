@@ -1,3 +1,4 @@
+import { indicator } from './indicators.js';
 import { externalPresentation, sampleSource } from './extensions.js';
 import { fileLink } from '../terminal/links.js';
 import { withLink } from './layout.js';
@@ -146,7 +147,7 @@ function partsFor(task: Data, config: DisplayDraft, now: number, env: RenderEnvi
                 const number = fmt.number_format !== 'legacy' ? preferences.number(task.contextWindowSize, fmt) : capacity !== null && capacity !== 0n ? formatters.humanizeTokens(task.contextWindowSize) : null;
                 value = number ? text('context.window', { value: number }) : null; style = p.context; break;
             }
-            case 'context-remaining': case 'context-used': value = context(task, item === 'context-remaining', env); style = p.context; break;
+            case 'context-remaining': case 'context-used': value = options.presentation === 'bar' ? indicator(task, item, 'subagent', options, fmt, language, now / 1000) : context(task, item === 'context-remaining', env); style = p.context; break;
             case 'elapsed': value = taskElapsed(); style = p.elapsed; break;
             case 'task': {
                 const label = formatters.sanitizePayloadText(task.label) || formatters.sanitizePayloadText(task.description);

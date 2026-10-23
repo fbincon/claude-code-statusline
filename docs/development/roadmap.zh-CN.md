@@ -4,7 +4,7 @@
 
 更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`2bdf429d3356796232efff926235617cdab4f430`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案和显式启用的扩展已交付。后续产品顺序为图形指标 → 组件分组 → GitHub 自动刷新 → 费用速率 → 首页演示，Git 调用核查作为独立维护工作。六项未来工作均为 **NOT_STARTED**，尚未指定版本或交付日期；CI-01 保持已完成。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案和显式启用的扩展已交付。后续产品顺序为图形指标 → 组件分组 → GitHub 自动刷新 → 费用速率 → 首页演示，Git 调用核查作为独立维护工作。M4–M7 已选定纳入 v3.7.0，M4 为 VALIDATING；其他未启动工作保持原范围，CI-01 保持已完成。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
@@ -63,7 +63,7 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 优先级 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
 | 独立维护 | [GIT-01](development-plan.zh-CN.md#git-01) | 核实 Git 调用行为及必要防护 | 既有 Git 采集、来源身份与进程适配 | NOT_STARTED |
-| M4 图形指标 | [APPEARANCE-03](development-plan.zh-CN.md#appearance-03) | 上下文／额度可选短进度条及可读文字回退 | 既有已观测百分比、组件选项和布局 | NOT_STARTED |
+| M4 图形指标 | [APPEARANCE-03](development-plan.zh-CN.md#appearance-03) | 上下文／额度可选短进度条及可读文字回退 | 既有已观测百分比、组件选项和布局 | VALIDATING |
 | M5 组件分组 | [COMPOSITION-02](development-plan.zh-CN.md#composition-02) | 装饰随指标隐藏，可合并 Powerline 色块 | 既有实例、条件显示与 Powerline | NOT_STARTED |
 | M6 GitHub 刷新 | [WORKFLOW-02](development-plan.zh-CN.md#workflow-02) | 独立启用的 PR／CI 自动刷新，状态及停止操作明确 | 已交付 EXTENSIONS-01、WORKFLOW-01 | NOT_STARTED |
 | M7 派生指标 | [METRICS-01](development-plan.zh-CN.md#metrics-01) | 明确按会话／API 时间折算的每小时费用 | 既有已观测会话费用与耗时字段 | NOT_STARTED |

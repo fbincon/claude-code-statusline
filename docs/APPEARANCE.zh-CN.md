@@ -102,3 +102,17 @@ schema 1–8 只在内存中迁移；读取、预览、`setup --dry-run` 和 `in
 ![Item colors](images/appearance/external-light-zh-CN.png)
 
 逐项外观设置作用于实例，复制后可独立修改。文本与留白的规则见[组件组合](COMPOSITION.zh-CN.md)。
+
+## 图形指标
+
+在任一编辑器的指标详情中，可为上下文和额度实例选择**指标显示方式**、**短条宽度**和**短条字符**。默认仍为数字；短条宽度为 4–20 格，默认 8 格。自动字符随 ASCII 图标设置使用 ASCII，否则使用 Unicode；不支持方块字符的终端可明确选择 `ascii`，无需颜色。
+
+```bash
+claude-statusline config instance main set context-remaining presentation bar
+claude-statusline config instance main set context-remaining bar-width 8
+claude-statusline config instance main set context-remaining bar-style ascii
+```
+
+使用 `config instance main list` 查询已有实例 ID；`subagent` 同样支持这些选项。适用类型为 `context-used`、`context-remaining`，以及仅主行支持的 `five-hour-limit`、`weekly-limit`、`spend-limit`。额度遵循实例的已用/剩余选项。隐藏普通标签时仍保留方向和百分比；短条表示观测水平，不表示经过时间或预测。缺失、无效或过期输入不会伪造为零；仅填充限制在 100%，有效超限额度保留数值。宽度适配可能裁剪或省略整个表示。
+
+复制、配置方案和导入导出保留显示选项，不启用任何采集或来源。保存并重开后恢复选项，取消保留原配置。参阅[交付与兼容记录](development/m4-m7-delivery.zh-CN.md)。

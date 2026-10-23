@@ -14,7 +14,7 @@ import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -50,11 +50,33 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 17, operation, payload }), environment));
-    assert.equal(result.protocol_version, 17);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 18, operation, payload }), environment));
+    assert.equal(result.protocol_version, 18);
     assert.ok(result.result);
     return result.result;
 }
+test('installed indicators retain defaults, independent agent values and portable options', () => {
+    const config = setup('indicators');
+    run(['config', 'set-items', 'context-used'], config);
+    run(['config', 'set', 'colors', 'off'], config);
+    run(['config', 'set', 'scope-labels', 'off'], config);
+    const payload = JSON.stringify({ context_window: { used_percentage: 50 } });
+    assert(!run(['render'], config, payload).includes('[####'));
+    run(['config', 'instance', 'main', 'set', 'context-used', 'presentation', 'bar'], config);
+    run(['config', 'instance', 'main', 'set', 'context-used', 'bar-style', 'ascii'], config);
+    assert(run(['render'], config, payload).includes('[####----]'));
+    run(['config', 'subagents', 'set-items', 'context-used'], config);
+    run(['config', 'instance', 'subagent', 'set', 'context-used', 'presentation', 'bar'], config);
+    run(['config', 'instance', 'subagent', 'set', 'context-used', 'bar-style', 'ascii'], config);
+    const child = JSON.stringify({ tasks: [{ id: 'a', status: 'running', tokenCount: 25, contextWindowSize: 100 }] });
+    assert(run(['render-subagents'], config, child).includes('[##------]'));
+    const portable = join(installed.temporary, 'indicator-portable.json');
+    run(['config', 'export', portable], config);
+    run(['config', 'instance', 'main', 'set', 'context-used', 'presentation', 'numeric'], config);
+    run(['config', 'import', portable], config);
+    assert(run(['render'], config, payload).includes('[####----]'));
+    report.indicator_cases = 3; checks.indicators = true;
+});
 test('installed sources preserve opt-in, literal commands, portable isolation and OSC8 output',()=>{
     const config=setup('extensions'), directory=installed.temporary, data=join(directory,'source 中文.json');fs.writeFileSync(data,'{"value":0}');
     const mutation=(action:string,id:string,extra={})=>ui(config,'sources_apply',{action,id,expected_revision:ui(config,'sources_read').revision,...extra});
@@ -265,7 +287,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 17, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 18, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -337,7 +359,7 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
         assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
         if(choice!=='cancel') {
             const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
-            assert.equal(display.schema_version,10);assert.equal(display.theme,'terminal');
+            assert.equal(display.schema_version,11);assert.equal(display.theme,'terminal');
             assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
         }
     }

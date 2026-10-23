@@ -1835,7 +1835,13 @@ export const LOCALES = {
     "statusline.prefix.main.github-ci": "GitHub CI",
     "statusline.short.main.github-ci": "GitHub CI",
     "explain.reason.source_bound": "A local source is bound; enablement and live availability are checked separately.",
-    "explain.reason.source_unbound": "Bind a local source explicitly. Samples do not indicate live data."
+    "explain.reason.source_unbound": "Bind a local source explicitly. Samples do not indicate live data.",
+    "fields.item.presentation.label": "Indicator presentation",
+    "fields.item.bar_width.label": "Bar width (4–20 cells)",
+    "fields.item.bar_style.label": "Bar characters",
+    "indicators.presentation.numeric": "Number",
+    "indicators.presentation.bar": "Short bar",
+    "explain.reason.indicator_bar": "The bar shows the observed percentage, not elapsed time or a forecast."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3664,7 +3670,13 @@ export const LOCALES = {
     "statusline.prefix.main.github-ci": "GitHub CI",
     "statusline.short.main.github-ci": "GitHub CI",
     "explain.reason.source_bound": "已绑定本地数据源；启用状态与实际可用性需另行检查。",
-    "explain.reason.source_unbound": "请主动绑定本地数据源；样例不代表真实数据。"
+    "explain.reason.source_unbound": "请主动绑定本地数据源；样例不代表真实数据。",
+    "fields.item.presentation.label": "指标显示方式",
+    "fields.item.bar_width.label": "短条宽度（4–20 格）",
+    "fields.item.bar_style.label": "短条字符",
+    "indicators.presentation.numeric": "数字",
+    "indicators.presentation.bar": "短条",
+    "explain.reason.indicator_bar": "短条表示观测百分比，不表示经过时间或预测。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5493,7 +5505,13 @@ export const LOCALES = {
     "statusline.prefix.main.github-ci": "GitHub CI",
     "statusline.short.main.github-ci": "GitHub CI",
     "explain.reason.source_bound": "已綁定本機資料來源；啟用狀態與實際可用性須另外檢查。",
-    "explain.reason.source_unbound": "請明確綁定本機資料來源；範例不代表實際資料。"
+    "explain.reason.source_unbound": "請明確綁定本機資料來源；範例不代表實際資料。",
+    "fields.item.presentation.label": "指標顯示方式",
+    "fields.item.bar_width.label": "短條寬度（4–20 格）",
+    "fields.item.bar_style.label": "短條字元",
+    "indicators.presentation.numeric": "數字",
+    "indicators.presentation.bar": "短條",
+    "explain.reason.indicator_bar": "短條表示觀測百分比，不表示經過時間或預測。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7322,7 +7340,13 @@ export const LOCALES = {
     "statusline.prefix.main.github-ci": "GitHub CI",
     "statusline.short.main.github-ci": "GitHub CI",
     "explain.reason.source_bound": "已綁定本機資料來源；啟用狀態與實際可用性須另外檢查。",
-    "explain.reason.source_unbound": "請明確綁定本機資料來源；範例不代表實際資料。"
+    "explain.reason.source_unbound": "請明確綁定本機資料來源；範例不代表實際資料。",
+    "fields.item.presentation.label": "指標顯示方式",
+    "fields.item.bar_width.label": "短條寬度（4–20 格）",
+    "fields.item.bar_style.label": "短條字元",
+    "indicators.presentation.numeric": "數字",
+    "indicators.presentation.bar": "短條",
+    "explain.reason.indicator_bar": "短條表示觀測百分比，不表示經過時間或預測。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9151,7 +9175,13 @@ export const LOCALES = {
     "statusline.prefix.main.github-ci": "GitHub CI",
     "statusline.short.main.github-ci": "GitHub CI",
     "explain.reason.source_bound": "ローカルソースが関連付けられています。有効化と実際の取得状態は別途確認します。",
-    "explain.reason.source_unbound": "ローカルソースを関連付けてください。サンプルは実データではありません。"
+    "explain.reason.source_unbound": "ローカルソースを関連付けてください。サンプルは実データではありません。",
+    "fields.item.presentation.label": "指標の表示形式",
+    "fields.item.bar_width.label": "バーの幅（4～20 セル）",
+    "fields.item.bar_style.label": "バーの文字",
+    "indicators.presentation.numeric": "数値",
+    "indicators.presentation.bar": "短いバー",
+    "explain.reason.indicator_bar": "バーは観測した割合を示し、経過時間や予測ではありません。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -10980,7 +11010,13 @@ export const LOCALES = {
     "statusline.prefix.main.github-ci": "GitHub CI",
     "statusline.short.main.github-ci": "GitHub CI",
     "explain.reason.source_bound": "로컬 소스가 연결되었습니다. 활성화 및 실제 관측 상태는 별도로 확인합니다。",
-    "explain.reason.source_unbound": "로컬 소스를 명시적으로 연결하세요. 샘플은 실제 데이터가 아닙니다."
+    "explain.reason.source_unbound": "로컬 소스를 명시적으로 연결하세요. 샘플은 실제 데이터가 아닙니다.",
+    "fields.item.presentation.label": "지표 표시 방식",
+    "fields.item.bar_width.label": "막대 너비(4–20칸)",
+    "fields.item.bar_style.label": "막대 문자",
+    "indicators.presentation.numeric": "숫자",
+    "indicators.presentation.bar": "짧은 막대",
+    "explain.reason.indicator_bar": "막대는 관측된 비율이며 경과 시간이나 예측을 의미하지 않습니다."
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

@@ -1,3 +1,4 @@
+import { INDICATOR_DEFAULTS } from './indicators.js';
 import { nodes } from './instances.js';
 import { text as localizedText, type Language, type LocalizedText } from '../i18n/messages.js';
 /** Canonical descriptors drive tool forms in both editors. */
@@ -63,7 +64,7 @@ export function formRows(view: FormView): FormRow[] {
         const node = e.instance(e.detail.scope, e.detail.id)!;
         const options = node.options;
         return itemFields(e.description.editor_fields.item!, e.detail.scope, node.type_id, e.definition(e.detail.scope,node.id)?.capabilities).map((spec) => row(spec, 'item:' + spec.key, spec.key === 'text' ? node.text : spec.key === 'link' ? options.link ?? 'off' : spec.key in e.description.formatting_options ? options.formatting[spec.key] ?? 'inherit' :
-            options[spec.key as keyof typeof options] ?? ITEM_DEFAULTS[spec.key as keyof typeof ITEM_DEFAULTS]))
+            options[spec.key as keyof typeof options] ?? INDICATOR_DEFAULTS[spec.key as keyof typeof INDICATOR_DEFAULTS] ?? ITEM_DEFAULTS[spec.key as keyof typeof ITEM_DEFAULTS]))
             .sort((a, b) => ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(a.group) - ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(b.group));
     }
     if (e.page === 'layout') {

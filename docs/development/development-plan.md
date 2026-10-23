@@ -83,7 +83,7 @@ These sections describe planned behavior, not available commands or completed ch
 
 ## APPEARANCE-03 Graphical context and quota indicators
 
-**Status: NOT_STARTED.** First in product order; uses existing observations without enabling collection.
+**Status: VALIDATING.** First in product order; uses existing observations without enabling collection.
 
 **Problem and goal.** Help users read context and quota levels at a glance while retaining existing number-based display and data definitions.
 

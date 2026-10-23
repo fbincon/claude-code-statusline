@@ -241,3 +241,5 @@ Claude hook timeout 为 600 秒。桥接 TUI 在 570 秒主动超时且不保存
 ## 公开包交付
 
 见 [TS-06](typescript-migration/ts-06/README.zh-CN.md)、[安装指南](../USER_GUIDE.zh-CN.md#安装与接入)与[发布流程](../RELEASING.zh-CN.md)。工程候选与公开包身份保持区分。
+
+[M4–M7 实现与交付](m4-m7-delivery.zh-CN.md)。
