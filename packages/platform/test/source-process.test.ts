@@ -20,3 +20,18 @@ test('descendants retaining pipes cannot outlive a completed source',async()=>{
     if(process.platform==='win32')assert.throws(()=>process.kill(pid,0));
     // On Unix a killed orphan can briefly remain as a zombie; it cannot hold pipes.
 });
+
+test('Windows suspended-process bootstrap reports its bounded lifecycle', {skip:process.platform!=='win32'}, async t=>{
+    const {spawnSync}=await import('node:child_process');
+    const {join}=await import('node:path');
+    const {windowsJobScript}=await import('../src/windows-source-job.js');
+    const script=windowsJobScript.replace("Add-Type -TypeDefinition", "[Console]::Error.WriteLine('source-phase:script');\nAdd-Type -TypeDefinition")
+        .replace("exit [StatuslineSourceJob]", "[Console]::Error.WriteLine('source-phase:compiled');\nexit [StatuslineSourceJob]")
+        .replace('IntPtr job=CreateJobObject', 'Console.Error.WriteLine("source-phase:job"); IntPtr job=CreateJobObject')
+        .replace('if(!AssignProcessToJobObject', 'Console.Error.WriteLine("source-phase:created"); if(!AssignProcessToJobObject')
+        .replace('if(ResumeThread', 'Console.Error.WriteLine("source-phase:assigned"); if(ResumeThread')
+        .replace('WaitForSingleObject(info.process', 'Console.Error.WriteLine("source-phase:resumed"); WaitForSingleObject(info.process');
+    const result=spawnSync(join(process.env.SystemRoot??'C:\\Windows','System32/WindowsPowerShell/v1.0/powershell.exe'),['-NoLogo','-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{cwd:process.cwd(),env:{...sourceEnvironment(),STATUSLINE_SOURCE_LAUNCH:JSON.stringify({executable:process.execPath,args:['-e','process.exit(2)'],cwd:process.cwd()})},input:'{}\n',encoding:'utf8',timeout:10000,windowsHide:true});
+    t.diagnostic(JSON.stringify({status:result.status,error:result.error?.message,stdout:result.stdout,stderr:result.stderr}));
+    assert.equal(result.status,2);
+});
