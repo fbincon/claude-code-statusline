@@ -3,6 +3,10 @@ import { dirname, basename, join, resolve, toNamespacedPath } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { library, nativeApi, nativeFunction, winError } from './native.js';
 
+export class FileChangedError extends Error {
+  constructor() { super('file_changed'); this.name = 'FileChangedError'; }
+}
+
 /** Older Windows libuv reports a 64-bit path volume serial but a 32-bit fd
  * serial. Match the low 32 bits, as current libuv does, without rounding IDs
  * through number. POSIX device identifiers retain all their bits. */
@@ -27,7 +31,8 @@ export function fileIdentity(path: string, stat: Pick<fs.BigIntStats, 'dev' | 'i
     if (!nativeFunction('kernel32.dll', 'bool GetFileInformationByHandle(void *handle, _Out_ void *info)')(h, info)) throw winError('GetFileInformationByHandle');
     const attributes = info.readUInt32LE(0), dev = BigInt(info.readUInt32LE(28));
     const ino = BigInt(info.readUInt32LE(44)) << 32n | BigInt(info.readUInt32LE(48));
-    if (attributes & (0x400 | 0x10) || ino !== stat.ino) throw new Error('File changed or became a reparse point while checking identity');
+    if (attributes & (0x400 | 0x10)) throw new Error('File became a reparse point or directory while checking identity');
+    if (ino !== stat.ino) throw new FileChangedError();
     return { dev, ino };
   } finally { k.func('bool CloseHandle(void *handle)')(h); }
 }
