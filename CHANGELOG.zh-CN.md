@@ -3,6 +3,11 @@
 [English](CHANGELOG.md) | **简体中文**
 
 
+## Unreleased
+
+- 将 GitHub Actions 固定至已核实提交，新增离线身份检查及每周同主版本 Actions 更新提议。
+- [CI 维护与验证](docs/development/ci-maintenance.zh-CN.md)。
+
 ## 3.6.0 — 2026-10-23
 
 - 新增独立注册和明确启用的本地 JSON、GitHub PR/CI 与命令数据源，以及双编辑器/CLI 管理。

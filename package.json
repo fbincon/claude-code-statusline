@@ -50,12 +50,14 @@
     "release:build": "npm run build && node dist/typescript/tools/build/candidate.js --channel public",
     "release:verify": "npm run build && node dist/typescript/tools/build/verify.js --release",
     "release:downloads": "npm run build && node dist/typescript/tools/release/downloads.js",
-    "test:runtime": "node tools/typescript/test.mjs --runtime"
+    "test:runtime": "node tools/typescript/test.mjs --runtime",
+    "actions:check": "npm run build && node dist/typescript/tools/checks/actions.js"
   },
   "devDependencies": {
     "@resvg/resvg-js": "2.6.2",
     "@types/node": "24.19.2",
     "tar": "7.5.22",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "yaml": "2.9.1"
   }
 }

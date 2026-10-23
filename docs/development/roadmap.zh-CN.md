@@ -2,9 +2,9 @@
 
 [English](roadmap.md) | **简体中文**
 
-更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`aa4ae982747feed476cca9d81a8df9a967b92400`**
+更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`95206119dab6f931f320277d25889fea8da49528`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案和显式启用的扩展已交付；演示与维护工作仍为候选，尚未指定版本或交付日期。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案和显式启用的扩展已交付；演示仍为候选，尚未指定版本或交付日期；CI-01 维护验证中，本次不发布产品版本。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
@@ -65,9 +65,9 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | M3 扩展 | [WORKFLOW-01](development-plan.zh-CN.md#workflow-01) | 可选 GitHub PR 查询与 CI 状态 | EXTENSIONS-01；LINKS-01 可选 | DONE |
 | M3 扩展 | [COMMAND-01](development-plan.zh-CN.md#command-01) | 用户明确配置的外部命令组件 | EXTENSIONS-01 | DONE |
 | 按需工程支持 | [CAPABILITIES-01](development-plan.zh-CN.md#capabilities-01) | 组件支持选项与说明一致 | 外观或扩展暴露的具体元数据需求 | DONE |
-| 独立维护候选 | [CI-01](development-plan.zh-CN.md#ci-01) | Actions 引用固定、可核查更新 | 当前工作流清单 | NOT_STARTED |
+| 独立维护 | [CI-01](development-plan.zh-CN.md#ci-01) | Actions 引用固定、可核查更新 | 当前工作流清单 | VALIDATING |
 
-M1 → M2 → M3 记录这些阶段采用的产品优先顺序；上述依赖区分实现前置条件与排期。SHOWCASE-01 继续作为已交付功能的后续展示候选，CI-01 独立且不阻塞产品阶段。包括 Dependabot 在内的自动依赖更新仍为未启动候选，在 CI 维护任务中评估。
+M1 → M2 → M3 记录这些阶段采用的产品优先顺序；上述依赖区分实现前置条件与排期。SHOWCASE-01 继续作为已交付功能的后续展示候选，CI-01 独立且不阻塞产品阶段。CI-01 包括 Dependabot 的每周同主版本 Actions 更新提议，实现与验证记录在 [CI 维护](ci-maintenance.zh-CN.md)。
 
 其他客户端、插件市场、自动脚本下载、通用 Shell 模式、渐变、跨行自动对齐和选择性配置合并继续保持未排期，不作为上述工作包的完成条件。
 

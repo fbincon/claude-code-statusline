@@ -2,6 +2,8 @@
 
 **English** | [简体中文](testing.zh-CN.md)
 
+[CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
+
 
 [Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
 

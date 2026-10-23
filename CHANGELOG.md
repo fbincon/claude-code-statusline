@@ -3,6 +3,11 @@
 **English** | [简体中文](CHANGELOG.zh-CN.md)
 
 
+## Unreleased
+
+- Pin GitHub Actions to verified commits, add offline identity checks and weekly same-major Actions update proposals.
+- [CI maintenance and validation](docs/development/ci-maintenance.md).
+
 ## 3.6.0 — 2026-10-23
 
 - Add separately registered, explicitly enabled JSON, GitHub PR/CI and command sources with complete shared editor/CLI management.

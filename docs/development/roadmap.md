@@ -2,9 +2,9 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`aa4ae982747feed476cca9d81a8df9a967b92400`**
+Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`95206119dab6f931f320277d25889fea8da49528`**
 
-Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes and explicitly enabled extensions are delivered. Demonstrations and maintenance remain candidates, without assigned versions or delivery dates.
+Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes and explicitly enabled extensions are delivered. Demonstrations remain a candidate without an assigned version or delivery date. CI-01 maintenance is validating without a product release.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -65,9 +65,9 @@ Keep the original project and authors credited when discussing these references.
 | M3 Extensions | [WORKFLOW-01](development-plan.md#workflow-01) | Optional GitHub PR lookup and CI status | EXTENSIONS-01; LINKS-01 is optional | DONE |
 | M3 Extensions | [COMMAND-01](development-plan.md#command-01) | Explicitly configured external command components | EXTENSIONS-01 | DONE |
 | Engineering as needed | [CAPABILITIES-01](development-plan.md#capabilities-01) | Consistent supported options and explanations for components | Specific metadata needs exposed by appearance or extensions | DONE |
-| Independent maintenance candidate | [CI-01](development-plan.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | NOT_STARTED |
+| Independent maintenance | [CI-01](development-plan.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | VALIDATING |
 
-M1 → M2 → M3 records the product priority used for these stages. The dependencies above distinguish implementation prerequisites from scheduling. SHOWCASE-01 remains a follow-up for delivered functionality; CI-01 is independent and does not block a product stage. Automatic dependency updates, including Dependabot, remain an unstarted candidate to evaluate within the CI maintenance task.
+M1 → M2 → M3 records the product priority used for these stages. The dependencies above distinguish implementation prerequisites from scheduling. SHOWCASE-01 remains a follow-up for delivered functionality; CI-01 is independent and does not block a product stage. CI-01 includes weekly Dependabot proposals for same-major Actions updates; implementation and validation are tracked in [CI maintenance](ci-maintenance.md).
 
 Other clients, a plugin marketplace, automatic script downloads, general Shell mode, gradients, automatic cross-line alignment and selective configuration merging remain unscheduled candidates. They are outside the completion requirements of the work packages above.
 

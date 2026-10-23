@@ -10,7 +10,7 @@ import { documentationOnly, changedDocumentationOnly, assessCiNeeds } from '../c
 test('only allowlisted Markdown changes on ordinary PRs and branches avoid the matrix', () => {
     const docs = ['README.md', 'README.zh-CN.md', 'CHANGELOG.md', 'docs/development/external-tui-parity.md', 'docs/releases/v3.1.2.md'];
     for (const event of ['pull_request', 'push']) assert.equal(documentationOnly(event, 'branch', docs), true);
-    for (const path of ['packages/tui/src/state.ts', 'mods/statusline-native/README.md', 'docs/releases/approvals/v3.1.2.json', 'docs/image.png', '.github/workflows/ci.yml', 'package-lock.json', 'packages/core/src/release.ts', 'AGENTS.md', 'unknown', 'docs/not-markdown'])
+    for (const path of ['packages/tui/src/state.ts', 'mods/statusline-native/README.md', 'docs/releases/approvals/v3.1.2.json', 'docs/image.png', '.github/workflows/ci.yml', '.github/workflows/new.yaml', '.github/dependabot.yml', '.github/actions/local/action.yml', 'tools/checks/actions.ts', 'package-lock.json', 'packages/core/src/release.ts', 'AGENTS.md', 'unknown', 'docs/not-markdown'])
         assert.equal(documentationOnly('pull_request', 'branch', [...docs, path]), false, path);
     assert.equal(documentationOnly('push', 'tag', docs), false);
     assert.equal(documentationOnly('workflow_dispatch', 'branch', docs), false);
