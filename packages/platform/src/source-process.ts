@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { which } from './commands.js';
 import { windowsJobScript } from './windows-source-job.js';
 import { windowsSourceEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
+import { decodeUtf8 } from './utf8.js';
 export interface SourceProcessOptions {
     executable: string;
     args: readonly string[];
@@ -16,7 +17,7 @@ export interface SourceProcessResult {
     code: number | null;
     stdout: string;
     errorKind?: 'authentication' | 'permission' | 'network' | 'rate_limit' | 'no_checks';
-    reason: 'completed' | 'exit' | 'missing_program' | 'timeout' | 'cancelled' | 'output_limit' | 'io_error';
+    reason: 'completed' | 'exit' | 'missing_program' | 'timeout' | 'cancelled' | 'output_limit' | 'io_error' | 'invalid_output';
 }
 /** User commands inherit only the OS essentials, never model/forge credentials. */
 export function sourceEnvironment(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
@@ -70,7 +71,10 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
             child.stderr.destroy();
             const detail = Buffer.concat(errors).toString('utf8');
             const errorKind: SourceProcessResult['errorKind'] = /^no checks reported on the '[^\r\n]*' branch\s*$/u.test(detail) ? 'no_checks' : /rate limit|HTTP 429/iu.test(detail) ? 'rate_limit' : /HTTP 403|forbidden|not accessible|permission denied/iu.test(detail) ? 'permission' : /HTTP 401|auth login|not logged|authentication/iu.test(detail) ? 'authentication' : /timeout|connection|resolve host|network|TLS|dial tcp|\bEOF\b/iu.test(detail) ? 'network' : undefined;
-            resolve({ code, stdout: Buffer.concat(chunks).toString('utf8'), ...(errorKind ? { errorKind } : {}), reason: reason === 'completed' && code !== 0 ? 'exit' : reason });
+            let stdout = '';
+            try { stdout = decodeUtf8(Buffer.concat(chunks)); }
+            catch { if (reason === 'completed') reason = 'invalid_output'; }
+            resolve({ code, stdout, ...(errorKind ? { errorKind } : {}), reason: reason === 'completed' && code !== 0 ? 'exit' : reason });
         };
         const stop = (why: SourceProcessResult['reason']) => {
             if (done || reason !== 'completed')

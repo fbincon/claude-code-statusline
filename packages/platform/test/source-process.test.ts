@@ -10,6 +10,7 @@ test('deadline, cancellation, output limits and ordinary failure remain distinct
     const run=(script:string,extra={})=>runSourceProcess({executable:process.execPath,args:['-e',script],cwd:process.cwd(),input:'',timeoutMs:5000,...extra});
     assert.equal((await run('process.exit(2)')).reason,'exit');
     assert.equal((await run('process.stdout.write("x".repeat(1100000))')).reason,'output_limit');
+    assert.equal((await run('process.stdout.write(Buffer.from([0xff]))')).reason,'invalid_output');
     assert.equal((await run('setInterval(()=>{},100)',{timeoutMs:100})).reason,'timeout');
     const controller=new AbortController(), pending=run('setInterval(()=>{},100)',{signal:controller.signal});setTimeout(()=>controller.abort(),100);
     assert.equal((await pending).reason,'cancelled');
