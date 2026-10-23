@@ -8,6 +8,8 @@ import * as appearance from './appearance.js';
 import * as styles from './styles.js';
 
 interface Unit { id: string; priority: number; cells: Cell[]; group?: GroupDraft; spacer?: boolean }
+// '$' cannot occur in user instance/group identifiers.
+export const SCOPE_LABEL_ID = '$scope';
 export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[], config: DisplayDraft, scope: Scope,
   columns: number, separator: string, auto: boolean, observe?: FitObserver, colors = powerline.cursor(scope)): string[] {
   columns = Math.max(2, Math.trunc(columns));
@@ -29,7 +31,7 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
     });
     if (members.length) units.push({ id: group.id, priority: nodes.get(group.primary_id)!.options.priority, cells: members, group });
   }
-  if (!units.some(unit => unit.id !== 'scope' && !unit.spacer)) return [];
+  if (!units.some(unit => unit.id !== SCOPE_LABEL_ID && !unit.spacer)) return [];
   const isPowerline = config.separator_style === 'powerline';
   const draw = (values: readonly Unit[], padding: boolean, caps: boolean, start: number): { text: string; next: number } => {
     if (!isPowerline) return { text: values.map(u => u.cells.map(c => c.text).join(u.group ? ' ' : separator)).join(separator), next: start };
@@ -87,7 +89,7 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
   if (!auto) { const row = emit(units); return layout.strip(row).trim() ? [row] : []; }
   const rows: string[] = []; let line: Unit[] = [];
   for (const unit of units) {
-    if (line.length && measure([...line, unit]) > columns) { rows.push(emit(line)); line = []; }
+    if (line.some(u => u.id !== SCOPE_LABEL_ID && !u.spacer) && measure([...line, unit]) > columns) { rows.push(emit(line)); line = []; }
     line.push(unit);
   }
   if (line.length) rows.push(emit(line));

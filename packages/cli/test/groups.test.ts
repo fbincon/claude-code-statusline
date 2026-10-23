@@ -130,6 +130,21 @@ test('agent grouping evaluates each agent independently', () => {
   assert.match(renderTask(task(), groupedAgents, env, 80), /DECOR.*42%/);
   assert.equal(renderTask(task({ tokenCount: null }), groupedAgents, env, 80), '');
 });
+
+test('user scope identifiers cannot alias synthetic labels or leave labels alone on narrow rows', () => {
+  const display = grouped(); display.groups[0]!.id = 'scope';
+  display.instances = display.instances.filter(n => n.id !== 'cost');
+  display.layout = { mode: 'auto', rows: [] };
+  const input = { context_window: { used_percentage: 50 } };
+  assert(rendered(input, validateDisplay(display)).includes('50%'));
+  display.scope_labels = 'always';
+  for (const width of [2, 4, 12, 24, 80]) {
+    const rows = rendered(input, display, {}, width).split('\n');
+    assert(rows.every(row => displayWidth(row) <= width && row.trim() !== 'Main'));
+  }
+  display.groups[0]!.member_ids[1] = 'scope'; display.groups[0]!.primary_id = 'scope'; display.instances[1]!.id = 'scope';
+  assert(rendered(input, validateDisplay(display)).includes('50%'));
+});
 test('CLI, both editors shared group operations, import and save conflicts use the same draft rules', t => {
   const f = setup(t, true), initial = f.read(); initial.draft.display = fixture(); assert.equal(f.save(initial).status, 0);
   configCommand(['group', 'main', 'create', 'group', '--members', 'decoration,context', '--primary', 'context'], f.service);
