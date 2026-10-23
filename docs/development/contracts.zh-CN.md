@@ -195,3 +195,7 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 ## 分组契约
 
 显示 schema 12 / 编辑器协议 19 在主显示与子代理模板中增加 `groups`。每组包含 `id`、有序 `member_ids`、`primary_id`、`link_visibility`、`shared_powerline`。旧格式只读迁移为空组。共用规则拒绝重叠、spacer、不连续引用及跨显式行。复制重新映射成员，删除主指标解除分组。`group_hidden` 为明确的布局/样例原因；其他接口版本不变。
+
+## WORKFLOW-02 automatic policy
+
+编辑器协议 20 保持显示 schema 12。来源注册表 v2 新增本机 `automatic` 策略：`{source_id,enabled,review_revision,interval_seconds,auth_revision}`；v1 只读迁移为空策略列表，不改写文件。任务 v2 增加 `trigger` 与 `identity`，v1 任务按手动读取；观测仍为 schema 1。Runtime v3 增加 `source_lifecycle`，payload 为 `{session_id,epoch,seq,project,host_version,event}`（`tick|end`），继续支持 v1/v2 observe/read。生命周期独立于指标偏好，拒绝旧版协议调用新操作。策略使用既有修订锁保存，渲染不能续租或派发任务；`source_diagnose.automatic` 返回调度状态和时间。

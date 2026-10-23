@@ -30,13 +30,13 @@ export class RuntimeProtocol {
     dispatch(request: unknown): Data {
         exact(request, ['protocol_version', 'operation', 'payload'], 'request');
         const version = int(request.protocol_version);
-        if (version !== 1n && version !== BigInt(PROTOCOL_VERSION))
+        if (![1n, 2n, BigInt(PROTOCOL_VERSION)].includes(version ?? -1n))
             throw new ObservationError('unsupported runtime protocol; reinstall matching Mod/backend');
         const modes = loadRuntime(this.context.configDir), enabled = modes.native_timing || modes.live_metrics, payload = request.payload;
         if (request.operation === 'observe') {
             exact(payload, ['observations'], 'payload');
             const rows = validateBatch(payload.observations);
-            const counts = enabled ? this.store.observe(rows, { timing: modes.native_timing, completeTiming: version === BigInt(PROTOCOL_VERSION), advanced: modes.live_metrics }) : { accepted: 0, ignored: rows.length };
+            const counts = enabled ? this.store.observe(rows, { timing: modes.native_timing, completeTiming: version! >= 2n, advanced: modes.live_metrics }) : { accepted: 0, ignored: rows.length };
             return { backend_version: VERSION, enabled, native_timing: modes.native_timing, live_metrics: modes.live_metrics, ...counts };
         }
         if (request.operation === 'read') {
@@ -69,7 +69,12 @@ export class RuntimeProtocol {
             });
             if (object(request) && int(request.protocol_version) !== null)
                 response.protocol_version = request.protocol_version;
-            response.result = this.dispatch(request);
+            if (object(request) && request.operation === 'source_lifecycle') {
+                exact(request, ['protocol_version', 'operation', 'payload'], 'request');
+                if (int(request.protocol_version) !== BigInt(PROTOCOL_VERSION)) throw new ObservationError('unsupported lifecycle protocol');
+                const { sourceLifecycle } = await import('../../sources/lifecycle.js');
+                response.result = sourceLifecycle(this.context, request.payload);
+            } else response.result = this.dispatch(request);
             response.protocol_version = (request as Data).protocol_version;
         }
         catch (error) {

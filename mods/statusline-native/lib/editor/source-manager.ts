@@ -5,12 +5,13 @@ import { t, text, type Language, type LocalizedText } from '../i18n/index.ts';
 import { inputKey, inputView, textInput, type TextInput, type TextKey } from './text-input.ts';
 import { wrapText } from '../../ui/text.ts';
 import { BackendError } from '../backend.ts';
-type Action = 'edit' | 'review' | 'disable' | 'remove' | 'bind' | 'unbind' | 'refresh' | 'status' | 'cancel' | 'diagnose';
+type Action = 'edit' | 'review' | 'disable' | 'remove' | 'bind' | 'unbind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'auto-review' | 'auto-off';
 export interface SourceManager {
     library: SourcesResult | null;
     context: SourceContext | null;
     owner: string;
-    page: 'list' | 'actions' | 'kind' | 'form' | 'review' | 'remove' | 'bind' | 'unbind' | 'diagnose';
+    page: 'list' | 'actions' | 'kind' | 'form' | 'review' | 'remove' | 'bind' | 'unbind' | 'diagnose' | 'auto-review';
+    automaticInterval: number;
     cursor: number;
     scroll: number;
     selected: string | null;
@@ -24,7 +25,7 @@ export interface SourceManager {
     details: string[];
     jobs: SourceJob[];
     message: LocalizedText | null;
-    effect: 'load' | 'save' | 'review' | 'enable' | 'disable' | 'remove' | 'bind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'close' | null;
+    effect: 'load' | 'save' | 'review' | 'enable' | 'disable' | 'remove' | 'bind' | 'refresh' | 'status' | 'cancel' | 'diagnose' | 'close' | 'auto-review' | 'auto-on' | 'auto-off' | null;
     target: {
         scope: Scope;
         id: string;
@@ -35,10 +36,10 @@ export interface SourceBackend {
 }
 const external = ['external-value', 'github-pr', 'github-ci'];
 export function openSources(editor: Editor): void {
-    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), page: 'list', cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
+    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), page: 'list', automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
 }
 function source(editor: Editor): SourceDefinition | undefined { return editor.sources!.library?.sources.find(s => s.id === editor.sources!.selected); }
-function actions(editor: Editor): Action[] { return ['edit', 'review', ...(source(editor)?.enabled ? ['disable' as const] : []), 'bind', 'refresh', 'status', 'cancel', 'diagnose', 'remove', 'unbind']; }
+function actions(editor: Editor): Action[] { return ['edit', 'review', ...(source(editor)?.enabled ? ['disable' as const] : []), 'bind', 'refresh', 'status', 'cancel', 'diagnose', 'remove', 'unbind', ...(source(editor)?.kind === 'github' ? ['auto-review' as const, 'auto-off' as const] : [])]; }
 function targets(editor: Editor) {
     const s = source(editor);
     return (['main', 'subagent'] as const).flatMap(scope => (scope === 'main' ? editor.draft.display.instances : editor.draft.display.subagents.instances)
@@ -99,10 +100,11 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
     }
     if (!plain)
         return null;
-    if (['review', 'diagnose'].includes(m.page) && ['up', 'down', 'pageup', 'pagedown', 'home'].includes(key)) {
+    if (['review', 'diagnose', 'auto-review'].includes(m.page) && ['up', 'down', 'pageup', 'pagedown', 'home'].includes(key)) {
         m.scroll = key === 'home' ? 0 : Math.max(0, m.scroll + (key === 'up' ? -1 : key === 'pageup' ? -8 : key === 'pagedown' ? 8 : 1));
         return null;
     }
+    if (m.page === 'auto-review' && ['left', 'right'].includes(key)) { m.automaticInterval = Math.max(60, Math.min(86400, m.automaticInterval + (key === 'left' ? -60 : 60))); return null; }
     if (key === 'up' || key === 'down')
         m.cursor = Math.max(0, Math.min(count(editor) - 1, m.cursor + (key === 'up' ? -1 : 1)));
     if (key === 'r' && m.page === 'list')
@@ -131,8 +133,8 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
             else
                 m.effect = action;
         }
-        else if (m.page === 'review')
-            m.effect = 'enable';
+        else if (m.page === 'review') m.effect = 'enable';
+        else if (m.page === 'auto-review') m.effect = 'auto-on';
         else if (m.page === 'remove')
             m.effect = 'remove';
         else if (m.page === 'unbind') {
@@ -158,7 +160,7 @@ export async function closeSources(editor: Editor, backend: SourceBackend): Prom
     if (!m)
         return;
     let failed: unknown;
-    for (const job of m.jobs.filter(job => job.state === 'running')) {
+    for (const job of m.jobs.filter(job => job.state === 'running' && job.owner === m.owner && job.trigger === 'manual')) {
         try { await backend.request('source_cancel', { id: job.id }); }
         catch (error) { failed = error; }
     }
@@ -183,9 +185,10 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             m.context = await backend.request('source_context', { project: target?.project_root ?? (target?.target.kind === 'project' ? target.target.path : null), session: null, agent: null });
             return;
         }
-        if (effect === 'review') {
+        if (effect === 'review' || effect === 'auto-review') {
             m.review = await backend.request('source_review', { id: m.selected });
-            m.page = 'review';
+            m.page = effect;
+            m.automaticInterval = m.library?.automatic.find(p => p.source_id === m.selected)?.interval_seconds ?? Math.max(60, Math.min(86400, m.review.source.ttl_seconds));
             m.scroll = 0;
             return;
         }
@@ -195,7 +198,7 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             const observed = await backend.request('source_diagnose', { id: m.selected, context });
             const jobs = await Promise.all(observed.jobs.map(job => backend.request(effect === 'cancel' && job.state === 'running' ? 'source_cancel' : 'source_status', { id: job.id })));
             m.jobs = m.jobs.map(job => jobs.find(updated => updated.id === job.id) ?? job);
-            m.details = jobs.map(job => `${job.id}: ${job.state} (${job.reason})`);
+            m.details = [JSON.stringify(observed.automatic, null, 2), ...jobs.map(job => `${job.id}: ${job.state} (${job.reason})`)];
             m.page = 'diagnose';
             m.scroll = 0;
             return;
@@ -230,8 +233,8 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
                 parsed.pr = parsed.pr === '' ? null : Number(parsed.pr);
             Object.assign(payload, { action: m.editing ? 'edit' : 'add', id, source: { name: name || id, kind: m.kind, scope: { project: project || null, session: session || null, agent: agent || null }, ttl_seconds: Number(ttl_seconds), settings: parsed } });
         }
-        if (effect === 'enable')
-            payload.review_revision = m.review?.review_revision;
+        if (effect === 'enable' || effect === 'auto-on') payload.review_revision = m.review?.review_revision;
+        if (effect === 'auto-on') payload.interval_seconds = m.automaticInterval;
         const result = await backend.request('sources_apply', payload);
         m.library = result;
         if (effect === 'bind' && m.target && result.binding) {
@@ -241,7 +244,7 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             m.message = text('sources.bound');
         }
         else
-            m.message = text('sources.saved');
+            m.message = text(effect === 'auto-on' ? 'sources.automatic_saved' : 'sources.saved');
         m.page = 'list';
         m.cursor = 0;
         m.scroll = 0;
@@ -264,7 +267,7 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     if (m.message)
         add(t(m.message.key, language, m.message.params));
     if (m.page === 'list') {
-        m.library?.sources.forEach((s, i) => add(`${s.name} · ${s.kind} · ${tr(s.enabled ? 'enabled' : 'disabled')}`, m.cursor === i));
+        m.library?.sources.forEach((s, i) => add(`${s.name} · ${s.kind} · ${tr(s.enabled ? 'enabled' : 'disabled')}${s.kind === 'github' ? ' · ' + tr(m.library!.automatic.some(p => p.source_id === s.id && p.enabled) ? 'automatic_on' : 'automatic_off') : ''}`, m.cursor === i));
         add('+ ' + tr('add'), m.cursor === (m.library?.sources.length ?? 0));
     }
     else if (m.page === 'actions')
@@ -288,7 +291,7 @@ export function sourcesView(editor: Editor, language: Language, width: number, h
     else if (m.page === 'remove')
         add(tr('remove_confirm') + ' ' + source(editor)?.name, true);
     else {
-        const lines = m.page === 'review' ? [tr('enable_review'), ...JSON.stringify(m.review?.source, null, 2).split('\n')] : m.details;
+        const lines = ['review', 'auto-review'].includes(m.page) ? [tr(m.page === 'auto-review' ? 'automatic_review' : 'enable_review'), ...(m.page === 'auto-review' ? [tr('interval') + ': ' + m.automaticInterval + ' s (←/→)'] : []), ...JSON.stringify(m.review?.source, null, 2).split('\n')] : m.details;
         const wrapped = lines.flatMap(line => wrapText([line], width));
         const capacity = Math.max(1, height - rows.length);
         const start = Math.min(m.scroll, Math.max(0, wrapped.length - capacity));

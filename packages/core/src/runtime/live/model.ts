@@ -1,7 +1,8 @@
 import { int, numeric, object, type Data } from '../values.js';
 import { scalarCompare } from '../../json.js';
 import { trim } from '../transcript.js';
-export const PROTOCOL_VERSION = 2, MAX_BATCH = 256, MAX_BYTES = 1048576, MAX_SESSIONS = 100, MAX_EPOCHS = 32, MAX_SEEN = 4096, MAX_PROMPTS = 32, MAX_AGENTS = 256, MAX_TURNS = 256, MAX_TOOLS = 1024, MAX_TASKS = 1000, MAX_REQUESTS = 2048, STALE_MS = 15000;
+export { PROTOCOL_VERSION } from '../../contracts/runtime.js';
+export const MAX_BATCH = 256, MAX_BYTES = 1048576, MAX_SESSIONS = 100, MAX_EPOCHS = 32, MAX_SEEN = 4096, MAX_PROMPTS = 32, MAX_AGENTS = 256, MAX_TURNS = 256, MAX_TOOLS = 1024, MAX_TASKS = 1000, MAX_REQUESTS = 2048, STALE_MS = 15000;
 export const TIMING_KINDS = new Set(['heartbeat', 'invalidate', 'prompt', 'prompt_alias', 'prompt_link', 'agent_start', 'agent_end', 'turn_start', 'turn_end', 'agents', 'wait_start', 'wait_end', 'wait_unknown']);
 export const OBSERVATION_KEYS = ['session_id', 'epoch', 'seq', 'observed_at_ms', 'source', 'kind', 'prompt_id', 'turn_id', 'agent_id', 'parent_agent_id', 'request_id', 'payload'];
 export const USAGE_KEYS = ['input_tokens', 'output_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens'];

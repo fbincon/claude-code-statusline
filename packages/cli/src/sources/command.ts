@@ -20,7 +20,7 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
         return '';
     }
     const p: string[] = [], flags: Record<string, string | boolean> = {};
-    const values = ['--file', '--review', '--project', '--session', '--agent', '--instance', '--scope', '--profile', '--binding'];
+    const values = ['--file', '--review', '--project', '--session', '--agent', '--instance', '--scope', '--profile', '--binding', '--interval'];
     let literal = false;
     for (let i = 0; i < rest.length; i++) {
         const token = rest[i]!;
@@ -45,7 +45,7 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
         else
             p.push(token);
     }
-    if (!['list', 'add', 'edit', 'review', 'enable', 'disable', 'remove', 'bind', 'unbind', 'refresh', 'status', 'cancel', 'diagnose'].includes(action ?? '') || p.length !== (action === 'list' ? 0 : 1))
+    if (!['list', 'add', 'edit', 'review', 'enable', 'disable', 'remove', 'bind', 'unbind', 'refresh', 'status', 'cancel', 'diagnose', 'auto-on', 'auto-off'].includes(action ?? '') || p.length !== (action === 'list' ? 0 : 1))
         sourceError('invalid');
     const id = p[0], pretty = (value: unknown) => JSON.stringify(value, null, 2), current = service.read();
     if (action === 'list')
@@ -93,8 +93,9 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
             sourceError('invalid');
         payload.source = { name: id, ttl_seconds: 300, scope: { project: null, session: null, agent: null }, ...source };
     }
-    if (action === 'enable')
+    if (action === 'enable' || action === 'auto-on')
         payload.review_revision = flags['--review'];
+    if (action === 'auto-on' && flags['--interval'] !== undefined) payload.interval_seconds = Number(flags['--interval']);
     if (action === 'unbind')
         payload.binding = flags['--binding'];
     if (action === 'bind') {

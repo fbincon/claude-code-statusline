@@ -210,3 +210,7 @@ Display schema 11 / editor protocol 18 adds optional `presentation`, `bar_width`
 ## Group contract
 
 Display schema 12 / editor protocol 19 adds `groups` to the main display and subagent template. Each group has `id`, ordered `member_ids`, `primary_id`, `link_visibility` and `shared_powerline`. Old schemas migrate to empty groups without writes. Shared rules reject overlaps, spacers, noncontinuous references and explicit-row crossings. Copy remaps members; deleting a primary dissolves its group. `group_hidden` is an explicit layout/sample reason. Other interface versions remain unchanged.
+
+## WORKFLOW-02 automatic policy
+
+Editor protocol 20 keeps display schema 12. Source registry v2 adds local `automatic` policies: `{source_id,enabled,review_revision,interval_seconds,auth_revision}`; v1 reads as an empty policy list without rewriting. Jobs v2 add `trigger` and `identity`; v1 jobs read as manual. Observation schema remains 1. Runtime v3 adds `source_lifecycle` with `{session_id,epoch,seq,project,host_version,event}` (`tick|end`); v1/v2 observe/read remain supported. Lifecycle dispatch is independent of metric preferences and refuses older lifecycle protocol versions. Policy writes use the existing revision lock; rendering cannot renew leases or start jobs. `source_diagnose.automatic` reports scheduling state and timestamps.

@@ -14,7 +14,7 @@ import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -50,8 +50,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 19, operation, payload }), environment));
-    assert.equal(result.protocol_version, 19);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 20, operation, payload }), environment));
+    assert.equal(result.protocol_version, 20);
     assert.ok(result.result);
     return result.result;
 }
@@ -94,6 +94,29 @@ test('installed indicators retain defaults, independent agent values and portabl
     run(['config', 'import', portable], config);
     assert(run(['render'], config, payload).includes('[####----]'));
     report.indicator_cases = 3; checks.indicators = true;
+});
+test('installed automatic policies remain separate from display and unsupported lifecycle work', () => {
+    const config = setup('automatic-refresh'), project = join(installed.temporary, 'automatic project');
+    fs.mkdirSync(project);
+    const before = fs.readFileSync(join(config, 'settings.json'));
+    const mutation = (action: string, extra = {}) => ui(config, 'sources_apply', { action, id: 'forge', expected_revision: ui(config, 'sources_read').revision, ...extra });
+    assert.deepEqual(ui(config, 'sources_read').automatic, []);
+    mutation('add', { source: { name: 'Forge', kind: 'github', scope: { project, session: null, agent: null }, ttl_seconds: 300, settings: { repository: 'example/project', branch: 'main', account: 'example' } } });
+    const reviewed = ui(config, 'source_review', { id: 'forge' }).review_revision;
+    mutation('enable', { review_revision: reviewed });
+    run(['source', 'auto-on', 'forge', '--review', reviewed, '--interval', '120', '--json'], config);
+    assert.equal(ui(config, 'sources_read').automatic[0].interval_seconds, 120);
+    assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), before);
+    for (const host_version of ['2.1.288', '2.1.294']) {
+        const result = JSON.parse(run(['runtime'], config, JSON.stringify({ protocol_version: 3, operation: 'source_lifecycle', payload: { session_id: 'automatic-' + host_version.replaceAll('.', '-'), epoch: 'installed', seq: 0, project, host_version, event: 'tick' } })));
+        assert.equal(result.result.scheduled, 0, 'unsupported hosts and projects without Git identity cannot dispatch');
+    }
+    run(['source', 'auto-off', 'forge', '--json'], config);
+    const library = ui(config, 'sources_read');
+    assert.equal(library.automatic[0].enabled, false); assert.equal(library.sources[0].enabled, true);
+    const exported = join(project, 'portable.json'); run(['config', 'export', exported], config);
+    assert(!fs.readFileSync(exported, 'utf8').includes('auth_revision'));
+    report.automatic_refresh_cases = 4; checks.automatic_refresh = true;
 });
 test('installed sources preserve opt-in, literal commands, portable isolation and OSC8 output',()=>{
     const config=setup('extensions'), directory=installed.temporary, data=join(directory,'source 中文.json');fs.writeFileSync(data,'{"value":0}');
@@ -308,7 +331,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 19, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 20, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');

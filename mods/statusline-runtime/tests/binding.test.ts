@@ -12,7 +12,7 @@ for (const serialized of [false, true]) for (const override of [false, true]) te
   on('process.run', async ($, e) => {
     calls.push(e.argv);
     const count = JSON.parse(e.init?.stdin ?? '{}').payload.observations.length;
-    return { value: { exitCode: 0, stdout: JSON.stringify({ protocol_version: 2, result: { backend_version: 'test', enabled: true, accepted: count, ignored: 0 } }), stderr: '', isStdoutTruncated: false, isStderrTruncated: false } };
+    return { value: { exitCode: 0, stdout: JSON.stringify({ protocol_version: 3, result: { backend_version: 'test', enabled: true, accepted: count, ignored: 0 } }), stderr: '', isStdoutTruncated: false, isStderrTruncated: false } };
   });
   await $.session.start({ surface: 'terminal', isInteractive: false, cwd: '/work' });
   expect(calls).toEqual([[...(override ? ['legacy-backend'] : ['/node with spaces/node', '/installed 中文 & $`/entry.js']), 'runtime', '--config-dir', '/config 中文']]);

@@ -2,7 +2,7 @@
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 19 as const;
+export const PROTOCOL_VERSION = 20 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation"]} as const;
@@ -718,7 +718,9 @@ export interface SourceDefinition {
   ttl_seconds: number; settings: SourceSettings; enabled: boolean; revision: string;
 }
 export interface SourceBinding { id: string; source_id: string }
-export interface SourceRegistry { version: 1; sources: SourceDefinition[]; bindings: SourceBinding[] }
+export interface AutomaticPolicy { source_id: string; enabled: boolean; review_revision: string; interval_seconds: number; auth_revision: string }
+export interface AutomaticStatus { state: 'off' | 'waiting' | 'running' | 'backoff' | 'paused'; reason: string; next_at: string | null; last_attempt: string | null; last_success: string | null; interval_seconds: number }
+export interface SourceRegistry { version: 2; sources: SourceDefinition[]; bindings: SourceBinding[]; automatic: AutomaticPolicy[] }
 export interface SourcesResult extends SourceRegistry { revision: string }
 export type SourceState = 'valid' | 'missing' | 'partial' | 'error' | 'unsupported';
 export interface SourceObservation {
@@ -735,7 +737,7 @@ export interface SourceView {
   fields?: Record<string, string | number | boolean | null>;
 }
 export interface SourceJob {
-  version: 1; id: string; source_id: string; source_revision: string; owner: string;
+  version: 2; id: string; source_id: string; source_revision: string; owner: string; trigger: 'manual' | 'automatic'; identity: string;
   context: SourceContext; started_at: string; deadline_at: string;
   state: 'running' | 'completed' | 'failed' | 'cancelled'; reason: string;
 }
@@ -936,7 +938,7 @@ export interface ResultMap {
   source_refresh: SourceJob;
   source_status: SourceJob;
   source_cancel: SourceJob;
-  source_diagnose: { source: SourceDefinition; view: SourceView; jobs: SourceJob[] };
+  source_diagnose: { source: SourceDefinition; view: SourceView; jobs: SourceJob[]; automatic: AutomaticStatus };
   describe: DescribeResult;
   read: ReadResult;
   preview: PreviewResult;

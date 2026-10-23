@@ -16,7 +16,7 @@ for (const advanced of [false, true]) test(
   on('process.run', async ($, e) => {
     const request = JSON.parse(e.init?.stdin ?? '{}');
     rows.push(...request.payload.observations);
-    return { value: { exitCode: 0, stdout: JSON.stringify({ protocol_version: 2, result: {
+    return { value: { exitCode: 0, stdout: JSON.stringify({ protocol_version: 3, result: {
       backend_version: 'test', enabled: true, accepted: request.payload.observations.length, ignored: 0,
     } }), stderr: '', isStdoutTruncated: false, isStderrTruncated: false } };
   });

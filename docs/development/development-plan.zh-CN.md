@@ -4,7 +4,7 @@
 
 更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`2bdf429d3356796232efff926235617cdab4f430`**
 
-本计划定义工作包范围、依赖、实施切片及验收意图，产品优先级与当前状态由[路线图](roadmap.zh-CN.md)维护。产品顺序为 APPEARANCE-03 → COMPOSITION-02 → WORKFLOW-02 → METRICS-01 → SHOWCASE-01，GIT-01 作为独立维护。六项工作均为 **NOT_STARTED**，尚未指定版本或交付日期；CI-01 保持 **DONE**。本次文档更新不启动功能实施、不发布产品版本。
+本计划定义工作包范围、依赖、实施切片及验收意图，产品优先级与当前状态由[路线图](roadmap.zh-CN.md)维护。产品顺序为 APPEARANCE-03 → COMPOSITION-02 → WORKFLOW-02 → METRICS-01 → SHOWCASE-01，GIT-01 作为独立维护。六项工作均为 **IN_PROGRESS**，尚未指定版本或交付日期；CI-01 保持 **DONE**。本次文档更新不启动功能实施、不发布产品版本。
 
 已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.6.0 专项决定](../releases/approvals/v3.6.0.json)记录该版本对这些缺口的接受。
 
@@ -21,7 +21,7 @@
 | 独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | NOT_STARTED |
 | M4 | [APPEARANCE-03](#appearance-03) | 既有上下文／额度观测、格式与布局 | NOT_STARTED |
 | M5 | [COMPOSITION-02](#composition-02) | 既有实例、条件与 Powerline；不依赖 M4 | NOT_STARTED |
-| M6 | [WORKFLOW-02](#workflow-02) | 已交付 EXTENSIONS-01、WORKFLOW-01；仅 GitHub | NOT_STARTED |
+| M6 | [WORKFLOW-02](#workflow-02) | 已交付 EXTENSIONS-01、WORKFLOW-01；仅 GitHub | IN_PROGRESS |
 | M7 | [METRICS-01](#metrics-01) | 既有会话费用与耗时字段；不依赖 M6 | NOT_STARTED |
 | M8 | [SHOWCASE-01](#showcase-01) | 已验收功能及匹配安装包；保留原有 ID | NOT_STARTED |
 

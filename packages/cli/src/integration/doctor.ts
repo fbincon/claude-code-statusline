@@ -1,3 +1,4 @@
+import { automaticRequested } from '../sources/automatic-state.js';
 import * as fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
@@ -132,7 +133,7 @@ export function doctor(context: InstallContext): Diagnostic[] {
     return rows;
 }
 function modDiagnostics(context: InstallContext, spec: ModSpec, rows: Diagnostic[]): void {
-    const { configDir, version, io } = context, modes = spec === RUNTIME ? loadRuntime(configDir, io) : null, requested = modes ? modes.native_timing || modes.live_metrics : loadNative(configDir, undefined, VERSION, io), prefix = spec === RUNTIME ? 'runtime.' : '';
+    const { configDir, version, io } = context, modes = spec === RUNTIME ? loadRuntime(configDir, io) : null, requested = modes ? modes.native_timing || modes.live_metrics || automaticRequested(configDir) : loadNative(configDir, undefined, VERSION, io), prefix = spec === RUNTIME ? 'runtime.' : '';
     const add = (level: Diagnostic['level'], key: string, params: Record<string, unknown> = {}) => rows.push({ level, message: text(prefix + 'doctor.native.' + key, params) });
     add('OK', 'native_editor_preference', { value0: requested ? 'enabled' : 'disabled' });
     const marker = owner(configDir, spec, io), compatible = atLeast(version, spec.minimum);

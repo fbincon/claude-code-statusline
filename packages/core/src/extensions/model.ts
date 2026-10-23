@@ -1,11 +1,11 @@
-import type { SourceContext, SourceDefinition, SourceObservation, SourceReference, SourceRegistry, SourceScope, SourceSettings, SourceView } from '../contracts/ui.js';
+import type { AutomaticPolicy, SourceContext, SourceDefinition, SourceObservation, SourceReference, SourceRegistry, SourceScope, SourceSettings, SourceView } from '../contracts/ui.js';
 import { ConfigError, object, exact, integer, isSchema } from '../config/validation.js';
 import { numeric } from '../runtime/values.js';
 export const SOURCE_FILENAME = 'claude-statusline-sources.json';
 export const MAX_SOURCE_BYTES = 1048576;
 export const SOURCE_TYPES = ['external-value', 'github-pr', 'github-ci'];
 export const INPUT_FIELDS = ['project', 'session', 'agent', 'branch', 'head'] as const;
-export const emptyRegistry = (): SourceRegistry => ({ version: 1, sources: [], bindings: [] });
+export const emptyRegistry = (): SourceRegistry => ({ version: 2, sources: [], bindings: [], automatic: [] });
 export function sourceError(reason: string): never { throw new ConfigError('sources.error.' + reason, {}, reason); }
 export function sourceText(value: unknown, maximum = 4096, empty = false): string {
     if (typeof value !== 'string' || (!empty && !value.trim()) || value.length > maximum || /[\p{Cc}\p{Cs}]/u.test(value))
@@ -122,8 +122,10 @@ export function definition(value: unknown): SourceDefinition {
         settings: settings(kind, value.settings), enabled: value.enabled, revision: sourceId(value.revision) };
 }
 export function registry(value: unknown): SourceRegistry {
-    exact(value, ['version', 'sources', 'bindings'], 'source registry');
-    if (!isSchema(value.version, 1) || !Array.isArray(value.sources) || !Array.isArray(value.bindings) || value.sources.length > 128 || value.bindings.length > 4096)
+    if (!object(value)) sourceError('invalid');
+    const legacy = isSchema(value.version, 1);
+    exact(value, ['version', 'sources', 'bindings', ...(legacy ? [] : ['automatic'])], 'source registry');
+    if (!(legacy || isSchema(value.version, 2)) || !Array.isArray(value.sources) || !Array.isArray(value.bindings) || value.sources.length > 128 || value.bindings.length > 4096)
         sourceError('invalid');
     const sources = value.sources.map(definition), ids = new Set(sources.map(source => source.id));
     if (ids.size !== sources.length)
@@ -131,7 +133,17 @@ export function registry(value: unknown): SourceRegistry {
     const bindings = value.bindings.map(raw => { exact(raw, ['id', 'source_id'], 'source binding'); return { id: sourceId(raw.id), source_id: sourceId(raw.source_id) }; });
     if (new Set(bindings.map(binding => binding.id)).size !== bindings.length || bindings.some(binding => !ids.has(binding.source_id)))
         sourceError('invalid');
-    return { version: 1, sources, bindings };
+    const automatic: AutomaticPolicy[] = legacy ? [] : (() => {
+        if (!Array.isArray(value.automatic) || value.automatic.length > sources.length) sourceError('invalid');
+        return value.automatic.map(raw => {
+            exact(raw, ['source_id', 'enabled', 'review_revision', 'interval_seconds', 'auth_revision'], 'automatic policy');
+            const source = sources.find(s => s.id === raw.source_id);
+            if (!source || source.kind !== 'github' || typeof raw.enabled !== 'boolean' || raw.review_revision !== source.revision || typeof raw.auth_revision !== 'string' || !/^[a-f0-9]{64}$/.test(raw.auth_revision) || raw.enabled && !source.enabled) sourceError('review');
+            return { source_id: source.id, enabled: raw.enabled, review_revision: source.revision, interval_seconds: integer(raw.interval_seconds, 60, 86400, 'interval_seconds'), auth_revision: raw.auth_revision };
+        });
+    })();
+    if (new Set(automatic.map(p => p.source_id)).size !== automatic.length) sourceError('invalid');
+    return { version: 2, sources, bindings, automatic };
 }
 export function stamp(value: unknown): string | null {
     if (value == null)

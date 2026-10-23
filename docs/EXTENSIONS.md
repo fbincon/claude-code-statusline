@@ -110,7 +110,7 @@ claude-statusline source refresh forge --project /absolute/project --json
 claude-statusline source diagnose forge --project /absolute/project --json
 ```
 
-Refresh is manual and has a 30-second total deadline. Rendering consumes cached
+Refresh is manual by default and has a 30-second total deadline. Rendering consumes cached
 observations without running `gh`. Cache identity includes project/worktree,
 account, host, repository, branch, HEAD and the local authentication context.
 Changing identity invalidates the old result. Tokens remain with `gh`; source
@@ -121,6 +121,25 @@ unknown, no checks and no PR. A failure dominates pending checks. Success
 requires at least one passing check and no failed, pending, cancelled or unknown
 checks; an all-skipped result remains skipped. This summarizes observed checks,
 not GitHub merge eligibility or branch protection.
+
+## Automatic GitHub refresh
+
+After **Review and enable**, select **Review automatic refresh** in either editor. Review the source identity and interval; ←/→ adjusts it by 60 seconds and Enter saves the local policy. Escape discards the pending choices. The default follows source expiration, clamped to 60–86400 seconds. CLI accepts any integer in that range:
+
+```bash
+claude-statusline source review forge --json
+claude-statusline source auto-on forge --review REVIEW_REVISION --interval 300 --json
+claude-statusline source diagnose forge --project /absolute/project --json
+claude-statusline source auto-off forge --json
+```
+
+Use the returned review revision. The policy remains on locally until explicitly disabled. Policy saving is independent of display Save and host installation. Run `claude-statusline install` (or Apply host integration), then restart Claude if the runtime Mod has not been installed/configured for automatic refresh. Claude 2.1.289 or newer is required. Native timing, advanced live metrics and the native editor can remain disabled.
+
+Supported active sessions renew a lease every five seconds; leases expire after 15 seconds without a heartbeat. Only matching project/session scope, branch and HEAD dispatch work. Session end closes its lease, and automatic work stops when no eligible lease remains. No persistent service is installed. Multiple sessions share one job for the same source/identity. A manual refresh takes ownership of an existing automatic job, so closing a session or turning automatic refresh off does not cancel that manual work.
+
+Diagnosis reports off/waiting/running/backoff/paused, interval, next attempt, last attempt and last success. Failed network requests back off exponentially up to one day. Authentication, permission, account and identity failures pause automatic attempts until a successful manual retry or renewed review. Changes to local authentication require a new automatic review. Source edits revoke automatic review; disable/remove cancel work. **Disable automatic refresh** preserves the enabled source and cached observations. Cache freshness/error markers still apply; identity mismatches suppress old values.
+
+Rendering, preview, imports and project bindings never dispatch refreshes. Command and JSON sources remain outside automatic scheduling. Local policies are not included in portable exports. A missing eligible session appears as `waiting/no_session`; unsupported hosts or missing runtime integration cannot renew a lease.
 
 ## Commands
 
@@ -172,9 +191,7 @@ exit and oversized/invalid output remain different outcomes. Descendants are
 terminated as well, including processes retaining output pipes.
 
 `source refresh ID` waits for completion. `--no-wait` returns the job ID for
-`source status JOB_ID` and `source cancel JOB_ID`. Only one refresh per source is
-allowed. Disable, deletion or editing cancels the old job, and revision/context
-checks reject late results. There is no scheduler or background polling service.
+`source status JOB_ID` and `source cancel JOB_ID`. Command sources permit one running job per source. GitHub refreshes coalesce by source revision and context identity; an explicit manual refresh takes ownership of an automatic job. Disable, deletion or editing cancels old jobs, and revision/context checks reject late results.
 
 ## Freshness, sharing and links
 

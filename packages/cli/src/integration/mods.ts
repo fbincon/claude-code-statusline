@@ -1,3 +1,4 @@
+import { automaticRequested } from '../sources/automatic-state.js';
 import * as fs from 'node:fs';
 import { join } from 'node:path';
 import { text } from '@fbincon/statusline-core/i18n/messages';
@@ -102,7 +103,7 @@ function removeResources(context: InstallContext, spec: ModSpec, marker: Marker)
 }
 export function bindingValues(context: InstallContext, spec: ModSpec): Record<string, string> {
     const modes = spec.name === 'statusline-runtime' ? loadRuntime(context.configDir, context.io) : null;
-    return { backendExecutable: context.launch.executable, backendArgs: JSON.stringify(context.launch.args), configDir: context.configDir, backendVersion: bundledFiles(spec).inventory.backend_version, ...(modes ? { nativeTiming: String(modes.native_timing), liveMetrics: String(modes.live_metrics) } : {}) };
+    return { backendExecutable: context.launch.executable, backendArgs: JSON.stringify(context.launch.args), configDir: context.configDir, backendVersion: bundledFiles(spec).inventory.backend_version, ...(modes ? { nativeTiming: String(modes.native_timing), liveMetrics: String(modes.live_metrics), sourceRefresh: String(automaticRequested(context.configDir)) } : {}) };
 }
 export function bindingMatches(options: unknown, values: Record<string, string>): boolean {
     return object(options) && object(options.inputs) && Object.entries(values).every(([key, value]) => options.inputs && (options.inputs as Record<string, unknown>)[key] === value);

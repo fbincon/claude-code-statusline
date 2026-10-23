@@ -117,7 +117,7 @@ stdin 是仅包含选定映射的 JSON 对象。可用字段为 `project`、`ses
 
 状态为 `valid`、`missing`、`partial`、`error` 或 `unsupported`；有效结果必须包含标量值。`observed_at` 可为 null，表示新鲜度未知。超时默认 5 秒，可配置 100 毫秒至 30 秒；stdout/stderr 总量上限 1 MiB。超时、取消、非零退出、输出超限及格式错误分别记录，同时终止后代进程，防止其保留管道。
 
-`source refresh ID` 等待完成；`--no-wait` 返回任务 ID，供 `source status JOB_ID` 和 `source cancel JOB_ID` 使用。同一源只能同时运行一个刷新。停用、删除、编辑会取消旧任务，配置修订与上下文检查会拒绝迟到结果。不提供调度器或后台轮询服务。
+`source refresh ID` 等待完成；`--no-wait` 返回任务 ID，供 `source status JOB_ID` 和 `source cancel JOB_ID` 使用。命令源同一时间只运行一个刷新。GitHub 按来源修订和上下文身份合并刷新；手动刷新可接管自动任务。停用、删除、编辑会取消旧任务，配置修订与上下文检查会拒绝迟到结果。
 
 ## 新鲜度、分享与链接
 
@@ -130,3 +130,22 @@ stdin 是仅包含选定映射的 JSON 对象。可用字段为 `project`、`ses
 `auto` 使用终端提示，包括 `FORCE_HYPERLINK`；未知终端或未确认的复用器回退为文本。`on` 明确要求输出 OSC 8。外部编辑器预览保留链接，原生预览在宿主不提供链接绘制时保留可读标签。实际点击还取决于 Claude Code 和终端，参见[官方状态栏说明](https://code.claude.com/docs/en/statusline#osc-8-links-not-clickable)。
 
 本功能使用显示 schema 10 与编辑器协议 17。旧显示配置可读取，读取不会自动改写；明确保存时使用新格式。前后端不匹配时重新安装集成。运行时、任务生命周期、便携外层与方案集合格式版本保持不变。
+
+## GitHub 自动刷新
+
+先“审核并启用”来源，再在任一编辑器选择“审核自动刷新”。检查来源身份和间隔，←/→ 每次调整 60 秒，回车保存本机策略；Esc 放弃尚未保存的选择。默认间隔取来源有效期，限制在 60–86400 秒。CLI 支持该范围内任意整数：
+
+```bash
+claude-statusline source review forge --json
+claude-statusline source auto-on forge --review REVIEW_REVISION --interval 300 --json
+claude-statusline source diagnose forge --project /absolute/project --json
+claude-statusline source auto-off forge --json
+```
+
+使用实际返回的审核修订。策略在本机持续保留至主动关闭，与显示保存及宿主安装分开。如果运行时 Mod 尚未安装或配置自动刷新，执行 `claude-statusline install`（或应用宿主集成），再重启 Claude。要求 Claude 2.1.289 及以上；原生计时、高级实时指标和原生编辑器可继续关闭。
+
+支持的活跃会话每五秒续租；15 秒未收到心跳后租约失效。仅匹配项目／会话范围、分支和 HEAD 的上下文派发刷新。会话结束关闭对应租约，没有适用租约时停止自动工作，不安装常驻服务。多个会话对同一来源及身份共用任务。手动刷新接管既有自动任务后，结束会话或关闭自动刷新不会取消该手动任务。
+
+诊断显示关闭／等待／运行／退避／暂停、间隔、下次尝试、最近尝试和最近成功时间。网络失败指数退避，最长一天；认证、权限、账户和身份失败暂停自动尝试，需手动重试成功或重新审核。认证环境变化需要重新审核自动策略。编辑来源撤销自动审核；停用、删除会取消任务。“关闭自动刷新”保留已启用来源和缓存；过期／错误标记仍生效，身份不匹配时隐藏旧值。
+
+渲染、预览、导入及项目绑定均不派发刷新，命令源和 JSON 源不参与自动调度，本机策略不进入便携导出。无适用会话显示 `waiting/no_session`；不支持的宿主或未配置运行时集成无法续租。

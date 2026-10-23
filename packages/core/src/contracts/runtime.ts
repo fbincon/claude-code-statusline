@@ -1,5 +1,5 @@
 /** Canonical runtime observation wire contract. */
-export const PROTOCOL_VERSION = 2 as const;
+export const PROTOCOL_VERSION = 3 as const;
 export type Source = "native" | "classic_hook" | "otel";
 export type Kind = "heartbeat" | "invalidate" | "prompt" | "prompt_alias" | "permission" | "agent_start" | "agent_end" | "turn_start" | "turn_end" | "wait_start" | "wait_end" | "wait_unknown" | "agents" | "tool_start" | "tool_end" | "task_snapshot" | "task_update" | "request_start" | "request_first" | "request_end" | "request_cost" | "turn_usage" | "prompt_link";
 export interface Observation {

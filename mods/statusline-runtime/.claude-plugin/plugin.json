@@ -44,6 +44,12 @@
       "title": "Backend arguments",
       "description": "Argument prefix for the matching backend, including the absolute installed JavaScript entry for Node installations.",
       "default": []
+    },
+    "sourceRefresh": {
+      "type": "boolean",
+      "title": "GitHub automatic refresh",
+      "description": "Maintain session leases for separately reviewed local GitHub source policies",
+      "default": false
     }
   }
 }

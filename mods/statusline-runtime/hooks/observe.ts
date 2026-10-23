@@ -9,11 +9,12 @@ import { promptLink, reportAgent } from '../lib/identity.ts';
 import { WaitCoverage } from '../lib/timing.ts';
 import { binding } from '../lib/launch.ts';
 
-type State = { queue: Queue; ready: boolean; busy: boolean; executable: string; args: readonly string[]; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[] };
+type State = { endedSession: string | null; sourceSequence: number; sourceBusy: boolean; sourceEnded: boolean; queue: Queue; ready: boolean; busy: boolean; executable: string; args: readonly string[]; directory: string; hostVersion: string; turns: Record<string, string>; agentTypes: string[] };
 
 async function bind($: EngineInterface, options: PluginOptions, state: State): Promise<void> {
   const queue = state.queue;
   const session = await $.session.id();
+  if (state.endedSession === session) return;
   if (state.ready && queue.session === session) return;
   const launch = binding(options, await $.env.get('CLAUDE_STATUSLINE_RUNTIME_EXECUTABLE') || undefined);
   state.executable = launch.executable;
@@ -22,7 +23,9 @@ async function bind($: EngineInterface, options: PluginOptions, state: State): P
     (typeof options.configDir === 'string' ? options.configDir : '');
   state.hostVersion = (await $.session.version()).version;
   const now = await $.clock.now();
+  if (state.endedSession === session) return;
   queue.bind(session, now);
+  state.sourceSequence = 0; state.sourceEnded = false;
   state.turns = {};
   state.agentTypes = [];
   queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: now }, now);
@@ -47,8 +50,25 @@ async function flush($: EngineInterface, options: PluginOptions, state: State): 
 }
 
 
+async function sourceLifecycle($: EngineInterface, options: PluginOptions, state: State, event: 'tick' | 'end'): Promise<void> {
+  if (options.sourceRefresh !== true || state.sourceEnded || event === 'tick' && state.sourceBusy) return;
+  if (event === 'end') state.sourceEnded = true;
+  state.sourceBusy = true;
+  const sequence = state.sourceSequence++;
+  try {
+    await $.process.run([state.executable, ...state.args, 'runtime', ...(state.directory ? ['--config-dir', state.directory] : [])], {
+      stdin: JSON.stringify({ protocol_version: PROTOCOL_VERSION, operation: 'source_lifecycle', payload: {
+        session_id: state.queue.session, epoch: state.queue.epoch, seq: sequence,
+        project: await $.session.cwd(), host_version: state.hostVersion, event,
+      } }), timeoutMs: 2000,
+    });
+  } catch { /* A missed heartbeat expires its lease; it cannot affect the host. */ }
+  finally { state.sourceBusy = false; }
+}
+
+
 export const register: Register = (on, options: PluginOptions) => {
-  const state: State = { queue: new Queue(), ready: false, busy: false, executable: '', args: [], directory: '', hostVersion: '', turns: {}, agentTypes: [] };
+  const state: State = { endedSession: null, sourceSequence: 0, sourceBusy: false, sourceEnded: false, queue: new Queue(), ready: false, busy: false, executable: '', args: [], directory: '', hostVersion: '', turns: {}, agentTypes: [] };
   const queue = state.queue;
   queue.timing = options.nativeTiming !== false;
   queue.metrics = options.liveMetrics === true;
@@ -63,11 +83,14 @@ export const register: Register = (on, options: PluginOptions) => {
   on('session.start', async ($, e, next) => {
     try {
       await bind($, options, state);
+      await sourceLifecycle($, options, state, 'tick');
       await flush($, options, state);
       $.clock.every(1000, async () => { try { await bind($, options, state); await flush($, options, state); } catch {} });
       $.clock.every(5000, async () => {
         try {
           await bind($, options, state);
+          await sourceLifecycle($, options, state, 'tick');
+          if (!queue.timing && !queue.metrics) return;
           const now = await $.clock.now();
           queue.push('heartbeat', { host_version: state.hostVersion, loaded_at_ms: queue.loadedAt }, now);
           const agents = await $.agent.list();
@@ -269,7 +292,9 @@ export const register: Register = (on, options: PluginOptions) => {
   });
 
   on('session.end', async ($, e, next) => {
+    state.endedSession = e.sessionId;
     try {
+      await sourceLifecycle($, options, state, 'end');
       queue.push('invalidate', { reason: 'session_' + e.reason }, await $.clock.now());
       await flush($, options, state);
     } catch {}

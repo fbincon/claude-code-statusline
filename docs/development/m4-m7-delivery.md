@@ -8,7 +8,7 @@ The maintainer approved four sequential feature PRs and one v3.7.0 release PR. R
 | --- | --- | --- |
 | APPEARANCE-03 | VALIDATING | Display 11, editor 18; optional per-instance presentation/width/characters |
 | COMPOSITION-02 | VALIDATING | Planned display 12, editor 19; single-level groups |
-| WORKFLOW-02 | NOT_STARTED | Planned editor 20, source registry/jobs 2, runtime 3; persistent local opt-in |
+| WORKFLOW-02 | IN_PROGRESS | Planned editor 20, source registry/jobs 2, runtime 3; persistent local opt-in |
 | METRICS-01 | NOT_STARTED | Planned display 13, editor 21; session/API cost-rate denominator |
 
 ## APPEARANCE-03
@@ -34,3 +34,11 @@ M5 local full checks passed (1,143 tests, five platform skips), with eight focus
 M5 candidate `e6d63cda7940de1058c2f314af53c56819a0644b` built twice with identical SHA-256 `544f1f94e6ce2ca8ad71041bf84e02c7994c9163aefc0a1bc373d1cdb3c6de00`; all 14 isolated Linux installed checks passed, including four group cases. PR/main gates remain pending.
 
 M4 [PR #129](https://github.com/fbincon/claude-code-statusline/pull/129) merged as `48697f1056b1452c20f9b0877c8f6b334dbd28db`. [PR CI 39999672680](https://github.com/fbincon/claude-code-statusline/actions/runs/39999672680) passed all 56 applicable jobs; the documentation-only job was correctly skipped. One macOS Node installation stalled before product tests; normal/force cancellation and a targeted unchanged-source retry completed the final job and aggregate. The [main run](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) is pending. M5 now bases its feature PR on this M4 merge.
+
+## WORKFLOW-02
+
+M6 local full checks passed (1,152 tests, five platform skips), including seven scheduling/editor cases. Claude 2.1.294 runtime Mod tests passed 16/16 and native editor tests passed 131/131; both exact-host TypeScript checks passed. Runtime v1/v2 observation compatibility and all 161 frozen cases passed with the narrowly bounded v3 malformed-input envelope migration. Installed acceptance adds four policy/lifecycle cases. The scheduler retains at most 64 session leases and 512 schedules under the private 1 MiB state limit; ordinary render and preview do not schedule work.
+
+M6 candidate `cc8d0d4790edbea00f2c60994394570e0ba50502` built twice with identical SHA-256 `5b98410377c121d224d1cc78d075d5151af0839f851d0d23afb15bc0a9475f2b`; all 15 isolated Linux installation checks passed, including four automatic policy/lifecycle cases. PR/main gates remain pending.
+
+The M4 main matrix exposed a source snapshot race on macOS Intel/Node 22.x: an atomic job-file replacement between path metadata and descriptor acquisition raised `file_size_or_type`. WORKFLOW-02 now retries only explicit identity/content-change errors, at most three complete snapshots; every attempt retains no-follow, type, size and descriptor checks. Deterministic replacement, bounded exhaustion and symlink-swap regressions pass with the existing source/automatic tests (18 cases). The [failed run](https://github.com/fbincon/claude-code-statusline/actions/runs/40006647972) and raw evidence are retained; this is a corrected defect, not an additional #96 waiver.
