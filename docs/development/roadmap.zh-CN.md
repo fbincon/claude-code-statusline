@@ -2,13 +2,13 @@
 
 [English](roadmap.md) | **简体中文**
 
-更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`8a6a081426f463157df308f6ef1d15a15b5901aa`**
+更新：**2026-10-23**（Asia/Shanghai）· 产品基线：**v3.6.0** · 规划基线：**`2bdf429d3356796232efff926235617cdab4f430`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案和显式启用的扩展已交付；演示仍为候选，尚未指定版本或交付日期；CI-01 维护已完成，本次不发布产品版本。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案和显式启用的扩展已交付。后续产品顺序为图形指标 → 组件分组 → GitHub 自动刷新 → 费用速率 → 首页演示，Git 调用核查作为独立维护工作。六项未来工作均为 **NOT_STARTED**，尚未指定版本或交付日期；CI-01 保持已完成。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
-**导航：** [当前基线](#baseline) · [参考与致谢](#reference) · [阶段路线](#milestones) · [工作包说明](#packages) · [验收要求](#acceptance) · [交付历史](#delivery-history) · [文档维护](#maintenance)
+**导航：** [当前基线](#baseline) · [参考与致谢](#reference) · [阶段路线](#milestones) · [候选池](#candidates) · [工作包说明](#packages) · [验收要求](#acceptance) · [交付历史](#delivery-history) · [文档维护](#maintenance)
 
 <a id="baseline"></a>
 
@@ -47,6 +47,10 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | [组件能力接口](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/types/Widget.ts) | CAPABILITIES-01：一致的目录、编辑选项及渲染说明 |
 | [链接、PR／CI 与命令组件](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/docs/USAGE.md) | LINKS-01、WORKFLOW-01、COMMAND-01：可选导航与外部来源 |
 | [Actions 提交固定](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/.github/workflows/ci.yml) | CI-01：可核查的依赖身份与遗漏检查 |
+| [Git 调用防护](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/utils/git-hardening.ts) | GIT-01：核查仓库配置触发外部程序的行为及必要防护 |
+| [上下文进度条](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/widgets/ContextBar.ts)与[渲染组合](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/utils/renderer.ts) | APPEARANCE-03、COMPOSITION-02：可选图形指标及成组显示 |
+| [PR／CI 缓存刷新](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/utils/git-review-cache.ts) | WORKFLOW-02：独立启用、明确生命周期与身份的 GitHub 刷新 |
+| [会话费用速率](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/widgets/SessionCostRate.ts) | METRICS-01：使用既有会话／API 耗时解释每小时费用 |
 
 介绍这些参考时保留原项目与作者署名。复用源码或文档时，应保留适用的版权和许可声明；已核对的项目包含 [MIT 许可证](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/LICENSE)。
 
@@ -54,12 +58,28 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 
 ## 阶段路线与依赖
 
+### 后续主线
+
+| 优先级 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
+| --- | --- | --- | --- | --- |
+| 独立维护 | [GIT-01](development-plan.zh-CN.md#git-01) | 核实 Git 调用行为及必要防护 | 既有 Git 采集、来源身份与进程适配 | NOT_STARTED |
+| M4 图形指标 | [APPEARANCE-03](development-plan.zh-CN.md#appearance-03) | 上下文／额度可选短进度条及可读文字回退 | 既有已观测百分比、组件选项和布局 | NOT_STARTED |
+| M5 组件分组 | [COMPOSITION-02](development-plan.zh-CN.md#composition-02) | 装饰随指标隐藏，可合并 Powerline 色块 | 既有实例、条件显示与 Powerline | NOT_STARTED |
+| M6 GitHub 刷新 | [WORKFLOW-02](development-plan.zh-CN.md#workflow-02) | 独立启用的 PR／CI 自动刷新，状态及停止操作明确 | 已交付 EXTENSIONS-01、WORKFLOW-01 | NOT_STARTED |
+| M7 派生指标 | [METRICS-01](development-plan.zh-CN.md#metrics-01) | 明确按会话／API 时间折算的每小时费用 | 既有已观测会话费用与耗时字段 | NOT_STARTED |
+| M8 演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 精简首页、方案展示及可复现的使用演示 | 已验收功能及其匹配安装包 | NOT_STARTED |
+
+M4 → M5 → M6 → M7 → M8 是选定的产品顺序。排期不额外制造技术依赖：组件分组不依赖图形指标，费用速率不依赖自动刷新，各工作包可拆成有界切片交付。SHOWCASE-01 保留原有 ID，安排在功能工作之后；演示使用已验收功能，不要求实现全部未来候选。GIT-01 独立推进；静态比较发现的是待核查的防护差异，不是已确认漏洞，核查及必要修正属于后续开发任务。
+
+本次更新仅记录规划，不实现功能、不改变运行／配置接口、不发布产品版本。后续开发从当时最新的 `main` 开始，先记录选定范围及接口决定，再实施。
+
+### 已交付阶段
+
 | 阶段 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
 | M1 首次使用 | [SETUP-01](development-plan.zh-CN.md#setup-01) | 从检查到配置、接入和下一步指引的一体化流程 | 既有安装事务与 Quick setup | DONE |
 | M2 外观 | [APPEARANCE-01](development-plan.zh-CN.md#appearance-01) | 日常开发、多代理、额度监控三套完整方案 | 已有预设与方案管理 | DONE |
 | M2 外观 | [APPEARANCE-02](development-plan.zh-CN.md#appearance-02) | 可配置内边距、分隔及首尾装饰 | APPEARANCE-01 的具体场景 | DONE |
-| M2 演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 精简首页、方案展示及可复现的使用演示 | SETUP-01、APPEARANCE-01 | NOT_STARTED |
 | M3 扩展 | [EXTENSIONS-01](development-plan.zh-CN.md#extensions-01) | 显式启用的本机 JSON 数据组件及来源契约 | 既有诊断与组件实例 | DONE |
 | M3 扩展 | [LINKS-01](development-plan.zh-CN.md#links-01) | 可点击 PR／目录等文本及普通文本回退 | 既有文本和布局规则 | DONE |
 | M3 扩展 | [WORKFLOW-01](development-plan.zh-CN.md#workflow-01) | 可选 GitHub PR 查询与 CI 状态 | EXTENSIONS-01；LINKS-01 可选 | DONE |
@@ -67,9 +87,24 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 按需工程支持 | [CAPABILITIES-01](development-plan.zh-CN.md#capabilities-01) | 组件支持选项与说明一致 | 外观或扩展暴露的具体元数据需求 | DONE |
 | 独立维护 | [CI-01](development-plan.zh-CN.md#ci-01) | Actions 引用固定、可核查更新 | 当前工作流清单 | DONE |
 
-M1 → M2 → M3 记录这些阶段采用的产品优先顺序；上述依赖区分实现前置条件与排期。SHOWCASE-01 继续作为已交付功能的后续展示候选，CI-01 独立且不阻塞产品阶段。CI-01 包括 Dependabot 的每周同主版本 Actions 更新提议，实现与验证记录在 [CI 维护](ci-maintenance.zh-CN.md)。
+M1 → M2 → M3 记录历史交付顺序，保留已完成 ID 及证据。SHOWCASE-01 原列于 M2，现仍未启动，按新顺序安排在 M8。CI-01 已作为独立维护完成，其 Dependabot 每周更新提议及验证记录在 [CI 维护](ci-maintenance.zh-CN.md)。
 
-其他客户端、插件市场、自动脚本下载、通用 Shell 模式、渐变、跨行自动对齐和选择性配置合并继续保持未排期，不作为上述工作包的完成条件。
+<a id="candidates"></a>
+
+## 候选池与进入条件
+
+| 候选 | 升入主线前需要的依据 |
+| --- | --- |
+| 跨行自动对齐、渐变 | 具体多行／配色场景，先明确隐藏项、分组与窄行行为 |
+| 选择性配置导入／合并 | 明确可选择的章节，以及实例 ID、行引用、方案和本机绑定的保留规则 |
+| 剩余每日预算 | 可靠金额、完整周期边界与时区，不能只凭 `monthly` 标签推算 |
+| 额度消耗节奏、时间游标 | 已核实窗口边界、经过时间含义及缺少时间证据时的表现 |
+| 命令源自动刷新 | 单独决定重复执行授权、输入、启动／停止和失败结果 |
+| GitLab／Gitee 数据提供方 | 实际产品需求、权威字段、既有认证与身份规则；仓库同步另行管理 |
+| JJ、服务状态组件 | 明确使用场景与可靠来源，定义可用性语义 |
+| 其他客户端、插件市场、自动脚本下载、通用 Shell 模式 | 另行选定范围及交互／授权设计 |
+
+候选不分配版本或日期。列入候选池不启动开发，也不成为六项主线的完成条件。升入主线须明确决定范围并更新对应工作包。
 
 <a id="packages"></a>
 

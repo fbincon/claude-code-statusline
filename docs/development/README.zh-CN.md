@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+[后续功能路线](roadmap.zh-CN.md#milestones)与[开发工作包](development-plan.zh-CN.md#future-work)按图形指标、组件分组、GitHub 自动刷新、费用速率、首页演示排序，Git 调用核查独立维护。六项均为 NOT_STARTED，候选另有进入条件；这些是尚未分配版本或日期的规划，不代表功能已可用或已完成实施验证。
+
 [CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。
 
 [扩展实现与验收](extensions.zh-CN.md)覆盖本地 JSON、GitHub、命令、链接和共享组件能力。
@@ -24,7 +26,7 @@
 
 ### 当前开发
 
-- [产品路线图](roadmap.zh-CN.md)与[工作包开发计划](development-plan.zh-CN.md)：方向、状态、依赖、范围及验收。
+- [产品路线图](roadmap.zh-CN.md)、[未来工作包](development-plan.zh-CN.md#future-work)与[候选池](roadmap.zh-CN.md#candidates)：产品顺序、独立维护、范围、依赖、兼容及功能验收，既有设计／证据分别保留。
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [翻译贡献指南](i18n.zh-CN.md)。
 - [测试与验收](testing.zh-CN.md)。

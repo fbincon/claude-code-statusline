@@ -2,13 +2,13 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`8a6a081426f463157df308f6ef1d15a15b5901aa`**
+Updated: **2026-10-23** (Asia/Shanghai) · Product baseline: **v3.6.0** · Planning baseline: **`2bdf429d3356796232efff926235617cdab4f430`**
 
-Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes and explicitly enabled extensions are delivered. Demonstrations remain a candidate without an assigned version or delivery date. CI-01 maintenance is complete without a product release.
+Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes and explicitly enabled extensions are delivered. The next product sequence is graphical indicators → component groups → GitHub automatic refresh → cost rates → homepage demonstrations. Git invocation review is an independent maintenance package. All six future packages are **NOT_STARTED**, without assigned versions or delivery dates; CI-01 remains complete.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
-**Navigation:** [Baseline](#baseline) · [References and acknowledgements](#reference) · [Stages](#milestones) · [Work packages](#packages) · [Acceptance](#acceptance) · [Delivery history](#delivery-history) · [Maintenance](#maintenance)
+**Navigation:** [Baseline](#baseline) · [References and acknowledgements](#reference) · [Stages](#milestones) · [Candidates](#candidates) · [Work packages](#packages) · [Acceptance](#acceptance) · [Delivery history](#delivery-history) · [Maintenance](#maintenance)
 
 <a id="baseline"></a>
 
@@ -47,6 +47,10 @@ The references below use the inspected [ccstatusline v2.2.32 snapshot](https://g
 | [Widget capability interface](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/types/Widget.ts) | CAPABILITIES-01: consistent catalog, editor options and rendering descriptions |
 | [Links, PR/CI and command widgets](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/docs/USAGE.md) | LINKS-01, WORKFLOW-01 and COMMAND-01: optional navigation and external sources |
 | [Pinned Actions references](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/.github/workflows/ci.yml) | CI-01: reviewable dependency identities and omission checks |
+| [Git invocation hardening](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/utils/git-hardening.ts) | GIT-01: investigate repository-controlled program execution and necessary protections |
+| [Context bar](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/widgets/ContextBar.ts) and [rendering composition](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/utils/renderer.ts) | APPEARANCE-03 and COMPOSITION-02: optional graphical indicators and grouped presentation |
+| [PR/CI cache refresh](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/utils/git-review-cache.ts) | WORKFLOW-02: separately enabled GitHub refresh with explicit lifecycle and identity |
+| [Session cost rate](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/widgets/SessionCostRate.ts) | METRICS-01: explain hourly cost using existing session and API durations |
 
 Keep the original project and authors credited when discussing these references. Any reuse of source or documentation must retain the applicable copyright and license notices; the inspected project includes an [MIT license](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/LICENSE).
 
@@ -54,12 +58,28 @@ Keep the original project and authors credited when discussing these references.
 
 ## Stages and dependencies
 
+### Planned mainline
+
+| Priority | Work package | User-visible result | Implementation dependencies | Status |
+| --- | --- | --- | --- | --- |
+| Independent maintenance | [GIT-01](development-plan.md#git-01) | Verified Git invocation behavior and any necessary protections | Existing Git collectors, source identity and process adapters | NOT_STARTED |
+| M4 Graphical indicators | [APPEARANCE-03](development-plan.md#appearance-03) | Optional short bars for context and quotas, with readable text fallback | Existing observed percentages, component options and layout | NOT_STARTED |
+| M5 Component groups | [COMPOSITION-02](development-plan.md#composition-02) | Decorations hide with their metric; groups can share a Powerline block | Existing instances, visibility and Powerline | NOT_STARTED |
+| M6 GitHub refresh | [WORKFLOW-02](development-plan.md#workflow-02) | Separately enabled automatic PR/CI refresh with visible state and stop controls | Delivered EXTENSIONS-01 and WORKFLOW-01 | NOT_STARTED |
+| M7 Derived metrics | [METRICS-01](development-plan.md#metrics-01) | Hourly cost with an explicit session-time or API-time denominator | Existing observed session cost and duration fields | NOT_STARTED |
+| M8 Demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Focused homepage, scheme gallery and reproducible usage demonstrations | Accepted functionality and its matching installed artifact | NOT_STARTED |
+
+M4 → M5 → M6 → M7 → M8 is the selected product order. Scheduling does not create technical dependencies: grouping does not require graphical indicators, and cost rates do not require automatic refresh. Each package may ship in bounded slices. SHOWCASE-01 retains its existing ID and moves after the functional work; demonstrations use accepted functionality and do not require every future candidate to be implemented. GIT-01 runs independently. The static comparison identified a protection difference to investigate, not a confirmed vulnerability; investigation and any necessary correction belong to that future task.
+
+This update records plans only. It implements no feature, changes no runtime/configuration interface and publishes no product version. Later development starts from the then-current `main` and records the selected scope and interface decisions before implementation.
+
+### Delivered stages
+
 | Stage | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
 | M1 First use | [SETUP-01](development-plan.md#setup-01) | A connected flow from checks to configuration, integration and next steps | Existing installation transactions and Quick setup | DONE |
 | M2 Appearance | [APPEARANCE-01](development-plan.md#appearance-01) | Three complete schemes for daily development, multi-agent work and quota monitoring | Existing presets and profile management | DONE |
 | M2 Appearance | [APPEARANCE-02](development-plan.md#appearance-02) | Configurable padding, separators and end decorations | Concrete APPEARANCE-01 scenarios | DONE |
-| M2 Demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Focused homepage, scheme gallery and reproducible usage demonstrations | SETUP-01, APPEARANCE-01 | NOT_STARTED |
 | M3 Extensions | [EXTENSIONS-01](development-plan.md#extensions-01) | Opt-in local JSON data components and a source contract | Existing diagnosis and component instances | DONE |
 | M3 Extensions | [LINKS-01](development-plan.md#links-01) | Clickable PR/directory text with plain-text fallback | Existing text and layout rules | DONE |
 | M3 Extensions | [WORKFLOW-01](development-plan.md#workflow-01) | Optional GitHub PR lookup and CI status | EXTENSIONS-01; LINKS-01 is optional | DONE |
@@ -67,9 +87,24 @@ Keep the original project and authors credited when discussing these references.
 | Engineering as needed | [CAPABILITIES-01](development-plan.md#capabilities-01) | Consistent supported options and explanations for components | Specific metadata needs exposed by appearance or extensions | DONE |
 | Independent maintenance | [CI-01](development-plan.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | DONE |
 
-M1 → M2 → M3 records the product priority used for these stages. The dependencies above distinguish implementation prerequisites from scheduling. SHOWCASE-01 remains a follow-up for delivered functionality; CI-01 is independent and does not block a product stage. CI-01 includes weekly Dependabot proposals for same-major Actions updates; implementation and validation are tracked in [CI maintenance](ci-maintenance.md).
+M1 → M2 → M3 records the historical delivery sequence, retaining completed IDs and evidence. SHOWCASE-01 was originally listed with M2 and remains unstarted under the new M8 scheduling. CI-01 is complete as independent maintenance; its weekly Dependabot proposals and validation are tracked in [CI maintenance](ci-maintenance.md).
 
-Other clients, a plugin marketplace, automatic script downloads, general Shell mode, gradients, automatic cross-line alignment and selective configuration merging remain unscheduled candidates. They are outside the completion requirements of the work packages above.
+<a id="candidates"></a>
+
+## Candidate pool and entry conditions
+
+| Candidate | Required basis before promotion |
+| --- | --- |
+| Automatic cross-line alignment and gradients | A concrete multi-line or color use case; define behavior with hidden items, groups and narrow rows |
+| Selective configuration import/merge | Specify which sections can be selected and how instance IDs, row references, profiles and local bindings are preserved |
+| Daily remaining budget | Reliable amount, full period boundaries and timezone; a `monthly` label alone is insufficient |
+| Quota consumption pacing and time cursors | Verified window boundaries, elapsed-time meaning and behavior when timing evidence is absent |
+| Automatic command-source refresh | A separate decision on recurring execution authorization, inputs, start/stop behavior and failure outcomes |
+| GitLab/Gitee data providers | Actual product demand, authoritative provider fields, existing authentication and identity rules; repository mirroring is separate |
+| JJ and service-status components | An identified user scenario and a reliable source with explicit availability semantics |
+| Other clients, a plugin marketplace, automatic script downloads and general Shell mode | A separately selected scope and interaction/authorization design |
+
+Candidates have no assigned version or date. Listing one does not start development or make it a completion condition for the six planned packages. Promote a candidate through an explicit scope decision and a corresponding work-package update.
 
 <a id="packages"></a>
 
