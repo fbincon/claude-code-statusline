@@ -2,6 +2,10 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.7.0 indicators, groups, refresh and rates
+
+Use the [v3.7.0-only approval](releases/approvals/v3.7.0.json) and require final PR/main/tag full gates. Installed receipts must include three indicator, four group, four automatic-policy/lifecycle and four cost-rate scenarios, alongside existing checks. Eight installation targets, 32 Node cases, thirteen fixed hosts, independent builds/source rebuild, extended six-language installed PTYs, verified draft assets, npm OIDC and GitHub/npm/Gitee public-byte verification remain required. Record actual results in [M4–M7 delivery](development/m4-m7-delivery.md); only the six historical #96 gaps are accepted.
+
 ## v3.6.0 extension delivery
 
 Use the [v3.6.0-specific approval](releases/approvals/v3.6.0.json) and require full final PR/main/tag matrices. Eight installation receipts additionally require four extension cases: JSON opt-in, command refresh, portable isolation and link output. The 32 Node cases, thirteen hosts, reproducible builds, installed terminals, OIDC and public-download verification remain required. Record results in [extension acceptance](development/extensions.md). CI-01 is outside this delivery.

@@ -8,6 +8,15 @@
 - Pin GitHub Actions to verified commits, add offline identity checks and weekly same-major Actions update proposals.
 - [CI maintenance and validation](docs/development/ci-maintenance.md).
 
+## 3.7.0 — 2026-10-24
+
+- Add optional short percentage bars for context and quota metrics, retaining numeric defaults and observation semantics.
+- Add linked component groups, primary-led fitting and optional shared Powerline backgrounds in both editors and CLI.
+- Add separately reviewed, persistent GitHub refresh policies governed by active-session leases, identity checks, deduplication, cancellation and backoff.
+- Add `session-cost-rate` with a session/API denominator, a one-minute minimum and explicit estimate units.
+- Advance display/editor interfaces to 13/21, source registry/jobs to 2 and runtime to 3, retaining old observation compatibility and read-only display migration.
+- [Release notes](docs/releases/v3.7.0.md) · [Implementation and validation](docs/development/m4-m7-delivery.md).
+
 ## 3.6.0 — 2026-10-23
 
 - Add separately registered, explicitly enabled JSON, GitHub PR/CI and command sources with complete shared editor/CLI management.

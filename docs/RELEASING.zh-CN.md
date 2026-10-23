@@ -2,6 +2,10 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## v3.7.0 图形、分组、刷新与速率
+
+使用 [v3.7.0 专属批准](releases/approvals/v3.7.0.json)，要求最终 PR/main/tag 完整门禁通过。安装收据除既有检查外，必须包含三项图形、四项分组、四项自动策略／生命周期及四项费用速率场景。八安装目标、32 个 Node 场景、十三个固定宿主、独立构建／源码重建、六语言扩展安装产物 PTY、已验证草稿附件、npm OIDC 和 GitHub/npm/Gitee 公开字节验收要求保持不变。实际结果记录于 [M4–M7 交付](development/m4-m7-delivery.zh-CN.md)，仅接受 #96 六项既有缺口。
+
 ## v3.6.0 扩展交付
 
 采用[v3.6.0 专属批准](releases/approvals/v3.6.0.json)，仍需最终 PR/main/tag 全矩阵。八安装目标的回执另需四个扩展场景：JSON 启用、命令刷新、导出解绑和链接输出；32 个 Node 场景、十三宿主、可重现构建、安装产物终端、OIDC 和公开下载核验保持必需。证据记录于[扩展验收](development/extensions.zh-CN.md)。CI-01 不属于本次交付。

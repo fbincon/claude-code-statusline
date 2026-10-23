@@ -140,7 +140,8 @@ test('user scope identifiers cannot alias synthetic labels or leave labels alone
   display.scope_labels = 'always';
   for (const width of [2, 4, 12, 24, 80]) {
     const rows = rendered(input, display, {}, width).split('\n');
-    assert(rows.every(row => displayWidth(row) <= width && row.trim() !== 'Main'));
+    assert.equal(rows.length, 1, 'scope labels cannot occupy a row without group content');
+    assert(rows.every(row => displayWidth(row) <= width && row.trim() !== env.language.text('scope.main')));
   }
   display.groups[0]!.member_ids[1] = 'scope'; display.groups[0]!.primary_id = 'scope'; display.instances[1]!.id = 'scope';
   assert(rendered(input, validateDisplay(display)).includes('50%'));

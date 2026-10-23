@@ -36,6 +36,11 @@ try {
     const sourceSpec = join(installed.temporary, 'capture-source.json');
     fs.writeFileSync(sourceSpec, JSON.stringify({ name: 'Sample JSON · 中文 日本語 한글', kind: 'json', settings: { path: join(installed.temporary, 'explicit-source.json') } }));
     run(['source', 'add', 'capture', '--file', sourceSpec]);
+    fs.writeFileSync(sourceSpec, JSON.stringify({ name: 'Sample GitHub', kind: 'github', scope: { project: installed.temporary, session: null, agent: null }, settings: { repository: 'example/project', branch: 'main', account: 'example' } }));
+    run(['source', 'add', 'capture-github', '--file', sourceSpec]);
+    const githubReview = JSON.parse(run(['source', 'review', 'capture-github', '--json']).toString()).review_revision;
+    run(['source', 'enable', 'capture-github', '--review', githubReview]);
+    const sources = fs.readFileSync(join(config, 'claude-statusline-sources.json'));
     const settings = fs.readFileSync(join(config, 'settings.json'));
     for (const language of LANGUAGES) {
         run(['config', 'set', 'statusline-language', language]);
@@ -105,6 +110,23 @@ try {
             }
             if (values.extended) {
                 await key('\t');
+                await key('\x02', t('composition.groups.title', language));
+                capture('groups-list');
+                await key('\x1b[B\r'); capture('groups-form');
+                await key('\x1b[F\r'); capture('groups-draft');
+                await key('\x1b[B\r'); await key('\x1b[F\r');
+                await key('\x07');
+                for (const type of ['context-used', 'session-cost-rate']) {
+                    await key('\x01'); await key('/');
+                    for (const character of type) await key(character);
+                    await key('\r'); await key('\r'); await key('\x05');
+                    await selectSetting(type === 'context-used' ? 'fields.item.presentation.label' : 'fields.item.cost_rate_basis.label');
+                    await key('\x1b[C');
+                    const screen = capture(type === 'context-used' ? 'indicator-controls' : 'cost-rate-controls');
+                    const preview = dimensions(columns, rows).preview;
+                    assert(screen.slice(preview.innerY, preview.innerY + preview.innerHeight).some(line => line.includes(type === 'context-used' ? '[' : '5.76')), 'The selected representation did not reach the installed preview');
+                    await key('\x07'); await key('\x18'); await key('\x1b[H');
+                }
                 await key('\x19', t('sources.title', language));
                 capture('sources-list');
                 await key('\r');
@@ -115,6 +137,11 @@ try {
                 capture('sources-review-details');
                 await key('\x07');
                 await key('\x1b[B\r');
+                await key('\x1b[B'.repeat(10) + '\r', t('sources.interval', language));
+                capture('automatic-review');
+                await key('\x1b[C'); capture('automatic-interval');
+                await key('\x07');
+                await key('\x1b[B\x1b[B\r');
                 capture('sources-kinds');
                 await key('\x1b[B\x1b[B\r');
                 capture('sources-command');
@@ -255,6 +282,7 @@ try {
             assert.equal(pty.child.exitCode, 0);
             assert.deepEqual(pty.attributes(), pty.before, 'Terminal attributes were not restored');
             assert.deepEqual(fs.readFileSync(join(config, 'settings.json')), settings, 'Capture changed configuration');
+            assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline-sources.json')), sources, 'Cancelled automatic review changed source policy');
             assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), display, 'Capture changed display configuration');
             assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline-profiles.json')), profiles, 'Capture changed scheme collection');
         } finally { await pty.close(); }
