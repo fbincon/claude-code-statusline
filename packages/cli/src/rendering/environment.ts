@@ -61,9 +61,9 @@ export async function renderEnvironment(config: DisplayDraft, data: unknown, opt
             let view = views.get(key);
             if (!view) {
                 try { view = sourceService.view(node.source, context); } catch { view = broken(); }
-                if (node.type_id.startsWith('github-') && source && source.kind !== 'github') view = {...broken(),state:'unsupported',reason:'binding'};
                 views.set(key, view);
             }
+            if (node.type_id.startsWith('github-') && source && source.kind !== 'github') return {...broken(),state:'unsupported',reason:'binding'};
             return view;
         };
     }

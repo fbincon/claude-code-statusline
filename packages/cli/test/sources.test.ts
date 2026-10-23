@@ -94,3 +94,20 @@ test('GitHub no-checks exit is distinct from authentication, permissions and tra
         assert.equal(failed.reason,errorKind);assert.equal(failed.value,null);
     }
 });
+
+test('one frame shares a local read without a mismatched component poisoning other views', async t=>{
+    const {renderEnvironment}=await import('../src/rendering/environment.js');
+    const {defaultDisplay}=await import('@fbincon/statusline-core/config/display');
+    const {newInstance}=await import('@fbincon/statusline-core/editor/instances');
+    const root=mkdtempSync(join(tmpdir(),'source frame '));t.after(()=>rmSync(root,{recursive:true,force:true}));
+    const path=join(root,'value.json');writeFileSync(path,'{"value":0}');
+    const config=new ConfigurationService({configDir:root,launch:{executable:process.execPath,args:[]},hostVersion:()=>null},createStorage()),service=new SourceService(config);
+    const mutate=(action:string,extra={})=>service.mutate({action,id:'local',expected_revision:service.read().revision,...extra});
+    mutate('add',{source:{name:'Local',kind:'json',scope:{project:null,session:null,agent:null},ttl_seconds:300,settings:{path}}});
+    mutate('enable',{review_revision:service.review('local').review_revision});
+    const binding=mutate('bind').binding!,display=defaultDisplay();
+    const wrong=newInstance('github-pr',[]),right=newInstance('external-value',[]);wrong.source=binding;right.source=binding;display.instances=[wrong,right];
+    const payload={cwd:root},env=await renderEnvironment(display,payload,{configDir:root});
+    assert.equal(env.source!(wrong,payload).state,'unsupported');rmSync(path);
+    assert.equal(env.source!(right,payload).value,0);
+});
