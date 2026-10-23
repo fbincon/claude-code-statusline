@@ -46,3 +46,5 @@ The M4 main matrix exposed a source snapshot race on macOS Intel/Node 22.x: an a
 ## METRICS-01
 
 M7 local full checks passed (1,156 tests, five platform skips); four focused rate cases cover both denominators, finite input boundaries, zero, six-language units, shared editor forms, portable persistence and project schemes. Native Mod tests passed 132/132 and exact Claude 2.1.294 TypeScript checking passed. Installed acceptance adds four rate scenarios. README describes capabilities only; current schema/protocol guidance is synchronized without claiming publication.
+
+M7 candidate `67d43f97d46737398f7867b9532efe695096dae4` built twice with identical SHA-256 `46f85070f2d7a7cfb62870ad73de11a827d859e0d96b73fdac0880dfbb21bc9f`; all 16 isolated Linux installed checks passed, including four rate scenarios. PR/main gates remain pending.
