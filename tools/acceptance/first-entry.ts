@@ -36,7 +36,7 @@ export async function firstEntryChild(input: Input): Promise<{
     fs.cpSync(input.root, origin, { recursive: true });
     const modules = join(origin, 'node_modules/@fbincon');
     const load = (name: string, path: string) => import(pathToFileURL(join(modules, 'statusline-' + name, 'dist/src', path + '.js')).href);
-    const [{ firstEntry }, { Npm }, { VERSION }] = await Promise.all([load('cli', 'management/first-entry'), load('platform', 'npm'), load('core', 'release')]);
+    const [{ firstEntry }, { Npm }, { VERSION }, { runSourceProcess }] = await Promise.all([load('cli', 'management/first-entry'), load('platform', 'npm'), load('core', 'release'), load('platform','source-process')]);
     const manifest = JSON.parse(fs.readFileSync(join(origin, 'package.json'), 'utf8')), bytes = fs.readFileSync(input.artifact);
     let registry = '';
     const server = createServer((request, response) => {
@@ -62,7 +62,19 @@ export async function firstEntryChild(input: Input): Promise<{
         fs.writeFileSync(empty, '');
         fs.writeFileSync(globalConfig,'');
         const env = { ...input.env, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: empty, npm_config_globalconfig: globalConfig, npm_config_cache: cacheRoot };
-        const npm = new Npm(env, undefined, input.npm), args = ['--prefix', prefix];
+        const failures:unknown[]=[];
+        const runner=async (request:any)=>{
+            const result=await runSourceProcess(request);
+            if(result.reason!=='completed'){
+                const readOnly=['root','prefix','config','--version'].includes(request.args[1]);
+                const direct=readOnly?spawnSync(request.executable,request.args,{cwd:request.cwd,env:request.environment,encoding:'utf8',timeout:15000,windowsHide:true}):null;
+                // Only this synthetic, empty-npmrc fixture is inspected. Product
+                // failures never expose user npm stderr or authentication data.
+                failures.push({args:request.args.slice(1),result,direct:direct?{status:direct.status,error:direct.error?.message,stdout:direct.stdout,stderr:direct.stderr}:null});
+            }
+            return result;
+        };
+        const npm = new Npm(env, runner, input.npm), args = ['--prefix', prefix];
         let review = '', handoff = 0, entry = '';
         const options = { configDir, language: 'en', tty: true, origin, npm, stdout: (s: string) => review += s, stderr: (s: string) => review += s, confirm: async () => true,
             handoff: async (identity: any) => {
@@ -78,7 +90,8 @@ export async function firstEntryChild(input: Input): Promise<{
                 assert(rendered.stdout.includes('Durable entry'));
                 return 0;
             } };
-        assert.equal(await firstEntry(args, { ...options, confirm: async () => false }), 0, review);
+        const refused=await firstEntry(args, { ...options, confirm: async () => false });
+        assert.equal(refused, 0, review+JSON.stringify(failures));
         assert(!fs.existsSync(prefix));
         assert(!fs.existsSync(configDir));
         assert.equal(await firstEntry(args, options), 0, review);
