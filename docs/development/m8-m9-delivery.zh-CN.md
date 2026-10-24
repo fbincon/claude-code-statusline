@@ -70,4 +70,6 @@ UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1
 
 [清理诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40080844051)在两个 Windows 目标的 Node 24.0.0 上复现另一项问题：`rmSync` 返回后没有删除 Unicode 目录，延迟观察时原路径和规范路径仍包含复制的文件。Node 的 [#61108](https://github.com/nodejs/node/pull/61108)记录了非 ASCII 路径缺陷，并在 [24.13.1](https://nodejs.org/en/blog/release/v24.13.1) 中修复。现以仅依赖内建模块的逐项 unlink/rmdir 清理包执行器、staging 和集成文件，也替换已有用量会话清理中的同一受影响调用。删除链接时不遍历其目标；首次入口验收明确断言缓存已消失后才重启，保留 Node 下界及中文路径夹具。
 
+[修正后的清理诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40081505631)通过 Windows 2025／ARM × Node 22.x／24.0.0 的全部四个作业；每个作业均完成两类有界复制失败场景各 1,000 轮，以及目录链接／Unicode 清理回归。最终安装包及发布矩阵仍须单独通过。
+
 [更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40079404397)还在十秒上限的 `git lfs version` 夹具准备阶段记录了空子进程状态，尚未进入产品策略检查。旧日志未保留底层错误，因此不推断具体原因。夹具现记录状态／信号／错误，并仅对此冷启动准备允许三十秒；产品截止时间及过滤器／超时断言保持不变。
