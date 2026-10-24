@@ -86,7 +86,11 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
                 assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
                 if(colors===256) assert.match(saved.output,/\x1b\[(?:38|48);5;/u);
                 else assert(!/\x1b\[(?:38|48);5;/u.test(saved.output));
-                if(colors===0) assert(!/\x1b\[(?:3[0-9]|4[0-9]|9[0-7]|10[0-7])(?:;|m)/u.test(saved.output),JSON.stringify({entry,environment:name,actual:saved.environment,colors:[...saved.output.matchAll(/\x1b\[[0-9;]+m/gu)].slice(0,30).map((m:any)=>m[0])}));
+                if(colors===0) {
+                    // A cursor address such as ESC[31;1H is not an SGR color.
+                    const colored=[...saved.output.matchAll(/\x1b\[[0-9;]+m/gu)].map((m:any)=>m[0]).filter((s:string)=>s.slice(2,-1).split(';').some(n=>Number(n)>=30 && Number(n)<=49 || Number(n)>=90 && Number(n)<=107));
+                    assert.deepEqual(colored,[],JSON.stringify({entry,environment:name,actual:saved.environment,colors:colored.slice(0,30)}));
+                }
                 if(invocation) assert.equal(bridge.readResult(invocation.result,config).outcome,'cancelled');
                 evidence.push({entry,environment:name,colors,restored:true});
             } finally {child.close();if(invocation)bridge.cleanup(invocation.directory);}
