@@ -1,3 +1,5 @@
+import { LEGACY_370_SHA256 } from '@fbincon/statusline-core/management/compatibility';
+import { VERSION } from '@fbincon/statusline-core/release';
 /** Read-only candidate readiness, never uploads, tags or publishes. */
 import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -37,7 +39,10 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
-            assert.equal(Object.keys(report.checks).length, 19); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(Object.keys(report.checks).length, 20); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(report.checks.version_management, true); assert.equal(report.version_management.cases, 7);
+            for (const key of ['roundtrip','independent_runner','crash_recovery','configuration_restore','real_npm']) assert.equal(report.version_management[key], true);
+            assert.equal(report.version_management.historical_version, '3.7.0'); assert.equal(report.version_management.historical_sha256, LEGACY_370_SHA256); assert.equal(report.version_management.target_version, VERSION);
             assert.equal(report.checks.first_entry, true); assert.equal(report.first_entry_cases, 4);
             assert.equal(report.checks.git_policy, true); assert.equal(report.git_policy_cases, 4);
             assert.equal(report.checks.terminal_colors, true); assert.equal(report.terminal_color_cases, report.target.startsWith('windows-') ? 15 : 3);

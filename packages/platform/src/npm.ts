@@ -3,6 +3,8 @@ import { dirname, join, resolve, isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 import { PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { PackageError, exactVersion, type PackageIdentity } from '@fbincon/statusline-core/management/package';
+import { compatibility, LEGACY_370_SHA256, type PackageCompatibility } from '@fbincon/statusline-core/management/compatibility';
+import { equalSettings } from '@fbincon/statusline-core/json-equality';
 import { which, resolvedPath, sameLaunchEntry } from './commands.js';
 import { runSourceProcess, type SourceProcessOptions, type SourceProcessResult } from './source-process.js';
 export interface NpmLayout {
@@ -12,6 +14,18 @@ export interface NpmLayout {
     registry: string;
     npmVersion: string;
     cache: string;
+}
+export interface RegistryPackage {
+    version: string; registry: string; integrity: string; nodeEngine: string;
+    compatibility: PackageCompatibility; legacy: boolean;
+}
+export const globalPackageRoot=(prefix:string)=>join(prefix,process.platform==='win32'?'node_modules':'lib/node_modules',PACKAGE_NAME);
+export const globalPackageBin=(prefix:string)=>join(prefix,process.platform==='win32'?'claude-statusline.cmd':'bin/claude-statusline');
+export function verifyArchive(path:string,target:RegistryPackage):void {
+    const stat=fs.lstatSync(path);
+    if(!stat.isFile() || stat.isSymbolicLink() || stat.size>64*1024*1024)throw new PackageError('integrity');
+    const bytes=fs.readFileSync(path);
+    if('sha512-'+createHash('sha512').update(bytes).digest('base64')!==target.integrity || target.legacy && createHash('sha256').update(bytes).digest('hex')!==LEGACY_370_SHA256)throw new PackageError('integrity');
 }
 export function within(path: string, root: string): boolean { const normalized = resolvedPath(path), base = resolvedPath(root); return normalized === base || normalized.startsWith(base + (process.platform === 'win32' ? '\\' : '/')); }
 export function productRoot(start: string): string | null {
@@ -123,5 +137,45 @@ export class Npm {
         if (!exactVersion(version))
             throw new PackageError('version');
         await this.run(['install', '--global', '--prefix', layout.prefix, '--registry', layout.registry, '--ignore-scripts', '--bin-links=true', '--no-audit', '--no-fund', PACKAGE_NAME + '@' + version], process.cwd(), 180000);
+    }
+    async metadata(selector:string,layout:NpmLayout):Promise<RegistryPackage> {
+        if(!exactVersion(selector) && !['latest','beta'].includes(selector))throw new PackageError('version');
+        let value:any;
+        try {value=JSON.parse(await this.run(['view',PACKAGE_NAME+'@'+selector,'--json','--registry',layout.registry]));}
+        catch(error){if(error instanceof PackageError)throw error;throw new PackageError('metadata');}
+        if(!value || Array.isArray(value) || value.name!==PACKAGE_NAME || !exactVersion(value.version) || exactVersion(selector) && value.version!==selector ||
+            typeof value.dist?.integrity!=='string' || !/^sha512-[A-Za-z0-9+/]{86}==$/u.test(value.dist.integrity) || typeof value.engines?.node!=='string' || value.engines.node.length>256 || /[\p{Cc}\p{Cs}]/u.test(value.engines.node))throw new PackageError('metadata');
+        if(value.version==='3.7.0' && value.statuslineCompatibility!==undefined)throw new PackageError('metadata');
+        return {version:value.version,registry:layout.registry,integrity:value.dist.integrity,nodeEngine:value.engines.node,
+            compatibility:compatibility(value.statuslineCompatibility,value.version),legacy:value.version==='3.7.0'};
+    }
+    async download(target:RegistryPackage,directory:string):Promise<string> {
+        fs.mkdirSync(directory,{recursive:true,mode:0o700});
+        let result:any;
+        try {result=JSON.parse(await this.run(['pack',PACKAGE_NAME+'@'+target.version,'--json','--ignore-scripts','--registry',target.registry,'--pack-destination',directory],directory,180000));}
+        catch(error){if(error instanceof PackageError)throw error;throw new PackageError('metadata');}
+        const filename=PACKAGE_NAME.replace('@','').replace('/','-')+'-'+target.version+'.tgz';
+        if(!Array.isArray(result) || result.length!==1 || result[0]?.filename!==filename)throw new PackageError('metadata');
+        const path=join(directory,filename);verifyArchive(path,target);return path;
+    }
+    async installArchive(archive:string,prefix:string):Promise<void> {
+        await this.run(['install','--global','--prefix',prefix,'--offline','--ignore-scripts','--bin-links=true','--engine-strict=true','--no-audit','--no-fund',archive],dirname(archive),180000);
+    }
+    async validateStaged(prefix:string,target:RegistryPackage):Promise<PackageIdentity> {
+        const root=globalPackageRoot(prefix),identity=productIdentity(root,prefix);
+        if(!identity || identity.version!==target.version)throw new PackageError('identity');
+        const manifest=JSON.parse(fs.readFileSync(join(root,'package.json'),'utf8'));
+        if(manifest.engines?.node!==target.nodeEngine || !equalSettings(compatibility(manifest.statuslineCompatibility,target.version),target.compatibility) || (manifest.statuslineCompatibility===undefined)!==target.legacy)throw new PackageError('identity');
+        await this.verify(identity,globalPackageBin(prefix));
+        for(const [name,protocol] of [['statusline-native',target.compatibility.editor_protocol],['statusline-runtime',target.compatibility.runtime_protocol]] as const){
+            const resources=join(root,'node_modules/@fbincon/statusline-cli/resources',name);
+            const descriptor=JSON.parse(fs.readFileSync(join(resources,'resource-manifest.json'),'utf8'));
+            if(descriptor.backend_version!==target.version || descriptor.mod_version!==target.version || descriptor.protocol_version!==protocol)throw new PackageError('identity');
+            for(const [file,hash] of Object.entries(descriptor.files ?? {})){
+                if(file.startsWith('/') || file.includes('\\') || file.split('/').some(part=>!part || part==='..' || part==='.') || typeof hash!=='string')throw new PackageError('identity');
+                const path=join(resources,file);if(fs.lstatSync(path).isSymbolicLink() || createHash('sha256').update(fs.readFileSync(path)).digest('hex')!==hash)throw new PackageError('identity');
+            }
+        }
+        return {...identity,integrity:target.integrity,registry:target.registry};
     }
 }
