@@ -45,8 +45,11 @@ export async function installedGitPolicyChild(installed: Pick<ReturnType<typeof 
     assert(!fs.existsSync(marker),'Fixture unexpectedly ran fsmonitor while setting configuration');
     assert.equal(collector.uncached(repo).kind, 'ok'); assert(!fs.existsSync(marker),'fsmonitor marker');
     assert.deepEqual(fs.readFileSync(join(repo, '.git/config')), before);
-    git('config', '--unset', 'core.fsmonitor'); git('config', 'filter.probe.clean', command + ' clean');
-    fs.writeFileSync(join(repo, '.gitattributes'), '*.txt filter=probe\n'); git('add', '.'); git('commit', '-qm', 'filter'); fs.rmSync(marker, {force:true});
+    git('config', '--unset', 'core.fsmonitor');
+    // Finish fixture writes before enabling the marker. Git for Windows can
+    // leave a filter child completing after a maintenance/commit command exits.
+    fs.writeFileSync(join(repo, '.gitattributes'), '*.txt filter=probe\n'); git('add', '.'); git('commit', '-qm', 'filter');
+    git('config', 'filter.probe.clean', command + ' clean');
     fs.writeFileSync(join(repo, 'file.txt'), 'bbbb\n');
     fs.utimesSync(join(repo,'file.txt'),new Date(0),new Date(0));
     assert.equal(collector.uncached(repo).reason, 'filter_blocked'); assert(!fs.existsSync(marker),'clean filter marker');
@@ -55,5 +58,7 @@ export async function installedGitPolicyChild(installed: Pick<ReturnType<typeof 
     assert.notEqual(new GitInvocation(bare, 2000, runner).command(['rev-parse', '--is-bare-repository']).code, 0);
     const indirect = spawnSync(executable, ['-C', repo, 'config', '--get', 'core.fsmonitor'], {env:gitEnvironment(env), encoding:'utf8'});
     assert.equal(indirect.status, 0); assert.equal(indirect.stdout.trim(), '');
+    git('status', '--porcelain');
+    assert(fs.existsSync(marker), 'The unguarded control must exercise the clean filter');
     return 4;
 }
