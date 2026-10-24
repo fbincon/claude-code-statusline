@@ -14,8 +14,9 @@ import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
 import { installedGitPolicy } from '../../../acceptance/git-policy.js';
+import { installedFirstEntry } from '../../../acceptance/first-entry.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -58,6 +59,9 @@ function ui(config: string, operation: string, payload: unknown = {}, environmen
 }
 test('installed Git policy blocks repository programs without inventing a clean worktree', async () => {
     report.git_policy_cases = await installedGitPolicy(installed); checks.git_policy = true;
+});
+test('installed first entry uses real npm and a durable binding beyond the npx cache lifetime', {timeout:180000}, async () => {
+    report.first_entry_cases=await installedFirstEntry(installed);checks.first_entry=true;
 });
 test('installed terminal policy is shared by setup, configure and the Windows slash bridge', {timeout:180000}, async () => {
     const {colorCapability} = await import(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/terminal/capabilities.js')).href);

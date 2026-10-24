@@ -13,6 +13,16 @@ claude-statusline setup
 
 可用 `claude-statusline --language zh-CN setup` 临时指定界面语言；向导中的 L 键会明确切换并立即保存界面语言。显示语言仍随显示草稿保存。全部六种语言均可使用。
 
+## 首次入口与 npm 持久安装
+
+在交互终端运行 `npx @fbincon/claude-code-statusline`，或无子命令运行已安装的 `claude-statusline`。入口检查公开包身份、Node/npm、实际 registry 和全局 prefix，展示精确版本及位置，输入 `yes` 后才安装。最初 npx 下载有 npm 自己的确认步骤。
+
+同版本持久安装会复用，包括只读的系统安装。遇到其他版本、PATH／集成 prefix 冲突或未完成的包操作时停止。使用 `--prefix PATH` 明确位置，目标必须位于 npm 缓存之外。不会提权或登录账户；源码检出和工程候选包继续使用明确命令。
+
+验证后，由全局 Node/JS 入口运行既有 setup。流程退出后删除临时 npx 缓存，不会移除持久入口及 Claude 绑定。包安装、显示保存和 Claude 集成仍是独立阶段；取消 setup 会保留已完成的包安装。npm 失败或结果不确定会保留操作记录，不能盲目重试。
+
+无参数非 TTY 入口直接退出 2，不改变安装或配置。明确使用 `--dry-run` 可检查 npm 位置并打印审核内容，不改变目标。`--config-dir PATH` 为后续 setup 选择相同的隔离配置目录。
+
 ## 检查与编辑目标
 
 `setup --dry-run` 无需 TTY。它检查 Node、检测到的 Claude 版本、配置可读性／权限、资源归属与待恢复事务，然后打印步骤。它不会选择方案、创建配置目录或锁文件、写入探针、安装插件或恢复事务。普通非 TTY `setup` 以退出码 2 结束，并打印现有分步命令；dry-run 可接入时退出码为 0，检查阻止接入时为 1。

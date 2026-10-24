@@ -8,7 +8,7 @@ Target: v3.8.0. Start: `d2975e8a4561371b5d32bec136400963dbccd97f`. Publication i
 | --- | --- | --- |
 | GIT-01 | VALIDATING | Shared policy and isolated regressions; platform/installed receipts pending |
 | TERMINAL-01 | VALIDATING | Windows capability consistency |
-| SETUP-02 | NOT_STARTED | Durable npm first entry |
+| SETUP-02 | VALIDATING | Durable npm first entry |
 | UPDATE-01 | NOT_STARTED | Explicit CLI version transitions from v3.7.0 |
 
 ## Git invocation policy
@@ -43,3 +43,11 @@ TERMINAL-01 adds a single platform capability decision and a ready callback shar
 Installed acceptance adds 15 native Windows-console cases (three entries × five environments), deliberately clears the initial VT output bit, captures the emitted palette and verifies restoration and unchanged settings. Other platforms check three installed policy scenarios alongside their existing PTY journeys. These are automated console observations, not human Windows Terminal screenshots. The #96 physical/human gaps remain unchanged.
 
 The GIT-01 intermediate artifact from `2545ee2bea2ae05260c9cd1d824f85ac0472d06d` passed independent byte-identical builds and all 17 local installed checks, including four Git scenarios. It was not published.
+
+## Durable first entry
+
+SETUP-02 adds pure installation identity/action rules in core, bounded npm CLI invocation in platform, and first-entry orchestration plus independent package records in cli/management. No-argument dispatch is outside rendering. Npm is invoked through its verified Node CLI with literal arguments and disabled lifecycle scripts. It retains the configured registry without printing authentication. Prefix, current package bytes and pending operations are rechecked after review. A nonblocking prefix lock serializes package mutations across configuration directories. Reuse does not require a writable system prefix.
+
+Package records use schema 1 below `statusline_runtime/package-management`, separate from the older file/plugin recovery journals. Partial npm outcomes retain a prefix marker and recorded stage. The durable handoff does not alter display Save, host Apply, profiles, bindings or opt-in policies. Six-language guidance covers review, cancellation, failure and next actions.
+
+Acceptance combines state/side-effect tests with four installed scenarios using real npm against a temporary loopback registry, controlled confirmation, actual integration/rendering and a new process after deleting the simulated npx cache. No user prefix or Claude configuration is used. Full platform results remain pending.

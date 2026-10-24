@@ -4,7 +4,7 @@
 
 Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01 and TERMINAL-01 are VALIDATING for v3.8.0; the other six future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
+This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01, TERMINAL-01 and SETUP-02 are VALIDATING for v3.8.0; the other five future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.7.0 decision](../releases/approvals/v3.7.0.json) records their acceptance for that release.
 
@@ -20,7 +20,7 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 | --- | --- | --- | --- |
 | Priority independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | VALIDATING |
 | Priority independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | VALIDATING |
-| M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | NOT_STARTED |
+| M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | VALIDATING |
 | M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | NOT_STARTED |
 | M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
 | M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | NOT_STARTED |
@@ -109,7 +109,7 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## SETUP-02 First entry and durable installation
 
-**Status: NOT_STARTED.** M8; extends delivered SETUP-01.
+**Status: VALIDATING.** M8; extends delivered SETUP-01.
 
 **Problem and goal.** Setup already connects configuration and integration, but package acquisition and the initial command remain separate decisions. Provide a no-argument/npx first entry that leads to a durable installation and the existing setup journey.
 

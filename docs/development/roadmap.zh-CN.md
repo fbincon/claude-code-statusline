@@ -4,7 +4,7 @@
 
 更新：**2026-10-24**（Asia/Shanghai）· 产品基线：**v3.7.0** · 规划基线：**`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案、显式启用的扩展及 M4–M7 已交付。后续产品顺序为首次入口与安装、版本管理、选择性导入、渐变、显式行对齐，最后制作演示（M8–M13）。Git 调用核查和 Windows 预览一致性作为优先独立维护。GIT-01 和 TERMINAL-01 正在为 v3.8.0 验证（VALIDATING），其余六个未来工作包保持 NOT_STARTED，含 CI-01 在内的已交付工作保持 DONE。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案、显式启用的扩展及 M4–M7 已交付。后续产品顺序为首次入口与安装、版本管理、选择性导入、渐变、显式行对齐，最后制作演示（M8–M13）。Git 调用核查和 Windows 预览一致性作为优先独立维护。GIT-01、TERMINAL-01、SETUP-02 正在为 v3.8.0 验证（VALIDATING），其余五个未来工作包保持 NOT_STARTED，含 CI-01 在内的已交付工作保持 DONE。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
@@ -64,7 +64,7 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | --- | --- | --- | --- | --- |
 | 优先独立维护 | [GIT-01](development-plan.zh-CN.md#git-01) | 核实直接／间接 Git 调用及必要防护，保留受支持过滤器兼容性 | 既有 Git 采集、来源身份与进程适配 | VALIDATING |
 | 优先独立维护 | [TERMINAL-01](development-plan.zh-CN.md#terminal-01) | setup、configure、slash 入口的 Windows 预览颜色一致或差异有明确解释 | 既有终端探测／启动路径；[Issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | VALIDATING |
-| M8 首次入口 | [SETUP-02](development-plan.zh-CN.md#setup-02) | 无参数／npx 入口串联 npm 全局安装、持久绑定和已有 setup | 已交付 SETUP-01 及安装／恢复机制 | NOT_STARTED |
+| M8 首次入口 | [SETUP-02](development-plan.zh-CN.md#setup-02) | 无参数／npx 入口串联 npm 全局安装、持久绑定和已有 setup | 已交付 SETUP-01 及安装／恢复机制 | VALIDATING |
 | M9 版本管理 | [UPDATE-01](development-plan.zh-CN.md#update-01) | 显式版本检查、升级、回退及失败恢复 | SETUP-02 的安装身份及既有兼容／恢复规则 | NOT_STARTED |
 | M10 配置复用 | [IMPORT-01](development-plan.zh-CN.md#import-01) | 先选择全局外观，再选择完整主栏／子代理分区导入 | 既有导入审阅、实例、分组、布局与方案事务 | NOT_STARTED |
 | M11 渐变 | [APPEARANCE-04](development-plan.zh-CN.md#appearance-04) | 预设及自定义的静态组件前景、Powerline 背景渐变 | 既有颜色、Powerline、分组及编辑规则 | NOT_STARTED |

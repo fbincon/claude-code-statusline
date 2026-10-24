@@ -82,7 +82,8 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         // Resolve preferences without creating files, including before help/parser errors.
         // Only the command's own directory option selects storage. A literal
         // item value after -- must never redirect a configuration write.
-        const administrative = ['setup', 'install', 'uninstall', 'doctor', 'recover'].includes(args[0] ?? '');
+        const first = !args.length || ['--prefix','--config-dir','--dry-run'].some(flag=>args[0]===flag || args[0]?.startsWith(flag+'='));
+        const administrative = first || ['setup', 'install', 'uninstall', 'doctor', 'recover'].includes(args[0] ?? '');
         const directoryIndex = administrative || args[0] === 'diagnose' || args[0] === 'task' ? args.findIndex(arg => arg === '--config-dir' || arg.startsWith('--config-dir=')) : 1;
         const directoryFlag = args[directoryIndex];
         const requestedDirectory = directoryFlag === '--config-dir' ? args[directoryIndex + 1] : directoryFlag?.startsWith('--config-dir=') ? directoryFlag.slice(13) : undefined;
@@ -104,6 +105,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
             stdout(helpText(args[0], language));
             return 0;
         }
+        if(first){const {firstEntry}=await import('./management/first-entry.js');return firstEntry(args,{configDir,language,stdout,stderr});}
         const command = args.shift();
         if (!['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'source', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command ?? ''))
             throw new ArgumentError(`unknown command: ${command ?? '(missing)'}`);

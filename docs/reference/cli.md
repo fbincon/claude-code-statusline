@@ -15,6 +15,8 @@ The compatibility alias `zh-Hant` resolves to `zh-TW` in every language argument
 
 Complete command syntax, supported options, display fields and configuration files. For installation and step-by-step workflows, read the [user guide](../USER_GUIDE.md). Values and examples below describe the current package, not historical release announcements.
 
+No subcommand opens the reviewed durable installation flow. See [first entry](../SETUP.md#first-entry-and-persistent-npm-installation). It accepts `--prefix`, `--config-dir` and `--dry-run`; ordinary non-TTY entry exits without mutation.
+
 ## Contents
 
 - [CLI overview](#cli-overview)
