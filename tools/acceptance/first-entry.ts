@@ -14,20 +14,23 @@ type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'r
 export async function installedFirstEntry(installed: ReturnType<typeof installCandidate>): Promise<number> {
     const input: Input = { temporary: installed.temporary, node: installed.node, root: installed.root, env: installed.env, artifact: installed.packed.tarball, npm: npmEntry() };
     const program = `import {firstEntryChild} from ${JSON.stringify(import.meta.url)};console.log(JSON.stringify(await firstEntryChild(JSON.parse(process.argv[1]))));`;
-    const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { encoding: 'utf8', timeout: 180000, windowsHide: true });
+    const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { cwd: installed.directory, encoding: 'utf8', timeout: 180000, windowsHide: true });
     assert.equal(result.error, undefined);
     assert.equal(result.status, 0, result.stderr + result.stdout);
     const receipt = JSON.parse(result.stdout);
     fs.rmSync(receipt.cacheRoot, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
-    const restarted = spawnSync(installed.node, [receipt.entry, '--version'], { env: installed.env, encoding: 'utf8', timeout: 10000 });
+    const restarted = spawnSync(installed.node, [receipt.entry, '--version'], { cwd: installed.directory, env: installed.env, encoding: 'utf8', timeout: 10000 });
     assert.equal(restarted.status, 0, restarted.stderr);
     assert.equal(restarted.stdout.trim(), 'claude-statusline ' + receipt.version);
+    const rendered=spawnSync(installed.node,[receipt.entry,'render'],{cwd:installed.directory,env:{...installed.env,CLAUDE_CONFIG_DIR:receipt.configDir},input:JSON.stringify({model:{display_name:'After cache removal'}}),encoding:'utf8',timeout:10000});
+    assert.equal(rendered.status,0,rendered.stderr);assert(rendered.stdout.includes('After cache removal'));
     return 4;
 }
 export async function firstEntryChild(input: Input): Promise<{
     cacheRoot: string;
     entry: string;
     version: string;
+    configDir: string;
 }> {
     const cacheRoot = join(input.temporary, 'first-entry-cache'), origin = join(cacheRoot, '_npx', 'fixture', 'node_modules/@fbincon/claude-code-statusline');
     fs.cpSync(input.root, origin, { recursive: true });
@@ -83,7 +86,7 @@ export async function firstEntryChild(input: Input): Promise<{
         assert.equal(await firstEntry(args, options), 0, review);
         assert.equal(handoff, 2);
         assert.deepEqual(fs.readFileSync(join(configDir, 'settings.json')), settings);
-        return { cacheRoot, entry, version: VERSION };
+        return { cacheRoot, entry, version: VERSION, configDir };
     }
     finally {
         await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
