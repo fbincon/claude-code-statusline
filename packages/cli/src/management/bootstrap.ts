@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { productIdentity, productRoot } from '@fbincon/statusline-platform/npm';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 import { managementOptions } from './arguments.js';
@@ -65,6 +66,6 @@ export async function bootstrap(argv: readonly string[], stderr: (text: string) 
     }
     finally {
         if (temporary)
-            fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+            removeTree(temporary);
     }
 }

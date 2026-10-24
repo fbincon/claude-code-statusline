@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { runSourceProcess } from '@fbincon/statusline-platform/source-process';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { PackageError, type PackageIdentity } from '@fbincon/statusline-core/management/package';
 import { type ConfigHashes } from './configuration.js';
 export async function refreshIntegration(root: string, identity: PackageIdentity, configDir: string, host: readonly number[] | null, hashes: ConfigHashes, workspace: string, dryRun: boolean, environment: NodeJS.ProcessEnv, signal?: AbortSignal, onProcess?: (pid: number | null) => void): Promise<void> {
@@ -16,7 +17,7 @@ export async function refreshIntegration(root: string, identity: PackageIdentity
             throw new PackageError('integration_failed');
     }
     finally {
-        fs.rmSync(request, { force: true });
-        fs.rmSync(receipt, { force: true });
+        removeTree(request);
+        removeTree(receipt);
     }
 }

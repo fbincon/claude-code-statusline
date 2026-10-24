@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { rmSync } from 'node:fs';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { BASE, MAX_IDS, usageInt, type Counters, type UsageEntry } from '@fbincon/statusline-core/runtime/usage';
 import { dictionary, int, object } from '@fbincon/statusline-core/runtime/values';
 import { recordEntries } from '@fbincon/statusline-core/ordered-record';
@@ -20,7 +20,7 @@ export class UsageIndex {
         const keep = new Set(sessions.map(sha256));
         for (const entry of io.entries(root)) if (entry.directory && !entry.link && digest(entry.name) && !keep.has(entry.name)) {
             safeTarget(boundary, entry.path);
-            rmSync(entry.path, { recursive: true });
+            removeTree(entry.path);
         }
     }
     private pages: Record<string, string> = Object.create(null);

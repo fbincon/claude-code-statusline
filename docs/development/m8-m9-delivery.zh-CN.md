@@ -67,3 +67,7 @@ UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1
 [独立 Windows ARM 诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40077221439)及[更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40076937090)的两个 Windows Node 22.23.4 任务均在 `fs.cpSync` 内以 `0xC0000409` 退出，复制尚未完成，也未加载任何原生模块。包复制现使用有界目录枚举及排他普通文件复制，拒绝链接／特殊文件，并在私有目录中保留可执行权限。bootstrap 与保留的恢复执行器采用同一实现；后者验证成功后才通过目录重命名交付。这是针对已观察复制失败的规避措施，不推断上游根因；替代平台门禁仍须通过。
 
 [替代实现诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40077988543)在 Windows ARM／Node 22.23.4 上完成十轮首次入口检查，使用此前固定的夹具包。这属于诊断证据，不是最终发布验收。[后续 Node 22.0.0 矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40078309875)发现路径别名导致目标包含检查失效；现先解析源路径及目标既有父目录，再检查包含关系，并通过目录别名回归验证在创建目标前拒绝。
+
+[清理诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40080844051)在两个 Windows 目标的 Node 24.0.0 上复现另一项问题：`rmSync` 返回后没有删除 Unicode 目录，延迟观察时原路径和规范路径仍包含复制的文件。Node 的 [#61108](https://github.com/nodejs/node/pull/61108)记录了非 ASCII 路径缺陷，并在 [24.13.1](https://nodejs.org/en/blog/release/v24.13.1) 中修复。现以仅依赖内建模块的逐项 unlink/rmdir 清理包执行器、staging 和集成文件，也替换已有用量会话清理中的同一受影响调用。删除链接时不遍历其目标；首次入口验收明确断言缓存已消失后才重启，保留 Node 下界及中文路径夹具。
+
+[更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40079404397)还在十秒上限的 `git lfs version` 夹具准备阶段记录了空子进程状态，尚未进入产品策略检查。旧日志未保留底层错误，因此不推断具体原因。夹具现记录状态／信号／错误，并仅对此冷启动准备允许三十秒；产品截止时间及过滤器／超时断言保持不变。

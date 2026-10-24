@@ -8,6 +8,7 @@ import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { lock, atomicWrite } from '@fbincon/statusline-platform/files';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { detectClaudeVersion, resolvedPath, which, sameLaunchEntry } from '@fbincon/statusline-platform/commands';
 import { readPreferences } from '../config/preferences.js';
 import { createStorage } from '../config/storage.js';
@@ -260,7 +261,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
                 fs.renameSync(copied, recoveryRunner);
             }
             finally {
-                fs.rmSync(staging, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+                removeTree(staging);
             }
         }
         operation.target = target;
@@ -330,6 +331,6 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         process.off('SIGINT', cancel);
         process.off('SIGTERM', cancel);
         if (temporary)
-            fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+            removeTree(temporary);
     }
 }
