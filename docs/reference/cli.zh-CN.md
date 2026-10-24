@@ -35,6 +35,10 @@
 
 ```text
 claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko] COMMAND ...
+claude-statusline update [--check] [--version EXACT | --channel latest|beta] [--json]
+claude-statusline rollback [--version EXACT]
+claude-statusline recover --package [--version EXACT]
+claude-statusline recover --restore-config BACKUP_ID
 claude-statusline setup [--config-dir PATH] [--dry-run]
 claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]
@@ -634,7 +638,9 @@ Claude Code 没有提供 `focused_agent` 或 `viewing_task_id`。切到子 Agent
 - `palette` 在颜色关闭时仍会被保存，但暂时不影响输出；以后重新打开颜色会继续使用该 palette。
 - `default` 需要终端支持 24 位颜色；兼容性优先时可使用 `ansi`。
 
-### 目录格式
+#[包版本管理](../PACKAGE_MANAGEMENT.zh-CN.md)：显式检查、升级、回退及单独配置恢复。
+
+## 目录格式
 
 假设用户 home 是 `/home/user`，项目根目录是 `/home/user/code/repo`，当前目录是 `/home/user/code/repo/src/api`：
 

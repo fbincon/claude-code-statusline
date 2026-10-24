@@ -158,7 +158,7 @@ macOS 使用相同 npm 包和安装流程，包内包含 Intel 与 Apple Silicon
 
 语言代码为 `en`（英文）、`zh-CN`（简体中文）、`zh-TW`（繁体中文，台湾）、`zh-HK`（繁体中文，香港）、`ja`（日语）、`ko`（韩语）。语言由用户明确选择，不跟随系统区域设置；左右方向键按此顺序循环切换。旧 `zh-Hant` 参数及配置继续接受并映射到台湾；读取不改写文件，显式保存与导出使用 `zh-TW`。
 
-成品运行范围为 `^22.0.0 || ^24.0.0`；源码开发与可复现发布构建仍固定 Node 24.21.0/npm 11.19.0。升级后重新运行 `claude-statusline install` 并重启 Claude Code，以更新编辑器协议 16 及配套资源。降级前用当前版本将界面语言和状态栏语言都设为英文，或恢复升级前兼容备份。
+成品运行范围为 `^22.0.0 || ^24.0.0`；源码开发与可复现发布构建仍固定 Node 24.21.0/npm 11.19.0。升级后重新运行 `claude-statusline install` 并重启 Claude Code，以更新编辑器协议 21 及配套资源。降级前用当前版本将界面语言和状态栏语言都设为英文，或恢复升级前兼容备份。
 
 CLI、外部／独立终端编辑器和会话内 Client 默认英文。在设置页选择**界面语言（立即保存）** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**。两个编辑器与 CLI 共用此偏好，与 Claude 自身的主题和语言设置独立。
 
@@ -209,11 +209,11 @@ claude-statusline config show --json
 
 同时控制主栏和全部自定义子代理行。翻译内置短语及已知生命周期／权限／强度／缓存／审核值；未知值、用户标签／图标、模型名称、路径、分支及任务／工具名称保留原文。数字、货币、`K/M`、`d/h/m/s`、`tok/s`、Git、PR 等技术单位保持原样。null 标签继承翻译后的默认标签，空标签隐藏标签，自定义标签优先。
 
-`statusline_language` 属于显示 schema v9，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
+`statusline_language` 属于显示 schema v13，参与 revision、预览及可移植导出。读取或导入历史 v1–v5 默认英文，不改写源文件；显式保存先备份再迁移。预设保留语言，新格式导入采用文件语言，显示 reset 恢复英文。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 可选，省略时保留当前值。界面偏好和运行观测继续独立。
 
 降级到仅支持 schema v5 的包前，使用新版移除其原生接入，保留可移植导出，并按照 `metadata.json` 恢复兼容的 `.before` 显示备份；原文件不存在则恢复为不存在。随后安装旧包并刷新接入，不向旧后端传递 v8 草稿。见[备份与回滚](#备份与回滚)。
 
-降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 9 与界面偏好 schema 1 独立演进；编辑器协议 16 会拒绝新旧前后端混用。
+降级到不支持所选语言的版本前，先运行 `config language reset` 和 `config set statusline-language en`，将两种语言恢复为英文，并重新安装匹配的原生资源。显示 schema 9 与界面偏好 schema 1 独立演进；编辑器协议 21 会拒绝新旧前后端混用。
 
 ## 原生配置编辑器
 
@@ -608,7 +608,7 @@ claude-statusline doctor
 | `claude-statusline-runtime.json` | 原生计时和高级采集的独立偏好 |
 | `settings.json` | 本工具接入的 Claude 命令、hooks 和宿主状态栏选项 |
 
-通过 CLI 或编辑器修改。显示 schema v9 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
+通过 CLI 或编辑器修改。显示 schema v13 支持读取兼容的旧 schema，读取不写入，实际保存才备份迁移。严格 JSON 拒绝未知字段、重复字段、错误值和不支持的版本，详见[文件格式](reference/cli.zh-CN.md#配置文件)。
 
 ## 自定义配置目录与环境变量
 
@@ -640,7 +640,11 @@ node ./statusline-node/node_modules/@fbincon/claude-code-statusline/bin/claude-s
 
 回退时停止 Claude，使用 Node 入口执行 `install --no-native-timing --no-live-metrics` 和 `uninstall`，从切换前备份恢复兼容配置或原本不存在的状态，再用保留的 Python 入口执行 `install` 和 `doctor`。按原记录恢复 PATH 选择；npm 不删除保留的 Python 环境。
 
-### 替换 npm 包
+### 审核包变更
+
+持久全局安装先运行 `claude-statusline update --check`，再运行 `claude-statusline update`。审核解析精确目标，验证兼容性并刷新匹配集成。`rollback` 默认上一成功版本，配置恢复单独操作。[版本管理与恢复](PACKAGE_MANAGEMENT.zh-CN.md)说明脚本约束、v3.7.0 边界及保留恢复入口。
+
+### 手动 npm 替换
 
 ```text
 npm install --global --ignore-scripts @fbincon/claude-code-statusline

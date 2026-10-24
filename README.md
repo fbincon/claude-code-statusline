@@ -249,6 +249,8 @@ Install Node 22.x or 24.x with npm and Claude Code CLI. One npm package includes
 
 ### Install the package
 
+For a reviewed installation in an interactive terminal, run `npx @fbincon/claude-code-statusline`. It verifies the durable global entry before opening setup. An installed `claude-statusline` without a subcommand opens the same flow. [Installation stages](docs/SETUP.md).
+
 Bash, Zsh, and PowerShell:
 
 ```text
@@ -350,15 +352,15 @@ Configuration is per user. `set-items` replaces the enabled set; `enable` and `d
 
 ## Upgrading and uninstalling
 
-Upgrade the package, synchronize integration, then restart Claude Code:
+Review and apply the package change, then restart Claude Code:
 
 ```text
-npm install --global --ignore-scripts @fbincon/claude-code-statusline
-claude-statusline install
+claude-statusline update --check
+claude-statusline update
 claude-statusline doctor
 ```
 
-Existing Python installations should first follow the [migration and rollback procedure](docs/USER_GUIDE.md#migrate-the-previous-distribution-name). Saved display settings, runtime state, and integration preferences remain. For older display schemas or package downgrade, follow [version compatibility](docs/USER_GUIDE.md#version-compatibility).
+Use [package management](docs/PACKAGE_MANAGEMENT.md) for exact versions, prefixes, rollback and separate configuration restoration. Existing Python installations should first follow the [migration and rollback procedure](docs/USER_GUIDE.md#migrate-the-previous-distribution-name). Saved display settings, runtime state, and integration preferences remain.
 
 Remove Claude integration before uninstalling the package:
 

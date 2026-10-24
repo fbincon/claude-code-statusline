@@ -48,3 +48,5 @@ Cancellation before Apply leaves display and integration unchanged. An explicitl
 Successful checks confirm written resources. Restart Claude and inspect the actual status line to verify session loading. A fixed preview does not establish live observations or successful restart. Continue editing with `/statusline-config` or `claude-statusline configure --user`; use `doctor` for installation diagnosis.
 
 `install`, `doctor`, `configure`, and configuration CLI commands remain available. Setup does not download/upgrade the package, install fonts, log in to an account, or change independent Claude preferences. See [installation and rollback](USER_GUIDE.md) and [appearance compatibility](APPEARANCE.md#configuration-compatibility-and-recovery).
+
+For existing packages, use [version management and package recovery](PACKAGE_MANAGEMENT.md); `setup` itself continues to manage display and integration.

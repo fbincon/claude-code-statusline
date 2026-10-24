@@ -4,7 +4,7 @@
 
 Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01, TERMINAL-01 and SETUP-02 are VALIDATING for v3.8.0; the other five future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
+This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are VALIDATING for v3.8.0; the other four future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.7.0 decision](../releases/approvals/v3.7.0.json) records their acceptance for that release.
 
@@ -21,13 +21,13 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 | Priority independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | VALIDATING |
 | Priority independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | VALIDATING |
 | M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | VALIDATING |
-| M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | NOT_STARTED |
+| M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | VALIDATING |
 | M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
 | M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | NOT_STARTED |
 | M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
 | M13 | [SHOWCASE-01](#showcase-01) | All M8–M12 packages completed and accepted; matching installed artifact | NOT_STARTED |
 
-M8 → M9 → M10 → M11 → M12 → M13 expresses product priority, not additional technical prerequisites. Import does not depend on version management, and alignment does not depend on gradients. SHOWCASE-01 waits for all selected M8–M12 functionality, including both import slices, to complete acceptance. Further candidates do not block it. GIT-01 and TERMINAL-01 run independently with priority; use TERMINAL-01 outcomes in affected Windows preview and demonstration acceptance. No future package has an assigned product version or deadline.
+M8 → M9 → M10 → M11 → M12 → M13 expresses product priority, not additional technical prerequisites. Import does not depend on version management, and alignment does not depend on gradients. SHOWCASE-01 waits for all selected M8–M12 functionality, including both import slices, to complete acceptance. Further candidates do not block it. GIT-01 and TERMINAL-01 run independently with priority; use TERMINAL-01 outcomes in affected Windows preview and demonstration acceptance. The approved Git, terminal, first-entry and version-management work targets v3.8.0; other future packages have no assigned product version or deadline.
 
 ### Delivered work
 
@@ -127,7 +127,7 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## UPDATE-01 Explicit upgrades and rollback
 
-**Status: NOT_STARTED.** M9; uses SETUP-02 installation identity and existing compatibility/recovery rules.
+**Status: VALIDATING.** M9; uses SETUP-02 installation identity and existing compatibility/recovery rules.
 
 **Problem and goal.** Let users inspect available versions, deliberately upgrade or return to a prior version, and understand package and configuration recovery separately.
 

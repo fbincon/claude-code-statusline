@@ -9,7 +9,7 @@ Target: v3.8.0. Start: `d2975e8a4561371b5d32bec136400963dbccd97f`. Publication i
 | GIT-01 | VALIDATING | Shared policy and isolated regressions; platform/installed receipts pending |
 | TERMINAL-01 | VALIDATING | Windows capability consistency |
 | SETUP-02 | VALIDATING | Durable npm first entry |
-| UPDATE-01 | NOT_STARTED | Explicit CLI version transitions from v3.7.0 |
+| UPDATE-01 | VALIDATING | Explicit CLI version transitions from v3.7.0 |
 
 ## Git invocation policy
 
@@ -51,3 +51,13 @@ SETUP-02 adds pure installation identity/action rules in core, bounded npm CLI i
 Package records use schema 1 below `statusline_runtime/package-management`, separate from the older file/plugin recovery journals. Partial npm outcomes retain a prefix marker and recorded stage. The durable handoff does not alter display Save, host Apply, profiles, bindings or opt-in policies. Six-language guidance covers review, cancellation, failure and next actions.
 
 Acceptance combines state/side-effect tests with four installed scenarios using real npm against a temporary loopback registry, controlled confirmation, actual integration/rendering and a new process after deleting the simulated npx cache. No user prefix or Claude configuration is used. Full platform results remain pending.
+
+## Explicit version transactions
+
+UPDATE-01 adds a versioned package compatibility descriptor and a frozen, digest-bound v3.7.0 record. Core owns version/compatibility rules and the review model; platform owns literal npm invocation, metadata, SRI, staged-package and entry/resource verification. CLI owns selection, review, prefix locking, independent transaction records, revision-bound snapshots and recovery. Display schema 13, editor protocol 21 and existing runtime/source protocols are unchanged.
+
+The public CLI moves execution to a private copy outside the target before loading native adapters. Target integration runs in a separate target process; a retained transaction runner permits recovery after downgrading to v3.7.0. The target entry always points to the durable global package. npm success, package verification and integration success have separate phases. Recovery inspects the observed version and never repeats an already verified global replacement. Configuration restoration is an independent command which preserves current authorization, opt-outs and unrelated host settings.
+
+The implementation branch adopts the approved 3.8.0 identity early so installed acceptance can exercise the real 3.7.0 → 3.8.0 → 3.7.0 transition. This does not publish a version. The final release PR still owns release notes, final gate reconciliation and public channel verification. Twenty installed receipt categories are now required, including seven package-management scenarios with actual npm, pinned historical bytes, controlled metadata, interruption and separate restoration. The existing eight installation targets, 32 Node cases and thirteen host targets remain required.
+
+The first 27 focused management, archive and release-readiness tests passed locally. Independent intermediate builds from `4345e2b505eac2f99ae67d1f361dcc8590690bbc` matched SHA-256 `628710d951474ba171542ef9a3cf8fcb41f6f40e4da0bf56ce7caf88379efa3b`. A real-package integrity rejection exposed a generic npm error mapping; structured `EINTEGRITY` is now reported without forwarding registry details. Installed roundtrip and final matrix evidence remain pending. See the [user operation guide](../PACKAGE_MANAGEMENT.md).

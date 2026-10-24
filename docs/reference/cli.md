@@ -17,6 +17,8 @@ Complete command syntax, supported options, display fields and configuration fil
 
 No subcommand opens the reviewed durable installation flow. See [first entry](../SETUP.md#first-entry-and-persistent-npm-installation). It accepts `--prefix`, `--config-dir` and `--dry-run`; ordinary non-TTY entry exits without mutation.
 
+[Package version management](../PACKAGE_MANAGEMENT.md): explicit checks, upgrades, rollback and separate configuration restoration.
+
 ## Contents
 
 - [CLI overview](#cli-overview)
@@ -37,6 +39,10 @@ No subcommand opens the reviewed durable installation flow. See [first entry](..
 
 ```text
 claude-statusline [--language en|zh-CN|zh-TW|zh-HK|ja|ko] COMMAND ...
+claude-statusline update [--check] [--version EXACT | --channel latest|beta] [--json]
+claude-statusline rollback [--version EXACT]
+claude-statusline recover --package [--version EXACT]
+claude-statusline recover --restore-config BACKUP_ID
 claude-statusline setup [--config-dir PATH] [--dry-run]
 claude-statusline configure [--config-dir PATH]
 claude-statusline config [--config-dir PATH] show [--json]

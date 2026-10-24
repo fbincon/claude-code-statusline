@@ -30,6 +30,8 @@ test('version metadata binds exact identity, integrity and compatibility without
     }
     const legacy=new Npm({},async()=>({code:0,reason:'completed',stdout:JSON.stringify({...valid,version:'3.7.0'})}),'npm-cli.js');await assert.rejects(legacy.metadata('3.7.0',layout),PackageError);
     const good=new Npm({},async()=>({code:0,reason:'completed',stdout:JSON.stringify(valid)}),'npm-cli.js');assert.equal((await good.metadata('latest',layout)).version,'3.8.0');
+    const damaged=new Npm({},async()=>({code:1,reason:'exit',stdout:JSON.stringify({error:{code:'EINTEGRITY',detail:'private registry material'}})}),'npm-cli.js');
+    await assert.rejects(damaged.run(['pack','--json']),e=>e instanceof PackageError && e.code==='integrity' && !e.message.includes('private'));
 });
 test('archive verification rejects changed bytes and pins historical 3.7.0 beyond registry metadata',t=>{
     const root=fs.mkdtempSync(join(tmpdir(),'archive-integrity-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
