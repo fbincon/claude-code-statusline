@@ -1883,7 +1883,8 @@ export const LOCALES = {
     "explain.reason.cost_rate_session": "Uses official session duration; at least 60 seconds are required.",
     "explain.reason.cost_rate_api": "Uses official cumulative API duration; this is independent of active task time.",
     "guidance.requirements.cost_rate": "Derived estimate: cost divided by the selected official duration in hours, after at least 60 seconds. Zero cost is valid; missing, negative or nonfinite values are unavailable. It is neither an invoice nor a spending forecast.",
-    "doctor.git_policy": "Git worktree collection is unavailable ({reason}). Review repository filters; Git configuration was not changed. See the Git invocation policy in the diagnostics guide."
+    "doctor.git_policy": "Git worktree collection is unavailable ({reason}). Review repository filters; Git configuration was not changed. See the Git invocation policy in the diagnostics guide.",
+    "doctor.terminal_colors": "External preview colors: {colors} ({reason}). Setup, configure and slash entry inspect the current output terminal; inherited terminal markers alone do not prove capability."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3760,7 +3761,8 @@ export const LOCALES = {
     "explain.reason.cost_rate_session": "以官方会话时长为分母，至少需要 60 秒。",
     "explain.reason.cost_rate_api": "以官方累计 API 时长为分母，与任务活跃时长独立。",
     "guidance.requirements.cost_rate": "推导估算值：费用除以所选官方时长（小时），要求至少 60 秒。费用为零有效；缺失、负数或非有限值不可用，不代表账单或未来消费预测。",
-    "doctor.git_policy": "Git 工作区采集不可用（{reason}）。请检查仓库过滤器；Git 配置未被修改。详见诊断指南中的 Git 调用策略。"
+    "doctor.git_policy": "Git 工作区采集不可用（{reason}）。请检查仓库过滤器；Git 配置未被修改。详见诊断指南中的 Git 调用策略。",
+    "doctor.terminal_colors": "外部预览颜色：{colors}（{reason}）。setup、configure 和 slash 入口检查当前输出终端；仅继承的终端标记不能证明能力。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5637,7 +5639,8 @@ export const LOCALES = {
     "explain.reason.cost_rate_session": "以官方會話時長為分母，至少需要 60 秒。",
     "explain.reason.cost_rate_api": "以官方累計 API 時長為分母，與任務活躍時長獨立。",
     "guidance.requirements.cost_rate": "推導估算值：費用除以所選官方時長（小時），要求至少 60 秒。費用為零有效；缺失、負數或非有限值不可用，不代表帳單或未來消費預測。",
-    "doctor.git_policy": "Git 工作區收集無法使用（{reason}）。請檢查儲存庫篩選器；Git 設定未被修改。詳見診斷指南中的 Git 呼叫策略。"
+    "doctor.git_policy": "Git 工作區收集無法使用（{reason}）。請檢查儲存庫篩選器；Git 設定未被修改。詳見診斷指南中的 Git 呼叫策略。",
+    "doctor.terminal_colors": "外部預覽顏色：{colors}（{reason}）。setup、configure 和 slash 入口檢查目前輸出終端機；僅繼承的終端機標記不能證明能力。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7514,7 +7517,8 @@ export const LOCALES = {
     "explain.reason.cost_rate_session": "以官方會話時長為分母，至少需要 60 秒。",
     "explain.reason.cost_rate_api": "以官方累計 API 時長為分母，與任務活躍時長獨立。",
     "guidance.requirements.cost_rate": "推導估算值：費用除以所選官方時長（小時），要求至少 60 秒。費用為零有效；缺失、負數或非有限值不可用，不代表賬單或未來消費預測。",
-    "doctor.git_policy": "Git 工作區收集無法使用（{reason}）。請檢查儲存庫篩選器；Git 設定未被修改。詳見診斷指南中的 Git 呼叫策略。"
+    "doctor.git_policy": "Git 工作區收集無法使用（{reason}）。請檢查儲存庫篩選器；Git 設定未被修改。詳見診斷指南中的 Git 呼叫策略。",
+    "doctor.terminal_colors": "外部預覽顏色：{colors}（{reason}）。setup、configure 和 slash 入口檢查目前輸出終端機；僅繼承的終端機標記不能證明能力。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9391,7 +9395,8 @@ export const LOCALES = {
     "explain.reason.cost_rate_session": "公式セッション時間を分母に使います。60 秒以上必要です。",
     "explain.reason.cost_rate_api": "公式の累計 API 時間を分母に使います。タスクの稼働時間とは独立しています。",
     "guidance.requirements.cost_rate": "費用を選択した公式時間（時間単位）で割る推定値です。60 秒以上が必要です。費用ゼロは有効ですが、欠損・負数・非有限値は使用できません。請求額や将来の支出予測ではありません。",
-    "doctor.git_policy": "Git 作業ツリーを収集できません（{reason}）。リポジトリのフィルターを確認してください。Git 設定は変更されていません。診断ガイドの Git 呼び出しポリシーを参照してください。"
+    "doctor.git_policy": "Git 作業ツリーを収集できません（{reason}）。リポジトリのフィルターを確認してください。Git 設定は変更されていません。診断ガイドの Git 呼び出しポリシーを参照してください。",
+    "doctor.terminal_colors": "外部プレビューの色数: {colors}（{reason}）。setup、configure、slash は現在の出力端末を確認します。継承された端末情報だけでは機能を判定しません。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11268,7 +11273,8 @@ export const LOCALES = {
     "explain.reason.cost_rate_session": "공식 세션 시간을 분모로 사용하며 60초 이상 필요합니다.",
     "explain.reason.cost_rate_api": "공식 누적 API 시간을 분모로 사용하며 작업 활성 시간과 독립적입니다.",
     "guidance.requirements.cost_rate": "비용을 선택한 공식 시간(시간 단위)으로 나눈 추정값으로 최소 60초가 필요합니다. 비용 0은 유효하며 누락, 음수, 유한하지 않은 값은 사용할 수 없습니다. 청구 금액이나 향후 지출 예측이 아닙니다.",
-    "doctor.git_policy": "Git 작업 트리를 수집할 수 없습니다({reason}). 저장소 필터를 확인하세요. Git 설정은 변경되지 않았습니다. 진단 가이드의 Git 호출 정책을 참고하세요."
+    "doctor.git_policy": "Git 작업 트리를 수집할 수 없습니다({reason}). 저장소 필터를 확인하세요. Git 설정은 변경되지 않았습니다. 진단 가이드의 Git 호출 정책을 참고하세요.",
+    "doctor.terminal_colors": "외부 미리보기 색상 수: {colors}({reason}). setup, configure, slash 진입점은 현재 출력 터미널을 확인합니다. 상속된 터미널 표식만으로 기능을 판단하지 않습니다."
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

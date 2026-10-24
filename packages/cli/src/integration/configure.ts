@@ -42,7 +42,7 @@ export async function configure(service: ConfigurationService, language: Languag
                 return parseResponse(operation, { exitCode: response.status, stdout: pythonJson(response.response), stderr: '' });
             } };
         const session = await Session.open(backend, language, guard);
-        result = await session.run({ deadline: stopAt });
+        result = await session.run({ deadline: stopAt, environment: env });
     }
     catch (error) {
         const message = error instanceof ConfigError ? renderMessage(localizedError(error), language) : error instanceof Error ? error.message : String(error);

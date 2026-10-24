@@ -4,7 +4,7 @@
 
 更新：**2026-10-24**（Asia/Shanghai）· 产品基线：**v3.7.0** · 规划基线：**`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01 正在为 v3.8.0 验证（VALIDATING），其余七个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
+本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01 和 TERMINAL-01 正在为 v3.8.0 验证（VALIDATING），其余六个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
 
 已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.7.0 专项决定](../releases/approvals/v3.7.0.json)记录该版本对这些缺口的接受。
 
@@ -19,7 +19,7 @@
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
 | 优先独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | VALIDATING |
-| 优先独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | NOT_STARTED |
+| 优先独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | VALIDATING |
 | M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | NOT_STARTED |
 | M9 | [UPDATE-01](#update-01) | SETUP-02 的安装身份及既有兼容／恢复规则 | NOT_STARTED |
 | M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | NOT_STARTED |
@@ -91,7 +91,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 ## TERMINAL-01 Windows 预览一致性
 
-**状态：NOT_STARTED。** 优先独立维护，跟踪 [Issue #130](https://github.com/fbincon/claude-code-statusline/issues/130)。
+**状态：VALIDATING。** 优先独立维护，跟踪 [Issue #130](https://github.com/fbincon/claude-code-statusline/issues/130)。
 
 **问题与目标。** 问题报告指出，同一 Windows 终端中，setup、独立 configure 和 slash 启动的外部编辑器预览颜色不同。基线的[色深判断函数](../../packages/tui/src/session.ts)仅有 Windows Terminal 标记时返回 16，有 `TERM=xterm-256color` 时返回 256；这一纯函数观察不等于新完成的 Windows 桌面验证。相同终端应获得一致的能力判断，确实存在的受支持差异则准确说明。
 

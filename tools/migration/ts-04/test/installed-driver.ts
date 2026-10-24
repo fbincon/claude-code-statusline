@@ -107,7 +107,22 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         if (!k.func('bool GetConsoleMode(void *handle, _Out_ uint32_t *mode)')(handle, value)) throw new Error('Cannot read console output mode');
         return value[0];
     };
+    if (choice === 'preview-cancel' || choice === 'color-cancel') {
+        const output = k.func('void *GetStdHandle(uint32_t kind)')(0xfffffff5);
+        if (!k.func('bool SetConsoleMode(void *handle, uint32_t mode)')(output, outputMode()! & ~4)) throw new Error('Cannot prepare VT-disabled fixture');
+    }
     const beforeOutput = outputMode();
+    const sendKeys = (keys: string) => {
+        const records = Buffer.alloc(keys.length * 40);
+        for (let i = 0; i < keys.length; i++) for (let down = 0; down < 2; down++) {
+            const offset = i * 40 + down * 20, code = keys.charCodeAt(i);
+            records.writeUInt16LE(1, offset); records.writeInt32LE(down === 0 ? 1 : 0, offset + 4);
+            records.writeUInt16LE(1, offset + 8); records.writeUInt16LE(code === 19 ? 0x53 : code, offset + 10);
+            records.writeUInt16LE(code, offset + 14); records.writeUInt32LE(code === 19 ? 8 : 0, offset + 16);
+        }
+        if (!k.func('bool WriteConsoleInputW(void *handle, void *records, uint32_t count, _Out_ uint32_t *written)')(input, records, keys.length * 2, [0])) throw new Error('WriteConsoleInputW failed');
+    };
+    let previewCancelled = false;
     let scheduled = false, timer: NodeJS.Timeout | undefined;
     const write = process.stdout.write.bind(process.stdout);
     (process.stdout.write as any) = (chunk: any, ...args: any[]) => {
@@ -116,23 +131,13 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         if (!scheduled && chunks.join('').includes(operation === 'windows-setup' ? 'Environment and configuration checks' : 'Preview (sample data)')) {
             scheduled = true;
             setTimeout(() => {
-                const keys = operation === 'windows-setup' ? choice === 'cancel' ? '\x1b' : '\r\r\r\x1b[F\r' + (choice === 'save' ? '\x1b[B' : '') + '\r'
+                const keys = operation === 'windows-setup' ? choice === 'cancel' ? '\x1b' : choice === 'preview-cancel' ? '\r\r\r' : '\r\r\r\x1b[F\r' + (choice === 'save' ? '\x1b[B' : '') + '\r'
                     : choice === 'save' ? ' \x13' : ' \x1b';
-                const records = Buffer.alloc(keys.length * 40);
-                for (let i = 0; i < keys.length; i++)
-                    for (let down = 0; down < 2; down++) {
-                        const offset = i * 40 + down * 20, code = keys.charCodeAt(i);
-                        records.writeUInt16LE(1, offset);
-                        records.writeInt32LE(down === 0 ? 1 : 0, offset + 4);
-                        records.writeUInt16LE(1, offset + 8);
-                        records.writeUInt16LE(code === 19 ? 0x53 : code, offset + 10);
-                        records.writeUInt16LE(code, offset + 14);
-                        records.writeUInt32LE(code === 19 ? 8 : 0, offset + 16);
-                    }
-                const count = [0];
-                if (!k.func('bool WriteConsoleInputW(void *handle, void *records, uint32_t count, _Out_ uint32_t *written)')(input, records, keys.length * 2, count))
-                    throw new Error('WriteConsoleInputW failed');
+                sendKeys(keys);
             }, 50);
+        }
+        if (choice === 'preview-cancel' && !previewCancelled && chunks.join('').includes('Statusline theme')) {
+            previewCancelled = true; setTimeout(() => sendKeys('\x1b'), 50);
         }
         return (write as any)(chunk, ...args);
     };

@@ -14,10 +14,10 @@ export interface SetupAdapter {
     review(draft: Draft, language: Language): string[];
     language(language: Language): void;
 }
-export function setupFrame(state: SetupState, adapter: SetupAdapter, columns: number, rows: number): string {
+export function setupFrame(state: SetupState, adapter: SetupAdapter, columns: number, rows: number, colors = colorCapacity()): string {
     const canvas = new Canvas(columns, rows), tr = (key: string) => t('setup.' + key, state.language);
     canvas.line(0, tr('title'), true);
-    if (columns < 64 || rows < 18) { canvas.line(2, tr('small')); canvas.line(rows - 1, tr('cancel')); return ansiFrame(canvas.frame(), colorCapacity()); }
+    if (columns < 64 || rows < 18) { canvas.line(2, tr('small')); canvas.line(rows - 1, tr('cancel')); return ansiFrame(canvas.frame(), colors); }
     canvas.line(1, tr(state.phase), true);
     const draft = state.quick?.candidate ?? state.candidate;
     const preview = draft && state.phase !== 'checks' ? adapter.preview(draft, columns - 2) : null;
@@ -44,11 +44,13 @@ export function setupFrame(state: SetupState, adapter: SetupAdapter, columns: nu
     }
     if (state.message) canvas.line(rows - 2, renderMessage(state.message, state.language));
     canvas.line(rows - 1, tr('keys'));
-    return ansiFrame(canvas.frame(), colorCapacity());
+    return ansiFrame(canvas.frame(), colors);
 }
 export async function runSetup(state: SetupState, adapter: SetupAdapter, options: TerminalOptions = {}): Promise<SetupEffect> {
+    let colors = 16;
     return terminal<SetupEffect>({
-        draw: (columns, rows) => setupFrame(state, adapter, columns, rows),
+        ready: capability => { colors = capability.colors; },
+        draw: (columns, rows) => setupFrame(state, adapter, columns, rows, colors),
         key: (event, columns, rows) => {
             if (event.paste || event.text || event.meta) return null;
             const key = event.ctrl && event.key === 'c' ? 'interrupt' : event.ctrl && event.key === 'g' ? 'cancel' : event.ctrl ? '' : event.key;

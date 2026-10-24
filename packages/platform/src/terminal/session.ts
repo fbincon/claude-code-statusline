@@ -1,7 +1,9 @@
 import type { ReadStream, WriteStream } from 'node:tty';
 import { KeyDecoder, type Key } from './input.js';
 import { captureWindowsModes } from './windows-modes.js';
+import { colorCapability, type ColorCapability } from './capabilities.js';
 export interface TerminalClient<T> {
+    ready?(capability: ColorCapability): void;
     draw(columns: number, rows: number): string;
     key(key: Key, columns: number, rows: number): T | null | Promise<T | null>;
     interrupted(signal: NodeJS.Signals): T;
@@ -14,17 +16,19 @@ export interface TerminalOptions {
     deadline?: number;
     now?: () => number;
     term?: string;
+    environment?: NodeJS.ProcessEnv;
 }
 /** The sole raw-mode owner. Exit handlers never leave a queued read keeping Node alive. */
 export async function terminal<T>(client: TerminalClient<T>, options: TerminalOptions = {}): Promise<T> {
     const input = options.input ?? process.stdin, output = options.output ?? process.stdout;
     if (!input.isTTY || !output.isTTY || typeof input.setRawMode !== 'function')
         throw new Error('TTY required');
-    if (process.platform !== 'win32' && (options.term ?? process.env.TERM) === 'dumb')
+    const environment = {...(options.environment ?? process.env), ...(options.term !== undefined ? {TERM:options.term} : {})};
+    if (process.platform !== 'win32' && environment.TERM === 'dumb')
         throw new Error('Interactive configuration requires an ANSI/VT terminal');
     const now = options.now ?? (() => performance.now()), decoder = new KeyDecoder();
     const raw = input.isRaw, flowing = input.readableFlowing;
-    const restoreConsoleModes = captureWindowsModes(input === process.stdin, output === process.stdout);
+    const restoreConsoleModes = captureWindowsModes(input === process.stdin, output === process.stdout, true);
     let escapeTimer: ReturnType<typeof setTimeout> | undefined, poll: ReturnType<typeof setInterval> | undefined;
     let closed = false, queued = 0, chain = Promise.resolve(), drainWait: (() => void) | null = null;
     const size = () => [output.columns || 80, output.rows || 24] as const;
@@ -124,6 +128,7 @@ export async function terminal<T>(client: TerminalClient<T>, options: TerminalOp
         try {
             client.guard?.();
             input.setRawMode(true);
+            client.ready?.(colorCapability({environment,platform:process.platform,tty:!!output.isTTY,windowsVT:restoreConsoleModes.vt}));
             input.on('data', data);
             input.on('error', failed);
             input.on('end', ended);

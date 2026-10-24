@@ -1873,5 +1873,6 @@
   "explain.reason.cost_rate_session": "공식 세션 시간을 분모로 사용하며 60초 이상 필요합니다.",
   "explain.reason.cost_rate_api": "공식 누적 API 시간을 분모로 사용하며 작업 활성 시간과 독립적입니다.",
   "guidance.requirements.cost_rate": "비용을 선택한 공식 시간(시간 단위)으로 나눈 추정값으로 최소 60초가 필요합니다. 비용 0은 유효하며 누락, 음수, 유한하지 않은 값은 사용할 수 없습니다. 청구 금액이나 향후 지출 예측이 아닙니다.",
-  "doctor.git_policy": "Git 작업 트리를 수집할 수 없습니다({reason}). 저장소 필터를 확인하세요. Git 설정은 변경되지 않았습니다. 진단 가이드의 Git 호출 정책을 참고하세요."
+  "doctor.git_policy": "Git 작업 트리를 수집할 수 없습니다({reason}). 저장소 필터를 확인하세요. Git 설정은 변경되지 않았습니다. 진단 가이드의 Git 호출 정책을 참고하세요.",
+  "doctor.terminal_colors": "외부 미리보기 색상 수: {colors}({reason}). setup, configure, slash 진입점은 현재 출력 터미널을 확인합니다. 상속된 터미널 표식만으로 기능을 판단하지 않습니다."
 }

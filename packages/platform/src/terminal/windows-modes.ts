@@ -5,9 +5,9 @@ import { nativeFunction, winError } from '../native.js';
  * https://learn.microsoft.com/en-us/windows/console/setconsolemode
  * https://github.com/libuv/libuv/blob/v1.51.0/src/win/tty.c#L341
  */
-export function captureWindowsModes(standardInput: boolean, standardOutput: boolean): () => void {
+export function captureWindowsModes(standardInput: boolean, standardOutput: boolean, enableVT = false): (() => void) & { vt: boolean } {
     if (process.platform !== 'win32' || !standardInput || !standardOutput)
-        return () => {};
+        return Object.assign(() => {}, {vt:false});
     const getHandle = nativeFunction('kernel32.dll', 'void *GetStdHandle(uint32_t kind)');
     const getMode = nativeFunction('kernel32.dll', 'bool GetConsoleMode(void *handle, _Out_ uint32_t *mode)');
     const setMode = nativeFunction('kernel32.dll', 'bool SetConsoleMode(void *handle, uint32_t mode)');
@@ -17,7 +17,7 @@ export function captureWindowsModes(standardInput: boolean, standardOutput: bool
             throw winError('GetConsoleMode');
         return { handle, mode: mode[0]! };
     });
-    return () => {
+    const restore = () => {
         let failure: unknown;
         for (const saved of snapshots) {
             try {
@@ -32,4 +32,16 @@ export function captureWindowsModes(standardInput: boolean, standardOutput: bool
         }
         if (failure) throw failure;
     };
+    const output = snapshots[1]!;
+    let vt = (output.mode & 4) !== 0;
+    if (enableVT && !vt) {
+        try {
+            if (setMode(output.handle, output.mode | 4)) {
+                const actual = [0];
+                vt = !!getMode(output.handle, actual) && (actual[0]! & 4) !== 0;
+                if (!vt) restore();
+            }
+        } catch (error) { restore(); throw error; }
+    }
+    return Object.assign(restore, {vt});
 }

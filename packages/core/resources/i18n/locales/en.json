@@ -1873,5 +1873,6 @@
   "explain.reason.cost_rate_session": "Uses official session duration; at least 60 seconds are required.",
   "explain.reason.cost_rate_api": "Uses official cumulative API duration; this is independent of active task time.",
   "guidance.requirements.cost_rate": "Derived estimate: cost divided by the selected official duration in hours, after at least 60 seconds. Zero cost is valid; missing, negative or nonfinite values are unavailable. It is neither an invoice nor a spending forecast.",
-  "doctor.git_policy": "Git worktree collection is unavailable ({reason}). Review repository filters; Git configuration was not changed. See the Git invocation policy in the diagnostics guide."
+  "doctor.git_policy": "Git worktree collection is unavailable ({reason}). Review repository filters; Git configuration was not changed. See the Git invocation policy in the diagnostics guide.",
+  "doctor.terminal_colors": "External preview colors: {colors} ({reason}). Setup, configure and slash entry inspect the current output terminal; inherited terminal markers alone do not prove capability."
 }

@@ -37,8 +37,9 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
-            assert.equal(Object.keys(report.checks).length, 17); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(Object.keys(report.checks).length, 18); assert(Object.values(report.checks).every(value => value === true));
             assert.equal(report.checks.git_policy, true); assert.equal(report.git_policy_cases, 4);
+            assert.equal(report.checks.terminal_colors, true); assert.equal(report.terminal_color_cases, report.target.startsWith('windows-') ? 15 : 3);
             assert.equal(report.checks.cost_rates, true); assert.equal(report.cost_rate_cases, 4);
             assert.equal(report.checks.automatic_refresh, true); assert.equal(report.automatic_refresh_cases, 4);
             assert.equal(report.checks.groups, true); assert.equal(report.group_cases, 4);

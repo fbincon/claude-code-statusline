@@ -4,7 +4,7 @@
 
 Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01 is VALIDATING for v3.8.0; the other seven future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
+This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01 and TERMINAL-01 are VALIDATING for v3.8.0; the other six future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.7.0 decision](../releases/approvals/v3.7.0.json) records their acceptance for that release.
 
@@ -19,7 +19,7 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 | Stage | Work package | Dependencies and scheduling | Status |
 | --- | --- | --- | --- |
 | Priority independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | VALIDATING |
-| Priority independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | NOT_STARTED |
+| Priority independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | VALIDATING |
 | M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | NOT_STARTED |
 | M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | NOT_STARTED |
 | M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
@@ -91,7 +91,7 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## TERMINAL-01 Windows preview consistency
 
-**Status: NOT_STARTED.** Priority independent maintenance, tracking [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130).
+**Status: VALIDATING.** Priority independent maintenance, tracking [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130).
 
 **Problem and goal.** The issue reports different external-editor preview colors from setup, standalone configure and the slash launcher on the same Windows terminal. The baseline's [color-capability function](../../packages/tui/src/session.ts) returns 16 for Windows Terminal markers alone and 256 for `TERM=xterm-256color`. This pure-function observation is not a new Windows desktop verification. Make detected capability consistent where the terminal is the same, or explain supported differences accurately.
 
