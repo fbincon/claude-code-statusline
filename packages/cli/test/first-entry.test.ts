@@ -42,6 +42,9 @@ test('first entry reviews exact installation, verifies a durable entry and survi
     assert.equal(await firstEntry(f.args, f.options), 0);
     assert.deepEqual({ calls: f.state().calls, handed: f.state().handed }, { calls: 1, handed: true });
     assert(f.state().output.includes(PACKAGE_NAME + '@' + VERSION));
+    assert(f.state().output.includes(f.npm.entry));
+    assert(f.state().output.includes(join(f.layout.root, 'node_modules/@fbincon/statusline-cli/dist/src/entry.js')));
+    assert(f.state().output.includes(f.configDir));
     assert(!fs.existsSync(pendingPath(f.prefix)));
     fs.rmSync(join(f.root, 'cache'), { recursive: true });
     assert.equal(productIdentity(f.layout.root)?.version, VERSION);
