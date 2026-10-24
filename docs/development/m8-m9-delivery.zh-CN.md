@@ -96,4 +96,6 @@ UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1
 
 [SETUP-02 合并后的中间 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40086715360)曾在 Windows 子模块脏状态测试中得到 `error`；旧日志未记录底层原因，不能断定为超时。[独立诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40088039171)在两个 Windows 目标、Node 22／24 上各用二十个新仓库完成一百次观测，全部通过，保留逐调用耗时及错误记录能力。产品两秒总预算不变；后续 UPDATE-01 的正式矩阵也通过。已失败的中间 main 被取消，不能作为发布验收。
 
+[UPDATE-01 合并后的中间 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40091394223)记录了一项官方 Windows／Claude 2.1.289 原生编辑器英文保存／取消／重开测试的 30 秒超时，其余 131 项原生测试通过。日志不足以确定底层原因；测试上限不变，最终发布矩阵仍必须通过同一测试。
+
 四个工作包已 DONE；v3.8.0 公开发布仍待最终发布 PR／main／tag 自动化、独立构建及源码重建、四项附件和 npm／GitHub／Gitee 渠道字节核验。[本版本批准记录](../releases/approvals/v3.8.0.json)限定保留 #96 的六项原有未验证缺口。

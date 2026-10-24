@@ -2,6 +2,12 @@
 
 [English](RELEASING.md) | **简体中文**
 
+## v3.8.0 Git、终端与版本管理
+
+采用 [v3.8.0 专属批准](releases/approvals/v3.8.0.json)，要求最终发布 PR、合并 main 及附注 tag 门禁全部通过。每份安装／runtime 回执必须通过二十类检查，包含四项 Git 策略、四项持久首次入口，以及对摘要固定的公开 v3.7.0 归档执行的七项真实包转换场景。版本回执保留十九项操作（官方宿主二十项）、中断、实际状态恢复及独立配置恢复。Windows 另须包含十五项调色板／环境场景和九种实际 PowerShell／CMD／Git Bash × setup／configure／slash 组合，验证取消及控制台模式恢复。
+
+八安装目标、32 个 Node 场景及十三个固定宿主仍为必需。npm OIDC 与 GitHub 发布前，核对独立构建、交付源码重建、六语言扩展安装版 PTY 及恰好四项已下载的草稿附件。核验 npm 精确版本与 `latest`、保留 `beta`，再核验 GitHub／Gitee 公开字节并同步明确且已验证的 ref。自动化控制台、PTY 重建、人工桌面及实体电源证据分别记录。结果进入 [Git、终端与 M8–M9 交付](development/m8-m9-delivery.zh-CN.md)；仅接受 #96 原有六项缺口。普通纯文档收尾仍只执行必要文档检查。
+
 ## v3.7.0 图形、分组、刷新与速率
 
 使用 [v3.7.0 专属批准](releases/approvals/v3.7.0.json)，要求最终 PR/main/tag 完整门禁通过。安装收据除既有检查外，必须包含三项图形、四项分组、四项自动策略／生命周期及四项费用速率场景。八安装目标、32 个 Node 场景、十三个固定宿主、独立构建／源码重建、六语言扩展安装产物 PTY、已验证草稿附件、npm OIDC 和 GitHub/npm/Gitee 公开字节验收要求保持不变。实际结果记录于 [M4–M7 交付](development/m4-m7-delivery.zh-CN.md)，仅接受 #96 六项既有缺口。
