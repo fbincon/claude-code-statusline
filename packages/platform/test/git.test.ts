@@ -42,11 +42,11 @@ test('repository fsmonitor never runs, while ordinary clean/dirty semantics and 
 });
 test('same-length clean filter reproduction is blocked before status, including included and worktree configs', t => {
     const f = fixture(t);
-    f.git('config', 'filter.probe.clean', f.command + ' clean');
     fs.writeFileSync(join(f.repo, '.gitattributes'), '*.txt filter=probe\n');
-    f.git('add', '.'); f.git('commit', '-qm', 'filter'); fs.rmSync(f.marker, { force: true });
+    f.git('add', '.'); f.git('commit', '-qm', 'filter');
+    f.git('config', 'filter.probe.clean', f.command + ' clean');
     fs.writeFileSync(join(f.repo, 'file.txt'), 'bbbb\n');
-    f.git('--no-optional-locks', ...status); assert(fs.existsSync(f.marker), 'baseline executes clean'); fs.rmSync(f.marker);
+    fs.utimesSync(join(f.repo, 'file.txt'), new Date(0), new Date(0));
     const before = fs.readFileSync(join(f.repo, '.git/config'));
     assert.throws(() => f.invocation().worktreePolicy(), (e: unknown) => e instanceof GitPolicyError && e.reason === 'filter_blocked');
     assert(!fs.existsSync(f.marker)); assert.deepEqual(fs.readFileSync(join(f.repo, '.git/config')), before);
@@ -57,11 +57,14 @@ test('same-length clean filter reproduction is blocked before status, including 
     f.git('config', '--unset', 'include.path'); f.git('config', 'extensions.worktreeConfig', 'true');
     f.git('config', '--worktree', 'filter.probe.clean', f.command + ' clean');
     assert.throws(() => f.invocation().worktreePolicy(), GitPolicyError); assert(!fs.existsSync(f.marker));
+    // Exercise the unguarded control only after every protected observation.
+    // No prior probe or marker deletion can influence the absence assertion.
+    f.git('--no-optional-locks', ...status); assert(fs.existsSync(f.marker), 'baseline executes clean');
 });
 test('user-managed global filters retain their transformation and configuration', t => {
-    const f = fixture(t); f.git('config', '--global', 'filter.probe.clean', f.command + ' clean');
+    const f = fixture(t);
     fs.writeFileSync(join(f.repo, '.gitattributes'), '*.txt filter=probe\n'); f.git('add', '.'); f.git('commit', '-qm', 'filter');
-    fs.rmSync(f.marker, {force:true}); fs.writeFileSync(join(f.repo, 'file.txt'), 'bbbb\n');
+    f.git('config', '--global', 'filter.probe.clean', f.command + ' clean'); fs.writeFileSync(join(f.repo, 'file.txt'), 'bbbb\n');
     fs.utimesSync(join(f.repo, 'file.txt'), new Date(0), new Date(0));
     const before = fs.readFileSync(f.global), git = f.invocation();
     assert.equal(git.command(status, git.worktreePolicy()).code, 0); assert(fs.existsSync(f.marker));
