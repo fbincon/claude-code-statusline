@@ -18,6 +18,8 @@ export interface PackageReview {
     prefix: string;
     entry: string;
     node: string;
+    npm_entry: string;
+    config_dir: string;
     node_version: string;
     node_engine: string;
     host: string | null;

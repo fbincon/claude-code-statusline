@@ -67,7 +67,10 @@ test('script mutations require exact version, prefix and yes; help and legacy re
 test('check, preview, refusal and unknown prerelease channels never mutate installation or configuration', async (t) => {
     const f = fixture(t);
     assert.equal(await manage(f.args('update', ['--check', '--json']), f.options), 0, f.state().output);
-    assert.equal(JSON.parse(f.state().output).artifact_verified, false);
+    const review = JSON.parse(f.state().output);
+    assert.equal(review.artifact_verified, false);
+    assert.equal(review.config_dir, f.configDir);
+    assert.equal(review.npm_entry, f.npm.entry);
     f.clear();
     assert.equal(await manage(f.args('update', ['--dry-run', '--json']), f.options), 0, f.state().output);
     f.clear();
