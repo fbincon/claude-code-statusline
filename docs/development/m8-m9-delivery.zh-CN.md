@@ -65,3 +65,5 @@ UPDATE-01 增加版本化包兼容声明，以及与固定摘要绑定的 v3.7.0
 UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1,194 项测试（五项既有平台跳过）、51 项生成资源及 3,174 个文档链接。独立构建包 SHA-256 为 `95dd967f94fac51b50e9b0db981079e086d6254fca2e3646e2cd23b0dbbda3a3`，全部二十项安装检查通过；七项转换场景还通过隔离的官方 Claude 2.1.296 宿主及两个适用 Mod，包含中断、资源刷新、关闭选项保留和独立恢复。未发起模型调用。包子进程身份记录及协作取消防止将仍存活的执行器误判为空闲恢复目标；完整 PR／平台／宿主矩阵仍须通过。
 
 [独立 Windows ARM 诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40077221439)及[更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40076937090)的两个 Windows Node 22.23.4 任务均在 `fs.cpSync` 内以 `0xC0000409` 退出，复制尚未完成，也未加载任何原生模块。包复制现使用有界目录枚举及排他普通文件复制，拒绝链接／特殊文件，并在私有目录中保留可执行权限。bootstrap 与保留的恢复执行器采用同一实现；后者验证成功后才通过目录重命名交付。这是针对已观察复制失败的规避措施，不推断上游根因；替代平台门禁仍须通过。
+
+[替代实现诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40077988543)在 Windows ARM／Node 22.23.4 上完成十轮首次入口检查，使用此前固定的夹具包。这属于诊断证据，不是最终发布验收。[后续 Node 22.0.0 矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40078309875)发现路径别名导致目标包含检查失效；现先解析源路径及目标既有父目录，再检查包含关系，并通过目录别名回归验证在创建目标前拒绝。
