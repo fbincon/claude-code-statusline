@@ -1,4 +1,4 @@
-name: Windows version operation diagnostic
+name: Windows real shell preview diagnostic
 on:
   workflow_dispatch:
 permissions:
@@ -6,16 +6,14 @@ permissions:
   actions: read
 jobs:
   reproduce:
-    name: Version commands / ${{ matrix.os }} / Claude ${{ matrix.host }}
+    name: Preview shells / ${{ matrix.os }} / Node ${{ matrix.node }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - {os: windows-2025, host: '2.1.288'}
-          - {os: windows-2025, host: '2.1.289'}
-          - {os: windows-11-arm, host: '2.1.288'}
+        os: [windows-2025, windows-11-arm]
+        node: ['22.0.0', '24.0.0']
     defaults:
       run:
         shell: bash
@@ -36,16 +34,18 @@ jobs:
           path: ${{ runner.temp }}/candidate
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build
-      - run: |
-          npm install --prefix "$RUNNER_TEMP/claude-host" --ignore-scripts --no-audit --no-fund '@anthropic-ai/claude-code@${{ matrix.host }}' '@anthropic-ai/claude-code-win32-x64@${{ matrix.host }}'
-          node "$RUNNER_TEMP/claude-host/node_modules/@anthropic-ai/claude-code/install.cjs"
-      - run: node tools/testing/windows-version-diagnostic.mjs
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+          architecture: x64
+      - run: node --test --test-name-pattern='installed terminal policy' dist/typescript/tools/migration/ts-04/test/installed.test.js
         env:
-          DIAGNOSTIC_ROOT: ${{ runner.temp }}
-          DIAGNOSTIC_HOST: ${{ matrix.host }}
+          TS05_CANDIDATE_ARTIFACT: ${{ runner.temp }}/candidate/fbincon-claude-code-statusline-3.8.0.tgz
+          TS05_CANDIDATE_COMMIT: e3029feed60d67ff7f2ccc1ac6e22bf6aa588a19
+          TS04_INSTALLED_REPORT: ${{ runner.temp }}/console-diagnostic/installed.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: windows-version-${{ matrix.os }}-${{ matrix.host }}
-          path: ${{ runner.temp }}/version-diagnostic/
+          name: windows-console-${{ matrix.os }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/console-diagnostic/
           if-no-files-found: error
