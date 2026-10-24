@@ -15,11 +15,12 @@ import { assertClear } from '../recovery/journal.js';
 import { safeTarget } from '../integration/paths.js';
 import { managementOptions, type ManagementOptions } from './arguments.js';
 import { confirmPackage } from './first-entry.js';
-import { pendingPath, startOperation, saveOperation, recordInstallation, finishOperation, operationPath, readInstallation, readOperation, type PackageOperation } from './store.js';
+import { pendingPath, startOperation, saveOperation, recordInstallation, finishOperation, operationPath, readInstallation, readOperation, observeOperation, type PackageOperation } from './store.js';
 import { configurationBytes, configurationHashes, configurationCompatibility, assertConfiguration, saveSnapshot, type ConfigHashes } from './configuration.js';
 import { refreshIntegration } from './integration.js';
 import { restoreConfiguration } from './restore.js';
 import { ArgumentError } from '../config/arguments.js';
+import { processMatches } from '@fbincon/statusline-platform/processes';
 export interface ManagementEnvironment {
     origin: string;
     stdout: (text: string) => void;
@@ -71,6 +72,8 @@ function observedPackage(layout: NpmLayout, operation: PackageOperation): {
     identity: PackageIdentity | null;
     state: string;
 } {
+    if (operation.executors?.some(p => processMatches(p.pid, p.token)))
+        throw new PackageError('busy');
     try {
         const identity = productIdentity(layout.root, layout.prefix);
         if (identity && ![operation.before?.version, operation.version].includes(identity.version))
@@ -80,12 +83,10 @@ function observedPackage(layout: NpmLayout, operation: PackageOperation): {
     catch (error) {
         if (error instanceof PackageError && error.code === 'conflict')
             throw error;
-        if (!operation.before)
-            throw error;
         const manifest = join(layout.root, 'package.json');
         if (fs.existsSync(manifest)) {
             const value = JSON.parse(fs.readFileSync(manifest, 'utf8'));
-            if (value.name !== '@fbincon/claude-code-statusline' || ![operation.version, operation.before.version].includes(value.version))
+            if (value.name !== '@fbincon/claude-code-statusline' || ![operation.version, operation.before?.version].includes(value.version))
                 throw new PackageError('identity');
         }
         return { identity: null, state: 'incomplete' };
@@ -249,6 +250,8 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         operation.archive = 'target.tgz';
         operation.results = { package: false, integration: false };
         saveOperation(operation);
+        const observeProcess = observeOperation(operation);
+        npm.onProcess = observeProcess;
         options.checkpoint?.('reviewed', operation);
         verifyArchive(savedArchive, target);
         if (installed?.version !== target.version) {
@@ -267,7 +270,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             operation.stage = 'integrating';
             saveOperation(operation);
             options.checkpoint?.('integrating', operation);
-            await (options.integrate ?? refreshIntegration)(layout.root, operation.after, configDir, host, hashes, temporary, false, environment, controller.signal);
+            await (options.integrate ?? refreshIntegration)(layout.root, operation.after, configDir, host, hashes, temporary, false, environment, controller.signal, observeProcess);
         }
         operation.after = await npm.validateStaged(layout.prefix, target);
         operation.results.integration = true;

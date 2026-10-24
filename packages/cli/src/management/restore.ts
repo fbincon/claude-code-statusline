@@ -33,7 +33,7 @@ export async function restoreConfiguration(flags: ManagementOptions, configDir: 
     const display = backup[names[0]!] ? validateDisplay(readJson(decodeUtf8(backup[names[0]!]!))) : defaultDisplay();
     const profiles = backup[names[1]!] ? validateProfiles(readJson(decodeUtf8(backup[names[1]!]!))) : emptyProfiles();
     const io = createStorage(), binding = previousBinding(configDir, io);
-    const changes = names.filter(name => !current[name]?.equals(proposed[name] ?? Buffer.alloc(0)) && (current[name] !== null || proposed[name] !== null)).map(name => ({ ...artifact(join(configDir, name), current[name] ?? null), desired: proposed[name] ?? null }));
+    const changes = names.filter(name => current[name] === null ? proposed[name] !== null : proposed[name] === null || !current[name]!.equals(proposed[name]!)).map(name => ({ ...artifact(join(configDir, name), current[name] ?? null), desired: proposed[name] ?? null }));
     if (binding) {
         const service = new ConfigurationService({ configDir, launch: binding, hostVersion: detectClaudeVersion }, io), [settings, raw] = readSettings(configDir, io);
         const updated = profileRowsSettings(service, settings, display, profiles);

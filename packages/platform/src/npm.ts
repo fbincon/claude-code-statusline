@@ -100,9 +100,10 @@ export function writablePrefix(prefix: string): void {
 }
 export class Npm {
     readonly entry: string;
+    onProcess?: (pid: number | null) => void;
     constructor(readonly environment: NodeJS.ProcessEnv = process.env, readonly runner: (options: SourceProcessOptions) => Promise<SourceProcessResult> = runSourceProcess, entry?: string, readonly signal?: AbortSignal) { this.entry = entry ?? npmEntry(environment); }
     async run(args: readonly string[], cwd = process.cwd(), timeoutMs = 30000): Promise<string> {
-        const result = await this.runner({ executable: process.execPath, args: [this.entry, ...args], cwd, input: '', timeoutMs, signal: this.signal,
+        const result = await this.runner({ executable: process.execPath, args: [this.entry, ...args], cwd, input: '', timeoutMs, signal: this.signal, onProcess: this.onProcess,
             environment: { ...this.environment, npm_config_update_notifier: 'false', npm_config_audit: 'false', npm_config_fund: 'false' } });
         if (result.reason !== 'completed') {
             // npm's --json failure object has a stable code. Never forward its

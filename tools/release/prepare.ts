@@ -64,6 +64,9 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             }
             assert.equal(report.installed.status, 'pass'); assert.equal(report.installed.tarball_sha256, sha256);
             assert.equal(report.installed.source.commit, commit);
+            assert.equal(report.package_management?.host_mode,'official');assert.equal(report.package_management.host,report.host);
+            assert.equal(report.package_management.historical_sha256,LEGACY_370_SHA256);assert.equal(report.package_management.target_version,VERSION);
+            assert.equal(report.package_management.cases,7);assert.equal(report.package_management.roundtrip,true);assert.equal(report.package_management.configuration_restore,true);assert.equal(report.package_management.model_calls,0);
         }
     }
     const runtimeTargets = INSTALL_TARGETS.flatMap(target => NODE_RUNTIME_CASES.map(runtime => target + '@' + runtime));

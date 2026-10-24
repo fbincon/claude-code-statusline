@@ -1938,7 +1938,8 @@ export const LOCALES = {
     "package.reason_journal": "The package transaction record is missing, invalid or belongs to another target.",
     "package.reason_no_pending": "There is no unfinished package operation at this prefix.",
     "package.reason_backup": "The applicable configuration snapshot is missing, changed or incompatible. No configuration was restored.",
-    "package.reason_arguments": "Invalid package-management options. Run update --help for the supported syntax."
+    "package.reason_arguments": "Invalid package-management options. Run update --help for the supported syntax.",
+    "package.reason_busy": "A recorded package executor is still running. Wait for it to exit before inspecting recovery again."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3870,7 +3871,8 @@ export const LOCALES = {
     "package.reason_journal": "包事务记录缺失、无效或属于其他安装目标。",
     "package.reason_no_pending": "此 prefix 没有未完成的包事务。",
     "package.reason_backup": "适用配置快照缺失、被修改或不兼容，未恢复配置。",
-    "package.reason_arguments": "包管理选项无效，请运行 update --help 查看语法。"
+    "package.reason_arguments": "包管理选项无效，请运行 update --help 查看语法。",
+    "package.reason_busy": "记录中的包执行进程仍在运行，请等待其退出后再检查恢复。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5802,7 +5804,8 @@ export const LOCALES = {
     "package.reason_journal": "套件交易記錄缺失、無效或屬於其他安裝目標。",
     "package.reason_no_pending": "此 prefix 沒有未完成的套件交易。",
     "package.reason_backup": "適用設定快照缺失、遭修改或不相容，未還原設定。",
-    "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。"
+    "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。",
+    "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7734,7 +7737,8 @@ export const LOCALES = {
     "package.reason_journal": "套件交易記錄缺失、無效或屬於其他安裝目標。",
     "package.reason_no_pending": "此 prefix 沒有未完成的套件交易。",
     "package.reason_backup": "適用設定快照缺失、遭修改或不相容，未還原設定。",
-    "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。"
+    "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。",
+    "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9666,7 +9670,8 @@ export const LOCALES = {
     "package.reason_journal": "パッケージの記録が不正、存在しない、または別の対象に属します。",
     "package.reason_no_pending": "この prefix に未完了のパッケージ処理はありません。",
     "package.reason_backup": "適切な設定スナップショットがない、変更された、または非互換です。設定は復元していません。",
-    "package.reason_arguments": "管理オプションが不正です。update --help で構文を確認してください。"
+    "package.reason_arguments": "管理オプションが不正です。update --help で構文を確認してください。",
+    "package.reason_busy": "記録されたパッケージ処理が実行中です。終了してから復旧状態を再確認してください。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11598,7 +11603,8 @@ export const LOCALES = {
     "package.reason_journal": "패키지 트랜잭션 기록이 없거나 잘못되었거나 다른 대상에 속합니다.",
     "package.reason_no_pending": "이 prefix에 미완료 패키지 작업이 없습니다.",
     "package.reason_backup": "해당 설정 스냅샷이 없거나 변경되었거나 호환되지 않습니다. 설정을 복원하지 않았습니다.",
-    "package.reason_arguments": "패키지 관리 옵션이 잘못되었습니다. update --help로 구문을 확인하세요."
+    "package.reason_arguments": "패키지 관리 옵션이 잘못되었습니다. update --help로 구문을 확인하세요.",
+    "package.reason_busy": "기록된 패키지 실행 프로세스가 아직 실행 중입니다. 종료된 후 복구 상태를 다시 확인하세요."
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

@@ -1928,5 +1928,6 @@
   "package.reason_journal": "패키지 트랜잭션 기록이 없거나 잘못되었거나 다른 대상에 속합니다.",
   "package.reason_no_pending": "이 prefix에 미완료 패키지 작업이 없습니다.",
   "package.reason_backup": "해당 설정 스냅샷이 없거나 변경되었거나 호환되지 않습니다. 설정을 복원하지 않았습니다.",
-  "package.reason_arguments": "패키지 관리 옵션이 잘못되었습니다. update --help로 구문을 확인하세요."
+  "package.reason_arguments": "패키지 관리 옵션이 잘못되었습니다. update --help로 구문을 확인하세요.",
+  "package.reason_busy": "기록된 패키지 실행 프로세스가 아직 실행 중입니다. 종료된 후 복구 상태를 다시 확인하세요."
 }

@@ -11,7 +11,8 @@ import { PackageError } from '@fbincon/statusline-core/management/package';
 import { Npm, globalPackageRoot, globalPackageBin, productIdentity, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { managementOptions, managementRequest } from '../src/management/arguments.js';
 import { manage, mutationAuthorized, type ManagementEnvironment } from '../src/management/service.js';
-import { pendingPath, readInstallation, readOperation, operationPath } from '../src/management/store.js';
+import { pendingPath, readInstallation, readOperation, operationPath, saveOperation } from '../src/management/store.js';
+import { processToken } from '@fbincon/statusline-platform/processes';
 import { configurationBytes, configurationCompatibility } from '../src/management/configuration.js';
 function product(prefix: string, version: string) {
     const root = globalPackageRoot(prefix);
@@ -41,8 +42,11 @@ function fixture(t: TestContext) {
     npm.nodeCompatible = async () => true;
     npm.metadata = async (selector) => { metadata++; return { version: selector === 'latest' ? '3.9.0' : selector, registry: layout.registry, integrity, nodeEngine: '>=22', compatibility: PACKAGE_COMPATIBILITY, legacy: false }; };
     npm.download = async (target, directory) => { fs.mkdirSync(directory, { recursive: true }); const path = join(directory, 'package.tgz'); fs.writeFileSync(path, bytes); return path; };
-    npm.installArchive = async (_archive, where) => { if (where === prefix)
-        replacements++; product(where, '3.9.0'); };
+    npm.installArchive = async (_archive, where) => {
+        if (where === prefix)
+            replacements++;
+        product(where, '3.9.0');
+    };
     npm.validateStaged = async (where, target) => { const found = productIdentity(globalPackageRoot(where), where)!; assert.equal(found.version, target.version); return { ...found, integrity: target.integrity, registry: target.registry }; };
     const options: ManagementEnvironment = { origin, environment: {}, tty: true, npm, stdout: s => output += s, stderr: s => output += s, confirm: async () => true };
     const args = (command = 'update', extra: string[] = []) => [command, '--prefix', prefix, '--config-dir', configDir, ...extra];
@@ -96,10 +100,13 @@ test('verified update preserves configuration and records original identity, sna
 test('unknown npm result is reconciled from disk without a second replacement', async (t) => {
     const f = fixture(t), install = f.npm.installArchive.bind(f.npm);
     let failed = false;
-    f.npm.installArchive = async (archive, prefix) => { await install(archive, prefix); if (prefix === f.prefix && !failed) {
-        failed = true;
-        throw new PackageError('timeout');
-    } };
+    f.npm.installArchive = async (archive, prefix) => {
+        await install(archive, prefix);
+        if (prefix === f.prefix && !failed) {
+            failed = true;
+            throw new PackageError('timeout');
+        }
+    };
     assert.equal(await manage(f.args(), f.options), 2);
     assert.equal(productIdentity(f.layout.root)?.version, '3.9.0');
     assert.equal(readOperation(f.configDir, f.prefix).stage, 'uncertain');
@@ -117,8 +124,10 @@ test('post-install integration failure remains incomplete and recovery preserves
     f.write('claude-statusline-native.json', { schema_version: 1, native_editor: false });
     let failure = true;
     f.options.host = () => [2, 1, 258];
-    f.options.integrate = async (_root, _identity, _config, _host, _hashes, _workspace, dry) => { if (!dry && failure)
-        throw new PackageError('integration_failed'); };
+    f.options.integrate = async (_root, _identity, _config, _host, _hashes, _workspace, dry) => {
+        if (!dry && failure)
+            throw new PackageError('integration_failed');
+    };
     assert.equal(await manage(f.args(), f.options), 2);
     const pending = readOperation(f.configDir, f.prefix);
     assert.equal(pending.results?.package, true);
@@ -132,8 +141,10 @@ test('post-install integration failure remains incomplete and recovery preserves
 test('concurrent configuration changes block integration, then explicit recovery accepts the newly reviewed revision', async (t) => {
     const f = fixture(t);
     f.write('claude-statusline.json', defaultDisplay());
-    f.options.checkpoint = (stage) => { if (stage === 'package_verified')
-        f.write('claude-statusline.json', { ...defaultDisplay(), use_colors: false }); };
+    f.options.checkpoint = (stage) => {
+        if (stage === 'package_verified')
+            f.write('claude-statusline.json', { ...defaultDisplay(), use_colors: false });
+    };
     assert.equal(await manage(f.args(), f.options), 2);
     assert.match(f.state().output, /changed after review/);
     f.options.checkpoint = undefined;
@@ -172,4 +183,34 @@ test('nested profile schemas, corrupt sources and unknown configuration formats 
     assert.equal(await manage(f.args(), f.options), 2);
     assert.equal(f.state().replacements, 0);
     assert(!fs.existsSync(pendingPath(f.prefix)));
+});
+test('a surviving executor blocks recovery after its transaction owner exits', async (t) => {
+    const f = fixture(t);
+    f.options.checkpoint = stage => { if (stage === 'package_verified')
+        throw new PackageError('interrupted'); };
+    assert.equal(await manage(f.args(), f.options), 130);
+    const operation = readOperation(f.configDir, f.prefix);
+    operation.executors = [{ pid: process.pid, token: processToken(process.pid)! }];
+    saveOperation(operation);
+    f.options.checkpoint = undefined;
+    f.clear();
+    assert.equal(await manage(f.args('recover', ['--package', '--version', '3.9.0', '--yes']), f.options), 2);
+    assert.equal(f.state().replacements, 1);
+    operation.executors = [];
+    saveOperation(operation);
+    f.clear();
+    assert.equal(await manage(f.args('recover', ['--package', '--version', '3.9.0', '--yes']), f.options), 0, f.state().output);
+});
+test('the prefix lock serializes package changes across distinct configuration directories', async (t) => {
+    const f = fixture(t);
+    let other: number | undefined;
+    const install = f.npm.installArchive.bind(f.npm);
+    f.npm.installArchive = async (archive, prefix) => { if (prefix === f.prefix) {
+        const args = f.args();
+        args[args.indexOf('--config-dir') + 1] = join(f.temporary, 'other-config');
+        other = await manage(args, { ...f.options, checkpoint: undefined });
+    } await install(archive, prefix); };
+    assert.equal(await manage(f.args(), f.options), 0, f.state().output);
+    assert.equal(other, 2);
+    assert.equal(f.state().replacements, 1);
 });

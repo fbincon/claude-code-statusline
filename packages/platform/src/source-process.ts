@@ -13,6 +13,8 @@ export interface SourceProcessOptions {
     timeoutMs: number;
     signal?: AbortSignal;
     environment?: NodeJS.ProcessEnv;
+    /** Internal transaction observer; no command/environment data is exposed. */
+    onProcess?: (pid: number | null) => void;
 }
 export interface SourceProcessResult {
     code: number | null;
@@ -83,6 +85,8 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
             let stdout = '';
             try { stdout = decodeUtf8(Buffer.concat(chunks)); }
             catch { if (reason === 'completed') reason = 'invalid_output'; }
+            try { options.onProcess?.(null); }
+            catch { reason = 'io_error'; }
             resolve({ code, stdout, ...(errorKind ? { errorKind } : {}), reason: reason === 'completed' && code !== 0 ? 'exit' : reason });
         };
         const stop = (why: SourceProcessResult['reason']) => {
@@ -106,6 +110,10 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
             else
                 errors.push(data);
         };
+        child.once('spawn', () => {
+            try { if (child.pid) options.onProcess?.(child.pid); }
+            catch { stop('io_error'); }
+        });
         child.stdout.on('data', data => output(data, true));
         child.stderr.on('data', data => output(data, false));
         child.stdin.on('error', error => { if ((error as NodeJS.ErrnoException).code !== 'EPIPE')

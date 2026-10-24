@@ -1928,5 +1928,6 @@
   "package.reason_journal": "The package transaction record is missing, invalid or belongs to another target.",
   "package.reason_no_pending": "There is no unfinished package operation at this prefix.",
   "package.reason_backup": "The applicable configuration snapshot is missing, changed or incompatible. No configuration was restored.",
-  "package.reason_arguments": "Invalid package-management options. Run update --help for the supported syntax."
+  "package.reason_arguments": "Invalid package-management options. Run update --help for the supported syntax.",
+  "package.reason_busy": "A recorded package executor is still running. Wait for it to exit before inspecting recovery again."
 }

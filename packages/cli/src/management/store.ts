@@ -11,6 +11,7 @@ import type { PackageCompatibility } from '@fbincon/statusline-core/management/c
 import { globalPackageRoot } from '@fbincon/statusline-platform/npm';
 import type { RegistryPackage } from '@fbincon/statusline-platform/npm';
 import type { ConfigHashes } from './configuration.js';
+import { processToken, processMatches } from '@fbincon/statusline-platform/processes';
 export const MANAGEMENT_ROOT = 'statusline_runtime/package-management';
 export interface PackageOperation {
     schema_version: 1;
@@ -36,6 +37,10 @@ export interface PackageOperation {
         integration: boolean;
         error?: string;
     };
+    executors?: {
+        pid: number;
+        token: string;
+    }[];
 }
 export const prefixKey = (prefix: string) => createHash('sha256').update(prefix).digest('hex');
 export const pendingPath = (prefix: string) => join(prefix, '.claude-statusline-operation.json');
@@ -64,6 +69,18 @@ export function finishOperation(operation: PackageOperation): void {
     operation.stage = 'complete';
     saveOperation(operation);
     durableUnlink(pendingPath(operation.prefix));
+}
+export function observeOperation(operation: PackageOperation): (pid: number | null) => void {
+    return pid => {
+        operation.executors = (operation.executors ?? []).filter(p => processMatches(p.pid, p.token));
+        if (pid !== null) {
+            const token = processToken(pid);
+            if (!token)
+                throw new PackageError('busy');
+            operation.executors.push({ pid, token });
+        }
+        saveOperation(operation);
+    };
 }
 export function createPrefix(prefix: string): void {
     if (!fs.existsSync(prefix))
@@ -120,6 +137,10 @@ export function readOperation(configDir: string, prefix: string, id?: string): P
         compatibility(value.target.compatibility, value.target.version);
     }
     if (value.archive !== undefined && value.archive !== 'target.tgz')
+        throw new PackageError('journal');
+    if (value.executors && (!Array.isArray(value.executors) || value.executors.length > 16 || value.executors.some(p => !Number.isSafeInteger(p.pid) || p.pid < 1 || typeof p.token !== 'string' || p.token.length > 256)))
+        throw new PackageError('journal');
+    if (value.target && value.target.legacy !== (value.version === '3.7.0'))
         throw new PackageError('journal');
     try {
         const url = new URL(value.registry);

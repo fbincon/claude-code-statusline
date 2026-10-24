@@ -1928,5 +1928,6 @@
   "package.reason_journal": "包事务记录缺失、无效或属于其他安装目标。",
   "package.reason_no_pending": "此 prefix 没有未完成的包事务。",
   "package.reason_backup": "适用配置快照缺失、被修改或不兼容，未恢复配置。",
-  "package.reason_arguments": "包管理选项无效，请运行 update --help 查看语法。"
+  "package.reason_arguments": "包管理选项无效，请运行 update --help 查看语法。",
+  "package.reason_busy": "记录中的包执行进程仍在运行，请等待其退出后再检查恢复。"
 }

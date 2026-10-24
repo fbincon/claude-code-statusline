@@ -1928,5 +1928,6 @@
   "package.reason_journal": "套件交易記錄缺失、無效或屬於其他安裝目標。",
   "package.reason_no_pending": "此 prefix 沒有未完成的套件交易。",
   "package.reason_backup": "適用設定快照缺失、遭修改或不相容，未還原設定。",
-  "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。"
+  "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。",
+  "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。"
 }

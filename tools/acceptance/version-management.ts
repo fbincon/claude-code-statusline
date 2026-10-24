@@ -8,13 +8,20 @@ import { createHash } from 'node:crypto';
 import { npmEntry, readTar } from '../build/files.js';
 import { LEGACY_370_SHA256 } from '@fbincon/statusline-core/management/compatibility';
 import type { installCandidate } from './install.js';
+import { officialEnvironment } from './install.js';
+export interface VersionHost {
+    executable: string;
+    args: readonly string[];
+    version: string;
+}
 type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'root' | 'entry' | 'env'> & {
     artifact: string;
     npm: string;
     legacy: string;
     legacyManifest: any;
+    host?: VersionHost;
 };
-export async function installedVersionManagement(installed: ReturnType<typeof installCandidate>): Promise<Record<string, unknown>> {
+export async function installedVersionManagement(installed: ReturnType<typeof installCandidate>, host?: VersionHost): Promise<Record<string, unknown>> {
     const legacy = join(installed.temporary, 'historical-3.7.0.tgz');
     if (process.env.TS06_LEGACY_370_ARTIFACT)
         fs.copyFileSync(process.env.TS06_LEGACY_370_ARTIFACT, legacy);
@@ -26,9 +33,9 @@ export async function installedVersionManagement(installed: ReturnType<typeof in
         fs.writeFileSync(legacy, bytes);
     }
     assert.equal(createHash('sha256').update(fs.readFileSync(legacy)).digest('hex'), LEGACY_370_SHA256);
-    const input: Input = { temporary: installed.temporary, node: installed.node, root: installed.root, entry: installed.entry, env: installed.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')) };
+    const input: Input = { temporary: installed.temporary, node: installed.node, root: installed.root, entry: installed.entry, env: host ? officialEnvironment(installed) as typeof installed.env : installed.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')), host };
     const program = `import {versionManagementChild} from ${JSON.stringify(import.meta.url)};console.log(JSON.stringify(await versionManagementChild(JSON.parse(process.argv[1]))));`;
-    const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { cwd: installed.directory, encoding: 'utf8', timeout: 420000, windowsHide: true, maxBuffer: 8 * 1024 * 1024 });
+    const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { cwd: installed.directory, encoding: 'utf8', timeout: host ? 720000 : 420000, windowsHide: true, maxBuffer: 8 * 1024 * 1024 });
     assert.equal(result.error, undefined);
     assert.equal(result.status, 0, result.stderr + result.stdout);
     return JSON.parse(result.stdout);
@@ -65,7 +72,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     const hostRoot = join(hostBin, 'node_modules/@anthropic-ai/claude-code');
     fs.mkdirSync(hostRoot, { recursive: true });
     fs.writeFileSync(join(hostRoot, 'package.json'), JSON.stringify({ bin: { claude: 'cli.js' } }));
-    const hostSource = "#!/usr/bin/env node\nif(process.argv[2]!=='--version')process.exit(2);console.log('2.1.258 (version-only acceptance fixture)');\n";
+    const hostSource = input.host ? `#!/usr/bin/env node\nconst {spawnSync}=require('node:child_process');const r=spawnSync(${JSON.stringify(input.host.executable)},[...${JSON.stringify(input.host.args)},...process.argv.slice(2)],{stdio:'inherit',shell:false});process.exit(r.status??2);\n` : "#!/usr/bin/env node\nif(process.argv[2]!=='--version')process.exit(2);console.log('2.1.258 (version-only acceptance fixture)');\n";
     fs.writeFileSync(join(hostRoot, 'cli.js'), hostSource);
     if (process.platform === 'win32')
         fs.writeFileSync(join(hostBin, 'claude.cmd'), '@echo off\r\n');
@@ -89,21 +96,24 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         child.stderr.on('data', b => stderr += b);
         child.stdin.end();
         child.once('error', reject);
-        child.once('exit', code => { clearTimeout(timer); try {
-            if (success)
-                assert.equal(code, 0, stderr + stdout);
-            resolve({ code, stdout, stderr });
-        }
-        catch (error) {
-            reject(error);
-        } });
+        child.once('exit', code => {
+            clearTimeout(timer);
+            try {
+                if (success)
+                    assert.equal(code, 0, stderr + stdout);
+                resolve({ code, stdout, stderr });
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
     });
     const command = (launch: string, action: string, version: string, extra: string[] = []) => [launch, action, '--version', version, '--prefix', prefix, '--config-dir', configDir, '--yes', ...extra];
     const version = async () => { const result = await invoke([entry, '--version']); return result.stdout.trim(); };
     const state = () => JSON.parse(fs.readFileSync(join(configDir, 'statusline_runtime/installation.json'), 'utf8'));
     try {
         await invoke([input.npm, 'install', '--global', '--prefix', prefix, '--offline', '--ignore-scripts', '--bin-links=true', input.legacy]);
-        await invoke([entry, 'install', '--config-dir', configDir, '--no-native-editor', '--no-experimental-slash-tui', '--no-native-timing', '--no-live-metrics']);
+        await invoke([entry, 'install', '--config-dir', configDir, input.host ? '--native-editor' : '--no-native-editor', '--no-experimental-slash-tui', input.host && Number(input.host.version.split('.')[2]) >= 289 ? '--native-timing' : '--no-native-timing', '--no-live-metrics']);
         await invoke([entry, 'config', '--config-dir', configDir, 'set', 'colors', 'on']);
         await invoke([entry, 'config', '--config-dir', configDir, 'profile', 'save', 'Before upgrade', '--bind', input.temporary]);
         const display = fs.readFileSync(join(configDir, 'claude-statusline.json')), profiles = fs.readFileSync(join(configDir, 'claude-statusline-profiles.json'));
@@ -148,6 +158,8 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         assert(!fs.existsSync(markerPath));
         assert.equal(fs.statSync(entry).mtimeMs, stamp);
         assert.equal(state().backend_version, targetVersion);
+        if (input.host)
+            await invoke([entry, 'install', '--config-dir', configDir, '--no-native-editor', '--no-native-timing']);
         await invoke([entry, 'config', '--config-dir', configDir, 'set', 'colors', 'off']);
         await invoke([entry, 'recover', '--restore-config', marker.id, '--prefix', prefix, '--config-dir', configDir, '--yes']);
         assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline.json')), display);
@@ -156,7 +168,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         assert.equal(JSON.parse(fs.readFileSync(settingsPath, 'utf8')).env.KEEP, 'unchanged');
         const render = await new Promise<string>((resolve, reject) => { const child = spawn(input.node, [entry, 'render'], { cwd: input.temporary, env, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] }); let text = ''; child.stdout.on('data', b => text += b); child.once('error', reject); child.once('exit', code => code === 0 ? resolve(text) : reject(new Error('Render failed'))); child.stdin.end(JSON.stringify({ model: { display_name: 'After version recovery' } })); });
         assert(render.includes('After version recovery'));
-        return { cases: 7, historical_version: '3.7.0', historical_sha256: LEGACY_370_SHA256, target_version: targetVersion, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: 'version-only-2.1.258', model_calls: 0 };
+        return { cases: 7, historical_version: '3.7.0', historical_sha256: LEGACY_370_SHA256, target_version: targetVersion, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0 };
     }
     finally {
         server.closeAllConnections();

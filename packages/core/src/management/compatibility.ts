@@ -21,7 +21,8 @@ export interface PackageCompatibility {
     editor_protocol: number;
     runtime_protocol: number;
 }
-export const PACKAGE_COMPATIBILITY: PackageCompatibility = {
+// Historical compatibility is independent of later package declarations.
+const LEGACY_370_COMPATIBILITY: PackageCompatibility = {
     schema_version: 1,
     node: { '22': '22.0.0', '24': '24.0.0' },
     targets: ['linux-x64', 'win32-x64', 'darwin-x64', 'darwin-arm64'],
@@ -29,6 +30,7 @@ export const PACKAGE_COMPATIBILITY: PackageCompatibility = {
     read: { display: [1, 13], profiles: [1, 1], sources: [1, 2], runtime_preferences: [1, 2], native_preferences: [1, 1], external_preferences: [1, 1], ui_preferences: [1, 1] },
     editor_protocol: 21, runtime_protocol: 3,
 };
+export const PACKAGE_COMPATIBILITY: PackageCompatibility = JSON.parse(JSON.stringify(LEGACY_370_COMPATIBILITY));
 export const LEGACY_370_SHA256 = 'b1afec4a234368ab0ef2e23f728b8204122c86e17213af32738b6f3d84363e95';
 export function compareVersions(left: string, right: string): number {
     if (!exactVersion(left) || !exactVersion(right))
@@ -64,7 +66,7 @@ export function compatibility(value: unknown, version: string): PackageCompatibi
     if (!exactVersion(version) || compareVersions(version, '3.7.0') < 0)
         throw new PackageError('unsupported_version');
     if (value === undefined && version === '3.7.0')
-        return JSON.parse(JSON.stringify(PACKAGE_COMPATIBILITY));
+        return JSON.parse(JSON.stringify(LEGACY_370_COMPATIBILITY));
     if (!object(value) || value.schema_version !== 1 || !object(value.node) || !Object.keys(value.node).length ||
         Object.entries(value.node).some(([major, minimum]) => !/^\d+$/u.test(major) || !exactVersion(minimum) || minimum.split('.')[0] !== major || minimum.includes('-')) ||
         !Array.isArray(value.targets) || !value.targets.length || value.targets.some((target: unknown) => typeof target !== 'string' || !/^(?:linux|win32|darwin)-(?:x64|arm64)$/u.test(target)) ||

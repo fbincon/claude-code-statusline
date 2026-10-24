@@ -48,6 +48,9 @@ try {
     }, 600000);
     report.installed = JSON.parse(fs.readFileSync(installedReport, 'utf8'));
     if (report.installed.tarball_sha256 !== candidate.sha256 || report.installed.status !== 'pass') throw new Error('Installed Mod evidence differs from candidate');
+    const transitionReport=join(temporary,'package-management.json');
+    run(process.execPath,[fileURLToPath(new URL('./version-management-official.js',import.meta.url)),artifact,values.commit!,JSON.stringify({...host,version}),transitionReport],{...process.env},780000);
+    report.package_management=JSON.parse(fs.readFileSync(transitionReport,'utf8'));
     report.status = 'pass';
 } catch (error) { report.error = String(error); process.exitCode = 1; }
 finally {

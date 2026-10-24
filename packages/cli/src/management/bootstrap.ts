@@ -22,8 +22,9 @@ export async function bootstrap(argv: readonly string[], stderr: (text: string) 
         fs.cpSync(origin, runner, { recursive: true, errorOnExist: true, force: false });
         const entry = join(runner, 'node_modules/@fbincon/statusline-cli/dist/src/management/worker-entry.js');
         return await new Promise<number>((resolve, reject) => {
-            const child = spawn(process.execPath, [entry, origin, JSON.stringify(argv)], { stdio: 'inherit', shell: false, cwd: temporary });
-            const stop = () => child.kill('SIGTERM');
+            const child = spawn(process.execPath, [entry, origin, JSON.stringify(argv)], { stdio: ['inherit', 'inherit', 'inherit', 'ipc'], shell: false, cwd: temporary });
+            const stop = () => { if (child.connected)
+                child.send({ type: 'cancel' }, () => { }); };
             process.on('SIGINT', stop);
             process.on('SIGTERM', stop);
             const cleanup = () => { process.off('SIGINT', stop); process.off('SIGTERM', stop); };
