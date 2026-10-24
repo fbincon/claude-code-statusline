@@ -1877,7 +1877,7 @@
   "doctor.terminal_colors": "외부 미리보기 색상 수: {colors}({reason}). setup, configure, slash 진입점은 현재 출력 터미널을 확인합니다. 상속된 터미널 표식만으로 기능을 판단하지 않습니다.",
   "package.tty": "대화형 터미널에서 claude-statusline을 다시 실행하세요. 스크립트에서는 setup --dry-run 또는 install 등 명시적 명령을 사용하세요. 패키지나 설정은 변경되지 않았습니다.",
   "package.confirm": "이 패키지 작업을 계속할까요? yes로 승인하고 Enter로 취소하세요.",
-  "package.review": "{action}: {name}@{version}\n전역 prefix: {prefix}\nNode: {node}\nnpm: {npm}\nRegistry: {registry}\n패키지 설치, 표시 저장, Claude 연동은 별도로 확정됩니다. 최초 npx 다운로드도 별도 단계입니다.",
+  "package.review": "{action}: {name}@{version}\n전역 prefix: {prefix}\nNode: {node}\nnpm: {npm}\n영구 진입점: {entry}\nnpm 프로그램: {npm_entry}\nClaude 설정 디렉터리: {config_dir}\nRegistry: {registry}\n패키지 설치, 표시 저장, Claude 연동은 별도로 확정됩니다. 최초 npx 다운로드도 별도 단계입니다.",
   "package.action_install": "정확한 버전 설치",
   "package.action_reuse": "영구 설치 재사용",
   "package.cancelled": "패키지 변경 전에 취소했습니다.",

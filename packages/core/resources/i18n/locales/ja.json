@@ -1877,7 +1877,7 @@
   "doctor.terminal_colors": "外部プレビューの色数: {colors}（{reason}）。setup、configure、slash は現在の出力端末を確認します。継承された端末情報だけでは機能を判定しません。",
   "package.tty": "対話端末で claude-statusline を再実行してください。スクリプトでは setup --dry-run や install などの明示的なコマンドを使用してください。パッケージや設定は変更されていません。",
   "package.confirm": "このパッケージ操作を続けますか？ yes で承認、Enter でキャンセルします。",
-  "package.review": "{action}: {name}@{version}\nグローバル prefix: {prefix}\nNode: {node}\nnpm: {npm}\nRegistry: {registry}\nパッケージの導入、表示の保存、Claude 連携は別々に確定します。最初の npx ダウンロードも別の操作です。",
+  "package.review": "{action}: {name}@{version}\nグローバル prefix: {prefix}\nNode: {node}\nnpm: {npm}\n永続的な入口: {entry}\nnpm プログラム: {npm_entry}\nClaude 設定ディレクトリ: {config_dir}\nRegistry: {registry}\nパッケージの導入、表示の保存、Claude 連携は別々に確定します。最初の npx ダウンロードも別の操作です。",
   "package.action_install": "指定バージョンを導入",
   "package.action_reuse": "永続的なインストールを再利用",
   "package.cancelled": "パッケージ変更前にキャンセルしました。",
