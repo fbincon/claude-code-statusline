@@ -1,7 +1,7 @@
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { copyPackage } from '../src/package-copy.js';
 
@@ -24,7 +24,7 @@ test('package copying preserves bytes and executable permission without overwrit
         assert.equal(fs.statSync(join(target, 'data')).mode & 0o777, 0o600);
     }
     assert.throws(() => copyPackage(source, target));
-    assert.throws(() => copyPackage(source, join(source, 'inside')));
+    assert.throws(() => copyPackage(source, join(source, 'inside'), { entries: 1, bytes: 64 }), /outside the source/);
     assert(!fs.existsSync(join(source, 'inside')));
     assert(fs.existsSync(join(target, 'data')));
 });
@@ -38,4 +38,11 @@ test('package copying rejects links and bounds entries and bytes, removing incom
     assert.throws(() => copyPackage(source, target), /link or special/);
     assert(!fs.existsSync(target));
     assert.throws(() => copyPackage(join(source, 'linked'), target), /regular directory/);
+});
+test('package copying resolves destination ancestor aliases before rejecting a recursive target', t => {
+    const { source } = fixture(t), alias = join(dirname(source), 'source alias');
+    fs.symlinkSync(source, alias, process.platform === 'win32' ? 'junction' : 'dir');
+    assert.throws(() => copyPackage(source, join(alias, 'inside', 'copy'), { entries: 1, bytes: 64 }), /outside the source/);
+    assert(!fs.existsSync(join(source, 'inside')));
+    assert.equal(fs.readFileSync(join(source, 'data')).length, 3);
 });

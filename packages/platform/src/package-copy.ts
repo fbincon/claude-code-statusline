@@ -1,11 +1,14 @@
 /** Copy an installed package before loading any native adapter from it. */
 import * as fs from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, sep } from 'node:path';
+import { resolvedPath } from './commands.js';
 
 export function copyPackage(source: string, destination: string, limits = { entries: 16384, bytes: 256 * 1024 * 1024 }): void {
-    const origin = fs.realpathSync.native(source), target = resolve(destination);
+    // Resolve existing ancestors on both sides, including Windows short names
+    // and junctions, before accepting an absent destination below them.
+    const origin = fs.realpathSync.native(source), target = resolvedPath(destination);
     const inside = relative(origin, target);
-    if (!inside || !isAbsolute(inside) && inside !== '..' && !inside.startsWith('..' + (process.platform === 'win32' ? '\\' : '/')))
+    if (!inside || !isAbsolute(inside) && inside !== '..' && !inside.startsWith('..' + sep))
         throw new Error('Package copy destination must be outside the source');
     if (!fs.lstatSync(source).isDirectory())
         throw new Error('Package copy source must be a regular directory');
