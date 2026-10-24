@@ -13,6 +13,8 @@ const transitions = (official = false) => ({ cases: 7, historical_version: '3.7.
 function receipts(): any[] {
     const base = { status: 'pass', commit, tarball_sha256: hash };
     const installations = INSTALL_TARGETS.map(target => ({ ...base, target, offline_install: true, initially_empty_npm_cache: true, lifecycle_scripts: false, outside_checkout: true, path_excludes_python_and_compilers: true, powershell_setup: target.startsWith('windows-') ? { status: 'pass', candidate_invoked: false, receipt: { status: 0, timeout_ms: 60000, error: null } } : null, setup_cases: 3, extension_cases: 4, indicator_cases: 3, group_cases: 4, automatic_refresh_cases: 4, cost_rate_cases: 4, git_policy_cases: 4, first_entry_cases: 4, version_management: transitions(), terminal_color_cases: target.startsWith('windows-') ? 15 : 3, checks: { ...Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i, true])), setup: true, extensions: true, indicators: true, groups: true, automatic_refresh: true, cost_rates: true, git_policy: true, terminal_colors: true, first_entry: true, version_management: true } }));
+    for (const row of installations as any[]) if (row.target.startsWith('windows-'))
+        row.terminal_shell_evidence = ['setup','configure','slash'].flatMap(entry => ['powershell','cmd','git-bash'].map(shell => ({entry,shell,colors:256,input_tty:true,restored:true,cancelled:true})));
     return [...installations,
         ...installations.flatMap(receipt => NODE_RUNTIME_CASES.map(runtime_case => ({ ...receipt, kind: 'node-runtime', runtime_case, runtime_tests: true, node: 'v' + runtime_case.replace('x', '25.0'), node_sha256: hash }))),
         ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), package_management: { ...transitions(true), host }, installed: { ...base, source: { commit } } }; })];
@@ -88,5 +90,12 @@ test('installed and official-host version receipts must retain every recovery an
         const rows = receipts(), row = official ? rows.find(row => row.host) : rows[0];
         (official ? row.package_management : row.version_management).operation_timings[0].elapsed_ms = -1;
         assert.throws(() => assessEvidence(rows, commit, hash));
+    }
+});
+
+test('Windows preview acceptance requires distinct actual shells and restored consoles', () => {
+    for (const mutate of [(row:any)=>delete row.terminal_shell_evidence, (row:any)=>row.terminal_shell_evidence.pop(), (row:any)=>row.terminal_shell_evidence[0].shell='cmd', (row:any)=>row.terminal_shell_evidence[0].restored=false]) {
+        const rows=receipts();mutate(rows.find(row=>row.target.startsWith('windows-')));
+        assert.throws(()=>assessEvidence(rows,commit,hash));
     }
 });

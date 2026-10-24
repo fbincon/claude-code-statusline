@@ -42,6 +42,8 @@ TERMINAL-01 adds a single platform capability decision and a ready callback shar
 
 Installed acceptance adds 15 native Windows-console cases (three entries × five environments), deliberately clears the initial VT output bit, captures the emitted palette and verifies restoration and unchanged settings. Other platforms check three installed policy scenarios alongside their existing PTY journeys. These are automated console observations, not human Windows Terminal screenshots. The #96 physical/human gaps remain unchanged.
 
+Final acceptance also launches each of the three entries through actual PowerShell, CMD and Git Bash processes. These nine additional console receipts distinguish real shell execution from the fifteen environment-reproduction cases and require 256-color output, cancellation and restored modes. Release readiness rejects missing, duplicate or unrestored shell receipts. The version-sequence test uses the same explicit envelope as its subprocess wrapper; product deadlines remain unchanged.
+
 The GIT-01 intermediate artifact from `2545ee2bea2ae05260c9cd1d824f85ac0472d06d` passed independent byte-identical builds and all 17 local installed checks, including four Git scenarios. It was not published.
 
 ## Durable first entry
