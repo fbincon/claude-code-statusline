@@ -7,6 +7,7 @@ import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { copyPackage } from '@fbincon/statusline-platform/package-copy';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 import { npmEntry } from '../build/files.js';
 import type { installCandidate } from './install.js';
 type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'root' | 'env'> & {
@@ -21,7 +22,8 @@ export async function installedFirstEntry(installed: ReturnType<typeof installCa
     const trace=join(installed.temporary,'first-entry-trace.jsonl');
     assert.equal(result.status, 0, result.stderr + result.stdout + (fs.existsSync(trace)?fs.readFileSync(trace,'utf8'):''));
     const receipt = JSON.parse(result.stdout);
-    fs.rmSync(receipt.cacheRoot, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    removeTree(receipt.cacheRoot);
+    assert(!fs.existsSync(receipt.cacheRoot), 'The simulated npx cache must actually be absent before restarting');
     const restarted = spawnSync(installed.node, [receipt.entry, '--version'], { cwd: installed.directory, env: installed.env, encoding: 'utf8', timeout: 10000 });
     assert.equal(restarted.status, 0, restarted.stderr);
     assert.equal(restarted.stdout.trim(), 'claude-statusline ' + receipt.version);

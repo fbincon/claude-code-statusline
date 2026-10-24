@@ -2,6 +2,7 @@
 import * as fs from 'node:fs';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { resolvedPath } from './commands.js';
+import { removeTree } from './remove-tree.js';
 
 export function copyPackage(source: string, destination: string, limits = { entries: 16384, bytes: 256 * 1024 * 1024 }): void {
     // Resolve existing ancestors on both sides, including Windows short names
@@ -42,7 +43,7 @@ export function copyPackage(source: string, destination: string, limits = { entr
         }
     }
     catch (error) {
-        fs.rmSync(target, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+        removeTree(target);
         throw error;
     }
 }
