@@ -112,4 +112,25 @@ test('known drivers pin external executables and reject repository shims, operat
     if (process.platform !== 'win32') fs.chmodSync(join(f.repo, 'git-lfs'), 0o700);
     assert.throws(() => filterOverrides([entry('git-lfs clean -- %f', 'lfs')], [f.repo], {...lfsEnv, PATH:f.repo}), GitPolicyError);
     assert.throws(() => filterEntries('local\0file:.git/config\0broken\0'), GitPolicyError);
+    if(process.platform!=='win32'){
+        // An outside alias named git-crypt must not resolve to a different
+        // interpreter that could execute a repository file named "clean".
+        fs.unlinkSync(external);fs.symlinkSync(process.execPath,external);
+        assert.throws(()=>filterOverrides([entry('"'+external+'" clean')],[f.repo],f.env),GitPolicyError);
+        fs.unlinkSync(lfs);fs.symlinkSync(process.execPath,lfs);
+        assert.throws(()=>filterOverrides([entry('git-lfs clean -- %f','lfs')],[f.repo],lfsEnv),GitPolicyError);
+    }
+});
+test('standard repository Git LFS retains real clean-filter semantics and unchanged configuration',t=>{
+    const f=fixture(t);
+    f.git('lfs','version');
+    for(const [field,value] of [['clean','git-lfs clean -- %f'],['smudge','git-lfs smudge -- %f'],['process','git-lfs filter-process'],['required','true']])f.git('config','filter.lfs.'+field,value!);
+    fs.writeFileSync(join(f.repo,'.gitattributes'),'*.bin filter=lfs diff=lfs merge=lfs -text\n');
+    fs.writeFileSync(join(f.repo,'large.bin'),'same length before\n');f.git('add','.');f.git('commit','-qm','LFS pointer');
+    assert.match(f.git('show','HEAD:large.bin'),/^version https:\/\/git-lfs.github.com\/spec\/v1/u);
+    const before=fs.readFileSync(join(f.repo,'.git/config')),clean=f.invocation();
+    assert(!clean.command(status,clean.worktreePolicy()).stdout.toString().includes('large.bin'));
+    fs.writeFileSync(join(f.repo,'large.bin'),'same length after!\n');fs.utimesSync(join(f.repo,'large.bin'),new Date(0),new Date(0));
+    const changed=f.invocation(),result=changed.command(status,changed.worktreePolicy());assert.equal(result.code,0,result.stderr.toString());assert.match(result.stdout.toString(),/1 \.M .*large\.bin/u);
+    assert.deepEqual(fs.readFileSync(join(f.repo,'.git/config')),before);
 });
