@@ -1,5 +1,7 @@
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 const COMMANDS: Readonly<Record<string, string>> = {
+    update: 'update_package',
+    rollback: 'rollback_package',
     setup: 'guided_setup',
     recover: 'recover_installation',
     install: 'configure_claude_code_to_use_this_status_line',
@@ -72,6 +74,14 @@ export function helpText(command: string | undefined, language: Language): strin
     if (command === 'task') lines.push('', '  show --session-id ID [--prompt-id ID] [--json] [--config-dir PATH]', '  ' + t('task.help',language));
     if (command === 'configure') lines.push('', '  [--user | --profile NAME | --project PATH]', '  Ctrl+O  ' + t('profiles.title',language));
     if (command === 'setup') lines.push('', '  ' + t('setup.steps', language));
+    if (['update','rollback','recover'].includes(command??'')) lines.push('',
+        '  update --check [--version EXACT | --channel latest|beta] [--json]',
+        '  update [--version EXACT | --channel latest|beta]',
+        '  rollback [--version EXACT]',
+        '  recover --package [--version EXACT]',
+        '  recover --restore-config BACKUP_ID',
+        '  --prefix PATH --config-dir PATH --dry-run --yes',
+        '  '+t('management.help',language));
     if (!command || command.startsWith('-')) lines.push('', t('package.help',language));
     if (config) lines.push('', '  profile list|save|rename|delete|preview|activate|import|export', '  project list|bind|unbind|resolve', '  ' + t('profiles.help',language));
     return lines.join('\n') + '\n';

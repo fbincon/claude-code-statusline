@@ -156,7 +156,7 @@ All entries share user settings. Two open editors keep separate drafts; a stale 
 
 Supported codes are `en` (English), `zh-CN` (Simplified Chinese), `zh-TW` (Traditional Chinese, Taiwan), `zh-HK` (Traditional Chinese, Hong Kong), `ja` (Japanese), and `ko` (Korean). Selection is explicit; system locale settings do not change it. Use Left/Right to cycle through this order. Existing `zh-Hant` arguments and saved preferences remain accepted as Taiwan. Reads leave files untouched; explicit saves and exports write `zh-TW`.
 
-The product runtime range is `^22.0.0 || ^24.0.0`; source development and reproducible release builds still use Node 24.21.0/npm 11.19.0. After upgrading, rerun `claude-statusline install` and restart Claude Code to update editor protocol 16 and matching resources. Before downgrading, use the current version to reset both interface and output languages to English, or restore a compatible pre-upgrade backup.
+The product runtime range is `^22.0.0 || ^24.0.0`; source development and reproducible release builds still use Node 24.21.0/npm 11.19.0. After upgrading, rerun `claude-statusline install` and restart Claude Code to update matching editor resources. Before downgrading, use the current version to reset both interface and output languages to English, or restore a compatible pre-upgrade backup.
 
 The CLI, external/standalone terminal editor and in-session Client default to English. In Settings choose **Interface language (saved immediately)** → **English / 简体中文 / 繁體中文（台灣） / 繁體中文（香港） / 日本語 / 한국어**. The language is shared across both editors and CLI, independent of Claude's own theme and language settings.
 
@@ -622,7 +622,7 @@ Use Settings or `config set OPTION VALUE` for appearance, directory styles, sepa
 | `claude-statusline-runtime.json` | Independent native timing and advanced collection preferences |
 | `settings.json` | Owned Claude commands, hooks, and host status-line settings |
 
-Use the CLI or editors to update these files. Display schema v9 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
+Use the CLI or editors to update these files. Display schema v13 reads supported old schemas without writing; an actual save backs up and migrates them. Strict JSON rejects unknown fields, duplicate keys, invalid values, and unsupported versions. [File formats](reference/cli.md#configuration-files).
 
 ## Custom configuration directory and environment variables
 
@@ -654,7 +654,11 @@ Run these commands from a durable installation directory and keep that directory
 
 For rollback, stop Claude, use the Node entry to run `install --no-native-timing --no-live-metrics` and `uninstall`, restore the pre-cutover compatible configuration/absence from backup, then run the retained Python entry's `install` and `doctor`. Restore any former PATH selection deliberately; npm does not remove the retained Python environment.
 
-### Replace the npm package
+### Reviewed package changes
+
+Use `claude-statusline update --check`, then `claude-statusline update` for the persistent global installation. The review resolves an exact target, verifies compatibility and refreshes matching integration. `rollback` chooses the previous successful version; configuration restoration is separate. [Version management and recovery](PACKAGE_MANAGEMENT.md) describes precise scripting, the v3.7.0 boundary and retained recovery entries.
+
+### Manual npm replacement
 
 ```text
 npm install --global --ignore-scripts @fbincon/claude-code-statusline

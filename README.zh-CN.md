@@ -238,6 +238,8 @@ Claude Code 功能门槛：子 Agent 行需 2.1.205+，带参数配置的本地�
 
 ### 安装软件包
 
+交互终端可运行 `npx @fbincon/claude-code-statusline`，审核持久全局安装并验证入口后进入 setup。已安装的 `claude-statusline` 无子命令时进入同一流程。[安装阶段说明](docs/SETUP.zh-CN.md)。
+
 Bash、Zsh、PowerShell 通用：
 
 ```text
@@ -339,15 +341,15 @@ claude-statusline config show
 
 ## 升级与卸载
 
-升级软件包并同步接入，然后重启 Claude Code：
+审核并应用包变更，然后重启 Claude Code：
 
 ```text
-npm install --global --ignore-scripts @fbincon/claude-code-statusline
-claude-statusline install
+claude-statusline update --check
+claude-statusline update
 claude-statusline doctor
 ```
 
-已有 Python 安装请先按[迁移与回退步骤](docs/USER_GUIDE.zh-CN.md#迁移旧分发名称)操作。保留显示配置、运行状态和接入偏好。旧显示 schema 与软件包降级操作见[版本兼容](docs/USER_GUIDE.zh-CN.md#版本兼容)。
+精确版本、prefix、回退及独立配置恢复见[包版本管理](docs/PACKAGE_MANAGEMENT.zh-CN.md)。已有 Python 安装请先按[迁移与回退步骤](docs/USER_GUIDE.zh-CN.md#迁移旧分发名称)操作。保留显示配置、运行状态和接入偏好。
 
 先移除 Claude 接入，再卸载软件包：
 

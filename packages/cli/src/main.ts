@@ -55,6 +55,13 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         const { runtimeCommand } = await import('./runtime/command.js');
         return runtimeCommand(environment, stdout, stderr);
     }
+    // Self-replacement must move to an independent process before storage or
+    // terminal adapters can load the installed native module on Windows.
+    const { managementRequest } = await import('./management/arguments.js');
+    if (managementRequest(args)) {
+        const { bootstrap } = await import('./management/bootstrap.js');
+        return bootstrap(args, stderr);
+    }
     // Management translations and storage stay outside the rendering hot path.
     const { ArgumentError, parseConfig, validateConfigHelp, optionToken } = await import('./config/arguments.js');
     const { expandUser, detectClaudeVersion, resolvedPath } = await import('@fbincon/statusline-platform/commands');
@@ -96,7 +103,7 @@ export async function main(argv: readonly string[] = process.argv.slice(2), envi
         const literal = args.indexOf('--'), optionArgs = literal < 0 ? args : args.slice(0, literal);
         if (optionArgs.includes('--help') || optionArgs.includes('-h')) {
             const command = args[0];
-            if (command && !command.startsWith('-') && !['setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'source', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
+            if (command && !command.startsWith('-') && !['update', 'rollback', 'setup', 'install', 'uninstall', 'doctor', 'recover', 'config', 'ui', 'runtime', 'configure', 'diagnose', 'task', 'source', 'hook', 'render', 'render-subagents', 'slash-hook'].includes(command)) throw new ArgumentError(`unknown command: ${command}`);
             if (command === 'config') {
                 const offset = directoryFlag === '--config-dir' ? 3 : directoryFlag?.startsWith('--config-dir=') ? 2 : 1;
                 if (!['profile','project'].includes(args[offset] ?? '')) validateConfigHelp(args.slice(offset));

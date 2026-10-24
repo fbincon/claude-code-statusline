@@ -55,6 +55,14 @@ test('an explicitly selected PowerShell interpreter receives its Windows runtime
     assert.equal(result.reason,'completed');assert.equal(result.stdout,'explicit interpreter');
 });
 
+test('transaction observers identify the real executor and a failed observation cancels its tree',async()=>{
+    const events:(number|null)[]=[];
+    const result=await runSourceProcess({executable:process.execPath,args:['-e','setTimeout(()=>process.stdout.write("done"),30)'],cwd:process.cwd(),input:'',timeoutMs:5000,onProcess:pid=>{events.push(pid);}});
+    assert.equal(result.reason,'completed');assert.equal(result.stdout,'done');assert.equal(typeof events[0],'number');assert.equal(events.at(-1),null);
+    const stopped=await runSourceProcess({executable:process.execPath,args:['-e','setInterval(()=>{},1000)'],cwd:process.cwd(),input:'',timeoutMs:5000,onProcess:pid=>{if(pid!==null)throw new Error('journal unavailable');}});
+    assert.equal(stopped.reason,'io_error');
+});
+
 test('Windows environment aliases collapse before the supervisor parses JSON',async()=>{
     const {windowsCommandEnvironment}=await import('../src/windows-source-environment.js');
     assert.deepEqual(windowsCommandEnvironment({SystemRoot:'original',SYSTEMROOT:'override',NPM_CONFIG_AUDIT:'true',npm_config_audit:'false'}),{SYSTEMROOT:'override',NPM_CONFIG_AUDIT:'false'});

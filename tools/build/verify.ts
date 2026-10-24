@@ -2,6 +2,7 @@ import { VERSION, REPOSITORY_URL } from '@fbincon/statusline-core/release';
 import { NODE_RUNTIME_RANGE } from '@fbincon/statusline-core/node-runtime';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
+import { PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import * as fs from 'node:fs';
 import { resolve, basename, dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -22,6 +23,7 @@ export function verifyContents(entries: Map<string, Buffer>, commit: string) {
     assert.equal(manifest.private, product.private); assert.equal(manifest.scripts, undefined);
     assert.equal(manifest.devDependencies, undefined);
     assert.deepEqual(manifest.engines, { node: NODE_RUNTIME_RANGE });
+    assert.deepEqual(manifest.statuslineCompatibility,PACKAGE_COMPATIBILITY);
     if (kind !== 'candidate') {
         assert.deepEqual(manifest.publishConfig, { registry: 'https://registry.npmjs.org/', access: 'public', tag: kind === 'stable' ? 'latest' : 'beta' });
         assert.deepEqual(manifest.repository, { type: 'git', url: 'git+' + REPOSITORY_URL + '.git' });

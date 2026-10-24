@@ -74,3 +74,7 @@ claude-statusline config enable cache-miss-reason
 ## Git 采集策略
 
 `Git!` 及缓存中的 `git_policy.filter_blocked`／`git_policy.policy_unavailable` 表示无法安全保留过滤器语义，不表示工作区干净。`doctor` 检查当前目录的过滤器定义，不运行这些命令。详见[兼容表](development/m8-m9-delivery.zh-CN.md#git-调用策略)。请在自己的 Git 工作流中明确修改配置；本产品不会改写配置，缓存诊断也不会重试 Git。
+
+## 包操作诊断
+
+`update --check --json` 报告元数据兼容性，`update --dry-run` 进一步验证包产物。`recover --package --dry-run --prefix PATH --config-dir PATH` 检查保留的包事务。`recover --restore-config 备份ID` 单独处理配置恢复。精确版本脚本及恢复入口见[版本管理](PACKAGE_MANAGEMENT.zh-CN.md)。

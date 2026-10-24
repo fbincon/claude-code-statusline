@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 import { verifyCandidate } from '../build/verify.js';
 import { repoRoot, sourceHashes } from '../migration/ts-03/common.js';
+import { RUNTIME_INSTALLATION_MS } from './budgets.js';
 
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, case: { type: 'string' } } });
 assert(values.artifact && values.commit && values.report && values.case, 'Require --artifact TGZ --commit FULL_SHA --report FILE --case RUNTIME');
@@ -16,9 +17,9 @@ const checked = verifyCandidate(resolve(values.artifact), values.commit);
 assert.deepEqual(sourceHashes(), checked.source.source_hashes, 'Runtime test sources differ from the package');
 const report = resolve(values.report);
 fs.mkdirSync(dirname(report), { recursive: true });
-function run(args: string[]): void {
+function run(args: string[], timeout = 600000): void {
     const env = { ...process.env, NODE_OPTIONS: '--import=' + pathToFileURL(join(repoRoot, 'tools/testing/no-python.mjs')).href };
-    const result = spawnSync(process.execPath, args, { cwd: repoRoot, env, stdio: 'inherit', timeout: 600000 });
+    const result = spawnSync(process.execPath, args, { cwd: repoRoot, env, stdio: 'inherit', timeout });
     if (result.error) throw result.error;
     assert.equal(result.status, 0, 'Runtime acceptance failed');
 }
@@ -27,7 +28,7 @@ const installation = join(dirname(report), 'runtime-installation.json');
 // phase used by the platform matrix. Fresh ARM Windows images can otherwise
 // spend the first source job's deadline initializing PowerShell, before any
 // candidate script runs. Product deadlines and assertions stay unchanged.
-run([fileURLToPath(new URL('./installed.js', import.meta.url)), '--artifact', resolve(values.artifact), '--commit', values.commit, '--report', installation]);
+run([fileURLToPath(new URL('./installed.js', import.meta.url)), '--artifact', resolve(values.artifact), '--commit', values.commit, '--report', installation], RUNTIME_INSTALLATION_MS);
 const receipt = JSON.parse(fs.readFileSync(installation, 'utf8'));
 assert.equal(receipt.status, 'pass'); assert.equal(receipt.node, process.version);
 run(['tools/typescript/test.mjs', '--runtime']);

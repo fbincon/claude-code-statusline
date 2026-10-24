@@ -15,8 +15,11 @@ import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershe
 import { sha256 } from '../../../build/files.js';
 import { installedGitPolicy } from '../../../acceptance/git-policy.js';
 import { installedFirstEntry } from '../../../acceptance/first-entry.js';
+import { installedVersionManagement } from '../../../acceptance/version-management.js';
+import { VERSION_SEQUENCE_MS } from '../../../acceptance/budgets.js';
+import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -63,11 +66,16 @@ test('installed Git policy blocks repository programs without inventing a clean 
 test('installed first entry uses real npm and a durable binding beyond the npx cache lifetime', {timeout:180000}, async () => {
     report.first_entry_cases=await installedFirstEntry(installed);checks.first_entry=true;
 });
-test('installed terminal policy is shared by setup, configure and the Windows slash bridge', {timeout:180000}, async () => {
+test('installed version management survives real 3.7.0 roundtrips, process interruption and separate restoration',{timeout:VERSION_SEQUENCE_MS+60000},async()=>{
+    report.version_management=await installedVersionManagement(installed);checks.version_management=true;
+});
+test('installed terminal policy is shared by setup, configure and the Windows slash bridge', {timeout:600000}, async () => {
     const {colorCapability} = await import(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/terminal/capabilities.js')).href);
     for (const [environment, colors] of [[{TERM:'xterm-256color'},256],[{NO_COLOR:'',TERM:'xterm-256color'},0],[{TERM:'xterm'},16]] as const)
         assert.equal(colorCapability({environment,platform:process.platform,tty:true,windowsVT:false}).colors,colors);
-    const evidence: unknown[] = [];
+    const evidence: unknown[] = [], shellEvidence: unknown[] = [];
+    report.terminal_color_evidence=evidence;
+    report.terminal_shell_evidence=shellEvidence;
     if (process.platform === 'win32') {
         const config = setup('terminal-colors');
         const before = fs.readFileSync(join(config,'settings.json'));
@@ -99,10 +107,30 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
                 evidence.push({entry,environment:name,colors,restored:true});
             } finally {child.close();if(invocation)bridge.cleanup(invocation.directory);}
         }
+        // Environment reproduction above is separate from actual shell launch.
+        // All three shells must preserve real console handles through each entry.
+        for (const entry of ['setup','configure','slash']) for (const shell of EDITOR_SHELLS) {
+            const invocation = entry === 'slash' ? bridge.prepare(config,{executable:installed.node,args:[installed.entry]},installed.directory) : null;
+            const env = {...installed.env,TERM:undefined,COLORTERM:undefined,NO_COLOR:undefined,WT_SESSION:'inherited-parent',...(invocation ? {[bridge.REQUEST_ENV]:invocation.path,[bridge.NONCE_ENV]:invocation.request.nonce,[bridge.RESULT_ENV]:invocation.result,[bridge.DEADLINE_ENV]:'45'} : {})};
+            const receipt=join(installed.temporary,`shell-colors-${entry}-${shell}.json`);
+            const launch=editorShell(shell,installed.temporary,[installed.node,driver,installed.modules,entry==='setup'?'windows-setup':'windows-editor',config,receipt,entry==='setup'?'preview-cancel':'color-cancel'],env);
+            const child=startWindows(launch.argv,installed.temporary,launch.env);
+            try {
+                const stop=performance.now()+30000;
+                while(child.code()===null && performance.now()<stop) await new Promise(resolve=>setTimeout(resolve,20));
+                const shellError=join(installed.temporary,'color-shell.stderr');
+                assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):`No ${shell}/${entry} console receipt: `+(fs.existsSync(shellError)?fs.readFileSync(shellError,'utf8'):''));
+                const saved=JSON.parse(fs.readFileSync(receipt,'utf8'));
+                assert.equal(saved.status,0);assert.equal(saved.input_tty,true);
+                assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
+                assert.match(saved.output,/\x1b\[(?:38|48);5;/u);
+                if(invocation) assert.equal(bridge.readResult(invocation.result,config).outcome,'cancelled');
+                shellEvidence.push({entry,shell,colors:256,input_tty:true,restored:true,cancelled:true});
+            } finally {child.close();if(invocation)bridge.cleanup(invocation.directory);}
+        }
         assert.deepEqual(fs.readFileSync(join(config,'settings.json')),before);
     }
     report.terminal_color_cases=process.platform==='win32'?15:3;
-    report.terminal_color_evidence=evidence;
     checks.terminal_colors=true;
 });
 test('installed groups retain linked visibility, remapped copies and portable references', () => {

@@ -3,8 +3,8 @@
     "case": "cli-help",
     "path": "/value/stdout",
     "before_sha256": "0b0a5acd2ab97f4f7bb0a8a59de0ed0311edbda3e281b33a755667cce6fff1ea",
-    "after_sha256": "c2b3a0b69cc183b8d8aff2ef5dedb3bb286e86262480ad3492e0141de005e601",
-    "reason": "The approved first-entry implementation adds guidance for reviewed durable installation; only this exact help-text hash changes. Frozen fixtures and other streams remain exact."
+    "after_sha256": "8fe395edada34edc77aa494a66885bf664efd5ff83796e9197ab5c9e388b0cb7",
+    "reason": "The approved first-entry and explicit update/rollback commands extend human CLI help; only this exact help-text hash changes. Frozen fixtures and other streams remain exact."
   },
   {
     "case": "cli-config-refused",

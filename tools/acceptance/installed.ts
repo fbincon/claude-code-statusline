@@ -5,6 +5,7 @@ import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { verifyCandidate } from '../build/verify.js';
 import { prepareWindowsPowerShell } from './windows-shell.js';
+import { INSTALLED_SUITE_MS } from './budgets.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Usage: test:installed -- --artifact TGZ --commit FULL_SHA --report FILE');
 const artifact = resolve(values.artifact), report = resolve(values.report);
@@ -16,7 +17,7 @@ if (shellSetup) {
     if (shellSetup.status !== 'pass') throw new Error('Windows PowerShell environment preparation failed; no candidate test was run');
 }
 const result = spawnSync(process.execPath, ['--test', '--test-concurrency=1', fileURLToPath(new URL('../migration/ts-04/test/installed.test.js', import.meta.url))], {
-    env: { ...process.env, TS05_CANDIDATE_ARTIFACT: artifact, TS05_CANDIDATE_COMMIT: values.commit, TS04_INSTALLED_REPORT: report, TS05_POWERSHELL_SETUP: JSON.stringify(shellSetup) }, stdio: 'inherit', timeout: 600000,
+    env: { ...process.env, TS05_CANDIDATE_ARTIFACT: artifact, TS05_CANDIDATE_COMMIT: values.commit, TS04_INSTALLED_REPORT: report, TS05_POWERSHELL_SETUP: JSON.stringify(shellSetup) }, stdio: 'inherit', timeout: INSTALLED_SUITE_MS,
 });
 if (result.error) throw result.error;
 process.exitCode = result.status ?? 1;

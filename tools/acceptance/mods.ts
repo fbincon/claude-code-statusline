@@ -8,6 +8,7 @@ import { claudeLaunch } from '@fbincon/statusline-platform/commands';
 import { prepareModTypes, isolatedHostEnvironment } from './mod-types.js';
 import { verifyCandidate } from '../build/verify.js';
 import { repoRoot } from '../migration/ts-03/common.js';
+import { OFFICIAL_TRANSITION_MS } from './budgets.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report FILE [--claude EXECUTABLE]');
 const artifact = resolve(values.artifact), reportPath = resolve(values.report), candidate = verifyCandidate(artifact, values.commit);
@@ -48,6 +49,9 @@ try {
     }, 600000);
     report.installed = JSON.parse(fs.readFileSync(installedReport, 'utf8'));
     if (report.installed.tarball_sha256 !== candidate.sha256 || report.installed.status !== 'pass') throw new Error('Installed Mod evidence differs from candidate');
+    const transitionReport=join(temporary,'package-management.json');
+    run(process.execPath,[fileURLToPath(new URL('./version-management-official.js',import.meta.url)),artifact,values.commit!,JSON.stringify({...host,version}),transitionReport,join(dirname(reportPath),'package-management-trace.jsonl')],{...process.env},OFFICIAL_TRANSITION_MS);
+    report.package_management=JSON.parse(fs.readFileSync(transitionReport,'utf8'));
     report.status = 'pass';
 } catch (error) { report.error = String(error); process.exitCode = 1; }
 finally {
