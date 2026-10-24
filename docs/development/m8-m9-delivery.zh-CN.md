@@ -44,6 +44,8 @@ TERMINAL-01 增加共享 platform 能力判断及 ready 回调，由 setup、con
 
 最终验收还从实际 PowerShell、CMD 和 Git Bash 进程分别启动三个入口。新增九项控制台回执将真实 shell 启动与十五项环境复现场景分开，要求 256 色输出、取消及模式恢复。发布准备拒绝缺失、重复或未恢复的 shell 回执。版本转换测试与其子进程包装采用一致的显式预算，产品超时保持不变。
 
+[实际 shell 诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40087055566)通过 Windows 2025／ARM × Node 22.0.0／24.0.0 的全部四个作业，每个作业包含十五项环境场景及九种真实 shell／入口组合。早期夹具错误地将 POSIX 驱动路径传给原生 Node；保留 Windows 参数路径后修正，产品未改变。这些诊断回执使用固定的 `e3029fe` 包，最终绑定源码的矩阵仍须执行相同必需检查。
+
 GIT-01 中间产物（源码 `2545ee2bea2ae05260c9cd1d824f85ac0472d06d`）通过独立构建字节一致及本地全部 17 项安装检查，包含四项 Git 场景；该中间产物未发布。
 
 ## 持久首次入口
@@ -77,3 +79,5 @@ UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1
 [更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40079404397)还在十秒上限的 `git lfs version` 夹具准备阶段记录了空子进程状态，尚未进入产品策略检查。旧日志未保留底层错误，因此不推断具体原因。夹具现记录状态／信号／错误，并仅对此冷启动准备允许三十秒；产品截止时间及过滤器／超时断言保持不变。
 
 [后续更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40081939042)触及旧有单操作 150 秒及安装套件十分钟验收预算：前者可能先于产品单个 npm 步骤的 180 秒上限中断，后者未计入新增真实包转换序列。验收现分别组合单操作六分钟、转换序列十五分钟（正式宿主二十分钟）、既有套件十分钟及外层准备／清理预算，产品超时不变。每条版本测试命令在临时安装目录之外记录耗时、结果及有界失败诊断，未完成运行不能提供通过回执。中间 [main 运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40080997079)另保留了一项 macOS checkout DNS 失败，尚未取得源码或执行候选；最终仍须通过绑定源码的完整门禁。
+
+`e3029fe` 的完整开发检查通过 1,207 项测试，保留五项既有平台跳过。[对应矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40084425356)中，Windows／Claude 2.1.288 在包替换前触发产品 npm 超时，其余 54 个作业通过，汇总门禁正确失败。[相同产物诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40085700315)在 Windows 2025／2.1.288 完成两轮、Windows 2025／2.1.289 完成三轮各二十项操作，未复现该超时；前者第三轮在调用产品前下载历史归档时遇到 `ECONNABORTED`。不推断原超时根因，保留产品期限，替代正式门禁必须通过。
