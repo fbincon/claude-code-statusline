@@ -146,7 +146,7 @@ else if (operation === 'windows-editor' || operation === 'windows-setup') {
         const { main } = await load('cli', 'main');
         const status = await main(['--language', 'en', operation === 'windows-setup' ? 'setup' : 'configure', '--config-dir', config!],
             operation === 'windows-setup' ? { hostVersion: () => [2, 1, 258] } : {});
-        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), columns, rows, output: chunks.join('') }));
+        fs.writeFileSync(receipt!, JSON.stringify({ status, input_tty: true, before_mode: before, after_mode: mode(), before_output_mode: beforeOutput, after_output_mode: outputMode(), environment:{TERM:process.env.TERM??null,COLORTERM:process.env.COLORTERM??null,NO_COLOR:process.env.NO_COLOR??null}, columns, rows, output: chunks.join('') }));
         process.exitCode = status;
     }
     finally {
