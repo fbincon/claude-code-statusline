@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { GitInvocation, GitPolicyError, gitEnvironment, filterEntries, filterOverrides } from '../src/git.js';
 
 function fixture(t: TestContext) {
-    const root = fs.mkdtempSync(join(tmpdir(), 'git policy 中文 ')), repo = join(root, 'repo spaces'), global = join(root, 'global');
+    const root = fs.mkdtempSync(join(tmpdir(), 'git policy 中文 ~(paths) ')), repo = join(root, 'repo spaces'), global = join(root, 'global');
     t.after(() => fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }));
     fs.mkdirSync(repo); fs.writeFileSync(global, '');
     const env = { ...process.env };
