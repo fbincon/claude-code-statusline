@@ -38,6 +38,8 @@ function externalExecutable(path: string, roots: readonly string[]): string | nu
 }
 /** Known repository-installed drivers are pinned to a verified external executable. */
 export function filterOverrides(entries: readonly FilterEntry[], roots: readonly string[], env: NodeJS.ProcessEnv): string[] {
+    try { roots = roots.map(root => realpathSync.native(root)); }
+    catch { throw new GitPolicyError('policy_unavailable'); }
     const overrides = new Map<string, string>();
     for (const entry of entries) {
         const origin = entry.origin.startsWith('file:') ? resolve(roots[0]!, entry.origin.slice(5)) : null;

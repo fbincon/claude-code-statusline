@@ -61,7 +61,8 @@ test('same-length clean filter reproduction is blocked before status, including 
 test('user-managed global filters retain their transformation and configuration', t => {
     const f = fixture(t); f.git('config', '--global', 'filter.probe.clean', f.command + ' clean');
     fs.writeFileSync(join(f.repo, '.gitattributes'), '*.txt filter=probe\n'); f.git('add', '.'); f.git('commit', '-qm', 'filter');
-    fs.rmSync(f.marker); fs.writeFileSync(join(f.repo, 'file.txt'), 'bbbb\n');
+    fs.rmSync(f.marker, {force:true}); fs.writeFileSync(join(f.repo, 'file.txt'), 'bbbb\n');
+    fs.utimesSync(join(f.repo, 'file.txt'), new Date(0), new Date(0));
     const before = fs.readFileSync(f.global), git = f.invocation();
     assert.equal(git.command(status, git.worktreePolicy()).code, 0); assert(fs.existsSync(f.marker));
     assert.deepEqual(fs.readFileSync(f.global), before);

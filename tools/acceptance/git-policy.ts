@@ -8,6 +8,15 @@ import type { installCandidate } from './install.js';
 
 /** Load policy and collector from the immutable installed artifact, using real Git. */
 export async function installedGitPolicy(installed: ReturnType<typeof installCandidate>): Promise<number> {
+    // Koffi installations must not coexist in the harness process on Windows.
+    // Load the artifact's native adapter only in an isolated installed Node child.
+    const input = JSON.stringify({modules:installed.modules,temporary:installed.temporary,node:installed.node,env:installed.env});
+    const program = `import {installedGitPolicyChild} from ${JSON.stringify(import.meta.url)}; console.log(JSON.stringify({cases:await installedGitPolicyChild(JSON.parse(process.argv[1]))}));`;
+    const result = spawnSync(installed.node, ['--input-type=module','-e',program,input], {encoding:'utf8',timeout:60000,windowsHide:true});
+    assert.equal(result.error,undefined); assert.equal(result.status,0,result.stderr + result.stdout);
+    return JSON.parse(result.stdout).cases;
+}
+export async function installedGitPolicyChild(installed: Pick<ReturnType<typeof installCandidate>, 'modules'|'temporary'|'node'|'env'>): Promise<number> {
     const load = (name: string, path: string) => import(pathToFileURL(join(installed.modules, 'statusline-' + name, 'dist/src', path + '.js')).href);
     const [{ GitInvocation, gitEnvironment }, { runCommand }, { GitCollector }, { runtimeContext }] = await Promise.all([
         load('platform', 'git'), load('platform', 'command'), load('cli', 'runtime/git'), load('cli', 'runtime/context'),
@@ -24,16 +33,23 @@ export async function installedGitPolicy(installed: ReturnType<typeof installCan
     const q = (value: string) => "'" + value.replaceAll('\\', '/').replaceAll("'", "'\\''") + "'";
     const command = [installed.node, script, marker].map(q).join(' ');
     // Only executable discovery is injected; command policy, parsing, timeouts and collection are installed code.
-    const runner = (spec: any, options: any) => runCommand({...spec, executable}, {...options, environment:{...options.environment, ...env}});
+    const runner = (spec: any, options: any) => {
+        const beforeMarker = fs.existsSync(marker);
+        const result = runCommand({...spec, executable}, {...options, environment:{...options.environment, ...env}});
+        assert.equal(fs.existsSync(marker),beforeMarker,'A policy invocation ran the marker: ' + spec.args.filter((v:string)=>['config','ls-files','status','rev-parse','merge-base','diff'].includes(v)).join(','));
+        return result;
+    };
     const collector = new GitCollector(runtimeContext(join(installed.temporary, 'policy-config'), env), undefined, runner);
     git('config', 'core.fsmonitor', command);
     const before = fs.readFileSync(join(repo, '.git/config'));
-    assert.equal(collector.uncached(repo).kind, 'ok'); assert(!fs.existsSync(marker));
+    assert(!fs.existsSync(marker),'Fixture unexpectedly ran fsmonitor while setting configuration');
+    assert.equal(collector.uncached(repo).kind, 'ok'); assert(!fs.existsSync(marker),'fsmonitor marker');
     assert.deepEqual(fs.readFileSync(join(repo, '.git/config')), before);
     git('config', '--unset', 'core.fsmonitor'); git('config', 'filter.probe.clean', command + ' clean');
     fs.writeFileSync(join(repo, '.gitattributes'), '*.txt filter=probe\n'); git('add', '.'); git('commit', '-qm', 'filter'); fs.rmSync(marker, {force:true});
     fs.writeFileSync(join(repo, 'file.txt'), 'bbbb\n');
-    assert.equal(collector.uncached(repo).reason, 'filter_blocked'); assert(!fs.existsSync(marker));
+    fs.utimesSync(join(repo,'file.txt'),new Date(0),new Date(0));
+    assert.equal(collector.uncached(repo).reason, 'filter_blocked'); assert(!fs.existsSync(marker),'clean filter marker');
     assert.equal(collector.branchDiff(repo, 'main').reason, null);
     const bare = join(installed.temporary, 'bare'); git('init', '--bare', '-q', bare);
     assert.notEqual(new GitInvocation(bare, 2000, runner).command(['rev-parse', '--is-bare-repository']).code, 0);
