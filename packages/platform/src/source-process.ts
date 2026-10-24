@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { which } from './commands.js';
 import { windowsJobScript } from './windows-source-job.js';
-import { windowsSourceEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
+import { windowsSourceEnvironment, windowsCommandEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
 import { decodeUtf8 } from './utf8.js';
 export interface SourceProcessOptions {
     executable: string;
@@ -32,7 +32,8 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
     if (options.signal?.aborted)
         return Promise.resolve({ code: null, stdout: '', reason: 'cancelled' });
     return new Promise(resolve => {
-        const started = performance.now(), windows = process.platform === 'win32', commandEnvironment = { ...(options.environment ?? sourceEnvironment()) };
+        const started = performance.now(), windows = process.platform === 'win32', selected = { ...(options.environment ?? sourceEnvironment()) };
+        const commandEnvironment = windows ? windowsCommandEnvironment(selected) : selected;
         let environment = commandEnvironment;
         const lookupEnvironment = windows ? Object.fromEntries(Object.entries(commandEnvironment).map(([key, value]) => [key.toUpperCase(), value])) : commandEnvironment;
         const found = which(options.executable, lookupEnvironment);
