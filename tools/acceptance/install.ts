@@ -6,14 +6,14 @@ import { repoRoot } from '../migration/ts-03/common.js';
 import { npmEntry } from '../build/files.js';
 import { verifyCandidate } from '../build/verify.js';
 import { PACKAGE } from '../build/model.js';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 export { PACKAGE } from '../build/model.js';
 export function installCandidate(artifact = process.env.TS05_CANDIDATE_ARTIFACT, commit = process.env.TS05_CANDIDATE_COMMIT) {
     if (!artifact || !commit) throw new Error("Require a previously built TS-05 artifact and fixed commit; acceptance never repacks");
     const packed = verifyCandidate(resolve(artifact), commit);
     const temporary = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'ts05 installed 中文 $` & '))), directory = join(temporary, 'prefix'), nodeDir = join(temporary, 'node-bin');
-    // Windows may briefly report a non-empty directory after child cleanup.
-    // Retry only the native removal errors supported by Node; exhaustion fails.
-    const cleanup = () => fs.rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    // Keep Unicode cleanup reliable on every supported Node release.
+    const cleanup = () => removeTree(temporary);
     fs.mkdirSync(directory);
     fs.mkdirSync(nodeDir);
     const node = join(nodeDir, process.platform === 'win32' ? 'node.exe' : 'node');

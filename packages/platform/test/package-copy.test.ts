@@ -4,10 +4,11 @@ import * as fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { copyPackage } from '../src/package-copy.js';
+import { removeTree } from '../src/remove-tree.js';
 
 function fixture(t: TestContext) {
     const root = fs.mkdtempSync(join(tmpdir(), 'package copy 中文 '));
-    t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+    t.after(() => removeTree(root));
     const source = join(root, 'source'), target = join(root, 'target');
     fs.mkdirSync(join(source, 'nested'), { recursive: true });
     fs.writeFileSync(join(source, 'nested', 'entry.js'), '#!/usr/bin/env node\n', { mode: 0o755 });
@@ -31,7 +32,7 @@ test('package copying preserves bytes and executable permission without overwrit
 test('package copying rejects links and bounds entries and bytes, removing incomplete destinations', t => {
     const { source, target } = fixture(t);
     for (const limits of [{ entries: 1, bytes: 1024 }, { entries: 16, bytes: 1 }]) {
-        assert.throws(() => copyPackage(source, target, limits));
+        assert.throws(() => copyPackage(source, target, limits), /exceeds its (entry|byte) limit/);
         assert(!fs.existsSync(target));
     }
     fs.symlinkSync(join(source, 'nested'), join(source, 'linked'), process.platform === 'win32' ? 'junction' : 'dir');
