@@ -66,7 +66,7 @@ The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows 
 
 ### Prepare a development environment
 
-Install pinned Node 24.21.0/npm 11.19.0, then run from the checkout root:
+Install pinned Node 24.21.0/npm 11.19.0, Git and Git LFS, then run from the checkout root. Git policy regressions exercise real LFS transformations in isolated repositories:
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund

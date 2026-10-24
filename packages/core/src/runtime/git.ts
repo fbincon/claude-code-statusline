@@ -1,6 +1,6 @@
 import { object, int, type Data } from './values.js';
 import { trim } from './transcript.js';
-export const GIT_CACHE_VERSION = 2, GIT_CACHE_TTL_NS = 500000000n, GIT_CACHE_MAX_AGE_NS = 7n * 24n * 60n * 60n * 1000000000n, GIT_CACHE_MAX_FILES = 128;
+export const GIT_CACHE_VERSION = 3, GIT_CACHE_TTL_NS = 500000000n, GIT_CACHE_MAX_AGE_NS = 7n * 24n * 60n * 60n * 1000000000n, GIT_CACHE_MAX_FILES = 128;
 export function validGitResult(value: unknown): value is Data {
     if (!object(value))
         return false;

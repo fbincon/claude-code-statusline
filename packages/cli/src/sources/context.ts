@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { GitInvocation } from '@fbincon/statusline-platform/git';
 import { statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -10,7 +10,8 @@ export function contextFor(project: string | null, session: string | null = null
     if (!context.project)
         return context;
     try {
-        const git = (args: string[]) => execFileSync('git', ['-C', context.project!, 'rev-parse', ...args], { encoding: 'utf8', timeout: 1000, maxBuffer: 65536, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'], env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } }).trim();
+        const invocation = new GitInvocation(context.project, 1000);
+        const git = (args: string[]) => { const result = invocation.command(['rev-parse', ...args]); if (result.code !== 0) throw new Error('Git identity unavailable'); return result.stdout.toString('utf8').trim(); };
         const lines = git(['--show-toplevel', '--abbrev-ref', 'HEAD']).split(/\r?\n/u), head = git(['--verify', 'HEAD']);
         if (lines.length === 2 && /^[a-f0-9]{40,64}$/u.test(head)) {
             context.project = projectPaths.canonical(lines[0]!) ?? context.project;

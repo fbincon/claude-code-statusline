@@ -1872,5 +1872,6 @@
   "statusline.short.main.session-cost-rate": "費用レート",
   "explain.reason.cost_rate_session": "公式セッション時間を分母に使います。60 秒以上必要です。",
   "explain.reason.cost_rate_api": "公式の累計 API 時間を分母に使います。タスクの稼働時間とは独立しています。",
-  "guidance.requirements.cost_rate": "費用を選択した公式時間（時間単位）で割る推定値です。60 秒以上が必要です。費用ゼロは有効ですが、欠損・負数・非有限値は使用できません。請求額や将来の支出予測ではありません。"
+  "guidance.requirements.cost_rate": "費用を選択した公式時間（時間単位）で割る推定値です。60 秒以上が必要です。費用ゼロは有効ですが、欠損・負数・非有限値は使用できません。請求額や将来の支出予測ではありません。",
+  "doctor.git_policy": "Git 作業ツリーを収集できません（{reason}）。リポジトリのフィルターを確認してください。Git 設定は変更されていません。診断ガイドの Git 呼び出しポリシーを参照してください。"
 }

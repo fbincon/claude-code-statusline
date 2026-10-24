@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { setup, assert, fs, join, plain, pythonJson } from './runtime-support.js';
 import { GitCollector } from '../src/runtime/git.js';
-import { parsePorcelain, numstat, GIT_CACHE_TTL_NS } from '@fbincon/statusline-core/runtime/git';
+import { parsePorcelain, numstat, GIT_CACHE_TTL_NS, GIT_CACHE_VERSION } from '@fbincon/statusline-core/runtime/git';
 import { CommandTimeout, runCommand } from '@fbincon/statusline-platform/command';
 const OID = '0123456789abcdef0123456789abcdef01234567';
 const ok = (updates = {}) => ({ kind: 'ok', branch: 'main', oid: OID, upstream: null, ahead: 0, behind: 0, upstream_gone: false, staged: 0, unstaged: 0, conflicts: 0, untracked: 0, ...updates });
@@ -45,7 +45,7 @@ test('tests.rendering.test_statusline_git.GitParserTests.test_non_repo_and_git_f
     const f = setup(t);
     for (const stderr of ['fatal: not a git repository (or any parent): .git\n', 'fatal: detected dubious ownership in repository\n', 'fatal: cannot open .git/index: Permission denied\n', 'fatal: bad object HEAD\n']) {
         const collector = new GitCollector(f.context, undefined, () => ({ code: 128, stdout: Buffer.alloc(0), stderr: Buffer.from(stderr) }));
-        assert.deepEqual(collector.uncached(f.root), { kind: stderr.includes('not a git repository') ? 'not_repo' : 'error' });
+        assert.deepEqual(collector.uncached(f.root), { kind: stderr.includes('not a git repository') ? 'not_repo' : 'error', ...(stderr.includes('not a git repository') ? {} : {reason:'policy_unavailable'}) });
     }
     for (const error of [new CommandTimeout(), Object.assign(new Error(), { code: 'EACCES' }), Object.assign(new Error(), { code: 'ENOENT' })])
         assert.deepEqual(new GitCollector(f.context, undefined, () => { throw error; }).uncached(f.root), { kind: 'error' });
@@ -66,7 +66,7 @@ test('tests.rendering.test_statusline_git.GitCacheTests.test_write_read_permissi
     }
     assert.deepEqual(fs.readdirSync(collector.directory()).filter(n => n.endsWith('.tmp')), []);
     const raw = JSON.parse(fs.readFileSync(path, 'utf8'));
-    assert.equal(raw.version, 2);
+    assert.equal(raw.version, GIT_CACHE_VERSION);
     assert.equal(raw.cwd, f.root);
     f.clock(now + GIT_CACHE_TTL_NS);
     assert.deepEqual(plain(collector.readCache('session-a', f.root)), ok({ staged: 1 }));
@@ -85,7 +85,7 @@ test('tests.rendering.test_statusline_git.GitCacheTests.test_schema_and_director
 test('tests.rendering.test_statusline_git.GitCacheTests.test_git_status_caches_each_session_current_directory', t => {
     const f = setup(t);
     let calls = 0;
-    const collector = new GitCollector(f.context, undefined, (spec, options) => { calls++; assert.ok(spec.args.includes('--porcelain=v2')); assert.ok(spec.args.includes('--renames')); assert.ok(spec.args.includes('--untracked-files=all')); assert.equal(options.timeoutMs, 2000); assert.equal(options.environment!.LC_ALL, 'C'); return { code: 0, stdout: Buffer.from(`# branch.oid ${OID}\n# branch.head main\n`), stderr: Buffer.alloc(0) }; });
+    const collector = new GitCollector(f.context, undefined, (spec, options) => { if (spec.args.includes('config') || spec.args.includes('ls-files')) return {code:spec.args.includes('config') ? 1 : 0,stdout:Buffer.alloc(0),stderr:Buffer.alloc(0)}; calls++; assert.ok(spec.args.includes('--porcelain=v2')); assert.ok(spec.args.includes('--renames')); assert.ok(spec.args.includes('--untracked-files=all')); assert.ok(options.timeoutMs > 0 && options.timeoutMs <= 2000); assert.equal(options.environment!.LC_ALL, 'C'); return { code: 0, stdout: Buffer.from(`# branch.oid ${OID}\n# branch.head main\n`), stderr: Buffer.alloc(0) }; });
     collector.status(f.root, 's');
     collector.status(f.root, 's');
     assert.equal(calls, 1);

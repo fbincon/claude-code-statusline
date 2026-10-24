@@ -4,7 +4,7 @@
 
 Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. All eight future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
+This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01 is VALIDATING for v3.8.0; the other seven future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.7.0 decision](../releases/approvals/v3.7.0.json) records their acceptance for that release.
 
@@ -18,7 +18,7 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 
 | Stage | Work package | Dependencies and scheduling | Status |
 | --- | --- | --- | --- |
-| Priority independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | NOT_STARTED |
+| Priority independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | VALIDATING |
 | Priority independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | NOT_STARTED |
 | M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | NOT_STARTED |
 | M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | NOT_STARTED |
@@ -71,9 +71,9 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## GIT-01 Git invocation review and necessary protections
 
-**Status: NOT_STARTED.** Priority independent maintenance. Limited isolated observations inform the investigation; they are not a complete vulnerability assessment or an implemented protection policy.
+**Status: VALIDATING.** Started from `d2975e8` for v3.8.0. The shared invocation policy is implemented; platform and installed-artifact acceptance are tracked in [the delivery record](m8-m9-delivery.md).
 
-**Existing observation and limits.** On 2026-10-24, the [GitCollector at the planning baseline](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts) was exercised on Linux with Git 2.53.0 and Node 24.21.0 in temporary repositories. Repository-level `core.fsmonitor` invoked a harmless marker program. A local clean filter also invoked its marker when a tracked file changed content without changing length; a different-length change did not trigger that fixture. Explicitly disabling the respective setting for the control invocation prevented the marker, and repository configuration bytes stayed unchanged. Reproduce these conditions before choosing a policy. This does not establish that ordinary cloning transfers local configuration, nor cover all worktree/bare repositories, filters, indirect provider calls or Windows/macOS behavior. It does not change this package's implementation status.
+**Existing observation and limits.** On 2026-10-24, the [GitCollector at the planning baseline](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts) was exercised on Linux with Git 2.53.0 and Node 24.21.0 in temporary repositories. Repository-level `core.fsmonitor` invoked a harmless marker program. A local clean filter also invoked its marker when a tracked file changed content without changing length; a different-length change did not trigger that fixture. Explicitly disabling the respective setting for the control invocation prevented the marker, and repository configuration bytes stayed unchanged. Reproduce these conditions before choosing a policy. This does not establish that ordinary cloning transfers local configuration, nor cover all worktree/bare repositories, filters, indirect provider calls or Windows/macOS behavior. The historical observation is separate from the current implementation status above.
 
 **Problem and goal.** Passing literal argv to Git does not alone determine which programs Git may start from repository configuration. Establish what the current collectors actually execute and correct verified gaps without changing metric meaning or modifying user repositories.
 

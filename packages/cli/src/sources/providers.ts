@@ -6,8 +6,9 @@ import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
 import { readSourceFile } from '@fbincon/statusline-platform/source-files';
 import { runSourceProcess, type SourceProcessOptions, type SourceProcessResult } from '@fbincon/statusline-platform/source-process';
 import { authRevision } from './context.js';
+import { gitEnvironment, GitInvocation, GitPolicyError } from '@fbincon/statusline-platform/git';
 export function failure(source: SourceDefinition, context: SourceContext, error: unknown): SourceObservation {
-    return emptyObservation(source, context, error instanceof ConfigError ? error.code : 'read_error');
+    return emptyObservation(source, context, error instanceof GitPolicyError ? error.reason : error instanceof ConfigError ? error.code : 'read_error');
 }
 export function readLocal(source: SourceDefinition, context: SourceContext): SourceObservation {
     try {
@@ -62,12 +63,13 @@ export async function refreshGithub(source: SourceDefinition, context: SourceCon
     if (context.branch !== s.branch)
         return { ...result, state: 'missing', reason: 'identity' };
     const repo = s.host + '/' + s.repository;
+    let gitEnv: NodeJS.ProcessEnv;
     const invoke = async (args: string[], checks = false): Promise<unknown> => {
         const remaining = 30000 - (performance.now() - start);
         if (remaining <= 0)
             sourceError('timeout');
         const response = await run({ executable: 'gh', args, cwd: context.project!, input: '', timeoutMs: remaining, signal,
-            environment: { ...process.env, GH_PROMPT_DISABLED: '1', GH_PAGER: 'cat', GIT_TERMINAL_PROMPT: '0', GH_BROWSER: '' } });
+            environment: { ...gitEnv, GH_PROMPT_DISABLED: '1', GH_PAGER: 'cat', GH_BROWSER: '' } });
         // gh reports absence on stderr with exit 1, even when JSON is requested.
         if (checks && response.reason === 'exit' && response.code === 1 && response.errorKind === 'no_checks')
             return [];
@@ -81,6 +83,8 @@ export async function refreshGithub(source: SourceDefinition, context: SourceCon
         }
     };
     try {
+        const invocation = new GitInvocation(context.project!, 2000);
+        gitEnv = gitEnvironment(process.env, invocation.worktreePolicy());
         const user = await invoke(['api', '--hostname', s.host!, 'user']);
         if (!object(user) || user.login !== s.account)
             sourceError('account');

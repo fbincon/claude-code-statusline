@@ -165,9 +165,12 @@ export function observations(draft: Draft, scope: Scope, input: Data, context: R
             else if (!cwd || loaded.value.cwd !== resolve(cwd)) status = 'association_unavailable';
             else if (newer(stamp)) status = 'newer_than_input';
             else if (stamp === null || at - stamp < 0 || at - stamp > Number(GIT_CACHE_TTL_NS / 1000000n)) status = 'stale';
-            else { status = 'observed'; const value = loaded.value.value; env.git = () => value; }
+            else { const value = loaded.value.value as Data; status = value.kind === 'error' ? 'source_unavailable' : 'observed'; env.git = () => value; }
         }
         put(GIT, report('git_cache', 'repository', status, stamp, status === 'observed'));
+        const cached = loaded.value?.value;
+        if (status === 'source_unavailable' && object(cached) && ['filter_blocked', 'policy_unavailable'].includes(String(cached.reason)))
+            for (const id of GIT) result.get(id)![0]!.fields.push({ path: 'git_policy.' + cached.reason, status: 'not_observed' });
     }
     if (selected.has('branch-diff')) put(['branch-diff'], report('git_commit_cache', 'repository', includeLocal ? 'association_unavailable' : 'input_only'));
     if (selected.has('hostname')) {

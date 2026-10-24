@@ -4,7 +4,7 @@
 
 更新：**2026-10-24**（Asia/Shanghai）· 产品基线：**v3.7.0** · 规划基线：**`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。八个未来工作包均保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
+本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01 正在为 v3.8.0 验证（VALIDATING），其余七个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
 
 已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.7.0 专项决定](../releases/approvals/v3.7.0.json)记录该版本对这些缺口的接受。
 
@@ -18,7 +18,7 @@
 
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
-| 优先独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | NOT_STARTED |
+| 优先独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | VALIDATING |
 | 优先独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | NOT_STARTED |
 | M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | NOT_STARTED |
 | M9 | [UPDATE-01](#update-01) | SETUP-02 的安装身份及既有兼容／恢复规则 | NOT_STARTED |
@@ -71,9 +71,9 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 ## GIT-01 Git 调用核查与必要防护
 
-**状态：NOT_STARTED。** 优先独立维护。有限隔离观察为核查提供依据，不等于完整漏洞评估或已实施的防护策略。
+**状态：VALIDATING。** 从 `d2975e8` 启动，目标为 v3.8.0。共享调用策略已实现；平台及安装产物验收记录在[交付记录](m8-m9-delivery.zh-CN.md)。
 
-**已有观察与限制。** 2026-10-24，在 Linux、Git 2.53.0、Node 24.21.0 下，以临时仓库调用[规划基线的 GitCollector](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts)。仓库级 `core.fsmonitor` 触发了无害标记程序；受跟踪文件改变内容但长度不变时，本机 clean filter 也触发标记，而改变长度的测试场景没有触发。对照调用显式关闭相应设置后不再触发，仓库配置字节保持不变。选择防护策略前应复现这些条件。该观察不说明普通 clone 会传入本地配置，也未覆盖全部 worktree／bare 仓库、过滤器、间接提供方调用和 Windows／macOS 行为，不改变本工作包的实施状态。
+**已有观察与限制。** 2026-10-24，在 Linux、Git 2.53.0、Node 24.21.0 下，以临时仓库调用[规划基线的 GitCollector](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts)。仓库级 `core.fsmonitor` 触发了无害标记程序；受跟踪文件改变内容但长度不变时，本机 clean filter 也触发标记，而改变长度的测试场景没有触发。对照调用显式关闭相应设置后不再触发，仓库配置字节保持不变。选择防护策略前应复现这些条件。该观察不说明普通 clone 会传入本地配置，也未覆盖全部 worktree／bare 仓库、过滤器、间接提供方调用和 Windows／macOS 行为，历史观察与上方当前实施状态分别记录。
 
 **问题与目标。** 以字面参数调用 Git，不足以决定 Git 是否会按仓库配置启动其他程序。核实当前采集实际执行的行为，在不改变指标含义、不修改用户仓库的前提下修正已证实缺口。
 
