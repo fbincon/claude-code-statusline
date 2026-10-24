@@ -1877,7 +1877,7 @@
   "doctor.terminal_colors": "外部預覽顏色：{colors}（{reason}）。setup、configure 和 slash 入口檢查目前輸出終端機；僅繼承的終端機標記不能證明能力。",
   "package.tty": "請在互動終端機重新執行 claude-statusline。腳本請使用明確命令，例如 setup --dry-run 或 install。未變更套件或設定。",
   "package.confirm": "繼續此套件操作？輸入 yes 確認，直接按 Enter 取消。",
-  "package.review": "{action}：{name}@{version}\n全域 prefix：{prefix}\nNode：{node}\nnpm：{npm}\nRegistry：{registry}\n套件安裝、顯示儲存和 Claude 整合分別提交。最初的 npx 下載是獨立步驟。",
+  "package.review": "{action}：{name}@{version}\n全域 prefix：{prefix}\nNode：{node}\nnpm：{npm}\n持久入口：{entry}\nnpm 程式：{npm_entry}\nClaude 設定目錄：{config_dir}\nRegistry：{registry}\n套件安裝、顯示儲存和 Claude 整合分別提交。最初的 npx 下載是獨立步驟。",
   "package.action_install": "安裝精確版本",
   "package.action_reuse": "重用持久安裝",
   "package.cancelled": "已在套件變更前取消。",

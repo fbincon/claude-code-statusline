@@ -1877,7 +1877,7 @@
   "doctor.terminal_colors": "外部预览颜色：{colors}（{reason}）。setup、configure 和 slash 入口检查当前输出终端；仅继承的终端标记不能证明能力。",
   "package.tty": "请在交互终端重新运行 claude-statusline。脚本请使用明确命令，例如 setup --dry-run 或 install。未改变包或配置。",
   "package.confirm": "继续此包操作？输入 yes 确认，直接回车取消。",
-  "package.review": "{action}：{name}@{version}\n全局 prefix：{prefix}\nNode：{node}\nnpm：{npm}\nRegistry：{registry}\n包安装、显示保存和 Claude 集成分别提交。最初的 npx 下载是独立步骤。",
+  "package.review": "{action}：{name}@{version}\n全局 prefix：{prefix}\nNode：{node}\nnpm：{npm}\n持久入口：{entry}\nnpm 程序：{npm_entry}\nClaude 配置目录：{config_dir}\nRegistry：{registry}\n包安装、显示保存和 Claude 集成分别提交。最初的 npx 下载是独立步骤。",
   "package.action_install": "安装精确版本",
   "package.action_reuse": "复用持久安装",
   "package.cancelled": "已在包变更前取消。",

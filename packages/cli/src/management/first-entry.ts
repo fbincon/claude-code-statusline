@@ -107,7 +107,7 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
             throw new PackageError('pending');
         if (!before)
             writablePrefix(layout.prefix);
-        stdout(t('package.review', language, { action: t('package.action_' + action, language), name: PACKAGE_NAME, version: VERSION, prefix: layout.prefix, node: process.execPath, npm: layout.npmVersion, registry: layout.registry }) + '\n');
+        stdout(t('package.review', language, { action: t('package.action_' + action, language), name: PACKAGE_NAME, version: VERSION, prefix: layout.prefix, node: process.execPath, npm: layout.npmVersion, npm_entry: npm.entry, entry: join(layout.root, 'node_modules/@fbincon/statusline-cli/dist/src/entry.js'), config_dir: configDir, registry: layout.registry }) + '\n');
         if (flags.dryRun)
             return 0;
         const approved = await (options.confirm?.() ?? confirmPackage(language, stdout, controller.signal));

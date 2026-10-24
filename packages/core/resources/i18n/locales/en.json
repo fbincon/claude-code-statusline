@@ -1877,7 +1877,7 @@
   "doctor.terminal_colors": "External preview colors: {colors} ({reason}). Setup, configure and slash entry inspect the current output terminal; inherited terminal markers alone do not prove capability.",
   "package.tty": "Open an interactive terminal and run claude-statusline again. For scripted use, run an explicit command such as setup --dry-run or install. No package or configuration was changed.",
   "package.confirm": "Continue with this package operation? Type yes to approve; Enter cancels.",
-  "package.review": "{action}: {name}@{version}\nGlobal prefix: {prefix}\nNode: {node}\nnpm: {npm}\nRegistry: {registry}\nPackage installation, display Save and Claude integration are separate steps. The initial npx download is separate.",
+  "package.review": "{action}: {name}@{version}\nGlobal prefix: {prefix}\nNode: {node}\nnpm: {npm}\nPersistent entry: {entry}\nnpm program: {npm_entry}\nClaude configuration directory: {config_dir}\nRegistry: {registry}\nPackage installation, display Save and Claude integration are separate steps. The initial npx download is separate.",
   "package.action_install": "Install exact version",
   "package.action_reuse": "Reuse persistent installation",
   "package.cancelled": "Cancelled before package changes.",
