@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {spawnSync} from 'node:child_process';
 import {copyPackage} from '../../packages/platform/dist/src/package-copy.js';
 import {resolvedPath} from '../../packages/platform/dist/src/commands.js';
+import {removeTree} from '../../packages/platform/dist/src/remove-tree.js';
 const output=join(process.env.DIAGNOSTIC_ROOT,'copy-diagnostic');
 fs.mkdirSync(output,{recursive:true});
 const record=value=>{fs.appendFileSync(join(output,'trace.jsonl'),JSON.stringify(value)+'\n');console.log(JSON.stringify(value));};
@@ -25,7 +26,7 @@ for(let round=0;round<1000;round++){
     failed=true;break;
    }
   }
- }finally{fs.rmSync(root,{recursive:true,force:true,maxRetries:10,retryDelay:100});}
+ }finally{removeTree(root);}
  if(failed)break;
  if(round%100===0)record({kind:'progress',round,node:process.version});
 }

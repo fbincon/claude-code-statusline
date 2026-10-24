@@ -31,6 +31,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           architecture: x64
+      - run: node --test packages/platform/dist/test/package-copy.test.js packages/platform/dist/test/remove-tree.test.js
       - run: node tools/testing/windows-copy-cleanup-diagnostic.mjs
         env:
           DIAGNOSTIC_ROOT: ${{ runner.temp }}
