@@ -4,7 +4,7 @@
 
 Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are VALIDATING for v3.8.0; the other four future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See the [delivery record](m4-m7-delivery.md) for actual evidence.
+This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are DONE after functional acceptance; v3.8.0 publication remains pending final gates and channel verification. The other four future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See [M4–M7 delivery](m4-m7-delivery.md) and [Git, terminal and M8–M9 delivery](m8-m9-delivery.md) for actual evidence.
 
 Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.7.0 decision](../releases/approvals/v3.7.0.json) records their acceptance for that release.
 
@@ -18,10 +18,10 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 
 | Stage | Work package | Dependencies and scheduling | Status |
 | --- | --- | --- | --- |
-| Priority independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | VALIDATING |
-| Priority independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | VALIDATING |
-| M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | VALIDATING |
-| M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | VALIDATING |
+| Priority independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | DONE |
+| Priority independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | DONE |
+| M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
+| M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
 | M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
 | M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | NOT_STARTED |
 | M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
@@ -71,7 +71,7 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## GIT-01 Git invocation review and necessary protections
 
-**Status: VALIDATING.** Started from `d2975e8` for v3.8.0. The shared invocation policy is implemented; platform and installed-artifact acceptance are tracked in [the delivery record](m8-m9-delivery.md).
+**Status: DONE.** Started from `d2975e8` for v3.8.0. The shared invocation policy is implemented; platform and installed-artifact acceptance are tracked in [the delivery record](m8-m9-delivery.md).
 
 **Existing observation and limits.** On 2026-10-24, the [GitCollector at the planning baseline](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts) was exercised on Linux with Git 2.53.0 and Node 24.21.0 in temporary repositories. Repository-level `core.fsmonitor` invoked a harmless marker program. A local clean filter also invoked its marker when a tracked file changed content without changing length; a different-length change did not trigger that fixture. Explicitly disabling the respective setting for the control invocation prevented the marker, and repository configuration bytes stayed unchanged. Reproduce these conditions before choosing a policy. This does not establish that ordinary cloning transfers local configuration, nor cover all worktree/bare repositories, filters, indirect provider calls or Windows/macOS behavior. The historical observation is separate from the current implementation status above.
 
@@ -91,9 +91,9 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## TERMINAL-01 Windows preview consistency
 
-**Status: VALIDATING.** Priority independent maintenance, tracking [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130).
+**Status: DONE.** Priority independent maintenance, tracking [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130).
 
-**Problem and goal.** The issue reports different external-editor preview colors from setup, standalone configure and the slash launcher on the same Windows terminal. The baseline's [color-capability function](../../packages/tui/src/session.ts) returns 16 for Windows Terminal markers alone and 256 for `TERM=xterm-256color`. This pure-function observation is not a new Windows desktop verification. Make detected capability consistent where the terminal is the same, or explain supported differences accurately.
+**Problem and goal.** The issue reports different external-editor preview colors from setup, standalone configure and the slash launcher on the same Windows terminal. The baseline's [color-capability function](https://github.com/fbincon/claude-code-statusline/blob/d2975e8a4561371b5d32bec136400963dbccd97f/packages/tui/src/session.ts) returns 16 for Windows Terminal markers alone and 256 for `TERM=xterm-256color`. This pure-function observation is not a new Windows desktop verification. Make detected capability consistent where the terminal is the same, or explain supported differences accurately.
 
 **Scope and flow.** Reproduce all three entry paths with one installed artifact and display configuration; identify environment and console differences; correct or document capability selection; reopen each entry and compare preview and actual output. Preserve explicit `NO_COLOR`, monochrome terminals and user capability choices. Native editor theme behavior is a distinct surface and is not required to imitate external TUI colors.
 
@@ -109,7 +109,7 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## SETUP-02 First entry and durable installation
 
-**Status: VALIDATING.** M8; extends delivered SETUP-01.
+**Status: DONE.** M8; extends delivered SETUP-01.
 
 **Problem and goal.** Setup already connects configuration and integration, but package acquisition and the initial command remain separate decisions. Provide a no-argument/npx first entry that leads to a durable installation and the existing setup journey.
 
@@ -127,7 +127,7 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## UPDATE-01 Explicit upgrades and rollback
 
-**Status: VALIDATING.** M9; uses SETUP-02 installation identity and existing compatibility/recovery rules.
+**Status: DONE.** M9; uses SETUP-02 installation identity and existing compatibility/recovery rules.
 
 **Problem and goal.** Let users inspect available versions, deliberately upgrade or return to a prior version, and understand package and configuration recovery separately.
 

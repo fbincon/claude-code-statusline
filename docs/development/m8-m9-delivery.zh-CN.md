@@ -6,10 +6,18 @@
 
 | 工作包 | 状态 | 证据 |
 | --- | --- | --- |
-| GIT-01 | VALIDATING | 共享策略及隔离回归；平台／安装回执待完成 |
-| TERMINAL-01 | VALIDATING | Windows 能力判断一致性 |
-| SETUP-02 | VALIDATING | npm 持久首次入口 |
-| UPDATE-01 | VALIDATING | 从 v3.7.0 起的显式 CLI 版本转换 |
+| GIT-01 | DONE | [PR #137](https://github.com/fbincon/claude-code-statusline/pull/137) · [完整 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40075245972) |
+| TERMINAL-01 | DONE | [PR #138](https://github.com/fbincon/claude-code-statusline/pull/138) · [完整 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40075247333) |
+| SETUP-02 | DONE | [PR #139](https://github.com/fbincon/claude-code-statusline/pull/139) · [完整 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40081854700) |
+| UPDATE-01 | DONE | [PR #140](https://github.com/fbincon/claude-code-statusline/pull/140) · [完整 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40087600655) |
+
+## 已通过的功能验收
+
+四个功能 PR 各自通过 56 个适用 CI 作业，仅跳过条件性的纯文档作业，随后合并。最终功能提交为 `2394bcff50e2a3e37b0912c28e2de7e8afc6b7b6`，合并提交为 `dfb2083bd2086dc842b6d6f04b3a87a6daddf03e`。其八安装目标、32 个 Node 场景、十三个固定宿主及汇总门禁全部通过；每份安装／runtime 回执要求二十类检查，每个 Windows 目标还须包含十五项环境场景与九项实际 shell／入口组合。
+
+完整开发检查通过 1,208 项测试，保留五项既有平台跳过；51 项资源生成、六语言覆盖、3,174 个文档链接、归档及责任清单检查通过。该功能提交的两次独立构建包摘要一致，为 `3e93344ae52e2364dba34399287a8546e0408ff75cd2f04ffcfdb0cb8b073566`，源码归档摘要为 `d544d247eb39b0aafb173ddc3be624613bc44ee3a846402ef3061850f532067a`。这些是功能验收产物，尚非最终公开发布产物。
+
+以下保留中间实现与失败诊断历史。当前功能验收以上表及本节为准；最终发布 PR、main、附注 tag、源码重建、草稿附件及公开渠道仍须单独核验。
 
 ## Git 调用策略
 
@@ -28,11 +36,11 @@ Git 状态缓存升为 3；显示及编辑器接口保持不变。`doctor` 本�
 
 隔离回归覆盖同长度 clean-filter 调用、fsmonitor、全局过滤器、include、linked worktree、子模块、裸仓库、中文／空格路径及配置字节不变。核查参考 Matthew Breedlove（sirmalloc）及贡献者的 [ccstatusline 设计](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/utils/git-hardening.ts)；本实现还在无法保留转换语义时阻止采集，并检查子模块。依据见 [Git 配置文档](https://git-scm.com/docs/git-config)。
 
-## 验证与发布
+## 早期 Git 验证
 
 各功能 PR 前记录本地校验，CI／安装回执、不可变身份和公开渠道结果随完成追加。未完成的平台、人工或发布检查不标为通过。
 
-本地完整开发校验通过：1,167 项通过，五项既有平台跳过；生成资源、3,150 个文档链接、归档完整性及迁移清单通过。增加安装回执后另行重跑策略／诊断／发布门禁回归。发布准备现要求四项安装版 Git 场景；完整产物／平台结果仍待完成。
+本地完整开发校验通过：1,167 项通过，五项既有平台跳过；生成资源、3,150 个文档链接、归档完整性及迁移清单通过。增加安装回执后另行重跑策略／诊断／发布门禁回归。发布准备现要求四项安装版 Git 场景；该阶段属于中间检查；已通过的平台结果见上文。
 
 首轮 PR 矩阵发现 macOS `/var` 与 `/private/var` 路径别名，以及依赖索引时间戳的全局过滤器夹具问题。现于策略边界规范化根路径，并在夹具中明确使文件时间戳失效。安装版 Git 检查改在独立 Node 进程运行，避免验收父进程加载两套原生适配器。保留首轮失败记录，后续门禁须全部通过。
 
@@ -64,9 +72,9 @@ UPDATE-01 增加版本化包兼容声明，以及与固定摘要绑定的 v3.7.0
 
 实现分支提前采用已批准的 3.8.0 身份，以真实安装验收 3.7.0 → 3.8.0 → 3.7.0；此操作不发布版本。最终发布 PR 仍负责 Release notes、门禁核对及公开渠道验证。安装回执现要求二十类检查，包括真实 npm、固定历史字节、受控元数据、中断及独立恢复的七项包管理场景。保留八安装目标、32 个 Node 场景及十三个宿主目标。
 
-首批 27 项管理、归档与发布准备定向测试本地通过。源码 `4345e2b505eac2f99ae67d1f361dcc8590690bbc` 的两次独立中间构建摘要均为 `628710d951474ba171542ef9a3cf8fcb41f6f40e4da0bf56ce7caf88379efa3b`。真实包完整性拒绝暴露了通用 npm 错误映射，现单独报告结构化 `EINTEGRITY` 而不转发 registry 详情。安装往返及最终矩阵证据待完成。用户操作见[版本管理指南](../PACKAGE_MANAGEMENT.zh-CN.md)。
+首批 27 项管理、归档与发布准备定向测试本地通过。源码 `4345e2b505eac2f99ae67d1f361dcc8590690bbc` 的两次独立中间构建摘要均为 `628710d951474ba171542ef9a3cf8fcb41f6f40e4da0bf56ce7caf88379efa3b`。真实包完整性拒绝暴露了通用 npm 错误映射，现单独报告结构化 `EINTEGRITY` 而不转发 registry 详情。安装往返及功能矩阵证据见上文。用户操作见[版本管理指南](../PACKAGE_MANAGEMENT.zh-CN.md)。
 
-UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1,194 项测试（五项既有平台跳过）、51 项生成资源及 3,174 个文档链接。独立构建包 SHA-256 为 `95dd967f94fac51b50e9b0db981079e086d6254fca2e3646e2cd23b0dbbda3a3`，全部二十项安装检查通过；七项转换场景还通过隔离的官方 Claude 2.1.296 宿主及两个适用 Mod，包含中断、资源刷新、关闭选项保留和独立恢复。未发起模型调用。包子进程身份记录及协作取消防止将仍存活的执行器误判为空闲恢复目标；完整 PR／平台／宿主矩阵仍须通过。
+UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1,194 项测试（五项既有平台跳过）、51 项生成资源及 3,174 个文档链接。独立构建包 SHA-256 为 `95dd967f94fac51b50e9b0db981079e086d6254fca2e3646e2cd23b0dbbda3a3`，全部二十项安装检查通过；七项转换场景还通过隔离的官方 Claude 2.1.296 宿主及两个适用 Mod，包含中断、资源刷新、关闭选项保留和独立恢复。未发起模型调用。包子进程身份记录及协作取消防止将仍存活的执行器误判为空闲恢复目标；后续完整功能矩阵已通过，最终发布门禁仍须通过。
 
 [独立 Windows ARM 诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40077221439)及[更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40076937090)的两个 Windows Node 22.23.4 任务均在 `fs.cpSync` 内以 `0xC0000409` 退出，复制尚未完成，也未加载任何原生模块。包复制现使用有界目录枚举及排他普通文件复制，拒绝链接／特殊文件，并在私有目录中保留可执行权限。bootstrap 与保留的恢复执行器采用同一实现；后者验证成功后才通过目录重命名交付。这是针对已观察复制失败的规避措施，不推断上游根因；替代平台门禁仍须通过。
 
@@ -81,3 +89,13 @@ UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1
 [后续更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40081939042)触及旧有单操作 150 秒及安装套件十分钟验收预算：前者可能先于产品单个 npm 步骤的 180 秒上限中断，后者未计入新增真实包转换序列。验收现分别组合单操作六分钟、转换序列十五分钟（正式宿主二十分钟）、既有套件十分钟及外层准备／清理预算，产品超时不变。每条版本测试命令在临时安装目录之外记录耗时、结果及有界失败诊断，未完成运行不能提供通过回执。中间 [main 运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40080997079)另保留了一项 macOS checkout DNS 失败，尚未取得源码或执行候选；最终仍须通过绑定源码的完整门禁。
 
 `e3029fe` 的完整开发检查通过 1,207 项测试，保留五项既有平台跳过。[对应矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40084425356)中，Windows／Claude 2.1.288 在包替换前触发产品 npm 超时，其余 54 个作业通过，汇总门禁正确失败。[相同产物诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40085700315)在 Windows 2025／2.1.288 完成两轮、Windows 2025／2.1.289 完成三轮各二十项操作，未复现该超时；前者第三轮在调用产品前下载历史归档时遇到 `ECONNABORTED`。不推断原超时根因，保留产品期限，替代正式门禁必须通过。
+
+## 后续诊断与发布边界
+
+相同版本产物的诊断另在 Windows ARM／Claude 2.1.288 完成三轮各二十项操作，因此三种环境共八轮完整转换通过。第三方历史包下载中断没有被记录为产品通过；原 npm 超时仍不推断根因。随后 UPDATE-01 的完整正式矩阵一次通过全部适用作业。
+
+[SETUP-02 合并后的中间 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40086715360)曾在 Windows 子模块脏状态测试中得到 `error`；旧日志未记录底层原因，不能断定为超时。[独立诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40088039171)在两个 Windows 目标、Node 22／24 上各用二十个新仓库完成一百次观测，全部通过，保留逐调用耗时及错误记录能力。产品两秒总预算不变；后续 UPDATE-01 的正式矩阵也通过。已失败的中间 main 被取消，不能作为发布验收。
+
+[UPDATE-01 合并后的中间 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40091394223)记录了一项官方 Windows／Claude 2.1.289 原生编辑器英文保存／取消／重开测试的 30 秒超时，其余 131 项原生测试通过。日志不足以确定底层原因；测试上限不变，最终发布矩阵仍必须通过同一测试。
+
+四个工作包已 DONE；v3.8.0 公开发布仍待最终发布 PR／main／tag 自动化、独立构建及源码重建、四项附件和 npm／GitHub／Gitee 渠道字节核验。[本版本批准记录](../releases/approvals/v3.8.0.json)限定保留 #96 的六项原有未验证缺口。

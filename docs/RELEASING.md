@@ -2,6 +2,12 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.8.0 Git, terminal and package management
+
+Use the [v3.8.0-specific approval](releases/approvals/v3.8.0.json) and require all final release PR, merged-main and annotated-tag gates. Each installed/runtime receipt must pass all twenty categories, including four Git-policy cases, four durable first-entry cases and seven real package-transition cases against the digest-pinned public v3.7.0 archive. Version receipts retain nineteen operations (twenty with an official host), interruption, observed-state recovery and separate configuration restoration. Windows additionally requires fifteen palette/environment cases and nine actual PowerShell/CMD/Git Bash × setup/configure/slash combinations, including cancellation and restored console modes.
+
+Eight installation targets, 32 Node cases and thirteen fixed hosts remain mandatory. Verify independent builds, a delivered-source rebuild, extended six-language installed PTYs and exactly four downloaded draft assets before npm OIDC and GitHub publication. Verify npm's exact version and `latest`, preserve `beta`, then verify public GitHub/Gitee bytes and synchronize explicit validated refs. Keep automated consoles, reconstructed PTYs, human desktop and physical power evidence distinct. Record results in [Git, terminal and M8–M9 delivery](development/m8-m9-delivery.md); only the same six #96 gaps are accepted. Ordinary documentation-only closure still uses necessary documentation checks.
+
 ## v3.7.0 indicators, groups, refresh and rates
 
 Use the [v3.7.0-only approval](releases/approvals/v3.7.0.json) and require final PR/main/tag full gates. Installed receipts must include three indicator, four group, four automatic-policy/lifecycle and four cost-rate scenarios, alongside existing checks. Eight installation targets, 32 Node cases, thirteen fixed hosts, independent builds/source rebuild, extended six-language installed PTYs, verified draft assets, npm OIDC and GitHub/npm/Gitee public-byte verification remain required. Record actual results in [M4–M7 delivery](development/m4-m7-delivery.md); only the six historical #96 gaps are accepted.

@@ -4,7 +4,7 @@
 
 Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. The next product sequence is first-entry installation, version management, selective import, gradients, explicit-row alignment and then demonstrations (M8–M13). Git invocation review and Windows preview consistency are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are VALIDATING for v3.8.0; the other four future packages remain NOT_STARTED; delivered packages, including CI-01, remain DONE.
+Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. After the accepted first-entry and version-management work (M8–M9), the remaining product sequence is selective import, gradients, explicit-row alignment and then demonstrations (M10–M13). Git invocation review and Windows preview consistency are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are DONE after functional acceptance. Public v3.8.0 publication remains pending final gates and channel verification. The other four future packages remain NOT_STARTED; delivered packages, including CI-01, remain DONE.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -16,7 +16,7 @@ This page owns product direction, priorities and work-package status. The [devel
 
 | Area | Delivered capability | Planning implication |
 | --- | --- | --- |
-| Configuration entry points | First-use setup wizard, in-session editor, external TUI, CLI, conversational guide and Quick setup | Connect package installation and a durable entry to existing setup; add explicit version management |
+| Configuration entry points | First-use setup wizard, in-session editor, external TUI, CLI, conversational guide and Quick setup | SETUP-02 and UPDATE-01 are implemented; publication evidence is tracked separately |
 | Display composition | Six existing presets, three complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, five Powerline controls, optional percentage bars and linked groups | Add selective reuse, static foreground/Powerline-background gradients and explicit main-row alignment |
 | Tasks and projects | Task timing, separate subagent rows, read-only task details, named profiles and project-root bindings | Make task and multi-agent scenarios prominent |
 | Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`; independent UI and output languages | Maintain six-language coverage for new interactions and guidance |
@@ -62,10 +62,10 @@ Keep the original project and authors credited when discussing these references.
 
 | Priority | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| Priority independent maintenance | [GIT-01](development-plan.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | VALIDATING |
-| Priority independent maintenance | [TERMINAL-01](development-plan.md#terminal-01) | Consistent or explicitly explained Windows preview colors across setup, configure and slash entry | Existing terminal detection/launch paths; [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | VALIDATING |
-| M8 First entry | [SETUP-02](development-plan.md#setup-02) | No-argument/npx entry connects npm global installation, a durable binding and existing setup | Delivered SETUP-01 and installation/recovery mechanisms | VALIDATING |
-| M9 Version management | [UPDATE-01](development-plan.md#update-01) | Explicit version checks, upgrades, rollback and failure recovery | SETUP-02 installation identity and existing compatibility/recovery rules | VALIDATING |
+| Priority independent maintenance | [GIT-01](development-plan.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | DONE |
+| Priority independent maintenance | [TERMINAL-01](development-plan.md#terminal-01) | Consistent or explicitly explained Windows preview colors across setup, configure and slash entry | Existing terminal detection/launch paths; [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | DONE |
+| M8 First entry | [SETUP-02](development-plan.md#setup-02) | No-argument/npx entry connects npm global installation, a durable binding and existing setup | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
+| M9 Version management | [UPDATE-01](development-plan.md#update-01) | Explicit version checks, upgrades, rollback and failure recovery | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
 | M10 Configuration reuse | [IMPORT-01](development-plan.md#import-01) | Select global appearance first, then complete main/subagent sections for import | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
 | M11 Gradients | [APPEARANCE-04](development-plan.md#appearance-04) | Static component-foreground and Powerline-background gradients with presets and custom colors | Existing color, Powerline, group and editor rules | NOT_STARTED |
 | M12 Cross-line alignment | [COMPOSITION-03](development-plan.md#composition-03) | Aligned explicit main rows with defined hidden/group/spacer/narrow-row behavior | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
@@ -73,7 +73,7 @@ Keep the original project and authors credited when discussing these references.
 
 M8 → M9 → M10 → M11 → M12 → M13 is the selected product order. Scheduling does not create technical dependencies: import does not require version management, and alignment does not require gradients. Each package may ship in bounded slices; later options must retain import/export compatibility. SHOWCASE-01 retains its ID and waits for all selected M8–M12 functionality, including both IMPORT-01 slices, to be completed and accepted. Further candidates do not block it.
 
-GIT-01 and TERMINAL-01 run independently with priority. Incorporate TERMINAL-01 outcomes into affected Windows preview and demonstration acceptance. GIT-01 has a shared invocation policy under validation; see the [implementation and compatibility record](m8-m9-delivery.md). Historical isolated observations remain separate from completed platform and artifact acceptance.
+GIT-01 and TERMINAL-01 have completed functional acceptance. Incorporate TERMINAL-01 outcomes into affected Windows preview and demonstration acceptance. GIT-01 has an accepted shared invocation policy; see the [implementation and compatibility record](m8-m9-delivery.md). Historical isolated observations remain separate from completed platform and artifact acceptance.
 
 M4–M7 shipped in v3.7.0 through four feature PRs and a final release PR. [Implementation and validation](m4-m7-delivery.md) records the starting commits, interface decisions and actual evidence; package completion and publication remain separate.
 
