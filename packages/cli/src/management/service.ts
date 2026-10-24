@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { PackageError, type PackageIdentity, type PackageReview } from '@fbincon/statusline-core/management/package';
 import { compatibility, compareVersions, runtimeCompatibility } from '@fbincon/statusline-core/management/compatibility';
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
-import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
+import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { lock, atomicWrite } from '@fbincon/statusline-platform/files';
 import { detectClaudeVersion, resolvedPath, which, sameLaunchEntry } from '@fbincon/statusline-platform/commands';
 import { readPreferences } from '../config/preferences.js';
@@ -116,9 +116,16 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
     process.on('SIGTERM', cancel);
     try {
         flags = managementOptions(argv);
-        const configDir = resolvedPath(flags.configDir ?? environment.CLAUDE_CONFIG_DIR ?? '~/.claude');
+        const requestedDirectory = flags.configDir ?? environment.CLAUDE_CONFIG_DIR;
+        const configDir = resolvedPath(requestedDirectory?.trim() ? requestedDirectory : '~/.claude');
         language = flags.language ?? readPreferences(configDir, createStorage()).ui_language;
         mutationAuthorized(flags, options.tty ?? !!(process.stdin.isTTY && process.stdout.isTTY));
+        if (flags.restoreConfig && flags.prefix) {
+            const prefix = resolvedPath(flags.prefix);
+            if (within(configDir, globalPackageRoot(prefix)))
+                throw new PackageError('prefix');
+            return await restoreConfiguration(flags, configDir, prefix, language, stdout, options.confirm, controller.signal);
+        }
         const npm = options.npm ?? new Npm(environment, undefined, undefined, controller.signal), layout = await npm.layout(flags.prefix);
         if (within(configDir, layout.root))
             throw new PackageError('prefix');
@@ -127,7 +134,10 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         let before: PackageIdentity | null = null;
         if (!flags.package)
             before = currentPackage(layout);
-        const history = readInstallation(configDir, layout.prefix);
+        const recordedHistory = readInstallation(configDir, layout.prefix);
+        const history = flags.package || before && recordedHistory && sameIdentity(before, recordedHistory.current) ? recordedHistory : null;
+        if (before && history)
+            before = { ...before, integrity: history.current.integrity, registry: history.current.registry };
         let target: RegistryPackage, channel: 'latest' | 'beta' | null, integrated: boolean, host: readonly number[] | null, hashes: ConfigHashes, observed: string | null = null;
         if (flags.package) {
             operation = readOperation(configDir, layout.prefix);
@@ -148,6 +158,8 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
             const selected = selection(flags, before!, history);
             channel = selected.channel;
             target = await npm.metadata(selected.selector, layout);
+            if (flags.command === 'rollback' && !flags.version && history?.previous?.integrity && target.integrity !== history.previous.integrity)
+                throw new PackageError('integrity');
             const direction = compareVersions(target.version, before!.version);
             if (flags.command === 'update' && direction < 0)
                 throw new PackageError('use_rollback');
@@ -192,6 +204,8 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         const staging = join(temporary, 'staging');
         await npm.installArchive(archive, staging);
         const staged = await npm.validateStaged(staging, target);
+        if (flags.command === 'rollback' && !flags.version && history?.previous?.inventory_sha256 && staged.inventory_sha256 !== history.previous.inventory_sha256)
+            throw new PackageError('integrity');
         const expected = { ...staged, prefix: layout.prefix, root: layout.root, entry: review.entry };
         if (integrated)
             await (options.integrate ?? refreshIntegration)(staged.root, expected, configDir, host, hashes, temporary, true, environment, controller.signal);

@@ -13,7 +13,7 @@ claude-statusline update
 claude-statusline rollback
 ```
 
-Checks query the configured scoped npm registry, or its default registry. Stable installs default to `latest`; a recorded channel remains selected. A prerelease without a recorded channel needs `--version EXACT` or `--channel latest|beta`. Channels resolve to an exact version before review. `update --version` refuses downgrades; use `rollback`. Rollback without a version selects the previous successful version for this prefix and configuration directory.
+Checks query the configured scoped npm registry, or its default registry. Stable installs default to `latest`; a recorded channel remains selected. A prerelease without a recorded channel needs `--version EXACT` or `--channel latest|beta`. Channels resolve to an exact version before review. `update --version` refuses downgrades; use `rollback`. Rollback without a version selects the previous successful artifact for this prefix and configuration directory, checking the recorded integrity or inventory identity.
 
 The review identifies the current and target package, registry, prefix, absolute Node/JS entry, Node/host compatibility, configuration formats, and artifact integrity. `--check` reports metadata compatibility without downloading the archive; its JSON explicitly reports `artifact_verified: false`. `--dry-run` also verifies a downloaded archive in a temporary staging prefix. Neither writes the target installation or configuration. Temporary files and ordinary npm cache activity are separate from the target.
 
@@ -54,7 +54,7 @@ claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix
 claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix --config-dir /chosen/claude --yes
 ```
 
-Replace `pkg-BACKUP_ID` with the exact UUID-based ID printed by the operation. The review lists files and revisions. Restoration covers the saved display and profile collection, including project bindings, and adjusts only the owned subagent callback when the restored layout requires it. It preserves current source execution grants, independent editor/collector choices, interface preferences and unrelated Claude settings. It never silently re-enables old authorization.
+Replace `pkg-BACKUP_ID` with the exact UUID-based ID printed by the operation. The review lists files and revisions. With an explicit prefix, this restoration works without npm. Restoration covers the saved display and profile collection, including project bindings, and adjusts only the owned subagent callback when the restored layout requires it. It preserves current source execution grants, independent editor/collector choices, interface preferences and unrelated Claude settings. It never silently re-enables old authorization.
 
 Restoration validates snapshot hashes, rechecks current revisions under the configuration lock, and backs up the content being replaced through the existing file transaction. Missing or changed snapshots and concurrent edits block it. Incompatible rollback stops before package replacement; restore an applicable snapshot separately, then review rollback again. Do not edit schema numbers to force acceptance.
 

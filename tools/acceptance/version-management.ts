@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
-import { join, dirname, delimiter } from 'node:path';
+import { join, dirname, delimiter, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -108,7 +108,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
             }
         });
     });
-    const command = (launch: string, action: string, version: string, extra: string[] = []) => [launch, action, '--version', version, '--prefix', prefix, '--config-dir', configDir, '--yes', ...extra];
+    const command = (launch: string, action: string, version: string, extra: string[] = []) => [launch, action, '--version', version, '--prefix', relative(input.temporary, prefix), '--config-dir', relative(input.temporary, configDir), '--yes', ...extra];
     const version = async () => { const result = await invoke([entry, '--version']); return result.stdout.trim(); };
     const state = () => JSON.parse(fs.readFileSync(join(configDir, 'statusline_runtime/installation.json'), 'utf8'));
     try {

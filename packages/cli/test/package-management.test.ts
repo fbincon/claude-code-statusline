@@ -11,7 +11,7 @@ import { PackageError } from '@fbincon/statusline-core/management/package';
 import { Npm, globalPackageRoot, globalPackageBin, productIdentity, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { managementOptions, managementRequest } from '../src/management/arguments.js';
 import { manage, mutationAuthorized, type ManagementEnvironment } from '../src/management/service.js';
-import { pendingPath, readInstallation, readOperation, operationPath, saveOperation,startOperation } from '../src/management/store.js';
+import { pendingPath, readInstallation, readOperation, operationPath, saveOperation, startOperation } from '../src/management/store.js';
 import { processToken } from '@fbincon/statusline-platform/processes';
 import { configurationBytes, configurationCompatibility } from '../src/management/configuration.js';
 function product(prefix: string, version: string) {
@@ -186,8 +186,10 @@ test('nested profile schemas, corrupt sources and unknown configuration formats 
 });
 test('a surviving executor blocks recovery after its transaction owner exits', async (t) => {
     const f = fixture(t);
-    f.options.checkpoint = stage => { if (stage === 'package_verified')
-        throw new PackageError('interrupted'); };
+    f.options.checkpoint = stage => {
+        if (stage === 'package_verified')
+            throw new PackageError('interrupted');
+    };
     assert.equal(await manage(f.args(), f.options), 130);
     const operation = readOperation(f.configDir, f.prefix);
     operation.executors = [{ pid: process.pid, token: processToken(process.pid)! }];
@@ -205,21 +207,66 @@ test('the prefix lock serializes package changes across distinct configuration d
     const f = fixture(t);
     let other: number | undefined;
     const install = f.npm.installArchive.bind(f.npm);
-    f.npm.installArchive = async (archive, prefix) => { if (prefix === f.prefix) {
-        const args = f.args();
-        args[args.indexOf('--config-dir') + 1] = join(f.temporary, 'other-config');
-        other = await manage(args, { ...f.options, checkpoint: undefined });
-    } await install(archive, prefix); };
+    f.npm.installArchive = async (archive, prefix) => {
+        if (prefix === f.prefix) {
+            const args = f.args();
+            args[args.indexOf('--config-dir') + 1] = join(f.temporary, 'other-config');
+            other = await manage(args, { ...f.options, checkpoint: undefined });
+        }
+        await install(archive, prefix);
+    };
     assert.equal(await manage(f.args(), f.options), 0, f.state().output);
     assert.equal(other, 2);
     assert.equal(f.state().replacements, 1);
 });
-
-test('an interrupted first install can repair its partial package without inventing a configuration backup',async t=>{
-    const f=fixture(t);fs.rmSync(f.layout.root,{recursive:true});fs.mkdirSync(f.layout.root,{recursive:true});
-    fs.writeFileSync(join(f.layout.root,'package.json'),JSON.stringify({name:PACKAGE_NAME,version:'3.9.0'}));
-    const operation=startOperation(f.configDir,f.prefix,'3.9.0',f.layout.registry,null);operation.stage='installing';saveOperation(operation);
-    assert.equal(await manage(f.args('recover',['--package','--version','3.9.0','--yes']),f.options),0,f.state().output);
-    assert.equal(productIdentity(f.layout.root)?.version,'3.9.0');assert.equal(f.state().replacements,1);
-    assert(!fs.existsSync(join(f.configDir,'claude-statusline.json')));assert.match(f.state().output,/Configuration snapshot: —/);
+test('an interrupted first install can repair its partial package without inventing a configuration backup', async (t) => {
+    const f = fixture(t);
+    fs.rmSync(f.layout.root, { recursive: true });
+    fs.mkdirSync(f.layout.root, { recursive: true });
+    fs.writeFileSync(join(f.layout.root, 'package.json'), JSON.stringify({ name: PACKAGE_NAME, version: '3.9.0' }));
+    const operation = startOperation(f.configDir, f.prefix, '3.9.0', f.layout.registry, null);
+    operation.stage = 'installing';
+    saveOperation(operation);
+    assert.equal(await manage(f.args('recover', ['--package', '--version', '3.9.0', '--yes']), f.options), 0, f.state().output);
+    assert.equal(productIdentity(f.layout.root)?.version, '3.9.0');
+    assert.equal(f.state().replacements, 1);
+    assert(!fs.existsSync(join(f.configDir, 'claude-statusline.json')));
+    assert.match(f.state().output, /Configuration snapshot: —/);
+});
+test('default rollback selects the previous successful artifact while retaining current compatible display choices', async (t) => {
+    const f = fixture(t);
+    f.write('claude-statusline.json', defaultDisplay());
+    assert.equal(await manage(f.args(), f.options), 0, f.state().output);
+    f.write('claude-statusline.json', { ...defaultDisplay(), use_colors: false });
+    f.npm.installArchive = async (_archive, prefix) => { product(prefix, '3.8.0'); };
+    f.clear();
+    assert.equal(await manage(f.args('rollback'), f.options), 0, f.state().output);
+    assert.equal(productIdentity(f.layout.root)?.version, '3.8.0');
+    assert.equal(JSON.parse(fs.readFileSync(join(f.configDir, 'claude-statusline.json'), 'utf8')).use_colors, false);
+    assert.equal(readInstallation(f.configDir, f.prefix)?.previous?.version, '3.9.0');
+});
+test('explicit configuration restoration remains available without npm', async (t) => {
+    const f = fixture(t);
+    f.write('claude-statusline.json', defaultDisplay());
+    assert.equal(await manage(f.args(), f.options), 0, f.state().output);
+    const id = readInstallation(f.configDir, f.prefix)!.transaction;
+    f.write('claude-statusline.json', { ...defaultDisplay(), use_colors: false });
+    f.npm.layout = async () => { throw new Error('npm unavailable'); };
+    f.clear();
+    assert.equal(await manage(f.args('recover', ['--restore-config', id]), f.options), 0, f.state().output);
+    assert.equal(JSON.parse(fs.readFileSync(join(f.configDir, 'claude-statusline.json'), 'utf8')).use_colors, true);
+});
+test('the original CLI and bootstrap imports leave native package modules unloaded before replacement', async () => {
+    const { spawnSync } = await import('node:child_process');
+    const program = `import {createRequire} from 'node:module';await import(${JSON.stringify(new URL('../src/main.js', import.meta.url).href)});await import(${JSON.stringify(new URL('../src/management/bootstrap.js', import.meta.url).href)});const keys=Object.keys(createRequire(import.meta.url).cache);if(keys.some(k=>k.endsWith('.node')))throw new Error('Native module loaded before independent runner');`;
+    const result = spawnSync(process.execPath, ['--input-type=module', '-e', program], { encoding: 'utf8', timeout: 10000 });
+    assert.equal(result.status, 0, result.stderr);
+});
+test('independent execution preserves relative prefix/config paths and treats a blank config override as unset', async (t) => {
+    const f = fixture(t), { managementPaths } = await import('../src/management/bootstrap.js');
+    const prepared = managementPaths(['update', '--prefix', './global', '--config-dir=./claude'], { CLAUDE_CONFIG_DIR: './environment-config', KEEP: 'literal' }, f.temporary);
+    assert.deepEqual(prepared.args, ['update', '--prefix', join(f.temporary, 'global'), '--config-dir=' + join(f.temporary, 'claude')]);
+    assert.equal(prepared.environment.CLAUDE_CONFIG_DIR, join(f.temporary, 'environment-config'));
+    assert.equal(prepared.environment.KEEP, 'literal');
+    assert.equal(managementPaths(['update'], { CLAUDE_CONFIG_DIR: '   ' }, f.temporary).environment.CLAUDE_CONFIG_DIR, undefined);
 });

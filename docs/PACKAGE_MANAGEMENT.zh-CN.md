@@ -13,7 +13,7 @@ claude-statusline update
 claude-statusline rollback
 ```
 
-检查使用 npm 配置的 scoped registry，未指定时使用默认 registry。稳定版默认选择 `latest`，有记录的渠道沿用原渠道；来源不明的预发布安装须指定 `--version 精确版本` 或 `--channel latest|beta`。渠道先解析为精确版本，再进行审核。`update --version` 拒绝降级；降级使用 `rollback`。回退未指定版本时，选择该 prefix 与配置目录记录的上一成功版本。
+检查使用 npm 配置的 scoped registry，未指定时使用默认 registry。稳定版默认选择 `latest`，有记录的渠道沿用原渠道；来源不明的预发布安装须指定 `--version 精确版本` 或 `--channel latest|beta`。渠道先解析为精确版本，再进行审核。`update --version` 拒绝降级；降级使用 `rollback`。回退未指定版本时，选择该 prefix 与配置目录记录的上一成功产物，并核对已记录的完整性或清单身份。
 
 审核列出当前／目标版本、registry、prefix、绝对 Node/JS 入口、Node／宿主兼容性、配置格式及产物完整性。`--check` 只报告元数据兼容性，不下载压缩包，其 JSON 明确显示 `artifact_verified: false`。`--dry-run` 还会下载包并在临时 staging prefix 中验证。两者都不写目标安装或配置；临时文件及正常 npm 缓存活动与目标目录分开。
 
@@ -54,7 +54,7 @@ claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix
 claude-statusline recover --restore-config pkg-BACKUP_ID --prefix /chosen/prefix --config-dir /chosen/claude --yes
 ```
 
-用操作输出的完整 UUID 备份 ID 替换 `pkg-BACKUP_ID`。审核列出文件及修订。恢复范围包括保存的显示配置、方案集合及项目绑定，并在恢复布局需要时只调整自有子代理回调。保留当前来源执行授权、独立编辑器／采集器选择、界面偏好及 Claude 无关设置，不从旧快照静默重新启用授权。
+用操作输出的完整 UUID 备份 ID 替换 `pkg-BACKUP_ID`。审核列出文件及修订。明确提供 prefix 时，此配置恢复无需 npm。恢复范围包括保存的显示配置、方案集合及项目绑定，并在恢复布局需要时只调整自有子代理回调。保留当前来源执行授权、独立编辑器／采集器选择、界面偏好及 Claude 无关设置，不从旧快照静默重新启用授权。
 
 恢复先校验快照哈希，在配置锁内重查当前修订，并通过既有文件事务备份被替换内容。快照缺失／变化或并发编辑会阻止操作。不兼容回退在替换包前停止；须单独审核并恢复适用快照，再重新审核回退。不要修改 schema 数字强行兼容。
 
