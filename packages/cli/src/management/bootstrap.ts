@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { productIdentity, productRoot } from '@fbincon/statusline-platform/npm';
+import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { VERSION } from '@fbincon/statusline-core/release';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 import { managementOptions } from './arguments.js';
@@ -43,7 +44,7 @@ export async function bootstrap(argv: readonly string[], stderr: (text: string) 
         temporary = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'claude-statusline-manager-')));
         fs.chmodSync(temporary, 0o700);
         const runner = join(temporary, 'runner');
-        fs.cpSync(origin, runner, { recursive: true, errorOnExist: true, force: false });
+        copyPackage(origin, runner);
         const entry = join(runner, 'node_modules/@fbincon/statusline-cli/dist/src/management/worker-entry.js');
         return await new Promise<number>((resolve, reject) => {
             const child = spawn(process.execPath, [entry, origin, JSON.stringify(request.args)], { stdio: ['inherit', 'inherit', 'inherit', 'ipc'], shell: false, cwd: temporary, env: request.environment });

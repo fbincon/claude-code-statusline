@@ -7,6 +7,7 @@ import { compatibility, compareVersions, runtimeCompatibility } from '@fbincon/s
 import { t, type Language } from '@fbincon/statusline-core/i18n/messages';
 import { Npm, productIdentity, productRoot, writablePrefix, within, verifyArchive, globalPackageRoot, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { lock, atomicWrite } from '@fbincon/statusline-platform/files';
+import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { detectClaudeVersion, resolvedPath, which, sameLaunchEntry } from '@fbincon/statusline-platform/commands';
 import { readPreferences } from '../config/preferences.js';
 import { createStorage } from '../config/storage.js';
@@ -250,9 +251,17 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         const runnerRoot = productRoot(fileURLToPath(import.meta.url)), recoveryRunner = join(dirname(operationPath(operation)), 'recovery-runner');
         if (runnerRoot && !fs.existsSync(recoveryRunner)) {
             safeTarget(configDir, recoveryRunner);
-            fs.cpSync(runnerRoot, recoveryRunner, { recursive: true, force: false, errorOnExist: true });
-            if (!productIdentity(recoveryRunner))
-                throw new PackageError('identity');
+            const staging = fs.mkdtempSync(join(dirname(recoveryRunner), '.runner-'));
+            try {
+                const copied = join(staging, 'package');
+                copyPackage(runnerRoot, copied);
+                if (!productIdentity(copied))
+                    throw new PackageError('identity');
+                fs.renameSync(copied, recoveryRunner);
+            }
+            finally {
+                fs.rmSync(staging, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+            }
         }
         operation.target = target;
         operation.channel = channel;
