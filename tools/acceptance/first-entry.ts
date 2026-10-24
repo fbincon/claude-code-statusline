@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { npmEntry } from '../build/files.js';
 import type { installCandidate } from './install.js';
 type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'root' | 'env'> & {
@@ -16,7 +17,8 @@ export async function installedFirstEntry(installed: ReturnType<typeof installCa
     const program = `import {firstEntryChild} from ${JSON.stringify(import.meta.url)};console.log(JSON.stringify(await firstEntryChild(JSON.parse(process.argv[1]))));`;
     const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { cwd: installed.directory, encoding: 'utf8', timeout: 180000, windowsHide: true });
     assert.equal(result.error, undefined);
-    assert.equal(result.status, 0, result.stderr + result.stdout);
+    const trace=join(installed.temporary,'first-entry-trace.jsonl');
+    assert.equal(result.status, 0, result.stderr + result.stdout + (fs.existsSync(trace)?fs.readFileSync(trace,'utf8'):''));
     const receipt = JSON.parse(result.stdout);
     fs.rmSync(receipt.cacheRoot, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
     const restarted = spawnSync(installed.node, [receipt.entry, '--version'], { cwd: installed.directory, env: installed.env, encoding: 'utf8', timeout: 10000 });
@@ -32,11 +34,15 @@ export async function firstEntryChild(input: Input): Promise<{
     version: string;
     configDir: string;
 }> {
+    const trace=(stage:string,detail:unknown=null)=>fs.appendFileSync(join(input.temporary,'first-entry-trace.jsonl'),JSON.stringify({stage,detail,node:process.version,native:Object.keys(createRequire(import.meta.url).cache).filter(path=>path.endsWith('.node'))})+'\n',{mode:0o600});
     const cacheRoot = join(input.temporary, 'first-entry-cache'), origin = join(cacheRoot, '_npx', 'fixture', 'node_modules/@fbincon/claude-code-statusline');
+    trace('copy-start');
     fs.cpSync(input.root, origin, { recursive: true });
+    trace('copy-complete');
     const modules = join(origin, 'node_modules/@fbincon');
     const load = (name: string, path: string) => import(pathToFileURL(join(modules, 'statusline-' + name, 'dist/src', path + '.js')).href);
     const [{ firstEntry }, { Npm }, { VERSION }, { runSourceProcess }] = await Promise.all([load('cli', 'management/first-entry'), load('platform', 'npm'), load('core', 'release'), load('platform','source-process')]);
+    trace('imports-complete');
     const manifest = JSON.parse(fs.readFileSync(join(origin, 'package.json'), 'utf8')), bytes = fs.readFileSync(input.artifact);
     let registry = '';
     const server = createServer((request, response) => {
@@ -64,8 +70,10 @@ export async function firstEntryChild(input: Input): Promise<{
         const env = { ...input.env, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: empty, npm_config_globalconfig: globalConfig, npm_config_cache: cacheRoot };
         const failures:unknown[]=[];
         const runner=async (request:any)=>{
+            trace('npm-start',request.args.slice(1));
             let stderr='';
             const result=await runSourceProcess({...request,captureStderr:(value:string)=>{stderr=value;}});
+            trace('npm-complete',{args:request.args.slice(1),reason:result.reason,code:result.code});
             if(result.reason!=='completed'){
                 const readOnly=['root','prefix','config','--version'].includes(request.args[1]);
                 const direct=readOnly?spawnSync(request.executable,request.args,{cwd:request.cwd,env:request.environment,encoding:'utf8',timeout:15000,windowsHide:true}):null;
@@ -79,6 +87,7 @@ export async function firstEntryChild(input: Input): Promise<{
         let review = '', handoff = 0, entry = '';
         const options = { configDir, language: 'en', tty: true, origin, npm, stdout: (s: string) => review += s, stderr: (s: string) => review += s, confirm: async () => true,
             handoff: async (identity: any) => {
+                trace('handoff-start');
                 handoff++;
                 entry = identity.entry;
                 assert(!entry.includes('_npx'));
@@ -89,16 +98,23 @@ export async function firstEntryChild(input: Input): Promise<{
                 const rendered = spawnSync(input.node, [entry, 'render'], { env: { ...env, CLAUDE_CONFIG_DIR: configDir }, input: JSON.stringify({ model: { display_name: 'Durable entry' } }), encoding: 'utf8', timeout: 10000 });
                 assert.equal(rendered.status, 0);
                 assert(rendered.stdout.includes('Durable entry'));
+                trace('handoff-complete');
                 return 0;
             } };
+        trace('refuse-start');
         const refused=await firstEntry(args, { ...options, confirm: async () => false });
+        trace('refuse-complete',refused);
         assert.equal(refused, 0, review+JSON.stringify(failures));
         assert(!fs.existsSync(prefix));
         assert(!fs.existsSync(configDir));
+        trace('install-start');
         assert.equal(await firstEntry(args, options), 0, review);
+        trace('install-complete');
         assert.equal(handoff, 1);
         const settings = fs.readFileSync(join(configDir, 'settings.json'));
+        trace('reuse-start');
         assert.equal(await firstEntry(args, options), 0, review);
+        trace('reuse-complete');
         assert.equal(handoff, 2);
         assert.deepEqual(fs.readFileSync(join(configDir, 'settings.json')), settings);
         return { cacheRoot, entry, version: VERSION, configDir };
