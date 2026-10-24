@@ -15,8 +15,9 @@ test('source lookup uses the selected PATH including Windows mixed-case names',a
     const {basename,dirname}=await import('node:path');
     const environment=Object.fromEntries(Object.entries(sourceEnvironment()).filter(([key])=>key.toUpperCase()!=='PATH'));
     environment[process.platform==='win32'?'Path':'PATH']=dirname(process.execPath);
-    const result=await runSourceProcess({executable:basename(process.execPath),args:['-p','String(42)'],cwd:process.cwd(),input:'',timeoutMs:15000,environment});
-    assert.equal(result.reason,'completed');assert.equal(result.stdout.trim(),'42');
+    environment.Statusline_Probe='original';environment.STATUSLINE_PROBE='override';
+    const result=await runSourceProcess({executable:basename(process.execPath),args:['-p','JSON.stringify([42,process.env.STATUSLINE_PROBE])'],cwd:process.cwd(),input:'',timeoutMs:15000,environment});
+    assert.equal(result.reason,'completed');assert.deepEqual(JSON.parse(result.stdout),[42,'override']);
 });
 test('source processes pass literal Unicode arguments and omit credential environments',async()=>{
     const values=['中文 path','a"b','$(no execution)','`literal`','a&b','trailing\\'];
@@ -60,4 +61,9 @@ test('transaction observers identify the real executor and a failed observation 
     assert.equal(result.reason,'completed');assert.equal(result.stdout,'done');assert.equal(typeof events[0],'number');assert.equal(events.at(-1),null);
     const stopped=await runSourceProcess({executable:process.execPath,args:['-e','setInterval(()=>{},1000)'],cwd:process.cwd(),input:'',timeoutMs:5000,onProcess:pid=>{if(pid!==null)throw new Error('journal unavailable');}});
     assert.equal(stopped.reason,'io_error');
+});
+
+test('Windows environment aliases collapse before the supervisor parses JSON',async()=>{
+    const {windowsCommandEnvironment}=await import('../src/windows-source-environment.js');
+    assert.deepEqual(windowsCommandEnvironment({SystemRoot:'original',SYSTEMROOT:'override',NPM_CONFIG_AUDIT:'true',npm_config_audit:'false'}),{SYSTEMROOT:'override',NPM_CONFIG_AUDIT:'false'});
 });

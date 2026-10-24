@@ -3,6 +3,12 @@ import { join } from 'node:path';
 
 export const WINDOWS_RUNTIME_FOLDERS = ['USERPROFILE', 'HOME', 'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA', 'SYSTEMDRIVE', 'PROGRAMDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)', 'PROGRAMW6432', 'COMMONPROGRAMFILES', 'COMMONPROGRAMFILES(X86)', 'COMMONPROGRAMW6432'];
 
+/** Windows names are case insensitive. Collapse aliases before JSON crosses
+ * PowerShell's case-insensitive dictionary boundary; later overrides win. */
+export function windowsCommandEnvironment(environment:NodeJS.ProcessEnv):NodeJS.ProcessEnv {
+    return Object.fromEntries(Object.entries(environment).map(([name,value])=>[name.toUpperCase(),value]));
+}
+
 /** Recover the loaded Windows profile independently of a caller's isolated HOME.
  * Only OS folder variables leave this adapter; registry credentials never do.
  * https://learn.microsoft.com/windows/win32/api/userenv/nf-userenv-createenvironmentblock
