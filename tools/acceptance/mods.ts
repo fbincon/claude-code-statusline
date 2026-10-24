@@ -16,7 +16,12 @@ const environment = isolatedHostEnvironment(process.env, temporary);
 const report: Record<string, any> = { status: 'fail', commit: values.commit, tarball_sha256: candidate.sha256, model_calls: 0, mods: {} };
 function run(executable: string, args: string[], env = environment, timeout = 180000) {
     const result = spawnSync(executable, args, { cwd: repoRoot, env, encoding: 'utf8', timeout, maxBuffer: 8 * 1024 * 1024 });
-    if (result.status !== 0 || result.error) throw new Error('Mod acceptance failed: ' + JSON.stringify({ args, status: result.status, signal: result.signal, error: result.error?.message, output: (result.stdout + result.stderr).slice(-4000) }));
+    if (result.status !== 0 || result.error) {
+        const output = result.stdout + result.stderr;
+        const lines = output.split(/\r?\n/u);
+        const failures = lines.flatMap((line, index) => /\(fail\)|error:|expect\(|timed out/iu.test(line) ? lines.slice(Math.max(0,index-8),index+12) : []);
+        throw new Error('Mod acceptance failed: ' + JSON.stringify({ args, status: result.status, signal: result.signal, error: result.error?.message, failures: failures.join('\n').slice(0,16000), output: output.slice(-4000) }));
+    }
     return result.stdout;
 }
 try {
