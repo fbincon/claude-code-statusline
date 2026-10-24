@@ -74,6 +74,8 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
     for (const [environment, colors] of [[{TERM:'xterm-256color'},256],[{NO_COLOR:'',TERM:'xterm-256color'},0],[{TERM:'xterm'},16]] as const)
         assert.equal(colorCapability({environment,platform:process.platform,tty:true,windowsVT:false}).colors,colors);
     const evidence: unknown[] = [], shellEvidence: unknown[] = [];
+    report.terminal_color_evidence=evidence;
+    report.terminal_shell_evidence=shellEvidence;
     if (process.platform === 'win32') {
         const config = setup('terminal-colors');
         const before = fs.readFileSync(join(config,'settings.json'));
@@ -116,7 +118,8 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
             try {
                 const stop=performance.now()+30000;
                 while(child.code()===null && performance.now()<stop) await new Promise(resolve=>setTimeout(resolve,20));
-                assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):`No ${shell}/${entry} console receipt`);
+                const shellError=join(installed.temporary,'color-shell.stderr');
+                assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):`No ${shell}/${entry} console receipt: `+(fs.existsSync(shellError)?fs.readFileSync(shellError,'utf8'):''));
                 const saved=JSON.parse(fs.readFileSync(receipt,'utf8'));
                 assert.equal(saved.status,0);assert.equal(saved.input_tty,true);
                 assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
@@ -128,8 +131,6 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
         assert.deepEqual(fs.readFileSync(join(config,'settings.json')),before);
     }
     report.terminal_color_cases=process.platform==='win32'?15:3;
-    report.terminal_color_evidence=evidence;
-    report.terminal_shell_evidence=shellEvidence;
     checks.terminal_colors=true;
 });
 test('installed groups retain linked visibility, remapped copies and portable references', () => {
