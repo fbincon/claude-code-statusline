@@ -74,3 +74,7 @@ See [backend contracts](development/contracts.md), [metric definitions](DISPLAY_
 ## Git collection policy
 
 `Git!` with cached `git_policy.filter_blocked` or `git_policy.policy_unavailable` means collection could not safely preserve filter semantics; it never means a clean worktree. `doctor` inspects filter definitions in the current directory without running their commands. See the [compatibility table](development/m8-m9-delivery.md#git-invocation-policy). Deliberately correct configuration in your own Git workflow; this product never rewrites it. Cached diagnosis never retries Git.
+
+## Package operation diagnosis
+
+`update --check --json` reports metadata compatibility; `update --dry-run` additionally verifies the archive. `recover --package --dry-run --prefix PATH --config-dir PATH` inspects a retained package transaction. Keep `recover --restore-config BACKUP_ID` separate from package repair. See [version management](PACKAGE_MANAGEMENT.md) for exact-version scripting and recovery entries.

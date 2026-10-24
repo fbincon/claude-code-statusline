@@ -48,3 +48,5 @@ claude-statusline setup --config-dir '/包含空格的路径/claude'
 检查成功只确认写入资源。请重启 Claude 并观察实际状态栏，以确认会话加载。固定预览不能证明已观测到真实数据，也不能证明重启成功。之后可用 `/statusline-config` 或 `claude-statusline configure --user` 继续编辑，用 `doctor` 检查安装。
 
 `install`、`doctor`、`configure` 和配置 CLI 保持可用。向导不下载／升级包、不安装字体、不登录账号、不改变独立的 Claude 偏好。参见[安装与回退](USER_GUIDE.zh-CN.md)及[外观兼容说明](APPEARANCE.zh-CN.md#配置兼容与恢复)。
+
+既有安装使用[版本管理与包恢复](PACKAGE_MANAGEMENT.zh-CN.md)；显式 `setup` 继续负责显示配置与集成。

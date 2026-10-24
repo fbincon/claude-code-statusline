@@ -11,7 +11,7 @@ import { Npm, productRoot, productIdentity, writablePrefix, within } from '@fbin
 import { lock } from '@fbincon/statusline-platform/files';
 import { sameLaunchEntry, which } from '@fbincon/statusline-platform/commands';
 import { ArgumentError, optionToken } from '../config/arguments.js';
-import { createPrefix, pendingPath, startOperation, saveOperation, recordInstallation, finishOperation } from './store.js';
+import { createPrefix, pendingPath, startOperation, saveOperation, recordInstallation, finishOperation, observeOperation } from './store.js';
 import { previousBinding } from '../integration/ownership.js';
 import { createStorage } from '../config/storage.js';
 export function entryOptions(args: readonly string[]): {
@@ -88,7 +88,7 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
         if (within(configDir, layout.root))
             throw new PackageError('prefix');
         if (action === 'version_conflict') {
-            stdout(JSON.stringify({installed:before!.version,target:VERSION,prefix:layout.prefix},null,2)+'\n');
+            stdout(JSON.stringify({ installed: before!.version, target: VERSION, prefix: layout.prefix }, null, 2) + '\n');
             throw new PackageError('version_conflict');
         }
         const pathEntry = which('claude-statusline');
@@ -130,7 +130,7 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
             });
         };
         if (before) {
-            await npm.verify(before,layout.bin);
+            await npm.verify(before, layout.bin);
             if (JSON.stringify(productIdentity(layout.root, layout.prefix)) !== JSON.stringify(before))
                 throw new PackageError('conflict');
             stage = 'package_verified';
@@ -141,6 +141,7 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
         if (JSON.stringify(productIdentity(layout.root, layout.prefix)) !== JSON.stringify(before) || fs.existsSync(pendingPath(layout.prefix)))
             throw new PackageError('conflict');
         const operation = startOperation(configDir, layout.prefix, VERSION, layout.registry, before);
+        npm.onProcess = observeOperation(operation);
         try {
             if (!before) {
                 stage = 'installing';
@@ -151,7 +152,7 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
             const installed = productIdentity(layout.root, layout.prefix);
             if (!installed || installed.version !== VERSION)
                 throw new PackageError('identity');
-            await npm.verify(installed,layout.bin);
+            await npm.verify(installed, layout.bin);
             operation.after = { ...installed, registry: layout.registry };
             stage = 'package_verified';
             operation.stage = 'package_verified';

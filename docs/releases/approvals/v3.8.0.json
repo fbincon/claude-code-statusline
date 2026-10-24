@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "version": "3.8.0",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-24",
+  "authority": "The maintainer approved implementation of GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 as v3.8.0, with separate feature PRs and a final release PR. Commits, pushes, PR merges, GitHub/npm/Gitee releases and explicit validated main/tag synchronization are authorized after all final PR/main/tag automated gates pass. Version management is explicit CLI/terminal review, with exact-version noninteractive consent and separate configuration restoration. Only the six existing issue #96 gaps are accepted and remain unverified; no new failed or missing automated gate is waived. The planned version identity is prepared during UPDATE-01 to verify real v3.7.0/v3.8.0 artifact transitions; publication remains gated.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ]
+}

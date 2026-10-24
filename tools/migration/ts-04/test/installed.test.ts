@@ -15,8 +15,9 @@ import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershe
 import { sha256 } from '../../../build/files.js';
 import { installedGitPolicy } from '../../../acceptance/git-policy.js';
 import { installedFirstEntry } from '../../../acceptance/first-entry.js';
+import { installedVersionManagement } from '../../../acceptance/version-management.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -62,6 +63,9 @@ test('installed Git policy blocks repository programs without inventing a clean 
 });
 test('installed first entry uses real npm and a durable binding beyond the npx cache lifetime', {timeout:180000}, async () => {
     report.first_entry_cases=await installedFirstEntry(installed);checks.first_entry=true;
+});
+test('installed version management survives real 3.7.0 roundtrips, process interruption and separate restoration',{timeout:450000},async()=>{
+    report.version_management=await installedVersionManagement(installed);checks.version_management=true;
 });
 test('installed terminal policy is shared by setup, configure and the Windows slash bridge', {timeout:180000}, async () => {
     const {colorCapability} = await import(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/terminal/capabilities.js')).href);

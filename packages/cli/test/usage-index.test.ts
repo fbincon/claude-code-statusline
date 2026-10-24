@@ -6,10 +6,28 @@ import { UsageCollector } from '../src/runtime/usage.js';
 import { runtimeIO } from '../src/runtime/io.js';
 import { BASE, sessionTokenCounts, type UsageEntry } from '@fbincon/statusline-core/runtime/usage';
 import { dictionary } from '@fbincon/statusline-core/runtime/values';
+import { sha256 } from '@fbincon/statusline-platform/hash';
 
 const entry = (): UsageEntry => ({ base: { ...BASE }, files: dictionary(), ids: dictionary() });
 const counters = (i: bigint) => ({ ...BASE, i });
 const assistant = (id: string, input_tokens = 1) => ({ type: 'assistant', message: { id, usage: { input_tokens } } });
+
+test('session pruning removes obsolete owned trees beneath Unicode paths while retaining active and foreign entries', t => {
+    const f = setup(t), root = join(f.root, 'index 中文'), outside = join(f.root, 'outside');
+    for (const name of [sha256('active'), sha256('obsolete'), 'foreign']) {
+        fs.mkdirSync(join(root, name), { recursive: true });
+        fs.writeFileSync(join(root, name, 'page.json'), name);
+    }
+    fs.mkdirSync(outside);
+    fs.writeFileSync(join(outside, 'keep'), 'external');
+    fs.symlinkSync(outside, join(root, sha256('linked')), process.platform === 'win32' ? 'junction' : 'dir');
+    UsageIndex.pruneSessions(root, f.root, ['active'], runtimeIO());
+    assert(!fs.existsSync(join(root, sha256('obsolete'))));
+    assert.equal(fs.readFileSync(join(root, sha256('active'), 'page.json'), 'utf8'), sha256('active'));
+    assert(fs.existsSync(join(root, 'foreign', 'page.json')));
+    assert(fs.lstatSync(join(root, sha256('linked'))).isSymbolicLink());
+    assert.equal(fs.readFileSync(join(outside, 'keep'), 'utf8'), 'external');
+});
 
 test('one index transaction publishes only the final page and manifest while retaining per-field maxima', t => {
     const f = setup(t), io = runtimeIO(), writes: string[] = [], write = io.write;
