@@ -70,3 +70,7 @@ claude-statusline config enable cache-miss-reason
 显示 schema 保持 8。旧包不认识 `cache-miss-reason`，降级前应移除该组件或恢复旧配置备份。诊断不自动迁移或改写配置。
 
 另见[后端契约](development/contracts.zh-CN.md)、[指标定义](DISPLAY_ITEMS.zh-CN.md)及[实现与验收](development/real-input-diagnostics.zh-CN.md)。
+
+## Git 采集策略
+
+`Git!` 及缓存中的 `git_policy.filter_blocked`／`git_policy.policy_unavailable` 表示无法安全保留过滤器语义，不表示工作区干净。`doctor` 检查当前目录的过滤器定义，不运行这些命令。详见[兼容表](development/m8-m9-delivery.zh-CN.md#git-调用策略)。请在自己的 Git 工作流中明确修改配置；本产品不会改写配置，缓存诊断也不会重试 Git。

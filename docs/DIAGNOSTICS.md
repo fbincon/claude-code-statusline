@@ -70,3 +70,7 @@ The source is the [official statusline contract](https://code.claude.com/docs/en
 Display schema remains 8. Older packages cannot recognize `cache-miss-reason`; remove that component or restore an earlier configuration backup before downgrading. No automatic migration or configuration rewrite occurs during diagnosis.
 
 See [backend contracts](development/contracts.md), [metric definitions](DISPLAY_ITEMS.md) and [implementation and acceptance](development/real-input-diagnostics.md).
+
+## Git collection policy
+
+`Git!` with cached `git_policy.filter_blocked` or `git_policy.policy_unavailable` means collection could not safely preserve filter semantics; it never means a clean worktree. `doctor` inspects filter definitions in the current directory without running their commands. See the [compatibility table](development/m8-m9-delivery.md#git-invocation-policy). Deliberately correct configuration in your own Git workflow; this product never rewrites it. Cached diagnosis never retries Git.

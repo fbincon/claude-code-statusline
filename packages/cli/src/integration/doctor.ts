@@ -23,6 +23,7 @@ import { owner, registered, cacheOwned } from './mod-ownership.js';
 import { bundledFiles, renderSkill } from './resources.js';
 import { bindingValues, bindingMatches, commandPreflight } from './mods.js';
 import { pending, readJournal, refreshIntents } from '../recovery/journal.js';
+import { GitInvocation, GitPolicyError } from '@fbincon/statusline-platform/git';
 export function pathCollisions(context: InstallContext, environment: NodeJS.ProcessEnv = process.env): Diagnostic[] {
     const path = which('claude-statusline', environment);
     if (!path || sameLaunchEntry(path, context.launch))
@@ -61,6 +62,8 @@ export function doctor(context: InstallContext): Diagnostic[] {
         }
     });
     rows.push({ level: supportedNode(process.versions.node) ? 'OK' : 'ERROR', message: `Node runtime: ${process.versions.node}; supported ${NODE_RUNTIME_RANGE}; ${process.platform}/${process.arch}` }, ...pathCollisions(context));
+    try { new GitInvocation(process.cwd(), 2000).worktreePolicy(); }
+    catch (error) { if (error instanceof GitPolicyError && error.reason !== 'not_repo') add('WARN', 'doctor.git_policy', { reason: error.reason }); }
     capture(() => { fs.accessSync(launch.executable, process.platform === 'win32' ? fs.constants.F_OK : fs.constants.X_OK); add('OK', 'doctor.doctor.executable', { executable: launch.executable }); });
     let settings: Record<string, unknown> = {};
     capture(() => { [settings] = readSettings(configDir, io); });

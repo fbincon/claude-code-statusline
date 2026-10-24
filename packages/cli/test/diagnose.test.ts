@@ -209,12 +209,22 @@ test('task snapshot is attributable without transcript scanning, and no prompt m
 test('same-session Git cache is read-only, age-checked and never refreshed', async t => {
     const f = setup(t), folder = join(f.root, 'git_cache'); mkdirSync(folder);
     const value = { kind: 'ok', branch: 'topic', upstream: null, upstream_gone: false, ahead: 0, behind: 0, staged: 0, unstaged: 0, conflicts: 0, untracked: 0 };
-    writeFileSync(join(folder, sha256('s') + '.json'), JSON.stringify({ version: 2, cwd: f.root, checked_ns: 1900000000, value }));
+    writeFileSync(join(folder, sha256('s') + '.json'), JSON.stringify({ version: 3, cwd: f.root, checked_ns: 1900000000, value }));
     const adapter = await diagnosisAdapter(f.service, { now: () => 2000 });
     const before = allFiles(f.root), payload = { draft: draft(['git-branch']), scope: 'main', width: 80, input: { session_id: 's', cwd: f.root } };
     assert.ok(output(adapter(payload)).includes('topic'));
     const stale = await diagnosisAdapter(f.service, { now: () => 3000 }); assert.equal(stale(payload).instances[0]!.evidence[0]!.status, 'stale');
     assert.deepEqual(allFiles(f.root), before);
+});
+test('Git policy failures remain unavailable with a specific cached reason', async t => {
+    const f = setup(t), folder = join(f.root, 'git_cache'); mkdirSync(folder);
+    writeFileSync(join(folder, sha256('s') + '.json'), JSON.stringify({version:3,cwd:f.root,checked_ns:1900000000,value:{kind:'error',reason:'filter_blocked'}}));
+    const adapter = await diagnosisAdapter(f.service, {now:()=>2000});
+    const before = allFiles(f.root), r = adapter({draft:draft(['git-changes']),scope:'main',width:80,input:{session_id:'s',cwd:f.root}});
+    assert(output(r).includes('Git!')); assert(!output(r).includes('clean'));
+    assert.equal(r.instances[0]!.evidence[0]!.status,'source_unavailable');
+    assert.deepEqual(r.instances[0]!.evidence[0]!.fields,[{path:'git_policy.filter_blocked',status:'not_observed'}]);
+    assert.deepEqual(allFiles(f.root),before);
 });
 
 test('partial and corrupt usage snapshots never turn unobserved output into zero', async t => {

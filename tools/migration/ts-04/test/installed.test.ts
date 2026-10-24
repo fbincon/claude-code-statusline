@@ -13,8 +13,9 @@ import * as bridge from '@fbincon/statusline-platform/terminal/bridge';
 import { Capture } from '../capture.js';
 import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershellIsolation, runShell, type ShellReceipt } from '../shell.js';
 import { sha256 } from '../../../build/files.js';
+import { installedGitPolicy } from '../../../acceptance/git-policy.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -55,6 +56,9 @@ function ui(config: string, operation: string, payload: unknown = {}, environmen
     assert.ok(result.result);
     return result.result;
 }
+test('installed Git policy blocks repository programs without inventing a clean worktree', async () => {
+    report.git_policy_cases = await installedGitPolicy(installed); checks.git_policy = true;
+});
 test('installed groups retain linked visibility, remapped copies and portable references', () => {
     const config = setup('groups');
     run(['config', 'set-items', 'context-used', 'session-cost'], config);

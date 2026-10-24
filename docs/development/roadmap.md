@@ -4,7 +4,7 @@
 
 Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. The next product sequence is first-entry installation, version management, selective import, gradients, explicit-row alignment and then demonstrations (M8–M13). Git invocation review and Windows preview consistency are priority independent maintenance. All eight future packages remain NOT_STARTED; delivered packages, including CI-01, remain DONE.
+Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. The next product sequence is first-entry installation, version management, selective import, gradients, explicit-row alignment and then demonstrations (M8–M13). Git invocation review and Windows preview consistency are priority independent maintenance. GIT-01 is VALIDATING for v3.8.0; the other seven future packages remain NOT_STARTED; delivered packages, including CI-01, remain DONE.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -62,7 +62,7 @@ Keep the original project and authors credited when discussing these references.
 
 | Priority | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| Priority independent maintenance | [GIT-01](development-plan.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | NOT_STARTED |
+| Priority independent maintenance | [GIT-01](development-plan.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | VALIDATING |
 | Priority independent maintenance | [TERMINAL-01](development-plan.md#terminal-01) | Consistent or explicitly explained Windows preview colors across setup, configure and slash entry | Existing terminal detection/launch paths; [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | NOT_STARTED |
 | M8 First entry | [SETUP-02](development-plan.md#setup-02) | No-argument/npx entry connects npm global installation, a durable binding and existing setup | Delivered SETUP-01 and installation/recovery mechanisms | NOT_STARTED |
 | M9 Version management | [UPDATE-01](development-plan.md#update-01) | Explicit version checks, upgrades, rollback and failure recovery | SETUP-02 installation identity and existing compatibility/recovery rules | NOT_STARTED |
@@ -73,7 +73,7 @@ Keep the original project and authors credited when discussing these references.
 
 M8 → M9 → M10 → M11 → M12 → M13 is the selected product order. Scheduling does not create technical dependencies: import does not require version management, and alignment does not require gradients. Each package may ship in bounded slices; later options must retain import/export compatibility. SHOWCASE-01 retains its ID and waits for all selected M8–M12 functionality, including both IMPORT-01 slices, to be completed and accepted. Further candidates do not block it.
 
-GIT-01 and TERMINAL-01 run independently with priority. Incorporate TERMINAL-01 outcomes into affected Windows preview and demonstration acceptance. GIT-01 now has limited isolated observations described in the [work package](development-plan.md#git-01); these demonstrate configuration-triggered program invocation under stated conditions, not a complete vulnerability assessment or a finished protection policy.
+GIT-01 and TERMINAL-01 run independently with priority. Incorporate TERMINAL-01 outcomes into affected Windows preview and demonstration acceptance. GIT-01 has a shared invocation policy under validation; see the [implementation and compatibility record](m8-m9-delivery.md). Historical isolated observations remain separate from completed platform and artifact acceptance.
 
 M4–M7 shipped in v3.7.0 through four feature PRs and a final release PR. [Implementation and validation](m4-m7-delivery.md) records the starting commits, interface decisions and actual evidence; package completion and publication remain separate.
 

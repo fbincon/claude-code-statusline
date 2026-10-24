@@ -1872,5 +1872,6 @@
   "statusline.short.main.session-cost-rate": "费用速率",
   "explain.reason.cost_rate_session": "以官方会话时长为分母，至少需要 60 秒。",
   "explain.reason.cost_rate_api": "以官方累计 API 时长为分母，与任务活跃时长独立。",
-  "guidance.requirements.cost_rate": "推导估算值：费用除以所选官方时长（小时），要求至少 60 秒。费用为零有效；缺失、负数或非有限值不可用，不代表账单或未来消费预测。"
+  "guidance.requirements.cost_rate": "推导估算值：费用除以所选官方时长（小时），要求至少 60 秒。费用为零有效；缺失、负数或非有限值不可用，不代表账单或未来消费预测。",
+  "doctor.git_policy": "Git 工作区采集不可用（{reason}）。请检查仓库过滤器；Git 配置未被修改。详见诊断指南中的 Git 调用策略。"
 }

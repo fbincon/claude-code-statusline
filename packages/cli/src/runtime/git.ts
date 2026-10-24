@@ -9,6 +9,7 @@ import type { RuntimeContext } from './context.js';
 import { runtimeIO, readStored, type RuntimeIO } from './io.js';
 import { readDataJson } from './json-data.js';
 import { decodeUtf8 } from '@fbincon/statusline-platform/utf8';
+import { GitInvocation, GitPolicyError } from '@fbincon/statusline-platform/git';
 function strip(raw: Buffer): Buffer { let start = 0, end = raw.length; const space = (v: number) => v === 32 || v >= 9 && v <= 13; while (start < end && space(raw[start]!))
     start++; while (end > start && space(raw[end - 1]!))
     end--; return raw.subarray(start, end); }
@@ -77,13 +78,15 @@ export class GitCollector {
     }
     uncached(cwd: string): Data {
         try {
-            const result = this.run({ executable: 'git', args: ['-C', cwd, '--no-optional-locks', 'status', '--porcelain=v2', '--branch', '--ahead-behind', '--renames', '--untracked-files=all'] }, { timeoutMs: 2000, environment: { ...process.env, LC_ALL: 'C' } });
+            const invocation = new GitInvocation(cwd, 2000, this.run, this.monotonic);
+            const policy = invocation.worktreePolicy();
+            const result = invocation.command(['status', '--porcelain=v2', '--branch', '--ahead-behind', '--renames', '--untracked-files=all'], policy);
             if (result.code !== 0)
                 return { kind: result.stderr.toString('utf8').includes('not a git repository') ? 'not_repo' : 'error' };
             return parsePorcelain(result.stdout.toString('utf8'));
         }
-        catch {
-            return { kind: 'error' };
+        catch (error) {
+            return error instanceof GitPolicyError ? error.reason === 'not_repo' ? { kind: 'not_repo' } : { kind: 'error', reason: error.reason } : { kind: 'error' };
         }
     }
     status(cwd: string, session: unknown = null): Data {
@@ -95,11 +98,11 @@ export class GitCollector {
         return result;
     }
     branchDiff(cwd: string, baseRef: string | null = null, timeoutMs = 2000): Data {
-        const deadline = this.monotonic() + timeoutMs;
-        const git = (...args: string[]) => { const remaining = deadline - this.monotonic(); if (remaining <= 0)
-            throw new CommandTimeout('Git deadline expired'); return this.run({ executable: 'git', args: ['-C', cwd, '--no-optional-locks', ...args] }, { timeoutMs: remaining }); };
+        let invocation: GitInvocation;
+        const git = (...args: string[]) => invocation.command(args);
         const commit = (ref: string) => { const result = git('rev-parse', '--verify', '--end-of-options', ref + '^{commit}'); return result.code === 0 ? ascii(strip(result.stdout)) : null; };
         try {
+            invocation = new GitInvocation(cwd, timeoutMs, this.run, this.monotonic);
             const repository = git('rev-parse', '--show-toplevel');
             if (repository.code !== 0)
                 return { value: null, reason: 'not_repo' };
