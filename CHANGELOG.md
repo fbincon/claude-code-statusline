@@ -5,8 +5,15 @@
 
 ## Unreleased
 
+## 3.8.0 — 2026-10-24
+
+- Share bounded Git invocation policy, preserving supported filter semantics and reporting unavailable results when repository filters cannot safely run.
+- Share actual-console color detection across setup, configure and slash editors; verified Windows VT defaults to 256 colors and restores console modes on exit.
+- Connect interactive no-argument entry to reviewed persistent npm installation and existing setup, with verified durable Claude binding.
+- Add explicit version checks, upgrades, rollback, interrupted-package recovery and separately approved configuration restoration, verified against the published v3.7.0 archive.
+- Preserve Node 22/24, six languages, display schema 13, editor protocol 21 and existing source/runtime formats; add independent package compatibility and transaction records.
 - Pin GitHub Actions to verified commits, add offline identity checks and weekly same-major Actions update proposals.
-- [CI maintenance and validation](docs/development/ci-maintenance.md).
+- [Release notes](docs/releases/v3.8.0.md) · [Implementation and validation](docs/development/m8-m9-delivery.md) · [CI maintenance](docs/development/ci-maintenance.md).
 
 ## 3.7.0 — 2026-10-24
 

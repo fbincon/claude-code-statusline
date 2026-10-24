@@ -5,8 +5,15 @@
 
 ## Unreleased
 
+## 3.8.0 — 2026-10-24
+
+- 统一有界 Git 调用策略，保留受支持过滤器语义；仓库过滤器无法安全执行时明确报告不可用。
+- setup、configure 与 slash 编辑器共用实际控制台色彩判断；已验证 Windows VT 默认使用 256 色，退出恢复控制台模式。
+- 交互式无参数入口串联经审核的持久 npm 安装与既有 setup，并验证 Claude 的持久绑定。
+- 新增显式版本检查、升级、回退、中断包恢复及独立批准的配置恢复，使用已发布 v3.7.0 归档验证往返。
+- 保留 Node 22／24、六语言、显示 schema 13、编辑器协议 21 及既有来源／runtime 格式；新增独立的包兼容与事务记录。
 - 将 GitHub Actions 固定至已核实提交，新增离线身份检查及每周同主版本 Actions 更新提议。
-- [CI 维护与验证](docs/development/ci-maintenance.zh-CN.md)。
+- [发布说明](docs/releases/v3.8.0.md) · [实现与验收](docs/development/m8-m9-delivery.zh-CN.md) · [CI 维护](docs/development/ci-maintenance.zh-CN.md)。
 
 ## 3.7.0 — 2026-10-24
 

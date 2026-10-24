@@ -4,7 +4,7 @@
   "decision": "accept-known-gaps",
   "approved_by": "fbincon",
   "approved_on": "2026-10-24",
-  "authority": "The maintainer approved implementation of GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 as v3.8.0, with separate feature PRs and a final release PR. Commits, pushes, PR merges, GitHub/npm/Gitee releases and explicit validated main/tag synchronization are authorized after all final PR/main/tag automated gates pass. Version management is explicit CLI/terminal review, with exact-version noninteractive consent and separate configuration restoration. Only the six existing issue #96 gaps are accepted and remain unverified; no new failed or missing automated gate is waived. The planned version identity is prepared during UPDATE-01 to verify real v3.7.0/v3.8.0 artifact transitions; publication remains gated.",
+  "authority": "The maintainer approved GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 as v3.8.0 through four feature PRs and one release PR. The four feature PRs below have passed their source-bound full CI and merged. Commits, pushes, PR merges, GitHub/npm/Gitee releases and explicit validated main/tag synchronization are authorized after all final release PR/main/tag automated gates pass. Version management uses explicit CLI/terminal review, exact-version noninteractive consent and separate configuration restoration. Only the six existing issue #96 gaps are accepted and remain unverified; no new failed or missing automated gate is waived. The 3.8.0 identity has been exercised against the published v3.7.0 archive. Publication and channel verification remain separate requirements.",
   "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
   "accepted_gaps": [
     "physical-macos-sleep",
@@ -13,5 +13,35 @@
     "wsl-desktop-popup",
     "remaining-target-power-and-human-visual",
     "claude-2.1.296-exact-declarations"
+  ],
+  "implementation_prs": [
+    {
+      "work_package": "GIT-01",
+      "number": 137,
+      "head": "ae8c1cb1d9f67db7e124228829350a9a2aea3681",
+      "merge": "b4f29f4eac40ad216946f3b57d0c7c2db242085a",
+      "ci_run": 40075245972
+    },
+    {
+      "work_package": "TERMINAL-01",
+      "number": 138,
+      "head": "5f7dd5458e7c6de153a6abe9bcd03bab152aa63d",
+      "merge": "d89a191b156a094a8b5d840380ef4fd78dfb80fd",
+      "ci_run": 40075247333
+    },
+    {
+      "work_package": "SETUP-02",
+      "number": 139,
+      "head": "4353660f69e7c404b2cbdd3e22278cd263118b56",
+      "merge": "3a46985ed37109956913e3f841b32eb1c666d86f",
+      "ci_run": 40081854700
+    },
+    {
+      "work_package": "UPDATE-01",
+      "number": 140,
+      "head": "2394bcff50e2a3e37b0912c28e2de7e8afc6b7b6",
+      "merge": "dfb2083bd2086dc842b6d6f04b3a87a6daddf03e",
+      "ci_run": 40087600655
+    }
   ]
 }
