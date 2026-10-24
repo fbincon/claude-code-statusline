@@ -73,3 +73,5 @@ UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1
 [修正后的清理诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40081505631)通过 Windows 2025／ARM × Node 22.x／24.0.0 的全部四个作业；每个作业均完成两类有界复制失败场景各 1,000 轮，以及目录链接／Unicode 清理回归。最终安装包及发布矩阵仍须单独通过。
 
 [更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40079404397)还在十秒上限的 `git lfs version` 夹具准备阶段记录了空子进程状态，尚未进入产品策略检查。旧日志未保留底层错误，因此不推断具体原因。夹具现记录状态／信号／错误，并仅对此冷启动准备允许三十秒；产品截止时间及过滤器／超时断言保持不变。
+
+[后续更新矩阵](https://github.com/fbincon/claude-code-statusline/actions/runs/40081939042)触及旧有单操作 150 秒及安装套件十分钟验收预算：前者可能先于产品单个 npm 步骤的 180 秒上限中断，后者未计入新增真实包转换序列。验收现分别组合单操作六分钟、转换序列十五分钟（正式宿主二十分钟）、既有套件十分钟及外层准备／清理预算，产品超时不变。每条版本测试命令在临时安装目录之外记录耗时、结果及有界失败诊断，未完成运行不能提供通过回执。中间 [main 运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40080997079)另保留了一项 macOS checkout DNS 失败，尚未取得源码或执行候选；最终仍须通过绑定源码的完整门禁。

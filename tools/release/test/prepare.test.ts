@@ -9,12 +9,13 @@ import { NODE_RUNTIME_CASES } from '@fbincon/statusline-core/node-runtime';
 import { VERSION, isPrerelease } from '@fbincon/statusline-core/release';
 import { repoRoot } from '../../migration/ts-03/common.js';
 const commit = 'a'.repeat(40), hash = 'b'.repeat(64);
+const transitions = (official = false) => ({ cases: 7, historical_version: '3.7.0', historical_sha256: LEGACY_370_SHA256, target_version: VERSION, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, host_mode: official ? 'official' : 'version-only', model_calls: 0, operation_timings: Array.from({ length: official ? 20 : 19 }, (_, index) => ({ command: 'operation-' + index, elapsed_ms: 1 })) });
 function receipts(): any[] {
     const base = { status: 'pass', commit, tarball_sha256: hash };
-    const installations = INSTALL_TARGETS.map(target => ({ ...base, target, offline_install: true, initially_empty_npm_cache: true, lifecycle_scripts: false, outside_checkout: true, path_excludes_python_and_compilers: true, powershell_setup: target.startsWith('windows-') ? { status: 'pass', candidate_invoked: false, receipt: { status: 0, timeout_ms: 60000, error: null } } : null, setup_cases: 3, extension_cases: 4, indicator_cases: 3, group_cases: 4, automatic_refresh_cases: 4, cost_rate_cases: 4, git_policy_cases: 4, first_entry_cases: 4, version_management: {cases:7,historical_version:'3.7.0',historical_sha256:LEGACY_370_SHA256,target_version:VERSION,roundtrip:true,independent_runner:true,crash_recovery:true,configuration_restore:true,real_npm:true}, terminal_color_cases: target.startsWith('windows-') ? 15 : 3, checks: { ...Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i, true])), setup: true, extensions: true, indicators: true, groups: true, automatic_refresh: true, cost_rates: true, git_policy: true, terminal_colors: true, first_entry: true, version_management: true } }));
+    const installations = INSTALL_TARGETS.map(target => ({ ...base, target, offline_install: true, initially_empty_npm_cache: true, lifecycle_scripts: false, outside_checkout: true, path_excludes_python_and_compilers: true, powershell_setup: target.startsWith('windows-') ? { status: 'pass', candidate_invoked: false, receipt: { status: 0, timeout_ms: 60000, error: null } } : null, setup_cases: 3, extension_cases: 4, indicator_cases: 3, group_cases: 4, automatic_refresh_cases: 4, cost_rate_cases: 4, git_policy_cases: 4, first_entry_cases: 4, version_management: transitions(), terminal_color_cases: target.startsWith('windows-') ? 15 : 3, checks: { ...Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i, true])), setup: true, extensions: true, indicators: true, groups: true, automatic_refresh: true, cost_rates: true, git_policy: true, terminal_colors: true, first_entry: true, version_management: true } }));
     return [...installations,
         ...installations.flatMap(receipt => NODE_RUNTIME_CASES.map(runtime_case => ({ ...receipt, kind: 'node-runtime', runtime_case, runtime_tests: true, node: 'v' + runtime_case.replace('x', '25.0'), node_sha256: hash }))),
-        ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), package_management: {host_mode:'official',host,historical_sha256:LEGACY_370_SHA256,target_version:VERSION,cases:7,roundtrip:true,configuration_restore:true,model_calls:0}, installed: { ...base, source: { commit } } }; })];
+        ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), package_management: { ...transitions(true), host }, installed: { ...base, source: { commit } } }; })];
 }
 test('tests.integration.test_publish_package.AcceptanceTests.test_completed_matrix_is_required', () => {
     assert.equal(assessEvidence(receipts(), commit, hash).hosts, 13);
@@ -75,4 +76,17 @@ test('every runtime case must include the correct Node and passing product tests
         assert.throws(() => assessEvidence(rows, commit, hash));
     }
     assert.throws(() => assessEvidence(receipts().filter(row => row.kind !== 'node-runtime'), commit, hash), /Incomplete/);
+});
+
+test('installed and official-host version receipts must retain every recovery and operation result', () => {
+    for (const official of [false, true]) {
+        for (const patch of [{ independent_runner: false }, { crash_recovery: undefined }, { operation_timings: [] }, { model_calls: 1 }]) {
+            const rows = receipts(), row = official ? rows.find(row => row.host) : rows[0];
+            Object.assign(official ? row.package_management : row.version_management, patch);
+            assert.throws(() => assessEvidence(rows, commit, hash));
+        }
+        const rows = receipts(), row = official ? rows.find(row => row.host) : rows[0];
+        (official ? row.package_management : row.version_management).operation_timings[0].elapsed_ms = -1;
+        assert.throws(() => assessEvidence(rows, commit, hash));
+    }
 });

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
-import { join, dirname, delimiter, relative } from 'node:path';
+import { join, dirname, delimiter, relative, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -9,6 +9,7 @@ import { npmEntry, readTar } from '../build/files.js';
 import { LEGACY_370_SHA256 } from '@fbincon/statusline-core/management/compatibility';
 import type { installCandidate } from './install.js';
 import { officialEnvironment } from './install.js';
+import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS } from './budgets.js';
 export interface VersionHost {
     executable: string;
     args: readonly string[];
@@ -19,9 +20,10 @@ type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'r
     npm: string;
     legacy: string;
     legacyManifest: any;
+    trace: string;
     host?: VersionHost;
 };
-export async function installedVersionManagement(installed: ReturnType<typeof installCandidate>, host?: VersionHost): Promise<Record<string, unknown>> {
+export async function installedVersionManagement(installed: ReturnType<typeof installCandidate>, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
     const legacy = join(installed.temporary, 'historical-3.7.0.tgz');
     if (process.env.TS06_LEGACY_370_ARTIFACT)
         fs.copyFileSync(process.env.TS06_LEGACY_370_ARTIFACT, legacy);
@@ -33,11 +35,15 @@ export async function installedVersionManagement(installed: ReturnType<typeof in
         fs.writeFileSync(legacy, bytes);
     }
     assert.equal(createHash('sha256').update(fs.readFileSync(legacy)).digest('hex'), LEGACY_370_SHA256);
-    const input: Input = { temporary: installed.temporary, node: installed.node, root: installed.root, entry: installed.entry, env: host ? officialEnvironment(installed) as typeof installed.env : installed.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')), host };
+    const trace = tracePath ?? (process.env.TS04_INSTALLED_REPORT ? process.env.TS04_INSTALLED_REPORT + '.version-management.jsonl' : join(installed.temporary, 'version-management-trace.jsonl'));
+    fs.mkdirSync(dirname(trace), { recursive: true });
+    fs.writeFileSync(trace, '', { mode: 0o600 });
+    const input: Input = { temporary: installed.temporary, node: installed.node, root: installed.root, entry: installed.entry, env: host ? officialEnvironment(installed) as typeof installed.env : installed.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')), trace, host };
     const program = `import {versionManagementChild} from ${JSON.stringify(import.meta.url)};console.log(JSON.stringify(await versionManagementChild(JSON.parse(process.argv[1]))));`;
-    const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { cwd: installed.directory, encoding: 'utf8', timeout: host ? 720000 : 420000, windowsHide: true, maxBuffer: 8 * 1024 * 1024 });
-    assert.equal(result.error, undefined);
-    assert.equal(result.status, 0, result.stderr + result.stdout);
+    const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { cwd: installed.directory, encoding: 'utf8', timeout: host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS, windowsHide: true, maxBuffer: 8 * 1024 * 1024 });
+    const diagnostics = result.stderr + result.stdout + '\n' + fs.readFileSync(trace, 'utf8').slice(-16000);
+    assert.equal(result.error, undefined, diagnostics);
+    assert.equal(result.status, 0, diagnostics);
     return JSON.parse(result.stdout);
 }
 export async function versionManagementChild(input: Input): Promise<Record<string, unknown>> {
@@ -84,20 +90,39 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     fs.writeFileSync(userconfig, '');
     fs.writeFileSync(globalconfig, '');
     const env = { ...input.env, PATH: hostBin + delimiter + input.env.PATH, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: userconfig, npm_config_globalconfig: globalconfig, npm_config_cache: join(input.temporary, 'update-cache'), npm_config_prefer_online: 'true', CLAUDE_CONFIG_DIR: configDir };
-    const invoke = (args: string[], success = true) => new Promise<{
+    let sequence = 0;
+    const timings: { command: string; elapsed_ms: number }[] = [];
+    const trace = (value: Record<string, unknown>) => fs.appendFileSync(input.trace, JSON.stringify({ at: new Date().toISOString(), node: process.version, ...value }) + '\n');
+    const transaction = () => {
+        try {
+            const marker = JSON.parse(fs.readFileSync(join(prefix, '.claude-statusline-operation.json'), 'utf8'));
+            const operation = JSON.parse(fs.readFileSync(join(configDir, 'statusline_runtime/package-management/transactions', marker.id, 'operation.json'), 'utf8'));
+            return { stage: operation.stage, version: operation.version, results: operation.results, executors: operation.executors?.length ?? 0 };
+        } catch { return null; }
+    };
+    const invoke = (args: string[], success = true, inputData = '') => new Promise<{
         code: number | null;
         stdout: string;
         stderr: string;
     }>((resolve, reject) => {
+        const id = ++sequence, started = performance.now(), label = args[0] === '--input-type=module' ? 'crash-after-package-verification' : basename(args[0]!) + ' ' + args.slice(1, 3).join(' ');
+        trace({ phase: 'start', id, command: label, argv: args[0] === '--input-type=module' ? ['<controlled crash checkpoint>'] : args });
         const child = spawn(input.node, args, { cwd: input.temporary, env, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
         let stdout = '', stderr = '';
-        const timer = setTimeout(() => { child.kill('SIGKILL'); reject(new Error('Installed version operation timed out')); }, 150000);
+        const timer = setTimeout(() => {
+            trace({ phase: 'timeout', id, command: label, elapsed_ms: performance.now() - started, transaction: transaction(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) });
+            child.kill('SIGKILL');
+            reject(new Error('Installed version operation timed out: ' + label));
+        }, VERSION_OPERATION_MS);
         child.stdout.on('data', b => stdout += b);
         child.stderr.on('data', b => stderr += b);
-        child.stdin.end();
-        child.once('error', reject);
-        child.once('exit', code => {
+        child.stdin.end(inputData);
+        child.once('error', error => { clearTimeout(timer); trace({ phase: 'error', id, command: label, error: error.message }); reject(error); });
+        child.once('exit', (code, signal) => {
             clearTimeout(timer);
+            const elapsed_ms = performance.now() - started;
+            timings.push({ command: label, elapsed_ms });
+            trace({ phase: 'exit', id, command: label, code, signal, elapsed_ms, ...(code !== 0 ? { transaction: transaction(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) } : {}) });
             try {
                 if (success)
                     assert.equal(code, 0, stderr + stdout);
@@ -166,9 +191,9 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline-profiles.json')), profiles);
         assert.equal(JSON.parse(fs.readFileSync(join(configDir, 'claude-statusline-native.json'), 'utf8')).native_editor, false);
         assert.equal(JSON.parse(fs.readFileSync(settingsPath, 'utf8')).env.KEEP, 'unchanged');
-        const render = await new Promise<string>((resolve, reject) => { const child = spawn(input.node, [entry, 'render'], { cwd: input.temporary, env, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] }); let text = ''; child.stdout.on('data', b => text += b); child.once('error', reject); child.once('exit', code => code === 0 ? resolve(text) : reject(new Error('Render failed'))); child.stdin.end(JSON.stringify({ model: { display_name: 'After version recovery' } })); });
-        assert(render.includes('After version recovery'));
-        return { cases: 7, historical_version: '3.7.0', historical_sha256: LEGACY_370_SHA256, target_version: targetVersion, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0 };
+        const render = await invoke([entry, 'render'], true, JSON.stringify({ model: { display_name: 'After version recovery' } }));
+        assert(render.stdout.includes('After version recovery'));
+        return { cases: 7, historical_version: '3.7.0', historical_sha256: LEGACY_370_SHA256, target_version: targetVersion, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
     }
     finally {
         server.closeAllConnections();

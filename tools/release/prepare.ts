@@ -12,6 +12,19 @@ import { stableApprovalPath, UNVERIFIED_GATES, assessStableApproval } from './ap
 import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => os + '-' + host))];
+function versionSequence(value: any, official: boolean): void {
+    assert(value && typeof value === 'object', 'Missing version-management receipt');
+    assert.equal(value.cases, 7);
+    assert.equal(value.historical_version, '3.7.0');
+    assert.equal(value.historical_sha256, LEGACY_370_SHA256);
+    assert.equal(value.target_version, VERSION);
+    assert.equal(value.host_mode, official ? 'official' : 'version-only');
+    assert.equal(value.model_calls, 0);
+    for (const key of ['roundtrip', 'independent_runner', 'crash_recovery', 'configuration_restore', 'real_npm']) assert.equal(value[key], true);
+    assert(Array.isArray(value.operation_timings) && value.operation_timings.length === (official ? 20 : 19), 'Incomplete version-operation evidence');
+    for (const operation of value.operation_timings)
+        assert(operation && typeof operation.command === 'string' && operation.command.length > 0 && Number.isFinite(operation.elapsed_ms) && operation.elapsed_ms >= 0, 'Invalid version-operation evidence');
+}
 export function assessEvidence(reports: any[], commit: string, sha256: string) {
     const typesUnavailable: string[] = [], seen = new Set<string>();
     for (const report of reports) {
@@ -40,9 +53,7 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
             assert.equal(Object.keys(report.checks).length, 20); assert(Object.values(report.checks).every(value => value === true));
-            assert.equal(report.checks.version_management, true); assert.equal(report.version_management.cases, 7);
-            for (const key of ['roundtrip','independent_runner','crash_recovery','configuration_restore','real_npm']) assert.equal(report.version_management[key], true);
-            assert.equal(report.version_management.historical_version, '3.7.0'); assert.equal(report.version_management.historical_sha256, LEGACY_370_SHA256); assert.equal(report.version_management.target_version, VERSION);
+            assert.equal(report.checks.version_management, true); versionSequence(report.version_management, false);
             assert.equal(report.checks.first_entry, true); assert.equal(report.first_entry_cases, 4);
             assert.equal(report.checks.git_policy, true); assert.equal(report.git_policy_cases, 4);
             assert.equal(report.checks.terminal_colors, true); assert.equal(report.terminal_color_cases, report.target.startsWith('windows-') ? 15 : 3);
@@ -64,9 +75,7 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             }
             assert.equal(report.installed.status, 'pass'); assert.equal(report.installed.tarball_sha256, sha256);
             assert.equal(report.installed.source.commit, commit);
-            assert.equal(report.package_management?.host_mode,'official');assert.equal(report.package_management.host,report.host);
-            assert.equal(report.package_management.historical_sha256,LEGACY_370_SHA256);assert.equal(report.package_management.target_version,VERSION);
-            assert.equal(report.package_management.cases,7);assert.equal(report.package_management.roundtrip,true);assert.equal(report.package_management.configuration_restore,true);assert.equal(report.package_management.model_calls,0);
+            versionSequence(report.package_management, true); assert.equal(report.package_management.host, report.host);
         }
     }
     const runtimeTargets = INSTALL_TARGETS.flatMap(target => NODE_RUNTIME_CASES.map(runtime => target + '@' + runtime));
