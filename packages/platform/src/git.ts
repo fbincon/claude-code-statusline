@@ -58,7 +58,7 @@ export function filterOverrides(entries: readonly FilterEntry[], roots: readonly
             overrides.set(entry.key, quote(executable) + ' ' + lfs[entry.field]);
             continue;
         }
-        const crypt = /^(?:"([\p{L}\p{N}\p{M}_./\\:+@ -]+)"|([\p{L}\p{N}\p{M}_./\\:+@-]+)) (clean|smudge)( --key-name [\w-]+)?$/u.exec(entry.value);
+        const crypt = /^(?:"([\p{L}\p{N}\p{M}_./\\:+@ ()~-]+)"|([\p{L}\p{N}\p{M}_./\\:+@~-]+)) (clean|smudge)( --key-name [\w-]+)?$/u.exec(entry.value);
         const program = crypt?.[1] ?? crypt?.[2];
         if (program && isAbsolute(program) && /(?:^|[/\\])git-crypt(?:\.exe)?$/u.test(program) && crypt![3] === entry.field) {
             const executable = externalExecutable(program, roots);
