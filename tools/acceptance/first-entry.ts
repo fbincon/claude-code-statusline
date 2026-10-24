@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
+import { copyPackage } from '@fbincon/statusline-platform/package-copy';
 import { npmEntry } from '../build/files.js';
 import type { installCandidate } from './install.js';
 type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'root' | 'env'> & {
@@ -37,7 +38,7 @@ export async function firstEntryChild(input: Input): Promise<{
     const trace=(stage:string,detail:unknown=null)=>fs.appendFileSync(join(input.temporary,'first-entry-trace.jsonl'),JSON.stringify({stage,detail,node:process.version,native:Object.keys(createRequire(import.meta.url).cache).filter(path=>path.endsWith('.node'))})+'\n',{mode:0o600});
     const cacheRoot = join(input.temporary, 'first-entry-cache'), origin = join(cacheRoot, '_npx', 'fixture', 'node_modules/@fbincon/claude-code-statusline');
     trace('copy-start');
-    fs.cpSync(input.root, origin, { recursive: true });
+    copyPackage(input.root, origin);
     trace('copy-complete');
     const modules = join(origin, 'node_modules/@fbincon');
     const load = (name: string, path: string) => import(pathToFileURL(join(modules, 'statusline-' + name, 'dist/src', path + '.js')).href);
