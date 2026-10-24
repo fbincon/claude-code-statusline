@@ -63,7 +63,7 @@
 
 ### 准备开发环境
 
-安装固定的 Node 24.21.0/npm 11.19.0 后，在仓库根目录运行：
+安装固定的 Node 24.21.0/npm 11.19.0、Git 和 Git LFS 后，在仓库根目录运行。Git 策略回归会在隔离仓库执行真实 LFS 转换：
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund
