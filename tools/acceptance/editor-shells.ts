@@ -18,6 +18,8 @@ export function editorShell(name: typeof EDITOR_SHELLS[number], directory: strin
         return { argv: [join(system, 'System32/cmd.exe'), '/d', '/c', 'color-shell.cmd'], env };
     }
     const bash = process.env.TS04_GIT_BASH ?? join(process.env.ProgramFiles ?? 'C:\\Program Files', 'Git/bin/bash.exe');
-    const command = 'exec 2>color-shell.stderr; export TERM=xterm-256color; exec ' + names.map((key, index) => index < 2 ? '"$(/usr/bin/cygpath -u "$TS06_COLOR_' + key + '")"' : '"$TS06_COLOR_' + key + '"').join(' ');
+    // Bash resolves its executable as a POSIX path; native Node receives the
+    // remaining paths in Windows form without relying on MSYS argument rewriting.
+    const command = 'exec 2>color-shell.stderr; export TERM=xterm-256color; exec ' + names.map((key, index) => index === 0 ? '"$(/usr/bin/cygpath -u "$TS06_COLOR_' + key + '")"' : '"$TS06_COLOR_' + key + '"').join(' ');
     return { argv: [bash, '--noprofile', '--norc', '-c', command], env };
 }
