@@ -58,9 +58,10 @@ export async function firstEntryChild(input: Input): Promise<{
         port: number;
     }).port + '/';
     try {
-        const configDir = join(input.temporary, 'first-entry-config'), prefix = join(input.temporary, 'global prefix 中文'), empty = join(input.temporary, 'empty-npmrc');
+        const configDir = join(input.temporary, 'first-entry-config'), prefix = join(input.temporary, 'global prefix 中文'), empty = join(input.temporary, 'empty-npmrc'), globalConfig=join(input.temporary,'empty-global-npmrc');
         fs.writeFileSync(empty, '');
-        const env = { ...input.env, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: empty, npm_config_globalconfig: empty, npm_config_cache: cacheRoot };
+        fs.writeFileSync(globalConfig,'');
+        const env = { ...input.env, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: empty, npm_config_globalconfig: globalConfig, npm_config_cache: cacheRoot };
         const npm = new Npm(env, undefined, input.npm), args = ['--prefix', prefix];
         let review = '', handoff = 0, entry = '';
         const options = { configDir, language: 'en', tty: true, origin, npm, stdout: (s: string) => review += s, stderr: (s: string) => review += s, confirm: async () => true,

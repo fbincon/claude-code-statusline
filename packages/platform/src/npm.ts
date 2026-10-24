@@ -3,7 +3,7 @@ import { dirname, join, resolve, isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 import { PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { PackageError, exactVersion, type PackageIdentity } from '@fbincon/statusline-core/management/package';
-import { which, resolvedPath } from './commands.js';
+import { which, resolvedPath, sameLaunchEntry } from './commands.js';
 import { runSourceProcess, type SourceProcessOptions, type SourceProcessResult } from './source-process.js';
 export interface NpmLayout {
     prefix: string;
@@ -113,7 +113,8 @@ export class Npm {
             throw new PackageError('prefix');
         return { prefix, root: join(moduleRoot, PACKAGE_NAME), bin: join(prefix, process.platform === 'win32' ? 'claude-statusline.cmd' : 'bin/claude-statusline'), registry, npmVersion, cache: resolvedPath(cache) };
     }
-    async verify(identity: PackageIdentity): Promise<void> {
+    async verify(identity: PackageIdentity, bin?: string): Promise<void> {
+        if(bin && !sameLaunchEntry(bin,{executable:process.execPath,args:[identity.entry]}))throw new PackageError('identity');
         const result = await this.runner({ executable: process.execPath, args: [identity.entry, '--version'], cwd: identity.root, input: '', timeoutMs: 10000, signal: this.signal, environment: this.environment });
         if (result.reason !== 'completed' || result.stdout.trim() !== 'claude-statusline ' + identity.version)
             throw new PackageError('identity');
@@ -121,6 +122,6 @@ export class Npm {
     async install(version: string, layout: NpmLayout): Promise<void> {
         if (!exactVersion(version))
             throw new PackageError('version');
-        await this.run(['install', '--global', '--prefix', layout.prefix, '--registry', layout.registry, '--ignore-scripts', '--no-audit', '--no-fund', PACKAGE_NAME + '@' + version], process.cwd(), 180000);
+        await this.run(['install', '--global', '--prefix', layout.prefix, '--registry', layout.registry, '--ignore-scripts', '--bin-links=true', '--no-audit', '--no-fund', PACKAGE_NAME + '@' + version], process.cwd(), 180000);
     }
 }

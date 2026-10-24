@@ -87,8 +87,10 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
         const before = productIdentity(layout.root, layout.prefix), action = entryAction(before, VERSION);
         if (within(configDir, layout.root))
             throw new PackageError('prefix');
-        if (action === 'version_conflict')
+        if (action === 'version_conflict') {
+            stdout(JSON.stringify({installed:before!.version,target:VERSION,prefix:layout.prefix},null,2)+'\n');
             throw new PackageError('version_conflict');
+        }
         const pathEntry = which('claude-statusline');
         const previous = previousBinding(configDir, createStorage());
         const priorRoot = previous?.args.length === 1 ? productRoot(previous.args[0]!) : null;
@@ -128,7 +130,7 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
             });
         };
         if (before) {
-            await npm.verify(before);
+            await npm.verify(before,layout.bin);
             if (JSON.stringify(productIdentity(layout.root, layout.prefix)) !== JSON.stringify(before))
                 throw new PackageError('conflict');
             stage = 'package_verified';
@@ -149,7 +151,7 @@ export async function firstEntry(args: readonly string[], options: FirstEntryOpt
             const installed = productIdentity(layout.root, layout.prefix);
             if (!installed || installed.version !== VERSION)
                 throw new PackageError('identity');
-            await npm.verify(installed);
+            await npm.verify(installed,layout.bin);
             operation.after = { ...installed, registry: layout.registry };
             stage = 'package_verified';
             operation.stage = 'package_verified';
