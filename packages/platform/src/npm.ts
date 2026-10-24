@@ -126,7 +126,12 @@ export class Npm {
         const prefix = resolvedPath(reported);
         if (!isAbsolute(prefix) || /[\0\r\n]/u.test(prefix))
             throw new PackageError('prefix');
-        const [moduleRoot, npmVersion, scoped, cache] = await Promise.all([this.run(['root', '--global', '--prefix', prefix]), this.run(['--version']), this.run(['config', 'get', '@fbincon:registry']), this.run(['config', 'get', 'cache'])]);
+        // npm invocations share configuration/cache initialization. Serialize
+        // preflight, including the native Windows process supervisor startup.
+        const moduleRoot=await this.run(['root', '--global', '--prefix', prefix]);
+        const npmVersion=await this.run(['--version']);
+        const scoped=await this.run(['config', 'get', '@fbincon:registry']);
+        const cache=await this.run(['config', 'get', 'cache']);
         const registry = scoped && scoped !== 'undefined' && scoped !== 'null' ? scoped : await this.run(['config', 'get', 'registry']);
         try {
             const url = new URL(registry);
