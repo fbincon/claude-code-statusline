@@ -13,10 +13,11 @@ function fixture(t: TestContext) {
     const env = { ...process.env };
     for (const key of Object.keys(env)) if (key.startsWith('GIT_')) delete env[key];
     Object.assign(env, { GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: global, LC_ALL: 'C' });
-    const git = (...args: string[]) => {
-        const r = spawnSync('git', ['-C', repo, ...args], { env, encoding: 'utf8', timeout: 10000, windowsHide: true });
-        assert.equal(r.status, 0, r.stderr); return r.stdout;
+    const gitWithTimeout = (timeout: number, ...args: string[]) => {
+        const r = spawnSync('git', ['-C', repo, ...args], { env, encoding: 'utf8', timeout, windowsHide: true });
+        assert.equal(r.status, 0, JSON.stringify({ args, status: r.status, signal: r.signal, error: r.error ? { code: (r.error as NodeJS.ErrnoException).code, message: r.error.message } : null, stderr: r.stderr })); return r.stdout;
     };
+    const git = (...args: string[]) => gitWithTimeout(10000, ...args);
     git('init', '-q', '-b', 'main');
     for (const [key, value] of [['user.name','Test'], ['user.email','test@example.invalid'], ['core.autocrlf','false'], ['commit.gpgsign','false']]) git('config', key!, value!);
     fs.writeFileSync(join(repo, 'file.txt'), 'aaaa\n'); git('add', '.'); git('commit', '-qm', 'fixture');
@@ -26,7 +27,7 @@ function fixture(t: TestContext) {
     const q = (s: string) => "'" + s.replaceAll('\\', '/').replaceAll("'", "'\\''") + "'";
     const command = [process.execPath, script, marker].map(q).join(' ');
     const invocation = (directory = repo) => new GitInvocation(directory, 5000, undefined, undefined, env);
-    return { root, repo, global, env, git, marker, command, invocation };
+    return { root, repo, global, env, git, gitWithTimeout, marker, command, invocation };
 }
 const status = ['status', '--porcelain=v2', '--branch', '--untracked-files=all'];
 test('repository fsmonitor never runs, while ordinary clean/dirty semantics and config bytes survive', t => {
@@ -123,7 +124,8 @@ test('known drivers pin external executables and reject repository shims, operat
 });
 test('standard repository Git LFS retains real clean-filter semantics and unchanged configuration',t=>{
     const f=fixture(t);
-    f.git('lfs','version');
+    // Allow cold executable preparation before the bounded product checks.
+    f.gitWithTimeout(30000,'lfs','version');
     for(const [field,value] of [['clean','git-lfs clean -- %f'],['smudge','git-lfs smudge -- %f'],['process','git-lfs filter-process'],['required','true']])f.git('config','filter.lfs.'+field,value!);
     fs.writeFileSync(join(f.repo,'.gitattributes'),'*.bin filter=lfs diff=lfs merge=lfs -text\n');
     fs.writeFileSync(join(f.repo,'large.bin'),'same length before\n');f.git('add','.');f.git('commit','-qm','LFS pointer');

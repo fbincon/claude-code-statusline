@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { which } from './commands.js';
 import { windowsJobScript } from './windows-source-job.js';
-import { windowsSourceEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
+import { windowsSourceEnvironment, windowsCommandEnvironment, WINDOWS_RUNTIME_FOLDERS } from './windows-source-environment.js';
 import { decodeUtf8 } from './utf8.js';
 export interface SourceProcessOptions {
     executable: string;
@@ -13,6 +13,8 @@ export interface SourceProcessOptions {
     timeoutMs: number;
     signal?: AbortSignal;
     environment?: NodeJS.ProcessEnv;
+    /** Internal opt-in diagnostic capture. Product callers never expose stderr. */
+    captureStderr?: (value:string)=>void;
 }
 export interface SourceProcessResult {
     code: number | null;
@@ -30,7 +32,8 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
     if (options.signal?.aborted)
         return Promise.resolve({ code: null, stdout: '', reason: 'cancelled' });
     return new Promise(resolve => {
-        const started = performance.now(), windows = process.platform === 'win32', commandEnvironment = { ...(options.environment ?? sourceEnvironment()) };
+        const started = performance.now(), windows = process.platform === 'win32', selected = { ...(options.environment ?? sourceEnvironment()) };
+        const commandEnvironment = windows ? windowsCommandEnvironment(selected) : selected;
         let environment = commandEnvironment;
         const lookupEnvironment = windows ? Object.fromEntries(Object.entries(commandEnvironment).map(([key, value]) => [key.toUpperCase(), value])) : commandEnvironment;
         const found = which(options.executable, lookupEnvironment);
@@ -79,6 +82,7 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
             child.stdout.destroy();
             child.stderr.destroy();
             const detail = Buffer.concat(errors).toString('utf8');
+            try{options.captureStderr?.(detail);}catch{reason='io_error';}
             const errorKind: SourceProcessResult['errorKind'] = /^no checks reported on the '[^\r\n]*' branch\s*$/u.test(detail) ? 'no_checks' : /rate limit|HTTP 429/iu.test(detail) ? 'rate_limit' : /HTTP 403|forbidden|not accessible|permission denied/iu.test(detail) ? 'permission' : /HTTP 401|auth login|not logged|authentication/iu.test(detail) ? 'authentication' : /timeout|connection|resolve host|network|TLS|dial tcp|\bEOF\b/iu.test(detail) ? 'network' : undefined;
             let stdout = '';
             try { stdout = decodeUtf8(Buffer.concat(chunks)); }

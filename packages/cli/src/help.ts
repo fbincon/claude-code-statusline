@@ -72,6 +72,7 @@ export function helpText(command: string | undefined, language: Language): strin
     if (command === 'task') lines.push('', '  show --session-id ID [--prompt-id ID] [--json] [--config-dir PATH]', '  ' + t('task.help',language));
     if (command === 'configure') lines.push('', '  [--user | --profile NAME | --project PATH]', '  Ctrl+O  ' + t('profiles.title',language));
     if (command === 'setup') lines.push('', '  ' + t('setup.steps', language));
+    if (!command || command.startsWith('-')) lines.push('', t('package.help',language));
     if (config) lines.push('', '  profile list|save|rename|delete|preview|activate|import|export', '  project list|bind|unbind|resolve', '  ' + t('profiles.help',language));
     return lines.join('\n') + '\n';
 }

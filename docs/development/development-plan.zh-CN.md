@@ -4,7 +4,7 @@
 
 更新：**2026-10-24**（Asia/Shanghai）· 产品基线：**v3.7.0** · 规划基线：**`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01 和 TERMINAL-01 正在为 v3.8.0 验证（VALIDATING），其余六个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
+本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01、TERMINAL-01、SETUP-02 正在为 v3.8.0 验证（VALIDATING），其余五个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
 
 已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.7.0 专项决定](../releases/approvals/v3.7.0.json)记录该版本对这些缺口的接受。
 
@@ -20,7 +20,7 @@
 | --- | --- | --- | --- |
 | 优先独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | VALIDATING |
 | 优先独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | VALIDATING |
-| M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | NOT_STARTED |
+| M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | VALIDATING |
 | M9 | [UPDATE-01](#update-01) | SETUP-02 的安装身份及既有兼容／恢复规则 | NOT_STARTED |
 | M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | NOT_STARTED |
 | M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | NOT_STARTED |
@@ -109,7 +109,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 ## SETUP-02 首次入口与持久安装
 
-**状态：NOT_STARTED。** M8，扩展已交付的 SETUP-01。
+**状态：VALIDATING。** M8，扩展已交付的 SETUP-01。
 
 **问题与目标。** 已有 setup 串联配置和接入，但获取软件包和选择初始命令仍是分离步骤。提供无参数／npx 首次入口，连接持久安装与已有 setup 流程。
 

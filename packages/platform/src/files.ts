@@ -55,10 +55,10 @@ export function isLinkOrReparse(path: string): boolean {
   return false;
 }
 const held = new Set<string>();
-export function lock(path: string): () => void {
+export function lock(path: string, nonBlocking = false): () => void {
   const key = process.platform === 'win32' ? resolve(path).toLowerCase() : resolve(path);
   if (held.has(key)) throw new Error('Recursive acquisition of a synchronous file lock');
-  const release = acquire(path);
+  const release = acquire(path, nonBlocking);
   held.add(key);
   let active = true;
   return () => { if (active) { active = false; try { release(); } finally { held.delete(key); } } };
@@ -73,7 +73,7 @@ export function withLock<T>(path: string, action: () => T): T {
   } finally { release(); }
 }
 
-function acquire(path: string): () => void {
+function acquire(path: string, nonBlocking: boolean): () => void {
   fs.mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
   if (isLinkOrReparse(path)) throw new Error('Unsafe lock target');
   if (process.platform === 'win32') {
@@ -82,7 +82,7 @@ function acquire(path: string): () => void {
     if (!h || nativeApi().address(h) === 0xffffffffffffffffn) throw winError('CreateFileW');
     const close = () => { k.func('bool CloseHandle(void *handle)')(h); };
     // Same byte-range namespace as Python's msvcrt.locking, including empty files.
-    if (!k.func('bool LockFileEx(void *handle, uint32_t flags, uint32_t reserved, uint32_t low, uint32_t high, _Inout_ void *overlapped)')(h, 2, 0, 1, 0, Buffer.alloc(32))) {
+    if (!k.func('bool LockFileEx(void *handle, uint32_t flags, uint32_t reserved, uint32_t low, uint32_t high, _Inout_ void *overlapped)')(h, nonBlocking ? 3 : 2, 0, 1, 0, Buffer.alloc(32))) {
       const error = winError('LockFileEx'); close(); throw error;
     }
     return close;
@@ -91,7 +91,7 @@ function acquire(path: string): () => void {
   try {
     fs.fchmodSync(fd, 0o600);
     const flock = nativeFunction(process.platform === 'darwin' ? '/usr/lib/libSystem.B.dylib' : 'libc.so.6', 'int flock(int fd, int op)');
-    if (flock(fd, 2)) throw new Error('flock failed');
+    if (flock(fd, nonBlocking ? 6 : 2)) throw new Error('flock failed');
     return () => fs.closeSync(fd);
   } catch (error) { fs.closeSync(fd); throw error; }
 }

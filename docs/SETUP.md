@@ -13,6 +13,16 @@ The wizard checks the environment, lets you keep the current display or select a
 
 Use `claude-statusline --language zh-CN setup` for an invocation language override. Pressing L inside the wizard explicitly changes and immediately saves the UI language. Display language remains part of the display draft. All six supported languages are available.
 
+## First entry and persistent npm installation
+
+In an interactive terminal, run `npx @fbincon/claude-code-statusline` or run an already installed `claude-statusline` without a subcommand. The entry checks the public package identity, Node/npm, effective registry and global prefix. It shows the exact version and location and requires `yes` before installing. npm's initial npx download has its own confirmation.
+
+A matching persistent package is reused, including read-only system installations. A different version, conflicting PATH/integration prefix or pending package operation stops the flow. Select a location explicitly with `--prefix PATH`; the target must be outside npm's cache. No privilege elevation or account login occurs. Source checkouts and engineering candidates keep using explicit commands.
+
+After verification, the global Node/JS entry runs the existing setup wizard. Removing the temporary npx cache after the flow exits does not remove that entry or its Claude binding. Package installation, display Save and Claude integration remain separate stages; cancelling setup retains a completed package install. A failed/uncertain npm step leaves an operation record and cannot be retried blindly.
+
+No-argument non-TTY entry exits 2 without installation or configuration changes. Explicit `--dry-run` may inspect npm locations and print the review without changing the target. `--config-dir PATH` selects the same isolated configuration directory for the later setup.
+
 ## Checks and targets
 
 `setup --dry-run` works without a TTY. It checks Node, the detected Claude version, configuration readability/permissions, resource ownership and pending recovery, then prints the steps. It does not choose a scheme, create configuration directories or locks, run a write probe, install plugins, or recover transactions. Ordinary non-TTY `setup` exits 2 and prints the existing commands. Dry-run exits 0 when integration is eligible and 1 when checks block it.

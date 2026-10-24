@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | GIT-01 | VALIDATING | 共享策略及隔离回归；平台／安装回执待完成 |
 | TERMINAL-01 | VALIDATING | Windows 能力判断一致性 |
-| SETUP-02 | NOT_STARTED | npm 持久首次入口 |
+| SETUP-02 | VALIDATING | npm 持久首次入口 |
 | UPDATE-01 | NOT_STARTED | 从 v3.7.0 起的显式 CLI 版本转换 |
 
 ## Git 调用策略
@@ -43,3 +43,11 @@ TERMINAL-01 增加共享 platform 能力判断及 ready 回调，由 setup、con
 安装验收增加 15 项真实 Windows 控制台场景（三入口 × 五环境），主动清除初始 VT 输出位，捕获发送的调色板，并核对恢复及设置不变。其他平台增加三项安装版策略检查，保留既有 PTY 流程。这些属于自动化控制台观察，不是 Windows Terminal 人工截图；#96 实体／人工缺口保持不变。
 
 GIT-01 中间产物（源码 `2545ee2bea2ae05260c9cd1d824f85ac0472d06d`）通过独立构建字节一致及本地全部 17 项安装检查，包含四项 Git 场景；该中间产物未发布。
+
+## 持久首次入口
+
+SETUP-02 在 core 增加纯安装身份／动作规则，在 platform 提供有界 npm CLI 调用，在 cli/management 编排首次入口及独立包记录。无参数分派不进入渲染热路径。npm 通过已验证的 Node CLI 及字面参数调用，禁用生命周期脚本；保留配置的 registry，不打印认证信息。审核后重查 prefix、当前包字节及未完成操作，使用非阻塞 prefix 锁串行处理不同配置目录的包变更。复用系统安装不要求系统 prefix 可写。
+
+包记录使用 schema 1，位于 `statusline_runtime/package-management`，与旧文件／插件恢复日志分离。npm 部分结果保留 prefix 标记及阶段。持久入口交接不改变显示保存、宿主 Apply、方案、绑定及独立启用策略。审核、取消、失败和下一步说明覆盖六语言。
+
+验收结合状态／副作用回归及四项安装场景：真实 npm 连接临时回环 registry、受控确认、实际集成／渲染，并删除模拟 npx 缓存后用新进程启动。不使用用户 prefix 或 Claude 配置；完整平台结果待完成。
