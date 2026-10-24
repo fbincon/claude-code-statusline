@@ -7,7 +7,7 @@ Target: v3.8.0. Start: `d2975e8a4561371b5d32bec136400963dbccd97f`. Publication i
 | Package | State | Evidence |
 | --- | --- | --- |
 | GIT-01 | VALIDATING | Shared policy and isolated regressions; platform/installed receipts pending |
-| TERMINAL-01 | NOT_STARTED | Windows capability consistency |
+| TERMINAL-01 | VALIDATING | Windows capability consistency |
 | SETUP-02 | NOT_STARTED | Durable npm first entry |
 | UPDATE-01 | NOT_STARTED | Explicit CLI version transitions from v3.7.0 |
 
@@ -35,3 +35,11 @@ Record local checks before each feature PR. Add CI/installed receipts, immutable
 Local development checks passed: 1,167 tests passed and five existing platform skips; generated resources, 3,150 documentation links, archive integrity and migration inventories passed. Subsequent policy/diagnosis/release-gate regressions were rerun after the installed receipt was added. Four installed Git scenarios are now mandatory in release readiness. Full artifact/platform results remain pending.
 
 The first PR matrix exposed a macOS `/var` versus `/private/var` root alias and an index-timestamp-dependent global-filter fixture. Roots now canonicalize at the policy boundary and the fixture explicitly invalidates its file timestamp. Installed Git checks run in a separate Node process so the harness does not load two native adapter installations. The first failed matrix is retained as evidence; replacement gates must pass.
+
+## Windows preview policy
+
+TERMINAL-01 adds a single platform capability decision and a ready callback shared by setup and configure, including the slash bridge. Actual Windows console handles enable/verify VT processing and preserve their original input/output modes. Explicit no-color and terminal choices take priority; inherited Windows Terminal markers alone do not select a palette. Setup no longer recalculates capability on each frame. Doctor guidance covers all six languages.
+
+Installed acceptance adds 15 native Windows-console cases (three entries × five environments), deliberately clears the initial VT output bit, captures the emitted palette and verifies restoration and unchanged settings. Other platforms check three installed policy scenarios alongside their existing PTY journeys. These are automated console observations, not human Windows Terminal screenshots. The #96 physical/human gaps remain unchanged.
+
+The GIT-01 intermediate artifact from `2545ee2bea2ae05260c9cd1d824f85ac0472d06d` passed independent byte-identical builds and all 17 local installed checks, including four Git scenarios. It was not published.

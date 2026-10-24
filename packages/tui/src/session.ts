@@ -11,6 +11,7 @@ import { EditorRevoked } from '@fbincon/statusline-platform/terminal/bridge';
 import { State } from './state.js';
 import { frame, ansiFrame } from './drawing.js';
 import { dimensions } from './layout.js';
+import { colorCapability } from '@fbincon/statusline-platform/terminal/capabilities';
 export interface Backend {
     request<O extends Operation>(operation: O, payload?: unknown): ResultFor<O> | Promise<ResultFor<O>>;
 }
@@ -23,11 +24,7 @@ export const outcome = (kind: Outcome['outcome'], language: Language, exit_code 
     outcome: kind, exit_code, message: detail ?? t({ updated: 'ui.session.status_line_configuration_updated', 'already-current': 'ui.session.status_line_configuration_already_current', cancelled: 'ui.session.status_line_configuration_unchanged', interrupted: 'ui.session.interactive_status_line_configuration_interrupted_no_changes', 'timed-out': 'ui.session.interactive_status_line_configuration_timed_out_no', error: 'ui.session.cannot_initialize_terminal_for_configure' }[kind], language),
 });
 export function colorCapacity(env: NodeJS.ProcessEnv = process.env): number {
-    if (env.NO_COLOR !== undefined || /^(?:dumb|vt100|vt220|xterm-mono)$/u.test(env.TERM ?? ''))
-        return 0;
-    if (/256color|direct/u.test(env.TERM ?? '') || /truecolor|24bit/u.test(env.COLORTERM ?? ''))
-        return 256;
-    return env.TERM === 'linux' ? 8 : 16;
+    return colorCapability({environment:env,platform:process.platform,tty:true,windowsVT:false}).colors;
 }
 export class Session {
     private previewKey = '';
@@ -118,13 +115,15 @@ export class Session {
             value.message += t('ui.session.backup', this.state.language, { backup_dir: result.backup_dir });
         return value;
     }
-    async run(options: TerminalOptions = {}, colors = colorCapacity()): Promise<Outcome> {
+    async run(options: TerminalOptions = {}, colors?: number): Promise<Outcome> {
         const output = options.output ?? process.stdout;
+        let selectedColors = colors ?? 16;
         await this.preview(output.columns || 80, output.rows || 24);
         let result: 'save' | Outcome;
         try {
             result = await terminal<'save' | Outcome>({
-                draw: (columns, rows) => ansiFrame(frame(this.state, columns, rows), colors),
+                ready: capability => { selectedColors = colors ?? capability.colors; },
+                draw: (columns, rows) => ansiFrame(frame(this.state, columns, rows), selectedColors),
                 key: async (key, columns, rows) => {
                     const action=await this.key(key,columns,rows);
                     if(action!=='save') return action;

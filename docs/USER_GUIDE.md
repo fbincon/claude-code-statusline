@@ -338,6 +338,10 @@ The footer follows the current input context. Category selection shows arrows an
 
 ### External terminal colors
 
+Setup, standalone configure and the slash-launched TUI use one capability policy, selected once after opening the output terminal. `NO_COLOR` and monochrome `TERM` take priority; explicit `TERM`/`COLORTERM` choices remain authoritative. With no explicit choice, a Windows TTY whose VT output mode is verified uses 256-color sequences. Inherited `WT_SESSION`/`WT_PROFILE_ID` markers alone are insufficient. Unknown capability falls back to 16 colors; non-TTY output has no colors. Original console modes are restored on every exit. `doctor` reports the current output capability and its reason.
+
+This describes the emitted palette, not a guarantee that every console displays 256 distinct colors. Native editor theme handling and production statusline RGB output are unchanged.
+
 The external editor uses the terminal's default foreground and background. Page, panel and group headings use bold terminal ANSI cyan; shortcut keys are bold; descriptions use regular text. Active tabs and selected rows reverse the default colors and retain their selection markers. This follows light/dark terminal profiles independently of Claude's applied theme. The complete group separator, including both line segments, shares the heading color and weight. Notices and inline keys remain bold; monochrome output omits color escapes and 8-color bright samples retain bold intensity.
 
 Sample previews use the current terminal background and the selected `Palette`, shown in the preview title. Uncolored text, resets, empty rows and trailing spaces use terminal defaults. The renderer quantizes RGB samples to the available terminal palette; ANSI samples use the terminal’s configured ANSI colors. If `Palette: default` looks faint on a light terminal, compare `Palette: ansi` in Settings; changes preview immediately and affect the actual status line after saving. Preview colors are preserved so the comparison reflects the terminal’s real appearance. Unsupported default colors, monochrome terminals and unsupported sample colors fall back to default text.

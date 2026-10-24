@@ -15,7 +15,7 @@ import { POWERSHELL_FLAGS, POWERSHELL_BOOTSTRAP, powershellEnvironment, powershe
 import { sha256 } from '../../../build/files.js';
 import { installedGitPolicy } from '../../../acceptance/git-policy.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -58,6 +58,48 @@ function ui(config: string, operation: string, payload: unknown = {}, environmen
 }
 test('installed Git policy blocks repository programs without inventing a clean worktree', async () => {
     report.git_policy_cases = await installedGitPolicy(installed); checks.git_policy = true;
+});
+test('installed terminal policy is shared by setup, configure and the Windows slash bridge', {timeout:180000}, async () => {
+    const {colorCapability} = await import(pathToFileURL(join(installed.modules,'statusline-platform/dist/src/terminal/capabilities.js')).href);
+    for (const [environment, colors] of [[{TERM:'xterm-256color'},256],[{NO_COLOR:'',TERM:'xterm-256color'},0],[{TERM:'xterm'},16]] as const)
+        assert.equal(colorCapability({environment,platform:process.platform,tty:true,windowsVT:false}).colors,colors);
+    const evidence: unknown[] = [];
+    if (process.platform === 'win32') {
+        const config = setup('terminal-colors');
+        const before = fs.readFileSync(join(config,'settings.json'));
+        const choices: [string, NodeJS.ProcessEnv, number][] = [
+            ['powershell-cmd',{TERM:undefined,COLORTERM:undefined,NO_COLOR:undefined,WT_SESSION:'inherited-parent'},256],
+            ['git-bash',{TERM:'xterm-256color',COLORTERM:undefined,NO_COLOR:undefined},256],
+            ['explicit-16',{TERM:'xterm',COLORTERM:undefined,NO_COLOR:undefined},16],
+            ['no-color',{TERM:'xterm-256color',NO_COLOR:'1'},0], ['monochrome',{TERM:'dumb',COLORTERM:'truecolor',NO_COLOR:undefined},0],
+        ];
+        for (const entry of ['setup','configure','slash']) for (const [name,environment,colors] of choices) {
+            const invocation = entry === 'slash' ? bridge.prepare(config,{executable:installed.node,args:[installed.entry]},installed.directory) : null;
+            const env = {...installed.env,...environment,...(invocation ? {[bridge.REQUEST_ENV]:invocation.path,[bridge.NONCE_ENV]:invocation.request.nonce,[bridge.RESULT_ENV]:invocation.result,[bridge.DEADLINE_ENV]:'30'} : {})};
+            const receipt=join(installed.temporary,`colors-${entry}-${name}.json`);
+            const child=startWindows([installed.node,driver,installed.modules,entry==='setup'?'windows-setup':'windows-editor',config,receipt,entry==='setup'?'preview-cancel':'color-cancel'],installed.directory,env);
+            try {
+                const stop=performance.now()+16000;
+                while(child.code()===null && performance.now()<stop) await new Promise(resolve=>setTimeout(resolve,20));
+                assert.equal(child.code(),0,fs.existsSync(receipt)?fs.readFileSync(receipt,'utf8'):'No color receipt');
+                const saved=JSON.parse(fs.readFileSync(receipt,'utf8'));
+                assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
+                if(colors===256) assert.match(saved.output,/\x1b\[(?:38|48);5;/u);
+                else assert(!/\x1b\[(?:38|48);5;/u.test(saved.output));
+                if(colors===0) {
+                    // A cursor address such as ESC[31;1H is not an SGR color.
+                    const colored=[...saved.output.matchAll(/\x1b\[[0-9;]+m/gu)].map((m:any)=>m[0]).filter((s:string)=>s.slice(2,-1).split(';').some(n=>Number(n)>=30 && Number(n)<=49 || Number(n)>=90 && Number(n)<=107));
+                    assert.deepEqual(colored,[],JSON.stringify({entry,environment:name,actual:saved.environment,colors:colored.slice(0,30)}));
+                }
+                if(invocation) assert.equal(bridge.readResult(invocation.result,config).outcome,'cancelled');
+                evidence.push({entry,environment:name,colors,restored:true});
+            } finally {child.close();if(invocation)bridge.cleanup(invocation.directory);}
+        }
+        assert.deepEqual(fs.readFileSync(join(config,'settings.json')),before);
+    }
+    report.terminal_color_cases=process.platform==='win32'?15:3;
+    report.terminal_color_evidence=evidence;
+    checks.terminal_colors=true;
 });
 test('installed groups retain linked visibility, remapped copies and portable references', () => {
     const config = setup('groups');
