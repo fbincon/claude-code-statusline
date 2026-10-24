@@ -4,15 +4,16 @@ import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Npm } from '../src/npm.js';
 import { PackageError } from '@fbincon/statusline-core/management/package';
+import { resolvedPath } from '../src/commands.js';
 test('npm uses Node and literal argv, reports its effective prefix and scoped registry, and never invokes a shell shim', async () => {
     const prefix = resolve(tmpdir(), 'npm prefix 中文 & $`'), root = join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules'), calls: readonly string[][] = [];
     const seen: string[][] = [];
     const npm = new Npm({}, async (o) => { seen.push([...o.args]); assert.equal(o.executable, process.execPath); const args = o.args.slice(1); return { code: 0, reason: 'completed', stdout: args[0] === 'prefix' ? prefix : args[0] === 'root' ? root : args[0] === '--version' ? '11.19.0' : args[2] === 'cache' ? resolve(tmpdir(), 'npm cache') : 'https://registry.npmjs.org/' }; }, 'npm-cli.js');
     const layout = await npm.layout();
-    assert.equal(layout.prefix, prefix);
+    assert.equal(layout.prefix, resolvedPath(prefix));
     await npm.install('3.8.0', layout);
     const args = seen.at(-1)!;
-    assert(args.includes(prefix));
+    assert(args.includes(resolvedPath(prefix)));
     assert(args.includes('--ignore-scripts'));
     assert(args.includes('@fbincon/claude-code-statusline@3.8.0'));
     await assert.rejects(npm.install('latest', layout), PackageError);

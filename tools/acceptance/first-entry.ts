@@ -64,13 +64,14 @@ export async function firstEntryChild(input: Input): Promise<{
         const env = { ...input.env, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: empty, npm_config_globalconfig: globalConfig, npm_config_cache: cacheRoot };
         const failures:unknown[]=[];
         const runner=async (request:any)=>{
-            const result=await runSourceProcess(request);
+            let stderr='';
+            const result=await runSourceProcess({...request,captureStderr:(value:string)=>{stderr=value;}});
             if(result.reason!=='completed'){
                 const readOnly=['root','prefix','config','--version'].includes(request.args[1]);
                 const direct=readOnly?spawnSync(request.executable,request.args,{cwd:request.cwd,env:request.environment,encoding:'utf8',timeout:15000,windowsHide:true}):null;
                 // Only this synthetic, empty-npmrc fixture is inspected. Product
                 // failures never expose user npm stderr or authentication data.
-                failures.push({args:request.args.slice(1),result,direct:direct?{status:direct.status,error:direct.error?.message,stdout:direct.stdout,stderr:direct.stderr}:null});
+                failures.push({args:request.args.slice(1),result,stderr:stderr.slice(-4000),direct:direct?{status:direct.status,error:direct.error?.message,stdout:direct.stdout,stderr:direct.stderr}:null});
             }
             return result;
         };

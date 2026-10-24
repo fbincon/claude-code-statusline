@@ -13,6 +13,8 @@ export interface SourceProcessOptions {
     timeoutMs: number;
     signal?: AbortSignal;
     environment?: NodeJS.ProcessEnv;
+    /** Internal opt-in diagnostic capture. Product callers never expose stderr. */
+    captureStderr?: (value:string)=>void;
 }
 export interface SourceProcessResult {
     code: number | null;
@@ -79,6 +81,7 @@ export function runSourceProcess(options: SourceProcessOptions): Promise<SourceP
             child.stdout.destroy();
             child.stderr.destroy();
             const detail = Buffer.concat(errors).toString('utf8');
+            try{options.captureStderr?.(detail);}catch{reason='io_error';}
             const errorKind: SourceProcessResult['errorKind'] = /^no checks reported on the '[^\r\n]*' branch\s*$/u.test(detail) ? 'no_checks' : /rate limit|HTTP 429/iu.test(detail) ? 'rate_limit' : /HTTP 403|forbidden|not accessible|permission denied/iu.test(detail) ? 'permission' : /HTTP 401|auth login|not logged|authentication/iu.test(detail) ? 'authentication' : /timeout|connection|resolve host|network|TLS|dial tcp|\bEOF\b/iu.test(detail) ? 'network' : undefined;
             let stdout = '';
             try { stdout = decodeUtf8(Buffer.concat(chunks)); }
