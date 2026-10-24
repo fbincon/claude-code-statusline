@@ -1,19 +1,18 @@
-name: Windows real shell preview diagnostic
+name: Windows Git submodule deadline diagnostic
 on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 jobs:
   reproduce:
-    name: Preview shells / ${{ matrix.os }} / Node ${{ matrix.node }}
+    name: Submodules / ${{ matrix.os }} / Node ${{ matrix.node }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         os: [windows-2025, windows-11-arm]
-        node: ['22.0.0', '24.0.0']
+        node: ['22.x', '24.x']
     defaults:
       run:
         shell: bash
@@ -26,26 +25,18 @@ jobs:
         with:
           node-version: '24.21.0'
           architecture: x64
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: ts06-candidate
-          run-id: 40084425356
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/candidate
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run build
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ matrix.node }}
           architecture: x64
-      - run: node --test --test-name-pattern='installed terminal policy' dist/typescript/tools/migration/ts-04/test/installed.test.js
+      - run: node tools/testing/windows-git-submodule-diagnostic.mjs
         env:
-          TS05_CANDIDATE_ARTIFACT: ${{ runner.temp }}/candidate/fbincon-claude-code-statusline-3.8.0.tgz
-          TS05_CANDIDATE_COMMIT: e3029feed60d67ff7f2ccc1ac6e22bf6aa588a19
-          TS04_INSTALLED_REPORT: ${{ runner.temp }}/console-diagnostic/installed.json
+          DIAGNOSTIC_ROOT: ${{ runner.temp }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: windows-console-${{ matrix.os }}-${{ matrix.node }}
-          path: ${{ runner.temp }}/console-diagnostic/
+          name: git-submodule-${{ matrix.os }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/git-diagnostic/
           if-no-files-found: error
