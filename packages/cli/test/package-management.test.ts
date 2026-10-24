@@ -11,7 +11,7 @@ import { PackageError } from '@fbincon/statusline-core/management/package';
 import { Npm, globalPackageRoot, globalPackageBin, productIdentity, type NpmLayout, type RegistryPackage } from '@fbincon/statusline-platform/npm';
 import { managementOptions, managementRequest } from '../src/management/arguments.js';
 import { manage, mutationAuthorized, type ManagementEnvironment } from '../src/management/service.js';
-import { pendingPath, readInstallation, readOperation, operationPath, saveOperation } from '../src/management/store.js';
+import { pendingPath, readInstallation, readOperation, operationPath, saveOperation,startOperation } from '../src/management/store.js';
 import { processToken } from '@fbincon/statusline-platform/processes';
 import { configurationBytes, configurationCompatibility } from '../src/management/configuration.js';
 function product(prefix: string, version: string) {
@@ -213,4 +213,13 @@ test('the prefix lock serializes package changes across distinct configuration d
     assert.equal(await manage(f.args(), f.options), 0, f.state().output);
     assert.equal(other, 2);
     assert.equal(f.state().replacements, 1);
+});
+
+test('an interrupted first install can repair its partial package without inventing a configuration backup',async t=>{
+    const f=fixture(t);fs.rmSync(f.layout.root,{recursive:true});fs.mkdirSync(f.layout.root,{recursive:true});
+    fs.writeFileSync(join(f.layout.root,'package.json'),JSON.stringify({name:PACKAGE_NAME,version:'3.9.0'}));
+    const operation=startOperation(f.configDir,f.prefix,'3.9.0',f.layout.registry,null);operation.stage='installing';saveOperation(operation);
+    assert.equal(await manage(f.args('recover',['--package','--version','3.9.0','--yes']),f.options),0,f.state().output);
+    assert.equal(productIdentity(f.layout.root)?.version,'3.9.0');assert.equal(f.state().replacements,1);
+    assert(!fs.existsSync(join(f.configDir,'claude-statusline.json')));assert.match(f.state().output,/Configuration snapshot: —/);
 });

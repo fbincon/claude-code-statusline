@@ -277,7 +277,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         saveOperation(operation);
         recordInstallation(operation);
         finishOperation(operation);
-        stdout(t('management.complete', language, { version: target.version, prefix: layout.prefix, backup: operation.id }) + '\n');
+        stdout(t('management.complete', language, { version: target.version, prefix: layout.prefix, backup: operation.snapshot ? operation.id : '—' }) + '\n');
         if (runnerRoot)
             stdout(t('management.runner', language, { entry: join(recoveryRunner, 'bin/claude-statusline.js') }) + '\n');
         return 0;
