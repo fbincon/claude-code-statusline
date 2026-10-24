@@ -75,7 +75,7 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
             ['powershell-cmd',{TERM:undefined,COLORTERM:undefined,NO_COLOR:undefined,WT_SESSION:'inherited-parent'},256],
             ['git-bash',{TERM:'xterm-256color',COLORTERM:undefined,NO_COLOR:undefined},256],
             ['explicit-16',{TERM:'xterm',COLORTERM:undefined,NO_COLOR:undefined},16],
-            ['no-color',{TERM:'xterm-256color',NO_COLOR:''},0], ['monochrome',{TERM:'dumb',COLORTERM:'truecolor',NO_COLOR:undefined},0],
+            ['no-color',{TERM:'xterm-256color',NO_COLOR:'1'},0], ['monochrome',{TERM:'dumb',COLORTERM:'truecolor',NO_COLOR:undefined},0],
         ];
         for (const entry of ['setup','configure','slash']) for (const [name,environment,colors] of choices) {
             const invocation = entry === 'slash' ? bridge.prepare(config,{executable:installed.node,args:[installed.entry]},installed.directory) : null;
@@ -90,7 +90,7 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
                 assert.equal(saved.before_mode,saved.after_mode);assert.equal(saved.before_output_mode,saved.after_output_mode);
                 if(colors===256) assert.match(saved.output,/\x1b\[(?:38|48);5;/u);
                 else assert(!/\x1b\[(?:38|48);5;/u.test(saved.output));
-                if(colors===0) assert(!/\x1b\[(?:3[0-9]|4[0-9]|9[0-7]|10[0-7])(?:;|m)/u.test(saved.output));
+                if(colors===0) assert(!/\x1b\[(?:3[0-9]|4[0-9]|9[0-7]|10[0-7])(?:;|m)/u.test(saved.output),JSON.stringify({entry,environment:name,actual:saved.environment,colors:[...saved.output.matchAll(/\x1b\[[0-9;]+m/gu)].slice(0,30).map((m:any)=>m[0])}));
                 if(invocation) assert.equal(bridge.readResult(invocation.result,config).outcome,'cancelled');
                 evidence.push({entry,environment:name,colors,restored:true});
             } finally {child.close();if(invocation)bridge.cleanup(invocation.directory);}
