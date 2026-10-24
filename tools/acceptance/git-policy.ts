@@ -46,8 +46,8 @@ export async function installedGitPolicyChild(installed: Pick<ReturnType<typeof 
     assert.equal(collector.uncached(repo).kind, 'ok'); assert(!fs.existsSync(marker),'fsmonitor marker');
     assert.deepEqual(fs.readFileSync(join(repo, '.git/config')), before);
     git('config', '--unset', 'core.fsmonitor');
-    // Finish fixture writes before enabling the marker. Git for Windows can
-    // leave a filter child completing after a maintenance/commit command exits.
+    // Finish fixture writes before enabling the marker, so no setup probe or
+    // marker deletion can influence the protected observation's assertion.
     fs.writeFileSync(join(repo, '.gitattributes'), '*.txt filter=probe\n'); git('add', '.'); git('commit', '-qm', 'filter');
     git('config', 'filter.probe.clean', command + ' clean');
     fs.writeFileSync(join(repo, 'file.txt'), 'bbbb\n');
