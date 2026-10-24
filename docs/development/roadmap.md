@@ -2,9 +2,9 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`3edd719525635eedb6a909eee23bb96a4fcab393`**
+Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. v3.7.0 adds graphical indicators, component groups, GitHub automatic refresh and cost rates. Homepage demonstrations (M8/SHOWCASE-01) remain next in product order; Git invocation review is independent maintenance. Both remain NOT_STARTED, and CI-01 remains DONE.
+Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. The next product sequence is first-entry installation, version management, selective import, gradients, explicit-row alignment and then demonstrations (M8–M13). Git invocation review and Windows preview consistency are priority independent maintenance. All eight future packages remain NOT_STARTED; delivered packages, including CI-01, remain DONE.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -16,17 +16,17 @@ This page owns product direction, priorities and work-package status. The [devel
 
 | Area | Delivered capability | Planning implication |
 | --- | --- | --- |
-| Configuration entry points | First-use setup wizard, in-session editor, external TUI, CLI, conversational guide and Quick setup | Reuse delivered configuration journeys in demonstrations |
-| Display composition | Six existing presets, three complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, five Powerline controls, optional percentage bars and linked groups | Demonstrate existing schemes and extend them for concrete needs |
+| Configuration entry points | First-use setup wizard, in-session editor, external TUI, CLI, conversational guide and Quick setup | Connect package installation and a durable entry to existing setup; add explicit version management |
+| Display composition | Six existing presets, three complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, five Powerline controls, optional percentage bars and linked groups | Add selective reuse, static foreground/Powerline-background gradients and explicit main-row alignment |
 | Tasks and projects | Task timing, separate subagent rows, read-only task details, named profiles and project-root bindings | Make task and multi-agent scenarios prominent |
 | Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`; independent UI and output languages | Maintain six-language coverage for new interactions and guidance |
 | Display catalog | 65 main metrics and 15 subagent metrics; 67/17 types including text and spacers | Preserve IDs and metric definitions when adding items |
-| Existing data | Host `pr` number/review state, linked-worktree fallback and cache-cause diagnosis/display | Keep host metrics and external observations distinguishable |
+| Existing data | Host `pr` number/review state, linked-worktree fallback, prompt-cache hit ratio/write tokens, cache state/expiry/miss causes and latest-request output rate | Keep existing scopes and definitions when considering additional metrics |
 | Extension data | Local JSON, GitHub PR/CI with separately reviewed automatic refresh, and explicit command sources; both editors and CLI; optional OSC 8 links | Keep authorization separate from display schemes and remove local bindings on import |
 | Interfaces | Display schema 13, editor protocol 21, source registry/jobs 2, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
-Sources: [v3.7.0 release](../releases/v3.7.0.md), [M4–M7 delivery](m4-m7-delivery.md), [extension delivery](extensions.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The planning baseline is the verified v3.7.0 source; publication identities and validation limits are preserved in the delivery record.
+Sources: [v3.7.0 release](../releases/v3.7.0.md), [M4–M7 delivery](m4-m7-delivery.md), [extension delivery](extensions.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The planning baseline is main before this documentation revision; v3.7.0 publication identities and validation limits remain in the delivery record.
 
 Default capabilities use Claude input and local state. Network lookup and custom commands require separate enablement; importing a scheme, binding a project or selecting a preset cannot enable them.
 
@@ -62,10 +62,18 @@ Keep the original project and authors credited when discussing these references.
 
 | Priority | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| Independent maintenance | [GIT-01](development-plan.md#git-01) | Verified Git invocation behavior and any necessary protections | Existing Git collectors, source identity and process adapters | NOT_STARTED |
-| M8 Demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Focused homepage, scheme gallery and reproducible usage demonstrations | Accepted functionality and its matching installed artifact | NOT_STARTED |
+| Priority independent maintenance | [GIT-01](development-plan.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | NOT_STARTED |
+| Priority independent maintenance | [TERMINAL-01](development-plan.md#terminal-01) | Consistent or explicitly explained Windows preview colors across setup, configure and slash entry | Existing terminal detection/launch paths; [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | NOT_STARTED |
+| M8 First entry | [SETUP-02](development-plan.md#setup-02) | No-argument/npx entry connects npm global installation, a durable binding and existing setup | Delivered SETUP-01 and installation/recovery mechanisms | NOT_STARTED |
+| M9 Version management | [UPDATE-01](development-plan.md#update-01) | Explicit version checks, upgrades, rollback and failure recovery | SETUP-02 installation identity and existing compatibility/recovery rules | NOT_STARTED |
+| M10 Configuration reuse | [IMPORT-01](development-plan.md#import-01) | Select global appearance first, then complete main/subagent sections for import | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
+| M11 Gradients | [APPEARANCE-04](development-plan.md#appearance-04) | Static component-foreground and Powerline-background gradients with presets and custom colors | Existing color, Powerline, group and editor rules | NOT_STARTED |
+| M12 Cross-line alignment | [COMPOSITION-03](development-plan.md#composition-03) | Aligned explicit main rows with defined hidden/group/spacer/narrow-row behavior | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
+| M13 Demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Homepage, scheme gallery and reproducible journeys for the accepted new capabilities | All M8–M12 packages completed and accepted; a matching installed artifact | NOT_STARTED |
 
-M4 → M5 → M6 → M7 → M8 is the selected product order. Scheduling does not create technical dependencies: grouping does not require graphical indicators, and cost rates do not require automatic refresh. Each package may ship in bounded slices. SHOWCASE-01 retains its existing ID and moves after the functional work; demonstrations use accepted functionality and do not require every future candidate to be implemented. GIT-01 runs independently. The static comparison identified a protection difference to investigate, not a confirmed vulnerability; investigation and any necessary correction belong to that future task.
+M8 → M9 → M10 → M11 → M12 → M13 is the selected product order. Scheduling does not create technical dependencies: import does not require version management, and alignment does not require gradients. Each package may ship in bounded slices; later options must retain import/export compatibility. SHOWCASE-01 retains its ID and waits for all selected M8–M12 functionality, including both IMPORT-01 slices, to be completed and accepted. Further candidates do not block it.
+
+GIT-01 and TERMINAL-01 run independently with priority. Incorporate TERMINAL-01 outcomes into affected Windows preview and demonstration acceptance. GIT-01 now has limited isolated observations described in the [work package](development-plan.md#git-01); these demonstrate configuration-triggered program invocation under stated conditions, not a complete vulnerability assessment or a finished protection policy.
 
 M4–M7 shipped in v3.7.0 through four feature PRs and a final release PR. [Implementation and validation](m4-m7-delivery.md) records the starting commits, interface decisions and actual evidence; package completion and publication remain separate.
 
@@ -87,24 +95,48 @@ M4–M7 shipped in v3.7.0 through four feature PRs and a final release PR. [Impl
 | Engineering as needed | [CAPABILITIES-01](development-plan.md#capabilities-01) | Consistent supported options and explanations for components | Specific metadata needs exposed by appearance or extensions | DONE |
 | Independent maintenance | [CI-01](development-plan.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | DONE |
 
-M1 → M2 → M3 → M4–M7 records the historical delivery sequence, retaining completed IDs and evidence. SHOWCASE-01 was originally listed with M2 and remains unstarted under the new M8 scheduling. CI-01 is complete as independent maintenance; its weekly Dependabot proposals and validation are tracked in [CI maintenance](ci-maintenance.md).
+M1 → M2 → M3 → M4–M7 records the historical delivery sequence, retaining completed IDs and evidence. SHOWCASE-01 was originally listed with M2, then M8; it remains unstarted and is now M13 after the selected new functionality. CI-01 is complete as independent maintenance; its weekly Dependabot proposals and validation are tracked in [CI maintenance](ci-maintenance.md).
 
 <a id="candidates"></a>
 
 ## Candidate pool and entry conditions
 
-| Candidate | Required basis before promotion |
-| --- | --- |
-| Automatic cross-line alignment and gradients | A concrete multi-line or color use case; define behavior with hidden items, groups and narrow rows |
-| Selective configuration import/merge | Specify which sections can be selected and how instance IDs, row references, profiles and local bindings are preserved |
-| Daily remaining budget | Reliable amount, full period boundaries and timezone; a `monthly` label alone is insufficient |
-| Quota consumption pacing and time cursors | Verified window boundaries, elapsed-time meaning and behavior when timing evidence is absent |
-| Automatic command-source refresh | A separate decision on recurring execution authorization, inputs, start/stop behavior and failure outcomes |
-| GitLab/Gitee data providers | Actual product demand, authoritative provider fields, existing authentication and identity rules; repository mirroring is separate |
-| JJ and service-status components | An identified user scenario and a reliable source with explicit availability semantics |
-| Other clients, a plugin marketplace, automatic script downloads and general Shell mode | A separately selected scope and interaction/authorization design |
+Selective import, gradients and explicit main-row alignment have moved into [IMPORT-01](development-plan.md#import-01), [APPEARANCE-04](development-plan.md#appearance-04) and [COMPOSITION-03](development-plan.md#composition-03). Their scope/status is maintained in the mainline and work packages, not duplicated below.
 
-Candidates have no assigned version or date. Listing one does not start development or make it a completion condition for the six planned packages. Promote a candidate through an explicit scope decision and a corresponding work-package update.
+### Functional candidates
+
+| Candidate | User scenario and minimum slice | Evidence and entry condition |
+| --- | --- | --- |
+| Additional token-rate views | Compare observed session or recent-window token throughput; select one scope first | Define duration, token inclusion, replay deduplication and main/agent scope; preserve existing latest-request `output-rate` meaning |
+| Additional cache views | Inspect read/write amounts or ratios for a selected request/session scope | Existing `prompt-cache` already exposes hit ratio/write tokens; require a distinct need, authoritative fields and an explicit denominator |
+| Daily remaining budget | Show a verified daily allowance remainder or a clearly identified user budget | Reliable amounts, currency, freshness, full period boundaries and timezone; a `monthly` label alone is insufficient |
+| Quota consumption pacing and time cursors | Compare quota consumption with verified window progress | Establish window boundaries, elapsed-time meaning and unknown behavior; distinguish countdown, consumption and estimates |
+| Automatic command-source refresh | Repeat one explicitly selected bounded command during its chosen context | A separate decision on recurring execution authorization, inputs, interval, concurrency, start/stop and failure outcomes; TTL is not execution permission |
+| GitLab provider | Inspect a branch's merge request and CI; begin with manual read-only lookup | Actual demand, authoritative fields, existing authentication and repository/branch/HEAD identity; define GitLab-specific states |
+| Gitee provider | Inspect a branch's pull request and CI; begin with manual read-only lookup | Actual demand, authoritative fields and provider-specific authentication/identity; repository mirroring is separate |
+| Service status | Show a selected service's published status and freshness | Reliable source and distinct unavailable/stale states; global service status does not establish personal request or gateway health |
+| Voice configuration hint | Indicate observed voice-input configuration | Verify configuration precedence and availability; configured enablement does not establish active recording |
+| Sandbox configuration hint | Indicate observed sandbox configuration | Verify managed/CLI overrides and availability; configured enablement does not establish active isolation |
+
+### Supporting candidates
+
+| Candidate | User scenario and minimum slice | Evidence and entry condition |
+| --- | --- | --- |
+| Contribution guide | Help a contributor complete one bounded change | A reproducible path through module ownership, applicable checks, translations and generated resources; reuse existing guides |
+| General issue/feature templates | Capture actionable reports beyond preview feedback | Minimum version/environment/reproduction fields and a clear distinction between a bug and a requested capability |
+| Migration guidance | Help a user map an existing setup to this product | Verified source/target versions, capability mapping, manual steps and recovery; do not promise lossless automatic conversion |
+
+### Longer-term candidates
+
+| Candidate | User scenario and minimum slice | Evidence and entry condition |
+| --- | --- | --- |
+| JJ | Show Jujutsu state for a real user's repository | Identified demand, reliable output and availability/identity semantics; select read-only fields first |
+| Other clients | Reuse a selected capability with a named client | A verified input/lifecycle contract and a concrete integration/support boundary |
+| Plugin marketplace | Discover and manage third-party components | Actual extension use plus a selected distribution, trust, compatibility and lifecycle model |
+| Automatic script downloads | Obtain a named external component | A separately selected source, integrity, review, installation and removal design |
+| General Shell mode | Support a concrete command requiring Shell interpretation | A separate interaction and execution-authorization design beyond the existing executable/argv source |
+
+Candidates have no assigned version or date. Listing one does not start development or make it a completion condition for M8–M13. Promote a candidate only through an explicit scope decision and a corresponding work-package update. Evaluate distinct user needs and data definitions rather than component counts.
 
 <a id="packages"></a>
 

@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-[Future functional roadmap](roadmap.md#milestones) and [development work packages](development-plan.md#future-work) define graphical indicators, component groups, GitHub automatic refresh and cost rates before homepage demonstrations, with independent Git invocation review. All six packages remain NOT_STARTED; candidates have separate entry conditions. These are plans without assigned versions or dates, not available features or implementation evidence.
+[Future functional roadmap](roadmap.md#milestones) and [development work packages](development-plan.md#future-work) schedule M8–M13 as first-entry npm global installation → explicit upgrades/rollback → selective import → foreground/Powerline-background gradients → explicit main-row alignment → demonstrations after all selected functionality is accepted. GIT-01 and TERMINAL-01 are priority independent maintenance, with Windows preview outcomes carried into affected acceptance. All eight future packages remain NOT_STARTED, without assigned versions or dates. M4–M7 shipped in v3.7.0 and CI-01 is DONE; planning updates do not implement features.
 
 [CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
 
@@ -26,7 +26,7 @@ The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows 
 
 ### Current development
 
-- [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): product order, independent maintenance, scope, dependencies, compatibility and functional acceptance; delivered designs/evidence remain separate.
+- [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): M8–M13 order, priority independent maintenance, scope, dependencies, compatibility and functional acceptance; functional/supporting/longer-term candidates have separate entry conditions and delivered designs/evidence remain separate.
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
