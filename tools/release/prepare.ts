@@ -57,6 +57,14 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             assert.equal(report.checks.first_entry, true); assert.equal(report.first_entry_cases, 4);
             assert.equal(report.checks.git_policy, true); assert.equal(report.git_policy_cases, 4);
             assert.equal(report.checks.terminal_colors, true); assert.equal(report.terminal_color_cases, report.target.startsWith('windows-') ? 15 : 3);
+            if (report.target.startsWith('windows-')) {
+                assert(Array.isArray(report.terminal_shell_evidence), 'Missing actual Windows shell preview evidence');
+                const expected = ['setup', 'configure', 'slash'].flatMap(entry => ['powershell', 'cmd', 'git-bash'].map(shell => entry + '/' + shell));
+                assert.deepEqual(report.terminal_shell_evidence.map((row: any) => row.entry + '/' + row.shell).sort(), expected.sort(), 'Incomplete Windows shell preview evidence');
+                for (const row of report.terminal_shell_evidence) {
+                    assert.equal(row.colors, 256); assert.equal(row.input_tty, true); assert.equal(row.restored, true); assert.equal(row.cancelled, true);
+                }
+            }
             assert.equal(report.checks.cost_rates, true); assert.equal(report.cost_rate_cases, 4);
             assert.equal(report.checks.automatic_refresh, true); assert.equal(report.automatic_refresh_cases, 4);
             assert.equal(report.checks.groups, true); assert.equal(report.group_cases, 4);
