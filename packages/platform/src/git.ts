@@ -1,4 +1,4 @@
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { isAbsolute, relative, resolve, sep, basename } from 'node:path';
 import { realpathSync, statSync, accessSync, constants, existsSync } from 'node:fs';
 import { runCommand, monotonicMilliseconds, CommandTimeout, type CommandRunner, type CommandResult } from './command.js';
 import { which } from './commands.js';
@@ -28,9 +28,11 @@ function inside(path: string, root: string): boolean {
     return !part || part !== '..' && !part.startsWith('..' + sep) && !isAbsolute(part);
 }
 const quote = (value: string) => "'" + value.replaceAll("'", "'\\''") + "'";
-function externalExecutable(path: string, roots: readonly string[]): string | null {
+function externalExecutable(path: string, roots: readonly string[], program:string): string | null {
     try {
         const actual = realpathSync.native(path);
+        const name=process.platform==='win32'?basename(actual).toLowerCase():basename(actual);
+        if(name!==program && name!==program+'.exe')return null;
         if (roots.some(root => inside(actual, root)) || !statSync(actual).isFile() || /[\r\n\0]/u.test(actual)) return null;
         accessSync(actual, process.platform === 'win32' ? constants.F_OK : constants.X_OK);
         return actual;
@@ -53,7 +55,7 @@ export function filterOverrides(entries: readonly FilterEntry[], roots: readonly
         if (!entry.value) { overrides.set(entry.key, ''); continue; }
         const lfs: Record<string, string> = { clean: 'clean -- %f', smudge: 'smudge -- %f', process: 'filter-process' };
         if (entry.value === 'git-lfs ' + lfs[entry.field]) {
-            const found = which('git-lfs', env), executable = found && externalExecutable(found, roots);
+            const found = which('git-lfs', env), executable = found && externalExecutable(found, roots,'git-lfs');
             if (!executable) throw new GitPolicyError('filter_blocked');
             overrides.set(entry.key, quote(executable) + ' ' + lfs[entry.field]);
             continue;
@@ -61,7 +63,7 @@ export function filterOverrides(entries: readonly FilterEntry[], roots: readonly
         const crypt = /^(?:"([\p{L}\p{N}\p{M}_./\\:+@ ()~-]+)"|([\p{L}\p{N}\p{M}_./\\:+@~-]+)) (clean|smudge)( --key-name [\w-]+)?$/u.exec(entry.value);
         const program = crypt?.[1] ?? crypt?.[2];
         if (program && isAbsolute(program) && /(?:^|[/\\])git-crypt(?:\.exe)?$/u.test(program) && crypt![3] === entry.field) {
-            const executable = externalExecutable(program, roots);
+            const executable = externalExecutable(program, roots,'git-crypt');
             if (executable) { overrides.set(entry.key, quote(executable) + ' ' + crypt![3] + (crypt![4] ?? '')); continue; }
         }
         throw new GitPolicyError('filter_blocked');
