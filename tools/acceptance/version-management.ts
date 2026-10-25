@@ -11,6 +11,7 @@ import { HISTORICAL_RELEASES, type HistoricalRelease } from './historical-releas
 import type { installCandidate } from './install.js';
 import { officialEnvironment } from './install.js';
 import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS } from './budgets.js';
+import { removeTree } from '@fbincon/statusline-platform/remove-tree';
 export interface VersionHost {
     executable: string;
     args: readonly string[];
@@ -34,7 +35,16 @@ export async function installedVersionManagement(installed: ReturnType<typeof in
     return first;
 }
 async function historicalSequence(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
-    const temporary = fs.mkdtempSync(join(installed.temporary, 'history-' + historicalVersion + '-'));
+    // Keep the established Unicode/shell-character fixture depth: Node 22.0.0 on
+    // Windows can lose package type resolution when recovery manifests grow deeper.
+    const temporary = fs.realpathSync.native(fs.mkdtempSync(join(dirname(installed.temporary), 'ts05 version 中文 $` & ')));
+    try {
+        return await historicalSequenceIn(installed, historicalVersion, temporary, host, tracePath);
+    } finally {
+        removeTree(temporary);
+    }
+}
+async function historicalSequenceIn(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, temporary: string, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
     const legacy = join(temporary, 'historical-' + historicalVersion + '.tgz');
     const supplied = process.env['TS06_LEGACY_' + historicalVersion.replaceAll('.', '') + '_ARTIFACT'];
     if (supplied)
@@ -206,6 +216,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         const crash = `import {manage} from ${JSON.stringify(serviceURL)};await manage(${JSON.stringify(command(recoveryEntry, 'update', targetVersion).slice(1))},{origin:${JSON.stringify(recoveryRoot)},stdout:s=>process.stdout.write(s),stderr:s=>process.stderr.write(s),checkpoint:stage=>{if(stage==='package_verified')process.kill(process.pid,'SIGKILL');}});`;
         const stopped = await invoke(['--input-type=module', '-e', crash], false);
         assert.notEqual(stopped.code, 0);
+        assert.equal(transaction()?.stage, 'package_verified', stopped.stderr + stopped.stdout);
         assert.equal(await version(), 'claude-statusline ' + targetVersion);
         const markerPath = join(prefix, '.claude-statusline-operation.json'), marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
         const stamp = fs.statSync(entry).mtimeMs;
