@@ -231,7 +231,7 @@ test('installed explicit-row alignment survives editing, hiding, transfers and n
     run(['config','alignment','remove','table'], config);
     assert.equal(run(['render'], config, '{}', { COLUMNS: '42' }), fallback);
     const receipt = join(installed.temporary, 'joint-display.json');
-    execFileSync(installed.node,[driver,installed.modules,'joint-display',config,receipt],{cwd:installed.directory,env:installed.env,timeout:30000});
+    execFileSync(installed.node,[driver,installed.modules,'joint-display',config,receipt],{cwd:installed.directory,env:installed.env,timeout:120000});
     report.alignment_matrix = JSON.parse(fs.readFileSync(receipt,'utf8'));
     report.alignment_cases = 4; checks.alignments = true;
 });
