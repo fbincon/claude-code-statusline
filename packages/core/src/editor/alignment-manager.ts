@@ -1,0 +1,58 @@
+import type { AlignmentDraft, AlignmentRef } from '../contracts/ui.js';
+import type { Editor } from './draft.js';
+import type { TextKey } from './text-input.js';
+import { alignmentUnits, editAlignment, refKey } from './alignments.js';
+import { newInstance } from './instances.js';
+import { t, type Language } from '../i18n/messages.js';
+import { wrapText } from './text.js';
+export interface AlignmentManager {
+  page:'list'|'actions'|'form';cursor:number;selected:string|null;column:number;columns:AlignmentRef[][];error:boolean;
+}
+export function openAlignments(e: Editor): void {
+  e.alignmentManager={page:'list',cursor:0,selected:null,column:0,columns:[[]],error:false};
+}
+function form(e:Editor,value?:AlignmentDraft):void {
+  const m=e.alignmentManager!;m.page='form';m.cursor=0;m.selected=value?.id??null;m.columns=JSON.parse(JSON.stringify(value?.columns??[[]]));m.column=0;m.error=false;
+}
+export function alignmentsKey(e:Editor,event:TextKey):null {
+  const m=e.alignmentManager!;if(event.text||event.paste||event.meta||event.overflow)return null;
+  const key=event.key==='return'?'enter':event.key;
+  if(key==='escape'||event.ctrl&&key.toLowerCase()==='g') { if(m.page==='list')e.alignmentManager=null;else {m.page='list';m.cursor=0;m.error=false;}return null; }
+  if(event.ctrl)return null;
+  const d=e.draft.display, values=d.layout.alignments??[], length=m.page==='list'?values.length+1:m.page==='actions'?2:d.layout.rows.length+4;
+  if(['up','down','tab'].includes(key))m.cursor=Math.max(0,Math.min(length-1,m.cursor+(key==='up'?-1:1)));
+  if(key==='home')m.cursor=0;if(key==='end')m.cursor=length-1;
+  if(m.page==='list'&&key==='enter') { const value=values[m.cursor];if(value){m.selected=value.id;m.page='actions';m.cursor=0;}else form(e); }
+  else if(m.page==='actions'&&key==='enter') {
+    if(m.cursor===0)form(e,values.find(v=>v.id===m.selected));
+    else { e.draft={...e.draft,display:editAlignment(d,m.selected!)};m.page='list';m.cursor=0; }
+  } else if(m.page==='form'&&['left','right','enter','space',' '].includes(key)) {
+    const rows=d.layout.rows.length;
+    if(m.cursor===0)m.column=(m.column+(key==='left'?m.columns.length-1:1))%m.columns.length;
+    else if(m.cursor<=rows) {
+      const row=m.cursor-1, units=alignmentUnits(d.layout,d.instances,d.groups), choices=units.filter(u=>u.row===row);
+      const previous=m.columns[m.column]!.find(ref=>choices.some(u=>refKey(u.ref)===refKey(ref)));
+      const index=previous?choices.findIndex(u=>refKey(u.ref)===refKey(previous))+1:0;
+      const next=(index+(key==='left'?choices.length:1))%(choices.length+1);
+      m.columns[m.column]=m.columns[m.column]!.filter(ref=>!choices.some(u=>refKey(u.ref)===refKey(ref)));
+      if(next)m.columns[m.column]!.push(choices[next-1]!.ref);
+    } else if(key==='enter'&&m.cursor===rows+1) {m.columns.push([]);m.column=m.columns.length-1;m.cursor=1;}
+    else if(key==='enter'&&m.cursor===rows+2) {if(m.columns.length>1)m.columns.splice(m.column,1);else m.columns=[[]];m.column=Math.min(m.column,m.columns.length-1);}
+    else if(key==='enter'&&m.cursor===rows+3) {
+      try {
+        let id=m.selected??newInstance('text',d.instances).id;while(!m.selected&&values.some(v=>v.id===id))id=newInstance('text',d.instances).id;
+        e.draft={...e.draft,display:editAlignment(d,id,m.columns)};m.page='list';m.cursor=0;m.error=false;
+      }catch {m.error=true;}return null;
+    }
+    m.error=false;
+  }
+  return null;
+}
+export function alignmentsView(e:Editor,language:Language,width:number,height:number):{text:string;selected?:boolean}[] {
+  const m=e.alignmentManager!,d=e.draft.display,tr=(key:string)=>t('alignment.'+key,language),units=alignmentUnits(d.layout,d.instances,d.groups);
+  const label=(ref:AlignmentRef)=>{const u=units.find(u=>refKey(u.ref)===refKey(ref));return u?e.instanceLabel('main',ref.kind==='group'?d.groups.find(g=>g.id===ref.id)!.primary_id:ref.id,language)+(ref.kind==='group'?' · '+tr('group'):'')+' ('+ref.id+')':'—';};
+  const values=m.page==='list'?[...(d.layout.alignments??[]).map(v=>v.id+' · '+v.columns.length),tr('create')]:m.page==='actions'?[tr('edit'),tr('remove')]:
+    [tr('column')+': '+(m.column+1)+'/'+m.columns.length,...d.layout.rows.map((_,row)=>tr('row')+' '+(row+1)+': '+(m.columns[m.column]!.find(ref=>units.some(u=>u.row===row&&refKey(u.ref)===refKey(ref))) ? label(m.columns[m.column]!.find(ref=>units.some(u=>u.row===row&&refKey(u.ref)===refKey(ref)))!) : '—')),tr('add_column'),tr('remove_column'),tr('apply')];
+  const note=wrapText([tr(d.layout.mode!=='explicit'?'explicit':m.error?'invalid':'help')],width),capacity=Math.max(1,height-Math.min(2,note.length)),start=Math.max(0,m.cursor-capacity+1);
+  return [...values.slice(start,start+capacity).map((text,i)=>({text:(start+i===m.cursor?'› ':'  ')+text,selected:start+i===m.cursor})),...note.slice(0,Math.max(0,height-Math.min(capacity,values.length))).map(text=>({text}))];
+}

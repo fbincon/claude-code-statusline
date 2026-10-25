@@ -1,3 +1,4 @@
+import { alignmentsView } from '@fbincon/statusline-core/editor/alignment-manager';
 import { groupsView } from '@fbincon/statusline-core/editor/group-manager';
 import { sourcesView } from '@fbincon/statusline-core/editor/source-manager';
 import { explanationLines } from '@fbincon/statusline-core/editor/explanation';
@@ -20,6 +21,10 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const panel = size.content;
     const width = panel.innerWidth;
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
+    if (e.alignmentManager) {
+        alignmentsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
+        return '';
+    }
     if (e.groupManager) {
         groupsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
         return tr('composition.groups.help');

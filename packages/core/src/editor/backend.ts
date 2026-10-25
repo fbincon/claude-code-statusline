@@ -1,3 +1,4 @@
+import { validAlignments } from './alignments.js';
 import { GRADIENT_KEYS, validGradient } from './gradients.js';
 import { validCostRateOptions } from './cost-rate.js';
 import { validGroups } from './groups.js';
@@ -173,7 +174,7 @@ export function isDraft(value: unknown): value is Draft {
   )
     return false;
   if (
-    d.schema_version !== 14 ||
+    d.schema_version !== 15 ||
     !object(d.powerline) || !exact(d.powerline, POWERLINE_FIELDS.map(f => f.key.slice(10))) ||
     !POWERLINE_FIELDS.every(f => f.kind === 'boolean' ? typeof (d.powerline as Record<string, unknown>)[f.key.slice(10)] === 'boolean' :
       (f.choices as readonly unknown[]).includes((d.powerline as Record<string, unknown>)[f.key.slice(10)])) ||
@@ -208,12 +209,13 @@ export function isDraft(value: unknown): value is Draft {
   const ids = d.instances.map(i=>i.id);
   const spacers = new Set(d.instances.filter(i=>i.type_id==='spacer').map(i=>i.id));
   const layout = d.layout;
-  if (!object(layout) || !exact(layout, ['mode', 'rows']) ||
+  if (!object(layout) || !exact(layout, ['mode', 'rows', ...(Object.hasOwn(layout, 'alignments') ? ['alignments'] : [])]) ||
       !['auto', 'explicit'].includes(String(layout.mode)) || !Array.isArray(layout.rows) ||
       !layout.rows.every((r) => selection(r, ids) && r.length > 0 && r.filter(id => spacers.has(id)).length <= 1) ||
       (layout.mode === 'auto' ? layout.rows.length !== 0 || spacers.size > 0 :
         JSON.stringify(layout.rows.flat()) !== JSON.stringify(ids))) return false;
   if (!validGroups(d.groups, d.instances, layout as unknown as import('../contracts/ui.js').LayoutDraft) || !validGroups(sub.groups, sub.instances)) return false;
+  if (!validAlignments(layout.alignments, layout as unknown as import('../contracts/ui.js').LayoutDraft, d.instances, d.groups)) return false;
   // Exclusions come from describe; the backend remains the final draft validator.
   return (
     typeof h.padding === 'number' &&

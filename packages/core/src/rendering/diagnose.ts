@@ -95,7 +95,7 @@ export function diagnose(draft: Draft, scope: Scope, width: number, input: Data,
         session_id: identity(input.session_id), prompt_id: identity(input.prompt_id), host_version: host, include_local: options.includeLocal, output,
         instances: (scope === 'main' ? draft.display.instances : draft.display.subagents.instances).map(node => ({
             id: node.id, type_id: node.type_id, enabled: node.enabled,
-            reasons: configurationReasons(draft, scope, node, observedFacts),
+            reasons: [...configurationReasons(draft, scope, node, observedFacts), ...(scope === 'main' && trace.alignmentCollapsed(node.id) !== undefined ? [{ code: trace.alignmentCollapsed(node.id) ? 'alignment_collapsed' : 'alignment_active', origin: 'configuration' as const }] : [])],
             evidence: [...inputEvidence(input, scope, node.type_id, options.observedAt, node.options), ...(local.get(node.id) ?? local.get(node.type_id) ?? [])],
             rows: trace.layouts(scope, node.id),
         })),

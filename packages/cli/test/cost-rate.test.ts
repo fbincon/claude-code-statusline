@@ -65,7 +65,7 @@ test('rate validation, legacy migration and portable persistence retain optional
     display = setField(display, 'cost_rate_basis', 'api', 'main', 'session-cost-rate');
     assert.deepEqual(validateDisplay(JSON.parse(JSON.stringify(display))), display);
     const old = { ...defaultDisplay(), schema_version: 12 }, bytes = JSON.stringify(old);
-    assert.equal(validateDisplay(old).schema_version, 14); assert.equal(JSON.stringify(old), bytes);
+    assert.equal(validateDisplay(old).schema_version, 15); assert.equal(JSON.stringify(old), bytes);
 });
 
 test('both editors preview and persist rates without changing metric collection or existing session fields', t => {

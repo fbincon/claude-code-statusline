@@ -1,3 +1,4 @@
+import { openAlignments, alignmentsKey } from '@fbincon/statusline-core/editor/alignment-manager';
 import { openGroups, groupsKey } from '@fbincon/statusline-core/editor/group-manager';
 import { openSources, sourcesKey } from '@fbincon/statusline-core/editor/source-manager';
 import { graphemes } from '@fbincon/statusline-core/unicode/index';
@@ -78,7 +79,7 @@ export class State {
         if (e.detail)
             return [...(!e.adding ? [row('item-explain','Configuration and sample explanation','','Item format','action')] : []), row('item-guidance', 'Sources and requirements', '', 'Item format', 'action'), ...fields];
         if (e.page === 'layout')
-            return fields;
+            return d.instances.length ? [fields[0]!, row('row-alignment', 'Align explicit main rows', 'Enter', 'Layout', 'action'), ...fields.slice(1)] : fields;
         const result: Row[] = [
             row('colors', 'Use colors', d.use_colors ? 'on' : 'off', 'Appearance'), row('palette', 'Palette', d.palette, 'Appearance'),
             row('directory-style', 'Directory style', d.directory_style, 'Appearance'), row('separator-style', 'Separator style', d.separator_style, 'Appearance'),
@@ -194,6 +195,7 @@ export class State {
         if (!size.available)
             return k === 'escape' ? 'cancel' : null;
         if (event.overflow) { this.notice(text('input.overflow')); return null; }
+        if (e.alignmentManager) return alignmentsKey(e, event);
         if (e.groupManager) return groupsKey(e, event);
         if (ctrl && k.toLowerCase() === 'b' && !this.input && !e.sources && !e.profiles && !e.review && !e.quick && !e.explanation && !event.text && !event.paste) { openGroups(e); return null; }
         if (e.sources) return sourcesKey(e,event);
@@ -311,7 +313,7 @@ export class State {
             }
             if (ctrl && (k === 'd' || k === 'x') && !e.adding) {
                 if (!e.instanceAction(this.scope, k === 'd' ? 'copy' : 'remove'))
-                    this.notice(text('composition.invalid'));
+                    this.notice(e.compositionError);
                 this.ensureVisible(height);
                 return null;
             }
@@ -334,7 +336,7 @@ export class State {
             }
             if (e.adding && k === 'return') {
                 if (!e.toggle(this.scope, e.selected[this.scope]))
-                    this.notice(text('composition.invalid'));
+                    this.notice(e.compositionError);
                 return null;
             }
         }
@@ -346,6 +348,7 @@ export class State {
             if (!this.form || this.selectedRow().kind === 'legacy')
                 return 'save';
             const row = this.selectedRow();
+            if (row.key === 'row-alignment') { openAlignments(e); return null; }
             if (row.key === 'component-groups') { openGroups(e); return null; }
             if (row.key === 'sources') { openSources(e); return 'sources'; }
             if (row.key === 'profiles') { if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; } }
@@ -393,7 +396,7 @@ export class State {
             }
             else if (!(k === ' ' ? e.toggle(this.scope, e.selected[this.scope]) : e.move(this.scope, k === 'left' ? -1 : 1))) {
                 if (e.visible(this.scope).length)
-                    this.notice(text(e.filtered(this.scope) && k !== ' ' ? 'catalog.search.order_disabled' : 'composition.invalid'));
+                    this.notice(e.filtered(this.scope) && k !== ' ' ? text('catalog.search.order_disabled') : e.compositionError);
             }
         }
         else if (!this.form) {

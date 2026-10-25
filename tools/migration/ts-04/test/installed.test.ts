@@ -20,7 +20,7 @@ import { installedVersionManagement } from '../../../acceptance/version-manageme
 import { VERSION_SEQUENCE_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false, alignments: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -56,8 +56,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 23, operation, payload }), environment));
-    assert.equal(result.protocol_version, 23);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 24, operation, payload }), environment));
+    assert.equal(result.protocol_version, 24);
     assert.ok(result.result);
     return result.result;
 }
@@ -197,6 +197,43 @@ test('installed gradients preserve foreground, background, warning, group, Unico
     run(['config','import',file,'--select','main'],config);
     assert.deepEqual(ui(config,'read').draft.display.instances.find((n:any)=>n.id==='context-used').options.background_gradient,['#112233','#445566']);
     report.gradient_cases=6;checks.gradients=true;
+});
+test('installed explicit-row alignment survives editing, hiding, transfers and narrow terminals', () => {
+    const config = setup('alignments'), current = ui(config, 'read'), d = current.draft.display;
+    d.instances = ['a','b','c','d'].map((id, index) => ({ ...structuredClone(d.instances[0]), id, type_id: 'text', enabled: true, text: ['A','BBB','CCCC','D'][index] }));
+    d.groups = []; d.layout = { mode: 'explicit', rows: [['a','b'],['c','d']] };
+    d.scope_labels = 'off'; d.use_colors = false; d.separator_style = 'classic';
+    ui(config, 'apply', { draft: current.draft, expected_revision: current.revision });
+    run(['config','alignment','set','table','--columns','instance:a,instance:c;instance:b,instance:d'], config);
+    assert.equal(JSON.parse(run(['config','alignment','list'], config))[0].id, 'table');
+    for (const width of [40,80,120]) {
+        const reopened = ui(config, 'read'), preview = ui(config, 'preview', { draft: reopened.draft, width });
+        const actual = run(['render'], config, '{}', { COLUMNS: String(width + 2) }).trimEnd().split('\n');
+        assert.equal(actual.length, 2); assert.equal(actual[0]!.indexOf('BBB'), actual[1]!.indexOf('D'));
+        assert.deepEqual(preview.main.map((row: any[]) => row.map(span => span.text).join('').trimEnd()), actual.map(row => row.trimEnd()));
+    }
+    run(['config','instance','main','disable','b'], config);
+    const hidden = run(['render'], config, '{}').trimEnd().split('\n');
+    assert.equal(hidden.length, 2); assert(!hidden[0]!.includes('BBB')); assert(hidden[1]!.includes('D'));
+    const before = fs.readFileSync(join(config, 'claude-statusline.json'));
+    const refused = invoke(['config','instance','main','remove','b'], config);
+    assert.equal(refused.status, 2); assert.match(refused.stderr + refused.stdout, /table/u);
+    assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), before);
+    const file = join(installed.temporary, 'alignment-export.json'); run(['config','export',file], config);
+    run(['config','alignment','remove','table'], config);
+    run(['config','import',file,'--select','main'], config);
+    assert.equal(ui(config,'read').draft.display.layout.alignments[0].id, 'table');
+    run(['config','instance','main','set','c','text','C'.repeat(70)], config);
+    const input = join(installed.temporary, 'alignment-input.json'); fs.writeFileSync(input,'{}');
+    const explained = run(['diagnose','--input',input,'--width','40','--json'], config);
+    assert(explained.includes('alignment_collapsed'));
+    const fallback = run(['render'], config, '{}', { COLUMNS: '42' });
+    run(['config','alignment','remove','table'], config);
+    assert.equal(run(['render'], config, '{}', { COLUMNS: '42' }), fallback);
+    const receipt = join(installed.temporary, 'joint-display.json');
+    execFileSync(installed.node,[driver,installed.modules,'joint-display',config,receipt],{cwd:installed.directory,env:installed.env,timeout:120000});
+    report.alignment_matrix = JSON.parse(fs.readFileSync(receipt,'utf8'));
+    report.alignment_cases = 4; checks.alignments = true;
 });
 test('installed groups retain linked visibility, remapped copies and portable references', () => {
     const config = setup('groups');
@@ -486,7 +523,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 23, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 24, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -558,7 +595,7 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
         assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
         if(choice!=='cancel') {
             const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
-            assert.equal(display.schema_version,14);assert.equal(display.theme,'terminal');
+            assert.equal(display.schema_version,15);assert.equal(display.theme,'terminal');
             assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
         }
     }

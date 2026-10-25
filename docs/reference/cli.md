@@ -985,3 +985,8 @@ The optional `session-cost-rate` component accepts `config instance main set INS
 `config import` and `config profile import` accept `--select FIELDS`, `--user | --profile NAME_OR_ID | --project PATH`, and `--dry-run`. See [selection keys, target rules and source isolation](../PROFILES.md#selective-import). Without `--select`, existing full-import behavior is unchanged.
 
 `config instance main|subagent set ID foreground-gradient|background-gradient VALUE` accepts `off`, `ocean`, `sunset`, `aurora`, or 2–5 comma-separated RGB colors. See [static gradients](../APPEARANCE.md#static-component-gradients).
+
+
+## Main-row alignment
+
+`config alignment list`, `config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'`, and `config alignment remove ID` manage stable corresponding-column references. Commas join one column, semicolons separate columns. Invalid structural changes fail before writing. [Guide](../COMPOSITION.md#align-corresponding-columns-across-main-rows).

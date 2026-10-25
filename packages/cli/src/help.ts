@@ -36,6 +36,7 @@ const CONFIG: Readonly<Record<string, string>> = {
     layout: 'select_auto_layout_or_explicit_comma_separated_rows',
     instance: 'set_one_scoped_item_format_priority_width',
     group: 'component_groups',
+    alignment: 'row_alignment',
     reset: 'restore_display_and_host_defaults',
     language: 'language',
     profile: 'display_profiles',

@@ -1,4 +1,5 @@
 import { foregroundPaint, segmentPaint, type Paint, type PaintedPart } from './gradients.js';
+import { alignedRows } from './alignment.js';
 import { groupedRows, SCOPE_LABEL_ID } from './groups.js';
 import { indicator } from './indicators.js';
 import { externalPresentation } from './extensions.js';
@@ -329,11 +330,28 @@ export function coalesce(items: readonly RenderedItem[], inner: string): layout.
     emit(); return segments;
 }
 const paintSegment = (segment: layout.LayoutSegment) => segment.paint?.(segment.text, 0) ?? segment.text;
-export function configuredRows(data: unknown, config: DisplayDraft, width: number, env: RenderEnvironment, factory: StateFactory = (d, c, p, i, e) => new RenderState(d, c, p, i, e)): string[] {
+export function configuredRows(data: unknown, config: DisplayDraft, width: number, env: RenderEnvironment, factory: StateFactory = (d, c, p, i, e) => new RenderState(d, c, p, i, e), colors = powerline.cursor()): string[] {
     const palette = paletteFor(config), [outer, inner] = separators(config, palette), state = factory(data, config, palette, inner, env), rows: string[] = [];
     const scope = () => config.scope_labels === 'always' || config.scope_labels === 'when-subagents' && state.hadSubagents();
     const label = () => ({ text: palette.timer + env.language.text('scope.main') + palette.reset });
-    const nodes = new Map(config.instances.map(node => [node.id, node])), colors = powerline.cursor();
+    const nodes = new Map(config.instances.map(node => [node.id, node]));
+    if(config.layout.alignments?.length) {
+        const cache=new Map<string,RenderedItem|null>(), cached=Object.create(state) as RenderState;
+        cached.render=id=>{if(!cache.has(id))cache.set(id,state.render(id));const value=cache.get(id)!;return value?{...value}:null;};
+        const showScope=scope();
+        const plain={...config,scope_labels:showScope?'always' as const:'off' as const,layout:{...config.layout,alignments:[]}};
+        const unitConfig={...plain,scope_labels:'off' as const,powerline:{...plain.powerline,color_mode:plain.powerline.color_mode==='restart'?'continuous' as const:plain.powerline.color_mode}};
+        let prefix=showScope?label().text:null;
+        if(prefix&&config.separator_style==='powerline') {
+            if(!config.groups.length&&!config.instances.some(node=>node.enabled&&node.type_id==='spacer'))
+                prefix=appearance.apply(env.language.text('scope.main'),config,'',DEFAULT_ITEM);
+            prefix=powerline.row([{text:prefix,sequence:false}],unitConfig,true,true,{...colors});
+        }
+        return alignedRows(config,Math.max(2,width),outer,prefix,colors,
+            (ids,cursor)=>configuredRows(data,{...unitConfig,layout:{...unitConfig.layout,rows:[ids]}},10000,env,()=>cached,cursor).join(''),
+            (ids,first,cursor)=>configuredRows(data,{...plain,scope_labels:first?plain.scope_labels:'off',layout:{...plain.layout,rows:[ids]}},width,env,()=>cached,cursor),
+            (ids,collapsed)=>ids.forEach(id=>env.trace?.alignment(id,collapsed)));
+    }
     if (config.groups.length) {
         for (const ids of config.layout.mode === 'auto' ? [config.instances.map(n => n.id)] : config.layout.rows) {
             const cells: Cell[] = ids.map(id => { const node = nodes.get(id)!, item = node.enabled ? state.render(id) : null; return { id, text: item?.text ?? '', paint: item?.paint, priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled }; });

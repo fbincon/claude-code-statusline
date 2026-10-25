@@ -2,7 +2,7 @@
 import { LANGUAGES } from "../i18n/registry.js";
 import type { Language } from "../i18n/registry.js";
 import { MAIN_ITEM_IDS as generatedMAIN_ITEM_IDS, SUBAGENT_ITEM_IDS as generatedSUBAGENT_ITEM_IDS, PRESETS as generatedPRESETS } from "./generated-catalog.js";
-export const PROTOCOL_VERSION = 23 as const;
+export const PROTOCOL_VERSION = 24 as const;
 export const ITEM_DEFAULTS = {"label": null, "icon": null, "priority": 50, "max_width": null, "formatting": {}, "foreground": null, "background": null, "visibility": "always", "visibility_threshold": 70};
 export const VISIBILITY_ITEMS = {"main": {"git": "git-dirty", "git-changes": "git-dirty", "active-agents": "nonzero", "task-progress": "nonzero", "context-used": "used-at-least", "context-remaining": "used-at-least", "five-hour-limit": "used-at-least", "weekly-limit": "used-at-least", "spend-limit": "used-at-least"}, "subagent": {"context-used": "used-at-least", "context-remaining": "used-at-least"}} as const;
 export const GUIDANCE_KEYS = {"source_kinds": ["configuration", "official_input", "local_git", "local_system", "transcript", "local_state", "lifecycle", "native_timing", "live_metrics", "telemetry"], "scopes": ["main", "main_context", "session", "all_sessions", "task", "subagent", "subagent_context", "repository", "local", "latest_request"], "requirements": ["observed_field", "subagent_rows", "agent_context", "configured_effort", "agent_effort_optional", "git_repository", "git_upstream", "git_base", "pull_request", "worktree_session", "usage_records", "task_observation", "native_timing", "complete_waits", "live_metrics", "owned_agents", "checklist_events", "tool_events", "complete_stream", "request_coverage", "existing_telemetry", "gateway", "gateway_284", "valid_window", "warm_cache", "fast_mode", "thinking", "agent_mode", "vim_mode", "context_observation", "cost_rate"]} as const;
@@ -633,7 +633,10 @@ export interface InstanceDraft {
 export interface GroupDraft {
   id: string; member_ids: string[]; primary_id: string; link_visibility: boolean; shared_powerline: boolean;
 }
+export interface AlignmentRef { kind: 'instance' | 'group'; id: string }
+export interface AlignmentDraft { id: string; columns: AlignmentRef[][] }
 export interface LayoutDraft {
+  alignments?: AlignmentDraft[];
   mode: "auto" | "explicit";
   rows: string[][];
 }
@@ -658,7 +661,7 @@ export interface PowerlineDraft {
 }
 export interface DisplayDraft {
   groups: GroupDraft[];
-  schema_version: 14;
+  schema_version: 15;
   statusline_language: StatuslineLanguage;
   instances: InstanceDraft[];
   use_colors: boolean;
@@ -754,7 +757,7 @@ export interface PreviewResult {
 }
 export const SAMPLE_REASONS = ['sample_group_hidden','sample_visible','sample_empty','sample_condition_hidden','sample_truncated','sample_priority_omitted','sample_width_omitted','sample_row_hidden','sample_spacer'] as const;
 export type SampleReason = typeof SAMPLE_REASONS[number];
-export const EXPLAIN_REASONS = ['cost_rate_session','cost_rate_api','indicator_bar','source_bound','source_unbound','configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
+export const EXPLAIN_REASONS = ['alignment_active','alignment_collapsed','cost_rate_session','cost_rate_api','indicator_bar','source_bound','source_unbound','configured_on','configured_off','scope_disabled','installation_owned','installation_absent','installation_foreign','installation_unknown','unknown_host_version','host_supported','unsupported_host','host_requirement_unknown','collector_unknown','native_timing_on','native_timing_off','live_metrics_on','live_metrics_off','actual_not_observed'] as const;
 export interface ExplainReason { code: string; origin: 'configuration' | 'local_configuration' | 'host_capability' | 'unknown'; }
 export interface InstanceSample { row_id: string; outcome: SampleReason; truncated: boolean; }
 export interface ExplainInstance {

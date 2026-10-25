@@ -46,6 +46,8 @@ type EditorData = Pick<
   | 'profiles'
   | 'sources'
   | 'quick'
+  | 'groupManager'
+  | 'alignmentManager'
   | 'review'
   | 'preset'
   | 'path'
@@ -100,7 +102,7 @@ export function clientProps(
               pickerSaved: e.pickerSaved,
               detail: e.detail, preset: e.preset, path: e.path, pendingTransfer: e.pendingTransfer,
               guidanceScroll: e.guidanceScroll,
-              review: e.review, quick: e.quick, explanation:e.explanation, profiles:e.profiles, sources:e.sources,
+              groupManager: e.groupManager, alignmentManager: e.alignmentManager, review: e.review, quick: e.quick, explanation:e.explanation, profiles:e.profiles, sources:e.sources,
               setting: e.setting,
               activeNumeric: e.activeNumeric,
               selected: e.selected,

@@ -3,6 +3,7 @@ import type { DisplayDraft, Scope, SampleReason, InstanceSample, LayoutReason, I
 export type FitObserver = (id: string, reason: 'group_hidden' | 'priority_omitted' | 'width_omitted' | 'truncated') => void;
 /** Opt-in evidence from actual rendering decisions; never collects observations. */
 export class RenderTrace {
+  private alignments = new Map<string,boolean>();
   private rows = new Map<string, InstanceLayout[]>();
   private current: Record<Scope,string> = {main:'main',subagent:'subagent'};
   constructor(private config: DisplayDraft) {}
@@ -22,6 +23,8 @@ export class RenderTrace {
     else sample.outcome=reason;
   }
   fit(scope: Scope): FitObserver { return (id,reason)=>this.mark(scope,id,reason); }
+  alignment(id:string,collapsed:boolean):void { this.alignments.set(id,collapsed); }
+  alignmentCollapsed(id:string):boolean|undefined { return this.alignments.get(id); }
   layouts(scope:Scope,id:string): InstanceLayout[] { return (this.rows.get(scope+':'+id) ?? []).map(row=>({...row})); }
   samples(scope:Scope,id:string): InstanceSample[] { return this.layouts(scope,id).map(row=>({...row,outcome:('sample_'+row.outcome) as SampleReason})); }
 }

@@ -54,7 +54,7 @@ export function frame(state: State, columns: number, rows: number): Frame {
     canvas.put(3, 0, notice(state, canvas.columns));
     canvas.panel(size.content, contentTitle(state));
     const summary = drawPage(canvas, state, size);
-    const summaryHints = state.form && !e.profiles && !e.sources && !e.groupManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
+    const summaryHints = state.form && !e.profiles && !e.sources && !e.groupManager && !e.alignmentManager && !e.explanation && !e.quick && !e.review && e.guidanceScroll === null
         ? shortcuts([['↑↓', tr('ui.hints.select')]], size.content.innerWidth - displayWidth(summary + ' · '))
         : [];
     canvas.content(size.content, size.content.innerHeight - 1, [

@@ -59,7 +59,7 @@ test('tests.config.test_import_review.ImportReviewTests.test_unsaved_draft_and_l
     writeFileSync(f.target, JSON.stringify(legacy(1)));
     const result = f.review(draft);
     assert.deepEqual(result.draft.host, draft.host);
-    assert.equal(result.draft.display.schema_version, 14);
+    assert.equal(result.draft.display.schema_version, 15);
     assert.ok(result.changes.every((c: any) => c.section !== 'host'));
 });
 test('tests.config.test_import_review.ImportReviewTests.test_invalid_reviews_preserve_draft_and_never_create_configuration', t => {

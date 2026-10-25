@@ -104,18 +104,18 @@ claude-statusline config layout --by-instance explicit model-with-effort,git,spa
 
 ## 迁移、导入导出与恢复
 
-显示 schema 8 保存有序实例；编辑器协议 12 要求 Python 和原生资源版本匹配。
-Portable 外层格式仍为 v1、界面偏好仍为 v1、runtime 观测协议仍为 v2。
+显示 schema 15 保存有序实例、分组及可选显式行对齐；编辑器协议 24 要求 TypeScript 后端与原生资源版本匹配。
+Portable／方案外层格式和界面偏好仍为 v1，runtime 观测协议仍为 v3。
 
-显示 schema 1–7 在内存中规范化，每个作用域内的规范类型 ID 作为确定性迁移身份。
+旧显示 schema 在内存中规范化，每个作用域内的规范类型 ID 作为确定性迁移身份。
 启用顺序、显式行、语言和已禁用类型的自定义选项均保留。
 读取、预览和导入审阅不迁移已保存文件；实际保存或安装通过既有备份及原子事务写入新格式。
 
 导出保留 ID、选项和行引用。导入审阅区分新增、移除、启停、排序和选项变化；接受导入只替换
 草稿，保存仍检查最初读取的配置版本。其他编辑器已修改配置时，需先协调或重新加载。
 
-降级前先用当前软件移除不兼容的原生编辑器资源，再恢复升级前的兼容配置备份，安装旧软件和
-匹配资源。如果计划再次升级，请另行保留当前配置。重复实例和弹性布局无法无损转换为旧格式，
+降级前使用 `recover --restore-config TRANSACTION_ID` 显式恢复兼容配置备份。版本管理器拒绝新 schema，
+并在交接已校验的 Mod 资源及绑定后运行旧版安装器。如果计划再次升级，请另行保留当前配置。重复实例和弹性布局无法无损转换为旧格式，
 请勿手改 schema 数字。具体步骤见[升级指南](USER_GUIDE.zh-CN.md#升级)。
 
 ## 组件分组
@@ -136,3 +136,23 @@ claude-statusline config group main ungroup cost-block
 ```
 
 将大写占位符替换为 `config instance main list` 中的实例 ID；`subagent` 使用同样操作。`set` 支持 `primary`、逗号分隔的 `members`、`linked on|off`、`powerline on|off`。方案保存/复制及导入导出保留分组，不授予来源访问或自动刷新权限。[实现与验收](development/m4-m7-delivery.zh-CN.md)。
+
+## 显式主行的对应列对齐
+
+在 **Layout（布局）→ 对齐显式主行** 中创建关系，为每列选择各参与行中的一个组件或整个组。左右键选择，使用“添加列”增加下一列，“应用到草稿”接受关系，再用原有保存操作持久化。取消不改变已有草稿。选项显示稳定 ID，因此重复组件类型仍可独立选择。
+
+每列至少包含两个不同的显式主行，每行至多一个单位，各行列顺序必须一致。组成员只能以整组参与，单位不能重复用于其他列。一个关系占用参与行对应的左侧或右侧，同一侧不允许多个关系重叠。自动换行、子代理模板及跨作用域关系不参与对齐。
+
+先按可见性和组件最大宽度测量，再使用每列可见成员的最大宽度。其他可见行仍需要该列时，隐藏成员保留列位；整列隐藏时收起，整行隐藏时不输出。spacer 两侧独立计算，剩余宽度交给 spacer，右侧列保持靠右。Powerline 单位保留完整色块与端帽，单位之间使用终端默认背景留白，隐藏项不留下孤立分隔符或端帽。
+
+若新增留白使任一参与行超宽，该帧的关联行取消对齐留白，再执行原有优先级、装饰收缩及完整字素裁剪。结构中的 spacer 被禁用时也采用此回退。解释／诊断会报告 `alignment_collapsed`，宽度足够时报告 `alignment_active`。共享同一物理行的关系共同使用宽度预算，也共同回退。
+
+```sh
+claude-statusline config alignment list
+claude-statusline config alignment set summary --columns 'instance:ROW1_MODEL,instance:ROW2_MODEL;group:ROW1_USAGE,group:ROW2_USAGE'
+claude-statusline config alignment remove summary
+```
+
+将大写占位符替换为实际单位 ID。逗号连接同列成员，分号分隔各列。普通组件／组复制不自动加入对齐；完整方案复制和主区导入保持引用与单位一致。删除、移动、解组或调整行／布局模式导致关系失效时，保存前拒绝修改并指出关系 ID，请先修改或移除该关系。默认布局及预设不会自动开启对齐。
+
+显示配置使用 schema 15，编辑器协议为 24；portable／方案外层格式和界面偏好仍为 1，运行时观察协议仍为 3。旧配置读取和预览仅在内存迁移，实际保存或安装才备份并升级。降级前使用 `recover --restore-config TRANSACTION_ID` 显式恢复兼容备份；版本管理器拒绝新 schema，并负责交接已校验的旧版 Mod 资源及绑定，不能手改 schema 数字伪装迁移。

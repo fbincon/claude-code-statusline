@@ -109,6 +109,12 @@ try {
                 }
             }
             if (values.extended) {
+                await key('\x1b[H'); await key('\x1b[B\x1b[B ');
+                await key('\x1b[H\x1b[B\r', t('alignment.title', language)); capture('alignment-list');
+                await key('\r'); await key('\x1b[B\x1b[C\x1b[B\x1b[C'); capture('alignment-form');
+                await key('\x1b[F\r'); capture('alignment-draft');
+                await key('\r\x1b[B\r'); await key('\x07');
+                await key('\x1b[H\x1b[D');
                 await key('\t');
                 await key('\x02', t('composition.groups.title', language));
                 capture('groups-list');

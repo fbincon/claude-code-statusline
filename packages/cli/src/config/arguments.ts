@@ -16,7 +16,7 @@ export function validateConfigHelp(argv: readonly string[]): void {
     const end = argv.findIndex(value => value === '--help' || value === '-h');
     let prefix = argv.slice(0, end < 0 ? argv.length : end);
     for (;;) {
-        if (!prefix.length || ['language', 'subagents'].includes(prefix[0]!) && prefix.length === 1 || ['instance', 'group'].includes(prefix[0]!) && (prefix.length === 1 || prefix.length === 2 && ['main', 'subagent'].includes(prefix[1]!))) return;
+        if (!prefix.length || prefix[0] === 'alignment' && prefix.length === 1 || ['language', 'subagents'].includes(prefix[0]!) && prefix.length === 1 || ['instance', 'group'].includes(prefix[0]!) && (prefix.length === 1 || prefix.length === 2 && ['main', 'subagent'].includes(prefix[1]!))) return;
         try { parseConfig(prefix); return; }
         catch (error) {
             if (!(error instanceof ArgumentError)) throw error;
@@ -78,7 +78,7 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
     const result: ConfigArguments = { action, items: [], flags: {} };
     let allowed: Record<string, 'boolean' | 'one' | 'many'> = {}, minimum = 0, maximum = 0;
     let positional: string[] = [];
-    if (action === 'subagents' || action === 'language')
+    if (action === 'subagents' || action === 'language' || action === 'alignment')
         result.subaction = args.shift();
     if (action === 'instance' || action === 'group') {
         const scope = args.shift();
@@ -88,7 +88,7 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
         result.scope = scope as Scope;
         result.subaction = args.shift();
     }
-    const selected = action === 'subagents' || action === 'instance' || action === 'group' || action === 'language' ? result.subaction : action;
+    const selected = action === 'subagents' || action === 'instance' || action === 'group' || action === 'language' || action === 'alignment' ? result.subaction : action;
     commandToken(selected);
     if (action === 'language') {
         if (selected === 'show')
@@ -97,6 +97,12 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
             minimum = maximum = 1;
         else if (selected !== 'reset')
             throw new ArgumentError('language requires show, set or reset');
+    }
+    else if (action === 'alignment') {
+        if (selected === 'list') allowed = { '--json': 'boolean' };
+        else if (selected === 'set') { minimum = maximum = 1; allowed = { '--columns': 'one' }; }
+        else if (selected === 'remove') minimum = maximum = 1;
+        else throw new ArgumentError('alignment requires list, set or remove');
     }
     else if (action === 'group') {
         if (selected === 'list') allowed = { '--json': 'boolean' };
@@ -194,6 +200,7 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
         throw new ArgumentError(`invalid arguments for config ${selected}`, 'cli.unrecognized', { arguments: positional.slice(maximum).join(' ') }, { pending: true });
     if (action === 'language')
         result.value = positional[0];
+    else if (action === 'alignment') result.id = positional[0];
     else if (action === 'instance' || action === 'group') {
         if (selected === 'add')
             result.type_id = positional[0];

@@ -16,7 +16,11 @@ export interface SettingRow {
 export function settingRows(view: View): SettingRow[] {
   const e = view.editor!;
   if (e.detail) return [...(!e.adding ? [{key:'item-explain',label:'Configuration and sample explanation',group:'Item format',value:'Enter',editable:true}] : []), {key:'item-guidance', label:'Sources and requirements', group:'Item format', value:'Enter: read guidance', editable:true}, ...formRows(view)];
-  if (e.page === 'layout') return formRows(view);
+  if (e.page === 'layout') {
+    const fields = formRows(view);
+    if (!e.draft.display.instances.length) return fields;
+    return [fields[0]!, {key:'row-alignment',label:'Align explicit main rows',group:'Layout',value:'Enter',editable:true}, ...fields.slice(1)];
+  }
   const d = e.draft.display;
   const h = e.draft.host;
   const rows: SettingRow[] = [

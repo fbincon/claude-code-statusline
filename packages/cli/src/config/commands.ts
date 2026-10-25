@@ -1,3 +1,4 @@
+import { editAlignment, parseAlignmentColumns, AlignmentReferenceError } from '@fbincon/statusline-core/editor/alignments';
 import { selectiveImport } from './selective-import.js';
 import { editGroup, groupScope, type GroupEdit } from '@fbincon/statusline-core/editor/groups';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
@@ -99,7 +100,17 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
         }
         const result = service.mutate('config-group-' + args.subaction, config => {
             try { return [validateDisplay(editGroup(config, scope, request, nextId)), UNCHANGED]; }
-            catch { throw new ConfigError('composition.groups.invalid'); }
+            catch (error) { if (error instanceof AlignmentReferenceError) throw new ConfigError('alignment.references', { ids: error.ids.join(', ') }); throw new ConfigError('composition.groups.invalid'); }
+        });
+        return formatMutation(result, language);
+    }
+    if (action === 'alignment') {
+        if (args.subaction === 'list') return pretty(service.read().display.layout.alignments ?? []);
+        const result = service.mutate('config-alignment-' + args.subaction, config => {
+            try {
+                if (args.subaction === 'set' && typeof flags.columns !== 'string') throw new Error('alignment.invalid');
+                return [validateDisplay(editAlignment(config, args.id!, args.subaction === 'set' ? parseAlignmentColumns(String(flags.columns)) : undefined)), UNCHANGED];
+            } catch (error) { if (error instanceof Error && error.message === 'alignment.invalid') throw new ConfigError('alignment.invalid'); throw error; }
         });
         return formatMutation(result, language);
     }

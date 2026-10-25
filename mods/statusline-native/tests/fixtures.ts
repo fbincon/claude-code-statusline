@@ -29,7 +29,7 @@ export function component(type_id: string, enabled = true): import('../lib/gener
 
 export const BASE: Draft = {
   display: {
-    schema_version: 14, groups: [],
+    schema_version: 15, groups: [],
     theme: "classic",
     powerline_glyph: "ascii",
     powerline: { padding: "both", separator: "arrow", start_cap: false, end_cap: true, color_mode: "semantic" },
@@ -173,7 +173,7 @@ export function output(stdout: string, exitCode = 0): ProcessRunResult {
 }
 
 export function reply(result: unknown): ProcessRunResult {
-  return output(JSON.stringify({ protocol_version: 23, result }));
+  return output(JSON.stringify({ protocol_version: 24, result }));
 }
 
 export function sample(text: string) {

@@ -947,3 +947,8 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 `config import` 与 `config profile import` 支持 `--select FIELDS`、`--user | --profile NAME_OR_ID | --project PATH` 和 `--dry-run`。参见[选择键、目标规则与来源隔离](../PROFILES.zh-CN.md#选择性导入)。不传 `--select` 时保留原有完整导入行为。
 
 `config instance main|subagent set ID foreground-gradient|background-gradient VALUE` 接受 `off`、`ocean`、`sunset`、`aurora` 或 2～5 个逗号分隔的 RGB 颜色。参见[静态组件渐变](../APPEARANCE.zh-CN.md#静态组件渐变)。
+
+
+## 主行对应列对齐
+
+使用 `config alignment list`、`config alignment set ID --columns 'instance:A,instance:B;group:C,group:D'` 和 `config alignment remove ID` 管理稳定引用。逗号连接同列成员，分号分隔列；使引用失效的结构修改在写入前拒绝。[使用规则](../COMPOSITION.zh-CN.md#显式主行的对应列对齐)。
