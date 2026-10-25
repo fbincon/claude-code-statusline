@@ -4,7 +4,7 @@
 
 更新：**2026-10-26**（Asia/Shanghai）· 产品基线：**v3.8.0** · 规划基线：**`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案、显式启用的扩展及 M4–M7 已交付。首次入口与版本管理（M8–M9）完成验收后，剩余产品顺序为选择性导入、渐变、显式行对齐，最后制作演示（M10–M13）。Git 调用核查和 Windows 预览一致性作为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 已通过最终门禁并完成 GitHub／npm／Gitee 公开交付与下载核验，IMPORT-01 为 IN_PROGRESS；APPEARANCE-04、COMPOSITION-03、SHOWCASE-01 保持 NOT_STARTED，含 CI-01 在内的已交付工作保持 DONE。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案、显式启用的扩展及 M4–M7 已交付。首次入口与版本管理（M8–M9）完成验收后，剩余产品顺序为选择性导入、渐变、显式行对齐，最后制作演示（M10–M13）。Git 调用核查和 Windows 预览一致性作为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 已通过最终门禁并完成 GitHub／npm／Gitee 公开交付与下载核验，IMPORT-01 为 DONE；APPEARANCE-04 为 IN_PROGRESS，COMPOSITION-03、SHOWCASE-01 保持 NOT_STARTED，含 CI-01 在内的已交付工作保持 DONE。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
@@ -62,8 +62,8 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 
 | 优先级 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
-| M10 配置复用 | [IMPORT-01](development-plan.zh-CN.md#import-01) | 先选择全局外观，再选择完整主栏／子代理分区导入 | 既有导入审阅、实例、分组、布局与方案事务 | IN_PROGRESS |
-| M11 渐变 | [APPEARANCE-04](development-plan.zh-CN.md#appearance-04) | 预设及自定义的静态组件前景、Powerline 背景渐变 | 既有颜色、Powerline、分组及编辑规则 | NOT_STARTED |
+| M10 配置复用 | [IMPORT-01](development-plan.zh-CN.md#import-01) | 先选择全局外观，再选择完整主栏／子代理分区导入 | 既有导入审阅、实例、分组、布局与方案事务 | DONE |
+| M11 渐变 | [APPEARANCE-04](development-plan.zh-CN.md#appearance-04) | 预设及自定义的静态组件前景、Powerline 背景渐变 | 既有颜色、Powerline、分组及编辑规则 | IN_PROGRESS |
 | M12 跨行对齐 | [COMPOSITION-03](development-plan.zh-CN.md#composition-03) | 主栏显式多行对齐，明确隐藏／分组／spacer／窄行行为 | 既有显式布局、分组、Unicode 宽度与拟合 | NOT_STARTED |
 | M13 演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 已验收新能力的首页、方案展示及可复现流程 | M8–M12 全部完成并验收；匹配的安装包 | NOT_STARTED |
 
@@ -186,4 +186,4 @@ CI-01 已作为仓库维护完成，本次没有新产品版本；[验证与更�
 
 执行 `npm run docs:check` 与 `git diff --check`，核对双语 ID、依赖、状态及已交付事实，并在仅含已提交文件的检出目录验证链接。本机规划归档与原始验收记录继续保留在本地，不作为公开文档的依赖。
 
-M10 正在实施，显示 schema 13／编辑器协议 22。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。M11–M13 尚未启动。
+M10 正在实施，显示 schema 13／编辑器协议 22。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。M11 正在实施，M12–M13 尚未启动。

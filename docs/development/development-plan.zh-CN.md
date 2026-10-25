@@ -18,8 +18,8 @@
 
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
-| M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | IN_PROGRESS |
-| M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | NOT_STARTED |
+| M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | DONE |
+| M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | IN_PROGRESS |
 | M12 | [COMPOSITION-03](#composition-03) | 既有显式布局、分组、Unicode 宽度与拟合 | NOT_STARTED |
 | M13 | [SHOWCASE-01](#showcase-01) | M8–M12 全部完成并验收；匹配的安装包 | NOT_STARTED |
 
@@ -163,7 +163,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 ## APPEARANCE-04 静态前景与 Powerline 背景渐变
 
-**状态：NOT_STARTED。** M11，前景和背景均为必需范围。
+**状态：IN_PROGRESS。** M11，前景和背景均为必需范围。
 
 **问题与目标。** 提供可配置的颜色过渡，同时保持指标含义、既有分组、分隔符及终端回退正确。
 
@@ -552,4 +552,4 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 文档验收核对四份活动规划文件的任务 ID、顺序、依赖、状态及双语开发指南导航，核对已交付事实、链接与锚点；执行 `npm run docs:check` 和 `git diff --check`，并在仅含已提交文件的检出目录执行文档检查。记录文档验证结果，不据此宣称未来功能已经通过验收。本次仅规划更新不修改产品 README、稳定版指南、发布记录、生成资源或代码。
 
-M10 正在实施，显示 schema 13／编辑器协议 22。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。M11–M13 尚未启动。
+M10 正在实施，显示 schema 13／编辑器协议 22。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。M11 正在实施，M12–M13 尚未启动。

@@ -116,3 +116,21 @@ claude-statusline config instance main set context-remaining bar-style ascii
 Use an existing instance ID from `config instance main list`; the same options work with `subagent`. Supported types are `context-used`, `context-remaining`, and main-only `five-hour-limit`, `weekly-limit`, `spend-limit`. Quotas follow the instance's used/remaining selection. The bar retains its direction and percentage even when ordinary labels are hidden. It is an observed level, not elapsed time or a prediction. Missing/invalid/expired input produces no fabricated zero. Only fill is bounded to 100%; valid over-limit quota text remains visible. Width fitting can shorten or omit the complete representation.
 
 Copies, profiles and portable exports retain these display options without enabling any collector or source. Save/reopen persists them; cancel retains the opening configuration. See [delivery and compatibility](development/m4-m7-delivery.md).
+
+## Static component gradients
+
+In either editor, open a component's appearance fields and select **Foreground gradient** or **Powerline background gradient**. Left/right cycles `off`, `ocean`, `sunset`, and `aurora`; Enter accepts a preset name or 2–5 comma-separated `#RRGGBB` colors. Presets save their expanded colors, so exported settings do not depend on later preset changes. Existing solid colors remain stored when a gradient is enabled or disabled.
+
+```sh
+claude-statusline config instance main set context-used foreground-gradient ocean
+claude-statusline config instance main set context-used background-gradient '#112233,#445566,#778899'
+claude-statusline config instance main set context-used foreground-gradient off
+```
+
+The same fields work for subagent instances and literal text; spacers have no gradients. Background gradients appear with Powerline. They do not change collection or external-source permissions.
+
+Color interpolation is linear in sRGB channels with equally spaced stops. Foreground spans the final visible icon, label and body. Background spans the fitted block, including padding. Each visible fragment restarts its own gradient after clipping or wrapping; the first and last graphemes reach the endpoint colors, while a single grapheme uses the first color. Graphemes remain whole and are positioned by terminal cells. Links survive the styling pass. ANSI palettes quantize colors; no-color output retains plain text.
+
+Warning and critical foregrounds override foreground gradients. A background gradient sample that equals the text color uses a neutral background. RGB warning/critical text also uses a neutral background when its contrast ratio against a gradient sample falls below 3:1; the warning foreground is retained. Shared Powerline groups take the entire block's background from the primary instance, retain each member's foreground and preserve inactive member backgrounds. Separators and caps use adjacent final edge colors. Spacer gaps retain the terminal default background. Existing semantic/continuous/restart modes continue to sequence inherited colors; explicit gradients restart within each component or block.
+
+Display schema 14 / editor protocol 23 retain all prior defaults. Reading an older file performs only in-memory migration; saving backs it up. Main/subagent selective imports include their instance gradients; global-only selections leave them untouched. Profile copies and exports retain gradients, and older packages reject the newer schema rather than silently removing it.

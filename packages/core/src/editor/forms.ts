@@ -1,3 +1,4 @@
+import { GRADIENT_KEYS, GRADIENT_DEFAULTS, GRADIENT_PRESETS, parseGradient, gradientName } from './gradients.js';
 import { COST_RATE_DEFAULTS } from './cost-rate.js';
 import { INDICATOR_DEFAULTS } from './indicators.js';
 import { nodes } from './instances.js';
@@ -56,7 +57,7 @@ function format(raw: unknown): string {
     return raw === null ? 'inherit' : typeof raw === 'boolean' ? raw ? 'on' : 'off' : String(raw);
 }
 function row(spec: EditorField, key: string, valueRaw: unknown): FormRow {
-    return { ...spec, spec, key, valueRaw, value: format(valueRaw), editable: true };
+    return { ...spec, spec, key, valueRaw, value: (GRADIENT_KEYS as readonly string[]).includes(spec.key) ? gradientName(valueRaw) : format(valueRaw), editable: true };
 }
 export function formRows(view: FormView): FormRow[] {
     const e = view.editor!;
@@ -65,7 +66,7 @@ export function formRows(view: FormView): FormRow[] {
         const node = e.instance(e.detail.scope, e.detail.id)!;
         const options = node.options;
         return itemFields(e.description.editor_fields.item!, e.detail.scope, node.type_id, e.definition(e.detail.scope,node.id)?.capabilities).map((spec) => row(spec, 'item:' + spec.key, spec.key === 'text' ? node.text : spec.key === 'link' ? options.link ?? 'off' : spec.key in e.description.formatting_options ? options.formatting[spec.key] ?? 'inherit' :
-            options[spec.key as keyof typeof options] ?? INDICATOR_DEFAULTS[spec.key as keyof typeof INDICATOR_DEFAULTS] ?? COST_RATE_DEFAULTS[spec.key as keyof typeof COST_RATE_DEFAULTS] ?? ITEM_DEFAULTS[spec.key as keyof typeof ITEM_DEFAULTS]))
+            options[spec.key as keyof typeof options] ?? INDICATOR_DEFAULTS[spec.key as keyof typeof INDICATOR_DEFAULTS] ?? COST_RATE_DEFAULTS[spec.key as keyof typeof COST_RATE_DEFAULTS] ?? GRADIENT_DEFAULTS[spec.key as keyof typeof GRADIENT_DEFAULTS] ?? ITEM_DEFAULTS[spec.key as keyof typeof ITEM_DEFAULTS]))
             .sort((a, b) => ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(a.group) - ['Item format', 'Conditional visibility', 'Item colors', 'Item fitting'].indexOf(b.group));
     }
     if (e.page === 'layout') {
@@ -108,6 +109,9 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
         return false;
     if (spec.key === "foreground" || spec.key === "background")
         value = normalizeColor(value);
+    if ((GRADIENT_KEYS as readonly string[]).includes(spec.key)) {
+        try { value = parseGradient(value); } catch { setMessage(view, 'message', localizedText('gradients.invalid')); return false; }
+    }
     const draft = copyDraft(e.draft);
     if (current.key === 'layout.mode') {
         draft.display.layout = { mode: value as 'auto' | 'explicit', rows: value === 'explicit' && draft.display.instances.length ? [draft.display.instances.map(i => i.id)] : [] };
@@ -156,6 +160,10 @@ export function setFormValue(view: FormView, current: FormRow, raw: string | boo
 }
 export function adjustForm(view: FormView, current: FormRow, delta: -1 | 1): boolean {
     const spec = current.spec;
+    if ((GRADIENT_KEYS as readonly string[]).includes(spec.key)) {
+        const choices = ['off', ...Object.keys(GRADIENT_PRESETS)], index = choices.indexOf(gradientName(current.valueRaw));
+        return setFormValue(view, current, choices[(index + delta + choices.length) % choices.length]!);
+    }
     if (spec.kind === 'boolean')
         return setFormValue(view, current, !current.valueRaw);
     else if (spec.kind === 'choice') {

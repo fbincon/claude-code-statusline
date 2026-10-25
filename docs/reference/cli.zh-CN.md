@@ -945,3 +945,5 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 ## 选择性复用显示设置
 
 `config import` 与 `config profile import` 支持 `--select FIELDS`、`--user | --profile NAME_OR_ID | --project PATH` 和 `--dry-run`。参见[选择键、目标规则与来源隔离](../PROFILES.zh-CN.md#选择性导入)。不传 `--select` 时保留原有完整导入行为。
+
+`config instance main|subagent set ID foreground-gradient|background-gradient VALUE` 接受 `off`、`ocean`、`sunset`、`aurora` 或 2～5 个逗号分隔的 RGB 颜色。参见[静态组件渐变](../APPEARANCE.zh-CN.md#静态组件渐变)。

@@ -1,3 +1,4 @@
+import { foregroundPaint } from './gradients.js';
 import { groupedRows } from './groups.js';
 import { indicator } from './indicators.js';
 import { externalPresentation, sampleSource } from './extensions.js';
@@ -234,17 +235,17 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
         const byId = new Map(parts.map(part => [part.item, part]));
         const cells: Cell[] = config.subagents.instances.map(node => {
             const part = byId.get(node.id);
-            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used) : '', priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
+            return { id: node.id, text: part ? appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used) : '', paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled };
         });
         return groupedRows(cells, config.subagents.groups, config, 'subagent', columns, separator, false, env.trace?.fit('subagent'), prepared.colors).join('');
     }
     if (parts.some(part => part.item !== part.type || part.type === 'text' || part.type === 'spacer')) {
         const nodes = prepared.nodes;
-        const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
-        return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + cell.text).join(''), prepared.measure, env.trace?.fit('subagent'), prepared.colors);
+        const cells: Cell<Part>[] = parts.map(part => { const node = nodes.get(part.item)!; return { id: node.id, text: ['text', 'spacer'].includes(node.type_id) ? styled(part) : appearance.apply(styled(part), config, node.type_id, node.options, 'subagent', part.used), paint: foregroundPaint(node.options.foreground_gradient, config, appearance.riskColor(part?.used ?? null, config)), priority: node.options.priority, spacer: node.type_id === 'spacer', payload: part }; });
+        return fitRow(cells, columns, config, side => side.map((cell, i) => (i ? side[i - 1]!.payload!.type === 'status' && cell.payload!.type === 'name' ? ' ' : separator : '') + (cell.paint?.(cell.text) ?? cell.text)).join(''), prepared.measure, env.trace?.fit('subagent'), prepared.colors);
     }
     if (config.separator_style === 'powerline')
-        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { id: part.item, text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), priority: options.priority }; }), columns, config, env.trace?.fit('subagent'), prepared.colors);
+        return powerline.fit(parts.map(part => { const options = prepared.options.get(part.item)![1]; return { id: part.item, text: appearance.apply(styled(part), config, part.type, options, 'subagent', part.used), paint: foregroundPaint(options.foreground_gradient, config, appearance.riskColor(part.used ?? null, config)), priority: options.priority }; }), columns, config, env.trace?.fit('subagent'), prepared.colors);
     if (prepared.legacyFitting)
         while (parts.length > 1 && prepared.measure(plain(parts)) > columns) {
             const priority = (i: number) => prepared.options.get(parts[i]!.item)![1].priority;
@@ -258,7 +259,8 @@ function renderPrepared(task: Data, config: DisplayDraft, env: RenderEnvironment
     parts = fit(parts, columns, prepared.measure, env.trace?.fit('subagent'));
     const content = parts.map((part, i) => {
         const options = prepared.options.get(part.item)![1];
-        const value = config.theme !== 'classic' || options.foreground !== null || options.background !== null ? appearance.apply(styled(part), config, part.type, options, 'subagent', part.used) : styled(part);
+        let value = config.theme !== 'classic' || options.foreground !== null || options.background !== null || options.foreground_gradient ? appearance.apply(styled(part), config, part.type, options, 'subagent', part.used) : styled(part);
+        value = foregroundPaint(options.foreground_gradient, config, appearance.riskColor(part.used ?? null, config))?.(value) ?? value;
         return (i ? parts[i - 1]!.item === 'status' && part.item === 'name' ? ' ' : separator : '') + value;
     }).join('');
     return prepared.measure(content) > columns ? formatters.truncateText(plain(parts), columns) : content;

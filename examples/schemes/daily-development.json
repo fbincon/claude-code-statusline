@@ -3,7 +3,7 @@
   "version": 1,
   "name": "daily-development",
   "display": {
-    "schema_version": 13,
+    "schema_version": 14,
     "groups": [],
     "use_colors": true,
     "palette": "default",

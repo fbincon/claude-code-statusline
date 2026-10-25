@@ -1,4 +1,4 @@
-import { LEGACY_370_SHA256 } from '@fbincon/statusline-core/management/compatibility';
+import { LEGACY_370_SHA256, PACKAGE_COMPATIBILITY } from '@fbincon/statusline-core/management/compatibility';
 import { VERSION } from '@fbincon/statusline-core/release';
 /** Read-only candidate readiness, never uploads, tags or publishes. */
 import * as fs from 'node:fs';
@@ -21,7 +21,9 @@ function versionSequence(value: any, official: boolean): void {
     assert.equal(value.host_mode, official ? 'official' : 'version-only');
     assert.equal(value.model_calls, 0);
     for (const key of ['roundtrip', 'independent_runner', 'crash_recovery', 'configuration_restore', 'real_npm']) assert.equal(value[key], true);
-    assert(Array.isArray(value.operation_timings) && value.operation_timings.length === (official ? 20 : 19), 'Incomplete version-operation evidence');
+    const schema = PACKAGE_COMPATIBILITY.read.display[1];
+    assert.deepEqual(value.schema_migration, schema > 13 ? { from: 13, to: schema, old_version_refused: true, backup_restored: true } : null);
+    assert(Array.isArray(value.operation_timings) && value.operation_timings.length === (official ? 20 : 19) + (schema > 13 ? 3 : 0), 'Incomplete version-operation evidence');
     for (const operation of value.operation_timings)
         assert(operation && typeof operation.command === 'string' && operation.command.length > 0 && Number.isFinite(operation.elapsed_ms) && operation.elapsed_ms >= 0, 'Invalid version-operation evidence');
 }
@@ -52,8 +54,9 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
                 assert.equal(report.powershell_setup.receipt.timeout_ms, 60000);
                 assert.equal(report.powershell_setup.receipt.error, null);
             }
-            assert.equal(Object.keys(report.checks).length, 21); assert(Object.values(report.checks).every(value => value === true));
+            assert.equal(Object.keys(report.checks).length, 22); assert(Object.values(report.checks).every(value => value === true));
             assert.equal(report.checks.selective_import, true); assert.equal(report.selective_import_cases, 4);
+            assert.equal(report.checks.gradients, true); assert.equal(report.gradient_cases, 6);
             assert.equal(report.checks.version_management, true); versionSequence(report.version_management, false);
             assert.equal(report.checks.first_entry, true); assert.equal(report.first_entry_cases, 4);
             assert.equal(report.checks.git_policy, true); assert.equal(report.git_policy_cases, 4);

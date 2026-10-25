@@ -6,6 +6,7 @@ export const ANSI_SGR_RE = styles.SGR_RE;
 export interface LayoutSegment {
     text: string;
     prefer_slash_breaks?: boolean;
+    paint?: (text: string, start: number) => string;
 }
 export interface StyledUnit {
     link?: string;
@@ -169,14 +170,15 @@ export function layoutSegments(segments: readonly (LayoutSegment | string)[], wi
             continue;
         const size = displayWidth(segment.text);
         if (size <= width) {
+            const text = segment.paint?.(segment.text, 0) ?? segment.text;
             if (current && currentWidth + separatorWidth + size <= width) {
-                current += separator + segment.text;
+                current += separator + text;
                 currentWidth += separatorWidth + size;
             }
             else {
                 if (current)
                     rows.push(ensureReset(current, reset));
-                current = segment.text;
+                current = text;
                 currentWidth = size;
             }
             continue;
@@ -186,7 +188,11 @@ export function layoutSegments(segments: readonly (LayoutSegment | string)[], wi
             current = '';
             currentWidth = 0;
         }
-        const chunks = splitAnsiText(segment.text, width, segment.prefer_slash_breaks);
+        let offset = 0;
+        const chunks = splitAnsiText(segment.text, width, segment.prefer_slash_breaks).map(chunk => {
+            const painted = segment.paint?.(chunk, offset) ?? chunk;
+            offset += styledUnits(chunk).length; return painted;
+        });
         rows.push(...chunks.slice(0, -1).map(chunk => ensureReset(chunk, reset)));
         current = chunks.at(-1)!;
         currentWidth = displayWidth(current);

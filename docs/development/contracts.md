@@ -222,3 +222,7 @@ Display schema 13 / editor protocol 21 adds the optional main `session-cost-rate
 ## Selective import contract
 
 Editor protocol 22 retains display schema 13. `import` and `review_import` accept an optional `selection` array alongside `draft` and `path`; `profile_import` accepts optional `draft` and `selection` together. An omitted selection retains the original full-import contract. An empty selection produces an unchanged draft. Unknown/duplicate selections and invalid source references are refused. The existing matching envelope parser runs before the shared selector; no target write occurs until the existing revision-checked apply transaction. Selection and differences share core implementations generated into the native editor.
+
+## Gradient contract
+
+Display schema 14 and editor protocol 23 add optional `foreground_gradient` and `background_gradient` arrays to instance options. Each is null/off or 2–5 RGB colors. Missing fields remain disabled; lower source schemas cannot claim these new fields. Presets expand before persistence. Rendering carries internal paint callbacks through fitting and semantic wrapping; these callbacks never enter the wire format. Existing preview spans remain unchanged.

@@ -1945,7 +1945,14 @@ export const LOCALES = {
     "review.selection.thresholds": "Warning thresholds",
     "review.selection.help": "S select · Space toggle · Enter review · F full import · A accept draft; save separately.",
     "review.selection.invalid": "Choose distinct supported import fields.",
-    "profiles.action.reuse": "Import selected settings into current draft"
+    "profiles.action.reuse": "Import selected settings into current draft",
+    "fields.item.foreground_gradient.label": "Foreground gradient",
+    "fields.item.background_gradient.label": "Powerline background gradient",
+    "gradients.invalid": "Use off, ocean, sunset, aurora, or 2–5 comma-separated #RRGGBB colors. Left/right selects a preset; Enter edits colors.",
+    "gradients.schema": "Gradient options require display schema 14 or newer.",
+    "gradients.preset.ocean": "Ocean",
+    "gradients.preset.sunset": "Sunset",
+    "gradients.preset.aurora": "Aurora"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3884,7 +3891,14 @@ export const LOCALES = {
     "review.selection.thresholds": "告警阈值",
     "review.selection.help": "S 选择范围 · 空格勾选 · Enter 审阅 · F 完整导入 · A 接受草稿；需另行保存。",
     "review.selection.invalid": "请选择不重复的受支持导入字段。",
-    "profiles.action.reuse": "选择导入到当前草稿"
+    "profiles.action.reuse": "选择导入到当前草稿",
+    "fields.item.foreground_gradient.label": "前景渐变",
+    "fields.item.background_gradient.label": "Powerline 背景渐变",
+    "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 个逗号分隔的 #RRGGBB 颜色。左右键选择预设，Enter 编辑颜色。",
+    "gradients.schema": "渐变选项需要显示 schema 14 或更新版本。",
+    "gradients.preset.ocean": "海洋 (ocean)",
+    "gradients.preset.sunset": "落日 (sunset)",
+    "gradients.preset.aurora": "极光 (aurora)"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5823,7 +5837,14 @@ export const LOCALES = {
     "review.selection.thresholds": "警告閾值",
     "review.selection.help": "S 選擇範圍 · 空白鍵勾選 · Enter 審閱 · F 完整匯入 · A 接受草稿；需另行儲存。",
     "review.selection.invalid": "請選擇不重複且受支援的匯入欄位。",
-    "profiles.action.reuse": "選擇匯入至目前草稿"
+    "profiles.action.reuse": "選擇匯入至目前草稿",
+    "fields.item.foreground_gradient.label": "前景漸層",
+    "fields.item.background_gradient.label": "Powerline 背景漸層",
+    "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 個逗號分隔的 #RRGGBB 色彩。左右鍵選擇預設，Enter 編輯色彩。",
+    "gradients.schema": "漸層選項需要顯示 schema 14 或更新版本。",
+    "gradients.preset.ocean": "海洋 (ocean)",
+    "gradients.preset.sunset": "落日 (sunset)",
+    "gradients.preset.aurora": "極光 (aurora)"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7762,7 +7783,14 @@ export const LOCALES = {
     "review.selection.thresholds": "警告閾值",
     "review.selection.help": "S 選擇範圍 · 空白鍵勾選 · Enter 檢視 · F 完整匯入 · A 接受草稿；需另外儲存。",
     "review.selection.invalid": "請選擇不重複且支援的匯入欄位。",
-    "profiles.action.reuse": "選擇匯入至目前草稿"
+    "profiles.action.reuse": "選擇匯入至目前草稿",
+    "fields.item.foreground_gradient.label": "前景漸變",
+    "fields.item.background_gradient.label": "Powerline 背景漸變",
+    "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 個逗號分隔的 #RRGGBB 顏色。左右鍵選擇預設，Enter 編輯顏色。",
+    "gradients.schema": "漸變選項需要顯示 schema 14 或更新版本。",
+    "gradients.preset.ocean": "海洋 (ocean)",
+    "gradients.preset.sunset": "落日 (sunset)",
+    "gradients.preset.aurora": "極光 (aurora)"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9701,7 +9729,14 @@ export const LOCALES = {
     "review.selection.thresholds": "警告しきい値",
     "review.selection.help": "S 範囲選択 · Space 切替 · Enter 確認 · F 全体 · A 下書きに反映。保存は別操作。",
     "review.selection.invalid": "対応するインポート項目を重複せず選択してください。",
-    "profiles.action.reuse": "選択した設定を現在の下書きにインポート"
+    "profiles.action.reuse": "選択した設定を現在の下書きにインポート",
+    "fields.item.foreground_gradient.label": "前景グラデーション",
+    "fields.item.background_gradient.label": "Powerline 背景グラデーション",
+    "gradients.invalid": "off、ocean、sunset、aurora、またはカンマ区切りの #RRGGBB 色を 2～5 個指定。左右でプリセット、Enter で色を編集。",
+    "gradients.schema": "グラデーションには表示 schema 14 以降が必要です。",
+    "gradients.preset.ocean": "海 (ocean)",
+    "gradients.preset.sunset": "夕日 (sunset)",
+    "gradients.preset.aurora": "オーロラ (aurora)"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11640,7 +11675,14 @@ export const LOCALES = {
     "review.selection.thresholds": "경고 임계값",
     "review.selection.help": "S 범위 선택 · Space 전환 · Enter 검토 · F 전체 · A 초안 적용. 저장은 별도입니다.",
     "review.selection.invalid": "지원되는 가져오기 필드를 중복 없이 선택하세요.",
-    "profiles.action.reuse": "선택한 설정을 현재 초안으로 가져오기"
+    "profiles.action.reuse": "선택한 설정을 현재 초안으로 가져오기",
+    "fields.item.foreground_gradient.label": "전경 그라데이션",
+    "fields.item.background_gradient.label": "Powerline 배경 그라데이션",
+    "gradients.invalid": "off, ocean, sunset, aurora 또는 쉼표로 구분한 #RRGGBB 색상 2~5개를 입력하세요. 좌우로 프리셋 선택, Enter로 색상 편집.",
+    "gradients.schema": "그라데이션에는 표시 schema 14 이상이 필요합니다.",
+    "gradients.preset.ocean": "바다 (ocean)",
+    "gradients.preset.sunset": "노을 (sunset)",
+    "gradients.preset.aurora": "오로라 (aurora)"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

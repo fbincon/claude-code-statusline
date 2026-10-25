@@ -53,6 +53,8 @@ export function settingPresentation(view: View, rows: SettingRow[]): SettingRow[
     } else if (row.key === 'ui-language') {
       // All autonyms remain recognizable in either interface language.
     } else if (row.key === 'item:cost_rate_basis') value = t('cost_rate.basis.' + value, language);
+    else if (row.key === 'item:foreground_gradient' || row.key === 'item:background_gradient')
+      value = value === 'off' ? t('values.off', language) : t('gradients.preset.' + value, language, {}, value);
     else if (row.key === 'item:presentation') value = t('indicators.presentation.' + value, language);
     else if (row.key === 'field:statusline_language') {
       value = LANGUAGE_NAMES[view.editor!.draft.display.statusline_language];

@@ -1,3 +1,4 @@
+import { GRADIENT_KEYS, parseGradient } from '../editor/gradients.js';
 import { reconcileGroups, insertionAfter } from '../editor/groups.js';
 import type { DisplayDraft, InstanceDraft, Scope, LayoutDraft, ItemOptionsDraft, SubagentDraft } from '../contracts/ui.js';
 import { BY_SCOPE, canonicalItem } from './catalog.js';
@@ -76,7 +77,9 @@ export function updateSubagents(config: SubagentDraft, updates: Partial<Subagent
 }
 export function editedOptions(current: ItemOptionsDraft, option: string, value: unknown): ItemOptionsDraft {
   const data = clone(current), key = option.replaceAll('-', '_');
-  if (Object.hasOwn(FORMAT_CHOICES, key)) {
+  if ((GRADIENT_KEYS as readonly string[]).includes(key)) {
+    try { Object.assign(data, { [key]: parseGradient(value) }); } catch { fail('gradients.invalid'); }
+  } else if (Object.hasOwn(FORMAT_CHOICES, key)) {
     if (value === 'inherit') delete data.formatting[key];
     else data.formatting[key] = value as string;
   } else if (['label', 'icon', 'priority', 'max_width', 'foreground', 'background', 'visibility', 'visibility_threshold', 'link', 'presentation', 'bar_width', 'bar_style', 'cost_rate_basis'].includes(key)) {

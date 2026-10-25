@@ -3,6 +3,8 @@ import type { DisplayDraft, Scope } from '../contracts/ui.js';
 import * as styles from './styles.js';
 import * as layout from './layout.js';
 import { sequence } from './appearance.js';
+import { paintGradient, type Paint } from './gradients.js';
+import type { GradientDraft } from '../contracts/ui.js';
 
 export interface Block {
     id?: string;
@@ -11,6 +13,8 @@ export interface Block {
     prefer_slash_breaks?: boolean;
     sequence?: false;
     continuation?: boolean;
+    paint?: Paint;
+    background_gradient?: GradientDraft | null;
 }
 /** Owned by one main or subagent render, never retained between payloads. */
 export interface ColorCursor { index: number; scope: Scope }
@@ -45,7 +49,16 @@ export function row(blocks: readonly Block[], config: DisplayDraft, padding = tr
     let previous: string | null = null, index = config.powerline.color_mode === 'restart' ? 0 : colors.index;
     for (const block of blocks.filter(b => b.text)) {
         const continued = block.continuation && config.powerline.color_mode === 'continuous';
-        const text = block.id && block.sequence !== false ? sequence(block.text, config, block.id, colors.scope, continued ? index - 1 : index++) : block.text;
+        let text = block.id && block.sequence !== false ? sequence(block.text, config, block.id, colors.scope, continued ? index - 1 : index++) : block.text;
+        text = block.paint?.(text) ?? text;
+        const gradient = block.background_gradient ?? (block.id ? (colors.scope === 'main' ? config.instances : config.subagents.instances).find(node => node.id === block.id)?.options.background_gradient : undefined);
+        if (gradient && config.use_colors) {
+            const body = paintGradient((left ? styles.serialize(edge(text)) + ' ' + styles.RESET : '') + text +
+                (right ? styles.serialize(edge(text, true)) + ' ' + styles.RESET : ''), gradient, 'background', config);
+            if (previous !== null) result.push(separator(previous, body, config));
+            else if (caps && config.powerline.start_cap) result.push(separator('', body, config, true));
+            result.push(body); previous = body; continue;
+        }
         if (previous !== null) result.push(separator(previous, text, config));
         else if (caps && config.powerline.start_cap) result.push(separator('', text, config, true));
         if (left) result.push((config.use_colors ? styles.serialize(edge(text)) : '') + ' ' + (config.use_colors ? styles.RESET : ''));

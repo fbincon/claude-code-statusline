@@ -35,6 +35,9 @@ export function fieldValue(row: Row, state: State): string {
     if (row.kind === 'action') {
         return t('ui.actions.' + row.key, language);
     }
+    if (row.form?.spec.key.endsWith('_gradient')) {
+        return row.value === 'off' ? t('values.off', language) : t('gradients.preset.' + row.value, language, {}, row.value);
+    }
     if (row.form?.valueRaw === null) {
         return t('values.inherit', language);
     }

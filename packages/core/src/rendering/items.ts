@@ -1,3 +1,4 @@
+import { foregroundPaint, segmentPaint, type Paint, type PaintedPart } from './gradients.js';
 import { groupedRows, SCOPE_LABEL_ID } from './groups.js';
 import { indicator } from './indicators.js';
 import { externalPresentation } from './extensions.js';
@@ -23,6 +24,7 @@ import { literal, fitRow, type Cell } from './components.js';
 import { DEFAULT_ITEM } from '../config/defaults.js';
 import { coercedFloat } from './coercion.js';
 export interface RenderedItem {
+    paint?: Paint;
     text: string;
     group?: string | null;
     prefer_slash_breaks?: boolean;
@@ -286,7 +288,7 @@ export class RenderState {
         if (item === 'text') {
             const text = literal(node!, this.config, 'main', this.env.trace ? () => this.env.trace!.mark('main',id,'truncated') : undefined);
             if(text) this.env.trace?.mark('main',id,'visible');
-            return text ? { text } : null;
+            return text ? { text, ...(foregroundPaint(options.foreground_gradient, this.config) ? { paint: foregroundPaint(options.foreground_gradient, this.config) } : {}) } : null;
         }
         let used: number | null = null;
         if (options.visibility !== 'always' || fmt.thresholds.enabled) {
@@ -301,7 +303,7 @@ export class RenderState {
             return null;
         let text = preferences.threshold(rendered.text, used, fmt, this.config, this.palette.percentage);
         if (!external) text = preferences.decorate(text, item, 'main', fmt, options, this.env.language);
-        if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null)
+        if (this.config.theme !== 'classic' || this.config.separator_style === 'powerline' || options.foreground !== null || options.background !== null || options.foreground_gradient || options.background_gradient)
             text = appearance.apply(text, this.config, item, options, 'main', used);
         if (options.max_width !== null) {
             if(layout.displayWidth(text)>options.max_width) this.env.trace?.mark('main',id,'truncated');
@@ -310,26 +312,23 @@ export class RenderState {
         const target = external?.target ?? (item === 'current-dir' ? fileLink(this.liveDir) : item === 'project-name' ? fileLink(deepGet(this.data, ['workspace','project_dir'])) : item === 'pr' ? safeLink(deepGet(this.data, ['pr','url'])) : null);
         text = layout.withLink(text, target, options.link, this.env.links);
         if(text) this.env.trace?.mark('main',id,'visible');
-        return { ...rendered, text };
+        const paint = foregroundPaint(options.foreground_gradient, this.config, appearance.riskColor(used, this.config));
+        return { ...rendered, text, ...(paint ? { paint } : {}) };
     }
 }
 export type StateFactory = (data: unknown, config: DisplayDraft, palette: Palette, inner: string, env: RenderEnvironment) => RenderState;
 export function coalesce(items: readonly RenderedItem[], inner: string): layout.LayoutSegment[] {
     const segments: layout.LayoutSegment[] = [];
-    let current: RenderedItem | null = null;
+    let current: RenderedItem | null = null, parts: PaintedPart[] = [];
+    const emit = () => { if (!current) return; const paint = segmentPaint(parts); segments.push({ text: current.text, prefer_slash_breaks: current.prefer_slash_breaks, ...(paint ? { paint } : {}) }); };
     for (const item of items) {
-        if (current !== null && item.group && item.group === current.group)
-            current.text += inner + item.text;
-        else {
-            if (current !== null)
-                segments.push({ text: current.text, prefer_slash_breaks: current.prefer_slash_breaks });
-            current = { ...item };
-        }
+        if (current !== null && item.group && item.group === current.group) {
+            current.text += inner + item.text; parts.push({ text: inner }, item);
+        } else { emit(); current = { ...item }; parts = [item]; }
     }
-    if (current !== null)
-        segments.push({ text: current.text, prefer_slash_breaks: current.prefer_slash_breaks });
-    return segments;
+    emit(); return segments;
 }
+const paintSegment = (segment: layout.LayoutSegment) => segment.paint?.(segment.text, 0) ?? segment.text;
 export function configuredRows(data: unknown, config: DisplayDraft, width: number, env: RenderEnvironment, factory: StateFactory = (d, c, p, i, e) => new RenderState(d, c, p, i, e)): string[] {
     const palette = paletteFor(config), [outer, inner] = separators(config, palette), state = factory(data, config, palette, inner, env), rows: string[] = [];
     const scope = () => config.scope_labels === 'always' || config.scope_labels === 'when-subagents' && state.hadSubagents();
@@ -337,7 +336,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
     const nodes = new Map(config.instances.map(node => [node.id, node])), colors = powerline.cursor();
     if (config.groups.length) {
         for (const ids of config.layout.mode === 'auto' ? [config.instances.map(n => n.id)] : config.layout.rows) {
-            const cells: Cell[] = ids.map(id => { const node = nodes.get(id)!; return { id, text: node.enabled ? state.render(id)?.text ?? '' : '', priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled }; });
+            const cells: Cell[] = ids.map(id => { const node = nodes.get(id)!, item = node.enabled ? state.render(id) : null; return { id, text: item?.text ?? '', paint: item?.paint, priority: node.options.priority, spacer: node.type_id === 'spacer' && node.enabled }; });
             if (cells.some(c => c.text) && scope() && !rows.length) cells.unshift({ id: SCOPE_LABEL_ID, text: label().text, priority: -1, sequence: false });
             rows.push(...groupedRows(cells, config.groups, config, 'main', width, outer, config.layout.mode === 'auto', env.trace?.fit('main'), colors));
         }
@@ -358,7 +357,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
                 else {
                     const item = state.render(id);
                     if (item?.text)
-                        cells.push({ id, text: item.text, priority: node.options.priority, payload: item });
+                        cells.push({ id, text: item.text, priority: node.options.priority, payload: item, paint: item.paint });
                 }
             }
             if (!cells.some(c => c.text))
@@ -367,7 +366,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
                 const item = label();
                 cells.unshift({ id: 'scope', sequence: false, text: item.text, priority: -1, payload: item });
             }
-            const value = fitRow(cells, Math.max(2, width), config, side => coalesce(side.map(c => ({ ...c.payload!, text: c.text })), inner).map(segment => segment.text).join(outer), layout.displayWidth, env.trace?.fit('main'), colors);
+            const value = fitRow(cells, Math.max(2, width), config, side => coalesce(side.map(c => ({ ...c.payload!, text: c.text })), inner).map(paintSegment).join(outer), layout.displayWidth, env.trace?.fit('main'), colors);
             if (value)
                 rows.push(value);
         }
@@ -407,7 +406,7 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
             continue;
         if (showScope && !rows.length)
             selected.unshift({ id: null, item: label() });
-        const joined = () => coalesce(selected.map(v => v.item), inner).map(v => v.text).join(outer);
+        const joined = () => coalesce(selected.map(v => v.item), inner).map(paintSegment).join(outer);
         let text = joined();
         while (selected.length > 1 && layout.displayWidth(text) > width) {
             const priority = (i: number) => selected[i]!.id === null ? -1 : preferences.optionsFor(config, selected[i]!.id!)[1].priority;
@@ -420,6 +419,9 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
             text = joined();
         }
         if(layout.displayWidth(text)>width && selected[0]?.id) env.trace?.mark('main',selected[0].id,'truncated');
+        if (layout.displayWidth(text) > width && selected[0]?.item.paint) {
+            selected[0].item = { ...selected[0].item, text: layout.truncateStyled(selected[0].item.text, width) }; text = joined();
+        }
         rows.push(layout.ensureReset(layout.truncateStyled(text, width), palette.reset));
     }
     return rows;

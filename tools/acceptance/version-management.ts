@@ -136,6 +136,9 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     const command = (launch: string, action: string, version: string, extra: string[] = []) => [launch, action, '--version', version, '--prefix', relative(input.temporary, prefix), '--config-dir', relative(input.temporary, configDir), '--yes', ...extra];
     const version = async () => { const result = await invoke([entry, '--version']); return result.stdout.trim(); };
     const state = () => JSON.parse(fs.readFileSync(join(configDir, 'statusline_runtime/installation.json'), 'utf8'));
+    const historyRoot = join(configDir, 'statusline_runtime/package-management/installations');
+    const historyRecord = () => JSON.parse(fs.readFileSync(join(historyRoot, fs.readdirSync(historyRoot)[0]!), 'utf8'));
+    let schemaMigration: Record<string, unknown> | null = null;
     try {
         await invoke([input.npm, 'install', '--global', '--prefix', prefix, '--offline', '--ignore-scripts', '--bin-links=true', input.legacy]);
         await invoke([entry, 'install', '--config-dir', configDir, input.host ? '--native-editor' : '--no-native-editor', '--no-experimental-slash-tui', input.host && Number(input.host.version.split('.')[2]) >= 289 ? '--native-timing' : '--no-native-timing', '--no-live-metrics']);
@@ -160,16 +163,29 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         assert.equal(await version(), 'claude-statusline ' + targetVersion);
         assert.equal(state().backend_version, targetVersion);
         assert.equal(state().launch.args[0], entry);
-        assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline.json')), display);
+        const upgraded = JSON.parse(fs.readFileSync(join(configDir, 'claude-statusline.json'), 'utf8'));
+        const previous = JSON.parse(display.toString('utf8'));
+        const schema = manifest.statuslineCompatibility.read.display[1];
+        assert.deepEqual(upgraded, { ...previous, schema_version: schema });
         assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline-profiles.json')), profiles);
+        if (schema > previous.schema_version) {
+            const upgrade = historyRecord();
+            const rejected = await invoke(command(entry, 'rollback', '3.7.0'), false);
+            assert.equal(rejected.code, 2);
+            assert.match(rejected.stdout + rejected.stderr, /schema|configuration|Configuration/u);
+            assert.equal(await version(), 'claude-statusline ' + targetVersion);
+            await invoke([entry, 'recover', '--restore-config', upgrade.transaction, '--prefix', prefix, '--config-dir', configDir, '--yes']);
+            assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline.json')), display);
+            assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline-profiles.json')), profiles);
+            schemaMigration = { from: previous.schema_version, to: schema, old_version_refused: true, backup_restored: true };
+        }
         // This invocation starts in the directory that npm replaces. It must
         // leave that package before loading Koffi or Windows cannot replace it.
         await invoke(command(entry, 'rollback', '3.7.0'));
         assert.equal(await version(), 'claude-statusline 3.7.0');
         assert.equal(state().backend_version, '3.7.0');
         assert.deepEqual(fs.readFileSync(join(configDir, 'claude-statusline-profiles.json')), profiles);
-        const historyRoot = join(configDir, 'statusline_runtime/package-management/installations');
-        const history = JSON.parse(fs.readFileSync(join(historyRoot, fs.readdirSync(historyRoot)[0]!), 'utf8'));
+        const history = historyRecord();
         const recoveryRoot = join(configDir, 'statusline_runtime/package-management/transactions', history.transaction, 'recovery-runner'), recoveryEntry = join(recoveryRoot, 'bin/claude-statusline.js');
         assert(fs.existsSync(recoveryEntry));
         const serviceURL = pathToFileURL(join(recoveryRoot, 'node_modules/@fbincon/statusline-cli/dist/src/management/service.js')).href;
@@ -193,7 +209,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         assert.equal(JSON.parse(fs.readFileSync(settingsPath, 'utf8')).env.KEEP, 'unchanged');
         const render = await invoke([entry, 'render'], true, JSON.stringify({ model: { display_name: 'After version recovery' } }));
         assert(render.stdout.includes('After version recovery'));
-        return { cases: 7, historical_version: '3.7.0', historical_sha256: LEGACY_370_SHA256, target_version: targetVersion, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
+        return { cases: 7, historical_version: '3.7.0', historical_sha256: LEGACY_370_SHA256, target_version: targetVersion, schema_migration: schemaMigration, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, registry: 'controlled-loopback', host: input.host?.version ?? 'version-only-2.1.258', host_mode: input.host ? 'official' : 'version-only', model_calls: 0, operation_timings: timings };
     }
     finally {
         server.closeAllConnections();
