@@ -5,6 +5,15 @@
 
 ## Unreleased
 
+## 3.9.0 — 2026-10-26
+
+- Add selective, reviewed display imports for global settings and complete main/subagent sections across CLI and both editors.
+- Add static RGB foreground and Powerline background gradients with three presets, 2–5 stops, threshold protection and grapheme-safe fitting.
+- Add stable-ID column alignment for explicit main rows, hidden-slot handling, narrow-frame fallback and actionable reference validation.
+- Repair verified Mod handoff and cache refresh for cross-protocol package rollback, preserving disablement and unrelated configuration.
+- Advance display schema/editor protocol to 15/24; retain portable/profile envelope 1 and existing source/runtime formats. Verify published v3.7.0 and v3.8.0 upgrade, refusal, backup restoration and rollback paths.
+- [Release notes](docs/releases/v3.9.0.md) · [Implementation and validation](docs/development/m10-m12-delivery.md).
+
 ## 3.8.0 — 2026-10-25
 
 - Share bounded Git invocation policy, preserving supported filter semantics and reporting unavailable results when repository filters cannot safely run.

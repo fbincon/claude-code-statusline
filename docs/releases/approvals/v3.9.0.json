@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "version": "3.9.0",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-26",
+  "authority": "The maintainer explicitly approved the complete IMPORT-01, APPEARANCE-04 and COMPOSITION-03 plan, in that order, followed by a v3.9.0 release PR and publication to GitHub, npm and Gitee. Commits, pushes, PR merges, annotated tags, release assets, npm publication and explicit validated main/tag synchronization are authorized after all final release PR/main/tag automated gates pass. Only the six pre-existing issue #96 gaps are accepted and remain unverified; no new failed, missing or skipped automated gate is waived. SHOWCASE-01 remains outside this delivery. Publication and public channel verification remain separate requirements.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ],
+  "implementation_prs": []
+}
