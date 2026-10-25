@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "version": "3.9.0",
+  "decision": "accept-known-gaps",
+  "approved_by": "fbincon",
+  "approved_on": "2026-10-26",
+  "authority": "The maintainer explicitly approved the complete IMPORT-01, APPEARANCE-04 and COMPOSITION-03 plan, in that order, followed by a v3.9.0 release PR and publication to GitHub, npm and Gitee. Commits, pushes, PR merges, annotated tags, release assets, npm publication and explicit validated main/tag synchronization are authorized after all final release PR/main/tag automated gates pass. Only the six pre-existing issue #96 gaps are accepted and remain unverified; no new failed, missing or skipped automated gate is waived. SHOWCASE-01 remains outside this delivery. Publication and public channel verification remain separate requirements.",
+  "reference": "https://github.com/fbincon/claude-code-statusline/issues/96",
+  "accepted_gaps": [
+    "physical-macos-sleep",
+    "macos-14-intel-desktop-power",
+    "windows-10-desktop",
+    "wsl-desktop-popup",
+    "remaining-target-power-and-human-visual",
+    "claude-2.1.296-exact-declarations"
+  ],
+  "implementation_prs": [
+    {
+      "work_package": "IMPORT-01",
+      "number": 143,
+      "head": "69ad4485c5f03e43845864a82968ba938f7c1b92",
+      "merge": "e4f3e7b3266aae7d35d579a233e2e9c58b5d7b3b",
+      "ci_run": 40218297344
+    },
+    {
+      "work_package": "APPEARANCE-04",
+      "number": 144,
+      "head": "564915a847fea0575d785644115261691b7318ee",
+      "merge": "0c0200240292dc912f635cccffd6a4c53a08c58a",
+      "ci_run": 40225167655
+    },
+    {
+      "work_package": "COMPOSITION-03",
+      "number": 145,
+      "head": "cdbe9d1a2dc89e19ee5e6901cff968f84809c364",
+      "merge": "9e4a049a1f8198a190f1e8a20adf0092864c161b",
+      "ci_run": 40229051764,
+      "ci_attempt": 2
+    }
+  ]
+}
