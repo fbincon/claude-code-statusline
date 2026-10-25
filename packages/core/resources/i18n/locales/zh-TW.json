@@ -1929,5 +1929,11 @@
   "package.reason_no_pending": "此 prefix 沒有未完成的套件交易。",
   "package.reason_backup": "適用設定快照缺失、遭修改或不相容，未還原設定。",
   "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。",
-  "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。"
+  "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。",
+  "review.selection.main": "完整主區",
+  "review.selection.subagent": "完整子代理區",
+  "review.selection.thresholds": "警告閾值",
+  "review.selection.help": "S 選擇範圍 · 空白鍵勾選 · Enter 審閱 · F 完整匯入 · A 接受草稿；需另行儲存。",
+  "review.selection.invalid": "請選擇不重複且受支援的匯入欄位。",
+  "profiles.action.reuse": "選擇匯入至目前草稿"
 }

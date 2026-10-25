@@ -218,3 +218,7 @@ Editor protocol 20 keeps display schema 12. Source registry v2 adds local `autom
 ## METRICS-01
 
 Display schema 13 / editor protocol 21 adds the optional main `session-cost-rate` type and optional instance `cost_rate_basis: session|api` (session by omission). Core calculation requires finite nonnegative cost and at least 60,000 ms of the chosen official duration. Units and the estimate marker remain with labels off; source evidence names only the selected denominator. Old display files migrate without enabling this type or rewriting bytes. Source, runtime, portable and UI preference versions remain unchanged from WORKFLOW-02.
+
+## Selective import contract
+
+Editor protocol 22 retains display schema 13. `import` and `review_import` accept an optional `selection` array alongside `draft` and `path`; `profile_import` accepts optional `draft` and `selection` together. An omitted selection retains the original full-import contract. An empty selection produces an unchanged draft. Unknown/duplicate selections and invalid source references are refused. The existing matching envelope parser runs before the shared selector; no target write occurs until the existing revision-checked apply transaction. Selection and differences share core implementations generated into the native editor.

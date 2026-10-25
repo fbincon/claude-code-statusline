@@ -12,7 +12,10 @@ test('package ordering is exact SemVer, including prerelease numeric identifiers
     assert.equal(compareVersions('3.8.0', '3.8.0'), 0);
 });
 test('compatibility is explicit, bounded and independent of display/editor schema changes', () => {
-    assert.deepEqual(compatibility(undefined, '3.7.0'), PACKAGE_COMPATIBILITY);
+    const historical = compatibility(undefined, '3.7.0');
+    assert.equal(historical.editor_protocol, 21);
+    assert.equal(PACKAGE_COMPATIBILITY.editor_protocol, 22);
+    assert.deepEqual(historical.read.display, [1, 13]);
     assert.throws(() => compatibility(undefined, '3.6.0'));
     assert.throws(() => compatibility(undefined, '3.8.0'));
     for (const patch of [{ schema_version: 2 }, { node: { '24': '22.0.0' } }, { read: { display: [1, 13] } }, { targets: ['linux-unknown'] }, { editor_protocol: 0 }])

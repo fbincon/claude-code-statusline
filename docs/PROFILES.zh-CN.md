@@ -69,3 +69,23 @@ Claude 用户配置目录中的版本 1 `claude-statusline-profiles.json` 保存
 写入复用安装锁、revision 检查、不可变备份和恢复日志。并发修改会拒绝旧草稿，请重新读取并核对。保存响应丢失时，先刷新已保存状态，再进行下一次写入。损坏方案库保留原文件并明确报错，渲染则安全回退。
 
 旧版本继续读取用户默认快照并忽略方案库。若有未完成事务，降级前先使用新版本恢复。通过现有[恢复流程](USER_GUIDE.zh-CN.md)处理备份，并保留方案库供以后升级使用。
+
+## 选择性导入
+
+在 portable 导入审阅中按 **S** 选择范围。初始为空；空格勾选，Enter 返回差异审阅，F 恢复完整导入，A 接受候选草稿，随后单独保存。在**显示方案与项目**中选择**选择导入到当前草稿**，可复用单方案文件。当前编辑目标及共享项目提示保持不变。
+
+CLI 使用对应文件格式的入口：
+
+```sh
+claude-statusline config import display.json --select theme,palette --dry-run
+claude-statusline config import display.json --select main --profile Work
+claude-statusline config profile import scheme.json --select subagent,statusline_language --project /path/to/project --dry-run
+```
+
+`--select` 使用逗号分隔的精确键：`main`、`subagent`、`use_colors`、`palette`、`theme`、`directory_style`、`separator_style`、`scope_labels`、`powerline_glyph`、`powerline.padding`、`powerline.separator`、`powerline.start_cap`、`powerline.end_cap`、`powerline.color_mode`、`statusline_language`、`formatting.model_name`、`formatting.number_format`、`formatting.labels`、`formatting.icons`、`formatting.allowance`、`formatting.reset_format`、`formatting.reset_timezone`、`formatting.thresholds`。阈值作为完整一组选取，新增字段不会自动扩大此清单。
+
+主区选择完整替换实例、组、布局及指标设置；子代理选择完整替换模板和显示控制。ID 按作用域隔离：主区和子代理同名合法，整体替换作用域会保留内部引用，不与保留的另一作用域冲突。源文件中的重复 ID 和缺失引用在选择前即被拒绝，即使其所在部分未被选中。
+
+`--user`、`--profile NAME_OR_ID`、`--project PATH` 最多指定一个；省略时使用用户默认。项目目标沿用现有解析规则，包括回退到用户默认。命名目标保留名称、ID 与绑定，JSON 结果说明目标及共享项目。选择性方案导入更新该目标，不能与 `--name` 或 `--overwrite` 混用；原有完整方案导入仍创建命名副本。
+
+未选择设置及其本地来源绑定保留；导入区域清除本地绑定，来源注册和权限始终不导入。选择性导入保留 host 设置、界面语言和告警阈值，只有显式选择显示阈值才会修改后者。预览、取消和无效输入不写入；并发保存导致旧版本事务被拒绝。

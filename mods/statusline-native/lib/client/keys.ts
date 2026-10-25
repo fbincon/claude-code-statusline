@@ -56,7 +56,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   if (view.uncertain) return event.ctrl || event.meta ? null : shortcut === 'k' ? 'reconcile' : shortcut === 'q' ? 'close' : null;
   if (e.review) {
     if (event.ctrl || event.meta) return null;
-    if (shortcut === 'a') {
+    if (shortcut === 'a' && !e.review.choosing) {
       e.replaceDraft(e.review.result.draft);
       setMessage(view, 'message', localizedText('review.accepted'));
       return 'reviewPreview';
@@ -64,7 +64,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     if (shortcut === 'q') { cancelInput(view); return 'reviewPreview'; }
     const layout = editorLayout(view, columns, rows);
     navigateReview(e.review, key, view.language ?? 'en', Math.max(2, columns - (layout.framed ? 2 : 0)), Math.max(1, layout.bodyRows - 1));
-    return null;
+    return 'reviewPreview';
   }
   if (e.guidanceScroll !== null && e.detail) {
     const layout = editorLayout(view, columns, rows);

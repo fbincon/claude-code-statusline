@@ -1929,5 +1929,11 @@
   "package.reason_no_pending": "この prefix に未完了のパッケージ処理はありません。",
   "package.reason_backup": "適切な設定スナップショットがない、変更された、または非互換です。設定は復元していません。",
   "package.reason_arguments": "管理オプションが不正です。update --help で構文を確認してください。",
-  "package.reason_busy": "記録されたパッケージ処理が実行中です。終了してから復旧状態を再確認してください。"
+  "package.reason_busy": "記録されたパッケージ処理が実行中です。終了してから復旧状態を再確認してください。",
+  "review.selection.main": "メイン領域全体",
+  "review.selection.subagent": "サブエージェント領域全体",
+  "review.selection.thresholds": "警告しきい値",
+  "review.selection.help": "S 範囲選択 · Space 切替 · Enter 確認 · F 全体 · A 下書きに反映。保存は別操作。",
+  "review.selection.invalid": "対応するインポート項目を重複せず選択してください。",
+  "profiles.action.reuse": "選択した設定を現在の下書きにインポート"
 }

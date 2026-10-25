@@ -343,7 +343,7 @@ async function transferDraft($: EngineInterface, state: Session, options: Plugin
       const result = await callBackend($, options, 'review_import', {draft:copyDraft(candidate.draft), path:e.path});
       if (state.epoch === epoch && state.view.editor === e) {
         if (!sameDraft(e.draft, original)) { setMessage(state.view, 'message', localizedText('review.stale')); return; }
-        e.review = createReview(result);
+        e.review = createReview(result, candidate.draft);
         state.view.preview = null;
         state.previewKey = '';
         state.view.message = '';

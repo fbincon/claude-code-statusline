@@ -15,6 +15,7 @@ import { ConfigError, object } from '@fbincon/statusline-core/config/validation'
 import { ITEMS } from '@fbincon/statusline-core/config/catalog';
 import { applyPreset } from '@fbincon/statusline-core/config/presets';
 import { differences } from '@fbincon/statusline-core/config/import-review';
+import { selectImport } from '@fbincon/statusline-core/editor/import-selection';
 import { text } from '@fbincon/statusline-core/i18n/messages';
 import { readJson, JsonSyntaxError } from '@fbincon/statusline-core/json-read';
 import { safeInteger } from '@fbincon/statusline-core/json';
@@ -82,10 +83,15 @@ export class ConfigurationProtocol {
             const profiles = new ProfileService(this.service, this.nextId);
             if (operation === 'profiles_read') { requestObject(payload, [], 'payload'); return profiles.read(); }
             if (operation === 'profiles_apply') return profiles.mutate(payload);
-            requestObject(payload, operation === 'profile_import' ? ['path'] : ['path', 'name', 'display', 'overwrite'], 'payload');
+            requestObject(payload, operation === 'profile_import' ? ['path', ...(object(payload) && Object.hasOwn(payload, 'selection') ? ['draft', 'selection'] : [])] : ['path', 'name', 'display', 'overwrite'], 'payload');
             if (typeof payload.path !== 'string' || !payload.path.trim() || payload.path.includes('\0'))
                 throw new ConfigError('errors.protocol.path_must_be_nonempty_text_without_nul', {}, 'invalid_request');
-            if (operation === 'profile_import') return profiles.import(payload.path);
+            if (operation === 'profile_import') {
+                const imported = profiles.import(payload.path);
+                if (!Object.hasOwn(payload, 'selection')) return imported;
+                const current = validateDraft(payload.draft, true);
+                return { name: imported.name, display: selective(current, { display: imported.display, host: current.host }, payload.selection).display };
+            }
             if (typeof payload.name !== 'string' || typeof payload.overwrite !== 'boolean')
                 throw new ConfigError('profiles.error.invalid', { value: '' }, 'invalid_request');
             return profiles.export(payload.path, payload.name, payload.display, payload.overwrite);
@@ -95,7 +101,7 @@ export class ConfigurationProtocol {
             return operation === 'read_ui_preferences' ? readPreferences(this.service.context.configDir, this.service.io) : setLanguage(this.service.context.configDir, payload.ui_language, this.service.io);
         }
         if (['import', 'review_import', 'export', 'preset'].includes(operation)) {
-            requestObject(payload, operation === 'export' ? ['draft', 'path', 'overwrite'] : operation === 'preset' ? ['draft', 'preset'] : ['draft', 'path'], 'payload');
+            requestObject(payload, operation === 'export' ? ['draft', 'path', 'overwrite'] : operation === 'preset' ? ['draft', 'preset'] : ['draft', 'path', ...(object(payload) && Object.hasOwn(payload, 'selection') ? ['selection'] : [])], 'payload');
             const current = validateDraft(payload.draft, true);
             if (operation === 'preset') {
                 if (typeof payload.preset !== 'string')
@@ -106,9 +112,9 @@ export class ConfigurationProtocol {
             if (typeof path !== 'string' || !path.trim() || path.includes('\0'))
                 throw new ConfigError('errors.protocol.path_must_be_nonempty_text_without_nul', {}, 'invalid_request');
             if (operation === 'import')
-                return { draft: importFile(path, current) };
+                return { draft: object(payload) && Object.hasOwn(payload, 'selection') ? selective(current, importFile(path, current), payload.selection) : importFile(path, current) };
             if (operation === 'review_import') {
-                const candidate = importFile(path, current);
+                const imported = importFile(path, current), candidate = object(payload) && Object.hasOwn(payload, 'selection') ? selective(current, imported, payload.selection) : imported;
                 return { draft: candidate, changes: differences(current, candidate) };
             }
             if (typeof payload.overwrite !== 'boolean')
@@ -191,5 +197,13 @@ export class ConfigurationProtocol {
             }
             return { response: { protocol_version: contracts.PROTOCOL_VERSION, error: { code, message, localization } }, status: 2 };
         }
+    }
+}
+
+function selective(current: Draft, incoming: Draft, selection: unknown): Draft {
+    try { return validateDraft(selectImport(current, incoming, selection), true); }
+    catch (error) {
+        if (error instanceof Error && error.message === 'review.selection.invalid') throw new ConfigError(error.message);
+        throw error;
     }
 }

@@ -96,7 +96,7 @@ export function notice(state: State, width: number): Paint[] {
     const message = renderMessage(state.localized.message ?? state.message, state.language);
     if (e.quick) return [paint(t('quick.sample',state.language))];
     if (message) return [paint(message, true)];
-    if (e.review) return [paint(tr('review.intro'))];
+    if (e.review) return [paint(tr(e.review.base ? 'review.selection.help' : 'review.intro'))];
     if (state.input?.kind === 'category') return [paint(tr('catalog.search.choose_category'))];
     if (state.input?.kind === 'search') return [paint(state.inputDisplay(width))];
     if (e.detail) {

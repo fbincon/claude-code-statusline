@@ -137,7 +137,7 @@ export function parseConfig(argv: readonly string[]): ConfigArguments {
     }
     else if (['preset', 'import', 'export'].includes(action)) {
         minimum = maximum = 1;
-        allowed = action === 'export' ? { '--overwrite': 'boolean' } : { '--dry-run': 'boolean' };
+        allowed = action === 'export' ? { '--overwrite': 'boolean' } : { '--dry-run': 'boolean', ...(action === 'import' ? { '--select': 'one' as const, '--user': 'boolean' as const, '--profile': 'one' as const, '--project': 'one' as const } : {}) };
     }
     else if (action === 'item')
         minimum = maximum = 4;

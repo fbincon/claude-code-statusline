@@ -254,10 +254,13 @@ try {
                 fs.writeFileSync(portablePath, JSON.stringify(portable));
                 await selectSetting('import-file');
                 await key('\r');
-                await key('\r', t('review.intro', language));
+                await key('\r', t('review.selection.help', language));
                 capture('review');
                 await key('\r');
                 capture('review-expanded');
+                await key('s'); capture('review-selection-empty');
+                await key('\x1b[B\x1b[B\x1b[B\x1b[B '); capture('review-selection-theme');
+                await key('\r'); capture('review-selection-differences');
                 await key('\x1b');
                 await key('\x1b[H');
                 for (let index = 0; index < 15; index++) await key('\x1b[B');

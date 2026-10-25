@@ -54,6 +54,8 @@ export function helpText(command: string | undefined, language: Language): strin
     ];
     if (config || ['setup', 'ui', 'runtime', 'configure', 'install', 'uninstall', 'doctor', 'recover', 'diagnose'].includes(command ?? ''))
         lines.push('  --config-dir PATH   ' + t('cli.help.claude_configuration_directory_default_claude_config_dir_or', language));
+    if (config) lines.push('  import PATH --select FIELD,... [--user | --profile NAME | --project PATH] [--dry-run]',
+        '  profile import PATH --select FIELD,... [--user | --profile NAME | --project PATH] [--dry-run]');
     if (command === 'setup' || command === 'install' || command === 'uninstall' || command === 'recover') lines.push('  --dry-run           ' + t('cli.help.report_whether_settings_would_change', language));
     if (command === 'install') {
         const options = {

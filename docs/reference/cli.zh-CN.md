@@ -941,3 +941,7 @@ claude-statusline config instance main set INSTANCE link off|auto|on
 `config group main|subagent list|create|set|copy|move|ungroup` 管理连续实例分组。创建要求 `ID --members ID,ID --primary ID`，可选 `--linked on|off` 与 `--powerline on|off`。移动要求 `--before ID` 或 `--after ID` 二选一。[示例与约束](../COMPOSITION.zh-CN.md#组件分组)。
 
 可选 `session-cost-rate` 组件支持 `config instance main set INSTANCE cost-rate-basis session|api`。省略使用会话时长，两种分母均至少要求一分钟。详见[费用速率定义](../DISPLAY_ITEMS.zh-CN.md#会话费用速率)。
+
+## 选择性复用显示设置
+
+`config import` 与 `config profile import` 支持 `--select FIELDS`、`--user | --profile NAME_OR_ID | --project PATH` 和 `--dry-run`。参见[选择键、目标规则与来源隔离](../PROFILES.zh-CN.md#选择性导入)。不传 `--select` 时保留原有完整导入行为。

@@ -1,3 +1,4 @@
+import { selectiveImport } from './selective-import.js';
 import { editGroup, groupScope, type GroupEdit } from '@fbincon/statusline-core/editor/groups';
 import { PROTOCOL_VERSION } from '@fbincon/statusline-core/contracts/ui';
 import { randomUUID } from 'node:crypto';
@@ -122,6 +123,8 @@ export function executeConfig(args: ConfigArguments, service: ConfigurationServi
     if (action === 'apply')
         return formatMutation(applyFlags(service, flags), language);
     if (action === 'preset' || action === 'import' || action === 'export') {
+        if (action === 'import' && flags.select !== undefined) return selectiveImport(service, args.path!, flags);
+        if (action === 'import' && ['user','profile','project'].some(key => flags[key] !== undefined)) throw new ConfigError('review.selection.invalid');
         const current = service.read(), protocol = new ConfigurationProtocol(service, undefined, nextId);
         const payload: Record<string, unknown> = { draft: draft(current) };
         if (action === 'preset')

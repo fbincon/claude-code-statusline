@@ -1,3 +1,4 @@
+import { selectiveImport } from './selective-import.js';
 import type { ConfigTarget } from '@fbincon/statusline-core/contracts/ui';
 import type { Language } from '@fbincon/statusline-core/i18n/messages';
 import { findProfile, profileError } from '@fbincon/statusline-core/config/profiles';
@@ -15,14 +16,14 @@ export function profileArguments(args: readonly string[]) {
     const commands = group === 'profile' ? ['list','save','rename','delete','preview','activate','import','export'] : group === 'project' ? ['list','bind','unbind','resolve'] : [];
     if (!commands.includes(action ?? '')) throw new ArgumentError('Unknown profile/project command');
     const allowed = new Set(['--json', ...(['save','import','export','bind'].includes(action!) ? ['--overwrite'] : []),
-        ...(action === 'import' ? ['--name','--dry-run'] : []), ...(action === 'save' ? ['--bind'] : []), ...(action === 'preview' ? ['--width'] : [])]);
+        ...(action === 'import' ? ['--name','--dry-run','--select','--user','--profile','--project'] : []), ...(action === 'save' ? ['--bind'] : []), ...(action === 'preview' ? ['--width'] : [])]);
     let literal = false;
     for (let i = 0; i < rest.length; i++) {
         const token = rest[i]!;
         if (!literal && token === '--') { literal = true; continue; }
         if (!literal && token.startsWith('-')) {
             if (!allowed.has(token) || flags[token] !== undefined) throw new ArgumentError('Unknown or repeated option: ' + token);
-            if (['--name','--bind','--width'].includes(token)) {
+            if (['--name','--bind','--width','--select','--profile','--project'].includes(token)) {
                 const value = rest[++i];
                 if (!value || value.startsWith('--')) throw new ArgumentError(token + ' requires a value');
                 flags[token] = value;
@@ -42,6 +43,8 @@ export function editorTarget(args: readonly string[], profiles: ProfileService, 
 }
 export async function profileCommand(args: readonly string[], service: ConfigurationService, language: Language): Promise<string> {
     const { group, action, positional: p, flags } = profileArguments(args), profiles = new ProfileService(service);
+    if (action === 'import' && flags['--select'] !== undefined) return selectiveImport(service, p[0]!, Object.fromEntries(Object.entries(flags).map(([key, value]) => [key.slice(2), value])), true);
+    if (action === 'import' && ['--user','--profile','--project'].some(key => flags[key] !== undefined)) throw new ArgumentError('Target options require --select');
     const library = profiles.read(), pretty = (value: unknown) => pythonJson(value, { ensureAscii: false, indent: 2 });
     if (group === 'project' && action === 'resolve') {
         const current = profiles.readTarget({ kind: 'project', path: explicitProjectPath(p[0] ?? process.cwd()) });

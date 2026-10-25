@@ -979,3 +979,7 @@ Use `config instance main|subagent set ID presentation numeric|bar`, `bar-width 
 `config group main|subagent list|create|set|copy|move|ungroup` manages continuous instance groups. Create requires `ID --members ID,ID --primary ID`; optional `--linked on|off` and `--powerline on|off` select presentation. Move requires one of `--before ID` or `--after ID`. [Examples and invariants](../COMPOSITION.md#component-groups).
 
 The optional `session-cost-rate` component accepts `config instance main set INSTANCE cost-rate-basis session|api`. Omission selects session duration; either basis requires at least one minute. See [cost rate definitions](../DISPLAY_ITEMS.md#session-cost-rate).
+
+## Selective display reuse
+
+`config import` and `config profile import` accept `--select FIELDS`, `--user | --profile NAME_OR_ID | --project PATH`, and `--dry-run`. See [selection keys, target rules and source isolation](../PROFILES.md#selective-import). Without `--select`, existing full-import behavior is unchanged.

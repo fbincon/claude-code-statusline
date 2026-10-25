@@ -82,7 +82,7 @@ export class Session {
                     state.notice(text('ui.session.preset_expanded_ctrl_s_saves_esc_discards'));
                 }
                 else if (e.pendingTransfer === 'import') {
-                    e.review = createReview(await this.backend.request('review_import', { draft: e.draft, path: e.path }));
+                    e.review = createReview(await this.backend.request('review_import', { draft: e.draft, path: e.path }), e.draft);
                     state.notice('');
                 }
                 else {
