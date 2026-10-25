@@ -18,10 +18,14 @@ The pinned-host matrix exposed a rollback defect: an older ownership reader cann
 
 ## Remaining work
 
-APPEARANCE-04 is in progress; COMPOSITION-03 is not started. Their planned schema/protocol pairs are 14/23 and 15/24. SHOWCASE-01 remains outside this delivery. The six historical [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) gaps remain unverified; only those gaps are accepted for the approved release after all final automated gates pass.
+APPEARANCE-04 is in progress; COMPOSITION-03 is in progress. Their planned schema/protocol pairs are 14/23 and 15/24. SHOWCASE-01 remains outside this delivery. The six historical [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) gaps remain unverified; only those gaps are accepted for the approved release after all final automated gates pass.
 
 ## APPEARANCE-04
 
 Implementation is in progress in an isolated worktree based on the IMPORT-01 implementation. Schema 14 / protocol 23 add optional normalized RGB arrays; the shared forms cycle presets or edit custom stops. Post-fit foreground callbacks preserve instance boundaries inside semantic wraps, and background painting includes padding before boundary colors are selected. Both scopes use the same pure interpolation; warnings retain precedence and source observations are unchanged. Focused tests cover grapheme endpoints, links, clipping, groups and six-language forms. Source checks passed 1,227 tests with 5 explicitly skipped; the later warning-contrast test also passed. All 22 installed categories passed on package source `8fa8bc9`. Pinned Claude Code 2.1.296 passed both official Mod suites, installed integration and real-npm schema upgrade/refusal/restore/rollback on source `21da545`; the final feature matrix is still required.
 
 PTY visual review also exposed ambiguous gradient labels. Both editors now show an explicit localized Off state and localized preset names in all six languages, while retaining canonical editable values. Focused external TUI and native Mod tests cover these presentation rules.
+
+## COMPOSITION-03
+
+Schema 15 / protocol 24 add optional stable unit references for corresponding columns in explicit main rows. The shared Layout manager, CLI transactions, import validation and both diagnostic paths use the same relationship rules. Two-phase rendering shares observations and the color cursor, preserves hidden slots and drops alignment whitespace when a related row exceeds the available width. Destructive structural edits identify the affected relationships before saving. Focused core/CLI/TUI tests passed nine cases; the local native Mod suite passed 136 tests on host 2.1.310 (additional local evidence, not the pinned-host matrix). Installed acceptance adds four required cases, and extended PTY captures include manager forms. Final source and installed matrix evidence remains pending.

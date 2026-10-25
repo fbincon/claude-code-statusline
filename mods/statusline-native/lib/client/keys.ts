@@ -1,3 +1,4 @@
+import { openAlignments, alignmentsKey } from '../editor/alignment-manager.ts';
 import { openGroups, groupsKey } from '../editor/group-manager.ts';
 import { openSources, sourcesKey } from '../editor/source-manager.ts';
 import { openExplanation, explanationKey } from '../editor/explanation.ts';
@@ -37,6 +38,7 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
   const shortcut = /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
+  if (e.alignmentManager) return alignmentsKey(e,event);
   if (e.groupManager) return groupsKey(e, event);
   if (event.ctrl && key.toLowerCase() === 'b' && !view.input && !view.uncertain && !e.sources && !e.profiles && !e.review && !e.quick && !e.explanation && !event.text) { openGroups(e); return null; }
   if (e.sources) return sourcesKey(e,event);
@@ -141,11 +143,11 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     if(!event.meta && key.toLowerCase()==='a'&&!e.adding){e.openPicker(scope);return null;}
     if(!event.meta && ['d','x'].includes(key.toLowerCase())&&!e.adding){
       if(!e.instanceAction(scope,key.toLowerCase()==='d'?'copy':'remove'))
-        setMessage(view,'message',localizedText('composition.invalid'));
+        setMessage(view,'message',e.compositionError);
       return null;
     }
     if(e.adding&&!event.ctrl&&!event.meta&&(key==='return'||key===' ')){
-      if(!e.instanceAction(scope,'add',e.selected[scope]))setMessage(view,'message',localizedText('composition.invalid'));
+      if(!e.instanceAction(scope,'add',e.selected[scope]))setMessage(view,'message',e.compositionError);
       return null;
     }
     if(e.adding&&!event.ctrl&&!event.meta&&shortcut==='q'){e.closePicker(scope);return null;}
@@ -198,11 +200,12 @@ export function handleKey(view: View, event: NativeKeyEvent, columns: number, ro
     if (isSettings) adjustSetting(view, key === 'left' ? -1 : 1);
     else {
       const delta = key === 'left' ? -1 : 1;
-      if (keys[index + delta] && !e.move(scope, delta)) setMessage(view, 'message', localizedText('composition.invalid'));
+      if (keys[index + delta] && !e.move(scope, delta)) setMessage(view, 'message', e.compositionError);
     }
     return isSettings && e.setting === 'preview-background' ? 'previewBackground' : isSettings && e.setting === 'ui-language' ? 'uiLanguage' : null;
   } else if (key === 'return' || key === ' ' || key === 'space') {
-    if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",localizedText("composition.invalid")); }
+    if (!isSettings) { if(!e.toggle(scope, selected))setMessage(view,"message",e.compositionError); }
+    else if (e.setting === 'row-alignment') { openAlignments(e); return null; }
     else if (e.setting === 'component-groups') { openGroups(e); return null; }
     else if (e.setting === 'sources') {openSources(e);return 'sources';}
     else if (e.setting === 'profiles') { if (e.acceptNumeric()) { openProfiles(e); return 'profiles'; } }

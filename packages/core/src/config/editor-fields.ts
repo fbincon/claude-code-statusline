@@ -27,7 +27,7 @@ export function editLayout(config: DisplayDraft, mode: string, rows?: string[][]
   const known = new Set(config.instances.map(node => node.id));
   const mapped = rows?.length ? rows.map(row => row.map(id => known.has(id) ? id : canonicalItem(id))) :
     mode === 'explicit' && config.instances.some(node => node.enabled) ? [config.instances.map(node => node.id)] : [];
-  return updateDisplay(config, { layout: layout({ mode, rows: mapped }, mode === 'explicit' ? mapped.flat() : []) });
+  return updateDisplay(config, { layout: layout({ ...config.layout, mode, rows: mapped }, mode === 'explicit' ? mapped.flat() : []) });
 }
 export function parseField(spec: EditorField, raw: unknown): unknown {
   if (spec.key === 'statusline_language') raw = resolveLanguage(raw) ?? raw;

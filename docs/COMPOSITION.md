@@ -35,7 +35,8 @@ guidance or cancels the picker. Accepting an addition clears the old list filter
 so the new instance is visible. Reordering requires an unfiltered list.
 
 Copying retains all options and creates a new identity. Disabling keeps the row
-position. Removing a component updates its row references and removes empty rows.
+position. Removing a component updates its row references and removes empty rows, unless
+an alignment relationship would become invalid; adjust that relationship first.
 All these operations edit the draft. Native S / F or external Ctrl+S saves; the
 existing close/cancel controls discard unsaved edits. Claude host preferences
 still have their own Apply action. Resize, language changes and save conflicts
@@ -130,11 +131,12 @@ Unique type-based enable/disable commands preserve existing positions in explici
 
 ## Migration, transfer and recovery
 
-Display schema 8 stores ordered instances; editor protocol 12 requires matching
-Python and bundled native resources. The portable envelope remains version 1,
-UI preferences version 1, and runtime observation protocol version 2.
+Display schema 15 stores ordered instances, groups and optional explicit-row
+alignment; editor protocol 24 requires matching TypeScript and bundled native
+resources. Portable/profile envelopes and UI preferences remain version 1; the
+runtime observation protocol remains version 3.
 
-Supported display schemas 1–7 normalize in memory. The canonical type ID within
+Supported older display schemas normalize in memory. The canonical type ID within
 each scope provides a deterministic migration identity. Enabled order, explicit
 rows, languages and disabled-type overrides are retained. Reading, previewing and
 import review do not migrate the saved file. An actual save or installation uses
@@ -145,9 +147,10 @@ removed, enabled, disabled, reordered and edited instances. Accepting an import
 only replaces the draft; saving still checks the original revision. If another
 editor changed the configuration, reconcile or reload before saving.
 
-Before a downgrade, use the current package to remove incompatible native editor
-resources, then restore the compatible pre-upgrade configuration backup and
-install the older package and its matching resources. Preserve the current
+Before a downgrade, restore the compatible pre-upgrade configuration backup
+with `recover --restore-config TRANSACTION_ID`. The version manager refuses
+incompatible display schemas and refreshes verified owned Mod resources and
+bindings before installing an older backend. Preserve the current
 configuration separately if you intend to upgrade again. Repeated instances and
 flexible layouts cannot be converted losslessly to an older schema; changing the
 schema number by hand is not a migration. See the [upgrade guide](USER_GUIDE.md#upgrading).
@@ -158,7 +161,7 @@ Open **Component groups** in Settings or press **Ctrl+B** in either editor. Sele
 
 Groups contain at least two consecutive instances in one scope and one explicit row. They cannot overlap, nest or contain a spacer. Decorations follow the primary's final visibility by default, including layout omission; other metrics retain their own conditions. If linked visibility is turned off, decoration remains independent. Auto layout keeps the group on one row and trims decoration/secondary metrics before its primary. A group's omission priority is its primary's priority.
 
-Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances. Copying an individual member inserts a standalone copy after its group. Invalid moves retain the draft.
+Sharing Powerline creates one block with the primary's background; foreground/threshold colors remain per member. Member backgrounds are retained for use after sharing is disabled. Ordinary grouped content uses a space between members. Group actions edit, move the whole group, copy with new IDs and ungroup. Deleting the primary dissolves the group and retains surviving instances, unless an alignment relationship still references that group. Copying an individual member inserts a standalone copy after its group. Invalid moves retain the draft.
 
 ```bash
 claude-statusline config group main list --json
@@ -170,3 +173,48 @@ claude-statusline config group main ungroup cost-block
 ```
 
 Replace uppercase placeholders with IDs from `config instance main list`. `subagent` uses the same operations. `set` supports `primary`, comma-separated `members`, `linked on|off`, and `powerline on|off`. Profile saves/copies and portable export preserve groups; no source access or automatic refresh is granted. [Implementation and acceptance](development/m4-m7-delivery.md).
+
+## Align corresponding columns across main rows
+
+In **Layout → Align explicit main rows**, create a relationship, then select one
+component or whole group per participating row for each column. Use Left/Right
+to choose, **Add column** for another column and **Apply to draft** to accept the
+relationship. The usual Save persists it. Cancel leaves the previous draft
+unchanged. The selectors show stable IDs so repeated component types remain
+independent.
+
+Each column requires at least two distinct explicit main rows. A row contributes
+at most one unit to a column, and columns follow the same physical order in each
+row. A grouped member must be selected as its whole group. Units cannot be reused
+by another column. A relationship owns the participating left or right side of a
+row; overlapping relationships on that same side are rejected. Auto-wrapped rows,
+subagent templates and relationships across scopes are excluded.
+
+Widths are measured after visibility and per-component maximum-width rules.
+Each column uses the widest visible member. Hidden members retain that column's
+slot when other visible rows need it; a wholly hidden column collapses and an
+empty row emits no output. Both sides of a spacer are measured independently;
+the spacer receives remaining width and right-side columns retain their right
+anchor. Powerline units retain complete blocks and caps, with default-background
+spacing between them. No isolated separator or cap represents a hidden member.
+
+If the added alignment spaces would make any participating row too wide, its
+related rows render without those spaces for that frame, using the existing
+priority, decoration and whole-grapheme fitting rules. A disabled structural
+spacer also causes this fallback. Explain/diagnose reports `alignment_collapsed`;
+wide frames report `alignment_active`. Relationships sharing a physical row
+share its width budget and fall back together.
+
+```sh
+claude-statusline config alignment list
+claude-statusline config alignment set summary --columns 'instance:ROW1_MODEL,instance:ROW2_MODEL;group:ROW1_USAGE,group:ROW2_USAGE'
+claude-statusline config alignment remove summary
+```
+
+Replace the uppercase IDs with your configured units. Commas join members of one
+column; semicolons separate columns. Ordinary instance/group copies do not join
+existing relationships. Complete scheme copies and main-section transfers retain
+all referenced units together. Deletion, movement, ungrouping or row/mode changes
+that invalidate relationships are rejected before saving, with the affected
+relationship IDs. Remove or edit those relationships first. Defaults and presets
+do not enable alignment automatically.

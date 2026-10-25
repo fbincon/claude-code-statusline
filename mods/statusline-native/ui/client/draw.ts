@@ -1,3 +1,4 @@
+import { alignmentsView } from '../../lib/editor/alignment-manager.ts';
 import { groupsView } from '../../lib/editor/group-manager.ts';
 import { sourcesView } from '../../lib/editor/source-manager.ts';
 import { explanationLines } from '../../lib/editor/explanation.ts';
@@ -58,7 +59,10 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       : '');
   const content: RenderElement[] = [];
   let title = '';
-  if(e.groupManager) {
+  if(e.alignmentManager) {
+    title=tr('alignment.title');
+    content.push(...alignmentsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected === true))));
+  } else if(e.groupManager) {
     title=tr('composition.groups.title');
     content.push(...groupsView(e,view.language ?? 'en',inner,layout.bodyRows).map(row=>line(row.text,rowStyle(row.selected === true))));
   } else if(e.sources) {

@@ -1,10 +1,12 @@
+import type { AlignmentManager } from './alignment-manager.js';
 import type { GroupManager } from './group-manager.js';
 import { reconcileGroups, insertionAfter } from './groups.js';
 import type { ExplanationView } from './explanation.js';
 import type { SourceManager } from './source-manager.js';
 import type { ProfileManager } from './profile-manager.js';
 import type { QuickSetup } from './quick-setup.js';
-import { t, type Language } from '../i18n/messages.js';
+import { t, text, type Language } from '../i18n/messages.js';
+import { alignmentConflicts } from './alignments.js';
 import { nodes, newInstance, reconcileRows } from './instances.js';
 import { isDraft } from './backend.js';
 import type {
@@ -49,6 +51,8 @@ export class Editor {
   profiles: ProfileManager | null = null;
   sources: SourceManager | null = null;
   groupManager: GroupManager | null = null;
+  alignmentManager: AlignmentManager | null = null;
+  compositionError: LocalizedText = text('composition.invalid');
   preset = 'minimal';
   path = 'statusline.json';
   pendingTransfer: 'import' | 'export' | 'preset' | null = null;
@@ -94,7 +98,7 @@ export class Editor {
     this.detail = null;
     this.guidanceScroll = null;
     this.explanation = null;
-    this.review = null;
+    this.review = null; this.alignmentManager = null;
   }
 
   get modified(): boolean {
@@ -152,6 +156,7 @@ export class Editor {
     this.adding=false;this.pickerSaved=null;
   }
   instanceAction(scope: Scope, action:'add'|'copy'|'remove', typeId?:string): boolean {
+    this.compositionError = text('composition.invalid');
     const draft=copyDraft(this.draft), list=nodes(draft,scope);
     const selected=this.adding ? this.pickerSaved?.selected : this.selected[scope];
     const index=list.findIndex(i=>i.id===selected);
@@ -167,7 +172,7 @@ export class Editor {
     const target = scope === 'main' ? draft.display : draft.display.subagents;
     target.groups = reconcileGroups(target.groups, list);
     if(scope==='main')reconcileRows(draft);
-    if(!isDraft(draft))return false;
+    if(!this.acceptStructure(draft))return false;
     if(this.adding){this.closePicker(scope);this.search[scope]='';this.category[scope]='all';}
     this.draft=draft;this.order[scope]=list.map(i=>i.id);this.selected[scope]=next;
     return true;
@@ -196,6 +201,7 @@ export class Editor {
   }
 
   toggle(scope: Scope, id: string): boolean {
+    this.compositionError = text('composition.invalid');
     if(this.adding)return this.instanceAction(scope,'add',id);
     const draft=copyDraft(this.draft),node=nodes(draft,scope).find(i=>i.id===id);
     if(!node)return false;
@@ -205,6 +211,7 @@ export class Editor {
   }
 
   move(scope: Scope, delta: -1 | 1): boolean {
+    this.compositionError = text('composition.invalid');
     if (this.adding || this.filtered(scope)) return false;
     const visible = this.visible(scope).map((item) => item.id as string);
     const id = this.selected[scope];
@@ -217,10 +224,16 @@ export class Editor {
     const [moving] = ordered.splice(sourceIndex, 1);
     ordered.splice(ordered.findIndex(node => node.id === target) + (delta > 0 ? 1 : 0), 0, moving!);
     if (scope === 'main') reconcileRows(draft);
-    if (!isDraft(draft)) return false;
+    if (!this.acceptStructure(draft)) return false;
     this.draft = draft;
     this.order[scope] = ordered.map(node => node.id);
     return true;
+  }
+
+  private acceptStructure(draft: Draft): boolean {
+    const ids = alignmentConflicts(draft.display);
+    if (ids.length) this.compositionError = text('alignment.references', { ids: ids.join(', ') });
+    return isDraft(draft);
   }
 
   setBuffer(field: NumericField, value: string): void {

@@ -211,3 +211,10 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 ## 渐变契约
 
 显示 schema 14、编辑器协议 23 为实例选项增加可选 `foreground_gradient`、`background_gradient` 数组；null 表示关闭，否则包含 2～5 个 RGB 颜色。省略时关闭，较低源 schema 不接受新增字段，预设保存前展开。内部着色回调经过拟合与语义换行后执行，不进入传输格式，既有预览 span 结构不变。
+
+
+## 显式行对齐 / COMPOSITION-03
+
+显示 schema 15、编辑器协议 24 增加可选 `layout.alignments`：
+`[{"id":"summary","columns":[[{"kind":"instance","id":"a"},{"kind":"group","id":"g"}]]}]`。
+引用按当前显式主行中的完整单位解析，保存前检查 ID、行唯一性、spacer 侧别、顺序及关系重叠。旧 schema 拒绝该字段。两阶段布局先测量、保留隐藏列位，再使用共享颜色游标及观察缓存绘制。宽度回退保持原有拟合路径；解释／诊断新增 `alignment_active`／`alignment_collapsed` 原因码，响应外层不变。双编辑器的 Layout 管理由 core 生成，原生 Client 端口传递尚未保存的管理器状态。

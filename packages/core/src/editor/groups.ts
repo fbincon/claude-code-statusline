@@ -1,5 +1,6 @@
 /** Pure grouping rules shared by configuration services and both editors. */
 import type { DisplayDraft, GroupDraft, InstanceDraft, LayoutDraft, Scope } from '../contracts/ui.js';
+import { requireAlignments } from './alignments.js';
 
 const object = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v);
 const id = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(v);
@@ -84,5 +85,6 @@ export function editGroup(original: DisplayDraft, scope: Scope, edit: GroupEdit,
     } else invalid();
   }
   if (!validGroups(target.groups, target.instances, scope === 'main' ? display.layout : undefined)) invalid();
+  if (scope === 'main') requireAlignments(display);
   return display;
 }

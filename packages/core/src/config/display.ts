@@ -1,3 +1,4 @@
+import { validAlignments, alignmentConflicts } from '../editor/alignments.js';
 import { validCostRateOptions } from '../editor/cost-rate.js';
 import { validGroups } from '../editor/groups.js';
 import { validIndicatorOptions } from '../editor/indicators.js';
@@ -11,7 +12,7 @@ export { isSchema } from './validation.js';
 import * as options from './formatting.js';
 import { reference, SOURCE_TYPES } from '../extensions/model.js';
 
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 export const CONFIG_FILENAME = 'claude-statusline.json';
 const v1 = ['schema_version', 'items', 'use_colors', 'palette', 'directory_style', 'separator_style'];
 const v2 = [...v1, 'scope_labels', 'subagents'];
@@ -125,7 +126,7 @@ function legacySubagents(value: unknown, legacy: boolean): SubagentDraft {
 function scalars(data: Record<string, unknown>, version: number) {
   if (typeof data.use_colors !== 'boolean') fail('errors.display.use_colors_must_be_true_or_false');
   return {
-    schema_version: 14 as const, groups: [], use_colors: data.use_colors,
+    schema_version: 15 as const, groups: [], use_colors: data.use_colors,
     palette: choice(data.palette, ['default', 'ansi'] as const, 'palette'),
     directory_style: choice(data.directory_style, ['full', 'home', 'project-relative', 'basename'] as const, 'directory_style'),
     separator_style: choice(data.separator_style, ['classic', 'compact', 'powerline'] as const, 'separator_style'),
@@ -143,8 +144,9 @@ export function validateDisplay(value: unknown): DisplayDraft {
   let version: bigint;
   try { version = jsonInteger(value.schema_version); }
   catch { return fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) }); }
-  if (version > 14n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
+  if (version > 15n) fail('errors.display.schema_version_is_newer_than_supported_version', { version, SCHEMA_VERSION });
   if (version < 1n) fail('errors.display.schema_version_must_be_1_2_3', { SCHEMA_VERSION, version: repr(value.schema_version) });
+  if (version < 15n && object(value.layout) && Object.hasOwn(value.layout, 'alignments')) fail('alignment.schema');
   if (version < 14n && [value.instances, object(value.subagents) ? value.subagents.instances : null].some(nodes => Array.isArray(nodes) && nodes.some(node => object(node) && object(node.options) && ['foreground_gradient','background_gradient'].some(key => Object.hasOwn(node.options as object, key))))) fail('gradients.schema');
   if (version >= 8n) {
     exact(value, version === 8n ? v8 : [...current, ...(version >= 12n ? ['groups'] : [])], 'display');
@@ -155,6 +157,10 @@ export function validateDisplay(value: unknown): DisplayDraft {
     if (layout.rows.some(row => row.filter(id => byId.get(id)!.type_id === 'spacer').length > 1)) fail('composition.errors.row_spacer');
     const subagents = validateSubagents(value.subagents, version >= 12n), groups = version >= 12n ? value.groups : [];
     if (!validGroups(groups, nodes, layout)) fail('composition.groups.invalid');
+    if (!validAlignments(layout.alignments, layout, nodes, groups)) {
+      const ids = alignmentConflicts({ layout, instances: nodes, groups } as DisplayDraft);
+      fail(ids.length ? 'alignment.references' : 'alignment.invalid', { ids: ids.join(', ') });
+    }
     return orderedDisplay({ ...scalars(value, Number(version)), subagents, layout, instances: nodes, groups });
   }
   const n = Number(version), keys = n === 1 ? v1 : n === 2 ? v2 : n === 3 ? v3 : n <= 5 ? v5 : n === 6 ? v6 : v7;
@@ -189,7 +195,7 @@ export function validateDisplay(value: unknown): DisplayDraft {
 }
 
 function orderedDisplay(value: DisplayDraft): DisplayDraft {
-  return { schema_version: 14, groups: value.groups, use_colors: value.use_colors, palette: value.palette,
+  return { schema_version: 15, groups: value.groups, use_colors: value.use_colors, palette: value.palette,
     directory_style: value.directory_style, separator_style: value.separator_style,
     scope_labels: value.scope_labels, statusline_language: value.statusline_language,
     theme: value.theme, powerline_glyph: value.powerline_glyph, powerline: value.powerline, subagents: value.subagents,

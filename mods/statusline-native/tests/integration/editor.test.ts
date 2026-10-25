@@ -13,13 +13,30 @@ import {
   setup,
   keys,
   selectSetting,
+  component,
 } from '../fixtures.ts';
 
 const REGION = 'statusline-client';
+test('native Layout alignment form renders through the Client and persists only after Save', {timeoutMs: 20000}, async ($, on) => {
+  const fixture = setup(on);
+  fixture.store.draft.display.instances = ['a','b'].map(id => ({ ...component('text'), id, text: id }));
+  fixture.store.draft.display.layout = { mode: 'explicit', rows: [['a'],['b']] };
+  await $.session.start(START); await $.command.run(RUN);
+  const ui = await $.ui.mount(PANE);
+  await keys(ui, '4'); await selectSetting(ui, 'row-alignment');
+  await keys(ui, 'return', 'return', 'down', 'right', 'down', 'right', 'end', 'return');
+  const editor = (await ui.find({ key: REGION }))!.props.props.view.editor;
+  expect(editor.draft.display.layout.alignments[0].columns).toEqual([[{kind:'instance',id:'a'},{kind:'instance',id:'b'}]]);
+  expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
+  expect(await ui.find({ in: REGION, type: 'Text', text: new RegExp(editor.draft.display.layout.alignments[0].id) })).toBeDefined();
+  await keys(ui, {key:'g',ctrl:true}, 's');
+  expect(fixture.store.draft.display.layout.alignments!.length).toBe(1);
+  await ui.unmount();
+});
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 23,
+      protocol_version: 24,
       error: { code, message: 'Test save refused.' },
     }),
     2,

@@ -27,14 +27,14 @@ export function legacyId(config: DisplayDraft, scope: Scope, typeId: string, all
 export function reconcileRows(layout: LayoutDraft, nodes: readonly InstanceDraft[]): LayoutDraft {
   if (layout.mode !== 'explicit') return clone(layout);
   const ids = nodes.map(node => node.id);
-  if (!layout.rows.length) return { mode: 'explicit', rows: ids.length ? [ids] : [] };
+  if (!layout.rows.length) return { ...clone(layout), mode: 'explicit', rows: ids.length ? [ids] : [] };
   const membership = new Map(layout.rows.flatMap((row, index) => row.map(id => [id, index] as const)));
   const sizes = layout.rows.map(() => 0);
   let current = ids.map(id => membership.get(id)).find(value => value !== undefined) ?? 0;
   for (const id of ids) { current = membership.get(id) ?? current; sizes[current] = sizes[current]! + 1; }
   let offset = 0;
   const rows = sizes.filter(size => size > 0).map(size => { const row = ids.slice(offset, offset + size); offset += size; return row; });
-  return { mode: 'explicit', rows };
+  return { ...clone(layout), mode: 'explicit', rows };
 }
 export function updateProjection(nodes: readonly InstanceDraft[], scope: Scope, items?: readonly string[], options?: Record<string, ItemOptionsDraft>): InstanceDraft[] {
   let result = clone([...nodes]);

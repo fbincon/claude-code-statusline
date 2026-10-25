@@ -20,7 +20,7 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 | --- | --- | --- | --- |
 | M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | DONE |
 | M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | IN_PROGRESS |
-| M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
+| M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | IN_PROGRESS |
 | M13 | [SHOWCASE-01](#showcase-01) | All M8–M12 packages completed and accepted; matching installed artifact | NOT_STARTED |
 
 After delivered M8 and M9, M10 → M11 → M12 → M13 expresses the remaining product priority without adding technical prerequisites. Import does not depend on version management, and alignment does not depend on gradients. SHOWCASE-01 waits for all selected M8–M12 functionality, including both import slices, to complete acceptance. Further candidates do not block it. Use the delivered TERMINAL-01 outcomes in affected Windows preview and demonstration acceptance. The approved Git, terminal, first-entry and version-management work shipped in v3.8.0; other future packages have no assigned product version or deadline.

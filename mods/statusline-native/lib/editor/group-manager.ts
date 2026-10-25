@@ -3,7 +3,8 @@
 import type { Editor } from './draft.ts';
 import type { GroupDraft, Scope } from '../generated-contracts.ts';
 import type { TextKey } from './text-input.ts';
-import { t, type Language } from '../i18n/index.ts';
+import { t, text, renderMessage, type LocalizedText, type Language } from '../i18n/index.ts';
+import { AlignmentReferenceError } from './alignments.ts';
 import { editGroup, groupScope, type GroupEdit } from './groups.ts';
 import { newInstance } from './instances.ts';
 import { isDraft } from '../backend.ts';
@@ -12,6 +13,7 @@ import { wrapText } from '../../ui/text.ts';
 export interface GroupManager {
   scope: Scope; page: 'list' | 'actions' | 'form'; cursor: number; selected: string | null;
   first: string; last: string; primary: string; linked: boolean; shared: boolean; error: boolean;
+  errorMessage?: LocalizedText;
 }
 export function openGroups(e: Editor): void {
   e.groupManager = { scope: e.detail?.scope ?? (e.page === 'subagents' ? 'subagent' : 'main'), page: 'list', cursor: 0, selected: null,
@@ -35,7 +37,7 @@ function apply(e: Editor, edit: GroupEdit): void {
     if (!isDraft({ ...e.draft, display })) throw new Error('invalid');
     e.draft = { ...e.draft, display }; e.order[m.scope] = groupScope(display, m.scope).instances.map(n => n.id);
     m.page = 'list'; m.cursor = 0; m.error = false;
-  } catch { m.error = true; }
+  } catch (error) { m.error = true; m.errorMessage = error instanceof AlignmentReferenceError ? text('alignment.references', { ids: error.ids.join(', ') }) : undefined; }
 }
 export function groupsKey(e: Editor, event: TextKey): null {
   const m = e.groupManager!;
@@ -96,7 +98,7 @@ export function groupsView(e: Editor, language: Language, width: number, height:
     : m.page === 'actions' ? actions.map(tr)
       : [tr('first') + ': ' + label(m.first), tr('last') + ': ' + label(m.last), tr('primary') + ': ' + label(m.primary),
         tr('linked') + ': ' + t('values.' + (m.linked ? 'on' : 'off'), language), tr('shared') + ': ' + t('values.' + (m.shared ? 'on' : 'off'), language), tr('apply')];
-  const note = wrapText([tr(m.error ? 'invalid' : 'help')], width), capacity = Math.max(1, height - Math.min(2, note.length));
+  const note = wrapText([m.error && m.errorMessage ? renderMessage(m.errorMessage, language) : tr(m.error ? 'invalid' : 'help')], width), capacity = Math.max(1, height - Math.min(2, note.length));
   const start = Math.max(0, m.cursor - capacity + 1);
   return [...values.slice(start, start + capacity).map((text, i) => ({ text: (start + i === m.cursor ? '› ' : '  ') + text, selected: start + i === m.cursor })), ...note.slice(0, Math.max(0, height - Math.min(capacity, values.length))).map(text => ({ text }))];
 }

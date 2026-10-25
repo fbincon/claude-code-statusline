@@ -20,7 +20,7 @@
 | --- | --- | --- | --- |
 | M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | DONE |
 | M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | IN_PROGRESS |
-| M12 | [COMPOSITION-03](#composition-03) | 既有显式布局、分组、Unicode 宽度与拟合 | NOT_STARTED |
+| M12 | [COMPOSITION-03](#composition-03) | 既有显式布局、分组、Unicode 宽度与拟合 | IN_PROGRESS |
 | M13 | [SHOWCASE-01](#showcase-01) | M8–M12 全部完成并验收；匹配的安装包 | NOT_STARTED |
 
 M8 与 M9 已交付，剩余产品优先级为 M10 → M11 → M12 → M13，不额外增加技术前置条件。导入不依赖版本管理，对齐不依赖渐变。SHOWCASE-01 等待选定的 M8–M12 全部功能完成验收，包括导入的两个切片；其他候选不阻塞演示。GIT-01 与 TERMINAL-01 已交付，相关 Windows 预览与演示验收应采用 TERMINAL-01 的结果。Git、终端、首次入口与版本管理已随 v3.8.0 发布；其余未来工作包不分配产品版本或截止日期。

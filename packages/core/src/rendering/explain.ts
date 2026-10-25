@@ -17,6 +17,7 @@ export function explain(draft: Draft, scope: Scope, width: number, preview: Prev
     instances:(scope==='main'?draft.display.instances:draft.display.subagents.instances).map(node=>{
       const reasons=configurationReasons(draft,scope,node,facts);
       const add=(code:string,origin:ExplainReason['origin'])=>reasons.push({code,origin});
+      if(scope==='main'&&trace.alignmentCollapsed(node.id)!==undefined)add(trace.alignmentCollapsed(node.id)?'alignment_collapsed':'alignment_active','configuration');
       if(!['text','spacer'].includes(node.type_id)) add('actual_not_observed','unknown');
       return {id:node.id,type_id:node.type_id,enabled:node.enabled,reasons,samples:trace.samples(scope,node.id)};
     }),

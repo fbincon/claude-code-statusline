@@ -226,3 +226,16 @@ Editor protocol 22 retains display schema 13. `import` and `review_import` accep
 ## Gradient contract
 
 Display schema 14 and editor protocol 23 add optional `foreground_gradient` and `background_gradient` arrays to instance options. Each is null/off or 2–5 RGB colors. Missing fields remain disabled; lower source schemas cannot claim these new fields. Presets expand before persistence. Rendering carries internal paint callbacks through fitting and semantic wrapping; these callbacks never enter the wire format. Existing preview spans remain unchanged.
+
+
+## Explicit-row alignment / COMPOSITION-03
+
+Display schema 15 and editor protocol 24 add optional `layout.alignments`:
+`[{"id":"summary","columns":[[{"kind":"instance","id":"a"},{"kind":"group","id":"g"}]]}]`.
+References resolve to complete main units in current explicit rows; IDs, row uniqueness,
+side, ordering and non-overlap are validated before persistence. Older schemas reject
+this field. Two-phase layout measures once, retains hidden slots, then draws with
+one shared color cursor and observation cache. Width fallback keeps the original
+fitting path; explain/diagnose adds `alignment_active` / `alignment_collapsed`
+reason codes without changing response envelopes. The Layout manager is generated
+from core for both editors; pending manager state crosses the native Client port.

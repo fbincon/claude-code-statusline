@@ -68,13 +68,13 @@ export function legacyOptions(value: unknown, ids: readonly string[], scope: Sco
   }));
 }
 export function layout(value: unknown, ids: readonly string[]): LayoutDraft {
-  exact(value, ['mode', 'rows'], 'layout');
+  exact(value, ['mode', 'rows', ...(object(value) && Object.hasOwn(value, 'alignments') ? ['alignments'] : [])], 'layout');
   if (!['auto', 'explicit'].includes(value.mode as string) || !Array.isArray(value.rows)) fail('errors.formatting.layout_requires_auto_explicit_mode_and_an');
   const rows = value.rows;
   if (rows.some(row => !Array.isArray(row) || !row.length || row.some(id => typeof id !== 'string'))) fail('errors.formatting.layout_rows_must_be_nonempty_arrays_of');
   if (value.mode === 'auto' && rows.length) fail('errors.formatting.auto_layout_requires_empty_rows');
   if (value.mode === 'explicit' && JSON.stringify(rows.flat()) !== JSON.stringify(ids)) fail('errors.formatting.explicit_rows_must_flatten_to_items_in');
-  return { mode: value.mode as LayoutDraft['mode'], rows: rows.map(row => [...row]) };
+  return { mode: value.mode as LayoutDraft['mode'], rows: rows.map(row => [...row]), ...(Object.hasOwn(value, 'alignments') ? { alignments: clone(value.alignments) as LayoutDraft['alignments'] } : {}) };
 }
 export function reorderedLayout(value: LayoutDraft, ids: readonly string[]): LayoutDraft {
   if (value.mode === 'auto') return clone(value);
@@ -84,7 +84,7 @@ export function reorderedLayout(value: LayoutDraft, ids: readonly string[]): Lay
     if (size) rows.push(remaining.splice(0, size));
   }
   if (remaining.length) { if (rows.length) rows.at(-1)!.push(...remaining); else rows.push(remaining); }
-  return { mode: 'explicit', rows };
+  return { ...clone(value), mode: 'explicit', rows };
 }
 
 /** Closed, shared appearance controls; no arbitrary glyph templates. */
