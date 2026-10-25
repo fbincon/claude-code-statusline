@@ -125,7 +125,8 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         if (requested && !marker && (!compatible || restricted))
             return result('suspended', 'preference retained; host unavailable or restricted');
         if (requested && !compatible) {
-            changed = suspended(context, spec, marker!, true, true);
+            const current = provided ? stage(context, spec, marker, provided)[0] : marker!;
+            changed = suspended(context, spec, current, true, true) || !!provided;
             return result('suspended', 'preference retained; requires Claude Code ' + spec.minimum.join('.') + '+');
         }
         const host = context.host(spec);
@@ -177,7 +178,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         else if (staged)
             host.run(['marketplace', 'update', spec.marketplace]);
         const values = bindingValues(context, spec);
-        if (row && staged && row.version === current.mod_version) {
+        if (row && (staged && row.version === current.mod_version || provided && row.version !== current.mod_version)) {
             if (userDisabled) rememberDisabled(context, spec, true);
             host.run(['uninstall', spec.plugin, '--scope', 'user']);
             changed = true;

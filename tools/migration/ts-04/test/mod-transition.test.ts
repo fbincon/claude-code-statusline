@@ -1,5 +1,5 @@
 import test from 'node:test';
-import { fresh, snapshot, assert, fs, join, NATIVE, jsonBytes } from './install-support.js';
+import { fresh, snapshot, assert, fs, join, NATIVE, RUNTIME, jsonBytes } from './install-support.js';
 import { bundledFiles, inventory } from '@fbincon/statusline-cli/integration/resources';
 import { prepareModDowngrade } from '@fbincon/statusline-cli/management/mod-transition';
 import { configurationBytes, configurationHashes } from '@fbincon/statusline-cli/management/configuration';
@@ -7,11 +7,14 @@ import { PACKAGE_NAME } from '@fbincon/statusline-core/release';
 import { BINDING_FILE } from '@fbincon/statusline-cli/integration/ownership';
 
 function target(f: ReturnType<typeof fresh>): string {
-    const root=join(f.temporary,'older target'), resources=join(root,'node_modules/@fbincon/statusline-cli/resources',NATIVE.name);
-    const files=new Map(bundledFiles(NATIVE).files);files.delete('resource-manifest.json');
-    const manifest=JSON.parse(files.get('.claude-plugin/plugin.json')!.toString());manifest.version='3.7.0';files.set('.claude-plugin/plugin.json',jsonBytes(manifest));
-    const record=inventory(files,{...NATIVE,protocol:21},'3.7.0');files.set('resource-manifest.json',jsonBytes(record));
-    for(const [name,bytes] of files){const path=join(resources,name);fs.mkdirSync(join(path,'..'),{recursive:true});fs.writeFileSync(path,bytes);}
+    const root=join(f.temporary,'older target');
+    for (const spec of [NATIVE,RUNTIME]) {
+        const resources=join(root,'node_modules/@fbincon/statusline-cli/resources',spec.name);
+        const files=new Map(bundledFiles(spec).files);files.delete('resource-manifest.json');
+        const manifest=JSON.parse(files.get('.claude-plugin/plugin.json')!.toString());manifest.version='3.7.0';files.set('.claude-plugin/plugin.json',jsonBytes(manifest));
+        const record=inventory(files,{...spec,protocol:spec===NATIVE?21:3},'3.7.0');files.set('resource-manifest.json',jsonBytes(record));
+        for(const [name,bytes] of files){const path=join(resources,name);fs.mkdirSync(join(path,'..'),{recursive:true});fs.writeFileSync(path,bytes);}
+    }
     fs.writeFileSync(join(root,'package.json'),JSON.stringify({name:PACKAGE_NAME,version:'3.7.0'}));return root;
 }
 test('cross-protocol Mod handoff refreshes verified bytes while retaining explicit disablement and preferences',t=>{
@@ -44,4 +47,10 @@ test('cross-protocol handoff refuses changed settings and modified owned or targ
         assert.throws(()=>prepareModDowngrade(f.context,root,'3.7.0',expected,false));
         assert.deepEqual(snapshot(f.root),before);
     }
+});
+
+test('version rollback refreshes both Mod caches through verified reinstall, including unchanged runtime protocol',t=>{
+    const f=fresh(t,[2,1,289]);assert.equal(f.install({native:true,nativeTiming:true}).failed,false);
+    const root=target(f);prepareModDowngrade(f.context,root,'3.7.0',configurationHashes(configurationBytes(f.root)),false);
+    for(const host of [f.host,f.runtime]) {assert.equal(host.plugins[0]!.version,'3.7.0');assert(host.calls.some(call=>call.args[0]==='uninstall'));}
 });
