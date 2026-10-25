@@ -341,7 +341,13 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
         const showScope=scope();
         const plain={...config,scope_labels:showScope?'always' as const:'off' as const,layout:{...config.layout,alignments:[]}};
         const unitConfig={...plain,scope_labels:'off' as const,powerline:{...plain.powerline,color_mode:plain.powerline.color_mode==='restart'?'continuous' as const:plain.powerline.color_mode}};
-        return alignedRows(config,Math.max(2,width),outer,showScope?label().text:null,colors,
+        let prefix=showScope?label().text:null;
+        if(prefix&&config.separator_style==='powerline') {
+            if(!config.groups.length&&!config.instances.some(node=>node.enabled&&node.type_id==='spacer'))
+                prefix=appearance.apply(env.language.text('scope.main'),config,'',DEFAULT_ITEM);
+            prefix=powerline.row([{text:prefix,sequence:false}],unitConfig,true,true,{...colors});
+        }
+        return alignedRows(config,Math.max(2,width),outer,prefix,colors,
             (ids,cursor)=>configuredRows(data,{...unitConfig,layout:{...unitConfig.layout,rows:[ids]}},10000,env,()=>cached,cursor).join(''),
             (ids,first,cursor)=>configuredRows(data,{...plain,scope_labels:first?plain.scope_labels:'off',layout:{...plain.layout,rows:[ids]}},width,env,()=>cached,cursor),
             (ids,collapsed)=>ids.forEach(id=>env.trace?.alignment(id,collapsed)));

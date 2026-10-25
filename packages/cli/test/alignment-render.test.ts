@@ -10,6 +10,7 @@ import { env } from './render-support.js';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { presentation } from '../src/rendering/environment.js';
 import { previewRows, samplePreviewData } from '@fbincon/statusline-core/rendering/preview';
+import { parse } from '@fbincon/statusline-core/rendering/styles';
 const ref=(id:string):AlignmentRef=>({kind:'instance',id});
 function fixture(right=false){
   const d=defaultDisplay();d.scope_labels='off';
@@ -112,5 +113,16 @@ test('alignment measures one scope observation per frame, including width fallba
     const output=configuredRows({},d,width,{...env,hadSubagents:()=>{calls++;return true;}});
     assert.equal(calls,1);assert(output.every(row=>displayWidth(row)<=width));
     if(width===120)assert(strip(output[0]!).includes('Main/Session'));
+  }
+});
+test('Powerline scope labels retain their existing block style and decoration inside aligned rows',()=>{
+  for(const right of [false,true]) {
+    const d=fixture(right);d.scope_labels='always';d.separator_style='powerline';d.powerline.start_cap=true;
+    const output=configuredRows({},d,120,env);
+    const baseline=configuredRows({},{...d,layout:{...d.layout,alignments:[]}},120,env);
+    const scopeStyle=(row:string)=>parse(styledUnits(row).find(unit=>unit.text==='M')!.style);
+    assert.deepEqual(scopeStyle(output[0]!),scopeStyle(baseline[0]!));
+    assert.equal(strip(output[0]!).startsWith('< Main/Session >'),true);
+    assert(output.every(row=>displayWidth(row)<=120));
   }
 });
