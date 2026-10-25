@@ -7,6 +7,9 @@ import { RenderTrace } from '@fbincon/statusline-core/rendering/trace';
 import { editAlignment } from '@fbincon/statusline-core/editor/alignments';
 import type { AlignmentRef } from '@fbincon/statusline-core/contracts/ui';
 import { env } from './render-support.js';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
+import { presentation } from '../src/rendering/environment.js';
+import { previewRows, samplePreviewData } from '@fbincon/statusline-core/rendering/preview';
 const ref=(id:string):AlignmentRef=>({kind:'instance',id});
 function fixture(right=false){
   const d=defaultDisplay();d.scope_labels='off';
@@ -81,4 +84,24 @@ test('aligned duplicate observations are collected once and OSC 8 links keep who
   const output=configuredRows({cwd:'/中文/👩🏽‍💻/é'},d,120,env);
   assert(output.some(row=>row.includes('\x1b]8;')));
   assert(styledUnits(output[0]!).some(unit=>unit.text==='👩🏽‍💻'));
+});
+test('six-language joint previews match rendering at 40/80/120 cells with Unicode, links and color fallback',async()=>{
+  for(const language of LANGUAGES) {
+    const sources={...env,language:await presentation(language)},d=fixture();
+    d.statusline_language=language;d.separator_style='powerline';
+    d.instances[0]!.text='中文 日本語 한글 é 👩🏽‍💻';
+    d.instances[2]!.type_id='current-dir';d.instances[2]!.text=null;d.instances[2]!.options.link='on';
+    d.directory_style='basename';
+    for(const id of ['b','d']) {const node=d.instances.find(n=>n.id===id)!;node.type_id='context-used';node.text=null;}
+    for(const node of d.instances){node.options.foreground_gradient=['#22d3ee','#3b82f6'];node.options.background_gradient=['#112233','#445566'];}
+    const payload=samplePreviewData('/test/home');
+    for(const width of [40,80,120]) {
+      const output=configuredRows(payload,d,width,sources);
+      assert.deepEqual(previewRows(d,width,sources,'/test/home'),output);
+      assert(output.length>0);assert(output.every(row=>displayWidth(row)<=width));
+      assert(output.every(row=>!strip(row).includes('statusline.')));
+    }
+    d.palette='ansi';assert(configuredRows(payload,d,120,sources).every(row=>!row.includes(';2;')));
+    d.use_colors=false;assert(configuredRows(payload,d,120,sources).every(row=>!row.match(/\x1b\[[0-9;]*m/u)));
+  }
 });
