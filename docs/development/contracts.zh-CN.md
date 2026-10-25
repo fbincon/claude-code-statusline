@@ -203,3 +203,7 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 ## METRICS-01
 
 显示 schema 13／编辑器协议 21 增加可选主栏 `session-cost-rate` 类型及实例选项 `cost_rate_basis: session|api`（省略为 session）。核心计算要求有限非负费用及至少 60,000 ms 的所选官方时长；关闭标签仍保留分母和估算标记，输入证据只列所选分母。旧显示文件只读迁移，不启用新类型或改写文件。来源、运行、便携及界面偏好版本沿用 WORKFLOW-02。
+
+## 选择性导入契约
+
+编辑器协议 22 保持显示 schema 13。`import` 与 `review_import` 在 `draft`、`path` 外接受可选 `selection` 数组；`profile_import` 可同时提供 `draft` 与 `selection`。省略选择时沿用完整导入，空选择产生不变草稿。未知或重复选择以及源文件无效引用被拒绝。对应格式解析先于共享选择逻辑，后续写入仍使用原有版本校验事务。选择与差异由 core 实现并生成到原生编辑器。

@@ -69,3 +69,23 @@ A single exported scheme has format `claude-code-statusline-profile`, version 1,
 Writes use the shared installation lock, revision checks, immutable backups and recovery journal. A concurrent edit is refused; reload and review instead of forcing an old draft over it. If a save response is lost, refresh saved state before another write. Corrupt collections are retained and reported, while rendering falls back safely.
 
 Older versions continue to render the user-default snapshot and ignore the new collection. Before downgrading after an interrupted transaction, recover it with the newer version. Restore backups through the existing [recovery workflow](USER_GUIDE.md#troubleshooting); keep the collection for a later upgrade.
+
+## Selective import
+
+Use **S** in the portable import review to choose settings. Selection starts empty; Space toggles a choice, Enter returns to the difference review, F restores full import, and A accepts the reviewed draft. Save separately. In **Display schemes and projects**, choose **Import selected settings into current draft** for a single-profile file. The current editing target, including the shared-project notice, remains unchanged.
+
+The CLI uses the matching file-format entry point:
+
+```sh
+claude-statusline config import display.json --select theme,palette --dry-run
+claude-statusline config import display.json --select main --profile Work
+claude-statusline config profile import scheme.json --select subagent,statusline_language --project /path/to/project --dry-run
+```
+
+`--select` accepts comma-separated exact keys: `main`, `subagent`, `use_colors`, `palette`, `theme`, `directory_style`, `separator_style`, `scope_labels`, `powerline_glyph`, `powerline.padding`, `powerline.separator`, `powerline.start_cap`, `powerline.end_cap`, `powerline.color_mode`, `statusline_language`, `formatting.model_name`, `formatting.number_format`, `formatting.labels`, `formatting.icons`, `formatting.allowance`, `formatting.reset_format`, `formatting.reset_timezone`, and `formatting.thresholds`. Thresholds are selected as one complete group. New fields do not automatically expand this list.
+
+Main selection replaces its complete instances, groups, layout and metric settings. Subagent selection replaces its complete template and display controls. IDs are scoped: the same ID in main and subagents is legal; replacing a whole scope preserves its internal references without colliding with the retained scope. Duplicate IDs and incomplete references in the input are rejected before selection, even when their section is unselected.
+
+Choose at most one of `--user`, `--profile NAME_OR_ID`, or `--project PATH`; omission means the user default. Project targets follow existing project resolution, including the user-default fallback. Named targets retain their name, ID and bindings; JSON results identify the target and affected shared projects. A selective profile import updates that target and cannot be combined with `--name` or `--overwrite`. The original full-profile import still creates a named copy.
+
+Unselected settings and local source bindings are preserved. Imported scopes lose local bindings; source registrations and permissions are never imported. Selective import preserves host settings, UI language and warning thresholds unless the display thresholds are explicitly selected. Dry runs, review cancellation and invalid inputs write nothing. Concurrent saved edits refuse the old revision.

@@ -19,7 +19,7 @@ import { installedVersionManagement } from '../../../acceptance/version-manageme
 import { VERSION_SEQUENCE_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -55,8 +55,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 21, operation, payload }), environment));
-    assert.equal(result.protocol_version, 21);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 22, operation, payload }), environment));
+    assert.equal(result.protocol_version, 22);
     assert.ok(result.result);
     return result.result;
 }
@@ -132,6 +132,38 @@ test('installed terminal policy is shared by setup, configure and the Windows sl
     }
     report.terminal_color_cases=process.platform==='win32'?15:3;
     checks.terminal_colors=true;
+});
+test('installed selective imports preserve unselected sections, targets and source authority', () => {
+    const config = setup('selective-import'), file = join(installed.temporary, 'selected portable.json');
+    const baseline = ui(config, 'read'), imported = structuredClone(baseline.draft);
+    imported.display.theme = 'light'; imported.display.statusline_language = 'ja';
+    imported.display.instances = [{ ...imported.display.instances[0], id: 'foreign-text', type_id: 'text', text: 'IMPORT' }];
+    imported.display.subagents.row_limit = 2; imported.host.padding = 7;
+    fs.writeFileSync(file, JSON.stringify({ format: 'claude-code-statusline', version: 1, draft: imported }));
+    const displayPath = join(config, 'claude-statusline.json');
+    const bytes = () => fs.existsSync(displayPath) ? fs.readFileSync(displayPath) : null;
+    const before = bytes();
+    run(['config', 'import', file, '--select', 'theme', '--dry-run'], config);
+    assert.deepEqual(bytes(), before);
+    run(['config', 'import', file, '--select', 'theme'], config);
+    let actual = ui(config, 'read').draft;
+    assert.equal(actual.display.theme, 'light'); assert.equal(actual.host.padding, baseline.draft.host.padding);
+    assert.deepEqual(actual.display.instances, baseline.draft.display.instances);
+    run(['config', 'import', file, '--select', 'main'], config);
+    actual = ui(config, 'read').draft;
+    assert.deepEqual(actual.display.instances, imported.display.instances); assert.deepEqual(actual.display.subagents, baseline.draft.display.subagents);
+    run(['config', 'profile', 'save', 'Selective target'], config);
+    const library = ui(config, 'profiles_read');
+    const profile = join(installed.temporary, 'selected profile.json');
+    fs.writeFileSync(profile, JSON.stringify({ format: 'claude-code-statusline-profile', version: 1, name: 'Foreign', display: imported.display }));
+    run(['config', 'profile', 'import', profile, '--select', 'subagent', '--profile', 'Selective target'], config);
+    let target = ui(config, 'profiles_read').profiles[0];
+    assert.equal(target.id, library.profiles[0].id); assert.equal(target.name, 'Selective target'); assert.equal(target.display.subagents.row_limit, 2);
+    run(['config', 'profile', 'import', profile, '--select', 'main,subagent,statusline_language', '--profile', 'Selective target'], config);
+    target = ui(config, 'profiles_read').profiles[0]; assert.equal(target.display.statusline_language, 'ja');
+    assert.equal(ui(config, 'read').draft.display.statusline_language, baseline.draft.display.statusline_language);
+    assert.deepEqual(ui(config, 'sources_read').sources, []);
+    report.selective_import_cases = 4; checks.selective_import = true;
 });
 test('installed groups retain linked visibility, remapped copies and portable references', () => {
     const config = setup('groups');
@@ -421,7 +453,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 21, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 22, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');

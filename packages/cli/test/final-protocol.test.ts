@@ -78,11 +78,11 @@ test('tests.ui.test_protocol.ProtocolTests.test_legacy_draft_empty_rows_and_mutu
     assert.deepEqual(readdirSync(f.root), []);
 });
 test('tests.ui.test_protocol.ProtocolTests.test_actual_cli_preview_and_utf8_errors_are_json_only', t => {
-    const f = setup(t), directory = join(f.root, 'not created'), raw = Buffer.from(JSON.stringify({ protocol_version: 21, operation: 'preview', payload: { draft: { display: defaultDisplay(), host: { ...DEFAULT_HOST } }, width: 80 } }));
+    const f = setup(t), directory = join(f.root, 'not created'), raw = Buffer.from(JSON.stringify({ protocol_version: 22, operation: 'preview', payload: { draft: { display: defaultDisplay(), host: { ...DEFAULT_HOST } }, width: 80 } }));
     for (const [input, status] of [[raw, 0], [Buffer.from([255]), 2], [Buffer.from('{'), 2]] as const) {
         const result = spawnSync(process.execPath, [join(repo, 'packages/cli/dist/src/entry.js'), 'ui', '--config-dir', directory], { input, encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: directory }, timeout: 10000 });
         assert.equal(result.status, status, result.stderr);
-        assert.equal(JSON.parse(result.stdout).protocol_version, 21);
+        assert.equal(JSON.parse(result.stdout).protocol_version, 22);
         assert.equal(result.stderr, '');
     }
     assert.ok(!existsSync(directory));

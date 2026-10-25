@@ -1929,5 +1929,11 @@
   "package.reason_no_pending": "There is no unfinished package operation at this prefix.",
   "package.reason_backup": "The applicable configuration snapshot is missing, changed or incompatible. No configuration was restored.",
   "package.reason_arguments": "Invalid package-management options. Run update --help for the supported syntax.",
-  "package.reason_busy": "A recorded package executor is still running. Wait for it to exit before inspecting recovery again."
+  "package.reason_busy": "A recorded package executor is still running. Wait for it to exit before inspecting recovery again.",
+  "review.selection.main": "Complete main section",
+  "review.selection.subagent": "Complete subagent section",
+  "review.selection.thresholds": "Warning thresholds",
+  "review.selection.help": "S select · Space toggle · Enter review · F full import · A accept draft; save separately.",
+  "review.selection.invalid": "Choose distinct supported import fields.",
+  "profiles.action.reuse": "Import selected settings into current draft"
 }

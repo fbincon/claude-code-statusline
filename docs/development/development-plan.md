@@ -18,7 +18,7 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 
 | Stage | Work package | Dependencies and scheduling | Status |
 | --- | --- | --- | --- |
-| M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
+| M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | IN_PROGRESS |
 | M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | NOT_STARTED |
 | M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
 | M13 | [SHOWCASE-01](#showcase-01) | All M8–M12 packages completed and accepted; matching installed artifact | NOT_STARTED |
@@ -145,7 +145,7 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 ## IMPORT-01 Selective configuration reuse
 
-**Status: NOT_STARTED.** M10; two required slices, first global appearance and then complete display sections.
+**Status: IN_PROGRESS.** M10; two required slices, first global appearance and then complete display sections.
 
 **Problem and goal.** Users should reuse selected appearance or display areas without replacing unrelated configuration or losing instance/group relationships.
 
@@ -551,3 +551,5 @@ A handoff includes package/status, completed slices, remaining issues, source/PR
 The [roadmap](roadmap.md) owns priority/status and this plan owns scope/acceptance. Both are public repository documents with complete Simplified Chinese counterparts. Keep local historical snapshots and raw validation records separate; public navigation must work without them. Migration-stage status remains in the [migration plan](typescript-migration.md), and feature delivery evidence stays in the corresponding implementation record.
 
 For documentation acceptance, compare IDs, order, dependencies and statuses across the four active planning files and navigation in both development guides; check delivered facts, links and anchors. Run `npm run docs:check` and `git diff --check`, including a documentation check against a checkout containing only committed files. Record documentation validation without claiming future features have passed acceptance. Keep product README, stable usage guides, release records, generated resources and code outside this planning-only update.
+
+M10 implementation is in progress on display schema 13/editor protocol 22. See [M10–M12 delivery](m10-m12-delivery.md). M11–M13 remain unstarted.

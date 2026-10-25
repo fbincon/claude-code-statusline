@@ -8,7 +8,7 @@ import { atLeast } from '../config/service.js';
 import { jsonBytes, readSettings } from '../config/storage.js';
 import { loadRuntime } from '../config/backend-preferences.js';
 import { OWNER, OWNER_FILE, type InstallContext, type ModSpec, type ModResult } from './model.js';
-import { bundledFiles, digest } from './resources.js';
+import { bundledFiles, digest, type Bundle } from './resources.js';
 import { owner, ownedPath, registered, cacheOwned, prune, type Marker } from './mod-ownership.js';
 import { commit, safeTarget, type Change } from './transaction.js';
 import { BINDING_FILE, bindingRecord } from './ownership.js';
@@ -44,11 +44,11 @@ function recheck(context: InstallContext, spec: ModSpec, previous: Marker, allow
     if (!equalSettings(owner(context.configDir, spec, context.io, allowMissing), previous))
         throw new Error('Mod ownership changed; rerun install');
 }
-export function stage(context: InstallContext, spec: ModSpec, previous: Marker | null): [
+export function stage(context: InstallContext, spec: ModSpec, previous: Marker | null, provided?: Bundle): [
     Marker,
     boolean
 ] {
-    const { configDir, io } = context, root = join(configDir, spec.name), bundle = bundledFiles(spec);
+    const { configDir, io } = context, root = join(configDir, spec.name), bundle = provided ?? bundledFiles(spec);
     const artifacts = new Map([...bundle.files].map(([name, raw]) => [`plugins/${spec.name}/${name}`, raw as Buffer | null]));
     artifacts.set('.claude-plugin/marketplace.json', jsonBytes({ name: spec.marketplace, owner: { name: 'fbincon' }, metadata: { description: 'Matching Mod bundled with claude-code-statusline' }, plugins: [{ name: spec.name, source: `./plugins/${spec.name}`, version: bundle.inventory.mod_version }] }));
     const marker: Marker = { ...bundle.inventory, owner: OWNER, suspended: previous?.suspended ?? false, files: Object.fromEntries([...artifacts].map(([name, raw]) => [name, digest(raw!)])), cache_inventories: [] };
@@ -101,14 +101,14 @@ function removeResources(context: InstallContext, spec: ModSpec, marker: Marker)
         prune(root, [...paths, ...marker.cache_inventories.flatMap(snapshot => Object.keys(snapshot.files).map(name => ownedPath(root, name)))]);
     });
 }
-export function bindingValues(context: InstallContext, spec: ModSpec): Record<string, string> {
+export function bindingValues(context: InstallContext, spec: ModSpec, backendVersion?: string): Record<string, string> {
     const modes = spec.name === 'statusline-runtime' ? loadRuntime(context.configDir, context.io) : null;
-    return { backendExecutable: context.launch.executable, backendArgs: JSON.stringify(context.launch.args), configDir: context.configDir, backendVersion: bundledFiles(spec).inventory.backend_version, ...(modes ? { nativeTiming: String(modes.native_timing), liveMetrics: String(modes.live_metrics), sourceRefresh: String(automaticRequested(context.configDir)) } : {}) };
+    return { backendExecutable: context.launch.executable, backendArgs: JSON.stringify(context.launch.args), configDir: context.configDir, backendVersion: backendVersion ?? bundledFiles(spec).inventory.backend_version, ...(modes ? { nativeTiming: String(modes.native_timing), liveMetrics: String(modes.live_metrics), sourceRefresh: String(automaticRequested(context.configDir)) } : {}) };
 }
 export function bindingMatches(options: unknown, values: Record<string, string>): boolean {
     return object(options) && object(options.inputs) && Object.entries(values).every(([key, value]) => options.inputs && (options.inputs as Record<string, unknown>)[key] === value);
 }
-export function integrate(context: InstallContext, spec: ModSpec, requested: boolean, uninstall = false): ModResult {
+export function integrate(context: InstallContext, spec: ModSpec, requested: boolean, uninstall = false, provided?: Bundle): ModResult {
     const { configDir, version, io } = context;
     let changed = false;
     const result = (state: ModResult['state'], message: string): ModResult => {
@@ -125,7 +125,8 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         if (requested && !marker && (!compatible || restricted))
             return result('suspended', 'preference retained; host unavailable or restricted');
         if (requested && !compatible) {
-            changed = suspended(context, spec, marker!, true, true);
+            const current = provided ? stage(context, spec, marker, provided)[0] : marker!;
+            changed = suspended(context, spec, current, true, true) || !!provided;
             return result('suspended', 'preference retained; requires Claude Code ' + spec.minimum.join('.') + '+');
         }
         const host = context.host(spec);
@@ -153,7 +154,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
             if (refreshIntents(configDir).includes(spec.name)) rememberDisabled(context, spec, false);
             return result('disabled', 'owned plugin and marketplace removed; preferences retained');
         }
-        if (restricted) {
+        if (restricted && !provided) {
             if (row?.enabled === true) {
                 host.run(['disable', spec.plugin, '--scope', 'user', '--json']);
                 changed = true;
@@ -163,9 +164,9 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
             }
             return result('suspended', 'disableAllHooks is enabled; preference retained');
         }
-        const userDisabled = !!row && row.enabled !== true && !marker!.suspended || refreshIntents(configDir).includes(spec.name);
+        const userDisabled = restricted || !!row && row.enabled !== true && !marker!.suspended || refreshIntents(configDir).includes(spec.name);
         commandPreflight(configDir, spec);
-        const [current, staged] = stage(context, spec, marker);
+        const [current, staged] = stage(context, spec, marker, provided);
         changed ||= staged;
         const root = join(configDir, spec.name);
         host.run(['validate', '--strict', root]);
@@ -176,8 +177,8 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         }
         else if (staged)
             host.run(['marketplace', 'update', spec.marketplace]);
-        const values = bindingValues(context, spec);
-        if (row && staged && row.version === current.mod_version) {
+        const values = bindingValues(context, spec, provided?.inventory.backend_version);
+        if (row && (staged && row.version === current.mod_version || provided && row.version !== current.mod_version)) {
             if (userDisabled) rememberDisabled(context, spec, true);
             host.run(['uninstall', spec.plugin, '--scope', 'user']);
             changed = true;
@@ -191,7 +192,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
                 host.run(['configure', spec.plugin, '--values-stdin'], values);
                 changed = true;
             }
-            if (marker!.suspended) {
+            if (marker!.suspended && !restricted) {
                 host.run(['enable', spec.plugin, '--scope', 'user', '--json']);
                 changed = true;
             }
@@ -213,7 +214,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         cacheOwned(configDir, spec, saved, current, io, true);
         if (!bindingMatches(host.run(['configure', spec.plugin, '--json'], undefined, true), values))
             throw new Error('Mod backend binding could not be confirmed');
-        suspended(context, spec, current, false);
+        suspended(context, spec, current, restricted);
         if (refreshIntents(configDir).includes(spec.name)) rememberDisabled(context, spec, false);
         return result(userDisabled ? 'plugin-disabled' : 'installed', userDisabled ? 'explicitly disabled; resources and binding refreshed' : 'installed and enabled on disk; session loading remains unverified');
     }

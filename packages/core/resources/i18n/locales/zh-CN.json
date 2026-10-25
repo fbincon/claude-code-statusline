@@ -1929,5 +1929,11 @@
   "package.reason_no_pending": "此 prefix 没有未完成的包事务。",
   "package.reason_backup": "适用配置快照缺失、被修改或不兼容，未恢复配置。",
   "package.reason_arguments": "包管理选项无效，请运行 update --help 查看语法。",
-  "package.reason_busy": "记录中的包执行进程仍在运行，请等待其退出后再检查恢复。"
+  "package.reason_busy": "记录中的包执行进程仍在运行，请等待其退出后再检查恢复。",
+  "review.selection.main": "完整主区",
+  "review.selection.subagent": "完整子代理区",
+  "review.selection.thresholds": "告警阈值",
+  "review.selection.help": "S 选择范围 · 空格勾选 · Enter 审阅 · F 完整导入 · A 接受草稿；需另行保存。",
+  "review.selection.invalid": "请选择不重复的受支持导入字段。",
+  "profiles.action.reuse": "选择导入到当前草稿"
 }

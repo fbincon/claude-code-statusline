@@ -56,11 +56,11 @@ export interface Bundle {
     files: Map<string, Buffer>;
     inventory: Inventory;
 }
-export function inventory(files: ReadonlyMap<string, Buffer>, spec: ModSpec): Inventory {
+export function inventory(files: ReadonlyMap<string, Buffer>, spec: ModSpec, version = VERSION): Inventory {
     const manifest = JSON.parse(files.get('.claude-plugin/plugin.json')!.toString('utf8'));
-    if (manifest.name !== spec.name || manifest.version !== VERSION)
+    if (manifest.name !== spec.name || manifest.version !== version)
         throw new Error('Bundled Mod/backend identity or version mismatch');
-    return { schema_version: 1, backend_version: VERSION, mod_version: VERSION, protocol_version: spec.protocol, files: Object.fromEntries([...files].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([name, raw]) => [name, digest(raw)])) };
+    return { schema_version: 1, backend_version: version, mod_version: version, protocol_version: spec.protocol, files: Object.fromEntries([...files].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([name, raw]) => [name, digest(raw)])) };
 }
 export function sourceFiles(root: string): Map<string, Buffer> {
     const names = new Set(['.claude-plugin/plugin.json', 'hooks/hooks.json']);
@@ -81,16 +81,17 @@ export function sourceFiles(root: string): Map<string, Buffer> {
             walk(join(root, directory));
     return new Map([...names].sort().map(name => { const path = join(root, name); safeTarget(root, path); return [name, fs.readFileSync(path)]; }));
 }
-export function bundledFiles(spec: ModSpec): Bundle {
-    const root = join(resourceRoot, spec.name), path = join(root, 'resource-manifest.json');
+export function bundledFiles(spec: ModSpec, target?: { root: string; version: string }): Bundle {
+    const root = target?.root ?? join(resourceRoot, spec.name), path = join(root, 'resource-manifest.json');
     let files: Map<string, Buffer>, record: Inventory;
     if (fs.existsSync(path)) {
         record = JSON.parse(fs.readFileSync(path, 'utf8')) as Inventory;
         files = new Map(Object.keys(record.files).map(name => { safeTarget(root, join(root, name)); return [name, fs.readFileSync(join(root, name))]; }));
-        if (JSON.stringify(record) !== JSON.stringify(inventory(files, spec)))
+        if (JSON.stringify(record) !== JSON.stringify(inventory(files, spec, target?.version ?? VERSION)))
             throw new Error('Bundled resource inventory does not match');
     }
     else {
+        if (target) throw new Error('Target package resource manifest is missing');
         const checkout = fileURLToPath(new URL('../../../../../', import.meta.url));
         if (!fs.existsSync(join(checkout, 'tsconfig.tools.json')))
             throw new Error('Bundled resources are missing; reinstall the package');

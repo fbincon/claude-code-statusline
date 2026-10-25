@@ -215,7 +215,7 @@ export class State {
                 e.review = null;
                 this.notice(text('review.cancelled'));
             }
-            else if (!ctrl && k.toLowerCase() === 'a') {
+            else if (!ctrl && k.toLowerCase() === 'a' && !e.review.choosing) {
                 e.replaceDraft(copyDraft(e.review.result.draft));
                 this.notice(text('review.accepted'));
             }

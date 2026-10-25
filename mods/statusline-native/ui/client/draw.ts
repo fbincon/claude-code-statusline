@@ -48,7 +48,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
   };
   const pending = (view.input?.kind === 'field' && view.input.original !== undefined && view.input.buffer !== view.input.original) || e.modified || view.preferences.some(preferenceChanged);
   const selectedPreference = view.preferences.find((p) => 'host-' + p.row.key === e.setting);
-  const notice = e.review ? tr('review.intro') :
+  const notice = e.review ? tr(e.review.base ? 'review.selection.help' : 'review.intro') :
     Object.entries(e.fieldErrors).map(([key, error]) => `${key}: ${renderMessage(e.fieldErrorMessages[key as keyof typeof e.fieldErrorMessages] ?? error ?? '', view.language ?? 'en')}`).join(' · ') ||
     viewMessage(view, 'busy') || viewMessage(view, 'error') || viewMessage(view, 'message') ||
     (e.advanced

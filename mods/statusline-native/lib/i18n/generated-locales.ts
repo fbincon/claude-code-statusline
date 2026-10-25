@@ -1939,7 +1939,13 @@ export const LOCALES = {
     "package.reason_no_pending": "There is no unfinished package operation at this prefix.",
     "package.reason_backup": "The applicable configuration snapshot is missing, changed or incompatible. No configuration was restored.",
     "package.reason_arguments": "Invalid package-management options. Run update --help for the supported syntax.",
-    "package.reason_busy": "A recorded package executor is still running. Wait for it to exit before inspecting recovery again."
+    "package.reason_busy": "A recorded package executor is still running. Wait for it to exit before inspecting recovery again.",
+    "review.selection.main": "Complete main section",
+    "review.selection.subagent": "Complete subagent section",
+    "review.selection.thresholds": "Warning thresholds",
+    "review.selection.help": "S select · Space toggle · Enter review · F full import · A accept draft; save separately.",
+    "review.selection.invalid": "Choose distinct supported import fields.",
+    "profiles.action.reuse": "Import selected settings into current draft"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3872,7 +3878,13 @@ export const LOCALES = {
     "package.reason_no_pending": "此 prefix 没有未完成的包事务。",
     "package.reason_backup": "适用配置快照缺失、被修改或不兼容，未恢复配置。",
     "package.reason_arguments": "包管理选项无效，请运行 update --help 查看语法。",
-    "package.reason_busy": "记录中的包执行进程仍在运行，请等待其退出后再检查恢复。"
+    "package.reason_busy": "记录中的包执行进程仍在运行，请等待其退出后再检查恢复。",
+    "review.selection.main": "完整主区",
+    "review.selection.subagent": "完整子代理区",
+    "review.selection.thresholds": "告警阈值",
+    "review.selection.help": "S 选择范围 · 空格勾选 · Enter 审阅 · F 完整导入 · A 接受草稿；需另行保存。",
+    "review.selection.invalid": "请选择不重复的受支持导入字段。",
+    "profiles.action.reuse": "选择导入到当前草稿"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5805,7 +5817,13 @@ export const LOCALES = {
     "package.reason_no_pending": "此 prefix 沒有未完成的套件交易。",
     "package.reason_backup": "適用設定快照缺失、遭修改或不相容，未還原設定。",
     "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。",
-    "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。"
+    "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。",
+    "review.selection.main": "完整主區",
+    "review.selection.subagent": "完整子代理區",
+    "review.selection.thresholds": "警告閾值",
+    "review.selection.help": "S 選擇範圍 · 空白鍵勾選 · Enter 審閱 · F 完整匯入 · A 接受草稿；需另行儲存。",
+    "review.selection.invalid": "請選擇不重複且受支援的匯入欄位。",
+    "profiles.action.reuse": "選擇匯入至目前草稿"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7738,7 +7756,13 @@ export const LOCALES = {
     "package.reason_no_pending": "此 prefix 沒有未完成的套件交易。",
     "package.reason_backup": "適用設定快照缺失、遭修改或不相容，未還原設定。",
     "package.reason_arguments": "套件管理選項無效，請執行 update --help 查看語法。",
-    "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。"
+    "package.reason_busy": "記錄中的套件執行程序仍在執行，請等待其結束後再檢查復原。",
+    "review.selection.main": "完整主區",
+    "review.selection.subagent": "完整子代理區",
+    "review.selection.thresholds": "警告閾值",
+    "review.selection.help": "S 選擇範圍 · 空白鍵勾選 · Enter 檢視 · F 完整匯入 · A 接受草稿；需另外儲存。",
+    "review.selection.invalid": "請選擇不重複且支援的匯入欄位。",
+    "profiles.action.reuse": "選擇匯入至目前草稿"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9671,7 +9695,13 @@ export const LOCALES = {
     "package.reason_no_pending": "この prefix に未完了のパッケージ処理はありません。",
     "package.reason_backup": "適切な設定スナップショットがない、変更された、または非互換です。設定は復元していません。",
     "package.reason_arguments": "管理オプションが不正です。update --help で構文を確認してください。",
-    "package.reason_busy": "記録されたパッケージ処理が実行中です。終了してから復旧状態を再確認してください。"
+    "package.reason_busy": "記録されたパッケージ処理が実行中です。終了してから復旧状態を再確認してください。",
+    "review.selection.main": "メイン領域全体",
+    "review.selection.subagent": "サブエージェント領域全体",
+    "review.selection.thresholds": "警告しきい値",
+    "review.selection.help": "S 範囲選択 · Space 切替 · Enter 確認 · F 全体 · A 下書きに反映。保存は別操作。",
+    "review.selection.invalid": "対応するインポート項目を重複せず選択してください。",
+    "profiles.action.reuse": "選択した設定を現在の下書きにインポート"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11604,7 +11634,13 @@ export const LOCALES = {
     "package.reason_no_pending": "이 prefix에 미완료 패키지 작업이 없습니다.",
     "package.reason_backup": "해당 설정 스냅샷이 없거나 변경되었거나 호환되지 않습니다. 설정을 복원하지 않았습니다.",
     "package.reason_arguments": "패키지 관리 옵션이 잘못되었습니다. update --help로 구문을 확인하세요.",
-    "package.reason_busy": "기록된 패키지 실행 프로세스가 아직 실행 중입니다. 종료된 후 복구 상태를 다시 확인하세요."
+    "package.reason_busy": "기록된 패키지 실행 프로세스가 아직 실행 중입니다. 종료된 후 복구 상태를 다시 확인하세요.",
+    "review.selection.main": "전체 메인 영역",
+    "review.selection.subagent": "전체 하위 에이전트 영역",
+    "review.selection.thresholds": "경고 임계값",
+    "review.selection.help": "S 범위 선택 · Space 전환 · Enter 검토 · F 전체 · A 초안 적용. 저장은 별도입니다.",
+    "review.selection.invalid": "지원되는 가져오기 필드를 중복 없이 선택하세요.",
+    "profiles.action.reuse": "선택한 설정을 현재 초안으로 가져오기"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

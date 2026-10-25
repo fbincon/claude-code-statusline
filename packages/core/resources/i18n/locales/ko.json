@@ -1929,5 +1929,11 @@
   "package.reason_no_pending": "이 prefix에 미완료 패키지 작업이 없습니다.",
   "package.reason_backup": "해당 설정 스냅샷이 없거나 변경되었거나 호환되지 않습니다. 설정을 복원하지 않았습니다.",
   "package.reason_arguments": "패키지 관리 옵션이 잘못되었습니다. update --help로 구문을 확인하세요.",
-  "package.reason_busy": "기록된 패키지 실행 프로세스가 아직 실행 중입니다. 종료된 후 복구 상태를 다시 확인하세요."
+  "package.reason_busy": "기록된 패키지 실행 프로세스가 아직 실행 중입니다. 종료된 후 복구 상태를 다시 확인하세요.",
+  "review.selection.main": "전체 메인 영역",
+  "review.selection.subagent": "전체 하위 에이전트 영역",
+  "review.selection.thresholds": "경고 임계값",
+  "review.selection.help": "S 범위 선택 · Space 전환 · Enter 검토 · F 전체 · A 초안 적용. 저장은 별도입니다.",
+  "review.selection.invalid": "지원되는 가져오기 필드를 중복 없이 선택하세요.",
+  "profiles.action.reuse": "선택한 설정을 현재 초안으로 가져오기"
 }
