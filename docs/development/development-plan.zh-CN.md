@@ -18,7 +18,7 @@
 
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
-| M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | IN_PROGRESS |
+| M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | DONE |
 | M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | IN_PROGRESS |
 | M12 | [COMPOSITION-03](#composition-03) | 既有显式布局、分组、Unicode 宽度与拟合 | NOT_STARTED |
 | M13 | [SHOWCASE-01](#showcase-01) | M8–M12 全部完成并验收；匹配的安装包 | NOT_STARTED |

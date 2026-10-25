@@ -18,7 +18,7 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 
 | Stage | Work package | Dependencies and scheduling | Status |
 | --- | --- | --- | --- |
-| M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | IN_PROGRESS |
+| M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | DONE |
 | M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | IN_PROGRESS |
 | M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
 | M13 | [SHOWCASE-01](#showcase-01) | All M8–M12 packages completed and accepted; matching installed artifact | NOT_STARTED |
