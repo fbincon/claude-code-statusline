@@ -140,9 +140,11 @@ test('installed selective imports preserve unselected sections, targets and sour
     imported.display.instances = [{ ...imported.display.instances[0], id: 'foreign-text', type_id: 'text', text: 'IMPORT' }];
     imported.display.subagents.row_limit = 2; imported.host.padding = 7;
     fs.writeFileSync(file, JSON.stringify({ format: 'claude-code-statusline', version: 1, draft: imported }));
-    const before = fs.readFileSync(join(config, 'claude-statusline.json'));
+    const displayPath = join(config, 'claude-statusline.json');
+    const bytes = () => fs.existsSync(displayPath) ? fs.readFileSync(displayPath) : null;
+    const before = bytes();
     run(['config', 'import', file, '--select', 'theme', '--dry-run'], config);
-    assert.deepEqual(fs.readFileSync(join(config, 'claude-statusline.json')), before);
+    assert.deepEqual(bytes(), before);
     run(['config', 'import', file, '--select', 'theme'], config);
     let actual = ui(config, 'read').draft;
     assert.equal(actual.display.theme, 'light'); assert.equal(actual.host.padding, baseline.draft.host.padding);
