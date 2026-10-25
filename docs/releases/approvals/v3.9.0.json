@@ -21,6 +21,13 @@
       "head": "69ad4485c5f03e43845864a82968ba938f7c1b92",
       "merge": "e4f3e7b3266aae7d35d579a233e2e9c58b5d7b3b",
       "ci_run": 40218297344
+    },
+    {
+      "work_package": "APPEARANCE-04",
+      "number": 144,
+      "head": "564915a847fea0575d785644115261691b7318ee",
+      "merge": "0c0200240292dc912f635cccffd6a4c53a08c58a",
+      "ci_run": 40225167655
     }
   ]
 }
