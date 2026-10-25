@@ -28,6 +28,14 @@
       "head": "564915a847fea0575d785644115261691b7318ee",
       "merge": "0c0200240292dc912f635cccffd6a4c53a08c58a",
       "ci_run": 40225167655
+    },
+    {
+      "work_package": "COMPOSITION-03",
+      "number": 145,
+      "head": "cdbe9d1a2dc89e19ee5e6901cff968f84809c364",
+      "merge": "9e4a049a1f8198a190f1e8a20adf0092864c161b",
+      "ci_run": 40229051764,
+      "ci_attempt": 2
     }
   ]
 }
