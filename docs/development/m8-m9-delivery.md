@@ -6,10 +6,18 @@ Target: v3.8.0. Start: `d2975e8a4561371b5d32bec136400963dbccd97f`. Publication i
 
 | Package | State | Evidence |
 | --- | --- | --- |
-| GIT-01 | VALIDATING | Shared policy and isolated regressions; platform/installed receipts pending |
-| TERMINAL-01 | VALIDATING | Windows capability consistency |
-| SETUP-02 | VALIDATING | Durable npm first entry |
-| UPDATE-01 | VALIDATING | Explicit CLI version transitions from v3.7.0 |
+| GIT-01 | DONE | [PR #137](https://github.com/fbincon/claude-code-statusline/pull/137) · [Full CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40075245972) |
+| TERMINAL-01 | DONE | [PR #138](https://github.com/fbincon/claude-code-statusline/pull/138) · [Full CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40075247333) |
+| SETUP-02 | DONE | [PR #139](https://github.com/fbincon/claude-code-statusline/pull/139) · [Full CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40081854700) |
+| UPDATE-01 | DONE | [PR #140](https://github.com/fbincon/claude-code-statusline/pull/140) · [Full CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40087600655) |
+
+## Accepted feature evidence
+
+Each feature PR passed all 56 applicable CI jobs, with only the conditional documentation-only job skipped, before merging. The final feature head is `2394bcff50e2a3e37b0912c28e2de7e8afc6b7b6`; its merge is `dfb2083bd2086dc842b6d6f04b3a87a6daddf03e`. Its eight installation targets, 32 Node cases, thirteen fixed hosts and aggregate gate passed. Every installed/runtime receipt requires twenty check categories; each Windows target additionally requires fifteen environment cases and nine actual shell/entry combinations.
+
+The complete development check passed 1,208 tests with five existing platform skips, 51 generated resources, six-language coverage, 3,174 documentation links, archive and responsibility checks. Two independent builds of that feature head matched package SHA-256 `3e93344ae52e2364dba34399287a8546e0408ff75cd2f04ffcfdb0cb8b073566`; its source archive is `d544d247eb39b0aafb173ddc3be624613bc44ee3a846402ef3061850f532067a`. These are feature-acceptance artifacts, not the final public release artifacts.
+
+The following sections retain intermediate implementation and failure history. The table and this section establish current functional acceptance. Final release PR/main/annotated-tag checks, source rebuild, draft assets and public channels remain separate requirements.
 
 ## Git invocation policy
 
@@ -28,11 +36,11 @@ Git status cache version is 3; display and editor interfaces are unchanged. Loca
 
 Isolated regressions cover same-length clean-filter invocation, fsmonitor, global filters, includes, linked worktrees, submodules, bare repositories, Unicode/space paths and unchanged configuration bytes. The review considered Matthew Breedlove (sirmalloc) and contributors' [ccstatusline design](https://github.com/sirmalloc/ccstatusline/blob/bed850187783904a9affcaba1dd80e967622e70b/src/utils/git-hardening.ts); this implementation also stops when transformation semantics cannot be preserved and checks submodules. See [Git configuration documentation](https://git-scm.com/docs/git-config).
 
-## Validation and publication
+## Early Git validation
 
 Record local checks before each feature PR. Add CI/installed receipts, immutable identities and public channel results as completed. Pending platform, human or publication checks are not passes.
 
-Local development checks passed: 1,167 tests passed and five existing platform skips; generated resources, 3,150 documentation links, archive integrity and migration inventories passed. Subsequent policy/diagnosis/release-gate regressions were rerun after the installed receipt was added. Four installed Git scenarios are now mandatory in release readiness. Full artifact/platform results remain pending.
+Local development checks passed: 1,167 tests passed and five existing platform skips; generated resources, 3,150 documentation links, archive integrity and migration inventories passed. Subsequent policy/diagnosis/release-gate regressions were rerun after the installed receipt was added. Four installed Git scenarios are now mandatory in release readiness. These were intermediate checks; accepted platform results are listed above.
 
 The first PR matrix exposed a macOS `/var` versus `/private/var` root alias and an index-timestamp-dependent global-filter fixture. Roots now canonicalize at the policy boundary and the fixture explicitly invalidates its file timestamp. Installed Git checks run in a separate Node process so the harness does not load two native adapter installations. The first failed matrix is retained as evidence; replacement gates must pass.
 
@@ -54,7 +62,7 @@ SETUP-02 adds pure installation identity/action rules in core, bounded npm CLI i
 
 Package records use schema 1 below `statusline_runtime/package-management`, separate from the older file/plugin recovery journals. Partial npm outcomes retain a prefix marker and recorded stage. The durable handoff does not alter display Save, host Apply, profiles, bindings or opt-in policies. Six-language guidance covers review, cancellation, failure and next actions.
 
-Acceptance combines state/side-effect tests with four installed scenarios using real npm against a temporary loopback registry, controlled confirmation, actual integration/rendering and a new process after deleting the simulated npx cache. No user prefix or Claude configuration is used. Full platform results remain pending.
+Acceptance combines state/side-effect tests with four installed scenarios using real npm against a temporary loopback registry, controlled confirmation, actual integration/rendering and a new process after deleting the simulated npx cache. No user prefix or Claude configuration is used. Accepted platform results are listed above.
 
 ## Explicit version transactions
 
@@ -64,9 +72,9 @@ The public CLI moves execution to a private copy outside the target before loadi
 
 The implementation branch adopts the approved 3.8.0 identity early so installed acceptance can exercise the real 3.7.0 → 3.8.0 → 3.7.0 transition. This does not publish a version. The final release PR still owns release notes, final gate reconciliation and public channel verification. Twenty installed receipt categories are now required, including seven package-management scenarios with actual npm, pinned historical bytes, controlled metadata, interruption and separate restoration. The existing eight installation targets, 32 Node cases and thirteen host targets remain required.
 
-The first 27 focused management, archive and release-readiness tests passed locally. Independent intermediate builds from `4345e2b505eac2f99ae67d1f361dcc8590690bbc` matched SHA-256 `628710d951474ba171542ef9a3cf8fcb41f6f40e4da0bf56ce7caf88379efa3b`. A real-package integrity rejection exposed a generic npm error mapping; structured `EINTEGRITY` is now reported without forwarding registry details. Installed roundtrip and final matrix evidence remain pending. See the [user operation guide](../PACKAGE_MANAGEMENT.md).
+The first 27 focused management, archive and release-readiness tests passed locally. Independent intermediate builds from `4345e2b505eac2f99ae67d1f361dcc8590690bbc` matched SHA-256 `628710d951474ba171542ef9a3cf8fcb41f6f40e4da0bf56ce7caf88379efa3b`. A real-package integrity rejection exposed a generic npm error mapping; structured `EINTEGRITY` is now reported without forwarding registry details. Installed roundtrip and feature matrix evidence are listed above. See the [user operation guide](../PACKAGE_MANAGEMENT.md).
 
-Local UPDATE-01 acceptance on `1daf5d852f43b4993e6194012d89c9eb4c158367` passed 1,194 tests (five existing platform skips), 51 generated resources and 3,174 documentation links. The independently built package SHA-256 is `95dd967f94fac51b50e9b0db981079e086d6254fca2e3646e2cd23b0dbbda3a3`. All twenty installed checks passed. The seven transition scenarios also passed against the isolated, official Claude 2.1.296 host with both applicable Mods, including interruption, resource refresh, retained opt-outs and separate restoration. No model calls were made. Package subprocess identities and cooperative cancellation prevent a surviving executor from being mistaken for an idle recovery target. Full PR/platform/host matrix results are still required.
+Local UPDATE-01 acceptance on `1daf5d852f43b4993e6194012d89c9eb4c158367` passed 1,194 tests (five existing platform skips), 51 generated resources and 3,174 documentation links. The independently built package SHA-256 is `95dd967f94fac51b50e9b0db981079e086d6254fca2e3646e2cd23b0dbbda3a3`. All twenty installed checks passed. The seven transition scenarios also passed against the isolated, official Claude 2.1.296 host with both applicable Mods, including interruption, resource refresh, retained opt-outs and separate restoration. No model calls were made. Package subprocess identities and cooperative cancellation prevent a surviving executor from being mistaken for an idle recovery target. The later full feature matrix passed; final release gates remain required.
 
 The [isolated Windows ARM diagnostic](https://github.com/fbincon/claude-code-statusline/actions/runs/40077221439) and both Windows Node 22.23.4 jobs in [the update matrix](https://github.com/fbincon/claude-code-statusline/actions/runs/40076937090) exited with `0xC0000409` inside `fs.cpSync`, before the copy completed or any native module loaded. Package copying now uses bounded directory enumeration and exclusive ordinary-file copies, rejects links/special files, and preserves executable access in private directories. The bootstrap and retained recovery runner use the same implementation; the latter is verified before a directory rename publishes it. This is a workaround for the observed copy failure, not a claim about an upstream root cause. Replacement platform gates remain required.
 
@@ -81,3 +89,13 @@ The [update matrix](https://github.com/fbincon/claude-code-statusline/actions/ru
 The [subsequent update matrix](https://github.com/fbincon/claude-code-statusline/actions/runs/40081939042) hit the old 150-second operation and ten-minute installed-suite test envelopes. The former could preempt a single product npm step's 180-second bound; the latter did not include the added real-package sequence. Acceptance now composes separate six-minute operation, fifteen-minute sequence (twenty with the official host), existing ten-minute suite and outer preparation/cleanup budgets. Product timeouts remain unchanged. Every version-test command records its elapsed time, outcome and bounded failure diagnostics outside the temporary installation; incomplete runs cannot supply a passing receipt. The intermediate [main run](https://github.com/fbincon/claude-code-statusline/actions/runs/40080997079) also retained a macOS checkout DNS failure before source or candidate execution. Final source-bound gates remain required.
 
 At `e3029fe`, the full development check passed 1,207 tests with five existing platform skips. In [its matrix](https://github.com/fbincon/claude-code-statusline/actions/runs/40084425356), Windows/Claude 2.1.288 stopped on a product npm timeout before package replacement, while the other 54 jobs passed; the aggregate correctly failed. The [unchanged-artifact diagnostic](https://github.com/fbincon/claude-code-statusline/actions/runs/40085700315) completed two twenty-operation rounds on Windows 2025/2.1.288 and three on Windows 2025/2.1.289 without reproducing that timeout. The former's third round failed while fetching the historical archive (`ECONNABORTED`) before invoking the product. The original timeout's cause is not asserted, product deadlines remain intact, and replacement formal gates must pass.
+
+## Later diagnostics and publication boundary
+
+The unchanged-artifact diagnostic also completed three twenty-operation rounds on Windows ARM/Claude 2.1.288, bringing the three environments to eight complete passing transition rounds. The interrupted historical download is not a product pass, and the original npm timeout's cause remains unasserted. The subsequent complete UPDATE-01 matrix passed every applicable job on its first attempt.
+
+The [intermediate main after SETUP-02](https://github.com/fbincon/claude-code-statusline/actions/runs/40086715360) returned `error` in one Windows dirty-submodule test. The old log did not retain the underlying reason, so a timeout is not claimed. [Isolated diagnosis](https://github.com/fbincon/claude-code-statusline/actions/runs/40088039171) passed one hundred observations across twenty fresh repositories on each Windows target/Node 22 and 24 combination, retaining per-call durations and error diagnostics. The product's two-second aggregate budget is unchanged; the subsequent UPDATE-01 matrix also passed. The failed intermediate main was cancelled and cannot serve as release acceptance.
+
+The [intermediate main after UPDATE-01](https://github.com/fbincon/claude-code-statusline/actions/runs/40091394223) recorded a 30-second timeout in the official Windows/Claude 2.1.289 native-editor English save/cancel/reopen test; the other 131 native tests passed. The log does not establish an underlying cause. The test limit is unchanged, and the same test remains mandatory in the final release matrices.
+
+All four work packages are DONE. Public v3.8.0 publication still requires final release PR/main/tag automation, independent and delivered-source builds, four verified assets and npm/GitHub/Gitee channel bytes. The [version-specific approval](../releases/approvals/v3.8.0.json) retains only the same six unverified #96 gaps.

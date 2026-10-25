@@ -17,6 +17,12 @@ Shared cursor editing, scenario-based quick setup and the read-only `explain` op
 
 Product runtimes support Node 22/24; development and builds retain Node 24.21.0/npm 11.19.0. After `npm run build`, use `npm run test:runtime` under a supported Node to test compiled products without rebuilding. Release readiness also requires eight targets × four Node cases (32 receipts). See [runtime and regional-language follow-up](node-regional-languages.md).
 
+## Git, terminal and package transactions
+
+Installed acceptance now requires twenty check categories, including Git policy, shared terminal capability, persistent first entry and explicit version management. Windows receipts include fifteen environment cases and nine real shell/entry combinations; environment simulation alone does not establish shell launch acceptance. See [implementation and diagnostic evidence](m8-m9-delivery.md).
+
+Package tests use temporary prefixes and configuration directories, a controlled loopback registry and real npm with lifecycle scripts disabled. They verify the public v3.7.0 archive digest before roundtrips, interruption and separate restoration. `TS06_LEGACY_370_ARTIFACT` may point to an already downloaded copy; the same digest check still applies. Runtime and official-host receipts must include every operation result. These tests do not change the developer's ordinary Claude configuration or make model calls. Current publication requirements are in the [release guide](../RELEASING.md#v380-git-terminal-and-package-management).
+
 ## Installed performance experiments
 
 [PERF-01](performance/perf-01.md) owns the separately identified installed TS-to-TS

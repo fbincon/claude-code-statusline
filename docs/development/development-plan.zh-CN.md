@@ -4,7 +4,7 @@
 
 更新：**2026-10-24**（Asia/Shanghai）· 产品基线：**v3.7.0** · 规划基线：**`d3c95232a18cb297bbd836c4deda117749e90ee4`**
 
-本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 正在为 v3.8.0 验证（VALIDATING），其余四个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见[交付记录](m4-m7-delivery.zh-CN.md)。
+本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 公开发布仍待最终门禁及渠道核验，其余四个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见 [M4–M7 交付](m4-m7-delivery.zh-CN.md)及 [Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)。
 
 已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.7.0 专项决定](../releases/approvals/v3.7.0.json)记录该版本对这些缺口的接受。
 
@@ -18,10 +18,10 @@
 
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
-| 优先独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | VALIDATING |
-| 优先独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | VALIDATING |
-| M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | VALIDATING |
-| M9 | [UPDATE-01](#update-01) | SETUP-02 的安装身份及既有兼容／恢复规则 | VALIDATING |
+| 优先独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | DONE |
+| 优先独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | DONE |
+| M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | DONE |
+| M9 | [UPDATE-01](#update-01) | SETUP-02 的安装身份及既有兼容／恢复规则 | DONE |
 | M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | NOT_STARTED |
 | M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | NOT_STARTED |
 | M12 | [COMPOSITION-03](#composition-03) | 既有显式布局、分组、Unicode 宽度与拟合 | NOT_STARTED |
@@ -71,7 +71,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 ## GIT-01 Git 调用核查与必要防护
 
-**状态：VALIDATING。** 从 `d2975e8` 启动，目标为 v3.8.0。共享调用策略已实现；平台及安装产物验收记录在[交付记录](m8-m9-delivery.zh-CN.md)。
+**状态：DONE。** 从 `d2975e8` 启动，目标为 v3.8.0。共享调用策略已实现；平台及安装产物验收记录在[交付记录](m8-m9-delivery.zh-CN.md)。
 
 **已有观察与限制。** 2026-10-24，在 Linux、Git 2.53.0、Node 24.21.0 下，以临时仓库调用[规划基线的 GitCollector](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts)。仓库级 `core.fsmonitor` 触发了无害标记程序；受跟踪文件改变内容但长度不变时，本机 clean filter 也触发标记，而改变长度的测试场景没有触发。对照调用显式关闭相应设置后不再触发，仓库配置字节保持不变。选择防护策略前应复现这些条件。该观察不说明普通 clone 会传入本地配置，也未覆盖全部 worktree／bare 仓库、过滤器、间接提供方调用和 Windows／macOS 行为，历史观察与上方当前实施状态分别记录。
 
@@ -91,9 +91,9 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 ## TERMINAL-01 Windows 预览一致性
 
-**状态：VALIDATING。** 优先独立维护，跟踪 [Issue #130](https://github.com/fbincon/claude-code-statusline/issues/130)。
+**状态：DONE。** 优先独立维护，跟踪 [Issue #130](https://github.com/fbincon/claude-code-statusline/issues/130)。
 
-**问题与目标。** 问题报告指出，同一 Windows 终端中，setup、独立 configure 和 slash 启动的外部编辑器预览颜色不同。基线的[色深判断函数](../../packages/tui/src/session.ts)仅有 Windows Terminal 标记时返回 16，有 `TERM=xterm-256color` 时返回 256；这一纯函数观察不等于新完成的 Windows 桌面验证。相同终端应获得一致的能力判断，确实存在的受支持差异则准确说明。
+**问题与目标。** 问题报告指出，同一 Windows 终端中，setup、独立 configure 和 slash 启动的外部编辑器预览颜色不同。基线的[色深判断函数](https://github.com/fbincon/claude-code-statusline/blob/d2975e8a4561371b5d32bec136400963dbccd97f/packages/tui/src/session.ts)仅有 Windows Terminal 标记时返回 16，有 `TERM=xterm-256color` 时返回 256；这一纯函数观察不等于新完成的 Windows 桌面验证。相同终端应获得一致的能力判断，确实存在的受支持差异则准确说明。
 
 **范围与流程。** 使用同一安装包和显示配置复现三个入口，辨认环境与控制台差异，修正或说明能力选择，再重开各入口对比预览和实际输出。保留显式 `NO_COLOR`、单色终端及用户能力选择。原生编辑器的主题行为属于另一界面，不要求模仿外部 TUI 颜色。
 
@@ -109,7 +109,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 ## SETUP-02 首次入口与持久安装
 
-**状态：VALIDATING。** M8，扩展已交付的 SETUP-01。
+**状态：DONE。** M8，扩展已交付的 SETUP-01。
 
 **问题与目标。** 已有 setup 串联配置和接入，但获取软件包和选择初始命令仍是分离步骤。提供无参数／npx 首次入口，连接持久安装与已有 setup 流程。
 
@@ -127,7 +127,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 ## UPDATE-01 显式升级与回滚
 
-**状态：VALIDATING。** M9，使用 SETUP-02 的安装身份及既有兼容／恢复规则。
+**状态：DONE。** M9，使用 SETUP-02 的安装身份及既有兼容／恢复规则。
 
 **问题与目标。** 让用户查看可用版本，主动升级或返回旧版，并区分软件包和配置的恢复结果。
 
