@@ -14,7 +14,7 @@ if (operation === 'joint-display') {
     const { presentation, baseEnvironment } = await load('cli', 'rendering/environment');
     const { ConfigurationService } = await load('cli', 'config/service');
     const service = new ConfigurationService({ configDir: config, launch: { executable: process.execPath, args: [join(modules!, 'statusline-cli/dist/src/entry.js')] }, hostVersion: () => null });
-    const home = '/test/中文/é/👩🏽‍💻', widths = [40,80,120];
+    const sampleHome = '/test/中文/é/👩🏽‍💻', widths = [40,80,120];
     for (const language of LANGUAGES) {
         const current = service.read(); let d = current.display;
         d.instances = ['text','context-used','current-dir','context-used'].map((type_id, index) => ({ id: 'joint-' + index, type_id, enabled: true, text: type_id === 'text' ? '中文 日本語 한글 é 👩🏽‍💻' : null,
@@ -24,10 +24,10 @@ if (operation === 'joint-display') {
         d = editAlignment(d, 'joint', [[{kind:'instance',id:'joint-0'},{kind:'instance',id:'joint-2'}],[{kind:'instance',id:'joint-1'},{kind:'instance',id:'joint-3'}]]);
         service.apply({display:d,host:current.host},current.revision);
         const reopened = service.read().display; assert.deepEqual(reopened,d);
-        const environment = baseEnvironment(await presentation(language), {home}), payload = samplePreviewData(home);
+        const environment = baseEnvironment(await presentation(language), {home:sampleHome}), payload = samplePreviewData(sampleHome);
         for (const width of widths) {
             const actual = configuredRows(payload,reopened,width,environment);
-            assert.deepEqual(previewRows(reopened,width,environment,home),actual);
+            assert.deepEqual(previewRows(reopened,width,environment,sampleHome),actual);
             assert(actual.length > 0 && actual.every((row:string)=>displayWidth(row)<=width));
             if (width === 120) {
                 assert(actual.map(strip).join('\n').includes('中文 日本語 한글 é 👩🏽‍💻'));
