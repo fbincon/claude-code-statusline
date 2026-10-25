@@ -1,9 +1,24 @@
 import type { DisplayDraft, GradientDraft } from '../contracts/ui.js';
 import { styledUnits, renderStyledUnits, type StyledUnit } from './layout.js';
 import { parse, serialize, sameColor, type Color } from './styles.js';
-import { outputColor } from './appearance.js';
+import { outputColor, riskColor } from './appearance.js';
 
 export type Paint = (text: string) => string;
+function luminance(color: string): number {
+  return [1,3,5].reduce((sum, index, i) => {
+    const channel = parseInt(color.slice(index,index+2),16) / 255;
+    return sum + (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4) * [0.2126,0.7152,0.0722][i]!;
+  }, 0);
+}
+function warningCollision(foreground: Color | null, background: Color | null, config: DisplayDraft): boolean {
+  if (foreground === null || background === null) return false;
+  if (sameColor(foreground, background)) return true;
+  const risk = [config.formatting.thresholds.warning, config.formatting.thresholds.critical]
+    .some(value => sameColor(foreground, riskColor(value, config)));
+  if (!risk || foreground[0] !== 'rgb' || background[0] !== 'rgb') return false;
+  const a = luminance(foreground[1]), b = luminance(background[1]);
+  return (Math.max(a,b) + 0.05) / (Math.min(a,b) + 0.05) < 3;
+}
 export function interpolate(colors: GradientDraft, position: number): Color {
   const offset = Math.max(0, Math.min(1, position)) * (colors.length - 1), index = Math.min(colors.length - 2, Math.floor(offset));
   const a = colors[index]!, b = colors[index + 1]!, fraction = offset - index;
@@ -19,10 +34,10 @@ export function paintGradient(text: string, colors: GradientDraft | null | undef
     const center = offset + unit.width / 2; offset += unit.width;
     const state = parse(unit.style), color = outputColor(interpolate(colors, last > first ? (center-first)/(last-first) : 0), config);
     let background = channel === 'background' ? color : state.background;
-    if (channel === 'background' && sameColor(background, state.foreground) && background !== null) {
+    if (channel === 'background' && warningCollision(state.foreground, background, config)) {
       const foreground = state.foreground!;
       background = foreground[0] === 'ansi' ? ['ansi', foreground[1] === 0 ? 15 : 0]
-        : ['rgb', [1,3,5].reduce((sum,index,i) => sum + parseInt(foreground[1].slice(index,index+2),16) * [0.2126,0.7152,0.0722][i]!,0) > 127 ? '#000000' : '#ffffff'];
+        : ['rgb', luminance(foreground[1]) > 0.179 ? '#000000' : '#ffffff'];
     }
     return { ...unit, style: serialize({ ...state, foreground: channel === 'foreground' ? color : state.foreground, background }) };
   }));

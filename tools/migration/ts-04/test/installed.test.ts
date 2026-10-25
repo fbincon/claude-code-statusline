@@ -1,4 +1,5 @@
 import { VERSION } from '@fbincon/statusline-core/release';
+import { strip } from '@fbincon/statusline-core/rendering/layout';
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -186,7 +187,7 @@ test('installed gradients preserve foreground, background, warning, group, Unico
     d=ui(config,'read').draft.display;const added=d.instances.find((n:any)=>n.type_id==='text').id;
     run(['config','instance','main','move',added,'--after','context-used'],config);
     run(['config','group','main','create','gradient-group','--members','context-used,'+added,'--primary','context-used','--powerline','on'],config);
-    assert(run(['render'],config,payload).includes('中文'));
+    assert(strip(run(['render'],config,payload)).includes('中文'));
     for(const columns of [40,80,120]) {
       const preview=ui(config,'preview',{draft:ui(config,'read').draft,width:columns});
       assert(preview.main.length>0);assert(preview.main.flat().some((span:any)=>span.background?.kind==='rgb'));

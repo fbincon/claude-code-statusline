@@ -6,6 +6,7 @@ import { interpolate, paintGradient, segmentPaint } from '../src/rendering/gradi
 import { strip, styledUnits, displayWidth, layoutSegments } from '../src/rendering/layout.js';
 import { parse } from '../src/rendering/styles.js';
 import { row } from '../src/rendering/powerline.js';
+import { apply } from '../src/rendering/appearance.js';
 
 test('gradient presets expand to normalized portable colors and reject incomplete or unsafe stops', () => {
   for (const [name,colors] of Object.entries(GRADIENT_PRESETS)) {
@@ -54,4 +55,13 @@ test('coalesced semantic fragments retain separate gradient endpoints after wrap
   for (const value of rows) assert(displayWidth(value)<=3);
   assert.deepEqual(parse(styledUnits(rows[0]!)[0]!.style).foreground,['rgb','#111111']);
   assert.deepEqual(parse(styledUnits(rows[0]!).at(-1)!.style).foreground,['rgb','#eeeeee']);
+});
+test('background gradients protect nearly matching warning colors without changing the warning foreground', () => {
+  const d=defaultDisplay();d.separator_style='powerline';d.formatting.thresholds.enabled=true;
+  const warning=apply('WARN',d,'context-used',defaultItem(),'main',95);
+  const output=paintGradient(warning,['#f28686','#ee8585'],'background',d);
+  for(const unit of styledUnits(output)) {
+    assert.deepEqual(parse(unit.style).foreground,['rgb','#f28686']);
+    assert.deepEqual(parse(unit.style).background,['rgb','#000000']);
+  }
 });
