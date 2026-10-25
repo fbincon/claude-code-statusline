@@ -2,11 +2,11 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-更新：**2026-10-24**（Asia/Shanghai）· 产品基线：**v3.7.0** · 规划基线：**`d3c95232a18cb297bbd836c4deda117749e90ee4`**
+更新：**2026-10-26**（Asia/Shanghai）· 产品基线：**v3.8.0** · 规划基线：**`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
 
-本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 公开发布仍待最终门禁及渠道核验，其余四个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见 [M4–M7 交付](m4-m7-delivery.zh-CN.md)及 [Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)。
+本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 已通过最终门禁并完成 GitHub／npm／Gitee 公开交付与下载核验，其余四个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见 [M4–M7 交付](m4-m7-delivery.zh-CN.md)及 [Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)。
 
-已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.7.0 专项决定](../releases/approvals/v3.7.0.json)记录该版本对这些缺口的接受。
+已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.8.0 专项决定](../releases/approvals/v3.8.0.json)记录该版本对这些缺口的接受。
 
 **导航：** [索引](#work-index) · [共同设计](#design-rules) · [未来工作](#future-work) · [Git 核查](#git-01) · [Windows 预览](#terminal-01) · [首次入口](#setup-02) · [版本管理](#update-01) · [选择性导入](#import-01) · [渐变](#appearance-04) · [对齐](#composition-03) · [演示](#showcase-01) · [候选边界](#candidate-boundaries) · [M4–M7 设计](#appearance-03) · [早期设计](#delivered-designs) · [验收](#acceptance-matrix) · [交接](#handoff)
 
@@ -18,16 +18,12 @@
 
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
-| 优先独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | DONE |
-| 优先独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | DONE |
-| M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | DONE |
-| M9 | [UPDATE-01](#update-01) | SETUP-02 的安装身份及既有兼容／恢复规则 | DONE |
 | M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | NOT_STARTED |
 | M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | NOT_STARTED |
 | M12 | [COMPOSITION-03](#composition-03) | 既有显式布局、分组、Unicode 宽度与拟合 | NOT_STARTED |
 | M13 | [SHOWCASE-01](#showcase-01) | M8–M12 全部完成并验收；匹配的安装包 | NOT_STARTED |
 
-M8 → M9 → M10 → M11 → M12 → M13 表示产品优先级，不额外增加技术前置条件。导入不依赖版本管理，对齐不依赖渐变。SHOWCASE-01 等待选定的 M8–M12 全部功能完成验收，包括导入的两个切片；其他候选不阻塞演示。GIT-01 和 TERMINAL-01 优先、独立推进，相关 Windows 预览与演示验收应采用 TERMINAL-01 的结果。已批准的 Git、终端、首次入口与版本管理面向 v3.8.0；其余未来工作包不分配产品版本或截止日期。
+M8 与 M9 已交付，剩余产品优先级为 M10 → M11 → M12 → M13，不额外增加技术前置条件。导入不依赖版本管理，对齐不依赖渐变。SHOWCASE-01 等待选定的 M8–M12 全部功能完成验收，包括导入的两个切片；其他候选不阻塞演示。GIT-01 与 TERMINAL-01 已交付，相关 Windows 预览与演示验收应采用 TERMINAL-01 的结果。Git、终端、首次入口与版本管理已随 v3.8.0 发布；其余未来工作包不分配产品版本或截止日期。
 
 ### 已交付工作
 
@@ -44,6 +40,10 @@ M8 → M9 → M10 → M11 → M12 → M13 表示产品优先级，不额外增�
 | M5 | [COMPOSITION-02](#composition-02) | 既有实例、条件与 Powerline；不依赖 M4 | DONE |
 | M6 | [WORKFLOW-02](#workflow-02) | 已交付 EXTENSIONS-01、WORKFLOW-01；仅 GitHub | DONE |
 | M7 | [METRICS-01](#metrics-01) | 既有会话费用与耗时字段；不依赖 M6 | DONE |
+| 独立维护 | [GIT-01](#git-01) | 既有 Git／进程适配；独立于产品顺序 | DONE |
+| 独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | DONE |
+| M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | DONE |
+| M9 | [UPDATE-01](#update-01) | SETUP-02 的安装身份及既有兼容／恢复规则 | DONE |
 | 按需 | [CAPABILITIES-01](#capabilities-01) | 相关功能出现具体元数据重复或不一致时拆入 | DONE |
 | 维护 | [CI-01](#ci-01) | 独立维护，不阻塞 M1／M2／M3 | DONE |
 
@@ -73,7 +73,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 **状态：DONE。** 从 `d2975e8` 启动，目标为 v3.8.0。共享调用策略已实现；平台及安装产物验收记录在[交付记录](m8-m9-delivery.zh-CN.md)。
 
-**已有观察与限制。** 2026-10-24，在 Linux、Git 2.53.0、Node 24.21.0 下，以临时仓库调用[规划基线的 GitCollector](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts)。仓库级 `core.fsmonitor` 触发了无害标记程序；受跟踪文件改变内容但长度不变时，本机 clean filter 也触发标记，而改变长度的测试场景没有触发。对照调用显式关闭相应设置后不再触发，仓库配置字节保持不变。选择防护策略前应复现这些条件。该观察不说明普通 clone 会传入本地配置，也未覆盖全部 worktree／bare 仓库、过滤器、间接提供方调用和 Windows／macOS 行为，历史观察与上方当前实施状态分别记录。
+**已有观察与限制。** 2026-10-24，在 Linux、Git 2.53.0、Node 24.21.0 下，以临时仓库调用[实施前的 GitCollector](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts)。仓库级 `core.fsmonitor` 触发了无害标记程序；受跟踪文件改变内容但长度不变时，本机 clean filter 也触发标记，而改变长度的测试场景没有触发。对照调用显式关闭相应设置后不再触发，仓库配置字节保持不变。选择防护策略前应复现这些条件。该观察不说明普通 clone 会传入本地配置，也未覆盖全部 worktree／bare 仓库、过滤器、间接提供方调用和 Windows／macOS 行为，历史观察与上方当前实施状态分别记录。
 
 **问题与目标。** 以字面参数调用 Git，不足以决定 Git 是否会按仓库配置启动其他程序。核实当前采集实际执行的行为，在不改变指标含义、不修改用户仓库的前提下修正已证实缺口。
 

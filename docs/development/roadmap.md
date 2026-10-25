@@ -2,9 +2,9 @@
 
 **English** | [简体中文](roadmap.zh-CN.md)
 
-Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
+Updated: **2026-10-26** (Asia/Shanghai) · Product baseline: **v3.8.0** · Planning baseline: **`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
 
-Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. After the accepted first-entry and version-management work (M8–M9), the remaining product sequence is selective import, gradients, explicit-row alignment and then demonstrations (M10–M13). Git invocation review and Windows preview consistency are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are DONE after functional acceptance. Public v3.8.0 publication remains pending final gates and channel verification. The other four future packages remain NOT_STARTED; delivered packages, including CI-01, remain DONE.
+Claude Code Statusline focuses on clear task, subagent, project and usage information, with shared configuration behavior across the CLI and both editors. First-use setup, complete display schemes, explicitly enabled extensions and M4–M7 are delivered. After the accepted first-entry and version-management work (M8–M9), the remaining product sequence is selective import, gradients, explicit-row alignment and then demonstrations (M10–M13). Git invocation review and Windows preview consistency are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are DONE after functional acceptance. v3.8.0 is published and download-verified on GitHub, npm and Gitee after all final gates passed. The other four future packages remain NOT_STARTED; delivered packages, including CI-01, remain DONE.
 
 This page owns product direction, priorities and work-package status. The [development plan](development-plan.md) defines scope, dependencies and acceptance; the linked delivery records preserve implementation and publication evidence. Publishing these planning documents does not start a feature or change its status.
 
@@ -16,7 +16,7 @@ This page owns product direction, priorities and work-package status. The [devel
 
 | Area | Delivered capability | Planning implication |
 | --- | --- | --- |
-| Configuration entry points | First-use setup wizard, in-session editor, external TUI, CLI, conversational guide and Quick setup | SETUP-02 and UPDATE-01 are implemented; publication evidence is tracked separately |
+| Configuration entry points | First-use setup wizard, in-session editor, external TUI, CLI, conversational guide and Quick setup | Reviewed durable entry and explicit upgrade/rollback/recovery are delivered |
 | Display composition | Six existing presets, three complete schemes, component instances, duplication/reordering, text, spacers, import review, colors, five Powerline controls, optional percentage bars and linked groups | Add selective reuse, static foreground/Powerline-background gradients and explicit main-row alignment |
 | Tasks and projects | Task timing, separate subagent rows, read-only task details, named profiles and project-root bindings | Make task and multi-agent scenarios prominent |
 | Languages | `en`, `zh-CN`, `zh-TW`, `zh-HK`, `ja`, `ko`; independent UI and output languages | Maintain six-language coverage for new interactions and guidance |
@@ -26,11 +26,11 @@ This page owns product direction, priorities and work-package status. The [devel
 | Interfaces | Display schema 13, editor protocol 21, source registry/jobs 2, observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1; profile collection/export 1 | Explain compatibility for each interface independently |
 | Support boundaries | Linux/WSL, Windows, macOS; Node 22/24 product runtimes | Preserve supported environments and record actual verification |
 
-Sources: [v3.7.0 release](../releases/v3.7.0.md), [M4–M7 delivery](m4-m7-delivery.md), [extension delivery](extensions.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The planning baseline is main before this documentation revision; v3.7.0 publication identities and validation limits remain in the delivery record.
+Sources: [v3.8.0 release](../releases/v3.8.0.md), [Git, terminal and M8–M9 delivery](m8-m9-delivery.md), [M4–M7 delivery](m4-m7-delivery.md), [extension delivery](extensions.md), [catalog](../../packages/core/src/config/catalog-data.ts), [editor protocol](../../packages/core/src/contracts/ui.ts), [profiles](../PROFILES.md), [task details](../TASK_DETAILS.md) and [architecture](architecture.md). The planning baseline is main before this documentation revision; v3.8.0 publication identities and validation limits remain in the delivery record.
 
 Default capabilities use Claude input and local state. Network lookup and custom commands require separate enablement; importing a scheme, binding a project or selecting a preset cannot enable them.
 
-The six historical gaps tracked in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) remain **unverified**. Version-specific acceptance, including the [v3.7.0 decision](../releases/approvals/v3.7.0.json), records permission to release with those gaps; it does not establish that the missing checks passed or waive new failures.
+The six historical gaps tracked in [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) remain **unverified**. Version-specific acceptance, including the [v3.8.0 decision](../releases/approvals/v3.8.0.json), records permission to release with those gaps; it does not establish that the missing checks passed or waive new failures.
 
 <a id="reference"></a>
 
@@ -62,16 +62,12 @@ Keep the original project and authors credited when discussing these references.
 
 | Priority | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
-| Priority independent maintenance | [GIT-01](development-plan.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | DONE |
-| Priority independent maintenance | [TERMINAL-01](development-plan.md#terminal-01) | Consistent or explicitly explained Windows preview colors across setup, configure and slash entry | Existing terminal detection/launch paths; [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | DONE |
-| M8 First entry | [SETUP-02](development-plan.md#setup-02) | No-argument/npx entry connects npm global installation, a durable binding and existing setup | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
-| M9 Version management | [UPDATE-01](development-plan.md#update-01) | Explicit version checks, upgrades, rollback and failure recovery | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
 | M10 Configuration reuse | [IMPORT-01](development-plan.md#import-01) | Select global appearance first, then complete main/subagent sections for import | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
 | M11 Gradients | [APPEARANCE-04](development-plan.md#appearance-04) | Static component-foreground and Powerline-background gradients with presets and custom colors | Existing color, Powerline, group and editor rules | NOT_STARTED |
 | M12 Cross-line alignment | [COMPOSITION-03](development-plan.md#composition-03) | Aligned explicit main rows with defined hidden/group/spacer/narrow-row behavior | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
 | M13 Demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Homepage, scheme gallery and reproducible journeys for the accepted new capabilities | All M8–M12 packages completed and accepted; a matching installed artifact | NOT_STARTED |
 
-M8 → M9 → M10 → M11 → M12 → M13 is the selected product order. Scheduling does not create technical dependencies: import does not require version management, and alignment does not require gradients. Each package may ship in bounded slices; later options must retain import/export compatibility. SHOWCASE-01 retains its ID and waits for all selected M8–M12 functionality, including both IMPORT-01 slices, to be completed and accepted. Further candidates do not block it.
+M8 and M9 are delivered. M10 → M11 → M12 → M13 is the remaining product order. Scheduling does not create technical dependencies: import does not require version management, and alignment does not require gradients. Each package may ship in bounded slices; later options must retain import/export compatibility. SHOWCASE-01 retains its ID and waits for all selected M8–M12 functionality, including both IMPORT-01 slices, to be completed and accepted. Further candidates do not block it.
 
 GIT-01 and TERMINAL-01 have completed functional acceptance. Incorporate TERMINAL-01 outcomes into affected Windows preview and demonstration acceptance. GIT-01 has an accepted shared invocation policy; see the [implementation and compatibility record](m8-m9-delivery.md). Historical isolated observations remain separate from completed platform and artifact acceptance.
 
@@ -92,6 +88,10 @@ M4–M7 shipped in v3.7.0 through four feature PRs and a final release PR. [Impl
 | M5 Component groups | [COMPOSITION-02](development-plan.md#composition-02) | Decorations hide with their metric; groups can share a Powerline block | Existing instances, visibility and Powerline | DONE |
 | M6 GitHub refresh | [WORKFLOW-02](development-plan.md#workflow-02) | Separately enabled automatic PR/CI refresh with visible state and stop controls | Delivered EXTENSIONS-01 and WORKFLOW-01 | DONE |
 | M7 Derived metrics | [METRICS-01](development-plan.md#metrics-01) | Hourly cost with an explicit session-time or API-time denominator | Existing observed session cost and duration fields | DONE |
+| Independent maintenance | [GIT-01](development-plan.md#git-01) | Verified direct/indirect Git behavior and necessary protections with supported-filter compatibility | Existing Git collectors, source identity and process adapters | DONE |
+| Independent maintenance | [TERMINAL-01](development-plan.md#terminal-01) | Consistent or explicitly explained Windows preview colors across setup, configure and slash entry | Existing terminal detection/launch paths; [issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | DONE |
+| M8 First entry | [SETUP-02](development-plan.md#setup-02) | No-argument/npx entry connects npm global installation, a durable binding and existing setup | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
+| M9 Version management | [UPDATE-01](development-plan.md#update-01) | Explicit version checks, upgrades, rollback and failure recovery | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
 | Engineering as needed | [CAPABILITIES-01](development-plan.md#capabilities-01) | Consistent supported options and explanations for components | Specific metadata needs exposed by appearance or extensions | DONE |
 | Independent maintenance | [CI-01](development-plan.md#ci-01) | Pinned Actions references with reviewable updates | Current workflow inventory | DONE |
 
@@ -170,6 +170,7 @@ See the [acceptance matrix](development-plan.md#acceptance-matrix), [testing gui
 | v3.5.0 | SETUP-01, APPEARANCE-01, APPEARANCE-02 | DONE | [Setup and complete appearances](setup-appearance.md) |
 | v3.6.0 | EXTENSIONS-01, LINKS-01, WORKFLOW-01, COMMAND-01, CAPABILITIES-01 | DONE | [Extensions and workflows](extensions.md) |
 | v3.7.0 | APPEARANCE-03, COMPOSITION-02, WORKFLOW-02, METRICS-01 | DONE | [Indicators, groups, refresh and rates](m4-m7-delivery.md) |
+| v3.8.0 | GIT-01, TERMINAL-01, SETUP-02, UPDATE-01 | DONE | [Git, terminal and M8–M9](m8-m9-delivery.md) |
 
 The linked records retain source/tag identities, checksums, CI results, channel verification, recovery details and delivery-time limitations. Historical statements about future candidates retain their original context; the stage table above gives their planning status at this page's update date. Earlier migration milestones remain in the [TypeScript migration plan](typescript-migration.md). Release notes are maintained under [releases](../releases).
 

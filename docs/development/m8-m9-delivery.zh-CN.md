@@ -2,7 +2,7 @@
 
 [English](m8-m9-delivery.md) | **简体中文**
 
-目标：v3.8.0。起点：`d2975e8a4561371b5d32bec136400963dbccd97f`。尚未发布。维护者已批准四个功能 PR 和发布 PR，要求最终 PR/main/tag 门禁及 GitHub/npm/Gitee 字节验收。仅接受 [#96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项既有缺口，继续保持未验证。
+目标：v3.8.0。起点：`d2975e8a4561371b5d32bec136400963dbccd97f`。已于 2026-10-25 完成 GitHub／npm／Gitee 发布及公开下载核验。维护者已批准四个功能 PR 和发布 PR，要求最终 PR/main/tag 门禁及 GitHub/npm/Gitee 字节验收。仅接受 [#96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项既有缺口，继续保持未验证。
 
 | 工作包 | 状态 | 证据 |
 | --- | --- | --- |
@@ -11,13 +11,32 @@
 | SETUP-02 | DONE | [PR #139](https://github.com/fbincon/claude-code-statusline/pull/139) · [完整 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40081854700) |
 | UPDATE-01 | DONE | [PR #140](https://github.com/fbincon/claude-code-statusline/pull/140) · [完整 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40087600655) |
 
+## 最终源码与交付核验
+
+[发布 PR #141](https://github.com/fbincon/claude-code-statusline/pull/141)固定源码 `f68d26eeddda98ab4041d2b9e873ade556fa1909`；`v3.8.0` 附注标签对象为 `3678648f079171c89fb1a821b7c597851c4793ad`。[最终 PR CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40092744615)、[main CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40201359757)和 [tag CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40201492094)最终各通过 56 个适用作业，仅跳过一项条件性纯文档检查。最终 main／tag 准备回执均核验八安装目标、32 个 Node 场景及十三个固定宿主。最终开发检查通过 1,208 项测试、零失败，保留五项既有平台跳过；51 项生成资源和 3,198 个文档链接通过。
+
+两次独立构建、完整的交付源码重建以及最终 tag CI 构建，均得到下表四个文件的相同字节。GitHub 草稿附件下载后与之相符；下载的包通过隔离离线安装、版本、集成及渲染检查。首次源码重建在第二轮打包下载依赖时 TLS 连接中断，保持源码不变完整重跑后通过；未修改依赖或核验规则。
+
+| 交付文件 | SHA-256 |
+| --- | --- |
+| `fbincon-claude-code-statusline-3.8.0.tgz` | `c11ebea864a0d472c779f87401fe2e96bfcd3d16120db0cf2661d50fd6339dbc` |
+| `claude-code-statusline-3.8.0-source.tar.gz` | `2d5522d7c2487bccaa53f06c029fc5d23d39884b31ff8f68569f541f44232153` |
+| `build-manifest.json` | `f96663ea9a169f8d9ee139cfeb08f6cde1262a6e76c681a1f5e51b8850f3b664` |
+| `SHA256SUMS` | `20efffe130654ac90c54560423836f6c86ffb14e98b4a3618ff6efb1ed588e81` |
+
+最终安装版 Linux PTY 验收通过 **684** 张深浅色捕获，每种语言 114 张，另通过四项单色／dumb 终端检查、取消保留与终端恢复，并检查了六语言代表画面。报告 SHA-256：`80540ae33058f626b4987ca8698e16b17b942f7338e2e1ca201ea62e7252710a`。这些是终端单元格重建，不是操作系统截图或人工桌面／电源验收；没有模型调用。
+
+[tag CI 首轮](https://github.com/fbincon/claude-code-statusline/actions/runs/40201492094/attempts/1)中，Windows／Claude 2.1.289 的两套官方 Mod 测试与精确宿主类型检查通过，随后一项 npm 操作在包事务建立前触及既有 30 秒上限。其余 54 项通过，汇总门禁正确失败。[相同产物诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40203230224)在相同 Windows／宿主组合通过三轮各二十项完整操作；249 次受控进程观测中的 npm root／version／config／view 查询均在原上限内完成。未复现原超时，不推断其根因；产品期限和发布标准不变。[tag 第二次运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40201492094/attempts/2)随后通过失败作业及汇总，完成全部 56 项适用门禁；其正式宿主版本回执包含全部七项场景和二十项操作。原失败回执先下载并核对摘要，再将同名旧附件从发布输入集合移除；原运行日志及保留的归档继续保存失败证据。
+
+[npm 3.8.0](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.8.0)、[GitHub 正式版／Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.8.0)和 [Gitee 正式版](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.8.0)已发布并核对公开字节。[OIDC 预演](https://github.com/fbincon/claude-code-statusline/actions/runs/40207988960)及[正式发布](https://github.com/fbincon/claude-code-statusline/actions/runs/40208161490)通过；npm `latest=3.8.0`，`beta=3.0.0-beta.1` 保持不变。[公开下载 CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40208466789)六项全部通过，覆盖 Linux／Windows／macOS × Node 22／24 的精确版本及 latest 安装。GitHub／Gitee 各四个交付附件均与上表相符；已用明确 refspec 同步验证后的 main 和相同附注标签对象，GitHub 保持主仓库。Gitee 源码下载使用原生 Wi-Fi 和实时解析的公开地址，保留正常 TLS 验证。
+
 ## 已通过的功能验收
 
 四个功能 PR 各自通过 56 个适用 CI 作业，仅跳过条件性的纯文档作业，随后合并。最终功能提交为 `2394bcff50e2a3e37b0912c28e2de7e8afc6b7b6`，合并提交为 `dfb2083bd2086dc842b6d6f04b3a87a6daddf03e`。其八安装目标、32 个 Node 场景、十三个固定宿主及汇总门禁全部通过；每份安装／runtime 回执要求二十类检查，每个 Windows 目标还须包含十五项环境场景与九项实际 shell／入口组合。
 
 完整开发检查通过 1,208 项测试，保留五项既有平台跳过；51 项资源生成、六语言覆盖、3,174 个文档链接、归档及责任清单检查通过。该功能提交的两次独立构建包摘要一致，为 `3e93344ae52e2364dba34399287a8546e0408ff75cd2f04ffcfdb0cb8b073566`，源码归档摘要为 `d544d247eb39b0aafb173ddc3be624613bc44ee3a846402ef3061850f532067a`。这些是功能验收产物，尚非最终公开发布产物。
 
-以下保留中间实现与失败诊断历史。当前功能验收以上表及本节为准；最终发布 PR、main、附注 tag、源码重建、草稿附件及公开渠道仍须单独核验。
+以下保留中间实现与失败诊断历史。中间段落中的待验证说明保留当时语境，最终源码、门禁及公开渠道结果以上文为准。
 
 ## Git 调用策略
 
@@ -62,7 +81,7 @@ SETUP-02 在 core 增加纯安装身份／动作规则，在 platform 提供有�
 
 包记录使用 schema 1，位于 `statusline_runtime/package-management`，与旧文件／插件恢复日志分离。npm 部分结果保留 prefix 标记及阶段。持久入口交接不改变显示保存、宿主 Apply、方案、绑定及独立启用策略。审核、取消、失败和下一步说明覆盖六语言。
 
-验收结合状态／副作用回归及四项安装场景：真实 npm 连接临时回环 registry、受控确认、实际集成／渲染，并删除模拟 npx 缓存后用新进程启动。不使用用户 prefix 或 Claude 配置；完整平台结果待完成。
+验收结合状态／副作用回归及四项安装场景：真实 npm 连接临时回环 registry、受控确认、实际集成／渲染，并删除模拟 npx 缓存后用新进程启动。不使用用户 prefix 或 Claude 配置；已通过的平台结果见上文。
 
 ## 显式版本事务
 
@@ -94,8 +113,8 @@ UPDATE-01 本地验收源码 `1daf5d852f43b4993e6194012d89c9eb4c158367` 通过 1
 
 相同版本产物的诊断另在 Windows ARM／Claude 2.1.288 完成三轮各二十项操作，因此三种环境共八轮完整转换通过。第三方历史包下载中断没有被记录为产品通过；原 npm 超时仍不推断根因。随后 UPDATE-01 的完整正式矩阵一次通过全部适用作业。
 
-[SETUP-02 合并后的中间 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40086715360)曾在 Windows 子模块脏状态测试中得到 `error`；旧日志未记录底层原因，不能断定为超时。[独立诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40088039171)在两个 Windows 目标、Node 22／24 上各用二十个新仓库完成一百次观测，全部通过，保留逐调用耗时及错误记录能力。产品两秒总预算不变；后续 UPDATE-01 的正式矩阵也通过。已失败的中间 main 被取消，不能作为发布验收。
+[SETUP-02 合并后的中间 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40086715360)首轮曾在 Windows 子模块脏状态测试中得到 `error`；旧日志未记录底层原因，不能断定为超时。[独立诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40088039171)在两个 Windows 目标、Node 22／24 上各用二十个新仓库完成一百次观测，全部通过，保留逐调用耗时及错误记录能力。产品两秒总预算不变；后续 UPDATE-01 的正式矩阵也通过。首轮被取消，第二次运行随后通过；两次中间运行均不能替代上文最终发布源码的门禁。
 
 [UPDATE-01 合并后的中间 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40091394223)记录了一项官方 Windows／Claude 2.1.289 原生编辑器英文保存／取消／重开测试的 30 秒超时，其余 131 项原生测试通过。日志不足以确定底层原因；测试上限不变，最终发布矩阵仍必须通过同一测试。
 
-四个工作包已 DONE；v3.8.0 公开发布仍待最终发布 PR／main／tag 自动化、独立构建及源码重建、四项附件和 npm／GitHub／Gitee 渠道字节核验。[本版本批准记录](../releases/approvals/v3.8.0.json)限定保留 #96 的六项原有未验证缺口。
+四个工作包已 DONE，v3.8.0 公开发布及三渠道下载核验已完成；失败、诊断与正式复验分别保留在上文。[本版本批准记录](../releases/approvals/v3.8.0.json)限定保留 #96 的六项原有未验证缺口。
