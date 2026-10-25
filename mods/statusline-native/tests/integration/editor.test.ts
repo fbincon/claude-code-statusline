@@ -1,6 +1,7 @@
 import { MAIN_ITEM_IDS } from '../../lib/generated-contracts.ts';
 import { expect, test } from 'claude-code/testing';
 import type { ProcessRunResult } from 'claude-code';
+import type { ClientProps } from '../../lib/session.ts';
 import {
   BASE,
   START,
@@ -25,10 +26,11 @@ test('native Layout alignment form renders through the Client and persists only 
   const ui = await $.ui.mount(PANE);
   await keys(ui, '4'); await selectSetting(ui, 'row-alignment');
   await keys(ui, 'return', 'return', 'down', 'right', 'down', 'right', 'end', 'return');
-  const editor = (await ui.find({ key: REGION }))!.props.props.view.editor;
-  expect(editor.draft.display.layout.alignments[0].columns).toEqual([[{kind:'instance',id:'a'},{kind:'instance',id:'b'}]]);
+  const props = (await ui.find({ key: REGION }))!.props.props as ClientProps;
+  const alignment = props.view.editor!.draft.display.layout.alignments![0]!;
+  expect(alignment.columns).toEqual([[{kind:'instance',id:'a'},{kind:'instance',id:'b'}]]);
   expect(fixture.calls.some(call => call.operation === 'apply')).toBe(false);
-  expect(await ui.find({ in: REGION, type: 'Text', text: new RegExp(editor.draft.display.layout.alignments[0].id) })).toBeDefined();
+  expect(await ui.find({ in: REGION, type: 'Text', text: new RegExp(alignment.id) })).toBeDefined();
   await keys(ui, {key:'g',ctrl:true}, 's');
   expect(fixture.store.draft.display.layout.alignments!.length).toBe(1);
   await ui.unmount();
