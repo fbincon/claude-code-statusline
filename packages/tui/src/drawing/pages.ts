@@ -23,7 +23,7 @@ export function drawPage(canvas: Canvas, state: State, size: ReturnType<typeof d
     const tr = (key: string, params: Record<string, unknown> = {}) => t(key, state.language, params);
     if (e.alignmentManager) {
         alignmentsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
-        return tr('alignment.help');
+        return '';
     }
     if (e.groupManager) {
         groupsView(e,state.language,width,panel.innerHeight-1).forEach((row,index)=>canvas.content(panel,index,[paint(row.text,false,row.selected)],row.selected));
