@@ -4,7 +4,7 @@
 
 更新：**2026-10-26**（Asia/Shanghai）· 产品基线：**v3.8.0** · 规划基线：**`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案、显式启用的扩展及 M4–M7 已交付。首次入口与版本管理（M8–M9）完成验收后，剩余产品顺序为选择性导入、渐变、显式行对齐，最后制作演示（M10–M13）。Git 调用核查和 Windows 预览一致性作为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 已通过最终门禁并完成 GitHub／npm／Gitee 公开交付与下载核验，IMPORT-01 为 DONE；APPEARANCE-04、COMPOSITION-03、SHOWCASE-01 保持 NOT_STARTED，含 CI-01 在内的已交付工作保持 DONE。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案、显式启用的扩展及 M4–M7 已交付。首次入口与版本管理（M8–M9）完成验收后，剩余产品顺序为选择性导入、渐变、显式行对齐，最后制作演示（M10–M13）。Git 调用核查和 Windows 预览一致性作为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 已通过最终门禁并完成 GitHub／npm／Gitee 公开交付与下载核验，IMPORT-01 为 DONE；APPEARANCE-04 为 IN_PROGRESS，COMPOSITION-03、SHOWCASE-01 保持 NOT_STARTED，含 CI-01 在内的已交付工作保持 DONE。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
