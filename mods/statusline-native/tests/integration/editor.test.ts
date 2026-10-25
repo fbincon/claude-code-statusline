@@ -19,7 +19,7 @@ const REGION = 'statusline-client';
 const error = (code: string) =>
   output(
     JSON.stringify({
-      protocol_version: 22,
+      protocol_version: 23,
       error: { code, message: 'Test save refused.' },
     }),
     2,

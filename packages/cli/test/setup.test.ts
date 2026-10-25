@@ -76,7 +76,7 @@ test('setup checks do not migrate schema 8; explicit save backs up original byte
     assert.deepEqual(fs.readFileSync(join(f.config,'claude-statusline.json')),raw);
     const next=inspectSetup(f.context),saved=applySetup(f.context,next,next.draft!,false);
     assert.equal(saved.error,null);assert.deepEqual(fs.readFileSync(join(saved.saved!.backup_dir!,'claude-statusline.json.before')),raw);
-    assert.equal(JSON.parse(fs.readFileSync(join(f.config,'claude-statusline.json'),'utf8')).schema_version,13);
+    assert.equal(JSON.parse(fs.readFileSync(join(f.config,'claude-statusline.json'),'utf8')).schema_version,14);
 });
 test('foreign linked integration resources permit saving display without following or modifying the link', t => {
     const f = fixture(t), foreign = join(f.root, 'foreign');

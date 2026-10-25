@@ -63,7 +63,7 @@ Keep the original project and authors credited when discussing these references.
 | Priority | Work package | User-visible result | Implementation dependencies | Status |
 | --- | --- | --- | --- | --- |
 | M10 Configuration reuse | [IMPORT-01](development-plan.md#import-01) | Select global appearance first, then complete main/subagent sections for import | Existing import review, instances, groups, layouts and profile transactions | IN_PROGRESS |
-| M11 Gradients | [APPEARANCE-04](development-plan.md#appearance-04) | Static component-foreground and Powerline-background gradients with presets and custom colors | Existing color, Powerline, group and editor rules | NOT_STARTED |
+| M11 Gradients | [APPEARANCE-04](development-plan.md#appearance-04) | Static component-foreground and Powerline-background gradients with presets and custom colors | Existing color, Powerline, group and editor rules | IN_PROGRESS |
 | M12 Cross-line alignment | [COMPOSITION-03](development-plan.md#composition-03) | Aligned explicit main rows with defined hidden/group/spacer/narrow-row behavior | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
 | M13 Demonstration | [SHOWCASE-01](development-plan.md#showcase-01) | Homepage, scheme gallery and reproducible journeys for the accepted new capabilities | All M8–M12 packages completed and accepted; a matching installed artifact | NOT_STARTED |
 
@@ -186,4 +186,4 @@ Keep future plans separate from stable usage instructions. Update both languages
 
 Run `npm run docs:check` and `git diff --check`. Compare bilingual IDs, dependencies, statuses and delivered facts, and verify links from a checkout containing only committed files. Local planning archives and raw validation records remain private and are not dependencies of these public documents.
 
-M10 implementation is in progress on display schema 13/editor protocol 22. See [M10–M12 delivery](m10-m12-delivery.md). M11–M13 remain unstarted.
+M10 implementation is in progress on display schema 13/editor protocol 22. See [M10–M12 delivery](m10-m12-delivery.md). M11 is in progress; M12–M13 remain unstarted.

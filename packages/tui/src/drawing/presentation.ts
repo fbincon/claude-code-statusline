@@ -39,6 +39,7 @@ export function fieldValue(row: Row, state: State): string {
         return t('values.inherit', language);
     }
     if (row.kind === 'text') {
+        if (row.form?.spec.key.endsWith('_gradient')) return row.value;
         return String(row.form?.valueRaw ?? row.value);
     }
     return t('values.' + row.value, language, {}, row.value);

@@ -125,6 +125,11 @@ try {
                     const screen = capture(type === 'context-used' ? 'indicator-controls' : 'cost-rate-controls');
                     const preview = dimensions(columns, rows).preview;
                     assert(screen.slice(preview.innerY, preview.innerY + preview.innerHeight).some(line => line.includes(type === 'context-used' ? '[' : '5.76')), 'The selected representation did not reach the installed preview');
+                    if (type === 'context-used') {
+                        await selectSetting('fields.item.foreground_gradient.label'); await key('\x1b[C'); capture('foreground-gradient');
+                        await selectSetting('fields.item.background_gradient.label'); await key('\x1b[C'); capture('background-gradient');
+                        await key('\r'); await key('\x15'); await key('#112233,#445566,#778899'); capture('gradient-custom'); await key('\r');
+                    }
                     await key('\x07'); await key('\x18'); await key('\x1b[H');
                 }
                 await key('\x19', t('sources.title', language));

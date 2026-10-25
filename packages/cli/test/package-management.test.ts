@@ -161,7 +161,7 @@ test('configuration restoration is separate, revision checked and never restores
     f.write('claude-statusline-native.json', { schema_version: 1, native_editor: true });
     assert.equal(await manage(f.args(), f.options), 0, f.state().output);
     const id = readInstallation(f.configDir, f.prefix)!.transaction;
-    f.write('claude-statusline.json', { ...defaultDisplay(), schema_version: 14 });
+    f.write('claude-statusline.json', { ...defaultDisplay(), schema_version: PACKAGE_COMPATIBILITY.read.display[1] + 1 });
     f.write('claude-statusline-native.json', { schema_version: 1, native_editor: false });
     f.write('settings.json', { env: { NEW: 'preserved' } });
     f.clear();
@@ -181,7 +181,7 @@ test('configuration restoration is separate, revision checked and never restores
 });
 test('nested profile schemas, corrupt sources and unknown configuration formats fail before replacement', async (t) => {
     const f = fixture(t);
-    f.write('claude-statusline-profiles.json', { version: 1, profiles: [{ id: 'profile', name: 'Future', display: { ...defaultDisplay(), schema_version: 14 } }], bindings: [] });
+    f.write('claude-statusline-profiles.json', { version: 1, profiles: [{ id: 'profile', name: 'Future', display: { ...defaultDisplay(), schema_version: PACKAGE_COMPATIBILITY.read.display[1] + 1 } }], bindings: [] });
     assert.deepEqual(configurationCompatibility(configurationBytes(f.configDir), PACKAGE_COMPATIBILITY), ['claude-statusline-profiles.json']);
     assert.equal(await manage(f.args(), f.options), 2);
     assert.equal(f.state().replacements, 0);

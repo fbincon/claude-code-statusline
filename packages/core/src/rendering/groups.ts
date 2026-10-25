@@ -34,7 +34,7 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
   if (!units.some(unit => unit.id !== SCOPE_LABEL_ID && !unit.spacer)) return [];
   const isPowerline = config.separator_style === 'powerline';
   const draw = (values: readonly Unit[], padding: boolean, caps: boolean, start: number): { text: string; next: number } => {
-    if (!isPowerline) return { text: values.map(u => u.cells.map(c => c.text).join(u.group ? ' ' : separator)).join(separator), next: start };
+    if (!isPowerline) return { text: values.map(u => u.cells.map(c => c.paint?.(c.text) ?? c.text).join(u.group ? ' ' : separator)).join(separator), next: start };
     const blocks: powerline.Block[] = [];
     let index = start;
     for (const unit of values) {
@@ -42,11 +42,12 @@ export function groupedRows(cells: readonly Cell[], groups: readonly GroupDraft[
         const primary = nodes.get(unit.group.primary_id)!;
         const base = byId.get(primary.id)?.text || appearance.apply(' ', config, primary.type_id, primary.options, scope);
         const primaryStyle = styles.parse(layout.styledUnits(appearance.sequence(base, config, primary.id, scope, index))[0]?.style ?? '');
-        const text = unit.cells.map(c => c.text).join(' ');
+        const text = unit.cells.map(c => c.paint?.(c.text) ?? c.text).join(' ');
         const shared = config.use_colors ? layout.renderStyledUnits(layout.styledUnits(text).map(c => ({ ...c, style: styles.serialize({ ...styles.parse(c.style), background: primaryStyle.background }) }))) : layout.withoutColors(text);
-        blocks.push({ text: shared, sequence: false }); index++;
+        blocks.push({ text: shared, sequence: false, background_gradient: primary.options.background_gradient }); index++;
       } else for (const cell of unit.cells) {
-        blocks.push({ text: cell.sequence === false ? cell.text : appearance.sequence(cell.text, config, cell.id, scope, index++), sequence: false });
+        blocks.push({ text: cell.sequence === false ? cell.text : appearance.sequence(cell.text, config, cell.id, scope, index++), sequence: false,
+          paint: cell.paint, background_gradient: nodes.get(cell.id)?.options.background_gradient });
       }
     }
     return { text: powerline.row(blocks, config, padding, caps), next: index };

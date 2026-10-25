@@ -19,7 +19,7 @@ import { installedVersionManagement } from '../../../acceptance/version-manageme
 import { VERSION_SEQUENCE_MS } from '../../../acceptance/budgets.js';
 import { EDITOR_SHELLS, editorShell } from '../../../acceptance/editor-shells.js';
 let installed: ReturnType<typeof installCandidate>;
-const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false };
+const checks = { package: false, modules: false, rendering: false, entry: false, relocation: false, shell: false, native_protocol: false, external_editor: false, recovery: false, python_upgrade: false, setup: false, extensions: false, indicators: false, groups: false, automatic_refresh: false, cost_rates: false, git_policy: false, terminal_colors: false, first_entry: false, version_management: false, selective_import: false, gradients: false };
 let driver: string, report: Record<string, unknown> = {};
 const shellReceipts: ShellReceipt[] = [];
 before(() => {
@@ -55,8 +55,8 @@ function setup(name: string): string {
     return config;
 }
 function ui(config: string, operation: string, payload: unknown = {}, environment: NodeJS.ProcessEnv = {}) {
-    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 22, operation, payload }), environment));
-    assert.equal(result.protocol_version, 22);
+    const result = JSON.parse(run(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 23, operation, payload }), environment));
+    assert.equal(result.protocol_version, 23);
     assert.ok(result.result);
     return result.result;
 }
@@ -164,6 +164,38 @@ test('installed selective imports preserve unselected sections, targets and sour
     assert.equal(ui(config, 'read').draft.display.statusline_language, baseline.draft.display.statusline_language);
     assert.deepEqual(ui(config, 'sources_read').sources, []);
     report.selective_import_cases = 4; checks.selective_import = true;
+});
+test('installed gradients preserve foreground, background, warning, group, Unicode and transfer behavior', () => {
+    const config=setup('gradients');
+    run(['config','set-items','context-used'],config);
+    run(['config','set','scope-labels','off'],config);
+    run(['config','set','theme','dark'],config);
+    run(['config','instance','main','set','context-used','foreground-gradient','ocean'],config);
+    let d=ui(config,'read').draft.display;
+    assert.deepEqual(d.instances.find((n:any)=>n.id==='context-used').options.foreground_gradient,['#22d3ee','#3b82f6']);
+    const payload=JSON.stringify({context_window:{used_percentage:50}});
+    assert(run(['render'],config,payload).includes('38;2;34;211;238'));
+    run(['config','set','separator-style','powerline'],config);
+    run(['config','instance','main','set','context-used','background-gradient','#112233,#445566'],config);
+    assert(run(['render'],config,payload).includes('48;2;17;34;51'));
+    const current=ui(config,'read');current.draft.display.formatting.thresholds.enabled=true;
+    ui(config,'apply',{draft:current.draft,expected_revision:current.revision});
+    const warning=run(['render'],config,JSON.stringify({context_window:{used_percentage:95}}));
+    assert(warning.includes('38;2;242;134;134'));assert(!warning.includes('38;2;34;211;238'));
+    run(['config','instance','main','add','text','--text','中文 👩‍💻 é'],config);
+    d=ui(config,'read').draft.display;const added=d.instances.find((n:any)=>n.type_id==='text').id;
+    run(['config','instance','main','move',added,'--after','context-used'],config);
+    run(['config','group','main','create','gradient-group','--members','context-used,'+added,'--primary','context-used','--powerline','on'],config);
+    assert(run(['render'],config,payload).includes('中文'));
+    for(const columns of [40,80,120]) {
+      const preview=ui(config,'preview',{draft:ui(config,'read').draft,width:columns});
+      assert(preview.main.length>0);assert(preview.main.flat().some((span:any)=>span.background?.kind==='rgb'));
+    }
+    const file=join(installed.temporary,'gradient-export.json');run(['config','export',file],config);
+    run(['config','instance','main','set','context-used','background-gradient','off'],config);
+    run(['config','import',file,'--select','main'],config);
+    assert.deepEqual(ui(config,'read').draft.display.instances.find((n:any)=>n.id==='context-used').options.background_gradient,['#112233','#445566']);
+    report.gradient_cases=6;checks.gradients=true;
 });
 test('installed groups retain linked visibility, remapped copies and portable references', () => {
     const config = setup('groups');
@@ -453,7 +485,7 @@ test('installed native-editor protocol supports describe, preview, revision-boun
     // Return to the explicit binding for the remaining independent assertions.
     run(['install', '--config-dir', config, '--no-native-editor', '--no-native-timing', '--no-live-metrics'], config);
     assert.equal(JSON.parse(fs.readFileSync(join(config, 'settings.json'), 'utf8')).env.KEEP, 'unchanged');
-    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 22, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
+    const stale = invoke(['ui', '--config-dir', config], config, JSON.stringify({ protocol_version: 23, operation: 'apply', payload: { draft: current.draft, expected_revision: current.revision } }));
     assert.equal(stale.status, 2);
     assert.equal(JSON.parse(stale.stdout).error.code, 'configuration_conflict');
     const exported = join(installed.temporary, 'portable.json');
@@ -525,7 +557,7 @@ test('installed setup checks, previews, cancels, saves and integrates in a real 
         assert.equal(fs.existsSync(join(config,'settings.json')),choice==='integrate');
         if(choice!=='cancel') {
             const display=JSON.parse(fs.readFileSync(displayPath,'utf8'));
-            assert.equal(display.schema_version,13);assert.equal(display.theme,'terminal');
+            assert.equal(display.schema_version,14);assert.equal(display.theme,'terminal');
             assert.equal(display.instances.find((node:any)=>node.type_id==='session-cost').enabled,false);
         }
     }

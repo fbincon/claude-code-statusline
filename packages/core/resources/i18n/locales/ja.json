@@ -1935,5 +1935,9 @@
   "review.selection.thresholds": "警告しきい値",
   "review.selection.help": "S 範囲選択 · Space 切替 · Enter 確認 · F 全体 · A 下書きに反映。保存は別操作。",
   "review.selection.invalid": "対応するインポート項目を重複せず選択してください。",
-  "profiles.action.reuse": "選択した設定を現在の下書きにインポート"
+  "profiles.action.reuse": "選択した設定を現在の下書きにインポート",
+  "fields.item.foreground_gradient.label": "前景グラデーション",
+  "fields.item.background_gradient.label": "Powerline 背景グラデーション",
+  "gradients.invalid": "off、ocean、sunset、aurora、またはカンマ区切りの #RRGGBB 色を 2～5 個指定。左右でプリセット、Enter で色を編集。",
+  "gradients.schema": "グラデーションには表示 schema 14 以降が必要です。"
 }

@@ -983,3 +983,5 @@ The optional `session-cost-rate` component accepts `config instance main set INS
 ## Selective display reuse
 
 `config import` and `config profile import` accept `--select FIELDS`, `--user | --profile NAME_OR_ID | --project PATH`, and `--dry-run`. See [selection keys, target rules and source isolation](../PROFILES.md#selective-import). Without `--select`, existing full-import behavior is unchanged.
+
+`config instance main|subagent set ID foreground-gradient|background-gradient VALUE` accepts `off`, `ocean`, `sunset`, `aurora`, or 2–5 comma-separated RGB colors. See [static gradients](../APPEARANCE.md#static-component-gradients).

@@ -207,3 +207,7 @@ TS 候选提供 `install`、`uninstall`、只读 `doctor` 和显式
 ## 选择性导入契约
 
 编辑器协议 22 保持显示 schema 13。`import` 与 `review_import` 在 `draft`、`path` 外接受可选 `selection` 数组；`profile_import` 可同时提供 `draft` 与 `selection`。省略选择时沿用完整导入，空选择产生不变草稿。未知或重复选择以及源文件无效引用被拒绝。对应格式解析先于共享选择逻辑，后续写入仍使用原有版本校验事务。选择与差异由 core 实现并生成到原生编辑器。
+
+## 渐变契约
+
+显示 schema 14、编辑器协议 23 为实例选项增加可选 `foreground_gradient`、`background_gradient` 数组；null 表示关闭，否则包含 2～5 个 RGB 颜色。省略时关闭，较低源 schema 不接受新增字段，预设保存前展开。内部着色回调经过拟合与语义换行后执行，不进入传输格式，既有预览 span 结构不变。

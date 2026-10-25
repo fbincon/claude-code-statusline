@@ -63,7 +63,7 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 优先级 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
 | M10 配置复用 | [IMPORT-01](development-plan.zh-CN.md#import-01) | 先选择全局外观，再选择完整主栏／子代理分区导入 | 既有导入审阅、实例、分组、布局与方案事务 | IN_PROGRESS |
-| M11 渐变 | [APPEARANCE-04](development-plan.zh-CN.md#appearance-04) | 预设及自定义的静态组件前景、Powerline 背景渐变 | 既有颜色、Powerline、分组及编辑规则 | NOT_STARTED |
+| M11 渐变 | [APPEARANCE-04](development-plan.zh-CN.md#appearance-04) | 预设及自定义的静态组件前景、Powerline 背景渐变 | 既有颜色、Powerline、分组及编辑规则 | IN_PROGRESS |
 | M12 跨行对齐 | [COMPOSITION-03](development-plan.zh-CN.md#composition-03) | 主栏显式多行对齐，明确隐藏／分组／spacer／窄行行为 | 既有显式布局、分组、Unicode 宽度与拟合 | NOT_STARTED |
 | M13 演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 已验收新能力的首页、方案展示及可复现流程 | M8–M12 全部完成并验收；匹配的安装包 | NOT_STARTED |
 
@@ -186,4 +186,4 @@ CI-01 已作为仓库维护完成，本次没有新产品版本；[验证与更�
 
 执行 `npm run docs:check` 与 `git diff --check`，核对双语 ID、依赖、状态及已交付事实，并在仅含已提交文件的检出目录验证链接。本机规划归档与原始验收记录继续保留在本地，不作为公开文档的依赖。
 
-M10 正在实施，显示 schema 13／编辑器协议 22。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。M11–M13 尚未启动。
+M10 正在实施，显示 schema 13／编辑器协议 22。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。M11 正在实施，M12–M13 尚未启动。

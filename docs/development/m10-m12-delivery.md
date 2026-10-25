@@ -16,4 +16,8 @@ The pinned-host matrix exposed a rollback defect: an older ownership reader cann
 
 ## Remaining work
 
-APPEARANCE-04 and COMPOSITION-03 are not started. Their planned schema/protocol pairs are 14/23 and 15/24. SHOWCASE-01 remains outside this delivery. The six historical [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) gaps remain unverified; only those gaps are accepted for the approved release after all final automated gates pass.
+APPEARANCE-04 is in progress; COMPOSITION-03 is not started. Their planned schema/protocol pairs are 14/23 and 15/24. SHOWCASE-01 remains outside this delivery. The six historical [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) gaps remain unverified; only those gaps are accepted for the approved release after all final automated gates pass.
+
+## APPEARANCE-04
+
+Implementation is in progress in an isolated worktree based on the IMPORT-01 implementation. Schema 14 / protocol 23 add optional normalized RGB arrays; the shared forms cycle presets or edit custom stops. Post-fit foreground callbacks preserve instance boundaries inside semantic wraps, and background painting includes padding before boundary colors are selected. Both scopes use the same pure interpolation; warnings retain precedence and source observations are unchanged. Focused tests cover glyph endpoints, links, clipping, groups and six-language forms. Full source and installed acceptance remain pending.

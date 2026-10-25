@@ -1935,5 +1935,9 @@
   "review.selection.thresholds": "Warning thresholds",
   "review.selection.help": "S select · Space toggle · Enter review · F full import · A accept draft; save separately.",
   "review.selection.invalid": "Choose distinct supported import fields.",
-  "profiles.action.reuse": "Import selected settings into current draft"
+  "profiles.action.reuse": "Import selected settings into current draft",
+  "fields.item.foreground_gradient.label": "Foreground gradient",
+  "fields.item.background_gradient.label": "Powerline background gradient",
+  "gradients.invalid": "Use off, ocean, sunset, aurora, or 2–5 comma-separated #RRGGBB colors. Left/right selects a preset; Enter edits colors.",
+  "gradients.schema": "Gradient options require display schema 14 or newer."
 }

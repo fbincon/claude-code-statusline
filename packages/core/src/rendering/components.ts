@@ -11,6 +11,7 @@ export interface Cell<T = unknown> {
     spacer?: boolean;
     payload?: T;
     sequence?: false;
+    paint?: import('./gradients.js').Paint;
 }
 export function literal(node: InstanceDraft, config: DisplayDraft, scope: Scope = 'main', truncated?: () => void): string {
     let text = node.text || '';

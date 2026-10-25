@@ -16,4 +16,8 @@ CLI 和双编辑器支持全局项、完整分区两个切片；方案及项目�
 
 ## 后续工作
 
-APPEARANCE-04 和 COMPOSITION-03 尚未启动，计划 schema／协议分别为 14／23、15／24。SHOWCASE-01 不属于本次交付。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项历史缺口继续未验证；已批准本版本在最终自动化门禁全部通过后仅接受这六项缺口发布。
+APPEARANCE-04 正在实施，COMPOSITION-03 尚未启动，计划 schema／协议分别为 14／23、15／24。SHOWCASE-01 不属于本次交付。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 六项历史缺口继续未验证；已批准本版本在最终自动化门禁全部通过后仅接受这六项缺口发布。
+
+## APPEARANCE-04
+
+在 IMPORT-01 实现基础上的隔离工作区实施中。Schema 14／协议 23 增加可选标准化 RGB 数组，共享表单支持轮换预设或编辑自定义色点。前景在拟合后着色并保留语义换行中的组件边界；背景包含 padding，再据最终边缘决定分隔颜色。两个作用域复用纯插值逻辑，阈值优先且采集行为不变。针对性测试覆盖字素端点、链接、裁剪、分组和六语言表单；完整源码及安装验收待完成。

@@ -116,3 +116,21 @@ claude-statusline config instance main set context-remaining bar-style ascii
 使用 `config instance main list` 查询已有实例 ID；`subagent` 同样支持这些选项。适用类型为 `context-used`、`context-remaining`，以及仅主行支持的 `five-hour-limit`、`weekly-limit`、`spend-limit`。额度遵循实例的已用/剩余选项。隐藏普通标签时仍保留方向和百分比；短条表示观测水平，不表示经过时间或预测。缺失、无效或过期输入不会伪造为零；仅填充限制在 100%，有效超限额度保留数值。宽度适配可能裁剪或省略整个表示。
 
 复制、配置方案和导入导出保留显示选项，不启用任何采集或来源。保存并重开后恢复选项，取消保留原配置。参阅[交付与兼容记录](development/m4-m7-delivery.zh-CN.md)。
+
+## 静态组件渐变
+
+在任一编辑器中打开组件外观字段，选择**前景渐变**或 **Powerline 背景渐变**。左右键轮换 `off`、`ocean`（海洋）、`sunset`（落日）、`aurora`（极光）；Enter 可输入预设名或 2～5 个逗号分隔的 `#RRGGBB` 颜色。预设保存为展开后的颜色，导出配置不依赖后续预设变化。启用或关闭渐变都保留原有纯色配置。
+
+```sh
+claude-statusline config instance main set context-used foreground-gradient ocean
+claude-statusline config instance main set context-used background-gradient '#112233,#445566,#778899'
+claude-statusline config instance main set context-used foreground-gradient off
+```
+
+子代理实例与固定文本使用相同字段；spacer 不支持渐变。背景渐变在 Powerline 模式生效，不改变采集或外部来源权限。
+
+使用等距色点进行 sRGB 通道线性插值。前景覆盖最终可见图标、标签和正文，背景覆盖拟合后的色块及 padding。裁剪或换行后，每个可见片段独立重新展开渐变；首末字素取端点色，只有一个字素时使用首色。按终端单元格定位，保持字素完整并保留链接。ANSI 调色板转换为可用颜色；无色输出保留纯文本。
+
+告警与严重阈值前景优先于前景渐变。渐变背景采样色与文字色相同时使用中性背景。共享 Powerline 组由主实例决定整组背景，各成员前景独立，并保留成员未生效的背景设置。分隔符和端帽使用相邻色块最终边缘色，spacer 间隙保持终端默认背景。现有 semantic／continuous／restart 模式继续排列继承色，显式渐变在组件或色块内重新开始。
+
+显示 schema 14／编辑器协议 23 保持既有默认行为。旧文件读取仅在内存迁移，保存才备份。主区／子代理选择性导入包含其组件渐变，仅全局导入不会修改渐变。方案复制与导出保留渐变，旧程序拒绝新 schema，不会静默删除选项。

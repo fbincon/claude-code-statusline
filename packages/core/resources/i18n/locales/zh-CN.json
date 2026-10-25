@@ -1935,5 +1935,9 @@
   "review.selection.thresholds": "告警阈值",
   "review.selection.help": "S 选择范围 · 空格勾选 · Enter 审阅 · F 完整导入 · A 接受草稿；需另行保存。",
   "review.selection.invalid": "请选择不重复的受支持导入字段。",
-  "profiles.action.reuse": "选择导入到当前草稿"
+  "profiles.action.reuse": "选择导入到当前草稿",
+  "fields.item.foreground_gradient.label": "前景渐变",
+  "fields.item.background_gradient.label": "Powerline 背景渐变",
+  "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 个逗号分隔的 #RRGGBB 颜色。左右键选择预设，Enter 编辑颜色。",
+  "gradients.schema": "渐变选项需要显示 schema 14 或更新版本。"
 }

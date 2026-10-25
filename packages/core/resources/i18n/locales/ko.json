@@ -1935,5 +1935,9 @@
   "review.selection.thresholds": "경고 임계값",
   "review.selection.help": "S 범위 선택 · Space 전환 · Enter 검토 · F 전체 · A 초안 적용. 저장은 별도입니다.",
   "review.selection.invalid": "지원되는 가져오기 필드를 중복 없이 선택하세요.",
-  "profiles.action.reuse": "선택한 설정을 현재 초안으로 가져오기"
+  "profiles.action.reuse": "선택한 설정을 현재 초안으로 가져오기",
+  "fields.item.foreground_gradient.label": "전경 그라데이션",
+  "fields.item.background_gradient.label": "Powerline 배경 그라데이션",
+  "gradients.invalid": "off, ocean, sunset, aurora 또는 쉼표로 구분한 #RRGGBB 색상 2~5개를 입력하세요. 좌우로 프리셋 선택, Enter로 색상 편집.",
+  "gradients.schema": "그라데이션에는 표시 schema 14 이상이 필요합니다."
 }

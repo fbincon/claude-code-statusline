@@ -1935,5 +1935,9 @@
   "review.selection.thresholds": "警告閾值",
   "review.selection.help": "S 選擇範圍 · 空白鍵勾選 · Enter 審閱 · F 完整匯入 · A 接受草稿；需另行儲存。",
   "review.selection.invalid": "請選擇不重複且受支援的匯入欄位。",
-  "profiles.action.reuse": "選擇匯入至目前草稿"
+  "profiles.action.reuse": "選擇匯入至目前草稿",
+  "fields.item.foreground_gradient.label": "前景漸層",
+  "fields.item.background_gradient.label": "Powerline 背景漸層",
+  "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 個逗號分隔的 #RRGGBB 色彩。左右鍵選擇預設，Enter 編輯色彩。",
+  "gradients.schema": "漸層選項需要顯示 schema 14 或更新版本。"
 }

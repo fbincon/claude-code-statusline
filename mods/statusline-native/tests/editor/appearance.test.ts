@@ -48,6 +48,22 @@ test('indicator fields survive native form changes and draft validation', () => 
   expect(editor.draft.display.instances[0]!.options.bar_width).toBe(12);
 });
 
+test('native gradient fields parse presets and custom stops without losing inactive solid colors', () => {
+  const current=readResult(); current.draft.display.instances=[component('context-used')];
+  current.draft.display.instances[0]!.options.foreground='#abcdef';
+  const editor=new Editor(description(),current);editor.detail={scope:'main',id:'context-used'};
+  const view={editor,message:''};
+  const field=(key:string)=>formRows(view).find(row=>row.spec.key===key)!;
+  expect(setFormValue(view,field('foreground_gradient'),'ocean')).toBe(true);
+  expect(editor.draft.display.instances[0]!.options.foreground_gradient).toEqual(['#22d3ee','#3b82f6']);
+  expect(setFormValue(view,field('background_gradient'),'#112233,#445566,#778899')).toBe(true);
+  expect(setFormValue(view,field('foreground_gradient'),'off')).toBe(true);
+  expect(editor.draft.display.instances[0]!.options.foreground).toBe('#abcdef');
+  expect(setFormValue(view,field('background_gradient'),'#112233')).toBe(false);
+  expect(editor.draft.display.instances[0]!.options.background_gradient).toEqual(['#112233','#445566','#778899']);
+  expect(isDraft(editor.draft)).toBe(true);
+});
+
 test('future, partial, invalid global appearances are rejected', () => {
   for (const patch of [{schema_version: BASE.display.schema_version + 1}, {theme: 'auto'}, {powerline_glyph: 'custom'}, {separator_style: 'shell'}]) {
     const draft = copyDraft(BASE);
