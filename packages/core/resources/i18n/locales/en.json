@@ -1939,5 +1939,8 @@
   "fields.item.foreground_gradient.label": "Foreground gradient",
   "fields.item.background_gradient.label": "Powerline background gradient",
   "gradients.invalid": "Use off, ocean, sunset, aurora, or 2–5 comma-separated #RRGGBB colors. Left/right selects a preset; Enter edits colors.",
-  "gradients.schema": "Gradient options require display schema 14 or newer."
+  "gradients.schema": "Gradient options require display schema 14 or newer.",
+  "gradients.preset.ocean": "Ocean",
+  "gradients.preset.sunset": "Sunset",
+  "gradients.preset.aurora": "Aurora"
 }

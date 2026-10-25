@@ -1939,5 +1939,8 @@
   "fields.item.foreground_gradient.label": "전경 그라데이션",
   "fields.item.background_gradient.label": "Powerline 배경 그라데이션",
   "gradients.invalid": "off, ocean, sunset, aurora 또는 쉼표로 구분한 #RRGGBB 색상 2~5개를 입력하세요. 좌우로 프리셋 선택, Enter로 색상 편집.",
-  "gradients.schema": "그라데이션에는 표시 schema 14 이상이 필요합니다."
+  "gradients.schema": "그라데이션에는 표시 schema 14 이상이 필요합니다.",
+  "gradients.preset.ocean": "바다 (ocean)",
+  "gradients.preset.sunset": "노을 (sunset)",
+  "gradients.preset.aurora": "오로라 (aurora)"
 }

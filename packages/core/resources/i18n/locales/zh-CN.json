@@ -1939,5 +1939,8 @@
   "fields.item.foreground_gradient.label": "前景渐变",
   "fields.item.background_gradient.label": "Powerline 背景渐变",
   "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 个逗号分隔的 #RRGGBB 颜色。左右键选择预设，Enter 编辑颜色。",
-  "gradients.schema": "渐变选项需要显示 schema 14 或更新版本。"
+  "gradients.schema": "渐变选项需要显示 schema 14 或更新版本。",
+  "gradients.preset.ocean": "海洋 (ocean)",
+  "gradients.preset.sunset": "落日 (sunset)",
+  "gradients.preset.aurora": "极光 (aurora)"
 }

@@ -1949,7 +1949,10 @@ export const LOCALES = {
     "fields.item.foreground_gradient.label": "Foreground gradient",
     "fields.item.background_gradient.label": "Powerline background gradient",
     "gradients.invalid": "Use off, ocean, sunset, aurora, or 2–5 comma-separated #RRGGBB colors. Left/right selects a preset; Enter edits colors.",
-    "gradients.schema": "Gradient options require display schema 14 or newer."
+    "gradients.schema": "Gradient options require display schema 14 or newer.",
+    "gradients.preset.ocean": "Ocean",
+    "gradients.preset.sunset": "Sunset",
+    "gradients.preset.aurora": "Aurora"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3892,7 +3895,10 @@ export const LOCALES = {
     "fields.item.foreground_gradient.label": "前景渐变",
     "fields.item.background_gradient.label": "Powerline 背景渐变",
     "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 个逗号分隔的 #RRGGBB 颜色。左右键选择预设，Enter 编辑颜色。",
-    "gradients.schema": "渐变选项需要显示 schema 14 或更新版本。"
+    "gradients.schema": "渐变选项需要显示 schema 14 或更新版本。",
+    "gradients.preset.ocean": "海洋 (ocean)",
+    "gradients.preset.sunset": "落日 (sunset)",
+    "gradients.preset.aurora": "极光 (aurora)"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5835,7 +5841,10 @@ export const LOCALES = {
     "fields.item.foreground_gradient.label": "前景漸層",
     "fields.item.background_gradient.label": "Powerline 背景漸層",
     "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 個逗號分隔的 #RRGGBB 色彩。左右鍵選擇預設，Enter 編輯色彩。",
-    "gradients.schema": "漸層選項需要顯示 schema 14 或更新版本。"
+    "gradients.schema": "漸層選項需要顯示 schema 14 或更新版本。",
+    "gradients.preset.ocean": "海洋 (ocean)",
+    "gradients.preset.sunset": "落日 (sunset)",
+    "gradients.preset.aurora": "極光 (aurora)"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7778,7 +7787,10 @@ export const LOCALES = {
     "fields.item.foreground_gradient.label": "前景漸變",
     "fields.item.background_gradient.label": "Powerline 背景漸變",
     "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 個逗號分隔的 #RRGGBB 顏色。左右鍵選擇預設，Enter 編輯顏色。",
-    "gradients.schema": "漸變選項需要顯示 schema 14 或更新版本。"
+    "gradients.schema": "漸變選項需要顯示 schema 14 或更新版本。",
+    "gradients.preset.ocean": "海洋 (ocean)",
+    "gradients.preset.sunset": "落日 (sunset)",
+    "gradients.preset.aurora": "極光 (aurora)"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9721,7 +9733,10 @@ export const LOCALES = {
     "fields.item.foreground_gradient.label": "前景グラデーション",
     "fields.item.background_gradient.label": "Powerline 背景グラデーション",
     "gradients.invalid": "off、ocean、sunset、aurora、またはカンマ区切りの #RRGGBB 色を 2～5 個指定。左右でプリセット、Enter で色を編集。",
-    "gradients.schema": "グラデーションには表示 schema 14 以降が必要です。"
+    "gradients.schema": "グラデーションには表示 schema 14 以降が必要です。",
+    "gradients.preset.ocean": "海 (ocean)",
+    "gradients.preset.sunset": "夕日 (sunset)",
+    "gradients.preset.aurora": "オーロラ (aurora)"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11664,7 +11679,10 @@ export const LOCALES = {
     "fields.item.foreground_gradient.label": "전경 그라데이션",
     "fields.item.background_gradient.label": "Powerline 배경 그라데이션",
     "gradients.invalid": "off, ocean, sunset, aurora 또는 쉼표로 구분한 #RRGGBB 색상 2~5개를 입력하세요. 좌우로 프리셋 선택, Enter로 색상 편집.",
-    "gradients.schema": "그라데이션에는 표시 schema 14 이상이 필요합니다."
+    "gradients.schema": "그라데이션에는 표시 schema 14 이상이 필요합니다.",
+    "gradients.preset.ocean": "바다 (ocean)",
+    "gradients.preset.sunset": "노을 (sunset)",
+    "gradients.preset.aurora": "오로라 (aurora)"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

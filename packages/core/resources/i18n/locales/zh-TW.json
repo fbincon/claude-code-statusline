@@ -1939,5 +1939,8 @@
   "fields.item.foreground_gradient.label": "前景漸層",
   "fields.item.background_gradient.label": "Powerline 背景漸層",
   "gradients.invalid": "可用 off、ocean、sunset、aurora，或 2～5 個逗號分隔的 #RRGGBB 色彩。左右鍵選擇預設，Enter 編輯色彩。",
-  "gradients.schema": "漸層選項需要顯示 schema 14 或更新版本。"
+  "gradients.schema": "漸層選項需要顯示 schema 14 或更新版本。",
+  "gradients.preset.ocean": "海洋 (ocean)",
+  "gradients.preset.sunset": "落日 (sunset)",
+  "gradients.preset.aurora": "極光 (aurora)"
 }

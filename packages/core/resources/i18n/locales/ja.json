@@ -1939,5 +1939,8 @@
   "fields.item.foreground_gradient.label": "前景グラデーション",
   "fields.item.background_gradient.label": "Powerline 背景グラデーション",
   "gradients.invalid": "off、ocean、sunset、aurora、またはカンマ区切りの #RRGGBB 色を 2～5 個指定。左右でプリセット、Enter で色を編集。",
-  "gradients.schema": "グラデーションには表示 schema 14 以降が必要です。"
+  "gradients.schema": "グラデーションには表示 schema 14 以降が必要です。",
+  "gradients.preset.ocean": "海 (ocean)",
+  "gradients.preset.sunset": "夕日 (sunset)",
+  "gradients.preset.aurora": "オーロラ (aurora)"
 }
