@@ -1,9 +1,43 @@
 import * as fs from 'node:fs';
+import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const [modules, operation, config, receipt, choice] = process.argv.slice(2);
 const load = (name: string, path: string) => import(pathToFileURL(join(modules!, 'statusline-' + name, 'dist/src', path + '.js')).href);
-if (operation === 'modules') {
+if (operation === 'joint-display') {
+    const { defaultItem } = await load('core', 'config/display');
+    const { LANGUAGES } = await load('core', 'i18n/registry');
+    const { editAlignment } = await load('core', 'editor/alignments');
+    const { previewRows, samplePreviewData } = await load('core', 'rendering/preview');
+    const { configuredRows } = await load('core', 'rendering/items');
+    const { displayWidth, strip, styledUnits } = await load('core', 'rendering/layout');
+    const { presentation, baseEnvironment } = await load('cli', 'rendering/environment');
+    const { ConfigurationService } = await load('cli', 'config/service');
+    const service = new ConfigurationService({ configDir: config, launch: { executable: process.execPath, args: [join(modules!, 'statusline-cli/dist/src/entry.js')] }, hostVersion: () => null });
+    const home = '/test/中文/é/👩🏽‍💻', widths = [40,80,120];
+    for (const language of LANGUAGES) {
+        const current = service.read(); let d = current.display;
+        d.instances = ['text','context-used','current-dir','context-used'].map((type_id, index) => ({ id: 'joint-' + index, type_id, enabled: true, text: type_id === 'text' ? '中文 日本語 한글 é 👩🏽‍💻' : null,
+            options: { ...defaultItem(), foreground_gradient: ['#22d3ee','#3b82f6'], background_gradient: ['#112233','#445566'], ...(type_id === 'current-dir' ? {link:'on'} : {}) } }));
+        d.groups = []; d.layout = { mode: 'explicit', rows: [['joint-0','joint-1'],['joint-2','joint-3']] };
+        d.use_colors = true; d.scope_labels = 'off'; d.separator_style = 'powerline'; d.directory_style = 'basename'; d.statusline_language = language;
+        d = editAlignment(d, 'joint', [[{kind:'instance',id:'joint-0'},{kind:'instance',id:'joint-2'}],[{kind:'instance',id:'joint-1'},{kind:'instance',id:'joint-3'}]]);
+        service.apply({display:d,host:current.host},current.revision);
+        const reopened = service.read().display; assert.deepEqual(reopened,d);
+        const environment = baseEnvironment(await presentation(language), {home}), payload = samplePreviewData(home);
+        for (const width of widths) {
+            const actual = configuredRows(payload,reopened,width,environment);
+            assert.deepEqual(previewRows(reopened,width,environment,home),actual);
+            assert(actual.length > 0 && actual.every((row:string)=>displayWidth(row)<=width));
+            if (width === 120) {
+                assert(actual.map(strip).join('\n').includes('中文 日本語 한글 é 👩🏽‍💻'));
+                assert(actual.flatMap(styledUnits).some((unit:any)=>unit.link));
+            }
+        }
+    }
+    fs.writeFileSync(receipt!,JSON.stringify({languages:LANGUAGES,widths,cases:LANGUAGES.length*widths.length,installed_modules:true,saved_reopened:true,preview_matches:true}));
+}
+else if (operation === 'modules') {
     const [core, platform, clocks, tui] = await Promise.all([load('core', 'integration/binding'), load('platform', 'launch'), load('platform', 'clocks'), load('tui', 'session')]);
     const sample = clocks.sample();
     fs.writeFileSync(receipt!, JSON.stringify({ same_binding: core.binding === platform.binding, literal_argv: core.binding({ backendExecutable: process.execPath, backendArgs: '["中文 & $`/entry.js"]' }).args, clock_available: !!sample.boot_id && typeof sample.boot_ns === 'bigint' && sample.boot_ns > 0n, tui: typeof tui.Session === 'function' }));

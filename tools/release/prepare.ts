@@ -10,6 +10,7 @@ import { verifyDelivery } from '../build/verify.js';
 import { sha256 } from '../build/files.js';
 import { stableApprovalPath, UNVERIFIED_GATES, assessStableApproval } from './approval.js';
 import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
+import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
 export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => os + '-' + host))];
 function versionSequence(value: any, official: boolean): void {
@@ -58,6 +59,7 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             assert.equal(report.checks.selective_import, true); assert.equal(report.selective_import_cases, 4);
             assert.equal(report.checks.gradients, true); assert.equal(report.gradient_cases, 6);
             assert.equal(report.checks.alignments, true); assert.equal(report.alignment_cases, 4);
+            assert.deepEqual(report.alignment_matrix, {languages:LANGUAGES,widths:[40,80,120],cases:18,installed_modules:true,saved_reopened:true,preview_matches:true});
             assert.equal(report.checks.version_management, true); versionSequence(report.version_management, false);
             assert.equal(report.checks.first_entry, true); assert.equal(report.first_entry_cases, 4);
             assert.equal(report.checks.git_policy, true); assert.equal(report.git_policy_cases, 4);
