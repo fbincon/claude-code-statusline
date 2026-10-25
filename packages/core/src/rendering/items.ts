@@ -338,9 +338,10 @@ export function configuredRows(data: unknown, config: DisplayDraft, width: numbe
     if(config.layout.alignments?.length) {
         const cache=new Map<string,RenderedItem|null>(), cached=Object.create(state) as RenderState;
         cached.render=id=>{if(!cache.has(id))cache.set(id,state.render(id));const value=cache.get(id)!;return value?{...value}:null;};
-        const plain={...config,layout:{...config.layout,alignments:[]}};
+        const showScope=scope();
+        const plain={...config,scope_labels:showScope?'always' as const:'off' as const,layout:{...config.layout,alignments:[]}};
         const unitConfig={...plain,scope_labels:'off' as const,powerline:{...plain.powerline,color_mode:plain.powerline.color_mode==='restart'?'continuous' as const:plain.powerline.color_mode}};
-        return alignedRows(config,Math.max(2,width),outer,scope()?label().text:null,colors,
+        return alignedRows(config,Math.max(2,width),outer,showScope?label().text:null,colors,
             (ids,cursor)=>configuredRows(data,{...unitConfig,layout:{...unitConfig.layout,rows:[ids]}},10000,env,()=>cached,cursor).join(''),
             (ids,first,cursor)=>configuredRows(data,{...plain,scope_labels:first?plain.scope_labels:'off',layout:{...plain.layout,rows:[ids]}},width,env,()=>cached,cursor),
             (ids,collapsed)=>ids.forEach(id=>env.trace?.alignment(id,collapsed)));

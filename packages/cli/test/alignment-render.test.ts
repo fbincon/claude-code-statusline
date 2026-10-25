@@ -105,3 +105,12 @@ test('six-language joint previews match rendering at 40/80/120 cells with Unicod
     d.use_colors=false;assert(configuredRows(payload,d,120,sources).every(row=>!row.match(/\x1b\[[0-9;]*m/u)));
   }
 });
+test('alignment measures one scope observation per frame, including width fallback',()=>{
+  const d=fixture();d.scope_labels='when-subagents';
+  for(const width of [8,80,120]) {
+    let calls=0;
+    const output=configuredRows({},d,width,{...env,hadSubagents:()=>{calls++;return true;}});
+    assert.equal(calls,1);assert(output.every(row=>displayWidth(row)<=width));
+    if(width===120)assert(strip(output[0]!).includes('Main/Session'));
+  }
+});
