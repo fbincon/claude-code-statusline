@@ -2,11 +2,11 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-Updated: **2026-10-24** (Asia/Shanghai) · Product baseline: **v3.7.0** · Planning baseline: **`d3c95232a18cb297bbd836c4deda117749e90ee4`**
+Updated: **2026-10-26** (Asia/Shanghai) · Product baseline: **v3.8.0** · Planning baseline: **`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
 
-This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are DONE after functional acceptance; v3.8.0 publication remains pending final gates and channel verification. The other four future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See [M4–M7 delivery](m4-m7-delivery.md) and [Git, terminal and M8–M9 delivery](m8-m9-delivery.md) for actual evidence.
+This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are DONE after functional acceptance; v3.8.0 is published and download-verified on GitHub, npm and Gitee after all final gates passed. The other four future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See [M4–M7 delivery](m4-m7-delivery.md) and [Git, terminal and M8–M9 delivery](m8-m9-delivery.md) for actual evidence.
 
-Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.7.0 decision](../releases/approvals/v3.7.0.json) records their acceptance for that release.
+Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.8.0 decision](../releases/approvals/v3.8.0.json) records their acceptance for that release.
 
 **Navigation:** [Index](#work-index) · [Shared design](#design-rules) · [Future work](#future-work) · [Git review](#git-01) · [Windows previews](#terminal-01) · [First entry](#setup-02) · [Version management](#update-01) · [Selective import](#import-01) · [Gradients](#appearance-04) · [Alignment](#composition-03) · [Demonstrations](#showcase-01) · [Candidates](#candidate-boundaries) · [M4–M7 designs](#appearance-03) · [Earlier designs](#delivered-designs) · [Acceptance](#acceptance-matrix) · [Handoff](#handoff)
 
@@ -18,16 +18,12 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 
 | Stage | Work package | Dependencies and scheduling | Status |
 | --- | --- | --- | --- |
-| Priority independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | DONE |
-| Priority independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | DONE |
-| M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
-| M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
 | M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | NOT_STARTED |
 | M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | NOT_STARTED |
 | M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | NOT_STARTED |
 | M13 | [SHOWCASE-01](#showcase-01) | All M8–M12 packages completed and accepted; matching installed artifact | NOT_STARTED |
 
-M8 → M9 → M10 → M11 → M12 → M13 expresses product priority, not additional technical prerequisites. Import does not depend on version management, and alignment does not depend on gradients. SHOWCASE-01 waits for all selected M8–M12 functionality, including both import slices, to complete acceptance. Further candidates do not block it. GIT-01 and TERMINAL-01 run independently with priority; use TERMINAL-01 outcomes in affected Windows preview and demonstration acceptance. The approved Git, terminal, first-entry and version-management work targets v3.8.0; other future packages have no assigned product version or deadline.
+After delivered M8 and M9, M10 → M11 → M12 → M13 expresses the remaining product priority without adding technical prerequisites. Import does not depend on version management, and alignment does not depend on gradients. SHOWCASE-01 waits for all selected M8–M12 functionality, including both import slices, to complete acceptance. Further candidates do not block it. Use the delivered TERMINAL-01 outcomes in affected Windows preview and demonstration acceptance. The approved Git, terminal, first-entry and version-management work shipped in v3.8.0; other future packages have no assigned product version or deadline.
 
 ### Delivered work
 
@@ -44,6 +40,10 @@ M8 → M9 → M10 → M11 → M12 → M13 expresses product priority, not additi
 | M5 | [COMPOSITION-02](#composition-02) | Existing instances, visibility and Powerline; independent of M4 | DONE |
 | M6 | [WORKFLOW-02](#workflow-02) | Delivered EXTENSIONS-01 and WORKFLOW-01; GitHub only | DONE |
 | M7 | [METRICS-01](#metrics-01) | Existing session cost and duration fields; independent of M6 | DONE |
+| Independent maintenance | [GIT-01](#git-01) | Existing Git/process adapters; independent of product order | DONE |
+| Independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | DONE |
+| M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
+| M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
 | As needed | [CAPABILITIES-01](#capabilities-01) | Include when related features expose specific duplicate or inconsistent metadata | DONE |
 | Maintenance | [CI-01](#ci-01) | Independent maintenance; does not block M1/M2/M3 | DONE |
 
@@ -73,7 +73,7 @@ Unstarted sections describe planned behavior. Completed sections retain their or
 
 **Status: DONE.** Started from `d2975e8` for v3.8.0. The shared invocation policy is implemented; platform and installed-artifact acceptance are tracked in [the delivery record](m8-m9-delivery.md).
 
-**Existing observation and limits.** On 2026-10-24, the [GitCollector at the planning baseline](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts) was exercised on Linux with Git 2.53.0 and Node 24.21.0 in temporary repositories. Repository-level `core.fsmonitor` invoked a harmless marker program. A local clean filter also invoked its marker when a tracked file changed content without changing length; a different-length change did not trigger that fixture. Explicitly disabling the respective setting for the control invocation prevented the marker, and repository configuration bytes stayed unchanged. Reproduce these conditions before choosing a policy. This does not establish that ordinary cloning transfers local configuration, nor cover all worktree/bare repositories, filters, indirect provider calls or Windows/macOS behavior. The historical observation is separate from the current implementation status above.
+**Existing observation and limits.** On 2026-10-24, the [GitCollector before this implementation](https://github.com/fbincon/claude-code-statusline/blob/d3c95232a18cb297bbd836c4deda117749e90ee4/packages/cli/src/runtime/git.ts) was exercised on Linux with Git 2.53.0 and Node 24.21.0 in temporary repositories. Repository-level `core.fsmonitor` invoked a harmless marker program. A local clean filter also invoked its marker when a tracked file changed content without changing length; a different-length change did not trigger that fixture. Explicitly disabling the respective setting for the control invocation prevented the marker, and repository configuration bytes stayed unchanged. Reproduce these conditions before choosing a policy. This does not establish that ordinary cloning transfers local configuration, nor cover all worktree/bare repositories, filters, indirect provider calls or Windows/macOS behavior. The historical observation is separate from the current implementation status above.
 
 **Problem and goal.** Passing literal argv to Git does not alone determine which programs Git may start from repository configuration. Establish what the current collectors actually execute and correct verified gaps without changing metric meaning or modifying user repositories.
 

@@ -5,7 +5,7 @@
 
 ## Unreleased
 
-## 3.8.0 — 2026-10-24
+## 3.8.0 — 2026-10-25
 
 - Share bounded Git invocation policy, preserving supported filter semantics and reporting unavailable results when repository filters cannot safely run.
 - Share actual-console color detection across setup, configure and slash editors; verified Windows VT defaults to 256 colors and restores console modes on exit.

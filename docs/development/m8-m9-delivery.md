@@ -2,7 +2,7 @@
 
 **English** | [简体中文](m8-m9-delivery.zh-CN.md)
 
-Target: v3.8.0. Start: `d2975e8a4561371b5d32bec136400963dbccd97f`. Publication is pending. The maintainer approved four feature PRs and a release PR, final PR/main/tag gates and GitHub/npm/Gitee byte verification. Only the six existing [#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) are accepted; they remain unverified.
+Target: v3.8.0. Start: `d2975e8a4561371b5d32bec136400963dbccd97f`. Published and download-verified on GitHub, npm and Gitee on 2026-10-25. The maintainer approved four feature PRs and a release PR, final PR/main/tag gates and GitHub/npm/Gitee byte verification. Only the six existing [#96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) are accepted; they remain unverified.
 
 | Package | State | Evidence |
 | --- | --- | --- |
@@ -11,13 +11,32 @@ Target: v3.8.0. Start: `d2975e8a4561371b5d32bec136400963dbccd97f`. Publication i
 | SETUP-02 | DONE | [PR #139](https://github.com/fbincon/claude-code-statusline/pull/139) · [Full CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40081854700) |
 | UPDATE-01 | DONE | [PR #140](https://github.com/fbincon/claude-code-statusline/pull/140) · [Full CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40087600655) |
 
+## Final source and delivery verification
+
+[Release PR #141](https://github.com/fbincon/claude-code-statusline/pull/141) fixes source `f68d26eeddda98ab4041d2b9e873ade556fa1909`; annotated tag `v3.8.0` is object `3678648f079171c89fb1a821b7c597851c4793ad`. [Final PR CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40092744615), [main CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40201359757) and [tag CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40201492094) each ultimately passed 56 applicable jobs with one expected documentation-only skip. Both final main/tag readiness reports verify eight installation targets, 32 Node runtime cases and thirteen fixed hosts. The final development check passed 1,208 tests, with zero failures and five existing platform skips; 51 generated resources and 3,198 documentation links passed.
+
+Two independent builds, a complete delivered-source rebuild and the final tag CI build produced identical bytes for all four files below. The downloaded GitHub draft attachments match them, and the downloaded package passed isolated offline installation, version, integration and rendering checks. The first source-rebuild attempt lost its dependency TLS connection during its second pack; a complete unchanged-source retry passed. No dependency or verification rule changed.
+
+| Delivery file | SHA-256 |
+| --- | --- |
+| `fbincon-claude-code-statusline-3.8.0.tgz` | `c11ebea864a0d472c779f87401fe2e96bfcd3d16120db0cf2661d50fd6339dbc` |
+| `claude-code-statusline-3.8.0-source.tar.gz` | `2d5522d7c2487bccaa53f06c029fc5d23d39884b31ff8f68569f541f44232153` |
+| `build-manifest.json` | `f96663ea9a169f8d9ee139cfeb08f6cde1262a6e76c681a1f5e51b8850f3b664` |
+| `SHA256SUMS` | `20efffe130654ac90c54560423836f6c86ffb14e98b4a3618ff6efb1ed588e81` |
+
+Final installed Linux PTY acceptance passed **684** dark/light captures, 114 per language, four monochrome/dumb-terminal cases, cancellation preservation and terminal restoration. Representative captures in all six languages were inspected. Report SHA-256: `80540ae33058f626b4987ca8698e16b17b942f7338e2e1ca201ea62e7252710a`. These are terminal-cell reconstructions, not OS screenshots or human desktop/power acceptance; no model calls were made.
+
+In [tag CI attempt 1](https://github.com/fbincon/claude-code-statusline/actions/runs/40201492094/attempts/1), Windows/Claude 2.1.289 passed both official Mod suites and exact-host type checks, then an npm operation reached its existing 30-second bound before a package transaction was created. The other 54 jobs passed and the aggregate correctly failed. [Unchanged-artifact diagnosis](https://github.com/fbincon/claude-code-statusline/actions/runs/40203230224) passed three complete twenty-operation rounds on the same Windows/host pair. Its 249 supervised process observations included npm root/version/config/view queries below the original bound; the original timeout was not reproduced and its cause is not established. Product limits and release criteria are unchanged. [Tag attempt 2](https://github.com/fbincon/claude-code-statusline/actions/runs/40201492094/attempts/2) then passed the failed job and aggregate, completing all 56 applicable gates. Its official-host version receipt contains all seven scenarios and twenty operations. The original failed receipt was downloaded and checksum-verified before its stale duplicate artifact was removed from the publication input set; original attempt logs and the retained archive preserve the failure.
+
+[npm 3.8.0](https://www.npmjs.com/package/@fbincon/claude-code-statusline/v/3.8.0), [GitHub stable/Latest](https://github.com/fbincon/claude-code-statusline/releases/tag/v3.8.0) and [Gitee stable](https://gitee.com/fbincon/claude-code-statusline/releases/tag/v3.8.0) are published and public-byte verified. [OIDC dry-run](https://github.com/fbincon/claude-code-statusline/actions/runs/40207988960) and [publication](https://github.com/fbincon/claude-code-statusline/actions/runs/40208161490) passed; npm `latest=3.8.0`, with `beta=3.0.0-beta.1` preserved. [Public-download CI](https://github.com/fbincon/claude-code-statusline/actions/runs/40208466789) passed all six Linux/Windows/macOS × Node 22/24 cases, including exact-version and latest installations. The four GitHub/Gitee delivery attachments match the table. Validated main and the identical annotated tag were synchronized with explicit refspecs; GitHub remains primary. The Gitee source download used native Wi-Fi and freshly resolved public addresses with normal TLS verification.
+
 ## Accepted feature evidence
 
 Each feature PR passed all 56 applicable CI jobs, with only the conditional documentation-only job skipped, before merging. The final feature head is `2394bcff50e2a3e37b0912c28e2de7e8afc6b7b6`; its merge is `dfb2083bd2086dc842b6d6f04b3a87a6daddf03e`. Its eight installation targets, 32 Node cases, thirteen fixed hosts and aggregate gate passed. Every installed/runtime receipt requires twenty check categories; each Windows target additionally requires fifteen environment cases and nine actual shell/entry combinations.
 
 The complete development check passed 1,208 tests with five existing platform skips, 51 generated resources, six-language coverage, 3,174 documentation links, archive and responsibility checks. Two independent builds of that feature head matched package SHA-256 `3e93344ae52e2364dba34399287a8546e0408ff75cd2f04ffcfdb0cb8b073566`; its source archive is `d544d247eb39b0aafb173ddc3be624613bc44ee3a846402ef3061850f532067a`. These are feature-acceptance artifacts, not the final public release artifacts.
 
-The following sections retain intermediate implementation and failure history. The table and this section establish current functional acceptance. Final release PR/main/annotated-tag checks, source rebuild, draft assets and public channels remain separate requirements.
+The following sections retain intermediate implementation and failure history. Intermediate statements about pending verification retain their original context; the final source, gates and public-channel results above establish completed delivery.
 
 ## Git invocation policy
 
@@ -94,8 +113,8 @@ At `e3029fe`, the full development check passed 1,207 tests with five existing p
 
 The unchanged-artifact diagnostic also completed three twenty-operation rounds on Windows ARM/Claude 2.1.288, bringing the three environments to eight complete passing transition rounds. The interrupted historical download is not a product pass, and the original npm timeout's cause remains unasserted. The subsequent complete UPDATE-01 matrix passed every applicable job on its first attempt.
 
-The [intermediate main after SETUP-02](https://github.com/fbincon/claude-code-statusline/actions/runs/40086715360) returned `error` in one Windows dirty-submodule test. The old log did not retain the underlying reason, so a timeout is not claimed. [Isolated diagnosis](https://github.com/fbincon/claude-code-statusline/actions/runs/40088039171) passed one hundred observations across twenty fresh repositories on each Windows target/Node 22 and 24 combination, retaining per-call durations and error diagnostics. The product's two-second aggregate budget is unchanged; the subsequent UPDATE-01 matrix also passed. The failed intermediate main was cancelled and cannot serve as release acceptance.
+The [intermediate main after SETUP-02](https://github.com/fbincon/claude-code-statusline/actions/runs/40086715360) returned `error` in one Windows dirty-submodule test in attempt 1. The old log did not retain the underlying reason, so a timeout is not claimed. [Isolated diagnosis](https://github.com/fbincon/claude-code-statusline/actions/runs/40088039171) passed one hundred observations across twenty fresh repositories on each Windows target/Node 22 and 24 combination, retaining per-call durations and error diagnostics. The product's two-second aggregate budget is unchanged; the subsequent UPDATE-01 matrix also passed. The first attempt was cancelled; attempt 2 later passed. Neither intermediate attempt replaces the final release-source gates above.
 
 The [intermediate main after UPDATE-01](https://github.com/fbincon/claude-code-statusline/actions/runs/40091394223) recorded a 30-second timeout in the official Windows/Claude 2.1.289 native-editor English save/cancel/reopen test; the other 131 native tests passed. The log does not establish an underlying cause. The test limit is unchanged, and the same test remains mandatory in the final release matrices.
 
-All four work packages are DONE. Public v3.8.0 publication still requires final release PR/main/tag automation, independent and delivered-source builds, four verified assets and npm/GitHub/Gitee channel bytes. The [version-specific approval](../releases/approvals/v3.8.0.json) retains only the same six unverified #96 gaps.
+All four work packages are DONE. Public v3.8.0 publication and three-channel download verification are complete; the failures, diagnosis and formal retry remain separately recorded above. The [version-specific approval](../releases/approvals/v3.8.0.json) retains only the same six unverified #96 gaps.
