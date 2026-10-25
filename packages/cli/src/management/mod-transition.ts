@@ -53,10 +53,15 @@ export function prepareModDowngrade(context: InstallContext, root: string, versi
     for (const name of Object.keys(before)) {
         const a = before[name]!, b = after[name]!;
         if (a === null ? b === null : b !== null && a.equals(b)) continue;
-        // Official plugin refresh may rewrite JSON formatting. No configuration value may change.
+        // Official refresh may rewrite formatting and the owned backend version.
+        // All other configuration values must still match the reviewed snapshot.
         if (!['settings.json', BINDING_FILE].includes(name) || a === null || b === null) throw new PackageError('conflict');
         const left = readJson(decodeUtf8(a)) as Record<string, any>, right = readJson(decodeUtf8(b)) as Record<string, any>;
         if (name === 'settings.json') {
+            for (const { spec, requested } of transitions) if (requested) {
+                const a = left.pluginConfigs?.[spec.plugin]?.options, b = right.pluginConfigs?.[spec.plugin]?.options;
+                if (a && b && b.backendVersion === version) a.backendVersion = version;
+            }
             for (const { spec, disabled } of transitions) if (disabled) {
                 if (right.enabledPlugins?.[spec.plugin] === true) throw new PackageError('conflict');
                 if (left.enabledPlugins) delete left.enabledPlugins[spec.plugin];

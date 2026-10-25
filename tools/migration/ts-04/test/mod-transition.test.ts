@@ -52,5 +52,9 @@ test('cross-protocol handoff refuses changed settings and modified owned or targ
 test('version rollback refreshes both Mod caches through verified reinstall, including unchanged runtime protocol',t=>{
     const f=fresh(t,[2,1,289]);assert.equal(f.install({native:true,nativeTiming:true}).failed,false);
     const root=target(f);prepareModDowngrade(f.context,root,'3.7.0',configurationHashes(configurationBytes(f.root)),false);
-    for(const host of [f.host,f.runtime]) {assert.equal(host.plugins[0]!.version,'3.7.0');assert(host.calls.some(call=>call.args[0]==='uninstall'));}
+    for(const host of [f.host,f.runtime]) {
+        assert.equal(host.plugins[0]!.version,'3.7.0');
+        assert.equal(host.inputs.backendVersion,'3.7.0');
+        assert(host.calls.some(call=>call.args[0]==='uninstall'));
+    }
 });

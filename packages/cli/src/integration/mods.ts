@@ -101,9 +101,9 @@ function removeResources(context: InstallContext, spec: ModSpec, marker: Marker)
         prune(root, [...paths, ...marker.cache_inventories.flatMap(snapshot => Object.keys(snapshot.files).map(name => ownedPath(root, name)))]);
     });
 }
-export function bindingValues(context: InstallContext, spec: ModSpec): Record<string, string> {
+export function bindingValues(context: InstallContext, spec: ModSpec, backendVersion?: string): Record<string, string> {
     const modes = spec.name === 'statusline-runtime' ? loadRuntime(context.configDir, context.io) : null;
-    return { backendExecutable: context.launch.executable, backendArgs: JSON.stringify(context.launch.args), configDir: context.configDir, backendVersion: bundledFiles(spec).inventory.backend_version, ...(modes ? { nativeTiming: String(modes.native_timing), liveMetrics: String(modes.live_metrics), sourceRefresh: String(automaticRequested(context.configDir)) } : {}) };
+    return { backendExecutable: context.launch.executable, backendArgs: JSON.stringify(context.launch.args), configDir: context.configDir, backendVersion: backendVersion ?? bundledFiles(spec).inventory.backend_version, ...(modes ? { nativeTiming: String(modes.native_timing), liveMetrics: String(modes.live_metrics), sourceRefresh: String(automaticRequested(context.configDir)) } : {}) };
 }
 export function bindingMatches(options: unknown, values: Record<string, string>): boolean {
     return object(options) && object(options.inputs) && Object.entries(values).every(([key, value]) => options.inputs && (options.inputs as Record<string, unknown>)[key] === value);
@@ -177,7 +177,7 @@ export function integrate(context: InstallContext, spec: ModSpec, requested: boo
         }
         else if (staged)
             host.run(['marketplace', 'update', spec.marketplace]);
-        const values = bindingValues(context, spec);
+        const values = bindingValues(context, spec, provided?.inventory.backend_version);
         if (row && (staged && row.version === current.mod_version || provided && row.version !== current.mod_version)) {
             if (userDisabled) rememberDisabled(context, spec, true);
             host.run(['uninstall', spec.plugin, '--scope', 'user']);
