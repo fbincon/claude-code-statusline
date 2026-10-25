@@ -14,5 +14,13 @@
     "remaining-target-power-and-human-visual",
     "claude-2.1.296-exact-declarations"
   ],
-  "implementation_prs": []
+  "implementation_prs": [
+    {
+      "work_package": "IMPORT-01",
+      "number": 143,
+      "head": "69ad4485c5f03e43845864a82968ba938f7c1b92",
+      "merge": "e4f3e7b3266aae7d35d579a233e2e9c58b5d7b3b",
+      "ci_run": 40218297344
+    }
+  ]
 }
