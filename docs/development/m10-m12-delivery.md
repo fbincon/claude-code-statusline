@@ -10,7 +10,9 @@ Implementation is in progress. Protocol 22 adds optional exact selection keys to
 
 CLI and both editors support the global and complete-section slices. Named/profile/project saves reuse revision-checked transactions and retain identity/bindings. Installed receipts add four selective-import cases to the existing twenty categories. See [usage and target rules](../PROFILES.md#selective-import).
 
-Focused core, transaction and external-editor tests passed; the local official native Mod suite passed 133 tests. Full source, installed and fixed-host matrix acceptance is pending. No public release has been made.
+Local source checks passed 1,218 tests with 5 explicitly skipped; generated resources, documentation links and migration inventories passed. The local official native Mod suite passed 133 tests. All 21 installed categories passed before the rollback repair. The real npm 3.7.0/current roundtrip, interruption recovery and explicit configuration restoration passed on pinned Claude Code 2.1.296 with the repaired package. The final feature CI matrix is pending; no public release has been made.
+
+The pinned-host matrix exposed a rollback defect: an older ownership reader cannot interpret the newer editor protocol, and an official plugin update can retain a newer cache. The current package now verifies and stages the actual target Mod bundle, re-installs the owned cache on downgrade, preserves explicit disablement and unrelated settings, and then runs the target installer in a separate process. Resource hashes, backend bindings and doctor results remain mandatory. This fixes a new automated failure; it is not part of the six accepted historical gaps.
 
 ## Remaining work
 
