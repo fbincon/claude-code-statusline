@@ -33,9 +33,10 @@ export function changedDocumentationOnly(event: string, refType: string, base: s
 
 export function assessCiNeeds(needs: Record<string, { result: string; outputs?: Record<string, string> }>): void {
     assert.equal(needs.scope?.result, 'success', 'CI scope classification did not pass');
+    assert.notEqual(needs.scope.outputs?.draft, 'true', 'Draft quick checks do not satisfy complete acceptance');
     const documentation = needs.scope.outputs?.docs_only === 'true';
-    if (documentation) assert.equal(needs.documentation?.result, 'success', 'Documentation checks did not pass');
-    for (const name of ['candidate', 'installed', 'runtime', 'mods'])
+    if (documentation) assert.equal(needs.scope.outputs?.docs_checked, 'true', 'Documentation checks did not pass');
+    for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods'])
         assert.equal(needs[name]?.result, documentation ? 'skipped' : 'success', 'Unexpected CI result for ' + name);
 }
 
@@ -45,6 +46,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         const result = changedDocumentationOnly(process.env.CI_EVENT ?? '', process.env.CI_REF_TYPE ?? '', process.env.CI_BASE ?? '', process.env.CI_HEAD ?? '');
         assert(process.env.GITHUB_OUTPUT, 'Missing CI output path');
         appendFileSync(process.env.GITHUB_OUTPUT, `docs_only=${result}\n`);
+        appendFileSync(process.env.GITHUB_OUTPUT, `draft=${process.env.CI_EVENT === 'pull_request' && process.env.CI_DRAFT === 'true'}\n`);
         console.log(result ? 'Documentation allowlist: necessary checks only' : 'Full candidate and product matrix required');
     }
 }

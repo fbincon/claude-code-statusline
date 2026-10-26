@@ -30,7 +30,7 @@ test('root agent guidance additions, edits and deletions stay light, but executa
             execFileSync(process.execPath, [fileURLToPath(new URL('../ci-scope.js', import.meta.url))], {
                 cwd: root, env: { ...process.env, CI_EVENT: event, CI_REF_TYPE: 'branch', CI_BASE: base, CI_HEAD: git('rev-parse', 'HEAD'), GITHUB_OUTPUT: output },
             });
-            assert.equal(fs.readFileSync(output, 'utf8'), `docs_only=${expected}\n`, event);
+            assert.equal(fs.readFileSync(output, 'utf8'), `docs_only=${expected}\ndraft=false\n`, event);
         }
     };
     try {
@@ -78,14 +78,14 @@ test('community additions, edits and deletions stay light, but executable rename
         const base = git('rev-parse', 'HEAD');
         for (const file of ['SECURITY.md', 'CONTRIBUTING.md', '.github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/config.yml']) {
             fs.writeFileSync(join(root, file), 'content\n'); git('add', file); git('commit', '-m', 'add documentation');
-            assert.equal(classify(base), 'docs_only=true\n');
+            assert.equal(classify(base), 'docs_only=true\ndraft=false\n');
         }
         fs.appendFileSync(join(root, 'SECURITY.md'), 'updated\n'); git('add', 'SECURITY.md'); git('commit', '-m', 'edit policy');
-        assert.equal(classify(base), 'docs_only=true\n');
+        assert.equal(classify(base), 'docs_only=true\ndraft=false\n');
         git('rm', '.github/ISSUE_TEMPLATE/preview-feedback.yml'); git('commit', '-m', 'replace preview');
-        assert.equal(classify(base), 'docs_only=true\n');
+        assert.equal(classify(base), 'docs_only=true\ndraft=false\n');
         git('mv', 'runtime.js', '.github/pull_request_template.md'); git('commit', '-m', 'executable rename');
-        assert.equal(classify(base), 'docs_only=false\n');
+        assert.equal(classify(base), 'docs_only=false\ndraft=false\n');
     } finally { fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }); }
 });
 
@@ -113,32 +113,37 @@ test('actual Git diffs allow Markdown but reject executable-to-document renames'
         const base = git('rev-parse', 'HEAD');
         fs.writeFileSync(join(root, 'README.md'), 'updated\n');
         git('add', 'README.md'); git('commit', '-m', 'docs');
-        assert.equal(classify(base, git('rev-parse', 'HEAD')), 'docs_only=true\n');
+        assert.equal(classify(base, git('rev-parse', 'HEAD')), 'docs_only=true\ndraft=false\n');
         fs.mkdirSync(join(root, 'docs'));
         git('mv', 'runtime.js', 'docs/runtime.md'); git('commit', '-m', 'rename');
-        assert.equal(classify(base, git('rev-parse', 'HEAD')), 'docs_only=false\n');
+        assert.equal(classify(base, git('rev-parse', 'HEAD')), 'docs_only=false\ndraft=false\n');
     } finally { fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }); }
 });
 
 test('the required gate rejects skipped or failed product evidence and failed scope checks', () => {
-    const full = Object.fromEntries(['scope', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'success', outputs: { docs_only: 'false' } }]));
+    const full = Object.fromEntries(['scope', 'development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'success', outputs: { docs_only: 'false' } }]));
     assert.doesNotThrow(() => assessCiNeeds(full));
-    for (const name of ['scope', 'candidate', 'installed', 'runtime', 'mods']) {
+    for (const name of ['scope', 'development', 'candidate', 'installed', 'runtime', 'mods']) {
         for (const result of ['failure', 'cancelled', 'skipped'])
             assert.throws(() => assessCiNeeds({ ...full, [name]: { ...full[name]!, result } }));
         const missing = { ...full }; delete missing[name];
         assert.throws(() => assessCiNeeds(missing));
     }
     const docs = {
-        scope: { result: 'success', outputs: { docs_only: 'true' } }, documentation: { result: 'success' },
-        ...Object.fromEntries(['candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'skipped' }])),
+        scope: { result: 'success', outputs: { docs_only: 'true', docs_checked: 'true' } },
+        ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'skipped' }])),
     };
     assert.doesNotThrow(() => assessCiNeeds(docs));
     for (const result of ['failure', 'cancelled', 'skipped']) {
-        assert.throws(() => assessCiNeeds({ ...docs, documentation: { result } }));
+        assert.throws(() => assessCiNeeds({ ...docs, scope: { result: 'success', outputs: { docs_only: 'true', docs_checked: result } } }));
         assert.throws(() => assessCiNeeds({ ...docs, scope: { result, outputs: { docs_only: 'true' } } }));
     }
-    const { documentation: _documentation, ...withoutDocumentation } = docs;
+    const withoutDocumentation = { ...docs, scope: { result: 'success', outputs: { docs_only: 'true' } } };
     assert.throws(() => assessCiNeeds(withoutDocumentation));
     assert.throws(() => assessCiNeeds({ scope: { result: 'success' } }));
+});
+
+test('draft fast checks never satisfy the required aggregate', () => {
+    const needs = Object.fromEntries(['scope', 'quick', 'development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'success', outputs: { docs_only: 'false', draft: 'true' } }]));
+    assert.throws(() => assessCiNeeds(needs), /Draft/);
 });

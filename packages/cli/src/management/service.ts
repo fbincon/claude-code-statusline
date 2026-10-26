@@ -1,3 +1,4 @@
+import { phaseMarker } from '@fbincon/statusline-platform/performance';
 import * as fs from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -111,6 +112,7 @@ function targetIntegration(configDir: string, before: PackageIdentity, flags: Ma
     return binding !== null;
 }
 export async function manage(argv: readonly string[], options: ManagementEnvironment): Promise<number> {
+    const mark = phaseMarker();
     const { stdout, stderr } = options, environment = options.environment ?? process.env;
     let flags: ManagementOptions | undefined, language: Language = 'en', temporary: string | undefined, release: (() => void) | undefined, operation: PackageOperation | undefined;
     const controller = new AbortController(), cancel = () => controller.abort();
@@ -276,11 +278,13 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         saveOperation(operation);
         const observeProcess = observeOperation(operation);
         npm.onProcess = observeProcess;
+        mark('reviewed');
         options.checkpoint?.('reviewed', operation);
         verifyArchive(savedArchive, target);
         if (installed?.version !== target.version) {
             operation.stage = 'installing';
             saveOperation(operation);
+            mark('installing');
             options.checkpoint?.('installing', operation);
             await npm.installArchive(savedArchive, layout.prefix);
         }
@@ -288,11 +292,13 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         operation.stage = 'package_verified';
         operation.results.package = true;
         saveOperation(operation);
+        mark('package-verified');
         options.checkpoint?.('package_verified', operation);
         assertConfiguration(configDir, hashes);
         if (integrated) {
             operation.stage = 'integrating';
             saveOperation(operation);
+            mark('integrating');
             options.checkpoint?.('integrating', operation);
             await (options.integrate ?? refreshIntegration)(layout.root, operation.after, configDir, host, hashes, temporary, false, environment, controller.signal, observeProcess);
         }
@@ -301,6 +307,7 @@ export async function manage(argv: readonly string[], options: ManagementEnviron
         saveOperation(operation);
         recordInstallation(operation);
         finishOperation(operation);
+        mark('complete');
         stdout(t('management.complete', language, { version: target.version, prefix: layout.prefix, backup: operation.snapshot ? operation.id : '—' }) + '\n');
         if (runnerRoot)
             stdout(t('management.runner', language, { entry: join(recoveryRunner, 'bin/claude-statusline.js') }) + '\n');

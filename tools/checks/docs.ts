@@ -1,8 +1,8 @@
 import * as fs from 'node:fs';
 import { join, resolve, relative, dirname, basename, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { rewriteLinks, GITHUB, RAW_GITHUB } from '../release/markdown.js';
-import { checkCommunity } from './community.js';
+import { rewriteLinks, GITHUB, RAW_GITHUB } from '../release/markdown.ts';
+import { checkCommunity } from './community.ts';
 const LOCAL_ONLY = new Set(['ROADMAP.md', 'ROADMAP.zh-CN.md', 'MACOS_VALIDATION.md']);
 export function configurationSection(markdown: string, heading: string): string {
     return markdown.replaceAll('\r\n', '\n').match(new RegExp('^## ' + heading + '\\n(.*?)(?=^## |$(?![\\s\\S]))', 'ms'))?.[1] ?? '';

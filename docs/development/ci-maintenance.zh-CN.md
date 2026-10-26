@@ -6,13 +6,33 @@
 
 ## CI 耗时与稳定性优化
 
-[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) 跟踪分阶段优化。第一阶段保留完整 PR／main／tag 验收和 8 安装目标／32 运行时／16 宿主矩阵；本次变更尚未启用后续产物晋级阶段。
+### 开发与执行路径
 
-候选准备只下载一次不可变的 3.7.0、3.8.0 历史包，验证固定 SHA-256 后通过独立的 `ci-historical-inputs` 附件分发。消费方使用已有 `TS06_LEGACY_370_ARTIFACT`／`TS06_LEGACY_380_ARTIFACT` 输入并独立复核字节。候选安装继续在仓库外使用空缓存、离线 npm 和禁用生命周期脚本；本地未提供历史包时也使用同一个下载器。
+macOS 身份适配器通过既有原生桥接读取 `PROC_PIDTBSDINFO`，校验完整结构和 PID，并保留 C locale／UTC 的 `ps lstart` token，包括个位日期的空格。未知结果仍不可验证，僵尸进程不算存活。ABI 对照 [Apple 定义](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/proc_info.h)，实际 macOS 测试逐字比较 `ps` 的结果。手动 `validation=macos-probe` 在 Intel 和 ARM 上各重复二十次受影响的六语言事务流程，每台 runner 还进行 1,000 次身份比较，仅生成诊断证据。
+
+草稿产品 PR 执行 `Draft quick checks`（完整的本地 Linux 检查命令），但不能通过 `Complete candidate evidence`。创建、同步、重新打开、转为待审查和退回草稿都会重新分类当前 head。待审查产品 PR 要求完整覆盖；白名单文档在分类任务中完成检查，无需构建产品。汇总门禁使用固定 Node 直接执行无外部依赖的检查器。PR 更新取消旧运行；main／tag 按不可变提交分组，避免取消其他修订的证据。
+
+开发检查与两次独立干净构建并行，二者均成功后才执行平台验收。开发任务分发绑定精确提交、锁文件、逐文件及归档摘要的可移植编译输出。消费方自行安装本平台原生依赖，校验后只恢复六个固定编译目录；独立构建不使用此包。平台任务保留全部源码测试，仓库静态生成／文档／归档／清单检查集中执行。普通测试文件使用两个隔离 worker；原生进程与锁、终端、时序及恢复测试保留串行组。未知位置仍执行并默认串行；`STATUSLINE_TEST_WORKERS=1` 用于对照。
+
+Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保留：开发运行时与某个 Node 组合完全一致时，安装任务的完整源码测试和原有隔离安装也覆盖该组合。共享回执引用这次实际执行，并要求源码测试回执、可执行文件摘要和源码哈希一致，不算一次新测试。其他运行时保持独立任务。两个真实历史版本流程通过隔离子进程并发执行，分别拥有 prefix、HOME、配置、缓存、registry 和日志；失败时取消另一个流程，等待退出后再清理。
+
+手动 `validation=windows-probe` 在 Windows x64 和 ARM 宿主／x64 上运行进程边界回归、同机新旧监督程序测量及真实安装验收，不能生成汇总发布验收。最终完整矩阵还在 Windows Claude 2.1.289、2.1.294 上各重复十次原有 20 秒长场景，保留原测试体、源码摘要、单项耗时与日志，然后执行常规完整宿主测试。
+
+专项诊断可向包管理命令预加载计时订阅器。产品的 `claude-statusline.management-timing` 诊断通道只报告 npm、复制、归档校验和事务检查点的阶段名与耗时；普通命令无订阅器，协议输出不变。诊断日志与常规冷安装证据分开。registry／cache 通过一次 npm `config list --json` 读取，保留 npm 配置优先级、prefix／root 检查和含凭据地址的拒绝行为（[npm 配置](https://docs.npmjs.com/cli/v10/commands/npm-config/)）。
+
+[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) 跟踪分阶段优化。本阶段保留完整待审查 PR／main／tag 验收和 8 安装目标／32 运行时／16 宿主矩阵；尚未启用后续产物晋级阶段。
+
+候选准备只下载一次不可变的 3.7.0、3.8.0 历史包，验证固定 SHA-256 后通过独立的 `ci-historical-inputs` 附件分发。缓存键包含两个不可变摘要，不使用回退键，也不保存测试结果；恢复的文件使用前重新计算摘要。消费方使用已有 `TS06_LEGACY_370_ARTIFACT`／`TS06_LEGACY_380_ARTIFACT` 输入并独立复核字节。候选安装继续在仓库外使用空缓存、离线 npm 和禁用生命周期脚本；本地未提供历史包时也使用同一个下载器。
+
+历史包缓存使用 [actions/cache v4.3.0](https://github.com/actions/cache/tree/v4.3.0)，固定提交为 `0057852bfaa89a56745cba8c7296529d2fc39830`。Node 版本索引采用相同的有界临时故障重试策略，记录索引摘要及解析时间；矩阵消费方不再各自解析版本选择器。
 
 下载最多尝试三次，仅对适用的临时连接错误和 HTTP 408／429／500／502／503／504 进行一秒、两秒退避。摘要不符、非法 gzip、内容超限、权限错误和重试耗尽均失败。日志记录版本、固定 URL、阶段、次数和耗时，不记录凭据。官方宿主回执保存有界、脱敏的成功与失败命令日志、阶段耗时和运行身份。候选包及验收附件明确保留 30 天；压缩包上传避免重复压缩。
 
 使用 `npm run ci:watch -- --run RUN_ID --head FULL_SHA --watch --report dist/validation/ci/RUN_ID.json` 确定性跟踪运行。本地使用已有认证的 `gh` 账户，CI 使用 Actions token；不输出 token，也不修改 GitHub。程序按 15／30／60 秒退避轮询固定运行，只输出状态变化，完成时分页收集全部任务和步骤耗时。报告区分排队、执行和 attempt。退出码 0 表示成功完成、1 表示 CI 失败、2 表示观察未完成；观察到期不取消 CI。不得将沿用的成功任务计作新执行样本。
+
+真实 Git 仓库测试属于资源敏感用例并保留串行：Windows 诊断发现双 worker 并发下出现观测缺失及子进程超时。`validation=windows-source-probe` 在受影响的 Windows x64／ARM 和 Node 组合上执行原运行时测试及十次独立 Git 测试，不生成候选或发布验收。
+
+手动运行使用独立汇总名称 `Manual validation (not PR evidence)`，包括有意跳过的诊断门禁，避免成功或 skipped 的诊断状态覆盖 PR 必需检查。
 
 ## CI-01 实现
 

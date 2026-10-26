@@ -3,8 +3,13 @@ import * as fs from 'node:fs';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { resolvedPath } from './commands.js';
 import { removeTree } from './remove-tree.js';
+import { phaseTimer } from './performance.js';
 
 export function copyPackage(source: string, destination: string, limits = { entries: 16384, bytes: 256 * 1024 * 1024 }): void {
+    const finish = phaseTimer('package.copy');
+    try { copyPackageContents(source, destination, limits); } finally { finish(); }
+}
+function copyPackageContents(source: string, destination: string, limits: { entries: number; bytes: number }): void {
     // Resolve existing ancestors on both sides, including Windows short names
     // and junctions, before accepting an absent destination below them.
     const origin = fs.realpathSync.native(source), target = resolvedPath(destination);

@@ -12,9 +12,11 @@ import { resolvedPath } from '../src/commands.js';
 test('npm uses Node and literal argv, reports its effective prefix and scoped registry, and never invokes a shell shim', async () => {
     const prefix = resolve(tmpdir(), 'npm prefix 中文 & $`'), root = join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules'), calls: readonly string[][] = [];
     const seen: string[][] = [];
-    const npm = new Npm({}, async (o) => { seen.push([...o.args]); assert.equal(o.executable, process.execPath); const args = o.args.slice(1); return { code: 0, reason: 'completed', stdout: args[0] === 'prefix' ? prefix : args[0] === 'root' ? root : args[0] === '--version' ? '11.19.0' : args[2] === 'cache' ? resolve(tmpdir(), 'npm cache') : 'https://registry.npmjs.org/' }; }, 'npm-cli.js');
+    const npm = new Npm({}, async (o) => { seen.push([...o.args]); assert.equal(o.executable, process.execPath); const args = o.args.slice(1); return { code: 0, reason: 'completed', stdout: args[0] === 'prefix' ? prefix : args[0] === 'root' ? root : args[0] === '--version' ? '11.19.0' : JSON.stringify({cache:resolve(tmpdir(), 'npm cache'),registry:'https://registry.npmjs.org/','@fbincon:registry':'https://scoped.example.invalid/'}) }; }, 'npm-cli.js');
     const layout = await npm.layout();
     assert.equal(layout.prefix, resolvedPath(prefix));
+    assert.equal(layout.registry,'https://scoped.example.invalid/');
+    assert.equal(seen.filter(args=>args[1]==='config').length,1);
     await npm.install('3.8.0', layout);
     const args = seen.at(-1)!;
     assert(args.includes(resolvedPath(prefix)));
@@ -47,6 +49,25 @@ test('invalid registry credentials, malformed locations and process failures are
         await assert.rejects(npm.layout(), PackageError);
     }
     const prefix = resolve(tmpdir(), 'npm prefix'), root = join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules');
-    const npm = new Npm({}, async (o) => ({ code: 0, reason: 'completed', stdout: o.args[1] === 'prefix' ? prefix : o.args[1] === 'root' ? root : o.args[1] === '--version' ? '11.19.0' : o.args[3] === 'cache' ? resolve(tmpdir(), 'npm-cache') : 'https://user:secret@example.invalid/' }), 'npm-cli.js');
+    const npm = new Npm({}, async (o) => ({ code: 0, reason: 'completed', stdout: o.args[1] === 'prefix' ? prefix : o.args[1] === 'root' ? root : o.args[1] === '--version' ? '11.19.0' : JSON.stringify({cache:resolve(tmpdir(), 'npm-cache'),registry:'https://user:secret@example.invalid/'}) }), 'npm-cli.js');
     await assert.rejects(npm.layout(), (e: unknown) => e instanceof PackageError && e.code === 'registry' && !e.message.includes('secret'));
+});
+
+test('batched npm configuration preserves default registry and rejects malformed JSON without leaking it', async () => {
+    const prefix = resolve(tmpdir(), 'batched npm prefix'), root = join(prefix, process.platform === 'win32' ? 'node_modules' : 'lib/node_modules');
+    for (const config of ['private-malformed-value', 'null', '[]', JSON.stringify({ cache: resolve(tmpdir(), 'cache'), registry: 'https://registry.npmjs.org/' })]) {
+        const npm = new Npm({}, async o => ({ code: 0, reason: 'completed', stdout: o.args[1] === 'root' ? root : o.args[1] === '--version' ? '11.19.0' : config }), 'npm-cli.js');
+        if (config.startsWith('{')) assert.equal((await npm.layout(prefix)).registry, 'https://registry.npmjs.org/');
+        else await assert.rejects(npm.layout(prefix), error => error instanceof PackageError && !error.message.includes('private-malformed'));
+    }
+});
+
+test('opt-in process timing publishes durations without private arguments or environments', async t => {
+    const { channel } = await import('node:diagnostics_channel');
+    const events: unknown[] = [], listener = (value: unknown) => events.push(value), timing = channel('claude-statusline.management-timing');
+    timing.subscribe(listener); t.after(() => timing.unsubscribe(listener));
+    const npm = new Npm({ PRIVATE_SECRET: 'private-value' }, async () => ({ code: 0, reason: 'completed', stdout: 'result' }), 'private-path/npm-cli.js');
+    assert.equal(await npm.run(['view', 'private-package', '--registry', 'https://private.example.invalid/']), 'result');
+    assert.equal(events.length, 1); assert.deepEqual(Object.keys(events[0] as object).sort(), ['elapsed_ms', 'phase']);
+    assert(!JSON.stringify(events).includes('private')); assert.equal((events[0] as any).phase, 'npm.view');
 });

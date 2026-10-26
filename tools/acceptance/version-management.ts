@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, dirname, delimiter, relative, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
 import { npmEntry, readTar } from '../build/files.js';
@@ -13,6 +13,7 @@ import type { installCandidate } from './install.js';
 import { officialEnvironment } from './install.js';
 import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS } from './budgets.js';
 import { removeTree } from '@fbincon/statusline-platform/remove-tree';
+import { runSourceProcess } from '@fbincon/statusline-platform/source-process';
 export interface VersionHost {
     executable: string;
     args: readonly string[];
@@ -29,23 +30,32 @@ type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'r
     host?: VersionHost;
 };
 export async function installedVersionManagement(installed: ReturnType<typeof installCandidate>, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
-    const first = await historicalSequence(installed, '3.7.0', host, tracePath);
     const target = JSON.parse(fs.readFileSync(join(installed.root, 'package.json'), 'utf8')).version;
-    if (compareVersions(target, '3.8.0') > 0)
-        first.previous_release = await historicalSequence(installed, '3.8.0', host, tracePath ? tracePath + '.3.8.0.jsonl' : undefined);
-    return first;
+    const controller = new AbortController(), stop = () => controller.abort();
+    process.once('SIGTERM', stop); process.once('SIGINT', stop);
+    try {
+        const versions: HistoricalRelease[] = compareVersions(target, '3.8.0') > 0 ? ['3.7.0', '3.8.0'] : ['3.7.0'];
+        let primaryFailure: { error: unknown } | undefined;
+        const results = await Promise.allSettled(versions.map(version => historicalSequence(installed, version, controller.signal, host,
+            version === '3.7.0' || !tracePath ? tracePath : tracePath + '.3.8.0.jsonl').catch(error => { primaryFailure ??= { error }; controller.abort(); throw error; })));
+        if (primaryFailure) throw primaryFailure.error;
+        const failed = results.find(result => result.status === 'rejected');
+        if (failed?.status === 'rejected') throw failed.reason;
+        const values = results.map(result => (result as PromiseFulfilledResult<Record<string, unknown>>).value);
+        const first = values[0]!; if (values[1]) first.previous_release = values[1]; return first;
+    } finally { process.off('SIGTERM', stop); process.off('SIGINT', stop); }
 }
-async function historicalSequence(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
+async function historicalSequence(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, signal: AbortSignal, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
     // Keep the established Unicode/shell-character fixture depth: Node 22.0.0 on
     // Windows can lose package type resolution when recovery manifests grow deeper.
     const temporary = fs.realpathSync.native(fs.mkdtempSync(join(dirname(installed.temporary), 'ts05 version 中文 $` & ')));
     try {
-        return await historicalSequenceIn(installed, historicalVersion, temporary, host, tracePath);
+        return await historicalSequenceIn(installed, historicalVersion, temporary, signal, host, tracePath);
     } finally {
         removeTree(temporary);
     }
 }
-async function historicalSequenceIn(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, temporary: string, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
+async function historicalSequenceIn(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, temporary: string, signal: AbortSignal, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
     const legacy = join(temporary, 'historical-' + historicalVersion + '.tgz');
     await prepareHistorical(historicalVersion, legacy);
     const historicalSha256 = HISTORICAL_RELEASES[historicalVersion];
@@ -53,12 +63,16 @@ async function historicalSequenceIn(installed: ReturnType<typeof installCandidat
     const trace = tracePath ?? (process.env.TS04_INSTALLED_REPORT ? process.env.TS04_INSTALLED_REPORT + '.version-management.' + historicalVersion + '.jsonl' : join(temporary, 'version-management-trace.jsonl'));
     fs.mkdirSync(dirname(trace), { recursive: true });
     fs.writeFileSync(trace, '', { mode: 0o600 });
-    const input: Input = { temporary, node: installed.node, root: installed.root, entry: installed.entry, env: host ? officialEnvironment({ ...installed, temporary }) as typeof installed.env : installed.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')), historicalVersion, historicalSha256, trace, host };
+    const isolated = { ...installed, temporary, env: { ...installed.env, HOME: join(temporary, 'home'), USERPROFILE: join(temporary, 'home'), CLAUDE_CONFIG_DIR: join(temporary, 'host-config'), npm_config_cache: join(temporary, 'bootstrap-cache') } };
+    fs.mkdirSync(isolated.env.HOME, { recursive: true, mode: 0o700 });
+    const input: Input = { temporary, node: installed.node, root: installed.root, entry: installed.entry, env: host ? officialEnvironment(isolated) as typeof installed.env : isolated.env, artifact: installed.packed.tarball, npm: npmEntry(), legacy, legacyManifest: JSON.parse(readTar(legacy).get('package.json')!.toString('utf8')), historicalVersion, historicalSha256, trace, host };
     const program = `import {versionManagementChild} from ${JSON.stringify(import.meta.url)};console.log(JSON.stringify(await versionManagementChild(JSON.parse(process.argv[1]))));`;
-    const result = spawnSync(installed.node, ['--input-type=module', '-e', program, JSON.stringify(input)], { cwd: installed.directory, encoding: 'utf8', timeout: host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS, windowsHide: true, maxBuffer: 8 * 1024 * 1024 });
-    const diagnostics = result.stderr + result.stdout + '\n' + fs.readFileSync(trace, 'utf8').slice(-16000);
-    assert.equal(result.error, undefined, diagnostics);
-    assert.equal(result.status, 0, diagnostics);
+    let stderr = '';
+    const result = await runSourceProcess({ executable: installed.node, args: ['--input-type=module', '-e', program, JSON.stringify(input)], cwd: installed.directory, input: '',
+        environment: process.env, timeoutMs: host ? OFFICIAL_VERSION_SEQUENCE_MS : VERSION_SEQUENCE_MS, signal, captureStderr: value => { stderr = value; } });
+    const diagnostics = stderr + result.stdout + '\n' + fs.readFileSync(trace, 'utf8').slice(-16000);
+    assert.equal(result.reason, 'completed', diagnostics);
+    assert.equal(result.code, 0, diagnostics);
     return JSON.parse(result.stdout);
 }
 export async function versionManagementChild(input: Input): Promise<Record<string, unknown>> {
@@ -106,6 +120,10 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     fs.writeFileSync(userconfig, '');
     fs.writeFileSync(globalconfig, '');
     const env = { ...input.env, PATH: hostBin + delimiter + input.env.PATH, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: userconfig, npm_config_globalconfig: globalconfig, npm_config_cache: join(input.temporary, 'update-cache'), npm_config_prefer_online: 'true', CLAUDE_CONFIG_DIR: configDir };
+    if (process.env.TS06_PROFILE_MANAGEMENT === '1') Object.assign(env, {
+        NODE_OPTIONS: '--import=' + new URL('./trace-process.js', import.meta.url).href,
+        STATUSLINE_ACCEPTANCE_TIMINGS: input.trace + '.phases.jsonl',
+    });
     let sequence = 0;
     const timings: { command: string; elapsed_ms: number }[] = [];
     const trace = (value: Record<string, unknown>) => fs.appendFileSync(input.trace, JSON.stringify({ at: new Date().toISOString(), node: process.version, ...value }) + '\n');

@@ -9,18 +9,31 @@ export const CI_REPOSITORY = 'fbincon/claude-code-statusline';
 export async function githubRead(path: string): Promise<any> {
     assert(path.startsWith(`repos/${CI_REPOSITORY}/`), 'Unexpected repository API path');
     const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
-    if (!token) return JSON.parse(execFileSync('gh', ['api', '--hostname', 'github.com', path], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] }));
+    if (!token) {
+        try { return JSON.parse(execFileSync('gh', ['api', '--hostname', 'github.com', path], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] })); }
+        catch (error) {
+            const status = Number(String((error as any).stderr ?? '').match(/HTTP (\d{3})/u)?.[1]) || undefined;
+            throw Object.assign(new Error('GitHub read failed' + (status ? ': HTTP ' + status : '')), { status });
+        }
+    }
     const response = await fetch('https://api.github.com/' + path, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'User-Agent': 'statusline-ci-evidence' }, signal: AbortSignal.timeout(30000) });
-    assert(response.ok, `GitHub read failed: HTTP ${response.status}`);
+    if (!response.ok) throw Object.assign(new Error('GitHub read failed: HTTP ' + response.status), { status: response.status });
     return response.json();
 }
 export function summarizeJobs(jobs: any[]) {
     const seconds = (end: string, start: string) => Math.max(0, (Date.parse(end) - Date.parse(start)) / 1000);
-    return jobs.map(job => ({ id: job.id, name: job.name, attempt: job.run_attempt, status: job.status, conclusion: job.conclusion,
+    const originals = new Map<string, number>();
+    return [...jobs].sort((a, b) => a.run_attempt - b.run_attempt || a.id - b.id).map(job => {
+        const key = JSON.stringify([job.name, job.started_at, job.completed_at]);
+        const reused = job.completed_at ? originals.get(key) : undefined;
+        if (job.completed_at && reused === undefined) originals.set(key, job.id);
+        return { id: job.id, name: job.name, attempt: job.run_attempt, status: job.status, conclusion: job.conclusion,
+        fresh_execution: reused === undefined, reused_from_job_id: reused ?? null,
         queue_seconds: job.started_at && job.created_at ? seconds(job.started_at, job.created_at) : null,
         execution_seconds: job.completed_at && job.started_at ? seconds(job.completed_at, job.started_at) : null,
         steps: (job.steps ?? []).map((step: any) => ({ name: step.name, conclusion: step.conclusion,
-            execution_seconds: step.completed_at && step.started_at ? seconds(step.completed_at, step.started_at) : null })) }));
+            execution_seconds: step.completed_at && step.started_at ? seconds(step.completed_at, step.started_at) : null })) };
+    });
 }
 export async function collectRun(runId: number, head: string) {
     const prefix = `repos/${CI_REPOSITORY}/actions/runs/${runId}`, run = await githubRead(prefix);
@@ -58,7 +71,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
             }
         } catch (error) {
             // An identity/assertion failure is never transient.
-            if (error instanceof assert.AssertionError || ++failures >= 3) throw error;
+            if (error instanceof assert.AssertionError || [401, 403, 404].includes((error as any)?.status) || ++failures >= 3) throw error;
             console.error('CI observation temporarily unavailable; retrying (' + failures + '/3)');
         }
         if (Date.now() >= deadline) { console.error('Observation deadline reached; CI was not cancelled.'); process.exitCode = 2; break; }
