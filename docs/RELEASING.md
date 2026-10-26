@@ -2,6 +2,12 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## Source-bound CI evidence promotion
+
+For source revisions containing the new evidence verifier, Stage A retains full final-PR and main acceptance and permits a lightweight tag gate only at the identical accepted main commit. Publish the original package/source/manifest/checksum bytes; do not rebuild or relabel a candidate for the tag. The tag and main gates must still pass. The npm workflow resolves the explicit promotion chain and downloads immutable original artifact IDs. Missing, expired or mismatched evidence is blocking. See [CI policy and evidence](development/ci-maintenance.md#stage-a-same-commit-tag-promotion).
+
+Historical releases below keep their recorded gates and identities. This CI maintenance creates no product version or publication. Dry runs verify preparation and bytes; a future real release must supply the new tag/OIDC publication evidence without replacing an existing version.
+
 ## v3.9.1 native capacity patch
 
 Use the [v3.9.1-specific approval](releases/approvals/v3.9.1.json) and require all final PR, merged-main and annotated-tag gates. Add Linux, Windows and macOS 2.1.310 to the earlier thirteen combinations, for sixteen hosts; each native receipt also requires 197 actual-host capacity cases. Retain eight installations, 32 Node cases, independent/source rebuilds, installed terminals, four verified draft attachments, npm OIDC and public-download verification. Update the test machine and restore its pre-reproduction display configuration. Record actual sources, save outcomes and GitHub/npm/Gitee receipts in [native capacity delivery](development/native-capacity.md). Only the same six existing #96 gaps remain accepted and unverified.
@@ -119,7 +125,7 @@ gh workflow run npm-publish.yml --repo fbincon/claude-code-statusline \
 
 Wait for each run and inspect its summary before proceeding. Live dispatch from a branch is rejected so npm provenance identifies the actual package source SHA. Only the publishing job receives `id-token: write`; dry-runs never start it. There is no GitHub Environment manual approval.
 
-The workflow requires the tag commit on `main` and successful latest main/tag **CI** runs. It downloads the tag run's `ts06-*` artifacts, rechecks eight installation targets and thirteen hosts with `release:prepare`, and verifies the exact package/source/manifest/checksum bundle. Missing/expired artifacts fail; rerun the original tag CI instead of substituting unrelated artifacts. Stable approval stays version-scoped: changing authentication does not approve other versions or waive gates.
+The workflow requires the tag commit on `main` and successful latest main/tag **CI** runs. It follows the verified promotion record to the original complete run and downloads its exact artifact IDs; legacy tags retain their original full tag-run inputs. It rechecks eight installation targets, 32 Node cases and sixteen hosts with `release:prepare`, plus the exact package/source/manifest/checksum bundle. Missing, expired or conflicting evidence fails; rerun the applicable complete acceptance instead of substituting unrelated artifacts. Stable approval stays version-scoped: changing authentication does not approve other versions or waive gates.
 
 The isolated publishing job uploads that same `.tgz` with lifecycle scripts disabled, using Node 24.21.0/npm 11.21.0. Build identity remains npm 11.19.0; the newer publishing CLI supports OIDC dist-tag operations. It verifies public SHA-256/SHA-512 bytes, sets `latest` for stable or `beta` for preview, and preserves other existing selectors. An existing identical version is a no-op only while its intended selector still matches; other states fail instead of overwriting bytes or rolling back selectors. Inspect ambiguous registry results before retrying.
 

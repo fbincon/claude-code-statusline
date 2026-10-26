@@ -34,6 +34,14 @@ export function changedDocumentationOnly(event: string, refType: string, base: s
 export function assessCiNeeds(needs: Record<string, { result: string; outputs?: Record<string, string> }>): void {
     assert.equal(needs.scope?.result, 'success', 'CI scope classification did not pass');
     assert.notEqual(needs.scope.outputs?.draft, 'true', 'Draft quick checks do not satisfy complete acceptance');
+    const route = needs.scope.outputs?.route ?? 'full';
+    assert(['full', 'tag'].includes(route), 'Unknown acceptance route');
+    if (route === 'tag') {
+        assert.equal(process.env.CI_EVENT, 'push'); assert.equal(process.env.CI_REF_TYPE, 'tag');
+        assert.equal(needs.promotion?.result, 'success', 'Release promotion did not pass');
+        for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods']) assert.equal(needs[name]?.result, 'skipped', 'Unexpected execution during promotion');
+        return;
+    }
     const documentation = needs.scope.outputs?.docs_only === 'true';
     if (documentation) assert.equal(needs.scope.outputs?.docs_checked, 'true', 'Documentation checks did not pass');
     for (const name of ['development', 'candidate', 'installed', 'runtime', 'mods'])

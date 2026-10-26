@@ -10,6 +10,8 @@ import { VERSION } from '@fbincon/statusline-core/release';
 import { publicChannel, sourceFilename } from '../build/model.js';
 import { verifyDelivery } from '../build/verify.js';
 import { REPOSITORY, validatePlan, requirePublishContext, registryMetadata, verifyPublishedBytes, type PublishPlan } from './npm-registry.js';
+import { publishedTagEvidence, runsFor } from '../checks/ci-promotion.js';
+import { verifyRecordedFiles } from '../checks/ci-evidence.js';
 
 export function selectCiRun(runs: any[], commit: string, branch: string) {
     const matching = runs.filter(run => run.head_sha === commit && run.head_branch === branch && run.event === 'push'
@@ -47,10 +49,13 @@ export async function resolveRelease(selection: string) {
     const dryRun = process.env.DRY_RUN === 'true';
     if (!dryRun) requirePublishContext({ tag: tag!, commit });
     else assert(['refs/heads/main', 'refs/tags/' + tag].includes(process.env.GITHUB_REF ?? ''), 'Dry-run must use main or the release tag');
-    const runs = await ciRuns(commit), ciRun = selectCiRun(runs, commit, tag!), mainRun = selectCiRun(runs, commit, 'main');
-    const result = { tag, commit, ci_run: ciRun, main_ci_run: mainRun, dry_run: dryRun, version: VERSION, channel: publicChannel() };
+    const runs = await ciRuns(commit), tagRun = selectCiRun(runs, commit, tag!), mainRun = selectCiRun(runs, commit, 'main');
+    const promotion = await publishedTagEvidence(tag!, commit, runs.find(run => run.id === tagRun));
+    const ciRun = promotion?.sourceRun ?? tagRun;
+    const result = { tag, commit, ci_run: ciRun, tag_ci_run: tagRun, main_ci_run: mainRun, dry_run: dryRun, version: VERSION, channel: publicChannel(),
+        ...(promotion ? { promotion: promotion.promotion, artifact_ids: promotion.artifacts } : {}) };
     fs.writeFileSync(selection, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
-    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `ci_run=${ciRun}\n`);
+    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `ci_run=${ciRun}\nartifact_ids=${promotion?.artifacts.join(',') ?? ''}\n`);
     console.log(JSON.stringify(result));
 }
 export async function prepareBundle(selectionFile: string, evidence: string, output: string) {
@@ -59,6 +64,12 @@ export async function prepareBundle(selectionFile: string, evidence: string, out
     assert.equal(selection.channel, publicChannel());
     const directory = join(evidence, 'ts06-candidate'), filename = 'fbincon-claude-code-statusline-' + VERSION + '.tgz';
     const artifact = join(directory, filename), checked = verifyDelivery(artifact, selection.commit);
+    if (selection.promotion) {
+        const run = (await runsFor(selection.commit)).find(value => value.id === selection.tag_ci_run);
+        const verified = await publishedTagEvidence(selection.tag, selection.commit, run);
+        assert(verified); assert.equal(verified.sourceRun, selection.ci_run); assert.deepEqual(verified.promotion, selection.promotion);
+        assert.deepEqual(verified.artifacts, selection.artifact_ids); verifyRecordedFiles(verified.record, evidence);
+    }
     assert.equal(checked.source.channel, selection.channel);
     fs.mkdirSync(output);
     execFileSync(process.execPath, [join(import.meta.dirname, 'prepare.js'), '--' + selection.channel,
@@ -79,7 +90,7 @@ export async function prepareBundle(selectionFile: string, evidence: string, out
     // setup-node is not needed to interpret this file as ESM in the isolated job.
     fs.writeFileSync(join(output, 'package.json'), '{"private":true,"type":"module"}\n', { flag: 'wx' });
     fs.writeFileSync(join(output, 'release-plan.json'), JSON.stringify(plan, null, 2) + '\n', { flag: 'wx' });
-    const message = `Verified **${selection.tag}** at \`${selection.commit}\`. Main CI ${selection.main_ci_run}; tag CI ${selection.ci_run}. Eight installation targets and sixteen hosts passed. Registry version: ${existing ? 'already published with identical bytes' : 'not yet published'}. Dry-run: ${selection.dry_run}.\n\nA dry-run does not authenticate to npm or validate its trusted-publisher binding.\n`;
+    const message = `Verified **${selection.tag}** at \`${selection.commit}\`. Main CI ${selection.main_ci_run}; tag CI ${selection.tag_ci_run ?? selection.ci_run}; original complete acceptance ${selection.ci_run}. Eight installation targets, 32 runtime cases and sixteen hosts passed. Registry version: ${existing ? 'already published with identical bytes' : 'not yet published'}. Dry-run: ${selection.dry_run}.\n\nA dry-run does not authenticate to npm or validate its trusted-publisher binding.\n`;
     if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, message);
     console.log(message);
 }
