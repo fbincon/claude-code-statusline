@@ -38,6 +38,8 @@ TUI 包维护不依赖 CLI 的纯绘制／状态回归测试，检查完整分�
 
 ## 当前 TypeScript 检查
 
+[CI 执行与晋级规则](ci-maintenance.zh-CN.md#候选包在-prmain-与-tag-之间晋级)区分草稿反馈、完整候选验收和集成／发布核验。完整候选仍覆盖 8 安装目标、32 个 Node 场景、16 宿主及适用的 197 项 Native 容量检查。main 三平台冒烟是原包的额外集成证据，不能替代缺失的 PR 验收。回归覆盖错误或过期运行／附件、重复回执、源码／tree／base／策略变化、移动 tag、编译输出来源及失败／跳过依赖。手动诊断和本地冒烟不属于可发布验收。
+
 日常入口为 `npm run check`、`docs:check`、`candidate:build`、`candidate:verify`、`test:installed` 和 `test:mods`。完整命令、离线安装、八目标/十三主机证据及手动历史入口见[工程候选指南](typescript-migration/ts-05/candidate.zh-CN.md)。
 默认流程不启动 Python；固定参考保留全部 161 案例和原有三项文本差异，真实 Node 并发、原子写入、终止与终端恢复仍执行。2.1.296 类型声明不可用不计为类型通过。完整 D06 测量归 PERF-01，历史 FAIL 保留。
 

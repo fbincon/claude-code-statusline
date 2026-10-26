@@ -6,11 +6,15 @@
 
 ## CI 耗时与稳定性优化
 
-### A 阶段：同提交 tag 晋级
+### 候选包在 PR、main 与 tag 之间晋级
 
-待审查 PR 和 main 仍执行完整验收。注解版本 tag 指向已完整验收的 main 提交时，可以改跑 `Verify accepted release bytes` 及必需汇总门禁。选择器核对精确仓库／工作流／main 提交的最新运行、原 attempt、源码树和规则摘要、完整 8／32／16 覆盖、实际 job 引用、固定输入及全部原始附件 ID／摘要。再次校验四个交付文件、原回执哈希、版本限定批准和 main 可达性。tag 晋级明确区分本次执行和沿用的覆盖，不改写回执、不声称重新执行完整矩阵。
+待审查产品 PR 执行一次完整验收。常规双父 merge commit 合入 main 后，仅当 PR 验收的 head／base 与合并父提交一致、完整 Git tree 相同时复用候选包；前一个 main 门禁也须通过。main 在 Linux、Windows、macOS 上安装原包，执行版本、安装、doctor、渲染、带 revision 的配置读写及卸载冒烟。三个独立任务的回执分别记录实际集成提交与原始源码／包，可以单独重跑。
 
-完整运行在 `candidate-acceptance.json` 旁生成 schema v1 的 `ci-evidence.json`，记录源码／工具链／运行时／宿主身份、原始 job attempt 和回执／附件摘要。通过明确附件 ID 选择输入，保留先前 attempt 的成功执行；同名旧失败附件不能覆盖重试选定的报告。过期、缺失、变动、失败或歧义证据阻止晋级。旧源码修订保留完整 tag 路径；本阶段尚未启用 main 对 PR 的复用。
+验收策略变化时同时执行复用影子核验和**完整 main 矩阵**。启用 PR 也必须完成最终 PR／main 验收并核对复用结果，然后后续普通合并才能跳过重复矩阵。squash／rebase、base／head／tree 变化或旧 PR 证据走明确的完整 main 后备路径。适用来源的证据损坏、过期、失败、取消、缺失或歧义均阻断，不能改选其他成功运行掩盖。
+
+注解发布 tag 通常指向完整验收的 **PR 源提交**，该提交必须经已核验合并在 main 历史中可达。tag 门禁核对最新完整 PR 验收、成功的 main 集成、tag 对象、版本专属批准、源码 tree／策略及原始四文件／回执／输入／编译输出摘要。A 阶段的同提交 main → tag 路径继续支持完整 main 后备和旧证据。晋级记录区分实际检查与复用覆盖，不改写包内 commit 或原始回执。
+
+完整运行在 `candidate-acceptance.json` 旁生成 schema v1 的 `ci-evidence.json`，记录源码／工具链／运行时／宿主身份、原始 job attempt 和回执／附件摘要。通过明确附件 ID 选择输入，保留先前 attempt 的成功执行；同名旧失败附件不能覆盖重试选定的报告。`ci-promotion` 记录 main／tag 证据链和原始集成 job 引用。恢复可执行编译输出前先验证原始归档和清单摘要；跨提交恢复另须相同 tree 和源提交可达性。旧源码修订保留完整 tag 路径。
 
 npm 解析器沿 tag 晋级记录回溯原始完整运行，复核证据链并发布相同包字节。旧版本继续兼容读取，不补造新的历史证据。源码归档、独立构建、源码重建、草稿附件、OIDC 上下文和公开下载要求保持。源码／证据附件 30 天到期；刷新证据需要适用的完整验收及新的集成／tag 核验，不能用无关成功运行替代。
 
@@ -28,7 +32,7 @@ Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保
 
 专项诊断可向包管理命令预加载计时订阅器。产品的 `claude-statusline.management-timing` 诊断通道只报告 npm、复制、归档校验和事务检查点的阶段名与耗时；普通命令无订阅器，协议输出不变。诊断日志与常规冷安装证据分开。registry／cache 通过一次 npm `config list --json` 读取，保留 npm 配置优先级、prefix／root 检查和含凭据地址的拒绝行为（[npm 配置](https://docs.npmjs.com/cli/v10/commands/npm-config/)）。
 
-[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) 跟踪分阶段优化。保留完整待审查 PR／main 验收及 8 安装目标／32 运行时／16 宿主责任；A 阶段将满足条件的重复 tag 矩阵替换为对原始已验收字节的明确核验。
+[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) 跟踪分阶段优化。完整候选覆盖仍为 8 安装目标、32 运行时、16 官方宿主及适用的 197 项 Native 容量检查。普通交付执行一轮完整候选矩阵，再进行 main 集成和 tag 核验；策略变化及不等价集成保留完整后备路径。
 
 候选准备只下载一次不可变的 3.7.0、3.8.0 历史包，验证固定 SHA-256 后通过独立的 `ci-historical-inputs` 附件分发。缓存键包含两个不可变摘要，不使用回退键，也不保存测试结果；恢复的文件使用前重新计算摘要。消费方使用已有 `TS06_LEGACY_370_ARTIFACT`／`TS06_LEGACY_380_ARTIFACT` 输入并独立复核字节。候选安装继续在仓库外使用空缓存、离线 npm 和禁用生命周期脚本；本地未提供历史包时也使用同一个下载器。
 

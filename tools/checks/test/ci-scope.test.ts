@@ -122,6 +122,7 @@ test('actual Git diffs allow Markdown but reject executable-to-document renames'
 
 test('the required gate rejects skipped or failed product evidence and failed scope checks', () => {
     const full = Object.fromEntries(['scope', 'development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'success', outputs: { docs_only: 'false' } }]));
+    for (const name of ['integration', 'promotion']) full[name] = { result: 'skipped', outputs: { docs_only: 'false' } };
     assert.doesNotThrow(() => assessCiNeeds(full));
     for (const name of ['scope', 'development', 'candidate', 'installed', 'runtime', 'mods']) {
         for (const result of ['failure', 'cancelled', 'skipped'])
@@ -131,7 +132,7 @@ test('the required gate rejects skipped or failed product evidence and failed sc
     }
     const docs = {
         scope: { result: 'success', outputs: { docs_only: 'true', docs_checked: 'true' } },
-        ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'skipped' }])),
+        ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods', 'integration', 'promotion'].map(name => [name, { result: 'skipped' }])),
     };
     assert.doesNotThrow(() => assessCiNeeds(docs));
     for (const result of ['failure', 'cancelled', 'skipped']) {
@@ -153,9 +154,23 @@ test('only a tag push with successful promotion can intentionally skip the matri
     t.after(() => { for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; } });
     process.env.CI_EVENT = 'push'; process.env.CI_REF_TYPE = 'tag';
     const needs = { scope: { result: 'success', outputs: { route: 'tag', docs_only: 'false' } }, promotion: { result: 'success' },
-        ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'skipped' }])) };
+        ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods', 'integration'].map(name => [name, { result: 'skipped' }])) };
     assert.doesNotThrow(() => assessCiNeeds(needs));
     for (const result of ['skipped', 'cancelled', 'failure']) assert.throws(() => assessCiNeeds({ ...needs, promotion: { result } }));
     process.env.CI_EVENT = 'pull_request'; assert.throws(() => assessCiNeeds(needs));
     process.env.CI_EVENT = 'push'; process.env.CI_REF_TYPE = 'branch'; assert.throws(() => assessCiNeeds(needs));
+});
+test('main reuse and policy-change shadow both require successful integration and promotion', t => {
+    const previous = { CI_EVENT: process.env.CI_EVENT, CI_REF_TYPE: process.env.CI_REF_TYPE, CI_REF_NAME: process.env.CI_REF_NAME };
+    t.after(() => { for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; } });
+    process.env.CI_EVENT = 'push'; process.env.CI_REF_TYPE = 'branch'; process.env.CI_REF_NAME = 'main';
+    for (const shadow of [false, true]) {
+        const needs = { scope: { result: 'success', outputs: { route: shadow ? 'full' : 'main', shadow: String(shadow), docs_only: 'false' } },
+            integration: { result: 'success' }, promotion: { result: 'success' },
+            ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: shadow ? 'success' : 'skipped' }])) };
+        assert.doesNotThrow(() => assessCiNeeds(needs));
+        for (const name of ['integration', 'promotion']) for (const result of ['skipped', 'failure', 'cancelled']) assert.throws(() => assessCiNeeds({ ...needs, [name]: { result } }));
+        process.env.CI_REF_NAME = 'other'; assert.throws(() => assessCiNeeds(needs)); process.env.CI_REF_NAME = 'main';
+        process.env.CI_EVENT = 'pull_request'; assert.throws(() => assessCiNeeds(needs)); process.env.CI_EVENT = 'push';
+    }
 });

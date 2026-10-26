@@ -23,10 +23,17 @@ export function createTestBundle(root: string, output: string): void {
         lock_sha256: sha256(fs.readFileSync(join(root, 'package-lock.json'))), archive_sha256: sha256(fs.readFileSync(archive)),
         files: Object.fromEntries(names.map(name => [name, sha256(fs.readFileSync(join(root, name)))])) }, null, 2) + '\n');
 }
-export function restoreTestBundle(root: string, input: string): void {
+export function restoreTestBundle(root: string, input: string, sourceCommit?: string): void {
     const manifest = JSON.parse(fs.readFileSync(join(input, 'compiled-tests.json'), 'utf8'));
     assert.equal(manifest.schema_version, 1); assert.equal(manifest.node, process.version);
-    assert.equal(manifest.commit, execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim());
+    const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+    const head = git('rev-parse', 'HEAD');
+    if (sourceCommit) {
+        assert.match(sourceCommit, /^[a-f0-9]{40}$/u);
+        assert.equal(git('rev-parse', head + '^{tree}'), git('rev-parse', sourceCommit + '^{tree}'), 'Compiled source tree differs from integration');
+        git('merge-base', '--is-ancestor', sourceCommit, head);
+    }
+    assert.equal(manifest.commit, sourceCommit ?? head);
     assert.equal(manifest.lock_sha256, sha256(fs.readFileSync(join(root, 'package-lock.json'))));
     const archive = join(input, 'compiled-tests.tar'); assert.equal(sha256(fs.readFileSync(archive)), manifest.archive_sha256);
     const entries = readTar(archive, 'ci-tests/');
@@ -40,6 +47,6 @@ export function restoreTestBundle(root: string, input: string): void {
     }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-    assert(['create', 'restore'].includes(process.argv[2]!) && process.argv.length === 4, 'Use create|restore DIRECTORY');
-    (process.argv[2] === 'create' ? createTestBundle : restoreTestBundle)(fs.realpathSync(process.cwd()), resolve(process.argv[3]!));
+    assert(['create', 'restore'].includes(process.argv[2]!) && (process.argv.length === 4 || process.argv[2] === 'restore' && process.argv.length === 5), 'Use create DIRECTORY or restore DIRECTORY [ACCEPTED_SOURCE_SHA]');
+    (process.argv[2] === 'create' ? createTestBundle : restoreTestBundle)(fs.realpathSync(process.cwd()), resolve(process.argv[3]!), process.argv[4]);
 }

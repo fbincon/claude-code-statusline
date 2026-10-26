@@ -40,6 +40,8 @@ The TUI package owns pure rendering/state regressions without importing the CLI.
 
 ## Current TypeScript checks
 
+The [CI execution and promotion policy](ci-maintenance.md#candidate-promotion-across-pr-main-and-tag) separates draft feedback, complete candidate acceptance and integration/release verification. The complete candidate still covers 8 installations, 32 Node cases, 16 hosts and 197 applicable native-capacity cases. Main's three-platform smoke is additional evidence for the original package; it cannot stand in for missing PR acceptance. Tests cover wrong or expired runs/artifacts, duplicate receipts, changed source/tree/base/policy, moved tags, compiler-output provenance and failed/skipped dependencies. Manual diagnostics and local smoke records are not releasable acceptance.
+
 Daily entries are `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/sixteen-host evidence and the manual historical entry.
 Normal workflows do not launch Python. All 161 frozen cases and the three approved text differences remain; real Node contention, atomic writes, process termination and terminal restoration still run. Missing 2.1.296 declarations are not a typecheck pass. Full D06 measurement belongs to PERF-01; its historical FAIL remains.
 

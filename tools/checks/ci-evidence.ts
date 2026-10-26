@@ -2,13 +2,13 @@
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { githubRead, CI_REPOSITORY } from './ci-watch.ts';
 import { TARGETS, HOSTS } from './runtime-inputs.ts';
+import { envelopeBytes } from './evidence-zip.ts';
 
 export const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
 export const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).trim();
@@ -57,8 +57,8 @@ export function selectCompleteArtifacts(artifacts: any[]): ArtifactIdentity[] {
     assert(names.includes('ts06-candidate') && names.includes('ci-compiled-tests'), 'Missing build outputs');
     return names.map(name => artifactIdentity(newestArtifact(artifacts, name)));
 }
-export async function artifactJson(artifact: any, file: string): Promise<any> {
-    assert(['ci-evidence.json', 'promotion.json'].includes(file));
+export async function artifactJson(artifact: any, file: string, expectedHash?: string): Promise<any> {
+    assert(['ci-evidence.json', 'promotion.json', 'smoke.json'].includes(file));
     const identity = artifactIdentity(artifact), path = `repos/${CI_REPOSITORY}/actions/artifacts/${identity.id}/zip`;
     let bytes: Buffer;
     const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
@@ -73,12 +73,9 @@ export async function artifactJson(artifact: any, file: string): Promise<any> {
         bytes = Buffer.concat(chunks);
     } else bytes = execFileSync('gh', ['api', '--hostname', 'github.com', path], { maxBuffer: 4 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] });
     assert.equal('sha256:' + digest(bytes), identity.digest, 'Evidence ZIP digest mismatch');
-    const temporary = fs.mkdtempSync(join(tmpdir(), 'ci-evidence-'));
-    try {
-        const archive = join(temporary, 'evidence.zip'); fs.writeFileSync(archive, bytes, { mode: 0o600 });
-        // Extract one fixed filename to memory, never arbitrary archive paths.
-        return JSON.parse(execFileSync('unzip', ['-p', archive, file], { encoding: 'utf8', maxBuffer: 2 * 1024 * 1024, timeout: 30000, stdio: ['ignore', 'pipe', 'pipe'] }));
-    } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
+    const content = envelopeBytes(bytes, file);
+    if (expectedHash) assert.equal(digest(content), expectedHash, 'Original envelope file changed');
+    return JSON.parse(content.toString('utf8'));
 }
 export function requireRun(run: any, commit: string, branch: string, event = 'push'): void {
     assert.match(commit, SHA); assert.equal(run.head_sha, commit); assert.equal(run.head_branch, branch); assert.equal(run.event, event);

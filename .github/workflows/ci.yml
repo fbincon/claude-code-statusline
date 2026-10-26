@@ -37,6 +37,8 @@ jobs:
       docs_checked: ${{ steps.documentation.outputs.docs_checked }}
       draft: ${{ steps.scope.outputs.draft }}
       route: ${{ steps.promotion.outputs.route }}
+      promotion_route: ${{ steps.promotion.outputs.promotion_route }}
+      shadow: ${{ steps.promotion.outputs.shadow }}
       source_run: ${{ steps.promotion.outputs.source_run }}
       source_commit: ${{ steps.promotion.outputs.source_commit }}
       filename: ${{ steps.promotion.outputs.filename }}
@@ -68,9 +70,11 @@ jobs:
           CI_EVENT: ${{ github.event_name }}
           CI_REF_TYPE: ${{ github.ref_type }}
           CI_REF_NAME: ${{ github.ref_name }}
+          CI_BASE: ${{ github.event.before }}
+          CI_DOCS_ONLY: ${{ steps.scope.outputs.docs_only }}
         run: node tools/checks/ci-promotion.ts select --output "$RUNNER_TEMP/promotion-selection.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: steps.promotion.outputs.route == 'tag'
+        if: steps.promotion.outputs.promotion_route != ''
         with:
           name: ci-promotion-selection
           path: ${{ runner.temp }}/promotion-selection.json
@@ -401,7 +405,7 @@ jobs:
 
   acceptance:
     name: ${{ github.event_name == 'workflow_dispatch' && 'Manual validation (not PR evidence)' || 'Complete candidate evidence' }}
-    needs: [scope, quick, development, candidate, installed, runtime, mods, promotion]
+    needs: [scope, quick, development, candidate, installed, runtime, mods, integration, promotion]
     if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
     runs-on: ubuntu-24.04
     permissions:
@@ -420,6 +424,7 @@ jobs:
           CI_NEEDS: ${{ toJSON(needs) }}
           CI_EVENT: ${{ github.event_name }}
           CI_REF_TYPE: ${{ github.ref_type }}
+          CI_REF_NAME: ${{ github.ref_name }}
         run: node tools/checks/ci-scope.ts gate
       - if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -588,10 +593,58 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  integration:
+    name: Integration smoke / ${{ matrix.os }}
+    needs: scope
+    if: needs.scope.outputs.promotion_route == 'main'
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025, macos-15]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-promotion-selection
+          path: ${{ runner.temp }}/selection
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/evidence
+      - name: Verify source and original bytes before running integration tools
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-promotion.ts preflight --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence"
+      - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests" "${{ needs.scope.outputs.source_commit }}"
+      - name: Install original PR package and exercise critical commands
+        run: node dist/typescript/tools/acceptance/integration-smoke.js --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.scope.outputs.filename }}" --source "${{ needs.scope.outputs.source_commit }}" --integration "$GITHUB_SHA" --target "${{ matrix.os }}" --report "$RUNNER_TEMP/smoke/smoke.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: ci-integration-${{ matrix.os }}
+          path: ${{ runner.temp }}/smoke/
+          if-no-files-found: error
+          retention-days: 30
+
   promotion:
     name: Verify accepted release bytes
-    needs: scope
-    if: needs.scope.outputs.route == 'tag'
+    needs: [scope, integration]
+    if: always() && needs.scope.result == 'success' && needs.scope.outputs.promotion_route != ''
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -621,11 +674,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node tools/checks/ci-promotion.ts preflight --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence"
-      - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests"
+      - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests" "${{ needs.scope.outputs.source_commit }}"
+      - id: smokes
+        if: needs.scope.outputs.promotion_route == 'main'
+        name: Select exact original integration receipts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-integration.ts --run "$GITHUB_RUN_ID" --output "$RUNNER_TEMP/smoke-selection.json"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        if: needs.scope.outputs.promotion_route == 'main'
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          artifact-ids: ${{ steps.smokes.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/smokes
       - name: Verify the original package, receipts, main ancestry and tag
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node dist/typescript/tools/checks/ci-promotion.js verify --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --output "$RUNNER_TEMP/promotion/promotion.json"
+        run: node dist/typescript/tools/checks/ci-promotion.js verify --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --smokes "$RUNNER_TEMP/smokes" --smoke-selection "$RUNNER_TEMP/smoke-selection.json" --output "$RUNNER_TEMP/promotion/promotion.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ci-promotion

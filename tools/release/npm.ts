@@ -49,8 +49,9 @@ export async function resolveRelease(selection: string) {
     const dryRun = process.env.DRY_RUN === 'true';
     if (!dryRun) requirePublishContext({ tag: tag!, commit });
     else assert(['refs/heads/main', 'refs/tags/' + tag].includes(process.env.GITHUB_REF ?? ''), 'Dry-run must use main or the release tag');
-    const runs = await ciRuns(commit), tagRun = selectCiRun(runs, commit, tag!), mainRun = selectCiRun(runs, commit, 'main');
+    const runs = await ciRuns(commit), tagRun = selectCiRun(runs, commit, tag!);
     const promotion = await publishedTagEvidence(tag!, commit, runs.find(run => run.id === tagRun));
+    const mainRun = promotion?.integrationRun ?? selectCiRun(runs, commit, 'main');
     const ciRun = promotion?.sourceRun ?? tagRun;
     const result = { tag, commit, ci_run: ciRun, tag_ci_run: tagRun, main_ci_run: mainRun, dry_run: dryRun, version: VERSION, channel: publicChannel(),
         ...(promotion ? { promotion: promotion.promotion, artifact_ids: promotion.artifacts } : {}) };
