@@ -12,6 +12,8 @@
 
 ## 开发与检查
 
+编码代理应阅读[项目级代理指引](AGENTS.md)，了解共享工作区边界、规范来源和验证规则。该文件仅维护英文。
+
 [开发指南](docs/development/README.zh-CN.md)介绍工作区和命令。开发与构建使用 Node 24.21.0、npm 11.19.0，并需安装 Git 和 Git LFS。在仓库根目录安装依赖：
 
 ```bash
@@ -38,7 +40,7 @@ CI 使用明确的文档／模板白名单。混合变更和发布审批 JSON �
 
 保持变更集中，解释目的，并记录实际验证结果。标题采用 `fix: ...`、`docs: ...`、`ci: ...` 等 conventional 风格。维护者分支使用 `fbincon/` 前缀，不要求 DCO sign-off。
 
-英文 Markdown 使用现有默认路径，完整简体中文对应文件命名为 `.zh-CN.md`。GitHub Issue 表单与唯一 PR 模板在同一文件中包含双语。保持链接有效，并更新相应文档索引。界面翻译贡献参见[翻译指南](docs/development/i18n.zh-CN.md)。
+英文 Markdown 使用现有默认路径，完整简体中文对应文件命名为 `.zh-CN.md`，仅维护英文的根目录 `AGENTS.md` 除外。GitHub Issue 表单与唯一 PR 模板在同一文件中包含双语。保持链接有效，并更新相应文档索引。界面翻译贡献参见[翻译指南](docs/development/i18n.zh-CN.md)。
 
 按需更新文档、截图、CHANGELOG 和关联 Issue；模板中其他项目明确填写“不适用”。项目 README 用于功能介绍和使用说明，发布版本、交付状态和更新叙述放在变更日志、发布说明或开发记录中。
 

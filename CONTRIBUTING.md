@@ -12,6 +12,8 @@ Diagnostic output, configuration excerpts and screenshots are optional. Remove c
 
 ## Development and checks
 
+Coding agents should read the [repository agent guidance](AGENTS.md) for shared workspace boundaries, canonical sources and validation rules. This file is maintained in English only.
+
 The [development guide](docs/development/README.md) describes the workspace and commands. Development and builds use Node 24.21.0 and npm 11.19.0, with Git and Git LFS available. Install dependencies from the repository root:
 
 ```bash
@@ -38,7 +40,7 @@ CI uses an explicit documentation/template allowlist. Mixed changes and release 
 
 Keep the change focused, explain its purpose and record what was actually tested. Use a conventional title such as `fix: ...`, `docs: ...` or `ci: ...`. Maintainer branches use the `fbincon/` prefix. DCO sign-off is not required.
 
-English Markdown uses the existing default paths, with complete Simplified Chinese counterparts named `.zh-CN.md`. GitHub Issue forms and the single PR template contain both languages in one file. Keep links current and update the appropriate documentation indexes. See the [translation guide](docs/development/i18n.md) for interface translations.
+English Markdown uses the existing default paths, with complete Simplified Chinese counterparts named `.zh-CN.md`, except the English-only root `AGENTS.md`. GitHub Issue forms and the single PR template contain both languages in one file. Keep links current and update the appropriate documentation indexes. See the [translation guide](docs/development/i18n.md) for interface translations.
 
 Update documentation, screenshots, CHANGELOG and related Issue links when relevant; explicitly mark other template items not applicable. The project README introduces features and usage: release versions, delivery status and update narratives belong in the changelog, release notes or development records.
 

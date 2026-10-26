@@ -6,7 +6,7 @@
 
 [GitHub](https://github.com/fbincon/claude-code-statusline) is primary for Issues, PRs, CI and security reporting; Gitee distributes synchronized code and releases. Start with [Contributing](../../CONTRIBUTING.md) for development and feedback, or the [security policy](../../SECURITY.md) for private vulnerability reports. The generic bilingual Bug form replaces the migration preview form; blank Issues remain available for questions and feature ideas. [Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) retains its existing platform follow-up role.
 
-Root policies use English and Simplified Chinese companion files. GitHub forms and the PR template use one bilingual file each. The project README stays focused on introduction and usage; maintenance evidence belongs here or in delivery reports.
+Root policies use English and Simplified Chinese companion files, except [repository agent guidance](../../AGENTS.md), which is maintained in English only. That file records shared development rules; personal preferences, machine setup and credential handling remain in user-level guidance. GitHub forms and the PR template use one bilingual file each. The project README stays focused on introduction and usage; maintenance evidence belongs here or in delivery reports.
 
 ## Main protection and checks
 
