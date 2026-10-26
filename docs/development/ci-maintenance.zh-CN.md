@@ -35,7 +35,15 @@ git diff --check
 
 检查器支持带引号的键、行内映射、别名和折叠标量，忽略脚本／注释示例；YAML 错误、重复键、无法解析的引用或空工作流清单均失败。诊断包含文件与行号，并以非零状态退出。离线检查验证引用和注释格式，审查者通过官方上游来源核对实际版本与提交的对应关系。
 
-CI scope 任务在变更分类之前执行检查，`npm run check` 在普通测试前执行检查；既有汇总门禁要求 scope 成功。工作流、Dependabot 和工具变更继续触发完整产品矩阵；普通 Markdown 白名单变更只运行必要文档校验，不生成发布验收凭据。
+CI scope 任务在变更分类之前执行检查，`npm run check` 在普通测试前执行检查；既有汇总门禁要求 scope 成功。工作流、Dependabot 和工具变更继续触发完整产品矩阵；白名单内的文档与社区模板只运行必要文档校验，不生成发布验收凭据。
+
+### 社区文档检查
+
+轻量路径包含既有 README/CHANGELOG 与 `docs/**/*.md`，根目录的 `SECURITY.md`、`CONTRIBUTING.md` 及其 `.zh-CN.md` 对应文件、`.github/pull_request_template.md`，以及 Issue 模板中的精确路径 `bug_report.yml`、`config.yml` 和旧 `preview-feedback.yml`。保留旧路径以允许替换或删除旧表单。其他 `.github` 路径以及产品／文档混合变更仍需完整矩阵。未知 Git 修订、可执行文件改名为文档、标签事件和手动 CI 也保留完整检查。
+
+`npm run docs:check` 检查 Markdown、单文件双语 PR 模板、Issue 表单 Markdown 内容和入口链接中的本地目标及锚点。根目录政策文件需要独立的英文／中文文件；PR 模板和表单在同一文件中包含双语。复用既有仅开发 YAML 解析器，检查表单结构、显式且唯一的字段 ID、必填标志、下拉选项，以及联系入口的名称、HTTP(S) 地址和说明。这是针对本仓库所维护字段的离线检查，不代替 GitHub 渲染；合并后仍应检查实际入口与模板。参见 [GitHub 表单语法](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms)。
+
+`Complete candidate evidence` 继续作为唯一汇总检查。轻量路径要求 scope 和文档任务成功、产品任务按设计跳过；其他路径要求所有产品任务成功。分类器或检查器变更必须通过本地回归以及最终 PR head/main 的完整 CI，后续纯文档 PR 才使用新路径。
 
 ## 每周更新与审查步骤
 

@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import { join, resolve, relative, dirname, basename, extname, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rewriteLinks, GITHUB, RAW_GITHUB } from '../release/markdown.js';
+import { checkCommunity } from './community.js';
 const LOCAL_ONLY = new Set(['ROADMAP.md', 'ROADMAP.zh-CN.md', 'MACOS_VALIDATION.md']);
 export function configurationSection(markdown: string, heading: string): string {
     return markdown.replaceAll('\r\n', '\n').match(new RegExp('^## ' + heading + '\\n(.*?)(?=^## |$(?![\\s\\S]))', 'ms'))?.[1] ?? '';
@@ -26,11 +27,19 @@ export function checkDocs(root: string): {
     for (const name of fs.readdirSync(join(root, 'docs'), { recursive: true }).map(String))
         if (name.endsWith('.md'))
             pages.push(join(root, 'docs', name));
+    const pullRequestTemplate = join(root, '.github', 'pull_request_template.md');
+    if (fs.existsSync(pullRequestTemplate)) pages.push(pullRequestTemplate);
     for (const page of pages.filter(p => !LOCAL_ONLY.has(basename(p)))) {
         const body = fs.readFileSync(page, 'utf8'), name = relative(root, page).split(sep).join('/');
         const counterpart = page.endsWith('.zh-CN.md') ? page.replace(/\.zh-CN\.md$/u, '.md') : page.replace(/\.md$/u, '.zh-CN.md');
-        if ((!name.split('/').includes('releases') || page.endsWith('.zh-CN.md')) && !fs.existsSync(counterpart))
+        if (page !== pullRequestTemplate && (!name.split('/').includes('releases') || page.endsWith('.zh-CN.md')) && !fs.existsSync(counterpart))
             errors.push(name + ': missing bilingual counterpart');
+        checkLinks(page, name, body);
+    }
+    const community = checkCommunity(root);
+    errors.push(...community.errors);
+    for (const item of community.markdown) checkLinks(join(root, item.file), item.file, item.text);
+    function checkLinks(page: string, name: string, body: string): void {
         rewriteLinks(body, target => {
             let origin = dirname(page);
             for (const prefix of [GITHUB + '/blob/main/', RAW_GITHUB + '/main/'])

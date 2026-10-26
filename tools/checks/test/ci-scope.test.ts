@@ -8,14 +8,47 @@ import { fileURLToPath } from 'node:url';
 import { documentationOnly, changedDocumentationOnly, assessCiNeeds } from '../ci-scope.js';
 
 test('only allowlisted Markdown changes on ordinary PRs and branches avoid the matrix', () => {
-    const docs = ['README.md', 'README.zh-CN.md', 'CHANGELOG.md', 'docs/development/external-tui-parity.md', 'docs/releases/v3.1.2.md'];
+    const docs = ['README.md', 'README.zh-CN.md', 'CHANGELOG.md', 'docs/development/external-tui-parity.md', 'docs/releases/v3.1.2.md',
+        'SECURITY.md', 'SECURITY.zh-CN.md', 'CONTRIBUTING.md', 'CONTRIBUTING.zh-CN.md', '.github/pull_request_template.md',
+        '.github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/config.yml', '.github/ISSUE_TEMPLATE/preview-feedback.yml'];
     for (const event of ['pull_request', 'push']) assert.equal(documentationOnly(event, 'branch', docs), true);
-    for (const path of ['packages/tui/src/state.ts', 'mods/statusline-native/README.md', 'docs/releases/approvals/v3.1.2.json', 'docs/image.png', '.github/workflows/ci.yml', '.github/workflows/new.yaml', '.github/dependabot.yml', '.github/actions/local/action.yml', 'tools/checks/actions.ts', 'package-lock.json', 'packages/core/src/release.ts', 'AGENTS.md', 'unknown', 'docs/not-markdown'])
+    for (const path of ['packages/tui/src/state.ts', 'mods/statusline-native/README.md', 'docs/releases/approvals/v3.1.2.json', 'docs/image.png', '.github/workflows/ci.yml', '.github/workflows/new.yaml', '.github/dependabot.yml', '.github/actions/local/action.yml', '.github/ISSUE_TEMPLATE/unknown.yml', '.github/unknown.md', 'SECURITY.js', 'tools/checks/community.ts', 'tools/checks/actions.ts', 'package-lock.json', 'packages/core/src/release.ts', 'AGENTS.md', 'unknown', 'docs/not-markdown'])
         assert.equal(documentationOnly('pull_request', 'branch', [...docs, path]), false, path);
     assert.equal(documentationOnly('push', 'tag', docs), false);
     assert.equal(documentationOnly('workflow_dispatch', 'branch', docs), false);
     assert.equal(documentationOnly('pull_request_target', 'branch', docs), false);
     assert.equal(documentationOnly('pull_request', 'branch', []), false);
+});
+
+test('community additions, edits and deletions stay light, but executable renames do not', () => {
+    const root = fs.mkdtempSync(join(tmpdir(), 'ci-community-'));
+    const git = (...args: string[]) => execFileSync('git', ['-C', root, '-c', 'user.name=CI fixture', '-c', 'user.email=fixture@example.invalid', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const classify = (base: string) => {
+        const output = join(root, 'scope-output');
+        fs.rmSync(output, { force: true });
+        execFileSync(process.execPath, [fileURLToPath(new URL('../ci-scope.js', import.meta.url))], {
+            cwd: root, env: { ...process.env, CI_EVENT: 'pull_request', CI_REF_TYPE: 'branch', CI_BASE: base, CI_HEAD: git('rev-parse', 'HEAD'), GITHUB_OUTPUT: output },
+        });
+        return fs.readFileSync(output, 'utf8');
+    };
+    try {
+        git('init');
+        fs.mkdirSync(join(root, '.github/ISSUE_TEMPLATE'), { recursive: true });
+        fs.writeFileSync(join(root, '.github/ISSUE_TEMPLATE/preview-feedback.yml'), 'name: Preview\n');
+        fs.writeFileSync(join(root, 'runtime.js'), 'export const runtime = true;\n');
+        git('add', '.'); git('commit', '-m', 'baseline');
+        const base = git('rev-parse', 'HEAD');
+        for (const file of ['SECURITY.md', 'CONTRIBUTING.md', '.github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/config.yml']) {
+            fs.writeFileSync(join(root, file), 'content\n'); git('add', file); git('commit', '-m', 'add documentation');
+            assert.equal(classify(base), 'docs_only=true\n');
+        }
+        fs.appendFileSync(join(root, 'SECURITY.md'), 'updated\n'); git('add', 'SECURITY.md'); git('commit', '-m', 'edit policy');
+        assert.equal(classify(base), 'docs_only=true\n');
+        git('rm', '.github/ISSUE_TEMPLATE/preview-feedback.yml'); git('commit', '-m', 'replace preview');
+        assert.equal(classify(base), 'docs_only=true\n');
+        git('mv', 'runtime.js', '.github/pull_request_template.md'); git('commit', '-m', 'executable rename');
+        assert.equal(classify(base), 'docs_only=false\n');
+    } finally { fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 }); }
 });
 
 test('unknown revisions and diff failures require the complete matrix', () => {
@@ -55,13 +88,19 @@ test('the required gate rejects skipped or failed product evidence and failed sc
     for (const name of ['scope', 'candidate', 'installed', 'runtime', 'mods']) {
         for (const result of ['failure', 'cancelled', 'skipped'])
             assert.throws(() => assessCiNeeds({ ...full, [name]: { ...full[name]!, result } }));
+        const missing = { ...full }; delete missing[name];
+        assert.throws(() => assessCiNeeds(missing));
     }
     const docs = {
         scope: { result: 'success', outputs: { docs_only: 'true' } }, documentation: { result: 'success' },
         ...Object.fromEntries(['candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'skipped' }])),
     };
     assert.doesNotThrow(() => assessCiNeeds(docs));
-    assert.throws(() => assessCiNeeds({ ...docs, documentation: { result: 'failure' } }));
-    assert.throws(() => assessCiNeeds({ ...docs, scope: { result: 'failure', outputs: { docs_only: 'true' } } }));
+    for (const result of ['failure', 'cancelled', 'skipped']) {
+        assert.throws(() => assessCiNeeds({ ...docs, documentation: { result } }));
+        assert.throws(() => assessCiNeeds({ ...docs, scope: { result, outputs: { docs_only: 'true' } } }));
+    }
+    const { documentation: _documentation, ...withoutDocumentation } = docs;
+    assert.throws(() => assessCiNeeds(withoutDocumentation));
     assert.throws(() => assessCiNeeds({ scope: { result: 'success' } }));
 });

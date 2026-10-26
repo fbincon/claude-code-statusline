@@ -35,7 +35,15 @@ git diff --check
 
 The checker handles quoted keys, flow mappings, aliases and folded scalars, ignores script/comment examples, and fails on malformed YAML, duplicate keys, unresolved references or an empty workflow inventory. Diagnostics include the file and line; failure exits nonzero. Its offline check verifies reference and comment syntax. Reviewers verify the actual version-to-commit association against the official upstream source.
 
-The CI scope job runs this check before classifying the change, and `npm run check` runs it before the ordinary suite. The existing aggregate gate requires scope success. Workflow, Dependabot and tool changes continue to require the full product matrix; ordinary allowlisted Markdown changes use necessary documentation checks and do not produce release acceptance receipts.
+The CI scope job runs this check before classifying the change, and `npm run check` runs it before the ordinary suite. The existing aggregate gate requires scope success. Workflow, Dependabot and tool changes continue to require the full product matrix; allowlisted documentation and community templates use necessary documentation checks and do not produce release acceptance receipts.
+
+### Community documentation checks
+
+The lightweight route includes the existing README/CHANGELOG and `docs/**/*.md` paths, root `SECURITY.md`/`CONTRIBUTING.md` with their `.zh-CN.md` counterparts, `.github/pull_request_template.md`, and the exact Issue template paths `bug_report.yml`, `config.yml` and legacy `preview-feedback.yml`. The legacy path allows its replacement or deletion. Other `.github` paths and mixed product/documentation changes still require the full matrix. Unknown Git revisions, executable-to-document renames, tag events and manual CI also retain full checks.
+
+`npm run docs:check` checks local links and anchors in Markdown, the single bilingual PR template, and Markdown content in Issue forms and chooser links. Root policy documents require separate English/Chinese files; the PR template and forms contain both languages in one file. The existing development-only YAML parser checks form structure, explicit unique field IDs, required flags, dropdown choices and contact-link names, HTTP(S) URLs and explanations. This is an offline check of the fields maintained here, not a replacement for GitHub's renderer; inspect the actual chooser and templates after merging. See [GitHub's form syntax](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms).
+
+`Complete candidate evidence` remains the single aggregate check. On the lightweight route it requires successful scope and documentation jobs and intentionally skipped product jobs; otherwise it requires every product job. Changes to the classifier or checkers require local regression tests and complete final-head/main CI before subsequent documentation-only PRs use the new route.
 
 ## Weekly updates and review procedure
 
