@@ -25,6 +25,10 @@ export const TARGETS = [
     { os: 'macos-14', arch: 'arm64' }, { os: 'macos-15', arch: 'arm64' }, { os: 'macos-15-intel', arch: 'x64' },
     { os: 'macos-26', arch: 'arm64' }, { os: 'macos-26-intel', arch: 'x64' },
 ];
+export const HOSTS = [
+    ...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(claude => ({ os: 'ubuntu-24.04', claude })),
+    ...['windows-2025', 'macos-15'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(claude => ({ os, claude }))),
+];
 export function runtimeInputs(index: { version: string }[], development: string) {
     const latest = (major: number) => {
         const versions = index.map(row => row.version.replace(/^v/u, '')).filter(version => new RegExp(`^${major}\\.\\d+\\.\\d+$`, 'u').test(version));

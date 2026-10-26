@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing annotated version tag with successful main and tag CI
+        description: Existing annotated version tag with verified source acceptance and main/tag gates
         required: true
         type: string
       dry_run:
@@ -56,9 +56,12 @@ jobs:
         with:
           github-token: ${{ github.token }}
           run-id: ${{ steps.resolve.outputs.ci_run }}
+          artifact-ids: ${{ steps.resolve.outputs.artifact_ids }}
           pattern: ts06-*
           path: ${{ runner.temp }}/evidence
       - name: Verify exact CI package bytes, full acceptance and registry state
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: node dist/typescript/tools/release/npm.js prepare --selection "$RUNNER_TEMP/selection.json" --evidence "$RUNNER_TEMP/evidence" --output "$RUNNER_TEMP/npm-bundle"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

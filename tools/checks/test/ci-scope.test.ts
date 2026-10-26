@@ -147,3 +147,15 @@ test('draft fast checks never satisfy the required aggregate', () => {
     const needs = Object.fromEntries(['scope', 'quick', 'development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'success', outputs: { docs_only: 'false', draft: 'true' } }]));
     assert.throws(() => assessCiNeeds(needs), /Draft/);
 });
+
+test('only a tag push with successful promotion can intentionally skip the matrix', t => {
+    const previous = { CI_EVENT: process.env.CI_EVENT, CI_REF_TYPE: process.env.CI_REF_TYPE };
+    t.after(() => { for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; } });
+    process.env.CI_EVENT = 'push'; process.env.CI_REF_TYPE = 'tag';
+    const needs = { scope: { result: 'success', outputs: { route: 'tag', docs_only: 'false' } }, promotion: { result: 'success' },
+        ...Object.fromEntries(['development', 'candidate', 'installed', 'runtime', 'mods'].map(name => [name, { result: 'skipped' }])) };
+    assert.doesNotThrow(() => assessCiNeeds(needs));
+    for (const result of ['skipped', 'cancelled', 'failure']) assert.throws(() => assessCiNeeds({ ...needs, promotion: { result } }));
+    process.env.CI_EVENT = 'pull_request'; assert.throws(() => assessCiNeeds(needs));
+    process.env.CI_EVENT = 'push'; process.env.CI_REF_TYPE = 'branch'; assert.throws(() => assessCiNeeds(needs));
+});

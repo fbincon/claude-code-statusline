@@ -29,6 +29,7 @@ before(() => {
     fs.copyFileSync(fileURLToPath(new URL('./installed-driver.js', import.meta.url)), driver);
     report = { schema_version: 1, stage: installed.packed.source.channel && installed.packed.source.channel !== 'candidate' ? 'TS-06' : 'TS-05', target: process.env.TS05_TARGET ?? 'local', node: process.version, node_sha256: sha256(fs.readFileSync(process.execPath)), platform: process.platform, process_arch: process.arch, commit: installed.packed.source.commit, source_hashes: installed.packed.source.source_hashes, harness_hashes: sourceHashes(), tarball_sha256: installed.packed.sha256, lifecycle_scripts: false, offline_install: true, initially_empty_npm_cache: true, path_excludes_python_and_compilers: true, outside_checkout: true, checks };
     report.powershell_setup = JSON.parse(process.env.TS05_POWERSHELL_SETUP ?? 'null');
+    report.execution = { run_id: process.env.GITHUB_RUN_ID ?? null, attempt: process.env.GITHUB_RUN_ATTEMPT ?? null, job: process.env.GITHUB_JOB ?? null };
 });
 after(() => {
     // Do not publish a passing receipt if teardown itself fails.

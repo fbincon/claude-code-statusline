@@ -11,6 +11,7 @@ import { repoRoot } from '../migration/ts-03/common.js';
 import { OFFICIAL_TRANSITION_MS } from './budgets.js';
 import { nativeCapacity } from './native-capacity.js';
 import { retainLog, sanitizeLog } from './diagnostics.js';
+import { sha256 } from '../build/files.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report FILE [--claude EXECUTABLE]');
 const artifact = resolve(values.artifact), reportPath = resolve(values.report), candidate = verifyCandidate(artifact, values.commit);
@@ -35,6 +36,7 @@ try {
     const version = run(host.executable, [...host.args, '--version']).match(/\d+\.\d+\.\d+/u)?.[0];
     if (!version || !['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].includes(version)) throw new Error('Unsupported unpinned host');
     report.host = version; report.platform = process.platform; report.target = process.platform + '-' + version;
+    report.node_sha256 = sha256(fs.readFileSync(process.execPath)); report.host_sha256 = sha256(fs.readFileSync(host.executable));
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const directory = join(repoRoot, 'mods', name);
         if (name === 'statusline-runtime' && Number(version.split('.')[2]) < 289) { report.mods[name] = { status: 'unsupported', reason: 'Runtime Mod requires host 2.1.289+' }; continue; }

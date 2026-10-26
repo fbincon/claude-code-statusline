@@ -28,11 +28,19 @@ defaults:
 jobs:
   scope:
     name: Classify and check documentation
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-24.04
     outputs:
       docs_only: ${{ steps.scope.outputs.docs_only }}
       docs_checked: ${{ steps.documentation.outputs.docs_checked }}
       draft: ${{ steps.scope.outputs.draft }}
+      route: ${{ steps.promotion.outputs.route }}
+      source_run: ${{ steps.promotion.outputs.source_run }}
+      source_commit: ${{ steps.promotion.outputs.source_commit }}
+      filename: ${{ steps.promotion.outputs.filename }}
+      artifact_ids: ${{ steps.promotion.outputs.artifact_ids }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -53,6 +61,21 @@ jobs:
           CI_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
           CI_DRAFT: ${{ github.event.pull_request.draft || false }}
         run: node tools/checks/ci-scope.ts
+      - id: promotion
+        name: Select full acceptance or verified source promotion
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_EVENT: ${{ github.event_name }}
+          CI_REF_TYPE: ${{ github.ref_type }}
+          CI_REF_NAME: ${{ github.ref_name }}
+        run: node tools/checks/ci-promotion.ts select --output "$RUNNER_TEMP/promotion-selection.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.promotion.outputs.route == 'tag'
+        with:
+          name: ci-promotion-selection
+          path: ${{ runner.temp }}/promotion-selection.json
+          if-no-files-found: error
+          retention-days: 30
       - id: documentation
         if: steps.scope.outputs.docs_only == 'true'
         env:
@@ -82,7 +105,7 @@ jobs:
   development:
     name: Development checks and portable test outputs
     needs: scope
-    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
+    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe' && needs.scope.outputs.route == 'full'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -107,7 +130,7 @@ jobs:
   candidate:
     name: Reproducible public package
     needs: scope
-    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
+    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe' && needs.scope.outputs.route == 'full'
     runs-on: ubuntu-24.04
     outputs:
       commit: ${{ steps.identity.outputs.commit }}
@@ -378,9 +401,12 @@ jobs:
 
   acceptance:
     name: ${{ github.event_name == 'workflow_dispatch' && 'Manual validation (not PR evidence)' || 'Complete candidate evidence' }}
-    needs: [scope, quick, development, candidate, installed, runtime, mods]
+    needs: [scope, quick, development, candidate, installed, runtime, mods, promotion]
     if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -392,32 +418,43 @@ jobs:
       - name: Require successful documentation or complete product checks
         env:
           CI_NEEDS: ${{ toJSON(needs) }}
+          CI_EVENT: ${{ github.event_name }}
+          CI_REF_TYPE: ${{ github.ref_type }}
         run: node tools/checks/ci-scope.ts gate
-      - if: needs.scope.outputs.docs_only != 'true'
+      - if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - id: evidence
+        name: Select immutable artifacts from successful attempts
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-evidence.ts select --run "$GITHUB_RUN_ID" --output "$RUNNER_TEMP/evidence-selection.json"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        if: needs.scope.outputs.docs_only != 'true'
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         with:
-          name: ci-compiled-tests
-          path: ${{ runner.temp }}/compiled-tests
-      - name: Restore verified portable test outputs
-        if: needs.scope.outputs.docs_only != 'true'
-        run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/compiled-tests"
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        if: needs.scope.outputs.docs_only != 'true'
-        with:
-          pattern: ts06-*
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          artifact-ids: ${{ steps.evidence.outputs.artifact_ids }}
           path: ${{ runner.temp }}/evidence
+      - name: Restore verified portable test outputs
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
+        run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests"
       - name: Require eight targets, sixteen hosts and all 32 runtime cases for the same artifact
-        if: needs.scope.outputs.docs_only != 'true'
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         run: |
+          mkdir -p "$RUNNER_TEMP/acceptance"
           release_channel=$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.RUNNER_TEMP + '/evidence/ts06-candidate/build-manifest.json')).channel")
-          node dist/typescript/tools/release/prepare.js --"$release_channel" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/candidate-acceptance.json"
+          node dist/typescript/tools/release/prepare.js --"$release_channel" --artifact "$RUNNER_TEMP/evidence/ts06-candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --evidence "$RUNNER_TEMP/evidence" --report "$RUNNER_TEMP/acceptance/candidate-acceptance.json"
+      - name: Bind complete acceptance to its original source and artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
+        run: node dist/typescript/tools/checks/ci-evidence.js record --evidence "$RUNNER_TEMP/evidence" --selection "$RUNNER_TEMP/evidence-selection.json" --acceptance "$RUNNER_TEMP/acceptance/candidate-acceptance.json" --output "$RUNNER_TEMP/acceptance/ci-evidence.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: needs.scope.outputs.docs_only != 'true'
+        if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.route == 'full'
         with:
           name: ts06-acceptance
-          path: ${{ runner.temp }}/candidate-acceptance.json
+          path: ${{ runner.temp }}/acceptance/
           if-no-files-found: error
           retention-days: 30
 
@@ -548,5 +585,50 @@ jobs:
         with:
           name: windows-source-${{ matrix.os }}-${{ matrix.node }}
           path: ${{ runner.temp }}/source-probe/
+          if-no-files-found: error
+          retention-days: 30
+
+  promotion:
+    name: Verify accepted release bytes
+    needs: scope
+    if: needs.scope.outputs.route == 'tag'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-promotion-selection
+          path: ${{ runner.temp }}/selection
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.scope.outputs.source_run }}
+          artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
+          path: ${{ runner.temp }}/evidence
+      - name: Check original bytes before restoring executable test outputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-promotion.ts preflight --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence"
+      - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests"
+      - name: Verify the original package, receipts, main ancestry and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node dist/typescript/tools/checks/ci-promotion.js verify --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence" --output "$RUNNER_TEMP/promotion/promotion.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-promotion
+          path: ${{ runner.temp }}/promotion/
           if-no-files-found: error
           retention-days: 30

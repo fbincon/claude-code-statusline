@@ -6,6 +6,14 @@ Current native capacity and recovery use bounded visible frames and add three-pl
 
 ## CI latency and stability work
 
+### Stage A: same-commit tag promotion
+
+Ready PRs and main still execute complete acceptance. An annotated version tag at a fully accepted main commit can instead run `Verify accepted release bytes` and the required aggregate. The selector checks the latest exact repository/workflow/main run, original attempt, source tree and policy digest, complete 8/32/16 coverage, actual job references, pinned inputs and all original artifact IDs/digests. It rechecks the four delivery files, original receipt hashes, version-scoped approval and main ancestry. The tag promotion explicitly records checks executed and coverage reused; it does not rewrite receipts or claim a new full matrix.
+
+Complete runs emit schema-v1 `ci-evidence.json` alongside `candidate-acceptance.json`. The envelope records source/toolchain/runtime/host identities, original job attempts and receipt/artifact hashes. Artifact selection uses explicit IDs and retains successful executions from earlier attempts; older failed artifacts with the same name cannot overwrite a retry's selected report. Expired, missing, changed, failed or ambiguous evidence blocks promotion. Legacy source revisions retain their full-tag route. New main-to-PR reuse is not enabled in this stage.
+
+The npm resolver follows the tag promotion back to its original complete run, revalidates the chain and publishes the same package bytes. Legacy releases remain readable without manufacturing new envelopes. Source archives, independent builds, source rebuilds, draft-asset checks, OIDC context and public-download acceptance retain their existing requirements. Source/evidence artifacts expire after 30 days; refreshing evidence requires appropriate full validation and new integration/tag verification, never substitution of an unrelated successful run.
+
 ### Development and execution routes
 
 The macOS identity adapter reads `PROC_PIDTBSDINFO` through the existing native bridge, checks the full structure and PID, and retains the C-locale/UTC `ps lstart` token including single-digit-day spacing. Unknown results remain unverifiable and zombies are not live. The ABI is checked against [Apple's definitions](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/proc_info.h); real macOS tests compare the token with `ps`. Manual `validation=macos-probe` repeats the affected six-language transaction journey twenty times on Intel and ARM, with 1,000 direct identity comparisons per runner. It produces diagnostic evidence only.
@@ -20,7 +28,7 @@ Manual `validation=windows-probe` runs the source-process regressions, same-runn
 
 The diagnostic probe optionally preloads a timing subscriber into management commands. The product's `claude-statusline.management-timing` diagnostics channel reports only phase names and durations for npm, copying, archive verification and transaction checkpoints; normal commands have no subscriber and keep protocol output unchanged. Diagnostic traces are separate from ordinary cold-install evidence. Registry/cache settings are read in one npm `config list --json` call while retaining npm's configuration precedence, prefix/root checks and credential rejection ([npm configuration](https://docs.npmjs.com/cli/v10/commands/npm-config/)).
 
-[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) tracks staged optimization. These execution improvements preserve full ready-PR/main/tag acceptance and the 8 installation / 32 runtime / 16 host matrix. Later promotion stages are not enabled by this change.
+[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) tracks staged optimization. Full ready-PR/main acceptance and the 8 installation / 32 runtime / 16 host obligations remain; Stage A replaces eligible duplicate tag matrices with explicit verification of the same accepted bytes.
 
 Candidate preparation downloads the immutable 3.7.0 and 3.8.0 archives once, verifies their pinned SHA-256 values and distributes a separate `ci-historical-inputs` artifact. The cache key contains both immutable digests, has no fallback keys and never stores test results; restored files are rehashed before use. Consumers use the existing `TS06_LEGACY_370_ARTIFACT` / `TS06_LEGACY_380_ARTIFACT` inputs and independently recheck their bytes. Candidate installation still starts outside the checkout with an empty cache, offline npm and lifecycle scripts disabled. Direct local preparation uses the same downloader when no supplied archive exists.
 

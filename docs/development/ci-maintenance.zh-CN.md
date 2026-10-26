@@ -6,6 +6,14 @@
 
 ## CI 耗时与稳定性优化
 
+### A 阶段：同提交 tag 晋级
+
+待审查 PR 和 main 仍执行完整验收。注解版本 tag 指向已完整验收的 main 提交时，可以改跑 `Verify accepted release bytes` 及必需汇总门禁。选择器核对精确仓库／工作流／main 提交的最新运行、原 attempt、源码树和规则摘要、完整 8／32／16 覆盖、实际 job 引用、固定输入及全部原始附件 ID／摘要。再次校验四个交付文件、原回执哈希、版本限定批准和 main 可达性。tag 晋级明确区分本次执行和沿用的覆盖，不改写回执、不声称重新执行完整矩阵。
+
+完整运行在 `candidate-acceptance.json` 旁生成 schema v1 的 `ci-evidence.json`，记录源码／工具链／运行时／宿主身份、原始 job attempt 和回执／附件摘要。通过明确附件 ID 选择输入，保留先前 attempt 的成功执行；同名旧失败附件不能覆盖重试选定的报告。过期、缺失、变动、失败或歧义证据阻止晋级。旧源码修订保留完整 tag 路径；本阶段尚未启用 main 对 PR 的复用。
+
+npm 解析器沿 tag 晋级记录回溯原始完整运行，复核证据链并发布相同包字节。旧版本继续兼容读取，不补造新的历史证据。源码归档、独立构建、源码重建、草稿附件、OIDC 上下文和公开下载要求保持。源码／证据附件 30 天到期；刷新证据需要适用的完整验收及新的集成／tag 核验，不能用无关成功运行替代。
+
 ### 开发与执行路径
 
 macOS 身份适配器通过既有原生桥接读取 `PROC_PIDTBSDINFO`，校验完整结构和 PID，并保留 C locale／UTC 的 `ps lstart` token，包括个位日期的空格。未知结果仍不可验证，僵尸进程不算存活。ABI 对照 [Apple 定义](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/proc_info.h)，实际 macOS 测试逐字比较 `ps` 的结果。手动 `validation=macos-probe` 在 Intel 和 ARM 上各重复二十次受影响的六语言事务流程，每台 runner 还进行 1,000 次身份比较，仅生成诊断证据。
@@ -20,7 +28,7 @@ Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保
 
 专项诊断可向包管理命令预加载计时订阅器。产品的 `claude-statusline.management-timing` 诊断通道只报告 npm、复制、归档校验和事务检查点的阶段名与耗时；普通命令无订阅器，协议输出不变。诊断日志与常规冷安装证据分开。registry／cache 通过一次 npm `config list --json` 读取，保留 npm 配置优先级、prefix／root 检查和含凭据地址的拒绝行为（[npm 配置](https://docs.npmjs.com/cli/v10/commands/npm-config/)）。
 
-[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) 跟踪分阶段优化。本阶段保留完整待审查 PR／main／tag 验收和 8 安装目标／32 运行时／16 宿主矩阵；尚未启用后续产物晋级阶段。
+[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) 跟踪分阶段优化。保留完整待审查 PR／main 验收及 8 安装目标／32 运行时／16 宿主责任；A 阶段将满足条件的重复 tag 矩阵替换为对原始已验收字节的明确核验。
 
 候选准备只下载一次不可变的 3.7.0、3.8.0 历史包，验证固定 SHA-256 后通过独立的 `ci-historical-inputs` 附件分发。缓存键包含两个不可变摘要，不使用回退键，也不保存测试结果；恢复的文件使用前重新计算摘要。消费方使用已有 `TS06_LEGACY_370_ARTIFACT`／`TS06_LEGACY_380_ARTIFACT` 输入并独立复核字节。候选安装继续在仓库外使用空缓存、离线 npm 和禁用生命周期脚本；本地未提供历史包时也使用同一个下载器。
 
