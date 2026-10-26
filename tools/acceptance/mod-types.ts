@@ -29,18 +29,22 @@ export async function prepareModTypes(plugin: string, executable = 'claude'): Pr
     const path = join(resolve(plugin), '.claude-plugin/types/claude-code/index.d.ts');
     fs.rmSync(path, { force: true });
     const directory = fs.mkdtempSync(join(tmpdir(), 'statusline-mod-types-'));
+    const debug = join(directory, 'host.log');
+    let exitCode: number | null = null;
     try {
         if (compareVersions(version, '2.1.310') >= 0) {
             // Current hosts emit declarations only in an interactive --plugin-dir
             // session. Never send a prompt: /plugin-types is no longer a command.
-            fs.writeFileSync(join(directory, '.claude.json'), JSON.stringify({ hasCompletedOnboarding: true, projects: { [directory]: { hasTrustDialogAccepted: true } } }));
-            const args = [...host.args, '--plugin-dir', resolve(plugin), '--setting-sources', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'];
+            const projects = Object.fromEntries([directory, directory.replaceAll('\\', '/')].map(path => [path, { hasTrustDialogAccepted: true }]));
+            fs.writeFileSync(join(directory, '.claude.json'), JSON.stringify({ hasCompletedOnboarding: true, theme: 'dark', projects }));
+            const args = [...host.args, '--plugin-dir', resolve(plugin), '--debug-file', debug, '--setting-sources', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}'];
             const environment = isolatedHostEnvironment(process.env, directory);
             if (process.platform === 'win32') {
                 const child = startWindows([host.executable, ...args], directory, environment);
                 try {
                     const deadline = Date.now() + 30000;
                     while (!fs.existsSync(path) && child.code() === null && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 50));
+                    exitCode = child.code();
                 } finally { child.close(); }
             } else {
                 const child = openPty(directory, 120, 32, environment, 'en', { executable: host.executable, args, cwd: directory });
@@ -53,7 +57,7 @@ export async function prepareModTypes(plugin: string, executable = 'claude'): Pr
         });
         }
         if (!fs.existsSync(path))
-            throw new Error(`Claude Code ${version} did not emit exact-build declarations`);
+            throw new Error(`Claude Code ${version} did not emit exact-build declarations: ` + JSON.stringify({ exitCode, log: fs.existsSync(debug) ? fs.readFileSync(debug, 'utf8').slice(-8000) : 'No host log emitted' }));
         if (fs.readFileSync(path, 'utf8').split(/\r?\n/u)[0] !== `// Written by Claude Code ${version}.`)
             throw new Error('Declaration header does not match actual host');
         return version;
