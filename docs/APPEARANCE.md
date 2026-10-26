@@ -87,11 +87,11 @@ Padding, separators and both ends count toward width. Fitting first removes padd
 
 ## Configuration compatibility and recovery
 
-Display schema **9** adds `powerline` with `padding`, `separator`, `start_cap`, `end_cap`, and `color_mode`. Editor protocol **16** carries the complete draft. Runtime **2**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
+Display schema **15** contains `powerline` with `padding`, `separator`, `start_cap`, `end_cap`, and `color_mode`. Editor protocol **24** carries the complete draft. Runtime **3**, lifecycle **4**, portable envelope **1**, UI preferences **1** and profile collection/export **1** remain independent.
 
-Schemas 1–8 are read without rewriting files. Reading, previewing, `setup --dry-run` and `install --dry-run` preserve original bytes. Explicit display save or installation backs up the old bytes and writes schema 9. Migrated defaults are both-side padding, arrow separator, no start cap, an end cap and semantic colors, preserving existing Powerline output. Invalid controls and future schemas are rejected. Import review includes the new fields. The ASCII status representation also preserves task/agent state instead of replacing every state with the same generic icon.
+Schemas 1–14 are read without rewriting files. Reading, previewing, `setup --dry-run` and `install --dry-run` preserve original bytes. Explicit display save or installation backs up the old bytes and writes schema 15. Missing Powerline controls default to both-side padding, arrow separator, no start cap, an end cap and semantic colors, preserving existing Powerline output. Existing values remain intact, and omitted gradients/alignment remain disabled. Invalid controls and future schemas are rejected. Import review includes the new fields. The ASCII status representation also preserves task/agent state instead of replacing every state with the same generic icon.
 
-For downgrade, preserve/export the current configuration, remove the native editor with the newer package if required by the [release guide](RELEASING.md), install the older package and restore its compatible pre-migration display backup. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
+For downgrade, preserve/export the current configuration and use the current package's `recover --restore-config TRANSACTION_ID` to restore a compatible pre-upgrade display backup. Then follow the [version-management guide](PACKAGE_MANAGEMENT.md) to return to the older package and matching integration. Do not merely change the schema number or expect older software to preserve new fields. See [backups and rollback](USER_GUIDE.md#backups-and-rollback).
 
 ## Captured examples
 
