@@ -2,6 +2,8 @@
 
 [English](testing.md) | **简体中文**
 
+当前 Native 容量与恢复采用有界可见帧，并新增三平台 Claude 2.1.310 门禁；详见[实现与验收](native-capacity.zh-CN.md)。
+
 [CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。
 
 

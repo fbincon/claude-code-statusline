@@ -24,7 +24,11 @@ export function section(
     ...titleSpans,
     { text: '─'.repeat(Math.max(0, width - used - (framed ? 3 : 1))) + (framed ? '╮' : ''), style: edge },
   ], width);
-  const body = children.slice(0, Math.max(0, height - (framed ? 2 : 1)));
+  const bodyHeight = Math.max(0, height - (framed ? 2 : 1));
+  const body = children.slice(0, bodyHeight);
+  const side = () => ui.Box({ width: 1, height: bodyHeight, flexShrink: 0, children: [
+    ui.Text({ ...edge, wrap: 'truncate', children: ['│\n'.repeat(bodyHeight).trimEnd()] }),
+  ] });
   return ui.Box({
     key,
     ...(terminalBackground ? {} : { backgroundColor: styles.text.backgroundColor }),
@@ -35,14 +39,14 @@ export function section(
     overflow: 'hidden',
     children: [
       top,
-      ...body.map((child) => framed ? ui.Box({
-        flexDirection: 'row', flexShrink: 0, height: 1, width,
+      ui.Box({
+        flexDirection: 'row', flexShrink: 0, height: bodyHeight, width,
         children: [
-          ui.Text({ ...edge, children: ['│'] }),
-          ui.Box({ width: width - 2, height: 1, flexShrink: 0, overflow: 'hidden', children: [child] }),
-          ui.Text({ ...edge, children: ['│'] }),
+          ...(framed ? [side()] : []),
+          ui.Box({ width: width - (framed ? 2 : 0), height: bodyHeight, flexDirection: 'column', flexShrink: 0, overflow: 'hidden', children: body }),
+          ...(framed ? [side()] : []),
         ],
-      }) : child),
+      }),
       ...(framed ? [ui.Text({ ...edge, wrap: 'truncate', children: ['╰' + '─'.repeat(Math.max(0, width - 2)) + '╯'] })] : []),
     ],
   });

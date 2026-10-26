@@ -2,6 +2,10 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## v3.9.1 native capacity patch
+
+Use the [v3.9.1-specific approval](releases/approvals/v3.9.1.json) and require all final PR, merged-main and annotated-tag gates. Add Linux, Windows and macOS 2.1.310 to the earlier thirteen combinations, for sixteen hosts; each native receipt also requires 197 actual-host capacity cases. Retain eight installations, 32 Node cases, independent/source rebuilds, installed terminals, four verified draft attachments, npm OIDC and public-download verification. Update the test machine and restore its pre-reproduction display configuration. Record actual sources, save outcomes and GitHub/npm/Gitee receipts in [native capacity delivery](development/native-capacity.md). Only the same six existing #96 gaps remain accepted and unverified.
+
 ## Release identity and immutable assets
 
 GitHub release immutability is enabled for future publications. Create a draft, upload exactly the four delivery files (package, source archive, build manifest and checksums), download and verify their bytes and acceptance evidence, then publish. While still unpublished, a draft's tag or assets may be corrected only after checking the source, commit and digests. After publication, do not replace assets or move the associated tag; ship fixes as a new version.

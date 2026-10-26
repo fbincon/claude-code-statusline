@@ -1963,5 +1963,10 @@
   "alignment.references": "Adjust these alignment relationships before changing the layout: {ids}.",
   "gradients.preset.ocean": "Ocean",
   "gradients.preset.sunset": "Sunset",
-  "gradients.preset.aurora": "Aurora"
+  "gradients.preset.aurora": "Aurora",
+  "native.capacity.reduced": "View limited to {columns}×{rows}; use paging.",
+  "native.capacity.failed": "The editor cannot draw this view.",
+  "native.capacity.saved": "The last save succeeded. Retry only redraws the editor.",
+  "native.capacity.unknown": "Save outcome unknown. Check saved state before retrying.",
+  "native.capacity.retained": "Received draft retained; retry does not save or discard it."
 }

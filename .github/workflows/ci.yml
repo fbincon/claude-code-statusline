@@ -224,14 +224,17 @@ jobs:
           - { os: ubuntu-24.04, claude: '2.1.289' }
           - { os: ubuntu-24.04, claude: '2.1.294' }
           - { os: ubuntu-24.04, claude: '2.1.296' }
+          - { os: ubuntu-24.04, claude: '2.1.310' }
           - { os: windows-2025, claude: '2.1.288' }
           - { os: windows-2025, claude: '2.1.289' }
           - { os: windows-2025, claude: '2.1.294' }
           - { os: windows-2025, claude: '2.1.296' }
+          - { os: windows-2025, claude: '2.1.310' }
           - { os: macos-15, claude: '2.1.288' }
           - { os: macos-15, claude: '2.1.289' }
           - { os: macos-15, claude: '2.1.294' }
           - { os: macos-15, claude: '2.1.296' }
+          - { os: macos-15, claude: '2.1.310' }
     env:
       DISABLE_AUTOUPDATER: '1'
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
@@ -292,7 +295,7 @@ jobs:
         with:
           pattern: ts06-*
           path: ${{ runner.temp }}/evidence
-      - name: Require eight targets, thirteen hosts and all 32 runtime cases for the same artifact
+      - name: Require eight targets, sixteen hosts and all 32 runtime cases for the same artifact
         if: needs.scope.outputs.docs_only != 'true'
         run: |
           release_channel=$(node -p "JSON.parse(require('node:fs').readFileSync(process.env.RUNNER_TEMP + '/evidence/ts06-candidate/build-manifest.json')).channel")

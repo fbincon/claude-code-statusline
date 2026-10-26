@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 const APPROVALS: Readonly<Record<string, { path: string; approvedOn: string }>> = {
+    '3.9.1': { path: 'docs/releases/approvals/v3.9.1.json', approvedOn: '2026-10-26' },
     '3.9.0': { path: 'docs/releases/approvals/v3.9.0.json', approvedOn: '2026-10-26' },
     '3.8.0': { path: 'docs/releases/approvals/v3.8.0.json', approvedOn: '2026-10-24' },
     '3.7.0': { path: 'docs/releases/approvals/v3.7.0.json', approvedOn: '2026-10-24' },

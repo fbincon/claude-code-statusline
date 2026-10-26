@@ -2,6 +2,8 @@
 
 **English** | [简体中文](ci-maintenance.zh-CN.md)
 
+Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
+
 ## CI-01 implementation
 
 **Status: DONE.** Implementation baseline: `95206119dab6f931f320277d25889fea8da49528` (2026-10-23). Product baseline remains v3.6.0. This maintenance task does not create a version, tag, npm publication or Release.

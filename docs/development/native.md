@@ -2,6 +2,8 @@
 
 **English** | [简体中文](native.zh-CN.md)
 
+Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
+
 Since v1.3.0, the project provides Client TUI inside the current Claude Code terminal session. `/statusline-configure-native` opens this Mod pane; `/statusline-configure` retains the external curses TUI and platform launcher. Stable defaults both on, with independent preferences and version suspension.
 
 ## Source layout and checks
@@ -59,11 +61,11 @@ During search/numeric editing, ordinary characters are input, including s/f/q; s
 
 The pane requests 72 columns and 24 body rows; actual placement/space belongs to the host. Minimum usable body is 32×12. At 64×20 or larger, the content and preview have group borders. Compact panes use titled separators. Navigation, selected row, details, sample preview and action hints have distinct visual regions. Settings groups Appearance, Refresh / behavior, Git metrics, Formatting, Risk colors, Subagent visibility, Presets / portable files, and folded Claude preferences. Small panes retain the draft and offer resize/close. Increasing terminal height or the host's pane-resize chord may be necessary for inline placement.
 
-Sample preview uses fixed data and production formatting, with at most three rows plus an overflow count. Draft or width changes request a new sample; height changes and navigation reuse it. Client input is sent as cumulative ordered batches, acknowledged and deduplicated. Port snapshots are deep copies because the host freezes them. Stale props, old epochs and late preview replies cannot replace current state.
+Sample preview uses fixed data and production formatting, with at most three rows plus an overflow count. Draft or width changes request a new sample; height changes and navigation reuse it. Client input is sent as cumulative ordered batches, acknowledged and deduplicated. Port snapshots contain only detached visible presentation nodes because the host freezes them; complete drafts stay in the host. Stale props, old epochs and late preview replies cannot replace current state.
 
 Reexecuting the native command focuses the existing pane and keeps its draft. External TUI and Client may be open concurrently. Both save through the same short-lived file lock and opening revision: the first commit wins; a stale draft gets a conflict instead of overwriting. Client retains its draft on conflict; r explicitly discards/reloads. Unknown results require k, which reads without resubmitting or automatically closing.
 
-Claude appearance, time/title and model/effort/thinking/fast behavior use actual `$.config.list()` rows. Apply rechecks locks/current values per row, reports partial results, and is separate from tool configuration. Finish does not silently discard pending preferences. On Client failure, received host-side drafts remain available. Retry/Close buttons remain outside Client so load failures can be recovered. Builds 2.1.287/2.1.288 do not provide the later `ui.fault` event; compatible recovery uses caught drawing errors and the native recovery buttons.
+Claude appearance, time/title and model/effort/thinking/fast behavior use actual `$.config.list()` rows. Apply rechecks locks/current values per row, reports partial results, and is separate from tool configuration. Finish does not silently discard pending preferences. On Client failure, received host-side drafts remain available. Retry/Close buttons remain outside Client so load failures can be recovered. Builds 2.1.287/2.1.288 retain preflight, caught drawing errors and native recovery buttons. On newer hosts the compatible observer also handles `ui.fault` and renders a host-only recovery view.
 
 ## Persistent installation and recovery
 

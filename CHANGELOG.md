@@ -5,6 +5,15 @@
 
 ## Unreleased
 
+## 3.9.1 — 2026-10-26
+
+- Keep native editor drafts and libraries in the host and send only bounded visible presentation frames to the Client, repairing setup, import, schemes, sources, explanation and gradient blank panes (#154).
+- Replace per-row blank framing with constant layout nodes, preserving usable tall panes and paging while reducing presentation dimensions when needed (#155).
+- Keep save results separate from display failures; recover received drafts without repeating writes and check unknown saves by reading.
+- Add production capacity regressions and Claude 2.1.310 on Linux, Windows and macOS, extending the required matrix to sixteen host combinations.
+- Retain display schema 15, editor protocol 24, storage formats and Node 22/24 support.
+- [Release notes](docs/releases/v3.9.1.md) · [Implementation and validation](docs/development/native-capacity.md).
+
 ## 3.9.0 — 2026-10-26
 
 - Add selective, reviewed display imports for global settings and complete main/subagent sections across CLI and both editors.

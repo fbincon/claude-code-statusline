@@ -1963,5 +1963,10 @@
   "alignment.references": "レイアウトを変更する前に、次の整列関係を調整してください：{ids}。",
   "gradients.preset.ocean": "海 (ocean)",
   "gradients.preset.sunset": "夕日 (sunset)",
-  "gradients.preset.aurora": "オーロラ (aurora)"
+  "gradients.preset.aurora": "オーロラ (aurora)",
+  "native.capacity.reduced": "表示を {columns}×{rows} に制限しました。ページ移動できます。",
+  "native.capacity.failed": "この画面を描画できません。",
+  "native.capacity.saved": "前回の保存は成功しました。再試行は再描画のみです。",
+  "native.capacity.unknown": "保存結果が不明です。再試行前に保存状態を確認してください。",
+  "native.capacity.retained": "受信済みの下書きは保持されています。再試行では保存も破棄もしません。"
 }

@@ -24,7 +24,7 @@ import { guidanceLines } from '../../lib/editor/guidance.ts';
 import { reviewRows } from '../../lib/editor/import-review.ts';
 import { profilesView, targetLabel } from '../../lib/editor/profile-manager.ts';
 
-export function draw(ui: ClientElements, view: View, columns: number, rows: number): RenderElement {
+export function draw(ui: ClientElements, view: View, columns: number, rows: number, capacityNotice = ''): RenderElement {
   const tr = (key: string, params: Record<string, unknown> = {}) => t(key, view.language ?? 'en', params);
   const e = view.editor;
   const layout = editorLayout(view, columns, rows);
@@ -133,7 +133,8 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
         children: [spanLine(ui, spans, inner, rowStyle(e.setting === row.key, row.editable))],
       }));
     }
-    while (content.length < layout.bodyRows - Number(layout.showSummary)) content.push(line(' '));
+    const gap = layout.bodyRows - Number(layout.showSummary) - content.length;
+    if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.fields", {value0: settings.length ? window.start + 1 : 0, end: window.end, length: settings.length, page: window.page, pages: window.pages}), styles.muted));
   } else {
     const scope = e.page === 'main' ? 'main' : 'subagent';
@@ -152,10 +153,12 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
         children: [spanLine(ui, itemSpans(item, match, e.search[scope], view.language ?? 'en', inner, e.selected[scope] === item.id, e.items(scope).includes(item.id)), inner, rowStyle(e.selected[scope] === item.id))],
       }));
     if (!visible.length) content.push(line(tr("native.ui.client.draw.no_matching_items"), styles.muted));
-    while (content.length < layout.bodyRows - Number(layout.showDetails) - Number(layout.showSummary)) content.push(line(' '));
+    const gap = layout.bodyRows - Number(layout.showDetails) - Number(layout.showSummary) - content.length;
+    if (gap > 0) content.push(ui.Box({ height: gap, flexShrink: 0, children: [] }));
     if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + (current.type_id ?? current.id) + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.enabled", {page: window.page, pages: window.pages, length: e.items(scope).length}), styles.muted));
   }
+  if (capacityNotice) title = capacityNotice + ' · ' + title;
   const subagentPreview = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
   const sample = view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
@@ -180,7 +183,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
       chromeRow(ui, line(tr("native.ui.client.draw.configure_status_line") + (pending ? ' *' : '') + (e.baseline.configuration ? ' · ' + targetLabel(e, view.language ?? 'en') : ''), { ...styles.accent, bold: true }), columns),
       chromeRow(ui, spanLine(ui, tabs, columns), columns),
       chromeRow(ui, notice ? line(notice, view.error || Object.keys(e.fieldErrors).length ? styles.error : styles.text)
-        : line(tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
+        : line(capacityNotice || tr("native.ui.client.draw.click_region_for_keys"), styles.muted), columns),
       section(ui, 'content-region', title, content, columns, layout.bodyHeight, layout.framed),
       section(ui, 'preview-region', e.review ? tr('review.preview', {scope:tr('review.sections.' + e.review.previewScope)}) : previewTitle((e.quick?.candidate ?? e.draft).display, columns, view.previewBusy, background, view.language), preview, columns, layout.previewHeight, layout.framed, true),
       ui.Box({

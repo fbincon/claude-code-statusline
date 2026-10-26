@@ -1,6 +1,6 @@
+import { clientKey } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
-import { setup, START, RUN, PANE, keys, selectSetting, output, reply, sample } from '../fixtures.ts';
-import type { ClientProps } from '../../lib/session.ts';
+import { setup, START, RUN, PANE, keys, selectSetting, output, reply, sample, previewDraft, presentation, selectedSetting, visibleText } from '../fixtures.ts';
 import { LANGUAGES, t } from '../../lib/i18n/index.ts';
 import type { Language } from '../../lib/i18n/index.ts';
 
@@ -17,9 +17,9 @@ for (const language of LANGUAGES) {
         await keys(ui, '3');
         await selectSetting(ui, 'field:statusline_language');
         for (let n = 0; n < LANGUAGES.indexOf(target); n++) await keys(ui, 'right');
-        const view = ((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view;
+        const view = await presentation(ui);
         expect(view.language).toBe(language);
-        expect(view.editor!.draft.display.statusline_language).toBe(target);
+        expect(previewDraft(fixture).display.statusline_language).toBe(target);
         expect(fixture.store.draft.display.statusline_language).toBe('en');
       };
       await choose();
@@ -36,9 +36,9 @@ for (const language of LANGUAGES) {
       await ui.unmount();
       await $.command.run(RUN);
       ui = await $.ui.mount(PANE);
-      const reopened = ((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view;
+      const reopened = await presentation(ui);
       expect(reopened.language).toBe(language);
-      expect(reopened.editor!.draft.display.statusline_language).toBe(target);
+      expect(previewDraft(fixture).display.statusline_language).toBe(target);
       await keys(ui, 'q');
       await ui.unmount();
     }
@@ -50,20 +50,20 @@ test('registered languages cycle forwards and backwards without replacing the di
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  const view = async () => ((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view;
+  const view = async () => await presentation(ui);
   const headings: Partial<Record<Language, string>> = {
     en: 'Configure Status Line', 'zh-CN': '配置状态栏', 'zh-TW': '設定狀態列',
     ja: 'ステータスライン設定', ko: '상태 표시줄 설정',
   };
   await keys(ui, '3');
   await selectSetting(ui, 'ui-language');
-  const draft = JSON.stringify((await view()).editor!.draft);
+  const draft = JSON.stringify(previewDraft(fixture));
   for (const language of [...LANGUAGES.slice(1), 'en'] as typeof LANGUAGES[number][]) {
     await keys(ui, 'right');
     expect((await view()).language).toBe(language);
     expect(fixture.store.uiLanguage).toBe(language);
-    expect(await ui.find({in:'statusline-client', type:'Text', text:headings[language] ?? t('native.ui.client.draw.configure_status_line', language)})).toBeDefined();
-    expect(JSON.stringify((await view()).editor!.draft)).toBe(draft);
+    expect(await ui.find({in: await clientKey(ui), type:'Text', text:headings[language] ?? t('native.ui.client.draw.configure_status_line', language)})).toBeDefined();
+    expect(JSON.stringify(previewDraft(fixture))).toBe(draft);
   }
   await keys(ui, 'left');
   const lastLanguage = LANGUAGES[LANGUAGES.length - 1]!;
@@ -71,7 +71,7 @@ test('registered languages cycle forwards and backwards without replacing the di
   await selectSetting(ui, 'field:statusline_language');
   for (const language of [...LANGUAGES.slice(1), 'en'] as typeof LANGUAGES[number][]) {
     await keys(ui, 'right');
-    expect((await view()).editor!.draft.display.statusline_language).toBe(language);
+    expect(previewDraft(fixture).display.statusline_language).toBe(language);
     expect(fixture.store.draft.display.statusline_language).toBe('en');
     expect(fixture.store.uiLanguage).toBe(lastLanguage);
   }
@@ -79,7 +79,7 @@ test('registered languages cycle forwards and backwards without replacing the di
   await ui.unmount();
   await $.command.run(RUN);
   const reopened = await $.ui.mount(PANE);
-  expect(((await reopened.find({key:'statusline-client'}))!.props.props as ClientProps).view.language).toBe(lastLanguage);
+  expect((await presentation(reopened)).language).toBe(lastLanguage);
   await reopened.unmount();
 });
 
@@ -88,24 +88,24 @@ test('language persists immediately across cancel and reopening while display dr
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  const props = async () => (await ui.find({key: 'statusline-client'}))!.props.props as ClientProps;
+  const props = async () => await presentation(ui);
   const before = JSON.stringify(fixture.store.draft);
   await keys(ui,'3',' ');
-  const draft = JSON.stringify((await props()).view.editor!.draft);
+  const draft = JSON.stringify(previewDraft(fixture));
   await selectSetting(ui,'ui-language');
   await keys(ui,'right');
-  expect((await props()).view.language).toBe('zh-CN');
-  expect((await props()).view.editor!.setting).toBe('ui-language');
-  expect(JSON.stringify((await props()).view.editor!.draft)).toBe(draft);
+  expect((await props()).language).toBe('zh-CN');
+  expect(await selectedSetting(ui, 'ui-language')).toBe(true);
+  expect(JSON.stringify(previewDraft(fixture))).toBe(draft);
   expect(fixture.store.uiLanguage).toBe('zh-CN');
   expect(JSON.stringify(fixture.store.draft)).toBe(before);
   expect(fixture.calls.some(c=>c.operation==='apply')).toBe(false);
-  expect(await ui.find({in:'statusline-client',type:'Text',text:'配置状态栏'})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:'配置状态栏'})).toBeDefined();
   await keys(ui,'q');
   await ui.unmount();
   await $.command.run(RUN);
   const reopened=await $.ui.mount(PANE);
-  expect(((await reopened.find({key:'statusline-client'}))!.props.props as ClientProps).view.language).toBe('zh-CN');
+  expect((await presentation(reopened)).language).toBe('zh-CN');
   expect(JSON.stringify(fixture.store.draft)).toBe(before);
   await keys(reopened,'3');
   await selectSetting(reopened,'ui-language');
@@ -123,12 +123,12 @@ test('rejected language write restores the last display language without replaci
   const ui=await $.ui.mount(PANE);
   await keys(ui,'3');
   await selectSetting(ui,'ui-language');
-  const before=((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view.editor!.draft;
+  const before=previewDraft(fixture);
   await keys(ui,'right');
-  const after=((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view;
+  const after=await presentation(ui);
   expect(after.language).toBe('en');
-  expect(after.error).toContain('Storage refused');
-  expect(after.editor!.draft).toEqual(before);
+  expect(await visibleText(ui)).toContain('Could not confirm the saved interface language');
+  expect(previewDraft(fixture)).toEqual(before);
   expect(fixture.store.uiLanguage).toBe('en');
   await ui.unmount();
 });
@@ -139,12 +139,11 @@ test('initial shared language and bilingual search keep user text and command sh
   await $.session.start(START);
   await $.command.run(RUN);
   const ui=await $.ui.mount(PANE);
-  expect(await ui.find({in:'statusline-client',type:'Text',text:'配置状态栏'})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:'配置状态栏'})).toBeDefined();
   await keys(ui,{key:'a',ctrl:true},'/','剩','余','上','下','文','return');
-  const data=((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view.editor!;
-  expect(data.search.main).toBe('剩余上下文');
-  expect(data.selected.main).toBe('context-remaining');
-  expect(data.draft).toEqual(fixture.store.draft);
+  expect(await visibleText(ui)).toContain('剩余上下文');
+  expect(await ui.find({in: await clientKey(ui),key:'item-main:context-remaining'})).toBeDefined();
+  expect(previewDraft(fixture)).toEqual(fixture.store.draft);
   await ui.unmount();
 });
 
@@ -157,27 +156,27 @@ test('statusline language previews a display draft and cancel discards it in eit
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  const view = async () => ((await ui.find({key: 'statusline-client'}))!.props.props as ClientProps).view;
+  const view = async () => await presentation(ui);
   await keys(ui, '3');
   await selectSetting(ui, 'field:statusline_language');
   await keys(ui, 'right');
   const current = await view();
   expect(current.language).toBe('zh-CN');
-  expect(current.editor!.draft.display.statusline_language).toBe('zh-CN');
-  expect(current.editor!.setting).toBe('field:statusline_language');
+  expect(previewDraft(fixture).display.statusline_language).toBe('zh-CN');
+  expect(await selectedSetting(ui, 'field:statusline_language')).toBe(true);
   expect(fixture.store.draft.display.statusline_language).toBe('en');
   expect(fixture.calls.some(c => c.operation === 'apply' || c.operation === 'set_ui_language')).toBe(false);
-  expect(await ui.find({in:'statusline-client', type:'Text', text:'上下文 剩余 73%'})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui), type:'Text', text:'上下文 剩余 73%'})).toBeDefined();
   await selectSetting(ui, 'ui-language');
   await keys(ui, 'left');
   expect((await view()).language).toBe('en');
-  expect((await view()).editor!.draft.display.statusline_language).toBe('zh-CN');
+  expect(previewDraft(fixture).display.statusline_language).toBe('zh-CN');
   await keys(ui, 'q');
   await ui.unmount();
   expect(fixture.store.draft.display.statusline_language).toBe('en');
   await $.command.run(RUN);
   const reopened = await $.ui.mount(PANE);
-  expect(((await reopened.find({key:'statusline-client'}))!.props.props as ClientProps).view.editor!.draft.display.statusline_language).toBe('en');
+  expect(previewDraft(fixture).display.statusline_language).toBe('en');
   await reopened.unmount();
 });
 
@@ -189,20 +188,20 @@ test('saving statusline language persists the complete draft while a refusal ret
   await $.session.start(START);
   await $.command.run(RUN);
   const ui = await $.ui.mount(PANE);
-  const view = async () => ((await ui.find({key:'statusline-client'}))!.props.props as ClientProps).view;
+  const view = async () => await presentation(ui);
   await keys(ui, '3', 'right');
   await selectSetting(ui, 'field:statusline_language');
   await keys(ui, 'right');
-  expect((await view()).editor!.draft.display.statusline_language).toBe('zh-CN');
+  expect(previewDraft(fixture).display.statusline_language).toBe('zh-CN');
   await keys(ui, 'S');
   expect(fixture.store.draft.display.statusline_language).toBe('en');
-  expect((await view()).editor!.draft.display.statusline_language).toBe('zh-CN');
-  expect((await view()).editor!.draft.display.use_colors).toBe(false);
-  expect((await view()).error).toContain('Write refused');
-  expect((await view()).uncertain).toBe(true);
+  expect(previewDraft(fixture).display.statusline_language).toBe('zh-CN');
+  expect(previewDraft(fixture).display.use_colors).toBe(false);
+  expect(await visibleText(ui)).toContain('Write refused');
+  expect(await visibleText(ui)).toContain('check');
   await keys(ui, 'k');
-  expect((await view()).uncertain).toBe(false);
-  expect((await view()).editor!.draft.display.statusline_language).toBe('zh-CN');
+  expect(await visibleText(ui)).toContain('No tool changes');
+  expect(previewDraft(fixture).display.statusline_language).toBe('zh-CN');
   refused = false;
   await keys(ui, 'S');
   expect(fixture.store.draft.display.statusline_language).toBe('zh-CN');
@@ -213,6 +212,6 @@ test('saving statusline language persists the complete draft while a refusal ret
   await ui.unmount();
   await $.command.run(RUN);
   const reopened = await $.ui.mount(PANE);
-  expect(((await reopened.find({key:'statusline-client'}))!.props.props as ClientProps).view.editor!.draft.display.statusline_language).toBe('zh-CN');
+  expect(previewDraft(fixture).display.statusline_language).toBe('zh-CN');
   await reopened.unmount();
 });

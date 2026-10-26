@@ -2,6 +2,8 @@
 
 **English** | [简体中文](testing.zh-CN.md)
 
+Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
+
 [CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
 
 
@@ -38,7 +40,7 @@ The TUI package owns pure rendering/state regressions without importing the CLI.
 
 ## Current TypeScript checks
 
-Daily entries are `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/thirteen-host evidence and the manual historical entry.
+Daily entries are `npm run check`, `docs:check`, `candidate:build`, `candidate:verify`, `test:installed` and `test:mods`. See the [engineering candidate guide](typescript-migration/ts-05/candidate.md) for complete commands, offline installation, eight-target/sixteen-host evidence and the manual historical entry.
 Normal workflows do not launch Python. All 161 frozen cases and the three approved text differences remain; real Node contention, atomic writes, process termination and terminal restoration still run. Missing 2.1.296 declarations are not a typecheck pass. Full D06 measurement belongs to PERF-01; its historical FAIL remains.
 
 Cleanup regressions use isolated temporary directories to verify previews, complete removal, repeated execution, symbolic-link boundaries, and preservation of source and historical records. Before a clean rebuild, use `npm run clean -- --dry-run` and `npm run clean`; see the [development guide](README.md#clean-compiled-outputs) for their scope.
