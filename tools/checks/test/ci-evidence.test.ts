@@ -46,13 +46,16 @@ test('original package bytes and every receipt are checked again before promotio
             fs.writeFileSync(join(root, 'ts06-candidate', name), name);
             record.delivery[name] = digest(name);
         }
-        fs.writeFileSync(join(root, 'ts06-candidate/runtime-inputs.json'), '{}'); record.input_file_sha256 = digest('{}');
+        const inputs = JSON.stringify(record.inputs);
+        fs.writeFileSync(join(root, 'ts06-candidate/runtime-inputs.json'), inputs); record.input_file_sha256 = digest(inputs);
         fs.mkdirSync(join(root, 'ts06-acceptance')); fs.writeFileSync(join(root, 'ts06-acceptance/candidate-acceptance.json'), '{}'); record.acceptance_sha256 = digest('{}');
         fs.mkdirSync(join(root, 'ci-compiled-tests'));
         for (const name of Object.keys(record.compiled)) { fs.writeFileSync(join(root, 'ci-compiled-tests', name), name); record.compiled[name] = digest(name); }
         const receipt = join(root, 'installed.json'); fs.writeFileSync(receipt, '{"status":"pass"}');
         record.receipts = fileReceipts(root);
         assert.doesNotThrow(() => verifyRecordedFiles(record, root));
+        const originalInputs = record.inputs; record.inputs = {};
+        assert.throws(() => verifyRecordedFiles(record, root), /Recorded runtime inputs/u); record.inputs = originalInputs;
         fs.writeFileSync(receipt, '{"status":"fail"}');
         assert.throws(() => verifyRecordedFiles(record, root), /receipts changed/u);
         fs.writeFileSync(receipt, '{"status":"pass"}');

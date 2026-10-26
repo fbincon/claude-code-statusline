@@ -158,6 +158,7 @@ export function verifyRecordedFiles(record: CompleteEvidence, directory: string)
     for (const [name, hash] of Object.entries(record.delivery))
         assert.equal(digest(fs.readFileSync(join(directory, 'ts06-candidate', name))), hash, 'Delivery bytes changed');
     assert.equal(digest(fs.readFileSync(join(directory, 'ts06-candidate/runtime-inputs.json'))), record.input_file_sha256, 'Runtime input bytes changed');
+    assert.deepEqual(JSON.parse(fs.readFileSync(join(directory, 'ts06-candidate/runtime-inputs.json'), 'utf8')), record.inputs, 'Recorded runtime inputs differ from original bytes');
     assert.equal(digest(fs.readFileSync(join(directory, 'ts06-acceptance/candidate-acceptance.json'))), record.acceptance_sha256, 'Acceptance bytes changed');
     for (const [name, hash] of Object.entries(record.compiled))
         assert.equal(digest(fs.readFileSync(join(directory, 'ci-compiled-tests', name))), hash, 'Compiled test bytes changed');
