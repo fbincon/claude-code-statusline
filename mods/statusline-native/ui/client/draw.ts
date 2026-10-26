@@ -158,7 +158,7 @@ export function draw(ui: ClientElements, view: View, columns: number, rows: numb
     if (layout.showDetails) content.push(line(current ? tr('native.item_detail', {detail: tr('items.' + scope + '.' + (current.type_id ?? current.id) + '.description'), examples: current.examples.join(' · ')}) : tr('native.empty_detail'), styles.muted));
     if (layout.showSummary) content.push(line(tr("native.ui.client.draw.enabled", {page: window.page, pages: window.pages, length: e.items(scope).length}), styles.muted));
   }
-  if (capacityNotice) title += ' · ' + capacityNotice;
+  if (capacityNotice) title = capacityNotice + ' · ' + title;
   const subagentPreview = e.quick ? e.quick.previewScope === 'subagent' : e.review ? e.review.previewScope === 'subagent' : e.page === 'subagents';
   const sample = view.preview ? subagentPreview ? view.preview.subagents : view.preview.main : [];
   const overflow = layout.previewRows > 1 && sample.length > layout.previewRows;
