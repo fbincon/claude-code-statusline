@@ -38,13 +38,21 @@ CI uses an explicit documentation/template allowlist. Mixed changes and release 
 
 ## Prepare a pull request
 
-Keep the change focused, explain its purpose and record what was actually tested. Use a conventional title such as `fix: ...`, `docs: ...` or `ci: ...`. Maintainer branches use the `fbincon/` prefix. DCO sign-off is not required.
+Keep the change focused, explain its purpose and record what was actually tested. Use a conventional title such as `fix: ...`, `docs: ...` or `ci: ...`. DCO sign-off is not required.
 
 English Markdown uses the existing default paths, with complete Simplified Chinese counterparts named `.zh-CN.md`, except the English-only root `AGENTS.md`. GitHub Issue forms and the single PR template contain both languages in one file. Keep links current and update the appropriate documentation indexes. See the [translation guide](docs/development/i18n.md) for interface translations.
 
 Update documentation, screenshots, CHANGELOG and related Issue links when relevant; explicitly mark other template items not applicable. The project README introduces features and usage: release versions, delivery status and update narratives belong in the changelog, release notes or development records.
 
 Target `main`, bring the branch up to date and wait for the required CI check before merging. A second person's approval is not mandatory for this single-maintainer project; the PR and CI requirements still apply to maintainers and automation. Publication is a separate maintainer operation described in the [release guide](docs/RELEASING.md).
+
+### Branch names
+
+Contributors and coding agents use `<type>/<short-description>` for new development branches. Choose a common change type such as `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build` or `perf`; these are examples, not an enforced allowlist. Write the short description with lowercase letters, digits and hyphens, for example `feat/add-profiles`, `fix/render-width` or `docs/update-guide`.
+
+Use this complete format instead of the desktop app's default branch prefix; do not additionally prepend a username or tool prefix. This guidance does not change the app setting. When creating a branch through the app UI, check the complete name before confirming.
+
+The convention applies to new development branches. Preserve existing branch names, `main`, version tags and branches managed by external automation. Historical records and archived procedures retain their original names and conventions.
 
 ## Platform validation follow-up
 
