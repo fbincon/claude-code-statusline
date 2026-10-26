@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { npmEntry, readTar } from '../build/files.js';
 import { compareVersions } from '@fbincon/statusline-core/management/compatibility';
 import { HISTORICAL_RELEASES, type HistoricalRelease } from './historical-releases.js';
+import { prepareHistorical } from './historical-inputs.js';
 import type { installCandidate } from './install.js';
 import { officialEnvironment } from './install.js';
 import { VERSION_OPERATION_MS, VERSION_SEQUENCE_MS, OFFICIAL_VERSION_SEQUENCE_MS } from './budgets.js';
@@ -46,16 +47,7 @@ async function historicalSequence(installed: ReturnType<typeof installCandidate>
 }
 async function historicalSequenceIn(installed: ReturnType<typeof installCandidate>, historicalVersion: HistoricalRelease, temporary: string, host?: VersionHost, tracePath?: string): Promise<Record<string, unknown>> {
     const legacy = join(temporary, 'historical-' + historicalVersion + '.tgz');
-    const supplied = process.env['TS06_LEGACY_' + historicalVersion.replaceAll('.', '') + '_ARTIFACT'];
-    if (supplied)
-        fs.copyFileSync(supplied, legacy);
-    else {
-        const response = await fetch('https://registry.npmjs.org/@fbincon/claude-code-statusline/-/claude-code-statusline-' + historicalVersion + '.tgz', { signal: AbortSignal.timeout(60000) });
-        assert(response.ok, 'Cannot download the fixed historical release');
-        const bytes = Buffer.from(await response.arrayBuffer());
-        assert(bytes.length < 64 * 1024 * 1024);
-        fs.writeFileSync(legacy, bytes);
-    }
+    await prepareHistorical(historicalVersion, legacy);
     const historicalSha256 = HISTORICAL_RELEASES[historicalVersion];
     assert.equal(createHash('sha256').update(fs.readFileSync(legacy)).digest('hex'), historicalSha256);
     const trace = tracePath ?? (process.env.TS04_INSTALLED_REPORT ? process.env.TS04_INSTALLED_REPORT + '.version-management.' + historicalVersion + '.jsonl' : join(temporary, 'version-management-trace.jsonl'));

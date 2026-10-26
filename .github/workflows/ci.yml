@@ -95,6 +95,15 @@ jobs:
           import { VERSION } from './packages/core/dist/src/release.js';
           if (process.env.RELEASE_TAG !== 'v' + VERSION) throw new Error('Release tag/version mismatch');
           JS
+      - name: Prepare checksum-pinned historical inputs once
+        run: node dist/typescript/tools/acceptance/historical-inputs.js "$RUNNER_TEMP/historical"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
       - name: Two independent builds from one immutable commit
         run: npm run release:build -- --commit "$(git rev-parse HEAD)" --output "$RUNNER_TEMP/candidate"
       - id: identity
@@ -110,6 +119,7 @@ jobs:
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate/
           if-no-files-found: error
+          compression-level: 0
           retention-days: 30
 
   installed:
@@ -146,6 +156,14 @@ jobs:
         with:
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install the shared artifact offline with empty cache and scripts disabled
         run: npm run test:installed -- --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/installed.json"
@@ -159,6 +177,7 @@ jobs:
           name: ts06-installed-${{ matrix.os }}-${{ matrix.arch }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
+          retention-days: 30
 
   runtime:
     name: Node ${{ matrix.node }} / ${{ matrix.target.os }} / ${{ matrix.target.arch }}
@@ -197,6 +216,14 @@ jobs:
         with:
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node }}
@@ -210,6 +237,7 @@ jobs:
           name: ts06-runtime-${{ matrix.target.os }}-${{ matrix.target.arch }}-${{ matrix.node }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
+          retention-days: 30
 
   mods:
     name: Mods / ${{ matrix.os }} / Claude ${{ matrix.claude }}
@@ -251,6 +279,14 @@ jobs:
         with:
           name: ts06-candidate
           path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ci-historical-inputs
+          path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - name: Install the fixed host and development dependencies
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
@@ -270,6 +306,7 @@ jobs:
           name: ts06-mods-${{ matrix.os }}-${{ matrix.claude }}
           path: ${{ runner.temp }}/evidence/
           if-no-files-found: error
+          retention-days: 30
 
   acceptance:
     name: Complete candidate evidence
@@ -306,3 +343,4 @@ jobs:
           name: ts06-acceptance
           path: ${{ runner.temp }}/candidate-acceptance.json
           if-no-files-found: error
+          retention-days: 30

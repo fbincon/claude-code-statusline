@@ -4,6 +4,16 @@
 
 Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
 
+## CI latency and stability work
+
+[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) tracks staged optimization. The first stage preserves full PR/main/tag acceptance and the 8 installation / 32 runtime / 16 host matrix. Later promotion stages are not enabled by this change.
+
+Candidate preparation downloads the immutable 3.7.0 and 3.8.0 archives once, verifies their pinned SHA-256 values and distributes a separate `ci-historical-inputs` artifact. Consumers use the existing `TS06_LEGACY_370_ARTIFACT` / `TS06_LEGACY_380_ARTIFACT` inputs and independently recheck their bytes. Candidate installation still starts outside the checkout with an empty cache, offline npm and lifecycle scripts disabled. Direct local preparation uses the same downloader when no supplied archive exists.
+
+Downloads allow three attempts with one- and two-second backoff only for eligible transient connection failures and HTTP 408/429/500/502/503/504. Corruption, invalid gzip, oversized content, permissions and exhausted retries fail. Version, fixed URL, phase, attempts and duration are logged without credentials. Official-host receipts retain bounded, sanitized successful and failed command logs with phase durations and run identity. Candidate and acceptance artifacts have explicit 30-day retention; compressed package uploads avoid redundant compression.
+
+Use `npm run ci:watch -- --run RUN_ID --head FULL_SHA --watch --report dist/validation/ci/RUN_ID.json` for deterministic observation. It uses the existing authenticated `gh` account locally or the Actions token in CI; it never prints tokens or mutates GitHub. It polls the pinned run with 15/30/60-second backoff, emits only status changes, and retrieves complete paginated job/step timings at completion. The report separates queue time, execution time and attempts. Exit 0 means successful completion, 1 failed CI and 2 incomplete observation; a deadline does not cancel CI. Never count retained successful jobs as newly executed samples.
+
 ## CI-01 implementation
 
 **Status: DONE.** Implementation baseline: `95206119dab6f931f320277d25889fea8da49528` (2026-10-23). Product baseline remains v3.6.0. This maintenance task does not create a version, tag, npm publication or Release.
