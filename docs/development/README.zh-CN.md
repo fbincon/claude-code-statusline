@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+[Native 容量修复](native-capacity.zh-CN.md)。
+
 [后续功能路线](roadmap.zh-CN.md#milestones)与[开发工作包](development-plan.zh-CN.md#future-work)按 M8–M13 排列：首次入口与 npm 全局安装 → 显式升级／回滚 → 选择性导入 → 前景／Powerline 背景渐变 → 主栏显式行对齐 → 全部选定功能验收后的演示。GIT-01、TERMINAL-01 为优先独立维护，Windows 预览结果纳入相关验收。八个未来工作包均保持 NOT_STARTED，不分配版本或日期；M4–M7 已随 v3.7.0 交付，CI-01 已完成，规划更新不实施功能。
 
 [CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。

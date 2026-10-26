@@ -79,7 +79,7 @@ export async function prepareBundle(selectionFile: string, evidence: string, out
     // setup-node is not needed to interpret this file as ESM in the isolated job.
     fs.writeFileSync(join(output, 'package.json'), '{"private":true,"type":"module"}\n', { flag: 'wx' });
     fs.writeFileSync(join(output, 'release-plan.json'), JSON.stringify(plan, null, 2) + '\n', { flag: 'wx' });
-    const message = `Verified **${selection.tag}** at \`${selection.commit}\`. Main CI ${selection.main_ci_run}; tag CI ${selection.ci_run}. Eight installation targets and thirteen hosts passed. Registry version: ${existing ? 'already published with identical bytes' : 'not yet published'}. Dry-run: ${selection.dry_run}.\n\nA dry-run does not authenticate to npm or validate its trusted-publisher binding.\n`;
+    const message = `Verified **${selection.tag}** at \`${selection.commit}\`. Main CI ${selection.main_ci_run}; tag CI ${selection.ci_run}. Eight installation targets and sixteen hosts passed. Registry version: ${existing ? 'already published with identical bytes' : 'not yet published'}. Dry-run: ${selection.dry_run}.\n\nA dry-run does not authenticate to npm or validate its trusted-publisher binding.\n`;
     if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, message);
     console.log(message);
 }

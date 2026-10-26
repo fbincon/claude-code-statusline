@@ -2,6 +2,8 @@
 
 **English** | [简体中文](contracts.zh-CN.md)
 
+Current native capacity and recovery use bounded visible frames and add three-platform Claude 2.1.310 gates; see [implementation and acceptance](native-capacity.md).
+
 
 [Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
 

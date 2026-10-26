@@ -5,10 +5,11 @@ import { parseArgs } from 'node:util';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
-import { prepareModTypes, isolatedHostEnvironment } from './mod-types.js';
+import { prepareModTypes, recordModHost, isolatedHostEnvironment } from './mod-types.js';
 import { verifyCandidate } from '../build/verify.js';
 import { repoRoot } from '../migration/ts-03/common.js';
 import { OFFICIAL_TRANSITION_MS } from './budgets.js';
+import { nativeCapacity } from './native-capacity.js';
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, report: { type: 'string' }, claude: { type: 'string', default: 'claude' } } });
 if (!values.artifact || !values.commit || !values.report) throw new Error('Require --artifact TGZ --commit FULL_SHA --report FILE [--claude EXECUTABLE]');
 const artifact = resolve(values.artifact), reportPath = resolve(values.report), candidate = verifyCandidate(artifact, values.commit);
@@ -27,21 +28,22 @@ function run(executable: string, args: string[], env = environment, timeout = 18
 }
 try {
     const version = run(host.executable, [...host.args, '--version']).match(/\d+\.\d+\.\d+/u)?.[0];
-    if (!version || !['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296'].includes(version)) throw new Error('Unsupported unpinned host');
+    if (!version || !['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].includes(version)) throw new Error('Unsupported unpinned host');
     report.host = version; report.platform = process.platform; report.target = process.platform + '-' + version;
     for (const name of ['statusline-native', 'statusline-runtime']) {
         const directory = join(repoRoot, 'mods', name);
         if (name === 'statusline-runtime' && Number(version.split('.')[2]) < 289) { report.mods[name] = { status: 'unsupported', reason: 'Runtime Mod requires host 2.1.289+' }; continue; }
+        recordModHost(directory, version);
         run(host.executable, [...host.args, 'plugin', 'validate', '--strict', directory]);
         run(host.executable, [...host.args, 'plugin', 'test', directory]);
         let types: Record<string, string>;
         if (version === '2.1.296') types = { status: 'unavailable', reason: 'This exact host does not emit /plugin-types declarations; no typecheck pass is claimed' };
         else {
-            prepareModTypes(directory, values.claude);
+            await prepareModTypes(directory, values.claude);
             run(process.execPath, [join(repoRoot, 'node_modules/typescript/bin/tsc'), '--noEmit', '--project', join(directory, 'tsconfig.json')]);
             types = { status: 'pass', host: version };
         }
-        report.mods[name] = { validation: 'pass', official_tests: 'pass', types };
+        report.mods[name] = { validation: 'pass', official_tests: 'pass', types, ...(name === 'statusline-native' ? { capacity: nativeCapacity(host, join(temporary, 'capacity')) } : {}) };
     }
     const installedReport = join(temporary, 'installed.json');
     run(process.execPath, [fileURLToPath(new URL('../migration/ts-04/official-installed.js', import.meta.url)), installedReport], {

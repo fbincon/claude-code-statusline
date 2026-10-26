@@ -1963,5 +1963,10 @@
   "alignment.references": "請先調整這些對齊關係，再變更配置：{ids}。",
   "gradients.preset.ocean": "海洋 (ocean)",
   "gradients.preset.sunset": "落日 (sunset)",
-  "gradients.preset.aurora": "極光 (aurora)"
+  "gradients.preset.aurora": "極光 (aurora)",
+  "native.capacity.reduced": "顯示範圍縮至 {columns}×{rows}，可繼續翻頁。",
+  "native.capacity.failed": "編輯器暫時無法繪製此檢視。",
+  "native.capacity.saved": "上次儲存已成功；重試只會重新繪製介面。",
+  "native.capacity.unknown": "儲存結果未知，請先核對已儲存狀態。",
+  "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。"
 }

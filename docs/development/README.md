@@ -33,7 +33,7 @@ The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows 
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
-- [Native editor integration](native.md).
+- [Native editor integration](native.md). [Capacity and recovery](native-capacity.md).
 - [Task timing](timer.md) and [live metrics](live.md).
 - [Release process](../RELEASING.md).
 

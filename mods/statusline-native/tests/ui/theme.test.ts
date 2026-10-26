@@ -57,12 +57,11 @@ test('sample rows use the chosen preview background independently of themed ance
     expect(tree.props.backgroundColor).toBe(undefined);
     expect(preview.props.backgroundColor).toBe(undefined);
     const framed = width >= 64;
-    const rows = preview.children.slice(1, framed ? -1 : undefined) as Node[];
-    for (const row of rows) {
-      expect(row.props.backgroundColor).toBe(framed ? undefined : background === 'light' ? '#ffffff' : '#17191e');
-      if (framed) expect((row.children[1] as Node).props.backgroundColor).toBe(undefined);
-    }
-    const bodies = rows.map((row) => framed ? (row.children[1] as Node).children[0] as Node : row);
+    const sectionBody = preview.children[1] as Node;
+    expect(sectionBody.props.backgroundColor).toBe(undefined);
+    const center = sectionBody.children[framed ? 1 : 0] as Node;
+    expect(center.props.backgroundColor).toBe(undefined);
+    const bodies = center.children as Node[];
     expect(bodies.every((n) => n.props.width === width - (framed ? 2 : 0) && n.props.height === 1 && n.props.backgroundColor === (background === 'light' ? '#ffffff' : '#17191e'))).toBe(true);
     const texts = bodies.flatMap(nodes).filter((n) => n.type === 'Text');
     expect(texts.every((n) => n.props.backgroundColor === undefined)).toBe(true);

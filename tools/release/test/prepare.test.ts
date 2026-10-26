@@ -20,10 +20,10 @@ function receipts(): any[] {
         row.terminal_shell_evidence = ['setup','configure','slash'].flatMap(entry => ['powershell','cmd','git-bash'].map(shell => ({entry,shell,colors:256,input_tty:true,restored:true,cancelled:true})));
     return [...installations,
         ...installations.flatMap(receipt => NODE_RUNTIME_CASES.map(runtime_case => ({ ...receipt, kind: 'node-runtime', runtime_case, runtime_tests: true, node: 'v' + runtime_case.replace('x', '25.0'), node_sha256: hash }))),
-        ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), package_management: { ...transitions(true), host, ...(compareVersions(VERSION,'3.8.0') > 0 ? { previous_release: { ...transitions(true,true), host } } : {}) }, installed: { ...base, source: { commit } } }; })];
+        ...HOST_TARGETS.map(target => { const [platform, host] = target.split('-'); return { ...base, target, platform, host, model_calls: 0, mods: Object.fromEntries(['statusline-native', 'statusline-runtime'].map(name => [name, { validation: 'pass', official_tests: 'pass', capacity: { status: 'pass', cases: 197, actual_host: true }, types: host === '2.1.296' ? { status: 'unavailable', reason: 'no declarations' } : { status: 'pass', host } }])), package_management: { ...transitions(true), host, ...(compareVersions(VERSION,'3.8.0') > 0 ? { previous_release: { ...transitions(true,true), host } } : {}) }, installed: { ...base, source: { commit } } }; })];
 }
 test('tests.integration.test_publish_package.AcceptanceTests.test_completed_matrix_is_required', () => {
-    assert.equal(assessEvidence(receipts(), commit, hash).hosts, 13);
+    assert.equal(assessEvidence(receipts(), commit, hash).hosts, 16);
     assert.equal(assessEvidence(receipts(), commit, hash).runtime_installations, 32);
     assert.equal(assessEvidence(receipts(), commit, hash).type_declarations_unavailable.length, 6);
     assert.throws(() => assessEvidence(receipts().slice(1), commit, hash), /Incomplete/);

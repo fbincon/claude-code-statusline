@@ -67,14 +67,18 @@ export function shortcutSpans(hints: readonly Shortcut[], width: number, prefix 
 export function spanLine(ui: ClientElements, spans: readonly TextSpan[], width: number, style: TextProps = {}): RenderElement {
   let remaining = Math.max(0, width);
   const children: RenderElement[] = [];
+  const runs: TextSpan[] = [];
   for (const span of clipSpans(spans, width)) {
     if (remaining <= 0) break;
     if (!span.text) continue;
     const text = span.text;
     if (!text) continue;
-    children.push(ui.Text({ ...span.style, children: [text] }));
+    const previous = runs[runs.length - 1], keys = Object.keys(span.style ?? {}) as (keyof TextProps)[];
+    if (previous && keys.length === Object.keys(previous.style ?? {}).length && keys.every(key => previous.style?.[key] === span.style?.[key])) previous.text += text;
+    else runs.push({ ...span, text });
     remaining -= displayWidth(text);
   }
+  for (const run of runs) children.push(ui.Text({ ...run.style, children: [run.text] }));
   return ui.Text({ wrap: 'truncate', bold: false, ...styles.text, ...style, children });
 }
 

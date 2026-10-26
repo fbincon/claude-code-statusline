@@ -1973,7 +1973,12 @@ export const LOCALES = {
     "alignment.references": "Adjust these alignment relationships before changing the layout: {ids}.",
     "gradients.preset.ocean": "Ocean",
     "gradients.preset.sunset": "Sunset",
-    "gradients.preset.aurora": "Aurora"
+    "gradients.preset.aurora": "Aurora",
+    "native.capacity.reduced": "View limited to {columns}×{rows}; use paging.",
+    "native.capacity.failed": "The editor cannot draw this view.",
+    "native.capacity.saved": "The last save succeeded. Retry only redraws the editor.",
+    "native.capacity.unknown": "Save outcome unknown. Check saved state before retrying.",
+    "native.capacity.retained": "Received draft retained; retry does not save or discard it."
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3940,7 +3945,12 @@ export const LOCALES = {
     "alignment.references": "请先调整这些对齐关系，再更改布局：{ids}。",
     "gradients.preset.ocean": "海洋 (ocean)",
     "gradients.preset.sunset": "落日 (sunset)",
-    "gradients.preset.aurora": "极光 (aurora)"
+    "gradients.preset.aurora": "极光 (aurora)",
+    "native.capacity.reduced": "展示范围缩至 {columns}×{rows}，可继续翻页。",
+    "native.capacity.failed": "编辑器暂时无法绘制此视图。",
+    "native.capacity.saved": "上次保存已成功；重试只会重新绘制界面。",
+    "native.capacity.unknown": "保存结果未知，请先核对已保存状态。",
+    "native.capacity.retained": "已接收的草稿仍保留；重试不会保存或丢弃草稿。"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5907,7 +5917,12 @@ export const LOCALES = {
     "alignment.references": "請先調整這些對齊關係，再變更配置：{ids}。",
     "gradients.preset.ocean": "海洋 (ocean)",
     "gradients.preset.sunset": "落日 (sunset)",
-    "gradients.preset.aurora": "極光 (aurora)"
+    "gradients.preset.aurora": "極光 (aurora)",
+    "native.capacity.reduced": "顯示範圍縮至 {columns}×{rows}，可繼續翻頁。",
+    "native.capacity.failed": "編輯器暫時無法繪製此檢視。",
+    "native.capacity.saved": "上次儲存已成功；重試只會重新繪製介面。",
+    "native.capacity.unknown": "儲存結果未知，請先核對已儲存狀態。",
+    "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7874,7 +7889,12 @@ export const LOCALES = {
     "alignment.references": "請先調整這些對齊關係，再更改佈局：{ids}。",
     "gradients.preset.ocean": "海洋 (ocean)",
     "gradients.preset.sunset": "落日 (sunset)",
-    "gradients.preset.aurora": "極光 (aurora)"
+    "gradients.preset.aurora": "極光 (aurora)",
+    "native.capacity.reduced": "顯示範圍縮至 {columns}×{rows}，可繼續翻頁。",
+    "native.capacity.failed": "編輯器暫時無法繪製此畫面。",
+    "native.capacity.saved": "上次儲存已成功；重試只會重新繪製介面。",
+    "native.capacity.unknown": "儲存結果未知，請先核對已儲存狀態。",
+    "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9841,7 +9861,12 @@ export const LOCALES = {
     "alignment.references": "レイアウトを変更する前に、次の整列関係を調整してください：{ids}。",
     "gradients.preset.ocean": "海 (ocean)",
     "gradients.preset.sunset": "夕日 (sunset)",
-    "gradients.preset.aurora": "オーロラ (aurora)"
+    "gradients.preset.aurora": "オーロラ (aurora)",
+    "native.capacity.reduced": "表示を {columns}×{rows} に制限しました。ページ移動できます。",
+    "native.capacity.failed": "この画面を描画できません。",
+    "native.capacity.saved": "前回の保存は成功しました。再試行は再描画のみです。",
+    "native.capacity.unknown": "保存結果が不明です。再試行前に保存状態を確認してください。",
+    "native.capacity.retained": "受信済みの下書きは保持されています。再試行では保存も破棄もしません。"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11808,7 +11833,12 @@ export const LOCALES = {
     "alignment.references": "레이아웃을 변경하기 전에 다음 정렬 관계를 조정하세요: {ids}.",
     "gradients.preset.ocean": "바다 (ocean)",
     "gradients.preset.sunset": "노을 (sunset)",
-    "gradients.preset.aurora": "오로라 (aurora)"
+    "gradients.preset.aurora": "오로라 (aurora)",
+    "native.capacity.reduced": "표시 영역을 {columns}×{rows}로 줄였습니다. 페이지를 이동할 수 있습니다.",
+    "native.capacity.failed": "이 화면을 그릴 수 없습니다.",
+    "native.capacity.saved": "마지막 저장이 완료되었습니다. 재시도는 화면만 다시 그립니다.",
+    "native.capacity.unknown": "저장 결과를 알 수 없습니다. 재시도 전에 저장 상태를 확인하세요.",
+    "native.capacity.retained": "받은 초안은 유지됩니다. 재시도는 초안을 저장하거나 버리지 않습니다."
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

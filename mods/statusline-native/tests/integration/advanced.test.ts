@@ -1,18 +1,8 @@
+import { clientKey } from '../fixtures.ts';
 import { component } from '../fixtures.ts';
 import { expect, test } from 'claude-code/testing';
-import { setup, START, RUN, PANE, keys, reply } from '../fixtures.ts';
+import { setup, START, RUN, PANE, keys, reply, selectSetting } from '../fixtures.ts';
 import { copyDraft } from '../../lib/editor/draft.ts';
-import type { ClientProps } from '../../lib/session.ts';
-
-async function selectSetting(ui: any, key: string) {
-  await keys(ui, 'home');
-  for (let i = 0; i < 100; i++) {
-    const props = (await ui.find({ key: 'statusline-client' }))!.props.props as ClientProps;
-    if (props.view.editor?.setting === key) return;
-    await keys(ui, 'down');
-  }
-  throw new Error('Setting could not be selected: ' + key);
-}
 
 test('appearance edits save one complete draft without applying host settings', {timeoutMs: 20000}, async ($, on) => {
   const fixture = setup(on);
@@ -108,14 +98,14 @@ test('actual host row aliases apply separately and unavailable behavior rows rem
   fixture.store.rows.push({key:'turnDuration',label:'Show turn duration',kind:'boolean',value:true,provider:{plugin:'engine',tier:'core'},isLocked:false});
   await $.session.start(START);
   await $.command.run(RUN);
-  const ui = await $.ui.mount(PANE);
+  const ui = await $.ui.mount({...PANE, props: {...PANE.props, bodyColumns: 120}});
   await keys(ui, '3', 'H');
   await selectSetting(ui, 'host-turnDuration');
   await keys(ui, ' ', 'A');
   expect(fixture.configCalls).toEqual([{key:'turnDuration',value:false}]);
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await selectSetting(ui, 'host-effort');
-  expect(await ui.find({in:'statusline-client',type:'Text',text:/unavailable.*\/effort/})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:/unavailable.*\/effort/})).toBeDefined();
   await keys(ui, ' ', 'a');
   expect(fixture.configCalls.length).toBe(1);
   await ui.unmount();
@@ -138,7 +128,7 @@ test('changed host kinds and choices are refused per row while independent rows 
   await keys(ui, 'a');
   expect(fixture.configCalls).toEqual([{key:'verbose',value:true}]);
   await selectSetting(ui, 'host-theme');
-  expect(await ui.find({in:'statusline-client',type:'Text',text:/Changed elsewhere/})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:/Changed elsewhere/})).toBeDefined();
   await keys(ui, 'r', '3', 'h');
   fixture.store.rows = fixture.store.rows.map((row) => row.key === 'theme' ? {...row,kind:'choice',options:['dark','light']} : row);
   await keys(ui, 'r', '3', 'h');
@@ -147,7 +137,7 @@ test('changed host kinds and choices are refused per row while independent rows 
   fixture.store.rows = fixture.store.rows.map((row) => row.key === 'theme' ? {...row,options:['dark']} : row);
   await keys(ui, 'a');
   expect(fixture.configCalls.length).toBe(1);
-  expect(await ui.find({in:'statusline-client',type:'Text',text:/Value no longer fits/})).toBeDefined();
+  expect(await ui.find({in: await clientKey(ui),type:'Text',text:/Value no longer fits/})).toBeDefined();
   await ui.unmount();
 });
 
@@ -169,12 +159,12 @@ test('theme drafts apply separately, refusals preserve the actual theme and reco
   expect(fixture.configCalls).toEqual([]);
   await keys(ui, 'a');
   expect(fixture.store.rows.find((row) => row.key === 'theme')!.value).toBe('dark');
-  expect(await ui.find({ in: 'statusline-client', type: 'Text', text: /Refused: Theme locked/ })).toBeDefined();
+  expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: /Refused: Theme locked/ })).toBeDefined();
   fixture.behavior.configSet = (key, value) => ({ value });
   await keys(ui, 'a');
   expect(fixture.store.rows.find((row) => row.key === 'theme')!.value).toBe('light');
   expect(fixture.calls.some((c) => c.operation === 'apply')).toBe(false);
   await keys(ui, '1');
-  expect(await ui.find({ in: 'statusline-client', type: 'Text', text: 'Configure Status Line' })).toBeDefined();
+  expect(await ui.find({ in: await clientKey(ui), type: 'Text', text: 'Configure Status Line' })).toBeDefined();
   await ui.unmount();
 });

@@ -12,8 +12,9 @@ import { sha256 } from '../build/files.js';
 import { stableApprovalPath, UNVERIFIED_GATES, assessStableApproval } from './approval.js';
 import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
+import { NATIVE_CAPACITY_CASES } from '../acceptance/native-capacity.js';
 export const INSTALL_TARGETS = ['ubuntu-24.04-x64', 'windows-2025-x64', 'windows-11-arm-x64', 'macos-14-arm64', 'macos-15-arm64', 'macos-15-intel-x64', 'macos-26-arm64', 'macos-26-intel-x64'];
-export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296'].map(host => os + '-' + host))];
+export const HOST_TARGETS = [...['2.1.287', '2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => 'linux-' + host), ...['win32', 'darwin'].flatMap(os => ['2.1.288', '2.1.289', '2.1.294', '2.1.296', '2.1.310'].map(host => os + '-' + host))];
 function versionSequence(value: any, official: boolean, historical: HistoricalRelease = '3.7.0'): void {
     assert(value && typeof value === 'object', 'Missing version-management receipt');
     assert.equal(value.cases, 7);
@@ -90,6 +91,7 @@ export function assessEvidence(reports: any[], commit: string, sha256: string) {
             const required = Number(report.host.split('.')[2]) >= 289 ? ['statusline-native', 'statusline-runtime'] : ['statusline-native'];
             for (const name of required) {
                 const mod = report.mods[name]; assert.equal(mod.validation, 'pass'); assert.equal(mod.official_tests, 'pass');
+                if (name === 'statusline-native') { assert.equal(mod.capacity?.status, 'pass'); assert.equal(mod.capacity.cases, NATIVE_CAPACITY_CASES); assert.equal(mod.capacity.actual_host, true); }
                 if (report.host === '2.1.296') { assert.equal(mod.types.status, 'unavailable'); assert(mod.types.reason); typesUnavailable.push(report.target + '/' + name); }
                 else { assert.equal(mod.types.status, 'pass'); assert.equal(mod.types.host, report.host); }
             }

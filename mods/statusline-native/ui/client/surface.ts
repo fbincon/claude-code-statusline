@@ -1,7 +1,7 @@
 import { t } from '../../lib/i18n/index.ts';
 import type { ClientSurface, RenderElement } from 'claude-code';
 import type { ClientProps } from '../../lib/session.ts';
-import { clientView } from '../../lib/session.ts';
+import { drawFrame, withinBudget, CapacityError } from '../frame.ts';
 import {
   keyEvents,
   MAX_BATCH,
@@ -9,7 +9,6 @@ import {
   MAX_PENDING_TEXT,
 } from '../../lib/client/messages.ts';
 import type { KeyMessage } from '../../lib/client/messages.ts';
-import { draw } from './draw.ts';
 import { styles } from '../theme.ts';
 
 interface State {
@@ -17,6 +16,7 @@ interface State {
   next: number;
   pending: KeyMessage[];
   latest: ClientProps;
+  viewportSent: string;
 }
 
 /** Surface input and drawing only: no process, filesystem or host API access. */
@@ -24,7 +24,7 @@ export default function StatuslineClient(
   props: ClientProps,
   surface: ClientSurface<State>,
 ): RenderElement {
-  const tr = (key: string) => t(key, props.view.language ?? 'en');
+  const tr = (key: string) => t(key, props.language);
   let state = surface.state;
   if (state && props.epoch < state.epoch) props = state.latest;
   if (!state || state.epoch !== props.epoch) {
@@ -33,6 +33,7 @@ export default function StatuslineClient(
       next: props.ack + 1,
       pending: [],
       latest: props,
+      viewportSent: '',
     };
     surface.setState(state);
   }
@@ -43,7 +44,12 @@ export default function StatuslineClient(
     (item) => item.seq > active.latest.ack,
   );
   const post = () => {
-    if (!active.pending.length) return;
+    const columns = surface.columns || active.latest.columns;
+    const rows = surface.rows || active.latest.rows;
+    const viewport = columns + ':' + rows;
+    const changed = columns !== active.latest.columns || rows !== active.latest.rows;
+    if (!active.pending.length && (!changed || active.viewportSent === viewport)) return;
+    active.viewportSent = viewport;
     let budget=48000;
     const batch: KeyMessage[]=[];
     for(const item of active.pending.slice(0,MAX_BATCH)) {
@@ -53,8 +59,8 @@ export default function StatuslineClient(
     }
     surface.post({
       epoch: active.epoch,
-      columns: surface.columns || active.latest.columns,
-      rows: surface.rows || active.latest.rows,
+      columns,
+      rows,
       events: batch.map(({ seq, event }) => ({
         seq,
         event: {
@@ -69,7 +75,7 @@ export default function StatuslineClient(
     });
   };
   surface.onKey((event) => {
-    if (active.latest.view.busy) return;
+    if (active.latest.busy) return;
     if (active.pending.length >= MAX_PENDING || active.pending.reduce((sum,item)=>sum+item.event.key.length,0)+event.key.length>MAX_PENDING_TEXT) {
       if (!active.pending.some(item => item.event.overflow)) active.pending.push({seq: active.next++, event: {key: 'input-overflow', overflow: true}});
       post(); return;
@@ -83,12 +89,9 @@ export default function StatuslineClient(
   // unacknowledged events; a fresh acknowledgement sends the next bounded batch.
   post();
   try {
-    return draw(
-      surface.elements,
-      clientView(active.latest),
-      surface.columns || active.latest.columns,
-      surface.rows || active.latest.rows,
-    );
+    const tree = drawFrame(surface.elements, active.latest.frame);
+    if (!withinBudget(tree)) throw new CapacityError();
+    return tree;
   } catch (error) {
     surface.post({
       epoch: active.epoch,

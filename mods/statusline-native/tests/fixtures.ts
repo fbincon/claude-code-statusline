@@ -1,3 +1,5 @@
+import type { ClientProps } from '../lib/session.ts';
+import type { Frame } from '../ui/frame.ts';
 import { LANGUAGES } from '../lib/i18n/index.ts';
 import type {
   CommandInfo,
@@ -342,13 +344,13 @@ export function setup(on: On, executableOverride: string | undefined = '/tmp/bin
 }
 
 export async function keys(
-  ui: { key: (event: ClientKeyEvent & { in?: string }) => Promise<void> },
+  ui: { key: (event: ClientKeyEvent & { in?: string }) => Promise<void>; find: (query: {type: 'Client'}) => Promise<any> },
   ...events: (string | ClientKeyEvent)[]
 ) {
   for (const event of events) {
     await ui.key({
       ...(typeof event === 'string' ? { key: event } : event),
-      in: 'statusline-client',
+      in: await clientKey(ui),
     });
   }
 }
@@ -357,9 +359,34 @@ export async function keys(
 export async function selectSetting(ui: any, key: string): Promise<void> {
   await keys(ui, 'home');
   for (let i = 0; i < 100; i++) {
-    const client = (await ui.find({ key: 'statusline-client' }))!.props.props;
-    if (client.view.editor?.setting === key) return;
+    if (await selectedSetting(ui, key)) return;
     await keys(ui, 'down');
   }
   throw new Error('Setting could not be selected: ' + key);
+}
+
+/** Inspect only what the Client actually displays, not a private Editor snapshot. */
+export async function presentation(ui: any): Promise<ClientProps> {
+  return (await ui.find({ type: 'Client' }))!.props.props as ClientProps;
+}
+export function nodeText(frame: Frame, index: number): string {
+  return frame[index]![2].map(child => typeof child === 'string' ? child : nodeText(frame, child)).join('');
+}
+export async function selectedSetting(ui: any, key: string): Promise<boolean> {
+  const { frame } = await presentation(ui);
+  const index = frame.findIndex(node => node[1].key === 'setting-' + key);
+  return index >= 0 && nodeText(frame, index).startsWith('›');
+}
+export async function visibleText(ui: any): Promise<string> {
+  return (await presentation(ui)).frame.flatMap(node => node[2].filter(child => typeof child === 'string')).join(' ');
+}
+export function previewDraft(fixture: ReturnType<typeof setup>): Draft {
+  const call = fixture.calls.filter(call => call.operation === 'preview' || call.operation === 'explain').at(-1);
+  if (!call) throw new Error('The backend has not received a preview request');
+  return call.payload.draft;
+}
+
+/** Epoch is also the mount identity, so retry replaces a host-unmounted instance. */
+export async function clientKey(ui: any): Promise<string> {
+  return 'statusline-client-' + (await presentation(ui)).epoch;
 }

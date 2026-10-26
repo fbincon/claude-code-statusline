@@ -47,6 +47,10 @@ export function configurationOptions(): contracts.ConfigurationOptions {
         padding: { minimum: 0, maximum: 32 }, 'refresh-interval': { minimum: 1, maximum: 3600, special: 'event' }, 'hide-vim-mode-indicator': { choices: [true, false] },
     };
 }
+/** Pure production description, shared with generated native acceptance fixtures. */
+export function configurationDescription(version: readonly number[] | null) {
+    return { presets: contracts.PRESETS, editor_fields: contracts.EDITOR_FIELDS, catalog: [...ITEMS], options: configurationOptions(), capabilities: capabilities(version), backend_version: BACKEND_VERSION, operations: [...OPERATIONS], formatting_options: contracts.FORMAT_CHOICES };
+}
 export class ConfigurationProtocol {
     constructor(public readonly service: ConfigurationService, public readonly preview?: Preview, public readonly nextId: () => string = () => randomUUID().replaceAll('-', ''), public readonly diagnose?: Diagnose) { }
     readResult(effective: EffectiveConfig & { configuration?: contracts.ResolvedConfiguration }): Record<string, unknown> {
@@ -124,7 +128,7 @@ export class ConfigurationProtocol {
         if (operation === 'describe' || operation === 'read')
             requestObject(payload, operation === 'read' && object(payload) && Object.hasOwn(payload, 'target') ? ['target'] : [], 'payload');
         if (operation === 'describe')
-            return { presets: contracts.PRESETS, editor_fields: contracts.EDITOR_FIELDS, catalog: ITEMS, options: configurationOptions(), capabilities: capabilities(this.service.context.hostVersion()), backend_version: BACKEND_VERSION, operations: [...OPERATIONS], formatting_options: contracts.FORMAT_CHOICES };
+            return configurationDescription(this.service.context.hostVersion());
         if (operation === 'read') {
             const scoped = object(payload) && Object.hasOwn(payload, 'target');
             return this.readResult(scoped ? new ProfileService(this.service).readTarget(payload.target) : this.service.read());

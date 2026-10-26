@@ -24,10 +24,11 @@ import type {
   Operation,
   ResultFor,
 } from '../lib/generated-contracts.ts';
-import { MIN_COLUMNS, MIN_ROWS, contentColumns } from '../ui/layout.ts';
+import { MIN_COLUMNS, MIN_ROWS, contentColumns, clip } from '../ui/layout.ts';
 import { recoveryButton, styles } from '../ui/theme.ts';
 import { clientProps } from '../lib/session.ts';
 import type { View } from '../lib/session.ts';
+import { withinBudget } from '../ui/frame.ts';
 import { parseBatch } from '../lib/client/messages.ts';
 import { handleKey } from '../lib/client/keys.ts';
 import { DEFAULT_PREVIEW_BACKGROUND, PREVIEW_BACKGROUND_KEY, previewBackground } from '../lib/preview-preferences.ts';
@@ -112,6 +113,9 @@ interface Session {
   generation: number;
   columns: number;
   rows: number;
+  displayColumns: number;
+  displayRows: number;
+  saveOutcome: 'none' | 'pending' | 'saved' | 'unknown' | 'refused';
   placed: boolean;
   clientFault: string;
   inputChain: Promise<void>;
@@ -133,17 +137,26 @@ function discard(state: Session): void {
   state.ack = 0;
   state.placed = false;
   state.clientFault = '';
+  state.saveOutcome = 'none';
 }
 
 function props(state: Session) {
-  return clientProps(
-    state.view,
-    state.epoch,
-    state.ack,
-    ++state.generation,
-    state.columns,
-    state.rows,
-  );
+  try {
+    const projected = clientProps(state.view, state.epoch, state.ack, ++state.generation, state.columns, state.rows);
+    state.displayColumns = projected.displayColumns;
+    state.displayRows = projected.displayRows;
+    return projected;
+  } catch (error) {
+    state.clientFault = failureText(error).slice(0, 200);
+    return null;
+  }
+}
+
+function clientReply($: EngineInterface, state: Session) {
+  const projected = props(state);
+  if (projected && !state.clientFault) return { props: projected };
+  $.ui.invalidate('ui.render');
+  return {};
 }
 
 async function load(
@@ -232,12 +245,15 @@ async function reconcile(
         JSON.stringify(editor.baseline.installation)
     ) {
       editor.committed(current);
+      state.saveOutcome = 'saved';
       setMessage(state.view, "message", localizedText("native.hooks.register.the_submitted_tool_configuration_is_saved"));
       state.view.error = '';
     } else if (current.revision === submitted.revision) {
+      state.saveOutcome = 'refused';
       setMessage(state.view, "message", localizedText("native.hooks.register.no_tool_changes_were_committed_review_the_draft"));
       state.view.error = '';
     } else {
+      state.saveOutcome = 'refused';
       setMessage(state.view, "error", localizedText("native.hooks.register.configuration_conflict_saved_configuration_differs_discard_the_draft"));
     }
     state.pendingSave = null;
@@ -275,6 +291,7 @@ async function save(
     revision: editor.baseline.revision,
   };
   state.pendingSave = submitted;
+  state.saveOutcome = 'pending';
   state.writing = true;
   setMessage(state.view, "busy", localizedText("native.hooks.register.saving_tool_configuration"));
   state.view.error = '';
@@ -290,6 +307,7 @@ async function save(
     editor.committed(result);
     state.pendingSave = null;
     saved = true;
+    state.saveOutcome = 'saved';
     setMessage(state.view, "message", (result.changed ? localizedText("native.hooks.register.tool_configuration_saved_later_statusline_refreshes_use_these") : localizedText("native.hooks.register.tool_configuration_is_already_current")));
   } catch (failure) {
     if (state.epoch !== saving) return;
@@ -305,6 +323,7 @@ async function save(
       'unsupported_operation',
     ].includes(error.code);
     state.view.uncertain = !refused;
+    state.saveOutcome = refused ? 'refused' : 'unknown';
     if (refused) state.pendingSave = null;
   } finally {
     if (state.epoch === saving) {
@@ -578,6 +597,9 @@ export const register: Register = (on, options) => {
     generation: 0,
     columns: 72,
     rows: 24,
+    displayColumns: 72,
+    displayRows: 24,
+    saveOutcome: 'none',
     placed: false,
     clientFault: '',
     inputChain: Promise.resolve(),
@@ -635,10 +657,21 @@ export const register: Register = (on, options) => {
     return result;
   });
 
+  // Namespace registration remains valid on hosts predating ui.fault.
+  on('ui.*', { component: 'Pane', requestId: PANE }, async ($, e, next) => {
+    if (String(next.event) === 'ui.fault' && state.ownsCommand) {
+      const fault = e as unknown as { component?: string; requestId?: string; element?: string; module?: string; surface?: string; reason?: unknown };
+      if (fault.component === 'Pane' && fault.requestId === PANE && fault.element === 'statusline-client-' + state.epoch && fault.module === 'ui/client/surface.ts' && fault.surface === 'terminal') {
+        state.clientFault = failureText(fault.reason).slice(0, 200);
+      }
+    }
+    return next(e);
+  });
+
   on('ui.message', { component: 'Pane' }, async ($, e, next) => {
     if (
       e.requestId !== PANE ||
-      e.element !== 'statusline-client' ||
+      e.element !== 'statusline-client-' + state.epoch ||
       e.module !== 'ui/client/surface.ts' ||
       e.surface !== 'terminal' ||
       !state.ownsCommand
@@ -661,11 +694,16 @@ export const register: Register = (on, options) => {
     const batch = parseBatch(e.data);
     if (!batch) {
       setMessage(state.view, "error", localizedText("native.hooks.register.invalid_client_input_retry_the_client_region"));
-      return { props: props(state) };
+      return clientReply($, state);
     }
     const run = state.inputChain.then(async () => {
       if (batch.epoch !== state.epoch || !state.placed) return {};
       const currentEpoch = state.epoch;
+      if (state.columns !== batch.columns || state.rows !== batch.rows) {
+        state.columns = batch.columns;
+        state.rows = batch.rows;
+        props(state);
+      }
       for (const message of batch.events) {
         if (message.seq <= state.ack) continue;
         if (message.seq !== state.ack + 1) {
@@ -677,8 +715,8 @@ export const register: Register = (on, options) => {
         const effect = handleKey(
           state.view,
           message.event,
-          batch.columns,
-          batch.rows,
+          state.displayColumns,
+          state.displayRows,
         );
         if (effect === 'save' || effect === 'finish') {
           await save($, state, options, effect === 'finish');
@@ -744,13 +782,18 @@ export const register: Register = (on, options) => {
       }
       $.ui.invalidate('ui.render');
       if (state.epoch !== currentEpoch) return {};
-      return { props: props(state) };
+      return clientReply($, state);
     });
     state.inputChain = run.then(
       () => {},
       () => {},
     );
     return run;
+  }).catch(($, e, next) => {
+    if (e.requestId !== PANE || !state.ownsCommand) return next(e);
+    state.clientFault = failureText(next.error.message ?? 'Client reply failed').slice(0, 200);
+    $.ui.invalidate('ui.render');
+    return {};
   });
 
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {
@@ -826,17 +869,18 @@ export const register: Register = (on, options) => {
       width >= MIN_COLUMNS &&
       height >= MIN_ROWS
     ) {
-      return Box({
+      const projected = props(state);
+      const tree = projected ? Box({
         width,
         height,
         flexDirection: 'column',
         children: [
           Client({
-            key: 'statusline-client',
+            key: 'statusline-client-' + state.epoch,
             module: '../ui/client/surface.ts',
             width,
             height,
-            props: props(state),
+            props: projected,
           }),
           Box({
             position: 'absolute',
@@ -857,7 +901,9 @@ export const register: Register = (on, options) => {
             ],
           }),
         ],
-      });
+      }) : null;
+      if (tree && withinBudget(tree)) return tree;
+      state.clientFault ||= tr('native.capacity.failed');
     }
     return Box({
       backgroundColor: styles.text.backgroundColor,
@@ -882,8 +928,12 @@ export const register: Register = (on, options) => {
         Text({
           ...styles.error,
           wrap: 'truncate',
-          children: [state.clientFault || viewMessage(state.view, 'error') || ' '],
+          children: [clip((state.clientFault || viewMessage(state.view, 'error') || ' ').slice(0, 200), Math.min(width, 200))],
         }),
+        Text({ ...styles.text, wrap: 'truncate', children: [clip(
+          state.saveOutcome === 'saved' ? tr('native.capacity.saved') : state.view.uncertain ? tr('native.capacity.unknown') : state.writing ? viewMessage(state.view, 'busy') : tr('native.capacity.retained'),
+          Math.min(width, 200),
+        )] }),
         ...(state.view.uncertain
           ? [
               Button({
@@ -915,5 +965,21 @@ export const register: Register = (on, options) => {
         }),
       ],
     });
+  }).catch(($, e, next) => {
+    if (e.requestId !== PANE || !state.ownsCommand || e.surface !== 'terminal') return next(e);
+    state.clientFault = failureText(next.error.message ?? 'Pane rendering failed').slice(0, 200);
+    $.ui.invalidate('ui.render');
+    const { Box, Text, Button } = $.ui.resolve(e);
+    return Box({ flexDirection: 'column', children: [
+      Text({ children: [tr('native.capacity.failed')] }),
+      Text({ children: [state.saveOutcome === 'saved' ? tr('native.capacity.saved') : state.view.uncertain ? tr('native.capacity.unknown') : tr('native.capacity.retained')] }),
+      Button({ ...recoveryButton, key: 'retry-client', label: tr('native.hooks.register.retry_client'), onPress: () => {
+        if (state.writing || state.view.uncertain) return;
+        state.epoch++; state.ack = 0; state.clientFault = '';
+        $.ui.invalidate('ui.render');
+      } }),
+      ...(state.view.uncertain ? [Button({ ...recoveryButton, key: 'reconcile', label: tr('native.hooks.register.check_saved_state'), onPress: () => reconcile($, state, options) })] : []),
+      Button({ ...recoveryButton, key: 'close', label: tr('native.hooks.register.discard_pending_close'), onPress: () => close($, state, options) }),
+    ] });
   });
 };

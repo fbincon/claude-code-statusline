@@ -25,7 +25,7 @@ function view(): View {
 function text(node: Node | string): string { return typeof node === 'string' ? node : node.children.map(text).join(''); }
 function render(node: Node): string[] {
   let lines: string[];
-  if (node.type === 'Text') lines = [text(node)];
+  if (node.type === 'Text') lines = text(node).split('\n');
   else if (node.props.flexDirection === 'row' || !node.props.flexDirection) {
     const children = node.children.map((child) => typeof child === 'string' ? [child] : render(child));
     lines = Array.from({ length: Math.max(1, ...children.map((c) => c.length)) }, (_, i) => children.map((c) => c[i] ?? '').join(''));
