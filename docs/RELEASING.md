@@ -8,6 +8,8 @@ Use the [v3.9.1-specific approval](releases/approvals/v3.9.1.json) and require a
 
 ## Release identity and immutable assets
 
+Create release preparation branches from the latest `main` using the [contribution branch naming convention](../CONTRIBUTING.md#branch-names), for example `chore/prepare-release`. The archived Python procedure below retains its historical naming and does not define the current branch naming policy.
+
 GitHub release immutability is enabled for future publications. Create a draft, upload exactly the four delivery files (package, source archive, build manifest and checksums), download and verify their bytes and acceptance evidence, then publish. While still unpublished, a draft's tag or assets may be corrected only after checking the source, commit and digests. After publication, do not replace assets or move the associated tag; ship fixes as a new version.
 
 Release titles and notes remain editable, as do prerelease/Latest selections; these operations cannot change a published package's identity. GitHub's immutability setting does not automatically apply to Gitee: synchronize the same verified files and check every digest there. Historical releases are not rebuilt retroactively, and routine synchronization never force-pushes or mirror-deletes refs. See [GitHub's immutable-release documentation](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases).

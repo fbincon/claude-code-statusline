@@ -8,6 +8,8 @@
 
 ## 发布身份与不可变附件
 
+从最新 `main` 创建发布准备分支，遵循[贡献指南中的分支命名约定](../CONTRIBUTING.zh-CN.md#分支命名)，例如 `chore/prepare-release`。下文已归档的 Python 流程保留其历史命名，不作为当前分支命名规范。
+
 GitHub 已为未来正式发布启用 Release immutability。每次发布先创建草稿，上传恰好四项交付文件（安装包、源码归档、构建清单和校验和），下载并核对字节及验收证据，再正式发布。草稿阶段可以在明确核对来源、提交和摘要后修正尚未发布的标签或附件；正式发布后不替换附件、不移动关联标签，修复使用新版本。
 
 发布标题和说明仍可编辑，预发布／Latest 标记也可调整；这些操作不能改变已发布包的身份。GitHub 的不可变设置不自动扩展到 Gitee，Gitee 仍须同步完全相同的已验证文件并逐项核验摘要。既有历史发布不追溯重建，常规同步不使用强推或镜像删除。参见 [GitHub 不可变发布说明](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)。

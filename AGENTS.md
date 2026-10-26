@@ -69,7 +69,8 @@ npm ci --ignore-scripts --no-audit --no-fund
 
 ## Pull requests and synchronization
 
-- Keep changes focused, use conventional commit/PR titles and the maintainer branch prefix `fbincon/`, and record actual checks and limitations.
+- Keep changes focused, use conventional commit/PR titles, and record actual checks and limitations.
+- Name new development branches `<type>/<short-description>` following [Contributing](CONTRIBUTING.md#branch-names). Use this complete format instead of the desktop app's default branch prefix; do not prepend a personal or tool prefix.
 - Target `main`, bring the branch up to date, and require successful `Complete candidate evidence` for the final reviewed head before merging. Preserve [repository protections](docs/development/repository-governance.md#main-protection-and-checks).
 - GitHub is primary for development, PRs and CI; Gitee distributes synchronized code. Synchronize validated main with explicit refspecs after checking divergence, and verify the resulting remote commit.
 - Publication is a separate maintainer task governed by the [release guide](docs/RELEASING.md). Documentation maintenance does not itself require a product version, tag, Release or npm publication.
