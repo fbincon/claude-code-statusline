@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { claudeLaunch } from '@fbincon/statusline-platform/commands';
@@ -19,15 +20,37 @@ export function recordModHost(plugin: string, version: string): void {
     fs.mkdirSync(directory, { recursive: true });
     fs.writeFileSync(join(directory, 'host-version.ts'), '// Local test metadata; generated from claude --version.\nexport const HOST_VERSION = ' + JSON.stringify(version) + ';\n');
 }
+/** A declaration file can appear before its compiler settings and tool types. */
+export function declarationIdentity(directory: string, version: string): string | null {
+    try {
+        const config = fs.readFileSync(join(directory, 'tsconfig.json'));
+        const options = JSON.parse(config.toString('utf8')).compilerOptions;
+        if (!options || typeof options.target !== 'string' || !Array.isArray(options.types) || !options.types.includes('claude-code')) return null;
+        const hash = createHash('sha256').update(config);
+        for (const name of options.types) {
+            if (typeof name !== 'string' || !/^[\w-]+$/u.test(name)) return null;
+            const bytes = fs.readFileSync(join(directory, name, 'index.d.ts'));
+            if (!bytes.length || name === 'claude-code' && bytes.toString('utf8').split(/\r?\n/u)[0] !== `// Written by Claude Code ${version}.`) return null;
+            hash.update(name).update(bytes);
+        }
+        return hash.digest('hex');
+    } catch { return null; }
+}
 export async function prepareModTypes(plugin: string, executable = 'claude'): Promise<string> {
     const host = claudeLaunch(executable), env = isolatedHostEnvironment(process.env, '');
     const result = spawnSync(host.executable, [...host.args, '--version'], { encoding: 'utf8', timeout: 10000, env });
     const version = result.stdout?.match(/\d+\.\d+\.\d+/u)?.[0];
     if (result.status !== 0 || !version)
         throw new Error('Cannot determine exact Claude host version');
+    const types = join(resolve(plugin), '.claude-plugin/types');
+    fs.rmSync(types, { recursive: true, force: true });
     recordModHost(plugin, version);
-    const path = join(resolve(plugin), '.claude-plugin/types/claude-code/index.d.ts');
-    fs.rmSync(path, { force: true });
+    let previous: string | null = null, stableSince = 0;
+    const ready = () => {
+        const current = declarationIdentity(types, version);
+        if (current !== previous) { previous = current; stableSince = Date.now(); }
+        return current !== null && Date.now() - stableSince >= 100;
+    };
     const directory = fs.mkdtempSync(join(tmpdir(), 'statusline-mod-types-'));
     const debug = join(directory, 'host.log');
     let exitCode: number | null = null;
@@ -43,12 +66,12 @@ export async function prepareModTypes(plugin: string, executable = 'claude'): Pr
                 const child = startWindows([host.executable, ...args], directory, environment);
                 try {
                     const deadline = Date.now() + 30000;
-                    while (!fs.existsSync(path) && child.code() === null && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 50));
+                    while (!ready() && child.code() === null && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 50));
                     exitCode = child.code();
                 } finally { child.close(); }
             } else {
                 const child = openPty(directory, 120, 32, environment, 'en', { executable: host.executable, args, cwd: directory });
-                try { await child.wait(() => fs.existsSync(path), 30000); }
+                try { await child.wait(ready, 30000); }
                 finally { await child.close(); }
             }
         } else {
@@ -56,10 +79,8 @@ export async function prepareModTypes(plugin: string, executable = 'claude'): Pr
             cwd: directory, env: isolatedHostEnvironment(process.env, directory), encoding: 'utf8', timeout: 30000, maxBuffer: 4 * 1024 * 1024,
         });
         }
-        if (!fs.existsSync(path))
+        if (!declarationIdentity(types, version))
             throw new Error(`Claude Code ${version} did not emit exact-build declarations: ` + JSON.stringify({ exitCode, log: fs.existsSync(debug) ? fs.readFileSync(debug, 'utf8').slice(-8000) : 'No host log emitted' }));
-        if (fs.readFileSync(path, 'utf8').split(/\r?\n/u)[0] !== `// Written by Claude Code ${version}.`)
-            throw new Error('Declaration header does not match actual host');
         return version;
     }
     finally {
