@@ -53,7 +53,8 @@
     "test:runtime": "node tools/typescript/test.mjs --runtime",
     "actions:check": "npm run build && node dist/typescript/tools/checks/actions.js",
     "test:native-capacity": "npm run build && node dist/typescript/tools/acceptance/native-capacity.js",
-    "capture:native-capacity": "npm run build && node dist/typescript/tools/acceptance/native-capacity-pty.js"
+    "capture:native-capacity": "npm run build && node dist/typescript/tools/acceptance/native-capacity-pty.js",
+    "ci:watch": "npm run build && node dist/typescript/tools/checks/ci-watch.js"
   },
   "devDependencies": {
     "@resvg/resvg-js": "2.6.2",
