@@ -2,6 +2,8 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+The [native capacity repair captures](native-capacity/README.md) show installed quick setup, gradients, a successful 24-instance save and tall-pane resizing, with exact candidate provenance.
+
 [Current installed TypeScript external pages](typescript/v3.1.1/README.md) cover six languages, Main, Subagents, Settings, Layout and contextual controls, with source/artifact provenance and image checksums. Earlier TypeScript captures and the original Python gallery below are preserved.
 
 See the [component editor captures](composition/README.md) for the current instance interface. Original cross-platform galleries remain documented below.
