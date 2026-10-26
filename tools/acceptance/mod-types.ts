@@ -51,7 +51,7 @@ export async function prepareModTypes(plugin: string, executable = 'claude'): Pr
         if (current !== previous) { previous = current; stableSince = Date.now(); }
         return current !== null && Date.now() - stableSince >= 100;
     };
-    const directory = fs.mkdtempSync(join(tmpdir(), 'statusline-mod-types-'));
+    const directory = fs.realpathSync.native(fs.mkdtempSync(join(tmpdir(), 'statusline-mod-types-')));
     const debug = join(directory, 'host.log');
     let exitCode: number | null = null;
     try {
