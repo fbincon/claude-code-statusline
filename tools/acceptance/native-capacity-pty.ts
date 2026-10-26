@@ -15,6 +15,7 @@ import { nativeCapacityData } from '../generation/native-capacity.js';
 import { openPty } from '../migration/ts-04/test/pty.js';
 import { Capture } from '../migration/ts-04/capture.js';
 import type { Draft } from '@fbincon/statusline-core/contracts/ui';
+import { t } from '@fbincon/statusline-core/i18n/messages';
 
 const { values } = parseArgs({ options: { artifact: { type: 'string' }, commit: { type: 'string' }, output: { type: 'string' }, claude: { type: 'string', default: 'claude' } } });
 if (!values.artifact || !values.commit || !values.output) throw new Error('Require --artifact TGZ --commit SHA --output NEW_DIRECTORY [--claude EXECUTABLE]');
@@ -85,7 +86,10 @@ async function runCase(name: string, fixtureName: string, action: string, extern
     const capture = (label: string) => { read(); record(join(directory, label + '.cells.json'), { columns, rows, cells: screen.buffer, terminal_foreground: '#dedee7', terminal_background: '#17191e' }); fs.writeFileSync(join(directory, label + '.txt'), screen.buffer.map(row => row.map(cell => cell.data).join('')).join('\n')); };
     let status = 'fail', error: string | null = null;
     try {
-        if (!external) { await delay(3500); read(); await key('/statusline-configure-native\r', 'open native command'); }
+        if (!external) {
+            await until(text => text.includes('❯') && fs.existsSync(hostLog) && fs.readFileSync(hostLog, 'utf8').includes('$.command.register (statusline-native): /statusline-configure-native listed'), 'host command ready', 30000);
+            await key('/statusline-configure-native\r', 'open native command');
+        }
         await until(text => text.includes('Configure Status Line') && text.includes('[x]') && (external || completed('preview')), 'main and preview visible');
         if (!external) {
             let clicked = false;
@@ -97,15 +101,15 @@ async function runCase(name: string, fixtureName: string, action: string, extern
         }
         capture('before');
         if (action === 'quick') {
-            await key('\x10', 'quick setup'); await until(text => text.includes('Quick setup') && text.includes('scenario'), 'quick setup visible');
+            await key('\x10', 'quick setup'); await until(text => text.includes(t('quick.title', 'en')) && text.includes(t('quick.scenario', 'en')), 'quick setup visible');
             await key('\r', 'choose scenario'); await until(text => /appearance/iu.test(text), 'candidate appearance visible'); capture('after');
             await key(external ? '\x1b' : '\x07', 'cancel quick setup');
         } else if (action === 'import') {
-            await key('3', 'settings'); await key('\x1b[F', 'last setting'); await key('\x1b[A', 'import setting');
+            await key(external ? '\t\t' : '3', 'settings'); await key('\x1b[F', 'last setting'); await key('\x1b[A', 'import setting');
             await until(text => /›.*Import file/u.test(text), 'import field selected');
             await key('\r', 'edit import path'); await key('\x15', 'clear path'); await key(importPath, 'insert literal path'); await key('\r', 'review import');
             await until(text => /no (changes|differences)/iu.test(text), 'identical import review visible'); capture('after');
-            await key(external ? 'q' : '\x07', 'cancel import');
+            await key('\x07', 'cancel import');
         } else if (action === 'profiles' || action === 'profile-actions') {
             await key('\x0f', 'profile library'); await until(text => text.includes('Capacity profile 0'), 'profile list visible');
             if (action === 'profile-actions') { await key('\x1b[B', 'select profile'); await key('\r', 'profile actions'); await until(text => text.includes('Edit') || text.includes('Activate'), 'profile actions visible'); }
