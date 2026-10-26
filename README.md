@@ -376,9 +376,15 @@ Display settings and backups remain available; see [uninstalling](docs/USER_GUID
 
 ```text
 claude-code-statusline/
-├── .github/workflows/
-│   ├── ci.yml                    # Candidate build, eight installations and thirteen hosts
-│   └── reference.yml             # Manual historical Python verification
+├── .github/
+│   ├── ISSUE_TEMPLATE/               # Bilingual bug form and feedback links
+│   ├── pull_request_template.md      # Bilingual PR template
+│   ├── dependabot.yml                # Actions version-update policy
+│   └── workflows/
+│       ├── ci.yml                    # Documentation checks or complete product matrix
+│       ├── npm-publish.yml           # npm publication through OIDC
+│       ├── preview-downloads.yml     # Public bytes and installation checks
+│       └── reference.yml             # Manual historical Python verification
 ├── packages/                     # Four business packages
 │   ├── core/src/                 # Configuration, protocols, pure state, rendering and Unicode
 │   │   ├── editor/               # Shared drafts, cursor input, quick setup and explanations
@@ -415,6 +421,8 @@ claude-code-statusline/
 ├── package.json / package-lock.json
 ├── tsconfig*.json / .node-version
 ├── README.md / README.zh-CN.md
+├── CONTRIBUTING.md / CONTRIBUTING.zh-CN.md
+├── SECURITY.md / SECURITY.zh-CN.md
 ├── CHANGELOG.md / CHANGELOG.zh-CN.md
 └── LICENSE
 ```
@@ -429,6 +437,10 @@ claude-code-statusline/
 - [Development guide](docs/development/README.md) · [Release process](docs/RELEASING.md).
 - [Changelog](CHANGELOG.md) · [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases).
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues): include versions, reproduction steps, and diagnostic results; remove private paths and session content.
+
+## Contributing and security
+
+See the [contribution guide](CONTRIBUTING.md) for development, translations and feedback. Report potential vulnerabilities privately using the [security policy](SECURITY.md).
 
 ## License
 

@@ -2,6 +2,14 @@
 
 **English** | [简体中文](RELEASING.zh-CN.md)
 
+## Release identity and immutable assets
+
+GitHub release immutability is enabled for future publications. Create a draft, upload exactly the four delivery files (package, source archive, build manifest and checksums), download and verify their bytes and acceptance evidence, then publish. While still unpublished, a draft's tag or assets may be corrected only after checking the source, commit and digests. After publication, do not replace assets or move the associated tag; ship fixes as a new version.
+
+Release titles and notes remain editable, as do prerelease/Latest selections; these operations cannot change a published package's identity. GitHub's immutability setting does not automatically apply to Gitee: synchronize the same verified files and check every digest there. Historical releases are not rebuilt retroactively, and routine synchronization never force-pushes or mirror-deletes refs. See [GitHub's immutable-release documentation](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases).
+
+Documentation and repository maintenance do not require a product version, tag, Release or npm publication. Product releases still require the final PR, main and tag automated gates; the six existing #96 gaps remain accepted but unverified and do not waive new failures. See [repository maintenance](development/repository-governance.md) for protection and community entry points.
+
 ## v3.8.0 Git, terminal and package management
 
 Use the [v3.8.0-specific approval](releases/approvals/v3.8.0.json) and require all final release PR, merged-main and annotated-tag gates. Each installed/runtime receipt must pass all twenty categories, including four Git-policy cases, four durable first-entry cases and seven real package-transition cases against the digest-pinned public v3.7.0 archive. Version receipts retain nineteen operations (twenty with an official host), interruption, observed-state recovery and separate configuration restoration. Windows additionally requires fifteen palette/environment cases and nine actual PowerShell/CMD/Git Bash × setup/configure/slash combinations, including cancellation and restored console modes.
