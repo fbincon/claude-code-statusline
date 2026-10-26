@@ -11,7 +11,7 @@ import { publicChannel, sourceFilename } from '../build/model.js';
 import { verifyDelivery } from '../build/verify.js';
 import { REPOSITORY, validatePlan, requirePublishContext, registryMetadata, verifyPublishedBytes, type PublishPlan } from './npm-registry.js';
 import { publishedTagEvidence, runsFor } from '../checks/ci-promotion.js';
-import { verifyRecordedFiles } from '../checks/ci-evidence.js';
+import { verifyRecordedFiles, artifactIdentity, newestArtifact, listRunArtifacts } from '../checks/ci-evidence.js';
 
 export function selectCiRun(runs: any[], commit: string, branch: string) {
     const matching = runs.filter(run => run.head_sha === commit && run.head_branch === branch && run.event === 'push'
@@ -23,17 +23,10 @@ export function selectCiRun(runs: any[], commit: string, branch: string) {
     assert.equal(run.conclusion, 'success', 'Latest CI did not pass for ' + branch);
     return run.id as number;
 }
-async function ciRuns(commit: string) {
-    const runs: any[] = [];
-    for (let page = 1; page <= 10; page++) {
-        const response = await fetch(`https://api.github.com/repos/${REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${commit}&event=push&per_page=100&page=${page}`, {
-            headers: { Authorization: 'Bearer ' + process.env.GH_TOKEN, 'User-Agent': 'statusline-npm-preflight' }, signal: AbortSignal.timeout(30000),
-        });
-        assert(response.ok, 'Cannot read CI: HTTP ' + response.status);
-        const body: any = await response.json(); runs.push(...body.workflow_runs);
-        if (body.workflow_runs.length < 100) return runs;
-    }
-    throw new Error('CI pagination limit exceeded');
+export function legacyArtifactIds(artifacts: any[]): number[] {
+    const names = [...new Set<string>(artifacts.map(row => row.name).filter(name => /^ts06-(?:candidate$|acceptance$|installed-|runtime-|mods-)/u.test(name)))].sort();
+    assert(names.includes('ts06-candidate') && names.includes('ts06-acceptance'), 'Missing legacy release inputs');
+    return names.map(name => artifactIdentity(newestArtifact(artifacts, name)).id);
 }
 export async function resolveRelease(selection: string) {
     assert.equal(process.env.GITHUB_REPOSITORY, REPOSITORY);
@@ -49,14 +42,15 @@ export async function resolveRelease(selection: string) {
     const dryRun = process.env.DRY_RUN === 'true';
     if (!dryRun) requirePublishContext({ tag: tag!, commit });
     else assert(['refs/heads/main', 'refs/tags/' + tag].includes(process.env.GITHUB_REF ?? ''), 'Dry-run must use main or the release tag');
-    const runs = await ciRuns(commit), tagRun = selectCiRun(runs, commit, tag!);
+    const runs = await runsFor(commit), tagRun = selectCiRun(runs, commit, tag!);
     const promotion = await publishedTagEvidence(tag!, commit, runs.find(run => run.id === tagRun));
     const mainRun = promotion?.integrationRun ?? selectCiRun(runs, commit, 'main');
     const ciRun = promotion?.sourceRun ?? tagRun;
+    const artifactIds = promotion?.artifacts ?? legacyArtifactIds(await listRunArtifacts(ciRun));
     const result = { tag, commit, ci_run: ciRun, tag_ci_run: tagRun, main_ci_run: mainRun, dry_run: dryRun, version: VERSION, channel: publicChannel(),
-        ...(promotion ? { promotion: promotion.promotion, artifact_ids: promotion.artifacts } : {}) };
+        artifact_ids: artifactIds, ...(promotion ? { promotion: promotion.promotion } : {}) };
     fs.writeFileSync(selection, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
-    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `ci_run=${ciRun}\nartifact_ids=${promotion?.artifacts.join(',') ?? ''}\n`);
+    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `ci_run=${ciRun}\nartifact_ids=${artifactIds.join(',')}\n`);
     console.log(JSON.stringify(result));
 }
 export async function prepareBundle(selectionFile: string, evidence: string, output: string) {

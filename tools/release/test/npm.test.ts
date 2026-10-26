@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { selectCiRun } from '../npm.js';
+import { selectCiRun, legacyArtifactIds } from '../npm.js';
 import { REPOSITORY, validatePlan, requirePublishContext, verifyRegistryVersion, tagCorrections, type PublishPlan } from '../npm-registry.js';
 
 const plan: PublishPlan = { schema_version: 1, tag: 'v3.0.1', version: '3.0.1', commit: 'a'.repeat(40), channel: 'stable',
@@ -22,6 +22,13 @@ test('latest exact main/tag push CI must succeed; PR, foreign and older green ru
         { head_repository: { full_name: 'other/repo' } }, { conclusion: 'failure' }, { status: 'in_progress' }])
         assert.throws(() => selectCiRun([{ ...run, ...changed }], plan.commit, plan.tag));
     assert.throws(() => selectCiRun([run, { ...run, id: 11, conclusion: 'failure' }], plan.commit, plan.tag));
+});
+test('legacy release reads select exact newest artifact IDs and never hide corrupt retries', () => {
+    const make = (name: string, id: number) => ({ name, id, expired: false, expires_at: new Date(Date.now() + 86400000).toISOString(), digest: 'sha256:' + 'a'.repeat(64) });
+    const artifacts = [make('ts06-candidate', 1), make('ts06-acceptance', 2), make('ts06-mods-windows-2025-2.1.288', 3), make('ts06-mods-windows-2025-2.1.288', 4)];
+    assert.deepEqual(legacyArtifactIds(artifacts), [2, 1, 4]);
+    artifacts[3]!.expired = true; assert.throws(() => legacyArtifactIds(artifacts));
+    assert.throws(() => legacyArtifactIds([make('ts06-candidate', 1)]));
 });
 test('an existing npm version is accepted only with the expected identity, integrity and registry URL', () => {
     const version = { name: '@fbincon/claude-code-statusline', version: plan.version, dist: { integrity: plan.integrity, tarball: 'https://registry.npmjs.org/package.tgz' } };
