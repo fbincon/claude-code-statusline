@@ -52,7 +52,7 @@ export async function selectTag(tag: string, commit: string): Promise<PromotionS
     return { schema_version: 1, route: 'tag', reason: 'Reuse complete main acceptance at the identical commit', commit, tag, tag_object: tagObject,
         source_run: main.id, source_commit: commit, filename, source_record: source.record, source_envelope: source.envelope, artifact_ids: source.artifact_ids };
 }
-export async function verifyPromotion(selection: PromotionSelection, evidence: string, output: string): Promise<void> {
+export async function verifyOriginal(selection: PromotionSelection, evidence: string): Promise<CompleteEvidence> {
     assert.equal(selection.schema_version, 1); assert.equal(selection.route, 'tag');
     assert(selection.tag && selection.source_record && selection.source_run && selection.source_commit && selection.filename && selection.source_envelope);
     assert.equal(selection.commit, selection.source_commit); assert.equal(git('rev-parse', 'HEAD'), selection.commit);
@@ -62,8 +62,11 @@ export async function verifyPromotion(selection: PromotionSelection, evidence: s
     const original = await completeSource(current);
     assert.deepEqual(original.record, selection.source_record); assert.deepEqual(original.envelope, selection.source_envelope);
     assert.deepEqual(original.artifact_ids, selection.artifact_ids);
-    const record = original.record, directory = join(evidence, 'ts06-candidate');
-    verifyRecordedFiles(record, evidence);
+    verifyRecordedFiles(original.record, evidence); return original.record;
+}
+export async function verifyPromotion(selection: PromotionSelection, evidence: string, output: string): Promise<void> {
+    const record = await verifyOriginal(selection, evidence), directory = join(evidence, 'ts06-candidate');
+    assert(selection.filename && selection.source_commit);
     const { verifyDelivery } = await import('../build/verify.js');
     const { assessEvidence, evidenceFiles } = await import('../release/prepare.js');
     const checked = verifyDelivery(join(directory, selection.filename), selection.source_commit);
@@ -100,16 +103,19 @@ export async function publishedTagEvidence(tag: string, commit: string, run: any
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
     const { values, positionals } = parseArgs({ allowPositionals: true, options: { output: { type: 'string' }, selection: { type: 'string' }, evidence: { type: 'string' } } });
-    assert(values.output);
+    assert(values.output || positionals[0] === 'preflight');
     if (positionals[0] === 'select') {
         const commit = git('rev-parse', 'HEAD');
         const result = process.env.CI_EVENT === 'push' && process.env.CI_REF_TYPE === 'tag' ? await selectTag(process.env.CI_REF_NAME!, commit) :
             { schema_version: 1, route: 'full', reason: 'Full acceptance required', commit } as PromotionSelection;
-        fs.writeFileSync(values.output, JSON.stringify(result, null, 2) + '\n');
+        fs.writeFileSync(values.output!, JSON.stringify(result, null, 2) + '\n');
         if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `route=${result.route}\nsource_run=${result.source_run ?? ''}\nsource_commit=${result.source_commit ?? ''}\nfilename=${result.filename ?? ''}\nartifact_ids=${result.artifact_ids?.join(',') ?? ''}\n`);
         console.log(JSON.stringify({ route: result.route, reason: result.reason, source_run: result.source_run }));
+    } else if (positionals[0] === 'preflight') {
+        assert(values.selection && values.evidence);
+        await verifyOriginal(JSON.parse(fs.readFileSync(values.selection, 'utf8')), resolve(values.evidence));
     } else {
-        assert.equal(positionals[0], 'verify'); assert(values.selection && values.evidence);
+        assert.equal(positionals[0], 'verify'); assert(values.selection && values.evidence && values.output);
         await verifyPromotion(JSON.parse(fs.readFileSync(values.selection, 'utf8')), resolve(values.evidence), resolve(values.output));
     }
 }

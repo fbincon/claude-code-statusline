@@ -18,6 +18,7 @@ function fixture() {
     const record: CompleteEvidence = { schema_version: 1, kind: 'complete', repository: CI_REPOSITORY, source_commit: commit, tree: commit, workflow_sha: commit,
         run_id: 12, attempt: 2, event: 'push', branch: 'main', workflow: '.github/workflows/ci.yml', pr: null, created_at: new Date(now).toISOString(), expires_at: new Date(now + 86400000).toISOString(),
         policy_sha256: hash, version: '3.9.1', toolchain: { node: 'v24.21.0', npm: '11.19.0', typescript: '5.9.3', lock_sha256: hash }, coverage: { installations: 8, runtime_installations: 32, hosts: 16, native_capacity_cases: 197 }, inputs,
+        acceptance_sha256: hash, input_file_sha256: hash, compiled: { 'compiled-tests.json': hash, 'compiled-tests.tar': hash },
         delivery: Object.fromEntries(['SHA256SUMS', 'build-manifest.json', 'fbincon-claude-code-statusline-3.9.1.tgz', 'claude-code-statusline-3.9.1-source.tar.gz'].map(name => [name, hash])),
         receipts: Object.fromEntries(Array.from({ length: 56 }, (_, index) => ['ts06-case-' + index + '/installed.json', hash])), artifacts: artifacts.map(value => artifactIdentity(value)), executions: [
             ...TARGETS.map(target => ({target:target.os+'-'+target.arch,node:'v24.21.0'})),
@@ -65,6 +66,10 @@ test('original package bytes and every receipt are checked again before promotio
             fs.writeFileSync(join(root, 'ts06-candidate', name), name);
             record.delivery[name] = digest(name);
         }
+        fs.writeFileSync(join(root, 'ts06-candidate/runtime-inputs.json'), '{}'); record.input_file_sha256 = digest('{}');
+        fs.mkdirSync(join(root, 'ts06-acceptance')); fs.writeFileSync(join(root, 'ts06-acceptance/candidate-acceptance.json'), '{}'); record.acceptance_sha256 = digest('{}');
+        fs.mkdirSync(join(root, 'ci-compiled-tests'));
+        for (const name of Object.keys(record.compiled)) { fs.writeFileSync(join(root, 'ci-compiled-tests', name), name); record.compiled[name] = digest(name); }
         const receipt = join(root, 'installed.json'); fs.writeFileSync(receipt, '{"status":"pass"}');
         record.receipts = fileReceipts(root);
         assert.doesNotThrow(() => verifyRecordedFiles(record, root));
@@ -74,6 +79,10 @@ test('original package bytes and every receipt are checked again before promotio
         fs.writeFileSync(join(root, 'runtime.json'), '{}');
         assert.throws(() => verifyRecordedFiles(record, root), /receipts changed/u);
         fs.rmSync(join(root, 'runtime.json'));
+        for (const name of ['ts06-candidate/runtime-inputs.json', 'ts06-acceptance/candidate-acceptance.json', 'ci-compiled-tests/compiled-tests.tar']) {
+            const path = join(root, name), before = fs.readFileSync(path);
+            fs.appendFileSync(path, 'changed'); assert.throws(() => verifyRecordedFiles(record, root), /bytes changed/u); fs.writeFileSync(path, before);
+        }
         fs.appendFileSync(join(root, 'ts06-candidate', 'SHA256SUMS'), 'different bytes for same source');
         assert.throws(() => verifyRecordedFiles(record, root), /Delivery bytes changed/u);
     } finally { fs.rmSync(root, { recursive: true, force: true }); }

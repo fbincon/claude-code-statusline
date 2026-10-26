@@ -22,6 +22,7 @@ export interface CompleteEvidence {
     toolchain: { node: string; npm: string; typescript: string; lock_sha256: string };
     coverage: { installations: number; runtime_installations: number; hosts: number; native_capacity_cases: number };
     inputs: unknown; delivery: Record<string, string>; receipts: Record<string, string>;
+    acceptance_sha256: string; input_file_sha256: string; compiled: Record<string, string>;
     artifacts: ArtifactIdentity[]; executions: any[];
 }
 export function policyDigest(revision: string): string {
@@ -95,6 +96,9 @@ export function validateComplete(record: CompleteEvidence, run: any, artifacts: 
     assert.match(record.version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u);
     assert.deepEqual(Object.keys(record.delivery).sort(), ['SHA256SUMS', 'build-manifest.json', `fbincon-claude-code-statusline-${record.version}.tgz`, `claude-code-statusline-${record.version}-source.tar.gz`].sort());
     assert(Object.values(record.delivery).every(value => HASH.test(value)));
+    assert.match(record.acceptance_sha256, HASH); assert.match(record.input_file_sha256, HASH);
+    assert.deepEqual(Object.keys(record.compiled).sort(), ['compiled-tests.json', 'compiled-tests.tar']);
+    assert(Object.values(record.compiled).every(value => HASH.test(value)));
     assert(Object.keys(record.receipts).length >= 56 && Object.values(record.receipts).every(value => HASH.test(value)));
     assert(Object.keys(record.receipts).every(path => !path.startsWith('/') && !path.includes('\\') && path.split('/').every(part => part && part !== '.' && part !== '..')));
     const inputs = record.inputs as any;
@@ -137,6 +141,7 @@ export function validateComplete(record: CompleteEvidence, run: any, artifacts: 
     assert.deepEqual([...obligations].sort(), expectedObligations.sort(), 'Incomplete execution obligations');
     if (record.event === 'pull_request') {
         assert(record.pr && record.pr.draft === false && record.pr.head === record.source_commit && record.pr.base_ref === 'main'); assert.match(record.pr.base, SHA);
+        assert(Number.isSafeInteger(record.pr.number) && record.pr.number > 0);
     } else { assert.equal(record.event, 'push'); assert.equal(record.branch, 'main'); assert.equal(record.pr, null); }
 }
 export function fileReceipts(directory: string): Record<string, string> {
@@ -155,6 +160,10 @@ export function verifyRecordedFiles(record: CompleteEvidence, directory: string)
     assert.deepEqual(fileReceipts(directory), record.receipts, 'Original receipts changed');
     for (const [name, hash] of Object.entries(record.delivery))
         assert.equal(digest(fs.readFileSync(join(directory, 'ts06-candidate', name))), hash, 'Delivery bytes changed');
+    assert.equal(digest(fs.readFileSync(join(directory, 'ts06-candidate/runtime-inputs.json'))), record.input_file_sha256, 'Runtime input bytes changed');
+    assert.equal(digest(fs.readFileSync(join(directory, 'ts06-acceptance/candidate-acceptance.json'))), record.acceptance_sha256, 'Acceptance bytes changed');
+    for (const [name, hash] of Object.entries(record.compiled))
+        assert.equal(digest(fs.readFileSync(join(directory, 'ci-compiled-tests', name))), hash, 'Compiled test bytes changed');
 }
 export async function verifyWorkflowSource(record: CompleteEvidence): Promise<void> {
     const workflow = await githubRead(`repos/${CI_REPOSITORY}/contents/${record.workflow}?ref=${record.workflow_sha}`);
@@ -206,6 +215,8 @@ export async function recordComplete(evidence: string, selectionFile: string, ac
         inputs: JSON.parse(fs.readFileSync(join(source, 'runtime-inputs.json'), 'utf8')),
         delivery: Object.fromEntries([build.candidate.file, build.source.file, 'build-manifest.json', 'SHA256SUMS'].map(name => [name, digest(fs.readFileSync(join(source, name)))])),
         receipts: fileReceipts(evidence), artifacts: selection.artifacts,
+        acceptance_sha256: digest(fs.readFileSync(acceptanceFile)), input_file_sha256: digest(fs.readFileSync(join(source, 'runtime-inputs.json'))),
+        compiled: Object.fromEntries(['compiled-tests.json', 'compiled-tests.tar'].map(name => [name, digest(fs.readFileSync(join(evidence, 'ci-compiled-tests', name)))])),
         executions,
     };
     assert.equal(selection.run_id, record.run_id); assert.equal(selection.commit, record.source_commit);

@@ -617,6 +617,10 @@ jobs:
           run-id: ${{ needs.scope.outputs.source_run }}
           artifact-ids: ${{ needs.scope.outputs.artifact_ids }}
           path: ${{ runner.temp }}/evidence
+      - name: Check original bytes before restoring executable test outputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/checks/ci-promotion.ts preflight --selection "$RUNNER_TEMP/selection/promotion-selection.json" --evidence "$RUNNER_TEMP/evidence"
       - run: node tools/build/test-bundle.ts restore "$RUNNER_TEMP/evidence/ci-compiled-tests"
       - name: Verify the original package, receipts, main ancestry and tag
         env:
