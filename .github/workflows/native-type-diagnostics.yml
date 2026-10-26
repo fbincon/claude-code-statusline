@@ -1,6 +1,8 @@
 name: Native declaration diagnostics
 on:
   workflow_dispatch:
+  push:
+    branches: [fbincon/native-capacity-fix]
 permissions:
   contents: read
 jobs:
