@@ -20,6 +20,8 @@ PR 成功合并后，在 GitHub 允许时自动删除其来源分支；保留所
 
 启用 Dependabot alerts、依赖图与安全更新。安全更新 PR 仍需正常审阅和 CI，不自动合并。既有每周 Actions 版本更新配置保持不变，不增加 npm 定期版本更新。依赖修复可能需要同步修改固定版本清单、lockfile、打包器与验包器。密钥扫描和推送保护继续启用。
 
+2026-10-26 首次扫描在 `tools/acceptance/package-lock.json` 和 `tools/migration/ts-05/reference-requirements.txt` 中发现六条告警（一条高危、两条中危、三条低危）。Dependabot 分别创建了 [setuptools #149](https://github.com/fbincon/claude-code-statusline/pull/149)、[body-parser #150](https://github.com/fbincon/claude-code-statusline/pull/150) 和 [fast-uri #151](https://github.com/fbincon/claude-code-statusline/pull/151) 修复 PR。此前根工作区的 npm audit 未覆盖这些独立依赖文件。修复仍须单独审阅和检查，本次维护不更新依赖版本。#96 的平台验收豁免不适用于依赖告警。
+
 Release immutability 面向未来 GitHub 正式发布。先在草稿中准备并验证全部四项附件，再正式发布。已发布包的修复通过新版本交付，不替换附件或移动关联标签。不重建历史发布，也不新增覆盖全部 `v*` 的规则集。Gitee 副本须独立核对摘要，详见[发布流程](../RELEASING.zh-CN.md)。
 
 Homepage 指向 npm 包，Topics 描述当前 TypeScript/Node CLI 和支持平台。关闭空 Wiki，保留 Projects。CodeQL、npm 定期更新及其他社区服务不属于本次维护范围。
