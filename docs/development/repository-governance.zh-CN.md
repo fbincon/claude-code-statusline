@@ -6,7 +6,7 @@
 
 [GitHub](https://github.com/fbincon/claude-code-statusline)是 Issues、PR、CI 和安全报告的主要位置，Gitee 分发同步后的代码与发布。开发和反馈从[贡献指南](../../CONTRIBUTING.zh-CN.md)开始，私有漏洞报告遵循[安全政策](../../SECURITY.zh-CN.md)。通用双语 Bug 表单替换迁移预览表单，空白 Issue 继续用于提问和功能建议。[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96)保留既有平台验收跟踪用途。
 
-根目录政策使用英文和简体中文对应文件；GitHub 表单与 PR 模板各使用单个双语文件。项目 README 聚焦介绍与使用，维护证据放在本文或交付报告中。
+根目录政策使用英文和简体中文对应文件，仅维护英文的[项目级代理指引](../../AGENTS.md)除外。该文件记录共享开发规则；个人偏好、机器配置和凭据处理保留在用户级指引中。GitHub 表单与 PR 模板各使用单个双语文件。项目 README 聚焦介绍与使用，维护证据放在本文或交付报告中。
 
 ## 主线保护与检查
 

@@ -28,6 +28,7 @@
 
 ### 当前开发
 
+- [项目级代理指引](../../AGENTS.md)：共享工作区边界、规范来源、验证和 PR 规则，仅维护英文。
 - [产品路线图](roadmap.zh-CN.md)、[未来工作包](development-plan.zh-CN.md#future-work)与[候选池](roadmap.zh-CN.md#candidates)：M8–M13 顺序、优先独立维护、范围、依赖、兼容及功能验收；功能／配套／较远候选各有进入条件，既有设计／证据分别保留。
 - [架构](architecture.zh-CN.md)与[共享协议](contracts.zh-CN.md)。
 - [翻译贡献指南](i18n.zh-CN.md)。
