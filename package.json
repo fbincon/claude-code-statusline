@@ -15,7 +15,7 @@
     "clean": "node tools/typescript/clean.mjs",
     "build": "node tools/typescript/check-runtime.mjs && tsc -b",
     "typecheck": "npm run build",
-    "docs:check": "npm run build && node dist/typescript/tools/checks/docs.js",
+    "docs:check": "node tools/typescript/check-runtime.mjs && node tools/checks/docs.ts",
     "mods:prepare": "npm run build && node dist/typescript/tools/acceptance/mod-types.js",
     "acceptance:power": "npm run build && node dist/typescript/tools/acceptance/power.js",
     "capture:render": "npm run build && node dist/typescript/tools/acceptance/render-capture.js",
@@ -51,7 +51,7 @@
     "release:verify": "npm run build && node dist/typescript/tools/build/verify.js --release",
     "release:downloads": "npm run build && node dist/typescript/tools/release/downloads.js",
     "test:runtime": "node tools/typescript/test.mjs --runtime",
-    "actions:check": "npm run build && node dist/typescript/tools/checks/actions.js",
+    "actions:check": "node tools/typescript/check-runtime.mjs && node tools/checks/actions.ts",
     "test:native-capacity": "npm run build && node dist/typescript/tools/acceptance/native-capacity.js",
     "capture:native-capacity": "npm run build && node dist/typescript/tools/acceptance/native-capacity-pty.js",
     "ci:watch": "npm run build && node dist/typescript/tools/checks/ci-watch.js"

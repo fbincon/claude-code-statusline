@@ -47,6 +47,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 - Maintained documentation/templates, including root `AGENTS.md`: run `npm run docs:check` and `git diff --check`.
 - Product source, dependencies, workflows or development tools: run `npm run check` and `git diff --check`.
 - CI uses an explicit [documentation allowlist](docs/development/ci-maintenance.md#community-documentation-checks). Mixed changes and release approval JSON require the full product matrix; pure allowlisted documentation needs only its necessary checks.
+- Draft quick checks and manual diagnostic probes are not complete acceptance. Preserve all logical platform/runtime/host obligations when sharing identical executions; receipts must identify the original execution and verified inputs.
 - After moving or deleting source files, follow the documented [compiled-output cleanup](docs/development/README.md#clean-compiled-outputs) before rebuilding.
 - Use isolated temporary configuration and installation directories. Preserve real Claude settings and the installed product.
 - Installed, official-host, terminal, physical and paid acceptance have separate entries in [testing and acceptance](docs/development/testing.md); invoke the checks appropriate to the task. Paid checks require explicit scope and budget.

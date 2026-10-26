@@ -6,7 +6,17 @@ Current native capacity and recovery use bounded visible frames and add three-pl
 
 ## CI latency and stability work
 
-[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) tracks staged optimization. The first stage preserves full PR/main/tag acceptance and the 8 installation / 32 runtime / 16 host matrix. Later promotion stages are not enabled by this change.
+### Development and execution routes
+
+Draft product PRs run `Draft quick checks` (the complete local Linux check command) but cannot pass `Complete candidate evidence`. Opening, synchronizing, reopening, marking ready and converting back to draft all reclassify the current head. Ready product PRs require complete coverage; allowlisted documentation is checked in the classification job without a product build. The aggregate executes its dependency-free checker directly with pinned Node. PR updates cancel superseded runs; main/tag runs are grouped by immutable commit rather than cancelling another revision's evidence.
+
+Development checks and the two independent clean builds run in parallel, and both must pass before platform work begins. The development job distributes portable compiler outputs with an exact commit, lockfile and per-file/archive digests. Consumers install native dependencies locally, verify the bundle and restore only the six fixed compiled-output roots. Independent builds never use this bundle. Platform jobs run all source tests, while repository-static generation/docs/archive/inventory commands run centrally. Source tests use two isolated file workers, with native process/lock, terminal, timing and recovery suites retained in a serial group. Unknown locations remain included and serial; `STATUSLINE_TEST_WORKERS=1` supports comparison.
+
+Node selectors resolve once per candidate. All 8/32/16 logical obligations remain: when the development runtime exactly matches a Node case, the installed job's complete source suite and unchanged isolated installation cover that case too. The shared receipt references that execution and requires its source-test receipt, executable digest and source hashes; it is not a new test run. Other runtimes remain separate jobs. The two real historical-version sequences use isolated child processes concurrently, with separate prefixes, HOME, configuration, cache, registry and traces; failures cancel siblings and await termination before cleanup.
+
+Manual `validation=windows-probe` runs the source-process regressions, same-runner old/new supervisor measurement and real installed acceptance on Windows x64 and ARM-host/x64. It cannot produce aggregate release acceptance. The final full matrix also repeats the original 20-second native long scenario ten times on Windows Claude 2.1.289 and 2.1.294, retaining the exact test body, source digest, individual times and logs before running the ordinary full host suite.
+
+[Issue #157](https://github.com/fbincon/claude-code-statusline/issues/157) tracks staged optimization. These execution improvements preserve full ready-PR/main/tag acceptance and the 8 installation / 32 runtime / 16 host matrix. Later promotion stages are not enabled by this change.
 
 Candidate preparation downloads the immutable 3.7.0 and 3.8.0 archives once, verifies their pinned SHA-256 values and distributes a separate `ci-historical-inputs` artifact. Consumers use the existing `TS06_LEGACY_370_ARTIFACT` / `TS06_LEGACY_380_ARTIFACT` inputs and independently recheck their bytes. Candidate installation still starts outside the checkout with an empty cache, offline npm and lifecycle scripts disabled. Direct local preparation uses the same downloader when no supplied archive exists.
 
