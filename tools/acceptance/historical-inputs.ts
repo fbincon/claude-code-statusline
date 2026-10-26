@@ -59,6 +59,8 @@ export async function prepareHistorical(version: HistoricalRelease, destination:
     const digest = HISTORICAL_RELEASES[version];
     const supplied = process.env['TS06_LEGACY_' + version.replaceAll('.', '') + '_ARTIFACT'];
     if (supplied || fs.existsSync(destination)) {
+        const stat = fs.lstatSync(supplied ?? destination);
+        assert(stat.isFile() && !stat.isSymbolicLink() && stat.size > 2 && stat.size < MAX_BYTES, 'Invalid cached historical archive');
         const bytes = fs.readFileSync(supplied ?? destination); verifyHistorical(bytes, digest);
         if (resolve(supplied ?? destination) !== resolve(destination)) fs.writeFileSync(destination, bytes, { flag: 'wx' });
         return;

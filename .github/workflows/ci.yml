@@ -134,6 +134,18 @@ jobs:
           import { VERSION } from './packages/core/dist/src/release.js';
           if (process.env.RELEASE_TAG !== 'v' + VERSION) throw new Error('Release tag/version mismatch');
           JS
+      - id: historical-key
+        name: Identify immutable historical cache
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import { HISTORICAL_RELEASES } from './dist/typescript/tools/acceptance/historical-releases.js';
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'key=historical-v1-' + Object.values(HISTORICAL_RELEASES).join('-') + '\n');
+          JS
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          key: ${{ steps.historical-key.outputs.key }}
+          path: ${{ runner.temp }}/historical
       - name: Prepare checksum-pinned historical inputs once
         run: node dist/typescript/tools/acceptance/historical-inputs.js "$RUNNER_TEMP/historical"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

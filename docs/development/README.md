@@ -84,7 +84,7 @@ Development is independent of the installed pipx product. Normal workflows need 
 
 `npm run check` covers real Node contention, failures, terminals, frozen cases, generated resources, documentation and complete responsibility ledgers.
 `tools/generation/` maintains six languages, two Mods and skill templates; it never regenerates the Python archive.
-Eight installations and thirteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately.
+Eight installations, 32 Node runtime cases and sixteen fixed host combinations consume the same universal candidate tgz. Missing 2.1.296 declarations are reported separately. See [CI maintenance](ci-maintenance.md) for execution sharing, draft checks and diagnostics.
 
 ### Clean compiled outputs
 

@@ -9,9 +9,15 @@ export const CI_REPOSITORY = 'fbincon/claude-code-statusline';
 export async function githubRead(path: string): Promise<any> {
     assert(path.startsWith(`repos/${CI_REPOSITORY}/`), 'Unexpected repository API path');
     const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN;
-    if (!token) return JSON.parse(execFileSync('gh', ['api', '--hostname', 'github.com', path], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] }));
+    if (!token) {
+        try { return JSON.parse(execFileSync('gh', ['api', '--hostname', 'github.com', path], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] })); }
+        catch (error) {
+            const status = Number(String((error as any).stderr ?? '').match(/HTTP (\d{3})/u)?.[1]) || undefined;
+            throw Object.assign(new Error('GitHub read failed' + (status ? ': HTTP ' + status : '')), { status });
+        }
+    }
     const response = await fetch('https://api.github.com/' + path, { headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'User-Agent': 'statusline-ci-evidence' }, signal: AbortSignal.timeout(30000) });
-    assert(response.ok, `GitHub read failed: HTTP ${response.status}`);
+    if (!response.ok) throw Object.assign(new Error('GitHub read failed: HTTP ' + response.status), { status: response.status });
     return response.json();
 }
 export function summarizeJobs(jobs: any[]) {
@@ -65,7 +71,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
             }
         } catch (error) {
             // An identity/assertion failure is never transient.
-            if (error instanceof assert.AssertionError || ++failures >= 3) throw error;
+            if (error instanceof assert.AssertionError || [401, 403, 404].includes((error as any)?.status) || ++failures >= 3) throw error;
             console.error('CI observation temporarily unavailable; retrying (' + failures + '/3)');
         }
         if (Date.now() >= deadline) { console.error('Observation deadline reached; CI was not cancelled.'); process.exitCode = 2; break; }
