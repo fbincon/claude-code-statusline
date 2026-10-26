@@ -30,6 +30,10 @@ Downloads allow three attempts with one- and two-second backoff only for eligibl
 
 Use `npm run ci:watch -- --run RUN_ID --head FULL_SHA --watch --report dist/validation/ci/RUN_ID.json` for deterministic observation. It uses the existing authenticated `gh` account locally or the Actions token in CI; it never prints tokens or mutates GitHub. It polls the pinned run with 15/30/60-second backoff, emits only status changes, and retrieves complete paginated job/step timings at completion. The report separates queue time, execution time and attempts. Exit 0 means successful completion, 1 failed CI and 2 incomplete observation; a deadline does not cancel CI. Never count retained successful jobs as newly executed samples.
 
+Real Git repository tests are resource-sensitive and remain serial: Windows diagnostics exposed missing observations and subprocess timeouts when they shared two-worker execution. `validation=windows-source-probe` runs the unchanged runtime suite and ten direct Git-suite repetitions on the affected Windows x64/ARM and Node combinations, without candidate or release acceptance.
+
+Manual runs use the separate aggregate name `Manual validation (not PR evidence)`, including intentionally skipped diagnostic gates. They cannot overwrite the required PR check with a successful or skipped diagnostic status.
+
 ## CI-01 implementation
 
 **Status: DONE.** Implementation baseline: `95206119dab6f931f320277d25889fea8da49528` (2026-10-23). Product baseline remains v3.6.0. This maintenance task does not create a version, tag, npm publication or Release.

@@ -7,7 +7,7 @@ export function testResponsibility(path: string): { responsibility: string; seri
     // Timing, terminal, native process/lock and destructive-fixture suites retain
     // one-file isolation. Unknown locations always run, conservatively serial.
     const serial = responsibility === 'terminal' || responsibility === 'unclassified-full' ||
-        /(?:terminal|pty|source-process|storage|processes|windows|transaction|recovery|capture|power|budget|installed|native-capacity|configuration-experience|external)/u.test(file) ||
+        /(?:terminal|pty|source-process|storage|processes|windows|transaction|recovery|capture|power|budget|installed|native-capacity|configuration-experience|external|\/git(?:[.-]|\/))/u.test(file) ||
         /tools\/(?:migration|build)\//u.test(file);
     return { responsibility, serial };
 }

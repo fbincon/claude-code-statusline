@@ -11,7 +11,7 @@ on:
       validation:
         description: Full acceptance or isolated Windows diagnostics (not release evidence)
         type: choice
-        options: [full, windows-probe, macos-probe]
+        options: [full, windows-probe, macos-probe, windows-source-probe]
         default: full
 
 permissions:
@@ -82,7 +82,7 @@ jobs:
   development:
     name: Development checks and portable test outputs
     needs: scope
-    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe'
+    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -107,7 +107,7 @@ jobs:
   candidate:
     name: Reproducible public package
     needs: scope
-    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'macos-probe'
+    if: needs.scope.outputs.docs_only != 'true' && needs.scope.outputs.draft != 'true' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
     runs-on: ubuntu-24.04
     outputs:
       commit: ${{ steps.identity.outputs.commit }}
@@ -377,9 +377,9 @@ jobs:
           retention-days: 30
 
   acceptance:
-    name: Complete candidate evidence
+    name: ${{ github.event_name == 'workflow_dispatch' && 'Manual validation (not PR evidence)' || 'Complete candidate evidence' }}
     needs: [scope, quick, development, candidate, installed, runtime, mods]
-    if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe'
+    if: always() && inputs.validation != 'windows-probe' && inputs.validation != 'macos-probe' && inputs.validation != 'windows-source-probe'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -504,5 +504,49 @@ jobs:
         with:
           name: macos-probe-${{ matrix.os }}
           path: ${{ runner.temp }}/macos-probe/
+          if-no-files-found: error
+          retention-days: 30
+
+  windows-source-probe:
+    name: Windows source stability / ${{ matrix.os }} / Node ${{ matrix.node }}
+    needs: scope
+    if: inputs.validation == 'windows-source-probe'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-2025, node: '24.0.0' }
+          - { os: windows-11-arm, node: '24.0.0' }
+          - { os: windows-11-arm, node: '22.23.4' }
+          - { os: windows-11-arm, node: '24.21.0' }
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.21.0'
+          architecture: x64
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+          architecture: x64
+      - name: Run unchanged source assertions with resource-sensitive Git tests serialized
+        run: |
+          mkdir -p "$RUNNER_TEMP/source-probe"
+          node tools/typescript/test.mjs --runtime > "$RUNNER_TEMP/source-probe/runtime.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/runtime.log"; exit 1; }
+          for round in {1..10}; do
+            node --test packages/cli/dist/test/git.test.js > "$RUNNER_TEMP/source-probe/git-$round.log" 2>&1 || { cat "$RUNNER_TEMP/source-probe/git-$round.log"; exit 1; }
+          done
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: windows-source-${{ matrix.os }}-${{ matrix.node }}
+          path: ${{ runner.temp }}/source-probe/
           if-no-files-found: error
           retention-days: 30
