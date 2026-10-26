@@ -46,6 +46,25 @@ Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保
 
 手动运行使用独立汇总名称 `Manual validation (not PR evidence)`，包括有意跳过的诊断门禁，避免成功或 skipped 的诊断状态覆盖 PR 必需检查。
 
+### Issue #157 的实测交付记录
+
+下列完整运行均保留 8/32/16 覆盖及适用的 197 项 Native 检查。总耗时包含排队与重跑间隔；累计任务分钟统计实际执行，包含失败执行，但排除 GitHub 在后续 attempt 中复制、执行时间戳不变的成功任务。最长排队和最长执行是分别统计的单任务最大值，可能来自不同任务，不能据此直接从总耗时中相减。
+
+| 完整运行 | 总耗时 | 最长任务排队 | 最长任务执行 | 累计任务分钟 | macOS 分钟 | 重跑次数 |
+| --- | --- | --- | --- | ---: | ---: | ---: |
+| [基线 PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40336709149) | 56m40s | 38m14s | 32m31s | 598.35 | 221.43 | 0 |
+| [基线 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40346292097) | 67m23s | 39m46s | 34m28s | 626.33 | 235.07 | 1 |
+| [基线 tag](https://github.com/fbincon/claude-code-statusline/actions/runs/40357902282) | 73m28s | 45m17s | 33m59s | 636.23 | 236.50 | 1 |
+| [第二阶段最终 PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40402431203) | 41m53s | 34m28s | 21m17s | 459.37 | 161.97 | 0 |
+| [第二阶段 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40408875074) | 66m53s | 57m58s | 20m27s | 473.70 | 174.80 | 0 |
+| [阶段 A 最终 PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40409378646) | 70m55s | 62m45s | 19m47s | 462.07 | 170.42 | 0 |
+
+第二阶段最终 PR 相比基线 PR，总耗时减少 26.1%，累计任务分钟减少 23.2%，macOS 分钟减少 26.9%。随后两轮交付验收同时运行、共享托管 runner 配额，更长排队掩盖了执行工作量的降低。这些是具名实测结果，不是延迟保证或受控基准。启用验收策略变化时，仍执行完整 PR/main 矩阵；之后的普通交付使用一次完整 PR 矩阵、三个 main 安装冒烟和 tag 晋级核验。新 tag 触发与真实 npm/OIDC provenance 留待下一次正式发布记录；本次维护不创建版本或测试 tag。
+
+稳定性证据包括 [Windows x64/ARM 宿主安装诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40392875032)：两轮诊断中的同机监督进程启动中位数降低 68–76%，该比例仅描述启动耗时。[macOS Intel/ARM 诊断](https://github.com/fbincon/claude-code-statusline/actions/runs/40395043483) 各通过 1,000 次身份比较和 20 次相关事务流程。第二阶段最终 PR 中，Windows Claude 2.1.289、2.1.294 各通过十次原长场景重复；最大耗时为 4.079 秒／2.434 秒，距未改变的 20 秒超时最少仍有 15.921 秒／17.566 秒余量。
+
+失败历史继续保留。[第二阶段较早的完整运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40397874104) 在双 worker 调度下出现四个 Windows Git 测试时序失败后取消。将这些资源敏感测试放回串行组，保留全部断言和超时；[四种相关 Windows/Node 组合](https://github.com/fbincon/claude-code-statusline/actions/runs/40401253349) 随后通过完整运行时套件和十次 Git 套件直接重复，再通过最终完整验收。[真实草稿运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40401259200) 的快检成功、必需汇总检查失败；ready/converted/synchronize 转换和取消也已实际执行。取消或诊断运行不计为完整验收；issue #96 既有六项缺口仍未验证。
+
 ## CI-01 实现
 
 **状态：DONE。** 实施基线：`95206119dab6f931f320277d25889fea8da49528`（2026-10-23）。产品基线保持 v3.6.0；本次维护不创建版本、标签、npm 发布或 Release。

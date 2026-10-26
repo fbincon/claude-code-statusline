@@ -46,6 +46,25 @@ Real Git repository tests are resource-sensitive and remain serial: Windows diag
 
 Manual runs use the separate aggregate name `Manual validation (not PR evidence)`, including intentionally skipped diagnostic gates. They cannot overwrite the required PR check with a successful or skipped diagnostic status.
 
+### Measured rollout evidence for issue #157
+
+The following complete runs retain the same 8/32/16 coverage and applicable 197 Native checks. Wall time includes queueing and gaps between attempts. Task minutes sum actual job execution, including failed executions, but exclude successful jobs that GitHub copies into a later attempt with unchanged execution timestamps. Maximum queue and execution are separate per-job maxima; they need not belong to the same job and cannot be subtracted from wall time.
+
+| Complete run | Wall | Max job queue | Max job execution | Task minutes | macOS minutes | Reruns |
+| --- | --- | --- | --- | ---: | ---: | ---: |
+| [Baseline PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40336709149) | 56m40s | 38m14s | 32m31s | 598.35 | 221.43 | 0 |
+| [Baseline main](https://github.com/fbincon/claude-code-statusline/actions/runs/40346292097) | 67m23s | 39m46s | 34m28s | 626.33 | 235.07 | 1 |
+| [Baseline tag](https://github.com/fbincon/claude-code-statusline/actions/runs/40357902282) | 73m28s | 45m17s | 33m59s | 636.23 | 236.50 | 1 |
+| [Stage 2 final PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40402431203) | 41m53s | 34m28s | 21m17s | 459.37 | 161.97 | 0 |
+| [Stage 2 main](https://github.com/fbincon/claude-code-statusline/actions/runs/40408875074) | 66m53s | 57m58s | 20m27s | 473.70 | 174.80 | 0 |
+| [Stage A final PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40409378646) | 70m55s | 62m45s | 19m47s | 462.07 | 170.42 | 0 |
+
+The Stage 2 final PR reduced wall time by 26.1%, task minutes by 23.2% and macOS minutes by 26.9% against the baseline PR. The next two rollout runs overlapped and shared hosted-runner quota: their longer queues obscured the lower execution work. These are named observations, not a guaranteed latency or a controlled benchmark. Enabling policy changes still run full PR/main matrices; ordinary delivery subsequently requires one complete PR matrix, three main installation smokes and tag promotion. New-tag execution and real npm/OIDC provenance are deferred to the next actual release; this maintenance creates no version or test tag.
+
+Stability evidence includes [Windows x64/ARM-host installed diagnostics](https://github.com/fbincon/claude-code-statusline/actions/runs/40392875032), with same-runner supervisor startup medians reduced by 68–76% across the two diagnostic runs; this percentage describes startup only. [macOS Intel/ARM diagnostics](https://github.com/fbincon/claude-code-statusline/actions/runs/40395043483) each passed 1,000 identity comparisons and 20 affected transaction journeys. The final Stage 2 PR's Windows Claude 2.1.289 and 2.1.294 each passed ten original long-scenario repetitions: maxima 4.079s/2.434s and minimum margins 15.921s/17.566s against the unchanged 20s deadline.
+
+Failures remain part of the record. An [earlier complete Stage 2 run](https://github.com/fbincon/claude-code-statusline/actions/runs/40397874104) was cancelled after four Windows Git-suite timing failures under two-worker scheduling. Moving those resource-sensitive suites to the serial group preserved all assertions and deadlines; [four affected Windows/Node combinations](https://github.com/fbincon/claude-code-statusline/actions/runs/40401253349) then passed their complete runtime suite and ten direct Git-suite repetitions before the final complete run. [Real draft checks](https://github.com/fbincon/claude-code-statusline/actions/runs/40401259200) passed quick checks while failing the required aggregate. Ready/converted/synchronize transitions and cancellation were also exercised. Cancelled or diagnostic runs never count as complete acceptance; the six existing issue #96 gaps remain unverified.
+
 ## CI-01 implementation
 
 **Status: DONE.** Implementation baseline: `95206119dab6f931f320277d25889fea8da49528` (2026-10-23). Product baseline remains v3.6.0. This maintenance task does not create a version, tag, npm publication or Release.
