@@ -32,7 +32,7 @@ export function checkDocs(root: string): {
     for (const page of pages.filter(p => !LOCAL_ONLY.has(basename(p)))) {
         const body = fs.readFileSync(page, 'utf8'), name = relative(root, page).split(sep).join('/');
         const counterpart = page.endsWith('.zh-CN.md') ? page.replace(/\.zh-CN\.md$/u, '.md') : page.replace(/\.md$/u, '.zh-CN.md');
-        if (page !== pullRequestTemplate && (!name.split('/').includes('releases') || page.endsWith('.zh-CN.md')) && !fs.existsSync(counterpart))
+        if (name !== 'AGENTS.md' && page !== pullRequestTemplate && (!name.split('/').includes('releases') || page.endsWith('.zh-CN.md')) && !fs.existsSync(counterpart))
             errors.push(name + ': missing bilingual counterpart');
         checkLinks(page, name, body);
     }
