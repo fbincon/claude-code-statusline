@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import { join, dirname, delimiter, relative, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
+import type { Writable } from 'node:stream';
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
 import { npmEntry, readTar } from '../build/files.js';
@@ -18,6 +19,13 @@ export interface VersionHost {
     executable: string;
     args: readonly string[];
     version: string;
+}
+/** Early stdin closure is judged by the command's exit/output assertions. */
+export function writeVersionInput(stream: Writable, input: string, failed: (error: Error) => void): void {
+    stream.on('error', error => {
+        if ((error as NodeJS.ErrnoException).code !== 'EPIPE') failed(error);
+    });
+    stream.end(input);
 }
 type Input = Pick<ReturnType<typeof installCandidate>, 'temporary' | 'node' | 'root' | 'entry' | 'env'> & {
     artifact: string;
@@ -150,8 +158,8 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
         }, VERSION_OPERATION_MS);
         child.stdout.on('data', b => stdout += b);
         child.stderr.on('data', b => stderr += b);
-        child.stdin.end(inputData);
-        child.once('error', error => { clearTimeout(timer); trace({ phase: 'error', id, command: label, error: error.message }); reject(error); });
+        const failed = (error: Error) => { clearTimeout(timer); trace({ phase: 'error', id, command: label, error: error.message }); child.kill('SIGKILL'); reject(error); };
+        child.once('error', failed);
         child.once('exit', (code, signal) => {
             clearTimeout(timer);
             const elapsed_ms = performance.now() - started;
@@ -166,6 +174,7 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
                 reject(error);
             }
         });
+        writeVersionInput(child.stdin, inputData, failed);
     });
     const command = (launch: string, action: string, version: string, extra: string[] = []) => [launch, action, '--version', version, '--prefix', relative(input.temporary, prefix), '--config-dir', relative(input.temporary, configDir), '--yes', ...extra];
     const version = async () => { const result = await invoke([entry, '--version']); return result.stdout.trim(); };

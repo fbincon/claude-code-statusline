@@ -65,6 +65,8 @@ Node 选择器每份候选只解析一次。8／32／16 项逻辑责任全部保
 
 失败历史继续保留。[第二阶段较早的完整运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40397874104) 在双 worker 调度下出现四个 Windows Git 测试时序失败后取消。将这些资源敏感测试放回串行组，保留全部断言和超时；[四种相关 Windows/Node 组合](https://github.com/fbincon/claude-code-statusline/actions/runs/40401253349) 随后通过完整运行时套件和十次 Git 套件直接重复，再通过最终完整验收。[真实草稿运行](https://github.com/fbincon/claude-code-statusline/actions/runs/40401259200) 的快检成功、必需汇总检查失败；ready/converted/synchronize 转换和取消也已实际执行。取消或诊断运行不计为完整验收；issue #96 既有六项缺口仍未验证。
 
+随后，[阶段 A main 的 macOS 26 / Node 22.x 任务](https://github.com/fbincon/claude-code-statusline/actions/runs/40418420063/job/121907456214) 暴露了历史版本命令提前关闭 stdin 时未处理的 `EPIPE`。验收 worker 现在先注册管道错误处理再写入：成功仍由退出码与命令输出断言决定，其他流错误会失败并终止命令。真实子进程回归覆盖提前关闭后的成功／失败退出码、Unicode 输入完整性和其他流错误，并在每个运行时源码套件中串行执行。[当时运行中的阶段 B PR](https://github.com/fbincon/claude-code-statusline/actions/runs/40418703438) 因这次修复取消，不计入上表的成功运行。
+
 ## CI-01 实现
 
 **状态：DONE。** 实施基线：`95206119dab6f931f320277d25889fea8da49528`（2026-10-23）。产品基线保持 v3.6.0；本次维护不创建版本、标签、npm 发布或 Release。
