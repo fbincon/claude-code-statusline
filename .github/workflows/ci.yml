@@ -139,8 +139,6 @@ jobs:
           - { os: macos-26, arch: arm64 }
           - { os: macos-26-intel, arch: x64 }
     env:
-      TS06_LEGACY_370_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.7.0.tgz
-      TS06_LEGACY_380_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.8.0.tgz
       TS05_TARGET: ${{ matrix.os }}-${{ matrix.arch }}
       TS03_EXPECT_PROCESS_ARCH: ${{ matrix.arch }}
       TS03_EXPECT_HOST_ARCH: ${{ matrix.host_arch || matrix.arch }}
@@ -162,6 +160,10 @@ jobs:
         with:
           name: ci-historical-inputs
           path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install the shared artifact offline with empty cache and scripts disabled
         run: npm run test:installed -- --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/evidence/installed.json"
@@ -195,8 +197,6 @@ jobs:
           - { os: macos-26, arch: arm64 }
           - { os: macos-26-intel, arch: x64 }
     env:
-      TS06_LEGACY_370_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.7.0.tgz
-      TS06_LEGACY_380_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.8.0.tgz
       TS05_TARGET: ${{ matrix.target.os }}-${{ matrix.target.arch }}
       TS03_EXPECT_PROCESS_ARCH: ${{ matrix.target.arch }}
       TS03_EXPECT_HOST_ARCH: ${{ matrix.target.host_arch || matrix.target.arch }}
@@ -220,6 +220,10 @@ jobs:
         with:
           name: ci-historical-inputs
           path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node }}
@@ -260,8 +264,6 @@ jobs:
           - { os: macos-15, claude: '2.1.296' }
           - { os: macos-15, claude: '2.1.310' }
     env:
-      TS06_LEGACY_370_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.7.0.tgz
-      TS06_LEGACY_380_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.8.0.tgz
       DISABLE_AUTOUPDATER: '1'
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
     steps:
@@ -281,6 +283,10 @@ jobs:
         with:
           name: ci-historical-inputs
           path: ${{ runner.temp }}/historical
+      - name: Select verified historical inputs
+        run: |
+          echo "TS06_LEGACY_370_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.7.0.tgz" >> "$GITHUB_ENV"
+          echo "TS06_LEGACY_380_ARTIFACT=$RUNNER_TEMP/historical/claude-code-statusline-3.8.0.tgz" >> "$GITHUB_ENV"
       - name: Install the fixed host and development dependencies
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
