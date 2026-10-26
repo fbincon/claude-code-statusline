@@ -365,9 +365,15 @@ npm uninstall --global @fbincon/claude-code-statusline
 
 ```text
 claude-code-statusline/
-├── .github/workflows/
-│   ├── ci.yml                    # 统一候选构建、八目标安装与十三主机组合
-│   └── reference.yml             # 手动 Python 历史验证
+├── .github/
+│   ├── ISSUE_TEMPLATE/               # 双语 Bug 表单与反馈入口
+│   ├── pull_request_template.md      # 双语 PR 模板
+│   ├── dependabot.yml                # Actions 版本更新策略
+│   └── workflows/
+│       ├── ci.yml                    # 文档校验或完整产品矩阵
+│       ├── npm-publish.yml           # npm OIDC 发布
+│       ├── preview-downloads.yml     # 公开分发字节与安装校验
+│       └── reference.yml             # 手动 Python 历史验证
 ├── packages/                     # 四个业务包
 │   ├── core/src/                 # 配置、协议、纯状态、渲染与 Unicode
 │   │   ├── editor/               # 共享草稿、字素输入、快速配置和说明视图
@@ -404,6 +410,8 @@ claude-code-statusline/
 ├── package.json / package-lock.json
 ├── tsconfig*.json / .node-version
 ├── README.md / README.zh-CN.md
+├── CONTRIBUTING.md / CONTRIBUTING.zh-CN.md
+├── SECURITY.md / SECURITY.zh-CN.md
 ├── CHANGELOG.md / CHANGELOG.zh-CN.md
 └── LICENSE
 ```
@@ -418,6 +426,10 @@ claude-code-statusline/
 - [开发指南](docs/development/README.zh-CN.md) · [发布流程](docs/RELEASING.zh-CN.md)。
 - [变更记录](CHANGELOG.zh-CN.md) · [GitHub Releases](https://github.com/fbincon/claude-code-statusline/releases)。
 - [GitHub Issues](https://github.com/fbincon/claude-code-statusline/issues)：附版本、复现步骤与诊断结果，移除私有路径和会话内容。
+
+## 贡献与安全
+
+开发、翻译及反馈方式见[贡献指南](CONTRIBUTING.zh-CN.md)。潜在漏洞请按[安全政策](SECURITY.zh-CN.md)私密报告。
 
 ## 许可证
 

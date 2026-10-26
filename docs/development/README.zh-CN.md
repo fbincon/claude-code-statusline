@@ -6,6 +6,8 @@
 
 [CI 维护与 Actions 身份](ci-maintenance.zh-CN.md)说明 `npm run actions:check`、每周更新审查及 CI-01 证据。
 
+[贡献指南](../../CONTRIBUTING.zh-CN.md)说明反馈、翻译和 PR 流程；[仓库维护](repository-governance.zh-CN.md)记录主线保护、安全入口、依赖告警和发布身份策略。
+
 [扩展实现与验收](extensions.zh-CN.md)覆盖本地 JSON、GitHub、命令、链接和共享组件能力。
 
 [首次设置与完整外观实现](setup-appearance.zh-CN.md)记录首次使用、内置方案、schema 9、协议 16 及对应验收。

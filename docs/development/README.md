@@ -6,6 +6,8 @@
 
 [CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
 
+[Contributing](../../CONTRIBUTING.md) covers feedback, translation and PR workflow; [repository maintenance](repository-governance.md) records main protection, security entry points, dependency alerts and release identity policy.
+
 [Extension implementation and validation](extensions.md) covers local JSON, GitHub, commands, links and shared component capabilities.
 
 [Setup and complete appearance implementation](setup-appearance.md) covers first use, built-in schemes, schema 9, protocol 16 and their acceptance.
