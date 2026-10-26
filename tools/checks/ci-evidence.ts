@@ -11,7 +11,7 @@ import { TARGETS, HOSTS } from './runtime-inputs.ts';
 import { envelopeBytes } from './evidence-zip.ts';
 
 export const digest = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
-export const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).trim();
+export const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 const SHA = /^[a-f0-9]{40}$/u, HASH = /^[a-f0-9]{64}$/u;
 export interface ArtifactIdentity { id: number; name: string; digest: string; expires_at: string }
 export interface CompleteEvidence {
