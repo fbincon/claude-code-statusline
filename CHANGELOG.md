@@ -6,6 +6,7 @@
 ## Unreleased
 
 - Reduce Windows controlled-process startup overhead with an isolated native Job Object supervisor, preserving literal arguments, process-tree termination and package recovery (#157).
+- Batch read-only npm registry/cache discovery while preserving configuration precedence and validation; add opt-in phase timing without changing command output (#157).
 
 ## 3.9.1 — 2026-10-26
 

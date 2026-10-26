@@ -1,6 +1,6 @@
 /** Isolated native supervisor. The job handle dies with this process, including on forced termination. */
 import { library, nativeApi, winError } from './native.js';
-import { windowsCommand } from './terminal/launchers.js';
+import { windowsCommand } from './windows-command.js';
 
 if (process.platform !== 'win32' || process.arch !== 'x64') throw new Error('Windows x64 supervisor required');
 const spec = JSON.parse(process.env.STATUSLINE_SOURCE_LAUNCH ?? '{}');

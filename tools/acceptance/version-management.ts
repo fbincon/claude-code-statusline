@@ -120,6 +120,10 @@ export async function versionManagementChild(input: Input): Promise<Record<strin
     fs.writeFileSync(userconfig, '');
     fs.writeFileSync(globalconfig, '');
     const env = { ...input.env, PATH: hostBin + delimiter + input.env.PATH, npm_execpath: input.npm, npm_config_registry: registry, npm_config_userconfig: userconfig, npm_config_globalconfig: globalconfig, npm_config_cache: join(input.temporary, 'update-cache'), npm_config_prefer_online: 'true', CLAUDE_CONFIG_DIR: configDir };
+    if (process.env.TS06_PROFILE_MANAGEMENT === '1') Object.assign(env, {
+        NODE_OPTIONS: '--import=' + new URL('./trace-process.js', import.meta.url).href,
+        STATUSLINE_ACCEPTANCE_TIMINGS: input.trace + '.phases.jsonl',
+    });
     let sequence = 0;
     const timings: { command: string; elapsed_ms: number }[] = [];
     const trace = (value: Record<string, unknown>) => fs.appendFileSync(input.trace, JSON.stringify({ at: new Date().toISOString(), node: process.version, ...value }) + '\n');

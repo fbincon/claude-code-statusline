@@ -1,3 +1,5 @@
+import { windowsCommand } from '../windows-command.js';
+export { windowsCommand } from '../windows-command.js';
 import { spawn, spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import { homedir } from 'node:os';
@@ -111,11 +113,6 @@ export function start(argv: string[], cwd: string, env: NodeJS.ProcessEnv): Runn
     return { code: () => child.exitCode ?? signalCode(), error: () => error, stop: () => { if (child.exitCode === null && child.signalCode === null)
             child.kill('SIGTERM'); }, close: () => { if (child.exitCode === null && child.signalCode === null)
             child.kill('SIGKILL'); child.stdout.destroy(); child.stderr.destroy(); } };
-}
-export function windowsCommand(argv: readonly string[]): string {
-    if (argv.some(value => value.includes('\0')))
-        throw new Error('NUL in Windows argument');
-    return argv.map(value => '"' + value.replace(/(\\*)"/gu, '$1$1\\"').replace(/(\\+)$/u, '$1$1') + '"').join(' ');
 }
 /** CREATE_NEW_CONSOLE binds real console handles and never executes an npm .cmd shim. */
 export function startWindows(argv: string[], cwd: string, env: NodeJS.ProcessEnv): Running {

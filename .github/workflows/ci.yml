@@ -442,8 +442,9 @@ jobs:
         run: node --test packages/platform/dist/test/source-process.test.js
       - name: Compare identical supervisor workloads
         run: node dist/typescript/tools/benchmarks/windows-supervisor.js "$RUNNER_TEMP/probe/supervisor.json"
-      - name: Verify real installed upgrade and recovery
+      - name: Profile real installed upgrade and recovery
         env:
+          TS06_PROFILE_MANAGEMENT: '1'
           TS06_LEGACY_370_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.7.0.tgz
           TS06_LEGACY_380_ARTIFACT: ${{ runner.temp }}/historical/claude-code-statusline-3.8.0.tgz
         run: node dist/typescript/tools/acceptance/installed.js --artifact "$RUNNER_TEMP/candidate/${{ needs.candidate.outputs.filename }}" --commit "${{ needs.candidate.outputs.commit }}" --report "$RUNNER_TEMP/probe/installed.json"
