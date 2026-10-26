@@ -60,15 +60,15 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
             assert.equal(run.head_sha, values.head, 'CI run belongs to another head');
             assert.equal(run.repository?.full_name, CI_REPOSITORY);
             assert.equal(run.path, '.github/workflows/ci.yml');
-            failures = 0;
             const state = JSON.stringify({ run: run.id, head: run.head_sha, attempt: run.run_attempt, status: run.status, conclusion: run.conclusion });
             if (state !== previous) { console.log(state); previous = state; }
             if (run.status === 'completed' || !values.watch) {
                 const report = await collectRun(Number(values.run), values.head!);
                 if (values.report) { const path = resolve(values.report); fs.mkdirSync(dirname(path), { recursive: true }); fs.writeFileSync(path, JSON.stringify(report, null, 2) + '\n'); }
-                console.log(JSON.stringify({ jobs: report.jobs.length, failed: report.jobs.filter(job => job.conclusion === 'failure').map(job => ({ name: job.name, attempt: job.attempt })) }));
+                console.log(JSON.stringify({ jobs: report.jobs.length, failed: report.jobs.filter(job => job.conclusion === 'failure').map(job => ({ name: job.name, attempt: job.attempt, steps: job.steps.filter((step: any) => step.conclusion === 'failure').map((step: any) => step.name) })) }));
                 process.exitCode = run.status !== 'completed' ? 2 : run.conclusion === 'success' ? 0 : 1; break;
             }
+            failures = 0;
         } catch (error) {
             // An identity/assertion failure is never transient.
             if (error instanceof assert.AssertionError || [401, 403, 404].includes((error as any)?.status) || ++failures >= 3) throw error;

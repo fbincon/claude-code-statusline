@@ -136,6 +136,15 @@ export function validateComplete(record: CompleteEvidence, run: any, artifacts: 
         ...TARGETS.flatMap(target => Object.keys(inputs.versions).map(key => `${target.os}-${target.arch}@${key}`)),
         ...HOSTS.map(host => `${({ 'ubuntu-24.04': 'linux', 'windows-2025': 'win32', 'macos-15': 'darwin' } as Record<string, string>)[host.os]}-${host.claude}`)];
     assert.deepEqual([...obligations].sort(), expectedObligations.sort(), 'Incomplete execution obligations');
+    for (const execution of record.executions.filter(value => value.runtime_case)) {
+        if (inputs.shared.includes(execution.runtime_case)) {
+            const installed = record.executions.find(value => value.target === execution.target && !value.runtime_case && !value.host);
+            assert(installed); assert.equal(execution.execution.reused_installed, true); assert.equal(execution.execution.source_suite, 'complete-platform-suite');
+            assert.equal(execution.job_id, installed.job_id, 'Shared runtime must reference the installed job');
+            assert.equal(execution.node_sha256, installed.node_sha256, 'Shared runtime must use the identical executable');
+            for (const key of ['run_id', 'attempt', 'job']) assert.equal(execution.execution[key], installed.execution[key], 'Shared runtime execution changed');
+        } else assert.notEqual(execution.execution.reused_installed, true, 'Different runtime cannot share installation execution');
+    }
     if (record.event === 'pull_request') {
         assert(record.pr && record.pr.draft === false && record.pr.head === record.source_commit && record.pr.base_ref === 'main'); assert.match(record.pr.base, SHA);
         assert(Number.isSafeInteger(record.pr.number) && record.pr.number > 0);

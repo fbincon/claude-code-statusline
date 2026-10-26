@@ -18,5 +18,9 @@ export function fixture() {
             ...TARGETS.flatMap(target => Object.entries(inputs.versions).map(([runtime_case,node])=>({target:target.os+'-'+target.arch,runtime_case,node:'v'+node}))),
             ...HOSTS.map(host=>({target:({'ubuntu-24.04':'linux','windows-2025':'win32','macos-15':'darwin'} as Record<string,string>)[host.os]+'-'+host.claude,host:host.claude,host_sha256:hash,node:'v24.21.0'}))
         ].map((value,index)=>({...value,job_id:index+1,node_sha256:hash,execution:{run_id:12,attempt:1,job:'fixture'}})) };
+    for (const row of record.executions.filter(value => inputs.shared.includes(value.runtime_case))) {
+        const installed = record.executions.find(value => value.target === row.target && !value.runtime_case && !value.host)!;
+        row.job_id = installed.job_id; row.execution = { ...installed.execution, reused_installed: true, source_suite: 'complete-platform-suite' };
+    }
     return { record, artifacts };
 }

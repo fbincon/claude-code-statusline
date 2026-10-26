@@ -25,6 +25,9 @@ test('failed, cancelled, expired, corrupt, ambiguous and incomplete evidence fai
         (record: CompleteEvidence) => { record.artifacts.push(record.artifacts[0]!); },
         (record: CompleteEvidence) => { record.delivery['../escape'] = hash; },
         (record: CompleteEvidence) => { (record.inputs as any).shared = ['22.x']; },
+        (record: CompleteEvidence) => { record.executions.find(value => value.runtime_case === '24.x')!.job_id = 999; },
+        (record: CompleteEvidence) => { record.executions.find(value => value.runtime_case === '24.x')!.node_sha256 = 'c'.repeat(64); },
+        (record: CompleteEvidence) => { record.executions.find(value => value.runtime_case === '22.x')!.execution.reused_installed = true; },
     ]) { const { record, artifacts } = fixture(); mutate(record); assert.throws(() => validateComplete(record, run, artifacts)); }
     for (const change of [{ expired: true }, { digest: 'sha256:' + 'c'.repeat(64) }, { expires_at: new Date(now - 1).toISOString() }]) {
         const { record, artifacts } = fixture(); Object.assign(artifacts[0]!, change); assert.throws(() => validateComplete(record, run, artifacts));
