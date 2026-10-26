@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const DOCUMENTATION = new Set([
+    'AGENTS.md',
     'README.md', 'README.zh-CN.md', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md',
     'SECURITY.md', 'SECURITY.zh-CN.md', 'CONTRIBUTING.md', 'CONTRIBUTING.zh-CN.md',
     '.github/pull_request_template.md', '.github/ISSUE_TEMPLATE/bug_report.yml',

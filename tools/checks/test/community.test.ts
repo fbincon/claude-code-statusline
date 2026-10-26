@@ -74,7 +74,7 @@ test('chooser entries need a name, an HTTP(S) URL and an explanation', t => {
     }
 });
 
-test('documentation checks cover community links and require paired root policies only', t => {
+test('documentation checks validate English-only root agent guidance, paired policies and community links', t => {
     const f = fixture(t);
     for (const [suffix, heading, editor, legacy, release] of [
         ['', 'Common configuration', 'native-configuration-editor', 'v130a2-external-tui-and-in-session-client', 'v130-preview-rollout'],
@@ -87,6 +87,17 @@ test('documentation checks cover community links and require paired root policie
     f.write('.github/pull_request_template.md', '# Change / 修改\n[Guide](../docs/USER_GUIDE.md)\n');
     f.yaml('bug_report.yml', form());
     assert.deepEqual(checkDocs(f.root).errors, []);
+    f.write('AGENTS.md', '# Repository agents\n[Guide](docs/USER_GUIDE.md#native-configuration-editor)\n');
+    assert.deepEqual(checkDocs(f.root).errors, []);
+    f.write('AGENTS.md', '[Missing](docs/missing.md)\n[Bad anchor](docs/USER_GUIDE.md#missing)\n');
+    assert.deepEqual(checkDocs(f.root).errors, [
+        'AGENTS.md: missing docs/missing.md',
+        'AGENTS.md: missing anchor docs/USER_GUIDE.md#missing',
+    ]);
+    f.write('AGENTS.md', '# Repository agents\n[Guide](docs/USER_GUIDE.md#native-configuration-editor)\n');
+    f.write('docs/AGENTS.md', '# Scoped agents\n');
+    assert.deepEqual(checkDocs(f.root).errors, ['docs/AGENTS.md: missing bilingual counterpart']);
+    fs.unlinkSync(join(f.root, 'docs/AGENTS.md'));
     f.write('SECURITY.md', '# Security\n');
     assert.deepEqual(checkDocs(f.root).errors, ['SECURITY.md: missing bilingual counterpart']);
     f.write('SECURITY.zh-CN.md', '# 安全\n');
