@@ -105,7 +105,8 @@ async function runCase(name: string, fixtureName: string, action: string, extern
             await key('\r', 'choose scenario'); await until(text => /appearance/iu.test(text), 'candidate appearance visible'); capture('after');
             await key(external ? '\x1b' : '\x07', 'cancel quick setup');
         } else if (action === 'import') {
-            await key(external ? '\t\t' : '3', 'settings'); await key('\x1b[F', 'last setting'); await key('\x1b[A', 'import setting');
+            await key(external ? '\t\t' : '3', 'settings'); await key('\x1b[F', 'last setting');
+            for (let i = 0; i < 8 && !/›.*Import file/u.test(read()); i++) await key('\x1b[A', 'find import setting');
             await until(text => /›.*Import file/u.test(text), 'import field selected');
             await key('\r', 'edit import path'); await key('\x15', 'clear path'); await key(importPath, 'insert literal path'); await key('\r', 'review import');
             await until(text => /no (changes|differences)/iu.test(text), 'identical import review visible'); capture('after');
