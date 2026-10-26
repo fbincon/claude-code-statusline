@@ -2,11 +2,11 @@
 
 **English** | [简体中文](development-plan.zh-CN.md) · [Roadmap](roadmap.md) · [Development guide](README.md)
 
-Updated: **2026-10-26** (Asia/Shanghai) · Product baseline: **v3.8.0** · Planning baseline: **`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
+Updated: **2026-10-26** (Asia/Shanghai) · Product baseline: **v3.9.0** · Planning baseline: **`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
 
-This plan defines work-package scope, dependencies and functional acceptance. The [roadmap](roadmap.md) owns product priority and current status. M8–M13 cover first-entry installation, version management, selective import, gradients, explicit main-row alignment and then demonstrations; GIT-01 and TERMINAL-01 are priority independent maintenance. GIT-01, TERMINAL-01, SETUP-02 and UPDATE-01 are DONE after functional acceptance; v3.8.0 is published and download-verified on GitHub, npm and Gitee after all final gates passed. The other four future packages remain NOT_STARTED. APPEARANCE-03, COMPOSITION-02, WORKFLOW-02 and METRICS-01 are DONE in v3.7.0, and CI-01 remains DONE. See [M4–M7 delivery](m4-m7-delivery.md) and [Git, terminal and M8–M9 delivery](m8-m9-delivery.md) for actual evidence.
+This plan defines work-package scope, dependencies and functional acceptance; the [roadmap](roadmap.md) owns product priority and current status. M8–M12 are complete. IMPORT-01, APPEARANCE-04 and COMPOSITION-03 are delivered in v3.9.0; SHOWCASE-01 remains NOT_STARTED under M13. Independent GIT-01, TERMINAL-01 and CI-01 maintenance are DONE. See [M10–M12 delivery](m10-m12-delivery.md) for actual source, interfaces and release evidence, with historical evidence retained in [M4–M7](m4-m7-delivery.md) and [Git, terminal and M8–M9](m8-m9-delivery.md).
 
-Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.8.0 decision](../releases/approvals/v3.8.0.json) records their acceptance for that release.
+Completed sections preserve historical design scope and acceptance criteria. Proposed fields, implementation slices and requested evidence in those sections describe the original plan; current commands, interfaces and verification limits are documented in the linked user guides and delivery records. A completed package does not mean that every physical or human check was verified. The six historical [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) remain unverified; the [v3.9.0 decision](../releases/approvals/v3.9.0.json) records their acceptance for that release.
 
 **Navigation:** [Index](#work-index) · [Shared design](#design-rules) · [Future work](#future-work) · [Git review](#git-01) · [Windows previews](#terminal-01) · [First entry](#setup-02) · [Version management](#update-01) · [Selective import](#import-01) · [Gradients](#appearance-04) · [Alignment](#composition-03) · [Demonstrations](#showcase-01) · [Candidates](#candidate-boundaries) · [M4–M7 designs](#appearance-03) · [Earlier designs](#delivered-designs) · [Acceptance](#acceptance-matrix) · [Handoff](#handoff)
 
@@ -18,12 +18,9 @@ Completed sections preserve historical design scope and acceptance criteria. Pro
 
 | Stage | Work package | Dependencies and scheduling | Status |
 | --- | --- | --- | --- |
-| M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | DONE |
-| M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | DONE |
-| M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | DONE |
 | M13 | [SHOWCASE-01](#showcase-01) | All M8–M12 packages completed and accepted; matching installed artifact | NOT_STARTED |
 
-After delivered M8 and M9, M10 → M11 → M12 → M13 expresses the remaining product priority without adding technical prerequisites. Import does not depend on version management, and alignment does not depend on gradients. SHOWCASE-01 waits for all selected M8–M12 functionality, including both import slices, to complete acceptance. Further candidates do not block it. Use the delivered TERMINAL-01 outcomes in affected Windows preview and demonstration acceptance. The approved Git, terminal, first-entry and version-management work shipped in v3.8.0; other future packages have no assigned product version or deadline.
+M8–M12 are accepted, including both selective-import slices. Only M13/SHOWCASE-01 remains planned; it is not started and has no assigned product version or deadline. Use a matching accepted artifact and the TERMINAL-01 Windows preview outcomes. The delivery record preserves the original M10 → M11 → M12 implementation order; other candidates add no demonstration prerequisites.
 
 ### Delivered work
 
@@ -44,6 +41,9 @@ After delivered M8 and M9, M10 → M11 → M12 → M13 expresses the remaining p
 | Independent maintenance | [TERMINAL-01](#terminal-01) | Existing terminal detection/launch paths; inform affected Windows acceptance | DONE |
 | M8 | [SETUP-02](#setup-02) | Delivered SETUP-01 and installation/recovery mechanisms | DONE |
 | M9 | [UPDATE-01](#update-01) | SETUP-02 installation identity and existing compatibility/recovery rules | DONE |
+| M10 | [IMPORT-01](#import-01) | Existing import review, instances, groups, layouts and profile transactions | DONE |
+| M11 | [APPEARANCE-04](#appearance-04) | Existing color, Powerline, group and editor rules | DONE |
+| M12 | [COMPOSITION-03](#composition-03) | Existing explicit layout, groups, Unicode width and fitting | DONE |
 | As needed | [CAPABILITIES-01](#capabilities-01) | Include when related features expose specific duplicate or inconsistent metadata | DONE |
 | Maintenance | [CI-01](#ci-01) | Independent maintenance; does not block M1/M2/M3 | DONE |
 
@@ -56,7 +56,7 @@ M1 → M2 → M3 → M4–M7 records the historical delivery sequence. SHOWCASE-
 - **Product focus:** the status line presents tasks, agents, projects and usage clearly; existing on-demand entry points provide detail and explanation. Preserve real zero and distinct missing, stale, partial or unsupported states. Do not infer task outcomes without evidence.
 - **Shared implementation:** core owns pure configuration, catalog, Unicode, layout and explanation; platform owns files, processes and terminals; cli orchestrates services; tui and native Mods adapt interactions. Reuse existing transactions and task stores. [Current architecture](architecture.md).
 - **Configuration boundaries:** UI language saves immediately, display language and appearance follow display Save, and Claude preferences retain separate Apply. Preview, import review and scheme selection produce candidate drafts. Make user default, named profile and project editing targets clear. [Profile semantics](../PROFILES.md).
-- **Compatibility:** the current baseline is display schema 13, editor protocol 21, source registry/jobs 2, source observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1. These interfaces evolve independently. Specify added fields and the interpretation of old data before assigning versions. Reading old files does not silently rewrite them; migrations use existing backup and recovery mechanisms.
+- **Compatibility:** the current baseline is display schema 15, editor protocol 24, source registry/jobs 2, source observation 1, runtime 3, lifecycle 4, portable 1, UI preferences 1 and profile collection/export 1. These interfaces evolve independently. Specify added fields and the interpretation of old data before assigning versions. Reading old files does not silently rewrite them; migrations use existing backup and recovery mechanisms.
 - **Extension authorization:** default capabilities use host input and local state. External file sources, network providers and commands are separately enabled and registered in user configuration. A display scheme may reference a source, but import, preset selection and project binding cannot grant execution or network access.
 - **Scope boundaries:** complete the selected packages' concrete journeys. Selective import, static foreground/Powerline-background gradients and explicit main-row alignment now have their own work packages. Other data, supporting and longer-term directions retain separate entry conditions in the [candidate pool](roadmap.md#candidates). Existing setup, GitHub PR/CI and refresh, cache views and CI maintenance are delivered capabilities, not new gaps.
 - **Future interfaces:** describe configuration intent, data flow and compatibility before assigning future schema/protocol versions or public command spellings. Reuse catalog capabilities and generated editor resources. New options must survive preview, save/reopen, profile selection, import/export and conflict handling; reading an old configuration does not enable new behavior.
@@ -552,4 +552,4 @@ The [roadmap](roadmap.md) owns priority/status and this plan owns scope/acceptan
 
 For documentation acceptance, compare IDs, order, dependencies and statuses across the four active planning files and navigation in both development guides; check delivered facts, links and anchors. Run `npm run docs:check` and `git diff --check`, including a documentation check against a checkout containing only committed files. Record documentation validation without claiming future features have passed acceptance. Keep product README, stable usage guides, release records, generated resources and code outside this planning-only update.
 
-M10 implementation is in progress on display schema 13/editor protocol 22. See [M10–M12 delivery](m10-m12-delivery.md). M11 is in progress; M12–M13 remain unstarted.
+IMPORT-01, APPEARANCE-04 and COMPOSITION-03 are DONE on display schema 15/editor protocol 24. See [M10–M12 delivery](m10-m12-delivery.md). SHOWCASE-01 remains NOT_STARTED.

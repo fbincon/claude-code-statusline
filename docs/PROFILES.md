@@ -62,7 +62,7 @@ Moving a project does not rewrite bindings: unbind the old path and bind the new
 
 ## Files, conflicts and recovery
 
-The version-1 `claude-statusline-profiles.json` file under the Claude user configuration directory contains the collection and bindings. It is created only by a save or binding operation. The existing `claude-statusline.json` remains the user default with display schema 8. Collection limits are 128 schemes, 512 bindings and 32 MiB.
+The version-1 `claude-statusline-profiles.json` file under the Claude user configuration directory contains the collection and bindings. It is created only by a save or binding operation. The existing `claude-statusline.json` remains the user default with display schema 15. Collection limits are 128 schemes, 512 bindings and 32 MiB.
 
 A single exported scheme has format `claude-code-statusline-profile`, version 1, name and display. It contains no project roots or internal scheme ID and has a 1 MiB transfer limit. This is distinct from the existing `claude-code-statusline` portable envelope, which also carries tool host settings. Use the corresponding import command for each format.
 

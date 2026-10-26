@@ -2,9 +2,9 @@
 
 [English](roadmap.md) | **简体中文**
 
-更新：**2026-10-26**（Asia/Shanghai）· 产品基线：**v3.8.0** · 规划基线：**`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
+更新：**2026-10-26**（Asia/Shanghai）· 产品基线：**v3.9.0** · 规划基线：**`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
 
-Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整显示方案、显式启用的扩展及 M4–M7 已交付。首次入口与版本管理（M8–M9）完成验收后，剩余产品顺序为选择性导入、渐变、显式行对齐，最后制作演示（M10–M13）。Git 调用核查和 Windows 预览一致性作为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 已通过最终门禁并完成 GitHub／npm／Gitee 公开交付与下载核验，IMPORT-01 为 DONE；APPEARANCE-04 为 DONE，COMPOSITION-03 为 DONE，SHOWCASE-01 保持 NOT_STARTED，含 CI-01 在内的已交付工作保持 DONE。
+Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量信息，并保持 CLI 与两个编辑器的配置行为一致。首次设置、完整方案、显式扩展及 M4–M9 已交付。IMPORT-01、APPEARANCE-04、COMPOSITION-03 随 v3.9.0 交付，状态均为 DONE；SHOWCASE-01 按 M13 保持 NOT_STARTED。Git、终端及 CI 独立维护保持 DONE。[M10–M12 交付记录](m10-m12-delivery.zh-CN.md)保存功能验收、最终发布门禁及三渠道验证证据。
 
 本页维护产品方向、优先级和工作包状态。[开发计划](development-plan.zh-CN.md)定义范围、依赖及验收，链接的交付记录保存实现与发布证据。公开这些规划文档不会启动功能开发或改变工作包状态。
 
@@ -17,20 +17,20 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 | 方面 | 已交付能力 | 后续规划依据 |
 | --- | --- | --- |
 | 配置入口 | 首次设置向导、会话内编辑器、外部 TUI、CLI、对话指南及 Quick setup | 无参数持久安装审核及显式升级／回退／恢复已交付 |
-| 显示组合 | 六种既有预设、三套完整方案、组件实例、复制／排序、文字、spacer、导入审阅、颜色、五项 Powerline 控制、可选百分比短条及联动分组 | 增加选择性复用、静态前景／Powerline 背景渐变及主栏显式行对齐 |
+| 显示组合 | 六种既有预设、三套完整方案、组件实例、复制／排序、文字、spacer、导入审阅、颜色、五项 Powerline 控制、可选百分比短条、联动分组、选择性导入、静态前景／Powerline 背景渐变及主栏显式行对齐 | 以匹配安装包制作可复现演示 |
 | 任务与项目 | 任务计时、子代理独立行、只读任务详情、命名方案和项目根目录绑定 | 将任务与多代理场景作为主要特色 |
 | 语言 | `en`、`zh-CN`、`zh-TW`、`zh-HK`、`ja`、`ko`；界面语言与输出语言独立 | 新交互和说明保持六语言覆盖 |
 | 显示目录 | 主栏 65 个指标、子代理 15 个指标；加上文字与留白后为 67／17 个类型 | 新增显示项时保留现有 ID 与指标口径 |
 | 已有数据 | 宿主 `pr` 编号／评审状态、linked worktree 回退、prompt-cache 命中率／写入量、缓存状态／到期／miss 原因及最新请求输出速率 | 考虑新指标时保留已有作用域与口径 |
-| 扩展数据 | 本机 JSON、可独立审核自动刷新的 GitHub PR／CI、明确命令源；双编辑器及 CLI 管理；可选 OSC 8 链接 | 授权与显示方案分离，导入时移除本机绑定 |
-| 接口 | 显示 schema 13、编辑器协议 21、来源注册表／任务 2、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
+| 扩展数据 | 本机 JSON、可独立审核自动刷新的 GitHub PR／CI、明确命令源；双编辑器及 CLI 管理；可选 OSC 8 链接 | 授权与显示方案分离，仅被导入部分清除本机绑定 |
+| 接口 | 显示 schema 15、编辑器协议 24、来源注册表／任务 2、观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1；方案集合／导出 1 | 分别说明每个接口的兼容路径 |
 | 支持边界 | Linux／WSL、Windows、macOS；产品运行时 Node 22／24 | 保留支持范围，记录实际验证结果 |
 
-依据：[v3.8.0 发布记录](../releases/v3.8.0.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[M4–M7 交付](m4-m7-delivery.zh-CN.md)、[扩展交付](extensions.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。规划基线为本次文档修订前的 main；v3.8.0 发布身份与验证限制由交付记录维护。
+依据：[v3.9.0 发布记录](../releases/v3.9.0.md)、[M10–M12 交付](m10-m12-delivery.zh-CN.md)、[v3.8.0 发布记录](../releases/v3.8.0.md)、[Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)、[M4–M7 交付](m4-m7-delivery.zh-CN.md)、[扩展交付](extensions.zh-CN.md)、[目录源码](../../packages/core/src/config/catalog-data.ts)、[编辑器协议](../../packages/core/src/contracts/ui.ts)、[方案管理](../PROFILES.zh-CN.md)、[任务详情](../TASK_DETAILS.zh-CN.md)和[架构](architecture.zh-CN.md)。规划基线保留原规划快照；当前发布身份、源码与验证限制由 M10–M12 交付记录维护。
 
 默认能力使用 Claude 输入与本地状态。联网查询和自定义命令分别显式启用，导入显示方案、绑定项目或选择预设不会启用这些能力。
 
-[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 记录的六项既有缺口继续为**未验证**。包括 [v3.8.0 专项决定](../releases/approvals/v3.8.0.json)在内的限定版本接受，记录的是允许带这些缺口发布，不代表缺失检查已通过，也不豁免新增失败。
+[Issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 记录的六项既有缺口继续为**未验证**。包括 [v3.9.0 专项决定](../releases/approvals/v3.9.0.json)在内的限定版本接受，记录的是允许带这些缺口发布，不代表缺失检查已通过，也不豁免新增失败。
 
 <a id="reference"></a>
 
@@ -62,12 +62,9 @@ Claude Code Statusline 专注于清楚呈现任务、子代理、项目和用量
 
 | 优先级 | 工作包 | 用户可见结果 | 实现依赖 | 状态 |
 | --- | --- | --- | --- | --- |
-| M10 配置复用 | [IMPORT-01](development-plan.zh-CN.md#import-01) | 先选择全局外观，再选择完整主栏／子代理分区导入 | 既有导入审阅、实例、分组、布局与方案事务 | DONE |
-| M11 渐变 | [APPEARANCE-04](development-plan.zh-CN.md#appearance-04) | 预设及自定义的静态组件前景、Powerline 背景渐变 | 既有颜色、Powerline、分组及编辑规则 | DONE |
-| M12 跨行对齐 | [COMPOSITION-03](development-plan.zh-CN.md#composition-03) | 主栏显式多行对齐，明确隐藏／分组／spacer／窄行行为 | 既有显式布局、分组、Unicode 宽度与拟合 | DONE |
 | M13 演示 | [SHOWCASE-01](development-plan.zh-CN.md#showcase-01) | 已验收新能力的首页、方案展示及可复现流程 | M8–M12 全部完成并验收；匹配的安装包 | NOT_STARTED |
 
-M8 与 M9 已交付，剩余产品顺序为 M10 → M11 → M12 → M13。排期不额外制造技术依赖：导入不依赖版本管理，对齐不依赖渐变。各工作包可拆成有界切片交付，后续选项仍须保持导入／导出兼容。SHOWCASE-01 保留 ID，等待选定的 M8–M12 全部功能完成并验收，包括 IMPORT-01 的两个切片；其他候选不阻塞演示。
+M8–M12 已全部完成功能验收，包括 IMPORT-01 的两个切片。后续主线为 M13／SHOWCASE-01，仍未启动；演示应采用匹配的 v3.9.0 安装包及 TERMINAL-01 的结果。原 M10 → M11 → M12 实施顺序保留在交付记录中；其他候选不阻塞演示，排期不额外制造技术依赖。
 
 GIT-01 和 TERMINAL-01 已完成功能验收；相关 Windows 预览与演示验收应纳入 TERMINAL-01 的结果。GIT-01 的共享调用策略已通过验收，详见[实现与兼容记录](m8-m9-delivery.zh-CN.md)。历史隔离观察与平台／产物验收分别记录。
 
@@ -92,6 +89,9 @@ M4–M7 已通过四个独立功能 PR 和最终发布 PR 随 v3.7.0 交付。[�
 | 独立维护 | [TERMINAL-01](development-plan.zh-CN.md#terminal-01) | setup、configure、slash 入口的 Windows 预览颜色一致或差异有明确解释 | 既有终端探测／启动路径；[Issue #130](https://github.com/fbincon/claude-code-statusline/issues/130) | DONE |
 | M8 首次入口 | [SETUP-02](development-plan.zh-CN.md#setup-02) | 无参数／npx 入口串联 npm 全局安装、持久绑定和已有 setup | 已交付 SETUP-01 及安装／恢复机制 | DONE |
 | M9 版本管理 | [UPDATE-01](development-plan.zh-CN.md#update-01) | 显式版本检查、升级、回退及失败恢复 | SETUP-02 的安装身份及既有兼容／恢复规则 | DONE |
+| M10 配置复用 | [IMPORT-01](development-plan.zh-CN.md#import-01) | 先选择全局外观，再选择完整主栏／子代理分区导入 | 既有导入审阅、实例、分组、布局与方案事务 | DONE |
+| M11 渐变 | [APPEARANCE-04](development-plan.zh-CN.md#appearance-04) | 预设及自定义的静态组件前景、Powerline 背景渐变 | 既有颜色、Powerline、分组及编辑规则 | DONE |
+| M12 跨行对齐 | [COMPOSITION-03](development-plan.zh-CN.md#composition-03) | 主栏显式多行对齐，明确隐藏／分组／spacer／窄行行为 | 既有显式布局、分组、Unicode 宽度与拟合 | DONE |
 | 按需工程支持 | [CAPABILITIES-01](development-plan.zh-CN.md#capabilities-01) | 组件支持选项与说明一致 | 外观或扩展暴露的具体元数据需求 | DONE |
 | 独立维护 | [CI-01](development-plan.zh-CN.md#ci-01) | Actions 引用固定、可核查更新 | 当前工作流清单 | DONE |
 
@@ -171,6 +171,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序，保留已完成 ID 及�
 | v3.6.0 | EXTENSIONS-01、LINKS-01、WORKFLOW-01、COMMAND-01、CAPABILITIES-01 | DONE | [扩展与工作流](extensions.zh-CN.md) |
 | v3.7.0 | APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 | DONE | [图形、分组、刷新与速率](m4-m7-delivery.zh-CN.md) |
 | v3.8.0 | GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 | DONE | [Git、终端与 M8–M9](m8-m9-delivery.zh-CN.md) |
+| v3.9.0 | IMPORT-01、APPEARANCE-04、COMPOSITION-03 | DONE | [选择性导入、渐变与对齐](m10-m12-delivery.zh-CN.md) |
 
 链接的记录保留源码／标签身份、校验值、CI 结果、渠道验证、恢复经过及交付时的限制。历史记录中对后续候选的表述保留原有语境；本页更新时的规划状态以上述阶段表为准。早期迁移里程碑由 [TypeScript 重构计划](typescript-migration.zh-CN.md)维护，发布说明在 [releases](../releases) 目录维护。
 
@@ -186,4 +187,4 @@ CI-01 已作为仓库维护完成，本次没有新产品版本；[验证与更�
 
 执行 `npm run docs:check` 与 `git diff --check`，核对双语 ID、依赖、状态及已交付事实，并在仅含已提交文件的检出目录验证链接。本机规划归档与原始验收记录继续保留在本地，不作为公开文档的依赖。
 
-M10 正在实施，显示 schema 13／编辑器协议 22。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。M11 正在实施，M12–M13 尚未启动。
+IMPORT-01、APPEARANCE-04、COMPOSITION-03 均为 DONE，当前显示 schema 15／编辑器协议 24。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。SHOWCASE-01 仍为 NOT_STARTED。

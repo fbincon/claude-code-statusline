@@ -107,7 +107,7 @@ claude-statusline doctor --config-dir /path/to/claude-config
 
 `config set statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 保存显示语言。`config apply --statusline-language en|zh-CN|zh-TW|zh-HK|ja|ko` 与其他答案一起原子保存，省略时保留当前值。两个编辑器立即预览草稿语言，保存／取消控制实际输出。`config language` 及根参数 `--language` 仅控制界面。
 
-显示 schema v7 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
+显示 schema v15 必须包含 `statusline_language`。读取／导入历史 v1–v5 补为英文，预设保留它，导出包含它，reset 恢复英文。旧版向导读取界面偏好，将翻译答案映射到稳定代码后一次 apply。见[用法与降级恢复](../USER_GUIDE.zh-CN.md#状态栏语言)。
 
 ## 安装与诊断
 
@@ -416,7 +416,7 @@ claude-statusline config import ./statusline.json --dry-run
 claude-statusline config import ./statusline.json
 ```
 
-可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v5 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
+可移植格式 v1 恰好包含 `format: "claude-code-statusline"`、`version: 1` 和含 `display`、`host` 的 `draft`，不含安装、路径、revision、运行状态、编辑器及实时偏好、Claude 外观及行为偏好。导入也接受兼容的仅显示 schema v1–v15 文件，此时保留现有宿主设置。实际导入要求安装归属，并原子保存已验证草稿。
 
 文件采用 UTF-8，导入接受 BOM，上限 1 MiB；重复字段、非有限数字、错误字段及类型、不支持版本均拒绝。相对路径以当前工作目录为基准，`~` 展开。导出校验并写文件，不修改配置；目标已存在时拒绝，除非明确传入 `--overwrite`，该参数仍不能覆盖实时配置和归属本工具的插件或运行资源。编辑器导入只替换未保存草稿，导出包含当前未保存修改。
 
@@ -697,11 +697,12 @@ claude-statusline config set refresh-interval event
 <CLAUDE_CONFIG_DIR>/claude-statusline.json
 ```
 
-以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 9 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
+以下为只保留一个主栏模型实例和一个子代理名称实例的完整 schema 15 示例。使用 `config export PATH` 获取自己的完整配置；默认仍启用十个主栏指标和五个子代理指标。
 
 ```json
 {
-  "schema_version": 9,
+  "schema_version": 15,
+  "groups": [],
   "use_colors": true,
   "palette": "default",
   "directory_style": "full",
@@ -710,7 +711,13 @@ claude-statusline config set refresh-interval event
   "statusline_language": "en",
   "theme": "classic",
   "powerline_glyph": "ascii",
-  "powerline": {"padding": "both", "separator": "arrow", "start_cap": false, "end_cap": true, "color_mode": "semantic"},
+  "powerline": {
+    "padding": "both",
+    "separator": "arrow",
+    "start_cap": false,
+    "end_cap": true,
+    "color_mode": "semantic"
+  },
   "subagents": {
     "enabled": true,
     "visibility": "all",
@@ -735,7 +742,8 @@ claude-statusline config set refresh-interval event
         },
         "text": null
       }
-    ]
+    ],
+    "groups": []
   },
   "formatting": {
     "model_name": "original",
@@ -786,7 +794,7 @@ claude-statusline config set refresh-interval event
 
 配置更新会备份修改前的内容，并通过原子替换与文件锁保护写入；详见[备份与回滚](../USER_GUIDE.zh-CN.md#备份与回滚)及[配置写入与并发](../development/README.zh-CN.md#配置写入与并发)。
 
-当前显示 schema 为 v13；历史 v1–v12 可读取，首次实际配置保存时备份并写为 v13。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
+当前显示 schema 为 v15；历史 v1–v14 可读取，首次实际配置保存时备份并写为 v15。版本转换与降级恢复见[版本兼容](../USER_GUIDE.zh-CN.md#版本兼容)。
 
 如果显示配置损坏：
 

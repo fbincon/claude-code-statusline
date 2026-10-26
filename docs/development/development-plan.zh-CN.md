@@ -2,11 +2,11 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-更新：**2026-10-26**（Asia/Shanghai）· 产品基线：**v3.8.0** · 规划基线：**`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
+更新：**2026-10-26**（Asia/Shanghai）· 产品基线：**v3.9.0** · 规划基线：**`f68d26eeddda98ab4041d2b9e873ade556fa1909`**
 
-本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M13 依次覆盖首次入口与安装、版本管理、选择性导入、渐变、主栏显式行对齐及演示；GIT-01 和 TERMINAL-01 为优先独立维护。GIT-01、TERMINAL-01、SETUP-02、UPDATE-01 已完成功能验收（DONE）；v3.8.0 已通过最终门禁并完成 GitHub／npm／Gitee 公开交付与下载核验，其余四个未来工作包保持 NOT_STARTED。APPEARANCE-03、COMPOSITION-02、WORKFLOW-02、METRICS-01 已随 v3.7.0 完成，CI-01 保持 DONE；实际证据见 [M4–M7 交付](m4-m7-delivery.zh-CN.md)及 [Git、终端与 M8–M9 交付](m8-m9-delivery.zh-CN.md)。
+本计划定义工作包范围、依赖与功能验收，[路线图](roadmap.zh-CN.md)管理产品优先级和当前状态。M8–M12 已完成；IMPORT-01、APPEARANCE-04、COMPOSITION-03 随 v3.9.0 交付，SHOWCASE-01 按 M13 保持 NOT_STARTED。GIT-01、TERMINAL-01 和 CI-01 独立维护均为 DONE。实际源码、接口和发布证据见 [M10–M12 交付](m10-m12-delivery.zh-CN.md)，历史证据保留在 [M4–M7](m4-m7-delivery.zh-CN.md)及 [Git、终端与 M8–M9](m8-m9-delivery.zh-CN.md) 记录中。
 
-已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.8.0 专项决定](../releases/approvals/v3.8.0.json)记录该版本对这些缺口的接受。
+已完成章节保留历史设计范围与验收标准。其中的拟议字段、实施切片和所需证据描述原计划，当前命令、接口及验证边界以链接的使用指南和交付记录为准。工作包完成不代表每项实机或人工检查已验证。[Issue #96 的六项既有缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.9.0 专项决定](../releases/approvals/v3.9.0.json)记录该版本对这些缺口的接受。
 
 **导航：** [索引](#work-index) · [共同设计](#design-rules) · [未来工作](#future-work) · [Git 核查](#git-01) · [Windows 预览](#terminal-01) · [首次入口](#setup-02) · [版本管理](#update-01) · [选择性导入](#import-01) · [渐变](#appearance-04) · [对齐](#composition-03) · [演示](#showcase-01) · [候选边界](#candidate-boundaries) · [M4–M7 设计](#appearance-03) · [早期设计](#delivered-designs) · [验收](#acceptance-matrix) · [交接](#handoff)
 
@@ -18,12 +18,9 @@
 
 | 阶段 | 工作包 | 依赖及安排 | 状态 |
 | --- | --- | --- | --- |
-| M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | DONE |
-| M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | DONE |
-| M12 | [COMPOSITION-03](#composition-03) | 既有显式布局、分组、Unicode 宽度与拟合 | DONE |
 | M13 | [SHOWCASE-01](#showcase-01) | M8–M12 全部完成并验收；匹配的安装包 | NOT_STARTED |
 
-M8 与 M9 已交付，剩余产品优先级为 M10 → M11 → M12 → M13，不额外增加技术前置条件。导入不依赖版本管理，对齐不依赖渐变。SHOWCASE-01 等待选定的 M8–M12 全部功能完成验收，包括导入的两个切片；其他候选不阻塞演示。GIT-01 与 TERMINAL-01 已交付，相关 Windows 预览与演示验收应采用 TERMINAL-01 的结果。Git、终端、首次入口与版本管理已随 v3.8.0 发布；其余未来工作包不分配产品版本或截止日期。
+M8–M12 已完成验收，包括选择性导入的两个切片。后续工作仅保留 M13／SHOWCASE-01，尚未启动，也未分配产品版本或截止日期；采用匹配的已验收安装包，Windows 预览沿用 TERMINAL-01 结果。原 M10 → M11 → M12 开发顺序由交付记录保留，其他候选不成为演示前置条件。
 
 ### 已交付工作
 
@@ -44,6 +41,9 @@ M8 与 M9 已交付，剩余产品优先级为 M10 → M11 → M12 → M13，不
 | 独立维护 | [TERMINAL-01](#terminal-01) | 既有终端探测／启动路径；结果用于相关 Windows 验收 | DONE |
 | M8 | [SETUP-02](#setup-02) | 已交付 SETUP-01 及安装／恢复机制 | DONE |
 | M9 | [UPDATE-01](#update-01) | SETUP-02 的安装身份及既有兼容／恢复规则 | DONE |
+| M10 | [IMPORT-01](#import-01) | 既有导入审阅、实例、分组、布局与方案事务 | DONE |
+| M11 | [APPEARANCE-04](#appearance-04) | 既有颜色、Powerline、分组及编辑规则 | DONE |
+| M12 | [COMPOSITION-03](#composition-03) | 既有显式布局、分组、Unicode 宽度与拟合 | DONE |
 | 按需 | [CAPABILITIES-01](#capabilities-01) | 相关功能出现具体元数据重复或不一致时拆入 | DONE |
 | 维护 | [CI-01](#ci-01) | 独立维护，不阻塞 M1／M2／M3 | DONE |
 
@@ -56,7 +56,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 - **保持定位：**状态栏负责清楚呈现任务、代理、项目和用量；详情与解释使用既有按需入口。保留真实零值及缺失、过期、部分、不支持等不同状态，不推断没有证据的任务结果。
 - **共享实现：**core 保存纯配置、目录、Unicode、布局与解释规则；platform 负责文件、进程和终端；cli 编排服务；tui 与原生 Mod 适配交互。复用既有事务和任务存储。[当前架构](architecture.zh-CN.md)。
 - **配置边界：**界面语言立即保存，显示语言和外观随显示 Save 保存，Claude 宿主偏好独立 Apply。预览、导入审阅和方案选择只产生候选草稿。用户级默认、命名方案和项目编辑目标始终可辨认。[方案语义](../PROFILES.zh-CN.md)。
-- **兼容：**当前基线为显示 schema 13、编辑器协议 21、来源注册表／任务 2、来源观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1、方案集合／导出 1，各接口独立演进。先列明新增字段和旧数据解释，再决定具体版本；旧文件读取不静默写回，实际迁移沿用备份和恢复机制。
+- **兼容：**当前基线为显示 schema 15、编辑器协议 24、来源注册表／任务 2、来源观测 1、runtime 3、lifecycle 4、portable 1、UI preferences 1、方案集合／导出 1，各接口独立演进。先列明新增字段和旧数据解释，再决定具体版本；旧文件读取不静默写回，实际迁移沿用备份和恢复机制。
 - **扩展授权：**默认使用宿主输入及本地状态。外部文件源、联网提供方和命令分别启用，按用户配置登记。显示方案可以引用来源，但导入、预设选择和项目绑定不能授予执行或联网能力。
 - **范围界限：**先完成选定工作包的具体流程。选择性导入、静态前景／Powerline 背景渐变及主栏显式行对齐已有独立工作包。其他数据、配套及较远方向按[候选池](roadmap.zh-CN.md#candidates)的进入条件单独决定。既有 setup、GitHub PR／CI 及刷新、缓存视图和 CI 维护均为已交付能力，不是新缺口。
 - **未来接口：**先写清配置意图、数据流与兼容，再分配未来 schema／协议版本或公开命令名称。复用组件能力目录及生成的编辑器资源；新增选项须贯穿预览、保存／重开、方案选择、导入导出与冲突处理，读取旧配置不会开启新行为。
@@ -552,4 +552,4 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 原安排在
 
 文档验收核对四份活动规划文件的任务 ID、顺序、依赖、状态及双语开发指南导航，核对已交付事实、链接与锚点；执行 `npm run docs:check` 和 `git diff --check`，并在仅含已提交文件的检出目录执行文档检查。记录文档验证结果，不据此宣称未来功能已经通过验收。本次仅规划更新不修改产品 README、稳定版指南、发布记录、生成资源或代码。
 
-M10 正在实施，显示 schema 13／编辑器协议 22。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。M11 正在实施，M12–M13 尚未启动。
+IMPORT-01、APPEARANCE-04、COMPOSITION-03 均为 DONE，当前显示 schema 15／编辑器协议 24。参见 [M10–M12 交付记录](m10-m12-delivery.zh-CN.md)。SHOWCASE-01 仍为 NOT_STARTED。
