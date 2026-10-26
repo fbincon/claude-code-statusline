@@ -357,10 +357,17 @@ export async function keys(
 
 /** Select a stable field identity, independent of optional UI preference rows. */
 export async function selectSetting(ui: any, key: string): Promise<void> {
-  await keys(ui, 'home');
+  // Host preferences follow tool settings. Start at that visible edge instead
+  // of traversing the whole tool form for each independent host-row assertion.
+  const host = key.startsWith('host-');
+  await keys(ui, host ? 'end' : 'home');
   for (let i = 0; i < 100; i++) {
-    if (await selectedSetting(ui, key)) return;
-    await keys(ui, 'down');
+    const { frame, epoch } = await presentation(ui);
+    const index = frame.findIndex(node => node[1].key === 'setting-' + key);
+    if (index >= 0 && nodeText(frame, index).startsWith('›')) return;
+    // This navigation never changes the mount epoch. Reuse the observed frame
+    // instead of querying the same Client again just to obtain its key.
+    await ui.key({ in: 'statusline-client-' + epoch, key: host ? 'up' : 'down' });
   }
   throw new Error('Setting could not be selected: ' + key);
 }

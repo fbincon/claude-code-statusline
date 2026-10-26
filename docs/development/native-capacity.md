@@ -51,4 +51,6 @@ The first CI attempts exposed incomplete 2.1.310 declaration generation: the int
 
 PR/main/tag, final immutable artifact and public-channel receipts will be recorded here after their gates complete. No publication is asserted by this pre-merge record.
 
+The Windows 2.1.296 run also exposed a 20-second timeout in a host-preference test's repeated field selection. The selector now starts at the host-preference end of the form and reuses the Client identity from its visible frame, eliminating redundant host queries. Behavior assertions and the original deadline remain unchanged; the local 143-test suite passed after this change.
+
 Only the six existing [issue #96 gaps](https://github.com/fbincon/claude-code-statusline/issues/96) are accepted by the [version-specific decision](../releases/approvals/v3.9.1.json); they remain unverified. Every new automated failure or missing receipt blocks release.

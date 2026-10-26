@@ -51,4 +51,6 @@ npm run capture:native-capacity -- --artifact "$ARTIFACT" --commit "$SOURCE_COMM
 
 PR／main／tag、最终不可变产物及公开渠道回执将在各门禁完成后记录；本合并前记录不宣称已发布。
 
+Windows 2.1.296 作业还暴露了一项宿主偏好测试在反复定位字段时超过 20 秒。选择器现在从表单末尾的宿主偏好区开始，并复用可见帧中的 Client 身份，减少重复宿主查询；行为断言和原超时保持不变，修改后的本机 143 项测试全部通过。
+
 [本版本批准](../releases/approvals/v3.9.1.json) 仅接受 [issue #96](https://github.com/fbincon/claude-code-statusline/issues/96) 的六项既有缺口，仍保持未验证。任何新增自动化失败或回执缺失均阻止发布。
