@@ -2,7 +2,6 @@
 import assert from 'node:assert/strict';
 import { nativeApi } from '@fbincon/statusline-platform/native';
 import { syncBuiltinESMExports } from 'node:module';
-import cp from 'node:child_process';
 import fs from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -20,6 +19,13 @@ const fake = (signature: string) => (...args: any[]) => {
     if (signature.includes('GetTickCount64')) return 1000n;
     if (signature.includes('NtQuerySystemInformation')) { args[1].fill(state.fail === 'zero-guid' ? 0 : 1); args[3][0] = state.fail === 'short-guid' ? 31 : 32; return state.fail === 'ntquery' ? -1 : 0; }
     if (signature.includes('ReadProcessMemory')) { assert.equal(args[1], 0x7ffe02c4); args[2].writeUInt32LE(state.fail === 'zero-sequence' ? 0 : state.sequence); args[4][0] = state.fail === 'short-read' ? 3 : 4; return state.fail === 'read' ? 0 : 1; }
+    if (signature.includes('proc_pidinfo')) {
+        assert.equal(args[0], 42); assert.equal(args[1], 3); assert.equal(args[4], 136);
+        args[3].writeUInt32LE(state.fail === 'wrong-pid' ? 43 : 42, 12);
+        args[3].writeUInt32LE(state.fail === 'bad-state' ? 6 : 2, 4);
+        args[3].writeBigUInt64LE(state.fail === 'zero-time' ? 0n : BigInt(Date.UTC(2026, 9, 2, 1, 2, 3) / 1000), 120);
+        return state.fail === 'short-info' ? 135 : 136;
+    }
     if (signature.includes('OpenProcess')) return state.fail === 'access' ? null : 1;
     if (signature.includes('GetCurrentProcess')) return 1;
     if (signature.includes('GetProcessTimes')) { args[1].writeBigUInt64LE(133800000000001237n); return state.fail === 'times' ? 0 : 1; }
@@ -45,15 +51,9 @@ if (operation === 'clock') {
         for (const fail of ['ntquery', 'short-guid', 'zero-guid', 'read', 'short-read', 'zero-sequence', 'library']) { state.fail = fail; const value = sample(); assert.equal(value.boot_id, null); assert.equal(value.boot_ns, null); assert(value.wall_ns > 0n); }
     }
 } else if (operation === 'process') {
-    if (platform === 'darwin') {
-        Object.defineProperty(cp, 'execFileSync', { value: (command: string, args: string[], options: any) => {
-            assert.equal(command, '/bin/ps'); assert.deepEqual(args, ['-o', 'lstart=', '-p', '42']); assert.equal(options.env.LC_ALL, 'C'); assert.equal(options.env.TZ, 'UTC'); assert.equal(options.timeout, 1000);
-            if (state.fail === 'throw') throw new Error('unreadable'); return state.fail === 'empty' ? ' \n' : '  Fri Oct  2 01:02:03 2026\n';
-        } }); syncBuiltinESMExports();
-    }
     const { processToken } = await import('@fbincon/statusline-platform/processes');
     assert.equal(processToken(42), platform === 'darwin' ? 'Fri Oct  2 01:02:03 2026' : '638711232000001230');
-    for (const fail of platform === 'darwin' ? ['throw', 'empty'] : ['access', 'times', 'utc', 'local', 'filetime']) { state.fail = fail; assert.equal(processToken(42), null); }
+    for (const fail of platform === 'darwin' ? ['library', 'short-info', 'wrong-pid', 'zero-time', 'bad-state'] : ['access', 'times', 'utc', 'local', 'filetime']) { state.fail = fail; assert.equal(processToken(42), null); }
     assert.equal(processToken(-1), null); assert.equal(processToken(1.2), null);
     if (platform === 'win32') assert.equal(state.closed, 5);
 } else if (operation === 'files') {

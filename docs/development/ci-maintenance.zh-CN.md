@@ -8,6 +8,8 @@
 
 ### 开发与执行路径
 
+macOS 身份适配器通过既有原生桥接读取 `PROC_PIDTBSDINFO`，校验完整结构和 PID，并保留 C locale／UTC 的 `ps lstart` token，包括个位日期的空格。未知结果仍不可验证，僵尸进程不算存活。ABI 对照 [Apple 定义](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/proc_info.h)，实际 macOS 测试逐字比较 `ps` 的结果。手动 `validation=macos-probe` 在 Intel 和 ARM 上各重复二十次受影响的六语言事务流程，每台 runner 还进行 1,000 次身份比较，仅生成诊断证据。
+
 草稿产品 PR 执行 `Draft quick checks`（完整的本地 Linux 检查命令），但不能通过 `Complete candidate evidence`。创建、同步、重新打开、转为待审查和退回草稿都会重新分类当前 head。待审查产品 PR 要求完整覆盖；白名单文档在分类任务中完成检查，无需构建产品。汇总门禁使用固定 Node 直接执行无外部依赖的检查器。PR 更新取消旧运行；main／tag 按不可变提交分组，避免取消其他修订的证据。
 
 开发检查与两次独立干净构建并行，二者均成功后才执行平台验收。开发任务分发绑定精确提交、锁文件、逐文件及归档摘要的可移植编译输出。消费方自行安装本平台原生依赖，校验后只恢复六个固定编译目录；独立构建不使用此包。平台任务保留全部源码测试，仓库静态生成／文档／归档／清单检查集中执行。普通测试文件使用两个隔离 worker；原生进程与锁、终端、时序及恢复测试保留串行组。未知位置仍执行并默认串行；`STATUSLINE_TEST_WORKERS=1` 用于对照。

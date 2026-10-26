@@ -16,11 +16,18 @@ export async function githubRead(path: string): Promise<any> {
 }
 export function summarizeJobs(jobs: any[]) {
     const seconds = (end: string, start: string) => Math.max(0, (Date.parse(end) - Date.parse(start)) / 1000);
-    return jobs.map(job => ({ id: job.id, name: job.name, attempt: job.run_attempt, status: job.status, conclusion: job.conclusion,
+    const originals = new Map<string, number>();
+    return [...jobs].sort((a, b) => a.run_attempt - b.run_attempt || a.id - b.id).map(job => {
+        const key = JSON.stringify([job.name, job.started_at, job.completed_at]);
+        const reused = job.completed_at ? originals.get(key) : undefined;
+        if (job.completed_at && reused === undefined) originals.set(key, job.id);
+        return { id: job.id, name: job.name, attempt: job.run_attempt, status: job.status, conclusion: job.conclusion,
+        fresh_execution: reused === undefined, reused_from_job_id: reused ?? null,
         queue_seconds: job.started_at && job.created_at ? seconds(job.started_at, job.created_at) : null,
         execution_seconds: job.completed_at && job.started_at ? seconds(job.completed_at, job.started_at) : null,
         steps: (job.steps ?? []).map((step: any) => ({ name: step.name, conclusion: step.conclusion,
-            execution_seconds: step.completed_at && step.started_at ? seconds(step.completed_at, step.started_at) : null })) }));
+            execution_seconds: step.completed_at && step.started_at ? seconds(step.completed_at, step.started_at) : null })) };
+    });
 }
 export async function collectRun(runId: number, head: string) {
     const prefix = `repos/${CI_REPOSITORY}/actions/runs/${runId}`, run = await githubRead(prefix);
