@@ -21,6 +21,10 @@ Product runtimes support Node 22/24; development and builds retain Node 24.21.0/
 
 [First-batch correctness validation](correctness-maintenance.md) covers both editors' save reconciliation, bar labels, refresh consumers, historical extension evidence and task language, retaining the existing release matrix.
 
+## Release approval and CI routing
+
+The release and CI regression suites cover adding a version through data only, migration of all historical registrations, immutable-source registry/decision hashes, invalid or missing approval, and expired/mismatched evidence. Isolated Git merge/tag fixtures and mocked Actions archives exercise the production PR → main → tag selectors, original artifact identities and three-smoke aggregation. Approval, build, acceptance and trust-rule edits must still change the policy digest and require complete main acceptance plus shadow promotion. These fixtures create no repository release/tag and make no network or model calls. `npm run check` includes them; the enabling policy PR/main matrices provide real platform acceptance. See [CI routes](ci-maintenance.md#release-data-and-acceptance-policy).
+
 ## Git, terminal and package transactions
 
 Installed acceptance now requires twenty check categories, including Git policy, shared terminal capability, persistent first entry and explicit version management. Windows receipts include fifteen environment cases and nine real shell/entry combinations; environment simulation alone does not establish shell launch acceptance. See [implementation and diagnostic evidence](m8-m9-delivery.md).

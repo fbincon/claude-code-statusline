@@ -25,11 +25,15 @@ export interface CompleteEvidence {
     acceptance_sha256: string; input_file_sha256: string; compiled: Record<string, string>;
     artifacts: ArtifactIdentity[]; executions: any[];
 }
-export function policyDigest(revision: string): string {
+/** Release registrations are data; executable release checks remain acceptance policy. */
+export function acceptancePolicyPath(path: string): boolean {
+    return path.startsWith('.github/workflows/') || /^(?:tools\/(?:checks|build|release|acceptance|typescript)\/|packages\/core\/src\/node-runtime\.ts$)/u.test(path) && !/\/test\//u.test(path);
+}
+export function policyDigest(revision: string, read = git): string {
     assert(SHA.test(revision));
-    const lines = git('ls-tree', '-r', revision).split('\n').filter(line => {
+    const lines = read('ls-tree', '-r', revision).split('\n').filter(line => {
         const path = line.split('\t')[1] ?? '';
-        return path.startsWith('.github/workflows/') || /^(?:tools\/(?:checks|build|release|acceptance|typescript)\/|packages\/core\/src\/node-runtime\.ts$)/u.test(path) && !/\/test\//u.test(path);
+        return acceptancePolicyPath(path);
     });
     assert(lines.length > 0); return digest(lines.sort().join('\n'));
 }

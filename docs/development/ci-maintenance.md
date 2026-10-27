@@ -18,6 +18,22 @@ Complete runs emit schema-v1 `ci-evidence.json` alongside `candidate-acceptance.
 
 The npm resolver follows the tag promotion back to its original complete run, revalidates the chain and publishes the same package bytes. Legacy releases remain readable without manufacturing new envelopes. Source archives, independent builds, source rebuilds, draft-asset checks, OIDC context and public-download acceptance retain their existing requirements. Source/evidence artifacts expire after 30 days; refreshing evidence requires appropriate full validation and new integration/tag verification, never substitution of an unrelated successful run.
 
+### Release data and acceptance policy
+
+Version approval registrations belong in [the approval registry](../releases/approvals/registry.json), alongside the version-specific decision JSON. Add the version, approval path and exact approval date there; adding a release must not edit `tools/release/approval.ts`. The registry and decision are source-bound release inputs, included in the Git tree, source archive and candidate identity. They are not executable acceptance rules and do not enter the policy digest.
+
+| Change | Final PR | Equivalent main merge | Tag |
+| --- | --- | --- | --- |
+| Approval registry/decision JSON, product source or generated version resources | Complete candidate matrix | Reuse that PR's exact candidate plus three installation smokes | Verify approval and original evidence chain |
+| Workflows or executable build, acceptance, release validation or evidence rules | Complete candidate matrix | Complete matrix plus shadow promotion and three smokes | Verify original evidence chain |
+| Allowlisted documentation only | Necessary documentation checks | Necessary documentation checks | Produces no candidate acceptance |
+
+The digest retains executable `tools/release/` files, including future validators; the directory is not excluded. Its existing path selection is preserved for historical evidence compatibility. The correction separates changing data from those rules rather than trusting a filename exception or a particular release version. Any base/head/tree mismatch still uses the established fallback; damaged or unavailable applicable evidence fails closed.
+
+`release:prepare` and promotion read both registration and decision from the verified source archive, not the checkout. The registration requires a unique stable version/path and valid calendar date; the decision must match its version/date, maintainer, authority, reference and exact six accepted gaps. The acceptance receipt records both file digests, and promotion compares the original approval receipt. Historical archives without a registry can read their original literal registration table without executing it; malformed new registries never fall back. Published historical files remain unchanged.
+
+This validator migration itself changes policy and therefore requires complete final-PR/main acceptance with shadow promotion once. Subsequent data-only release registrations use the ordinary main reuse route. See [release preparation](../RELEASING.md#source-bound-ci-evidence-promotion) and [routing regressions](testing.md#release-approval-and-ci-routing).
+
 ### Development and execution routes
 
 The macOS identity adapter reads `PROC_PIDTBSDINFO` through the existing native bridge, checks the full structure and PID, and retains the C-locale/UTC `ps lstart` token including single-digit-day spacing. Unknown results remain unverifiable and zombies are not live. The ABI is checked against [Apple's definitions](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/proc_info.h); real macOS tests compare the token with `ps`. Manual `validation=macos-probe` repeats the affected six-language transaction journey twenty times on Intel and ARM, with 1,000 direct identity comparisons per runner. It produces diagnostic evidence only.

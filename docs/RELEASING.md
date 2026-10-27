@@ -6,7 +6,9 @@
 
 Normal release preparation completes the final PR matrix, merges with a merge commit, and requires main's verified integration plus Linux/Windows/macOS installation smoke. Create the annotated version tag at the **accepted PR source commit**, reachable through that merge on main; tag SHA, package source SHA and npm provenance must agree. Policy changes and nonequivalent integration require full main acceptance; the same-commit main-to-tag fallback remains available. Publish the original package/source/manifest/checksum bytes without rebuilding or relabeling them. The npm workflow follows the explicit PR/main/tag evidence chain and downloads immutable original artifact IDs. Missing, expired or mismatched evidence is blocking. See [CI policy and evidence](development/ci-maintenance.md#candidate-promotion-across-pr-main-and-tag).
 
-Historical releases below keep their recorded gates and identities. This CI maintenance creates no product version or publication. Dry runs verify preparation and bytes; a future real release must supply the new tag/OIDC publication evidence without replacing an existing version.
+For each approved stable version, add its decision JSON and a `{version, path, approved_on}` entry to [the approval registry](releases/approvals/registry.json). Keep the exact approval date and the existing six-gap scope; do not edit the validator to register a version. These release data still require complete final-PR acceptance. With unchanged policy and an equivalent merge, main reuses that candidate and runs the three installation smokes. Changing the validator, build/acceptance execution or evidence rules requires the complete main matrix plus shadow promotion. Both data files are verified from the original source archive and their hashes are retained in the approval receipt. Missing, invalid or mismatched registration/approval blocks publication.
+
+Historical releases below keep their recorded gates and identities. Dry runs verify preparation and bytes; record actual tag/OIDC publication with each real release without replacing an existing version.
 
 ## v3.9.2 correctness repairs
 

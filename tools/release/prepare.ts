@@ -8,8 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import assert from 'node:assert/strict';
 import { verifyDelivery } from '../build/verify.js';
-import { sha256 } from '../build/files.js';
-import { stableApprovalPath, UNVERIFIED_GATES, assessStableApproval } from './approval.js';
+import { UNVERIFIED_GATES, sourceStableApproval } from './approval.js';
 import { NODE_RUNTIME_CASES, matchesNodeCase } from '@fbincon/statusline-core/node-runtime';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { NATIVE_CAPACITY_CASES } from '../acceptance/native-capacity.js';
@@ -121,10 +120,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     let approval = null;
     if (values.stable) {
         assert.equal(candidate.source.channel, 'stable', 'Stable gate requires the stable public package');
-        const approvalPath = stableApprovalPath(candidate.source.application_version);
-        const raw = candidate.sourceEntries.get(approvalPath);
-        assert(raw, 'Verified source archive is missing the maintainer approval');
-        approval = { path: approvalPath, sha256: sha256(raw), record: assessStableApproval(JSON.parse(raw.toString('utf8')), candidate.source.application_version) };
+        approval = sourceStableApproval(candidate.sourceEntries, candidate.source.application_version);
     }
     const report = { ...result, application_version: candidate.source.application_version, channel: candidate.source.channel ?? 'candidate',
         preview_ready: values.preview === true, stable_ready: values.stable === true && approval !== null,

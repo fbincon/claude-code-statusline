@@ -5,11 +5,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { assessEvidence, INSTALL_TARGETS, HOST_TARGETS } from '../prepare.js';
-import { assessStableApproval, stableApprovalPath, ACCEPTED_GAPS } from '../approval.js';
+import { assessStableApproval as assessRegisteredApproval, stableApprovalPath as registeredApprovalPath, assessApprovalRegistry, sourceStableApproval, APPROVAL_REGISTRY_PATH, ACCEPTED_GAPS } from '../approval.js';
 import { NODE_RUNTIME_CASES } from '@fbincon/statusline-core/node-runtime';
 import { LANGUAGES } from '@fbincon/statusline-core/i18n/registry';
 import { VERSION, isPrerelease } from '@fbincon/statusline-core/release';
 import { repoRoot } from '../../migration/ts-03/common.js';
+const registry = assessApprovalRegistry(JSON.parse(readFileSync(join(repoRoot, APPROVAL_REGISTRY_PATH), 'utf8')));
+const assessStableApproval = (value: unknown, version: string) => assessRegisteredApproval(value, version, registry);
+const stableApprovalPath = (version: string) => registeredApprovalPath(version, registry);
 const commit = 'a'.repeat(40), hash = 'b'.repeat(64);
 const schema = PACKAGE_COMPATIBILITY.read.display[1];
 const transitions = (official = false, previous = false): any => ({ cases: 7, historical_version: previous ? '3.8.0' : '3.7.0', historical_sha256: HISTORICAL_RELEASES[previous ? '3.8.0' : '3.7.0'], ...(compareVersions(VERSION, '3.8.0') > 0 && !previous ? { previous_release: transitions(official, true) } : {}), target_version: VERSION, schema_migration: schema > 13 ? { from: 13, to: schema, old_version_refused: true, backup_restored: true } : null, roundtrip: true, independent_runner: true, crash_recovery: true, configuration_restore: true, real_npm: true, host_mode: official ? 'official' : 'version-only', model_calls: 0, operation_timings: Array.from({ length: (official ? 20 : 19) + (schema > 13 ? 3 : 0) }, (_, index) => ({ command: 'operation-' + index, elapsed_ms: 1 })) });
@@ -111,4 +114,63 @@ test('release evidence includes the published 3.8.0 upgrade and refusal/restore 
     const modified = receipts();
     modified[0].version_management.previous_release.schema_migration.old_version_refused = false;
     assert.throws(() => assessEvidence(modified, commit, hash));
+});
+
+test('all migrated registrations retain historical approval dates, paths and decisions', () => {
+    const legacy = readFileSync(join(repoRoot, 'tools/release/test/fixtures/legacy-approval.txt'));
+    const historicalVersions = [...legacy.toString('utf8').matchAll(/^\s+'([^']+)': \{ path:/gmu)].map(match => match[1]!);
+    assert(historicalVersions.length > 0);
+    // Future data-only registrations do not need additions to this frozen legacy fixture.
+    for (const version of historicalVersions) {
+        const entry = registry.approvals.find(row => row.version === version); assert(entry);
+        const approval = readFileSync(join(repoRoot, entry.path));
+        const entries = new Map([['tools/release/approval.ts', legacy], [entry.path, approval]]);
+        const historical = sourceStableApproval(entries, entry.version);
+        entries.set(APPROVAL_REGISTRY_PATH, readFileSync(join(repoRoot, APPROVAL_REGISTRY_PATH)));
+        const { registry: input, ...current } = sourceStableApproval(entries, entry.version);
+        assert.deepEqual(current, historical);
+        assert.equal(input?.path, APPROVAL_REGISTRY_PATH);
+        assert.match(input!.sha256, /^[a-f0-9]{64}$/u);
+    }
+});
+
+test('a new stable approval is data-only and comes entirely from the verified source', () => {
+    const version = '9.9.9', path = `docs/releases/approvals/v${version}.json`, date = '2026-10-28';
+    const record = { schema_version: 1, version, decision: 'accept-known-gaps', approved_by: 'fbincon', approved_on: date,
+        authority: 'Isolated test decision', reference: 'https://github.com/fbincon/claude-code-statusline/issues/96', accepted_gaps: ACCEPTED_GAPS };
+    const input = { schema_version: 1, approvals: [{ version, path, approved_on: date }] };
+    const entries = new Map([[APPROVAL_REGISTRY_PATH, Buffer.from(JSON.stringify(input))], [path, Buffer.from(JSON.stringify(record))],
+        ['tools/release/approval.ts', readFileSync(join(repoRoot, 'tools/release/approval.ts'))]]);
+    const good = sourceStableApproval(entries, version);
+    assert.equal(good.record.version, version);
+    assert.throws(() => sourceStableApproval(entries, VERSION), /No unique/u); // No checkout registry fallback.
+    for (const patch of [{ version: VERSION }, { approved_on: '2026-10-27' }, { approved_by: 'someone' }, { schema_version: 2 },
+        { decision: 'all-passed' }, { authority: ' ' }, { reference: 'https://example.invalid' }, { accepted_gaps: [] }, { accepted_gaps: [...ACCEPTED_GAPS, 'failed-ci'] }]) {
+        entries.set(path, Buffer.from(JSON.stringify({ ...record, ...patch })));
+        assert.throws(() => sourceStableApproval(entries, version));
+    }
+    entries.set(path, Buffer.from(JSON.stringify(record)));
+    entries.set(APPROVAL_REGISTRY_PATH, Buffer.from(JSON.stringify(input, null, 2)));
+    assert.notEqual(sourceStableApproval(entries, version).registry?.sha256, good.registry?.sha256);
+    entries.delete(APPROVAL_REGISTRY_PATH);
+    assert.throws(() => sourceStableApproval(entries, version), /missing the approval registry/u);
+    entries.set(APPROVAL_REGISTRY_PATH, Buffer.from(JSON.stringify(input)));
+    entries.delete(path); assert.throws(() => sourceStableApproval(entries, version), /missing the maintainer approval/u);
+});
+
+test('invalid, duplicate or missing registration fails without historical fallback', () => {
+    const row = registry.approvals[0]!;
+    for (const invalid of [null, {}, { schema_version: 2, approvals: [row] }, { schema_version: 1, approvals: [] },
+        { schema_version: 1, approvals: [row, row] }, { schema_version: 1, approvals: [row, { ...row, version: '9.9.9' }] },
+        ...[{ version: '9.9.9-beta.1' }, { version: '../escape' }, { path: 'docs/../outside.json' }, { path: '/outside.json' },
+            { approved_on: '2026-02-30' }, { approved_on: '2026-10-28T00:00:00Z' }, { extra: true }]
+            .map(patch => ({ schema_version: 1, approvals: [{ ...row, ...patch }] }))]) {
+        assert.throws(() => assessApprovalRegistry(invalid));
+    }
+    const legacy = readFileSync(join(repoRoot, 'tools/release/test/fixtures/legacy-approval.txt'));
+    for (const raw of ['{', '{}', '', '{"schema_version":1,"approvals":[]}']) {
+        assert.throws(() => sourceStableApproval(new Map([['tools/release/approval.ts', legacy], [APPROVAL_REGISTRY_PATH, Buffer.from(raw)]]), row.version));
+    }
+    const corrupt = Buffer.from(legacy.toString().replace("approvedOn: '2026-10-28'", "approvedOn: evaluateCode()"));
+    assert.throws(() => sourceStableApproval(new Map([['tools/release/approval.ts', corrupt]]), row.version), /Invalid historical/u);
 });
