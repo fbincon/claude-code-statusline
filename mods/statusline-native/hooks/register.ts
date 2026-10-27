@@ -492,9 +492,10 @@ const TASK_COMMAND = 'statusline-task', TASK_PANE = 'statusline-task-details';
 export interface TaskPaneState {
   owned: boolean; loading: boolean; generation: number; offset: number;
   language: Language; report: TaskDetails | null; error: LocalizedText | null; warning: LocalizedText | null;
+  lines: { report: TaskDetails; language: Language; width: number; value: string[] } | null;
 }
 export function taskPaneState(): TaskPaneState {
-  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:null, warning:null };
+  return { owned:false, loading:false, generation:0, offset:0, language:'en', report:null, error:null, warning:null, lines:null };
 }
 async function taskLanguage($: EngineInterface, options: PluginOptions, state: TaskPaneState, epoch: number): Promise<boolean> {
   try {
@@ -515,7 +516,7 @@ async function taskCommand($: EngineInterface, state: TaskPaneState, epoch: numb
   return state.owned && state.generation===epoch;
 }
 export async function startTaskDetails($: EngineInterface, state: TaskPaneState, options: PluginOptions): Promise<void> {
-  state.generation++;state.loading=false;state.report=null;state.error=null;state.warning=null;state.offset=0;state.owned=false;
+  state.generation++;state.loading=false;state.report=null;state.lines=null;state.error=null;state.warning=null;state.offset=0;state.owned=false;
   if(await taskLanguage($,options,state,state.generation))await taskCommand($,state,state.generation);
 }
 async function refreshTaskDetails($: EngineInterface, options: PluginOptions, state: TaskPaneState, readLanguage=true): Promise<void> {
@@ -549,14 +550,14 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
   const tr=(key:string)=>t(key,state.language);
   on('command.run',{command:'statusline-task'},async($,e,next)=>{
     if(!state.owned)return next(e);
-    const epoch=++state.generation;state.loading=false;state.report=null;state.error=null;state.offset=0;
+    const epoch=++state.generation;state.loading=false;state.report=null;state.lines=null;state.error=null;state.offset=0;
     if(!await taskLanguage($,options,state,epoch)||!await taskCommand($,state,epoch))return next(e);
     const opened=await $.ui.open({id:TASK_PANE,title:tr('task.title'),focus:true,closeOnEscape:true,rows:24,columns:88});
     if(!opened.isPlaced)return {text:tr('task.fallback')};
     await refreshTaskDetails($,options,state,false);return {};
   });
   on('ui.close',{id:'statusline-task-details'},async($,e,next)=>{
-    state.generation++;state.loading=false;state.report=null;state.error=null;return next(e);
+    state.generation++;state.loading=false;state.report=null;state.lines=null;state.error=null;return next(e);
   });
   on('ui.render',{component:'Pane',requestId:'statusline-task-details'},async($,e,next)=>{
     if(!state.owned)return next(e);
@@ -565,7 +566,10 @@ export function registerTaskDetails(on: On, options: PluginOptions, state: TaskP
     let width=Math.max(2,Math.min(10000,e.props.bodyColumns)),height=Math.max(4,Math.min(10000,e.props.scroll.bodyRows));
     for(;;) {
     const capacity=Math.max(1,height-3);
-    const lines=state.report ? taskDetailLines(state.report,state.language,Math.max(2,width-2)) : [tr(state.loading?'profiles.loading':'task.unknown')];
+    const lineWidth=Math.max(2,width-2);
+    if(state.report && (state.lines?.report!==state.report || state.lines.language!==state.language || state.lines.width!==lineWidth))
+      state.lines={report:state.report,language:state.language,width:lineWidth,value:taskDetailLines(state.report,state.language,lineWidth)};
+    const lines=state.report ? state.lines!.value : [tr(state.loading?'profiles.loading':'task.unknown')];
     const offset=Math.max(0,Math.min(state.offset,Math.max(0,lines.length-capacity)));
     const reduced=width<e.props.bodyColumns||height<e.props.scroll.bodyRows;
     const pane=Box({width,height,flexDirection:'column',children:[

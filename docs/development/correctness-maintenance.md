@@ -34,7 +34,7 @@ Evidence accumulates once per component-instance/agent pair. Values shared by se
 
 UI preferences are resolved before task command descriptions and the first pane title. Task reads cannot discard a successfully loaded language. Refresh/reopen rereads preferences, checks command ownership and ignores late generations. Failed preference reads use English with guidance; task reads still proceed. Task errors retain semantic localization, with external details kept as details.
 
-The plain task Pane also preflights its complete output against the existing native budgets, reducing visible height and then width when required. It retains the full report and uses the accepted page capacity for navigation. This does not change task attribution, timing or the version-1 task read model.
+The plain task Pane also preflights its complete output against the existing native budgets, reducing visible height and then width when required. It retains the full report and uses the accepted page capacity for navigation. Wrapped lines are cached only for the same report, language and width, so height reduction and paging do not repeatedly wrap a large report. Refresh and language changes invalidate that presentation cache. This does not change task attribution, timing or the version-1 task read model.
 
 ## Validation and delivery
 

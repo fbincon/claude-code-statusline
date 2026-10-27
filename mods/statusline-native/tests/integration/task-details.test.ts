@@ -68,6 +68,12 @@ test('task command reads explicit session evidence into a separate pane without 
     const pane={...PANE,requestId:'statusline-task-details'};
     const ui=await $.ui.mount(pane);
     expect(await ui.find({type:'Text',text:'Checklist completed / total: 3/5'})).toBeDefined();
+    report.progress!.completed=4;
+    await ui.press({key:'task-refresh'});
+    expect(await ui.find({type:'Text',text:'Checklist completed / total: 3/5'})).toBeUndefined();
+    expect(await ui.find({type:'Text',text:'Checklist completed / total: 4/5'})).toBeDefined();
+    f.store.uiLanguage='ja';await ui.press({key:'task-refresh'});
+    expect(await ui.find({type:'Text',text:t('task.progress','ja',{value:'4/5'})})).toBeDefined();
     expect(f.calls.some(c=>c.operation==='task_details' && typeof c.payload.session_id==='string')).toBe(true);
     expect(f.calls.some(c=>['apply','profiles_apply','runtime'].includes(c.operation))).toBe(false);
     expect(f.configCalls).toEqual([]);
