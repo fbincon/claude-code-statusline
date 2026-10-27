@@ -9,6 +9,7 @@ export interface SourceManager {
     library: SourcesResult | null;
     context: SourceContext | null;
     owner: string;
+    closed: boolean;
     page: 'list' | 'actions' | 'kind' | 'form' | 'review' | 'remove' | 'bind' | 'unbind' | 'diagnose' | 'auto-review';
     automaticInterval: number;
     cursor: number;
@@ -35,7 +36,7 @@ export interface SourceBackend {
 }
 const external = ['external-value', 'github-pr', 'github-ci'];
 export function openSources(editor: Editor): void {
-    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), page: 'list', automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
+    editor.sources = { library: null, context: null, owner: 'editor-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2), closed: false, page: 'list', automaticInterval: 300, cursor: 0, scroll: 0, selected: null, kind: 'json', editing: false, fields: [], review: null, details: [], jobs: [], message: null, effect: 'load', target: null };
 }
 function source(editor: Editor): SourceDefinition | undefined { return editor.sources!.library?.sources.find(s => s.id === editor.sources!.selected); }
 function actions(editor: Editor): Action[] { return ['edit', 'review', ...(source(editor)?.enabled ? ['disable' as const] : []), 'bind', 'refresh', 'status', 'cancel', 'diagnose', 'remove', 'unbind', ...(source(editor)?.kind === 'github' ? ['auto-review' as const, 'auto-off' as const] : [])]; }
@@ -159,6 +160,7 @@ export async function closeSources(editor: Editor, backend: SourceBackend): Prom
     const m = editor.sources;
     if (!m)
         return;
+    m.closed = true;
     let failed: unknown;
     for (const job of m.jobs.filter(job => job.state === 'running')) {
         try { await backend.request('source_release', { id: job.id, owner:m.owner }); }
@@ -209,7 +211,12 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
             const selected = source(editor)!;
             const context = await backend.request('source_context', { project: selected.scope.project ?? m.context?.project ?? null, session: selected.scope.session, agent: selected.scope.agent });
             if (effect === 'refresh') {
+                if (m.closed || editor.sources !== m) return;
                 const job = await backend.request('source_refresh', { id: m.selected, context, owner: m.owner });
+                if (m.closed || editor.sources !== m) {
+                    await backend.request('source_release', { id: job.id, owner: m.owner });
+                    return;
+                }
                 m.jobs = [...m.jobs.filter(previous=>previous.id!==job.id),job];
                 m.message = text('sources.refresh_started');
             }

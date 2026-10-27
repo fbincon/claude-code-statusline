@@ -94,6 +94,34 @@ test('two editors release their own consumers and retain an applicable automatic
     assert.deepEqual(f.service.release(next.id,'only'),f.service.job(next.id));
 });
 
+test('closing or replacing a source manager releases late refresh consumers without cancelling other owners',async t=>{
+    const f=fixture(t);f.enable();
+    const protocol=new ConfigurationProtocol(f.configuration);
+    const read=(operation:string)=>protocol.dispatch({protocol_version:PROTOCOL_VERSION,operation,payload:{}});
+    for(const stage of ['context','response','shared-response','replaced-response']) {
+        const editor=new Editor(read('describe') as never,read('read') as never);openSources(editor);
+        const manager=editor.sources!;manager.library=f.service.read();manager.context=f.context();manager.selected='github';manager.effect='refresh';
+        const other=stage==='shared-response'?f.service.start('github',f.context(),'other-editor'):null;
+        let resume!:()=>void,entered!:()=>void;
+        const waiting=new Promise<void>(resolve=>{resume=resolve;}),started=new Promise<void>(resolve=>{entered=resolve;});
+        let refreshes=0;
+        const backend={request:async(operation:string,payload:any)=>{
+            if(operation==='source_context') {if(stage==='context'){entered();await waiting;}return f.context();}
+            if(operation==='source_refresh') {refreshes++;const job=f.service.start(payload.id,payload.context,payload.owner);entered();await waiting;return job;}
+            if(operation==='source_release')return f.service.release(payload.id,payload.owner);
+            throw new Error('Unexpected operation '+operation);
+        }} as SourceBackend;
+        const action=performSourceAction(editor,backend);await started;
+        if(stage==='replaced-response')openSources(editor);else await closeSources(editor,backend);
+        const replacement=editor.sources;resume();await action;
+        assert.equal(editor.sources,replacement,'a late reply must not reopen or replace the manager');
+        assert.equal(refreshes,stage==='context'?0:1);
+        for(const job of f.service.jobs())assert(!job.consumers.some(c=>c.owner===manager.owner),'closed consumer was released');
+        if(other){assert.equal(f.service.job(other.id).state,'running');assert.deepEqual(f.service.job(other.id).consumers.map(c=>c.owner),['other-editor']);f.service.release(other.id,'other-editor');}
+        else assert(f.service.jobs().every(job=>job.state!=='running'));
+    }
+});
+
 test('legacy jobs remain read-only and cannot be joined by a new worker generation',t=>{
     const f=fixture(t);f.enable();
     for(const version of [1,2]) {
