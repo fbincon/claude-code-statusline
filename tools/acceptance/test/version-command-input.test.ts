@@ -14,7 +14,8 @@ for (const exitCode of [0, 23]) test(`closed command stdin retains exit status $
     child.stdin.on('error', error => streamErrors.push((error as NodeJS.ErrnoException).code ?? 'unknown'));
     writeVersionInput(child.stdin, 'x'.repeat(16 * 1024 * 1024), error => failures.push(error));
     assert.equal(await closed, exitCode);
-    assert.deepEqual(streamErrors, ['EPIPE']);
+    assert.equal(streamErrors.length, 1);
+    assert((process.platform === 'win32' ? ['EPIPE', 'EOF'] : ['EPIPE']).includes(streamErrors[0]!), streamErrors.join(','));
     assert.deepEqual(failures, []);
 });
 
@@ -29,8 +30,10 @@ test('version command input preserves literal Unicode bytes and EOF', { timeout:
 });
 
 test('version command input surfaces non-pipe stream failures', async () => {
-    const error = Object.assign(new Error('input failed'), { code: 'EIO' });
-    const stream = new Writable({ write(_chunk, _encoding, callback) { callback(error); } });
-    const actual = await new Promise<Error>(resolve => writeVersionInput(stream, 'input', resolve));
-    assert.equal(actual, error);
+    for (const code of process.platform === 'win32' ? ['EIO'] : ['EIO', 'EOF']) {
+        const error = Object.assign(new Error('input failed'), { code });
+        const stream = new Writable({ write(_chunk, _encoding, callback) { callback(error); } });
+        const actual = await new Promise<Error>(resolve => writeVersionInput(stream, 'input', resolve));
+        assert.equal(actual, error);
+    }
 });

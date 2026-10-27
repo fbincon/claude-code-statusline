@@ -23,7 +23,9 @@ export interface VersionHost {
 /** Early stdin closure is judged by the command's exit/output assertions. */
 export function writeVersionInput(stream: Writable, input: string, failed: (error: Error) => void): void {
     stream.on('error', error => {
-        if ((error as NodeJS.ErrnoException).code !== 'EPIPE') failed(error);
+        const code = (error as NodeJS.ErrnoException).code;
+        // Windows named pipes can report EOF for the same closed-reader case.
+        if (code !== 'EPIPE' && !(process.platform === 'win32' && code === 'EOF')) failed(error);
     });
     stream.end(input);
 }
