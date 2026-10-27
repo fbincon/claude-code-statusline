@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Language } from '@fbincon/statusline-core/i18n/messages';
+import type { SourceJob } from '@fbincon/statusline-core/contracts/ui';
 import { t } from '@fbincon/statusline-core/i18n/messages';
 import { object, ConfigError } from '@fbincon/statusline-core/config/validation';
 import { sourceError, SOURCE_TYPES } from '@fbincon/statusline-core/extensions/model';
@@ -61,27 +62,29 @@ export async function sourceCommand(args: readonly string[], configuration: Conf
         if (action === 'diagnose')
             return pretty(service.diagnose(id, context));
         const owner=randomUUID();
-        let job = service.start(id, context, owner), interrupted=false;
         if (flags['--no-wait'])
-            return pretty(job);
-        const cancel = () => { interrupted=true;try {
+            return pretty(service.start(id, context, owner));
+        let job:SourceJob|undefined, interrupted=false;
+        const cancel = () => { interrupted=true;if(!job)return;try {
             job = service.release(job.id,owner);
         }
         catch { /* Read the durable result below. */ } };
         process.once('SIGINT', cancel);
         process.once('SIGTERM', cancel);
         try {
+            job=service.start(id,context,owner);
+            if(interrupted)cancel();
             while (job.state === 'running' && !interrupted) {
                 await new Promise(r => setTimeout(r, 100));
                 job = service.job(job.id);
             }
+            if(interrupted)sourceError('cancelled');
+            return pretty(job);
         }
         finally {
             process.removeListener('SIGINT', cancel);
             process.removeListener('SIGTERM', cancel);
         }
-        if(interrupted)sourceError('cancelled');
-        return pretty(job);
     }
     const payload: Record<string, unknown> = { action, id, expected_revision: current.revision };
     if (action === 'add' || action === 'edit') {

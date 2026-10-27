@@ -47,6 +47,12 @@ try{await service.work(id);}finally{writeFileSync(join(root,id+'.done'),'');}
   await wait(()=>existsSync(join(root,first.id+'.started')));
   const cliEntry=fileURLToPath(new URL('../src/entry.js',import.meta.url));
   const args=['source','--config-dir',configDir,'refresh','shared','--project',root,'--json'];
+  // Interrupt immediately after durable registration, before start() returns.
+  // This deterministically covers the earlier-than-parent-poll signal window.
+  cli=spawn(process.execPath,['--input-type=module','-e',`const {SourceService}=await import(${JSON.stringify(module('../src/sources/service.js'))});const start=SourceService.prototype.start;SourceService.prototype.start=function(...args){const job=start.apply(this,args);if(!process.emit('SIGTERM'))process.exit(99);return job;};await import(${JSON.stringify(new URL('../src/entry.js',import.meta.url).href)});`,'consumer-cli',...args],{stdio:'pipe'});
+  const earlyExit=await new Promise<number|null>((resolve,reject)=>{cli!.once('exit',resolve);cli!.once('error',reject);});
+  assert.equal(earlyExit,2,'the signal listener must precede consumer registration');cli=undefined;
+  assert.deepEqual(source.job(first.id).consumers.map(c=>c.owner),['editor-a','editor-b']);
   // Windows kill() force-terminates Node instead of delivering its signal event.
   // An IPC trigger exercises the same production handler there; POSIX uses SIGTERM.
   cli=process.platform==='win32'?spawn(process.execPath,['--input-type=module','-e',`process.on('message',()=>process.emit('SIGTERM'));try{await import(${JSON.stringify(new URL('../src/entry.js',import.meta.url).href)});}finally{process.disconnect();}`,'consumer-cli',...args],{stdio:['ignore','pipe','pipe','ipc']}):spawn(process.execPath,[cliEntry,...args],{stdio:'pipe'});
