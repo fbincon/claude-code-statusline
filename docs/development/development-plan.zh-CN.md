@@ -2,11 +2,11 @@
 
 [English](development-plan.md) | **简体中文** · [路线总览](roadmap.zh-CN.md) · [开发指南](README.zh-CN.md)
 
-更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.9.1** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
+更新：**2026-10-28**（Asia/Shanghai）· 产品基线：**v3.9.2** · 规划基线：**`0f5638f613c8ffc9588a50d30ebc51f14549b1fb`**
 
-本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付，[v3.9.1 Native 容量与恢复](native-capacity.zh-CN.md)为当前产品基线。本轮正式后续包含十八个新增工作包与保留的 SHOWCASE-01。首批 FIX-01～FIX-04、I18N-01 已实现并进入 v3.9.2 验收，实际接口与证据见[正确性修复记录](correctness-maintenance.zh-CN.md)；其余未启动条目不分配版本或日期。
+本计划定义工作包范围、依赖、切片和功能验收，[路线图](roadmap.zh-CN.md#milestones)统一维护当前优先级与状态。M1–M12 保持已交付，[v3.9.2 正确性修复](correctness-maintenance.zh-CN.md)为当前产品基线，沿用 [v3.9.1 Native 容量与恢复](native-capacity.zh-CN.md)。本轮正式后续包含十八个新增工作包与保留的 SHOWCASE-01。首批 FIX-01～FIX-04、I18N-01 已随 v3.9.2 完成验收和发布，实际接口与证据见[正确性修复记录](correctness-maintenance.zh-CN.md)；其余未启动条目不分配版本或日期。
 
-已完成章节保留历史设计及验收意图，其中拟议字段和证据要求属于原计划；当前行为、身份与验证限制仍由链接的使用指南和交付记录维护。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史。[Issue #96 六项缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.9.1 专项决定](../releases/approvals/v3.9.1.json)记录该版本对缺口的接受，不代表缺失观察已通过。
+已完成章节保留历史设计及验收意图，其中拟议字段和证据要求属于原计划；当前行为、身份与验证限制仍由链接的使用指南和交付记录维护。原规划快照 `f68d26eeddda98ab4041d2b9e873ade556fa1909` 保留为历史。[Issue #96 六项缺口](https://github.com/fbincon/claude-code-statusline/issues/96)继续未验证，[v3.9.2 专项决定](../releases/approvals/v3.9.2.json)记录该版本对缺口的接受，不代表缺失观察已通过。
 
 **导航：** [索引](#work-index) · [共同设计](#design-rules) · [审查基线](#review-baseline) · [未来工作](#future-work) · [Git 核查](#git-01) · [Windows 预览](#terminal-01) · [首次入口](#setup-02) · [版本管理](#update-01) · [选择性导入](#import-01) · [渐变](#appearance-04) · [对齐](#composition-03) · [演示](#showcase-01) · [候选边界](#candidate-boundaries) · [M4–M7 设计](#appearance-03) · [早期设计](#delivered-designs) · [验收](#acceptance-matrix) · [交接](#handoff)
 
@@ -85,7 +85,7 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 | 任务语言依赖详情成功 | 源码先初始化英文、在偏好加载前注册／打开标题，并仅在任务读取成功后赋予已加载偏好。失败路径为源码确认，未新增宿主复现。 | I18N-01；Native 任务注册与刷新 |
 | 尚缺的界面／扩展能力 | 源码与维护指南确认四个主题、三个渐变预设、已有 GitHub 自动刷新、手动命令刷新、CLI 包管理及 Native／CLI 任务详情。外部交互任务详情、编辑器版本页与跨色块渐变属于拟新增能力。 | APPEARANCE-05／06、TASK-02、UPDATE-02、COMMAND-02 |
 
-[#154](https://github.com/fbincon/claude-code-statusline/issues/154)、[#155](https://github.com/fbincon/claude-code-statusline/issues/155)已关闭，分别有 [v3.9.1 交付证据](native-capacity.zh-CN.md)。后续保留传输／绘制树的独立约束，不将原报告当作当前实现而重复列为未修复。新工作包仍待实施验收；#96 六项缺口保持原有未验证状态。
+[#154](https://github.com/fbincon/claude-code-statusline/issues/154)、[#155](https://github.com/fbincon/claude-code-statusline/issues/155)已关闭，分别有 [v3.9.1 交付证据](native-capacity.zh-CN.md)。后续保留传输／绘制树的独立约束，不将原报告当作当前实现而重复列为未修复。五项正确性工作包已完成[验收与发布](correctness-maintenance.zh-CN.md)，其余工作包仍待实施验收；#96 六项缺口保持原有未验证状态。
 
 <a id="future-work"></a>
 
@@ -105,6 +105,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 **验收。** 未知态阻止绑定／解绑、草稿替换和结构修改，包括已打开的管理器入口。覆盖已经保存、未提交、并发冲突及仍未知的回读；查看仍可用，恢复／重试不重复写入或抹除保留草稿。在既有套件中增加适用的 Native 交互回归。
 
+**交付：**v3.9.2 已完成，接口、回归与渠道证据见[正确性修复记录](correctness-maintenance.zh-CN.md)。
+
 <a id="fix-02"></a>
 
 ## FIX-02 进度条与标签统一组合
@@ -116,6 +118,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 **切片。** 固定数字／进度条的预期标签 → 修复共享组合 → 增加主栏／子代理针对性回归。
 
 **验收。** 覆盖既有、隐藏、短、自定义标签与图标、阈值及六语言组合。断言百分比／方向保留、标签不重复、字素与颜色重置完整，并遵守既有宽度；仅宽度断言不能证明文字含义正确。
+
+**交付：**v3.9.2 已完成，接口、回归与渠道证据见[正确性修复记录](correctness-maintenance.zh-CN.md)。
 
 <a id="fix-03"></a>
 
@@ -129,6 +133,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 **验收。** 覆盖两个编辑器、编辑器与 CLI、手动与自动刷新共享身份。一个退出不影响另一个；最后使用关系释放、显式取消、来源停用／修改和续租到期结果不同且可解释。迟到结果不能发布到其他修订或上下文。
 
+**交付：**v3.9.2 已完成，接口、回归与渠道证据见[正确性修复记录](correctness-maintenance.zh-CN.md)。
+
 <a id="fix-04"></a>
 
 ## FIX-04 扩展诊断的时间与代理适用性
@@ -141,6 +147,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 
 **验收。** 覆盖更早／相同／较晚／未知时间、过期和部分数据、零值、多个代理复用组件及不同组件副本。较晚的值或 PR／检查附加字段不能影响历史输出或成为当前证据。仅输入诊断继续只读且不读取来源。
 
+**交付：**v3.9.2 已完成，接口、回归与渠道证据见[正确性修复记录](correctness-maintenance.zh-CN.md)。
+
 <a id="i18n-01"></a>
 
 ## I18N-01 独立初始化任务详情语言
@@ -152,6 +160,8 @@ M1 → M2 → M3 → M4–M7 记录历史交付顺序。SHOWCASE-01 曾安排在
 **切片。** 分离偏好和任务结果初始化 → 本地化首次展示及重试 → 覆盖失败转换。
 
 **验收。** 六语言覆盖首次打开、无数据、任务失败、重试及切换语言后重开，包括偏好读取失败和偏好成功后任务失败。检查标题、说明、控件和指引，不只检查消息键齐全。
+
+**交付：**v3.9.2 已完成，接口、回归与渠道证据见[正确性修复记录](correctness-maintenance.zh-CN.md)。
 
 <a id="appearance-05"></a>
 
