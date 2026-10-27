@@ -1978,7 +1978,9 @@ export const LOCALES = {
     "native.capacity.failed": "The editor cannot draw this view.",
     "native.capacity.saved": "The last save succeeded. Retry only redraws the editor.",
     "native.capacity.unknown": "Save outcome unknown. Check saved state before retrying.",
-    "native.capacity.retained": "Received draft retained; retry does not save or discard it."
+    "native.capacity.retained": "Received draft retained; retry does not save or discard it.",
+    "statusline.indicator.remaining": "{percentage}% left",
+    "statusline.indicator.used": "{percentage}% used"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3950,7 +3952,9 @@ export const LOCALES = {
     "native.capacity.failed": "编辑器暂时无法绘制此视图。",
     "native.capacity.saved": "上次保存已成功；重试只会重新绘制界面。",
     "native.capacity.unknown": "保存结果未知，请先核对已保存状态。",
-    "native.capacity.retained": "已接收的草稿仍保留；重试不会保存或丢弃草稿。"
+    "native.capacity.retained": "已接收的草稿仍保留；重试不会保存或丢弃草稿。",
+    "statusline.indicator.remaining": "剩余 {percentage}%",
+    "statusline.indicator.used": "已用 {percentage}%"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5922,7 +5926,9 @@ export const LOCALES = {
     "native.capacity.failed": "編輯器暫時無法繪製此檢視。",
     "native.capacity.saved": "上次儲存已成功；重試只會重新繪製介面。",
     "native.capacity.unknown": "儲存結果未知，請先核對已儲存狀態。",
-    "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。"
+    "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。",
+    "statusline.indicator.remaining": "剩餘 {percentage}%",
+    "statusline.indicator.used": "已用 {percentage}%"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7894,7 +7900,9 @@ export const LOCALES = {
     "native.capacity.failed": "編輯器暫時無法繪製此畫面。",
     "native.capacity.saved": "上次儲存已成功；重試只會重新繪製介面。",
     "native.capacity.unknown": "儲存結果未知，請先核對已儲存狀態。",
-    "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。"
+    "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。",
+    "statusline.indicator.remaining": "剩餘 {percentage}%",
+    "statusline.indicator.used": "已用 {percentage}%"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9866,7 +9874,9 @@ export const LOCALES = {
     "native.capacity.failed": "この画面を描画できません。",
     "native.capacity.saved": "前回の保存は成功しました。再試行は再描画のみです。",
     "native.capacity.unknown": "保存結果が不明です。再試行前に保存状態を確認してください。",
-    "native.capacity.retained": "受信済みの下書きは保持されています。再試行では保存も破棄もしません。"
+    "native.capacity.retained": "受信済みの下書きは保持されています。再試行では保存も破棄もしません。",
+    "statusline.indicator.remaining": "残り {percentage}%",
+    "statusline.indicator.used": "使用 {percentage}%"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11838,7 +11848,9 @@ export const LOCALES = {
     "native.capacity.failed": "이 화면을 그릴 수 없습니다.",
     "native.capacity.saved": "마지막 저장이 완료되었습니다. 재시도는 화면만 다시 그립니다.",
     "native.capacity.unknown": "저장 결과를 알 수 없습니다. 재시도 전에 저장 상태를 확인하세요.",
-    "native.capacity.retained": "받은 초안은 유지됩니다. 재시도는 초안을 저장하거나 버리지 않습니다."
+    "native.capacity.retained": "받은 초안은 유지됩니다. 재시도는 초안을 저장하거나 버리지 않습니다.",
+    "statusline.indicator.remaining": "{percentage}% 남음",
+    "statusline.indicator.used": "{percentage}% 사용"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

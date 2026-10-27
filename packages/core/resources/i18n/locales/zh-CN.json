@@ -1968,5 +1968,7 @@
   "native.capacity.failed": "编辑器暂时无法绘制此视图。",
   "native.capacity.saved": "上次保存已成功；重试只会重新绘制界面。",
   "native.capacity.unknown": "保存结果未知，请先核对已保存状态。",
-  "native.capacity.retained": "已接收的草稿仍保留；重试不会保存或丢弃草稿。"
+  "native.capacity.retained": "已接收的草稿仍保留；重试不会保存或丢弃草稿。",
+  "statusline.indicator.remaining": "剩余 {percentage}%",
+  "statusline.indicator.used": "已用 {percentage}%"
 }

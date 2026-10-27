@@ -1968,5 +1968,7 @@
   "native.capacity.failed": "The editor cannot draw this view.",
   "native.capacity.saved": "The last save succeeded. Retry only redraws the editor.",
   "native.capacity.unknown": "Save outcome unknown. Check saved state before retrying.",
-  "native.capacity.retained": "Received draft retained; retry does not save or discard it."
+  "native.capacity.retained": "Received draft retained; retry does not save or discard it.",
+  "statusline.indicator.remaining": "{percentage}% left",
+  "statusline.indicator.used": "{percentage}% used"
 }

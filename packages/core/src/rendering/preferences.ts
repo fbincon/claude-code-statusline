@@ -44,8 +44,8 @@ const SYMBOLS = '✓⏱✗■…⏳⚡', ICONS: Record<string, readonly [
     string,
     string
 ]> = { model: ['◆', 'M'], location: ['⌂', 'D'], repo: ['↗', 'G'], context: ['◉', 'C'], limits: ['◷', 'L'], usage: ['∑', 'U'], task: ['›', '>'] };
-export function decorate(text: string, item: string, scope: Scope, fmt: FormattingDraft, options: ItemOptionsDraft, language: Presentation): string {
-    if (fmt.labels === 'legacy' && fmt.icons === 'legacy' && options.label === null && options.icon === null)
+export function decorate(text: string, item: string, scope: Scope, fmt: FormattingDraft, options: ItemOptionsDraft, language: Presentation, indicator?: { bar: string; label: string }): string {
+    if (!indicator && fmt.labels === 'legacy' && fmt.icons === 'legacy' && options.label === null && options.icon === null)
         return text;
     const ownsIcon = (scope === 'main' ? ['task-timer'] : ['status', 'status-elapsed']).includes(item), custom = options.label !== null;
     const prefix = custom || fmt.labels !== 'legacy' ? language.prefix(scope, item) : null;
@@ -64,6 +64,10 @@ export function decorate(text: string, item: string, scope: Scope, fmt: Formatti
         return null;
     };
     const label = custom ? options.label! : fmt.labels === 'short' ? language.shortLabel(scope, item) : '';
+    if (indicator) {
+        const legacy = !custom && fmt.labels === 'legacy';
+        return [getIcon(), ...(legacy ? [indicator.bar, indicator.label] : [label, indicator.bar]), text].filter(Boolean).join(' ');
+    }
     if (!removesIcon && !removesLabel) {
         const icon = getIcon();
         let value = (icon ? icon + ' ' : '') + (label ? label + ' ' : '') + text;

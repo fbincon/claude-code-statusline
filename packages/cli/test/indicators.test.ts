@@ -108,7 +108,7 @@ test('bars retain semantics with labels off, ASCII/no color, narrow rows and ind
     const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + lang);
     const language = new Presentation(lang, MESSAGES);
     const value = indicator({ context_window: { used_percentage: 50 } }, 'context-used', 'main', cfg.instances[0]!.options, { ...cfg.formatting, icons: 'ascii' }, language, 0)!;
-    assert.match(value, /^\[####----\]/);
+    assert.match(value, /^C 界👩‍💻 \[####----\]/);
     assert(value.includes('50'));
     for (const width of [40, 80, 120]) {
       const output = rendered({ context_window: { used_percentage: 50 } }, cfg, { language }, width);
@@ -126,4 +126,31 @@ test('bars retain semantics with labels off, ASCII/no color, narrow rows and ind
   const numeric = renderTask(half, remaining, env, 80);
   remaining = setField(remaining, 'presentation', 'bar', 'subagent', 'context-remaining');
   assert(renderTask(half, remaining, env, 80).endsWith(numeric));
+});
+
+test('production bars compose owned labels once in both scopes and all six languages', async () => {
+  for (const lang of LANGUAGES) {
+    const { MESSAGES } = await import('@fbincon/statusline-core/i18n/statusline/' + lang);
+    const language = new Presentation(lang, MESSAGES);
+    for (const scope of ['main', 'subagent'] as const) {
+      const ids = scope === 'main' ? ['context-remaining', 'context-used', 'five-hour-limit', 'weekly-limit', 'spend-limit'] : ['context-remaining', 'context-used'];
+      for (const id of ids) for (const mode of ['legacy', 'off', 'short', 'custom'] as const) {
+        let cfg = scope === 'main' ? config([id]) : agentConfig([id]);
+        const icons = mode === 'short' ? 'unicode' : mode === 'custom' ? 'ascii' : 'legacy';
+        for (const [key, value] of [['presentation', 'bar'], ['bar_style', 'ascii'], ['labels', mode === 'custom' ? 'off' : mode], ['icons', icons]] as const)
+          cfg = setField(cfg, key, value, scope, id);
+        if (mode === 'custom') cfg = setField(cfg, 'label', 'CTX👩‍💻', scope, id);
+        const input = { context_window: { used_percentage: 50, remaining_percentage: 50 }, rate_limits: { five_hour: { used_percentage: 50 }, seven_day: { used_percentage: 50 }, spend_limit: { used_percentage: 50 } } };
+        const value = language.text(id === 'context-used' ? 'indicator.used' : 'indicator.remaining', { percentage: '50' });
+        const label = mode === 'legacy' ? language.prefix(scope, id) : mode === 'short' ? language.shortLabel(scope, id) : mode === 'custom' ? 'CTX👩‍💻' : '';
+        const icon = icons === 'unicode' ? id.startsWith('context') ? '◉' : '◷' : icons === 'ascii' ? id.startsWith('context') ? 'C' : 'L' : '';
+        const expected = [icon, ...(mode === 'legacy' ? ['[####----]', label] : [label, '[####----]']), value].filter(Boolean).join(' ');
+        for (const width of [40, 80, 120]) {
+          const output = scope === 'main' ? rendered(input, cfg, { language }, width) : renderTask(task({ tokenCount: 100000 }), cfg, { ...env, language }, width);
+          assert.equal(output.replaceAll('\n', ''), scope === 'subagent' && displayWidth(expected) > width ? '' : expected, `${lang}/${scope}/${id}/${mode}/${width}`);
+          assert(output.split('\n').every(row => displayWidth(row) <= width));
+        }
+      }
+    }
+  }
 });
