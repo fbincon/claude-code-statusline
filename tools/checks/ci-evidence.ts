@@ -25,11 +25,15 @@ export interface CompleteEvidence {
     acceptance_sha256: string; input_file_sha256: string; compiled: Record<string, string>;
     artifacts: ArtifactIdentity[]; executions: any[];
 }
-export function policyDigest(revision: string): string {
+/** Release registrations are data; executable release checks remain acceptance policy. */
+export function acceptancePolicyPath(path: string): boolean {
+    return path.startsWith('.github/workflows/') || /^(?:tools\/(?:checks|build|release|acceptance|typescript)\/|packages\/core\/src\/node-runtime\.ts$)/u.test(path) && !/\/test\//u.test(path);
+}
+export function policyDigest(revision: string, read = git): string {
     assert(SHA.test(revision));
-    const lines = git('ls-tree', '-r', revision).split('\n').filter(line => {
+    const lines = read('ls-tree', '-r', revision).split('\n').filter(line => {
         const path = line.split('\t')[1] ?? '';
-        return path.startsWith('.github/workflows/') || /^(?:tools\/(?:checks|build|release|acceptance|typescript)\/|packages\/core\/src\/node-runtime\.ts$)/u.test(path) && !/\/test\//u.test(path);
+        return acceptancePolicyPath(path);
     });
     assert(lines.length > 0); return digest(lines.sort().join('\n'));
 }
@@ -49,8 +53,16 @@ export function artifactIdentity(value: any, now = Date.now()): ArtifactIdentity
     return { id: value.id, name: value.name, digest: value.digest, expires_at: value.expires_at };
 }
 export function newestArtifact(artifacts: any[], name: string): any {
-    const matching = artifacts.filter(value => value.name === name).sort((a, b) => b.id - a.id);
-    assert(matching.length, 'Missing artifact: ' + name); artifactIdentity(matching[0]); return matching[0];
+    const matching = artifacts.filter(value => value.name === name);
+    assert(matching.length, 'Missing artifact: ' + name);
+    if (matching.length > 1) {
+        // Artifact IDs identify objects, not chronology: retries can receive smaller IDs.
+        for (const value of matching) assert(typeof value.created_at === 'string' && Number.isFinite(Date.parse(value.created_at)), 'Missing artifact creation time');
+        matching.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+        assert(Date.parse(matching[0].created_at) > Date.parse(matching[1].created_at), 'Ambiguous artifact creation time');
+    }
+    // Never fall back to an older artifact when the newest is expired, corrupt or failed.
+    artifactIdentity(matching[0]); return matching[0];
 }
 export function selectCompleteArtifacts(artifacts: any[]): ArtifactIdentity[] {
     const names = [...new Set<string>(artifacts.map(value => value.name).filter(name => name === 'ts06-candidate' || name === 'ci-compiled-tests' || /^ts06-(?:installed|runtime|mods)-/u.test(name)))].sort();

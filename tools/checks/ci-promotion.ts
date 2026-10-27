@@ -72,10 +72,11 @@ export async function verifyPromotion(selection: PromotionSelection, evidence: s
     assert.equal(previous.status, accepted.status); assert.equal(previous.commit, selection.source_commit); assert.equal(previous.tarball_sha256, checked.sha256);
     assert.equal(previous.application_version, record.version);
     // Recheck version-scoped approval from the immutable source, not the current working tree.
-    const { assessStableApproval, stableApprovalPath } = await import('../release/approval.js');
+    const { sourceStableApproval } = await import('../release/approval.js');
     if (checked.source.channel === 'stable') {
-        const raw = checked.sourceEntries.get(stableApprovalPath(record.version)); assert(raw);
-        assessStableApproval(JSON.parse(raw.toString('utf8')), record.version); assert.equal(previous.stable_ready, true);
+        const approval = sourceStableApproval(checked.sourceEntries, record.version);
+        assert.deepEqual(previous.maintainer_approval, approval, 'Original approval evidence differs');
+        assert.equal(previous.stable_ready, true);
     } else { assert.equal(checked.source.channel, 'preview'); assert.equal(previous.preview_ready, true); }
     assert.deepEqual(record.toolchain, { node: checked.source.node, npm: checked.source.npm, typescript: checked.source.typescript, lock_sha256: checked.source.lock_sha256 });
     if (selection.route === 'main') {

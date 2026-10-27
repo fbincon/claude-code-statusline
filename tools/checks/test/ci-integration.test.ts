@@ -21,7 +21,7 @@ function integrated() {
     const record = { schema_version: 1, kind: 'main-promotion', status: 'pass', repository: source.record.repository, run_id: 44, attempt: 2,
         integration: selection.integration, source_commit: commit, source_run: run.id, source_envelope: selection.source_envelope,
         source_record_sha256: digest(JSON.stringify(source.record)), delivery: source.record.delivery, policy_sha256: source.record.policy_sha256,
-        artifacts: artifacts.map(({ expired: _, ...row }) => row), smokes: SMOKE_TARGETS.map((target, index) => ({
+        artifacts: artifacts.map(({ expired: _, created_at: __, ...row }) => row), smokes: SMOKE_TARGETS.map((target, index) => ({
             schema_version: 1, kind: 'integration-smoke', status: 'pass', target, integration_commit: merge, source_commit: commit,
             tarball_sha256: hash, node: 'v24.21.0', node_sha256: hash,
             platform: ['linux', 'win32', 'darwin'][index], arch: index === 2 ? 'arm64' : 'x64',

@@ -11,7 +11,18 @@ test('complete evidence retains exact source, coverage and immutable original ar
     const { record, artifacts } = fixture(); assert.doesNotThrow(() => validateComplete(record, run, artifacts));
     assert.equal(selectCompleteArtifacts(artifacts).length, 50);
     // A prior failed-attempt artifact with the same name cannot override the selected one.
-    assert.equal(newestArtifact([{ ...artifacts[0], id: 1 }, ...artifacts], 'ts06-candidate').id, 100);
+    assert.equal(newestArtifact([{ ...artifacts[0], id: 999, created_at: new Date(now - 1000).toISOString() }, ...artifacts], 'ts06-candidate').id, 100);
+});
+test('artifact chronology uses creation time, rejects ambiguity and never hides a bad latest retry', () => {
+    const { artifacts } = fixture(), name = artifacts[0]!.name;
+    // Observed IDs from PR #168: the successful retry had the smaller ID.
+    const old = { ...artifacts[0], id: 12776825299, created_at: new Date(now - 2000).toISOString() };
+    const retry = { ...artifacts[0], id: 12776328589, created_at: new Date(now - 1000).toISOString() };
+    assert.equal(newestArtifact([old, retry], name).id, retry.id);
+    assert.equal(newestArtifact([retry, old], name).id, retry.id);
+    for (const patch of [{ expired: true }, { digest: 'invalid' }, { expires_at: new Date(now - 1).toISOString() },
+        { created_at: undefined }, { created_at: 'invalid' }, { created_at: old.created_at }])
+        assert.throws(() => newestArtifact([old, { ...retry, ...patch }], name));
 });
 test('failed, cancelled, expired, corrupt, ambiguous and incomplete evidence fails closed', () => {
     for (const change of [{ status: 'in_progress' }, { conclusion: 'failure' }, { conclusion: 'cancelled' }, { head_sha: 'c'.repeat(40) }, { event: 'workflow_dispatch' }, { head_repository: { full_name: 'foreign/repo' } }]) {
@@ -32,7 +43,7 @@ test('failed, cancelled, expired, corrupt, ambiguous and incomplete evidence fai
     for (const change of [{ expired: true }, { digest: 'sha256:' + 'c'.repeat(64) }, { expires_at: new Date(now - 1).toISOString() }]) {
         const { record, artifacts } = fixture(); Object.assign(artifacts[0]!, change); assert.throws(() => validateComplete(record, run, artifacts));
     }
-    const { record, artifacts } = fixture(); artifacts.push({ ...artifacts[0]!, id: 999 }); assert.throws(() => validateComplete(record, run, artifacts), /Newer/);
+    const { record, artifacts } = fixture(); artifacts.push({ ...artifacts[0]!, id: 99, created_at: new Date(now + 1000).toISOString() }); assert.throws(() => validateComplete(record, run, artifacts), /Newer/);
 });
 test('latest failed exact source run cannot fall back to older green or unrelated runs', () => {
     assert.equal(latestRun([run], commit, 'main').id, run.id);
