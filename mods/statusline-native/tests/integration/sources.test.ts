@@ -9,6 +9,8 @@ test('unknown native save keeps source inspection available while blocking unbin
   f.behavior.process=(request,next)=>{
     if(request.operation==='sources_read')return {value:reply(library)};
     if(request.operation==='source_context')return {value:reply({project:null,session:null,agent:null,branch:null,head:null})};
+    if(request.operation==='source_refresh')return {value:reply({version:3,consumers:[{owner:request.payload.owner,expires_at:'2026-10-28T00:00:30Z'}],trigger:'manual',identity:'a'.repeat(64),id:'pending-refresh',source_id:'local',source_revision:'r1',owner:request.payload.owner,context:{project:null,session:null,agent:null,branch:null,head:null},started_at:'2026-10-28T00:00:00Z',deadline_at:'2026-10-28T00:00:30Z',state:'running',reason:'running'})};
+    if(request.operation==='source_release')return {value:reply({version:3,consumers:[],trigger:'manual',identity:'a'.repeat(64),id:'pending-refresh',source_id:'local',source_revision:'r1',owner:'editor',context:{project:null,session:null,agent:null,branch:null,head:null},started_at:'2026-10-28T00:00:00Z',deadline_at:'2026-10-28T00:00:30Z',state:'cancelled',reason:'no_consumers'})};
     const result=next();
     if(request.operation==='apply')return {value:output('{')};
     return result;
@@ -20,7 +22,12 @@ test('unknown native save keeps source inspection available while blocking unbin
   expect(f.calls.filter(c=>c.operation==='sources_apply').length).toBe(0);
   await keys(ui,{key:'g',ctrl:true},'return','down','down','down','return','return');
   expect(f.calls.filter(c=>c.operation==='sources_apply').length).toBe(0);
+  await keys(ui,{key:'g',ctrl:true},'return','down','down','down','down','return');
+  expect(f.calls.filter(c=>c.operation==='source_refresh').length).toBe(1);
+  await ui.press({key:'close'});
+  expect(f.calls.filter(c=>c.operation==='source_release').length).toBe(0);
   await keys(ui,{key:'g',ctrl:true},{key:'g',ctrl:true},'k');
+  expect(f.calls.filter(c=>c.operation==='source_release').length).toBe(1);
   expect(f.calls.filter(c=>c.operation==='apply').length).toBe(1);
   expect(f.store.draft.display.instances.find(node=>node.id==='external')!.source).toEqual(binding);
   await ui.unmount();

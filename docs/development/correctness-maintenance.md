@@ -20,7 +20,7 @@ GitHub jobs coalesce only for the same refresh identity. Jobs v3 retain immutabl
 
 Editor close and CLI interruption release only that consumer. `source_release {id,owner}` is idempotent; the last release cancels an execution only when no applicable automatic interest remains. `source cancel` explicitly cancels the entire execution. Automatic disablement/lease expiry preserves manual consumers; source edit/disable/removal invalidates old work. Process cancellation and final revision/context/authentication checks prevent late publication. `--no-wait` retains its bounded interest after returning. Command sources retain their single-running-job restriction.
 
-Closing a source manager also covers in-flight requests: a delayed context response cannot start a refresh, and a delayed refresh response releases the departed owner immediately. Reopening a manager does not adopt the earlier request.
+Closing a source manager also covers in-flight requests: a delayed context response cannot start a refresh, and a delayed refresh response releases the departed owner immediately. Reopening a manager does not adopt the earlier request. A native close refused because of an unresolved save retains the manager's consumers.
 
 Jobs v1/v2 are normalized on read without rewriting bytes. A running legacy job cannot be joined or taken over by the new generation; it may complete, expire or be explicitly cancelled. Display schema 15, source registry 2, observation 1, runtime 3 and UI preferences 1 are unchanged. Editor protocol 25 requires matching frontend/backend resources.
 

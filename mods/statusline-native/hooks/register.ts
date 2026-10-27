@@ -441,7 +441,6 @@ async function applyPreferences(
 }
 
 async function close($: EngineInterface, state: Session, options: PluginOptions) {
-  if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
   // A plugin's own API calls skip its hooks; guard programmatic close here too.
   if (state.writing || state.view.uncertain) {
     setMessage(state.view, "error", (state.writing ? localizedText("native.hooks.register.wait_for_the_apply_result_before_closing") : localizedText("native.hooks.register.check_the_saved_state_before_closing_the_save")));
@@ -449,6 +448,7 @@ async function close($: EngineInterface, state: Session, options: PluginOptions)
     return;
   }
   try {
+    if (state.view.editor?.sources) await closeSources(state.view.editor,{request:(operation,payload)=>callBackend($,options,operation,payload)});
     await $.ui.close({ id: PANE });
     const open = await $.ui.panes();
     if (!open.some((p) => p.id === PANE)) discard(state);
