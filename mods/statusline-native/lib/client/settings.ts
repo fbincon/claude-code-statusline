@@ -124,6 +124,7 @@ export function settingRows(view: View): SettingRow[] {
 
 export function adjustSetting(view: View, delta: -1 | 1): void {
   const e = view.editor!;
+  if (!e.canMutateDraft() && !['ui-language','preview-background'].includes(e.setting) && !e.setting.startsWith('host-')) { setMessage(view, 'message', e.compositionError);return; }
   const d = e.draft.display;
   const form = formRows(view).find((row) => row.key === e.setting);
   if (form) { adjustForm(view, form, delta); return; }

@@ -36,6 +36,7 @@ export function cancelInput(view: View): void {
 export function handleKey(view: View, event: NativeKeyEvent, columns: number, rows: number): Effect {
   const e = view.editor, key = event.key === 'space' ? ' ' : event.key;
   const shortcut = /^[A-Z]$/.test(key) ? key.toLowerCase() : key;
+  if (e) e.setSaveState(view.uncertain ? 'unknown' : view.busy ? 'pending' : 'idle');
   if (!e || view.busy) return null;
   if (event.overflow) { setMessage(view, 'message', localizedText('input.overflow')); return null; }
   if (e.alignmentManager) return alignmentsKey(e,event);

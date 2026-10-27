@@ -30,6 +30,7 @@ export function footer(state: State): { actions: Hint[]; help: Hint[] } {
         key, t('ui.hints.' + label, state.language),
         short ? t('ui.hints.' + short, state.language) : undefined,
     ];
+    if(e.saveState==='unknown')return {actions:[['Ctrl+K',t('editor.check_saved',state.language)]],help:[['Ctrl+Y',t('sources.title',state.language)]]};
     if (e.groupManager || e.alignmentManager) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help: [hint('↑↓','select'),hint('←→','adjust')] };
     if (e.sources) return {actions:[hint('Enter','accept'),hint('Esc/Ctrl+G','back')],help:[['Ctrl+S',t('sources.save',state.language)],['R',t('sources.reload',state.language)]]};
     if (e.profiles) return { actions: [hint('Enter','accept'),hint('Esc/Ctrl+G','back')], help:[hint('↑↓','select'),['R',t('profiles.refresh',state.language)]] };
@@ -94,6 +95,7 @@ export function notice(state: State, width: number): Paint[] {
     const e = state.editor;
     const tr = (key: string) => t(key, state.language);
     const message = renderMessage(state.localized.message ?? state.message, state.language);
+    if(e.saveState==='unknown')return [paint(tr('editor.save_unknown'),true)];
     if (e.quick) return [paint(t('quick.sample',state.language))];
     if (message) return [paint(message, true)];
     if (e.review) return [paint(tr(e.review.base ? 'review.selection.help' : 'review.intro'))];

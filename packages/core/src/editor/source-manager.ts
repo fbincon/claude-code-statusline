@@ -137,6 +137,7 @@ export function sourcesKey(editor: Editor, event: TextKey): 'sources' | null {
         else if (m.page === 'remove')
             m.effect = 'remove';
         else if (m.page === 'unbind') {
+            if (!editor.canMutateDraft()) { m.message=editor.compositionError;return null; }
             const target = targets(editor)[m.cursor];
             const node = target && editor.instance(target.scope, target.id);
             if (node?.source) {
@@ -174,6 +175,8 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
     m.effect = null;
     m.message = null;
     try {
+        const generation=editor.mutationGeneration;
+        if (effect === 'bind' && !editor.canMutateDraft()) { m.message=editor.compositionError;return; }
         if (effect === 'close') {
             await closeSources(editor, backend);
             return;
@@ -237,6 +240,7 @@ export async function performSourceAction(editor: Editor, backend: SourceBackend
         const result = await backend.request('sources_apply', payload);
         m.library = result;
         if (effect === 'bind' && m.target && result.binding) {
+            if (!editor.canMutateDraft(generation) || editor.sources !== m) { m.message=editor.compositionError;return; }
             const node = editor.instance(m.target.scope, m.target.id);
             if (node)
                 node.source = result.binding;

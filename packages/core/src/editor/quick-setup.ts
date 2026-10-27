@@ -75,6 +75,7 @@ export function quickView(quick: QuickSetup, language: Language, width: number, 
 export function controlQuick(editor: Editor, key: string): 'transfer' | 'save' | 'profiles' | null {
   const quick = editor.quick;
   if (!quick) return null;
+  if (!editor.canMutateDraft() && !['cancel','escape','tab','up','down','home','end','pageup','pagedown'].includes(key)) return null;
   const effect = quickKey(quick,key);
   if (effect === 'cancel') editor.quick = null;
   if (effect === 'preset') { editor.preset=quick.preset; editor.pendingTransfer='preset'; return 'transfer'; }

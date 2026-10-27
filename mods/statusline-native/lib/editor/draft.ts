@@ -16,6 +16,7 @@ import type {
   Draft,
   ReadResult,
   Scope,
+  ConfigTarget,
 } from '../generated-contracts.ts';
 import { NUMERIC_FIELDS, numericValue, numericDiagnostic } from './numeric.ts';
 import { bestMatch, fields, normalize } from './search.ts';
@@ -34,6 +35,10 @@ export function copyDraft(draft: Draft): Draft {
 
 export function sameDraft(left: Draft, right: Draft): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
+}
+export const definitiveSaveRefusal = (code: string): boolean => ['invalid_request','invalid_configuration','configuration_conflict','not_installed','ownership_mismatch','unsupported_protocol','unsupported_operation'].includes(code);
+export interface PendingSave {
+  draft: Draft; revision: string; target?: ConfigTarget; installation: ReadResult['installation'];
 }
 
 /** Pure tool draft. Persistence and host configuration calls live in the hook. */
@@ -66,6 +71,39 @@ export class Editor {
   buffers: Record<NumericField, string>;
   fieldErrors: Partial<Record<NumericField, string>> = {};
   fieldErrorMessages: Partial<Record<NumericField, LocalizedText>> = {};
+  saveState: 'idle' | 'pending' | 'unknown' = 'idle';
+  pendingSave: PendingSave | null = null;
+  mutationGeneration = 0;
+
+  canMutateDraft(generation = this.mutationGeneration): boolean {
+    if (this.saveState === 'idle' && generation === this.mutationGeneration) return true;
+    this.compositionError = text('editor.save_locked');
+    return false;
+  }
+  setSaveState(value: Editor['saveState']): void {
+    if (this.saveState !== value) this.mutationGeneration++;
+    this.saveState = value;
+  }
+  beginSave(): PendingSave {
+    if (!this.canMutateDraft()) throw new Error('A display save is already unresolved');
+    this.pendingSave = {draft:copyDraft(this.draft),revision:this.baseline.revision,installation:JSON.parse(JSON.stringify(this.baseline.installation)) as ReadResult['installation'],
+      ...(this.baseline.configuration ? {target:JSON.parse(JSON.stringify(this.baseline.configuration.target)) as ConfigTarget} : {})};
+    this.setSaveState('pending');
+    return this.pendingSave;
+  }
+  saveFailed(code: string): void {
+    const refused = definitiveSaveRefusal(code);
+    this.setSaveState(refused ? 'idle' : 'unknown');
+    if (refused) this.pendingSave = null;
+  }
+  reconcileSave(current: ReadResult): 'saved' | 'not_committed' | 'conflict' {
+    const submitted = this.pendingSave;
+    if (!submitted) throw new Error('No pending display save');
+    const outcome = sameDraft(current.draft,submitted.draft) && current.installed && JSON.stringify(current.installation) === JSON.stringify(submitted.installation) ? 'saved' : current.revision === submitted.revision ? 'not_committed' : 'conflict';
+    if (outcome === 'saved') this.committed(current);
+    else { this.pendingSave=null;this.setSaveState('idle'); }
+    return outcome;
+  }
 
   constructor(
     public readonly description: DescribeResult,
@@ -87,6 +125,7 @@ export class Editor {
   }
 
   replaceDraft(draft: Draft): void {
+    if (!this.canMutateDraft()) return;
     this.draft = copyDraft(draft);
     for (const scope of ['main', 'subagent'] as const) {
       this.order[scope] = nodes(this.draft,scope).map(i=>i.id);
@@ -157,6 +196,7 @@ export class Editor {
     this.adding=false;this.pickerSaved=null;
   }
   instanceAction(scope: Scope, action:'add'|'copy'|'remove', typeId?:string): boolean {
+    if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
     const draft=copyDraft(this.draft), list=nodes(draft,scope);
     const selected=this.adding ? this.pickerSaved?.selected : this.selected[scope];
@@ -202,6 +242,7 @@ export class Editor {
   }
 
   toggle(scope: Scope, id: string): boolean {
+    if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
     if(this.adding)return this.instanceAction(scope,'add',id);
     const draft=copyDraft(this.draft),node=nodes(draft,scope).find(i=>i.id===id);
@@ -212,6 +253,7 @@ export class Editor {
   }
 
   move(scope: Scope, delta: -1 | 1): boolean {
+    if (!this.canMutateDraft()) return false;
     this.compositionError = text('composition.invalid');
     if (this.adding || this.filtered(scope)) return false;
     const visible = this.visible(scope).map((item) => item.id as string);
@@ -238,6 +280,7 @@ export class Editor {
   }
 
   setBuffer(field: NumericField, value: string): void {
+    if (!this.canMutateDraft()) return;
     this.activeNumeric = field;
     this.buffers[field] = value;
     delete this.fieldErrors[field];
@@ -254,6 +297,7 @@ export class Editor {
   }
 
   acceptNumeric(field?: NumericField): boolean {
+    if (!this.canMutateDraft()) return false;
     const values: Partial<Record<NumericField, number | 'event'>> = {};
     const fields = field ? [field] : NUMERIC_FIELDS;
     for (const key of fields) {
@@ -273,6 +317,7 @@ export class Editor {
   }
 
   committed(current: ReadResult): void {
+    this.pendingSave=null;this.setSaveState('idle');
     this.baseline = { ...current, draft: copyDraft(current.draft) };
     this.draft = copyDraft(current.draft);
     this.cancelNumeric();

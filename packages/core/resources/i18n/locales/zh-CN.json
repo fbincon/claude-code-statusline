@@ -1970,5 +1970,12 @@
   "native.capacity.unknown": "保存结果未知，请先核对已保存状态。",
   "native.capacity.retained": "已接收的草稿仍保留；重试不会保存或丢弃草稿。",
   "statusline.indicator.remaining": "剩余 {percentage}%",
-  "statusline.indicator.used": "已用 {percentage}%"
+  "statusline.indicator.used": "已用 {percentage}%",
+  "editor.save_locked": "修改显示草稿前，请先核对尚未确定的保存结果。",
+  "editor.save_unknown": "保存结果未知。Ctrl+K 只读核对已保存状态，不会再次保存。",
+  "editor.check_saved": "核对保存状态",
+  "editor.saved": "提交的显示配置已保存。",
+  "editor.not_committed": "未提交显示更改，可以继续编辑保留的草稿。",
+  "editor.conflict": "配置冲突。草稿已保留；取消并重新打开可加载已保存配置。",
+  "editor.still_unknown": "保存结果仍未知：{detail}"
 }

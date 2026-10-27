@@ -123,7 +123,6 @@ interface Session {
   previewKey: string;
   previewTimer: Timer | null;
   writing: boolean;
-  pendingSave: { draft: Draft; revision: string } | null;
 }
 
 function discard(state: Session): void {
@@ -133,7 +132,6 @@ function discard(state: Session): void {
   state.view = emptyView();
   state.previewKey = '';
   state.writing = false;
-  state.pendingSave = null;
   state.ack = 0;
   state.placed = false;
   state.clientFault = '';
@@ -229,26 +227,21 @@ async function reconcile(
   options: PluginOptions,
 ) {
   const editor = state.view.editor;
-  const submitted = state.pendingSave;
+  const submitted = editor?.pendingSave;
   if (!editor || !submitted || state.writing) return;
   const saving = state.epoch;
   state.writing = true;
   setMessage(state.view, "busy", localizedText("native.hooks.register.checking_saved_configuration"));
   $.ui.invalidate('ui.render');
   try {
-    const current = await callBackend($, options, 'read', editor.baseline.configuration ? { target: editor.baseline.configuration.target } : {});
+    const current = await callBackend($, options, 'read', submitted.target ? { target: submitted.target } : {});
     if (state.epoch !== saving) return;
-    if (
-      sameDraft(current.draft, submitted.draft) &&
-      current.installed &&
-      JSON.stringify(current.installation) ===
-        JSON.stringify(editor.baseline.installation)
-    ) {
-      editor.committed(current);
+    const outcome = editor.reconcileSave(current);
+    if (outcome === 'saved') {
       state.saveOutcome = 'saved';
       setMessage(state.view, "message", localizedText("native.hooks.register.the_submitted_tool_configuration_is_saved"));
       state.view.error = '';
-    } else if (current.revision === submitted.revision) {
+    } else if (outcome === 'not_committed') {
       state.saveOutcome = 'refused';
       setMessage(state.view, "message", localizedText("native.hooks.register.no_tool_changes_were_committed_review_the_draft"));
       state.view.error = '';
@@ -256,8 +249,7 @@ async function reconcile(
       state.saveOutcome = 'refused';
       setMessage(state.view, "error", localizedText("native.hooks.register.configuration_conflict_saved_configuration_differs_discard_the_draft"));
     }
-    state.pendingSave = null;
-    state.view.uncertain = false;
+      state.view.uncertain = false;
   } catch (failure) {
     if (state.epoch === saving)
       setMessage(state.view, "error", localizedText("native.hooks.register.save_outcome_remains_unknown", {value0: failureMessage(failure)}));
@@ -286,11 +278,7 @@ async function save(
     return;
   }
   const saving = state.epoch;
-  const submitted = {
-    draft: copyDraft(editor.draft),
-    revision: editor.baseline.revision,
-  };
-  state.pendingSave = submitted;
+  const submitted = editor.beginSave();
   state.saveOutcome = 'pending';
   state.writing = true;
   setMessage(state.view, "busy", localizedText("native.hooks.register.saving_tool_configuration"));
@@ -305,26 +293,16 @@ async function save(
     });
     if (state.epoch !== saving) return;
     editor.committed(result);
-    state.pendingSave = null;
-    saved = true;
+      saved = true;
     state.saveOutcome = 'saved';
     setMessage(state.view, "message", (result.changed ? localizedText("native.hooks.register.tool_configuration_saved_later_statusline_refreshes_use_these") : localizedText("native.hooks.register.tool_configuration_is_already_current")));
   } catch (failure) {
     if (state.epoch !== saving) return;
     const error = processFailure(failure);
     setMessage(state.view, "error", failureMessage(error));
-    const refused = [
-      'invalid_request',
-      'invalid_configuration',
-      'configuration_conflict',
-      'not_installed',
-      'ownership_mismatch',
-      'unsupported_protocol',
-      'unsupported_operation',
-    ].includes(error.code);
-    state.view.uncertain = !refused;
-    state.saveOutcome = refused ? 'refused' : 'unknown';
-    if (refused) state.pendingSave = null;
+    editor.saveFailed(error.code);
+    state.view.uncertain = editor.saveState === 'unknown';
+    state.saveOutcome = state.view.uncertain ? 'unknown' : 'refused';
   } finally {
     if (state.epoch === saving) {
       state.writing = false;
@@ -606,7 +584,6 @@ export const register: Register = (on, options) => {
     previewKey: '',
     previewTimer: null,
     writing: false,
-    pendingSave: null,
   };
 
   on('session.start', async ($, e, next) => {
@@ -734,7 +711,7 @@ export const register: Register = (on, options) => {
         else if (effect === 'profiles' && state.view.editor) {
           state.writing = true;
           try { await performProfileAction(state.view.editor, { request: (operation, payload) => callBackend($, options, operation, payload) }); }
-          finally { state.writing = false; state.previewKey = ''; }
+          finally { state.writing = false; state.previewKey = ''; state.view.uncertain = state.view.editor?.saveState === 'unknown'; if(state.view.uncertain)state.saveOutcome='unknown'; }
         }
         else if (effect === 'applyPreferences')
           await applyPreferences($, state, options);

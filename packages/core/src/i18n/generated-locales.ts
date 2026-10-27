@@ -1980,7 +1980,14 @@ export const LOCALES = {
     "native.capacity.unknown": "Save outcome unknown. Check saved state before retrying.",
     "native.capacity.retained": "Received draft retained; retry does not save or discard it.",
     "statusline.indicator.remaining": "{percentage}% left",
-    "statusline.indicator.used": "{percentage}% used"
+    "statusline.indicator.used": "{percentage}% used",
+    "editor.save_locked": "Check the pending save before changing the display draft.",
+    "editor.save_unknown": "Save outcome unknown. Ctrl+K checks saved state without saving again.",
+    "editor.check_saved": "Check saved state",
+    "editor.saved": "The submitted display configuration is saved.",
+    "editor.not_committed": "No display changes were committed. The retained draft can be edited.",
+    "editor.conflict": "Configuration conflict. The draft is retained; cancel and reopen to load the saved configuration.",
+    "editor.still_unknown": "Save outcome remains unknown: {detail}"
   },
   "zh-CN": {
     "preferences.read_failed": "无法读取 {path} 的界面偏好，使用英文：{detail}",
@@ -3954,7 +3961,14 @@ export const LOCALES = {
     "native.capacity.unknown": "保存结果未知，请先核对已保存状态。",
     "native.capacity.retained": "已接收的草稿仍保留；重试不会保存或丢弃草稿。",
     "statusline.indicator.remaining": "剩余 {percentage}%",
-    "statusline.indicator.used": "已用 {percentage}%"
+    "statusline.indicator.used": "已用 {percentage}%",
+    "editor.save_locked": "修改显示草稿前，请先核对尚未确定的保存结果。",
+    "editor.save_unknown": "保存结果未知。Ctrl+K 只读核对已保存状态，不会再次保存。",
+    "editor.check_saved": "核对保存状态",
+    "editor.saved": "提交的显示配置已保存。",
+    "editor.not_committed": "未提交显示更改，可以继续编辑保留的草稿。",
+    "editor.conflict": "配置冲突。草稿已保留；取消并重新打开可加载已保存配置。",
+    "editor.still_unknown": "保存结果仍未知：{detail}"
   },
   "zh-TW": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -5928,7 +5942,14 @@ export const LOCALES = {
     "native.capacity.unknown": "儲存結果未知，請先核對已儲存狀態。",
     "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。",
     "statusline.indicator.remaining": "剩餘 {percentage}%",
-    "statusline.indicator.used": "已用 {percentage}%"
+    "statusline.indicator.used": "已用 {percentage}%",
+    "editor.save_locked": "修改顯示草稿前，請先核對尚未確定的儲存結果。",
+    "editor.save_unknown": "儲存結果未知。Ctrl+K 唯讀核對已儲存狀態，不會再次儲存。",
+    "editor.check_saved": "核對儲存狀態",
+    "editor.saved": "提交的顯示設定已儲存。",
+    "editor.not_committed": "未提交顯示變更，可以繼續編輯保留的草稿。",
+    "editor.conflict": "設定衝突。草稿已保留；取消並重新開啟可載入已儲存設定。",
+    "editor.still_unknown": "儲存結果仍未知：{detail}"
   },
   "zh-HK": {
     "preferences.read_failed": "無法讀取 {path} 的介面偏好，使用英文：{detail}",
@@ -7902,7 +7923,14 @@ export const LOCALES = {
     "native.capacity.unknown": "儲存結果未知，請先核對已儲存狀態。",
     "native.capacity.retained": "已接收的草稿仍保留；重試不會儲存或捨棄草稿。",
     "statusline.indicator.remaining": "剩餘 {percentage}%",
-    "statusline.indicator.used": "已用 {percentage}%"
+    "statusline.indicator.used": "已用 {percentage}%",
+    "editor.save_locked": "修改顯示草稿前，請先核對尚未確定的儲存結果。",
+    "editor.save_unknown": "儲存結果未知。Ctrl+K 唯讀核對已儲存狀態，不會再次儲存。",
+    "editor.check_saved": "核對儲存狀態",
+    "editor.saved": "提交的顯示設定已儲存。",
+    "editor.not_committed": "未提交顯示變更，可以繼續編輯保留的草稿。",
+    "editor.conflict": "設定衝突。草稿已保留；取消並重新開啟可載入已儲存設定。",
+    "editor.still_unknown": "儲存結果仍未知：{detail}"
   },
   "ja": {
     "preferences.read_failed": "{path} の UI 設定を読み込めません。英語を使用します: {detail}",
@@ -9876,7 +9904,14 @@ export const LOCALES = {
     "native.capacity.unknown": "保存結果が不明です。再試行前に保存状態を確認してください。",
     "native.capacity.retained": "受信済みの下書きは保持されています。再試行では保存も破棄もしません。",
     "statusline.indicator.remaining": "残り {percentage}%",
-    "statusline.indicator.used": "使用 {percentage}%"
+    "statusline.indicator.used": "使用 {percentage}%",
+    "editor.save_locked": "表示の下書きを変更する前に、未確定の保存結果を確認してください。",
+    "editor.save_unknown": "保存結果は不明です。Ctrl+K で再保存せずに保存状態を確認します。",
+    "editor.check_saved": "保存状態を確認",
+    "editor.saved": "送信した表示設定は保存されています。",
+    "editor.not_committed": "表示の変更は保存されていません。保持された下書きを編集できます。",
+    "editor.conflict": "設定が競合しています。下書きは保持されています。キャンセルして開き直すと保存済み設定を読み込みます。",
+    "editor.still_unknown": "保存結果はまだ不明です: {detail}"
   },
   "ko": {
     "preferences.read_failed": "{path}의 UI 환경설정을 읽을 수 없어 영어를 사용합니다: {detail}",
@@ -11850,7 +11885,14 @@ export const LOCALES = {
     "native.capacity.unknown": "저장 결과를 알 수 없습니다. 재시도 전에 저장 상태를 확인하세요.",
     "native.capacity.retained": "받은 초안은 유지됩니다. 재시도는 초안을 저장하거나 버리지 않습니다.",
     "statusline.indicator.remaining": "{percentage}% 남음",
-    "statusline.indicator.used": "{percentage}% 사용"
+    "statusline.indicator.used": "{percentage}% 사용",
+    "editor.save_locked": "표시 초안을 변경하기 전에 미확정 저장 결과를 확인하세요.",
+    "editor.save_unknown": "저장 결과를 알 수 없습니다. Ctrl+K로 다시 저장하지 않고 저장 상태를 확인합니다.",
+    "editor.check_saved": "저장 상태 확인",
+    "editor.saved": "제출한 표시 설정이 저장되었습니다.",
+    "editor.not_committed": "표시 변경 사항이 저장되지 않았습니다. 보존된 초안을 편집할 수 있습니다.",
+    "editor.conflict": "설정 충돌입니다. 초안이 보존되었습니다. 취소하고 다시 열면 저장된 설정을 불러옵니다.",
+    "editor.still_unknown": "저장 결과를 아직 알 수 없습니다: {detail}"
   }
 } as const;
 export type MessageKey = keyof typeof LOCALES.en;

@@ -95,6 +95,7 @@ function options(draft: Draft, scope: 'main' | 'subagent', id: string) {
 }
 export function setFormValue(view: FormView, current: FormRow, raw: string | boolean): boolean {
     const e = view.editor!;
+    if (!e.canMutateDraft()) { setMessage(view, 'message', e.compositionError); return false; }
     const spec = current.spec;
     let value: unknown = raw;
     if (spec.kind === 'integer') {
