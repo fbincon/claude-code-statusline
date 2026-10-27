@@ -2,9 +2,9 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-[Future functional roadmap](roadmap.md#milestones) and [development work packages](development-plan.md#future-work) schedule M8–M13 as first-entry npm global installation → explicit upgrades/rollback → selective import → foreground/Powerline-background gradients → explicit main-row alignment → demonstrations after all selected functionality is accepted. GIT-01 and TERMINAL-01 are priority independent maintenance, with Windows preview outcomes carried into affected acceptance. All eight future packages remain NOT_STARTED, without assigned versions or dates. M4–M7 shipped in v3.7.0 and CI-01 is DONE; planning updates do not implement features.
+[The functional roadmap](roadmap.md#milestones) owns current priorities and work-package status; [the development plan](development-plan.md#future-work) defines scope, dependencies, slices and acceptance. Use those sources for the next task and the linked delivery records for implemented behavior. Planning edits do not implement features.
 
-[CI maintenance and Action identities](ci-maintenance.md) documents `npm run actions:check`, weekly update review and CI-01 evidence.
+[CI maintenance and Action identities](ci-maintenance.md) documents documentation-only checks, candidate evidence and promotion routes, `npm run actions:check` and weekly update review.
 
 [Contributing](../../CONTRIBUTING.md) covers feedback, translation and PR workflow; [repository maintenance](repository-governance.md) records main protection, security entry points, dependency alerts and release identity policy.
 
@@ -29,7 +29,7 @@ The active TypeScript workspace uses Node 24.21.0/npm 11.19.0. Normal workflows 
 ### Current development
 
 - [Repository agent guidance](../../AGENTS.md): shared workspace boundaries, canonical sources, validation and PR rules; maintained in English only.
-- [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): M8–M13 order, priority independent maintenance, scope, dependencies, compatibility and functional acceptance; functional/supporting/longer-term candidates have separate entry conditions and delivered designs/evidence remain separate.
+- [Product roadmap](roadmap.md), [future work packages](development-plan.md#future-work) and [candidate pool](roadmap.md#candidates): current priorities/status, confirmed findings, scope, dependencies, compatibility and focused functional acceptance; delivered designs and evidence remain separate.
 - [Architecture](architecture.md) and [shared contracts](contracts.md).
 - [Translation contribution guide](i18n.md).
 - [Testing and acceptance](testing.md).
