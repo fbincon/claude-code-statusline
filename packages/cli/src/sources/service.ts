@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { join, resolve, isAbsolute } from 'node:path';
 import { readdirSync, statSync, unlinkSync, mkdirSync, rmdirSync } from 'node:fs';
 import type { SourceDefinition, SourceContext, SourceReference, SourceJob, SourceObservation, SourcesResult, SourceMutationResult, SourceView, AutomaticStatus } from '@fbincon/statusline-core/contracts/ui';
-import { SOURCE_FILENAME, MAX_SOURCE_BYTES, emptyRegistry, registry, definition, sourceError, sourceId, sourceText, sourceContext, matchesScope, sameContext, observationContext, sourceView, emptyObservation, stamp, scalar } from '@fbincon/statusline-core/extensions/model';
+import { SOURCE_FILENAME, MAX_SOURCE_BYTES, emptyRegistry, registry, definition, sourceError, sourceId, sourceText, sourceContext, matchesScope, sameContext, observationContext, observationAt, sourceView, emptyObservation, stamp, scalar } from '@fbincon/statusline-core/extensions/model';
 import { object, ConfigError, integer } from '@fbincon/statusline-core/config/validation';
 import { readJson } from '@fbincon/statusline-core/json-read';
 import { revision } from '@fbincon/statusline-platform/hash';
@@ -279,7 +279,7 @@ export class SourceService {
         this.write(this.observationPath(source, context), { version: 1, current: observation, good: observation.value !== null && ['valid', 'partial'].includes(observation.state) ? observation : previous?.good ?? null });
         this.prune();
     }
-    view(ref: SourceReference | undefined, context: SourceContext, publishLocal = true): SourceView {
+    view(ref: SourceReference | undefined, context: SourceContext, publishLocal = true, historicalAt?: number): SourceView {
         const registry = this.read(), binding = registry.bindings.find(b => b.id === ref?.binding), source = registry.sources.find(s => s.id === binding?.source_id);
         if (!source || !source.enabled || !matchesScope(source.scope, context))
             return sourceView(source, context, null, null, this.now());
@@ -287,18 +287,18 @@ export class SourceService {
         if (source.kind === 'json') {
             const observed = readLocal(source, context);
             try {
-                if (publishLocal)
+                if (publishLocal && historicalAt === undefined)
                     this.publish(source, context, observed);
             }
             catch { /* Local cache is optional; report the actual read below. */ }
             const prior = this.stored(source, context);
-            return sourceView(source, context, observed, prior?.good ?? null, this.now());
+            return sourceView(source, context, observed, prior?.good ?? null, this.now(), historicalAt);
         }
         const data = this.stored(source, context);
-        const identity = data?.current.identity ?? data?.good?.identity;
+        const identity = historicalAt === undefined ? data?.current.identity ?? data?.good?.identity : (observationAt(data?.current ?? null, historicalAt) ?? observationAt(data?.good ?? null, historicalAt))?.identity;
         if (source.kind === 'github' && identity && (identity.auth_revision !== authRevision() || identity.host !== source.settings.host || identity.repository !== source.settings.repository || identity.account !== source.settings.account))
             return { ...sourceView(source, context, null, null, this.now()), state: 'mismatch', reason: 'identity' };
-        return sourceView(source, context, data?.current ?? null, data?.good ?? null, this.now());
+        return sourceView(source, context, data?.current ?? null, data?.good ?? null, this.now(), historicalAt);
     }
     diagnose(id: unknown, context: SourceContext): {
         source: SourceDefinition;
